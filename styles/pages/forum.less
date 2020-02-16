@@ -1,0 +1,481 @@
+body.forum, body.revisions {
+  #content {
+    padding-top: 15px;
+  }
+
+  #note_children {
+    .spinner-container {
+      position: static;
+      top: auto;
+      left: auto;
+      transform: none;
+      padding: 2rem 0;
+    }
+  }
+
+  .note-content {
+    font-size: .75rem;
+    strong {
+      padding-right: .25rem;
+      color: @orRed;
+    }
+    .note-content-value {
+      white-space: pre-wrap;
+    }
+    li {
+      padding: 1px 0;
+    }
+  }
+
+  .view-more-replies {
+    font-weight: bold;
+  }
+  .view-all-replies-container {
+    // background: transparent;
+    // padding: 0;
+    // margin-bottom: 1.125rem;
+
+    > span {
+      font-style: italic;
+      color: @subtleGray;
+      padding-right: .5rem;
+    }
+  }
+
+  .collapse-comment-tree {
+    float: left;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    padding: .5rem 1px .5rem 1px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: .75rem;
+    letter-spacing: -1px;
+    line-height: 1.125rem;
+    transition: .2s;
+
+    &:hover {
+      color: #fff;
+      font-weight: bold;
+      text-decoration: none;
+      text-shadow: none;
+      background-color: lighten(@mediumBlue, 10%);
+    }
+  }
+
+  .filter-row {
+    margin: 1rem 0;
+
+    span {
+      color: #555555;
+    }
+  }
+
+  .note_contents {
+    mjx-container + mjx-container {
+      margin-bottom: 0;
+    }
+    mjx-container:last-child {
+      margin-bottom: 1em;
+    }
+  }
+
+  .tooltip .tooltip-inner {
+    max-width: none;
+  }
+
+  .legacy-styles {
+
+    .note.panel {
+      padding-right: 0;
+      padding-bottom: .75rem;
+    }
+
+    // Note heading
+    h2.note_content_title {
+      font-size: 2rem;
+      font-weight: bold;
+      line-height: normal;
+      margin-bottom: .25rem;
+
+      a {
+        color: @darkBlue;
+      }
+      a:hover {
+        text-decoration: none;
+        cursor: text;
+        &.note_content_pdf {
+          cursor: pointer;
+        }
+      }
+      .note_content_pdf {
+        margin-left: 1.125rem;
+
+        &.html-link {
+          margin-left: .5rem;
+        }
+        img {
+          width: 2rem;
+          height: 2rem;
+          margin-top: -17px;
+        }
+      }
+      &.pull-left {
+        // Leave enough room for the edit and delete buttons
+        max-width: ~'calc(100% - 85px)';
+      }
+
+      @media @phone-only {
+        font-size: 1.75rem;
+        margin-bottom: .5rem;
+
+        .note_content_pdf img {
+          margin-top: -15px;
+        }
+      }
+    }
+
+    div.note_contents {
+      padding-left: 0;
+      margin-top: .125rem;
+      margin-bottom: .125rem;
+      line-height: 1.125rem;
+
+      .note_content_field {
+        color: @orRed;
+        padding-right: 4px;
+      }
+    }
+
+    .meta_row {
+      margin-right: 0.625rem;
+
+      &.pull-left {
+        max-width: ~'calc(100% - 160px)';
+        @media @phone-only {
+          max-width: none;
+        }
+      }
+      .signatures, .author {
+        font-size: 1rem;
+        font-style: italic;
+        a {
+          color: @darkBlue;
+        }
+      }
+      .readers-icon {
+        font-size: .875rem;
+        padding-left: .25rem;
+      }
+      .private-author-label {
+        font-size: .875rem;
+        font-style: italic;
+      }
+      .trash_button, .edit_button {
+        margin-top: -1px;
+        margin-right: 0.3em;
+      }
+    }
+
+    .meta_actions {
+      float: right;
+      margin-right: 0;
+
+      button:last-child {
+        margin-right: 0;
+      }
+      .trash_button, .edit_button {
+        display: inline-block;
+        float: none;
+      }
+    }
+
+    .note-tags-toggle {
+      font-size: .75rem;
+      font-weight: bold;
+    }
+
+    .reply_row {
+      margin-top: .5rem;
+      margin-right: 0;
+
+      .hint {
+        line-height: 18px;
+        margin-right: .5rem;
+      }
+      button:last-child {
+        margin-right: 0;
+      }
+
+      #reply_count {
+        float: left;
+        font-size: .875rem;
+        line-height: 18px;
+        color: @darkBlue;
+        font-weight: bold;
+        padding-top: 5px;
+      }
+
+      @media @phone-only {
+        margin-top: .5rem;
+      }
+    }
+
+    hr {
+      margin: .25rem 0;
+    }
+
+    // Comments, reviews, replies, etc.
+    #note_children {
+      margin-top: 1rem;
+
+      > div {
+        background: rgba(0, 0, 0, 0.04);
+        padding: .5rem;
+        padding-left: 1.5rem;
+        margin-top: .75rem;
+      }
+      .note.panel {
+        padding: 0;
+
+        &:hover {
+          h2.note_content_title .btn-default {
+            opacity: 1;
+          }
+        }
+      }
+      h2.note_content_title {
+        font-size: 1.125rem;
+        line-height: 1.125rem;
+        margin-bottom: 0;
+
+        .btn-default {
+          margin-top: -4px;
+          margin-left: .5rem;
+          background: transparent;
+          border: 2px solid transparent;
+          opacity: 0;
+
+          &:hover {
+            background-color: @backgroundGray;
+            border-color: @subtleGray;
+          }
+        }
+      }
+      .collapsed h2.note_content_title {
+        line-height: 1rem;
+        font-size: 1rem;
+      }
+      div.note_contents {
+        max-width: 850px;
+      }
+      .meta_row .signatures, .author {
+        font-size: .875rem;
+      }
+    }
+
+    .children {
+      margin-top: .75rem;
+
+      .note_with_children {
+        padding: .5rem;
+        padding-left: 1.5rem;
+      }
+      .note_with_children + .note_with_children {
+        margin-top: .75rem;
+      }
+
+      @media @tablet {
+        margin-left: 2.25rem;
+      }
+    }
+    .children:empty {
+      display: none;
+    }
+
+    .note_with_children {
+      position: relative;
+
+      &.comment-level-even {
+        background-color: @backgroundWhite;
+        border: 1px solid #eee;
+
+        > .children > .note_editor.panel {
+          background-color: rgba(0, 0, 0, .04);
+          padding: .5rem;
+          border: 1px solid #eee;
+        }
+      }
+      &.comment-level-odd {
+        background-color: rgba(0, 0, 0, .04);
+        border: 1px solid #eee;
+
+        > .children > .note_editor.panel {
+          background-color: @backgroundWhite;
+          padding: .5rem;
+          border: 1px solid #eee;
+        }
+      }
+
+      &.collapsed {
+        height: 2.25rem;
+        overflow: hidden;
+
+        .note_content_title {
+          height: 1.25rem;
+          width: 100%;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .title_pdf_row {
+          display: none;
+        }
+        .title_collapsed {
+          display: block;
+        }
+      }
+    }
+
+    .note_editor.panel {
+      margin-bottom: .5rem;
+      border-radius: 0;
+    }
+  }
+}
+
+body.revisions .legacy-styles {
+  .row {
+    margin-left: -15px;
+    margin-right: -15px;
+    margin-top: 0;
+  }
+
+  #header {
+    h1, h2 {
+      font-weight: normal;
+      float: left;
+    }
+    h2 {
+      margin-top: .75rem;
+      width: ~'calc(100% - 175px)';
+    }
+    .button-container {
+      margin-top: .75rem;
+      float: right;
+
+      button {
+        margin: 0;
+      }
+    }
+  }
+
+  .references-list {
+    margin-top: .5rem;
+
+    .row .checkbox {
+      width: 30px;
+      margin-top: 3px;
+      margin-bottom: 0;
+
+      input[type=checkbox] {
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    .note {
+      padding-bottom: 1rem;
+    }
+
+    &.hide-sidebar {
+      .row .checkbox {
+        display: none;
+      }
+      .alert-warning {
+        display: none;
+      }
+    }
+  }
+
+  .alert-warning {
+    background-color: @sandyBrown;
+    border-color: @backgroundGray;
+  }
+
+  h2.note_content_title {
+    font-size: 1.25rem;
+    margin-bottom: 0;
+
+    .note_content_pdf {
+      margin-left: 1rem;
+
+      img {
+        width: 1.375rem;
+        height: 1.375rem;
+        margin-top: -.5rem;
+      }
+    }
+  }
+
+  .meta_row {
+    &.pull-left {
+      max-width: none;
+    }
+    .signatures, .author {
+      font-size: .875rem;
+      font-style: italic;
+    }
+  }
+
+  .comparison-viewer-container {
+    min-height: 200px;
+
+    .table-responsive {
+      margin: 1.25rem 0 0;
+
+      table th span {
+        font-weight: normal;
+        color: @subtleGray;
+      }
+    }
+
+    iframe {
+      margin: 1.5rem 0;
+      height: 800px;
+      width: 100%;
+      border: 1px solid @backgroundGray;
+      box-sizing: border-box;
+    }
+
+    .alert-danger {
+      max-width: 600px;
+      margin: 50px auto;
+      text-align: center;
+    }
+  }
+}
+
+#bibtex-modal {
+  pre.bibtex-content {
+    font-size: .75rem;
+  }
+  em.instructions {
+    color: @subtleGray;
+  }
+}
+
+#permalink-modal {
+  .modal-dialog {
+    margin-top: 100px;
+
+    p {
+      margin-top: 1rem;
+    }
+  }
+  .input-group {
+    margin-top: .5rem;
+    margin-bottom: 1rem;
+  }
+}

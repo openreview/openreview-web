@@ -1,0 +1,83 @@
+/* ==========================================================================
+   Assignment Stats Page
+   ========================================================================== */
+
+body.assignments-stats {
+  #stats-header {
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+
+    h1 {
+      font-size: 2rem;
+      line-height: 34px;
+      margin: 0;
+    }
+  }
+
+  #stats-container-basic,
+  #stats-container-assignment-dist,
+  #stats-container-recommendation-dist,
+  #stats-container-bid-dist {
+    margin-bottom: 1rem;
+
+    h3 {
+      margin-top: 0;
+      margin-bottom: 2rem;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.25rem;
+    }
+  }
+
+  rect.bar {
+    fill: #aaa;
+
+    &.clickable {
+      fill: @mediumBlue;
+      cursor: pointer;
+
+      &:hover {
+        fill: lighten(@mediumBlue, 20%);
+      }
+    }
+  }
+
+  .stat-scalar {
+    background-color: @sandyBrown;
+    border: 1px solid @backgroundGray;
+    text-align: center;
+    height: 180px;
+    padding: 15px;
+    margin-bottom: 15px;
+
+    .stat-val {
+      font-size: 1.75rem;
+      font-weight: bold;
+      color: @orRed;
+      margin-top: 30px;
+      margin-bottom: 12px;
+    }
+
+    .stat-name {
+      color: @darkBlue;
+      font-size: .875rem;
+    }
+  }
+
+  .stat-chart {
+    margin-bottom: 15px;
+
+    .stat-name {
+      color: @darkBlue;
+      font-size: .875rem;
+    }
+  }
+
+  .hidden {
+    display: none;
+  }
+}
+
+
+
+

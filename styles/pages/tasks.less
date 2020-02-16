@@ -1,0 +1,66 @@
+body.tasks {
+
+  header {
+    margin-bottom: 2rem;
+  }
+
+  .nav-tabs {
+    display: none; // Hide tabs for now
+
+    & > li > a {
+      padding: .75rem 2rem;
+      font-size: 1rem;
+    }
+  }
+
+  .tab-content {
+    & > .tab-pane {
+      // padding: .75rem 0 .75rem 2rem;
+      padding: 0 0 .75rem 1.5rem;
+      min-height: 300px;
+    }
+    .spinner-container {
+      margin-top: 2.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .submissions-list {
+      margin-top: .5rem;
+      margin-bottom: 1.25rem;
+      max-width: 800px;
+    }
+
+    h2 {
+      position: relative;
+      margin-bottom: .5rem;
+
+      a:hover {
+        text-decoration: underline;
+      }
+      span.glyphicon {
+        position: absolute;
+        margin: 0;
+        top: 12px;
+        left: -24px;
+        font-size: .75rem;
+      }
+      a.collapse-btn {
+        &.active span.glyphicon {
+          transform: rotate(90deg);
+        }
+      }
+      span.badge {
+        margin-left: 1rem;
+        padding: 4px 8px;
+        margin-top: -4px;
+        background-color: @orRed;
+      }
+    }
+
+    hr {
+      margin-top: .75rem;
+      margin-bottom: 1.75rem;
+    }
+  }
+
+}

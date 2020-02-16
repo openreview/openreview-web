@@ -1,0 +1,260 @@
+body.group, body.invitation {
+
+  #header, header {
+    // Venue header
+    margin-bottom: 1.5rem;
+
+    h3 {
+      line-height: 1.875rem;
+    }
+    .glyphicon {
+      padding-right: .125rem;
+    }
+    .pad-left {
+      padding-left: 1.25rem;
+    }
+
+    @media @phone-only {
+      h4 > span {
+        display: block;
+        margin-bottom: 5px
+      }
+      h4 > span:last-child {
+        margin-bottom: 0;
+      }
+      span.pad-left {
+        padding-left: 0;
+      }
+    }
+  }
+
+  #invitation {
+    margin-bottom: 1.5rem;
+  }
+
+  #notes {
+    .spinner-container {
+      position: static;
+      top: auto;
+      left: auto;
+      transform: none;
+      padding: 1rem 0;
+
+      &.spinner-mini {
+        position: absolute;
+        padding: 0;
+      }
+    }
+  }
+
+  // Edit and Info Mode
+  section {
+    &.general, &.members, &.children, &.invitations,
+    &.subinvitations, &.webfield, &.process, &.reply, &.notes {
+      margin-bottom: 1.75rem;
+      h4 {
+        margin-bottom: 1rem;
+      }
+      .empty-message {
+        color: @subtleGray;
+        font-style: italic;
+      }
+      textarea {
+        width: auto;
+        height: auto;
+        display: block;
+      }
+      ul.pagination {
+        margin-top: .5rem;
+        margin-bottom: 0;
+      }
+    }
+
+    ul.list-paginated > li > a {
+      line-height: 1.375rem;
+    }
+  }
+
+  .group-members-table {
+    margin-top: -1rem;
+    margin-bottom: .25rem;
+
+    thead > tr > th {
+      border-bottom: 0;
+    }
+    tbody > tr > td {
+      padding: 6px 8px;
+    }
+
+    input[type="checkbox"] {
+      vertical-align: top;
+    }
+
+    .empty-message {
+      margin-top: .5rem;
+      margin-bottom: .5rem;
+      color: #333;
+    }
+
+    tr.selected {
+      background-color: #f5f5f5;
+    }
+    tr.removed {
+      background-color: #ddd;
+      opacity: .5;
+    }
+    td.action-links {
+      padding-top: 4px;
+      padding-bottom: 4px;
+      text-align: right;
+    }
+    .btn-xs {
+      padding-top: 1px;
+      padding-bottom: 1px;
+      margin-right: 0;
+      .glyphicon {
+        padding-right: 2px;
+      }
+    }
+  }
+
+  .group-info-table {
+    margin-bottom: 0rem;
+    dt {
+      width: 110px;
+      text-align: left;
+    }
+    dd {
+      margin-left: 120px;
+    }
+  }
+
+  .group-members-form, .group-info-form {
+    input[type="text"] {
+      width: 430px;
+    }
+    button {
+      height: 30px;
+      line-height: 1rem;
+      min-width: auto;
+      margin-right: 0;
+    }
+    select {
+      background-position-y: 100%;
+      line-height: 1rem;
+    }
+  }
+  .group-members-form {
+    .well;
+    margin-bottom: 0;
+    overflow: hidden;
+
+    .form-group.pull-left {
+      margin-left: .25rem;
+    }
+    input, select {
+      margin-right: 0;
+    }
+    .select-all-members {
+      width: 100px;
+    }
+  }
+  .group-info-form {
+    margin-top: 1rem;
+
+    .col-xs-2 {
+      width: 130px;
+      padding-right: 0;
+      padding-left: 0;
+    }
+    .control-label {
+      padding-top: 5px;
+    }
+    .form-group {
+      margin-bottom: .5rem;
+      &:last-child {
+        margin-top: 1rem;
+      }
+    }
+    select {
+      width: 250px;
+    }
+    input[type="checkbox"] {
+      width: 1rem;
+      height: 1rem;
+      margin-top: .5rem;
+      margin-bottom: .5rem;
+    }
+    input[type="number"] {
+      width: 100px;
+    }
+    .date {
+      input.datetimepicker {
+        width: 210px;
+      }
+      > .glyphicon {
+        top: 2px;
+        color: @subtleGray;
+        margin-left: -2rem;
+      }
+      select {
+        width: 240px;
+        vertical-align: bottom;
+        margin-left: .75rem;
+      }
+    }
+    .has-feedback .form-control {
+      padding-right: 24px;
+    }
+  }
+  .edit-group-info {
+    margin-top: .75rem;
+  }
+
+  #webfield-editor, #process-editor {
+    width: 100%;
+    height: 600px;
+    margin-bottom: 1rem;
+    border: 1px solid #eee;
+  }
+
+  section.webfield, section.process {
+    .alert {
+      margin-top: 1rem;
+      margin-bottom: .5rem;
+    }
+    .webfield-editor-container {
+      margin-top: 1.125rem;
+    }
+  }
+
+  section.children, section.invitations {
+    ul {
+      ul {
+        margin-bottom: 0;
+      }
+    }
+    li.toggle-container {
+      padding: .25rem 0;
+    }
+  }
+
+  section.reply {
+    textarea, .alert {
+      width: 100%;
+      max-width: 800px;
+      margin-bottom: .5rem;
+    }
+  }
+
+  section.members.info-mode {
+    h5 {
+      font-weight: bold;
+      line-height: normal;
+    }
+    hr {
+      border-top: 1px solid @backgroundGray;
+      border-bottom: 1px solid @backgroundGray;
+    }
+  }
+}
