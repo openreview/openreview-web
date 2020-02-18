@@ -3,17 +3,24 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port $NEXT_PORT",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
     "@zeit/next-less": "^1.0.1",
     "bootstrap": "^3.4.1",
+    "d3": "^5.15.0",
     "date-fns": "^2.9.0",
+    "dotenv": "^8.2.0",
+    "handlebars": "^4.7.3",
     "isomorphic-unfetch": "^3.0.0",
+    "jquery": "^2.2.4",
     "less": "^3.11.1",
+    "lodash": "^4.17.15",
+    "mathjax": "^3.0.1",
     "next": "^9.2.1",
+    "query-string": "^6.11.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0"
   }

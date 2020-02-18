@@ -1,4 +1,3 @@
-import React from 'react'
 import Link from 'next/link'
 
 const NavUserMenu = ({ user }) => {
@@ -13,7 +12,7 @@ const NavUserMenu = ({ user }) => {
       </a>
       <ul className="dropdown-menu">
         <li>
-          <Link href="/profile?id={user.id}"><a>Profile</a></Link>
+          <Link href={`/profile?id=${user.id}`}><a>Profile</a></Link>
         </li>
         <li className="visible-sm-block">
           <Link href="/activity"><a>Activity</a></Link>

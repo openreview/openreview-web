@@ -1,22 +1,21 @@
-import React from 'react'
 import Head from 'next/Head'
-import Nav from '../components/Nav'
-import Footer from '../components/Footer'
-import Banner from '../components/Banner'
+import Nav from './Nav'
+import Footer from './Footer'
+import Banner from './Banner'
 
-const Layout = ({ children, title }) => (
+const Layout = ({ children, title, bodyClass, hideBanner }) => (
   <>
     <Head>
       <title>{title} | OpenReview</title>
     </Head>
 
-    <Nav user={null} />
-    <Banner hidden={false} />
+    <Nav />
+    <Banner hidden={hideBanner} />
 
     <div className="container">
       <div className="row">
         <div className="col-xs-12">
-          <main id="content" className="clearfix">
+          <main id="content" className={`${bodyClass} clearfix`}>
 
             {children}
 

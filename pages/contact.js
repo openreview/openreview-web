@@ -1,8 +1,5 @@
-import React from 'react'
-import Layout from '../components/Layout'
-
 const Contact = () => (
-  <Layout title="Contact">
+  <div>
     <div className="row">
       <div className="col-xs-12 col-md-10 col-md-offset-1"><h1>Contact Us</h1></div>
     </div>
@@ -16,12 +13,14 @@ const Contact = () => (
           for more information.
         </p>
         <p>
-          If you'd like to send feedback to the developers, please use the
+          If you'd like to send feedback to the developers, please use the{' '}
           <a href="#" data-toggle="modal" data-target="#feedback-modal">Feedback form</a>.
         </p>
       </div>
     </div>
-  </Layout>
+  </div>
 )
+
+Contact.title = 'Contact'
 
 export default Contact

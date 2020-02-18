@@ -1,8 +1,5 @@
-import React from 'react'
-import Layout from '../components/Layout'
-
 const About = () => (
-  <Layout title="About">
+  <div>
     <div className="row">
       <div className="col-xs-12 col-md-10 col-md-offset-1"><h1>About OpenReview</h1></div>
     </div>
@@ -44,7 +41,9 @@ const About = () => (
         <p>We gratefully acknowledge the support of the OpenReview sponsors:  Google, Facebook, NSF, the University of Massachusetts Amherst Center for Data Science, and Center for Intelligent Information Retrieval, as well as the Google Cloud Platform for donating the computing and networking services on which OpenReview.net runs.</p>
       </div>
     </div>
-  </Layout>
+  </div>
 )
+
+About.title = 'About'
 
 export default About

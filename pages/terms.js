@@ -1,8 +1,5 @@
-import React from 'react'
-import Layout from '../components/Layout'
-
 const Terms = () => (
-  <Layout title="Terms">
+  <div>
     <div className="row">
       <div className="col-xs-12 col-md-10 col-md-offset-1"><h1>Terms &amp; Conditions</h1></div>
     </div>
@@ -41,9 +38,12 @@ const Terms = () => (
 
         <h3>Contact Us</h3>
         <p>If you have any questions about these Terms, please <a href="/contact">contact us</a>.</p>
+        <br/>
       </div>
     </div>
-  </Layout>
+  </div>
 )
+
+Terms.title = 'Terms &amp; Conditions'
 
 export default Terms

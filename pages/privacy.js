@@ -1,8 +1,5 @@
-import React from 'react'
-import Layout from '../components/Layout'
-
 const Privacy = () => (
-  <Layout title="Privacy">
+  <div>
     <div className="row">
       <div className="col-xs-12 col-md-10 col-md-offset-1"><h1>Privacy Policy</h1></div>
     </div>
@@ -33,9 +30,12 @@ const Privacy = () => (
         <p>We reserve the right to update or change our Privacy Policy at any time and you should check this Privacy Policy periodically. Your continued use of the Service after we post any modifications to the Privacy Policy on this page will constitute your acknowledgment of the modifications and your consent to abide and be bound by the modified Privacy Policy.</p>
         <p>If we make any material changes to this Privacy Policy, we will notify you either through the email address you have provided us, or by placing a prominent notice on our website.</p>
         <p>If you have any questions about this Privacy Policy, please <a href="/contact">contact us</a>.</p>
+        <br/>
       </div>
     </div>
-  </Layout>
+  </div>
 )
+
+Privacy.title = 'Privacy'
 
 export default Privacy

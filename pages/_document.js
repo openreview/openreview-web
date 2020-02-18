@@ -1,6 +1,6 @@
 import Document, { Head, Main, NextScript } from 'next/document'
 
-export default class MyDocument extends Document {
+class OpenReviewDocument extends Document {
   render() {
     return (
       <html>
@@ -17,3 +17,5 @@ export default class MyDocument extends Document {
     )
   }
 }
+
+export default OpenReviewDocument

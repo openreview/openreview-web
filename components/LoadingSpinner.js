@@ -1,5 +1,3 @@
-import React from 'react'
-
 const LoadingSpinner = ({ inline }) => (
   <div className={`spinner-container ${inline ? 'spinner-inline' : ''}`}>
     <div className="spinner">

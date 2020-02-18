@@ -1,49 +1,80 @@
-import React from 'react'
 import Link from 'next/link'
-import Layout from '../components/Layout'
+import { get, uniqBy } from 'lodash'
 import LoadingSpinner from '../components/LoadingSpinner'
-import fetch from 'isomorphic-unfetch'
+import { api } from '../lib/api-client'
 import { prettyId, formatTimestamp } from '../lib/utils'
+
+// Page Styles
+import '../styles/pages/home.less'
+
+const VenueList = ({ name, venues, loading }) => (
+  <div id={name} className="conferences">
+    {loading && (
+      <LoadingSpinner inline="true" />
+    )}
+
+    {venues.length ? venues.map(venue => <Venue
+      key={`${name}-${venue.groupId}`}
+      groupId={venue.groupId}
+      dueDate={venue.dueDate}
+    />) : (
+      <p className="empty">There are currently no {name.split('-').join(' ')}.</p>
+    )}
+  </div>
+)
 
 const Venue = ({ groupId, dueDate }) => (
   <h2>
     <Link href={`/group?id=${groupId}`}><a>{prettyId(groupId)}</a></Link>
-    <span>Due {formatTimestamp(dueDate)}</span>
+    {dueDate && (
+      <span>Due {formatTimestamp(dueDate)}</span>
+    )}
   </h2>
 )
 
 const Home = (props) => (
-  <Layout title="Venues">
+  <div>
     <h1>Active Venues</h1>
     <hr className="small" />
-    <div id="active-venues" className="conferences">
-      <LoadingSpinner inline="true" />
-    </div>
+    <VenueList name="active-venues" venues={props.activeVenues} />
 
     <h1>Open for Submissions</h1>
     <hr className="small" />
-    <div id="open-venues" className="conferences">
-      <LoadingSpinner inline="true" />
-    </div>
+    <VenueList name="open-venues" venues={props.openVenues} />
 
     <h1>All Venues</h1>
     <hr className="small" />
-    <div id="all-venues" className="conferences">
-      <LoadingSpinner inline="true" />
-    </div>
-  </Layout>
+    <VenueList name="all-venues" venues={props.allVenues} />
+  </div>
 )
 
 Home.getInitialProps = async function() {
-  // TODO: get venues from API
-  // const res = await fetch();
-  // const data = await res.json();
+  const formatGroupResults = (apiRes) => {
+    return get(apiRes, 'groups[0].members', [])
+      .map(groupId => ({ groupId, dueDate: null }))
+  }
+
+  const formatInvitationResults = (apiRes) => {
+    return uniqBy(
+      get(apiRes, 'invitations', [])
+        .map(inv => ({ groupId: inv.id.split('/-/')[0], dueDate: inv.duedate })),
+      'group'
+    )
+  }
+
+  const [activeVenues, openVenues, allVenues] = await Promise.all([
+    api.get('/groups', { id: 'active_venues' }).then(formatGroupResults),
+    api.get('/invitations', { invitee: '~', pastdue: false }).then(formatInvitationResults),
+    api.get('/groups', { id: 'host' }).then(formatGroupResults),
+  ])
 
   return {
-    activeVenues: [],
-    openVenues: [],
-    allVenues: [],
-  };
-};
+    activeVenues,
+    openVenues,
+    allVenues,
+  }
+}
+Home.title = 'Venues'
+Home.bodyClass = 'home'
 
 export default Home
