@@ -6,7 +6,7 @@ import Banner from './Banner'
 const LayoutFluid = ({ children, title }) => (
   <>
     <Head>
-      <title>{title} | OpenReview</title>
+      <title>{`${title} | OpenReview`}</title>
     </Head>
 
     <Nav user={null} />

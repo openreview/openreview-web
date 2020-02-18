@@ -1,4 +1,6 @@
-body.group, body.invitation {
+@import "../utils/constants";
+
+main.group, main.invitation {
 
   #header, header {
     // Venue header
@@ -45,6 +47,14 @@ body.group, body.invitation {
         padding: 0;
       }
     }
+  }
+
+  .well {
+    background: @sandyBrown;
+    padding: .5rem;
+    margin-bottom: 1.875rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 0;
   }
 
   // Edit and Info Mode

@@ -3,10 +3,12 @@ import Nav from './Nav'
 import Footer from './Footer'
 import Banner from './Banner'
 
-const Layout = ({ children, title, bodyClass, hideBanner }) => (
+const Layout = ({
+  children, title, bodyClass, hideBanner,
+}) => (
   <>
     <Head>
-      <title>{title} | OpenReview</title>
+      <title>{`${title} | OpenReview`}</title>
     </Head>
 
     <Nav />

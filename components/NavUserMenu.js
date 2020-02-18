@@ -7,8 +7,11 @@ const NavUserMenu = ({ user }) => {
 
   return (
     <li id="user-menu" className="dropdown">
-      <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-        <span>{user.first} {user.middle} {user.last}</span> <span className="caret"></span>
+      <a className="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+        {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+        <span>{user.first} {user.middle} {user.last}</span>
+        {' '}
+        <span className="caret" />
       </a>
       <ul className="dropdown-menu">
         <li>
@@ -20,7 +23,7 @@ const NavUserMenu = ({ user }) => {
         <li className="visible-sm-block">
           <Link href="/tasks"><a>Tasks</a></Link>
         </li>
-        <li role="separator" className="divider hidden-xs"></li>
+        <li role="separator" className="divider hidden-xs" />
         <li>
           <Link href="/logout"><a>Logout</a></Link>
         </li>

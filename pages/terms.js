@@ -1,3 +1,5 @@
+/* eslint-disable max-len */
+
 const Terms = () => (
   <div>
     <div className="row">
@@ -7,7 +9,7 @@ const Terms = () => (
     <div className="row">
       <div className="col-xs-12 col-md-10 col-md-offset-1">
         <p className="text-muted">Last updated: March 1, 2017</p>
-        <p>Please read these Terms and Conditions ("Terms", "Terms and Conditions") carefully before using the https://openreview.net website (the "Service") operated by OpenReview ("us", "we", or "our").</p>
+        <p>Please read these Terms and Conditions (&quot;Terms&quot;, &quot;Terms and Conditions&quot;) carefully before using the https://openreview.net website (the &quot;Service&quot;) operated by OpenReview (&quot;us&quot;, &quot;we&quot;, or &quot;our&quot;).</p>
         <p>Your access to and use of the Service is conditioned on your acceptance of and compliance with these Terms. These Terms apply to all visitors, users and others who access or use the Service.</p>
         <p>By accessing or using the Service you agree to be bound by these Terms. If you disagree with any part of the terms then you may not access the Service.</p>
 
@@ -37,8 +39,13 @@ const Terms = () => (
         <p>By continuing to access or use our Service after those revisions become effective, you agree to be bound by the revised terms. If you do not agree to the new terms, please stop using the Service.</p>
 
         <h3>Contact Us</h3>
-        <p>If you have any questions about these Terms, please <a href="/contact">contact us</a>.</p>
-        <br/>
+        <p>
+          If you have any questions about these Terms, please
+          {' '}
+          <a href="/contact">contact us</a>
+          .
+        </p>
+        <br />
       </div>
     </div>
   </div>

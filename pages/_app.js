@@ -1,3 +1,6 @@
+/* eslint-disable react/jsx-props-no-spreading */
+/* eslint-disable global-require */
+
 import React from 'react'
 import App from 'next/app'
 import { kebabCase } from 'lodash'
@@ -9,13 +12,14 @@ import '../styles/main.less'
 
 class OpenReviewApp extends App {
   constructor(props) {
-    super(props);
+    super(props)
 
     this.state = { user: null }
   }
 
   componentDidMount() {
     if (typeof window !== 'undefined') {
+      // eslint-disable-next-line no-multi-assign
       window.jQuery = window.$ = require('jquery')
       require('bootstrap')
       window._ = require('lodash')

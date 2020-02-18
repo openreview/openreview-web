@@ -9,12 +9,16 @@ const Contact = () => (
         <p>
           We are currently supporting several computer science conferences and
           workshops, and are open to hosting journals and conferences in any
-          field; please contact us at <a href="mailto:info@openreview.net">info@openreview.net</a>
+          field; please contact us at
+          {' '}
+          <a href="mailto:info@openreview.net">info@openreview.net</a>
           for more information.
         </p>
         <p>
-          If you'd like to send feedback to the developers, please use the{' '}
-          <a href="#" data-toggle="modal" data-target="#feedback-modal">Feedback form</a>.
+          If you would like to send feedback to the developers, please use the
+          {' '}
+          <a data-toggle="modal" data-target="#feedback-modal">Feedback form</a>
+          .
         </p>
       </div>
     </div>

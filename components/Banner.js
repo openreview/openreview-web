@@ -1,16 +1,18 @@
-const Banner = (props) => (
+const Banner = ({ content, hidden }) => (
   <div
     id="or-banner"
     className="banner"
-    style={props.hidden ? { display: 'none' } : {}}
+    style={hidden ? { display: 'none' } : {}}
   >
     <div className="container">
       <div className="row">
         <div className="col-xs-12">
-          {props.content ? props.content : (
+          {content || (
             <span className="tagline">
-              Open Peer Review. Open Publishing. Open Access.{' '}
-              <span className="hidden-xs">Open Discussion. Open Recommendations.</span>{' '}
+              Open Peer Review. Open Publishing. Open Access.
+              {' '}
+              <span className="hidden-xs">Open Discussion. Open Recommendations.</span>
+              {' '}
               <span className="hidden-xs hidden-sm">Open Directory. Open API. Open Source.</span>
             </span>
           )}
