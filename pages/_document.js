@@ -1,4 +1,5 @@
 import Document, { Head, Main, NextScript } from 'next/document'
+import GoogleAnalyticsScript from '../components/GoogleAnalyticsScript'
 
 class OpenReviewDocument extends Document {
   render() {
@@ -12,6 +13,7 @@ class OpenReviewDocument extends Document {
         <body>
           <Main />
           <NextScript />
+          <GoogleAnalyticsScript />
         </body>
       </html>
     )

@@ -61,6 +61,7 @@ const Footer = () => (
           <div className="col-sm-10 col-sm-offset-1">
             <p className="text-center">
               OpenReview is created by the
+              {' '}
               <a href="http://www.iesl.cs.umass.edu/" target="_blank" rel="noopener noreferrer">
                 Information Extraction and Synthesis Laboratory
               </a>

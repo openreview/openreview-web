@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { get, uniqBy } from 'lodash'
-import LoadingSpinner from '../components/LoadingSpinner'
+import get from 'lodash/get'
+import uniqBy from 'lodash/uniqBy'
 import api from '../lib/api-client'
 import { prettyId, formatTimestamp } from '../lib/utils'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 // Page Styles
 import '../styles/pages/home.less'
@@ -57,7 +58,7 @@ const Home = ({ activeVenues, openVenues, allVenues }) => (
   </div>
 )
 
-Home.getInitialProps = async function load() {
+Home.getInitialProps = async () => {
   const formatGroupResults = apiRes => get(apiRes, 'groups[0].members', [])
     .map(groupId => ({ groupId, dueDate: null }))
 

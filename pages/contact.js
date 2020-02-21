@@ -12,6 +12,7 @@ const Contact = () => (
           field; please contact us at
           {' '}
           <a href="mailto:info@openreview.net">info@openreview.net</a>
+          {' '}
           for more information.
         </p>
         <p>

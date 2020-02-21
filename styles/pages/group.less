@@ -6,14 +6,38 @@ main.group, main.invitation {
     // Venue header
     margin-bottom: 1.5rem;
 
+    h1 + h3 {
+      margin-top: -.25rem;
+    }
     h3 {
       line-height: 1.875rem;
+      margin: 0;
+    }
+    h4 {
+      color: #777777;
+      font-size: 1.125rem;
+      font-weight: normal;
+      line-height: normal;
+
+      span {
+        display: inline-block;
+        padding-right: 1.25rem;
+      }
     }
     .glyphicon {
       padding-right: .125rem;
     }
     .pad-left {
       padding-left: 1.25rem;
+    }
+    div.description {
+      margin-top: 1.25rem;
+    }
+    p {
+      color: #777777;
+      &.dark {
+        color: @darkBlue;
+      }
     }
 
     @media @phone-only {

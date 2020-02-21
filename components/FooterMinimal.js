@@ -5,7 +5,7 @@ const FooterMinimal = () => (
     <div className="row">
       <div className="col-xs-12">
         <p className="text-center">
-          &copy; 2019 OpenReview.net
+          &copy; 2020 OpenReview.net
           &nbsp;&nbsp;&bull;&nbsp;&nbsp;
           <Link href="/terms"><a>Terms &amp; Conditions</a></Link>
           &nbsp;&nbsp;&bull;&nbsp;&nbsp;
