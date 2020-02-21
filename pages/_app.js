@@ -9,7 +9,7 @@ import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
 
 // Global Styles
-import '../styles/main.less'
+import '../styles/layout.less'
 
 class OpenReviewApp extends App {
   constructor(props) {
