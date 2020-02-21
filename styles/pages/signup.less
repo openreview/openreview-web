@@ -1,0 +1,44 @@
+@import "../utils/constants";
+
+main.sign-up {
+  .signup-form-container {
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+
+    .row {
+      margin-left: -5px;
+      margin-right: -5px;
+    }
+    .form-group {
+      padding-left: 5px;
+      padding-right: 5px;
+
+      @media @tablet {
+        margin-bottom: 0;
+      }
+      @media @desktop {
+        max-width: 250px;
+      }
+    }
+    label {
+      color: @orRed;
+    }
+    .help-block {
+      font-size: .75rem;
+      margin-bottom: 0;
+    }
+
+    .form-inline {
+      margin-top: 2.5rem;
+
+      input {
+        width: 400px;
+        max-width: 100%;
+        margin-right: 10px;
+      }
+      button {
+        width: 200px;
+      }
+    }
+  }
+}
