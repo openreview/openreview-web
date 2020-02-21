@@ -23,10 +23,12 @@ class OpenReviewApp extends App {
     }
 
     Router.events.on('routeChangeComplete', (url) => {
+      // Reset banner
       this.setState({ bannerHidden: false, bannerContent: null })
 
+      // Track pageview in Google Analytics
+      // https://developers.google.com/analytics/devguides/collection/gtagjs/pages
       if (process.env.IS_PRODUCTION) {
-        // https://developers.google.com/analytics/devguides/collection/gtagjs/pages
         window.gtag('config', process.env.GA_PROPERTY_ID, {
           page_path: url,
         })
