@@ -4,7 +4,7 @@
 import React from 'react'
 import App from 'next/app'
 import Router from 'next/router'
-import { kebabCase } from 'lodash'
+import kebabCase from 'lodash/kebabCase'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
 
@@ -15,7 +15,34 @@ class OpenReviewApp extends App {
   constructor(props) {
     super(props)
 
-    this.state = { user: null, clientJsLoading: true }
+    this.state = {
+      user: null,
+      clientJsLoading: true,
+      bannerHidden: false,
+      bannerContent: null,
+    }
+
+    Router.events.on('routeChangeComplete', (url) => {
+      this.setState({ bannerHidden: false, bannerContent: null })
+
+      if (process.env.IS_PRODUCTION) {
+        // https://developers.google.com/analytics/devguides/collection/gtagjs/pages
+        window.gtag('config', process.env.GA_PROPERTY_ID, {
+          page_path: url,
+        })
+      }
+    })
+
+    this.setBannerHidden = this.setBannerHidden.bind(this)
+    this.setBannerContent = this.setBannerContent.bind(this)
+  }
+
+  setBannerHidden(newHidden) {
+    this.setState({ bannerHidden: newHidden })
+  }
+
+  setBannerContent(newContent) {
+    this.setState({ bannerContent: newContent })
   }
 
   componentDidMount() {
@@ -47,24 +74,25 @@ class OpenReviewApp extends App {
     const { Component, pageProps } = this.props
     const pageTitle = Component.title
     const bodyClass = Component.bodyClass || kebabCase(pageTitle)
+    const appContext = {
+      clientJsLoading: this.state.clientJsLoading,
+      setBannerHidden: this.setBannerHidden,
+      setBannerContent: this.setBannerContent,
+    }
 
     return (
       <UserContext.Provider value={{ user: this.state.user }}>
-        <Layout title={pageTitle} bodyClass={bodyClass}>
-          <Component {...pageProps} clientJsLoading={this.state.clientJsLoading} />
+        <Layout
+          title={pageTitle}
+          bodyClass={bodyClass}
+          bannerHidden={this.state.bannerHidden}
+          bannerContent={this.state.bannerContent}
+        >
+          <Component {...pageProps} appContext={appContext} />
         </Layout>
       </UserContext.Provider>
     )
   }
 }
-
-Router.events.on('routeChangeComplete', (url) => {
-  if (process.env.IS_PRODUCTION) return
-
-  // https://developers.google.com/analytics/devguides/collection/gtagjs/pages
-  window.gtag('config', process.env.GA_PROPERTY_ID, {
-    page_path: url,
-  })
-})
 
 export default OpenReviewApp

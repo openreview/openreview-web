@@ -9,8 +9,14 @@ import { prettyId } from '../lib/utils'
 // Page Styles
 import '../styles/pages/group.less'
 
-const Group = ({ webfieldCode, clientJsLoading }) => {
+const Group = ({ groupId, webfieldCode, appContext }) => {
   const { user } = useContext(UserContext)
+  const { setBannerHidden, clientJsLoading } = appContext
+
+  useEffect(() => {
+    document.title = `${prettyId(groupId)} | OpenReview`
+    setBannerHidden(true)
+  }, [groupId])
 
   useEffect(() => {
     if (clientJsLoading) return
@@ -82,7 +88,7 @@ Group.getInitialProps = async (ctx) => {
     });`
 
   return {
-    group,
+    groupId: group.id,
     webfieldCode: inlineJsCode,
     query: ctx.query,
   }

@@ -27,7 +27,7 @@ const LoginForm = () => (
   </form>
 )
 
-const Login = ({ query }) => (
+const Login = () => (
   <div className="row">
     <div className="login-container col-sm-12 col-md-5 col-lg-4 col-md-offset-1 col-lg-offset-2">
       <h1>Login</h1>
@@ -45,7 +45,6 @@ const Login = ({ query }) => (
   </div>
 )
 
-Login.getInitialProps = async ctx => ({ query: ctx.query })
 Login.title = 'Login'
 
 export default Login

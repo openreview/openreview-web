@@ -4,7 +4,7 @@ import Footer from './Footer'
 import Banner from './Banner'
 
 const Layout = ({
-  children, title, bodyClass, hideBanner,
+  children, title, bodyClass, bannerHidden, bannerContent,
 }) => (
   <>
     <Head>
@@ -12,7 +12,7 @@ const Layout = ({
     </Head>
 
     <Nav />
-    <Banner hidden={hideBanner} />
+    <Banner content={bannerContent} hidden={bannerHidden} />
 
     <div className="container">
       <div className="row">

@@ -49,6 +49,7 @@ const About = () => (
             <strong>Open Source:</strong>
             {' '}
             We are committed to open source. Look for our public repo on
+            {' '}
             <a href="https://github.com/openreview" target="_blank" rel="noopener noreferrer">GitHub</a>
             {' '}
             soon.
@@ -59,9 +60,11 @@ const About = () => (
 
         <p>
           OpenReview.net is built over an earlier version described in the paper
+          {' '}
           <a href="/forum?id=xf0zSBd2iufMg" target="_blank">Open Scholarship and Peer Review: a Time for Experimentation</a>
           {' '}
           published in the
+          {' '}
           <a href="/group?id=ICML.cc/2013/PeerReview" target="_blank">ICML 2013 Peer Review Workshop</a>
           .
         </p>
