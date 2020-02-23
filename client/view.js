@@ -1,10 +1,8 @@
-'use strict';
-
-/* globals promptError: false */
-/* globals controller: false */
-/* globals pushForum: false */
-/* globals Webfield: false */
-
+/**
+ * Changes:
+ * - Replace all /static/images/ --> /images/
+ * - Replace all $('body') --> $('#content')
+ */
 module.exports = (function() {
 
   var mkDropdown = function(placeholder, readonly, selectedValue, onOptionsChanged, onSelectedChanged, extraClasses) {
@@ -1626,7 +1624,7 @@ module.exports = (function() {
         title: 'Download PDF',
         target: '_blank'
       }).append(
-        '<img src="/static/images/pdf_icon_blue.svg">'
+        '<img src="/images/pdf_icon_blue.svg">'
       );
     }
     return $pdfLink;
@@ -1641,7 +1639,7 @@ module.exports = (function() {
         title: 'Open Website',
         target: '_blank'
       }).append(
-        '<img src="/static/images/html_icon_blue.svg">'
+        '<img src="/images/html_icon_blue.svg">'
       );
     }
     return $htmlLink;
@@ -1814,7 +1812,7 @@ module.exports = (function() {
 
     // Link to comment button
     var $linkButton = null;
-    if (forumId !== note.id && $('body').hasClass('forum')) {
+    if (forumId !== note.id && $('#content').hasClass('forum')) {
       var commentUrl = location.origin + '/forum?id=' + forumId + '&noteId=' + note.id;
       $linkButton = $('<button class="btn btn-xs btn-default permalink-button" title="Link to this comment" data-permalink-url="' + commentUrl + '">' +
         '<span class="glyphicon glyphicon-link" aria-hidden="true"></span></button>');
@@ -1824,7 +1822,7 @@ module.exports = (function() {
     var $trashButton = null;
     var $editButton = null;
     var $actionButtons = null;
-    if ($('body').hasClass('forum') || $('body').hasClass('tasks')) {
+    if ($('#content').hasClass('forum') || $('#content').hasClass('tasks')) {
       if (details.writable && params.onTrashedOrRestored) {
         var buttonContent = notePastDue ? 'Restore' : '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>';
         $trashButton = $('<button id="trashbutton_' + note.id + '" class="btn btn-xs trash_button">' + buttonContent + '</button>');
@@ -2235,7 +2233,7 @@ module.exports = (function() {
   var showConfirmDeleteModal = function(note, noteTitle, $signaturesDropdown) {
     $('#confirm-delete-modal').remove();
 
-    $('body').append(Handlebars.templates.genericModal({
+    $('#content').append(Handlebars.templates.genericModal({
       id: 'confirm-delete-modal',
       showHeader: true,
       title: 'Delete Note',

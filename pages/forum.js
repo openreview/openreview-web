@@ -1,11 +1,13 @@
 import { useEffect, useContext } from 'react'
+import Head from 'next/head'
 import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
+import NoteAuthors from '../components/NoteAuthors'
+import NoteContent from '../components/NoteContent'
 import withError from '../components/withError'
 import api from '../lib/api-client'
-import {
-  prettyId, inflect, forumDate, prettyField, prettyContentValue,
-} from '../lib/utils'
+import { prettyId, inflect, forumDate } from '../lib/utils'
+import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 // Page Styles
 import '../styles/pages/forum.less'
@@ -34,41 +36,18 @@ const ForumTitle = ({
 
 const ForumAuthors = ({
   authors, authorIds, signatures, original,
-}) => {
-  const authorsList = (authors && authors.length) ? authors : signatures
-
-  return (
-    <div className="meta_row">
-      <h3 className="signatures author">
-        {authorsList.map((author, i) => {
-          const authorId = authorIds[i]
-          if (!author) return null
-          if (!authorId) return author
-
-          let param
-          if (authorId.indexOf('~') === 0) {
-            param = 'id'
-          } else if (authorId.includes('@')) {
-            param = 'email'
-          }
-          if (!param) return author
-
-          return (
-            <a
-              href={`/profiles?${param}=${encodeURIComponent(authorId)}`}
-              data-toggle="tooltip"
-              data-placement="top"
-              title={authorId}
-              key={authorId}
-            >
-              {author}
-            </a>
-          )
-        }).join(', ')}
-      </h3>
-    </div>
-  )
-}
+}) => (
+  <div className="meta_row">
+    <h3 className="signatures author">
+      <NoteAuthors
+        authors={authors}
+        authorIds={authorIds}
+        signatures={signatures}
+        original={original}
+      />
+    </h3>
+  </div>
+)
 
 const ForumMeta = ({ note }) => (
   <div className="meta_row">
@@ -92,57 +71,47 @@ const ForumMeta = ({ note }) => (
   </div>
 )
 
-const ForumContent = ({ content }) => {
-  const omittedFields = [
-    'body', 'title', 'authors', 'author_emails', 'authorids', 'pdf',
-    'verdict', 'paperhash', 'ee', 'html', 'year', 'venue', 'venueid',
-  ]
-
-  return (
-    <ul className="list-unstyled note-content">
-      {Object.keys(content).map((fieldName) => {
-        if (omittedFields.includes(fieldName) || fieldName.startsWith('_')) {
-          return null
-        }
-
-        return (
-          <li key={fieldName}>
-            <strong className="note-content-field">
-              {prettyField(fieldName)}
-              :
-            </strong>
-            {' '}
-            <span className="note-content-value">
-              {prettyContentValue(content[fieldName])}
-            </span>
-          </li>
-        )
-      })}
-    </ul>
-  )
-}
-
 const ForumReplyCount = ({ count }) => (
   <div className="reply_row clearfix">
     <div className="item" id="reply_count">{inflect(count, 'Reply', 'Replies', true)}</div>
   </div>
 )
 
-const Forum = ({ forumNote, appContext }) => {
+const Forum = ({ forumNote, query, appContext }) => {
   const { user } = useContext(UserContext)
-  const { clientJsLoading } = appContext
+  const { clientJsLoading, setBannerContent } = appContext
   const { content } = forumNote
 
   useEffect(() => {
-    document.title = `${forumNote.content.title || 'Forum'} | OpenReview`
+    if (query.referrer) {
+      setBannerContent(referrerLink(query.referrer))
+    } else {
+      const groupId = forumNote.content.venueid
+        ? forumNote.content.venueid
+        : forumNote.invitation.split('/-/')[0]
+      setBannerContent(venueHomepageLink(groupId))
+    }
   }, [forumNote])
 
+  // Load and execute legacy forum code
   useEffect(() => {
+    if (clientJsLoading) return
 
+    // eslint-disable-next-line global-require
+    const runForum = require('../client/forum')
+    runForum(forumNote.id, query.noteId, query.invitationId, user)
   }, [clientJsLoading])
 
   return (
     <>
+      <Head>
+        <title>
+          {forumNote.content.title || 'Forum'}
+          {' '}
+          | OpenReview
+        </title>
+      </Head>
+
       <div className="note">
         <ForumTitle
           title={content.title}
@@ -159,7 +128,7 @@ const Forum = ({ forumNote, appContext }) => {
 
         <ForumMeta note={forumNote} />
 
-        <ForumContent content={content} omittedFields={[]} />
+        <NoteContent content={content} />
 
         <ForumReplyCount count={forumNote.details.replyCount} />
       </div>
@@ -167,9 +136,7 @@ const Forum = ({ forumNote, appContext }) => {
       <hr />
 
       <div id="note_children">
-        {clientJsLoading && (
-          <LoadingSpinner />
-        )}
+        <LoadingSpinner />
       </div>
     </>
   )

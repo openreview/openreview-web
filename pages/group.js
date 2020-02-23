@@ -1,5 +1,6 @@
 import { useEffect, useContext } from 'react'
 import omit from 'lodash/omit'
+import Head from 'next/head'
 import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import withError from '../components/withError'
@@ -14,7 +15,6 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
   const { setBannerHidden, clientJsLoading } = appContext
 
   useEffect(() => {
-    document.title = `${prettyId(groupId)} | OpenReview`
     setBannerHidden(true)
   }, [groupId])
 
@@ -33,6 +33,14 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
 
   return (
     <div id="group-container">
+      <Head>
+        <title>
+          {prettyId(groupId)}
+          {' '}
+          | OpenReview
+        </title>
+      </Head>
+
       {clientJsLoading && (
         <LoadingSpinner />
       )}
