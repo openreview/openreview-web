@@ -56,9 +56,38 @@ main.group, main.invitation {
 
   #invitation {
     margin-bottom: 1.5rem;
+
+    > div {
+      .well;
+      margin-bottom: 0;
+
+      .hint {
+        padding-right: .5rem;
+        vertical-align: middle;
+      }
+    }
+    .note_editor {
+      border-top: 0;
+
+      .hint {
+        margin-bottom: .25rem;
+      }
+    }
   }
 
   #notes {
+    margin-bottom: 30px;
+
+    hr {
+      margin-bottom: .625rem;
+      margin-top: .625rem;
+
+      &.spacer {
+        margin-top: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+    }
+
     .spinner-container {
       position: static;
       top: auto;

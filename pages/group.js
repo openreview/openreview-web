@@ -49,8 +49,8 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
 }
 
 Group.getInitialProps = async (ctx) => {
-  let group = await api.get('/groups', { id: ctx.query.id })
-  group = group.groups && group.groups.length && group.groups[0]
+  const groupRes = await api.get('/groups', { id: ctx.query.id })
+  const group = groupRes.groups && groupRes.groups.length && groupRes.groups[0]
   if (!group) {
     return {
       statusCode: 404,
