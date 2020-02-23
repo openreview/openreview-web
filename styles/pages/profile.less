@@ -82,7 +82,7 @@ main.profile, main.activate, main.profile2 {
     }
     .section-content {
       line-height: 1rem;
-      margin-bottom: .375rem;
+      padding-bottom: .375rem;
 
       .table-row {
         padding: .25rem 0;
@@ -192,14 +192,14 @@ main.profile, main.activate, main.profile2 {
       }
       div:nth-child(2) {
         width: calc(~'100%' - (@nameColWidth + @dateColWidth + @badgeColWidth + @emailColWidth));
-                  }
+      }
       div:nth-child(3) {
         width: @emailColWidth;
         max-width: @emailColWidth;
         padding-right: 4px;
         overflow: hidden;
         text-overflow: ellipsis;
-        &:hover{
+        &:hover {
           overflow: visible;
           max-width: @emailColWidth + 95px;
         }
@@ -253,9 +253,6 @@ main.profile, main.activate, main.profile2 {
           display: none;
         }
       }
-    }
-    .section-content {
-      margin-bottom: .125rem;
     }
     .actions {
       display: block;

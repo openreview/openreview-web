@@ -2,9 +2,38 @@ import pick from 'lodash/pick'
 import withError from '../components/withError'
 import { formatProfileData } from '../lib/profiles'
 import api from '../lib/api-client'
+import { prettyList } from '../lib/utils'
 
 // Page Styles
 import '../styles/pages/profile.less'
+
+const ProfileItem = ({
+  itemMeta, className = '', editBadgeDiv = false, children,
+}) => {
+  if (!itemMeta) {
+    return (
+      <div className={className}>
+        {children}
+        {editBadgeDiv && <div className="edited">&nbsp;</div>}
+      </div>
+    )
+  }
+
+  const editBadge = itemMeta.signatures && (
+    <span className="edit-badge glyphicon glyphicon-info-sign" aria-hidden="true" />
+  )
+  return (
+    <div
+      className={`${className}${itemMeta.confirmed ? ' edit-confirmed' : ''}`}
+      data-toggle="tooltip"
+      title={`Edited by ${prettyList(itemMeta.signatures)}`}
+    >
+      {children}
+      {' '}
+      {editBadgeDiv ? <div className="edited">{editBadge}</div> : editBadge}
+    </div>
+  )
+}
 
 const ProfileNamesList = ({ names }) => (
   <div className="list-compact names">
@@ -19,7 +48,7 @@ const ProfileNamesList = ({ names }) => (
 )
 
 const ProfileName = ({ name }) => (
-  <div className={name.meta && name.meta.confirmed ? 'edit-confirmed' : ''}>
+  <ProfileItem itemMeta={name.meta}>
     <span>{name.first}</span>
     {' '}
     <span>{name.middle}</span>
@@ -27,11 +56,7 @@ const ProfileName = ({ name }) => (
     <span>{name.last}</span>
     {' '}
     {name.preferred && <small>(Preferred)</small>}
-    {' '}
-    {name.meta && name.meta.signatures && (
-      <span className="edit-badge glyphicon glyphicon-info-sign" aria-hidden="true" />
-    )}
-  </div>
+  </ProfileItem>
 )
 
 const ProfileEmailsList = ({ emails, publicProfile }) => (
@@ -47,26 +72,70 @@ const ProfileEmailsList = ({ emails, publicProfile }) => (
 )
 
 const ProfileEmail = ({ email, publicProfile }) => (
-  <div className={email.meta && email.meta.confirmed ? 'edit-confirmed' : ''}>
+  <ProfileItem itemMeta={email.meta}>
     <span>{email.email}</span>
     {' '}
     {!publicProfile && email.confirmed && <small>(Confirmed)</small>}
+    {' '}
     {!publicProfile && email.preferred && <small>(Preferred)</small>}
-    {email.meta && email.meta.signatures && (
-      <span className="edit-badge glyphicon glyphicon-info-sign" aria-hidden="true" />
-    )}
-  </div>
+  </ProfileItem>
 )
 
-const Profile = ({ profile, options, publicProfile }) => (
+const ProfileLink = ({ link }) => (
+  <ProfileItem itemMeta={link.meta}>
+    <a href={link.url} target="_blank" rel="noopener noreferrer">{link.name}</a>
+  </ProfileItem>
+)
+
+const ProfileHistory = ({ history }) => (
+  <ProfileItem className="table-row" itemMeta={history.meta} editBadgeDiv>
+    <div className="position"><strong>{history.position}</strong></div>
+    <div className="institution">
+      {history.institution.name}
+      {' '}
+      <small>{`(${history.institution.domain})`}</small>
+    </div>
+    <div className="timeframe">
+      <em>
+        {history.start}
+        {history.start && <span> &ndash; </span>}
+        {history.end ? history.end : 'Present'}
+      </em>
+    </div>
+  </ProfileItem>
+)
+
+const ProfileRelation = ({ relation }) => (
+  <ProfileItem className="table-row" itemMeta={relation.meta} editBadgeDiv>
+    <div><strong>{relation.relation}</strong></div>
+    <div><span>{relation.name}</span></div>
+    <div><small>{relation.email}</small></div>
+    <div>
+      <em>
+        {relation.start}
+        {relation.start && <span> &ndash; </span>}
+        {relation.end ? relation.end : 'Present'}
+      </em>
+    </div>
+  </ProfileItem>
+)
+
+const ProfileExpertise = ({ expertise }) => (
+  <ProfileItem className="table-row" itemMeta={expertise.meta} editBadgeDiv>
+    <div><span>{expertise.keywords.join(', ')}</span></div>
+    <div>
+      <em>
+        {expertise.start}
+        {expertise.start && <span> &ndash; </span>}
+        {expertise.end ? expertise.end : 'Present'}
+      </em>
+    </div>
+  </ProfileItem>
+)
+
+const Profile = ({ profile, publicProfile }) => (
   <div id="profile-container" className="profile-controller">
     <header className="clearfix">
-      {profile.profileImage && (
-        <div className="img-container">
-          <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9InllcyI/PjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgdmlld0JveD0iMCAwIDE0MCAxNDAiIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiPjwhLS0KU291cmNlIFVSTDogaG9sZGVyLmpzLzE0MHgxNDAKQ3JlYXRlZCB3aXRoIEhvbGRlci5qcyAyLjYuMC4KTGVhcm4gbW9yZSBhdCBodHRwOi8vaG9sZGVyanMuY29tCihjKSAyMDEyLTIwMTUgSXZhbiBNYWxvcGluc2t5IC0gaHR0cDovL2ltc2t5LmNvCi0tPjxkZWZzPjxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+PCFbQ0RBVEFbI2hvbGRlcl8xNWQzN2JhMDNhMCB0ZXh0IHsgZmlsbDojQUFBQUFBO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1mYW1pbHk6QXJpYWwsIEhlbHZldGljYSwgT3BlbiBTYW5zLCBzYW5zLXNlcmlmLCBtb25vc3BhY2U7Zm9udC1zaXplOjEwcHQgfSBdXT48L3N0eWxlPjwvZGVmcz48ZyBpZD0iaG9sZGVyXzE1ZDM3YmEwM2EwIj48cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iI0VFRUVFRSIvPjxnPjx0ZXh0IHg9IjQ0LjA1NDY4NzUiIHk9Ijc0LjUiPjE0MHgxNDA8L3RleHQ+PC9nPjwvZz48L3N2Zz4=" alt="profile" />
-        </div>
-      )}
-
       <div className="title-container">
         <h1>{profile.preferredName}</h1>
         <h3>{profile.currentInstitution}</h3>
@@ -106,20 +175,101 @@ const Profile = ({ profile, options, publicProfile }) => (
           </ul>
         </section>
 
+        <section className="links">
+          <h4>Personal Links</h4>
+          <p className="instructions">Add links to your profiles on other sites. (Optional)</p>
+
+          <div className="section-content clearfix">
+            {profile.links.map(link => <ProfileLink key={link.name} link={link} />)}
+          </div>
+
+          <ul className="actions list-inline">
+            <li><a className="suggest">Suggest URL</a></li>
+          </ul>
+        </section>
+
+
+        <section className="history">
+          <h4>Education &amp; Career History</h4>
+          <p className="instructions">
+            Enter your education and career history. The institution domain is
+            used for conflict of interest detection and institution ranking.
+            For ongoing positions, leave the end field blank.
+          </p>
+          <div className="section-content">
+            {profile.history.length ? profile.history.map(history => (
+              <ProfileHistory
+                key={history.position + history.institution.name}
+                history={history}
+              />
+            )) : (
+              <p className="empty-message">No history found</p>
+            )}
+          </div>
+
+          <ul className="actions list-inline">
+            <li><a className="suggest">Suggest Position</a></li>
+          </ul>
+        </section>
+
+        <section className="relations">
+          <h4>Advisors, Relations &amp; Conflicts</h4>
+          <p className="instructions">
+            Enter all advisors, co-workers, and other people that should be
+            included when detecting conflicts of interest.
+          </p>
+          <div className="section-content">
+            {profile.relations.length ? profile.relations.map(relation => (
+              <ProfileRelation key={relation.relation + relation.name} relation={relation} />
+            )) : (
+              <p className="empty-message">No relations found</p>
+            )}
+          </div>
+
+          <ul className="actions list-inline">
+            <li><a className="suggest">Suggest Relation</a></li>
+          </ul>
+        </section>
+
+        <section className="expertise">
+          <h4>Expertise</h4>
+          <p className="instructions">
+            For each line, enter comma-separated keyphrases representing an
+            intersection of your interests. Think of each line as a query for
+            papers in which you would have expertise and interest. For example:
+            <br />
+            <em>topic models, social network analysis, computational social science</em>
+            <br />
+            <em>deep learning, RNNs, dependency parsing</em>
+          </p>
+          <div className="section-content">
+            {profile.expertise.length ? profile.expertise.map(expertise => (
+              <ProfileExpertise key={expertise.keywords.join('-')} expertise={expertise} />
+            )) : (
+              <p className="empty-message">No areas of expertise listed</p>
+            )}
+          </div>
+
+          <ul className="actions list-inline">
+            <li><a className="suggest">Suggest Position</a></li>
+          </ul>
+        </section>
+
       </div>
 
       <aside className="col-md-12 col-lg-4">
+
         <section className="publications">
           <h4>Recent Publications</h4>
-          <p className="instructions" />
-
           <div className="section-content">
-            <p className="loading-message">Loading...</p>
+            <p className="loading-message"><em>Loading...</em></p>
           </div>
-
           <ul className="actions list-inline" style={{ display: 'none' }}>
             <li>
-              <a href="/search?term={id}&content=authors&group=all&source=forum&sort=cdate:desc" className="search-link">
+              <a
+                href={`/search?term=${profile.id}&content=authors&group=all&source=forum&sort=cdate:desc`}
+                className="search-link"
+              >
                 View All
               </a>
             </li>
@@ -128,47 +278,19 @@ const Profile = ({ profile, options, publicProfile }) => (
 
         <section className="coauthors">
           <h4>Co-Authors</h4>
-          <p className="instructions" />
-
           <div className="section-content">
-            <p className="loading-message">Loading...</p>
+            <p className="loading-message"><em>Loading...</em></p>
           </div>
         </section>
+
       </aside>
     </div>
-
-
-    <div id="profile-suggestion-modal" className="modal fade" tabIndex="-1" role="dialog">
-      <div className="modal-dialog">
-        <div className="modal-content">
-          <div className="modal-header">
-            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-            <h3 className="modal-title">Suggest Profile Data</h3>
-          </div>
-
-          <div className="modal-body">
-            <div className="alert alert-warning">Profile suggestions are currently disabled.</div>
-          </div>
-
-          <div className="modal-footer">
-            <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
 )
 
 Profile.getInitialProps = async (ctx) => {
   const profileQuery = pick(ctx.query, ['id', 'email'])
-  const [profileRes, dropdownOptions] = await Promise.all([
-    api.get('/profiles', profileQuery),
-    api.get('/profiles/options'),
-  ])
-
+  const profileRes = await api.get('/profiles', profileQuery)
   const profile = profileRes.profiles && profileRes.profiles.length && profileRes.profiles[0]
   if (!profile) {
     return { statusCode: 404, message: 'Profile not found' }
@@ -177,7 +299,6 @@ Profile.getInitialProps = async (ctx) => {
   const profileFormatted = formatProfileData(profile)
   return {
     profile: profileFormatted,
-    options: dropdownOptions,
     publicProfile: true,
   }
 }
