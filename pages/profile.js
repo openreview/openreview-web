@@ -1,3 +1,4 @@
+import Head from 'next/head'
 import pick from 'lodash/pick'
 import withError from '../components/withError'
 import { formatProfileData } from '../lib/profiles'
@@ -134,7 +135,13 @@ const ProfileExpertise = ({ expertise }) => (
 )
 
 const Profile = ({ profile, publicProfile }) => (
-  <div id="profile-container" className="profile-controller">
+  <div className="profile-container">
+    <Head>
+      <title>
+        {`${profile.preferredName} | OpenReview`}
+      </title>
+    </Head>
+
     <header className="clearfix">
       <div className="title-container">
         <h1>{profile.preferredName}</h1>

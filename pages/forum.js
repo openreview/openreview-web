@@ -110,12 +110,10 @@ const Forum = ({ forumNote, query, appContext }) => {
   }, [clientJsLoading])
 
   return (
-    <>
+    <div className="forum-container">
       <Head>
         <title>
-          {forumNote.content.title || 'Forum'}
-          {' '}
-          | OpenReview
+          {`${forumNote.content.title || 'Forum'} | OpenReview`}
         </title>
       </Head>
 
@@ -145,7 +143,7 @@ const Forum = ({ forumNote, query, appContext }) => {
       <div id="note_children">
         <LoadingSpinner />
       </div>
-    </>
+    </div>
   )
 }
 

@@ -9,6 +9,7 @@
  * - replace all controller api function with Webfield api functions
  * - remove preRendered var
  * - add `$root.removeClass('panel');` to line 574
+ * - replace `#content` with `#content > .forum-container`
  */
 module.exports = function(forumId, noteId, invitationId, user) {
   $('body')[0].className = 'forum';
@@ -17,7 +18,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     noteId = forumId;
   }
 
-  var $content = $('#content');
+  var $content = $('#content > .forum-container');
   var $childrenAnchor = $('#note_children');
 
 

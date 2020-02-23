@@ -51,6 +51,6 @@ const Terms = () => (
   </div>
 )
 
-Terms.title = 'Terms &amp; Conditions'
+Terms.title = 'Terms & Conditions'
 
 export default Terms
