@@ -1,3 +1,5 @@
+/* eslint-disable global-require */
+
 import { useEffect, useContext } from 'react'
 import Head from 'next/head'
 import UserContext from '../components/UserContext'
@@ -82,6 +84,7 @@ const Forum = ({ forumNote, query, appContext }) => {
   const { clientJsLoading, setBannerContent } = appContext
   const { content } = forumNote
 
+  // Set banner link
   useEffect(() => {
     if (query.referrer) {
       setBannerContent(referrerLink(query.referrer))
@@ -97,7 +100,11 @@ const Forum = ({ forumNote, query, appContext }) => {
   useEffect(() => {
     if (clientJsLoading) return
 
-    // eslint-disable-next-line global-require
+    if (!window.MathJax) {
+      window.MathJax = require('../lib/mathjax-config')
+      require('mathjax/es5/tex-chtml')
+    }
+
     const runForum = require('../client/forum')
     runForum(forumNote.id, query.noteId, query.invitationId, user)
   }, [clientJsLoading])

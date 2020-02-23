@@ -303,7 +303,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         },
         onNoteCancelled: function() {
           $editor.replaceWith(mkPanel(forumData, $anchor));
-          // MathJax.typeset();
+          MathJax.typeset();
         },
         onCompleted: function(editor) {
           $editor = editor;
@@ -394,7 +394,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
             '</div>',
             mkReplyNotes(replytoIdToChildren, _.filter(replytoIdToChildren[noteReplytoId], ['note.id', noteId]), 1)
           );
-          // MathJax.typeset();
+          MathJax.typeset();
           applyFilter();
           $childrenAnchor.fadeIn('fast');
         });
@@ -417,7 +417,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         $childrenAnchor.empty().append(
           mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
         );
-        // MathJax.typeset();
+        MathJax.typeset();
         applyFilter();
         $childrenAnchor.fadeIn('fast');
       });
@@ -494,7 +494,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
             '</div>',
             mkReplyNotes(replytoIdToChildren, [parentNote], 1)
           );
-          // MathJax.typeset();
+          MathJax.typeset();
           doAnimation();
         }
       } else {
@@ -590,7 +590,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $childrenAnchor.empty().append(
       mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
     );
-    // MathJax.typeset();
+    MathJax.typeset();
   };
 
   var createMultiSelector = function(filters, id) {
