@@ -1,8 +1,7 @@
-'use strict';
-
-/* globals mkStateManager: false */
-/* globals promptError: false */
-
+/**
+ * Changes:
+ * - module.exports
+ */
 module.exports = (function() {
 
   var sm = mkStateManager();

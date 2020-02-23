@@ -1,5 +1,7 @@
-'use strict';
-
+/**
+ * Changes:
+ * - module.exports
+ */
 module.exports = function mkStateManager() {
 
   var handlers = Object.create(null);

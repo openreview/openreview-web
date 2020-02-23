@@ -1,11 +1,6 @@
-'use strict';
-
-/* globals moment: false */
-/* globals view: false */
-/* globals reviewersList: false */
-/* globals papersList: false */
-
-// Register Handlebars Helpers
+/**
+ * Changes: none
+ */
 Handlebars.registerHelper('truncate', function(str, len) {
   str = Handlebars.Utils.escapeExpression(str);
 

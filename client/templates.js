@@ -3,7 +3,6 @@
  * - Replace all this["Handlebars"] --> window.Handlebars
  * - Replace all /static/images/ --> /images/
  */
-
 window.Handlebars = window.Handlebars || {};
 window.Handlebars["templates"] = window.Handlebars["templates"] || {};
 

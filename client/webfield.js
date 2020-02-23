@@ -1,24 +1,9 @@
-'use strict';
-
-/* globals ace: true */
-/* globals moment: true */
-/* globals controller: false */
-/* globals view: false */
-/* globals promptError: false */
-/* globals promptLogin: false */
-/* globals promptMessage: false */
-/* globals generalPrompt: false */
-/* globals translateErrorMessage: false */
-/* globals parseUrlParams: false */
-/* globals serializeUrlParams: false */
-/* globals MathJax: false */
-
 /**
  * Changes:
  * - replaced first line with module.exports
  * - enabled CORS for ajax functions
+ * - replaced all controller api calls with webfield versions
  */
-
 module.exports = (function() {
 
   // AJAX Functions
@@ -210,7 +195,7 @@ module.exports = (function() {
     options = _.assign(defaults, options);
 
     // Don't use the Webfield get function so the fail callback can be overridden
-    return controller.get('/invitations', {id: invitationId}, null, function() {}, true)
+    return get('/invitations', { id: invitationId }, { handleErrors: false })
       .then(function(result) {
         if (result.invitations.length) {
           return result.invitations[0];
@@ -864,8 +849,8 @@ module.exports = (function() {
 
           $widget.trigger('bidUpdated', [result]);
         };
-        var apiError = function(jqXhr, error) {
-          promptError(error ? error : 'The specified tag could not be updated. Please reload the page and try again.');
+        var apiError = function(errorText) {
+          promptError(errorText ? errorText : 'The specified tag could not be updated. Please reload the page and try again.');
           $self.parent().removeClass('disabled');
         };
 
@@ -880,7 +865,8 @@ module.exports = (function() {
             readers: readers,
             ddate: ddate
           };
-          controller.post('/tags', requestBody, null, apiError, true).then(apiSuccess);
+          post('/tags', requestBody, { handleErrors: false })
+            .then(apiSuccess, apiError);
         } else {
           requestBody = {
             id: tagId,
@@ -895,7 +881,8 @@ module.exports = (function() {
             nonreaders: nonreaders,
             ddate: ddate
           };
-          controller.post('/edges', requestBody, null, apiError, true).then(apiSuccess);
+          post('/edges', requestBody, { handleErrors: false })
+            .then(apiSuccess, apiError);
         }
 
         return returnVal;
@@ -951,12 +938,13 @@ module.exports = (function() {
             readers: readers,
             ddate: null
           };
-          controller.post('/tags', requestBody, null, function(jqXhr, error) {
-            promptError(error ? error : 'The specified tag could not be updated. Please reload the page and try again.');
-          }, true).then(function(result) {
-            $('.selected-reviewer', $widget).last().data('id', result.id);
-            $widget.trigger('tagUpdated', [result]);
-          });
+          post('/tags', requestBody, { handleErrors: false })
+            .then(function(result) {
+              $('.selected-reviewer', $widget).last().data('id', result.id);
+              $widget.trigger('tagUpdated', [result]);
+            }, function(error) {
+              promptError(error ? error : 'The specified tag could not be updated. Please reload the page and try again.');
+            });
         });
 
         $('.dropdown-container', $widget).empty().append($reviewerDropdown).show();
@@ -984,11 +972,12 @@ module.exports = (function() {
           readers: readers,
           ddate: Date.now()
         };
-        controller.post('/tags', requestBody, null, function(jqXhr, error) {
-          promptError(error ? error : 'The specified tag could not be updated. Please reload the page and try again.');
-        }, true).then(function(result) {
-          $widget.trigger('tagUpdated', [result]);
-        });
+        post('/tags', requestBody, { handleErrors: false })
+          .then(function(result) {
+            $widget.trigger('tagUpdated', [result]);
+          }, function(error) {
+            promptError(error ? error : 'The specified tag could not be updated. Please reload the page and try again.');
+          });
         return false;
       };
 
@@ -2683,7 +2672,7 @@ module.exports = (function() {
     };
 
     var postModerationDecision = function(profileId, decision, rejectionMessage) {
-      return Webfield.post('/activate/moderate', {
+      return post('/activate/moderate', {
         id: profileId,
         activate: decision,
         reason: rejectionMessage
