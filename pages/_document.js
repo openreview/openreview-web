@@ -6,10 +6,12 @@ class OpenReviewDocument extends Document {
     return (
       <html lang="en">
         <Head>
-          <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Sans:400,400i,700,700i" />
+          <link href="https://fonts.gstatic.com" rel="preconnect" crossOrigin />
+          <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Sans:400,400i,700,700i&display=swap&subset=latin-ext" />
           <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" />
           <link rel="icon" href="/favicon.ico" />
         </Head>
+
         <body>
           <Main />
           <NextScript />
