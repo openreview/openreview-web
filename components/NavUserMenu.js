@@ -9,13 +9,13 @@ const NavUserMenu = ({ user }) => {
     <li id="user-menu" className="dropdown">
       <a className="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
         {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-        <span>{user.first} {user.middle} {user.last}</span>
+        <span>{user.profile.first} {user.profile.middle} {user.profile.last}</span>
         {' '}
         <span className="caret" />
       </a>
       <ul className="dropdown-menu">
         <li>
-          <Link href={`/profile?id=${user.id}`}><a>Profile</a></Link>
+          <Link href={`/profile?id=${user.profile.id}`}><a>Profile</a></Link>
         </li>
         <li className="visible-sm-block">
           <Link href="/activity"><a>Activity</a></Link>

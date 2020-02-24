@@ -35,8 +35,13 @@ class OpenReviewApp extends App {
       }
     })
 
+    this.setUser = this.setUser.bind(this)
     this.setBannerHidden = this.setBannerHidden.bind(this)
     this.setBannerContent = this.setBannerContent.bind(this)
+  }
+
+  setUser(authenticatedUser) {
+    this.setState({ user: authenticatedUser })
   }
 
   setBannerHidden(newHidden) {
@@ -83,7 +88,7 @@ class OpenReviewApp extends App {
     }
 
     return (
-      <UserContext.Provider value={{ user: this.state.user }}>
+      <UserContext.Provider value={{ user: this.state.user, setLoggedInUser: this.setUser }}>
         <Layout
           title={pageTitle}
           bodyClass={bodyClass}
