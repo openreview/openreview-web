@@ -1,8 +1,11 @@
+/* globals promptError: false */
+
 import { useState, useContext } from 'react'
 import Link from 'next/link'
+import Router from 'next/router'
 import UserContext from '../components/UserContext'
 import api from '../lib/api-client'
-import { login } from '../lib/auth'
+import { handleLogin, auth } from '../lib/auth'
 
 // Page Styles
 import '../styles/pages/login.less'
@@ -22,21 +25,24 @@ const LoginForm = () => {
       apiRes = await api.post('/login', { id: email, password })
     } catch (error) {
       setLoginError(error)
+      promptError(error.message)
       return
     }
 
-    const { token, user } = apiRes
-    setLoggedInUser(user)
-    await login(token)
+    const { user, token } = apiRes
+    setLoggedInUser(user, token)
+    handleLogin(token)
   }
 
   return (
     <form onSubmit={handleSubmit}>
+      {/*
       {loginError && (
         <div className="alert alert-danger">
           <span>{loginError.message}</span>
         </div>
       )}
+      */}
       <div className="form-group">
         <label htmlFor="email">Email</label>
         <input
@@ -72,7 +78,7 @@ const LoginForm = () => {
   )
 }
 
-const Login = () => (
+const Login = ({ redirect }) => (
   <div className="row">
     <div className="login-container col-sm-12 col-md-5 col-lg-4 col-md-offset-1 col-lg-offset-2">
       <h1>Login</h1>
@@ -90,6 +96,20 @@ const Login = () => (
   </div>
 )
 
+Login.getInitialProps = async (ctx) => {
+  const { user } = auth(ctx)
+  if (user) {
+    if (ctx.req) {
+      ctx.res.writeHead(302, { Location: '/' }).end()
+    } else {
+      Router.replace('/')
+    }
+  }
+
+  return {
+    redirect: ctx.query.redirect,
+  }
+}
 Login.title = 'Login'
 
 export default Login

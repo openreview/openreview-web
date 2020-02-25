@@ -1,7 +1,8 @@
 import Head from 'next/head'
 import Nav from './Nav'
-import Footer from './Footer'
 import Banner from './Banner'
+import FlashAlert from './FlashAlert'
+import Footer from './Footer'
 
 const Layout = ({
   children, title, bodyClass, bannerHidden, bannerContent,
@@ -13,6 +14,7 @@ const Layout = ({
 
     <Nav />
     <Banner content={bannerContent} hidden={bannerHidden} />
+    <FlashAlert />
 
     <div className="container">
       <div className="row">

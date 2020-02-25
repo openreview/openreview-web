@@ -21,6 +21,13 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
   useEffect(() => {
     if (clientJsLoading) return
 
+    if (!window.MathJax) {
+      // eslint-disable-next-line global-require
+      window.MathJax = require('../lib/mathjax-config')
+      // eslint-disable-next-line global-require
+      require('mathjax/es5/tex-chtml')
+    }
+
     const script = document.createElement('script')
     script.innerHTML = `window.user = ${JSON.stringify(user)}; ${webfieldCode}`
     document.body.appendChild(script)
@@ -35,9 +42,7 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
     <div id="group-container">
       <Head>
         <title>
-          {prettyId(groupId)}
-          {' '}
-          | OpenReview
+          {`${prettyId(groupId)} | OpenReview`}
         </title>
       </Head>
 

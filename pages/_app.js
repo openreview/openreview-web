@@ -7,6 +7,7 @@ import Router from 'next/router'
 import kebabCase from 'lodash/kebabCase'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
+import { auth } from '../lib/auth'
 
 // Global Styles
 import '../styles/layout.less'
@@ -17,6 +18,7 @@ class OpenReviewApp extends App {
 
     this.state = {
       user: null,
+      accessToken: null,
       clientJsLoading: true,
       bannerHidden: false,
       bannerContent: null,
@@ -40,8 +42,8 @@ class OpenReviewApp extends App {
     this.setBannerContent = this.setBannerContent.bind(this)
   }
 
-  setUser(authenticatedUser) {
-    this.setState({ user: authenticatedUser })
+  setUser(authenticatedUser, userAccessToken) {
+    this.setState({ user: authenticatedUser, accessToken: userAccessToken })
   }
 
   setBannerHidden(newHidden) {
@@ -53,34 +55,42 @@ class OpenReviewApp extends App {
   }
 
   componentDidMount() {
-    if (typeof window !== 'undefined') {
-      // Load required vendor libraries
-      // eslint-disable-next-line no-multi-assign
-      window.jQuery = window.$ = require('jquery')
-      require('bootstrap')
-      window._ = require('lodash')
-      window.Handlebars = require('handlebars/runtime')
-
-      // Load legacy JS code
-      window.mkStateManager = require('../client/state-manager')
-      window.controller = require('../client/controller')
-      window.view = require('../client/view')
-      window.Webfield = require('../client/webfield')
-      require('../client/templates')
-      require('../client/template-helpers')
-      require('../client/globals')
-
-      // Set required constants
-      window.OR_API_URL = process.env.API_URL
-
-      this.setState({ clientJsLoading: false })
+    const { user, token } = auth()
+    if (user) {
+      this.setUser(user, token)
     }
+
+    // Load required vendor libraries
+    // eslint-disable-next-line no-multi-assign
+    window.jQuery = window.$ = require('jquery')
+    require('bootstrap')
+    window._ = require('lodash')
+    window.Handlebars = require('handlebars/runtime')
+
+    // Load legacy JS code
+    window.mkStateManager = require('../client/state-manager')
+    window.controller = require('../client/controller')
+    window.view = require('../client/view')
+    window.Webfield = require('../client/webfield')
+    require('../client/templates')
+    require('../client/template-helpers')
+    require('../client/globals')
+
+    // Set required constants
+    window.OR_API_URL = process.env.API_URL
+
+    this.setState({ clientJsLoading: false })
   }
 
   render() {
     const { Component, pageProps } = this.props
     const pageTitle = Component.title
     const bodyClass = Component.bodyClass || kebabCase(pageTitle)
+    const userContext = {
+      user: this.state.user,
+      accessToken: this.state.accessToken,
+      setLoggedInUser: this.setUser,
+    }
     const appContext = {
       clientJsLoading: this.state.clientJsLoading,
       setBannerHidden: this.setBannerHidden,
@@ -88,7 +98,7 @@ class OpenReviewApp extends App {
     }
 
     return (
-      <UserContext.Provider value={{ user: this.state.user, setLoggedInUser: this.setUser }}>
+      <UserContext.Provider value={userContext}>
         <Layout
           title={pageTitle}
           bodyClass={bodyClass}

@@ -180,3 +180,16 @@ window.promptLogin = function(user) {
     );
   }
 };
+
+var noop = function() {};
+window.OpenBanner = {
+  clear: noop,
+  hide: noop,
+  show: noop,
+  welcome: noop,
+  set: noop,
+  venueHomepageLink: noop,
+  forumLink: noop,
+  referrerLink: noop,
+  breadcrumbs: noop
+}

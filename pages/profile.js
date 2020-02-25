@@ -204,7 +204,7 @@ const Profile = ({ profile, publicProfile }) => (
             For ongoing positions, leave the end field blank.
           </p>
           <div className="section-content">
-            {profile.history.length ? profile.history.map(history => (
+            {(profile.history && profile.history.length) ? profile.history.map(history => (
               <ProfileHistory
                 key={history.position + history.institution.name}
                 history={history}
@@ -226,7 +226,7 @@ const Profile = ({ profile, publicProfile }) => (
             included when detecting conflicts of interest.
           </p>
           <div className="section-content">
-            {profile.relations.length ? profile.relations.map(relation => (
+            {(profile.relations && profile.relations.length) ? profile.relations.map(relation => (
               <ProfileRelation key={relation.relation + relation.name} relation={relation} />
             )) : (
               <p className="empty-message">No relations found</p>
@@ -250,7 +250,7 @@ const Profile = ({ profile, publicProfile }) => (
             <em>deep learning, RNNs, dependency parsing</em>
           </p>
           <div className="section-content">
-            {profile.expertise.length ? profile.expertise.map(expertise => (
+            {(profile.expertise && profile.expertise.length) ? profile.expertise.map(expertise => (
               <ProfileExpertise key={expertise.keywords.join('-')} expertise={expertise} />
             )) : (
               <p className="empty-message">No areas of expertise listed</p>
