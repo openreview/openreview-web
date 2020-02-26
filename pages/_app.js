@@ -9,9 +9,6 @@ import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
 import { auth } from '../lib/auth'
 
-// Global Styles
-import '../styles/layout.less'
-
 class OpenReviewApp extends App {
   constructor(props) {
     super(props)

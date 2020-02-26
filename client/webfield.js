@@ -849,8 +849,9 @@ module.exports = (function() {
 
           $widget.trigger('bidUpdated', [result]);
         };
-        var apiError = function(errorText) {
-          promptError(errorText ? errorText : 'The specified tag could not be updated. Please reload the page and try again.');
+        var apiError = function(jqXhr, textStatus) {
+          var errorText = getErrorFromJqXhr(jqXhr, textStatus);
+          promptError(_.isString(errorText) ? errorText : 'The specified tag could not be updated. Please reload the page and try again.');
           $self.parent().removeClass('disabled');
         };
 
@@ -942,8 +943,9 @@ module.exports = (function() {
             .then(function(result) {
               $('.selected-reviewer', $widget).last().data('id', result.id);
               $widget.trigger('tagUpdated', [result]);
-            }, function(error) {
-              promptError(error ? error : 'The specified tag could not be updated. Please reload the page and try again.');
+            }, function(jqXhr, textStatus) {
+              var errorText = getErrorFromJqXhr(jqXhr, textStatus);
+              promptError(_.isString(errorText) ? errorText : 'The specified tag could not be updated. Please reload the page and try again.');
             });
         });
 
@@ -975,8 +977,9 @@ module.exports = (function() {
         post('/tags', requestBody, { handleErrors: false })
           .then(function(result) {
             $widget.trigger('tagUpdated', [result]);
-          }, function(error) {
-            promptError(error ? error : 'The specified tag could not be updated. Please reload the page and try again.');
+          }, function(jqXhr, textStatus) {
+            var errorText = getErrorFromJqXhr(jqXhr, textStatus);
+            promptError(_.isString(errorText) ? errorText : 'The specified tag could not be updated. Please reload the page and try again.');
           });
         return false;
       };
@@ -1847,8 +1850,8 @@ module.exports = (function() {
             localStorage.setItem(groupId + '|' + messagedIds[i], Date.now());
           }
         })
-        .fail(function(jqXhr) {
-          var errorToShow = getErrorFromJqXhr(jqXhr);
+        .fail(function(jqXhr, textStatus) {
+          var errorToShow = getErrorFromJqXhr(jqXhr, textStatus);
           var msgHtml = _.flatten([
             '<strong>Error: </strong>',
             translateErrorMessage(errorToShow)

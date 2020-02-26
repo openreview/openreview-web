@@ -1,4 +1,4 @@
-// Global helper functions
+// Global helper functions (main.js)
 window.serializeUrlParams = function(obj) {
   return decodeURIComponent($.param(_.omitBy(obj, _.isNil)));
 };
@@ -91,7 +91,7 @@ window.translateErrorMessage = function(error) {
   }
 };
 
-// Flash Alert Functions
+// Flash Alert Functions (main.js)
 var flashMessageTimer;
 window.generalPrompt = function(type, content, options) {
   var defaults = {
@@ -181,6 +181,7 @@ window.promptLogin = function(user) {
   }
 };
 
+// Disable legacy JS from interacting with the banner (banner.js)
 var noop = function() {};
 window.OpenBanner = {
   clear: noop,
@@ -193,3 +194,113 @@ window.OpenBanner = {
   referrerLink: noop,
   breadcrumbs: noop
 }
+
+// Global Event Handlers (index.js)
+// Flash message bar
+$('#flash-message-container button.close').on('click', function() {
+  $('#flash-message-container').slideUp();
+});
+
+// Dropdowns
+$(document).on('click', function(event) {
+  if (!$(event.target).closest('.dropdown').length) {
+    $('.dropdown .dropdown_content').hide();
+  }
+});
+
+// Show/hide details link
+$('#content').on('show.bs.collapse', function(e) {
+  var $div = $(e.target);
+  var $a;
+  if ($div.hasClass('note-tags-overflow')) {
+    $a = $div.next().children('a').eq(0);
+    $a.text('Hide tags');
+  } else if ($div.attr('id') === 'child-groups-overflow') {
+    $a = $div.parent().next().children('a').eq(0);
+    $a.text('Hide child groups');
+  } else if ($div.attr('id') === 'related-invitations-overflow') {
+    $a = $div.parent().next().children('a').eq(0);
+    $a.text('Hide related invitations');
+  } else if ($div.attr('id') === 'signed-notes-overflow') {
+    $a = $div.parent().next().children('a').eq(0);
+    $a.text('Hide signed notes');
+  } else {
+    $a = $div.prev();
+    if ($a.hasClass('note-contents-toggle')) {
+      $a.text('Hide details');
+    }
+  }
+});
+
+$('#content').on('hide.bs.collapse', function(e) {
+  var $div = $(e.target);
+  var $a;
+  if ($div.hasClass('note-tags-overflow')) {
+    $a = $div.next().children('a').eq(0);
+    $a.text('Show ' + $div.find('.tag-widget').length + ' more...');
+  } else if ($div.attr('id') === 'child-groups-overflow') {
+    $a = $div.parent().next().children('a').eq(0);
+    $a.text('Show all child groups...');
+  } else if ($div.attr('id') === 'related-invitations-overflow') {
+    $a = $div.parent().next().children('a').eq(0);
+    $a.text('Show all related invitations...');
+  } else if ($div.attr('id') === 'signed-notes-overflow') {
+    $a = $div.parent().next().children('a').eq(0);
+    $a.text('Show all signed notes...');
+  } else {
+    $a = $div.prev();
+    if ($a.hasClass('note-contents-toggle')) {
+      $a.text('Show details');
+    }
+  }
+});
+
+// Forum Replies
+$('#content').on('click', 'a.collapse-comment-tree', function(e) {
+  var $container = $(this).parent();
+  $container.toggleClass('collapsed');
+
+  $(this).html($container.hasClass('collapsed') ? '[+]' : '[&ndash;]');
+  return false;
+});
+
+// Feedback modal
+$('#feedback-modal').on('hidden.bs.modal', function () {
+  $(this).find('form')[0].reset();
+  $('#flash-message-container').slideUp();
+});
+
+$('#feedback-modal').on('shown.bs.modal', function () {
+  $('#feedback-modal p').text('Enter your feedback below and we\'ll get back to you as soon as possible');
+  $(this).find('.feedback-input').focus();
+});
+
+$('#feedback-modal .btn-primary').on('click', function() {
+  $('#feedback-modal form').submit();
+});
+
+$('#feedback-modal form').on('submit', function() {
+  var url = $(this).attr('action');
+  var feedbackData = {};
+  $.each($(this).serializeArray(), function(i, field) {
+    feedbackData[field.name] = field.value || '';
+  });
+
+  Webfield.put(url, feedbackData, { handleErrors: false })
+    .then(function(res) {
+      if (res.status === 'ok') {
+        $('#feedback-modal p').text('Successfully submitted feedback.');
+      } else {
+        $('#feedback-modal p').text('There was an error submitting feedback.');
+      }
+
+      setTimeout(function() {
+        $('#feedback-modal').modal('hide');
+      }, 2000);
+    })
+    .fail(function(jqXhr, textStatus) {
+      $('#feedback-modal p').text('There was an error submitting your feedback: ' + textStatus);
+    });
+
+  return false;
+});
