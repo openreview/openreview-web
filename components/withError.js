@@ -2,28 +2,37 @@
 /* eslint-disable react/jsx-props-no-spreading */
 
 import React from 'react'
-import ErrorPage from 'next/error'
+import ErrorDisplay from './ErrorDisplay'
 
-export default (Component) => {
-  return class WithError extends React.Component {
-    static async getInitialProps(ctx) {
-      let props = Component.getInitialProps
-        ? await Component.getInitialProps(ctx)
-        : null
-      props = props || {}
+export default function withError(Component) {
+  const WithError = (props) => {
+    const { statusCode, message } = props
 
-      if (props.statusCode && ctx.res) {
-        ctx.res.statusCode = props.statusCode
-      }
-      return props
+    if (statusCode) {
+      return <ErrorDisplay statusCode={statusCode} message={message} />
     }
-
-    render() {
-      const { statusCode } = this.props
-      if (statusCode) {
-        return <ErrorPage statusCode={statusCode} />
-      }
-      return <Component {...this.props} />
-    }
+    return <Component {...props} />
   }
+
+  WithError.getInitialProps = async (ctx) => {
+    let props = null
+    if (Component.getInitialProps) {
+      try {
+        props = await Component.getInitialProps(ctx)
+      } catch (error) {
+        props = {
+          statusCode: error.status,
+          message: error.message,
+        }
+      }
+    }
+    props = props || {}
+
+    if (props.statusCode && ctx.res) {
+      ctx.res.statusCode = props.statusCode
+    }
+    return props
+  }
+
+  return WithError
 }
