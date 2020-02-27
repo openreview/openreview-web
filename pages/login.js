@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Router from 'next/router'
 import UserContext from '../components/UserContext'
 import api from '../lib/api-client'
-import { handleLogin, auth } from '../lib/auth'
+import { auth } from '../lib/auth'
 
 // Page Styles
 import '../styles/pages/login.less'
@@ -14,7 +14,7 @@ const LoginForm = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState(null)
-  const { setLoggedInUser } = useContext(UserContext)
+  const { loginUser } = useContext(UserContext)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -30,8 +30,7 @@ const LoginForm = () => {
     }
 
     const { user, token } = apiRes
-    setLoggedInUser(user, token)
-    handleLogin(token)
+    loginUser(user, token)
   }
 
   return (

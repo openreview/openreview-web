@@ -16,7 +16,8 @@ Next set the port that the server will listen on, or add it to your shell config
 export $NEXT_PORT=3030
 ```
 
-Finally, copy the sample `.env` file and replace the dummy values with the correct values for your environment:
+Finally, copy the sample `.env` file and replace the dummy values with the correct
+values for your environment:
 
 ```bash
 cp .env.sample .env
@@ -30,7 +31,11 @@ To run the development server, run:
 npm run dev
 ```
 
-This will watch for any changes and rebuild the page.
+This will watch for any changes and rebuild the page. The OpenReview API server
+also has to be running at the same time, and accessible at the URL specified by
+the `$API_URL` env var.
+
+Note: Currently only the `feature/enable-cors` branch is supported
 
 ## Deployment
 

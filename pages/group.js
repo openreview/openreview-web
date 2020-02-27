@@ -9,15 +9,16 @@ import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import withError from '../components/withError'
 import api from '../lib/api-client'
+import { auth } from '../lib/auth'
 import { prettyId } from '../lib/utils'
 
 // Page Styles
 import '../styles/pages/group.less'
 
 const Group = ({ groupId, webfieldCode, appContext }) => {
+  const router = useRouter()
   const { user } = useContext(UserContext)
   const { setBannerHidden, clientJsLoading } = appContext
-  const router = useRouter()
 
   useEffect(() => {
     setBannerHidden(true)
@@ -65,7 +66,8 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
 }
 
 Group.getInitialProps = async (ctx) => {
-  const groupRes = await api.get('/groups', { id: ctx.query.id })
+  const { token } = auth(ctx)
+  const groupRes = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
   const group = groupRes.groups && groupRes.groups.length && groupRes.groups[0]
   if (!group) {
     return {

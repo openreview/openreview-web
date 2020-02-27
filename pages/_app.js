@@ -7,7 +7,7 @@ import Router from 'next/router'
 import kebabCase from 'lodash/kebabCase'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
-import { auth } from '../lib/auth'
+import { auth, setAuthCookie, removeAuthCookie } from '../lib/auth'
 
 class OpenReviewApp extends App {
   constructor(props) {
@@ -34,13 +34,22 @@ class OpenReviewApp extends App {
       }
     })
 
-    this.setUser = this.setUser.bind(this)
+    this.loginUser = this.loginUser.bind(this)
+    this.logoutUser = this.logoutUser.bind(this)
     this.setBannerHidden = this.setBannerHidden.bind(this)
     this.setBannerContent = this.setBannerContent.bind(this)
   }
 
-  setUser(authenticatedUser, userAccessToken) {
+  loginUser(authenticatedUser, userAccessToken) {
     this.setState({ user: authenticatedUser, accessToken: userAccessToken })
+    setAuthCookie(userAccessToken)
+    Router.push('/')
+  }
+
+  logoutUser() {
+    this.setState({ user: null, accessToken: null })
+    removeAuthCookie()
+    Router.push('/')
   }
 
   setBannerHidden(newHidden) {
@@ -54,7 +63,7 @@ class OpenReviewApp extends App {
   componentDidMount() {
     const { user, token } = auth()
     if (user) {
-      this.setUser(user, token)
+      this.setState({ user, accessToken: token })
     }
 
     // Load required vendor libraries
@@ -86,7 +95,8 @@ class OpenReviewApp extends App {
     const userContext = {
       user: this.state.user,
       accessToken: this.state.accessToken,
-      setLoggedInUser: this.setUser,
+      loginUser: this.loginUser,
+      logoutUser: this.logoutUser,
     }
     const appContext = {
       clientJsLoading: this.state.clientJsLoading,

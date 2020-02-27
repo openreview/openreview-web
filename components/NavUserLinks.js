@@ -1,23 +1,21 @@
+/* globals promptError: false */
+
 import { useContext } from 'react'
 import Link from 'next/link'
 import UserContext from './UserContext'
 import api from '../lib/api-client'
-import { handleLogout } from '../lib/auth'
 
 const NavUserLinks = () => {
-  const { user, setLoggedInUser } = useContext(UserContext)
-  const logout = (e) => {
+  const { user, logoutUser } = useContext(UserContext)
+  const handleLogout = async (e) => {
     e.preventDefault()
 
-    api.post('/logout')
-      .then(() => {
-        setLoggedInUser(null, null)
-        handleLogout()
-      })
-      .catch((err) => {
-        // eslint-disable-next-line no-console
-        console.error(err)
-      })
+    try {
+      await api.post('/logout')
+      logoutUser()
+    } catch (error) {
+      promptError(error.message)
+    }
   }
 
   if (!user) {
@@ -58,7 +56,7 @@ const NavUserLinks = () => {
           </li>
           <li role="separator" className="divider hidden-xs" />
           <li>
-            <a href="/logout" onClick={logout}>Logout</a>
+            <a href="/logout" onClick={handleLogout}>Logout</a>
           </li>
         </ul>
       </li>

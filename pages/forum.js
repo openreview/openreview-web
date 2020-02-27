@@ -8,6 +8,7 @@ import NoteAuthors from '../components/NoteAuthors'
 import NoteContent from '../components/NoteContent'
 import withError from '../components/withError'
 import api from '../lib/api-client'
+import { auth } from '../lib/auth'
 import { prettyId, inflect, forumDate } from '../lib/utils'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
@@ -148,11 +149,12 @@ const Forum = ({ forumNote, query, appContext }) => {
 }
 
 Forum.getInitialProps = async (ctx) => {
+  const { token } = auth(ctx)
   let forumNote
   try {
     const apiRes = await api.get('/notes', {
       id: ctx.query.id, trash: true, details: 'replyCount,writable,revisions,original,overwriting',
-    })
+    }, { accessToken: token })
     forumNote = apiRes.notes && apiRes.notes.length && apiRes.notes[0]
   } catch (error) {
     return { statusCode: 400, message: 'Forum not found' }

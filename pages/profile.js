@@ -4,6 +4,7 @@ import withError from '../components/withError'
 import { formatProfileData } from '../lib/profiles'
 import api from '../lib/api-client'
 import { prettyList } from '../lib/utils'
+import { auth } from '../lib/auth'
 
 // Page Styles
 import '../styles/pages/profile.less'
@@ -297,7 +298,8 @@ const Profile = ({ profile, publicProfile }) => (
 
 Profile.getInitialProps = async (ctx) => {
   const profileQuery = pick(ctx.query, ['id', 'email'])
-  const profileRes = await api.get('/profiles', profileQuery)
+  const { token } = auth(ctx)
+  const profileRes = await api.get('/profiles', profileQuery, { accessToken: token })
   const profile = profileRes.profiles && profileRes.profiles.length && profileRes.profiles[0]
   if (!profile) {
     return { statusCode: 404, message: 'Profile not found' }
