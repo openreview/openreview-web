@@ -1,6 +1,10 @@
+/* eslint-disable global-require */
+/* globals $: false */
+
 import { useEffect, useContext } from 'react'
 import omit from 'lodash/omit'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import withError from '../components/withError'
@@ -13,6 +17,7 @@ import '../styles/pages/group.less'
 const Group = ({ groupId, webfieldCode, appContext }) => {
   const { user } = useContext(UserContext)
   const { setBannerHidden, clientJsLoading } = appContext
+  const router = useRouter()
 
   useEffect(() => {
     setBannerHidden(true)
@@ -22,15 +27,21 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
     if (clientJsLoading) return
 
     if (!window.MathJax) {
-      // eslint-disable-next-line global-require
       window.MathJax = require('../lib/mathjax-config')
-      // eslint-disable-next-line global-require
       require('mathjax/es5/tex-chtml')
     }
 
     const script = document.createElement('script')
     script.innerHTML = `window.user = ${JSON.stringify(user)}; ${webfieldCode}`
     document.body.appendChild(script)
+
+    // Code to run after webfield has loaded
+    setTimeout(() => {
+      $('#notes').on('click', 'a[href^="/forum"], a[href^="/group"]', function onClick() {
+        router.push($(this).attr('href')).then(() => window.scrollTo(0, 0))
+        return false
+      })
+    }, 500)
 
     // eslint-disable-next-line consistent-return
     return () => {
