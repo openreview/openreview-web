@@ -38,7 +38,7 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
 
     // Code to run after webfield has loaded
     setTimeout(() => {
-      $('#notes').on('click', 'a[href^="/forum"], a[href^="/group"]', function onClick() {
+      $('#notes').on('click', 'a[href^="/forum"]', function onClick() {
         router.push($(this).attr('href')).then(() => window.scrollTo(0, 0))
         return false
       })

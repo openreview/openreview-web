@@ -1,6 +1,7 @@
 # OpenReview Web
 
-The next-generation web interface to the [OpenReview API](https://github.com/openreview/openreview/).
+The next-generation web interface to the [OpenReview API](https://github.com/openreview/openreview/),
+built with React and Next.js.
 
 ## Installation
 

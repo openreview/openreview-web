@@ -435,12 +435,11 @@ module.exports = (function() {
     };
     options = _.defaults(options, defaults);
 
-    var linkClasses = options.jsLinks ? 'push-link' : '';
     var linksHtml = '<ul class="list-unstyled venues-list">' + _.map(linksArr, function(link) {
       if (link.type === 'divider') {
         return '<li>&nbsp;</li>';
       }
-      return '<li><a href="' + link.url + '" class="' + linkClasses + '">' + link.name + '</a></li>';
+      return '<li><a href="' + link.url + '">' + link.name + '</a></li>';
     }).join('\n') + '</ul>';
 
     var $container = $(options.container);
@@ -2137,7 +2136,7 @@ module.exports = (function() {
 
     return [
       '<li data-id="' + group.id + '">',
-        '<a href="' + groupUrl + '&mode=edit" class="push-link">' + view.prettyId(group.id) + '</a>',
+        '<a href="' + groupUrl + '&mode=edit">' + view.prettyId(group.id) + '</a>',
       '</li>'
     ].join('\n');
   };
@@ -2146,7 +2145,7 @@ module.exports = (function() {
     var id = invitation.id;
     return [
       '<li data-id="' + id + '">',
-        '<a href="/invitation?id=' + id + '&mode=edit" class="push-link">' + view.prettyId(id) + '</a>',
+        '<a href="/invitation?id=' + id + '&mode=edit">' + view.prettyId(id) + '</a>',
       '</li>'
     ].join('\n');
   };

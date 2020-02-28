@@ -169,7 +169,7 @@ window.promptLogin = function(user) {
   if (_.isEmpty(user) || _.startsWith(user.id, 'guest_')) {
     generalPrompt(
       'message',
-      '<span class="important_message">Please <a href="/login' + redirectParam + '" class="push-link">Login</a> to proceed</span>',
+      '<span class="important_message">Please <a href="/login' + redirectParam + '">Login</a> to proceed</span>',
       {html: true}
     );
   } else {

@@ -4,9 +4,6 @@ import Banner from './Banner'
 import FlashAlert from './FlashAlert'
 import Footer from './Footer'
 
-// Global Styles
-import '../styles/layout.less'
-
 const Layout = ({
   children, title, bodyClass, bannerHidden, bannerContent,
 }) => (
