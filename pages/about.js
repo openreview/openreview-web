@@ -1,7 +1,13 @@
 /* eslint-disable max-len */
 
+import Head from 'next/head'
+
 const About = () => (
   <div>
+    <Head>
+      <title key="title">About | OpenReview</title>
+    </Head>
+
     <div className="row">
       <div className="col-xs-12 col-md-10 col-md-offset-1"><h1>About OpenReview</h1></div>
     </div>
@@ -75,6 +81,6 @@ const About = () => (
   </div>
 )
 
-About.title = 'About'
+About.bodyClass = 'about'
 
 export default About

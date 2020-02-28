@@ -1,3 +1,4 @@
+import Head from 'next/head'
 import Link from 'next/link'
 import withError from '../components/withError'
 import api from '../lib/api-client'
@@ -18,6 +19,10 @@ const VenueItem = ({ id, name }) => (
 
 const Venues = ({ venues }) => (
   <>
+    <Head>
+      <title key="title">Venue Directory | OpenReview</title>
+    </Head>
+
     <header className="clearfix">
       <h1>All Venues</h1>
       <hr />
@@ -62,7 +67,6 @@ Venues.getInitialProps = async () => {
   return { venues }
 }
 
-const WrappedVenues = withError(Venues)
-WrappedVenues.title = 'Venues'
+Venues.bodyClass = 'venues'
 
-export default WrappedVenues
+export default withError(Venues)

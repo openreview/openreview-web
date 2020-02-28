@@ -1,3 +1,4 @@
+import Head from 'next/head'
 import Link from 'next/link'
 
 // Page Styles
@@ -40,6 +41,10 @@ const SignupForm = () => (
 
 const SignUp = ({ query }) => (
   <div>
+    <Head>
+      <title key="title">Sign Up | OpenReview</title>
+    </Head>
+
     <h1>Sign Up</h1>
     <p className="hint">How do you usually write your name as author of a paper?</p>
 
@@ -48,6 +53,7 @@ const SignUp = ({ query }) => (
 )
 
 SignUp.getInitialProps = async ctx => ({ query: ctx.query })
-SignUp.title = 'Sign Up'
+
+SignUp.bodyClass = 'sign-up'
 
 export default SignUp

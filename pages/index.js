@@ -1,19 +1,15 @@
 import Link from 'next/link'
+import Head from 'next/head'
 import get from 'lodash/get'
 import uniqBy from 'lodash/uniqBy'
 import api from '../lib/api-client'
 import { prettyId, formatTimestamp } from '../lib/utils'
-import LoadingSpinner from '../components/LoadingSpinner'
 
 // Page Styles
 import '../styles/pages/home.less'
 
-const VenueList = ({ name, venues, loading }) => (
+const VenueList = ({ name, venues }) => (
   <div id={name} className="conferences">
-    {loading && (
-      <LoadingSpinner inline="true" />
-    )}
-
     {venues.length ? venues.map(venue => (
       <Venue
         key={`${name}-${venue.groupId}`}
@@ -44,6 +40,10 @@ const Venue = ({ groupId, dueDate }) => (
 
 const Home = ({ activeVenues, openVenues, allVenues }) => (
   <div>
+    <Head>
+      <title key="title">Venues | OpenReview</title>
+    </Head>
+
     <h1>Active Venues</h1>
     <hr className="small" />
     <VenueList name="active-venues" venues={activeVenues} />
@@ -80,7 +80,7 @@ Home.getInitialProps = async () => {
     allVenues,
   }
 }
-Home.title = 'Venues'
+
 Home.bodyClass = 'home'
 
 export default Home

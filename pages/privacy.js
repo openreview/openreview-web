@@ -1,5 +1,11 @@
+import Head from 'next/head'
+
 const Privacy = () => (
   <div>
+    <Head>
+      <title key="title">Privacy Policy | OpenReview</title>
+    </Head>
+
     <div className="row">
       <div className="col-xs-12 col-md-10 col-md-offset-1"><h1>Privacy Policy</h1></div>
     </div>
@@ -96,6 +102,6 @@ const Privacy = () => (
   </div>
 )
 
-Privacy.title = 'Privacy'
+Privacy.bodyClass = 'privacy'
 
 export default Privacy

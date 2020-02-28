@@ -1,5 +1,11 @@
+import Head from 'next/head'
+
 const Contact = () => (
   <div>
+    <Head>
+      <title key="title">Contact | OpenReview</title>
+    </Head>
+
     <div className="row">
       <div className="col-xs-12 col-md-10 col-md-offset-1"><h1>Contact Us</h1></div>
     </div>
@@ -26,6 +32,6 @@ const Contact = () => (
   </div>
 )
 
-Contact.title = 'Contact'
+Contact.bodyClass = 'contact'
 
 export default Contact

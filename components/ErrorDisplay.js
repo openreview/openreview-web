@@ -1,5 +1,11 @@
+import Head from 'next/head'
+
 const ErrorDisplay = ({ statusCode, message }) => (
   <div className="row error-display">
+    <Head>
+      <title key="title">Error | OpenReview</title>
+    </Head>
+
     <header className="col-xs-12 col-md-10 col-md-offset-1 text-center">
       <h1>{`Error ${statusCode}`}</h1>
       <hr />

@@ -1,7 +1,13 @@
 /* eslint-disable max-len */
 
+import Head from 'next/head'
+
 const Terms = () => (
   <div>
+    <Head>
+      <title key="title">Terms & Conditions | OpenReview</title>
+    </Head>
+
     <div className="row">
       <div className="col-xs-12 col-md-10 col-md-offset-1"><h1>Terms &amp; Conditions</h1></div>
     </div>
@@ -51,6 +57,6 @@ const Terms = () => (
   </div>
 )
 
-Terms.title = 'Terms & Conditions'
+Terms.bodyClass = 'terms'
 
 export default Terms

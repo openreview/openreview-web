@@ -113,9 +113,7 @@ const Forum = ({ forumNote, query, appContext }) => {
   return (
     <div className="forum-container">
       <Head>
-        <title>
-          {`${forumNote.content.title || 'Forum'} | OpenReview`}
-        </title>
+        <title key="title">{`${forumNote.content.title || 'Forum'} | OpenReview`}</title>
       </Head>
 
       <div className="note">
@@ -169,7 +167,6 @@ Forum.getInitialProps = async (ctx) => {
   }
 }
 
-const WrappedForum = withError(Forum)
-WrappedForum.title = 'Forum'
+Forum.bodyClass = 'forum'
 
-export default WrappedForum
+export default withError(Forum)

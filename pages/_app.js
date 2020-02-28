@@ -4,7 +4,6 @@
 import React from 'react'
 import App from 'next/app'
 import Router from 'next/router'
-import kebabCase from 'lodash/kebabCase'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
 import { auth, setAuthCookie, removeAuthCookie } from '../lib/auth'
@@ -93,8 +92,6 @@ class OpenReviewApp extends App {
 
   render() {
     const { Component, pageProps } = this.props
-    const pageTitle = Component.title
-    const bodyClass = Component.bodyClass || kebabCase(pageTitle)
     const userContext = {
       user: this.state.user,
       accessToken: this.state.accessToken,
@@ -110,8 +107,7 @@ class OpenReviewApp extends App {
     return (
       <UserContext.Provider value={userContext}>
         <Layout
-          title={pageTitle}
-          bodyClass={bodyClass}
+          bodyClass={Component.bodyClass}
           bannerHidden={this.state.bannerHidden}
           bannerContent={this.state.bannerContent}
         >

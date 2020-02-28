@@ -138,9 +138,7 @@ const ProfileExpertise = ({ expertise }) => (
 const Profile = ({ profile, publicProfile }) => (
   <div className="profile-container">
     <Head>
-      <title>
-        {`${profile.preferredName} | OpenReview`}
-      </title>
+      <title key="title">{`${profile.preferredName} | OpenReview`}</title>
     </Head>
 
     <header className="clearfix">
@@ -312,7 +310,6 @@ Profile.getInitialProps = async (ctx) => {
   }
 }
 
-const WrappedProfile = withError(Profile)
-WrappedProfile.title = 'Profile'
+Profile.bodyClass = 'profile'
 
-export default WrappedProfile
+export default withError(Profile)

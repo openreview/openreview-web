@@ -12,8 +12,6 @@
  * - replace `#content` with `#content > .forum-container`
  */
 module.exports = function(forumId, noteId, invitationId, user) {
-  $('body')[0].className = 'forum';
-
   if (!noteId) {
     noteId = forumId;
   }

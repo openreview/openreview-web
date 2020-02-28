@@ -5,11 +5,11 @@ import FlashAlert from './FlashAlert'
 import Footer from './Footer'
 
 const Layout = ({
-  children, title, bodyClass, bannerHidden, bannerContent,
+  children, bodyClass, bannerHidden, bannerContent,
 }) => (
   <>
     <Head>
-      <title>{`${title} | OpenReview`}</title>
+      <title key="title">OpenReview</title>
     </Head>
 
     <Nav />

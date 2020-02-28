@@ -2,6 +2,7 @@
 
 import { useState, useContext } from 'react'
 import Link from 'next/link'
+import Head from 'next/head'
 import Router from 'next/router'
 import UserContext from '../components/UserContext'
 import api from '../lib/api-client'
@@ -79,6 +80,10 @@ const LoginForm = () => {
 
 const Login = ({ redirect }) => (
   <div className="row">
+    <Head>
+      <title key="title">Login | OpenReview</title>
+    </Head>
+
     <div className="login-container col-sm-12 col-md-5 col-lg-4 col-md-offset-1 col-lg-offset-2">
       <h1>Login</h1>
       <LoginForm />
@@ -109,6 +114,7 @@ Login.getInitialProps = async (ctx) => {
     redirect: ctx.query.redirect,
   }
 }
-Login.title = 'Login'
+
+Login.bodyClass = 'login'
 
 export default Login

@@ -53,9 +53,7 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
   return (
     <div id="group-container">
       <Head>
-        <title>
-          {`${prettyId(groupId)} | OpenReview`}
-        </title>
+        <title key="title">{`${prettyId(groupId)} | OpenReview`}</title>
       </Head>
 
       {clientJsLoading && (
@@ -120,7 +118,6 @@ Group.getInitialProps = async (ctx) => {
   }
 }
 
-const WrappedGroup = withError(Group)
-WrappedGroup.title = 'Group'
+Group.bodyClass = 'group'
 
-export default WrappedGroup
+export default withError(Group)

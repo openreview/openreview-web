@@ -34,5 +34,7 @@ export default function withError(Component) {
     return props
   }
 
+  WithError.bodyClass = Component.bodyClass
+
   return WithError
 }
