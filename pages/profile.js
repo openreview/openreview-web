@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import Head from 'next/head'
 import pick from 'lodash/pick'
 import withError from '../components/withError'
@@ -135,6 +136,20 @@ const ProfileExpertise = ({ expertise }) => (
   </ProfileItem>
 )
 
+const RecentPublications = ({ profile }) => {
+  const [loading, setLoading] = useState(true)
+
+  if (loading) {
+    return <p className="loading-message"><em>Loading...</em></p>
+  }
+
+  return (
+    <a href={`/search?term=${profile.id}&content=authors&group=all&source=forum&sort=cdate:desc`}>
+      View All
+    </a>
+  )
+}
+
 const Profile = ({ profile, publicProfile }) => (
   <div className="profile-container">
     <Head>
@@ -268,18 +283,8 @@ const Profile = ({ profile, publicProfile }) => (
         <section className="publications">
           <h4>Recent Publications</h4>
           <div className="section-content">
-            <p className="loading-message"><em>Loading...</em></p>
+            <RecentPublications profile={profile} />
           </div>
-          <ul className="actions list-inline" style={{ display: 'none' }}>
-            <li>
-              <a
-                href={`/search?term=${profile.id}&content=authors&group=all&source=forum&sort=cdate:desc`}
-                className="search-link"
-              >
-                View All
-              </a>
-            </li>
-          </ul>
         </section>
 
         <section className="coauthors">

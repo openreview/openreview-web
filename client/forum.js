@@ -19,7 +19,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
   var $content = $('#content > .forum-container');
   var $childrenAnchor = $('#note_children');
 
-
   // Data fetching functions
   var getProfilesP = function(notes) {
 
