@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port $NEXT_PORT",
+    "lint": "eslint components/**/*.js lib/*.js pages/**/*.js",
     "build": "next build",
     "start": "next start --port $NEXT_PORT"
   },
