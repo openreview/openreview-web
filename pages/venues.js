@@ -9,7 +9,7 @@ import '../styles/pages/venues.less'
 
 const VenueItem = ({ id, name }) => (
   <h3>
-    <Link href={`/submissions?id=${id}`}>
+    <Link href={`/submissions?venue=${id}`}>
       <a title="View submissions for this venue">
         {name}
       </a>
