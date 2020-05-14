@@ -39,7 +39,7 @@ Submissions.getInitialProps = async (ctx) => {
   const { token } = auth(ctx)
   const groupId = ctx.query.venue
   const currentPage = Math.max(parseInt(ctx.query.page, 10) || 1, 1)
-  const notesPerPage = 150
+  const notesPerPage = 25
   const apiRes = await api.get('/notes', {
     invitation: `${groupId}/.*/-/([Bb]lind_)?[Ss]ubmission`,
     limit: notesPerPage,

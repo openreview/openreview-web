@@ -19,25 +19,25 @@ const PaginationLinks = ({
   // Create entries for Next, Previous, First and Last links
   pageList[0] = {
     disabled: currentPage === 1,
-    label: '&laquo;',
+    label: <span>&laquo;</span>,
     number: 1,
     extraClasses: 'left-arrow',
   }
   pageList[1] = {
     disabled: currentPage === 1,
-    label: '&lsaquo;',
+    label: <span>&lsaquo;</span>,
     number: currentPage - 1,
     extraClasses: 'left-arrow',
   }
   pageList[pageListLength - 2] = {
     disabled: currentPage === pageCount,
-    label: '&rsaquo;',
+    label: <span>&rsaquo;</span>,
     number: currentPage + 1,
     extraClasses: 'right-arrow',
   }
   pageList[pageListLength - 1] = {
     disabled: currentPage === pageCount,
-    label: '&raquo;',
+    label: <span>&raquo;</span>,
     number: pageCount,
     extraClasses: 'right-arrow',
   }
@@ -62,10 +62,10 @@ const PaginationLinks = ({
           return (
             <li className={classList.join(' ')} data-page-number={page.number}>
               {page.disabled ? (
-                <span>{page.label}</span>
+                <span>{page.label || page.icon}</span>
               ) : (
                 <Link href={`${baseUrl || ''}&page=${page.number}`}>
-                  <a>{page.label}</a>
+                  <a>{page.label || page.icon}</a>
                 </Link>
               )}
             </li>

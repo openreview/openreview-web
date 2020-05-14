@@ -5,7 +5,7 @@ import NoteContent from './NoteContent'
 import { prettyId, forumDate, inflect } from '../lib/utils'
 
 const Note = ({ note, options }) => (
-  <div>
+  <div className="note">
     <NoteTitle
       id={note.id}
       forum={note.forum}
