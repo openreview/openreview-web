@@ -22,7 +22,7 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
 
   useEffect(() => {
     setBannerHidden(true)
-  }, [groupId])
+  }, [])
 
   useEffect(() => {
     if (clientJsLoading) return

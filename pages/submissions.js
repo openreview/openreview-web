@@ -6,9 +6,6 @@ import api from '../lib/api-client'
 import { prettyId } from '../lib/utils'
 import { auth } from '../lib/auth'
 
-// Page Styles
-import '../styles/pages/submissions.less'
-
 const Submissions = ({
   title, groupId, notes, displayOptions, pagination,
 }) => (

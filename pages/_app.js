@@ -69,11 +69,13 @@ class OpenReviewApp extends App {
     }
 
     // Load required vendor libraries
-    // eslint-disable-next-line no-multi-assign
-    window.jQuery = window.$ = require('jquery')
+    window.jQuery = require('jquery')
+    window.$ = window.jQuery
     require('bootstrap')
     window._ = require('lodash')
     window.Handlebars = require('handlebars/runtime')
+    window.marked = require('marked')
+    window.DOMPurify = require('dompurify')
 
     // Load legacy JS code
     window.mkStateManager = require('../client/state-manager')
