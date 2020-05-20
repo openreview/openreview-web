@@ -26,6 +26,7 @@ const SectionHeading = ({ id, heading, options }) => (
       <SectionHeadingLink targetId={id} parentId={options.id} collapsed={options.collapsed}>
         <Icon name="triangle-bottom" />
       </SectionHeadingLink>
+      {' '}
       <SectionHeadingLink targetId={id} parentId={options.id} collapsed={options.collapsed}>
         {heading}
       </SectionHeadingLink>
