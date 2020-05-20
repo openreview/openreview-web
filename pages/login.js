@@ -36,13 +36,11 @@ const LoginForm = () => {
 
   return (
     <form onSubmit={handleSubmit}>
-      {/*
       {loginError && (
         <div className="alert alert-danger">
           <span>{loginError.message}</span>
         </div>
       )}
-      */}
       <div className="form-group">
         <label htmlFor="email">Email</label>
         <input

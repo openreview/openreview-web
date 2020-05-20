@@ -8,7 +8,7 @@ import { prettyId, formatTimestamp } from '../lib/utils'
 // Page Styles
 import '../styles/pages/home.less'
 
-const VenueList = ({ name, venues }) => (
+const VenueList = ({ name, venues = [] }) => (
   <div id={name} className="conferences">
     {venues.length ? venues.map(venue => (
       <Venue
@@ -68,16 +68,21 @@ Home.getInitialProps = async () => {
     'group',
   )
 
-  const [activeVenues, openVenues, allVenues] = await Promise.all([
-    api.get('/groups', { id: 'active_venues' }).then(formatGroupResults),
-    api.get('/invitations', { invitee: '~', pastdue: false }).then(formatInvitationResults),
-    api.get('/groups', { id: 'host' }).then(formatGroupResults),
-  ])
-
-  return {
-    activeVenues,
-    openVenues,
-    allVenues,
+  try {
+    const [activeVenues, openVenues, allVenues] = await Promise.all([
+      api.get('/groups', { id: 'active_venues' }).then(formatGroupResults),
+      api.get('/invitations', { invitee: '~', pastdue: false }).then(formatInvitationResults),
+      api.get('/groups', { id: 'host' }).then(formatGroupResults),
+    ])
+    return {
+      activeVenues,
+      openVenues,
+      allVenues,
+    }
+  } catch (error) {
+    return {
+      error,
+    }
   }
 }
 

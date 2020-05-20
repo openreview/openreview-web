@@ -21,15 +21,21 @@ const NavUserLinks = () => {
   if (!user) {
     return (
       <ul className="nav navbar-nav navbar-right">
-        <li id="user-menu"><Link href="/login"><a>Login</a></Link></li>
+        <li id="user-menu">
+          <Link href="/login"><a>Login</a></Link>
+        </li>
       </ul>
     )
   }
 
   return (
     <ul className="nav navbar-nav navbar-right">
-      <li className="hidden-sm"><Link href="/activity"><a>Activity</a></Link></li>
-      <li className="hidden-sm"><Link href="/tasks"><a>Tasks</a></Link></li>
+      <li className="hidden-sm">
+        <Link href="/activity"><a>Activity</a></Link>
+      </li>
+      <li className="hidden-sm">
+        <Link href="/tasks"><a>Tasks</a></Link>
+      </li>
       <li id="user-menu" className="dropdown">
         <a
           className="dropdown-toggle"
