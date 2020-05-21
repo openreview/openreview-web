@@ -48,10 +48,12 @@ class OpenReviewApp extends App {
     Router.push('/')
   }
 
-  logoutUser() {
+  logoutUser(redirectPath = '/') {
     this.setState({ user: null, accessToken: null })
     removeAuthCookie()
-    Router.push('/')
+    if (redirectPath) {
+      Router.push('/')
+    }
   }
 
   setBannerHidden(newHidden) {

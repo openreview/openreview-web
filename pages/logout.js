@@ -1,29 +1,44 @@
-import Router from 'next/router'
+/* globals promptError: false */
+
+import { useContext, useEffect } from 'react'
+import { useRouter } from 'next/router'
+import UserContext from '../components/UserContext'
 import api from '../lib/api-client'
-import { auth, removeAuthCookie } from '../lib/auth'
+import LoadingSpinner from '../components/LoadingSpinner'
 
-const Logout = () => (
-  <div>Logging out...</div>
-)
+const Logout = () => {
+  const { user, logoutUser } = useContext(UserContext)
+  const router = useRouter()
 
-Logout.getInitialProps = async (ctx) => {
-  const { user, token } = auth(ctx)
-  let message
-  if (user) {
+  const performLogout = async () => {
     try {
-      await api.post('/logout', {}, { accessToken: token })
-      removeAuthCookie()
-      message = 'You are now logged out'
+      await api.post('/logout')
+      logoutUser()
     } catch (error) {
-      message = `Error: ${error.message}`
+      promptError(error.message)
     }
+
+    router.replace('/')
   }
-  if (ctx.req) {
-    ctx.res.writeHead(302, { Location: '/' }).end()
-  } else {
-    // Should never get here since this function should only run on the server
-    Router.replace('/')
-  }
+
+  useEffect(() => {
+    if (user) {
+      performLogout(false)
+    }
+  }, [user])
+
+  // Redirect unauthenticated users after 1 second
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      if (!user) {
+        router.replace('/')
+      }
+    }, 1000)
+
+    return () => clearTimeout(timerId)
+  }, [])
+
+  return <LoadingSpinner />
 }
 
 Logout.bodyClass = 'logout'

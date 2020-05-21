@@ -7,6 +7,7 @@ import api from '../lib/api-client'
 
 const NavUserLinks = () => {
   const { user, logoutUser } = useContext(UserContext)
+
   const handleLogout = async (e) => {
     e.preventDefault()
 
