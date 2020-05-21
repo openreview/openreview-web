@@ -3,7 +3,7 @@ import Icon from './Icon'
 const Accordion = ({ sections, options }) => (
   <div
     id={options.id}
-    className={`panel-group webfield-accordion ${options.extraClasses}`}
+    className={`webfield-accordion panel-group ${options.extraClasses}`}
     role="tablist"
     aria-multiselectable="true"
   >
@@ -13,7 +13,7 @@ const Accordion = ({ sections, options }) => (
         <div key={sectionId} className="panel panel-default">
           <SectionHeading id={sectionId} heading={section.heading} options={options} />
           <SectionBody id={sectionId} body={section.body} options={options} />
-          <hr className="webfied-accordion-divider" />
+          <hr className="webfield-accordion-divider" />
         </div>
       )
     })}
@@ -23,23 +23,21 @@ const Accordion = ({ sections, options }) => (
 const SectionHeading = ({ id, heading, options }) => (
   <div className="panel-heading" role="tab">
     <h4 className="panel-title">
-      <SectionHeadingLink targetId={id} parentId={options.id} collapsed={options.collapsed}>
+      <SectionHeadingLink targetId={id} parentId={options.id}>
         <Icon name="triangle-bottom" />
       </SectionHeadingLink>
       {' '}
-      <SectionHeadingLink targetId={id} parentId={options.id} collapsed={options.collapsed}>
+      <SectionHeadingLink targetId={id} parentId={options.id}>
         {heading}
       </SectionHeadingLink>
     </h4>
   </div>
 )
 
-const SectionHeadingLink = ({
-  targetId, parentId, collapsed, children,
-}) => (
+const SectionHeadingLink = ({ targetId, parentId, children }) => (
   <a
     href={`#${targetId}`}
-    className={`collapse-btn ${collapsed ? 'collapsed' : ''}`}
+    className="collapse-btn collapsed"
     role="button"
     data-toggle="collapse"
     data-parent={parentId}
@@ -52,7 +50,7 @@ const SectionHeadingLink = ({
 const SectionBody = ({ id, body, options }) => (
   <div
     id={id}
-    className={`panel-collapse collapse ${options.collapsed ? '' : 'in'}`}
+    className="panel-collapse collapse"
     role="tabpanel"
   >
     <div className="panel-body">

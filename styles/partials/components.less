@@ -1040,7 +1040,7 @@ table.table-minimal {
 
 // Accordion widget
 .webfield-accordion {
-  & > div.panel {
+  & > .panel {
     padding: 0;
     margin: 0;
     border: 0;
@@ -1054,23 +1054,29 @@ table.table-minimal {
   .panel-heading {
     background-color: transparent;
     padding: .5rem;
-    h4.panel-title {
-      font-size: .875rem;
-      font-weight: bold;
-      margin-left: -.5rem;
-      .collapse-btn {
-        padding-right: .25rem;
-        &:hover {
-          text-decoration: none;
-        }
-      }
-      .collapse-btn.collapsed .glyphicon {
-        transform: rotate(270deg);
+  }
+  .panel-title {
+    font-size: .875rem;
+    font-weight: bold;
+    margin-left: -.5rem;
+    a {
+      color: @mediumBlue;
+      &:hover {
+        color: @mediumDarkBlue;
       }
     }
     .glyphicon {
       font-size: .75rem;
       top: 1px;
+    }
+    .collapse-btn {
+      padding-right: .25rem;
+      &:hover {
+        text-decoration: none;
+      }
+    }
+    .collapse-btn.collapsed .glyphicon {
+      transform: rotate(270deg);
     }
   }
   .panel-body {
@@ -1083,29 +1089,21 @@ table.table-minimal {
   &.panel-group .panel-heading+.panel-collapse>.panel-body {
     border-top: 0;
   }
-  hr.webfied-accordion-divider {
+  hr.webfield-accordion-divider {
     margin-top: .5rem;
     margin-bottom: .5rem
   }
 }
-#header {
+
+header, #header {
   .webfield-accordion {
-    .panel-heading {
-      h4.panel-title {
-        font-size: .875rem;
-        font-weight: bold;
-      }
+    .panel-title {
+      font-size: .875rem;
+      font-weight: bold;
+
       .glyphicon {
         padding-right: 0;
       }
-    }
-  }
-}
-.panel-title {
-  a {
-    color: @mediumBlue;
-    &:hover {
-      color: @mediumDarkBlue;
     }
   }
 }

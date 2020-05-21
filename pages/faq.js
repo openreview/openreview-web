@@ -23,6 +23,10 @@ const Faq = ({ questions, appContext }) => {
       heading: obj.q,
       body: DOMPurify.sanitize(marked(obj.a, { renderer: defaultRenderer })),
     })))
+  }, [clientJsLoading])
+
+  useEffect(() => {
+    if ($('#questions').length === 0) return
 
     // Scroll to and expand question referenced in URL
     if (window.location.hash) {
@@ -37,10 +41,11 @@ const Faq = ({ questions, appContext }) => {
       }
     }
 
-    $('#questions .panel-title a').on('click', () => {
-      window.location.hash = $(this).attr('href')
+    // Update URL hash when clicking a question
+    $('#questions .panel-title a').on('click', function onClick() {
+      window.history.replaceState(null, '', $(this).attr('href'))
     })
-  }, [clientJsLoading])
+  }, [formattedQuestions])
 
   return (
     <div>
