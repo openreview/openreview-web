@@ -25,6 +25,7 @@ const Footer = () => (
 
           <div className="col-sm-4">
             <ul className="list-unstyled">
+              <li><Link href="/faq"><a>Frequently Asked Questions</a></Link></li>
               <li><Link href="/terms"><a>Terms of Service</a></Link></li>
               <li><Link href="/privacy"><a>Privacy Policy</a></Link></li>
             </ul>
@@ -44,6 +45,7 @@ const Footer = () => (
 
           <div className="col-xs-6">
             <ul className="list-unstyled">
+              <li><Link href="/faq"><a>Frequently Asked Questions</a></Link></li>
               <li><Link href="/contact"><a>Contact</a></Link></li>
               <li><a data-toggle="modal" data-target="#feedback-modal">Feedback</a></li>
               <li><Link href="/terms"><a>Terms of Service</a></Link></li>

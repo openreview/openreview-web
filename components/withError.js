@@ -1,7 +1,3 @@
-/* eslint-disable arrow-body-style */
-/* eslint-disable react/jsx-props-no-spreading */
-
-import React from 'react'
 import ErrorDisplay from './ErrorDisplay'
 
 export default function withError(Component) {
@@ -11,6 +7,8 @@ export default function withError(Component) {
     if (statusCode) {
       return <ErrorDisplay statusCode={statusCode} message={message} />
     }
+
+    // eslint-disable-next-line react/jsx-props-no-spreading
     return <Component {...props} />
   }
 

@@ -1,7 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable global-require */
 
-import React from 'react'
 import App from 'next/app'
 import Router from 'next/router'
 import Layout from '../components/Layout'
