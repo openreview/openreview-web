@@ -28,7 +28,7 @@ const Note = ({ note, options }) => (
       <li>{forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year)}</li>
       <li>{note.content.venue ? note.content.venue : prettyId(note.invitation)}</li>
       {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-      <li>Readers: <NoteReaders readers={note.readers} /></li>
+      <li className="readers">Readers: <NoteReaders readers={note.readers} /></li>
       {options.replyCount && (
         <li>{inflect(note.details.replyCount, 'Reply', 'Replies', true)}</li>
       )}

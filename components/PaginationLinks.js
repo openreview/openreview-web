@@ -18,24 +18,28 @@ const PaginationLinks = ({
 
   // Create entries for Next, Previous, First and Last links
   pageList[0] = {
+    key: 'first',
     disabled: currentPage === 1,
     label: <span>&laquo;</span>,
     number: 1,
     extraClasses: 'left-arrow',
   }
   pageList[1] = {
+    key: 'previous',
     disabled: currentPage === 1,
     label: <span>&lsaquo;</span>,
     number: currentPage - 1,
     extraClasses: 'left-arrow',
   }
   pageList[pageListLength - 2] = {
+    key: 'next',
     disabled: currentPage === pageCount,
     label: <span>&rsaquo;</span>,
     number: currentPage + 1,
     extraClasses: 'right-arrow',
   }
   pageList[pageListLength - 1] = {
+    key: 'last',
     disabled: currentPage === pageCount,
     label: <span>&raquo;</span>,
     number: pageCount,
@@ -53,19 +57,19 @@ const PaginationLinks = ({
   return (
     <nav className="pagination-container text-center" aria-label="page navigation">
       <ul className="pagination">
-        {pageList.map((page) => {
+        {pageList.map((page, i) => {
           const classList = []
           if (page.disabled) classList.push('disabled')
           if (page.active) classList.push('active')
           if (page.extraClasses) classList.push(page.extraClasses)
 
           return (
-            <li className={classList.join(' ')} data-page-number={page.number}>
+            <li key={page.key || page.number} className={classList.join(' ')} data-page-number={page.number}>
               {page.disabled ? (
-                <span>{page.label || page.icon}</span>
+                <span>{page.label}</span>
               ) : (
                 <Link href={`${baseUrl || ''}&page=${page.number}`}>
-                  <a>{page.label || page.icon}</a>
+                  <a>{page.label}</a>
                 </Link>
               )}
             </li>

@@ -1,4 +1,6 @@
+import uniqBy from 'lodash/uniqBy'
 import zip from 'lodash/zip'
+import Link from 'next/link'
 import { prettyId } from '../lib/utils'
 
 const NoteAuthors = ({
@@ -13,6 +15,8 @@ const NoteAuthors = ({
   } else {
     authorsList = []
   }
+  // Make sure authors aren't repeated
+  authorsList = uniqBy(authorsList, authorInfo => `${authorInfo[0]} ${authorInfo[1]}`)
 
   return authorsList.map(([author, authorId]) => {
     if (!author) return null
@@ -27,15 +31,11 @@ const NoteAuthors = ({
     if (!param) return author
 
     return (
-      <a
-        href={`/profiles?${param}=${encodeURIComponent(authorId)}`}
-        data-toggle="tooltip"
-        data-placement="top"
-        title={authorId}
-        key={authorId}
-      >
-        {author}
-      </a>
+      <Link key={`${author} ${authorId}`} href={`/profile?${param}=${encodeURIComponent(authorId)}`}>
+        <a title={authorId} data-toggle="tooltip" data-placement="top">
+          {author}
+        </a>
+      </Link>
     )
   }).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)
 }
