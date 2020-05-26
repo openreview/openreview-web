@@ -1,14 +1,36 @@
-import { useState } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import Head from 'next/head'
+import Link from 'next/link'
 import pick from 'lodash/pick'
+import UserContext from '../components/UserContext'
+import NoteList from '../components/NoteList'
 import withError from '../components/withError'
-import { formatProfileData } from '../lib/profiles'
 import api from '../lib/api-client'
+import { formatProfileData, getCoAuthorsFromPublications } from '../lib/profiles'
 import { prettyList } from '../lib/utils'
 import { auth } from '../lib/auth'
 
 // Page Styles
 import '../styles/pages/profile.less'
+
+const ProfileSection = ({
+  name, title, instructions, actionLink, children,
+}) => (
+  <section className={name}>
+    <h4>{title}</h4>
+    <p className="instructions">
+      {instructions}
+    </p>
+    <div className="section-content">
+      {children}
+    </div>
+    {actionLink && (
+      <ul className="actions list-inline">
+        <li><a className="suggest">{actionLink}</a></li>
+      </ul>
+    )}
+  </section>
+)
 
 const ProfileItem = ({
   itemMeta, className = '', editBadgeDiv = false, children,
@@ -38,18 +60,6 @@ const ProfileItem = ({
   )
 }
 
-const ProfileNamesList = ({ names }) => (
-  <div className="list-compact names">
-    {names
-      .map((name) => {
-        if (name.duplicate) return null
-        return <ProfileName key={name.username} name={name} />
-      })
-      .filter(elem => elem)
-      .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
-  </div>
-)
-
 const ProfileName = ({ name }) => (
   <ProfileItem itemMeta={name.meta}>
     <span>{name.first}</span>
@@ -60,18 +70,6 @@ const ProfileName = ({ name }) => (
     {' '}
     {name.preferred && <small>(Preferred)</small>}
   </ProfileItem>
-)
-
-const ProfileEmailsList = ({ emails, publicProfile }) => (
-  <div className="list-compact emails">
-    {emails
-      .map((email) => {
-        if (email.hidden) return null
-        return <ProfileEmail key={email.email} email={email} publicProfile={publicProfile} />
-      })
-      .filter(elem => elem)
-      .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
-  </div>
 )
 
 const ProfileEmail = ({ email, publicProfile }) => (
@@ -136,179 +134,231 @@ const ProfileExpertise = ({ expertise }) => (
   </ProfileItem>
 )
 
-const RecentPublications = ({ profile }) => {
-  const [loading, setLoading] = useState(true)
+const RecentPublications = ({
+  profileId, publications, count, loading,
+}) => {
+  const displayOptions = {
+    pdfLink: false,
+    htmlLink: false,
+    showContents: false,
+  }
+  const numPublicationsToShow = 10
 
   if (loading) {
     return <p className="loading-message"><em>Loading...</em></p>
   }
 
-  return (
-    <a href={`/search?term=${profile.id}&content=authors&group=all&source=forum&sort=cdate:desc`}>
-      View All
-    </a>
+  return publications.length > 0 ? (
+    <div>
+      <NoteList
+        notes={publications.slice(0, numPublicationsToShow)}
+        displayOptions={displayOptions}
+      />
+      {count > numPublicationsToShow && (
+        <Link href={`/search?term=${profileId}&content=authors&group=all&source=forum&sort=cdate:desc`}>
+          {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+          <a>View all {count} publications</a>
+        </Link>
+      )}
+    </div>
+  ) : (
+    <p className="empty-message">No recent publications</p>
   )
 }
 
-const Profile = ({ profile, publicProfile }) => (
-  <div className="profile-container">
-    <Head>
-      <title key="title">{`${profile.preferredName} | OpenReview`}</title>
-    </Head>
+const CoAuthorsList = ({ coAuthors, loading }) => {
+  const authorLink = ({ name, id, email }) => {
+    if (id) return <Link href={`/profile?id=${id}`}><a>{name}</a></Link>
+    if (email) return <Link href={`/profile?email=${email}`}><a>{name}</a></Link>
+    return <span>{name}</span>
+  }
 
-    <header className="clearfix">
-      <div className="title-container">
-        <h1>{profile.preferredName}</h1>
-        <h3>{profile.currentInstitution}</h3>
-      </div>
-    </header>
+  if (loading) {
+    return <p className="loading-message"><em>Loading...</em></p>
+  }
 
-    <div className="row equal-height-cols profile-v2">
-      <div className="col-md-12 col-lg-8">
+  return coAuthors.length > 0 ? (
+    <ul className="list-unstyled">
+      {coAuthors.map(author => <li key={author.name}>{authorLink(author)}</li>)}
+    </ul>
+  ) : (
+    <p className="empty-message">No co-authors</p>
+  )
+}
 
-        <section className="names">
-          <h4>Names</h4>
-          <p className="instructions">
-            How do you usually write your name as author of a paper? Also add any
-            other names you have authored papers under.
-          </p>
-          <div className="section-content">
-            <ProfileNamesList names={profile.names} />
-          </div>
-          <ul className="actions list-inline">
-            <li><a className="suggest">Suggest Name</a></li>
-          </ul>
-        </section>
+const Profile = ({ profile, publicProfile, appContext }) => {
+  const [loading, setLoading] = useState(true)
+  const [publications, setPublications] = useState([])
+  const [count, setCount] = useState(0)
+  const [coAuthors, setCoAuthors] = useState([])
+  const { accessToken } = useContext(UserContext)
 
-        <section className="emails">
-          <h4>Emails</h4>
-          <p className="instructions">
-            Enter email addresses associated with all of your current and historical
-            institutional affiliations, as well as all your previous publications,
-            and the Toronto Paper Matching System. This information is crucial for
-            deduplicating users, and ensuring you see your reviewing assignments.
-          </p>
-          <div className="section-content">
-            <ProfileEmailsList emails={profile.emails} publicProfile={publicProfile} />
-          </div>
-          <ul className="actions list-inline">
-            <li><a className="suggest">Suggest Email</a></li>
-          </ul>
-        </section>
+  const loadPublications = async () => {
+    let apiRes
+    try {
+      apiRes = await api.get('/notes', {
+        'content.authorids': profile.id,
+        sort: 'cdate:desc',
+        limit: 1000,
+      }, { token: accessToken })
+    } catch (error) {
+      apiRes = error
+    }
+    if (apiRes.notes) {
+      setPublications(apiRes.notes)
+      setCount(apiRes.count)
+    }
+    setLoading(false)
+  }
 
-        <section className="links">
-          <h4>Personal Links</h4>
-          <p className="instructions">Add links to your profiles on other sites. (Optional)</p>
+  useEffect(() => {
+    loadPublications()
 
-          <div className="section-content clearfix">
+    appContext.setBannerHidden(true)
+  }, [])
+
+  useEffect(() => {
+    if (loading) return
+
+    setCoAuthors(getCoAuthorsFromPublications(profile, publications))
+  }, [loading, publications])
+
+  return (
+    <div className="profile-container">
+      <Head>
+        <title key="title">{`${profile.preferredName} | OpenReview`}</title>
+      </Head>
+
+      <header className="clearfix">
+        <div className="title-container">
+          <h1>{profile.preferredName}</h1>
+          <h3>{profile.currentInstitution}</h3>
+        </div>
+      </header>
+
+      <div className="row equal-height-cols">
+        <div className="col-md-12 col-lg-8">
+          <ProfileSection
+            name="names"
+            title="Names"
+            instructions="How do you usually write your name as author of a paper?
+              Also add any other names you have authored papers under."
+            actionLink="Suggest Name"
+          >
+            <div className="list-compact">
+              {profile.names.filter(name => !name.duplicate)
+                .map(name => <ProfileName key={name.username} name={name} />)
+                .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+            </div>
+          </ProfileSection>
+
+          <ProfileSection
+            name="emails"
+            title="Emails"
+            instructions="Enter email addresses associated with all of your current and historical
+              institutional affiliations, as well as all your previous publications,
+              and the Toronto Paper Matching System. This information is crucial for
+              deduplicating users, and ensuring you see your reviewing assignments."
+            actionLink="Suggest Email"
+          >
+            <div className="list-compact">
+              {profile.emails.filter(email => !email.hidden)
+                .map(email => (
+                  <ProfileEmail key={email.email} email={email} publicProfile={publicProfile} />
+                ))
+                .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+            </div>
+          </ProfileSection>
+
+          <ProfileSection
+            name="links"
+            title="Personal Links"
+            instructions="Add links to your profiles on other sites. (Optional)"
+            actionLink="Suggest URL"
+          >
             {profile.links.map(link => <ProfileLink key={link.name} link={link} />)}
-          </div>
+          </ProfileSection>
 
-          <ul className="actions list-inline">
-            <li><a className="suggest">Suggest URL</a></li>
-          </ul>
-        </section>
-
-
-        <section className="history">
-          <h4>Education &amp; Career History</h4>
-          <p className="instructions">
-            Enter your education and career history. The institution domain is
-            used for conflict of interest detection and institution ranking.
-            For ongoing positions, leave the end field blank.
-          </p>
-          <div className="section-content">
-            {(profile.history && profile.history.length) ? profile.history.map(history => (
-              <ProfileHistory
-                key={history.position + history.institution.name}
-                history={history}
-              />
+          <ProfileSection
+            name="history"
+            title="Education &amp; Career History"
+            instructions="Enter your education and career history. The institution domain is
+              used for conflict of interest detection and institution ranking.
+              For ongoing positions, leave the end field blank."
+            actionLink="Suggest Position"
+          >
+            {profile.history?.length > 0 ? profile.history.map(history => (
+              <ProfileHistory key={history.position + history.institution.name} history={history} />
             )) : (
-              <p className="empty-message">No history found</p>
+              <p className="empty-message">No history added</p>
             )}
-          </div>
+          </ProfileSection>
 
-          <ul className="actions list-inline">
-            <li><a className="suggest">Suggest Position</a></li>
-          </ul>
-        </section>
-
-        <section className="relations">
-          <h4>Advisors, Relations &amp; Conflicts</h4>
-          <p className="instructions">
-            Enter all advisors, co-workers, and other people that should be
-            included when detecting conflicts of interest.
-          </p>
-          <div className="section-content">
-            {(profile.relations && profile.relations.length) ? profile.relations.map(relation => (
+          <ProfileSection
+            name="relations"
+            title="Advisors, Relations &amp; Conflicts"
+            instructions="Enter all advisors, co-workers, and other people that should be
+              included when detecting conflicts of interest."
+            actionLink="Suggest Relation"
+          >
+            {profile.relations?.length > 0 ? profile.relations.map(relation => (
               <ProfileRelation key={relation.relation + relation.name} relation={relation} />
             )) : (
-              <p className="empty-message">No relations found</p>
+              <p className="empty-message">No relations added</p>
             )}
-          </div>
+          </ProfileSection>
 
-          <ul className="actions list-inline">
-            <li><a className="suggest">Suggest Relation</a></li>
-          </ul>
-        </section>
-
-        <section className="expertise">
-          <h4>Expertise</h4>
-          <p className="instructions">
-            For each line, enter comma-separated keyphrases representing an
-            intersection of your interests. Think of each line as a query for
-            papers in which you would have expertise and interest. For example:
-            <br />
-            <em>topic models, social network analysis, computational social science</em>
-            <br />
-            <em>deep learning, RNNs, dependency parsing</em>
-          </p>
-          <div className="section-content">
-            {(profile.expertise && profile.expertise.length) ? profile.expertise.map(expertise => (
-              <ProfileExpertise key={expertise.keywords.join('-')} expertise={expertise} />
+          <ProfileSection
+            name="expertise"
+            title="Expertise"
+            instructions="For each line, enter comma-separated keyphrases representing an
+              intersection of your interests. Think of each line as a query for papers in
+              which you would have expertise and interest. For example: deep learning, RNNs,
+              dependency parsing"
+            actionLink="Suggest Expertise"
+          >
+            {profile.expertise?.length > 0 ? profile.expertise.map(expertise => (
+              <ProfileExpertise key={expertise.keywords.toString()} expertise={expertise} />
             )) : (
               <p className="empty-message">No areas of expertise listed</p>
             )}
-          </div>
+          </ProfileSection>
 
-          <ul className="actions list-inline">
-            <li><a className="suggest">Suggest Position</a></li>
-          </ul>
-        </section>
+        </div>
 
+        <aside className="col-md-12 col-lg-4">
+
+          <ProfileSection name="publications" title="Recent Publications">
+            <RecentPublications
+              profileId={profile.id}
+              publications={publications}
+              count={count}
+              loading={loading}
+            />
+          </ProfileSection>
+
+          <ProfileSection name="coauthors" title="Co-Authors">
+            <CoAuthorsList
+              coAuthors={coAuthors}
+              loading={loading}
+            />
+          </ProfileSection>
+
+        </aside>
       </div>
-
-      <aside className="col-md-12 col-lg-4">
-
-        <section className="publications">
-          <h4>Recent Publications</h4>
-          <div className="section-content">
-            <RecentPublications profile={profile} />
-          </div>
-        </section>
-
-        <section className="coauthors">
-          <h4>Co-Authors</h4>
-          <div className="section-content">
-            <p className="loading-message"><em>Loading...</em></p>
-          </div>
-        </section>
-
-      </aside>
     </div>
-  </div>
-)
+  )
+}
 
 Profile.getInitialProps = async (ctx) => {
   const profileQuery = pick(ctx.query, ['id', 'email'])
   const { token } = auth(ctx)
   const profileRes = await api.get('/profiles', profileQuery, { accessToken: token })
-  const profile = profileRes.profiles && profileRes.profiles.length && profileRes.profiles[0]
-  if (!profile) {
+  if (!profileRes.profiles?.length) {
     return { statusCode: 404, message: 'Profile not found' }
   }
 
-  const profileFormatted = formatProfileData(profile)
+  const profileFormatted = formatProfileData(profileRes.profiles[0])
   return {
     profile: profileFormatted,
     publicProfile: true,

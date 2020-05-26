@@ -1,9 +1,9 @@
 @import "../utils/constants";
 
-main.profile, main.activate, main.profile2 {
+main.profile, main.activate {
   header {
     margin-top: .75rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.75rem;
 
     h1 {
       margin-top: 0;
@@ -77,8 +77,24 @@ main.profile, main.activate, main.profile2 {
       color: #aaa;
       top: 1px;
     }
-    ul.list-unstyled {
+    .list-unstyled {
       margin-bottom: .25rem;
+    }
+    .list-compact > div {
+      display: inline-block;
+      line-height: normal;
+
+      &:last-child .separator {
+        display: none;
+      }
+      small {
+        color: @orRed;
+      }
+    }
+    .table-row > div {
+      small {
+        color: @orRed;
+      }
     }
     .section-content {
       line-height: 1rem;
@@ -113,13 +129,6 @@ main.profile, main.activate, main.profile2 {
         padding-right: 4px;
       }
     }
-
-    dt {
-      width: 110px;
-    }
-    dd {
-      margin-left: 125px;
-    }
     .actions {
       display: none;
 
@@ -128,25 +137,9 @@ main.profile, main.activate, main.profile2 {
         cursor: pointer;
       }
     }
-
     .glyphicon {
       color: @mediumDarkBlue;
       font-size: 1.25rem;
-    }
-  }
-
-  section.names {
-    .table-row .name {
-      width: 230px;
-    }
-  }
-
-  section.emails {
-    .table-row div:nth-child(1) {
-      width: 230px;
-      max-width: 230px;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
   }
 
@@ -156,12 +149,16 @@ main.profile, main.activate, main.profile2 {
   @badgeColWidth: 16px;
 
   section.links {
-    .table-row {
-      div:nth-child(1) {
-        width: @nameColWidth
-      }
-      div:nth-child(2) {
-        width: calc(~'100%' - @nameColWidth);
+    .section-content {
+      width: 100%;
+
+      & > div {
+        display: inline-block;
+        margin-right: 2.5rem;
+
+        a {
+          font-weight: bold;
+        }
       }
     }
   }
@@ -233,7 +230,7 @@ main.profile, main.activate, main.profile2 {
 
   section.publications {
     .submissions-list {
-      margin-bottom: 0;
+      margin-bottom: .5rem;
 
       .note {
         padding: .25rem 0;
@@ -288,84 +285,6 @@ main.profile, main.activate, main.profile2 {
       font-size: .875rem;
       line-height: 1rem;
       color: @darkBlue;
-    }
-  }
-
-  .profile-v2 {
-    div.list-compact > div {
-      display: inline-block;
-      line-height: normal;
-
-      &:last-child .separator {
-        display: none;
-      }
-      small {
-        color: @orRed;
-      }
-    }
-    div.table-row > div {
-      small {
-        color: @orRed;
-      }
-    }
-
-    section.links {
-      .section-content {
-        width: 100%;
-
-        & > div {
-          display: inline-block;
-          margin-right: 2.5rem;
-
-          a {
-            font-weight: bold;
-          }
-        }
-      }
-    }
-  }
-}
-
-main.profile2 {
-  header {
-    h1 {
-      margin-top: .75rem;
-    }
-    .img-container img {
-      margin-bottom: 0;
-    }
-  }
-  section {
-    h4 {
-      margin-top: 0;
-      border-bottom: 0;
-      padding-bottom: 0;
-      margin-bottom: .5rem;
-    }
-  }
-
-  section.history {
-    .table-row {
-      width: auto;
-      div:nth-child(1) {
-        width: 220px;
-      }
-      div:nth-child(2) {
-        width: 500px;
-      }
-      div:nth-child(3) {
-        width: 150px;
-      }
-      div:nth-child(4) {
-        width: 100px;
-      }
-    }
-  }
-
-  @media @large {
-    aside {
-      border-left: 0;
-      border-right: 1px solid @borderGray;
     }
   }
 }
