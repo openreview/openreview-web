@@ -14,7 +14,7 @@ npm install
 Next set the port that the server will listen on, or add it to your shell configuration:
 
 ```bash
-export $NEXT_PORT=3030
+export NEXT_PORT=3030
 ```
 
 Finally, copy the sample `.env` file and replace the dummy values with the correct
