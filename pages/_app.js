@@ -21,24 +21,13 @@ class OpenReviewApp extends App {
       bannerHidden: false,
       bannerContent: null,
     }
-
-    Router.events.on('routeChangeComplete', (url) => {
-      // Reset banner
-      this.setState({ bannerHidden: false, bannerContent: null })
-
-      // Track pageview in Google Analytics
-      // https://developers.google.com/analytics/devguides/collection/gtagjs/pages
-      if (process.env.IS_PRODUCTION) {
-        window.gtag('config', process.env.GA_PROPERTY_ID, {
-          page_path: url,
-        })
-      }
-    })
+    this.firstRouteChange = true
 
     this.loginUser = this.loginUser.bind(this)
     this.logoutUser = this.logoutUser.bind(this)
     this.setBannerHidden = this.setBannerHidden.bind(this)
     this.setBannerContent = this.setBannerContent.bind(this)
+    this.onRouteChange = this.onRouteChange.bind(this)
   }
 
   loginUser(authenticatedUser, userAccessToken) {
@@ -63,11 +52,30 @@ class OpenReviewApp extends App {
     this.setState({ bannerContent: newContent })
   }
 
+  onRouteChange(url) {
+    // Reset banner only if coming from another page
+    if (!this.firstRouteChange) {
+      this.setState({ bannerHidden: false, bannerContent: null })
+    }
+
+    // Track pageview in Google Analytics
+    // https://developers.google.com/analytics/devguides/collection/gtagjs/pages
+    if (process.env.IS_PRODUCTION) {
+      window.gtag('config', process.env.GA_PROPERTY_ID, {
+        page_path: url,
+      })
+    }
+
+    this.firstRouteChange = false
+  }
+
   componentDidMount() {
     const { user, token } = auth()
     if (user) {
       this.setState({ user, accessToken: token })
     }
+
+    Router.events.on('routeChangeComplete', this.onRouteChange)
 
     // Load required vendor libraries
     window.jQuery = require('jquery')
@@ -91,6 +99,10 @@ class OpenReviewApp extends App {
     window.OR_API_URL = process.env.API_URL
 
     this.setState({ clientJsLoading: false })
+  }
+
+  componentWillUnmount() {
+    Router.events.off('routeChangeComplete', this.onRouteChange)
   }
 
   render() {
