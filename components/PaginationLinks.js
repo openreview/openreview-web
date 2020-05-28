@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 const PaginationLinks = ({
-  currentPage = 1, itemsPerPage, totalCount, baseUrl = '#', options,
+  currentPage = 1, itemsPerPage, totalCount, baseUrl, options,
 }) => {
   if (totalCount <= itemsPerPage) {
     return null
@@ -50,7 +50,11 @@ const PaginationLinks = ({
   // pages on either side of the current page
   let counter = Math.min(Math.max(currentPage - 5, 1), Math.max(pageCount - 9, 1))
   for (let i = 2; i < pageListLength - 2; i += 1) {
-    pageList[i] = { active: counter === currentPage, label: counter, number: counter }
+    pageList[i] = {
+      active: counter === currentPage,
+      label: counter,
+      number: counter,
+    }
     counter += 1
   }
 
