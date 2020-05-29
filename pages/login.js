@@ -42,9 +42,10 @@ const LoginForm = () => {
         </div>
       )}
       <div className="form-group">
-        <label htmlFor="email">Email</label>
+        <label htmlFor="email-input">Email</label>
         <input
-          type="email"
+          id="email-input"
+          type="text"
           className="form-control"
           placeholder="Email"
           value={email}
@@ -53,8 +54,9 @@ const LoginForm = () => {
       </div>
 
       <div className="form-group">
-        <label htmlFor="password">Password</label>
+        <label htmlFor="password-input">Password</label>
         <input
+          id="password-input"
           type="password"
           className="form-control"
           placeholder="Password"
@@ -68,9 +70,7 @@ const LoginForm = () => {
       </button>
 
       <p className="help-block">
-        <Link href="/forgot"><a>Forgot your password?</a></Link>
-        <br />
-        <a>Didn&apos;t receive email confirmation?</a>
+        <Link href="/reset"><a>Forgot your password?</a></Link>
       </p>
     </form>
   )
