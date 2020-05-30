@@ -26,6 +26,7 @@
     "query-string": "^6.12.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "shortid": "^2.2.15",
     "universal-cookie": "^4.0.3"
   },
   "devDependencies": {
