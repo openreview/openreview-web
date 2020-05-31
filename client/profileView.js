@@ -3,6 +3,7 @@
  * - replaced first line with module.exports
  * - replaced all controller api calls with webfield versions
  * - added btn-default class to cancel button
+ * - added onDblpButtonClick to params and replaced current handler
  */
 
 /* globals view: false */
@@ -655,13 +656,7 @@ module.exports = function(profile, params, submitF, cancelF) {
             class: 'btn btn-primary',
             text: 'Add DBLP Papers to Profile',
             disabled: !dblpVal,
-          }).on('click', function() {
-            $('#dblp-import-modal').modal({
-              show: true,
-              backdrop: 'static',
-              keyboard: false,
-            });
-          })
+          }).on('click', params.onDblpButtonClick)
         )
       ),
 

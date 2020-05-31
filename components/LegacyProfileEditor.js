@@ -4,6 +4,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/router'
+import get from 'lodash/get'
 import omit from 'lodash/omit'
 import api from '../lib/api-client'
 
@@ -23,6 +24,36 @@ export default function LegacyProfileEditor({ profile, loading }) {
     }
   }
 
+  const showDblpModal = () => {
+    console.log('show modal here')
+  }
+
+  const unlinkPublication = (profileId, noteId) => Webfield.get('/notes', { id: noteId })
+    .then((notes) => {
+      const authorIds = get(notes, 'notes[0].content.authorids')
+      if (!authorIds) {
+        return $.Deferred().reject()
+      }
+      const idx = authorIds.indexOf(profileId)
+      if (idx < 0) {
+        $.Deferred().reject()
+      }
+      authorIds[idx] = null
+
+      const updateAuthorIdsObject = {
+        id: null,
+        referent: noteId,
+        invitation: 'dblp.org/-/author_coreference',
+        signatures: [profileId],
+        readers: ['everyone'],
+        writers: [],
+        content: {
+          authorids: authorIds,
+        },
+      }
+      return Webfield.post('/notes', updateAuthorIdsObject)
+    })
+
   useEffect(() => {
     loadOptions()
   }, [])
@@ -38,14 +69,21 @@ export default function LegacyProfileEditor({ profile, loading }) {
       prefixedPositions: dropdownOptions.prefixedPositions || [],
       prefixedRelations: dropdownOptions.prefixedRelations || [],
       institutions: dropdownOptions.institutions || [],
+      onDblpButtonClick: showDblpModal,
     }, (newProfileData, done) => {
       // Save profile handler
+      const { publicationIdsToUnlink } = newProfileData.content
       const dataToSubmit = {
         id: newProfileData.id,
-        content: omit(newProfileData.content, ['preferredName', 'currentInstitution', 'options']),
+        content: omit(newProfileData.content, [
+          'preferredName', 'currentInstitution', 'options', 'publicationIdsToUnlink',
+        ]),
       }
       Webfield.post('/profiles', dataToSubmit)
-        .then((updatedProfile) => {
+        .then(updatedProfile => Promise.all(publicationIdsToUnlink.map(publicationId => (
+          unlinkPublication(profile.id, publicationId)
+        ))))
+        .then(() => {
           promptMessage('Your profile information has successfully been updated')
         })
         .always(() => {
