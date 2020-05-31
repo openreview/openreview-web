@@ -2,7 +2,7 @@
  * Changes:
  * - replaced first line with module.exports
  * - replaced all controller api calls with webfield versions
- * - added button class to cancel button
+ * - added btn-default class to cancel button
  */
 
 /* globals view: false */
@@ -633,35 +633,61 @@ module.exports = function(profile, params, submitF, cancelF) {
         )
       ),
 
-      $('<tr>', {border: 0, class: ''}).append(
-        $('<td>', {class: 'info_item'}).append(
-          $('<div>', {text: 'DBLP URL', class: 'small_heading'})
-        ),
-        $('<td>', {class: 'info_item'}).append(
-          $('<div>', {text: 'ORCID URL', class: 'small_heading'})
+      $('<tr>', { border: 0, class: '' }).append(
+        $('<td>', { class: 'info_item'}).append(
+          $('<div>', { text: 'DBLP URL', class: 'small_heading' }).append($('<span>',{text:'*',class:'unsaved-change hide',id:'dblp-unsaved-indicator'}))
         )
       ),
-      $('<tr>', {border: 0, class: 'info_row'}).append(
-        $('<td>', {class: 'info_item'}).append(
-          $('<input>', {class: 'form-control', type: 'text', id: 'dblp_url', value: dblpVal})
+      $('<tr>', { border: 0, class: 'info_row' }).append(
+        $('<td>', { class: 'info_item' }).append(
+          $('<input>', {
+            id: 'dblp_url',
+            type: 'text',
+            class: 'form-control',
+            value: dblpVal
+          }).on('input', function() {
+            $('#show-dblp-import-modal').attr('disabled', !$(this).val());
+          })
+        ),
+        $('<td>', { class: 'info_item' }).append(
+          $('<button>', {
+            id: 'show-dblp-import-modal',
+            class: 'btn btn-primary',
+            text: 'Add DBLP Papers to Profile',
+            disabled: !dblpVal,
+          }).on('click', function() {
+            $('#dblp-import-modal').modal({
+              show: true,
+              backdrop: 'static',
+              keyboard: false,
+            });
+          })
+        )
+      ),
+
+      $('<tr>', { border: 0, class: '' }).append(
+        $('<td>', { class: 'info_item'}).append(
+          $('<div>', {text: 'ORCID URL', class: 'small_heading'})
         ),
         $('<td>', {class: 'info_item'}).append(
+          $('<div>', {text: 'Wikipedia URL', class: 'small_heading'})
+        )
+      ),
+      $('<tr>', { border: 0, class: 'info_row' }).append(
+        $('<td>', { class: 'info_item' }).append(
           $('<input>', {class: 'form-control', type: 'text', id: 'orcid_url', value: orcidVal})
+        ),
+        $('<td>', {class: 'info_item'}).append(
+          $('<input>', {class: 'form-control', type: 'text', id: 'wikipedia_url', value: wikipediaVal})
         )
       ),
 
       $('<tr>', {border: 0, class: ''}).append(
         $('<td>', {class: 'info_item'}).append(
-          $('<div>', {text: 'Wikipedia URL', class: 'small_heading'})
-        ),
-        $('<td>', {class: 'info_item'}).append(
           $('<div>', {text: 'Linkedin URL', class: 'small_heading'})
         )
       ),
       $('<tr>', {border: 0, class: 'info_row'}).append(
-        $('<td>', {class: 'info_item'}).append(
-          $('<input>', {class: 'form-control', type: 'text', id: 'wikipedia_url', value: wikipediaVal})
-        ),
         $('<td>', {class: 'info_item'}).append(
           $('<input>', {class: 'form-control', type: 'text', id: 'linkedin_url', value: linkedinVal})
         )
@@ -740,7 +766,101 @@ module.exports = function(profile, params, submitF, cancelF) {
         $expertiseTable,
         $addExpertiseRow
       ),
+
+      $('<section>').append(
+        '<h4>Publications</h4>',
+        '<p class="instructions">Below is a list of all publications on OpenReview that include you as an author. You can remove any publication you are not an author of by clicking the minus button next to the title.</p>',
+        $('<div>', { id: 'publication-editor-container' })
+      ),
     ];
+  };
+
+  var publicationIdsToUnlink;
+
+  var renderPublicationEditor = function(profileId) {
+    // Publication Editor Section
+    var publicationEditorPageSize = 20;
+
+    var loadPublicationsForPublicationEditor = function(offset) {
+      return Webfield.get('/notes', {
+        'content.authorids': profileId,
+        details: 'invitation,original',
+        sort: 'tmdate:desc',
+        offset: offset,
+        limit: publicationEditorPageSize
+      }, { cache: false });
+    };
+
+    var publicationUnlinkHandler = function() {
+      var $li = $(this).closest('li');
+      publicationIdsToUnlink.push($li.data('id'));
+
+      $li.addClass('unlinked-publication');
+      $(this).replaceWith(
+        $('<span>', { class: 'relink-publication glyphicon glyphicon-repeat mirror' })
+          .on('click', publicationRelinkHandler)
+      );
+    };
+
+    var publicationRelinkHandler = function() {
+      var $li = $(this).closest('li');
+      var dataId = $li.data('id');
+      publicationIdsToUnlink = publicationIdsToUnlink.filter(function(id) {
+        return id !== dataId;
+      });
+
+      $li.removeClass('unlinked-publication');
+      $(this).replaceWith(
+        $('<span>', { class: 'unlink-publication glyphicon glyphicon-minus-sign' })
+          .on('click', publicationUnlinkHandler)
+      );
+    };
+
+    loadPublicationsForPublicationEditor(0).then(function(notesResponse) {
+      var notes = notesResponse.notes || [];
+      var noteCount = notesResponse.count;
+      if (!noteCount) {
+        $('#publication-editor-container').closest('section').hide();
+        return;
+      }
+      $('#publication-editor-container').closest('section').show();
+
+      var paperDisplayOptions = {
+        pdfLink: true,
+        showContents: true,
+        openInNewTab: true,
+        showUnlinkPublicationButton: true
+      };
+      Webfield.ui.submissionList(notes, {
+        heading: null,
+        container: '#publication-editor-container',
+        search: { enabled: false },
+        displayOptions: paperDisplayOptions,
+        autoLoad: false,
+        noteCount: noteCount,
+        pageSize: publicationEditorPageSize,
+        fadeIn: false,
+        onPageClick: function(offset) {
+          return loadPublicationsForPublicationEditor(offset).then(function(notesResponse) {
+            return notesResponse.notes;
+          });
+        },
+        onPageClickComplete: function() {
+          $('#publication-editor-container li.note').each(function() {
+            if (publicationIdsToUnlink.includes($(this).data('id'))) {
+              $(this).addClass('unlinked-publication').find('.glyphicon.glyphicon-minus-sign').replaceWith(
+                $('<span>', { class: 'relink-publication glyphicon glyphicon-repeat mirror' })
+                  .on('click', publicationRelinkHandler)
+              );
+            }
+          });
+          $('#publication-editor-container .unlink-publication').on('click', publicationUnlinkHandler);
+        },
+      });
+
+      // add handler after initial load
+      $('#publication-editor-container .unlink-publication').on('click', publicationUnlinkHandler);
+    });
   };
 
   var validateContent = function(content) {
@@ -938,6 +1058,7 @@ module.exports = function(profile, params, submitF, cancelF) {
       return !_.isEmpty(i);
     });
     var buttonText = params.buttonText;
+    publicationIdsToUnlink = [];
 
     var getNames = function() {
       var list = [];
@@ -1081,6 +1202,7 @@ module.exports = function(profile, params, submitF, cancelF) {
 
     var $mainView = $('<div>', {class: 'profile-edit-container'});
     var $panel = drawView(profile, prefixedPositions, prefixedInstitutions, institutions, prefixedRelations);
+    renderPublicationEditor(profile.id);
 
     var $submitButton = $('<button class="btn">' + buttonText + '</button>').click(function() {
 
@@ -1094,6 +1216,7 @@ module.exports = function(profile, params, submitF, cancelF) {
       newContent.history.sort(periodSorter);
       newContent.relations.sort(periodSorter);
       newContent.expertise.sort(periodSorter);
+      newContent.publicationIdsToUnlink = publicationIdsToUnlink;
 
       var newProfile = _.assign(profile, { content: newContent });
 
@@ -1110,8 +1233,6 @@ module.exports = function(profile, params, submitF, cancelF) {
       });
       return true;
     });
-
-
 
     var $cancelButton = $('<button class="btn btn-default">Cancel</button>').click(function() {
       var $newPanel = drawView(profile, prefixedPositions, prefixedInstitutions, institutions);
@@ -1141,12 +1262,8 @@ module.exports = function(profile, params, submitF, cancelF) {
       return true;
     };
 
-    var done = function() {
-      $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
-    };
+    $mainView.append($panel, $submitButton, $cancelButton);
 
-    $mainView.append($panel);
-    $mainView.append($submitButton, $cancelButton);
     return {
       view: $mainView,
       canExit: canExit
