@@ -1172,9 +1172,11 @@ module.exports = (function() {
         $container, notes, Handlebars.templates['partials/noteActivity'], options
       );
     }
-    setTimeout(function() {
+    try {
       MathJax.typeset();
-    }, 500);
+    } catch (e) {
+      console.warn('Could not typeset TeX content');
+    }
   };
 
   var _registerActionButtonHandlers = function($container, notes, noteTemplateFn, options) {

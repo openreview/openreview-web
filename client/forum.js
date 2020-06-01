@@ -588,7 +588,11 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $childrenAnchor.empty().append(
       mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
     );
-    MathJax.typeset();
+    try {
+      MathJax.typeset();
+    } catch (e) {
+      console.warn('Could not typeset TeX content');
+    }
   };
 
   var createMultiSelector = function(filters, id) {
