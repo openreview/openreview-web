@@ -288,7 +288,10 @@ const Profile = ({ profile, publicProfile, appContext }) => {
             actionLink="Suggest Position"
           >
             {profile.history?.length > 0 ? profile.history.map(history => (
-              <ProfileHistory key={history.position + history.institution.name} history={history} />
+              <ProfileHistory
+                key={history.position + history.institution.name + history.start + history.end}
+                history={history}
+              />
             )) : (
               <p className="empty-message">No history added</p>
             )}

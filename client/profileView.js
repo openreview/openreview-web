@@ -378,14 +378,14 @@ module.exports = function(profile, params, submitF, cancelF) {
           first: first,
           last: last,
           middle: middle,
-        }, { handleErrors: false }).then(function(result) {
+        }).then(function(result) {
           if (first === $nameRow.find('.first_name').val()
             && middle === $nameRow.find('.middle_name').val()
             && last === $nameRow.find('.last_name').val()) {
             $nameRow.find('.newUsername').text(result.username);
           }
         }, function() {
-          return $.Deferred().resolve(null);
+          $nameRow.find('input').addClass('invalid_value');
         });
       };
     };
@@ -647,7 +647,8 @@ module.exports = function(profile, params, submitF, cancelF) {
             class: 'form-control',
             value: dblpVal
           }).on('input', function() {
-            $('#show-dblp-import-modal').attr('disabled', !$(this).val());
+            // TODO: uncomment this line when DBLP import is implemented
+            // $('#show-dblp-import-modal').attr('disabled', !$(this).val());
           })
         ),
         $('<td>', { class: 'info_item' }).append(
