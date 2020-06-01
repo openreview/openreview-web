@@ -2,16 +2,16 @@ import { useState, useEffect, useContext } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import pick from 'lodash/pick'
-import UserContext from '../components/UserContext'
-import NoteList from '../components/NoteList'
-import withError from '../components/withError'
-import api from '../lib/api-client'
-import { formatProfileData, getCoAuthorsFromPublications } from '../lib/profiles'
-import { prettyList } from '../lib/utils'
-import { auth } from '../lib/auth'
+import UserContext from '../../components/UserContext'
+import NoteList from '../../components/NoteList'
+import withError from '../../components/withError'
+import api from '../../lib/api-client'
+import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
+import { prettyList } from '../../lib/utils'
+import { auth } from '../../lib/auth'
 
 // Page Styles
-import '../styles/pages/profile.less'
+import '../../styles/pages/profile.less'
 
 const ProfileSection = ({
   name, title, instructions, actionLink, children,
