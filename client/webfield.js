@@ -1172,7 +1172,9 @@ module.exports = (function() {
         $container, notes, Handlebars.templates['partials/noteActivity'], options
       );
     }
-    MathJax.typeset();
+    setTimeout(function() {
+      MathJax.typeset();
+    }, 500);
   };
 
   var _registerActionButtonHandlers = function($container, notes, noteTemplateFn, options) {

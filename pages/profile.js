@@ -192,6 +192,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
   const [count, setCount] = useState(0)
   const [coAuthors, setCoAuthors] = useState([])
   const { accessToken } = useContext(UserContext)
+  const { setBannerHidden } = appContext
 
   const loadPublications = async () => {
     let apiRes
@@ -214,7 +215,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
   useEffect(() => {
     loadPublications()
 
-    appContext.setBannerHidden(true)
+    setBannerHidden(true)
   }, [])
 
   useEffect(() => {
