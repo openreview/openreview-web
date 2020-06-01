@@ -5,7 +5,7 @@ import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import api from '../../lib/api-client'
-import { formatProfileData, buildProfileController } from '../../lib/profiles'
+import { formatProfileData } from '../../lib/profiles'
 import ProfileEditor from '../../components/ProfileEditor'
 
 import '../../styles/pages/profile.less'
@@ -33,7 +33,7 @@ const CreateAccount = ({ appContext }) => {
       const formattedProfile = formatProfileData(profile)
       setProfile(formattedProfile)
     } catch (error) {
-      alert(error)
+      promptError(error.message)
     }
   }
 

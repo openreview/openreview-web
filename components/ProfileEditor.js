@@ -26,6 +26,13 @@ const NamesSection = ({ profileNames }) => {
     if (action.removeName) {
       return names.filter(name => name.key !== action.data.key)
     }
+    if (action.setPreferred) {
+      return names.map(name => {
+        const nameCopy = { ...name, preferred: false }
+        if (name.key === action.data.key) nameCopy.preferred = true
+        return nameCopy
+      })
+    }
     return names
   }
 
@@ -55,12 +62,16 @@ const NamesSection = ({ profileNames }) => {
       })
       setNames({ updateName: true, data: { key: update.data.key, field: 'username', value: tildeUsername.username } })
     } catch (error) {
-      promptError(error)
+      promptError(error.message)
     }
   }
 
   const handleRemoveName = (key) => {
     setNames({ removeName: true, data: { key } })
+  }
+
+  const handleMakePreferredName = (key) => {
+    setNames({ setPreferred: true, data: { key } })
   }
 
   useEffect(() => {
@@ -103,7 +114,7 @@ const NamesSection = ({ profileNames }) => {
                     <span className="username" style={{ display: 'none' }}>{name.username}</span>
                   </td>
                   <td className="info_item preferred_cell">
-                    <NamesButton key={name.key} newRow={name.newRow} readonly={name.username.length} preferred={name.preferred} handleRemove={() => handleRemoveName(name.key)} />
+                    <NamesButton key={name.key} newRow={name.newRow} readonly={name.username.length} preferred={name.preferred} handleRemove={() => handleRemoveName(name.key)} handleMakePreferred={() => handleMakePreferredName(name.key)} />
                   </td>
                 </tr>
               )
@@ -116,20 +127,41 @@ const NamesSection = ({ profileNames }) => {
   )
 }
 
-const NamesButton = ({ newRow, readonly, preferred, handleRemove }) => {
+const NamesButton = ({ newRow, readonly, preferred, handleRemove, handleMakePreferred }) => {
   if (!newRow && readonly) {
     if (preferred) {
       return <span className="preferred hint">(Preferred Name)</span>
     }
-    return <button type="button" className="btn preferred_button">Make Preferred</button>
+    return <button type="button" className="btn preferred_button" onClick={handleMakePreferred}>Make Preferred</button>
   }
   return <button type="button" className="btn remove_button" onClick={handleRemove}>Remove</button>
+}
+
+const GenderSection = ({ gender }) => {
+  return (
+    <section>
+      <h4>Gender</h4>
+      <p className="instructions">This information helps conferences better understand their gender diversity. (Optional)</p>
+      <table id="personal_table" className="info_table">
+        <tbody>
+          <tr border="0" className="info_row">
+            <td className="info_item">
+              <div className="dropdown">
+                <input placeholder="Choose a gender or type a custom gender" />
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  )
 }
 
 const ProfileEditor = ({ profile }) => {
   return (
     <div className="profile-edit-container">
       <NamesSection profileNames={profile?.names} />
+      <GenderSection gender={profile?.gender} />
       <button type="button" className="btn">Register for OpenReview</button>
       <button type="button" className="btn">Cancel</button>
     </div>
