@@ -25,7 +25,9 @@ export default function LegacyProfileEditor({ profile, loading }) {
   }
 
   const showDblpModal = () => {
-    console.log('show modal here')
+    // TODO: Add DBLP import modal components and code here
+    // eslint-disable-next-line no-console
+    console.log('not implemented')
   }
 
   const unlinkPublication = (profileId, noteId) => Webfield.get('/notes', { id: noteId })

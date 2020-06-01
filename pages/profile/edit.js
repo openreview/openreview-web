@@ -1,12 +1,12 @@
 import { useEffect } from 'react'
-import LegacyProfileEditor from '../components/LegacyProfileEditor'
-import api from '../lib/api-client'
-import { auth } from '../lib/auth'
-import { formatProfileData } from '../lib/profiles'
-import { referrerLink } from '../lib/banner-links'
+import LegacyProfileEditor from '../../components/LegacyProfileEditor'
+import api from '../../lib/api-client'
+import { auth } from '../../lib/auth'
+import { formatProfileData } from '../../lib/profiles'
+import { referrerLink } from '../../lib/banner-links'
 
 // Page Styles
-import '../styles/pages/profile-edit.less'
+import '../../styles/pages/profile-edit.less'
 
 function ProfileEdit({ profile, appContext }) {
   const { setBannerContent, clientJsLoading } = appContext

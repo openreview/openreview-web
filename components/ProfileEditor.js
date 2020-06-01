@@ -7,10 +7,17 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-import '../styles/partials/ProfileEditor.less'
+
+/**
+ * WIP: This is a re-implementation of the current profile edit UI in pure React.
+ * Currently on the Names and Gender sections are implemented.
+ */
+
 import { useState, useEffect, useReducer } from 'react'
 import shortid from 'shortid'
 import api from '../lib/api-client'
+
+import '../styles/legacy-profile-editor.less'
 
 const NamesSection = ({ profileNames }) => {
   const namesReducer = (names, action) => {
