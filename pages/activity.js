@@ -9,6 +9,8 @@ import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import api from '../lib/api-client'
 
+import '../styles/pages/activity.less'
+
 function Activity({ appContext }) {
   const [activityNotes, setActivityNotes] = useState(null)
   const [error, setError] = useState(null)
@@ -22,7 +24,7 @@ function Activity({ appContext }) {
         tauthor: true,
         trash: true,
         details: 'forumContent,writable,invitation',
-        limit: 1000,
+        limit: 200,
       }, { accessToken })
       setActivityNotes(apiRes.notes)
     } catch (apiError) {
