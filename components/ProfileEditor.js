@@ -1,4 +1,3 @@
-/* eslint-disable object-curly-newline */
 /* eslint-disable arrow-body-style */
 /* eslint-disable arrow-parens */
 /* eslint-disable max-len */
@@ -135,7 +134,9 @@ const NamesSection = ({ profileNames }) => {
   )
 }
 
-const NamesButton = ({ newRow, readonly, preferred, handleRemove, handleMakePreferred }) => {
+const NamesButton = ({
+  newRow, readonly, preferred, handleRemove, handleMakePreferred,
+}) => {
   if (!newRow && readonly) {
     if (preferred) {
       return <span className="preferred hint">(Preferred Name)</span>
