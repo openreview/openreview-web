@@ -9,7 +9,7 @@ export default ({ appContext }) => {
   const { setBannerHidden } = appContext
 
   const activate = async () => {
-    if (!query) return
+    if (Object.entries(query).length === 0) return
     try {
       await api.put(`/activatelink/${query.token}`)
       promptMessage('Thank you for confirming your email')
