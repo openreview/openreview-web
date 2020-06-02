@@ -40,7 +40,7 @@ const NamesSection = ({ profileNames }) => {
         return nameCopy
       })
     }
-    return names
+    return names;
   }
 
   const [names, setNames] = useReducer(namesReducer, profileNames)
