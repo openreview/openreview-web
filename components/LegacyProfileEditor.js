@@ -7,6 +7,7 @@ import { useRouter } from 'next/router'
 import get from 'lodash/get'
 import omit from 'lodash/omit'
 import api from '../lib/api-client'
+import DblpImportModal from './DblpImportModal'
 
 import '../styles/legacy-profile-editor.less'
 
@@ -28,6 +29,7 @@ export default function LegacyProfileEditor({ profile, loading }) {
     // TODO: Add DBLP import modal components and code here
     // eslint-disable-next-line no-console
     console.log('not implemented')
+    $('#dblp-import-modal').modal({ backdrop: 'static' })
   }
 
   const unlinkPublication = (profileId, noteId) => Webfield.get('/notes', { id: noteId })
@@ -99,5 +101,10 @@ export default function LegacyProfileEditor({ profile, loading }) {
     $(containerEl.current).empty().append(view)
   }, [loading, profile, dropdownOptions])
 
-  return <div ref={containerEl} />
+  return (
+    <>
+      <div ref={containerEl} />
+      <DblpImportModal />
+    </>
+  )
 }
