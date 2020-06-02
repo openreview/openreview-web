@@ -1,54 +1,58 @@
-/* eslint-disable object-curly-newline */
-/* eslint-disable camelcase */
-/* eslint-disable max-len */
+/* globals promptError: false */
+
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import api from '../../lib/api-client'
 import { formatProfileData } from '../../lib/profiles'
-import ProfileEditor from '../../components/ProfileEditor'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import LegacyProfileEditor from '../../components/LegacyProfileEditor'
 
-import '../../styles/pages/profile.less'
-
-const Header = () => (
-  <header>
-    <h1>Complete Registration</h1>
-    <h5>Enter your full name and current institution to complete your registration. All other fields are optional.</h5>
-  </header>
-)
-
-const CreateAccount = ({ appContext }) => {
-  const { query } = useRouter()
-  const [token, setToken] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
+const CreateProfile = ({ appContext }) => {
+  const { query, replace } = useRouter()
   const [profile, setProfile] = useState(null)
 
-  const { setBannerHidden } = appContext
+  const { setBannerHidden, clientJsLoading } = appContext
 
-  const getActivatable = async () => {
+  const loadActivatableProfile = async (token) => {
     if (!token) return
+
     try {
-      const targetURL = `/activatable/${token}`
-      const { profile, activatable, prefixed_positions, prefixed_relations, institutions } = await api.get(targetURL)
-      const formattedProfile = formatProfileData(profile)
-      setProfile(formattedProfile)
+      const { profile: newProfile, activatable } = await api.get(`/activatable/${token}`)
+
+      setProfile(formatProfileData(newProfile))
     } catch (error) {
       promptError(error.message)
+      replace('/')
     }
   }
 
   useEffect(() => {
+    if (clientJsLoading || !query) return
+
     setBannerHidden(true)
-    setToken(query.token)
-    getActivatable()
-  }, [query, token])
+    loadActivatableProfile(query.token)
+  }, [query, clientJsLoading])
 
   return (
-    <div className="profile-controller">
-      <Header />
-      <ProfileEditor profile={profile} />
+    <div>
+      <header>
+        <h1>Complete Registration</h1>
+        <h5>
+          Enter your full name and current institution to complete your registration.
+          All other fields are optional.
+        </h5>
+      </header>
+
+      {profile ? (
+        <LegacyProfileEditor profile={profile} loading={clientJsLoading} />
+      ) : (
+        <LoadingSpinner inline />
+      )}
     </div>
   )
 }
-CreateAccount.bodyClass = 'activate'
-export default CreateAccount
+
+CreateProfile.bodyClass = 'activate'
+
+export default CreateProfile
