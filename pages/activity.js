@@ -1,12 +1,9 @@
 /* globals $: false */
 /* globals Webfield: false */
 
-import {
-  useState, useEffect, useContext, useRef,
-} from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
-import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import Alert from '../components/Alert'
 import Icon from '../components/Icon'
@@ -27,10 +24,9 @@ function ErrorAlert({ error }) {
   )
 }
 
-function Activity({ appContext }) {
+function Activity({ user, accessToken, appContext }) {
   const [activityNotes, setActivityNotes] = useState(null)
   const [error, setError] = useState(null)
-  const { user, accessToken } = useContext(UserContext)
   const activityRef = useRef(null)
   const { setBannerHidden, clientJsLoading } = appContext
 
@@ -97,7 +93,7 @@ function Activity({ appContext }) {
 }
 
 Activity.getInitialProps = async (ctx) => {
-  const { user } = auth(ctx)
+  const { user, token } = auth(ctx)
   if (!user) {
     if (ctx.req) {
       ctx.res.writeHead(302, { Location: '/login' }).end()
@@ -105,6 +101,7 @@ Activity.getInitialProps = async (ctx) => {
       Router.replace('/login')
     }
   }
+  return { user, accessToken: token }
 }
 
 Activity.bodyClass = 'activity'
