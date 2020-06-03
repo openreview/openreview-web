@@ -53,10 +53,9 @@ export default ({
   ]
 
   return (
-    <table headings={headings}>
+    <Table headings={headings}>
       {dblpPublications.map((publication, index) => {
         const existingPublication = openReviewPublications.find(orPub => orPub.title === publication.formattedTitle)
-
         return (
           <DblpPublicationRow
             key={index}
@@ -68,7 +67,7 @@ export default ({
           />
         )
       })}
-    </table>
+    </Table>
   )
 }
 
@@ -100,5 +99,24 @@ const DblpPublicationRow = ({
         </div>
       </td>
     </tr>
+  )
+}
+
+const Table = ({ headings, children }) => {
+  return (
+    <table className="table">
+      <thead>
+        <tr>
+          {headings.map((heading, index) => (
+            <th scope="col" key={index} style={heading.width ? { width: heading.width } : {}} >
+              {heading.content}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {children}
+      </tbody>
+    </table>
   )
 }

@@ -636,17 +636,26 @@ module.exports = function(profile, params, submitF, cancelF) {
 
       $('<tr>', { border: 0, class: '' }).append(
         $('<td>', { class: 'info_item'}).append(
-          $('<div>', { text: 'DBLP URL', class: 'small_heading' }).append($('<span>',{text:'*',class:'unsaved-change hide',id:'dblp-unsaved-indicator'}))
+          $('<div>', { text: 'DBLP URL', class: 'small_heading' })
         )
       ),
-      $('<tr>', { border: 0, class: 'info_row' }).append(
+      params.hideAddDblpAndPublicationEditor ? $('<tr>', { border: 0, class: 'info_row' }).append(
         $('<td>', { class: 'info_item' }).append(
           $('<input>', {
             id: 'dblp_url',
             type: 'text',
             class: 'form-control',
             value: dblpVal
-          }).on('input', function() {
+          })
+        )
+      ) : $('<tr>', { border: 0, class: 'info_row' }).append(
+        $('<td>', { class: 'info_item' }).append(
+          $('<input>', {
+            id: 'dblp_url',
+            type: 'text',
+            class: 'form-control',
+            value: dblpVal
+          }).on('input', function () {
             $('#show-dblp-import-modal').attr('disabled', !$(this).val());
           })
         ),
@@ -762,7 +771,7 @@ module.exports = function(profile, params, submitF, cancelF) {
         $addExpertiseRow
       ),
 
-      $('<section>').append(
+      params.hideAddDblpAndPublicationEditor ? null : $('<section>').append(
         '<h4>Publications</h4>',
         '<p class="instructions">Below is a list of all publications on OpenReview that include you as an author. You can remove any publication you are not an author of by clicking the minus button next to the title.</p>',
         $('<div>', { id: 'publication-editor-container' })

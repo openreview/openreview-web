@@ -45,7 +45,7 @@ const CreateProfile = ({ appContext }) => {
       </header>
 
       {profile ? (
-        <LegacyProfileEditor profile={profile} loading={clientJsLoading} />
+        <LegacyProfileEditor profile={profile} loading={clientJsLoading} hideAddDblpAndPublicationEditor="true" />
       ) : (
         <LoadingSpinner inline />
       )}

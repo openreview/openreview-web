@@ -1,8 +1,10 @@
 /* eslint-disable max-len */
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useContext } from 'react'
 import LoadingSpinner from './LoadingSpinner'
 import DblpPublicationTable from './DblpPublicationTable'
-import { getDblpPublicationsFromXmlUrl, getAllPapersByGroupId } from '../lib/profiles'
+import { getDblpPublicationsFromXmlUrl, getAllPapersByGroupId, postOrUpdatePaper } from '../lib/profiles'
+import UserContext from './UserContext'
+import { inflect } from '../lib/utils'
 
 export default ({ profileId, profileNames, renderPublicationEditor }) => {
   const [dblpUrl, setDblpUrl] = useState('')
@@ -15,6 +17,7 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
   const [isFetchingPublications, setIsFetchingPublications] = useState(false)
   const publicationsInOpenReview = useRef([]) // user's existing publications in openreview (for filtering and constructing publication link)
   const modalEl = useRef(null)
+  const { accessToken } = useContext(UserContext)
 
   const getExistingFromDblpPubs = (allDblpPubs) => {
     const existingPubsInAllDblpPubs = allDblpPubs.filter(
@@ -41,15 +44,16 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
       setMessage(`${allDblpPublications.length} publications fetched.`)
 
       // contains id (for link) and title (for filtering) of existing publications in openreivew
-      publicationsInOpenReview.current = await getAllPapersByGroupId(profileId)
+      publicationsInOpenReview.current = await getAllPapersByGroupId(profileId, accessToken)
       const { numExisting, allExistInOpenReview } = getExistingFromDblpPubs(allDblpPublications)
       if (allExistInOpenReview) {
         setMessage(`All ${allDblpPublications.length} of the publications fetched from DBLP already
             exist in OpenReview.`)
       } else {
-        setMessage(`${allDblpPublications.length} publications were found on your DBLP home page,
-            ${numExisting} of which already exist in OpenReview. Please select all the publications
-            you are an author of and click Add to Your Profile to import them.`)
+        setMessage(` We found ${allDblpPublications.length} publications on your DBLP home page,
+          ${numExisting} of which already exist in OpenReview, ${allDblpPublications.length - numExisting} of which ${allDblpPublications.length - numExisting === 1 ? 'is' : 'are'} new.
+          Please select the new publications of which you are actually an author. Then click "Add to Your Profile" to import them.
+          Then don't forget to "Save Profile Changes" at the bottom of the page.`)
       }
       setShowPersistentUrlInput(false)
     } catch (error) {
@@ -71,7 +75,7 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
 
     try {
       await Promise.all(selectedPublications.map(index => postOrUpdatePaper(
-        publications[index], profileId, profileNames,
+        publications[index], profileId, profileNames, accessToken,
       )))
 
       publicationsInOpenReview.current = await getAllPapersByGroupId(profileId)
@@ -87,7 +91,6 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
       // replace other format of dblp homepage with persistent url
       if ($('#dblp_url').val() !== dblpUrl) {
         $('#dblp_url').val(dblpUrl)
-        $('#dblp-unsaved-indicator').removeClass('hide')
       }
 
       // Update the list of the user's publications
@@ -105,6 +108,13 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
     $(modalEl.current).find('.modal-body')[0].scrollTop = 0
     setIsSavingPublications(false)
     setSelectedPublications([])
+  }
+
+  const handlePersistentUrlInputKeyPress = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      fetchNewPublications(dblpPersistentUrl, true);
+    }
   }
 
   useEffect(() => {
@@ -151,6 +161,7 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
                     placeholder="DBLP.org Persistent URL"
                     onChange={e => setDblpPersistentUrl(e.target.value)}
                     maxLength={100}
+                    onKeyPress={e => handlePersistentUrlInputKeyPress(e)}
                   />
                   <span className="input-group-btn">
                     <button
@@ -164,11 +175,23 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
                   </span>
                 </div>
                 <div className="body-message">
-                  <span className="glyphicon glyphicon-info-sign" />
-                  {' '}
-                  <span>The URL <a href={dblpUrl} target="_blank">{dblpUrl}</a> is not working. Please try entering the DBLP persistent URL above.</span>
-                  <br />
-                  <span>You can find the persistent URL for your DBLP homepage within the "share" drop-down menu to the right of your name in the title bar.</span>
+                  Retrieving papers from DBLP requires a "Persistent DBLP URL."  Unfortunately, DBLP does not provide this URL by default.  You must obtain from DBLP the
+                  Persistent URL for your home page by
+                  <ol>
+                    <li>
+                      visiting your DBLP home page
+                      <a href={dblpUrl} target="_blank" rel="noreferrer">
+                        {dblpUrl}
+                      </a>
+                    </li>
+                    <li>
+                      clicking the "Share"
+                      <img src="/images/share-alt.svg" alt="" />
+                      icon to the right of your name in large font near the top of the page
+                    </li>
+                    <li>clicking the URL below "persistent URL" in the pop-up menu</li>
+                  </ol>
+                  Copy this URL into the text field above and click "Show Papers".
                 </div>
               </form>
             )}
@@ -195,7 +218,7 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
             <div className="pull-left selected-count">
               {selectedPublications.length !== 0 && (
                 <strong>
-                  {utils.inflect(selectedPublications.length, 'publication', 'publications')}
+                  {inflect(selectedPublications.length, 'publication', 'publications', true)}
                   {' '}
                   selected
                 </strong>

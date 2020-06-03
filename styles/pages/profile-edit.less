@@ -1,3 +1,5 @@
+@import "../utils/constants";
+
 main.profile-edit {
 
   header {
@@ -9,4 +11,38 @@ main.profile-edit {
     margin-bottom: 2rem;
   }
 
+  #dblp-import-modal{
+
+    .modal-body{
+      min-height: 200px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .publication-title {
+      color: @darkBlue;
+      font-weight: bold;
+    }
+
+    .existing-publication-row {
+      background-color: @backgroundGray;
+      opacity: 50%;
+    }
+    .persistent-url-input {
+      margin-top: .25rem;
+      margin-bottom: 1rem;
+    }
+
+    .body-message {
+      
+      img {
+        height: 16px;
+        width: 16px;
+        padding: 2px;
+      }
+      ol {
+        margin-top: 5px;
+        margin-bottom: 5px;
+      }
+    }
+  }
 }

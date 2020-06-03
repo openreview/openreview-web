@@ -11,7 +11,7 @@ import DblpImportModal from './DblpImportModal'
 
 import '../styles/legacy-profile-editor.less'
 
-export default function LegacyProfileEditor({ profile, loading }) {
+export default function LegacyProfileEditor({ profile, loading, hideAddDblpAndPublicationEditor = false }) {
   const containerEl = useRef(null)
   const [dropdownOptions, setDropdownOptions] = useState(null)
   const router = useRouter()
@@ -74,6 +74,7 @@ export default function LegacyProfileEditor({ profile, loading }) {
       prefixedRelations: dropdownOptions.prefixedRelations || [],
       institutions: dropdownOptions.institutions || [],
       onDblpButtonClick: showDblpModal,
+      hideAddDblpAndPublicationEditor,
     }, (newProfileData, done) => {
       // Save profile handler
       const { publicationIdsToUnlink } = newProfileData.content
@@ -104,7 +105,12 @@ export default function LegacyProfileEditor({ profile, loading }) {
   return (
     <>
       <div ref={containerEl} />
-      <DblpImportModal />
+      <DblpImportModal
+        profileId={profile.id}
+        profileNames={profile.names.map(name => (name.middle
+          ? `${name.first} ${name.middle} ${name.last}`
+          : `${name.first} ${name.last}`))}
+      />
     </>
   )
 }
