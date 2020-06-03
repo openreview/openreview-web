@@ -1,0 +1,7 @@
+{
+  "editor.tabSize": 2,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "workbench.editor.enablePreviewFromQuickOpen": false,
+  "eslint.alwaysShowStatus": true
+}

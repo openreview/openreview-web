@@ -1,0 +1,44 @@
+{
+  // Place your openreview-web workspace snippets here. Each snippet is defined under a snippet name and has a scope,
+  // prefix, body and description. Add comma separated ids of the languages where the snippet is applicable in the
+  // scope field. If scope is left empty or omitted, the snippet gets applied to all languages. The prefix is what is
+  // used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+  // $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders.
+  // Placeholders with the same ids are connected.
+  // For more information see: https://code.visualstudio.com/docs/editor/userdefinedsnippets
+  "reactPageComponent": {
+    "scope": "javascript,typescript",
+    "prefix": "orpage",
+    "body": [
+      "import Head from 'next/head'\n",
+      "const ${1:${TM_FILENAME_BASE}} = (props) => {$2",
+      "\treturn (",
+      "\t\t<div>",
+      "\t\t\t<Head>",
+      "\t\t\t\t<title key=\"title\">${1:${TM_FILENAME_BASE}} | OpenReview</title>",
+      "\t\t\t</Head>",
+      "\t\t</div>",
+      "\t)",
+      "}\n",
+      "${1:${TM_FILENAME_BASE}}.getInitialProps = async (ctx) => {\n",
+      "}\n",
+      "${1:${TM_FILENAME_BASE}}.bodyClass = '${1:${TM_FILENAME_BASE}}'\n",
+      "export default ${1:${TM_FILENAME_BASE}}\n",
+    ],
+    "description": "Creates a page component as a named arrow function without PropTypes"
+  },
+  "reactFunctionComponent": {
+    "scope": "javascript,typescript",
+    "prefix": "orcomp",
+    "body": [
+      "function ${1:${TM_FILENAME_BASE}}(props) {$2",
+      "\treturn (",
+      "\t\t<div>\n",
+      "\t\t</div>",
+      "\t)",
+      "}\n",
+      "export default ${1:${TM_FILENAME_BASE}}\n",
+    ],
+    "description": "Creates a stateless page component as a named function without PropTypes"
+  },
+}

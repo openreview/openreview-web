@@ -6,7 +6,8 @@
     "dev": "NODE_OPTIONS='--inspect' next dev --port $NEXT_PORT",
     "lint": "eslint components/**/*.js lib/*.js pages/**/*.js",
     "build": "next build",
-    "start": "next start --port $NEXT_PORT"
+    "start": "next start --port $NEXT_PORT",
+    "test": "echo \"Sorry, no tests yet!  ¯\\_(ツ)_/¯\" && exit 0"
   },
   "dependencies": {
     "@zeit/next-less": "^1.0.1",
