@@ -289,7 +289,10 @@ const Profile = ({ profile, publicProfile, appContext }) => {
             actionLink="Suggest Position"
           >
             {profile.history?.length > 0 ? profile.history.map(history => (
-              <ProfileHistory key={history.position + history.institution.name} history={history} />
+              <ProfileHistory
+                key={history.position + history.institution.name + history.start + history.end}
+                history={history}
+              />
             )) : (
               <p className="empty-message">No history added</p>
             )}
@@ -354,8 +357,15 @@ const Profile = ({ profile, publicProfile, appContext }) => {
 Profile.getInitialProps = async (ctx) => {
   const profileQuery = pick(ctx.query, ['id', 'email'])
   const { token } = auth(ctx)
-  const profileRes = await api.get('/profiles', profileQuery, { accessToken: token })
-  if (!profileRes.profiles?.length) {
+
+  let profileRes
+  try {
+    profileRes = await api.get('/profiles', profileQuery, { accessToken: token })
+    if (!profileRes.profiles?.length) {
+      return { statusCode: 404, message: 'Profile not found' }
+    }
+  } catch (error) {
+    // TODO: Add better error reporting here
     return { statusCode: 404, message: 'Profile not found' }
   }
 
