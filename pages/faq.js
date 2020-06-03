@@ -10,7 +10,7 @@ import Accordion from '../components/Accordion'
 // Page Styles
 import '../styles/pages/faq.less'
 
-const Faq = ({ questions, appContext }) => {
+function Faq({ questions, appContext }) {
   const [formattedQuestions, setFormattedQuestions] = useState(null)
   const { clientJsLoading } = appContext
 
@@ -77,7 +77,7 @@ const Faq = ({ questions, appContext }) => {
   )
 }
 
-Faq.getInitialProps = async (ctx) => {
+export async function getStaticProps() {
   // TODO: get this content from database or CMS
   const questions = [{
     q: 'How do I add formatting to my reviews or comments?',
@@ -133,7 +133,7 @@ For general iquiries, you can contact the OpenReview team by emailing [info@open
   }]
 
   return {
-    questions,
+    props: { questions },
   }
 }
 
