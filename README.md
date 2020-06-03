@@ -11,7 +11,7 @@ Clone this repository into a new directory, then from inside that directory run:
 npm install
 ```
 
-Next set the port that the server will listen on, or add it to your shell configuration:
+Next set the port that the Next.js server will listen on, or add it to your shell configuration:
 
 ```bash
 export NEXT_PORT=3030
@@ -36,7 +36,11 @@ This will watch for any changes and rebuild the page. The OpenReview API server
 also has to be running at the same time, and accessible at the URL specified by
 the `$API_URL` env var.
 
-Note: Currently only the `feature/enable-cors` branch is supported
+To check for ESLint errors, run:
+
+```bash
+npm run lint
+```
 
 ## Deployment
 
