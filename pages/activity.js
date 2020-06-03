@@ -5,11 +5,27 @@ import {
   useState, useEffect, useContext, useRef,
 } from 'react'
 import Head from 'next/head'
+import Router from 'next/router'
 import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
+import Alert from '../components/Alert'
+import Icon from '../components/Icon'
+import { auth } from '../lib/auth'
 import api from '../lib/api-client'
 
 import '../styles/pages/activity.less'
+
+function ErrorAlert({ error }) {
+  return (
+    <Alert color="danger">
+      <Icon name="exclamation-sign" />
+      {' '}
+      <strong>Error:</strong>
+      {' '}
+      {error.message}
+    </Alert>
+  )
+}
 
 function Activity({ appContext }) {
   const [activityNotes, setActivityNotes] = useState(null)
@@ -72,9 +88,23 @@ function Activity({ appContext }) {
       {!error && !activityNotes && (
         <LoadingSpinner />
       )}
+      {error && (
+        <ErrorAlert error={error} />
+      )}
       <div ref={activityRef} />
     </div>
   )
+}
+
+Activity.getInitialProps = async (ctx) => {
+  const { user } = auth(ctx)
+  if (!user) {
+    if (ctx.req) {
+      ctx.res.writeHead(302, { Location: '/login' }).end()
+    } else {
+      Router.replace('/login')
+    }
+  }
 }
 
 Activity.bodyClass = 'activity'
