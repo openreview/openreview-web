@@ -127,6 +127,7 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
       }
       setDblpUrl(dblpInputVal)
       setDblpPersistentUrl('')
+      setSelectedPublications([])
       fetchNewPublications(dblpInputVal)
     })
   }, [])
