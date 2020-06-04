@@ -178,7 +178,8 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
                   </span>
                 </div>
                 <div className="body-message">
-                  Retrieving papers from DBLP requires a `&quot;`Persistent DBLP URL.`&quot;`  Unfortunately, DBLP does not provide this URL by default.  You must obtain from DBLP the
+                  Retrieving papers from DBLP requires a &quot;Persistent DBLP URL.&quot;  Unfortunately, DBLP does
+                  not provide this URL by default.  You must obtain from DBLP the
                   Persistent URL for your home page by
                   <ol>
                     <li>
@@ -188,13 +189,13 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
                       </a>
                     </li>
                     <li>
-                      clicking the `&quot;`Share`&quot;`
+                      clicking the &quot;Share&quot;
                       <img src="/images/share-alt.svg" alt="" />
                       icon to the right of your name in large font near the top of the page
                     </li>
-                    <li>clicking the URL below `&quot;`persistent URL`&quot;` in the pop-up menu</li>
+                    <li>clicking the URL below &quot;persistent URL&quot; in the pop-up menu</li>
                   </ol>
-                  Copy this URL into the text field above and click `&quot;`Show Papers`&quot;`.
+                  Copy this URL into the text field above and click &quot;Show Papers&quot;.
                 </div>
               </form>
             )}
