@@ -5,9 +5,6 @@ require('dotenv').config()
 // Without CSS Modules, with PostCSS
 module.exports = withLess({
   import: true,
-  lessLoaderOptions: {
-    javascriptEnabled: true,
-  },
   env: {
     IS_PRODUCTION: process.env.NODE_ENV === 'production',
     NEXT_PORT: process.env.NEXT_PORT,
