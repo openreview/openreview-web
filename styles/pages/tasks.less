@@ -1,27 +1,14 @@
+@import "../utils/constants";
+
 main.tasks {
 
   header {
     margin-bottom: 2rem;
   }
 
-  .nav-tabs {
-    display: none; // Hide tabs for now
-
-    & > li > a {
-      padding: .75rem 2rem;
-      font-size: 1rem;
-    }
-  }
-
-  .tab-content {
-    & > .tab-pane {
-      // padding: .75rem 0 .75rem 2rem;
-      padding: 0 0 .75rem 1.5rem;
-      min-height: 300px;
-    }
-    .spinner-container {
-      margin-top: 2.5rem;
-      margin-bottom: 1.5rem;
+  .tasks-container {
+    & > div {
+      padding-left: 24px;
     }
 
     .submissions-list {
