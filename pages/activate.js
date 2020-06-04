@@ -1,29 +1,41 @@
-import Router, { useRouter } from 'next/router'
+/* globals promptMessage: false */
+/* globals promptError: false */
+
+import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import api from '../lib/api-client'
+import LoadingSpinner from '../components/LoadingSpinner'
+import withError from '../components/withError'
 
-export default ({ appContext }) => {
-  const { query } = useRouter()
-  const [token, setToken] = useState(null)
+const Activate = ({ appContext, queryToken }) => {
+  const router = useRouter()
+  const [token, setToken] = useState(queryToken)
 
   const { setBannerHidden } = appContext
 
   const activate = async () => {
-    if (Object.entries(query).length === 0) return
     try {
-      await api.put(`/activatelink/${query.token}`)
+      await api.put(`/activatelink/${token}`)
       promptMessage('Thank you for confirming your email')
-      Router.push('/')
     } catch (error) {
       promptError(error.message)
+    } finally {
+      router.push('/')
     }
   }
 
   useEffect(() => {
     setBannerHidden(true)
-    setToken(query.token)
+    setToken(router.query.token)
     activate()
-  }, [query])
+  }, [token])
 
-  return null
+  return <LoadingSpinner />
 }
+
+Activate.getInitialProps = async (context) => {
+  if (!context.query?.token) return { statusCode: 404, message: 'Activation token not found' }
+  return { queryToken: context.query.token }
+}
+
+export default withError(Activate)
