@@ -1056,7 +1056,7 @@ module.exports = (function() {
         // Load next page of results and replace current note list
         var offset = (pageNum - 1) * options.pageSize;
         options.onPageClick(offset).then(function(newNotes) {
-          var scrollPos = $('#notes').offset().top - 51 - 12;
+          var scrollPos = $container.offset().top - 51 - 12;
           $('html, body').animate({scrollTop: scrollPos}, 400);
           $('.submissions-list', $container).replaceWith(
             Handlebars.templates['partials/noteList']({

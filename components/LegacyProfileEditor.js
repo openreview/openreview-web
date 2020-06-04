@@ -1,20 +1,25 @@
 /* globals $: false */
 /* globals promptMessage: false */
+/* globals promptError: false */
 /* globals Webfield: false */
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useContext } from 'react'
 import { useRouter } from 'next/router'
 import get from 'lodash/get'
 import omit from 'lodash/omit'
 import api from '../lib/api-client'
 import DblpImportModal from './DblpImportModal'
+import UserContext from './UserContext'
+import editController from '../client/profileView'
 
 import '../styles/legacy-profile-editor.less'
 
 export default function LegacyProfileEditor({ profile, loading, hideAddDblpAndPublicationEditor = false }) {
   const containerEl = useRef(null)
   const [dropdownOptions, setDropdownOptions] = useState(null)
+  const [profileView, setprofileView] = useState(null)
   const router = useRouter()
+  const { accessToken } = useContext(UserContext)
 
   const loadOptions = async () => {
     try {
@@ -26,37 +31,34 @@ export default function LegacyProfileEditor({ profile, loading, hideAddDblpAndPu
   }
 
   const showDblpModal = () => {
-    // TODO: Add DBLP import modal components and code here
-    // eslint-disable-next-line no-console
-    console.log('not implemented')
     $('#dblp-import-modal').modal({ backdrop: 'static' })
   }
 
-  const unlinkPublication = (profileId, noteId) => Webfield.get('/notes', { id: noteId })
-    .then((notes) => {
-      const authorIds = get(notes, 'notes[0].content.authorids')
-      if (!authorIds) {
-        return $.Deferred().reject()
-      }
-      const idx = authorIds.indexOf(profileId)
-      if (idx < 0) {
-        $.Deferred().reject()
-      }
-      authorIds[idx] = null
+  const unlinkPublication = async (profileId, noteId) => {
+    const notes = await api.get('/notes', { id: noteId }, { accessToken })
+    const authorIds = get(notes, 'notes[0].content.authorids')
+    if (!authorIds) {
+      return $.Deferred().reject()
+    }
+    const idx = authorIds.indexOf(profileId)
+    if (idx < 0) {
+      $.Deferred().reject()
+    }
+    authorIds[idx] = null
 
-      const updateAuthorIdsObject = {
-        id: null,
-        referent: noteId,
-        invitation: 'dblp.org/-/author_coreference',
-        signatures: [profileId],
-        readers: ['everyone'],
-        writers: [],
-        content: {
-          authorids: authorIds,
-        },
-      }
-      return Webfield.post('/notes', updateAuthorIdsObject)
-    })
+    const updateAuthorIdsObject = {
+      id: null,
+      referent: noteId,
+      invitation: 'dblp.org/-/author_coreference',
+      signatures: [profileId],
+      readers: ['everyone'],
+      writers: [],
+      content: {
+        authorids: authorIds,
+      },
+    }
+    return api.post('/notes', updateAuthorIdsObject, { accessToken })
+  }
 
   useEffect(() => {
     loadOptions()
@@ -65,17 +67,14 @@ export default function LegacyProfileEditor({ profile, loading, hideAddDblpAndPu
   useEffect(() => {
     if (loading || !profile || !dropdownOptions) return
 
-    // eslint-disable-next-line global-require
-    const editController = require('../client/profileView')
-
-    const { view } = editController(profile, {
+    const profileViewResult = editController(profile, {
       buttonText: 'Save Profile Changes',
       prefixedPositions: dropdownOptions.prefixedPositions || [],
       prefixedRelations: dropdownOptions.prefixedRelations || [],
       institutions: dropdownOptions.institutions || [],
       onDblpButtonClick: showDblpModal,
       hideAddDblpAndPublicationEditor,
-    }, (newProfileData, done) => {
+    }, async (newProfileData, done) => {
       // Save profile handler
       const { publicationIdsToUnlink } = newProfileData.content
       const dataToSubmit = {
@@ -84,22 +83,20 @@ export default function LegacyProfileEditor({ profile, loading, hideAddDblpAndPu
           'preferredName', 'currentInstitution', 'options', 'publicationIdsToUnlink',
         ]),
       }
-      Webfield.post('/profiles', dataToSubmit)
-        .then(updatedProfile => Promise.all(publicationIdsToUnlink.map(publicationId => (
-          unlinkPublication(profile.id, publicationId)
-        ))))
-        .then(() => {
-          promptMessage('Your profile information has successfully been updated')
-        })
-        .always(() => {
-          done()
-        })
+      try {
+        const updatedProfile = await api.post('/profiles', dataToSubmit, { accessToken })
+        await Promise.all(publicationIdsToUnlink.map(publicationId => (unlinkPublication(profile.id, publicationId))))
+        promptMessage('Your Profile information has successfully been updated')
+        router.push(`/profile?id=${profile.id}`)
+      } catch (error) {
+        promptError(error.message)
+      }
     }, () => {
       // Cancel handler
       router.push(`/profile?id=${profile.id}`)
     })
-
-    $(containerEl.current).empty().append(view)
+    setprofileView(profileViewResult)
+    $(containerEl.current).empty().append(profileViewResult.profileController.view)
   }, [loading, profile, dropdownOptions])
 
   return (
@@ -110,6 +107,7 @@ export default function LegacyProfileEditor({ profile, loading, hideAddDblpAndPu
         profileNames={profile.names.map(name => (name.middle
           ? `${name.first} ${name.middle} ${name.last}`
           : `${name.first} ${name.last}`))}
+        renderPublicationEditor={() => profileView.renderPublicationEditor(profile.id)}
       />
     </>
   )

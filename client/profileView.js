@@ -1238,7 +1238,7 @@ module.exports = function(profile, params, submitF, cancelF) {
       return true;
     });
 
-    var $cancelButton = $('<button class="btn btn-default">Cancel</button>').click(function() {
+    var $cancelButton = $('<button class="btn">Cancel</button>').click(function() {
       var $newPanel = drawView(profile, prefixedPositions, prefixedInstitutions, institutions);
       $mainView.empty().append($newPanel);
       $panel = $newPanel;
@@ -1276,6 +1276,5 @@ module.exports = function(profile, params, submitF, cancelF) {
 
   var profileController = mkProfilePanel(profile, params, submitF);
 
-  return profileController;
-
+  return {profileController,renderPublicationEditor};
 };
