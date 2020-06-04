@@ -69,7 +69,7 @@ function Reset() {
       </Head>
 
       <div className="reset-container col-sm-12 col-md-8 col-lg-6 col-md-offset-2 col-lg-offset-3">
-        <h1>Reset Password</h1>
+        <h1>Request Password Reset</h1>
 
         {emailSent ? (
           <Alert color="success">
