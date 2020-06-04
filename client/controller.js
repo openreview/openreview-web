@@ -40,15 +40,21 @@ module.exports = (function() {
         update('loadingCount', (sm.get('loadingCount') || 0) + 1);
       }
 
-      var headers = sm.get('token') ? { Authorization: 'Bearer ' + sm.get('token') } : {};
+      var token = window.localStorage.getItem('token');
+      var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
+      var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
+      var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
       return $.ajax({
         cache: true,
         dataType: 'json',
         type: method,
         contentType: useJson ? 'application/json; charset=UTF-8' : 'application/x-www-form-urlencoded; charset=UTF-8',
-        url: url,
+        url: baseUrl + url,
         data: useJson ? JSON.stringify(data) : data,
-        headers: headers
+        headers:  Object.assign(defaultHeaders, authHeaders),
+        xhrFields: {
+          withCredentials: true
+        }
       })
       .then(function(result) {
         if (typeof onSuccess === 'function') {
