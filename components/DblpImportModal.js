@@ -1,5 +1,7 @@
-/* eslint-disable max-len */
-import { useState, useRef, useEffect, useContext } from 'react'
+/* globals $: false */
+import {
+  useState, useRef, useEffect, useContext,
+} from 'react'
 import LoadingSpinner from './LoadingSpinner'
 import DblpPublicationTable from './DblpPublicationTable'
 import { getDblpPublicationsFromXmlUrl, getAllPapersByGroupId, postOrUpdatePaper } from '../lib/profiles'
@@ -112,8 +114,8 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
 
   const handlePersistentUrlInputKeyPress = (event) => {
     if (event.key === 'Enter') {
-      event.preventDefault();
-      fetchNewPublications(dblpPersistentUrl, true);
+      event.preventDefault()
+      fetchNewPublications(dblpPersistentUrl, true)
     }
   }
 
@@ -144,7 +146,7 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
             )}
             <h3 className="modal-title">
               Import DBLP Publications
-              </h3>
+            </h3>
           </div>
 
           <div className={`modal-body ${isSavingPublications ? 'disable-scroll' : ''}`}>
@@ -176,7 +178,7 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
                   </span>
                 </div>
                 <div className="body-message">
-                  Retrieving papers from DBLP requires a "Persistent DBLP URL."  Unfortunately, DBLP does not provide this URL by default.  You must obtain from DBLP the
+                  Retrieving papers from DBLP requires a `&quot;`Persistent DBLP URL.`&quot;`  Unfortunately, DBLP does not provide this URL by default.  You must obtain from DBLP the
                   Persistent URL for your home page by
                   <ol>
                     <li>
@@ -186,13 +188,13 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
                       </a>
                     </li>
                     <li>
-                      clicking the "Share"
+                      clicking the `&quot;`Share`&quot;`
                       <img src="/images/share-alt.svg" alt="" />
                       icon to the right of your name in large font near the top of the page
                     </li>
-                    <li>clicking the URL below "persistent URL" in the pop-up menu</li>
+                    <li>clicking the URL below `&quot;`persistent URL`&quot;` in the pop-up menu</li>
                   </ol>
-                  Copy this URL into the text field above and click "Show Papers".
+                  Copy this URL into the text field above and click `&quot;`Show Papers`&quot;`.
                 </div>
               </form>
             )}

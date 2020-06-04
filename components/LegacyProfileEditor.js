@@ -3,7 +3,9 @@
 /* globals promptError: false */
 /* globals Webfield: false */
 
-import { useEffect, useState, useRef, useContext } from 'react'
+import {
+  useEffect, useState, useRef, useContext,
+} from 'react'
 import { useRouter } from 'next/router'
 import get from 'lodash/get'
 import omit from 'lodash/omit'

@@ -1,4 +1,5 @@
-/* eslint-disable max-len */
+import shortId from 'shortid'
+
 export default ({
   dblpPublications, openReviewPublications, selectedPublications, setSelectedPublications,
 }) => {
@@ -58,7 +59,7 @@ export default ({
         const existingPublication = openReviewPublications.find(orPub => orPub.title === publication.formattedTitle)
         return (
           <DblpPublicationRow
-            key={index}
+            key={shortId.generate()}
             title={publication.title}
             authors={publication.authorNames}
             openReviewId={existingPublication?.id}
@@ -74,49 +75,45 @@ export default ({
 
 const DblpPublicationRow = ({
   title, authors, openReviewId, selected, toggleSelected,
-}) => {
-  return (
-    <tr className={openReviewId ? 'existing-publication-row' : ''}>
-      <th scope="row">
-        <input
-          type="checkbox"
-          onChange={e => toggleSelected(e.target.checked)}
-          checked={selected}
-          disabled={openReviewId}
-        />
-      </th>
+}) => (
+  <tr className={openReviewId ? 'existing-publication-row' : ''}>
+    <th scope="row">
+      <input
+        type="checkbox"
+        onChange={e => toggleSelected(e.target.checked)}
+        checked={selected}
+        disabled={openReviewId}
+      />
+    </th>
 
-      <td>
-        <div className="publication-title">
-          {openReviewId ? (
-            <a href={`/forum?id=${openReviewId}`} target="_blank" rel="noreferrer">{title}</a>
-          ) : (
-            <span>{title}</span>
-          )}
-        </div>
-        <div className="publication-author-names">
-          {authors.join(', ')}
-        </div>
-      </td>
-    </tr>
-  )
-}
+    <td>
+      <div className="publication-title">
+        {openReviewId ? (
+          <a href={`/forum?id=${openReviewId}`} target="_blank" rel="noreferrer">{title}</a>
+        ) : (
+          <span>{title}</span>
+        )}
+      </div>
+      <div className="publication-author-names">
+        {authors.join(', ')}
+      </div>
+    </td>
+  </tr>
+)
 
-const Table = ({ headings, children }) => {
-  return (
-    <table className="table">
-      <thead>
-        <tr>
-          {headings.map((heading, index) => (
-            <th scope="col" key={index} style={heading.width ? { width: heading.width } : {}} >
-              {heading.content}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {children}
-      </tbody>
-    </table>
-  )
-}
+const Table = ({ headings, children }) => (
+  <table className="table">
+    <thead>
+      <tr>
+        {headings.map((heading, index) => (
+          <th scope="col" key={shortId.generate} style={heading.width ? { width: heading.width } : {}}>
+            {heading.content}
+          </th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {children}
+    </tbody>
+  </table>
+)
