@@ -5,26 +5,13 @@ import { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
 import LoadingSpinner from '../components/LoadingSpinner'
-import Alert from '../components/Alert'
-import Icon from '../components/Icon'
+import ErrorAlert from '../components/ErrorAlert'
 import { auth } from '../lib/auth'
 import api from '../lib/api-client'
 
 import '../styles/pages/activity.less'
 
-function ErrorAlert({ error }) {
-  return (
-    <Alert color="danger">
-      <Icon name="exclamation-sign" />
-      {' '}
-      <strong>Error:</strong>
-      {' '}
-      {error.message}
-    </Alert>
-  )
-}
-
-function Activity({ user, accessToken, appContext }) {
+const Activity = ({ user, accessToken, appContext }) => {
   const [activityNotes, setActivityNotes] = useState(null)
   const [error, setError] = useState(null)
   const activityRef = useRef(null)
