@@ -1,4 +1,5 @@
 /* globals $: false */
+
 import {
   useState, useRef, useEffect, useContext,
 } from 'react'
@@ -8,7 +9,7 @@ import { getDblpPublicationsFromXmlUrl, getAllPapersByGroupId, postOrUpdatePaper
 import UserContext from './UserContext'
 import { inflect } from '../lib/utils'
 
-export default ({ profileId, profileNames, renderPublicationEditor }) => {
+export default function DblpImportModal({ profileId, profileNames }) {
   const [dblpUrl, setDblpUrl] = useState('')
   const [dblpPersistentUrl, setDblpPersistentUrl] = useState('')
   const [message, setMessage] = useState('')
@@ -95,9 +96,6 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
         $('#dblp_url').val(dblpUrl)
       }
 
-      // Update the list of the user's publications
-      renderPublicationEditor(profileId)
-
       if (allExistInOpenReview) {
         setTimeout(() => {
           $(modalEl.current).modal('hide')
@@ -178,24 +176,23 @@ export default ({ profileId, profileNames, renderPublicationEditor }) => {
                   </span>
                 </div>
                 <div className="body-message">
-                  Retrieving papers from DBLP requires a &quot;Persistent DBLP URL.&quot;  Unfortunately, DBLP does
-                  not provide this URL by default.  You must obtain from DBLP the
-                  Persistent URL for your home page by
+                  Retrieving papers from DBLP requires a &quot;Persistent DBLP URL.&quot; Unfortunately, DBLP does
+                  not provide this URL by default. You must obtain the persistent URL for your home page from DBLP
+                  by following the steps below:
                   <ol>
                     <li>
-                      visiting your DBLP home page
-                      <a href={dblpUrl} target="_blank" rel="noreferrer">
-                        {dblpUrl}
-                      </a>
+                      Visit your DBLP home page:
+                      {' '}
+                      <a href={dblpUrl} target="_blank" rel="noreferrer">{dblpUrl}</a>
                     </li>
                     <li>
-                      clicking the &quot;Share&quot;
-                      <img src="/images/share-alt.svg" alt="" />
-                      icon to the right of your name in large font near the top of the page
+                      Hover over the share icon (
+                      <img src="/images/share_alt.svg" alt="share" />
+                      ) to the right of your name in the page heading
                     </li>
-                    <li>clicking the URL below &quot;persistent URL&quot; in the pop-up menu</li>
+                    <li>Copy the URL labeled &quot;persistent URL&quot; in the hover menu</li>
                   </ol>
-                  Copy this URL into the text field above and click &quot;Show Papers&quot;.
+                  Paste this URL into the text field above and click &quot;Show Papers&quot;
                 </div>
               </form>
             )}

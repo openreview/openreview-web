@@ -1,8 +1,6 @@
-import shortId from 'shortid'
-
-export default ({
+export default function DblpPublicationTable({
   dblpPublications, openReviewPublications, selectedPublications, setSelectedPublications,
-}) => {
+}) {
   const dblpPubsInOpenReview = []
   const dblpPubsNotInOpenReview = []
   dblpPublications.forEach((dblpPub, index) => {
@@ -59,7 +57,8 @@ export default ({
         const existingPublication = openReviewPublications.find(orPub => orPub.title === publication.formattedTitle)
         return (
           <DblpPublicationRow
-            key={shortId.generate()}
+            // eslint-disable-next-line react/no-array-index-key
+            key={index}
             title={publication.title}
             authors={publication.authorNames}
             openReviewId={existingPublication?.id}
@@ -71,7 +70,6 @@ export default ({
     </Table>
   )
 }
-
 
 const DblpPublicationRow = ({
   title, authors, openReviewId, selected, toggleSelected,
@@ -101,12 +99,14 @@ const DblpPublicationRow = ({
   </tr>
 )
 
+// TODO: reuse shared table component
 const Table = ({ headings, children }) => (
   <table className="table">
     <thead>
       <tr>
         {headings.map((heading, index) => (
-          <th scope="col" key={shortId.generate} style={heading.width ? { width: heading.width } : {}}>
+          // eslint-disable-next-line react/no-array-index-key
+          <th scope="col" key={index} style={heading.width ? { width: heading.width } : {}}>
             {heading.content}
           </th>
         ))}

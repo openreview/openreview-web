@@ -9,19 +9,19 @@ import {
 import { useRouter } from 'next/router'
 import get from 'lodash/get'
 import omit from 'lodash/omit'
-import api from '../lib/api-client'
-import DblpImportModal from './DblpImportModal'
 import UserContext from './UserContext'
+import api from '../lib/api-client'
 import editController from '../client/profileView'
 
-import '../styles/legacy-profile-editor.less'
+import '../styles/components/legacy-profile-editor.less'
 
-export default function LegacyProfileEditor({ profile, loading, hideAddDblpAndPublicationEditor = false }) {
+export default function LegacyProfileEditor({
+  profile, loading, hideDblpButton = false, hidePublicationEditor = false,
+}) {
   const containerEl = useRef(null)
   const [dropdownOptions, setDropdownOptions] = useState(null)
-  const [profileView, setprofileView] = useState(null)
-  const router = useRouter()
   const { accessToken } = useContext(UserContext)
+  const router = useRouter()
 
   const loadOptions = async () => {
     try {
@@ -32,19 +32,15 @@ export default function LegacyProfileEditor({ profile, loading, hideAddDblpAndPu
     }
   }
 
-  const showDblpModal = () => {
-    $('#dblp-import-modal').modal({ backdrop: 'static' })
-  }
-
   const unlinkPublication = async (profileId, noteId) => {
     const notes = await api.get('/notes', { id: noteId }, { accessToken })
     const authorIds = get(notes, 'notes[0].content.authorids')
     if (!authorIds) {
-      return $.Deferred().reject()
+      return Promise.reject()
     }
     const idx = authorIds.indexOf(profileId)
     if (idx < 0) {
-      $.Deferred().reject()
+      Promise.reject()
     }
     authorIds[idx] = null
 
@@ -69,13 +65,13 @@ export default function LegacyProfileEditor({ profile, loading, hideAddDblpAndPu
   useEffect(() => {
     if (loading || !profile || !dropdownOptions) return
 
-    const profileViewResult = editController(profile, {
+    const { view, renderPublicationEditor } = editController(profile, {
       buttonText: 'Save Profile Changes',
       prefixedPositions: dropdownOptions.prefixedPositions || [],
       prefixedRelations: dropdownOptions.prefixedRelations || [],
       institutions: dropdownOptions.institutions || [],
-      onDblpButtonClick: showDblpModal,
-      hideAddDblpAndPublicationEditor,
+      hideDblpButton,
+      hidePublicationEditor,
     }, async (newProfileData, done) => {
       // Save profile handler
       const { publicationIdsToUnlink } = newProfileData.content
@@ -87,30 +83,25 @@ export default function LegacyProfileEditor({ profile, loading, hideAddDblpAndPu
       }
       try {
         const updatedProfile = await api.post('/profiles', dataToSubmit, { accessToken })
-        await Promise.all(publicationIdsToUnlink.map(publicationId => (unlinkPublication(profile.id, publicationId))))
-        promptMessage('Your Profile information has successfully been updated')
+        await Promise.all(publicationIdsToUnlink.map(publicationId => unlinkPublication(profile.id, publicationId)))
+        promptMessage('Your profile information has been successfully updated')
         router.push(`/profile?id=${profile.id}`)
       } catch (error) {
         promptError(error.message)
       }
+      done()
     }, () => {
       // Cancel handler
       router.push(`/profile?id=${profile.id}`)
     })
-    setprofileView(profileViewResult)
-    $(containerEl.current).empty().append(profileViewResult.profileController.view)
+    $(containerEl.current).empty().append(view)
+
+    if (!hideDblpButton && !hidePublicationEditor) {
+      $('#dblp-import-modal').on('hidden.bs.modal', () => {
+        renderPublicationEditor()
+      })
+    }
   }, [loading, profile, dropdownOptions])
 
-  return (
-    <>
-      <div ref={containerEl} />
-      <DblpImportModal
-        profileId={profile.id}
-        profileNames={profile.names.map(name => (name.middle
-          ? `${name.first} ${name.middle} ${name.last}`
-          : `${name.first} ${name.last}`))}
-        renderPublicationEditor={() => profileView.renderPublicationEditor(profile.id)}
-      />
-    </>
-  )
+  return <div ref={containerEl} />
 }

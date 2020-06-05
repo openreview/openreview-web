@@ -3,7 +3,6 @@
  * - replaced first line with module.exports
  * - replaced all controller api calls with webfield versions
  * - added btn-default class to cancel button
- * - added onDblpButtonClick to params and replaced current handler
  */
 
 /* globals view: false */
@@ -639,16 +638,7 @@ module.exports = function(profile, params, submitF, cancelF) {
           $('<div>', { text: 'DBLP URL', class: 'small_heading' })
         )
       ),
-      params.hideAddDblpAndPublicationEditor ? $('<tr>', { border: 0, class: 'info_row' }).append(
-        $('<td>', { class: 'info_item' }).append(
-          $('<input>', {
-            id: 'dblp_url',
-            type: 'text',
-            class: 'form-control',
-            value: dblpVal
-          })
-        )
-      ) : $('<tr>', { border: 0, class: 'info_row' }).append(
+      $('<tr>', { border: 0, class: 'info_row' }).append(
         $('<td>', { class: 'info_item' }).append(
           $('<input>', {
             id: 'dblp_url',
@@ -656,16 +646,23 @@ module.exports = function(profile, params, submitF, cancelF) {
             class: 'form-control',
             value: dblpVal
           }).on('input', function () {
+            if (params.hideDblpButton) return;
             $('#show-dblp-import-modal').attr('disabled', !$(this).val());
           })
         ),
         $('<td>', { class: 'info_item' }).append(
-          $('<button>', {
+          params.hideDblpButton ? null : $('<button>', {
             id: 'show-dblp-import-modal',
             class: 'btn btn-primary',
             text: 'Add DBLP Papers to Profile',
             disabled: !dblpVal,
-          }).on('click', params.onDblpButtonClick)
+          }).on('click', function() {
+            $('#dblp-import-modal').modal({
+              show: true,
+              backdrop: 'static',
+              keyboard: false,
+            });
+          })
         )
       ),
 
@@ -771,7 +768,7 @@ module.exports = function(profile, params, submitF, cancelF) {
         $addExpertiseRow
       ),
 
-      params.hideAddDblpAndPublicationEditor ? null : $('<section>').append(
+      params.hidePublicationEditor ? null : $('<section>').append(
         '<h4>Publications</h4>',
         '<p class="instructions">Below is a list of all publications on OpenReview that include you as an author. You can remove any publication you are not an author of by clicking the minus button next to the title.</p>',
         $('<div>', { id: 'publication-editor-container' })
@@ -1238,7 +1235,7 @@ module.exports = function(profile, params, submitF, cancelF) {
       return true;
     });
 
-    var $cancelButton = $('<button class="btn">Cancel</button>').click(function() {
+    var $cancelButton = $('<button class="btn btn-default">Cancel</button>').click(function() {
       var $newPanel = drawView(profile, prefixedPositions, prefixedInstitutions, institutions);
       $mainView.empty().append($newPanel);
       $panel = $newPanel;
@@ -1270,11 +1267,12 @@ module.exports = function(profile, params, submitF, cancelF) {
 
     return {
       view: $mainView,
-      canExit: canExit
+      canExit: canExit,
+      renderPublicationEditor: renderPublicationEditor
     };
   };
 
   var profileController = mkProfilePanel(profile, params, submitF);
 
-  return {profileController,renderPublicationEditor};
+  return profileController;
 };
