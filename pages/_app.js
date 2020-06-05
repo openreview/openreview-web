@@ -8,7 +8,8 @@ import UserContext from '../components/UserContext'
 import { auth, setAuthCookie, removeAuthCookie } from '../lib/auth'
 
 // Global Styles
-import '../styles/layout.less'
+import '../styles/global.less'
+import '../styles/components.less'
 
 class OpenReviewApp extends App {
   constructor(props) {
