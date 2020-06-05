@@ -5,24 +5,12 @@ import { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
 import LoadingSpinner from '../components/LoadingSpinner'
-import Alert from '../components/Alert'
-import Icon from '../components/Icon'
+import ErrorAlert from '../components/ErrorAlert'
 import { auth } from '../lib/auth'
 import api from '../lib/api-client'
 import { formatTasksData } from '../lib/utils'
 
 import '../styles/pages/tasks.less'
-
-// TODO: replace this with shared component when other PR is merged
-const ErrorAlert = ({ error }) => (
-  <Alert color="danger">
-    <Icon name="exclamation-sign" />
-    {' '}
-    <strong>Error:</strong>
-    {' '}
-    {error.message}
-  </Alert>
-)
 
 const Tasks = ({ accessToken, appContext }) => {
   const [groupedTasks, setGroupedTasks] = useState(null)
@@ -94,7 +82,6 @@ const Tasks = ({ accessToken, appContext }) => {
       referrer: encodeURIComponent('[Tasks](/tasks)'),
       emptyMessage: 'No current pending or completed tasks',
     }
-
     $(tasksRef.current).empty().append(
       Handlebars.templates.groupedTaskList({ groupedInvitations: groupedTasks, taskOptions }),
     )
