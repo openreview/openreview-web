@@ -18,7 +18,8 @@
       "code": 120,
       "ignoreStrings": true,
       "ignoreTemplateLiterals": true,
-      "ignoreRegExpLiterals": true
+      "ignoreRegExpLiterals": true,
+      "ignoreComments":true
     }],
     "react/react-in-jsx-scope": "off",
     "react/prop-types": 0,
