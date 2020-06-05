@@ -9,26 +9,23 @@ import withError from '../components/withError'
 
 const Activate = ({ appContext, queryToken }) => {
   const router = useRouter()
-  const [token, setToken] = useState(queryToken)
 
   const { setBannerHidden } = appContext
 
   const activate = async () => {
     try {
-      await api.put(`/activatelink/${token}`)
-      promptMessage('Thank you for confirming your email')
+      const result = await api.put(`/activatelink/${queryToken}`)
+      promptMessage(`Thank you for confirming your email ${result?.content?.emails?.slice(-1) ?? ''}`)
     } catch (error) {
       promptError(error.message)
-    } finally {
-      router.push('/')
     }
+    router.push('/')
   }
 
   useEffect(() => {
     setBannerHidden(true)
-    setToken(router.query.token)
     activate()
-  }, [token])
+  }, [])
 
   return <LoadingSpinner />
 }
