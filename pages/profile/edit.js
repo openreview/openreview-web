@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import LegacyProfileEditor from '../../components/LegacyProfileEditor'
 import DblpImportModal from '../../components/DblpImportModal'
+import withError from '../../components/withError'
 import api from '../../lib/api-client'
 import { auth } from '../../lib/auth'
 import { formatProfileData } from '../../lib/profiles'
@@ -49,4 +50,4 @@ ProfileEdit.getInitialProps = async (ctx) => {
 
 ProfileEdit.bodyClass = 'profile-edit'
 
-export default ProfileEdit
+export default withError(ProfileEdit)
