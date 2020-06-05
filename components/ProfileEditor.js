@@ -1,4 +1,3 @@
-/* eslint-disable object-curly-newline */
 /* eslint-disable arrow-body-style */
 /* eslint-disable arrow-parens */
 /* eslint-disable max-len */
@@ -7,10 +6,18 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-import '../styles/partials/ProfileEditor.less'
+/* globals promptError: false */
+
+/**
+ * WIP: This is a re-implementation of the current profile edit UI in pure React.
+ * Currently on the Names and Gender sections are implemented.
+ */
+
 import { useState, useEffect, useReducer } from 'react'
 import shortid from 'shortid'
 import api from '../lib/api-client'
+
+import '../styles/legacy-profile-editor.less'
 
 const NamesSection = ({ profileNames }) => {
   const namesReducer = (names, action) => {
@@ -127,7 +134,9 @@ const NamesSection = ({ profileNames }) => {
   )
 }
 
-const NamesButton = ({ newRow, readonly, preferred, handleRemove, handleMakePreferred }) => {
+const NamesButton = ({
+  newRow, readonly, preferred, handleRemove, handleMakePreferred,
+}) => {
   if (!newRow && readonly) {
     if (preferred) {
       return <span className="preferred hint">(Preferred Name)</span>

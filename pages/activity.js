@@ -1,21 +1,95 @@
+/* globals $: false */
+/* globals Webfield: false */
+
+import { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
+import Router from 'next/router'
 import LoadingSpinner from '../components/LoadingSpinner'
+import ErrorAlert from '../components/ErrorAlert'
+import { auth } from '../lib/auth'
+import api from '../lib/api-client'
 
-const Activity = () => (
-  <div className="activity-container">
-    <Head>
-      <title key="title">Activity | OpenReview</title>
-    </Head>
+import '../styles/pages/activity.less'
 
-    <header>
-      <h1>Activity</h1>
-    </header>
+const Activity = ({ user, accessToken, appContext }) => {
+  const [activityNotes, setActivityNotes] = useState(null)
+  const [error, setError] = useState(null)
+  const activityRef = useRef(null)
+  const { setBannerHidden, clientJsLoading } = appContext
 
-    <div>
-      <LoadingSpinner />
+  const loadActivityData = async () => {
+    try {
+      const apiRes = await api.get('/notes', {
+        tauthor: true,
+        trash: true,
+        details: 'forumContent,writable,invitation',
+        limit: 200,
+      }, { accessToken })
+      setActivityNotes(apiRes.notes)
+    } catch (apiError) {
+      setError(apiError)
+    }
+  }
+
+  useEffect(() => {
+    setBannerHidden(true)
+
+    loadActivityData()
+  }, [])
+
+  useEffect(() => {
+    if (clientJsLoading || !activityNotes) return
+
+    if (!window.MathJax) {
+      // eslint-disable-next-line global-require
+      window.MathJax = require('../lib/mathjax-config')
+      // eslint-disable-next-line global-require
+      require('mathjax/es5/tex-chtml')
+    }
+
+    $(activityRef.current).empty()
+    Webfield.ui.activityList(activityNotes, {
+      container: activityRef.current,
+      emptyMessage: 'No recent activity to display.',
+      user: user.profile,
+      showActionButtons: true,
+    })
+
+    $('[data-toggle="tooltip"]').tooltip()
+  }, [clientJsLoading, activityNotes])
+
+  return (
+    <div className="activity-container">
+      <Head>
+        <title key="title">Activity | OpenReview</title>
+      </Head>
+
+      <header>
+        <h1>Activity</h1>
+      </header>
+
+      {!error && !activityNotes && (
+        <LoadingSpinner />
+      )}
+      {error && (
+        <ErrorAlert error={error} />
+      )}
+      <div ref={activityRef} />
     </div>
-  </div>
-)
+  )
+}
+
+Activity.getInitialProps = async (ctx) => {
+  const { user, token } = auth(ctx)
+  if (!user) {
+    if (ctx.req) {
+      ctx.res.writeHead(302, { Location: '/login' }).end()
+    } else {
+      Router.replace('/login')
+    }
+  }
+  return { user, accessToken: token }
+}
 
 Activity.bodyClass = 'activity'
 

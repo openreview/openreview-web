@@ -1,4 +1,8 @@
-// Styles for Reusable UI Components
+// Global styles for Webfield components
+// Need to be imported in _app.js so they can be used on any page
+
+@import "utils/constants";
+@import "vendor/bootstrap-datetimepicker";
 
 // Tab navigation
 .nav-tabs {
@@ -264,6 +268,8 @@ table.table-minimal {
     }
     .note-content-value {
       white-space: pre-wrap;
+      display: block;
+      overflow-x: auto;
     }
     li {
       padding-bottom: .125rem;
