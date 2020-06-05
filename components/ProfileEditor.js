@@ -13,11 +13,10 @@
  * Currently on the Names and Gender sections are implemented.
  */
 
-import { useState, useEffect, useReducer } from 'react'
-import shortid from 'shortid'
+import { useEffect, useReducer } from 'react'
 import api from '../lib/api-client'
 
-import '../styles/legacy-profile-editor.less'
+import '../styles/components/legacy-profile-editor.less'
 
 const NamesSection = ({ profileNames }) => {
   const namesReducer = (names, action) => {
@@ -54,7 +53,6 @@ const NamesSection = ({ profileNames }) => {
       preferred: false,
       username: '',
       newRow: true,
-      key: shortid.generate(),
     }
     setNames({ addNewName: true, data: newNameRow })
   }
@@ -83,7 +81,6 @@ const NamesSection = ({ profileNames }) => {
 
   useEffect(() => {
     if (profileNames) {
-      profileNames.forEach(name => name.key = shortid.generate())
       setNames({ initialLoad: true, data: profileNames })
     }
   }, [profileNames])
@@ -102,9 +99,10 @@ const NamesSection = ({ profileNames }) => {
             <td className="info_item"><div className="small_heading" /></td>
           </tr>
           {
-            names && names.map((name) => {
+            names && names.map((name, i) => {
               return (
-                <tr border="0" className="info_row" key={name.key}>
+                // eslint-disable-next-line react/no-array-index-key
+                <tr border="0" className="info_row" key={i}>
                   <td className="info_item">
                     <input type="text" className="form-control first_name profile" defaultValue={name.first ?? ''} readOnly={!name.newRow && name.username.length} onChange={e => { handleUpdateName({ updateName: true, data: { key: name.key, field: 'first', value: e.target.value } }) }} />
                   </td>
