@@ -8,8 +8,7 @@ import api from '../lib/api-client'
 import NoteList from '../components/NoteList'
 import PaginationLinks from '../components/PaginationLinks'
 import LoadingSpinner from '../components/LoadingSpinner'
-import Alert from '../components/Alert'
-import Icon from '../components/Icon'
+import ErrorAlert from '../components/ErrorAlert'
 
 // Page Styles
 import '../styles/pages/search.less'
@@ -68,16 +67,6 @@ const FilterForm = ({ searchQuery, setSearchQuery }) => {
     </form>
   )
 }
-
-const ErrorAlert = ({ error }) => (
-  <Alert color="danger">
-    <Icon name="exclamation-sign" />
-    {' '}
-    <strong>Error:</strong>
-    {' '}
-    {error.message}
-  </Alert>
-)
 
 const Search = ({ appContext }) => {
   const router = useRouter()

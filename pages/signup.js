@@ -77,7 +77,7 @@ const SignupForm = () => {
   )
 }
 
-const SignUp = ({ query }) => (
+const SignUp = () => (
   <div>
     <Head>
       <title key="title">Sign Up | OpenReview</title>
@@ -89,8 +89,6 @@ const SignUp = ({ query }) => (
     <SignupForm />
   </div>
 )
-
-SignUp.getInitialProps = async ctx => ({ query: ctx.query })
 
 SignUp.bodyClass = 'sign-up'
 

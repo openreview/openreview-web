@@ -1,5 +1,7 @@
 import Link from 'next/link'
 
+import '../styles/components/footer.less'
+
 const Footer = () => (
   <>
     <footer className="sitemap">
