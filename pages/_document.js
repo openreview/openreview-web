@@ -16,6 +16,7 @@ class OpenReviewDocument extends Document {
           <Main />
           <NextScript />
           <GoogleAnalyticsScript />
+          <script> </script>
         </body>
       </html>
     )
