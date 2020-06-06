@@ -15,7 +15,9 @@ import {
   prettyId,
 } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
-import { editNewConfig } from '../../client/assignments'
+import {
+  editNewConfig, editExistingConfig, editClonedConfig, setLegacyAssignmentNotes, setLegacyConfigInvitation, runMatcher,
+} from '../../client/assignments'
 import '../../styles/pages/assignments.less'
 
 const Assignments = ({
@@ -30,10 +32,15 @@ const Assignments = ({
   const [assignmentNotes, setAssignmentNotes] = useState(null)
   const [configInvitation, setConfigInvitation] = useState(null)
 
+  const configurationTable = useRef(null)
+
   const getAssignmentNotes = async () => {
     try {
       const result = await api.get('/notes', { invitation: `${groupId}/-/Assignment_Configuration` }, { accessToken })
       setAssignmentNotes(result.notes.map((note) => {
+        return set(note, 'scoresSpecParams', keys(note.content.scores_specification).join(','))
+      }))
+      setLegacyAssignmentNotes(result.notes.map((note) => {
         return set(note, 'scoresSpecParams', keys(note.content.scores_specification).join(','))
       }))
     } catch (error) {
@@ -45,6 +52,7 @@ const Assignments = ({
     try {
       const result = await api.get('/invitations', { id: `${groupId}/-/Assignment_Configuration` }, { accessToken })
       setConfigInvitation(result.invitations[0])
+      setLegacyConfigInvitation(result.invitations[0])
     } catch (error) {
       promptError(error.message)
     }
@@ -71,12 +79,12 @@ const Assignments = ({
   }
 
   const handleNewConfigurationButtonClick = () => {
-    editNewConfig(getAssignmentNotes, configInvitation)
+    editNewConfig(getAssignmentNotes)
   }
 
   useInterval(() => {
     getAssignmentNotes()
-  }, 50000)
+  }, 5000)
 
   useEffect(() => {
     if (!clientJsLoading && accessToken) {
@@ -91,12 +99,23 @@ const Assignments = ({
   }, [clientJsLoading, accessToken])
 
   useEffect(() => {
-    $('#configuration-table').html(
+    $(configurationTable.current).html(
       Handlebars.templates['partials/configurationNotes']({
         assignmentNotes,
         referrer: 'referrerStr',
       }),
     )
+    $(configurationTable.current).on('click', '.edit-parameters-link', (e) => {
+      editExistingConfig(e)
+      return false
+    })
+    $(configurationTable.current).on('click', '.clone-config', (e) => {
+      editClonedConfig(e)
+      return false
+    })
+    $(configurationTable.current).on('click', '.run-matcher', () => {
+      runMatcher()
+    })
     $('[data-toggle="tooltip"]').tooltip()
   }, [assignmentNotes])
 
@@ -126,7 +145,7 @@ const Assignments = ({
                     <th style={{ width: '175' }}>Actions</th>
                   </tr>
                 </thead>
-                <tbody id="configuration-table" />
+                <tbody id="configuration-table" ref={configurationTable} />
               </table>
               {assignmentNotes.length === 0 && <p className="empty-message">No assignments have been generated for this venue. Click the button above to get started.</p>}
             </>
