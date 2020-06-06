@@ -3,6 +3,8 @@ import { useRouter } from 'next/router'
 import NavUserLinks from './NavUserLinks'
 import Icon from './Icon'
 
+import '../styles/components/nav.less'
+
 function Nav() {
   const router = useRouter()
 

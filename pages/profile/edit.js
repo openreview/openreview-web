@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
 import LegacyProfileEditor from '../../components/LegacyProfileEditor'
+import DblpImportModal from '../../components/DblpImportModal'
+import withError from '../../components/withError'
 import api from '../../lib/api-client'
 import { auth } from '../../lib/auth'
 import { formatProfileData } from '../../lib/profiles'
@@ -10,6 +12,9 @@ import '../../styles/pages/profile-edit.less'
 
 function ProfileEdit({ profile, appContext }) {
   const { setBannerContent, clientJsLoading } = appContext
+  const profileNames = profile.names.map(name => (
+    name.middle ? `${name.first} ${name.middle} ${name.last}` : `${name.first} ${name.last}`
+  ))
 
   useEffect(() => {
     if (clientJsLoading) return
@@ -24,6 +29,8 @@ function ProfileEdit({ profile, appContext }) {
       </header>
 
       <LegacyProfileEditor profile={profile} loading={clientJsLoading} />
+
+      <DblpImportModal profileId={profile.id} profileNames={profileNames} />
     </div>
   )
 }
@@ -43,4 +50,4 @@ ProfileEdit.getInitialProps = async (ctx) => {
 
 ProfileEdit.bodyClass = 'profile-edit'
 
-export default ProfileEdit
+export default withError(ProfileEdit)
