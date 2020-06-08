@@ -268,7 +268,16 @@ const Assignments = ({
                 <tbody id="configuration-table" ref={configurationTable}>
                   {/* eslint-disable-next-line arrow-body-style */}
                   {assignmentNotes.map((assignmentNote) => {
-                    return <ConfigurationNote id={assignmentNote.id} number={assignmentNote.number} content={assignmentNote.content} tcdate={assignmentNote.tcdate} tmdate={assignmentNote.tmdate} key={assignmentNote.id} />
+                    return (
+                      <ConfigurationNote
+                        id={assignmentNote.id}
+                        number={assignmentNote.number}
+                        content={assignmentNote.content}
+                        tcdate={assignmentNote.tcdate}
+                        tmdate={assignmentNote.tmdate}
+                        key={assignmentNote.id}
+                      />
+                    )
                   })}
                 </tbody>
               </table>
