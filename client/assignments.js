@@ -3,6 +3,8 @@
  * Changes:
  * - removed code that has been converted to react component (updateAssignmentStatuses;setinterval;api calls to get assignment/invitation;event handlers)
  * - changed param of editNewConfig from event e(not used) to a function to update assignmentnotes
+ * - change param of editExistingConfig from event e to id
+ * - change param of editClonedConfig from event e to id
  * - added two set methods to set the variables used
  * - extracted .run-matcher event handler to a method runMatcher
 **/
@@ -30,7 +32,7 @@ var editNewConfig = function(updateAssignment) {
   });
 };
 
-var editExistingConfig = function(e) {
+var editExistingConfig = function(id) {
   $('#note-editor-modal').remove();
   $('body').append(Handlebars.templates.genericModal({
     id: 'note-editor-modal',
@@ -41,7 +43,7 @@ var editExistingConfig = function(e) {
   }));
   $('#note-editor-modal').modal('show');
 
-  var id = $(e.target).closest('tr').data('id');
+  //var id = $(e.target).closest('tr').data('id');
   var configNote = getConfigNote(id);
   view.mkNoteEditor(configNote, configInvitation, null, {
     onNoteEdited: hideEditorModalAndUpdate,
@@ -52,7 +54,7 @@ var editExistingConfig = function(e) {
   });
 };
 
-var editClonedConfig = function(e) {
+var editClonedConfig = function(id) {
   $('#note-editor-modal').remove();
   $('body').append(Handlebars.templates.genericModal({
     id: 'note-editor-modal',
@@ -63,7 +65,7 @@ var editClonedConfig = function(e) {
   }));
   $('#note-editor-modal').modal('show');
 
-  var id = $(e.target).closest('tr').data('id');
+  //var id = $(e.target).closest('tr').data('id');
   var configNote = getConfigNote(id);
   var titleSplit = configNote.content.title.split('-');
   var titleSuffix = parseInt(titleSplit[titleSplit.length - 1], 10);
