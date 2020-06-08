@@ -2883,8 +2883,7 @@ module.exports = (function() {
           $cancelButton.prop({ disabled: false });
         });
       };
-
-      var $noteTitle = $('<h2 class="note_content_title">New ' + prettyInvitationId(invitation.id) + '</h2>');
+      var $noteTitle = $('<h2>', {class: "note_content_title", text: prettyInvitationId(invitation.id)})
       var $requiredInfo = $('<div>', {class: 'required_field', text: '* denotes a required field'});
       var $submitRow = $('<div>', {class: 'row'}).append($submitButton, $cancelButton);
       var $noteEditor = $('<div>', {class: 'note_editor panel'}).append(
