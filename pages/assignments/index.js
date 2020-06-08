@@ -1,4 +1,3 @@
-/* eslint-disable arrow-body-style */
 /* globals Handlebars: false */
 /* globals $: false */
 /* globals promptError: false */
@@ -37,9 +36,11 @@ const Assignments = ({
   const getAssignmentNotes = async () => {
     try {
       const result = await api.get('/notes', { invitation: `${groupId}/-/Assignment_Configuration` }, { accessToken })
+      // eslint-disable-next-line arrow-body-style
       setAssignmentNotes(result.notes.map((note) => {
         return set(note, 'scoresSpecParams', keys(note.content.scores_specification).join(','))
       }))
+      // eslint-disable-next-line arrow-body-style
       setLegacyAssignmentNotes(result.notes.map((note) => {
         return set(note, 'scoresSpecParams', keys(note.content.scores_specification).join(','))
       }))
@@ -67,6 +68,7 @@ const Assignments = ({
     }, [callback])
 
     // Set up the interval.
+    // eslint-disable-next-line consistent-return
     useEffect(() => {
       function tick() {
         savedCallback.current()
