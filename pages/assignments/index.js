@@ -18,6 +18,7 @@ import api from '../../lib/api-client'
 import {
   prettyId,
   formatDateTime,
+  getEdgeBrowserUrl,
 } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import {
@@ -131,30 +132,6 @@ const Assignments = ({
   useEffect(() => {
     $('[data-toggle="tooltip"]').tooltip()
   }, [assignmentNotes])
-
-  const getEdgeBrowserUrl = (configNoteId, configNoteContent) => {
-    // For old matches using metadata notes
-    let edgeBrowserUrl = `/assignments/browse?id=${configNoteId}`
-    let disabled = true
-    // For matches utilizing the new edge system
-    // eslint-disable-next-line no-prototype-builtins
-    if (configNoteContent.hasOwnProperty('scores_specification')) {
-      const browseInvitations = Object.keys(configNoteContent.scores_specification)
-      const referrerText = `all assignments for ${prettyId(configNoteContent.match_group)}`
-      const referrerUrl = `/assignments?group= ${configNoteContent.match_group}`
-
-      edgeBrowserUrl = `/edge/browse?traverse=${configNoteContent.assignment_invitation},label:${configNoteContent.title}
-              &edit=${configNoteContent.assignment_invitation},label:${configNoteContent.title}
-                      &browse=${configNoteContent.aggregate_score_invitation},label:${configNoteContent.title}
-                              ;${browseInvitations.join(';')}
-        ;${configNoteContent.conflicts_invitation}
-        (${configNoteContent.custom_max_papers_invitation ? `;${configNoteContent.custom_max_papers_invitation},head:ignore` : ''})
-        (${configNoteContent.custom_load_invitation ? `;${configNoteContent.custom_load_invitation},head:ignore` : ''})
-        &referrer=${encodeURIComponent(`[${referrerText}](${referrerUrl})`)}`
-      disabled = false
-    }
-    return { edgeBrowserUrl, disabled }
-  }
 
   const ConfigurationNoteStatus = ({ content }) => {
     switch (content.status) {
