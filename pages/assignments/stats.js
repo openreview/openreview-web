@@ -1,5 +1,5 @@
 import {
-  useContext,
+  useContext, useEffect,
 } from 'react'
 import withError from '../../components/withError'
 import UserContext from '../../components/UserContext'
@@ -10,19 +10,41 @@ import {
   prettyId,
   getEdgeBrowserUrl,
 } from '../../lib/utils'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
 import '../../styles/pages/matching-stats.less'
 
 // eslint-disable-next-line arrow-body-style
 const AssignmentsStats = ({
-  title, groupId, configNoteId, configNoteContent, invitationId, note, user, bannerContent, pageScripts,
+  // eslint-disable-next-line max-len
+  title, groupId, configNoteId, configNoteContent, note, referrer, appContext,
 }) => {
   const { accessToken } = useContext(UserContext)
+  const { setBannerContent, clientJsLoading } = appContext
+
+  useEffect(() => {
+    if (!clientJsLoading) {
+      if (referrer) {
+        setBannerContent(referrerLink(referrer))
+      } else {
+        setBannerContent(venueHomepageLink(groupId, 'edit'))
+      }
+      // eslint-disable-next-line global-require
+      const { setWindowAssignmentConfigNote, runAssignmentsStats } = require('../../client/assignmentsStats')
+      // eslint-disable-next-line global-require
+      window.d3 = require('d3')
+      window.localStorage.setItem('token', accessToken) // TODO: this is a temporary solution to avoid failure in webfield calls
+      setWindowAssignmentConfigNote(note)
+      runAssignmentsStats(note.content)
+    }
+  }, [clientJsLoading])
+
   return (
     <>
+      <LoadingSpinner />
       <div className="row" id="stats-header">
         <div className="col-xs-10">
-          <h1>{title}</h1>
+          <h1>{`${prettyId(groupId)} Assignment Statistics-${note.content.title}`}</h1>
         </div>
 
         <div className="col-xs-2 text-right">
@@ -75,19 +97,16 @@ AssignmentsStats.getInitialProps = async (context) => {
     const configData = notes[0]
     // eslint-disable-next-line no-use-before-define
     const groupId = getGroupIdfromInvitation(configData.invitation)
-    // eslint-disable-next-line no-use-before-define
-    const bannerHtml = getAssignmentsPageLink(groupId)
-
+    // const bannerHtml = getAssignmentsPageLink(groupId)
     return {
-      title: `${prettyId(groupId)} Assignment Statistics-${configData.content.title}`,
       groupId,
       configNoteId: assignmentConfigurationId,
       configNoteContent: configData.content,
-      invitationId: configData.invitation,
-      note: JSON.stringify(configData),
-      user: user.profile,
-      bannerContent: bannerHtml,
-      pageScripts: ['/static/js/vendor/d3-5.9.1.min.js'],
+      // invitationId: configData.invitation,
+      note: configData,
+      // user: user.profile,
+      // bannerContent: bannerHtml,
+      referrer: context.query.referrer,
     }
   } catch (error) {
     return { statusCode: 404, message: error.message }
@@ -95,13 +114,6 @@ AssignmentsStats.getInitialProps = async (context) => {
 }
 
 AssignmentsStats.bodyClass = 'assignments-stats'
-
-// eslint-disable-next-line arrow-body-style
-const getAssignmentsPageLink = (groupId) => {
-  return `<a href="/assignments?group=${groupId}" title="All Assignments">
-      <img class="icon" src="/static/images/arrow_left.svg">
-    View all <strong>${prettyId(groupId)}</strong> assignments</a>`
-}
 
 const getGroupIdfromInvitation = (invitationId) => {
   // By convention all invitations should have the form group_id/-/invitation_name
