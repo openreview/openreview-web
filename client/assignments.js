@@ -11,8 +11,9 @@
 
 let assignmentNotes = []
 let configInvitation = null
+let updateAssignment = null
 
-var editNewConfig = function(updateAssignment) {
+var editNewConfig = function() {
   $('#note-editor-modal').remove();
   $('body').append(Handlebars.templates.genericModal({
     id: 'note-editor-modal',
@@ -166,11 +167,16 @@ const runMatcher = () => {
     return false;
 }
 
+const setUpdateAssignment = (f) =>{
+  updateAssignment = f
+}
+
 module.exports={
   editNewConfig,
   editExistingConfig,
   editClonedConfig,
   setLegacyAssignmentNotes,
   setLegacyConfigInvitation,
-  runMatcher
+  runMatcher,
+  setUpdateAssignment
 }

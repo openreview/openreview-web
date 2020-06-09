@@ -21,7 +21,8 @@ import {
 } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import {
-  editNewConfig, editExistingConfig, editClonedConfig, setLegacyAssignmentNotes, setLegacyConfigInvitation, runMatcher,
+  // eslint-disable-next-line max-len
+  editNewConfig, editExistingConfig, editClonedConfig, setLegacyAssignmentNotes, setLegacyConfigInvitation, runMatcher, setUpdateAssignment,
 } from '../../client/assignments'
 
 import '../../styles/pages/assignments.less'
@@ -91,7 +92,7 @@ const Assignments = ({
   }
 
   const handleNewConfigurationButtonClick = () => {
-    editNewConfig(getAssignmentNotes)
+    editNewConfig()
   }
 
   const handleEditConfigurationButtonClick = (id) => {
@@ -108,10 +109,11 @@ const Assignments = ({
 
   useInterval(() => {
     getAssignmentNotes()
-  }, 50000)
+  }, 5000)
 
   useEffect(() => {
     referrerStrRef.current = encodeURIComponent(`[all assignments for '${prettyId(groupId)}](${pathName}${search} + ${window.location.hash})`)
+    setUpdateAssignment(getAssignmentNotes)
   }, [])
 
   useEffect(() => {
