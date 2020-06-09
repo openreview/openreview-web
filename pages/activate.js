@@ -18,7 +18,7 @@ const Activate = ({ activateToken }) => {
     } catch (error) {
       promptError(error.message)
     }
-    router.push('/')
+    router.replace('/')
   }
 
   useEffect(() => {
