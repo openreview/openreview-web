@@ -1,16 +1,23 @@
+/* globals promptMessage: false */
 /* globals promptError: false */
 
+import { useEffect, useState, useContext } from 'react'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
 import Head from 'next/head'
-import api from '../../lib/api-client'
-import { formatProfileData } from '../../lib/profiles'
+import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import LegacyProfileEditor from '../../components/LegacyProfileEditor'
+import api from '../../lib/api-client'
+import { formatProfileData } from '../../lib/profiles'
+
+// Page Styles
+import '../../styles/pages/profile-edit.less'
 
 const CreateProfile = ({ appContext }) => {
-  const { query, replace } = useRouter()
+  const [activateToken, setActivateToken] = useState('')
   const [profile, setProfile] = useState(null)
+  const { loginUser } = useContext(UserContext)
+  const { query, replace } = useRouter()
 
   const { setBannerHidden, clientJsLoading } = appContext
 
@@ -18,12 +25,25 @@ const CreateProfile = ({ appContext }) => {
     if (!token) return
 
     try {
-      const { profile: newProfile, activatable } = await api.get(`/activatable/${token}`)
-
-      setProfile(formatProfileData(newProfile))
+      const apiRes = await api.get(`/activatable/${token}`)
+      setProfile(formatProfileData(apiRes.profile))
+      setActivateToken(token)
     } catch (error) {
       promptError(error.message)
       replace('/')
+    }
+  }
+
+  const saveProfile = async (newProfileData, done) => {
+    try {
+      const { user, token } = await api.put(`/activate/${activateToken}`, newProfileData)
+      promptMessage(`Your OpenReview profile has been successfully created. Please allow up to 12
+        hours before the profile is activated.`)
+      loginUser(user, token)
+      replace('/')
+    } catch (error) {
+      promptError(error.message)
+      done()
     }
   }
 
@@ -36,6 +56,10 @@ const CreateProfile = ({ appContext }) => {
 
   return (
     <div>
+      <Head>
+        <title key="title">Complete Registration | OpenReview</title>
+      </Head>
+
       <header>
         <h1>Complete Registration</h1>
         <h5>
@@ -45,7 +69,14 @@ const CreateProfile = ({ appContext }) => {
       </header>
 
       {profile ? (
-        <LegacyProfileEditor profile={profile} loading={clientJsLoading} hideDblpButton hidePublicationEditor />
+        <LegacyProfileEditor
+          profile={profile}
+          onSubmit={saveProfile}
+          submitButtonText="Register for OpenReview"
+          hideCancelButton
+          hideDblpButton
+          hidePublicationEditor
+        />
       ) : (
         <LoadingSpinner inline />
       )}
@@ -53,6 +84,6 @@ const CreateProfile = ({ appContext }) => {
   )
 }
 
-CreateProfile.bodyClass = 'activate'
+CreateProfile.bodyClass = 'profile-edit'
 
 export default CreateProfile
