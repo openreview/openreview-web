@@ -11,7 +11,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import withError from '../components/withError'
 import api from '../lib/api-client'
 import { auth } from '../lib/auth'
-import { prettyId } from '../lib/utils'
+import { prettyId, isSuperUser } from '../lib/utils'
 
 // Page Styles
 import '../styles/pages/invitation.less'
@@ -92,7 +92,7 @@ Invitation.getInitialProps = async (ctx) => {
     Webfield.ui.header('${invitationTitle}');
     Webfield.ui.invitationEditor(invitation, {
       container: '#notes',
-      showProcessEditor: ${user.isSuperUser ? 'true' : 'false'}
+      showProcessEditor: ${isSuperUser(user) ? 'true' : 'false'}
     });`
 
   const infoCode = (infoModeEnabled || !invitation.web) && `

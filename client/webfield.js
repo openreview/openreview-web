@@ -3,8 +3,11 @@
  * - replaced first line with module.exports
  * - enabled CORS for ajax functions
  * - replaced all controller api calls with webfield versions
+ * - add local token var and a new setToken method
  */
 module.exports = (function() {
+  // Save authentication token as a private var
+  var token;
 
   // AJAX Functions
   var get = function(url, queryObj, options) {
@@ -12,7 +15,6 @@ module.exports = (function() {
       handleErrors: true,
     };
     options = _.defaults(options, defaults);
-    var token = window.localStorage.getItem('token');
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
@@ -37,7 +39,6 @@ module.exports = (function() {
       handleErrors: true,
     };
     options = _.defaults(options, defaults);
-    var token = window.localStorage.getItem('token');
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
@@ -58,7 +59,6 @@ module.exports = (function() {
   };
 
   var put = function(url, queryObj) {
-    var token = window.localStorage.getItem('token');
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
@@ -79,7 +79,6 @@ module.exports = (function() {
   };
 
   var xhrDelete = function(url, queryObj) {
-    var token = window.localStorage.getItem('token');
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
@@ -187,6 +186,9 @@ module.exports = (function() {
     return errorText;
   };
 
+  var setToken = function(newAccessToken) {
+    token = newAccessToken;
+  };
 
   // API Functions
   var getSubmissionInvitation = function(invitationId, options) {
@@ -2890,6 +2892,7 @@ module.exports = (function() {
     put: put,
     delete: xhrDelete,
     getAll: getAll,
+    setToken: setToken,
     setupAutoLoading: setupAutoLoading,
     disableAutoLoading: disableAutoLoading,
     editModeBanner: editModeBanner,
