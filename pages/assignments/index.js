@@ -10,8 +10,6 @@
 import {
   useContext, useEffect, useState, useRef,
 } from 'react'
-import set from 'lodash/set'
-import keys from 'lodash/keys'
 import withError from '../../components/withError'
 import UserContext from '../../components/UserContext'
 import api from '../../lib/api-client'
@@ -25,11 +23,12 @@ import {
   // eslint-disable-next-line max-len
   editNewConfig, editExistingConfig, editClonedConfig, setLegacyAssignmentNotes, setLegacyConfigInvitation, runMatcher, setUpdateAssignment,
 } from '../../client/assignments'
+import Icon from '../../components/Icon'
+import useInterval from '../../hooks/useInterval'
 
 import '../../styles/pages/assignments.less'
 
 const Assignments = ({
-  title,
   groupId,
   referrer,
   pathName,
@@ -50,11 +49,15 @@ const Assignments = ({
       const result = await api.get('/notes', { invitation: `${groupId}/-/Assignment_Configuration` }, { accessToken })
       // eslint-disable-next-line arrow-body-style
       setAssignmentNotes(result.notes.map((note) => {
-        return set(note, 'scoresSpecParams', keys(note.content.scores_specification).join(','))
+        // eslint-disable-next-line no-param-reassign
+        note.scoresSpecParams = note.content.scores_specification ? Object.keys(note.content.scores_specification).join(',') : []
+        return note
       }))
       // eslint-disable-next-line arrow-body-style
       setLegacyAssignmentNotes(result.notes.map((note) => {
-        return set(note, 'scoresSpecParams', keys(note.content.scores_specification).join(','))
+        // eslint-disable-next-line no-param-reassign
+        note.scoresSpecParams = note.content.scores_specification ? Object.keys(note.content.scores_specification).join(',') : []
+        return note
       }))
     } catch (error) {
       promptError(error.message)
@@ -71,27 +74,6 @@ const Assignments = ({
     }
   }
 
-  const useInterval = (callback, delay) => {
-    const savedCallback = useRef()
-
-    // Remember the latest callback.
-    useEffect(() => {
-      savedCallback.current = callback
-    }, [callback])
-
-    // Set up the interval.
-    // eslint-disable-next-line consistent-return
-    useEffect(() => {
-      function tick() {
-        savedCallback.current()
-      }
-      if (delay !== null) {
-        const id = setInterval(tick, delay)
-        return () => clearInterval(id)
-      }
-    }, [delay])
-  }
-
   const handleNewConfigurationButtonClick = () => {
     editNewConfig()
   }
@@ -104,8 +86,9 @@ const Assignments = ({
     editClonedConfig(id)
   }
 
-  const handleRunMatcherClick = () => {
-    runMatcher()
+  const handleRunMatcherClick = async (id) => {
+    const result = await api.post('/match', { configNoteId: id }, { accessToken })
+    console.log('match result', result)
   }
 
   useInterval(() => {
@@ -150,31 +133,31 @@ const Assignments = ({
     switch (content.status) {
       case 'Initialized':
         // eslint-disable-next-line react/jsx-one-expression-per-line
-        return <a className="run-matcher" href="#"><span className="glyphicon glyphicon-cog" onClick={handleRunMatcherClick} />&nbsp; Run Matcher</a>
+        return <a className="run-matcher" href="#" onClick={() => handleRunMatcherClick(id)}><Icon name="cog" />&nbsp; Run Matcher</a>
       case 'Complete':
         return (
           <>
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href={edgeBrowserUrlResult.edgeBrowserUrl} {...edgeBrowserUrlResult.disabled ? { className: 'disabled' } : {}}><span className="glyphicon glyphicon-eye-open" />&nbsp; Browse Assignments</a><br />
+            <a href={edgeBrowserUrlResult.edgeBrowserUrl} {...edgeBrowserUrlResult.disabled ? { className: 'disabled' } : {}}><Icon name="eye-open" />&nbsp; Browse Assignments</a>
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href={`/assignments/stats?id=${id}${referrer ? `&referrer=${referrer}` : ''}`}><span className="glyphicon glyphicon-stats" />&nbsp; View Statistics</a><br />
+            <a href={`/assignments/stats?id=${id}${referrer ? `&referrer=${referrer}` : ''}`}><Icon name="stats" />&nbsp; View Statistics</a><br />
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href="#"><span className="glyphicon glyphicon-share" />&nbsp; Deploy Assignment</a>
+            <a href="#"><Icon name="share" />&nbsp; Deploy Assignment</a>
           </>
         )
       case 'Error':
         // eslint-disable-next-line react/jsx-one-expression-per-line
-        return <><a className="run-matcher" href="#"><span className="glyphicon glyphicon-cog" />&nbsp; Run Matcher</a><br /></>
+        return <a className="run-matcher" href="#"><Icon name="cog" />&nbsp; Run Matcher</a>
       case 'No Solution':
         // eslint-disable-next-line react/jsx-one-expression-per-line
-        return <><a className="run-matcher" href="#"><span className="glyphicon glyphicon-cog" />&nbsp; Run Matcher</a><br /></>
+        return <a className="run-matcher" href="#"><Icon name="cog" />&nbsp; Run Matcher</a>
       case 'Deployed':
         return (
           <>
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href={edgeBrowserUrlResult.edgeBrowserUrl} {...edgeBrowserUrlResult.disabled ? { className: 'disabled' } : {}}><span className="glyphicon glyphicon-eye-open" />&nbsp; Browse Assignments</a><br />
+            <a href={edgeBrowserUrlResult.edgeBrowserUrl} {...edgeBrowserUrlResult.disabled ? { className: 'disabled' } : {}}><Icon name="eye-open" />&nbsp; Browse Assignments</a>
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href={`/assignments/stats?id=${id}${referrer ? `&referrer=${referrer}` : ''}`}><span className="glyphicon glyphicon-stats" />&nbsp; View Statistics</a><br />
+            <a href={`/assignments/stats?id=${id}${referrer ? `&referrer=${referrer}` : ''}`}><Icon name="stats" />&nbsp; View Statistics</a>
           </>
         )
       default:
@@ -202,12 +185,12 @@ const Assignments = ({
           {/* eslint-disable-next-line react/jsx-props-no-spreading */}
           {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
           <a className={`${content.status === 'Running' ? 'edit-params-link-disabled disabled' : 'edit-params-link'}`} {...content.status === 'Running' ? {} : { href: '#' }} onClick={() => { handleEditConfigurationButtonClick(id) }}>
-            <span className="glyphicon glyphicon-pencil" />
+            <Icon name="pencil" />
             &nbsp; Edit
           </a>
           <br />
           <a className="clone-config" href="#" onClick={() => { handleCloneConfigurationButtonClick(id) }}>
-            <span className="glyphicon glyphicon-duplicate" />
+            <Icon name="duplicate" />
             &nbsp; Copy
           </a>
         </td>
@@ -222,7 +205,7 @@ const Assignments = ({
     <>
       <div className="row">
         <div className="col-xs-12 col-md-9">
-          <h1>{title}</h1>
+          <h1>{`${prettyId(groupId)} Assignments`}</h1>
         </div>
         <div className="col-xs-12 col-md-3 text-right">
           <button type="button" id="new-configuration-button" className="btn" onClick={handleNewConfigurationButtonClick}>New Assignment Configuration</button>
@@ -245,19 +228,16 @@ const Assignments = ({
                   </tr>
                 </thead>
                 <tbody id="configuration-table" ref={configurationTable}>
-                  {/* eslint-disable-next-line arrow-body-style */}
-                  {assignmentNotes.map((assignmentNote) => {
-                    return (
-                      <ConfigurationNote
-                        id={assignmentNote.id}
-                        number={assignmentNote.number}
-                        content={assignmentNote.content}
-                        tcdate={assignmentNote.tcdate}
-                        tmdate={assignmentNote.tmdate}
-                        key={assignmentNote.id}
-                      />
-                    )
-                  })}
+                  {assignmentNotes.map(assignmentNote => (
+                    <ConfigurationNote
+                      id={assignmentNote.id}
+                      number={assignmentNote.number}
+                      content={assignmentNote.content}
+                      tcdate={assignmentNote.tcdate}
+                      tmdate={assignmentNote.tmdate}
+                      key={assignmentNote.id}
+                    />
+                  ))}
                 </tbody>
               </table>
               {assignmentNotes.length === 0 && <p className="empty-message">No assignments have been generated for this venue. Click the button above to get started.</p>}
@@ -271,16 +251,11 @@ const Assignments = ({
 }
 
 Assignments.getInitialProps = async (context) => {
-  if (!context.query.group && !context.query.venue) {
+  if (!context.query.group) {
     return { statusCode: 404, message: 'Could not list generated assignments. Missing parameter group.' }
-  }
-  if (!context.query.group && context.query.venue) {
-    context.res.writeHead(301, { Location: `/assignments?group=${context.query.venue}` })
-    context.res.end()
   }
 
   return {
-    title: `${prettyId(context.query.group)} Assignments`,
     groupId: context.query.group,
     referrer: context.query.referrer,
     pathName: context.pathName,

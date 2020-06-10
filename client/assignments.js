@@ -6,7 +6,7 @@
  * - change param of editExistingConfig from event e to id
  * - change param of editClonedConfig from event e to id
  * - added two set methods to set the variables used
- * - extracted .run-matcher event handler to a method runMatcher
+ * - moved .run-matcher event handler to component so that webfield can get the token
 **/
 
 let assignmentNotes = []
@@ -15,7 +15,7 @@ let updateAssignment = null
 
 var editNewConfig = function() {
   $('#note-editor-modal').remove();
-  $('body').append(Handlebars.templates.genericModal({
+  $('main').append(Handlebars.templates.genericModal({
     id: 'note-editor-modal',
     extraClasses: 'modal-lg',
     showHeader: true,
@@ -35,7 +35,7 @@ var editNewConfig = function() {
 
 var editExistingConfig = function(id) {
   $('#note-editor-modal').remove();
-  $('body').append(Handlebars.templates.genericModal({
+  $('main').append(Handlebars.templates.genericModal({
     id: 'note-editor-modal',
     extraClasses: 'modal-lg',
     showHeader: true,
@@ -57,7 +57,7 @@ var editExistingConfig = function(id) {
 
 var editClonedConfig = function(id) {
   $('#note-editor-modal').remove();
-  $('body').append(Handlebars.templates.genericModal({
+  $('main').append(Handlebars.templates.genericModal({
     id: 'note-editor-modal',
     extraClasses: 'modal-lg',
     showHeader: true,
@@ -158,15 +158,6 @@ const setLegacyConfigInvitation = (value) => {
   configInvitation = value
 }
 
-const runMatcher = () => {
-  var id = $(this).closest('tr').data('id');
-    Webfield.post('/match', { configNoteId: id })
-    .then(function(res) {
-      console.log('match result', res);
-    });
-    return false;
-}
-
 const setUpdateAssignment = (f) =>{
   updateAssignment = f
 }
@@ -177,6 +168,5 @@ module.exports={
   editClonedConfig,
   setLegacyAssignmentNotes,
   setLegacyConfigInvitation,
-  runMatcher,
   setUpdateAssignment
 }
