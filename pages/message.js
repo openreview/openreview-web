@@ -47,7 +47,7 @@ const MessageRow = ({ message, index }) => (
 )
 
 const MessagesTable = ({ messages }) => (
-  <Table headings={[{ content: 'Status', width: '96px' }, { content: 'Message Details' }]}>
+  <Table headings={[{ id: 'status', content: 'Status', width: '96px' }, { id: 'details', content: 'Message Details' }]}>
     {messages.length !== 0 && messages.map((m, i) => (<MessageRow message={m} index={i} />))}
   </Table>
 )
