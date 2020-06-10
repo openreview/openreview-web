@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
-import debounce from 'lodash/debounce'
+import upperFirst from 'lodash/upperFirst'
 import api from '../lib/api-client'
 
 // Page Styles
@@ -15,7 +15,8 @@ const SignupForm = ({ setRegisteredEmail }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [newUsername, setNewUsername] = useState('')
-  const [matchingProfiles, setMatchingProfiles] = useState(null)
+  const [existingProfiles, setExistingProfiles] = useState(null)
+  const [noEmailProfiles, setNoEmailProfiles] = useState(null)
   const [error, setError] = useState(null)
   const [passwordVisible, setPasswordVisible] = useState(false)
 
@@ -33,15 +34,38 @@ const SignupForm = ({ setRegisteredEmail }) => {
   }
 
   const getMatchingProfiles = async () => {
+    let apiRes
     try {
-      const apiRes = await api.get('/profiles', {
+      apiRes = await api.get('/profiles', {
         first: firstName, middle: middleName, last: lastName, limit: 50,
       })
-      if (apiRes.profiles) {
-        setMatchingProfiles(apiRes.profiles)
-      }
     } catch (apiError) {
       setError(apiError)
+      return
+    }
+
+    if (apiRes.profiles?.length > 0) {
+      const existing = []
+      const noEmail = []
+      apiRes.profiles.forEach((profile) => {
+        if (profile.content?.emailsConfirmed?.length > 0) {
+          existing.push({
+            id: profile.id,
+            emails: profile.content.emailsConfirmed,
+            active: profile.active,
+            password: profile.password,
+          })
+        } else {
+          noEmail.push({
+            id: profile.id,
+            emails: [],
+            active: profile.active,
+            password: profile.password,
+          })
+        }
+      })
+      setExistingProfiles(existing)
+      setNoEmailProfiles(noEmail)
     }
   }
 
@@ -67,7 +91,7 @@ const SignupForm = ({ setRegisteredEmail }) => {
 
   useEffect(() => {
     setError(null)
-    if (firstName === '' || lastName === '') {
+    if (firstName.trim().length < 2 || lastName.trim().length < 2) {
       setNewUsername('')
       return
     }
@@ -91,7 +115,7 @@ const SignupForm = ({ setRegisteredEmail }) => {
               id="first-input"
               className="form-control"
               value={firstName}
-              onChange={e => setFirstName(e.target.value)}
+              onChange={e => setFirstName(upperFirst(e.target.value))}
               placeholder="First name"
             />
           </div>
@@ -107,7 +131,7 @@ const SignupForm = ({ setRegisteredEmail }) => {
               id="middle-input"
               className="form-control"
               value={middleName}
-              onChange={e => setMiddleName(e.target.value)}
+              onChange={e => setMiddleName(upperFirst(e.target.value))}
               placeholder="Middle name"
             />
           </div>
@@ -119,7 +143,7 @@ const SignupForm = ({ setRegisteredEmail }) => {
               id="last-input"
               className="form-control"
               value={lastName}
-              onChange={e => setLastName(e.target.value)}
+              onChange={e => setLastName(upperFirst(e.target.value))}
               placeholder="Last name"
             />
           </div>
@@ -204,7 +228,7 @@ const SignUp = () => {
         <div className="col-sm-12 col-md-10 col-lg-8 col-md-offset-1 col-lg-offset-2">
           <h1>Sign Up for OpenReview</h1>
           <p className="text-muted">
-            Enter your name and email as you would normally write it as the author of a paper.
+            Enter your name as you would normally write it as the author of a paper.
           </p>
 
           <SignupForm setRegisteredEmail={setRegisteredEmail} />
