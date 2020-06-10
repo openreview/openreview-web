@@ -39,6 +39,13 @@ const AssignmentsStats = ({
     }
   }, [clientJsLoading])
 
+  // eslint-disable-next-line arrow-body-style
+  useEffect(() => { // TODO: this is a temporary solution to avoid failure in webfield calls
+    return () => {
+      window.localStorage.removeItem('token')
+    }
+  }, [])
+
   return (
     <>
       <LoadingSpinner />
