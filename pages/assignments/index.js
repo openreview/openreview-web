@@ -10,6 +10,7 @@
 import {
   useContext, useEffect, useState, useRef,
 } from 'react'
+import { useRouter } from 'next/router'
 import withError from '../../components/withError'
 import UserContext from '../../components/UserContext'
 import api from '../../lib/api-client'
@@ -43,6 +44,7 @@ const Assignments = ({
 
   const configurationTable = useRef(null)
   const referrerStrRef = useRef(null)
+  const router = useRouter()
 
   const getAssignmentNotes = async () => {
     try {
@@ -71,6 +73,9 @@ const Assignments = ({
       setLegacyConfigInvitation(result.invitations[0])
     } catch (error) {
       promptError(error.message)
+      if (error.message === 'Forbidden') { // TODO: may need to update when error format is confirmed
+        router.push(`/login?redirect=${groupId}`)
+      }
     }
   }
 
@@ -107,9 +112,9 @@ const Assignments = ({
       } else {
         setBannerContent(venueHomepageLink(groupId, 'edit'))
       }
-      getAssignmentNotes()
-      getConfigInvitation()
     }
+    getAssignmentNotes()
+    getConfigInvitation()
   }, [clientJsLoading, accessToken])
 
   useEffect(() => {
