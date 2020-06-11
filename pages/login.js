@@ -95,7 +95,7 @@ const Login = ({ redirect }) => (
   </div>
 )
 
-Login.getInitialProps = async (ctx) => {
+Login.getInitialProps = (ctx) => {
   const { user } = auth(ctx)
   if (user) {
     if (ctx.req) {

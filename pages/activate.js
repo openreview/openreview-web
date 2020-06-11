@@ -28,7 +28,7 @@ const Activate = ({ activateToken }) => {
   return <LoadingSpinner />
 }
 
-Activate.getInitialProps = async (context) => {
+Activate.getInitialProps = (context) => {
   if (!context.query.token) {
     return { statusCode: 404, message: 'Activation token not found' }
   }
