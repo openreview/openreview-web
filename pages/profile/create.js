@@ -40,7 +40,6 @@ const CreateProfile = ({ appContext }) => {
       promptMessage(`Your OpenReview profile has been successfully created. Please allow up to 12
         hours before the profile is activated.`)
       loginUser(user, token)
-      replace('/')
     } catch (error) {
       promptError(error.message)
       done()
