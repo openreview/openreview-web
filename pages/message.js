@@ -2,7 +2,7 @@
 /* globals Handlebars: false */
 
 import { useState, useEffect, useRef } from 'react'
-import _ from 'lodash'
+import debounce from 'lodash/debounce'
 import Head from 'next/head'
 import Router from 'next/router'
 import Table from '../components/Table'
@@ -14,8 +14,8 @@ import { formatTimestamp } from '../lib/utils'
 
 import '../styles/pages/message.less'
 
-const MessageRow = ({ message, index }) => (
-  <tr key={message.id}>
+const MessageRow = ({ message }) => (
+  <tr>
     <td>
       <span className={`status ${message.status === 'delivered' ? 'delivered' : 'not-delivered'}`}>
         {message.status}
@@ -35,7 +35,7 @@ const MessageRow = ({ message, index }) => (
       <div className="email-title">
         <strong>{message.content?.subject}</strong>
       </div>
-      <div role="button" tabIndex={index} className="email-content collapsed" onClick={e => e.currentTarget.classList.toggle('collapsed')} onKeyDown={e => e.currentTarget.classList.toggle('collapsed')}>
+      <div role="button" tabIndex="0" className="email-content collapsed" onClick={e => e.currentTarget.classList.toggle('collapsed')} onKeyDown={e => e.currentTarget.classList.toggle('collapsed')}>
         <p>{message.content?.text}</p>
         <div className="gradient-overlay" />
       </div>
@@ -48,12 +48,12 @@ const MessageRow = ({ message, index }) => (
 
 const MessagesTable = ({ messages }) => (
   <Table headings={[{ id: 'status', content: 'Status', width: '96px' }, { id: 'details', content: 'Message Details' }]}>
-    {messages.length !== 0 && messages.map((m, i) => (<MessageRow message={m} index={i} />))}
+    {messages.length !== 0 && messages.map(m => (<MessageRow key={m.id} message={m} />))}
   </Table>
 )
 
-const FilterForm = ({ handleSearchParamChange }) => (
-  <form className="filter-controls form-inline text-center well">
+const FilterForm = ({ onChange }) => (
+  <form className="filter-controls form-inline text-center well" onSubmit={e => e.preventDefault()}>
     {/* <div className="form-group">
       <label>Status:</label>
       <MultiSelectorDropdown
@@ -64,11 +64,11 @@ const FilterForm = ({ handleSearchParamChange }) => (
     </div> */}
     <div className="form-group">
       <label htmlFor="subject-search-input">Subject:</label>
-      <input type="text" id="subject-search-input" className="form-control" placeholder="Message subject" onChange={e => handleSearchParamChange(e.target.id, e.target.value)} />
+      <input type="text" id="subject-search-input" className="form-control" placeholder="Message subject" onChange={e => onChange(e.target.id, e.target.value)} />
     </div>
     <div className="form-group">
       <label htmlFor="to-search-input">To:</label>
-      <input type="text" id="to-search-input" className="form-control" placeholder="To address" onChange={e => handleSearchParamChange(e.target.id, e.target.value)} />
+      <input type="text" id="to-search-input" className="form-control" placeholder="To address" onChange={e => onChange(e.target.id, e.target.value)} />
     </div>
   </form>
 )
@@ -85,7 +85,7 @@ const Message = ({ accessToken, appContext }) => {
     offset: 0,
   })
 
-  const handleSearchParamChange = _.debounce((id, value) => {
+  const handleSearchParamChange = debounce((id, value) => {
     const valueTrimmed = typeof value === 'string' ? value.trim() : ''
     const updatedParams = { ...searchParams }
     let shouldUpdateSearchParams = true
@@ -126,13 +126,6 @@ const Message = ({ accessToken, appContext }) => {
     loadMessages()
   }, [searchParams])
 
-  if (error) {
-    return <ErrorAlert error={error} />
-  }
-  if (!messages) {
-    return <LoadingSpinner />
-  }
-
   return (
     <div>
 
@@ -144,9 +137,15 @@ const Message = ({ accessToken, appContext }) => {
         <h1 className="text-center">Message Viewer</h1>
       </header>
 
-      <FilterForm handleSearchParamChange={handleSearchParamChange} />
+      <FilterForm onChange={handleSearchParamChange} />
 
-      <MessagesTable messages={messages} />
+      {error && (
+        <ErrorAlert error={error} />
+      )}
+
+      {messages ? (
+        <MessagesTable messages={messages} />
+      ) : <LoadingSpinner />}
 
     </div>
   )
