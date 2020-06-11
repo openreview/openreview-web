@@ -1,8 +1,8 @@
 import { useEffect, useContext } from 'react'
-import withError from '../components/withError'
-import { auth, isSuperUser } from '../lib/auth'
-import api from '../lib/api-client'
-import UserContext from '../components/UserContext'
+import withError from '../../components/withError'
+import { auth, isSuperUser } from '../../lib/auth'
+import api from '../../lib/api-client'
+import UserContext from '../../components/UserContext'
 
 const Impersonate = ({ groupIdToImpersonate, superToken }) => {
   const { loginUser } = useContext(UserContext)
