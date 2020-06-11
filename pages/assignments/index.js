@@ -6,7 +6,7 @@
 import {
   useContext, useEffect, useState, useRef,
 } from 'react'
-import { useRouter } from 'next/router'
+import Router from 'next/router'
 import withError from '../../components/withError'
 import UserContext from '../../components/UserContext'
 import api from '../../lib/api-client'
@@ -18,10 +18,12 @@ import {
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import {
   // eslint-disable-next-line max-len
-  editNewConfig, editExistingConfig, editClonedConfig, setLegacyAssignmentNotes, setLegacyConfigInvitation, runMatcher, setUpdateAssignment,
+  editNewConfig, editExistingConfig, editClonedConfig, setLegacyAssignmentNotes, setLegacyConfigInvitation, setUpdateAssignment,
 } from '../../client/assignments'
 import Icon from '../../components/Icon'
 import useInterval from '../../hooks/useInterval'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import { auth } from '../../lib/auth'
 
 import '../../styles/pages/assignments.less'
 
@@ -36,11 +38,13 @@ const Assignments = ({
   const { accessToken } = useContext(UserContext)
 
   const [assignmentNotes, setAssignmentNotes] = useState(null)
-  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(true)
+  const [accessible, setAccessible] = useState(true)
 
   const getAssignmentNotes = async () => {
     try {
       const result = await api.get('/notes', { invitation: `${groupId}/-/Assignment_Configuration` }, { accessToken })
+      setIsLoading(false)
       // eslint-disable-next-line arrow-body-style
       setAssignmentNotes(result.notes.map((note) => {
         // eslint-disable-next-line no-param-reassign
@@ -63,23 +67,21 @@ const Assignments = ({
       const result = await api.get('/invitations', { id: `${groupId}/-/Assignment_Configuration` }, { accessToken })
       setLegacyConfigInvitation(result.invitations[0])
     } catch (error) {
+      if (error.message === 'Forbidden') setAccessible(false) // meaning that user does not privilege to change anything
       promptError(error.message)
-      if (error.message === 'Forbidden') { // TODO: may need to update when error format is confirmed
-        router.push(`/login?redirect=/assignments?group=${groupId}`)
-      }
     }
   }
 
   const handleNewConfigurationButtonClick = () => {
-    editNewConfig()
+    if (accessible) editNewConfig()
   }
 
   const handleEditConfigurationButtonClick = (id) => {
-    editExistingConfig(id)
+    if (accessible) editExistingConfig(id)
   }
 
   const handleCloneConfigurationButtonClick = (id) => {
-    editClonedConfig(id)
+    if (accessible) editClonedConfig(id)
   }
 
   const handleRunMatcherClick = async (id) => {
@@ -96,7 +98,7 @@ const Assignments = ({
 
   useInterval(() => {
     getAssignmentNotes()
-  }, 500000)
+  }, 5000)
 
   useEffect(() => {
     setUpdateAssignment(getAssignmentNotes)
@@ -112,7 +114,7 @@ const Assignments = ({
     }
     getAssignmentNotes()
     getConfigInvitation()
-  }, [clientJsLoading, accessToken])
+  }, [clientJsLoading])
 
   useEffect(() => {
     $('[data-toggle="tooltip"]').tooltip()
@@ -184,12 +186,12 @@ const Assignments = ({
         <td>
           {/* eslint-disable-next-line react/jsx-props-no-spreading */}
           {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
-          <a className={`${content.status === 'Running' ? 'edit-params-link-disabled disabled' : 'edit-params-link'}`} {...content.status === 'Running' ? {} : { href: '#' }} onClick={() => { handleEditConfigurationButtonClick(id) }}>
+          <a className={`${content.status === 'Running' || !accessible ? 'edit-params-link-disabled disabled' : 'edit-params-link'}`} {...content.status === 'Running' ? {} : { href: '#' }} onClick={() => { handleEditConfigurationButtonClick(id) }}>
             <Icon name="pencil" />
             Edit
           </a>
           <br />
-          <a className="clone-config" href="#" onClick={() => { handleCloneConfigurationButtonClick(id) }}>
+          <a className={`clone-config ${accessible ? '' : 'disabled'}`} href="#" onClick={() => { handleCloneConfigurationButtonClick(id) }}>
             <Icon name="duplicate" />
             Copy
           </a>
@@ -208,42 +210,40 @@ const Assignments = ({
           <h1>{`${prettyId(groupId)} Assignments`}</h1>
         </div>
         <div className="col-xs-12 col-md-3 text-right">
-          <button type="button" id="new-configuration-button" className="btn" onClick={handleNewConfigurationButtonClick}>New Assignment Configuration</button>
+          <button type="button" id="new-configuration-button" className="btn" {...accessible ? {} : { disabled: true }} onClick={handleNewConfigurationButtonClick}>New Assignment Configuration</button>
         </div>
       </div>
       <div className="row">
         <div className="col-xs-12">
-          {assignmentNotes ? (
-            <>
-              <table className="table table-hover assignments-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: '40px' }}>#</th>
-                    <th>Title</th>
-                    <th style={{ width: '200px' }}>Created On</th>
-                    <th style={{ width: '200px' }}>Last Modified</th>
-                    <th style={{ width: '115px' }}>Status</th>
-                    <th style={{ width: '115px' }}>Parameters</th>
-                    <th style={{ width: '175px' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="configuration-table">
-                  {assignmentNotes.map(assignmentNote => (
-                    <ConfigurationNote
-                      id={assignmentNote.id}
-                      number={assignmentNote.number}
-                      content={assignmentNote.content}
-                      tcdate={assignmentNote.tcdate}
-                      tmdate={assignmentNote.tmdate}
-                      key={assignmentNote.id}
-                    />
-                  ))}
-                </tbody>
-              </table>
-              {assignmentNotes.length === 0 && <p className="empty-message">No assignments have been generated for this venue. Click the button above to get started.</p>}
-            </>
-          )
-            : <p className="empty-message">No assignments have been generated for this venue. Click the button above to get started.</p>}
+          <>
+            <table className="table table-hover assignments-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '40px' }}>#</th>
+                  <th>Title</th>
+                  <th style={{ width: '200px' }}>Created On</th>
+                  <th style={{ width: '200px' }}>Last Modified</th>
+                  <th style={{ width: '115px' }}>Status</th>
+                  <th style={{ width: '115px' }}>Parameters</th>
+                  <th style={{ width: '175px' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="configuration-table">
+                {assignmentNotes && assignmentNotes.map(assignmentNote => (
+                  <ConfigurationNote
+                    id={assignmentNote.id}
+                    number={assignmentNote.number}
+                    content={assignmentNote.content}
+                    tcdate={assignmentNote.tcdate}
+                    tmdate={assignmentNote.tmdate}
+                    key={assignmentNote.id}
+                  />
+                ))}
+              </tbody>
+            </table>
+            {isLoading && <LoadingSpinner />}
+            {assignmentNotes?.length === 0 && <p className="empty-message">No assignments have been generated for this venue. Click the button above to get started.</p>}
+          </>
         </div>
       </div>
     </>
@@ -253,6 +253,15 @@ const Assignments = ({
 Assignments.getInitialProps = async (context) => {
   if (!context.query.group) {
     return { statusCode: 404, message: 'Could not list generated assignments. Missing parameter group.' }
+  }
+
+  const { user } = auth(context)
+  if (!user) {
+    if (context.req) {
+      context.res.writeHead(302, { Location: `/login?redirect=/assignments?group=${context.query.group}` }).end()
+    } else {
+      Router.replace(`/login?redirect=/assignments?group=${context.query.group}`)
+    }
   }
 
   return {
