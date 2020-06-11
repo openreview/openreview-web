@@ -46,8 +46,8 @@ class OpenReviewApp extends App {
     this.setState({ user: null, accessToken: null })
     removeAuthCookie()
 
-    window.Webfield.setToken()
-    window.controller.setToken()
+    window.Webfield.setToken(null)
+    window.controller.setToken(null)
 
     Router.push(redirectPath)
   }
