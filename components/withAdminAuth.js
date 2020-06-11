@@ -17,6 +17,7 @@ export default function withAdminAuth(Component) {
     return { ...ctx.query, accessToken: token }
   }
 
+  WithAdminAuth.displayName = `withAdminAuth(${Component.displayName || Component.name || 'Component'})`
   WithAdminAuth.bodyClass = Component.bodyClass
 
   return withError(WithAdminAuth)
