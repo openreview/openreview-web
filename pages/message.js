@@ -18,6 +18,9 @@ import '../styles/pages/message.less'
 const statusSearchFilters = [
   { text: 'Delivered', value: 'delivered' },
   { text: 'Bounced', value: 'bounce' },
+  { text: 'Processed', value: 'processed' },
+  { text: 'Dropped', value: 'dropped' },
+  { text: 'Error', value: 'error' },
   { text: 'Blocked', value: 'blocked' },
   { text: 'Deferred', value: 'deferred' },
 ]
@@ -65,27 +68,48 @@ const MessagesTable = ({ messages }) => (
   </Table>
 )
 
-const FilterForm = ({ onChange }) => (
-  <form className="filter-controls form-inline text-center well" onSubmit={e => e.preventDefault()}>
-    <div className="form-group">
-      <label htmlFor="status-search-dropdown">Status:</label>
-      <MultiSelectorDropdown
-        id="status-search-dropdown"
-        filters={statusSearchFilters}
-        onChange={onChange}
-        parentId="status-search-dropdown"
-      />
-    </div>
-    <div className="form-group">
-      <label htmlFor="subject-search-input">Subject:</label>
-      <input type="text" id="subject-search-input" className="form-control" placeholder="Message subject" onChange={e => onChange(e.target.id, e.target.value)} />
-    </div>
-    <div className="form-group">
-      <label htmlFor="to-search-input">To:</label>
-      <input type="text" id="to-search-input" className="form-control" placeholder="To address" onChange={e => onChange(e.target.id, e.target.value)} />
-    </div>
-  </form>
-)
+const FilterForm = ({ onFiltersChange }) => {
+  const [filters, setFilters] = useState({
+    statuses: [],
+    subject: '',
+    recipient: '',
+  })
+  const handleSelectStatusChange = (value) => {
+    setFilters({ type: 'status', statuses: value })
+  }
+  const handleSubjectChange = (value) => {
+    setFilters({ type: 'subject', subject: value })
+  }
+  const handleRecipientChange = (value) => {
+    setFilters({ type: 'recipient', recipient: value })
+  }
+
+  useEffect(() => {
+    onFiltersChange(filters)
+  }, [filters])
+
+  return (
+    <form className="filter-controls form-inline text-center well" onSubmit={e => e.preventDefault()}>
+      <div className="form-group">
+        <label htmlFor="status-search-dropdown">Status:</label>
+        <MultiSelectorDropdown
+          id="status-search-dropdown"
+          filters={statusSearchFilters}
+          onSelectionChange={handleSelectStatusChange}
+          parentId="status-search-dropdown"
+        />
+      </div>
+      <div className="form-group">
+        <label htmlFor="subject-search-input">Subject:</label>
+        <input type="text" id="subject-search-input" className="form-control" placeholder="Message subject" onChange={e => handleSubjectChange(e.target.value)} />
+      </div>
+      <div className="form-group">
+        <label htmlFor="to-search-input">To:</label>
+        <input type="text" id="to-search-input" className="form-control" placeholder="To address" onChange={e => handleRecipientChange(e.target.value)} />
+      </div>
+    </form>
+  )
+}
 
 const Message = ({ accessToken, appContext }) => {
   const [messages, setMessages] = useState(null)
@@ -99,31 +123,15 @@ const Message = ({ accessToken, appContext }) => {
     offset: 0,
   })
 
-  const handleSearchParamChange = debounce((id, value) => {
-    const valueTrimmed = typeof value === 'string' ? value.trim() : ''
-    const updatedParams = { ...searchParams }
-    let shouldUpdateSearchParams = true
-    switch (id) {
-      case 'subject-search-input':
-        updatedParams.subject = valueTrimmed ? `${valueTrimmed}.*` : ''
-        break
-      case 'status-search-dropdown':
-        updatedParams.status = value
-        break
-      case 'to-search-input':
-        updatedParams.to = valueTrimmed
-        if (valueTrimmed && !valueTrimmed.includes('@')) {
-          // don't update when typing email before @
-          shouldUpdateSearchParams = false
-        }
-        break
-      default:
-        break
+  const handleSearchParamChange = debounce((filters) => {
+    if (filters.type === 'status') {
+      setSearchParams({ ...searchParams, status: filters.statuses })
     }
-
-    if (shouldUpdateSearchParams) {
-      updatedParams.offset = 0
-      setSearchParams(updatedParams)
+    if (filters.type === 'subject') {
+      setSearchParams({ ...searchParams, subject: filters.subject })
+    }
+    if (filters.type === 'recipient') {
+      setSearchParams({ ...searchParams, to: filters.recipient })
     }
   }, 500)
 
@@ -151,7 +159,7 @@ const Message = ({ accessToken, appContext }) => {
         <h1 className="text-center">Message Viewer</h1>
       </header>
 
-      <FilterForm onChange={handleSearchParamChange} />
+      <FilterForm onFiltersChange={handleSearchParamChange} />
 
       {error && (
         <ErrorAlert error={error} />
