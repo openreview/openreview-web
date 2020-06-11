@@ -32,6 +32,7 @@ export default function withError(Component) {
     return props
   }
 
+  WithError.displayName = `withError(${Component.displayName || Component.name || 'Component'})`
   WithError.bodyClass = Component.bodyClass
 
   return WithError

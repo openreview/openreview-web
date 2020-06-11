@@ -1,9 +1,11 @@
 /**
  * Changes:
  * - module.exports
+ * - add local token var and a new setToken method
  */
 module.exports = (function() {
-
+  // Save authentication token as a private var
+  var token;
   var sm = mkStateManager();
 
   var update = function(key, val, noUpdate) {
@@ -156,6 +158,10 @@ module.exports = (function() {
     );
   };
 
+  var setToken = function(newAccessToken) {
+    token = newAccessToken;
+  };
+
   var getToken = function() {
     var token = readAuthCookie();
     return token;
@@ -188,6 +194,7 @@ module.exports = (function() {
     removeAllButMain: removeAllButMain,
     update: update,
     getToken: getToken,
+    setToken: setToken,
     login: login,
     logout: logout,
     post: post,
