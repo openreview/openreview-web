@@ -1,12 +1,8 @@
-/* eslint-disable jsx-a11y/no-static-element-interactions */
-/* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable consistent-return */
 /* eslint-disable jsx-a11y/anchor-is-valid */
-/* globals Handlebars: false */
 /* globals $: false */
 /* globals promptError: false */
-/* globals view: false */
 import {
   useContext, useEffect, useState, useRef,
 } from 'react'
@@ -40,10 +36,6 @@ const Assignments = ({
   const { accessToken } = useContext(UserContext)
 
   const [assignmentNotes, setAssignmentNotes] = useState(null)
-  const [configInvitation, setConfigInvitation] = useState(null)
-
-  const configurationTable = useRef(null)
-  const referrerStrRef = useRef(null)
   const router = useRouter()
 
   const getAssignmentNotes = async () => {
@@ -69,7 +61,6 @@ const Assignments = ({
   const getConfigInvitation = async () => {
     try {
       const result = await api.get('/invitations', { id: `${groupId}/-/Assignment_Configuration` }, { accessToken })
-      setConfigInvitation(result.invitations[0])
       setLegacyConfigInvitation(result.invitations[0])
     } catch (error) {
       promptError(error.message)
@@ -92,16 +83,22 @@ const Assignments = ({
   }
 
   const handleRunMatcherClick = async (id) => {
-    const result = await api.post('/match', { configNoteId: id }, { accessToken })
-    console.log('match result', result)
+    try {
+      const result = await api.post('/match', { configNoteId: id }, { accessToken })
+    } catch (error) {
+      promptError(error.message)
+    }
   }
+
+  const getReferrerStr = () => encodeURIComponent(
+    `[all assignments for '${prettyId(groupId)}](${pathName}${search} + ${window.location.hash})`,
+  )
 
   useInterval(() => {
     getAssignmentNotes()
-  }, 5000)
+  }, 500000)
 
   useEffect(() => {
-    referrerStrRef.current = encodeURIComponent(`[all assignments for '${prettyId(groupId)}](${pathName}${search} + ${window.location.hash})`)
     setUpdateAssignment(getAssignmentNotes)
   }, [])
 
@@ -138,31 +135,29 @@ const Assignments = ({
     switch (content.status) {
       case 'Initialized':
         // eslint-disable-next-line react/jsx-one-expression-per-line
-        return <a className="run-matcher" href="#" onClick={() => handleRunMatcherClick(id)}><Icon name="cog" />&nbsp; Run Matcher</a>
+        return <a className="run-matcher" href="#" onClick={() => handleRunMatcherClick(id)}><Icon name="cog" />Run Matcher</a>
       case 'Complete':
         return (
           <>
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href={edgeBrowserUrlResult.edgeBrowserUrl} {...edgeBrowserUrlResult.disabled ? { className: 'disabled' } : {}}><Icon name="eye-open" />&nbsp; Browse Assignments</a>
+            <a href={edgeBrowserUrlResult.edgeBrowserUrl} {...edgeBrowserUrlResult.disabled ? { className: 'disabled' } : {}}><Icon name="eye-open" />Browse Assignments</a>
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href={`/assignments/stats?id=${id}${referrer ? `&referrer=${referrer}` : ''}`}><Icon name="stats" />&nbsp; View Statistics</a><br />
+            <a href={`/assignments/stats?id=${id}${referrer ? `&referrer=${referrer}` : ''}`}><Icon name="stats" />View Statistics</a><br />
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href="#"><Icon name="share" />&nbsp; Deploy Assignment</a>
+            <a href="#"><Icon name="share" />Deploy Assignment</a>
           </>
         )
       case 'Error':
-        // eslint-disable-next-line react/jsx-one-expression-per-line
-        return <a className="run-matcher" href="#"><Icon name="cog" />&nbsp; Run Matcher</a>
       case 'No Solution':
         // eslint-disable-next-line react/jsx-one-expression-per-line
-        return <a className="run-matcher" href="#"><Icon name="cog" />&nbsp; Run Matcher</a>
+        return <a className="run-matcher" href="#"><Icon name="cog" />Run Matcher</a>
       case 'Deployed':
         return (
           <>
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href={edgeBrowserUrlResult.edgeBrowserUrl} {...edgeBrowserUrlResult.disabled ? { className: 'disabled' } : {}}><Icon name="eye-open" />&nbsp; Browse Assignments</a>
+            <a href={edgeBrowserUrlResult.edgeBrowserUrl} {...edgeBrowserUrlResult.disabled ? { className: 'disabled' } : {}}><Icon name="eye-open" />Browse Assignments</a>
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href={`/assignments/stats?id=${id}${referrer ? `&referrer=${referrer}` : ''}`}><Icon name="stats" />&nbsp; View Statistics</a>
+            <a href={`/assignments/stats?id=${id}${referrer ? `&referrer=${referrer}` : ''}`}><Icon name="stats" />View Statistics</a>
           </>
         )
       default:
@@ -176,7 +171,7 @@ const Assignments = ({
   }) => {
     const { edgeBrowserUrl, disabled } = getEdgeBrowserUrl(id, content)
     return (
-      <tr date-id={id}>
+      <tr data-id={id}>
         <td>{number}</td>
         <td className="assignment-label" style={{ overflow: 'hidden' }}>
           <a href={edgeBrowserUrl} className={`${disabled ? 'disabled' : ''}`}>{content.title ? content.title : content.label}</a>
@@ -191,16 +186,16 @@ const Assignments = ({
           {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
           <a className={`${content.status === 'Running' ? 'edit-params-link-disabled disabled' : 'edit-params-link'}`} {...content.status === 'Running' ? {} : { href: '#' }} onClick={() => { handleEditConfigurationButtonClick(id) }}>
             <Icon name="pencil" />
-            &nbsp; Edit
+            Edit
           </a>
           <br />
           <a className="clone-config" href="#" onClick={() => { handleCloneConfigurationButtonClick(id) }}>
             <Icon name="duplicate" />
-            &nbsp; Copy
+            Copy
           </a>
         </td>
         <td className="assignment-actions">
-          <ConfigurationNoteActions content={content} referrer={referrerStrRef.current} id={id} />
+          <ConfigurationNoteActions content={content} referrer={() => getReferrerStr()} id={id} />
         </td>
       </tr>
     )
@@ -227,12 +222,12 @@ const Assignments = ({
                     <th>Title</th>
                     <th style={{ width: '200px' }}>Created On</th>
                     <th style={{ width: '200px' }}>Last Modified</th>
-                    <th style={{ width: '115' }}>Status</th>
-                    <th style={{ width: '115' }}>Parameters</th>
-                    <th style={{ width: '175' }}>Actions</th>
+                    <th style={{ width: '115px' }}>Status</th>
+                    <th style={{ width: '115px' }}>Parameters</th>
+                    <th style={{ width: '175px' }}>Actions</th>
                   </tr>
                 </thead>
-                <tbody id="configuration-table" ref={configurationTable}>
+                <tbody id="configuration-table">
                   {assignmentNotes.map(assignmentNote => (
                     <ConfigurationNote
                       id={assignmentNote.id}
