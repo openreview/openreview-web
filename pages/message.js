@@ -8,11 +8,19 @@ import Router from 'next/router'
 import Table from '../components/Table'
 import ErrorAlert from '../components/ErrorAlert'
 import LoadingSpinner from '../components/LoadingSpinner'
+import MultiSelectorDropdown from '../components/MultiSelectorDropdown'
 import { auth } from '../lib/auth'
 import api from '../lib/api-client'
 import { formatTimestamp } from '../lib/utils'
 
 import '../styles/pages/message.less'
+
+const statusSearchFilters = [
+  { text: 'Delivered', value: 'delivered' },
+  { text: 'Bounced', value: 'bounce' },
+  { text: 'Blocked', value: 'blocked' },
+  { text: 'Deferred', value: 'deferred' },
+]
 
 const MessageRow = ({ message }) => (
   <tr>
@@ -59,14 +67,15 @@ const MessagesTable = ({ messages }) => (
 
 const FilterForm = ({ onChange }) => (
   <form className="filter-controls form-inline text-center well" onSubmit={e => e.preventDefault()}>
-    {/* <div className="form-group">
-      <label>Status:</label>
+    <div className="form-group">
+      <label htmlFor="status-search-dropdown">Status:</label>
       <MultiSelectorDropdown
+        id="status-search-dropdown"
         filters={statusSearchFilters}
-        handleSelectChange={handleSearchParamChange}
+        onChange={onChange}
         parentId="status-search-dropdown"
       />
-    </div> */}
+    </div>
     <div className="form-group">
       <label htmlFor="subject-search-input">Subject:</label>
       <input type="text" id="subject-search-input" className="form-control" placeholder="Message subject" onChange={e => onChange(e.target.id, e.target.value)} />
