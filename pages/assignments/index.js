@@ -74,7 +74,7 @@ const Assignments = ({
     } catch (error) {
       promptError(error.message)
       if (error.message === 'Forbidden') { // TODO: may need to update when error format is confirmed
-        router.push(`/login?redirect=${groupId}`)
+        router.push(`/login?redirect=/assignments?group=${groupId}`)
       }
     }
   }
