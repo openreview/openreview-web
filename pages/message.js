@@ -47,8 +47,13 @@ const MessageRow = ({ message }) => (
 )
 
 const MessagesTable = ({ messages }) => (
-  <Table headings={[{ id: 'status', content: 'Status', width: '96px' }, { id: 'details', content: 'Message Details' }]}>
-    {messages.length !== 0 && messages.map(m => (<MessageRow key={m.id} message={m} />))}
+  <Table headings={[
+    { id: 'status', content: 'Status', width: '96px' },
+    { id: 'details', content: 'Message Details' }]}
+  >
+    {messages.length !== 0 && messages.map((m, i) => (
+      <MessageRow key={m.id} message={m} />
+    ))}
   </Table>
 )
 
