@@ -1,6 +1,5 @@
 import withError from './withError'
-import { auth } from '../lib/auth'
-import { isSuperUser } from '../lib/utils'
+import { auth, isSuperUser } from '../lib/auth'
 
 export default function withAdminAuth(Component) {
   const WithAdminAuth = Component

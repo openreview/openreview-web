@@ -10,8 +10,8 @@ import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import withError from '../components/withError'
 import api from '../lib/api-client'
-import { auth } from '../lib/auth'
-import { prettyId, isSuperUser } from '../lib/utils'
+import { auth, isSuperUser } from '../lib/auth'
+import { prettyId } from '../lib/utils'
 
 // Page Styles
 import '../styles/pages/invitation.less'
