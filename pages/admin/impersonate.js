@@ -1,37 +1,65 @@
-import { useEffect, useContext } from 'react'
-import withError from '../../components/withError'
-import { auth, isSuperUser } from '../../lib/auth'
+/* globals promptError: false */
+
+import { useContext, useState } from 'react'
+import withAdminAuth from '../../components/withAdminAuth'
+import { auth } from '../../lib/auth'
 import api from '../../lib/api-client'
 import UserContext from '../../components/UserContext'
 
-const Impersonate = ({ groupIdToImpersonate, superToken }) => {
-  const { loginUser } = useContext(UserContext)
+const Impersonate = ({ superToken }) => {
+  const { loginUser, logoutUser } = useContext(UserContext)
+  const [id, setId] = useState('')
 
-  useEffect(() => {
-    // eslint-disable-next-line no-use-before-define
-    getImpersonatedToken()
-  }, [])
+  const impersonateByEmail = async (email) => {
+    try {
+      const result = await api.get('/impersonate', { groupId: email }, { accessToken: superToken })
+      const { user, token } = result
+      loginUser(user, token, `/profile?id=${user.profile.id}`)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
 
-  const getImpersonatedToken = async () => {
-    const result = await api.get('/impersonate', { groupId: groupIdToImpersonate }, { accessToken: superToken })
-    const { user, token } = result
-    loginUser(user, token)
+  const impersonateByTildeId = async () => {
+    let email = null
+    try {
+      const result = await await api.get('/profiles', { id }, { accessToken: superToken })
+      email = result.profiles[0]?.content?.emails[0]
+    } catch (error) {
+      promptError(error.message)
+    }
+    if (email) {
+      impersonateByEmail(email)
+    } else {
+      promptError("can't find email")
+    }
+  }
+
+  const ImpersonateUser = async () => {
+    if (id.startsWith('~')) {
+      impersonateByTildeId()
+    } else {
+      impersonateByEmail(id)
+    }
   }
 
   return (
-    null
+    <>
+      <div className="form-group">
+        ID
+        <input className="form-control" value={id} placeholder="email or tilde id" onChange={(e) => { setId(e.target.value.trim()) }} />
+      </div>
+
+      <button type="button" className="btn" onClick={ImpersonateUser}>
+        impersonate
+      </button>
+    </>
   )
 }
 
 Impersonate.getInitialProps = async (context) => {
-  if (!context.query.groupId) {
-    return { statusCode: 400, message: 'GroupId is missing' }
-  }
-  const { user, token } = auth(context)
-  if (!isSuperUser(user)) {
-    return { statusCode: 400, message: 'Not logged in as super user' }
-  }
-  return { groupIdToImpersonate: context.query.groupId, superToken: token }
+  const { token } = auth(context)
+  return { superToken: token }
 }
 
-export default withError(Impersonate)
+export default withAdminAuth(Impersonate)
