@@ -14,7 +14,7 @@ const Impersonate = ({ superToken }) => {
     try {
       const result = await api.get('/impersonate', { groupId: email }, { accessToken: superToken })
       const { user, token } = result
-      loginUser(user, token, `/profile?id=${user.profile.id}`)
+      loginUser(user, token, '/profile')
     } catch (error) {
       promptError(error.message)
     }
