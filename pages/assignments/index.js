@@ -139,7 +139,7 @@ const Assignments = ({
         return (
           <>
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href={edgeBrowserUrlResult.edgeBrowserUrl} className={`${edgeBrowserUrlResult.disabled ? 'disabled' : ''}`}><Icon name="eye-open" />Browse Assignments</a>
+            <a href={edgeBrowserUrlResult.edgeBrowserUrl} className={edgeBrowserUrlResult.disabled ? 'disabled' : null}><Icon name="eye-open" />Browse Assignments</a>
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
             <a href={`/assignments/stats?id=${id}${referrer ? `&referrer=${referrer}` : ''}`}><Icon name="stats" />View Statistics</a><br />
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
@@ -154,7 +154,7 @@ const Assignments = ({
         return (
           <>
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href={edgeBrowserUrlResult.edgeBrowserUrl} className={`${edgeBrowserUrlResult.disabled ? 'disabled' : ''}`}><Icon name="eye-open" />Browse Assignments</a>
+            <a href={edgeBrowserUrlResult.edgeBrowserUrl} className={edgeBrowserUrlResult.disabled ? 'disabled' : null}><Icon name="eye-open" />Browse Assignments</a>
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
             <a href={`/assignments/stats?id=${id}${referrer ? `&referrer=${referrer}` : ''}`}><Icon name="stats" />View Statistics</a>
           </>
@@ -173,7 +173,7 @@ const Assignments = ({
       <tr data-id={id}>
         <td>{number}</td>
         <td className="assignment-label" style={{ overflow: 'hidden' }}>
-          <a href={edgeBrowserUrl} className={`${disabled ? 'disabled' : ''}`}>{content.title ? content.title : content.label}</a>
+          <a href={edgeBrowserUrl} className={disabled ? 'disabled' : null}>{content.title ? content.title : content.label}</a>
         </td>
         <td>{formatDateTime(tcdate)}</td>
         <td>{tcdate !== tmdate ? formatDateTime(tmdate) : null}</td>
