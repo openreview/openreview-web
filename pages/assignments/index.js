@@ -1,10 +1,9 @@
-/* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable consistent-return */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* globals $: false */
 /* globals promptError: false */
 import {
-  useContext, useEffect, useState, useRef,
+  useContext, useEffect, useState,
 } from 'react'
 import Router from 'next/router'
 import withError from '../../components/withError'
@@ -16,10 +15,7 @@ import {
   getEdgeBrowserUrl,
 } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
-import {
-  // eslint-disable-next-line max-len
-  editNewConfig, editExistingConfig, editClonedConfig, setLegacyAssignmentNotes, setLegacyConfigInvitation, setUpdateAssignment,
-} from '../../client/assignments'
+import legacyAssignmentsModule from '../../client/assignments'
 import Icon from '../../components/Icon'
 import useInterval from '../../hooks/useInterval'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -52,12 +48,13 @@ const Assignments = ({
         return note
       }))
       // eslint-disable-next-line arrow-body-style
-      setLegacyAssignmentNotes(result.notes.map((note) => {
+      legacyAssignmentsModule.setLegacyAssignmentNotes(result.notes.map((note) => {
         // eslint-disable-next-line no-param-reassign
         note.scoresSpecParams = note.content.scores_specification ? Object.keys(note.content.scores_specification).join(',') : []
         return note
       }))
     } catch (error) {
+      setIsLoading(false)
       promptError(error.message)
     }
   }
@@ -65,7 +62,7 @@ const Assignments = ({
   const getConfigInvitation = async () => {
     try {
       const result = await api.get('/invitations', { id: `${groupId}/-/Assignment_Configuration` }, { accessToken })
-      setLegacyConfigInvitation(result.invitations[0])
+      legacyAssignmentsModule.setLegacyConfigInvitation(result.invitations[0])
     } catch (error) {
       if (error.message === 'Forbidden') setAccessible(false) // meaning that user does not privilege to change anything
       promptError(error.message)
@@ -73,15 +70,15 @@ const Assignments = ({
   }
 
   const handleNewConfigurationButtonClick = () => {
-    if (accessible) editNewConfig()
+    if (accessible) legacyAssignmentsModule.editNewConfig()
   }
 
   const handleEditConfigurationButtonClick = (id) => {
-    if (accessible) editExistingConfig(id)
+    if (accessible) legacyAssignmentsModule.editExistingConfig(id)
   }
 
   const handleCloneConfigurationButtonClick = (id) => {
-    if (accessible) editClonedConfig(id)
+    if (accessible) legacyAssignmentsModule.editClonedConfig(id)
   }
 
   const handleRunMatcherClick = async (id) => {
@@ -101,7 +98,7 @@ const Assignments = ({
   }, 5000)
 
   useEffect(() => {
-    setUpdateAssignment(getAssignmentNotes)
+    legacyAssignmentsModule.setUpdateAssignment(getAssignmentNotes)
   }, [])
 
   useEffect(() => {
@@ -142,7 +139,7 @@ const Assignments = ({
         return (
           <>
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href={edgeBrowserUrlResult.edgeBrowserUrl} {...edgeBrowserUrlResult.disabled ? { className: 'disabled' } : {}}><Icon name="eye-open" />Browse Assignments</a>
+            <a href={edgeBrowserUrlResult.edgeBrowserUrl} className={`${edgeBrowserUrlResult.disabled ? 'disabled' : ''}`}><Icon name="eye-open" />Browse Assignments</a>
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
             <a href={`/assignments/stats?id=${id}${referrer ? `&referrer=${referrer}` : ''}`}><Icon name="stats" />View Statistics</a><br />
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
@@ -157,7 +154,7 @@ const Assignments = ({
         return (
           <>
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href={edgeBrowserUrlResult.edgeBrowserUrl} {...edgeBrowserUrlResult.disabled ? { className: 'disabled' } : {}}><Icon name="eye-open" />Browse Assignments</a>
+            <a href={edgeBrowserUrlResult.edgeBrowserUrl} className={`${edgeBrowserUrlResult.disabled ? 'disabled' : ''}`}><Icon name="eye-open" />Browse Assignments</a>
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
             <a href={`/assignments/stats?id=${id}${referrer ? `&referrer=${referrer}` : ''}`}><Icon name="stats" />View Statistics</a>
           </>
@@ -184,9 +181,7 @@ const Assignments = ({
           <ConfigurationNoteStatus content={content} />
         </td>
         <td>
-          {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-          {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
-          <a className={`${content.status === 'Running' || !accessible ? 'edit-params-link-disabled disabled' : 'edit-params-link'}`} {...content.status === 'Running' ? {} : { href: '#' }} onClick={() => { handleEditConfigurationButtonClick(id) }}>
+          <a className={`${content.status === 'Running' || !accessible ? 'edit-params-link-disabled disabled' : 'edit-params-link'}`} href="#" onClick={() => { handleEditConfigurationButtonClick(id) }}>
             <Icon name="pencil" />
             Edit
           </a>
@@ -210,7 +205,7 @@ const Assignments = ({
           <h1>{`${prettyId(groupId)} Assignments`}</h1>
         </div>
         <div className="col-xs-12 col-md-3 text-right">
-          <button type="button" id="new-configuration-button" className="btn" {...accessible ? {} : { disabled: true }} onClick={handleNewConfigurationButtonClick}>New Assignment Configuration</button>
+          <button type="button" id="new-configuration-button" className="btn" disabled={!accessible} onClick={handleNewConfigurationButtonClick}>New Assignment Configuration</button>
         </div>
       </div>
       <div className="row">
