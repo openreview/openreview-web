@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import upperFirst from 'lodash/upperFirst'
+import NoteList from '../components/NoteList'
 import api from '../lib/api-client'
 
 // Page Styles
@@ -194,11 +195,11 @@ const SignupForm = ({ setSignupConfirmation }) => {
 
       {existingProfiles.length > 0 && (
         <p className="merge-message hint">
-          If you notice that two or more profiles belong to you please
+          If two or more of the profiles above belong to you, please
           {' '}
           <Link href="/contact"><a>contact us</a></Link>
           {' '}
-          and will assist you in merging your profiles.
+          and we will assist you in merging your profiles.
         </p>
       )}
     </div>
@@ -258,7 +259,7 @@ const ExistingProfileForm = ({
           <input
             type="email"
             className="form-control"
-            placeholder={`Enter full email for ${obfuscatedEmail}`}
+            placeholder={`Full email for ${obfuscatedEmail}`}
             value={email}
             onChange={e => setEmail(e.target.value)}
             autoComplete="email"
@@ -287,6 +288,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
+  const [recentPublications, setRecentPublications] = useState(null)
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -299,6 +301,21 @@ const ClaimProfileForm = ({ id, registerUser }) => {
     registerUser('claim', email, password, id)
   }
 
+  const loadRecentPublications = async () => {
+    try {
+      const { notes } = await api.get('/notes', {
+        'content.authorids': id, sort: 'cdate:desc', limit: 3,
+      })
+      setRecentPublications(notes || [])
+    } catch (error) {
+      setRecentPublications([])
+    }
+  }
+
+  useEffect(() => {
+    loadRecentPublications()
+  }, [])
+
   useEffect(() => {
     if (!email && passwordVisible) {
       setPasswordVisible(false)
@@ -307,6 +324,10 @@ const ClaimProfileForm = ({ id, registerUser }) => {
 
   return (
     <form className="form-inline" onSubmit={handleSubmit}>
+      {recentPublications && (
+        <NoteList notes={recentPublications} displayOptions={{ pdfLink: true, htmlLink: true }} />
+      )}
+
       <div>
         <input
           type="email"
