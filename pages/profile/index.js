@@ -9,6 +9,7 @@ import api from '../../lib/api-client'
 import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
 import { prettyList } from '../../lib/utils'
 import { auth } from '../../lib/auth'
+import { generalLink } from '../../lib/banner-links'
 
 // Page Styles
 import '../../styles/pages/profile.less'
@@ -186,13 +187,14 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
   )
 }
 
-const Profile = ({ profile, publicProfile, appContext }) => {
+// eslint-disable-next-line object-curly-newline
+const Profile = ({ profile, publicProfile, query, appContext }) => {
   const [loading, setLoading] = useState(true)
   const [publications, setPublications] = useState([])
   const [count, setCount] = useState(0)
   const [coAuthors, setCoAuthors] = useState([])
-  const { accessToken } = useContext(UserContext)
-  const { setBannerHidden } = appContext
+  const { accessToken, user } = useContext(UserContext)
+  const { setBannerHidden, setBannerContent } = appContext
 
   const loadPublications = async () => {
     let apiRes
@@ -217,6 +219,13 @@ const Profile = ({ profile, publicProfile, appContext }) => {
 
     setBannerHidden(true)
   }, [])
+
+  useEffect(() => {
+    if (profile.id === user?.profile?.id) {
+      setBannerHidden(false) // setBannerContent has no effect if banner is hidden
+      setBannerContent(generalLink('/profile/edit', 'Edit Profile'))
+    }
+  }, [query, user])
 
   useEffect(() => {
     if (loading) return
@@ -373,6 +382,7 @@ Profile.getInitialProps = async (ctx) => {
   return {
     profile: profileFormatted,
     publicProfile: true,
+    query: ctx.query,
   }
 }
 

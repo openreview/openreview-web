@@ -79,7 +79,7 @@ function ProfileEdit({ profile, appContext }) {
   useEffect(() => {
     if (clientJsLoading) return
 
-    setBannerContent(referrerLink(`[public profile](/profile?id=${profile.id})`))
+    setBannerContent(referrerLink('[public profile](/profile)'))
   }, [clientJsLoading])
 
   return (
