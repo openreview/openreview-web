@@ -31,38 +31,23 @@ const SignupForm = ({ setSignupConfirmation }) => {
     }
   }
 
-  // eslint-disable-next-line arrow-body-style
-  const getMatchingProfiles = () => {
+  const getMatchingProfiles = () => (
     // Don't include middle name in profile search to find more results
-    return api.get('/profiles', { first: firstName, last: lastName, limit: 50 })
+    api.get('/profiles', { first: firstName, last: lastName, limit: 50 })
       .then(({ profiles }) => {
         if (!profiles) return
 
-        const existing = []
-        const noEmail = []
-        profiles.forEach((profile) => {
-          if (profile.content?.emailsConfirmed?.length > 0) {
-            existing.push({
-              id: profile.id,
-              emails: profile.content.emailsConfirmed,
-              active: profile.active,
-              password: profile.password,
-            })
-          } else {
-            noEmail.push({
-              id: profile.id,
-              emails: [],
-              active: profile.active,
-              password: profile.password,
-            })
-          }
-        })
-        setExistingProfiles([...existing, ...noEmail])
+        setExistingProfiles(profiles.map(profile => ({
+          id: profile.id,
+          emails: profile.content?.emailsConfirmed || [],
+          active: profile.active,
+          password: profile.password,
+        })))
       })
       .catch(() => {
         setExistingProfiles([])
       })
-  }
+  )
 
   const registerUser = async (registrationType, email, password, id) => {
     let bodyData = {}
