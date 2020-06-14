@@ -65,7 +65,7 @@ function ProfileEdit({ profile, appContext }) {
       await api.post('/profiles', dataToSubmit, { accessToken })
       await Promise.all(publicationIdsToUnlink.map(publicationId => unlinkPublication(profile.id, publicationId)))
       promptMessage('Your profile information has been successfully updated')
-      router.push(`/profile?id=${profile.id}`)
+      router.push('/profile')
     } catch (error) {
       promptError(error.message)
       done()
@@ -73,7 +73,7 @@ function ProfileEdit({ profile, appContext }) {
   }
 
   const returnToProfilePage = () => {
-    router.push(`/profile?id=${profile.id}`)
+    router.push('/profile')
   }
 
   useEffect(() => {
