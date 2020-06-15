@@ -17,9 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: export NEX_PORT=3030
-    - run: ls
     - run: cd $GITHUB_WORKSPACE
-    - run: ls
+    - run: ls -la
     - run: npm start
   test:
     runs-on: ubuntu-lastest
