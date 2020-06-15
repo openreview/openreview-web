@@ -6,10 +6,10 @@ on:
 
 jobs:
   build:
-    name: dummy output
+    name: run app
     runs-on: ubuntu-latest
     steps:
-    - run: export NEX_PORT = 3030
+    - run: export NEX_PORT=3030
     - run: npm start
   test:
     runs-on: ubuntu-lastest
