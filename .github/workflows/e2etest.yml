@@ -22,4 +22,4 @@ jobs:
       - name: Run tests
         uses: DevExpress/testcafe-action@latest
         with:
-            args: "chrome tests"
+            args: "chrome tests\test1.js"
