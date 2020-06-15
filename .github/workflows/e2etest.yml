@@ -2,11 +2,11 @@ name: e2etest
 
 on:
   push:
-    branches: [ e2dSetupTest ]
+    branches: [ e2eSetupTest ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - run: echo 123
+    - run: echo 1234
