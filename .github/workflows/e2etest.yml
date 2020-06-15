@@ -17,7 +17,7 @@ jobs:
       - run: echo "::set-env name=NEXT_PORT::3030"
       - run: echo $NEXT_PORT
       - run: npm run build
-      - run: npm start
+      # - run: npm start
       - uses: DevExpress/testcafe-action@latest
         with:
             args: "chrome tests\test1.js"
