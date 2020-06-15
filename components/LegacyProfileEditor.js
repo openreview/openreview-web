@@ -92,7 +92,7 @@ export default function LegacyProfileEditor({
       done()
     }, () => {
       // Cancel handler
-      router.push(`/profile?id=${profile.id}`)
+      router.push('/profile')
     })
     $(containerEl.current).empty().append(view)
 
