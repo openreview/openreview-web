@@ -15,6 +15,7 @@ jobs:
       - run: ls -la
       - run: export NEXT_PORT=3030
       - run: npm install
+      - run: echo $NEXT_PORT
       - run: npm start
       - uses: DevExpress/testcafe-action@latest
         with:
