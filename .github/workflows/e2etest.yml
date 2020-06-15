@@ -9,8 +9,8 @@ jobs:
     name: dummy output
     runs-on: ubuntu-latest
     steps:
-    - run: echo 12345
-    - run: ls
+    - run: export NEX_PORT = 3030
+    - run: npm start
   test:
     runs-on: ubuntu-lastest
     name: testcafe test
