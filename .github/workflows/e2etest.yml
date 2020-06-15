@@ -5,6 +5,13 @@ on:
     branches: [ master ]
 
 jobs:
+  checkout:
+    name: checkout code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: e2etest
   build:
     name: run app
     runs-on: ubuntu-latest
@@ -15,11 +22,6 @@ jobs:
     runs-on: ubuntu-lastest
     name: testcafe test
     steps:
-      - name: checkout code
-        uses: actions/checkout@v2
+      - uses: DevExpress/testcafe-action@latest
         with:
-          ref: e2etest
-      - name: Run tests
-        uses: DevExpress/testcafe-action@latest
-        with:
-            args: "chrome tests\test1.js"
+          args: "chrome tests\test1.js"
