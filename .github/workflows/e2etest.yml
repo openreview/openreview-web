@@ -12,18 +12,9 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: e2etest
-  build:
-    name: run app
-    runs-on: ubuntu-latest
-    steps:
-    - run: export NEX_PORT=3030
-    - run: cd $GITHUB_WORKSPACE
-    - run: ls -la
-    - run: npm start
-  test:
-    runs-on: ubuntu-lastest
-    name: testcafe test
-    steps:
+      - run: ls -la
+      - run: export NEX_PORT=3030
+      - run: npm start
       - uses: DevExpress/testcafe-action@latest
         with:
-          args: "chrome tests\test1.js"
+            args: "chrome tests\test1.js"
