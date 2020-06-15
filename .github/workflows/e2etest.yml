@@ -1,8 +1,8 @@
 name: e2etest
 
 on:
-  push:
-    branches: [ e2eSetupTest ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   build:
