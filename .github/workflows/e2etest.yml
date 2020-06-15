@@ -1,6 +1,6 @@
 name: e2etest
 
-on: 
+on:
   pull_request:
     branches: [ master ]
 
@@ -18,7 +18,7 @@ jobs:
     steps:
     - run: export NEX_PORT=3030
     - run: ls
-    - run: cd openreview-web
+    - run: cd $GITHUB_WORKSPACE
     - run: ls
     - run: npm start
   test:
