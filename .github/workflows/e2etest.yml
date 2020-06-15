@@ -7,17 +7,17 @@ on:
 jobs:
   checkout:
     name: checkout code
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
         with:
           ref: e2etest
-      - run: ls -la
+      - run: ls
       - run: npm install
       - run: echo "::set-env name=NEXT_PORT::3030"
       - run: echo $NEXT_PORT
       - run: npm run build
-      # - run: npm start
+      - run: npm start
       - uses: DevExpress/testcafe-action@latest
         with:
             args: "chrome tests\test1.js"
