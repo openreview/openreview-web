@@ -17,6 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: export NEX_PORT=3030
+    - run: ls
+    - run: cd openreview-web
+    - run: ls
     - run: npm start
   test:
     runs-on: ubuntu-lastest
