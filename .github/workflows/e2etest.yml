@@ -14,6 +14,7 @@ jobs:
           ref: e2etest
       - run: ls -la
       - run: export NEX_PORT=3030
+      - run: npm install
       - run: npm start
       - uses: DevExpress/testcafe-action@latest
         with:
