@@ -18,7 +18,9 @@ jobs:
       - run: echo $NEXT_PORT
       - run: npm run build
       - run: npm start &
-      - run: curl localhost:3030
+      - uses: jakejarvis/wait-action@master
+        with:
+            time: '5s'
       - uses: DevExpress/testcafe-action@latest
         with:
             args: "chrome tests\test1.js"
