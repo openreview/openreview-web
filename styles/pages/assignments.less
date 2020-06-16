@@ -1,8 +1,17 @@
 @import "../utils/constants";
 
-main.assignments-list{
-  #new-configuration-button{
-    margin-top: 22px
+main.assignments-list {
+
+  header {
+    margin-top: 1rem;
+    margin-bottom: 2.5rem;
+    h1 {
+      font-weight: normal;
+      margin: 0;
+    }
+    button {
+      margin-top: 3px;
+    }
   }
 
   .empty-message {
@@ -11,37 +20,50 @@ main.assignments-list{
     margin-top: 1rem;
   }
 
-  #configuration-table {
-    a.disabled{
-      pointer-events: none;
-      opacity: 0.5;
-      cursor: not-allowed;
-      color: #777;
+  .assignments-table {
+    margin-bottom: 2rem;
+    .assignment-label {
+      overflow: hidden;
     }
-
-    span.glyphicon:after {content:"\2002";}
+    .btn-link {
+      text-align: left;
+      font-weight: normal;
+      border: 0;
+      padding: 0;
+      .glyphicon {
+        color: @mediumBlue;
+      }
+    }
+    .btn-link:hover {
+      background-color: transparent;
+      color: @mediumDarkBlue;
+      text-decoration: none;
+      .glyphicon {
+        color: @mediumDarkBlue;
+      }
+    }
+    span.glyphicon {
+      padding-right: .5rem;
+    }
   }
 
   .modal-title {
-  margin: 0;
+    margin: 0;
   }
-
-  .modal-body .note_editor {
-    .note_content_title {
-      font-size: 1.25rem;
-      line-height: normal;
-      font-weight: bold;
-      margin-bottom: .5rem;
+  .modal-body {
+    h2 {
+      margin: 0;
+    }
+    .note_editor {
+      .note_content_title {
+        font-size: 1.25rem;
+        line-height: normal;
+        font-weight: bold;
+        margin-bottom: .5rem;
+      }
     }
   }
 
-  h2{
-    margin: 0;
-  }
-
-  .spinner-container{
-    margin-top: 5rem;
-  }
 }
 
 

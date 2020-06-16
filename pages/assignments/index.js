@@ -1,270 +1,370 @@
-/* eslint-disable consistent-return */
-/* eslint-disable jsx-a11y/anchor-is-valid */
 /* globals $: false */
+/* globals view: false */
+/* globals Handlebars: false */
 /* globals promptError: false */
-import {
-  useContext, useEffect, useState,
-} from 'react'
+/* globals promptMessage: false */
+
+import { useContext, useEffect, useState } from 'react'
+import Link from 'next/link'
 import Router from 'next/router'
 import withError from '../../components/withError'
 import UserContext from '../../components/UserContext'
-import api from '../../lib/api-client'
-import {
-  prettyId,
-  formatDateTime,
-  getEdgeBrowserUrl,
-} from '../../lib/utils'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
-import legacyAssignmentsModule from '../../client/assignments'
+import Table from '../../components/Table'
+import LoadingSpinner from '../../components/LoadingSpinner'
 import Icon from '../../components/Icon'
 import useInterval from '../../hooks/useInterval'
-import LoadingSpinner from '../../components/LoadingSpinner'
 import { auth } from '../../lib/auth'
+import api from '../../lib/api-client'
+import {
+  prettyId, formatDateTime, getEdgeBrowserUrl, cloneAssignmentConfigNote,
+} from '../../lib/utils'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
 import '../../styles/pages/assignments.less'
 
-const Assignments = ({
-  groupId,
-  referrer,
-  pathName,
-  search,
-  appContext,
+const ActionLink = ({
+  label, className, iconName, href, onClick, disabled,
 }) => {
-  const { setBannerContent, clientJsLoading } = appContext
-  const { accessToken } = useContext(UserContext)
+  if (href) {
+    return (
+      <Link href={href}>
+        <a className={`action-link ${className || ''}`} disabled={disabled}>
+          <Icon name={iconName} />
+          {label}
+        </a>
+      </Link>
+    )
+  }
 
+  return (
+    <button
+      type="button"
+      className={`btn btn-link ${className || ''}`}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      <Icon name={iconName} />
+      {label}
+    </button>
+  )
+}
+
+const AssignmentRow = ({
+  note, configInvitation, handleEditConfiguration, handleCloneConfiguration, handleRunMatcher, referrer,
+}) => {
+  const edgeBrowserUrl = getEdgeBrowserUrl(note.content)
+  const { status, error_message: errorMessage } = note.content
+
+  return (
+    <tr>
+      <td>{note.number}</td>
+
+      <td className="assignment-label" style={{ overflow: 'hidden' }}>
+        <Link href={edgeBrowserUrl}>
+          <a disabled={edgeBrowserUrl ? null : true}>
+            {note.content.title ? note.content.title : note.content.label}
+          </a>
+        </Link>
+      </td>
+
+      <td>{formatDateTime(note.tcdate)}</td>
+
+      <td>{note.tmdate === note.tcdate ? null : formatDateTime(note.tmdate)}</td>
+
+      <td>
+        {(status === 'Error' || status === 'No Solution') ? (
+          <span className="assignment-status" data-toggle="tooltip" data-placement="top" title={errorMessage}>
+            {status}
+          </span>
+        ) : (
+          <span className="assignment-status">{status}</span>
+        )}
+      </td>
+
+      <td>
+        <ActionLink
+          label="Edit"
+          iconName="pencil"
+          onClick={() => handleEditConfiguration(note)}
+          disabled={status === 'Running' || !configInvitation}
+        />
+        <ActionLink
+          label="Copy"
+          iconName="duplicate"
+          onClick={() => handleCloneConfiguration(note)}
+          disabled={!configInvitation}
+        />
+      </td>
+
+      <td className="assignment-actions">
+        {(status === 'Initialized' || status === 'Error' || status === 'No Solution') && (
+          <ActionLink label="Run Matcher" iconName="cog" onClick={() => handleRunMatcher(note.id)} />
+        )}
+        {(status === 'Complete' || status === 'Deployed') && (
+          <>
+            <ActionLink label="Browse Assignments" iconName="eye-open" href={edgeBrowserUrl} disabled={!edgeBrowserUrl} />
+            <ActionLink label="View Statistics" iconName="stats" href={`/assignments/stats?id=${note.id}&referrer=${referrer}`} />
+          </>
+        )}
+        {status === 'Complete' && (
+          <ActionLink label="Deploy Assignment" iconName="share" onClick={() => {}} disabled />
+        )}
+      </td>
+    </tr>
+  )
+}
+
+const Assignments = ({ groupId, referrer, appContext }) => {
   const [assignmentNotes, setAssignmentNotes] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [accessible, setAccessible] = useState(true)
+  const [configInvitation, setConfigInvitation] = useState(null)
+  const { accessToken } = useContext(UserContext)
+  const { setBannerContent, clientJsLoading } = appContext
+  const referrerStr = encodeURIComponent(`[all assignments for ${prettyId(groupId)}](/assignments?group=${groupId})`)
 
+  // API functions
   const getAssignmentNotes = async () => {
     try {
-      const result = await api.get('/notes', { invitation: `${groupId}/-/Assignment_Configuration` }, { accessToken })
-      setIsLoading(false)
-      // eslint-disable-next-line arrow-body-style
-      setAssignmentNotes(result.notes.map((note) => {
-        // eslint-disable-next-line no-param-reassign
-        note.scoresSpecParams = note.content.scores_specification ? Object.keys(note.content.scores_specification).join(',') : []
-        return note
-      }))
-      // eslint-disable-next-line arrow-body-style
-      legacyAssignmentsModule.setLegacyAssignmentNotes(result.notes.map((note) => {
-        // eslint-disable-next-line no-param-reassign
-        note.scoresSpecParams = note.content.scores_specification ? Object.keys(note.content.scores_specification).join(',') : []
-        return note
-      }))
+      const { notes } = await api.get('/notes', {
+        invitation: `${groupId}/-/Assignment_Configuration`,
+      }, { accessToken })
+
+      setAssignmentNotes(notes || [])
     } catch (error) {
-      setIsLoading(false)
       promptError(error.message)
     }
   }
 
   const getConfigInvitation = async () => {
     try {
-      const result = await api.get('/invitations', { id: `${groupId}/-/Assignment_Configuration` }, { accessToken })
-      legacyAssignmentsModule.setLegacyConfigInvitation(result.invitations[0])
+      const { invitations } = await api.get('/invitations', {
+        id: `${groupId}/-/Assignment_Configuration`,
+      }, { accessToken })
+      if (invitations?.length > 0) {
+        setConfigInvitation(invitations[0])
+      }
     } catch (error) {
-      if (error.message === 'Forbidden') setAccessible(false) // meaning that user does not privilege to change anything
       promptError(error.message)
     }
   }
 
-  const handleNewConfigurationButtonClick = () => {
-    if (accessible) legacyAssignmentsModule.editNewConfig()
+  // Helper functions
+  const hideEditorModal = () => {
+    $('#note-editor-modal').modal('hide')
+    getAssignmentNotes()
   }
 
-  const handleEditConfigurationButtonClick = (id) => {
-    if (accessible) legacyAssignmentsModule.editExistingConfig(id)
+  const appendEditorToModal = (editor) => {
+    $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append(editor)
+    view.hideNoteEditorFields('#note-editor-modal', [
+      'config_invitation', 'assignment_invitation', 'error_message', 'status',
+    ])
   }
 
-  const handleCloneConfigurationButtonClick = (id) => {
-    if (accessible) legacyAssignmentsModule.editClonedConfig(id)
+  const validateConfigNoteForm = (invitation, configContent, note) => {
+    const errorList = []
+
+    // Don't allow saving an existing note if its title matches that of some other in the list.
+    const matchingNote = assignmentNotes.find((n) => {
+      const idMatch = note ? n.id !== note.id : true
+      return n.content.title === configContent.title && idMatch
+    })
+    if (matchingNote) {
+      errorList.push('The configuration title must be unique within the conference')
+    }
+
+    // Make sure an equal number of scores and weights are provided
+    if (configContent.scores_names && configContent.scores_weights
+      && configContent.scores_names.length !== configContent.scores_weights.length) {
+      errorList.push('The scores and weights must have same number of values')
+    }
+
+    return errorList
   }
 
-  const handleRunMatcherClick = async (id) => {
+  const showDialogErrorMessage = (errors) => {
+    $('#note-editor-modal .modal-body .alert-danger').remove()
+    $('#note-editor-modal .modal-body').prepend('<div class="alert alert-danger"><strong>Error:</strong> </div>')
+    if (errors?.length > 0) {
+      $('#note-editor-modal .modal-body .alert-danger').append(errors.join(', '))
+    } else {
+      $('#note-editor-modal .modal-body .alert-danger').append('Could not save assignment config note')
+    }
+    $('#note-editor-modal').animate({ scrollTop: 0 }, 400)
+  }
+
+  // Handler functions
+  const handleNewConfiguration = () => {
+    if (!configInvitation) return
+
+    $('#note-editor-modal').remove()
+    $('main').append(Handlebars.templates.genericModal({
+      id: 'note-editor-modal',
+      extraClasses: 'modal-lg',
+      showHeader: true,
+      title: 'New Configuration',
+      showFooter: false,
+    }))
+
+    $('#note-editor-modal').modal('show')
+    view.mkNewNoteEditor(configInvitation, null, null, null, {
+      onNoteCreated: hideEditorModal,
+      onNoteCancelled: hideEditorModal,
+      onError: showDialogErrorMessage,
+      onValidate: validateConfigNoteForm,
+      onCompleted: appendEditorToModal,
+    })
+  }
+
+  const handleEditConfiguration = (note) => {
+    if (!configInvitation) return
+
+    $('#note-editor-modal').remove()
+    $('main').append(Handlebars.templates.genericModal({
+      id: 'note-editor-modal',
+      extraClasses: 'modal-lg',
+      showHeader: true,
+      title: 'Edit Configuration',
+      showFooter: false,
+    }))
+    $('#note-editor-modal').modal('show')
+
+    view.mkNoteEditor(note, configInvitation, null, {
+      onNoteEdited: hideEditorModal,
+      onNoteCancelled: hideEditorModal,
+      onError: showDialogErrorMessage,
+      onValidate: validateConfigNoteForm,
+      onCompleted: appendEditorToModal,
+    })
+  }
+
+  const handleCloneConfiguration = (note) => {
+    if (!configInvitation) return
+
+    $('#note-editor-modal').remove()
+    $('main').append(Handlebars.templates.genericModal({
+      id: 'note-editor-modal',
+      extraClasses: 'modal-lg',
+      showHeader: true,
+      title: 'Copy Configuration',
+      showFooter: false,
+    }))
+    $('#note-editor-modal').modal('show')
+
+    const clone = cloneAssignmentConfigNote(note)
+    view.mkNoteEditor(clone, configInvitation, null, {
+      onNoteEdited: hideEditorModal,
+      onNoteCancelled: hideEditorModal,
+      onError: showDialogErrorMessage,
+      onValidate: validateConfigNoteForm,
+      onCompleted: appendEditorToModal,
+    })
+  }
+
+  const handleRunMatcher = async (id) => {
     try {
-      const result = await api.post('/match', { configNoteId: id }, { accessToken })
+      const apiRes = await api.post('/match', { configNoteId: id }, { accessToken })
+      promptMessage('Matching started. The status of the assignments will be updated when the matching process is complete')
     } catch (error) {
       promptError(error.message)
     }
   }
 
-  const getReferrerStr = () => encodeURIComponent(
-    `[all assignments for '${prettyId(groupId)}](${pathName}${search} + ${window.location.hash})`,
-  )
+  // Effects
+  useEffect(() => {
+    if (clientJsLoading || !accessToken) return
+
+    if (referrer) {
+      setBannerContent(referrerLink(referrer))
+    } else {
+      setBannerContent(venueHomepageLink(groupId))
+    }
+
+    getAssignmentNotes()
+    getConfigInvitation()
+  }, [clientJsLoading, accessToken])
+
+  useEffect(() => {
+    if (assignmentNotes) {
+      $('[data-toggle="tooltip"]').tooltip()
+    }
+  }, [assignmentNotes])
 
   useInterval(() => {
     getAssignmentNotes()
   }, 5000)
 
-  useEffect(() => {
-    legacyAssignmentsModule.setUpdateAssignment(getAssignmentNotes)
-  }, [])
-
-  useEffect(() => {
-    if (!clientJsLoading && accessToken) {
-      if (referrer) {
-        setBannerContent(referrerLink(referrer))
-      } else {
-        setBannerContent(venueHomepageLink(groupId, 'edit'))
-      }
-    }
-    getAssignmentNotes()
-    getConfigInvitation()
-  }, [clientJsLoading])
-
-  useEffect(() => {
-    $('[data-toggle="tooltip"]').tooltip()
-  }, [assignmentNotes])
-
-  const ConfigurationNoteStatus = ({ content }) => {
-    switch (content.status) {
-      case 'Error':
-        return <span className="assignment-status" data-toggle="tooltip" data-placement="top" title={content.error_message}>{content.status}</span>
-      case 'No Solution':
-        return <span className="assignment-status" data-toggle="tooltip" data-placement="top" title={content.error_message}>{content.status}</span>
-      default:
-        return <span className="assignment-status">{content.status}</span>
-    }
-  }
-
-  // eslint-disable-next-line no-shadow
-  const ConfigurationNoteActions = ({ content, referrer, id }) => {
-    const edgeBrowserUrlResult = getEdgeBrowserUrl(id, content)
-    switch (content.status) {
-      case 'Initialized':
-        // eslint-disable-next-line react/jsx-one-expression-per-line
-        return <a className="run-matcher" href="#" onClick={() => handleRunMatcherClick(id)}><Icon name="cog" />Run Matcher</a>
-      case 'Complete':
-        return (
-          <>
-            {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href={edgeBrowserUrlResult.edgeBrowserUrl} className={edgeBrowserUrlResult.disabled ? 'disabled' : null}><Icon name="eye-open" />Browse Assignments</a>
-            {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href={`/assignments/stats?id=${id}${referrer ? `&referrer=${referrer}` : ''}`}><Icon name="stats" />View Statistics</a><br />
-            {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href="#"><Icon name="share" />Deploy Assignment</a>
-          </>
-        )
-      case 'Error':
-      case 'No Solution':
-        // eslint-disable-next-line react/jsx-one-expression-per-line
-        return <a className="run-matcher" href="#"><Icon name="cog" />Run Matcher</a>
-      case 'Deployed':
-        return (
-          <>
-            {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href={edgeBrowserUrlResult.edgeBrowserUrl} className={edgeBrowserUrlResult.disabled ? 'disabled' : null}><Icon name="eye-open" />Browse Assignments</a>
-            {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            <a href={`/assignments/stats?id=${id}${referrer ? `&referrer=${referrer}` : ''}`}><Icon name="stats" />View Statistics</a>
-          </>
-        )
-      default:
-        return null
-    }
-  }
-
-  // eslint-disable-next-line arrow-body-style
-  const ConfigurationNote = ({
-    id, number, content, tcdate, tmdate,
-  }) => {
-    const { edgeBrowserUrl, disabled } = getEdgeBrowserUrl(id, content)
-    return (
-      <tr data-id={id}>
-        <td>{number}</td>
-        <td className="assignment-label" style={{ overflow: 'hidden' }}>
-          <a href={edgeBrowserUrl} className={disabled ? 'disabled' : null}>{content.title ? content.title : content.label}</a>
-        </td>
-        <td>{formatDateTime(tcdate)}</td>
-        <td>{tcdate !== tmdate ? formatDateTime(tmdate) : null}</td>
-        <td>
-          <ConfigurationNoteStatus content={content} />
-        </td>
-        <td>
-          <a className={`${content.status === 'Running' || !accessible ? 'edit-params-link-disabled disabled' : 'edit-params-link'}`} href="#" onClick={() => { handleEditConfigurationButtonClick(id) }}>
-            <Icon name="pencil" />
-            Edit
-          </a>
-          <br />
-          <a className={`clone-config ${accessible ? '' : 'disabled'}`} href="#" onClick={() => { handleCloneConfigurationButtonClick(id) }}>
-            <Icon name="duplicate" />
-            Copy
-          </a>
-        </td>
-        <td className="assignment-actions">
-          <ConfigurationNoteActions content={content} referrer={() => getReferrerStr()} id={id} />
-        </td>
-      </tr>
-    )
-  }
-
   return (
     <>
-      <div className="row">
+      <header className="row">
         <div className="col-xs-12 col-md-9">
           <h1>{`${prettyId(groupId)} Assignments`}</h1>
         </div>
         <div className="col-xs-12 col-md-3 text-right">
-          <button type="button" id="new-configuration-button" className="btn" disabled={!accessible} onClick={handleNewConfigurationButtonClick}>New Assignment Configuration</button>
+          <button type="button" className="btn" disabled={!configInvitation} onClick={handleNewConfiguration}>
+            New Assignment Configuration
+          </button>
         </div>
-      </div>
+      </header>
+
       <div className="row">
         <div className="col-xs-12">
-          <>
-            <table className="table table-hover assignments-table">
-              <thead>
-                <tr>
-                  <th style={{ width: '40px' }}>#</th>
-                  <th>Title</th>
-                  <th style={{ width: '200px' }}>Created On</th>
-                  <th style={{ width: '200px' }}>Last Modified</th>
-                  <th style={{ width: '115px' }}>Status</th>
-                  <th style={{ width: '115px' }}>Parameters</th>
-                  <th style={{ width: '175px' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="configuration-table">
-                {assignmentNotes && assignmentNotes.map(assignmentNote => (
-                  <ConfigurationNote
-                    id={assignmentNote.id}
-                    number={assignmentNote.number}
-                    content={assignmentNote.content}
-                    tcdate={assignmentNote.tcdate}
-                    tmdate={assignmentNote.tmdate}
-                    key={assignmentNote.id}
-                  />
-                ))}
-              </tbody>
-            </table>
-            {isLoading && <LoadingSpinner />}
-            {assignmentNotes?.length === 0 && <p className="empty-message">No assignments have been generated for this venue. Click the button above to get started.</p>}
-          </>
+          {assignmentNotes ? (
+            <Table
+              className="table-hover assignments-table"
+              headings={[
+                { content: '#', width: '40px' },
+                { content: 'Title' },
+                { content: 'Created On', width: '200px' },
+                { content: 'Last Modified', width: '200px' },
+                { content: 'Status', width: '115px' },
+                { content: 'Parameters', width: '115px' },
+                { content: 'Actions', width: '175px' },
+              ]}
+            >
+              {assignmentNotes.map(assignmentNote => (
+                <AssignmentRow
+                  key={assignmentNote.id}
+                  note={assignmentNote}
+                  configInvitation={configInvitation}
+                  handleEditConfiguration={handleEditConfiguration}
+                  handleCloneConfiguration={handleCloneConfiguration}
+                  handleRunMatcher={handleRunMatcher}
+                  referrer={referrerStr}
+                />
+              ))}
+            </Table>
+          ) : (
+            <LoadingSpinner inline />
+          )}
+
+          {assignmentNotes?.length === 0 && (
+            <p className="empty-message">
+              No assignments have been generated for this venue. Click the New Assignment
+              button above to get started.
+            </p>
+          )}
         </div>
       </div>
     </>
   )
 }
 
-Assignments.getInitialProps = async (context) => {
-  if (!context.query.group) {
+Assignments.getInitialProps = async (ctx) => {
+  const { group: groupId, referrer } = ctx.query
+  if (!groupId) {
     return { statusCode: 404, message: 'Could not list generated assignments. Missing parameter group.' }
   }
 
-  const { user } = auth(context)
+  const { user } = auth(ctx)
   if (!user) {
-    if (context.req) {
-      context.res.writeHead(302, { Location: `/login?redirect=/assignments?group=${context.query.group}` }).end()
+    if (ctx.req) {
+      ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
     } else {
-      Router.replace(`/login?redirect=/assignments?group=${context.query.group}`)
+      Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
     }
   }
 
-  return {
-    groupId: context.query.group,
-    referrer: context.query.referrer,
-    pathName: context.pathName,
-    search: `?${context.asPath.split('?')[1]}`,
-  }
+  return { groupId, referrer }
 }
 
 Assignments.bodyClass = 'assignments-list'
