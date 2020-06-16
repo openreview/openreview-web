@@ -46,6 +46,10 @@ a {
     color: @mediumDarkBlue;
     text-decoration: none;
   }
+  &[disabled] {
+    pointer-events: none;
+    color: @subtleGray;
+  }
 }
 .link-color {
   color: @mediumBlue;
@@ -383,6 +387,12 @@ strong.hint {
   }
 }
 .no-margin {
+  margin: 0;
+}
+.legacy-styles .panel {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
   margin: 0;
 }
 
