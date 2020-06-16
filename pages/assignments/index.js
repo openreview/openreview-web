@@ -6,6 +6,7 @@
 
 import { useContext, useEffect, useState } from 'react'
 import Link from 'next/link'
+import Head from 'next/head'
 import Router from 'next/router'
 import withError from '../../components/withError'
 import UserContext from '../../components/UserContext'
@@ -295,6 +296,10 @@ const Assignments = ({ groupId, referrer, appContext }) => {
 
   return (
     <>
+      <Head>
+        <title key="title">{`${prettyId(groupId)} Assignments | OpenReview`}</title>
+      </Head>
+
       <header className="row">
         <div className="col-xs-12 col-md-9">
           <h1>{`${prettyId(groupId)} Assignments`}</h1>

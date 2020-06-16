@@ -11,7 +11,7 @@ import get from 'lodash/get'
 import omit from 'lodash/omit'
 import UserContext from './UserContext'
 import api from '../lib/api-client'
-import editController from '../client/profileView'
+import editController from '../client/profile-view'
 
 import '../styles/components/legacy-profile-editor.less'
 

@@ -1,85 +1,86 @@
-import {
-  useContext, useEffect,
-} from 'react'
+import { useEffect } from 'react'
+import Head from 'next/head'
+import Router from 'next/router'
 import withError from '../../components/withError'
-import UserContext from '../../components/UserContext'
-import LoadingSpinner from '../../components/LoadingSpinner'
 import { auth } from '../../lib/auth'
 import api from '../../lib/api-client'
-import {
-  prettyId,
-  getEdgeBrowserUrl,
-} from '../../lib/utils'
+import { prettyId, getEdgeBrowserUrl, getGroupIdfromInvitation } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
-import '../../styles/pages/matching-stats.less'
+import '../../styles/pages/assignment-stats.less'
 
-// eslint-disable-next-line arrow-body-style
-const AssignmentsStats = ({
-  // eslint-disable-next-line max-len
-  title, groupId, configNoteId, configNoteContent, note, referrer, appContext,
+const AssignmentStats = ({
+  groupId, assignmentConfigNote, referrer, appContext,
 }) => {
-  const { accessToken } = useContext(UserContext)
   const { setBannerContent, clientJsLoading } = appContext
 
   useEffect(() => {
-    if (!clientJsLoading) {
-      if (referrer) {
-        setBannerContent(referrerLink(referrer))
-      } else {
-        setBannerContent(venueHomepageLink(groupId, 'edit'))
-      }
-      // eslint-disable-next-line global-require
-      const { setWindowAssignmentConfigNote, runAssignmentsStats } = require('../../client/assignmentsStats')
-      // eslint-disable-next-line global-require
-      window.d3 = require('d3')
-      window.localStorage.setItem('token', accessToken) // TODO: this is a temporary solution to avoid failure in webfield calls
-      setWindowAssignmentConfigNote(note)
-      runAssignmentsStats(note.content)
-    }
-  }, [clientJsLoading])
+    if (clientJsLoading) return
 
-  // eslint-disable-next-line arrow-body-style
-  useEffect(() => { // TODO: this is a temporary solution to avoid failure in webfield calls
-    return () => {
-      window.localStorage.removeItem('token')
+    if (referrer) {
+      setBannerContent(referrerLink(referrer))
+    } else {
+      setBannerContent(venueHomepageLink(groupId, 'edit'))
     }
-  }, [])
+
+    // eslint-disable-next-line global-require
+    window.d3 = require('d3')
+
+    // eslint-disable-next-line global-require
+    const runAssignmentStats = require('../../client/assignment-stats')
+
+    runAssignmentStats(assignmentConfigNote)
+  }, [clientJsLoading])
 
   return (
     <>
-      <LoadingSpinner />
-      <div className="row" id="stats-header">
+      <Head>
+        <title key="title">{`${assignmentConfigNote.content.title} Stats | OpenReview`}</title>
+      </Head>
+
+      <header className="row">
         <div className="col-xs-10">
-          <h1>{`${prettyId(groupId)} Assignment Statistics-${note.content.title}`}</h1>
+          <h1>
+            {`Assignment Statistics – ${assignmentConfigNote.content.title}`}
+          </h1>
         </div>
 
         <div className="col-xs-2 text-right">
           <div className="btn-group">
-            <button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button
+              type="button"
+              className="btn btn-default dropdown-toggle"
+              data-toggle="dropdown"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
               Actions
               {' '}
               <span className="caret" />
             </button>
             <ul className="dropdown-menu dropdown-align-right">
               <li>
-                <a href={getEdgeBrowserUrl(configNoteContent)}>Browse Assignments</a>
+                <a href={getEdgeBrowserUrl(assignmentConfigNote.content)}>Browse Assignments</a>
               </li>
             </ul>
           </div>
         </div>
-      </div>
+      </header>
+
       <div className="row" id="stats-container-basic" />
+
       <div className="row" id="stats-container-assignment-dist">
         <div className="col-xs-12">
           <h3 className="hidden">Assignment Distributions</h3>
         </div>
       </div>
+
       <div className="row" id="stats-container-recommendation-dist">
         <div className="col-xs-12">
           <h3 className="hidden">Recommendation Distributions</h3>
         </div>
       </div>
+
       <div className="row" id="stats-container-bid-dist">
         <div className="col-xs-12">
           <h3 className="hidden">Bid Distributions</h3>
@@ -89,46 +90,35 @@ const AssignmentsStats = ({
   )
 }
 
-AssignmentsStats.getInitialProps = async (context) => {
-  const { token, user } = auth(context)
-  const assignmentConfigurationId = context.query.id
-  if (!assignmentConfigurationId) {
-    return { statusCode: 404, message: 'Could not load assignments browser. Missing parameter assignmentId.' }
+AssignmentStats.getInitialProps = async (ctx) => {
+  const { token, user } = auth(ctx)
+  if (!user) {
+    if (ctx.req) {
+      ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
+    } else {
+      Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
+    }
   }
-  try {
-    const result = await api.get('/notes', { id: assignmentConfigurationId }, { accessToken: token })
-    const { notes } = result
-    if (!notes.length) {
-      return { statusCode: 404, message: `No assignment note with id "${assignmentConfigurationId}" found` }
-    }
-    const configData = notes[0]
-    // eslint-disable-next-line no-use-before-define
-    const groupId = getGroupIdfromInvitation(configData.invitation)
-    // const bannerHtml = getAssignmentsPageLink(groupId)
-    return {
-      groupId,
-      configNoteId: assignmentConfigurationId,
-      configNoteContent: configData.content,
-      // invitationId: configData.invitation,
-      note: configData,
-      // user: user.profile,
-      // bannerContent: bannerHtml,
-      referrer: context.query.referrer,
-    }
-  } catch (error) {
-    return { statusCode: 404, message: error.message }
+
+  const assignmentConfigId = ctx.query.id
+  if (!assignmentConfigId) {
+    return { statusCode: 404, message: 'Could not load assignment statistics. Missing parameter id.' }
+  }
+
+  const { notes } = await api.get('/notes', { id: assignmentConfigId }, { accessToken: token })
+  if (!notes || notes.length === 0) {
+    return { statusCode: 404, message: `No assignment note with the ID "${assignmentConfigId}" found` }
+  }
+
+  const assignmentConfigNote = notes[0]
+  const groupId = getGroupIdfromInvitation(assignmentConfigNote.invitation)
+  return {
+    groupId,
+    assignmentConfigNote,
+    referrer: ctx.query.referrer,
   }
 }
 
-AssignmentsStats.bodyClass = 'assignments-stats'
+AssignmentStats.bodyClass = 'assignment-stats'
 
-const getGroupIdfromInvitation = (invitationId) => {
-  // By convention all invitations should have the form group_id/-/invitation_name
-  const parts = invitationId.split('/-/')
-  if (parts.length === 1) {
-    return null // Invalid invitation, missing /-/
-  }
-  return parts[0]
-}
-
-export default withError(AssignmentsStats)
+export default withError(AssignmentStats)

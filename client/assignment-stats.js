@@ -1,23 +1,23 @@
-
-// adapted from public/js/pages/assignmentsStats.js
 /**
+ * Adapted from public/js/pages/assignmentsStats.js
+ *
  * Changes:
  * - removed code that has been converted to react component (set banner content)
- * - added a function to set windowAssignmentConfigNote (window.assignmentConfigNote)
- * - changed some assignmentConfigNote names
- * - changed useEdges to be a function so it can get lastest value of windowAssignmentConfitNote
+ * - removed references to window.assignmentConfigNote
  * - added method runAssignmentsStats to chain method calls
 **/
+
 var Discrete = 'discrete';
 var Continuous = 'continuous';
 var Scalar = 'scalar';
-var windowAssignmentConfigNote = null;
-var useEdges = ()=>{return _.has(windowAssignmentConfigNote.content, 'scores_specification')}
+
+var useEdges = true;
+var buildEdgeBrowserUrl;
 
 var loadFromNotes = function(assignmentConfigNote) {
   return Webfield.getAll('/notes', {
-    invitation: assignmentConfigNote.assignment_invitation,  // jshint ignore:line
-    'content.title': windowAssignmentConfigNote.content.title
+    invitation: assignmentConfigNote.assignment_invitation,
+    'content.title': assignmentConfigNote.title
   }).then(function(notes) {
     var assignmentMap = _.flatMap(notes, function(note) {
       return _.map(note.content.assignedGroups, function(group) {
@@ -52,7 +52,7 @@ var loadFromEdges = function(assignmentConfigNote) {
 
   var assignmentsP = Webfield.getAll('/edges', {
     invitation: assignmentConfigNote.assignment_invitation,
-    label: windowAssignmentConfigNote.content.title,
+    label: assignmentConfigNote.title,
     groupBy: 'head',
     select: 'tail,weight'
   }, 'groupedEdges');
@@ -517,17 +517,13 @@ var renderHistogram = function(divId, stats) {
       }
 
       hoverRect.on('click', function() {
-
         var key = stats.tag === Discrete ? divId + '-x-' + d[0] : divId + '-x-' + d.x0 + '-to-' + d.x1;
         window.localStorage.setItem(key, JSON.stringify({
           type: stats.type,
           data: dataList
         }));
-
         if (useEdges) {
-          window.location.href = buildEdgeBrowserUrl(windowAssignmentConfigNote.content, key, stats.type);
-        } else {
-          window.location.href = '/assignments/browse?id=' + windowAssignmentConfigNote.id + '&showData=' + key;
+          window.location.href = buildEdgeBrowserUrl(key, stats.type);
         }
       });
     }
@@ -581,30 +577,24 @@ var renderScalar = function(k, stats) {
 };
 
 
-var showParamsModal = function(e) {
-  var paramsHtml = Handlebars.templates['partials/assignmentParameters']({
-    parameters: windowAssignmentConfigNote.content
-  });
-  $(this).find('.modal-body').html(paramsHtml);
-};
+var generateBuildEdgeBrowserUrl = function(configNote) {
+  return function(key, type) {
+    var browseInvitations = Object.keys(configNote.scores_specification);
+    var referrerText = view.prettyId(configNote.title) + ' Statistics';
+    var typeParam = type === 'reviewer' ? 'type:tail' : 'type:head';
 
-
-var buildEdgeBrowserUrl = function(configNote, key, type) {
-  var browseInvitations = Object.keys(configNote.scores_specification);
-  var referrerText = view.prettyId(configNote.title) + ' Statistics';
-  var typeParam = type === 'reviewer' ? 'type:tail' : 'type:head';
-
-  return '/edge/browse' +
-    '?start=staticList,' + typeParam + ',storageKey:' + key +
-    '&traverse=' + configNote.assignment_invitation + ',label:' + configNote.title +
-    '&edit=' + configNote.assignment_invitation + ',label:' + configNote.title +
-    '&browse=' + configNote.aggregate_score_invitation + ',label:' + configNote.title +
-    ';' + browseInvitations.join(';') +
-    ';' + configNote.conflicts_invitation +
-    (configNote.custom_max_papers_invitation ? ';' + configNote.custom_max_papers_invitation + ',head:ignore' : '') +
-    (configNote.custom_load_invitation ? ';' + configNote.custom_load_invitation + ',head:ignore' : '') +
-    '&maxColumns=3' +
-    '&referrer=' + encodeURIComponent('[' + referrerText + '](' + location.pathname + location.search + ')');
+    return '/edge/browse' +
+      '?start=staticList,' + typeParam + ',storageKey:' + key +
+      '&traverse=' + configNote.assignment_invitation + ',label:' + configNote.title +
+      '&edit=' + configNote.assignment_invitation + ',label:' + configNote.title +
+      '&browse=' + configNote.aggregate_score_invitation + ',label:' + configNote.title +
+      ';' + browseInvitations.join(';') +
+      ';' + configNote.conflicts_invitation +
+      (configNote.custom_max_papers_invitation ? ';' + configNote.custom_max_papers_invitation + ',head:ignore' : '') +
+      (configNote.custom_load_invitation ? ';' + configNote.custom_load_invitation + ',head:ignore' : '') +
+      '&maxColumns=3' +
+      '&referrer=' + encodeURIComponent('[' + referrerText + '](' + location.pathname + location.search + ')');
+  }
 };
 
 
@@ -623,25 +613,22 @@ var showLoadingError = function(err) {
   $('#stats-container-scalar').html(errHTML);
 };
 
-if (_.isEmpty(windowAssignmentConfigNote) || windowAssignmentConfigNote.status !== 'Complete') {
-  showLoadingError(
-    'The requested paper assignment does not appear to have been run yet. ' +
-    'Please contact info@openreview.net for more information.'
-  );
-}
 
-const setWindowAssignmentConfigNote = (note) => {
-  windowAssignmentConfigNote = note
-}
+const runAssignmentStats = (note) => {
+  if (!note) {
+    console.warn('Must provide assignment configuration note in order to compute stats');
+    return;
+  }
 
-const runAssignmentsStats = (note) => {
-  loadMatchingData(note)
+  useEdges = !!note.content.scores_specification;
+  buildEdgeBrowserUrl = generateBuildEdgeBrowserUrl(note.content)
+
+  Webfield.ui.spinner('#stats-container-basic', { inline: true })
+
+  loadMatchingData(note.content)
     .then(computeStats)
     .then(renderStatsMap)
     .fail(showLoadingError);
 }
 
-module.exports={
-  runAssignmentsStats,
-  setWindowAssignmentConfigNote,
-}
+module.exports = runAssignmentStats;
