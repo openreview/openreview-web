@@ -2883,11 +2883,11 @@ module.exports = (function() {
           $cancelButton.prop({ disabled: false });
         });
       };
-
+      var $noteTitle = $('<h2>', {class: "note_content_title", text: `New ${prettyInvitationId(invitation.id)}`})
       var $requiredInfo = $('<div>', {class: 'required_field', text: '* denotes a required field'});
       var $submitRow = $('<div>', {class: 'row'}).append($submitButton, $cancelButton);
       var $noteEditor = $('<div>', {class: 'note_editor panel'}).append(
-        $requiredInfo, _.values($contentMap), readers, signatures, $submitRow
+        $noteTitle, $requiredInfo, _.values($contentMap), readers, signatures, $submitRow
       );
       $noteEditor.data('invitationId', invitation.id);
 

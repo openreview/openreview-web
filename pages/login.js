@@ -11,7 +11,7 @@ import { auth } from '../lib/auth'
 // Page Styles
 import '../styles/pages/login.less'
 
-const LoginForm = () => {
+const LoginForm = ({ redirect }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState(null)
@@ -31,7 +31,7 @@ const LoginForm = () => {
     }
 
     const { user, token } = apiRes
-    loginUser(user, token)
+    loginUser(user, token, redirect)
   }
 
   return (
@@ -84,7 +84,7 @@ const Login = ({ redirect }) => (
 
     <div className="login-container col-sm-12 col-md-5 col-lg-4 col-md-offset-1 col-lg-offset-2">
       <h1>Login</h1>
-      <LoginForm />
+      <LoginForm redirect={redirect} />
     </div>
 
     <div className="signup-container col-sm-12 col-md-5 col-lg-4">
