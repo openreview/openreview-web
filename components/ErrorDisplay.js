@@ -19,20 +19,16 @@ const ErrorDisplay = ({ statusCode, message }) => (
         <>
           <p className="error-help">
             <strong>
-              Important: If this URL was sent to you in an email, then in order
-              to access this page you must first add that same email address to
-              your OpenReview profile.
+              Important: If this URL was sent to you in an email, then in order to access this
+              page you must first add that same email address to your OpenReview profile.
             </strong>
           </p>
           <p className="error-help">
             To add a new email to your profile, navigate to the
             {' '}
-            <a href="/profile?mode=edit">Edit Profile page</a>
-            , click the
-            <strong>+</strong>
-            icon at the bottom of the Emails section and enter the new email
-            address. Then, click the Save Profile Changes button at the bottom
-            of the page.
+            <a href="/profile/edit">Edit Profile page</a>
+            , click the + icon at the bottom of the Emails section and enter the new email
+            address. Then, click the Save Profile Changes button at the bottom of the page.
           </p>
         </>
       )}

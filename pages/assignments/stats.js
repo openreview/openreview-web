@@ -63,7 +63,7 @@ const AssignmentsStats = ({
             </button>
             <ul className="dropdown-menu dropdown-align-right">
               <li>
-                <a href={getEdgeBrowserUrl(configNoteId, configNoteContent).edgeBrowserUrl}>Browse Assignments</a>
+                <a href={getEdgeBrowserUrl(configNoteContent)}>Browse Assignments</a>
               </li>
             </ul>
           </div>
