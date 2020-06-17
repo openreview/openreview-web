@@ -9,7 +9,7 @@ import MessagesTable from '../components/MessagesTable'
 import ErrorAlert from '../components/ErrorAlert'
 import LoadingSpinner from '../components/LoadingSpinner'
 import MultiSelectorDropdown from '../components/MultiSelectorDropdown'
-import { auth } from '../lib/auth'
+import { auth, isSuperUser } from '../lib/auth'
 import api from '../lib/api-client'
 import { formatTimestamp } from '../lib/utils'
 
@@ -152,6 +152,11 @@ Message.getInitialProps = async (ctx) => {
       Router.replace('/login')
     }
   }
+
+  if (!isSuperUser(user)) {
+    return { statusCode: 403, message: 'Forbidden. Access to this page is restricted.' }
+  }
+
   return { accessToken: token }
 }
 
