@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 
 const MultiSelectorDropdown = ({
-  filters, onSelectionChange, disabled
+  filters, onSelectionChange, disabled,
 }) => {
   const allValues = [...filters.map(f => f.value), 'all']
   const [checkedValues, setCheckedValues] = useState(allValues)
