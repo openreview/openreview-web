@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 
 const MultiSelectorDropdown = ({
-  filters, onSelectionChange, disabled,
+  id, filters, onSelectionChange, disabled,
 }) => {
   const allValues = [...filters.map(f => f.value), 'all']
   const [checkedValues, setCheckedValues] = useState(allValues)
@@ -38,7 +38,7 @@ const MultiSelectorDropdown = ({
       <button
         className="form-control dropdown-toggle"
         type="button"
-        id="multiselection-button"
+        id={id}
         data-toggle="dropdown"
         aria-haspopup="true"
         aria-expanded="true"
