@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
+import Router from 'next/router'
 import Link from 'next/link'
 import upperFirst from 'lodash/upperFirst'
 import NoteList from '../components/NoteList'
+import { auth } from '../lib/auth'
 import api from '../lib/api-client'
 
 // Page Styles
@@ -468,6 +470,19 @@ const SignUp = () => {
       )}
     </div>
   )
+}
+
+SignUp.getInitialProps = (ctx) => {
+  const { user } = auth(ctx)
+  if (user) {
+    if (ctx.req) {
+      ctx.res.writeHead(302, { Location: '/' }).end()
+    } else {
+      Router.replace('/')
+    }
+  }
+
+  return {}
 }
 
 SignUp.bodyClass = 'sign-up'
