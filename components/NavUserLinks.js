@@ -53,7 +53,7 @@ const NavUserLinks = () => {
 
         <ul className="dropdown-menu">
           <li>
-            <Link href={`/profile?id=${user.profile.id}`}><a>Profile</a></Link>
+            <Link href="/profile"><a>Profile</a></Link>
           </li>
           <li className="visible-sm-block">
             <Link href="/activity"><a>Activity</a></Link>

@@ -1,19 +1,15 @@
 /**
  * Changes:
  * - module.exports
+ * - add local token var and a new setToken method
  */
 module.exports = (function() {
-
+  // Save authentication token as a private var
+  var token;
   var sm = mkStateManager();
 
   var update = function(key, val, noUpdate) {
-    if (key === 'token') {
-      if (val) {
-        window.localStorage.setItem('token', val);
-      } else {
-        window.localStorage.removeItem('token');
-      }
-    }
+    if (key === 'token') return;
     if (!noUpdate) {
       sm.update(key, val);
     }
@@ -40,7 +36,6 @@ module.exports = (function() {
         update('loadingCount', (sm.get('loadingCount') || 0) + 1);
       }
 
-      var token = window.localStorage.getItem('token');
       var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
       var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
       var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
@@ -156,6 +151,10 @@ module.exports = (function() {
     );
   };
 
+  var setToken = function(newAccessToken) {
+    token = newAccessToken;
+  };
+
   var getToken = function() {
     var token = readAuthCookie();
     return token;
@@ -188,6 +187,7 @@ module.exports = (function() {
     removeAllButMain: removeAllButMain,
     update: update,
     getToken: getToken,
+    setToken: setToken,
     login: login,
     logout: logout,
     post: post,

@@ -1,18 +1,20 @@
-const Table = ({ headings, children }) => (
-  <table className="table">
-    <thead>
-      <tr>
-        {headings.map((heading, index) => (
-          <th scope="col" key={heading.id} style={heading.width ? { width: heading.width } : {}}>
-            {heading.content}
-          </th>
-        ))}
-      </tr>
-    </thead>
-    <tbody>
-      {children}
-    </tbody>
-  </table>
-)
+function Table({ className, headings, children }) {
+  return (
+    <table className={`table ${className || ''}`}>
+      <thead>
+        <tr>
+          {headings.map((heading, index) => (
+            <th key={heading.id || index} scope="col" style={heading.width ? { width: heading.width } : null}>
+              {heading.content}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {children}
+      </tbody>
+    </table>
+  )
+}
 
 export default Table

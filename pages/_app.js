@@ -31,18 +31,25 @@ class OpenReviewApp extends App {
     this.onRouteChange = this.onRouteChange.bind(this)
   }
 
-  loginUser(authenticatedUser, userAccessToken) {
+  loginUser(authenticatedUser, userAccessToken, redirectPath = '/') {
     this.setState({ user: authenticatedUser, accessToken: userAccessToken })
     setAuthCookie(userAccessToken)
-    Router.push('/')
+
+    // Need pass new accessToken to Webfield and controller so legacy ajax functions work
+    window.Webfield.setToken(userAccessToken)
+    window.controller.setToken(userAccessToken)
+
+    Router.push(redirectPath)
   }
 
   logoutUser(redirectPath = '/') {
     this.setState({ user: null, accessToken: null })
     removeAuthCookie()
-    if (redirectPath) {
-      Router.push('/')
-    }
+
+    window.Webfield.setToken(null)
+    window.controller.setToken(null)
+
+    Router.push(redirectPath)
   }
 
   setBannerHidden(newHidden) {
@@ -98,6 +105,8 @@ class OpenReviewApp extends App {
 
     // Set required constants
     window.OR_API_URL = process.env.API_URL
+    window.Webfield.setToken(token)
+    window.controller.setToken(token)
 
     this.setState({ clientJsLoading: false })
   }
