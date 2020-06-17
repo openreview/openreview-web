@@ -416,7 +416,7 @@ const ConfirmationMessage = ({ registrationType, registeredEmail }) => {
         <p>
           An email with the subject &quot;OpenReview Password Reset&quot; has been sent to
           {'  '}
-          <strong>{registeredEmail}</strong>
+          <span className="email">{registeredEmail}</span>
           . Please follow the link in this email to reset your password.
         </p>
       </div>
