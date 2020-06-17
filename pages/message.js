@@ -114,7 +114,7 @@ const FilterForm = ({ onFiltersChange }) => {
 const Message = ({ accessToken, appContext }) => {
   const [messages, setMessages] = useState(null)
   const [error, setError] = useState(null)
-  const { setBannerHidden, clientJsLoading } = appContext
+  const [isLoading, setIsLoading] = useState(true)
   const [searchParams, setSearchParams] = useState({
     limit: 20,
     status: '',
@@ -128,10 +128,12 @@ const Message = ({ accessToken, appContext }) => {
       setSearchParams({ ...searchParams, status: filters.statuses })
     }
     if (filters.type === 'subject') {
-      setSearchParams({ ...searchParams, subject: filters.subject })
+      setSearchParams({ ...searchParams, subject: filters.subject ? `${filters.subject}.*` : '' })
     }
     if (filters.type === 'recipient') {
-      setSearchParams({ ...searchParams, to: filters.recipient })
+      if (filters.recipient === '' || filters.recipient.includes('@')) {
+        setSearchParams({ ...searchParams, to: filters.recipient })
+      }
     }
   }, 500)
 
@@ -145,7 +147,12 @@ const Message = ({ accessToken, appContext }) => {
   }
 
   useEffect(() => {
-    loadMessages()
+    setMessages([])
+    if (searchParams.status.length) {
+      setIsLoading(true)
+      loadMessages()
+        .then(() => setIsLoading(false))
+    }
   }, [searchParams])
 
   return (
@@ -165,9 +172,15 @@ const Message = ({ accessToken, appContext }) => {
         <ErrorAlert error={error} />
       )}
 
-      {messages ? (
+      {messages && (
         <MessagesTable messages={messages} />
-      ) : <LoadingSpinner />}
+      )}
+
+      {!isLoading && !messages.length && (
+        <div className="empty-message text-center">No messages found</div>
+      )}
+
+      {isLoading && <LoadingSpinner inline />}
 
     </div>
   )
