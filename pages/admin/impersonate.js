@@ -1,65 +1,95 @@
 /* globals promptError: false */
 
 import { useContext, useState } from 'react'
+import Head from 'next/head'
+import Link from 'next/link'
+import Icon from '../../components/Icon'
+import ErrorAlert from '../../components/ErrorAlert'
 import withAdminAuth from '../../components/withAdminAuth'
-import { auth } from '../../lib/auth'
 import api from '../../lib/api-client'
 import UserContext from '../../components/UserContext'
 
-const Impersonate = ({ superToken }) => {
-  const { loginUser, logoutUser } = useContext(UserContext)
-  const [id, setId] = useState('')
+const Impersonate = ({ accessToken }) => {
+  const [userId, setUserId] = useState('')
+  const [error, setError] = useState(null)
+  const { loginUser } = useContext(UserContext)
 
   const impersonateByEmail = async (email) => {
     try {
-      const result = await api.get('/impersonate', { groupId: email }, { accessToken: superToken })
-      const { user, token } = result
+      const { user, token } = await api.get('/impersonate', { groupId: email }, { accessToken })
       loginUser(user, token, '/profile')
-    } catch (error) {
-      promptError(error.message)
+    } catch (apiError) {
+      setError(apiError)
     }
   }
 
-  const impersonateByTildeId = async () => {
-    let email = null
-    try {
-      const result = await await api.get('/profiles', { id }, { accessToken: superToken })
-      email = result.profiles[0]?.content?.emails[0]
-    } catch (error) {
-      promptError(error.message)
+  const impersonateUser = async (e) => {
+    e.preventDefault()
+    setError(null)
+
+    let email
+    if (userId.startsWith('~')) {
+      try {
+        const { profiles } = await api.get('/profiles', { id: userId }, { accessToken })
+        email = profiles[0]?.content?.emails[0]
+        if (!email) {
+          setError({ message: `Email not found for username ${userId}` })
+        }
+      } catch (apiError) {
+        setError(apiError)
+      }
+    } else if (userId.includes('@')) {
+      email = userId
+    } else {
+      setError({ message: 'Please enter a valid username or email' })
     }
+
     if (email) {
       impersonateByEmail(email)
-    } else {
-      promptError("can't find email")
-    }
-  }
-
-  const ImpersonateUser = async () => {
-    if (id.startsWith('~')) {
-      impersonateByTildeId()
-    } else {
-      impersonateByEmail(id)
     }
   }
 
   return (
-    <>
-      <div className="form-group">
-        ID
-        <input className="form-control" value={id} placeholder="email or tilde id" onChange={(e) => { setId(e.target.value.trim()) }} />
+    <div className="row">
+      <Head>
+        <title key="title">Impersonate User | OpenReview</title>
+      </Head>
+
+      <div className="col-sm-12 col-md-8 col-lg-6 col-md-offset-2 col-lg-offset-3">
+        <h1>Impersonate User</h1>
+
+        <p className="text-muted mb-4">
+          Enter the user&apos;s email address or username below.
+        </p>
+
+        {error && (
+          <ErrorAlert error={error} />
+        )}
+
+        <form className="form-inline mb-4" onSubmit={impersonateUser}>
+          <div className="input-group mr-2" style={{ width: 'calc(100% - 128px)' }}>
+            <div className="input-group-addon" style={{ width: '34px' }}>
+              <Icon name="user" />
+            </div>
+            <input
+              type="text"
+              className={`form-control ${error ? 'form-invalid' : ''}`}
+              placeholder="john@example.com, ~Jane_Doe1"
+              value={userId}
+              onChange={e => setUserId(e.target.value.trim())}
+            />
+          </div>
+          <button type="submit" className="btn" disabled={userId.length < 3} style={{ width: '120px' }}>
+            Impersonate
+          </button>
+        </form>
+
+        <p className="help-block">
+          <Link href="/admin"><a>Back to Admin Console</a></Link>
+        </p>
       </div>
-
-      <button type="button" className="btn" onClick={ImpersonateUser}>
-        impersonate
-      </button>
-    </>
+    </div>
   )
-}
-
-Impersonate.getInitialProps = async (context) => {
-  const { token } = auth(context)
-  return { superToken: token }
 }
 
 export default withAdminAuth(Impersonate)
