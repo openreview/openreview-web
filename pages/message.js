@@ -68,7 +68,7 @@ const MessagesTable = ({ messages }) => (
   </Table>
 )
 
-const FilterForm = ({ onFiltersChange }) => {
+const FilterForm = ({ onFiltersChange, disabled }) => {
   const [filters, setFilters] = useState({
     statuses: [],
     subject: '',
@@ -96,16 +96,16 @@ const FilterForm = ({ onFiltersChange }) => {
           id="status-search-dropdown"
           filters={statusSearchFilters}
           onSelectionChange={handleSelectStatusChange}
-          parentId="status-search-dropdown"
+          disabled={disabled}
         />
       </div>
       <div className="form-group">
         <label htmlFor="subject-search-input">Subject:</label>
-        <input type="text" id="subject-search-input" className="form-control" placeholder="Message subject" onChange={e => handleSubjectChange(e.target.value)} />
+        <input type="text" id="subject-search-input" className="form-control" placeholder="Message subject" disabled={disabled} onChange={e => handleSubjectChange(e.target.value)} />
       </div>
       <div className="form-group">
         <label htmlFor="to-search-input">To:</label>
-        <input type="text" id="to-search-input" className="form-control" placeholder="To address" onChange={e => handleRecipientChange(e.target.value)} />
+        <input type="text" id="to-search-input" className="form-control" placeholder="To address" disabled={disabled} onChange={e => handleRecipientChange(e.target.value)} />
       </div>
     </form>
   )
@@ -166,7 +166,7 @@ const Message = ({ accessToken, appContext }) => {
         <h1 className="text-center">Message Viewer</h1>
       </header>
 
-      <FilterForm onFiltersChange={handleSearchParamChange} />
+      <FilterForm onFiltersChange={handleSearchParamChange} disabled={isLoading} />
 
       {error && (
         <ErrorAlert error={error} />
