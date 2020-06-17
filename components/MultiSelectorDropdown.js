@@ -49,14 +49,25 @@ const MultiSelectorDropdown = ({
       <ul className="dropdown-menu checkbox-menu allow-focus" aria-labelledby="{{id}}">
         <li className="select-all-item">
           <label>
-            <input value="all" className="select-all-checkbox" type="checkbox" checked={checkedValues.includes('all')} onChange={(e) => { handleSelectAllChange(e.target.value) }} />
+            <input
+              value="all"
+              className="select-all-checkbox"
+              type="checkbox"
+              checked={checkedValues.includes('all')}
+              onChange={e => handleSelectAllChange(e.target.value)}
+            />
             Select All
           </label>
         </li>
         {filters.map(filter => (
           <li key={filter.value}>
             <label>
-              <input value={filter.value} type="checkbox" checked={checkedValues.includes(filter.value)} onChange={(e) => { handleSelectValueChange(e.target.value) }} />
+              <input
+                value={filter.value}
+                type="checkbox"
+                checked={checkedValues.includes(filter.value)}
+                onChange={e => handleSelectValueChange(e.target.value)}
+              />
               {filter.text}
             </label>
           </li>

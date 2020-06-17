@@ -27,12 +27,25 @@ const MessageRow = ({ message }) => (
       <div className="email-title">
         <strong>{message.content?.subject}</strong>
       </div>
-      <div role="button" tabIndex="0" className="email-content collapsed" onClick={e => e.currentTarget.classList.toggle('collapsed')} onKeyDown={e => e.currentTarget.classList.toggle('collapsed')}>
+      <div
+        role="button"
+        tabIndex="0"
+        className="email-content collapsed"
+        onClick={e => e.currentTarget.classList.toggle('collapsed')}
+        onKeyDown={e => e.currentTarget.classList.toggle('collapsed')}
+      >
         <p>{message.content?.text}</p>
         <div className="gradient-overlay" />
       </div>
       <div>
-        <a href={`/messages?id=${message.id}`} target="_blank" rel="noreferrer" className="log-link">Message Log</a>
+        <a
+          href={`${process.env.API_URL}/messages?id=${message.id}`}
+          target="_blank"
+          rel="noreferrer"
+          className="log-link"
+        >
+          Message Log
+        </a>
       </div>
     </td>
   </tr>
@@ -43,7 +56,7 @@ const MessagesTable = ({ messages }) => (
     { id: 'status', content: 'Status', width: '96px' },
     { id: 'details', content: 'Message Details' }]}
   >
-    {messages.length !== 0 && messages.map((m, i) => (
+    {messages?.length !== 0 && messages.map((m, i) => (
       <MessageRow key={m.id} message={m} />
     ))}
   </Table>

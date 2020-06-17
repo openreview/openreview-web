@@ -1,7 +1,7 @@
 /* globals $: false */
 /* globals Handlebars: false */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import debounce from 'lodash/debounce'
 import Head from 'next/head'
 import Router from 'next/router'
@@ -11,19 +11,8 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import MultiSelectorDropdown from '../components/MultiSelectorDropdown'
 import { auth, isSuperUser } from '../lib/auth'
 import api from '../lib/api-client'
-import { formatTimestamp } from '../lib/utils'
 
 import '../styles/pages/message.less'
-
-const statusSearchFilters = [
-  { text: 'Delivered', value: 'delivered' },
-  { text: 'Bounced', value: 'bounce' },
-  { text: 'Processed', value: 'processed' },
-  { text: 'Dropped', value: 'dropped' },
-  { text: 'Error', value: 'error' },
-  { text: 'Blocked', value: 'blocked' },
-  { text: 'Deferred', value: 'deferred' },
-]
 
 const FilterForm = ({ onFiltersChange, disabled }) => {
   const [filters, setFilters] = useState({
@@ -31,6 +20,15 @@ const FilterForm = ({ onFiltersChange, disabled }) => {
     subject: '',
     recipient: '',
   })
+  const statusSearchFilters = [
+    { text: 'Delivered', value: 'delivered' },
+    { text: 'Bounced', value: 'bounce' },
+    { text: 'Processed', value: 'processed' },
+    { text: 'Dropped', value: 'dropped' },
+    { text: 'Error', value: 'error' },
+    { text: 'Blocked', value: 'blocked' },
+    { text: 'Deferred', value: 'deferred' },
+  ]
   const handleSelectStatusChange = (value) => {
     setFilters({ type: 'status', statuses: value })
   }
