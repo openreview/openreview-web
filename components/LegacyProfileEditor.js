@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import api from '../lib/api-client'
-import editController from '../client/profileView'
+import editController from '../client/profile-view'
 
 import '../styles/components/legacy-profile-editor.less'
 

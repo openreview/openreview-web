@@ -1,14 +1,14 @@
-/* ==========================================================================
-   Assignment Stats Page
-   ========================================================================== */
+@import "../utils/constants";
 
-main.assignments-stats {
-  #stats-header {
+main.assignment-stats {
+
+  header {
     margin-top: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
 
     h1 {
       font-size: 2rem;
+      font-weight: normal;
       line-height: 34px;
       margin: 0;
     }
@@ -29,6 +29,16 @@ main.assignments-stats {
     }
   }
 
+  #stats-container-basic {
+    margin-right: -.5rem;
+    margin-left: -.5rem;
+
+    & > div {
+      padding-left: .5rem;
+      padding-right: .5rem;
+    }
+  }
+
   rect.bar {
     fill: #aaa;
 
@@ -42,13 +52,22 @@ main.assignments-stats {
     }
   }
 
+  rect.hover-bar {
+    fill: transparent;
+    cursor: pointer;
+
+    &:hover {
+      fill: rgba(234, 234, 234, 0.5);
+    }
+  }
+
   .stat-scalar {
     background-color: @sandyBrown;
     border: 1px solid @backgroundGray;
     text-align: center;
     height: 180px;
-    padding: 15px;
-    margin-bottom: 15px;
+    padding: 1rem;
+    margin-bottom: 1rem;
 
     .stat-val {
       font-size: 1.75rem;
@@ -73,9 +92,6 @@ main.assignments-stats {
     }
   }
 
-  .hidden {
-    display: none;
-  }
 }
 
 

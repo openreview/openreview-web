@@ -9,13 +9,7 @@ module.exports = (function() {
   var sm = mkStateManager();
 
   var update = function(key, val, noUpdate) {
-    if (key === 'token') {
-      if (val) {
-        window.localStorage.setItem('token', val);
-      } else {
-        window.localStorage.removeItem('token');
-      }
-    }
+    if (key === 'token') return;
     if (!noUpdate) {
       sm.update(key, val);
     }
@@ -42,7 +36,6 @@ module.exports = (function() {
         update('loadingCount', (sm.get('loadingCount') || 0) + 1);
       }
 
-      var token = window.localStorage.getItem('token');
       var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
       var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
       var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';

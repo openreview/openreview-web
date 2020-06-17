@@ -3,6 +3,7 @@ import { auth, isSuperUser } from '../lib/auth'
 
 export default function withAdminAuth(Component) {
   const WithAdminAuth = Component
+  const hasGetInitialProps = !!Component.getInitialProps
 
   WithAdminAuth.getInitialProps = (ctx) => {
     const { user, token } = auth(ctx)
@@ -11,11 +12,11 @@ export default function withAdminAuth(Component) {
       return { statusCode: 403, message: 'Forbidden. Access to this page is restricted.' }
     }
 
-    if (Component.getInitialProps) {
+    if (hasGetInitialProps) {
       // withAdminAuth always passes the query params and access token as props to wrappen
       // component, so need to warn the user if that component has getInitialProps definied
       // eslint-disable-next-line no-console
-      console.warn('withAdminAuth does not call getInitialProps of wrapped component')
+      console.warn('Warning: withAdminAuth does not call getInitialProps of wrapped component')
     }
 
     return { ...ctx.query, accessToken: token }
