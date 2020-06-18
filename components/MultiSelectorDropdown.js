@@ -46,7 +46,7 @@ const MultiSelectorDropdown = ({
       >
         {getButtonText()}
       </button>
-      <ul className="dropdown-menu checkbox-menu allow-focus" aria-labelledby="{{id}}">
+      <ul className="dropdown-menu checkbox-menu allow-focus">
         <li className="select-all-item">
           <label>
             <input

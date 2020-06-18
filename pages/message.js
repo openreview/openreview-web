@@ -2,7 +2,6 @@
 /* globals Handlebars: false */
 
 import { useState, useEffect } from 'react'
-import debounce from 'lodash/debounce'
 import Head from 'next/head'
 import Router from 'next/router'
 import MessagesTable from '../components/MessagesTable'
@@ -78,7 +77,7 @@ const Message = ({ accessToken, appContext }) => {
     offset: 0,
   })
 
-  const handleSearchParamChange = debounce((filters) => {
+  const handleSearchParamChange = (filters) => {
     if (filters.type === 'status') {
       setSearchParams({ ...searchParams, status: filters.statuses })
     }
@@ -90,7 +89,7 @@ const Message = ({ accessToken, appContext }) => {
         setSearchParams({ ...searchParams, to: filters.recipient })
       }
     }
-  }, 500)
+  }
 
   const loadMessages = async () => {
     try {
