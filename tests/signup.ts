@@ -13,14 +13,14 @@ fixture`new profile`
 test('enter invalid name', async t => {
   await t
     .typeText(firstNameInputSelector, 'abc')
-    .typeText(lastNameInputSelector, '1') // should one char last name trigger validation check?
+    .typeText(lastNameInputSelector, '1')
     .expect(Selector('.important_message').exists).ok()
     .expect(Selector('.important_message').textContent).eql('Name is not allowed to contain digits')
 })
 test('enter valid name invalid email and change to valid email and register', async t => {
-  const firstName = 'testFirstNameaaa' //must be new each test run
-  const lastName = 'testLastNameaaa' //must be new each test run
-  const email = 'testemailaaa@test.com' //must be new each test run
+  const firstName = 'testFirstNameaac' //must be new each test run
+  const lastName = 'testLastNameaac' //must be new each test run
+  const email = 'testemailaac@test.com' //must be new each test run
   await t
     .typeText(firstNameInputSelector, firstName) //must be new each test run
     .typeText(lastNameInputSelector, lastName) //must be new each test run
@@ -28,10 +28,8 @@ test('enter valid name invalid email and change to valid email and register', as
     .click(signupButtonSelector)
     .expect(passwordInputSelector.exists).notOk() // password input should not show when email is invalid
   await t
-    .selectText(emailAddressInputSelector)
-    .pressKey('delete')
     //enter a valid email
-    .typeText(emailAddressInputSelector, email)
+    .typeText(emailAddressInputSelector, email, { replace: true })
     .click(signupButtonSelector)
     .expect(passwordInputSelector.exists).ok()
     .typeText(passwordInputSelector, '1234')
