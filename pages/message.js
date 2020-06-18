@@ -1,7 +1,8 @@
 /* globals $: false */
 /* globals Handlebars: false */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import debounce from 'lodash/debounce'
 import Head from 'next/head'
 import Router from 'next/router'
 import MessagesTable from '../components/MessagesTable'
@@ -99,6 +100,8 @@ const Message = ({ accessToken, appContext }) => {
     }
   }
 
+  const onParamChange = useCallback(debounce(handleSearchParamChange, 500))
+
   const loadMessages = async () => {
     try {
       const apiRes = await api.get('/messages', searchParams, { accessToken })
@@ -129,7 +132,7 @@ const Message = ({ accessToken, appContext }) => {
         <h1 className="text-center">Message Viewer</h1>
       </header>
 
-      <FilterForm onFiltersChange={handleSearchParamChange} isLoading={isLoading} />
+      <FilterForm onFiltersChange={onParamChange} isLoading={isLoading} />
 
       {error && (
         <ErrorAlert error={error} />
