@@ -11,7 +11,7 @@ import { auth } from '../lib/auth'
 // Page Styles
 import '../styles/pages/login.less'
 
-const LoginForm = ({ redirectPath }) => {
+const LoginForm = ({ redirect }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState(null)
@@ -23,7 +23,7 @@ const LoginForm = ({ redirectPath }) => {
 
     try {
       const { user, token } = await api.post('/login', { id: email, password })
-      loginUser(user, token, redirectPath)
+      loginUser(user, token, redirect)
     } catch (error) {
       setLoginError(error)
       promptError(error.message)
@@ -80,8 +80,7 @@ const Login = ({ redirect }) => (
 
     <div className="login-container col-sm-12 col-md-5 col-lg-4 col-md-offset-1 col-lg-offset-2">
       <h1>Login</h1>
-
-      <LoginForm redirectPath={redirect} />
+      <LoginForm redirect={redirect} />
     </div>
 
     <div className="signup-container col-sm-12 col-md-5 col-lg-4">

@@ -1,10 +1,13 @@
 /* globals promptError: false */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Head from 'next/head'
+import Router from 'next/router'
 import Link from 'next/link'
 import upperFirst from 'lodash/upperFirst'
+import debounce from 'lodash/debounce'
 import NoteList from '../components/NoteList'
+import { auth } from '../lib/auth'
 import api from '../lib/api-client'
 
 // Page Styles
@@ -17,11 +20,9 @@ const SignupForm = ({ setSignupConfirmation }) => {
   const [newUsername, setNewUsername] = useState('')
   const [existingProfiles, setExistingProfiles] = useState([])
 
-  const getNewUsername = async () => {
+  const getNewUsername = useCallback(debounce(async (first, middle, last) => {
     try {
-      const { username } = await api.get('/tildeusername', {
-        first: firstName, middle: middleName, last: lastName,
-      })
+      const { username } = await api.get('/tildeusername', { first, middle, last })
       if (username) {
         setNewUsername(username)
       }
@@ -29,25 +30,24 @@ const SignupForm = ({ setSignupConfirmation }) => {
       setNewUsername('')
       promptError(apiError.message)
     }
-  }
+  }, 200), [])
 
-  const getMatchingProfiles = () => (
-    // Don't include middle name in profile search to find more results
-    api.get('/profiles', { first: firstName, last: lastName, limit: 50 })
-      .then(({ profiles }) => {
-        if (!profiles) return
-
+  const getMatchingProfiles = useCallback(debounce(async (first, last) => {
+    try {
+      // Don't include middle name in profile search to find more results
+      const { profiles } = await api.get('/profiles', { first, last, limit: 50 })
+      if (profiles) {
         setExistingProfiles(profiles.map(profile => ({
           id: profile.id,
           emails: profile.content?.emailsConfirmed || [],
           active: profile.active,
           password: profile.password,
         })))
-      })
-      .catch(() => {
-        setExistingProfiles([])
-      })
-  )
+      }
+    } catch (error) {
+      setExistingProfiles([])
+    }
+  }, 300), [])
 
   const registerUser = async (registrationType, email, password, id) => {
     let bodyData = {}
@@ -92,15 +92,20 @@ const SignupForm = ({ setSignupConfirmation }) => {
   }
 
   useEffect(() => {
-    if (firstName.trim().length < 2 || lastName.trim().length < 2) {
+    if (firstName.trim().length < 1 || lastName.trim().length < 1) {
       setNewUsername('')
+      return
+    }
+    getNewUsername(firstName, middleName, lastName)
+  }, [firstName, middleName, lastName])
+
+  useEffect(() => {
+    if (firstName.trim().length < 2 || lastName.trim().length < 2) {
       setExistingProfiles([])
       return
     }
-
-    getNewUsername()
-    getMatchingProfiles()
-  }, [firstName, middleName, lastName])
+    getMatchingProfiles(firstName, lastName)
+  }, [firstName, lastName])
 
   return (
     <div className="signup-form-container">
@@ -411,7 +416,7 @@ const ConfirmationMessage = ({ registrationType, registeredEmail }) => {
         <p>
           An email with the subject &quot;OpenReview Password Reset&quot; has been sent to
           {'  '}
-          <strong>{registeredEmail}</strong>
+          <span className="email">{registeredEmail}</span>
           . Please follow the link in this email to reset your password.
         </p>
       </div>
@@ -468,6 +473,19 @@ const SignUp = () => {
       )}
     </div>
   )
+}
+
+SignUp.getInitialProps = (ctx) => {
+  const { user } = auth(ctx)
+  if (user) {
+    if (ctx.req) {
+      ctx.res.writeHead(302, { Location: '/' }).end()
+    } else {
+      Router.replace('/')
+    }
+  }
+
+  return {}
 }
 
 SignUp.bodyClass = 'sign-up'
