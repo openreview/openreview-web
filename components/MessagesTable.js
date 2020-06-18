@@ -21,7 +21,7 @@ const MessageRow = ({ message }) => (
         </div>
         <div className="email-sent pull-right">
           Sent:
-          <span>{formatTimestamp(message.timestamp)}</span>
+          <span>{formatTimestamp(message.timestamp * 1000)}</span>
         </div>
       </div>
       <div className="email-title">

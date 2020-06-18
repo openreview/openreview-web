@@ -4,15 +4,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import debounce from 'lodash/debounce'
 import Head from 'next/head'
-import Router from 'next/router'
-import MessagesTable from '../components/MessagesTable'
-import ErrorAlert from '../components/ErrorAlert'
-import LoadingSpinner from '../components/LoadingSpinner'
-import MultiSelectorDropdown from '../components/MultiSelectorDropdown'
-import { auth, isSuperUser } from '../lib/auth'
-import api from '../lib/api-client'
+import withAdminAuth from '../../components/withAdminAuth'
+import MessagesTable from '../../components/MessagesTable'
+import ErrorAlert from '../../components/ErrorAlert'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import MultiSelectorDropdown from '../../components/MultiSelectorDropdown'
+import { auth } from '../../lib/auth'
+import api from '../../lib/api-client'
 
-import '../styles/pages/message.less'
+import '../../styles/pages/message.less'
 
 const FilterForm = ({ onFiltersChange, isLoading }) => {
   const [filters, setFilters] = useState({
@@ -122,7 +122,7 @@ const Message = ({ accessToken, appContext }) => {
   }, [searchParams])
 
   return (
-    <div>
+    <div id="message-viewer-container">
 
       <Head>
         <title key="title">Message Viewer | OpenReview</title>
@@ -154,21 +154,9 @@ const Message = ({ accessToken, appContext }) => {
 
 Message.getInitialProps = async (ctx) => {
   const { user, token } = auth(ctx)
-  if (!user) {
-    if (ctx.req) {
-      ctx.res.writeHead(302, { Location: '/login' }).end()
-    } else {
-      Router.replace('/login')
-    }
-  }
-
-  if (!isSuperUser(user)) {
-    return { statusCode: 403, message: 'Forbidden. Access to this page is restricted.' }
-  }
-
   return { accessToken: token }
 }
 
 Message.bodyClass = 'message'
 
-export default Message
+export default withAdminAuth(Message)
