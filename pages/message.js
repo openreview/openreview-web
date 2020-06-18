@@ -13,7 +13,7 @@ import api from '../lib/api-client'
 
 import '../styles/pages/message.less'
 
-const FilterForm = ({ onFiltersChange, disabled }) => {
+const FilterForm = ({ onFiltersChange, isLoading }) => {
   const [filters, setFilters] = useState({
     statuses: [],
     subject: '',
@@ -50,17 +50,25 @@ const FilterForm = ({ onFiltersChange, disabled }) => {
           id="status-search-dropdown"
           filters={statusSearchFilters}
           onSelectionChange={handleSelectStatusChange}
-          disabled={disabled}
+          disabled={isLoading}
         />
       </div>
       <div className="form-group">
         <label htmlFor="subject-search-input">Subject:</label>
-        <input type="text" id="subject-search-input" className="form-control" placeholder="Message subject" disabled={disabled} onChange={e => handleSubjectChange(e.target.value)} />
+        <input type="text" id="subject-search-input" className="form-control" placeholder="Message subject" disabled={isLoading} onChange={e => handleSubjectChange(e.target.value)} />
       </div>
       <div className="form-group">
         <label htmlFor="to-search-input">To:</label>
-        <input type="text" id="to-search-input" className="form-control" placeholder="To address" disabled={disabled} onChange={e => handleRecipientChange(e.target.value)} />
+        <input type="text" id="to-search-input" className="form-control" placeholder="To address" disabled={isLoading} onChange={e => handleRecipientChange(e.target.value)} />
       </div>
+      {isLoading && (
+        <div className="spinner-small">
+          <div className="rect1" />
+          <div className="rect2" />
+          <div className="rect3" />
+          <div className="rect4" />
+        </div>
+      )}
     </form>
   )
 }
@@ -101,8 +109,9 @@ const Message = ({ accessToken, appContext }) => {
   }
 
   useEffect(() => {
-    setMessages([])
-    if (searchParams.status.length) {
+    if (searchParams.status.length === 0) {
+      setMessages([])
+    } else {
       setIsLoading(true)
       loadMessages()
         .then(() => setIsLoading(false))
@@ -120,7 +129,7 @@ const Message = ({ accessToken, appContext }) => {
         <h1 className="text-center">Message Viewer</h1>
       </header>
 
-      <FilterForm onFiltersChange={handleSearchParamChange} disabled={isLoading} />
+      <FilterForm onFiltersChange={handleSearchParamChange} isLoading={isLoading} />
 
       {error && (
         <ErrorAlert error={error} />
@@ -130,7 +139,7 @@ const Message = ({ accessToken, appContext }) => {
         <MessagesTable messages={messages} />
       )}
 
-      {!isLoading && !messages.length && (
+      {!isLoading && !messages?.length && (
         <div className="empty-message text-center">No messages found</div>
       )}
 
