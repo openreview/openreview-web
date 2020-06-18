@@ -17,10 +17,12 @@ const MessageRow = ({ message }) => (
       <div className="clearfix">
         <div className="email-to pull-left">
           To:
+          {' '}
           <span>{message.content?.to}</span>
         </div>
         <div className="email-sent pull-right">
           Sent:
+          {' '}
           <span>{formatTimestamp(message.timestamp * 1000)}</span>
         </div>
       </div>
