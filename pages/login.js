@@ -36,17 +36,12 @@ const LoginForm = ({ redirect }) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      {loginError && (
-        <div className="alert alert-danger">
-          <span>{loginError.message}</span>
-        </div>
-      )}
       <div className="form-group">
         <label htmlFor="email-input">Email</label>
         <input
           id="email-input"
           type="text"
-          className="form-control"
+          className={`form-control ${loginError ? 'form-invalid' : ''}`}
           placeholder="Email"
           value={email}
           onChange={e => setEmail(e.target.value)}
@@ -58,7 +53,7 @@ const LoginForm = ({ redirect }) => {
         <input
           id="password-input"
           type="password"
-          className="form-control"
+          className={`form-control ${loginError ? 'form-invalid' : ''}`}
           placeholder="Password"
           value={password}
           onChange={e => setPassword(e.target.value)}
