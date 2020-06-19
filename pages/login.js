@@ -1,4 +1,5 @@
 /* globals promptError: false */
+/* globals promptMessage: false */
 
 import { useState, useContext } from 'react'
 import Link from 'next/link'
@@ -34,6 +35,19 @@ const LoginForm = ({ redirect }) => {
     loginUser(user, token, redirect)
   }
 
+  const handleResendConfirmation = async (e) => {
+    e.preventDefault()
+
+    try {
+      await api.post('/activatable', { id: email })
+      promptMessage(`A confirmation email with the subject "OpenReview signup confirmation" has been sent to ${email}.
+        Please click the link in this email to confirm your email address and complete registration.`, { noTimeout: true })
+    } catch (error) {
+      setLoginError(error)
+      promptError(error.message)
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit}>
       <div className="form-group">
@@ -66,6 +80,9 @@ const LoginForm = ({ redirect }) => {
 
       <p className="help-block">
         <Link href="/reset"><a>Forgot your password?</a></Link>
+        <br />
+        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+        <a href="#" onClick={handleResendConfirmation}>Didn&apos;t receive email confirmation?</a>
       </p>
     </form>
   )
