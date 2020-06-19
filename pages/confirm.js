@@ -7,7 +7,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import withError from '../components/withError'
 import api from '../lib/api-client'
 
-const Activate = ({ activateToken }) => {
+const Confirm = ({ activateToken }) => {
   const router = useRouter()
 
   const activate = async () => {
@@ -18,7 +18,7 @@ const Activate = ({ activateToken }) => {
     } catch (error) {
       promptError(error.message)
     }
-    router.push('/')
+    router.replace('/')
   }
 
   useEffect(() => {
@@ -28,11 +28,11 @@ const Activate = ({ activateToken }) => {
   return <LoadingSpinner />
 }
 
-Activate.getInitialProps = async (context) => {
+Confirm.getInitialProps = (context) => {
   if (!context.query.token) {
     return { statusCode: 404, message: 'Activation token not found' }
   }
   return { activateToken: context.query.token }
 }
 
-export default withError(Activate)
+export default withError(Confirm)

@@ -351,7 +351,7 @@ module.exports = function(profile, params, submitF, cancelF) {
         $('<div>', {text: 'First', class: 'small_heading'})
       ),
       $('<td>', {class: 'info_item'}).append(
-        $('<div>', {text: 'Middle (optional)', class: 'small_heading'})
+        $('<div>', {class: 'small_heading'}).append(['Middle ', '<span class="hint">(optional)</span>'])
       ),
       $('<td>', {class: 'info_item'}).append(
         $('<div>', {text: 'Last', class: 'small_heading'})
@@ -1058,7 +1058,7 @@ module.exports = function(profile, params, submitF, cancelF) {
     }).filter(function(i) {
       return !_.isEmpty(i);
     });
-    var buttonText = params.buttonText;
+    var buttonText = params.submitButtonText;
     publicationIdsToUnlink = [];
 
     var getNames = function() {
@@ -1227,15 +1227,19 @@ module.exports = function(profile, params, submitF, cancelF) {
           '<div class="rect3"></div><div class="rect4"></div>',
         '</div>'
       ].join('\n'));
-      $cancelButton.prop({ disabled: true });
+      if ($cancelButton) {
+        $cancelButton.prop({ disabled: true });
+      }
       submitF(newProfile, function() {
         $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
-        $cancelButton.prop({ disabled: false });
+        if ($cancelButton) {
+          $cancelButton.prop({ disabled: false });
+        }
       });
       return true;
     });
 
-    var $cancelButton = $('<button class="btn btn-default">Cancel</button>').click(function() {
+    var $cancelButton = params.hideCancelButton ? null : $('<button class="btn btn-default">Cancel</button>').click(function() {
       var $newPanel = drawView(profile, prefixedPositions, prefixedInstitutions, institutions);
       $mainView.empty().append($newPanel);
       $panel = $newPanel;
