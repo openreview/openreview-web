@@ -1,0 +1,150 @@
+import { useState, useEffect, useContext } from 'react'
+import Head from 'next/head'
+import { useRouter } from 'next/router'
+import uniq from 'lodash/uniq'
+import UserContext from '../../components/UserContext'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import EdgeBrowser from '../../components/browser/EdgeBrowser'
+import api from '../../lib/api-client'
+import { parseEdgeList, buildInvitationReplyArr } from '../../lib/edge-utils'
+import { prettyId } from '../../lib/utils'
+
+import '../../styles/pages/edge-browser.less'
+
+const Browse = ({ appContext }) => {
+  const [invitations, setInvitations] = useState(null)
+  const [groupId, setGroupId] = useState('')
+  const [maxColumns, setMaxColumns] = useState(null)
+  const [error, setError] = useState(null)
+  const { user, accessToken } = useContext(UserContext)
+  const { query } = useRouter()
+
+  const notFoundError = {
+    name: 'Not Found', message: 'Could not load edge explorer. Invitation not found.', statusCode: 404,
+  }
+  const forbiddenError = {
+    name: 'Forbidden', message: 'You do not have permission to view this invitation.', statusCode: 403,
+  }
+  const invalidError = {
+    name: 'Not Found', message: 'Could not load edge explorer. Invalid edge invitation.', statusCode: 400,
+  }
+  const unknownError = {
+    name: 'Server Error', message: 'Could not load edge explorer.', statusCode: 500,
+  }
+
+  useEffect(() => {
+    if (!user || !query) return
+
+    if (!query.traverse || !query.browse) {
+      setError(notFoundError)
+      return
+    }
+
+    const startInvitations = parseEdgeList(query.start)
+    const traverseInvitations = parseEdgeList(query.traverse)
+    const editInvitations = parseEdgeList(query.edit)
+    const browseInvitations = parseEdgeList(query.browse)
+    const hideInvitations = parseEdgeList(query.hide)
+    const allInvitations = traverseInvitations.concat(
+      startInvitations, editInvitations, browseInvitations, hideInvitations,
+    )
+    if (allInvitations.length === 0) {
+      setError(invalidError)
+      return
+    }
+
+    // Use the first traverse invitation as the main group ID
+    setGroupId(allInvitations[0].id.split('/-/')[0])
+    setMaxColumns(Math.max(Number.parseInt(query.maxColumns, 10), -1) || -1)
+
+    const idsToLoad = uniq(allInvitations.map(i => i.id)).filter(id => id !== 'staticList')
+    api.get('/invitations', { ids: idsToLoad.join(','), expired: true, type: 'edges' }, { accessToken })
+      .then((apiRes) => {
+        if (!apiRes.invitations?.length) {
+          setError(invalidError)
+          return
+        }
+
+        let allValid = true
+        allInvitations.forEach((invObj) => {
+          const fullInvitation = apiRes.invitations.find((inv) => {
+            // For static lists, use the properties of the first traverse invitation
+            const invId = invObj.id === 'staticList' ? allInvitations[0].id : invObj.id
+            return inv.id === invId
+          })
+          if (!fullInvitation) {
+            allValid = false
+            return
+          }
+
+          const readers = buildInvitationReplyArr(fullInvitation, 'readers', user.profile.id)
+          const writers = buildInvitationReplyArr(fullInvitation, 'writers', user.profile.id) || readers
+          const signatures = buildInvitationReplyArr(fullInvitation, 'signatures', user.profile.id)
+          Object.assign(invObj, {
+            head: fullInvitation.reply.content.head,
+            tail: fullInvitation.reply.content.tail,
+            weight: fullInvitation.reply.content.weight,
+            label: fullInvitation.reply.content.label,
+            readers,
+            writers,
+            signatures,
+          })
+        })
+        if (!allValid) {
+          setError(invalidError)
+          return
+        }
+
+        setInvitations({
+          startInvitation: startInvitations,
+          traverseInvitations,
+          editInvitations,
+          browseInvitations,
+          hideInvitations,
+          allInvitations,
+        })
+      })
+      .catch((apiError) => {
+        if (typeof apiError === 'object' && apiError.type) {
+          if (apiError.type === 'Not Found') {
+            setError(notFoundError)
+          } else if (error.type === 'forbidden') {
+            setError(forbiddenError)
+          }
+        } else if (typeof apiError === 'string' && apiError.startsWith('Invitation Not Found')) {
+          setError(notFoundError)
+        }
+        setError(unknownError)
+      })
+  }, [user, query])
+
+  useEffect(() => {
+    console.log(invitations)
+  }, invitations)
+
+  return (
+    <div>
+      <Head>
+        <title key="title">Edge Browser | OpenReview</title>
+      </Head>
+
+      {invitations ? (
+        <EdgeBrowser
+          title={prettyId(groupId)}
+          startInvitation={invitations.startInvitations}
+          traverseInvitations={invitations.traverseInvitations}
+          editInvitations={invitations.editInvitations}
+          browseInvitations={invitations.browseInvitations}
+          hideInvitations={invitations.hideInvitations}
+          maxColumns={maxColumns}
+        />
+      ) : (
+        <LoadingSpinner />
+      )}
+    </div>
+  )
+}
+
+Browse.bodyClass = 'edge-browser'
+
+export default Browse
