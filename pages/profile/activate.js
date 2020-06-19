@@ -13,7 +13,7 @@ import { formatProfileData } from '../../lib/profiles'
 // Page Styles
 import '../../styles/pages/profile-edit.less'
 
-const CreateProfile = ({ appContext }) => {
+const ActivateProfile = ({ appContext }) => {
   const [activateToken, setActivateToken] = useState('')
   const [profile, setProfile] = useState(null)
   const { loginUser } = useContext(UserContext)
@@ -62,7 +62,7 @@ const CreateProfile = ({ appContext }) => {
       <header>
         <h1>Complete Registration</h1>
         <h5>
-          Enter your full name and current institution to complete your registration.
+          Enter your current institution and at least one web URL to complete your registration.
           All other fields are optional.
         </h5>
       </header>
@@ -83,6 +83,6 @@ const CreateProfile = ({ appContext }) => {
   )
 }
 
-CreateProfile.bodyClass = 'profile-edit'
+ActivateProfile.bodyClass = 'profile-edit'
 
-export default CreateProfile
+export default ActivateProfile
