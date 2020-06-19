@@ -79,7 +79,7 @@ const Activity = ({ user, accessToken, appContext }) => {
   )
 }
 
-Activity.getInitialProps = async (ctx) => {
+Activity.getInitialProps = (ctx) => {
   const { user, token } = auth(ctx)
   if (!user) {
     if (ctx.req) {

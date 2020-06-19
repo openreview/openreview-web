@@ -22,17 +22,13 @@ const LoginForm = ({ redirect }) => {
     e.preventDefault()
     setLoginError(null)
 
-    let apiRes
     try {
-      apiRes = await api.post('/login', { id: email, password })
+      const { user, token } = await api.post('/login', { id: email, password })
+      loginUser(user, token, redirect)
     } catch (error) {
       setLoginError(error)
       promptError(error.message)
-      return
     }
-
-    const { user, token } = apiRes
-    loginUser(user, token, redirect)
   }
 
   const handleResendConfirmation = async (e) => {
@@ -110,7 +106,7 @@ const Login = ({ redirect }) => (
   </div>
 )
 
-Login.getInitialProps = async (ctx) => {
+Login.getInitialProps = (ctx) => {
   const { user } = auth(ctx)
   if (user) {
     if (ctx.req) {
