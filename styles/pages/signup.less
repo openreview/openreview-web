@@ -1,8 +1,17 @@
 @import "../utils/constants";
 
 main.sign-up {
+
+  h1 {
+    margin-bottom: 1rem;
+  }
+  hr.spacer {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+
   .signup-form-container {
-    margin-top: 1rem;
+    margin-top: 1.5rem;
     margin-bottom: 2rem;
 
     .row {
@@ -16,9 +25,6 @@ main.sign-up {
       @media @tablet {
         margin-bottom: 0;
       }
-      @media @desktop {
-        max-width: 250px;
-      }
     }
     label {
       color: @orRed;
@@ -27,23 +33,46 @@ main.sign-up {
       font-size: .75rem;
       margin-bottom: 0;
     }
-
     .form-inline {
-      margin-top: 2.5rem;
+      margin-top: .75rem;
       overflow: hidden;
 
       input {
-        width: 400px;
+        width: 320px;
         max-width: 100%;
         margin-right: 10px;
       }
       button {
-        width: 200px;
-        margin-right: 1rem;
+        width: 180px;
+        margin-right: 10px;
       }
       .new-username {
+        display: inline-block;
         vertical-align: middle;
+        width: calc(~'100%' - 520px);
+      }
+      .password-row {
+        padding-top: .5rem;
+      }
+      .submissions-list {
+        margin-top: -.5rem;
       }
     }
   }
+
+  .confirm-message {
+    margin-bottom: 1.5rem;
+    span.email {
+      font-weight: bold;
+      color: @mediumBlue;
+    }
+    strong {
+      color: @orRed;
+    }
+  }
+
+  .merge-message {
+    margin-top: 2rem;
+  }
+
 }
