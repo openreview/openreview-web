@@ -16,6 +16,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   const { setBannerHidden } = appContext
   const [basicProfiles, setBasicProfiles] = useState(null)
   const [withSignatureProfiles, setWithSignatureProfiles] = useState(null)
+  const [highlightValues, setHighlightValues] = useState(null)
   const [fields, setFields] = useState([])
 
   useEffect(() => {
@@ -39,8 +40,67 @@ const Compare = ({ left, right, accessToken, appContext }) => {
         // eslint-disable-next-line max-len
         ...Object.keys(withSignatureProfiles.right).filter(key => withSignatureProfiles.right?.[key] && Object.keys(withSignatureProfiles.right?.[key]).length !== 0),
       ])])
+      const leftHighlightValue = getHighlightValue(withSignatureProfiles.left)
+      const rightHightlightValue = getHighlightValue(withSignatureProfiles.right)
+      setHighlightValues({ left: leftHighlightValue, right: rightHightlightValue })
     }
   }, [withSignatureProfiles])
+
+  const getHighlightValue = (withSignatureProfile) => {
+    const compareFields = []
+    Object.entries(withSignatureProfile).forEach(([key, value]) => {
+      if (value) {
+        if (typeof value === 'string') {
+          compareFields.push(value)
+          return
+        }
+        if (key === 'names') {
+          value.forEach((name) => {
+            compareFields.push(`${name?.first ?? ''} ${name?.middle ?? ''} ${name?.last ?? ''}`.replace(/\s{2,}/g, ' '))
+          })
+          return
+        }
+        if (key === 'history') {
+          value.forEach((history) => {
+            compareFields.push(history?.institution?.name)
+            compareFields.push(history?.institution?.domain)
+          })
+          return
+        }
+        if (key === 'relations') {
+          value.forEach((relation) => {
+            compareFields.push(relation?.name)
+            compareFields.push(relation?.domain)
+          })
+          return
+        }
+        if (key === 'expertise') {
+          value.forEach((expertise) => {
+            compareFields.push(expertise?.keywords?.join(', '))
+          })
+          return
+        }
+        if (key === 'publications') {
+          value.forEach((publication) => {
+            compareFields.push(publication?.title)
+            publication?.authors?.forEach((author) => {
+              compareFields.push(author)
+            })
+            publication?.authorids?.forEach((authorids) => {
+              compareFields.push(authorids)
+            })
+          })
+          return
+        }
+        if (Array.isArray(value)) {
+          value.forEach((p) => {
+            compareFields.push(p.value)
+          })
+        }
+      }
+    })
+    return compareFields.filter(p => p)
+  }
 
   const getBasicProfile = async (id, side) => {
     const baiscProfile = await api.get('/profiles', { ...(id.includes('@') && { email: id }), ...(!id.includes('@') && { id }) }, { accessToken })
@@ -122,37 +182,37 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     return new Date(date).toISOString().replace(/-/g, '/').replace('T', ' ').replace('Z', '')
   }
 
-  const renderField = (profile, fieldName, theOtherProfile) => {
+  const renderField = (profile, fieldName, theOtherProfile, side, highlightValue) => {
     switch (fieldName) {
       case 'names':
-        return <Names names={profile.names} theOtherNames={theOtherProfile?.names} />
+        return <Names names={profile.names} theOtherNames={theOtherProfile?.names} side={side} highlightValue={highlightValue} />
       case 'history':
-        return <History historys={profile.history} theOtherHistorys={theOtherProfile?.history} />
+        return <History historys={profile.history} theOtherHistorys={theOtherProfile?.history} side={side} highlightValue={highlightValue} />
       case 'relations':
-        return <Relation relationships={profile.relations} theOtherRealtionships={theOtherProfile?.relations} />
+        return <Relation relationships={profile.relations} theOtherRealtionships={theOtherProfile?.relations} side={side} highlightValue={highlightValue} />
       case 'expertise':
-        return <Expertise expertises={profile.expertise} theOtherExpertises={theOtherProfile?.expertise} />
+        return <Expertise expertises={profile.expertise} theOtherExpertises={theOtherProfile?.expertise} side={side} highlightValue={highlightValue} />
       case 'publications':
-        return <Publications publications={profile.publications} theOtherPublications={theOtherProfile?.publications} />
+        return <Publications publications={profile.publications} theOtherPublications={theOtherProfile?.publications} side={side} highlightValue={highlightValue} />
       default:
-        return <Others fieldContent={profile[fieldName]} theOtherFieldContent={theOtherProfile?.[fieldName]} />
+        return <Others fieldContent={profile[fieldName]} theOtherFieldContent={theOtherProfile?.[fieldName]} side={side} highlightValue={highlightValue} />
     }
   }
 
   // eslint-disable-next-line arrow-body-style
-  const Names = ({ names, theOtherNames }) => {
+  const Names = ({ names, theOtherNames, side, highlightValue }) => {
     return (
       <table>
         <tbody>
           {/* eslint-disable-next-line arrow-body-style */}
           {names && names.map((name, index) => {
             const theOtherName = theOtherNames?.[index]
-            const leftRightValueEqual = `${name.first} ${name.middle} ${name.last}` === `${theOtherName.first} ${theOtherName.middle} ${theOtherName.last}`
+            const shouldHighlight = highlightValue.includes(`${name?.first ?? ''} ${name?.middle ?? ''} ${name?.last ?? ''}`.replace(/\s{2,}/g, ' '))
             return (
               <tr key={name}>
                 <td>
                   <div className="name" {...(name.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${name.signatures}` })} style={name.confirmed ? undefined : { color: '#8c1b13' }}>
-                    <span className={leftRightValueEqual ? 'highlight' : undefined}>{name.first} {name.middle} {name.last}</span> {name.preferred && <small>(Preferred)</small>}
+                    <span className={shouldHighlight ? 'highlight ' : `${side}-profile-value`}>{name.first} {name.middle} {name.last}</span> {name.preferred && <small>(Preferred)</small>}
                   </div>
                 </td>
               </tr>
@@ -164,7 +224,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   }
 
   // eslint-disable-next-line arrow-body-style
-  const History = ({ historys, theOtherHistorys }) => {
+  const History = ({ historys, theOtherHistorys, side }) => {
     return (
       <table style={{ width: '100%' }}>
         <tbody>
@@ -177,8 +237,8 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                   <strong>{history.position}</strong>
                 </td>
                 <td className="institution">
-                  <span className={history.institution.name === theOtherHistory?.institution?.name ? 'highlight' : undefined}>{history.institution.name}</span>
-                  {history.institution.domain && <small className={history.institution.domain === theOtherHistory?.institution?.domain ? 'highlight' : undefined}>{`(${history.institution.domain})`}</small>}
+                  <span className={history.institution.name === theOtherHistory?.institution?.name ? 'highlight' : `${side}-profile-value`}>{history.institution.name}</span>
+                  {history.institution.domain && <small className={history.institution.domain === theOtherHistory?.institution?.domain ? 'highlight' : `${side}-profile-value`}>{`(${history.institution.domain})`}</small>}
                 </td>
               </tr>
             )
@@ -195,14 +255,14 @@ const Compare = ({ left, right, accessToken, appContext }) => {
         <tbody>
           {/* eslint-disable-next-line arrow-body-style */}
           {relationships && relationships.map((relationship, index) => {
-            const theOtherRelationship = theOtherRealtionships[index]
+            const theOtherRelationship = theOtherRealtionships?.[index]
             return (
               <tr key={`${relationship.name}${relationship.relation}${relationship.start}${relationship.end}`} {...(relationship.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${relationship.signatures}` })} style={relationship.confirmed ? undefined : { color: '#8c1b13' }}>
                 <td>
-                  <strong className={relationship.name === theOtherRelationship.name ? 'hightlight' : undefined}>{relationship.name}</strong>
+                  <strong className={relationship.name === theOtherRelationship?.name ? 'hightlight' : undefined}>{relationship.name}</strong>
                 </td>
                 <td>
-                  <small className={relationship.email === theOtherRelationship.email ? 'hightlight' : undefined}>{relationship.email}</small>
+                  <small className={relationship.email === theOtherRelationship?.email ? 'hightlight' : undefined}>{relationship.email}</small>
                 </td>
                 <td>
                   <span>{relationship.relation}</span>
@@ -216,17 +276,17 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   }
 
   // eslint-disable-next-line arrow-body-style
-  const Expertise = ({ expertises, theOtherExpertises }) => {
+  const Expertise = ({ expertises, theOtherExpertises, side }) => {
     return (
       <table>
         <tbody>
           {/* eslint-disable-next-line arrow-body-style */}
           {expertises && expertises.map((expertise, index) => {
-            const theOtherExpertise = theOtherExpertises[index]
+            const theOtherExpertise = theOtherExpertises?.[index]
             return (
               <tr key={expertise.keywords} {...(expertise.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${expertise.signatures}` })} style={expertise.confirmed ? undefined : { color: '#8c1b13' }}>
                 <td>
-                  <span className={expertise.keywords.join(', ') === theOtherExpertise?.keywords?.join(', ') ? 'highlight' : undefined}>{expertise.keywords.join(', ')}</span>
+                  <span className={expertise.keywords.join(', ') === theOtherExpertise?.keywords?.join(', ') ? 'highlight' : `${side}-profile-value`}>{expertise.keywords.join(', ')}</span>
                 </td>
               </tr>
             )
@@ -237,7 +297,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   }
 
   // eslint-disable-next-line arrow-body-style
-  const Publications = ({ publications, theOtherPublications }) => {
+  const Publications = ({ publications, theOtherPublications, side }) => {
     return (
       <table style={{ width: '100%' }}>
         <tbody>
@@ -248,7 +308,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                 <tr key={`${publication.title}1`}>
                   <td style={{ paddingTop: '10px' }}>
                     <a href={`/forum?id=${publication.forum}`} target="_blank" rel="noreferrer">
-                      <strong className={theOtherPublications?.some(p => p.title === publication.title) ? 'highlight' : undefined}>
+                      <strong className={theOtherPublications?.some(p => p.title === publication.title) ? 'highlight' : `${side}-profile-value`}>
                         {publication.title}
                       </strong>
                     </a>
@@ -260,7 +320,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                       publication.authors.map((author) => {
                         return (
                           <React.Fragment key={author}>
-                            <span className={theOtherPublications?.some(p => p.authors?.some(q => q === author)) ? 'highlight' : undefined}>{author}</span>
+                            <span className={theOtherPublications?.some(p => p.authors?.some(q => q === author)) ? 'highlight' : `${side}-profile-value`}>{author}</span>
                             <span>, </span>
                           </React.Fragment>
                         )
@@ -273,8 +333,9 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                     {
                       publication.authorids.map((authorid, index) => {
                         return (
-                          <a key={authorid} href={`/group?id=${authorid}`} target="_blank" rel="noreferrer">
-                            <span className={theOtherPublications?.some(p => p.authorids?.some(q => q === authorid)) ? 'highlight' : undefined}>
+                          // eslint-disable-next-line react/no-array-index-key
+                          <a key={`${authorid}${index}`} href={`/group?id=${authorid}`} target="_blank" rel="noreferrer">
+                            <span className={theOtherPublications?.some(p => p.authorids?.some(q => q === authorid)) ? 'highlight' : `${side}-profile-value`}>
                               {authorid}
                             </span>
                             <span>, </span>
@@ -292,16 +353,16 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     )
   }
 
-  const Others = ({ fieldContent, theOtherFieldContent }) => {
+  const Others = ({ fieldContent, theOtherFieldContent, side }) => {
     if (typeof fieldContent === 'string') {
       if (fieldContent.startsWith('http')) {
         return (
           <a href={fieldContent.value} target="_blank" rel="noreferrer">
-            <span className={fieldContent === theOtherFieldContent ? 'highlight' : undefined}>{fieldContent}</span>
+            <span className={fieldContent === theOtherFieldContent ? 'highlight' : `${side}-profile-value`}>{fieldContent}</span>
           </a>
         )
       }
-      return <span className={fieldContent === theOtherFieldContent ? 'highlight' : undefined}>{fieldContent}</span>
+      return <span className={fieldContent === theOtherFieldContent ? 'highlight' : `${side}-profile-value`}>{fieldContent}</span>
     }
     return (
       <table>
@@ -367,10 +428,10 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                       <strong>{prettyField(field)}</strong>
                     </td>
                     <td colSpan="2">
-                      {renderField(withSignatureProfiles?.left, field, withSignatureProfiles?.right)}
+                      {renderField(withSignatureProfiles?.left, field, withSignatureProfiles?.right, 'left', highlightValues.right)}
                     </td>
                     <td colSpan="2">
-                      {renderField(withSignatureProfiles?.right, field, withSignatureProfiles?.left)}
+                      {renderField(withSignatureProfiles?.right, field, withSignatureProfiles?.left, 'right', highlightValues.left)}
                     </td>
                   </tr>
                 )
