@@ -4,21 +4,8 @@
 @vetoRed: #f2dede;
 @hoverColor: #f5f5f5;
 
-main.edge-browser {
-  .container-fluid {
-    display: flex;
-  }
-
-  .explore-header {
-    padding: 0;
-
-    h1 {
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      padding: 1.25rem 0;
-    }
-  }
+#content.edge-browser {
+  padding-bottom: 0;
 
   .explore-interface {
     display: flex;
@@ -152,16 +139,9 @@ main.edge-browser {
         padding-right: .5rem;
       }
     }
-    .action-links ul li,
-    .scores-list ul li {
-      margin-bottom: 0;
-    }
     .scores-list, .action-links {
       float: left;
       width: 50%;
-      ul > li > span {
-        color: #444;
-      }
     }
     .action-links {
       float: right;
@@ -222,14 +202,14 @@ main.edge-browser {
   }
 
   .explore-header {
-    padding: 1.25rem 0;
-    color: inherit;
-
     h1 {
       margin-top: 0;
       margin-bottom: 0;
+      padding-bottom: 1.25rem;
       font-size: 1.625rem;
-      text-shadow: 0 1px 0px #fff;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
 
       .edit-matching-name {
         font-size: .75rem;
@@ -279,7 +259,7 @@ main.edge-browser {
     white-space: nowrap;
     padding: 0 15px 0 15px;
     min-height: 360px;
-    height: ~"calc(100vh - 191px)";
+    height: ~"calc(100vh - 156px)";
     scroll-behavior: smooth; // Not supported in IE
 
     @media @phone-only {
@@ -349,7 +329,7 @@ main.edge-browser {
         }
         select {
           display: inline-block;
-          line-height: normal;
+          line-height: 1.125rem;
           width: ~"calc(100% - 60px)";
         }
       }
@@ -366,7 +346,7 @@ main.edge-browser {
     }
 
     div.body {
-      height: ~"calc(100% - 101px)";
+      height: ~"calc(100% - 82px)";
       overflow: auto;
 
       div.search-results {
@@ -444,14 +424,6 @@ main.edge-browser {
           border-color: @mediumDarkBlue;
         }
       }
-    }
-  }
-
-  .banner-hidden .explore-interface {
-    height: ~"calc(100vh - 151px)";
-
-    @media @phone-only {
-      height: ~"calc(100vh - 139px)";
     }
   }
 
@@ -540,24 +512,19 @@ main.edge-browser {
     }
 
     .action-links ul, .scores-list ul {
-      margin-bottom: 0;
-
-      li {
-        margin-bottom: 1px;
-      }
       li > a {
         font-size: .75rem;
       }
       li > span {
         font-size: .75rem;
-        color: @subtleGray;
+        color: #444;
       }
       li > strong {
         font-size: .75rem;
       }
       li > em {
         font-size: .75rem;
-        color: @subtleGray;
+        color: #444;
       }
     }
   }
@@ -614,11 +581,6 @@ main.edge-browser {
     .reviewer-heading, .areachair-heading {
       float: left;
       width: ~"calc(100% - 105px)";
-    }
-    .action-links {
-      float: left;
-      text-align: right;
-      width: 105px;
     }
   }
   .show-lock-break .entry-reviewer .reviewer-heading,

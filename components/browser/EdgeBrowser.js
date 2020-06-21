@@ -240,7 +240,7 @@ export default class EdgeBrowser extends React.Component {
       <EdgeBrowserContext.Provider value={invitations}>
         <EdgeBrowserHeader headerInvitation={this.traverseInvitation} />
 
-        <div className="container-fluid">
+        <div>
           <div className={`row explore-interface expand-columns-${this.maxColumns}`} ref={this.exploreInterfaceRef}>
             {this.state.columns.map((column, i) => (
               <Column

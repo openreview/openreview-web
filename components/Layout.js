@@ -3,9 +3,10 @@ import Nav from './Nav'
 import Banner from './Banner'
 import FlashAlert from './FlashAlert'
 import Footer from './Footer'
+import FooterMinimal from './FooterMinimal'
 
 const Layout = ({
-  children, bodyClass, bannerHidden, bannerContent,
+  children, bodyClass, bannerHidden, bannerContent, fullWidth, minimalFooter,
 }) => (
   <>
     <Head>
@@ -16,7 +17,7 @@ const Layout = ({
     <Banner content={bannerContent} hidden={bannerHidden} />
     <FlashAlert />
 
-    <div className="container">
+    <div className={`container${fullWidth ? '-fluid' : ''}`}>
       <div className="row">
         <div className="col-xs-12">
           <main
@@ -29,7 +30,11 @@ const Layout = ({
       </div>
     </div>
 
-    <Footer />
+    {minimalFooter ? (
+      <FooterMinimal />
+    ) : (
+      <Footer />
+    )}
   </>
 )
 

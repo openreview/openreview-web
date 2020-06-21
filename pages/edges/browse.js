@@ -18,6 +18,7 @@ const Browse = ({ appContext }) => {
   const [error, setError] = useState(null)
   const { user, accessToken } = useContext(UserContext)
   const { query } = useRouter()
+  const { setBannerHidden, setLayoutOptions } = appContext
 
   const notFoundError = {
     name: 'Not Found', message: 'Could not load edge explorer. Invitation not found.', statusCode: 404,
@@ -119,11 +120,12 @@ const Browse = ({ appContext }) => {
   }, [user, query])
 
   useEffect(() => {
-    console.log(invitations)
-  }, invitations)
+    setBannerHidden(true)
+    setLayoutOptions({ fullWidth: true, minimalFooter: true })
+  }, [])
 
   return (
-    <div>
+    <>
       <Head>
         <title key="title">Edge Browser | OpenReview</title>
       </Head>
@@ -141,7 +143,7 @@ const Browse = ({ appContext }) => {
       ) : (
         <LoadingSpinner />
       )}
-    </div>
+    </>
   )
 }
 
