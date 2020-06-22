@@ -6,6 +6,7 @@ import Router from 'next/router'
 import withAdminAuth from '../../components/withAdminAuth'
 import api from '../../lib/api-client'
 import { prettyId, prettyField } from '../../lib/utils'
+import LoadingSpinner from '../../components/LoadingSpinner'
 import '../../styles/pages/admin-compare.less'
 
 
@@ -16,6 +17,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   const [withSignatureProfiles, setWithSignatureProfiles] = useState(null)
   const [highlightValues, setHighlightValues] = useState(null)
   const [fields, setFields] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     setBannerHidden(true)
@@ -116,12 +118,14 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   }
 
   const getBasicProfiles = async (leftId, rightId) => {
+    setIsLoading(true)
     const leftBasicProfile = await getBasicProfile(leftId)
     const rightBasicProfile = await getBasicProfile(rightId)
     setBasicProfiles({
       left: leftBasicProfile,
       right: rightBasicProfile,
     })
+    setIsLoading(false)
   }
 
   const addMetadata = (profile, fieldName) => {
@@ -446,6 +450,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
               ))}
             </tbody>
           </table>
+          {isLoading && <LoadingSpinner />}
         </div>
       </div>
     </>
