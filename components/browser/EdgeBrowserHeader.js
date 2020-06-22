@@ -2,16 +2,19 @@
 
 import { prettyId } from '../../lib/utils'
 
-export default function EdgeBrowserHeader({ headerInvitation }) {
-  const name = prettyId(headerInvitation.id)
-  const label = headerInvitation.query.label ? ` – ${headerInvitation.query.label}` : ''
+export default function EdgeBrowserHeader({ invitation }) {
+  if (!invitation) {
+    return null
+  }
 
   return (
     <div className="explore-header">
       <div className="container">
         <div className="row">
           <div className="col-xs-12">
-            <h1 id="matching-title">{`${name} ${label}`}</h1>
+            <h1 id="matching-title">
+              {`${prettyId(invitation.id)} ${invitation.query.label ? ` – ${invitation.query.label}` : ''}`}
+            </h1>
           </div>
 
           <div className="col-sm-2 text-right" style={{ display: 'none' }}>

@@ -22,7 +22,7 @@ const Layout = ({
         <div className="col-xs-12">
           <main
             id="content"
-            className={`${bodyClass} ${bannerHidden ? '' : 'banner-visible'} clearfix`}
+            className={`${bodyClass || ''} ${bannerHidden ? 'banner-hidden' : ''} ${minimalFooter ? 'minimal-footer' : ''}`}
           >
             {children}
           </main>

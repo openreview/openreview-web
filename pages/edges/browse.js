@@ -1,24 +1,26 @@
 import { useState, useEffect, useContext } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import isEmpty from 'lodash/isEmpty'
 import uniq from 'lodash/uniq'
 import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import EdgeBrowser from '../../components/browser/EdgeBrowser'
+import EdgeBrowserHeader from '../../components/browser/EdgeBrowserHeader'
+import ErrorDisplay from '../../components/ErrorDisplay'
 import api from '../../lib/api-client'
 import { parseEdgeList, buildInvitationReplyArr } from '../../lib/edge-utils'
-import { prettyId } from '../../lib/utils'
 
 import '../../styles/pages/edge-browser.less'
 
 const Browse = ({ appContext }) => {
   const [invitations, setInvitations] = useState(null)
-  const [groupId, setGroupId] = useState('')
-  const [maxColumns, setMaxColumns] = useState(null)
+  const [titleInvitation, setTitleInvitation] = useState(null)
+  const [maxColumns, setMaxColumns] = useState(-1)
   const [error, setError] = useState(null)
   const { user, accessToken } = useContext(UserContext)
   const { query } = useRouter()
-  const { setBannerHidden, setLayoutOptions } = appContext
+  const { setBannerHidden, setBannerContent, setLayoutOptions } = appContext
 
   const notFoundError = {
     name: 'Not Found', message: 'Could not load edge explorer. Invitation not found.', statusCode: 404,
@@ -34,9 +36,10 @@ const Browse = ({ appContext }) => {
   }
 
   useEffect(() => {
-    if (!user || !query) return
+    if (!user || isEmpty(query)) return
 
     if (!query.traverse || !query.browse) {
+      console.log(query)
       setError(notFoundError)
       return
     }
@@ -55,7 +58,7 @@ const Browse = ({ appContext }) => {
     }
 
     // Use the first traverse invitation as the main group ID
-    setGroupId(allInvitations[0].id.split('/-/')[0])
+    setTitleInvitation(traverseInvitations[0])
     setMaxColumns(Math.max(Number.parseInt(query.maxColumns, 10), -1) || -1)
 
     const idsToLoad = uniq(allInvitations.map(i => i.id)).filter(id => id !== 'staticList')
@@ -124,15 +127,27 @@ const Browse = ({ appContext }) => {
     setLayoutOptions({ fullWidth: true, minimalFooter: true })
   }, [])
 
+  useEffect(() => {
+    if (error) {
+      setBannerHidden(false)
+      setBannerContent(null)
+      setLayoutOptions({ fullWidth: false, minimalFooter: false })
+    }
+  }, [error])
+
+  if (error) {
+    return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
+  }
   return (
     <>
       <Head>
         <title key="title">Edge Browser | OpenReview</title>
       </Head>
 
+      <EdgeBrowserHeader invitation={titleInvitation} />
+
       {invitations ? (
         <EdgeBrowser
-          title={prettyId(groupId)}
           startInvitation={invitations.startInvitations}
           traverseInvitations={invitations.traverseInvitations}
           editInvitations={invitations.editInvitations}

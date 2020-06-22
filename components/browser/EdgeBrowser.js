@@ -6,7 +6,6 @@ import React from 'react'
 import _ from 'lodash'
 import Column from './Column'
 import EdgeBrowserContext from './EdgeBrowserContext'
-import EdgeBrowserHeader from './EdgeBrowserHeader'
 import { formatEntityContent, buildSearchText } from '../../lib/edge-utils'
 
 export default class EdgeBrowser extends React.Component {
@@ -238,29 +237,25 @@ export default class EdgeBrowser extends React.Component {
 
     return (
       <EdgeBrowserContext.Provider value={invitations}>
-        <EdgeBrowserHeader headerInvitation={this.traverseInvitation} />
-
-        <div>
-          <div className={`row explore-interface expand-columns-${this.maxColumns}`} ref={this.exploreInterfaceRef}>
-            {this.state.columns.map((column, i) => (
-              <Column
-                key={`${column.parentId || 'start-col'}`}
-                type={column.type}
-                entityType={column.entityType}
-                parentId={column.parentId}
-                startInvitation={i === 0 ? this.startInvitation : null}
-                globalEntityMap={column.type === 'head' ? this.state.headMap : this.state.tailMap}
-                altGlobalEntityMap={column.type === 'head' ? this.state.tailMap : this.state.headMap}
-                updateGlobalEntityMap={this.updateGlobalEntityMap}
-                metadataMap={this.state.metadataMap}
-                updateMetadataMap={this.updateMetadataMap}
-                addNewColumn={this.addNewColumn(i)}
-                loading={this.state.loading}
-                finalColumn={i + 1 === this.maxColumns}
-              />
-            ))}
-            <div className="column column-spacer" tabIndex="-1" />
-          </div>
+        <div className={`row explore-interface expand-columns-${this.maxColumns}`} ref={this.exploreInterfaceRef}>
+          {this.state.columns.map((column, i) => (
+            <Column
+              key={`${column.parentId || 'start-col'}`}
+              type={column.type}
+              entityType={column.entityType}
+              parentId={column.parentId}
+              startInvitation={i === 0 ? this.startInvitation : null}
+              globalEntityMap={column.type === 'head' ? this.state.headMap : this.state.tailMap}
+              altGlobalEntityMap={column.type === 'head' ? this.state.tailMap : this.state.headMap}
+              updateGlobalEntityMap={this.updateGlobalEntityMap}
+              metadataMap={this.state.metadataMap}
+              updateMetadataMap={this.updateMetadataMap}
+              addNewColumn={this.addNewColumn(i)}
+              loading={this.state.loading}
+              finalColumn={i + 1 === this.maxColumns}
+            />
+          ))}
+          <div className="column column-spacer" tabIndex="-1" />
         </div>
       </EdgeBrowserContext.Provider>
     )
