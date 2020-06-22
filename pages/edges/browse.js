@@ -39,7 +39,6 @@ const Browse = ({ appContext }) => {
     if (!user || isEmpty(query)) return
 
     if (!query.traverse || !query.browse) {
-      console.log(query)
       setError(notFoundError)
       return
     }
