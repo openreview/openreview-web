@@ -1,16 +1,13 @@
-/* eslint-disable object-curly-newline */
-/* eslint-disable max-len */
-/* eslint-disable no-shadow */
-/* eslint-disable arrow-body-style */
-/* eslint-disable react/jsx-props-no-spreading */
-/* eslint-disable react/jsx-one-expression-per-line */
-/* eslint-disable no-unused-expressions */
 /* eslint-disable no-use-before-define */
+/* globals promptError: false */
+
 import React, { useEffect, useState } from 'react'
+import Router from 'next/router'
 import withAdminAuth from '../../components/withAdminAuth'
 import api from '../../lib/api-client'
 import { prettyId, prettyField } from '../../lib/utils'
 import '../../styles/pages/admin-compare.less'
+
 
 // eslint-disable-next-line object-curly-newline
 const Compare = ({ left, right, accessToken, appContext }) => {
@@ -84,9 +81,11 @@ const Compare = ({ left, right, accessToken, appContext }) => {
         if (key === 'publications') {
           value.forEach((publication) => {
             compareFields.push(publication?.title)
+            // eslint-disable-next-line no-unused-expressions
             publication?.authors?.forEach((author) => {
               compareFields.push(author)
             })
+            // eslint-disable-next-line no-unused-expressions
             publication?.authorids?.forEach((authorids) => {
               compareFields.push(authorids)
             })
@@ -104,9 +103,16 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   }
 
   const getBasicProfile = async (id, side) => {
-    const baiscProfile = await api.get('/profiles', { ...(id.includes('@') && { email: id }), ...(!id.includes('@') && { id }) }, { accessToken })
-    const publications = await getPublications(baiscProfile.profiles[0].id, side)
-    return { ...baiscProfile.profiles?.[0], publications }
+    if (id) {
+      try {
+        const baiscProfile = await api.get('/profiles', { ...(id.includes('@') && { email: id }), ...(!id.includes('@') && { id }) }, { accessToken })
+        const publications = await getPublications(baiscProfile?.profiles[0]?.id, side)
+        return { ...baiscProfile.profiles?.[0], publications }
+      } catch (error) {
+        promptError(error.message)
+      }
+    }
+    return {}
   }
 
   const getBasicProfiles = async (leftId, rightId) => {
@@ -120,12 +126,14 @@ const Compare = ({ left, right, accessToken, appContext }) => {
 
   const addMetadata = (profile, fieldName) => {
     const localProfile = { ...profile } // avoid pollution as property will be updated
-    const profileUsernames = localProfile.content.names ? localProfile.content.names.map(name => (name.username)) : [] // for checking signature to decide if confirmed
-    if (!localProfile.content[fieldName]) return null
+    const profileUsernames = localProfile.content?.names
+      ? localProfile.content?.names.map(name => (name?.username))
+      : [] // for checking signature to decide if confirmed
+    if (!localProfile.content?.[fieldName]) return null
     if (!localProfile.metaContent || !localProfile.metaContent[fieldName]) return localProfile.content[fieldName]
     if (typeof localProfile.content[fieldName] === 'string') localProfile.content[fieldName] = [localProfile.content[fieldName]]
     if (!localProfile.content[fieldName].length) return null
-    // TODO plain object check
+    // eslint-disable-next-line max-len
     if (!Array.isArray(localProfile.metaContent[fieldName])) localProfile.metaContent[fieldName] = [localProfile.metaContent[fieldName]]
     return localProfile.content[fieldName].map((c, index) => {
       const { signatures } = localProfile.metaContent[fieldName][index]
@@ -164,15 +172,19 @@ const Compare = ({ left, right, accessToken, appContext }) => {
 
   const getPublications = async (profileId) => {
     if (profileId) {
-      const result = await api.get('/notes', { 'content.authorids': profileId, sort: 'cdate' }, { accessToken })
-      // eslint-disable-next-line arrow-parens
-      const reducedPublications = result.notes.map(publication => ({
-        forum: publication.forum,
-        title: publication.content.title,
-        authors: publication.content.authors,
-        authorids: publication.content.authorids.filter(id => (id)),
-      }))
-      return reducedPublications
+      try {
+        const result = await api.get('/notes', { 'content.authorids': profileId, sort: 'cdate' }, { accessToken })
+        const reducedPublications = result.notes.map(publication => ({
+          forum: publication.forum,
+          title: publication.content.title,
+          authors: publication.content.authors,
+          authorids: publication.content.authorids.filter(id => (id)),
+        }))
+        return reducedPublications
+      } catch (error) {
+        promptError(error.message)
+        return []
+      }
     }
     return []
   }
@@ -200,155 +212,158 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     }
   }
 
-  // eslint-disable-next-line arrow-body-style
-  const Names = ({ names, highlightValue }) => {
-    return (
-      <table>
-        <tbody>
-          {/* eslint-disable-next-line arrow-body-style */}
-          {names && names.map((name, index) => {
-            const shouldHighlight = highlightValue.includes(`${name?.first ?? ''} ${name?.middle ?? ''} ${name?.last ?? ''}`.replace(/\s{2,}/g, ' '))
-            return (
-              <tr key={name}>
-                <td>
-                  <div className="name" {...(name.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${name.signatures}` })} style={name.confirmed ? undefined : { color: '#8c1b13' }}>
-                    <span className={shouldHighlight ? 'highlight ' : undefined}>{name.first} {name.middle} {name.last}</span> {name.preferred && <small>(Preferred)</small>}
-                  </div>
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    )
+  const handleMergeLeftClick = () => {
+    mergeProfile('right', 'left')
   }
 
-  // eslint-disable-next-line arrow-body-style
-  const History = ({ historys, highlightValue }) => {
-    return (
-      <table style={{ width: '100%' }}>
-        <tbody>
-          {/* eslint-disable-next-line arrow-body-style */}
-          {historys && historys.map((history, index) => {
-            return (
-              <tr key={`${history.position}${history.institution.name}${history.start}${history.end}`} {...(history.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${history.signatures}` })} style={history.confirmed ? undefined : { color: '#8c1b13' }}>
-                <td className="position">
-                  <strong>{history.position}</strong>
-                </td>
-                <td className="institution">
-                  <span className={highlightValue.includes(history.institution.name) ? 'highlight' : undefined}>{history.institution.name}</span>
-                  {history.institution.domain && <small className={highlightValue.includes(history.institution.domain) ? 'highlight' : undefined}>{`(${history.institution.domain})`}</small>}
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    )
+  const handleMergeRightClick = () => {
+    mergeProfile('left', 'right')
   }
 
-  // eslint-disable-next-line arrow-body-style
-  const Relation = ({ relationships, highlightValue }) => {
-    return (
-      <table style={{ width: '100%' }}>
-        <tbody>
-          {/* eslint-disable-next-line arrow-body-style */}
-          {relationships && relationships.map((relationship, index) => {
-            return (
-              <tr key={`${relationship.name}${relationship.relation}${relationship.start}${relationship.end}`} {...(relationship.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${relationship.signatures}` })} style={relationship.confirmed ? undefined : { color: '#8c1b13' }}>
-                <td>
-                  <strong className={highlightValue.includes(relationship.name) ? 'hightlight' : undefined}>{relationship.name}</strong>
-                </td>
-                <td>
-                  <small className={highlightValue.includes(relationship.email) ? 'hightlight' : undefined}>{relationship.email}</small>
-                </td>
-                <td>
-                  <span>{relationship.relation}</span>
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    )
+  const mergeProfile = (from, to) => {
+    const fromProfile = (({ id, active }) => ({ id, active }))(basicProfiles[from])
+    const toProfile = (({ id, active }) => ({ id, active }))(basicProfiles[to])
+    if (toProfile.active === false && fromProfile.active === true) {
+      // eslint-disable-next-line no-alert
+      if (window.confirm('You are merging an active Profile into an inactive Profile. Do you want to proceed?')) {
+        try {
+          api.post('/profiles/merge', { from: fromProfile.id, to: toProfile.id }, { accessToken })
+        } catch (error) {
+          promptError(error.message)
+        }
+        Router.reload()
+        return
+      }
+      return
+    }
+    api.post('/profiles/merge', { from: fromProfile.id, to: toProfile.id }, { accessToken })
+    Router.reload()
   }
 
-  // eslint-disable-next-line arrow-body-style
-  const Expertise = ({ expertises, highlightValues }) => {
-    return (
-      <table>
-        <tbody>
-          {/* eslint-disable-next-line arrow-body-style */}
-          {expertises && expertises.map((expertise, index) => {
-            return (
-              <tr key={expertise.keywords} {...(expertise.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${expertise.signatures}` })} style={expertise.confirmed ? undefined : { color: '#8c1b13' }}>
-                <td>
-                  <span className={highlightValues.includes(expertise.keywords.join(', ')) ? 'highlight' : undefined}>{expertise.keywords.join(', ')}</span>
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    )
-  }
+  // #region child components used in renderField method
+  const Names = ({ names, highlightValue }) => (
+    <table>
+      <tbody>
+        {names && names.map((name) => {
+          const shouldHighlight = highlightValue.includes(`${name?.first ?? ''} ${name?.middle ?? ''} ${name?.last ?? ''}`.replace(/\s{2,}/g, ' '))
+          return (
+            <tr key={name}>
+              <td>
+                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                <div className="name" {...(name.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${name.signatures}` })} style={name.confirmed ? undefined : { color: '#8c1b13' }}>
+                  {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+                  <span className={shouldHighlight ? 'highlight ' : undefined}>{name.first} {name.middle} {name.last}</span> {name.preferred && <small>(Preferred)</small>}
+                </div>
+              </td>
+            </tr>
+          )
+        })}
+      </tbody>
+    </table>
+  )
 
-  // eslint-disable-next-line arrow-body-style
-  const Publications = ({ publications, highlightValue }) => {
-    return (
-      <table style={{ width: '100%' }}>
-        <tbody>
-          {/* eslint-disable-next-line arrow-body-style */}
-          {publications && publications.map((publication) => {
-            return (
-              <React.Fragment key={publication.forum}>
-                <tr key={`${publication.title}1`}>
-                  <td style={{ paddingTop: '10px' }}>
-                    <a href={`/forum?id=${publication.forum}`} target="_blank" rel="noreferrer">
-                      <strong className={highlightValue.includes(publication.title) ? 'highlight' : undefined}>
-                        {publication.title}
-                      </strong>
+  const History = ({ historys, highlightValue }) => (
+    <table style={{ width: '100%' }}>
+      <tbody>
+        {historys && historys.map(history => (
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          <tr key={`${history.position}${history.institution.name}${history.start}${history.end}`} {...(history.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${history.signatures}` })} style={history.confirmed ? undefined : { color: '#8c1b13' }}>
+            <td className="position">
+              <strong>{history.position}</strong>
+            </td>
+            <td className="institution">
+              <span className={highlightValue.includes(history.institution.name) ? 'highlight' : undefined}>{history.institution.name}</span>
+              {history.institution.domain && <small className={highlightValue.includes(history.institution.domain) ? 'highlight' : undefined}>{`(${history.institution.domain})`}</small>}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+
+  const Relation = ({ relationships, highlightValue }) => (
+    <table style={{ width: '100%' }}>
+      <tbody>
+        {relationships && relationships.map(relationship => (
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          <tr key={`${relationship.name}${relationship.relation}${relationship.start}${relationship.end}`} {...(relationship.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${relationship.signatures}` })} style={relationship.confirmed ? undefined : { color: '#8c1b13' }}>
+            <td>
+              <strong className={highlightValue.includes(relationship.name) ? 'hightlight' : undefined}>{relationship.name}</strong>
+            </td>
+            <td>
+              <small className={highlightValue.includes(relationship.email) ? 'hightlight' : undefined}>{relationship.email}</small>
+            </td>
+            <td>
+              <span>{relationship.relation}</span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+
+  // eslint-disable-next-line no-shadow
+  const Expertise = ({ expertises, highlightValues }) => (
+    <table>
+      <tbody>
+        {expertises && expertises.map(expertise => (
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          <tr key={expertise.keywords} {...(expertise.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${expertise.signatures}` })} style={expertise.confirmed ? undefined : { color: '#8c1b13' }}>
+            <td>
+              <span className={highlightValues.includes(expertise.keywords.join(', ')) ? 'highlight' : undefined}>{expertise.keywords.join(', ')}</span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+
+  const Publications = ({ publications, highlightValue }) => (
+    <table style={{ width: '100%' }}>
+      <tbody>
+        {publications && publications.map(publication => (
+          <React.Fragment key={publication.forum}>
+            <tr key={`${publication.title}1`}>
+              <td style={{ paddingTop: '10px' }}>
+                <a href={`/forum?id=${publication.forum}`} target="_blank" rel="noreferrer">
+                  <strong className={highlightValue.includes(publication.title) ? 'highlight' : undefined}>
+                    {publication.title}
+                  </strong>
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                {
+                  publication.authors.map(author => (
+                    <React.Fragment key={author}>
+                      <span className={highlightValue.includes(author) ? 'highlight' : undefined}>{author}</span>
+                      <span>, </span>
+                    </React.Fragment>
+                  ))
+                }
+              </td>
+            </tr>
+            <tr>
+              <td>
+                {
+                  publication.authorids.map((authorid, index) => (
+                    // eslint-disable-next-line react/no-array-index-key
+                    <a key={`${authorid}${index}`} href={`/group?id=${authorid}`} target="_blank" rel="noreferrer">
+                      <span className={highlightValue.includes(authorid) ? 'highlight' : undefined}>
+                        {authorid}
+                      </span>
+                      <span>, </span>
                     </a>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    {
-                      publication.authors.map((author) => {
-                        return (
-                          <React.Fragment key={author}>
-                            <span className={highlightValue.includes(author) ? 'highlight' : undefined}>{author}</span>
-                            <span>, </span>
-                          </React.Fragment>
-                        )
-                      })
-                    }
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    {
-                      publication.authorids.map((authorid, index) => {
-                        return (
-                          // eslint-disable-next-line react/no-array-index-key
-                          <a key={`${authorid}${index}`} href={`/group?id=${authorid}`} target="_blank" rel="noreferrer">
-                            <span className={highlightValue.includes(authorid) ? 'highlight' : undefined}>
-                              {authorid}
-                            </span>
-                            <span>, </span>
-                          </a>
-                        )
-                      })
-                    }
-                  </td>
-                </tr>
-              </React.Fragment>
-            )
-          })}
-        </tbody>
-      </table>
-    )
-  }
+                  ))
+                }
+              </td>
+            </tr>
+          </React.Fragment>
+        ))}
+      </tbody>
+    </table>
+  )
 
   const Others = ({ fieldContent, highlightValue }) => {
     if (typeof fieldContent === 'string') {
@@ -364,27 +379,27 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     return (
       <table>
         <tbody>
-          {/* eslint-disable-next-line arrow-body-style */}
-          {fieldContent && fieldContent.map((content, index) => {
-            return (
-              <tr key={content.value} {...(content.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${content.signatures}` })} style={content.confirmed ? undefined : { color: '#8c1b13' }}>
-                <td>
-                  <div {...(content.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${content.signatures}` })} style={content.confirmed ? undefined : { color: '#8c1b13' }}>
-                    {content.value.startsWith('http') ? (
-                      <a href={content.value} target="_blank" rel="noreferrer">
-                        <span className={highlightValue.includes(content.value) ? 'highlight' : undefined}>{content.value}</span>
-                      </a>
-                    )
-                      : <span className={highlightValue.includes(content.value) ? 'highlight' : undefined}>{content.value}</span>}
-                  </div>
-                </td>
-              </tr>
-            )
-          })}
+          {fieldContent && fieldContent.map(content => (
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            <tr key={content.value} {...(content.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${content.signatures}` })} style={content.confirmed ? undefined : { color: '#8c1b13' }}>
+              <td>
+                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                <div {...(content.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${content.signatures}` })} style={content.confirmed ? undefined : { color: '#8c1b13' }}>
+                  {content.value.startsWith('http') ? (
+                    <a href={content.value} target="_blank" rel="noreferrer">
+                      <span className={highlightValue.includes(content.value) ? 'highlight' : undefined}>{content.value}</span>
+                    </a>
+                  )
+                    : <span className={highlightValue.includes(content.value) ? 'highlight' : undefined}>{content.value}</span>}
+                </div>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     )
   }
+  // #endregion
 
   return (
     <>
@@ -405,10 +420,10 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                 </th>
                 <th colSpan="2" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                   {/* eslint-disable-next-line react/button-has-type */}
-                  <button className="btn merge-btn-left" style={{ marginBottom: '5px' }}>&laquo;</button>
+                  <button className="btn merge-btn-left" style={{ marginBottom: '5px' }} disabled={basicProfiles?.left?.id && basicProfiles?.right?.id ? undefined : '{true}'} onClick={handleMergeLeftClick}>&laquo;</button>
                   <br />
                   {/* eslint-disable-next-line react/button-has-type */}
-                  <button className="btn merge-btn-right">&raquo;</button>
+                  <button className="btn merge-btn-right" disabled={basicProfiles?.left?.id && basicProfiles?.right?.id ? undefined : '{true}'} onClick={handleMergeRightClick}>&raquo;</button>
                 </th>
                 <th className=".profile-right" style={{ width: '300px', textAlign: 'center', verticalAlign: 'middle' }}>
                   <a href={`/profile?id=${basicProfiles?.right?.id}`} target="_blank" rel="noreferrer">{basicProfiles?.right?.id}</a>
@@ -416,24 +431,20 @@ const Compare = ({ left, right, accessToken, appContext }) => {
               </tr>
             </thead>
             <tbody>
-              {/* eslint-disable-next-line arrow-body-style */}
-              {fields.map((field) => {
-                return (
-                  <tr key={field}>
-                    <td>
-                      <strong>{prettyField(field)}</strong>
-                    </td>
-                    <td colSpan="2">
-                      {renderField(withSignatureProfiles?.left, field, highlightValues.right)}
-                    </td>
-                    <td colSpan="2">
-                      {renderField(withSignatureProfiles?.right, field, highlightValues.left)}
-                    </td>
-                  </tr>
-                )
-              })}
+              {fields.map(field => (
+                <tr key={field}>
+                  <td>
+                    <strong>{prettyField(field)}</strong>
+                  </td>
+                  <td colSpan="2">
+                    {renderField(withSignatureProfiles?.left, field, highlightValues.right)}
+                  </td>
+                  <td colSpan="2">
+                    {renderField(withSignatureProfiles?.right, field, highlightValues.left)}
+                  </td>
+                </tr>
+              ))}
             </tbody>
-
           </table>
         </div>
       </div>
