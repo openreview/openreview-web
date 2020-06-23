@@ -17,7 +17,7 @@ const Names = ({ names, highlightValue }) => (
       {names && names.map((name) => {
         const shouldHighlight = highlightValue.includes(`${name?.first ?? ''} ${name?.middle ?? ''} ${name?.last ?? ''}`.replace(/\s{2,}/g, ' '))
         return (
-          <tr key={name}>
+          <tr key={`${name}${name.preferred}`}>
             <td>
               <div className="name" data-toggle={name.signatures && 'tooltip'} title={name.signature && `Edited by ${name.signatures}`} style={name.confirmed ? undefined : { color: '#8c1b13' }}>
                 {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
