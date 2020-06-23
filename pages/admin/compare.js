@@ -3,12 +3,168 @@
 
 import React, { useEffect, useState } from 'react'
 import Router from 'next/router'
+import Head from 'next/head'
 import withAdminAuth from '../../components/withAdminAuth'
 import api from '../../lib/api-client'
 import { prettyId, prettyField } from '../../lib/utils'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import '../../styles/pages/admin-compare.less'
 
+// #region components used by Compare (in renderField method)
+const Names = ({ names, highlightValue }) => (
+  <table>
+    <tbody>
+      {names && names.map((name) => {
+        const shouldHighlight = highlightValue.includes(`${name?.first ?? ''} ${name?.middle ?? ''} ${name?.last ?? ''}`.replace(/\s{2,}/g, ' '))
+        return (
+          <tr key={name}>
+            <td>
+              <div className="name" data-toggle={name.signatures && 'tooltip'} title={name.signature && `Edited by ${name.signatures}`} style={name.confirmed ? undefined : { color: '#8c1b13' }}>
+                {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+                <span className={shouldHighlight ? 'highlight ' : undefined}>{name.first} {name.middle} {name.last}</span> {name.preferred && <small>(Preferred)</small>}
+              </div>
+            </td>
+          </tr>
+        )
+      })}
+    </tbody>
+  </table>
+)
+
+const History = ({ historys, highlightValue }) => (
+  <table style={{ width: '100%' }}>
+    <tbody>
+      {historys && historys.map(history => (
+        <tr key={`${history.position}${history.institution.name}${history.start}${history.end}`} data-toggle={history.signatures && 'tooltip'} title={history.signature && `Edited by ${history.signatures}`} style={history.confirmed ? undefined : { color: '#8c1b13' }}>
+          <td className="position">
+            <strong>{history.position}</strong>
+          </td>
+          <td className="institution">
+            <span className={highlightValue.includes(history.institution.name) ? 'highlight' : undefined}>{history.institution.name}</span>
+            {' '}
+            {history.institution.domain && <small className={highlightValue.includes(history.institution.domain) ? 'highlight' : undefined}>{`(${history.institution.domain})`}</small>}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+)
+
+const Relation = ({ relationships, highlightValue }) => (
+  <table style={{ width: '100%' }}>
+    <tbody>
+      {relationships && relationships.map(relationship => (
+        <tr key={`${relationship.name}${relationship.relation}${relationship.start}${relationship.end}`} data-toggle={relationship.signatures && 'tooltip'} title={relationship.signature && `Edited by ${relationship.signatures}`} style={relationship.confirmed ? undefined : { color: '#8c1b13' }}>
+          <td>
+            <strong className={highlightValue.includes(relationship.name) ? 'hightlight' : undefined}>{relationship.name}</strong>
+          </td>
+          <td>
+            <small className={highlightValue.includes(relationship.email) ? 'hightlight' : undefined}>{relationship.email}</small>
+          </td>
+          <td>
+            <span>{relationship.relation}</span>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+)
+
+// eslint-disable-next-line no-shadow
+const Expertise = ({ expertises, highlightValues }) => (
+  <table>
+    <tbody>
+      {expertises && expertises.map(expertise => (
+        <tr key={expertise.keywords} data-toggle={expertise.signatures && 'tooltip'} title={expertise.signature && `Edited by ${expertise.signatures}`} style={expertise.confirmed ? undefined : { color: '#8c1b13' }}>
+          <td>
+            <span className={highlightValues.includes(expertise.keywords.join(', ')) ? 'highlight' : undefined}>{expertise.keywords.join(', ')}</span>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+)
+
+const Publications = ({ publications, highlightValue }) => (
+  <table style={{ width: '100%' }}>
+    <tbody>
+      {publications && publications.map(publication => (
+        <React.Fragment key={publication.forum}>
+          <tr key={`${publication.title}1`}>
+            <td style={{ paddingTop: '10px' }}>
+              <a href={`/forum?id=${publication.forum}`} target="_blank" rel="noreferrer">
+                <strong className={highlightValue.includes(publication.title) ? 'highlight' : undefined}>
+                  {publication.title}
+                </strong>
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              {
+                publication.authors.map(author => (
+                  <React.Fragment key={author}>
+                    <span className={highlightValue.includes(author) ? 'highlight' : undefined}>{author}</span>
+                    <span>, </span>
+                  </React.Fragment>
+                ))
+              }
+            </td>
+          </tr>
+          <tr>
+            <td>
+              {
+                publication.authorids.map((authorid, index) => (
+                  // eslint-disable-next-line react/no-array-index-key
+                  <a key={`${authorid}${index}`} href={`/group?id=${authorid}`} target="_blank" rel="noreferrer">
+                    <span className={highlightValue.includes(authorid) ? 'highlight' : undefined}>
+                      {authorid}
+                    </span>
+                    <span>, </span>
+                  </a>
+                ))
+              }
+            </td>
+          </tr>
+        </React.Fragment>
+      ))}
+    </tbody>
+  </table>
+)
+
+const Others = ({ fieldContent, highlightValue }) => {
+  if (typeof fieldContent === 'string') {
+    if (fieldContent.startsWith('http')) {
+      return (
+        <a href={fieldContent.value} target="_blank" rel="noreferrer">
+          <span className={highlightValue.includes(fieldContent) ? 'highlight' : undefined}>{fieldContent}</span>
+        </a>
+      )
+    }
+    return <span className={highlightValue.includes(fieldContent) ? 'highlight' : undefined}>{fieldContent}</span>
+  }
+  return (
+    <table>
+      <tbody>
+        {fieldContent && fieldContent.map(content => (
+          <tr key={content.value} data-toggle={content.signatures && 'tooltip'} title={content.signature && `Edited by ${content.signatures}`} style={content.confirmed ? undefined : { color: '#8c1b13' }}>
+            <td>
+              <div data-toggle={content.signatures && 'tooltip'} title={content.signature && `Edited by ${content.signatures}`} style={content.confirmed ? undefined : { color: '#8c1b13' }}>
+                {content.value.startsWith('http') ? (
+                  <a href={content.value} target="_blank" rel="noreferrer">
+                    <span className={highlightValue.includes(content.value) ? 'highlight' : undefined}>{content.value}</span>
+                  </a>
+                )
+                  : <span className={highlightValue.includes(content.value) ? 'highlight' : undefined}>{content.value}</span>}
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+// #endregion
 
 // eslint-disable-next-line object-curly-newline
 const Compare = ({ left, right, accessToken, appContext }) => {
@@ -225,8 +381,8 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   }
 
   const mergeProfile = (from, to) => {
-    const fromProfile = (({ id, active }) => ({ id, active }))(basicProfiles[from])
-    const toProfile = (({ id, active }) => ({ id, active }))(basicProfiles[to])
+    const fromProfile = { id: basicProfiles[from].id, active: basicProfiles[from].active }
+    const toProfile = { id: basicProfiles[to].id, active: basicProfiles[to].active }
     if (toProfile.active === false && fromProfile.active === true) {
       // eslint-disable-next-line no-alert
       if (window.confirm('You are merging an active Profile into an inactive Profile. Do you want to proceed?')) {
@@ -240,218 +396,61 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       }
       return
     }
-    api.post('/profiles/merge', { from: fromProfile.id, to: toProfile.id }, { accessToken })
+    try {
+      api.post('/profiles/merge', { from: fromProfile.id, to: toProfile.id }, { accessToken })
+    } catch (error) {
+      promptError(error.message)
+    }
+
     Router.reload()
   }
 
-  // #region child components used in renderField method
-  const Names = ({ names, highlightValue }) => (
-    <table>
-      <tbody>
-        {names && names.map((name) => {
-          const shouldHighlight = highlightValue.includes(`${name?.first ?? ''} ${name?.middle ?? ''} ${name?.last ?? ''}`.replace(/\s{2,}/g, ' '))
-          return (
-            <tr key={name}>
-              <td>
-                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                <div className="name" {...(name.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${name.signatures}` })} style={name.confirmed ? undefined : { color: '#8c1b13' }}>
-                  {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-                  <span className={shouldHighlight ? 'highlight ' : undefined}>{name.first} {name.middle} {name.last}</span> {name.preferred && <small>(Preferred)</small>}
-                </div>
-              </td>
-            </tr>
-          )
-        })}
-      </tbody>
-    </table>
-  )
-
-  const History = ({ historys, highlightValue }) => (
-    <table style={{ width: '100%' }}>
-      <tbody>
-        {historys && historys.map(history => (
-          // eslint-disable-next-line react/jsx-props-no-spreading
-          <tr key={`${history.position}${history.institution.name}${history.start}${history.end}`} {...(history.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${history.signatures}` })} style={history.confirmed ? undefined : { color: '#8c1b13' }}>
-            <td className="position">
-              <strong>{history.position}</strong>
-            </td>
-            <td className="institution">
-              <span className={highlightValue.includes(history.institution.name) ? 'highlight' : undefined}>{history.institution.name}</span>
-              {history.institution.domain && <small className={highlightValue.includes(history.institution.domain) ? 'highlight' : undefined}>{`(${history.institution.domain})`}</small>}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  )
-
-  const Relation = ({ relationships, highlightValue }) => (
-    <table style={{ width: '100%' }}>
-      <tbody>
-        {relationships && relationships.map(relationship => (
-          // eslint-disable-next-line react/jsx-props-no-spreading
-          <tr key={`${relationship.name}${relationship.relation}${relationship.start}${relationship.end}`} {...(relationship.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${relationship.signatures}` })} style={relationship.confirmed ? undefined : { color: '#8c1b13' }}>
-            <td>
-              <strong className={highlightValue.includes(relationship.name) ? 'hightlight' : undefined}>{relationship.name}</strong>
-            </td>
-            <td>
-              <small className={highlightValue.includes(relationship.email) ? 'hightlight' : undefined}>{relationship.email}</small>
-            </td>
-            <td>
-              <span>{relationship.relation}</span>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  )
-
-  // eslint-disable-next-line no-shadow
-  const Expertise = ({ expertises, highlightValues }) => (
-    <table>
-      <tbody>
-        {expertises && expertises.map(expertise => (
-          // eslint-disable-next-line react/jsx-props-no-spreading
-          <tr key={expertise.keywords} {...(expertise.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${expertise.signatures}` })} style={expertise.confirmed ? undefined : { color: '#8c1b13' }}>
-            <td>
-              <span className={highlightValues.includes(expertise.keywords.join(', ')) ? 'highlight' : undefined}>{expertise.keywords.join(', ')}</span>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  )
-
-  const Publications = ({ publications, highlightValue }) => (
-    <table style={{ width: '100%' }}>
-      <tbody>
-        {publications && publications.map(publication => (
-          <React.Fragment key={publication.forum}>
-            <tr key={`${publication.title}1`}>
-              <td style={{ paddingTop: '10px' }}>
-                <a href={`/forum?id=${publication.forum}`} target="_blank" rel="noreferrer">
-                  <strong className={highlightValue.includes(publication.title) ? 'highlight' : undefined}>
-                    {publication.title}
-                  </strong>
-                </a>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                {
-                  publication.authors.map(author => (
-                    <React.Fragment key={author}>
-                      <span className={highlightValue.includes(author) ? 'highlight' : undefined}>{author}</span>
-                      <span>, </span>
-                    </React.Fragment>
-                  ))
-                }
-              </td>
-            </tr>
-            <tr>
-              <td>
-                {
-                  publication.authorids.map((authorid, index) => (
-                    // eslint-disable-next-line react/no-array-index-key
-                    <a key={`${authorid}${index}`} href={`/group?id=${authorid}`} target="_blank" rel="noreferrer">
-                      <span className={highlightValue.includes(authorid) ? 'highlight' : undefined}>
-                        {authorid}
-                      </span>
-                      <span>, </span>
-                    </a>
-                  ))
-                }
-              </td>
-            </tr>
-          </React.Fragment>
-        ))}
-      </tbody>
-    </table>
-  )
-
-  const Others = ({ fieldContent, highlightValue }) => {
-    if (typeof fieldContent === 'string') {
-      if (fieldContent.startsWith('http')) {
-        return (
-          <a href={fieldContent.value} target="_blank" rel="noreferrer">
-            <span className={highlightValue.includes(fieldContent) ? 'highlight' : undefined}>{fieldContent}</span>
-          </a>
-        )
-      }
-      return <span className={highlightValue.includes(fieldContent) ? 'highlight' : undefined}>{fieldContent}</span>
-    }
-    return (
-      <table>
-        <tbody>
-          {fieldContent && fieldContent.map(content => (
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            <tr key={content.value} {...(content.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${content.signatures}` })} style={content.confirmed ? undefined : { color: '#8c1b13' }}>
-              <td>
-                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                <div {...(content.signatures && { 'data-toggle': 'tooltip', title: `Edited by ${content.signatures}` })} style={content.confirmed ? undefined : { color: '#8c1b13' }}>
-                  {content.value.startsWith('http') ? (
-                    <a href={content.value} target="_blank" rel="noreferrer">
-                      <span className={highlightValue.includes(content.value) ? 'highlight' : undefined}>{content.value}</span>
-                    </a>
-                  )
-                    : <span className={highlightValue.includes(content.value) ? 'highlight' : undefined}>{content.value}</span>}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    )
-  }
-  // #endregion
-
   return (
     <>
+      <Head>
+        <title key="title">Compare Profiles | OpenReview</title>
+      </Head>
       <header>
         <h1>Merge Profiles</h1>
         <hr />
       </header>
-      <div>
-        <div className="table-responsive">
-          <table className="table">
-            <thead>
-              <tr>
-                <th style={{ width: '110px', verticalAlign: 'middle' }}>
-                  Merge Direction
-                </th>
-                <th className=".profile-left" style={{ width: '300px', textAlign: 'center', verticalAlign: 'middle' }}>
-                  <a href={`/profile?id=${basicProfiles?.left?.id}`} target="_blank" rel="noreferrer">{basicProfiles?.left?.id}</a>
-                </th>
-                <th colSpan="2" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                  {/* eslint-disable-next-line react/button-has-type */}
-                  <button className="btn merge-btn-left" style={{ marginBottom: '5px' }} disabled={basicProfiles?.left?.id && basicProfiles?.right?.id ? undefined : '{true}'} onClick={handleMergeLeftClick}>&laquo;</button>
-                  <br />
-                  {/* eslint-disable-next-line react/button-has-type */}
-                  <button className="btn merge-btn-right" disabled={basicProfiles?.left?.id && basicProfiles?.right?.id ? undefined : '{true}'} onClick={handleMergeRightClick}>&raquo;</button>
-                </th>
-                <th className=".profile-right" style={{ width: '300px', textAlign: 'center', verticalAlign: 'middle' }}>
-                  <a href={`/profile?id=${basicProfiles?.right?.id}`} target="_blank" rel="noreferrer">{basicProfiles?.right?.id}</a>
-                </th>
+      <div className="table-responsive">
+        <table className="table">
+          <thead>
+            <tr>
+              <th style={{ width: '110px', verticalAlign: 'middle' }}>
+                Merge Direction
+              </th>
+              <th className=".profile-left" style={{ width: '300px', textAlign: 'center', verticalAlign: 'middle' }}>
+                <a href={`/profile?id=${basicProfiles?.left?.id}`} target="_blank" rel="noreferrer">{basicProfiles?.left?.id}</a>
+              </th>
+              <th colSpan="2" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                <button className="btn merge-btn-left" type="button" style={{ marginBottom: '5px' }} disabled={basicProfiles?.left?.id && basicProfiles?.right?.id ? undefined : '{true}'} onClick={handleMergeLeftClick}>&laquo;</button>
+                <br />
+                <button className="btn merge-btn-right" type="button" disabled={basicProfiles?.left?.id && basicProfiles?.right?.id ? undefined : '{true}'} onClick={handleMergeRightClick}>&raquo;</button>
+              </th>
+              <th className=".profile-right" style={{ width: '300px', textAlign: 'center', verticalAlign: 'middle' }}>
+                <a href={`/profile?id=${basicProfiles?.right?.id}`} target="_blank" rel="noreferrer">{basicProfiles?.right?.id}</a>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {fields.map(field => (
+              <tr key={field}>
+                <td>
+                  <strong>{prettyField(field)}</strong>
+                </td>
+                <td colSpan="2">
+                  {renderField(withSignatureProfiles?.left, field, highlightValues.right)}
+                </td>
+                <td colSpan="2">
+                  {renderField(withSignatureProfiles?.right, field, highlightValues.left)}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {fields.map(field => (
-                <tr key={field}>
-                  <td>
-                    <strong>{prettyField(field)}</strong>
-                  </td>
-                  <td colSpan="2">
-                    {renderField(withSignatureProfiles?.left, field, highlightValues.right)}
-                  </td>
-                  <td colSpan="2">
-                    {renderField(withSignatureProfiles?.right, field, highlightValues.left)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {isLoading && <LoadingSpinner />}
-        </div>
+            ))}
+          </tbody>
+        </table>
+        {isLoading && <LoadingSpinner />}
       </div>
     </>
   )
