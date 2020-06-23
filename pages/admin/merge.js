@@ -6,7 +6,7 @@ import api from '../../lib/api-client'
 import Icon from '../../components/Icon'
 
 const Merge = ({ groupId, accessToken, appContext }) => {
-  const [profiles, setProfiles] = useState(null) // {"~Di_Xu1":["~Di_Xu3","~Di_Xu2"]}
+  const [profiles, setProfiles] = useState(null)
   const [clickedLinks, setClickedLinks] = useState([])
   const { setBannerHidden } = appContext
   useEffect(() => {
