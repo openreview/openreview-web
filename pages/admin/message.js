@@ -4,11 +4,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import debounce from 'lodash/debounce'
 import Head from 'next/head'
+import { stringify } from 'query-string'
 import withAdminAuth from '../../components/withAdminAuth'
 import MessagesTable from '../../components/MessagesTable'
 import ErrorAlert from '../../components/ErrorAlert'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import MultiSelectorDropdown from '../../components/MultiSelectorDropdown'
+import PaginationLinks from '../../components/PaginationLinks'
 import { auth } from '../../lib/auth'
 import api from '../../lib/api-client'
 
@@ -75,16 +77,16 @@ const FilterForm = ({ onFiltersChange, isLoading }) => {
 }
 
 const Message = ({ accessToken, appContext }) => {
-  const [messages, setMessages] = useState(null)
+  const [messagesResult, setMessagesResult] = useState(null)
+  const [page, setPage] = useState(1)
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [searchParams, setSearchParams] = useState({
-    limit: 20,
     status: '',
     subject: '',
     to: '',
-    offset: 0,
   })
+  const pageSize = 25
 
   const handleSearchParamChange = (filters) => {
     if (filters.type === 'status') {
@@ -104,8 +106,12 @@ const Message = ({ accessToken, appContext }) => {
 
   const loadMessages = async () => {
     try {
-      const apiRes = await api.get('/messages', searchParams, { accessToken })
-      setMessages(apiRes.messages)
+      const apiRes = await api.get('/messages', {
+        ...searchParams,
+        limit: pageSize,
+        offset: pageSize * (page - 1),
+      }, { accessToken })
+      setMessagesResult(apiRes)
     } catch (apiError) {
       setError(apiError)
     }
@@ -113,7 +119,7 @@ const Message = ({ accessToken, appContext }) => {
 
   useEffect(() => {
     if (searchParams.status.length === 0) {
-      setMessages([])
+      setMessagesResult({ messages: [], count: 0 })
     } else {
       setIsLoading(true)
       loadMessages()
@@ -138,11 +144,20 @@ const Message = ({ accessToken, appContext }) => {
         <ErrorAlert error={error} />
       )}
 
-      {messages && (
-        <MessagesTable messages={messages} />
+      {messagesResult && (
+        <MessagesTable messages={messagesResult.messages} />
       )}
 
-      {!isLoading && !messages?.length && (
+      {messagesResult && (
+        <PaginationLinks
+          currentPage={page}
+          itemsPerPage={pageSize}
+          totalCount={messagesResult.count}
+          baseUrl={`/messages?${stringify(searchParams, { skipNull: true })}`}
+        />
+      )}
+
+      {!isLoading && !messagesResult.messages?.length && (
         <div className="empty-message text-center">No messages found</div>
       )}
 
