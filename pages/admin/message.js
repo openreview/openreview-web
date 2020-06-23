@@ -76,7 +76,7 @@ const FilterForm = ({ onFiltersChange, isLoading }) => {
   )
 }
 
-const Message = ({ accessToken, appContext }) => {
+const Message = ({ page, accessToken, appContext }) => {
   const [messagesResult, setMessagesResult] = useState(null)
   const [page, setPage] = useState(1)
   const [error, setError] = useState(null)
