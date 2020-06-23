@@ -152,7 +152,7 @@ const Message = ({ page, accessToken, appContext }) => {
           currentPage={page}
           itemsPerPage={pageSize}
           totalCount={messagesResult.count}
-          baseUrl={`/messages?${stringify(searchParams, { skipNull: true })}`}
+          baseUrl={`/admin/message?${stringify(searchParams, { skipNull: true })}`}
         />
       )}
 
