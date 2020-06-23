@@ -110,7 +110,7 @@ const Tasks = ({ accessToken, appContext }) => {
   )
 }
 
-Tasks.getInitialProps = async (ctx) => {
+Tasks.getInitialProps = (ctx) => {
   const { user, token } = auth(ctx)
   if (!user) {
     if (ctx.req) {
