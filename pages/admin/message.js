@@ -124,7 +124,7 @@ const Message = ({ page, accessToken, appContext }) => {
       loadMessages()
         .then(() => setIsLoading(false))
     }
-  }, [searchParams])
+  }, [searchParams, page])
 
   return (
     <div id="message-viewer-container">
