@@ -78,7 +78,6 @@ const FilterForm = ({ onFiltersChange, isLoading }) => {
 
 const Message = ({ page, accessToken, appContext }) => {
   const [messagesResult, setMessagesResult] = useState(null)
-  const [page, setPage] = useState(1)
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [searchParams, setSearchParams] = useState({
