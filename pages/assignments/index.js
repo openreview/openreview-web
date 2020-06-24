@@ -144,7 +144,7 @@ const Assignments = ({ groupId, referrer, appContext }) => {
         setConfigInvitation(invitations[0])
       }
     } catch (error) {
-      promptError(error.message)
+      promptError(error.details)
     }
   }
 
