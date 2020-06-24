@@ -34,7 +34,6 @@ const MessageRow = ({ message }) => (
         tabIndex="0"
         className="email-content collapsed"
         onClick={e => e.currentTarget.classList.toggle('collapsed')}
-        onKeyDown={e => e.currentTarget.classList.toggle('collapsed')}
       >
         <p>{message.content?.text}</p>
         <div className="gradient-overlay" />

@@ -1,19 +1,15 @@
 import Link from 'next/link'
 import { stringify } from 'query-string'
 
-const PaginationLinks = ({
-  currentPage = 1, itemsPerPage, totalCount, baseUrl, queryParams, options,
-}) => {
+export default function PaginationLinks({
+  currentPage = 1, setCurrentPage, itemsPerPage, totalCount, baseUrl, queryParams, options,
+}) {
   if (totalCount <= itemsPerPage) {
     return null
   }
 
   const overflow = totalCount % itemsPerPage === 0 ? 0 : 1
   const pageCount = Math.floor(totalCount / itemsPerPage) + overflow
-  if (currentPage < 0) {
-    // eslint-disable-next-line no-param-reassign
-    currentPage = pageCount + currentPage + 1
-  }
   const pageListLength = Math.min(14, pageCount + 4)
   const pageList = Array(pageListLength)
 
@@ -68,17 +64,37 @@ const PaginationLinks = ({
           if (page.active) classList.push('active')
           if (page.extraClasses) classList.push(page.extraClasses)
 
-          const queryString = stringify({ ...queryParams, page: page.number }, { skipNull: true })
+          let pageLink
+          if (page.disabled) {
+            pageLink = (
+              <span>{page.label}</span>
+            )
+          } else if (typeof setCurrentPage === 'function') {
+            const onClickHandler = (e) => {
+              e.preventDefault()
+              if (!page.active) {
+                setCurrentPage(page.number)
+                window.scrollTo(0, 0)
+              }
+            }
+            pageLink = (
+              // eslint-disable-next-line jsx-a11y/anchor-is-valid
+              <a href="#" role="button" onClick={onClickHandler}>
+                {page.label}
+              </a>
+            )
+          } else {
+            const queryString = stringify({ ...queryParams, page: page.number }, { skipNull: true })
+            pageLink = (
+              <Link href={`${baseUrl}?${queryString}`}>
+                <a>{page.label}</a>
+              </Link>
+            )
+          }
 
           return (
-            <li key={page.key || page.number} className={classList.join(' ')} data-page-number={page.number}>
-              {page.disabled ? (
-                <span>{page.label}</span>
-              ) : (
-                <Link href={`${baseUrl}?${queryString}`}>
-                  <a>{page.label}</a>
-                </Link>
-              )}
+            <li key={page.key || page.number} className={classList.join(' ')}>
+              {pageLink}
             </li>
           )
         })}
@@ -86,5 +102,3 @@ const PaginationLinks = ({
     </nav>
   )
 }
-
-export default PaginationLinks

@@ -67,30 +67,38 @@ const FilterForm = ({ onFiltersChange, loading }) => {
 }
 
 const Messages = ({
-  status, subject, to, page, accessToken, appContext,
+  accessToken, appContext,
 }) => {
   const [messages, setMessages] = useState(null)
   const [count, setCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [searchParams, setSearchParams] = useState(null)
-  const currentPage = parseInt(page, 10) || 1
+  const [searchParams, setSearchParams] = useState({
+    status: null,
+    subject: null,
+    to: null,
+  })
+  const [page, setPage] = useState(1)
+
   const pageSize = 25
   const { setBannerHidden } = appContext
 
   const handleSearchParamChange = (filters) => {
     if (filters.type === 'status') {
       setSearchParams({ ...searchParams, status: filters.statuses })
+      setPage(1)
     }
     if (filters.type === 'subject') {
       setSearchParams({ ...searchParams, subject: filters.subject ? `${filters.subject}.*` : '' })
+      setPage(1)
     }
     if (filters.type === 'recipient' && (filters.recipient === '' || filters.recipient.includes('@'))) {
       setSearchParams({ ...searchParams, to: filters.recipient })
+      setPage(1)
     }
   }
 
-  const updateFilters = useCallback(debounce(handleSearchParamChange, 300), [])
+  const updateFilters = useCallback(debounce(handleSearchParamChange, 300), [searchParams])
 
   const loadMessages = async () => {
     setLoading(true)
@@ -98,7 +106,7 @@ const Messages = ({
       const apiRes = await api.get('/messages', {
         ...searchParams,
         limit: pageSize,
-        offset: pageSize * (currentPage - 1),
+        offset: pageSize * (page - 1),
       }, { accessToken })
 
       setMessages(apiRes.messages || [])
@@ -112,19 +120,11 @@ const Messages = ({
 
   useEffect(() => {
     setBannerHidden(true)
-  }, [page])
-
-  useEffect(() => {
-    setSearchParams({
-      status: status || null,
-      subject: subject || null,
-      to: to || null,
-    })
-  }, [status, subject, to])
+  }, [])
 
   useEffect(() => {
     if (!searchParams) return
-    console.log(searchParams)
+
     if (searchParams.status?.length === 0) {
       setMessages([])
       setCount(0)
@@ -155,7 +155,8 @@ const Messages = ({
 
       {messages && (
         <PaginationLinks
-          currentPage={currentPage}
+          currentPage={page}
+          setCurrentPage={setPage}
           itemsPerPage={pageSize}
           totalCount={count}
           baseUrl="/messages"
