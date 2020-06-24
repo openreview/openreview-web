@@ -1,7 +1,8 @@
+/* eslint-disable jsx-a11y/interactive-supports-focus */
 import Link from 'next/link'
 
 const PaginationLinks = ({
-  currentPage = 1, itemsPerPage, totalCount, baseUrl, options,
+  currentPage = 1, itemsPerPage, totalCount, baseUrl, options, updateParentPageNumber = null,
 }) => {
   if (totalCount <= itemsPerPage) {
     return null
@@ -69,12 +70,16 @@ const PaginationLinks = ({
 
           return (
             <li key={page.key || page.number} className={classList.join(' ')} data-page-number={page.number}>
+              {/* eslint-disable-next-line no-nested-ternary */}
               {page.disabled ? (
                 <span>{page.label}</span>
-              ) : (
-                <Link href={`${baseUrl || ''}&page=${page.number}`}>
-                  <a>{page.label}</a>
-                </Link>
+              // eslint-disable-next-line jsx-a11y/anchor-is-valid
+              ) : (updateParentPageNumber ? <a role="button" onClick={() => { updateParentPageNumber(page.number) }}>{page.label}</a>
+                : (
+                  <Link href={`${baseUrl || ''}&page=${page.number}`}>
+                    <a>{page.label}</a>
+                  </Link>
+                )
               )}
             </li>
           )
