@@ -1,0 +1,44 @@
+@import "../utils/constants";
+
+main.messages {
+
+  .filter-controls {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+
+    .form-group {
+      margin-right: .75rem;
+
+      label {
+        margin-right: .25rem;
+      }
+      .multiselector {
+        margin-right: 0;
+      }
+    }
+    input[type="text"] {
+      line-height: 34px;
+    }
+    #subject-search-input {
+      width: 250px;
+    }
+    #to-search-input {
+      width: 200px;
+    }
+    .spinner-small {
+      vertical-align: middle;
+      height: 26px;
+      margin-right: -36px; // prevent other form elements from shifting
+
+      & > div {
+        background-color: @orRed;
+      }
+    }
+  }
+
+  .spinner-container {
+    margin-top: 3rem;
+    margin-bottom: 2rem;
+  }
+
+}

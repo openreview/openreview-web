@@ -1,10 +1,7 @@
-/* globals $: false */
-/* globals Handlebars: false */
-
 import Table from './Table'
 import { formatTimestamp } from '../lib/utils'
 
-import '../styles/pages/message.less'
+import '../styles/components/messages-table.less'
 
 const MessageRow = ({ message }) => (
   <tr>
@@ -13,6 +10,7 @@ const MessageRow = ({ message }) => (
         {message.status}
       </span>
     </td>
+
     <td>
       <div className="clearfix">
         <div className="email-to pull-left">
@@ -26,9 +24,11 @@ const MessageRow = ({ message }) => (
           <span>{formatTimestamp(message.timestamp * 1000)}</span>
         </div>
       </div>
+
       <div className="email-title">
         <strong>{message.content?.subject}</strong>
       </div>
+
       <div
         role="button"
         tabIndex="0"
@@ -39,12 +39,13 @@ const MessageRow = ({ message }) => (
         <p>{message.content?.text}</p>
         <div className="gradient-overlay" />
       </div>
+
       <div>
         <a
           href={`${process.env.API_URL}/messages?id=${message.id}`}
+          className="log-link"
           target="_blank"
           rel="noreferrer"
-          className="log-link"
         >
           Message Log
         </a>
@@ -53,15 +54,26 @@ const MessageRow = ({ message }) => (
   </tr>
 )
 
-const MessagesTable = ({ messages }) => (
-  <Table headings={[
-    { id: 'status', content: 'Status', width: '96px' },
-    { id: 'details', content: 'Message Details' }]}
-  >
-    {messages?.length !== 0 && messages.map((m, i) => (
-      <MessageRow key={m.id} message={m} />
-    ))}
-  </Table>
-)
+const MessagesTable = ({ messages }) => {
+  if (!messages) return null
+
+  return (
+    <Table
+      className="messages-table"
+      headings={[
+        { id: 'status', content: 'Status', width: '96px' },
+        { id: 'details', content: 'Message Details' },
+      ]}
+    >
+      {messages.length > 0 ? messages.map(m => (
+        <MessageRow key={m.id} message={m} />
+      )) : (
+        <tr>
+          <td colSpan="2"><p className="empty-message text-center">No messages found</p></td>
+        </tr>
+      )}
+    </Table>
+  )
+}
 
 export default MessagesTable

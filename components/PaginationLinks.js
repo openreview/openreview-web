@@ -1,7 +1,8 @@
 import Link from 'next/link'
+import { stringify } from 'query-string'
 
 const PaginationLinks = ({
-  currentPage = 1, itemsPerPage, totalCount, baseUrl, options,
+  currentPage = 1, itemsPerPage, totalCount, baseUrl, queryParams, options,
 }) => {
   if (totalCount <= itemsPerPage) {
     return null
@@ -61,18 +62,20 @@ const PaginationLinks = ({
   return (
     <nav className="pagination-container text-center" aria-label="page navigation">
       <ul className="pagination">
-        {pageList.map((page, i) => {
+        {pageList.map((page) => {
           const classList = []
           if (page.disabled) classList.push('disabled')
           if (page.active) classList.push('active')
           if (page.extraClasses) classList.push(page.extraClasses)
+
+          const queryString = stringify({ ...queryParams, page: page.number }, { skipNull: true })
 
           return (
             <li key={page.key || page.number} className={classList.join(' ')} data-page-number={page.number}>
               {page.disabled ? (
                 <span>{page.label}</span>
               ) : (
-                <Link href={`${baseUrl || ''}&page=${page.number}`}>
+                <Link href={`${baseUrl}?${queryString}`}>
                   <a>{page.label}</a>
                 </Link>
               )}

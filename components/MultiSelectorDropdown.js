@@ -1,37 +1,31 @@
-import { useState, useEffect } from 'react'
+export default function MultiSelectorDropdown({
+  id, options, selectedValues, setSelectedValues, disabled,
+}) {
+  const allValues = options.map(f => f.value)
+  const numOptions = allValues.length
 
-const MultiSelectorDropdown = ({
-  id, filters, onSelectionChange, disabled,
-}) => {
-  const allValues = [...filters.map(f => f.value), 'all']
-  const [checkedValues, setCheckedValues] = useState(allValues)
-
-  const handleSelectAllChange = (value) => {
-    if (checkedValues.includes('all')) {
-      setCheckedValues([])
+  const handleSelectAllChange = () => {
+    if (selectedValues.length === numOptions) {
+      setSelectedValues([])
     } else {
-      setCheckedValues(allValues)
+      setSelectedValues(allValues)
     }
   }
 
   const handleSelectValueChange = (value) => {
-    if (checkedValues.includes(value)) {
-      setCheckedValues(checkedValues.filter(v => v !== value && v !== 'all'))
+    if (selectedValues.includes(value)) {
+      setSelectedValues(selectedValues.filter(v => v !== value))
     } else {
-      setCheckedValues([...checkedValues, value])
+      setSelectedValues([...selectedValues, value])
     }
   }
 
   const getButtonText = () => {
-    if (checkedValues.includes('all')) return 'All'
-    if (checkedValues.length === 0) return 'None'
-    if (checkedValues.length === 1) return checkedValues[0]
-    return `${checkedValues.length} items`
+    if (selectedValues.length === numOptions) return 'All'
+    if (selectedValues.length === 0) return 'None'
+    if (selectedValues.length === 1) return selectedValues[0]
+    return `${selectedValues.length} items`
   }
-
-  useEffect(() => {
-    onSelectionChange(checkedValues.filter(v => v !== 'all'))
-  }, [checkedValues])
 
   return (
     <div className="multiselector dropdown">
@@ -53,22 +47,22 @@ const MultiSelectorDropdown = ({
               value="all"
               className="select-all-checkbox"
               type="checkbox"
-              checked={checkedValues.includes('all')}
+              checked={selectedValues.length === numOptions}
               onChange={e => handleSelectAllChange(e.target.value)}
             />
             Select All
           </label>
         </li>
-        {filters.map(filter => (
-          <li key={filter.value}>
+        {options.map(option => (
+          <li key={option.value}>
             <label>
               <input
-                value={filter.value}
+                value={option.value}
                 type="checkbox"
-                checked={checkedValues.includes(filter.value)}
+                checked={selectedValues.includes(option.value)}
                 onChange={e => handleSelectValueChange(e.target.value)}
               />
-              {filter.text}
+              {option.text}
             </label>
           </li>
         ))}
@@ -76,5 +70,3 @@ const MultiSelectorDropdown = ({
     </div>
   )
 }
-
-export default MultiSelectorDropdown
