@@ -85,16 +85,16 @@ const Messages = ({
 
   const handleSearchParamChange = (filters) => {
     if (filters.type === 'status') {
-      setSearchParams({ ...searchParams, status: filters.statuses })
       setPage(1)
+      setSearchParams({ ...searchParams, status: filters.statuses })
     }
     if (filters.type === 'subject') {
-      setSearchParams({ ...searchParams, subject: filters.subject ? `${filters.subject}.*` : '' })
       setPage(1)
+      setSearchParams({ ...searchParams, subject: filters.subject ? `${filters.subject}.*` : '' })
     }
     if (filters.type === 'recipient' && (filters.recipient === '' || filters.recipient.includes('@'))) {
-      setSearchParams({ ...searchParams, to: filters.recipient })
       setPage(1)
+      setSearchParams({ ...searchParams, to: filters.recipient })
     }
   }
 
@@ -123,8 +123,6 @@ const Messages = ({
   }, [])
 
   useEffect(() => {
-    if (!searchParams) return
-
     if (searchParams.status?.length === 0) {
       setMessages([])
       setCount(0)
