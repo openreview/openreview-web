@@ -1934,7 +1934,7 @@ window.Handlebars["templates"]["partials/accordion"] = Handlebars.template({"1":
     + ((stack1 = lookupProperty(helpers,"unless").call(alias1,((stack1 = (depths[1] != null ? lookupProperty(depths[1],"options") : depths[1])) != null ? lookupProperty(stack1,"collapsed") : stack1),{"name":"unless","hash":{},"fn":container.program(9, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":20,"column":86},"end":{"line":20,"column":131}}})) != null ? stack1 : "")
     + "\" role=\"tabpanel\">\n        <div class=\"panel-body\">\n"
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depths[1] != null ? lookupProperty(depths[1],"options") : depths[1])) != null ? lookupProperty(stack1,"html") : stack1),{"name":"if","hash":{},"fn":container.program(11, data, 0, blockParams, depths),"inverse":container.program(13, data, 0, blockParams, depths),"data":data,"loc":{"start":{"line":22,"column":10},"end":{"line":26,"column":17}}})) != null ? stack1 : "")
-    + "        </div>\n      </div>\n    </div>\n    <hr class=\"webfied-accordion-divider\">\n";
+    + "        </div>\n      </div>\n    </div>\n    <hr class=\"webfield-accordion-divider\">\n";
 },"7":function(container,depth0,helpers,partials,data) {
     return "collapsed";
 },"9":function(container,depth0,helpers,partials,data) {

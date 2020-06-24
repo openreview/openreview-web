@@ -19,12 +19,12 @@
     "handlebars": "^4.7.6",
     "jquery": "^2.2.4",
     "jwt-decode": "^2.2.0",
-    "less": "^3.11.2",
+    "less": "^3.11.3",
     "lodash": "^4.17.15",
     "marked": "^1.1.0",
     "mathjax": "^3.0.5",
     "next": "^9.4.4",
-    "query-string": "^6.12.1",
+    "query-string": "^6.13.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "universal-cookie": "^4.0.3"
@@ -32,11 +32,12 @@
   "devDependencies": {
     "babel-eslint": "^10.1.0",
     "chokidar": "^3.4.0",
-    "eslint": "^7.1.0",
-    "eslint-config-airbnb": "^18.1.0",
-    "eslint-plugin-import": "^2.20.2",
-    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint": "~7.2.0",
+    "eslint-config-airbnb": "^18.2.0",
+    "eslint-plugin-import": "^2.21.2",
+    "eslint-plugin-jsx-a11y": "^6.3.1",
     "eslint-plugin-react": "^7.20.0",
-    "eslint-plugin-react-hooks": "^4.0.4"
+    "eslint-plugin-react-hooks": "^4.0.4",
+    "testcafe": "^1.8.6"
   }
 }

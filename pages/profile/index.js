@@ -187,8 +187,7 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
   )
 }
 
-// eslint-disable-next-line object-curly-newline
-const Profile = ({ profile, publicProfile, query, appContext }) => {
+const Profile = ({ profile, publicProfile, appContext }) => {
   const [loading, setLoading] = useState(true)
   const [publications, setPublications] = useState([])
   const [count, setCount] = useState(0)
@@ -223,9 +222,9 @@ const Profile = ({ profile, publicProfile, query, appContext }) => {
   useEffect(() => {
     if (profile.id === user?.profile?.id) {
       setBannerHidden(false) // setBannerContent has no effect if banner is hidden
-      setBannerContent(generalLink('/profile/edit', 'Edit Profile'))
+      setBannerContent(generalLink('Edit Profile', '/profile/edit'))
     }
-  }, [query, user])
+  }, [profile, user])
 
   useEffect(() => {
     if (loading) return
@@ -374,7 +373,6 @@ Profile.getInitialProps = async (ctx) => {
       return { statusCode: 404, message: 'Profile not found' }
     }
   } catch (error) {
-    // TODO: Add better error reporting here
     return { statusCode: 404, message: 'Profile not found' }
   }
 
@@ -382,7 +380,6 @@ Profile.getInitialProps = async (ctx) => {
   return {
     profile: profileFormatted,
     publicProfile: true,
-    query: ctx.query,
   }
 }
 
