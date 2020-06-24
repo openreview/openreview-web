@@ -98,7 +98,7 @@ window.generalPrompt = function(type, content, options) {
     html: false,
     noTimeout: false,
     scrollToTop: true,
-    overlay: false
+    overlay: true
   };
   options = _.assign(defaults, options);
 
@@ -114,7 +114,6 @@ window.generalPrompt = function(type, content, options) {
 
   if (options.overlay) {
     $outer.addClass('fixed-overlay');
-    options.scrollToTop = false;
   } else {
     $outer.removeClass('fixed-overlay');
   }
@@ -141,11 +140,8 @@ window.generalPrompt = function(type, content, options) {
   $outer.find('.alert-content').append(msgHtml);
   $outer.slideDown();
 
-  if (options.scrollToTop) {
-    var scrollOffset = $('#or-banner').is(':visible') ? $('#or-banner').outerHeight() : 0;
-    if (window.scrollY > scrollOffset) {
-      $('html, body').animate({scrollTop: scrollOffset}, 400);
-    }
+  if (options.scrollToTop && window.scrollY > 0) {
+    $('html, body').animate({ scrollTop: 0 }, 400);
   }
 
   if (!options.noTimeout) {
