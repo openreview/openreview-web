@@ -17,7 +17,7 @@ const Names = ({ names, highlightValue }) => (
       {names && names.map((name) => {
         const shouldHighlight = highlightValue.includes(`${name?.first ?? ''} ${name?.middle ?? ''} ${name?.last ?? ''}`.replace(/\s{2,}/g, ' '))
         return (
-          <tr key={`${name}${name.preferred}`}>
+          <tr key={`${name?.first ?? ''} ${name?.middle ?? ''} ${name?.last ?? ''}${name.preferred}`}>
             <td>
               <div className="name" data-toggle={name.signatures && 'tooltip'} title={name.signature && `Edited by ${name.signatures}`} style={name.confirmed ? undefined : { color: '#8c1b13' }}>
                 {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
@@ -56,10 +56,10 @@ const Relation = ({ relationships, highlightValue }) => (
       {relationships && relationships.map(relationship => (
         <tr key={`${relationship.name}${relationship.relation}${relationship.start}${relationship.end}`} data-toggle={relationship.signatures && 'tooltip'} title={relationship.signature && `Edited by ${relationship.signatures}`} style={relationship.confirmed ? undefined : { color: '#8c1b13' }}>
           <td>
-            <strong className={highlightValue.includes(relationship.name) ? 'hightlight' : undefined}>{relationship.name}</strong>
+            <strong className={highlightValue.includes(relationship.name) ? 'highlight' : undefined}>{relationship.name}</strong>
           </td>
           <td>
-            <small className={highlightValue.includes(relationship.email) ? 'hightlight' : undefined}>{relationship.email}</small>
+            <small className={highlightValue.includes(relationship.email) ? 'highlight' : undefined}>{relationship.email}</small>
           </td>
           <td>
             <span>{relationship.relation}</span>
@@ -71,13 +71,13 @@ const Relation = ({ relationships, highlightValue }) => (
 )
 
 // eslint-disable-next-line no-shadow
-const Expertise = ({ expertises, highlightValues }) => (
+const Expertise = ({ expertises, highlightValue }) => (
   <table>
     <tbody>
       {expertises && expertises.map(expertise => (
         <tr key={expertise.keywords} data-toggle={expertise.signatures && 'tooltip'} title={expertise.signature && `Edited by ${expertise.signatures}`} style={expertise.confirmed ? undefined : { color: '#8c1b13' }}>
           <td>
-            <span className={highlightValues.includes(expertise.keywords.join(', ')) ? 'highlight' : undefined}>{expertise.keywords.join(', ')}</span>
+            <span className={highlightValue.includes(expertise.keywords.join(', ')) ? 'highlight' : undefined}>{expertise.keywords.join(', ')}</span>
           </td>
         </tr>
       ))}
@@ -197,8 +197,8 @@ const Compare = ({ left, right, accessToken, appContext }) => {
         ...Object.keys(withSignatureProfiles.right).filter(key => withSignatureProfiles.right?.[key] && Object.keys(withSignatureProfiles.right?.[key]).length !== 0),
       ])])
       const leftHighlightValue = getHighlightValue(withSignatureProfiles.left)
-      const rightHightlightValue = getHighlightValue(withSignatureProfiles.right)
-      setHighlightValues({ left: leftHighlightValue, right: rightHightlightValue })
+      const rightHighlightValue = getHighlightValue(withSignatureProfiles.right)
+      setHighlightValues({ left: leftHighlightValue, right: rightHighlightValue })
     }
   }, [withSignatureProfiles])
 
@@ -226,7 +226,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
         if (key === 'relations') {
           value.forEach((relation) => {
             compareFields.push(relation?.name)
-            compareFields.push(relation?.domain)
+            compareFields.push(relation?.email)
           })
           return
         }
