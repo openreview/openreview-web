@@ -2187,7 +2187,7 @@ module.exports = (function() {
       // Restore deleted note
       newNote.ddate = null;
       return controller.post('/notes', newNote, null, function(jqXhr, error) {
-        promptError(error, { overlay: true });
+        promptError(error, { scrollToTop: false });
       }, true).then(function(updatedNote) {
         onTrashedOrRestored(Object.assign(newNote, updatedNote));
       });
@@ -2201,7 +2201,7 @@ module.exports = (function() {
       newNote.signatures = newSignatures;
       newNote.ddate = Date.now();
       controller.post('/notes', newNote, null, function(jqXhr, error) {
-        promptError(error, { overlay: true });
+        promptError(error, { scrollToTop: false });
       }, true).then(function(updatedNote) {
         onTrashedOrRestored(Object.assign(newNote, updatedNote));
       });
@@ -2226,7 +2226,7 @@ module.exports = (function() {
         var errorToDisplay = error === 'no_results' ?
           'You do not have permission to delete this note' :
           error;
-        promptError(errorToDisplay, { overlay: true });
+        promptError(errorToDisplay, { scrollToTop: false });
       });
   };
 
@@ -2752,7 +2752,7 @@ module.exports = (function() {
 
     if ($('.note_editor.panel').length) {
       promptError('You currently have another editor pane open on this page. ' +
-        'Please submit your changes or click Cancel before continuing', { overlay: true });
+        'Please submit your changes or click Cancel before continuing', { scrollToTop: false });
       if (params.onCompleted) {
         params.onCompleted(null);
       }
@@ -3075,7 +3075,7 @@ module.exports = (function() {
 
     if ($('.note_editor.panel').length) {
       promptError('You currently have another editor pane open on this page. ' +
-        'Please submit your changes or click Cancel before continuing', { overlay: true });
+        'Please submit your changes or click Cancel before continuing', { scrollToTop: false });
       if (params.onCompleted) {
         params.onCompleted(null);
       }
