@@ -2626,7 +2626,7 @@ module.exports = (function() {
       $container.on('click', '.accept-profile', function() {
         var $row = $(this).closest('li');
         postModerationDecision($row.data('id'), true).then(function() {
-          promptMessage($row.find('.col-name').text() + ' is now active', { overlay: true });
+          promptMessage($row.find('.col-name').text() + ' is now active', { scrollToTop: false });
           $row.fadeOut('fast');
         });
       });
@@ -2666,7 +2666,7 @@ module.exports = (function() {
         }
 
         postModerationDecision(profileId, false, message).then(function() {
-          promptMessage(name + ' has been rejected', { overlay: true });
+          promptMessage(name + ' has been rejected', { scrollToTop: false });
           $row.fadeOut();
         });
 
