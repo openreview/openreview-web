@@ -1,11 +1,15 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-use-before-define */
+/* globals promptError: false */
+/* globals promptMessage: false */
+
 import { useEffect, useState, useRef } from 'react'
 import Head from 'next/head'
 import withAdminAuth from '../../components/withAdminAuth'
 import api from '../../lib/api-client'
 import { formatDateTime } from '../../lib/utils'
 import Icon from '../../components/Icon'
+import LoadSpinner from '../../components/LoadingSpinner'
 import Pagination from '../../components/PaginationLinks'
 
 const Signups = ({ appContext, accessToken }) => {
@@ -46,6 +50,7 @@ const UserModerationQueue = ({ accessToken, onlyModeration = true, pageSize = 15
   const [pageNumber, setPageNumber] = useState(null)
   const [showRejectionModal, setShowRejectionModal] = useState(false)
   const [profileIdToReject, setProfileIdToReject] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
   const totalCount = useRef(0)
 
   useEffect(() => {
@@ -65,21 +70,27 @@ const UserModerationQueue = ({ accessToken, onlyModeration = true, pageSize = 15
       ...onlyModeration ? { needsModeration: true } : {},
     }
     try {
+      setIsLoading(true)
       const result = await api.get('/profiles', options, { accessToken })
       if (pageNumber === 1) totalCount.current = result.count
       setProfiles(result.profiles)
     } catch (error) {
       promptError(error.message)
     }
+    setIsLoading(false)
   }
 
   const acceptButtonClickHandler = async (profileId, name) => {
-    const result = await api.post('/activate/moderate', {
-      id: profileId,
-      activate: true,
-    }, { accessToken })
-    getProfiles(pageNumber)
-    promptMessage(`${name} is now active`)
+    try {
+      const result = await api.post('/activate/moderate', {
+        id: profileId,
+        activate: true,
+      }, { accessToken })
+      getProfiles(pageNumber)
+      promptMessage(`${name} is now active`)
+    } catch (error) {
+      promptError(error.message)
+    }
   }
 
   const rejectButtonClickHandler = async (profileId) => {
@@ -91,9 +102,10 @@ const UserModerationQueue = ({ accessToken, onlyModeration = true, pageSize = 15
     <>
       {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
       <h4>{title} ({totalCount.current})</h4>
+      {isLoading && <div style={{ position: 'absolute', left: '50%' }}><LoadSpinner inline /></div>}
       <ul className="list-unstyled list-paginated" style={{ height: `${totalCount.current === 0 ? 'undefined' : '485px'}` }}>
         {
-          (profiles && profiles?.length) ? profiles.map((profile) => {
+          (profiles && profiles?.length && !isLoading) ? profiles.map((profile) => {
             const name = profile.content.names[0]
             return (
               <li key={profile.id}>
@@ -138,35 +150,39 @@ const UserModerationQueue = ({ accessToken, onlyModeration = true, pageSize = 15
                 </span>
               </li>
             )
-          }) : <li><p className="empty-message">No profiles pending moderation.</p></li>
+          }) : !isLoading && <li><p className="empty-message">No profiles pending moderation.</p></li>
         }
       </ul>
       {totalCount.current !== 0 && <Pagination currentPage={pageNumber} itemsPerPage={15} totalCount={totalCount.current} baseUrl="/admin/signups?" updateParentPageNumber={setPageNumber} />}
-      <RejectionModal show={showRejectionModal} modalClosed={() => setShowRejectionModal(false)} accessToken={accessToken} profileIdToReject={profileIdToReject} afterReject={() => getProfiles(pageNumber)} />
+      <RejectionModal
+        displayFlagFromParent={showRejectionModal}
+        modalClosed={() => setShowRejectionModal(false)}
+        payload={{ accessToken, profileIdToReject, afterReject: () => getProfiles(pageNumber) }}
+      />
     </>
   )
 }
 
 // eslint-disable-next-line object-curly-newline
-const RejectionModal = ({ show, modalClosed, accessToken, profileIdToReject, afterReject }) => {
+const RejectionModal = ({ displayFlagFromParent, modalClosed, payload }) => {
   const [display, SetDisplay] = useState(false)
   const [rejectionMessage, setRejectionMessage] = useState('')
   useEffect(() => {
-    SetDisplay(show)
-  }, [show])
+    SetDisplay(displayFlagFromParent)
+  }, [displayFlagFromParent])
 
   const handleSubmitButtonClick = async () => {
     try {
       const result = await api.post('/activate/moderate', {
-        id: profileIdToReject,
+        id: payload.profileIdToReject,
         activate: false,
         reason: rejectionMessage,
-      }, { accessToken })
+      }, { accessToken: payload.accessToken })
     } catch (error) {
       promptError(error.message)
     }
     cleanup()
-    afterReject()
+    payload.afterReject()
   }
 
   const cleanup = () => {
@@ -184,14 +200,14 @@ const RejectionModal = ({ show, modalClosed, accessToken, profileIdToReject, aft
               <form>
                 <div className="form-group">
                   {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-                  <label htmlFor="message">Reason to reject {profileIdToReject}:</label>
+                  <label htmlFor="message">Reason to reject {payload.profileIdToReject}:</label>
                   <textarea name="message" className="form-control" rows="5" required value={rejectionMessage} onChange={e => setRejectionMessage(e.target.value)} />
                 </div>
               </form>
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-default" data-dismiss="modal" onClick={cleanup}>Cancel</button>
-              <button type="button" className="btn btn-primary" onClick={handleSubmitButtonClick}>Submit</button>
+              <button type="button" className="btn btn-primary" onClick={handleSubmitButtonClick} disabled={rejectionMessage.length ? undefined : true}>Submit</button>
             </div>
           </div>
         </div>
