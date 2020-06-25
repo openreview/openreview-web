@@ -12,7 +12,7 @@ import Icon from '../../components/Icon'
 import LoadSpinner from '../../components/LoadingSpinner'
 import Pagination from '../../components/PaginationLinks'
 
-const Signups = ({ appContext, accessToken }) => {
+const Moderation = ({ appContext, accessToken }) => {
   const { setBannerHidden } = appContext
 
   useEffect(() => {
@@ -217,4 +217,4 @@ const RejectionModal = ({ displayFlagFromParent, modalClosed, payload }) => {
   )
 }
 
-export default withAdminAuth(Signups)
+export default withAdminAuth(Moderation)
