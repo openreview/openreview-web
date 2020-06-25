@@ -153,7 +153,7 @@ const UserModerationQueue = ({ accessToken, onlyModeration = true, pageSize = 15
           }) : !isLoading && <li><p className="empty-message">No profiles pending moderation.</p></li>
         }
       </ul>
-      {totalCount.current !== 0 && <Pagination currentPage={pageNumber} itemsPerPage={15} totalCount={totalCount.current} baseUrl="/admin/signups?" updateParentPageNumber={setPageNumber} />}
+      {totalCount.current !== 0 && <Pagination currentPage={pageNumber} itemsPerPage={15} totalCount={totalCount.current} setCurrentPage={setPageNumber} />}
       <RejectionModal
         displayFlagFromParent={showRejectionModal}
         modalClosed={() => setShowRejectionModal(false)}
