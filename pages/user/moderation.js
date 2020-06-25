@@ -153,6 +153,7 @@ const UserModerationQueue = ({ accessToken, onlyModeration = true, pageSize = 15
           }) : !isLoading && <li><p className="empty-message">No profiles pending moderation.</p></li>
         }
       </ul>
+      {/* eslint-disable-next-line max-len */}
       {totalCount.current !== 0 && <Pagination currentPage={pageNumber} itemsPerPage={15} totalCount={totalCount.current} setCurrentPage={setPageNumber} />}
       <RejectionModal
         displayFlagFromParent={showRejectionModal}
