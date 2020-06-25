@@ -34,6 +34,7 @@ const Submissions = ({ groupId, notes, pagination }) => {
         itemsPerPage={pagination.notesPerPage}
         totalCount={pagination.totalCount}
         baseUrl={pagination.baseUrl}
+        queryParams={pagination.queryParams}
       />
     </div>
   )
@@ -61,7 +62,8 @@ Submissions.getInitialProps = async (ctx) => {
     currentPage,
     notesPerPage,
     totalCount: count,
-    baseUrl: `/submissions?venue=${groupId}`,
+    baseUrl: '/submissions',
+    queryParams: { venue: groupId },
   }
   return { groupId, notes, pagination }
 }
