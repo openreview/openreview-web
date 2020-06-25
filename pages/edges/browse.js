@@ -10,6 +10,7 @@ import EdgeBrowserHeader from '../../components/browser/EdgeBrowserHeader'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import api from '../../lib/api-client'
 import { parseEdgeList, buildInvitationReplyArr } from '../../lib/edge-utils'
+import { referrerLink } from '../../lib/banner-links'
 
 import '../../styles/pages/edge-browser.less'
 
@@ -41,6 +42,13 @@ const Browse = ({ appContext }) => {
     if (!query.traverse || !query.browse) {
       setError(notFoundError)
       return
+    }
+
+    if (query.referrer) {
+      setBannerContent(referrerLink(query.referrer))
+      setBannerHidden(false)
+    } else {
+      setBannerHidden(true)
     }
 
     const startInvitations = parseEdgeList(query.start)
@@ -122,16 +130,15 @@ const Browse = ({ appContext }) => {
   }, [user, query])
 
   useEffect(() => {
-    setBannerHidden(true)
     setLayoutOptions({ fullWidth: true, minimalFooter: true })
   }, [])
 
   useEffect(() => {
-    if (error) {
-      setBannerHidden(false)
-      setBannerContent(null)
-      setLayoutOptions({ fullWidth: false, minimalFooter: false })
-    }
+    if (!error) return
+
+    setBannerHidden(false)
+    setBannerContent(null)
+    setLayoutOptions({ fullWidth: false, minimalFooter: false })
   }, [error])
 
   if (error) {

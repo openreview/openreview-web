@@ -269,11 +269,11 @@ main.edge-browser {
     white-space: nowrap;
     padding: 0 15px 0 15px;
     min-height: 360px;
-    height: ~"calc(100vh - 156px)";
+    height: calc(100vh - ~"195px");
     scroll-behavior: smooth; // Not supported in IE
 
     @media @phone-only {
-      height: ~"calc(100vh - 174px)";
+      height: ~"calc(100vh - 177px)";
     }
 
     .column {
@@ -434,6 +434,13 @@ main.edge-browser {
           border-color: @mediumDarkBlue;
         }
       }
+    }
+  }
+
+  &.banner-hidden .explore-interface {
+    height: calc(100vh - ~"156px");
+    @media @phone-only {
+      height: ~"calc(100vh - 145px)";
     }
   }
 

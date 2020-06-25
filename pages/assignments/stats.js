@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
+import Link from 'next/link'
 import withError from '../../components/withError'
 import { auth } from '../../lib/auth'
 import api from '../../lib/api-client'
@@ -61,7 +62,9 @@ const AssignmentStats = ({
             </button>
             <ul className="dropdown-menu dropdown-align-right">
               <li>
-                <a href={getEdgeBrowserUrl(assignmentConfigNote.content)}>Browse Assignments</a>
+                <Link href={getEdgeBrowserUrl(assignmentConfigNote.content)}>
+                  <a>Browse Assignments</a>
+                </Link>
               </li>
             </ul>
           </div>

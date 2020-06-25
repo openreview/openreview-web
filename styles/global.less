@@ -368,8 +368,12 @@ strong.hint {
   }
   &.minimal-footer {
     padding-bottom: 0;
+    min-height: calc(100vh - ~"126px");
+  }
+  &.banner-hidden.minimal-footer {
     min-height: calc(100vh - ~"88px");
   }
+
 
   @media @phone-only {
     padding: 15px 0 20px 0;
@@ -379,6 +383,9 @@ strong.hint {
       min-height: ~"calc(100vh - 236px)";
     }
     &.minimal-footer {
+      min-height: calc(100vh - ~"120px");
+    }
+    &.minimal-footer.banner-hidden {
       min-height: calc(100vh - ~"85px");
     }
   }
