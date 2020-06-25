@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/interactive-supports-focus */
 import Link from 'next/link'
 import { stringify } from 'query-string'
 
