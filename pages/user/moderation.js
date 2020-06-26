@@ -26,9 +26,6 @@ const Moderation = ({ appContext, accessToken }) => {
       </Head>
       <header>
         <h1>User Moderation</h1>
-        {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-        <p>Moderation is currently <strong>{`${process.env.USER_MODERATION ? 'enabled' : 'disabled'}`}</strong> for new user profiles.</p>
-        <hr />
       </header>
 
       <div className="moderation-container">
