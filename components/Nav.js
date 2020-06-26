@@ -1,6 +1,6 @@
 /* eslint-disable no-use-before-define */
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import { useState, useEffect, useCallback } from 'react'
 import { debounce } from 'lodash'
 import NavUserLinks from './NavUserLinks'
@@ -69,6 +69,7 @@ function Nav() {
 }
 
 const AutoCompleteInput = () => {
+  const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [autoCompleteItems, setAutoCompleteItems] = useState([])
 
@@ -78,6 +79,8 @@ const AutoCompleteInput = () => {
       searchByTerm(searchTerm)
     }
   }, [searchTerm])
+
+  Router.events.on('routeChangeStart', () => { setSearchTerm(''); setImmediateSearchTerm('') })
 
   const delayedQuery = useCallback(
     debounce(term => setSearchTerm(term), 300),
@@ -93,21 +96,37 @@ const AutoCompleteInput = () => {
     setAutoCompleteItems([...tokenObjects, null, ...titleObjects])
   }
 
+  const itemClickHandler = (item) => {
+    setAutoCompleteItems([])
+    if (item.section === 'titles') {
+      Router.push({ pathname: '/forum', query: { id: item.forum, noteId: item.id } })
+    } else if (item.value.startsWith('~')) {
+      Router.push({ pathname: '/profile', query: { id: item.value } })
+    } else {
+      // eslint-disable-next-line object-curly-newline
+      Router.push({ pathname: '/search', query: { term: item.value, content: 'all', group: 'all', source: 'all' } })
+    }
+  }
+
   return (
     <>
       <div className="form-group has-feedback">
-        <input name="term" type="text" className="form-control" placeholder="Search OpenReivew..." onChange={e => delayedQuery(e.target.value)} />
+        <input name="term" type="text" className="form-control" placeholder="Search OpenReivew..." onChange={(e) => { setImmediateSearchTerm(e.target.value); delayedQuery(e.target.value) }} value={immediateSearchTerm} />
         <Icon name="search" extraClasses="form-control-feedback" />
       </div>
       {autoCompleteItems.length !== 0 && (
         <ul className="ui-menu ui-widget ui-widget-content ui-autocomplete ui-front">
-          {autoCompleteItems.map(item => {
+          {/* eslint-disable-next-line arrow-body-style */}
+          {autoCompleteItems.map((item) => {
             return item ? (
               <>
-                <li key={item.value} className="menuItem ui-menu-item">
+                {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
+                <li key={item.value} className="menuItem ui-menu-item" onClick={() => itemClickHandler(item)}>
+                  {/* eslint-disable-next-line react/no-danger */}
                   <div className="ui-menu-item-wrapper" dangerouslySetInnerHTML={{ __html: item.label }} />
                   {
                     item.subtitle && (
+                      // eslint-disable-next-line react/no-danger
                       <div className="authlist ui-menu-item-wrapper" dangerouslySetInnerHTML={{ __html: item.subtitle }} />
                     )
                   }
