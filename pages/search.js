@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { stringify } from 'query-string'
 import isEmpty from 'lodash/isEmpty'
 import pick from 'lodash/pick'
 import api from '../lib/api-client'
@@ -141,7 +140,8 @@ const Search = ({ appContext }) => {
           currentPage={page}
           itemsPerPage={pageSize}
           totalCount={searchResults.count}
-          baseUrl={`/search?${stringify(searchQuery, { skipNull: true })}`}
+          baseUrl="/search"
+          queryParams={searchQuery}
         />
       </div>
     </div>
