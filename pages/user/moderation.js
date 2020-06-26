@@ -130,11 +130,13 @@ const UserModerationQueue = ({ accessToken, onlyModeration = true, pageSize = 15
                       <>
                         <button type="button" className="btn btn-xs accept-profile" onClick={() => { acceptButtonClickHandler(profile.id, `${name.first} ${name.middle} ${name.last}`) }}>
                           <Icon name="ok-circle" />
+                          {' '}
                           Accept
                         </button>
                         {' '}
                         <button type="button" className="btn btn-xs reject-profile" onClick={() => rejectButtonClickHandler(profile.id)}>
                           <Icon name="remove-circle" />
+                          {' '}
                           Reject
                         </button>
                       </>
@@ -143,6 +145,7 @@ const UserModerationQueue = ({ accessToken, onlyModeration = true, pageSize = 15
                         // eslint-disable-next-line no-console
                         <button type="button" className="btn btn-xs delete-profile" disabled onClick={() => { console.warn('Deleting profiles is not currently possible from the UI') }}>
                           <Icon name="remove-circle" />
+                          {' '}
                           Delete
                         </button>
                       )
