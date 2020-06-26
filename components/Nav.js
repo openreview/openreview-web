@@ -80,9 +80,14 @@ const AutoCompleteInput = () => {
     }
   }, [searchTerm])
 
-  Router.events.on('routeChangeStart', () => { setSearchTerm(''); setImmediateSearchTerm('') })
+  Router.events.on('routeChangeStart', (url) => {
+    if (!url.startsWith('/search')) {
+      setSearchTerm('')
+      setImmediateSearchTerm('')
+    }
+  })
 
-  const delayedQuery = useCallback(
+  const delaySearch = useCallback(
     debounce(term => setSearchTerm(term), 300),
     [],
   )
@@ -111,7 +116,7 @@ const AutoCompleteInput = () => {
   return (
     <>
       <div className="form-group has-feedback">
-        <input name="term" type="text" className="form-control" placeholder="Search OpenReivew..." onChange={(e) => { setImmediateSearchTerm(e.target.value); delayedQuery(e.target.value) }} value={immediateSearchTerm} />
+        <input name="term" type="text" className="form-control" placeholder="Search OpenReivew..." onChange={(e) => { setImmediateSearchTerm(e.target.value); delaySearch(e.target.value) }} value={immediateSearchTerm} />
         <Icon name="search" extraClasses="form-control-feedback" />
       </div>
       {autoCompleteItems.length !== 0 && (
