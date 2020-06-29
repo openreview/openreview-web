@@ -32,6 +32,14 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
       require('mathjax/es5/tex-chtml')
     }
 
+    if (!window.moment) {
+      window.moment = require('moment')
+    }
+
+    if (!window.moment?.tz) {
+      require('moment-timezone')
+    }
+
     const script = document.createElement('script')
     script.innerHTML = `window.user = ${JSON.stringify(user)}; ${webfieldCode}`
     document.body.appendChild(script)
