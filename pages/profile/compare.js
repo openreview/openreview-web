@@ -389,13 +389,13 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   const mergeProfile = (from, to) => {
     const fromProfile = { id: basicProfiles[from].id, active: basicProfiles[from].active }
     const toProfile = { id: basicProfiles[to].id, active: basicProfiles[to].active }
-    const postMerge = () => {
+    const postMerge = async () => {
       try {
-        api.post('/profiles/merge', { from: fromProfile.id, to: toProfile.id }, { accessToken })
+        await api.post('/profiles/merge', { from: fromProfile.id, to: toProfile.id }, { accessToken })
+        Router.reload()
       } catch (error) {
         promptError(error.message)
       }
-      Router.reload()
     }
 
     if (toProfile.active === false && fromProfile.active === true) {
