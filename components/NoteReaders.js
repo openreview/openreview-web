@@ -6,7 +6,8 @@ const NoteReaders = ({ readers }) => {
     return (
       <>
         <Icon name="globe" extraClasses="readers-icon" />
-        {' Everyone'}
+        {' '}
+        Everyone
       </>
     )
   }
