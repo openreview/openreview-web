@@ -3,7 +3,13 @@ import { prettyId } from '../lib/utils'
 
 const NoteReaders = ({ readers }) => {
   if (readers.includes('everyone')) {
-    return [<Icon name="globe" extraClasses="readers-icon" />, ' ', 'Everyone']
+    return (
+      <>
+        <Icon name="globe" extraClasses="readers-icon" />
+        {' '}
+        Everyone
+      </>
+    )
   }
 
   return readers.map(reader => (
