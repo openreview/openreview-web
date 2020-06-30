@@ -27,18 +27,10 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
   useEffect(() => {
     if (clientJsLoading) return
 
-    if (!window.MathJax) {
-      window.MathJax = require('../lib/mathjax-config')
-      require('mathjax/es5/tex-chtml')
-    }
-
-    if (!window.moment) {
-      window.moment = require('moment')
-    }
-
-    if (!window.moment?.tz) {
-      require('moment-timezone')
-    }
+    window.MathJax = require('../lib/mathjax-config')
+    require('mathjax/es5/tex-chtml')
+    window.moment = require('moment')
+    require('moment-timezone')
 
     const script = document.createElement('script')
     script.innerHTML = `window.user = ${JSON.stringify(user)}; ${webfieldCode}`
