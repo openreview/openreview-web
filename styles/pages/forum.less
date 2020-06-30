@@ -168,8 +168,13 @@ main.forum, main.revisions {
       font-style: italic;
       margin-top: .5rem;
       margin-bottom: .5rem;
+      margin-right: 1em;
       a {
         color: @darkBlue;
+      }
+
+      &.no-margin {
+        margin-right: 4px;
       }
     }
     .item {
@@ -189,10 +194,17 @@ main.forum, main.revisions {
     .private-author-label {
       font-size: .875rem;
       font-style: italic;
+      margin-right: 1em;
+      line-height: normal;
+      color: @subtleGray;
     }
     .trash_button, .edit_button {
       margin-top: -1px;
       margin-right: 0.3em;
+    }
+
+    .profile-link {
+      font-size: 1rem;
     }
   }
 
@@ -300,6 +312,10 @@ main.forum, main.revisions {
     .meta_row {
       .signatures {
         font-size: .875rem;
+      }
+
+      .profile-link {
+        font-size: 0.875rem;
       }
     }
 
