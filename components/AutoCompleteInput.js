@@ -17,6 +17,10 @@ const AutoCompleteInput = () => {
     }
   }, [searchTerm])
 
+  useEffect(() => { // hide items when search term is cleared
+    if (!immediateSearchTerm) setAutoCompleteItems([])
+  }, [immediateSearchTerm])
+
   useEffect(() => {
     const handleRouteChange = (url) => {
       if (!url.startsWith('/search')) {
