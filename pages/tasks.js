@@ -50,8 +50,6 @@ const Tasks = ({ accessToken, appContext }) => {
   )
 
   useEffect(() => {
-    if (clientJsLoading) return
-
     setBannerHidden(true)
 
     Promise.all([
@@ -67,7 +65,7 @@ const Tasks = ({ accessToken, appContext }) => {
     ])
       .then(allInvitations => setGroupedTasks(formatTasksData(allInvitations)))
       .catch(apiError => setError(apiError))
-  }, [clientJsLoading])
+  }, [])
 
   useEffect(() => {
     if (!groupedTasks) return
@@ -114,9 +112,9 @@ Tasks.getInitialProps = (ctx) => {
   const { user, token } = auth(ctx)
   if (!user) {
     if (ctx.req) {
-      ctx.res.writeHead(302, { Location: '/login' }).end()
+      ctx.res.writeHead(302, { Location: '/login?redirect=/tasks' }).end()
     } else {
-      Router.replace('/login')
+      Router.replace('/login?redirect=/tasks')
     }
   }
   return { accessToken: token }

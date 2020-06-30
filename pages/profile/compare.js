@@ -1,0 +1,520 @@
+/* globals promptError: false */
+
+import React, { useEffect, useState } from 'react'
+import Router from 'next/router'
+import Head from 'next/head'
+import isEmpty from 'lodash/isEmpty'
+import withAdminAuth from '../../components/withAdminAuth'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import api from '../../lib/api-client'
+import { prettyId, prettyField } from '../../lib/utils'
+
+import '../../styles/pages/profile-compare.less'
+
+// #region components used by Compare (in renderField method)
+const Names = ({ names, highlightValue }) => (
+  <table>
+    <tbody>
+      {names && names.map((name) => {
+        const nameStr = `${name.first} ${name.middle ?? ''} ${name.last}`.replace(/\s{2,}/g, ' ')
+        return (
+          <tr
+            key={`${nameStr}${name.preferred}`}
+            data-toggle={name.signatures && 'tooltip'}
+            title={name.signature && `Edited by ${name.signatures}`}
+            style={name.confirmed ? null : { color: '#8c1b13' }}
+          >
+            <td>
+              <span className={highlightValue.includes(nameStr) ? 'highlight ' : null}>
+                {nameStr}
+              </span>
+              {' '}
+              {name.preferred && <small>(Preferred)</small>}
+            </td>
+          </tr>
+        )
+      })}
+    </tbody>
+  </table>
+)
+
+const History = ({ historys, highlightValue }) => (
+  <table style={{ width: '100%' }}>
+    <tbody>
+      {historys && historys.map(history => (
+        <tr
+          key={`${history.position}${history.institution.name}${history.start}${history.end}`}
+          data-toggle={history.signatures && 'tooltip'}
+          title={history.signature && `Edited by ${history.signatures}`}
+          style={history.confirmed ? null : { color: '#8c1b13' }}
+        >
+          <td className="position">
+            <strong>{history.position}</strong>
+          </td>
+          <td className="institution">
+            <span className={highlightValue.includes(history.institution.name) ? 'highlight' : null}>
+              {history.institution.name}
+            </span>
+            {' '}
+            {history.institution.domain && (
+              <small className={highlightValue.includes(history.institution.domain) ? 'highlight' : null}>
+                {`(${history.institution.domain})`}
+              </small>
+            )}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+)
+
+const Relation = ({ relationships, highlightValue }) => (
+  <table style={{ width: '100%' }}>
+    <tbody>
+      {relationships && relationships.map(relationship => (
+        <tr
+          key={`${relationship.name}${relationship.relation}${relationship.start}${relationship.end}`}
+          data-toggle={relationship.signatures && 'tooltip'}
+          title={relationship.signature && `Edited by ${relationship.signatures}`}
+          style={relationship.confirmed ? null : { color: '#8c1b13' }}
+        >
+          <td>
+            <strong className={highlightValue.includes(relationship.name) ? 'highlight' : null}>
+              {relationship.name}
+            </strong>
+          </td>
+          <td>
+            <small className={highlightValue.includes(relationship.email) ? 'highlight' : null}>
+              {relationship.email}
+            </small>
+          </td>
+          <td>
+            <span>{relationship.relation}</span>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+)
+
+// eslint-disable-next-line no-shadow
+const Expertise = ({ expertises, highlightValue }) => (
+  <table>
+    <tbody>
+      {expertises && expertises.map(expertise => (
+        <tr
+          key={expertise.keywords}
+          data-toggle={expertise.signatures && 'tooltip'}
+          title={expertise.signature && `Edited by ${expertise.signatures}`}
+          style={expertise.confirmed ? null : { color: '#8c1b13' }}
+        >
+          <td>
+            <span className={highlightValue.includes(expertise.keywords.join(', ')) ? 'highlight' : null}>
+              {expertise.keywords.join(', ')}
+            </span>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+)
+
+const Publications = ({ publications, highlightValue }) => (
+  <table style={{ width: '100%' }}>
+    <tbody>
+      {publications && publications.map(publication => (
+        <React.Fragment key={publication.forum}>
+          <tr key={`${publication.title}1`}>
+            <td>
+              <a href={`/forum?id=${publication.forum}`} target="_blank" rel="noreferrer">
+                <strong className={highlightValue.includes(publication.title) ? 'highlight' : null}>
+                  {publication.title}
+                </strong>
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              {publication.authors.map(author => (
+                <React.Fragment key={author}>
+                  <span className={highlightValue.includes(author) ? 'highlight' : null}>{author}</span>
+                  <span>, </span>
+                </React.Fragment>
+              ))}
+            </td>
+          </tr>
+          <tr>
+            <td style={{ paddingBottom: '.75rem' }}>
+              {publication.authorids.map((authorid, index) => (
+                // eslint-disable-next-line react/no-array-index-key
+                <a key={index} href={`/group?id=${authorid}`} target="_blank" rel="noreferrer">
+                  <span className={highlightValue.includes(authorid) ? 'highlight' : null}>
+                    {authorid}
+                  </span>
+                  <span>, </span>
+                </a>
+              ))}
+            </td>
+          </tr>
+        </React.Fragment>
+      ))}
+    </tbody>
+  </table>
+)
+
+const Others = ({ fieldContent, highlightValue }) => {
+  if (typeof fieldContent === 'string') {
+    if (fieldContent.startsWith('http')) {
+      return (
+        <a href={fieldContent.value} target="_blank" rel="noreferrer">
+          <span className={highlightValue.includes(fieldContent) ? 'highlight' : null}>{fieldContent}</span>
+        </a>
+      )
+    }
+    return <span className={highlightValue.includes(fieldContent) ? 'highlight' : null}>{fieldContent}</span>
+  }
+  return (
+    <table>
+      <tbody>
+        {fieldContent && fieldContent.map(content => (
+          <tr
+            key={content.value}
+            data-toggle={content.signatures && 'tooltip'}
+            title={content.signature && `Edited by ${content.signatures}`}
+            style={content.confirmed ? null : { color: '#8c1b13' }}
+          >
+            <td>
+              {content.value.startsWith('http') ? (
+                <a href={content.value} target="_blank" rel="noreferrer">
+                  <span className={highlightValue.includes(content.value) ? 'highlight' : null}>{content.value}</span>
+                </a>
+              ) : (
+                <span className={highlightValue.includes(content.value) ? 'highlight' : null}>{content.value}</span>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+// #endregion
+
+// eslint-disable-next-line object-curly-newline
+const Compare = ({ left, right, accessToken, appContext }) => {
+  const [basicProfiles, setBasicProfiles] = useState(null)
+  const [withSignatureProfiles, setWithSignatureProfiles] = useState(null)
+  const [highlightValues, setHighlightValues] = useState(null)
+  const [fields, setFields] = useState([])
+  const { setBannerHidden } = appContext
+
+  const getPublications = async (profileId) => {
+    if (!profileId) {
+      return []
+    }
+    try {
+      const { notes } = await api.get('/notes', {
+        'content.authorids': profileId,
+        sort: 'cdate',
+      }, { accessToken })
+      if (notes?.length > 0) {
+        return notes.map(publication => ({
+          forum: publication.forum,
+          title: publication.content.title,
+          authors: publication.content.authors,
+          authorids: publication.content.authorids.filter(id => id),
+        }))
+      }
+    } catch (error) {
+      promptError(error.message)
+    }
+    return []
+  }
+
+  const getHighlightValue = (withSignatureProfile) => {
+    const compareFields = []
+    Object.entries(withSignatureProfile).forEach(([key, value]) => {
+      if (!value) return
+
+      if (typeof value === 'string') {
+        compareFields.push(value)
+        return
+      }
+      if (key === 'names') {
+        value.forEach((name) => {
+          compareFields.push(`${name?.first} ${name?.middle ?? ''} ${name?.last}`.replace(/\s{2,}/g, ' '))
+        })
+        return
+      }
+      if (key === 'history') {
+        value.forEach((history) => {
+          compareFields.push(history?.institution?.name)
+          compareFields.push(history?.institution?.domain)
+        })
+        return
+      }
+      if (key === 'relations') {
+        value.forEach((relation) => {
+          compareFields.push(relation?.name)
+          compareFields.push(relation?.email)
+        })
+        return
+      }
+      if (key === 'expertise') {
+        value.forEach((expertise) => {
+          compareFields.push(expertise?.keywords?.join(', '))
+        })
+        return
+      }
+      if (key === 'publications') {
+        value.forEach((publication) => {
+          compareFields.push(publication?.title)
+          // eslint-disable-next-line no-unused-expressions
+          publication?.authors?.forEach((author) => {
+            compareFields.push(author)
+          })
+          // eslint-disable-next-line no-unused-expressions
+          publication?.authorids?.forEach((authorids) => {
+            compareFields.push(authorids)
+          })
+        })
+        return
+      }
+      if (Array.isArray(value)) {
+        value.forEach((p) => {
+          compareFields.push(p.value)
+        })
+      }
+    })
+    return compareFields.filter(p => p)
+  }
+
+  const getBasicProfile = async (id) => {
+    if (!id) {
+      return {}
+    }
+    try {
+      const queryParams = id.includes('@') ? { email: id } : { id }
+      const { profiles } = await api.get('/profiles', queryParams, { accessToken })
+      if (profiles?.length > 0) {
+        const publications = await getPublications(profiles[0].id)
+        return { ...profiles[0], publications }
+      }
+    } catch (error) {
+      promptError(error.message)
+    }
+    return {}
+  }
+
+  const addMetadata = (profile, fieldName) => {
+    const localProfile = { ...profile }
+    // for checking signature to decide if confirmed
+    const profileUsernames = localProfile.content?.names
+      ? localProfile.content?.names.map(name => (name?.username))
+      : []
+
+    if (!localProfile.content?.[fieldName]) return null
+    if (!localProfile.metaContent?.[fieldName]) return localProfile.content[fieldName]
+    if (typeof localProfile.content[fieldName] === 'string') {
+      localProfile.content[fieldName] = [localProfile.content[fieldName]]
+    }
+    if (!localProfile.content[fieldName].length) return null
+    if (!Array.isArray(localProfile.metaContent[fieldName])) {
+      localProfile.metaContent[fieldName] = [localProfile.metaContent[fieldName]]
+    }
+
+    return localProfile.content[fieldName].map((c, index) => {
+      const { signatures } = localProfile.metaContent[fieldName][index]
+      return {
+        ...c,
+        value: c,
+        signatures: signatures.map(signature => prettyId(signature)).join(', '),
+        confirmed: (signatures.includes('~Super_User1') || signatures.includes('OpenReview.net'))
+          || signatures.some(signature => profileUsernames.includes(signature)),
+      }
+    })
+  }
+
+  const formatLongDate = (date) => {
+    if (!date) return ''
+
+    return new Date(date)
+      .toISOString()
+      .replace(/-/g, '/')
+      .replace('T', ' ')
+      .replace('Z', '')
+  }
+
+  const addSignatureToProfile = (profile) => {
+    if (Object.keys(profile).length === 0) return profile
+
+    return {
+      tcdate: formatLongDate(profile.tcdate || profile.cdate),
+      tmdate: formatLongDate(profile.tmdate || profile.mdate),
+      active: (!!profile.active).toString(),
+      password: (!!profile.password).toString(),
+      names: addMetadata(profile, 'names'),
+      preferredEmail: addMetadata(profile, 'preferredEmail'),
+      emails: addMetadata(profile, 'emails'),
+      homepage: addMetadata(profile, 'homepage'),
+      dblp: addMetadata(profile, 'dblp'),
+      gscholar: addMetadata(profile, 'gscholar'),
+      linkedin: addMetadata(profile, 'linkedin'),
+      wikipedia: addMetadata(profile, 'wikipedia'),
+      orcid: addMetadata(profile, 'orcid'),
+      history: addMetadata(profile, 'history'),
+      expertise: addMetadata(profile, 'expertise'),
+      relations: addMetadata(profile, 'relations'),
+      publications: profile.publications,
+    }
+  }
+
+  const renderField = (profile, fieldName, highlightValue) => {
+    switch (fieldName) {
+      case 'names':
+        return <Names names={profile.names} highlightValue={highlightValue} />
+      case 'history':
+        return <History historys={profile.history} highlightValue={highlightValue} />
+      case 'relations':
+        return <Relation relationships={profile.relations} highlightValue={highlightValue} />
+      case 'expertise':
+        return <Expertise expertises={profile.expertise} highlightValue={highlightValue} />
+      case 'publications':
+        return <Publications publications={profile.publications} highlightValue={highlightValue} />
+      default:
+        return <Others fieldContent={profile[fieldName]} highlightValue={highlightValue} />
+    }
+  }
+
+  const mergeProfile = (from, to) => {
+    const fromProfile = { id: basicProfiles[from].id, active: basicProfiles[from].active }
+    const toProfile = { id: basicProfiles[to].id, active: basicProfiles[to].active }
+    const postMerge = async () => {
+      try {
+        await api.post('/profiles/merge', { from: fromProfile.id, to: toProfile.id }, { accessToken })
+        Router.reload()
+      } catch (error) {
+        promptError(error.message)
+      }
+    }
+
+    if (toProfile.active === false && fromProfile.active === true) {
+      // eslint-disable-next-line no-alert
+      if (window.confirm('You are merging an active profile into an inactive profile. Are you sure you want to proceed?')) {
+        postMerge()
+      }
+    } else {
+      postMerge()
+    }
+  }
+
+  useEffect(() => {
+    setBannerHidden(true)
+
+    Promise.all([getBasicProfile(left), getBasicProfile(right)])
+      .then((profiles) => {
+        setBasicProfiles({ left: profiles[0], right: profiles[1] })
+      })
+  }, [])
+
+  useEffect(() => {
+    if (!basicProfiles) return
+
+    setWithSignatureProfiles({
+      left: addSignatureToProfile(basicProfiles.left),
+      right: addSignatureToProfile(basicProfiles.right),
+    })
+  }, [basicProfiles])
+
+  useEffect(() => {
+    if (!withSignatureProfiles) return
+
+    setFields(Array.from(new Set([
+      ...Object.keys(withSignatureProfiles.left).filter(key => !isEmpty(withSignatureProfiles.left[key])),
+      ...Object.keys(withSignatureProfiles.right).filter(key => !isEmpty(withSignatureProfiles.right[key])),
+    ])))
+
+    setHighlightValues({
+      left: getHighlightValue(withSignatureProfiles.left),
+      right: getHighlightValue(withSignatureProfiles.right),
+    })
+  }, [withSignatureProfiles])
+
+  return (
+    <>
+      <Head>
+        <title key="title">Compare Profiles | OpenReview</title>
+      </Head>
+
+      <header>
+        <h1>Merge Profiles</h1>
+        <hr />
+      </header>
+
+      <div className="table-responsive">
+        {basicProfiles ? (
+          <table className="table">
+            <thead>
+              <tr>
+                <th style={{ width: '110px', verticalAlign: 'middle' }}>
+                  Merge Direction
+                </th>
+                <th style={{ width: '300px', textAlign: 'center', verticalAlign: 'middle' }}>
+                  <a href={`/profile?id=${basicProfiles.left?.id}`} target="_blank" rel="noreferrer">
+                    {basicProfiles.left?.id}
+                  </a>
+                </th>
+                <th colSpan="2" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                  <button
+                    type="button"
+                    className="btn merge-btn-left mb-2"
+                    disabled={(basicProfiles.left?.id && basicProfiles.right?.id) ? null : true}
+                    onClick={() => mergeProfile('right', 'left')}
+                  >
+                    &laquo;
+                  </button>
+                  <br />
+                  <button
+                    type="button"
+                    className="btn merge-btn-right"
+                    disabled={(basicProfiles.left?.id && basicProfiles.right?.id) ? null : true}
+                    onClick={() => mergeProfile('left', 'right')}
+                  >
+                    &raquo;
+                  </button>
+                </th>
+                <th style={{ width: '300px', textAlign: 'center', verticalAlign: 'middle' }}>
+                  <a href={`/profile?id=${basicProfiles.right?.id}`} target="_blank" rel="noreferrer">
+                    {basicProfiles.right?.id}
+                  </a>
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {fields.map(field => (
+                <tr key={field}>
+                  <td>
+                    <strong>{prettyField(field)}</strong>
+                  </td>
+                  <td colSpan="2">
+                    {renderField(withSignatureProfiles?.left, field, highlightValues.right)}
+                  </td>
+                  <td colSpan="2">
+                    {renderField(withSignatureProfiles?.right, field, highlightValues.left)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <LoadingSpinner />
+        )}
+      </div>
+    </>
+  )
+}
+
+Compare.bodyClass = 'compare'
+
+export default withAdminAuth(Compare)

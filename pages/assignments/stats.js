@@ -1,10 +1,12 @@
 import { useEffect } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
+import Link from 'next/link'
 import withError from '../../components/withError'
 import { auth } from '../../lib/auth'
 import api from '../../lib/api-client'
-import { prettyId, getEdgeBrowserUrl, getGroupIdfromInvitation } from '../../lib/utils'
+import { getGroupIdfromInvitation } from '../../lib/utils'
+import { getEdgeBrowserUrl } from '../../lib/edge-utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
 import '../../styles/pages/assignment-stats.less'
@@ -60,7 +62,9 @@ const AssignmentStats = ({
             </button>
             <ul className="dropdown-menu dropdown-align-right">
               <li>
-                <a href={getEdgeBrowserUrl(assignmentConfigNote.content)}>Browse Assignments</a>
+                <Link href={getEdgeBrowserUrl(assignmentConfigNote.content)}>
+                  <a>Browse Assignments</a>
+                </Link>
               </li>
             </ul>
           </div>
