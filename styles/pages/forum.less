@@ -155,10 +155,11 @@ main.forum, main.revisions {
   }
 
   .meta_row {
-    margin-right: 0.625rem;
+    margin-right: .625rem;
 
     &.pull-left {
       max-width: ~'calc(100% - 160px)';
+      margin-right: 0;
       @media @phone-only {
         max-width: none;
       }
@@ -166,13 +167,10 @@ main.forum, main.revisions {
     .signatures, .author {
       font-size: 1.125rem;
       font-style: italic;
-      margin-top: .5rem;
-      margin-bottom: .5rem;
-      margin-right: 1em;
+      margin-right: 1rem;
       a {
         color: @darkBlue;
       }
-
       &.no-margin {
         margin-right: 4px;
       }
@@ -194,17 +192,13 @@ main.forum, main.revisions {
     .private-author-label {
       font-size: .875rem;
       font-style: italic;
-      margin-right: 1em;
+      margin-right: .875rem;
       line-height: normal;
       color: @subtleGray;
     }
     .trash_button, .edit_button {
       margin-top: -1px;
-      margin-right: 0.25rem;
-    }
-
-    .profile-link {
-      font-size: 1rem;
+      margin-right: .25rem;
     }
   }
 
@@ -327,12 +321,8 @@ main.forum, main.revisions {
     }
 
     .meta_row {
-      .signatures {
+      .signatures, .author, .profile-link {
         font-size: .875rem;
-      }
-
-      .profile-link {
-        font-size: 0.875rem;
       }
     }
 

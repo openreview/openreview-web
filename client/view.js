@@ -2130,6 +2130,8 @@ module.exports = (function() {
           $('<div>', { class: 'meta_row' }).append($origReadersItem),
           $('<hr>', { class: 'small' })
         );
+      } else {
+        $originalNote.hide()
       }
     }
 
