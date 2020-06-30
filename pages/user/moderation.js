@@ -1,16 +1,14 @@
-/* eslint-disable no-shadow */
-/* eslint-disable no-use-before-define */
 /* globals promptError: false */
 /* globals promptMessage: false */
 
 import { useEffect, useState, useRef } from 'react'
 import Head from 'next/head'
 import withAdminAuth from '../../components/withAdminAuth'
-import api from '../../lib/api-client'
-import { formatDateTime } from '../../lib/utils'
 import Icon from '../../components/Icon'
 import LoadSpinner from '../../components/LoadingSpinner'
-import Pagination from '../../components/PaginationLinks'
+import PaginationLinks from '../../components/PaginationLinks'
+import api from '../../lib/api-client'
+import { prettyId, formatDateTime } from '../../lib/utils'
 
 const Moderation = ({ appContext, accessToken }) => {
   const { setBannerHidden } = appContext
@@ -24,91 +22,82 @@ const Moderation = ({ appContext, accessToken }) => {
       <Head>
         <title key="title">User Moderation | OpenReview</title>
       </Head>
+
       <header>
         <h1>User Moderation</h1>
+        <hr />
       </header>
 
       <div className="moderation-container">
-        <div className="profiles-list not-moderated">
-          <UserModerationQueue accessToken={accessToken} onlyModeration={false} title="Recently Created Profiles" />
-        </div>
+        <UserModerationQueue accessToken={accessToken} title="Recently Created Profiles" onlyModeration={false} />
 
-        <div className="profiles-list under-moderation">
-          <UserModerationQueue accessToken={accessToken} />
-        </div>
+        <UserModerationQueue accessToken={accessToken} title="New Profiles Pending Moderation" />
       </div>
     </>
   )
 }
 
-// eslint-disable-next-line object-curly-newline
-const UserModerationQueue = ({ accessToken, onlyModeration = true, pageSize = 15, title = 'New Profiles Pending Moderation' }) => {
+const UserModerationQueue = ({
+  accessToken, title, onlyModeration = true, pageSize = 15,
+}) => {
   const [profiles, setProfiles] = useState(null)
-  const [pageNumber, setPageNumber] = useState(null)
+  const [pageNumber, setPageNumber] = useState(1)
   const [showRejectionModal, setShowRejectionModal] = useState(false)
   const [profileIdToReject, setProfileIdToReject] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const totalCount = useRef(0)
+  const [totalCount, setTotalCount] = useState(0)
 
-  useEffect(() => {
-    setPageNumber(1)
-  }, [])
+  const getProfiles = async () => {
+    const queryOptions = onlyModeration ? { needsModeration: true } : {}
 
-  useEffect(() => {
-    getProfiles(pageNumber)
-  }, [pageNumber])
-
-  const getProfiles = async (pageNumber) => {
-    if (!pageNumber) return
-    const options = {
-      sort: 'tcdate:desc',
-      limit: pageSize,
-      offset: (pageNumber - 1) * pageSize,
-      ...onlyModeration ? { needsModeration: true } : {},
-    }
     try {
-      setIsLoading(true)
-      const result = await api.get('/profiles', options, { accessToken })
-      if (pageNumber === 1) totalCount.current = result.count
-      setProfiles(result.profiles)
-    } catch (error) {
-      promptError(error.message)
-    }
-    setIsLoading(false)
-  }
-
-  const acceptButtonClickHandler = async (profileId, name) => {
-    try {
-      const result = await api.post('/activate/moderate', {
-        id: profileId,
-        activate: true,
+      const result = await api.get('/profiles', {
+        ...queryOptions,
+        sort: 'tcdate:desc',
+        limit: pageSize,
+        offset: (pageNumber - 1) * pageSize,
       }, { accessToken })
-      getProfiles(pageNumber)
-      promptMessage(`${name} is now active`)
+      setTotalCount(result.count ?? 0)
+      setProfiles(result.profiles ?? [])
     } catch (error) {
       promptError(error.message)
     }
   }
 
-  const rejectButtonClickHandler = async (profileId) => {
+  const acceptUser = async (profileId) => {
+    try {
+      await api.post('/activate/moderate', { id: profileId, activate: true }, { accessToken })
+      getProfiles()
+      promptMessage(`${prettyId(profileId)} is now active`)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const rejectUser = async (profileId) => {
     setProfileIdToReject(profileId)
     setShowRejectionModal(true)
   }
 
+  useEffect(() => {
+    getProfiles()
+  }, [pageNumber])
+
   return (
-    <>
+    <div className="profiles-list">
       {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-      <h4>{title} ({totalCount.current})</h4>
-      {isLoading && <div style={{ position: 'absolute', left: '50%' }}><LoadSpinner inline /></div>}
-      <ul className="list-unstyled list-paginated" style={{ height: `${totalCount.current === 0 ? 'undefined' : '485px'}` }}>
-        {
-          (profiles && profiles?.length && !isLoading) ? profiles.map((profile) => {
+      <h4>{title} ({totalCount})</h4>
+
+      {profiles ? (
+        <ul className="list-unstyled list-paginated">
+          {profiles.map((profile) => {
             const name = profile.content.names[0]
             return (
               <li key={profile.id}>
                 <span className="col-name">
-                  {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-                  <a href={`/profile?id=${profile.id}`} target="_blank" rel="noreferrer" title={profile.id}>{name.first} {name.middle} {name.last}</a>
+                  <a href={`/profile?id=${profile.id}`} target="_blank" rel="noreferrer" title={profile.id}>
+                    {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+                    {name.first} {name.middle} {name.last}
+                  </a>
                 </span>
                 <span className="col-email text-muted">
                   {profile.content.preferredEmail}
@@ -122,59 +111,76 @@ const UserModerationQueue = ({ accessToken, onlyModeration = true, pageSize = 15
                   <span className={`label label-${profile.active ? 'success' : 'danger'}`}>active</span>
                 </span>
                 <span className="col-actions">
-                  {
-                    onlyModeration ? (
-                      <>
-                        <button type="button" className="btn btn-xs accept-profile" onClick={() => { acceptButtonClickHandler(profile.id, `${name.first} ${name.middle} ${name.last}`) }}>
-                          <Icon name="ok-circle" />
-                          {' '}
-                          Accept
-                        </button>
+                  {onlyModeration ? (
+                    <>
+                      <button type="button" className="btn btn-xs" onClick={() => acceptUser(profile.id)}>
+                        <Icon name="ok-circle" />
                         {' '}
-                        <button type="button" className="btn btn-xs reject-profile" onClick={() => rejectButtonClickHandler(profile.id)}>
-                          <Icon name="remove-circle" />
-                          {' '}
-                          Reject
-                        </button>
-                      </>
-                    )
-                      : (
-                        // eslint-disable-next-line no-console
-                        <button type="button" className="btn btn-xs delete-profile" disabled onClick={() => { console.warn('Deleting profiles is not currently possible from the UI') }}>
-                          <Icon name="remove-circle" />
-                          {' '}
-                          Delete
-                        </button>
-                      )
-                  }
+                        Accept
+                      </button>
+                      {' '}
+                      <button type="button" className="btn btn-xs" onClick={() => rejectUser(profile.id)}>
+                        <Icon name="remove-circle" />
+                        {' '}
+                        Reject
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn-xs delete-profile"
+                      disabled
+                    >
+                      <Icon name="remove-circle" />
+                      {' '}
+                      Delete
+                    </button>
+                  )}
                 </span>
               </li>
             )
-          }) : !isLoading && <li><p className="empty-message">No profiles pending moderation.</p></li>
-        }
-      </ul>
-      {/* eslint-disable-next-line max-len */}
-      {totalCount.current !== 0 && <Pagination currentPage={pageNumber} itemsPerPage={15} totalCount={totalCount.current} setCurrentPage={setPageNumber} />}
-      <RejectionModal
-        displayFlagFromParent={showRejectionModal}
-        modalClosed={() => setShowRejectionModal(false)}
-        payload={{ accessToken, profileIdToReject, afterReject: () => getProfiles(pageNumber) }}
+          })}
+          {profiles.length === 0 && (
+            <li><p className="empty-message">No profiles pending moderation.</p></li>
+          )}
+        </ul>
+      ) : (
+        <LoadSpinner inline />
+      )}
+
+      <PaginationLinks
+        currentPage={pageNumber}
+        itemsPerPage={15}
+        totalCount={totalCount}
+        setCurrentPage={setPageNumber}
       />
-    </>
+
+      <RejectionModal
+        display={showRejectionModal}
+        setDisplay={setShowRejectionModal}
+        onModalClosed={() => getProfiles()}
+        payload={{ accessToken, profileIdToReject }}
+      />
+    </div>
   )
 }
 
-// eslint-disable-next-line object-curly-newline
-const RejectionModal = ({ displayFlagFromParent, modalClosed, payload }) => {
-  const [display, SetDisplay] = useState(false)
+const RejectionModal = ({
+  display, setDisplay, onModalClosed, payload,
+}) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
-  useEffect(() => {
-    SetDisplay(displayFlagFromParent)
-  }, [displayFlagFromParent])
 
-  const handleSubmitButtonClick = async () => {
+  const cleanup = () => {
+    setDisplay(false)
+    setRejectionMessage('')
+    if (typeof onModalClosed === 'function') {
+      onModalClosed()
+    }
+  }
+
+  const submitRejection = async () => {
     try {
-      const result = await api.post('/activate/moderate', {
+      await api.post('/activate/moderate', {
         id: payload.profileIdToReject,
         activate: false,
         reason: rejectionMessage,
@@ -183,13 +189,6 @@ const RejectionModal = ({ displayFlagFromParent, modalClosed, payload }) => {
       promptError(error.message)
     }
     cleanup()
-    payload.afterReject()
-  }
-
-  const cleanup = () => {
-    SetDisplay(false)
-    setRejectionMessage('')
-    modalClosed()
   }
 
   return (
@@ -201,14 +200,20 @@ const RejectionModal = ({ displayFlagFromParent, modalClosed, payload }) => {
               <form>
                 <div className="form-group">
                   {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-                  <label htmlFor="message">Reason to reject {payload.profileIdToReject}:</label>
-                  <textarea name="message" className="form-control" rows="5" required value={rejectionMessage} onChange={e => setRejectionMessage(e.target.value)} />
+                  <label htmlFor="message">Reason for rejecting {prettyId(payload.profileIdToReject)}:</label>
+                  <textarea
+                    name="message"
+                    className="form-control"
+                    rows="5"
+                    value={rejectionMessage}
+                    onChange={e => setRejectionMessage(e.target.value)}
+                  />
                 </div>
               </form>
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-default" data-dismiss="modal" onClick={cleanup}>Cancel</button>
-              <button type="button" className="btn btn-primary" onClick={handleSubmitButtonClick} disabled={rejectionMessage.length ? undefined : true}>Submit</button>
+              <button type="button" className="btn btn-primary" onClick={submitRejection} disabled={!rejectionMessage}>Submit</button>
             </div>
           </div>
         </div>
