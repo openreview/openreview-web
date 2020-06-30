@@ -69,6 +69,13 @@ hr {
     margin-bottom: .625rem;
   }
 }
+.clearfix {
+  &:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
 
 // Spacing utils
 .mt-0 {
@@ -257,6 +264,9 @@ hr {
 .btn-link .glyphicon {
   color: @mediumDarkBlue;
 }
+.trashed {
+  opacity: 0.35;
+}
 
 .form-control {
   font-size: .875rem;
@@ -350,21 +360,37 @@ strong.hint {
 // Main content
 @bannerHeight: 39px;
 #content {
-  padding: 20px 0 30px 0;
   box-sizing: border-box;
-  min-height: ~"calc(100vh - 221px)";
   position: relative;
+  padding: 20px 0 30px 0;
+  min-height: ~"calc(100vh - 260px)";
+  .clearfix;
+
+  &.banner-hidden {
+    min-height: ~"calc(100vh - 221px)";
+  }
+  &.minimal-footer {
+    padding-bottom: 0;
+    min-height: calc(100vh - ~"126px");
+  }
+  &.banner-hidden.minimal-footer {
+    min-height: calc(100vh - ~"88px");
+  }
+
 
   @media @phone-only {
     padding: 15px 0 20px 0;
-    min-height: ~"calc(100vh - 236px)";
-  }
-}
-#content.banner-visible {
-  min-height: ~"calc(100vh - 260px)";
-
-  @media @phone-only {
     min-height: ~"calc(100vh - 273px)";
+
+    &.banner-hidden {
+      min-height: ~"calc(100vh - 236px)";
+    }
+    &.minimal-footer {
+      min-height: calc(100vh - ~"120px");
+    }
+    &.minimal-footer.banner-hidden {
+      min-height: calc(100vh - ~"85px");
+    }
   }
 }
 

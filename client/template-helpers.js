@@ -712,7 +712,7 @@ Handlebars.registerHelper('edgeBrowserUrl', function(configNoteId, configNoteCon
     var referrerText = 'View all assignments for ' + view.prettyId(configNoteContent.match_group);
     var referrerUrl = '/assignments?group=' + configNoteContent.match_group;
 
-    return '/edge/browse' +
+    return '/edges/browse' +
       '?traverse=' + configNoteContent.assignment_invitation + ',label:' + configNoteContent.title +
       '&edit=' + configNoteContent.assignment_invitation + ',label:' + configNoteContent.title +
       '&browse=' + configNoteContent.aggregate_score_invitation + ',label:' + configNoteContent.title +

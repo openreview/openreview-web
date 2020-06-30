@@ -2052,7 +2052,7 @@ module.exports = (function() {
     var $originalNote;
     if (details.original) {
       var originalNote = details.original;
-      $originalNote = $('<div>', {id: 'original_note_' + originalNote.id, class: 'note panel'});
+      $originalNote = $('<div>', {id: 'original_note_' + originalNote.id, class: 'note panel private-contents'});
 
       // If the values in original Note and blind Note are the same we can omit the field
       if (!_.isEqual(note.content.authorids, originalNote.content.authorids)) {
