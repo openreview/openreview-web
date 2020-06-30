@@ -28,10 +28,6 @@ main.forum, main.revisions {
     li {
       padding: .125rem 0;
     }
-
-    .signatures{
-      font-size: .875rem;
-    }
   }
   .note_contents {
     margin-top: .125rem;
@@ -42,7 +38,7 @@ main.forum, main.revisions {
       margin-bottom: 0;
     }
     mjx-container:last-child {
-      margin-bottom: 1em;
+      margin-bottom: .75rem;
     }
   }
 
@@ -196,7 +192,7 @@ main.forum, main.revisions {
     }
     .trash_button, .edit_button {
       margin-top: -1px;
-      margin-right: 0.3em;
+      margin-right: 0.25rem;
     }
   }
 
@@ -204,12 +200,26 @@ main.forum, main.revisions {
     float: right;
     margin-right: 0;
 
-    button:last-child {
-      margin-right: 0;
+    button:first-child {
+      margin-right: .25rem;
     }
     .trash_button, .edit_button {
       display: inline-block;
       float: none;
+    }
+  }
+
+  .private-contents {
+    background-color: rgba(0, 0, 0, .04);
+    padding: .25rem .5rem;
+    margin: .25rem -.5rem;
+    border-radius: 0;
+
+    hr {
+      margin-bottom: .125rem;
+    }
+    .signatures {
+      font-size: .875rem;
     }
   }
 
@@ -226,6 +236,9 @@ main.forum, main.revisions {
     .hint {
       vertical-align: middle;
       margin-right: .5rem;
+    }
+    button {
+      margin-right: .25rem;
     }
     button:last-child {
       margin-right: 0;
@@ -383,16 +396,6 @@ main.forum, main.revisions {
   .note_editor.panel {
     margin-bottom: .5rem;
     border-radius: 0;
-  }
-
-  .btn {
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: .25rem;
-  }
-
-  .trashed {
-    opacity: 0.35;
   }
 }
 
