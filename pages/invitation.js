@@ -31,8 +31,8 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
     window.MathJax = require('../lib/mathjax-config')
     require('mathjax/es5/tex-chtml')
     window.moment = require('moment')
-    window.datetimepicker = require('../client/bootstrap-datetimepicker-4.17.47.min')
     require('moment-timezone')
+    window.datetimepicker = require('../client/bootstrap-datetimepicker-4.17.47.min')
 
     const script = document.createElement('script')
     script.innerHTML = `window.user = ${JSON.stringify(user)}; ${webfieldCode}`
