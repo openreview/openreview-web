@@ -1,4 +1,5 @@
 @import "../utils/constants";
+@import "../utils/mixins";
 
 main.revisions {
 
@@ -8,14 +9,14 @@ main.revisions {
     h1 {
       font-weight: normal;
       float: left;
+      margin-top: .25rem;
     }
     .button-container {
-      margin-top: .75rem;
+      margin-top: .5rem;
       float: right;
-
-      button {
-        margin: 0;
-      }
+    }
+    .btn-default {
+      margin-left: .5rem;
     }
   }
 
@@ -24,17 +25,41 @@ main.revisions {
 
     .row .checkbox {
       width: 30px;
-      margin-top: 3px;
+      margin-top: 0;
       margin-bottom: 0;
 
-      input[type=checkbox] {
+      input[type="checkbox"] {
         width: 16px;
         height: 16px;
       }
     }
 
     .note {
+      padding-top: 0;
       padding-bottom: 1rem;
+      h4 {
+        font-size: 1.25rem;
+        line-height: 1.375rem;
+        margin-bottom: .125rem;
+        a {
+          color: @darkBlue;
+        }
+        img {
+          width: 1.375rem;
+          height: 1.375rem;
+        }
+      }
+      .note-authors {
+        font-size: .875rem;
+        font-style: italic;
+        margin-bottom: .125rem;
+      }
+      .note-meta-info {
+        margin-bottom: .125rem;
+      }
+    }
+    .note-content li {
+      padding-left: 0;
     }
 
     &.hide-sidebar {

@@ -1,3 +1,5 @@
+/* globals promptLogin: false */
+
 import { useEffect, useContext, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -11,40 +13,42 @@ import { forumLink } from '../../lib/banner-links'
 
 import '../../styles/pages/revisions.less'
 
-const RevisionsList = ({ revisions, selectedIds, setSelectedIds }) => {
-  const toggleSelected = (id, checked) => {
+const RevisionsList = ({ revisions, selectedIndexes, setSelectedIndexes }) => {
+  const toggleSelected = (idx, checked) => {
     if (checked) {
-      setSelectedIds([...selectedIds, id])
+      setSelectedIndexes([...selectedIndexes, idx].sort((a, b) => a - b))
     } else {
-      setSelectedIds(selectedIds.filter(existingId => existingId !== id))
+      setSelectedIndexes(selectedIndexes.filter(existingIdx => existingIdx !== idx))
     }
   }
 
   if (!revisions) return <LoadingSpinner />
 
   return (
-    <div className="references-list submissions-list">
-      {selectedIds && (
+    <div className={`references-list submissions-list ${selectedIndexes ? '' : 'hide-sidebar'}`}>
+      {selectedIndexes && (
         <div className="alert alert-warning">
           To view a full comparison, select two revisions by checking the corresponding
           checkboxes, then click the View Differences button.
         </div>
       )}
 
-      {revisions.map(([reference, invitation]) => (
-        <div className="row" data-id={reference.id}>
+      {revisions.map(([reference, invitation], index) => (
+        <div key={reference.id} className="row" data-id={reference.id}>
           <div className="checkbox col-sm-1">
             <label>
-              <input type="checkbox" onChange={e => toggleSelected(reference.id, e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={selectedIndexes && selectedIndexes.includes(index)}
+                onChange={e => toggleSelected(index, e.target.checked)}
+              />
             </label>
           </div>
           <div className="col-sm-11">
             <Note
               note={reference}
               invitation={invitation}
-              options={{
-                showContents: true, replyCount: true, pdfLink: true, htmlLink: true,
-              }}
+              options={{ showContents: true, pdfLink: true, htmlLink: true }}
             />
           </div>
         </div>
@@ -58,16 +62,30 @@ const RevisionsList = ({ revisions, selectedIds, setSelectedIds }) => {
 }
 
 const Revisions = ({ appContext }) => {
+  const [parentNoteId, setParentNoteId] = useState('')
   const [revisions, setRevisions] = useState(null)
   const [error, setError] = useState(null)
-  const [selectedIds, setSelectedIds] = useState(null)
+  const [selectedIndexes, setSelectedIndexes] = useState(null)
   const { accessToken, userLoading } = useContext(UserContext)
   const router = useRouter()
   const query = useQuery()
   const { setBannerContent, setBannerHidden } = appContext
 
+  const enterSelectMode = () => {
+    if (!accessToken) {
+      promptLogin()
+      return
+    }
+    setSelectedIndexes([])
+  }
+
   const compareRevisions = () => {
-    router.push('/revisions/compare')
+    // selectedIndexes is always stored in ascending order, so the first element
+    // in the array represents the index of the most recent revision and the second
+    // element represents the older revision, which should go on the left
+    const leftId = revisions[selectedIndexes[1]][0].id
+    const rightId = revisions[selectedIndexes[0]][0].id
+    router.push(`/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}`)
   }
 
   useEffect(() => {
@@ -76,21 +94,23 @@ const Revisions = ({ appContext }) => {
     const noteId = query.id
     if (!noteId) {
       setError({ message: 'Missing required parameter id' })
+      return
     }
+    setParentNoteId(noteId)
 
     const setBanner = async () => {
-      try {
-        const { notes } = await api.get('/notes', { id: noteId }, { accessToken })
-        if (notes?.length > 0) {
-          setBannerContent(forumLink(notes[0]))
-        } else {
-          setBannerHidden(true)
-        }
-      } catch (apiError) {
+      const { notes } = await api.get('/notes', { id: noteId }, { accessToken })
+      if (notes?.length > 0) {
+        setBannerContent(forumLink(notes[0]))
+      } else {
         setBannerHidden(true)
       }
     }
-    setBanner()
+    try {
+      setBanner()
+    } catch (apiError) {
+      setBannerHidden(true)
+    }
 
     const loadRevisions = async () => {
       const apiRes = await api.get('/references', {
@@ -111,7 +131,6 @@ const Revisions = ({ appContext }) => {
         return [reference, referenceInvitation]
       }))
     }
-
     try {
       loadRevisions()
     } catch (apiError) {
@@ -128,12 +147,12 @@ const Revisions = ({ appContext }) => {
       <header>
         <h1>Revision History</h1>
         <div className="button-container">
-          {selectedIds ? (
+          {selectedIndexes ? (
             <>
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={selectedIds.length !== 2}
+                disabled={selectedIndexes.length !== 2}
                 onClick={compareRevisions}
               >
                 View Differences
@@ -141,7 +160,7 @@ const Revisions = ({ appContext }) => {
               <button
                 type="button"
                 className="btn btn-default"
-                onClick={() => setSelectedIds(null)}
+                onClick={() => setSelectedIndexes(null)}
               >
                 Cancel
               </button>
@@ -151,7 +170,7 @@ const Revisions = ({ appContext }) => {
               type="button"
               className="btn btn-primary"
               disabled={!revisions}
-              onClick={() => setSelectedIds([])}
+              onClick={() => enterSelectMode()}
             >
               Compare Revisions
             </button>
@@ -162,7 +181,11 @@ const Revisions = ({ appContext }) => {
       {error ? (
         <ErrorAlert error={error} />
       ) : (
-        <RevisionsList revisions={revisions} selectedIds={selectedIds} setSelectedIds={setSelectedIds} />
+        <RevisionsList
+          revisions={revisions}
+          selectedIndexes={selectedIndexes}
+          setSelectedIndexes={setSelectedIndexes}
+        />
       )}
     </>
   )

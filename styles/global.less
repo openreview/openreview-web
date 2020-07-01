@@ -1,6 +1,7 @@
 // Global styles for used by all pages and components
 
 @import "utils/constants";
+@import "utils/mixins";
 
 html {
   font-size: 16px;
@@ -67,13 +68,6 @@ hr {
   &.small {
     margin-top: .625rem;
     margin-bottom: .625rem;
-  }
-}
-.clearfix {
-  &:after {
-    content: "";
-    display: table;
-    clear: both;
   }
 }
 
@@ -410,14 +404,6 @@ strong.hint {
   & > div {
     display: table-cell;
   }
-}
-
-.well {
-  background: @sandyBrown;
-  padding: .5rem;
-  margin-bottom: 1.875rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 0;
 }
 
 .alert {
