@@ -106,8 +106,8 @@ const Forum = ({ forumNote, query, appContext }) => {
       require('mathjax/es5/tex-chtml')
     }
 
-    const runForum = require('../client/forum')
-    runForum(forumNote.id, query.noteId, query.invitationId, user)
+    // const runForum = require('../client/forum')
+    // runForum(forumNote.id, query.noteId, query.invitationId, user)
   }, [clientJsLoading])
 
   return (
