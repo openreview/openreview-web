@@ -77,7 +77,8 @@ window.translateErrorMessage = function(error) {
     ],
     'Invalid Field': [view.iMess(' is invalid')],
     'Not Found': [view.iMess(' could not be found')],
-    'cannot override final field': [view.iMess(' is a final field and cannot be edited')]
+    'cannot override final field': [view.iMess(' is a final field and cannot be edited')],
+    tooMany: [view.iMess(': too many replies')]
   };
 
   if (_.has(type2Message, error.type)) {
