@@ -73,11 +73,15 @@ Handlebars.registerHelper('prettyInvitationId', function(invitationId, options) 
     var invMatches = invitationId.match(/\/(Paper\d+)\//);
     if (invMatches) {
       paperStr = invMatches[1] + ' ';
+      var anonReviewerMatches = invitationId.match(/\/(AnonReviewer\d+)\//);
+      if (anonReviewerMatches) {
+        paperStr = paperStr + ' ' + anonReviewerMatches[1] + ' ';
     }
   }
+}
 
   var entityStr = '';
-  var entities = ['Reviewers', 'Authors', 'Area_Chairs', 'Program_Chairs'];
+  var entities = ['Reviewers', 'Authors', 'Area_Chairs', 'Program_Chairs', 'Emergency_Reviewers'];
   var groupSpecifier = invitationId.split('/-/')[0].split('/').pop();
   if (_.includes(entities, groupSpecifier)) {
     entityStr = groupSpecifier.replace(/_/g, ' ').slice(0, -1) + ' ';
@@ -307,39 +311,107 @@ Handlebars.registerHelper('noteAuthors', function(content, signatures, details) 
   return new Handlebars.SafeString(html);
 });
 
-Handlebars.registerHelper('noteContentCollapsible', function(noteObj) {
+Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
   if (_.isEmpty(noteObj)) {
     return '';
   }
 
-  var downloadContent = _.mapValues(_.pickBy(noteObj.content, function(fieldVal) {
-    return _.startsWith(fieldVal, '/attachment/');
-  }), function(fieldValue, fieldName) {
-    return view.mkDownloadLink(noteObj.id, fieldName, fieldValue);
-  });
-
-  // automatically exclude fields that begin with underscore ('_')
-  var omittedContentFields = [
-    'body', 'title', 'authors', 'author_emails', 'authorids',
-    'pdf', 'verdict', 'paperhash', 'ee', 'html', 'year', 'venue', 'venueid'
-  ].concat(
-    _.filter(Object.keys(noteObj.content), function(field) { return field.charAt(0) === '_'; })
-  );
-
-  var content = Object.assign(_.omit(noteObj.content, omittedContentFields), downloadContent);
-  if (_.isEmpty(content)) {
-    return '';
+  // Get order of content fields from invitation. If no invitation is provided,
+  // use default ordering of content object.
+  var invitation;
+  if (noteObj.details) {
+    if (!_.isEmpty(noteObj.details.originalInvitation)) {
+      invitation = noteObj.details.originalInvitation;
+    } else if (!_.isEmpty(noteObj.details.invitation)) {
+      invitation = noteObj.details.invitation;
+    }
+  } else if (!_.isEmpty(options.hash.invitation)) {
+    invitation = options.hash.invitation;
   }
 
-  var contentHtml = Handlebars.templates['partials/noteContent'](content);
+  var contentKeys = Object.keys(noteObj.content);
+  var contentOrder = invitation
+    ? _.union(order(invitation.reply.content, invitation.id), contentKeys)
+    : contentKeys;
+
+    var omittedContentFields = [
+      'title', 'authors', 'author_emails', 'authorids', 'pdf',
+      'verdict', 'paperhash', 'ee', 'html', 'year', 'venue', 'venueid'
+    ].concat(options.hash.additionalOmittedFields || []);
+
+    var contents = [];
+    contentOrder.forEach(function(fieldName) {
+      if (omittedContentFields.includes(fieldName) || fieldName.startsWith('_')) {
+        return;
+      }
+
+      var valueString = view.prettyContentValue(noteObj.content[fieldName]);
+      if (!valueString) {
+        return;
+      }
+
+      var invitationField = (invitation && invitation.reply.content[fieldName]) || {};
+
+      // Build download links or render markdown if enabled
+      if (valueString.indexOf('/attachment/') === 0) {
+        valueString = view.mkDownloadLink(noteObj.id, fieldName, valueString);
+      } else if (invitationField.markdown) {
+        valueString = DOMPurify.sanitize(marked(valueString));
+      } else {
+        valueString = Handlebars.Utils.escapeExpression(valueString);
+      }
+
+      contents.push({
+        fieldName: fieldName,
+        fieldValue: new Handlebars.SafeString(valueString),
+        markdownRendered: invitationField.markdown
+      });
+    });
+    if (!contents.length) {
+      return '';
+    }
+
+    // Render to HTML
+    var contentHtml = Handlebars.templates['partials/noteContent'](contents);
+    var html;
+    if (options.hash.noCollapse) {
+      html = '<div class="note-contents-collapse">' + contentHtml + '</div>';
+    } else {
   // Need a random id to prevent collisions if there are 2 of the same note displayed
   var collapseId = noteObj.id + '-details-' + Math.floor(Math.random() * 1000);
-  var html = '<a href="#' + collapseId + '" class="note-contents-toggle" role="button" data-toggle="collapse" aria-expanded="false">Show details</a>' +
+  html = '<a href="#' + collapseId + '" class="note-contents-toggle" role="button" data-toggle="collapse" aria-expanded="false">Show details</a>' +
     '<div class="collapse" id="' + collapseId + '">' +
       '<div class="note-contents-collapse">' + contentHtml + '</div>' +
     '</div>';
+  }
+
   return new Handlebars.SafeString(html);
 });
+
+var orderCache =  {};
+var order = function(replyContent, invitationId) {
+  if (invitationId && orderCache[invitationId]) {
+    return orderCache[invitationId];
+  }
+
+  var orderedFields = _.map(
+    _.sortBy(
+      _.map(replyContent, function(fieldProps, fieldName) {
+        return {
+          field: fieldName,
+          order: fieldProps.order
+        };
+      }),
+      ['order']
+    ),
+    'field'
+  );
+  if (invitationId) {
+    orderCache[invitationId] = orderedFields;
+  }
+
+  return orderedFields;
+};
 
 Handlebars.registerHelper('tagWidget', function(tagInvitation, noteTags) {
   noteTags = noteTags || [];
@@ -599,7 +671,7 @@ Handlebars.registerHelper('groupIdList', function(groupIds) {
     return '';
   }
 
-  var commonGroups = ['everyone', '(anonymous)', '(guest)', '~Super_User1'];
+  var commonGroups = ['everyone', '(anonymous)', '(guest)', '~', '~Super_User1'];
   var linksHtml = groupIds.map(function(groupId) {
     return commonGroups.indexOf(groupId) === -1 ?
       '<a href="' + urlFromGroupId(groupId) + '" target="_blank">' + view.prettyId(groupId) + '</a>' :
@@ -709,7 +781,7 @@ Handlebars.registerHelper('edgeBrowserUrl', function(configNoteId, configNoteCon
   // For matches utilizing the new edge system
   if (configNoteContent.hasOwnProperty('scores_specification')) {
     var browseInvitations = Object.keys(configNoteContent.scores_specification);
-    var referrerText = 'View all assignments for ' + view.prettyId(configNoteContent.match_group);
+    var referrerText = 'all assignments for ' + view.prettyId(configNoteContent.match_group);
     var referrerUrl = '/assignments?group=' + configNoteContent.match_group;
 
     return '/edges/browse' +
@@ -718,6 +790,8 @@ Handlebars.registerHelper('edgeBrowserUrl', function(configNoteId, configNoteCon
       '&browse=' + configNoteContent.aggregate_score_invitation + ',label:' + configNoteContent.title +
       ';' + browseInvitations.join(';') +
       ';' + configNoteContent.conflicts_invitation +
+      (configNoteContent.custom_max_papers_invitation ? ';' + configNoteContent.custom_max_papers_invitation + ',head:ignore' : '') +
+      (configNoteContent.custom_load_invitation ? ';' + configNoteContent.custom_load_invitation + ',head:ignore' : '') +
       '&referrer=' + encodeURIComponent('[' + referrerText + '](' + referrerUrl + ')');
   }
 
