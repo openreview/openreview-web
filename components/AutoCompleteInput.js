@@ -66,7 +66,7 @@ const AutoCompleteInput = () => {
         setAutoCompleteItems([...tokenObjects, ...titleObjects])
       }
     } catch (error) {
-      promptError(error.message)
+      promptError(`There was an error while searching for "${searchTerm}".`)
     }
   }
 
@@ -128,22 +128,18 @@ const AutoCompleteInput = () => {
         <Icon name="search" extraClasses="form-control-feedback" />
       </div>
       {autoCompleteItems.length !== 0 && (
-        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
         <ul className="ui-menu ui-widget ui-widget-content ui-autocomplete ui-front">
           {/* eslint-disable-next-line arrow-body-style */}
           {autoCompleteItems.map((item, index) => {
             return item ? (
-              <React.Fragment key={item.value}>
-                {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
-                <li className="menuItem ui-menu-item" onClick={() => itemClickHandler(item)} ref={(element) => { autoCompleteItemsRef.current[index] = element }} onKeyDown={e => keyupHandler(e)}>
-                  {/* eslint-disable-next-line react/no-danger */}
-                  <div className={`ui-menu-item-wrapper ${hoverIndex === index ? 'ui-state-active' : ''}`} dangerouslySetInnerHTML={{ __html: item.label }} />
-                  {item.subtitle && (
-                    // eslint-disable-next-line react/no-danger
-                    <div className={`authlist ui-menu-item-wrapper ${hoverIndex === index ? 'ui-state-active' : ''}`} dangerouslySetInnerHTML={{ __html: item.subtitle }} />
-                  )}
-                </li>
-              </React.Fragment>
+              <li className="menuItem ui-menu-item" role="presentation" onClick={() => itemClickHandler(item)} ref={(element) => { autoCompleteItemsRef.current[index] = element }}>
+                {/* eslint-disable-next-line react/no-danger */}
+                <div className={`ui-menu-item-wrapper ${hoverIndex === index ? 'ui-state-active' : ''}`} dangerouslySetInnerHTML={{ __html: item.label }} />
+                {item.subtitle && (
+                  // eslint-disable-next-line react/no-danger
+                  <div className={`authlist ui-menu-item-wrapper ${hoverIndex === index ? 'ui-state-active' : ''}`} dangerouslySetInnerHTML={{ __html: item.subtitle }} />
+                )}
+              </li>
             ) : <hr key="divider" className="ui-menu-divider ui-widget-content" />
           })}
         </ul>
