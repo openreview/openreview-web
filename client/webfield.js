@@ -99,6 +99,7 @@ module.exports = (function() {
   };
 
   var getAll = function(url, queryObj, resultsKey) {
+    queryObj = queryObj || {};
     queryObj.limit = Math.min(queryObj.limit || 1000, 1000);
     var offset = queryObj.offset || 0;
 
@@ -157,8 +158,15 @@ module.exports = (function() {
     console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2));
 
     var errorText = getErrorFromJqXhr(jqXhr, textStatus);
+    var notSignatoryError = errorText.type === 'notSignatory' && errorText.path === 'signatures' && _.startsWith(errorText.user, 'guest_');
+    var forbiddenError = errorText.type === 'forbidden' && _.startsWith(errorText.user, 'guest_');
+
     if (errorText === 'User does not exist') {
       location.reload(true);
+    } else if (notSignatoryError || forbiddenError) {
+      location.href = '/login?redirect=' + encodeURIComponent(
+        location.pathname + location.search + location.hash
+      );
     } else {
       promptError(errorText);
     }
@@ -212,7 +220,7 @@ module.exports = (function() {
   var getSubmissions = function(invitationId, options) {
     // Any url param accepted by /notes can be passed in via the options object
     var defaults = {
-      details: 'replyCount,tags',
+      details: 'replyCount,invitation,tags',
       pageSize: 100,
       offset: 0,
       includeCount: false
@@ -243,6 +251,7 @@ module.exports = (function() {
 
     var searchParams = {
       term: term,
+      type: 'terms',
       content: 'all',
       source: 'forum',
       group: groupId,
@@ -352,11 +361,12 @@ module.exports = (function() {
     showActionButtons: false,
     tagInvitations: [],
     edgeInvitations: [],
+    referrer: null,
     emptyMessage: 'No papers to display at this time'
   };
 
   var dateOptions = {
-    hour: 'numeric', minute: 'numeric', day: '2-digit', month: 'short', year: 'numeric'
+    hour: 'numeric', minute: 'numeric', day: '2-digit', month: 'short', year: 'numeric', timeZoneName: 'long'
   };
 
   var getDueDateStatus = function(date) {
@@ -854,6 +864,7 @@ module.exports = (function() {
           var errorText = getErrorFromJqXhr(jqXhr, textStatus);
           promptError(_.isString(errorText) ? errorText : 'The specified tag could not be updated. Please reload the page and try again.');
           $self.parent().removeClass('disabled');
+          $widget.trigger('apiReturnedError',error);
         };
 
         var requestBody;
@@ -1225,6 +1236,17 @@ module.exports = (function() {
               noteTemplateFn(Object.assign({}, existingNote, { details: details, options: options }))
             );
             promptMessage('Note updated successfully');
+
+             // update notes object so that subsequent update has latest value
+            // result (from POST) can have more properties so can't just assign to note (from GET)
+            var indexOfUpdatedNote = _.findIndex(notes, ['id', result.id]);
+            Object.keys(notes[indexOfUpdatedNote]).forEach(function(key) {
+              if (key !== 'details') {
+                notes[indexOfUpdatedNote][key] = result[key];
+              }
+            });
+            notes[indexOfUpdatedNote].details.isUpdated = true;
+
             MathJax.typeset();
             return _.isFunction(options.onNoteEdited) ? options.onNoteEdited(existingNote) : true;
           },
@@ -1245,7 +1267,12 @@ module.exports = (function() {
             $('#note-editor-modal').modal('hide');
           },
           onCompleted: function(editor) {
-            $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append(editor);
+            $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append(
+              '<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+                '<span aria-hidden="true">&times;</span>' +
+              '</button>',
+              editor
+            );
           }
         });
       });
@@ -1748,7 +1775,7 @@ module.exports = (function() {
 
       if (isSelected) {
         $('tbody tr:not(.removed)').addClass('selected');
-        selectedMembers = _.clone(group.members);
+        selectedMembers = _.clone(searchTerm ? matchingMembers : group.members);
       } else {
         $('tbody tr').removeClass('selected');
         selectedMembers = [];
@@ -2360,7 +2387,7 @@ module.exports = (function() {
 
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
         if (field.name === 'multiReply') {
-          result[field.name] = field.value === 'true';
+          result[field.name] = field.value === '' ? null : field.value === 'True';
         } else if (field.name === 'taskCompletionCount') {
           result[field.name] = field.value ? parseInt(field.value, 10) : null;
         } else if (field.name === 'duedate' || field.name === 'expdate' || field.name === 'cdate') {
@@ -2724,6 +2751,7 @@ module.exports = (function() {
       var duedate = new Date(inv.duedate);
       inv.dueDateStr = duedate.toLocaleDateString('en-GB', dateOptions);
       inv.dueDateStatus = getDueDateStatus(duedate);
+      inv.groupId = inv.id.split('/-/')[0];
       replytoNote.taskInvitation = inv;
       replytoNote.options = options;
 
@@ -2761,6 +2789,7 @@ module.exports = (function() {
       var duedate = new Date(inv.duedate);
       inv.dueDateStr = duedate.toLocaleDateString('en-GB', dateOptions);
       inv.dueDateStatus = getDueDateStatus(duedate);
+      inv.groupId = inv.id.split('/-/')[0];
 
       if (!inv.details) {
         inv.details = {};
@@ -2779,12 +2808,27 @@ module.exports = (function() {
       } else {
         inv.tagInvitation = true;
 
-        if (inv.taskCompletionCount && inv.details && inv.details.repliedTags &&
-            inv.taskCompletionCount === inv.details.repliedTags.length) {
-          inv.completed = true;
+        if (inv.taskCompletionCount && inv.details) {
+          var repliedCount = (inv.details.repliedTags && inv.details.repliedTags.length) ||
+            (inv.details.repliedEdges && inv.details.repliedEdges.length);
+          if (repliedCount && repliedCount >= inv.taskCompletionCount) {
+            // Temporary special case for Recommendation invitations. Uses hardcoded constant for
+            // number of papers assigned.
+            if (_.endsWith(inv.id, 'Recommendation')) {
+              var groupedEdgesCounts = _.countBy(inv.details.repliedEdges, 'head');
+              var allPapersRecommended = Object.keys(groupedEdgesCounts).length >= 20;
+              inv.completed = allPapersRecommended && _.every(groupedEdgesCounts, function(count) {
+                return count >= inv.taskCompletionCount;
+              });
+            } else {
+              inv.completed = true;
+            }
+          }
         }
       }
     });
+
+    temporaryMarkExpertiseCompleted(allInvitations);
 
     var $container = $(options.container);
     var taskListHtml = Handlebars.templates['partials/taskList']({
@@ -2795,11 +2839,26 @@ module.exports = (function() {
     $container.append(taskListHtml);
   };
 
+// Temporary hack:
+  // Mark expertise selection task as completed when reviewer profile confirmation
+  // or AC profile confirmation tasks are complete
+  var temporaryMarkExpertiseCompleted = function(invitationsGroup) {
+    var profileConfirmationInv = _.find(invitationsGroup, function(inv) {
+      return _.endsWith(inv.id, 'Profile_Confirmation');
+    });
+    var expertiseInv = _.find(invitationsGroup, function(inv) {
+      return _.endsWith(inv.id, 'Expertise_Selection');
+    });
+    if (expertiseInv && profileConfirmationInv && profileConfirmationInv.completed) {
+      expertiseInv.completed = true;
+    }
+  };
+
   var errorMessage = function(message) {
     message = message || 'The page could not be loaded at this time. Please try again later.';
     $('#notes').hide().html(
       '<div class="alert alert-danger">' +
-        '<strong>Error:</strong> ' + message +
+      '<strong>Error:</strong> ' + message +
       '</div>'
     );
     return $('#notes').fadeIn('fast');
