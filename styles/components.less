@@ -426,10 +426,6 @@ table.table-minimal {
     width: 80px;
     padding-top: 4px;
     padding-bottom: 4px;
-
-    .btn {
-      margin-right: 0; // overrides legacy-styles
-    }
   }
 }
 
@@ -836,6 +832,7 @@ table.table-minimal {
   .profiles-list {
     width: 940px;
     margin: 1.75rem auto;
+    min-height: 100px;
 
     ul.list-paginated > li > span {
       line-height: 26px;
@@ -859,10 +856,16 @@ table.table-minimal {
         }
       }
       &.col-actions {
-        width: 155px;
+        width: 160px;
         text-align: right;
       }
     }
+    .btn-xs {
+      font-weight: normal;
+    }
+  }
+  .spinner-container {
+    margin: 2rem 0;
   }
 }
 

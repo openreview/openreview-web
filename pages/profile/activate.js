@@ -19,7 +19,7 @@ const ActivateProfile = ({ appContext }) => {
   const { loginUser } = useContext(UserContext)
   const { query, replace } = useRouter()
 
-  const { setBannerHidden, clientJsLoading } = appContext
+  const { setBannerHidden } = appContext
 
   const loadActivatableProfile = async (token) => {
     if (!token) return
@@ -37,8 +37,7 @@ const ActivateProfile = ({ appContext }) => {
   const saveProfile = async (newProfileData, done) => {
     try {
       const { user, token } = await api.put(`/activate/${activateToken}`, newProfileData)
-      promptMessage(`Your OpenReview profile has been successfully created. Please allow up to 12
-        hours before the profile is activated.`)
+      promptMessage('Your OpenReview profile has been successfully created', { scrollToTop: false })
       loginUser(user, token)
     } catch (error) {
       promptError(error.message)
@@ -47,11 +46,14 @@ const ActivateProfile = ({ appContext }) => {
   }
 
   useEffect(() => {
-    if (clientJsLoading || !query) return
+    if (!query) return
 
-    setBannerHidden(true)
     loadActivatableProfile(query.token)
-  }, [query, clientJsLoading])
+  }, [query])
+
+  useEffect(() => {
+    setBannerHidden(true)
+  }, [])
 
   return (
     <div>

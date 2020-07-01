@@ -16,9 +16,8 @@ import Icon from '../../components/Icon'
 import useInterval from '../../hooks/useInterval'
 import { auth } from '../../lib/auth'
 import api from '../../lib/api-client'
-import {
-  prettyId, formatDateTime, getEdgeBrowserUrl, cloneAssignmentConfigNote,
-} from '../../lib/utils'
+import { prettyId, formatDateTime, cloneAssignmentConfigNote } from '../../lib/utils'
+import { getEdgeBrowserUrl } from '../../lib/edge-utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
 import '../../styles/pages/assignments.less'
