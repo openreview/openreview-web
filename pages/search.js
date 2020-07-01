@@ -131,7 +131,7 @@ const Search = ({ appContext }) => {
 
       <div className="search-results">
         {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-        <h3>{searchResults.count} results found for &quot;{searchQuery.term}&quot;</h3>
+        <h4>{searchResults.count} results found for &quot;{searchQuery.term}&quot;</h4>
         <hr className="small" />
 
         <NoteList notes={searchResults.notes} displayOptions={displayOptions} />
