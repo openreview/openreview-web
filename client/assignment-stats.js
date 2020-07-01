@@ -583,7 +583,7 @@ var generateBuildEdgeBrowserUrl = function(configNote) {
     var referrerText = view.prettyId(configNote.title) + ' Statistics';
     var typeParam = type === 'reviewer' ? 'type:tail' : 'type:head';
 
-    return '/edge/browse' +
+    return '/edges/browse' +
       '?start=staticList,' + typeParam + ',storageKey:' + key +
       '&traverse=' + configNote.assignment_invitation + ',label:' + configNote.title +
       '&edit=' + configNote.assignment_invitation + ',label:' + configNote.title +

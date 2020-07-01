@@ -40,12 +40,10 @@ const Activity = ({ user, accessToken, appContext }) => {
   useEffect(() => {
     if (clientJsLoading || !activityNotes) return
 
-    if (!window.MathJax) {
-      // eslint-disable-next-line global-require
-      window.MathJax = require('../lib/mathjax-config')
-      // eslint-disable-next-line global-require
-      require('mathjax/es5/tex-chtml')
-    }
+    // eslint-disable-next-line global-require
+    window.MathJax = require('../lib/mathjax-config')
+    // eslint-disable-next-line global-require
+    require('mathjax/es5/tex-chtml')
 
     $(activityRef.current).empty()
     Webfield.ui.activityList(activityNotes, {

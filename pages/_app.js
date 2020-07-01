@@ -22,6 +22,7 @@ class OpenReviewApp extends App {
       clientJsLoading: true,
       bannerHidden: false,
       bannerContent: null,
+      layoutOptions: { fullWidth: false, footerMinimal: false },
     }
     this.firstRouteChange = true
 
@@ -29,6 +30,7 @@ class OpenReviewApp extends App {
     this.logoutUser = this.logoutUser.bind(this)
     this.setBannerHidden = this.setBannerHidden.bind(this)
     this.setBannerContent = this.setBannerContent.bind(this)
+    this.setLayoutOptions = this.setLayoutOptions.bind(this)
     this.onRouteChange = this.onRouteChange.bind(this)
   }
 
@@ -61,10 +63,20 @@ class OpenReviewApp extends App {
     this.setState({ bannerContent: newContent })
   }
 
+  setLayoutOptions(options) {
+    this.setState(previous => ({
+      layoutOptions: { ...previous.layoutOptions, ...options },
+    }))
+  }
+
   onRouteChange(url) {
     // Reset banner only if coming from another page
     if (!this.firstRouteChange) {
-      this.setState({ bannerHidden: false, bannerContent: null })
+      this.setState({
+        bannerHidden: false,
+        bannerContent: null,
+        layoutOptions: { fullWidth: false, footerMinimal: false },
+      })
     }
 
     // Track pageview in Google Analytics
@@ -131,6 +143,7 @@ class OpenReviewApp extends App {
       clientJsLoading: this.state.clientJsLoading,
       setBannerHidden: this.setBannerHidden,
       setBannerContent: this.setBannerContent,
+      setLayoutOptions: this.setLayoutOptions,
     }
 
     return (
@@ -139,6 +152,8 @@ class OpenReviewApp extends App {
           bodyClass={Component.bodyClass}
           bannerHidden={this.state.bannerHidden}
           bannerContent={this.state.bannerContent}
+          fullWidth={this.state.layoutOptions.fullWidth}
+          minimalFooter={this.state.layoutOptions.minimalFooter}
         >
           <Component {...pageProps} appContext={appContext} />
         </Layout>

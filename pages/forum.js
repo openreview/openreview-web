@@ -101,10 +101,8 @@ const Forum = ({ forumNote, query, appContext }) => {
   useEffect(() => {
     if (clientJsLoading) return
 
-    if (!window.MathJax) {
-      window.MathJax = require('../lib/mathjax-config')
-      require('mathjax/es5/tex-chtml')
-    }
+    window.MathJax = require('../lib/mathjax-config')
+    require('mathjax/es5/tex-chtml')
 
     // const runForum = require('../client/forum')
     // runForum(forumNote.id, query.noteId, query.invitationId, user)
