@@ -132,7 +132,7 @@ const AutoCompleteInput = () => {
           {/* eslint-disable-next-line arrow-body-style */}
           {autoCompleteItems.map((item, index) => {
             return item ? (
-              <li className="menuItem ui-menu-item" role="presentation" onClick={() => itemClickHandler(item)} ref={(element) => { autoCompleteItemsRef.current[index] = element }}>
+              <li key={item.value} className="menuItem ui-menu-item" role="presentation" onClick={() => itemClickHandler(item)} ref={(element) => { autoCompleteItemsRef.current[index] = element }}>
                 {/* eslint-disable-next-line react/no-danger */}
                 <div className={`ui-menu-item-wrapper ${hoverIndex === index ? 'ui-state-active' : ''}`} dangerouslySetInnerHTML={{ __html: item.label }} />
                 {item.subtitle && (
