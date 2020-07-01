@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import NavUserLinks from './NavUserLinks'
-import Icon from './Icon'
+import AutoCompleteInput from './AutoCompleteInput'
 
 import '../styles/components/nav.less'
 
@@ -49,16 +49,7 @@ function Nav() {
             role="search"
             onSubmit={handleSearch}
           >
-            <div className="form-group has-feedback">
-              <input
-                name="term"
-                type="text"
-                className="form-control"
-                placeholder="Search OpenReview..."
-                autoComplete="off"
-              />
-              <Icon name="search" extraClasses="form-control-feedback" />
-            </div>
+            <AutoCompleteInput />
             <input name="group" type="hidden" value="all" />
             <input name="content" type="hidden" value="all" />
             <input name="source" type="hidden" value="all" />
