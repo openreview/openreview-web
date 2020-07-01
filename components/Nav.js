@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import NavUserLinks from './NavUserLinks'

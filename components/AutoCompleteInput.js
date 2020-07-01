@@ -1,7 +1,7 @@
 /* globals promptError: false */
 
 // eslint-disable-next-line object-curly-newline
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Router from 'next/router'
 import { debounce } from 'lodash'
 import Icon from './Icon'
@@ -82,8 +82,15 @@ const AutoCompleteInput = () => {
     }
   }
 
-  const keyupHandler = (e) => {
-    if (!['ArrowDown', 'ArrowUp'].includes(e.key)) return
+  const keyDownHandler = (e) => {
+    if (!['ArrowDown', 'ArrowUp', 'Escape'].includes(e.key)) return
+
+    if (e.key === 'Escape') {
+      setCancelRequest(true)
+      setAutoCompleteItems([])
+      return
+    }
+
     let newHoverIndexValue = null
     if (e.key === 'ArrowDown') {
       if (hoverIndex === null || hoverIndex === autoCompleteItems.length - 1) { // initial
@@ -93,8 +100,7 @@ const AutoCompleteInput = () => {
       } else { // normal
         newHoverIndexValue = hoverIndex + 1
       }
-    }
-    if (e.key === 'ArrowUp') {
+    } else if (e.key === 'ArrowUp') {
       if (hoverIndex === null || hoverIndex === 0) { // initial
         newHoverIndexValue = autoCompleteItems.length - 1
       } else if (autoCompleteItems[hoverIndex - 1] === null) { // corssing section
@@ -103,12 +109,11 @@ const AutoCompleteInput = () => {
         newHoverIndexValue = hoverIndex - 1
       }
     }
-    if (autoCompleteItems[newHoverIndexValue]) {
-      setImmediateSearchTerm(autoCompleteItems[newHoverIndexValue]?.value ?? '')
-      // eslint-disable-next-line no-unused-expressions
-      autoCompleteItemsRef?.current?.[newHoverIndexValue]?.scrollIntoView()
-    }
 
+    if (autoCompleteItems[newHoverIndexValue]) {
+      setImmediateSearchTerm(autoCompleteItems[newHoverIndexValue].value ?? '')
+      autoCompleteItemsRef.current[newHoverIndexValue].scrollIntoView(false)
+    }
     setHoverIndex(newHoverIndexValue)
   }
 
@@ -116,31 +121,40 @@ const AutoCompleteInput = () => {
     <>
       <div className="form-group has-feedback">
         <input
-          name="term"
           type="text"
+          name="term"
           className="form-control"
-          autoComplete="off"
-          placeholder="Search OpenReivew..."
-          onChange={(e) => { setImmediateSearchTerm(e.target.value); delaySearch(e.target.value) }}
           value={immediateSearchTerm}
-          onKeyDown={e => keyupHandler(e)}
+          placeholder="Search OpenReivew..."
+          autoComplete="off"
+          onChange={(e) => { setImmediateSearchTerm(e.target.value); delaySearch(e.target.value) }}
+          onKeyDown={e => keyDownHandler(e)}
         />
         <Icon name="search" extraClasses="form-control-feedback" />
       </div>
+
       {autoCompleteItems.length !== 0 && (
-        <ul className="ui-menu ui-widget ui-widget-content ui-autocomplete ui-front">
-          {/* eslint-disable-next-line arrow-body-style */}
+        <ul className="ui-menu ui-widget ui-widget-content ui-autocomplete">
           {autoCompleteItems.map((item, index) => {
+            const activeClass = hoverIndex === index ? 'ui-state-active' : ''
             return item ? (
-              <li key={item.value} className="menuItem ui-menu-item" role="presentation" onClick={() => itemClickHandler(item)} ref={(element) => { autoCompleteItemsRef.current[index] = element }}>
+              <li
+                key={item.value}
+                className="menuItem ui-menu-item"
+                role="presentation"
+                onClick={() => itemClickHandler(item)}
+                ref={(element) => { autoCompleteItemsRef.current[index] = element }}
+              >
                 {/* eslint-disable-next-line react/no-danger */}
-                <div className={`ui-menu-item-wrapper ${hoverIndex === index ? 'ui-state-active' : ''}`} dangerouslySetInnerHTML={{ __html: item.label }} />
+                <div className={`ui-menu-item-wrapper ${activeClass}`} dangerouslySetInnerHTML={{ __html: item.label }} />
                 {item.subtitle && (
                   // eslint-disable-next-line react/no-danger
-                  <div className={`authlist ui-menu-item-wrapper ${hoverIndex === index ? 'ui-state-active' : ''}`} dangerouslySetInnerHTML={{ __html: item.subtitle }} />
+                  <div className={`authlist ui-menu-item-wrapper ${activeClass}`} dangerouslySetInnerHTML={{ __html: item.subtitle }} />
                 )}
               </li>
-            ) : <hr key="divider" className="ui-menu-divider ui-widget-content" />
+            ) : (
+              <hr key="divider" className="ui-menu-divider ui-widget-content" />
+            )
           })}
         </ul>
       )}
