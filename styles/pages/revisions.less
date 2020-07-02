@@ -73,8 +73,9 @@ main.revisions {
   }
 
   .alert-warning {
-    background-color: @sandyBrown;
-    border-color: @backgroundGray;
+    .well;
+    padding: .75rem;
+    margin-bottom: 1.25rem;
   }
 
   h2.note_content_title {
@@ -102,30 +103,4 @@ main.revisions {
     }
   }
 
-  .comparison-viewer-container {
-    min-height: 200px;
-
-    .table-responsive {
-      margin: 1.25rem 0 0;
-
-      table th span {
-        font-weight: normal;
-        color: @subtleGray;
-      }
-    }
-
-    iframe {
-      margin: 1.5rem 0;
-      height: 800px;
-      width: 100%;
-      border: 1px solid @backgroundGray;
-      box-sizing: border-box;
-    }
-
-    .alert-danger {
-      max-width: 600px;
-      margin: 50px auto;
-      text-align: center;
-    }
-  }
 }
