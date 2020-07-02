@@ -76,9 +76,9 @@ Handlebars.registerHelper('prettyInvitationId', function(invitationId, options) 
       var anonReviewerMatches = invitationId.match(/\/(AnonReviewer\d+)\//);
       if (anonReviewerMatches) {
         paperStr = paperStr + ' ' + anonReviewerMatches[1] + ' ';
+      }
     }
   }
-}
 
   var entityStr = '';
   var entities = ['Reviewers', 'Authors', 'Area_Chairs', 'Program_Chairs', 'Emergency_Reviewers'];
@@ -94,19 +94,7 @@ Handlebars.registerHelper('prettyField', function(fieldNameStr) {
   return view.prettyField(fieldNameStr);
 });
 
-Handlebars.registerHelper('prettyContentValue', function(value) {
-  var formattedValue = view.prettyContentValue(value);
-
-  // Detect if a download link has been generated and return HTML instead of plain text
-  var downloadLinkRegex = /^\<a href="(\/references)?\/attachment\?id=.*" .*>.*\<\/a\>$/;
-  if (formattedValue.match(downloadLinkRegex)) {
-    return new Handlebars.SafeString(value);
-  }
-
-  // jQuery takes care of escaping the text here so it's safe to return HTML
-  var $temp = $('<div>').text(formattedValue);
-  return new Handlebars.SafeString(view.autolinkHtml($temp.html()));
-});
+Handlebars.registerHelper('prettyContentValue', view.prettyContentValue);
 
 Handlebars.registerHelper('prettyScoreName', function(fieldNameStr) {
   if (typeof fieldNameStr !== 'string') {
@@ -285,7 +273,7 @@ Handlebars.registerHelper('noteAuthors', function(content, signatures, details) 
       }).join(', ');
     }
   } else {
-     if ((_.isArray(signatures) && signatures.length)) {
+    if ((_.isArray(signatures) && signatures.length)) {
       html = signatures.map(function(authorId, i) {
 
         var author = view.prettyId(authorId);
@@ -334,55 +322,55 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
     ? _.union(order(invitation.reply.content, invitation.id), contentKeys)
     : contentKeys;
 
-    var omittedContentFields = [
-      'title', 'authors', 'author_emails', 'authorids', 'pdf',
-      'verdict', 'paperhash', 'ee', 'html', 'year', 'venue', 'venueid'
-    ].concat(options.hash.additionalOmittedFields || []);
+  var omittedContentFields = [
+    'title', 'authors', 'author_emails', 'authorids', 'pdf',
+    'verdict', 'paperhash', 'ee', 'html', 'year', 'venue', 'venueid'
+  ].concat(options.hash.additionalOmittedFields || []);
 
-    var contents = [];
-    contentOrder.forEach(function(fieldName) {
-      if (omittedContentFields.includes(fieldName) || fieldName.startsWith('_')) {
-        return;
-      }
-
-      var valueString = view.prettyContentValue(noteObj.content[fieldName]);
-      if (!valueString) {
-        return;
-      }
-
-      var invitationField = (invitation && invitation.reply.content[fieldName]) || {};
-
-      // Build download links or render markdown if enabled
-      if (valueString.indexOf('/attachment/') === 0) {
-        valueString = view.mkDownloadLink(noteObj.id, fieldName, valueString);
-      } else if (invitationField.markdown) {
-        valueString = DOMPurify.sanitize(marked(valueString));
-      } else {
-        valueString = Handlebars.Utils.escapeExpression(valueString);
-      }
-
-      contents.push({
-        fieldName: fieldName,
-        fieldValue: new Handlebars.SafeString(valueString),
-        markdownRendered: invitationField.markdown
-      });
-    });
-    if (!contents.length) {
-      return '';
+  var contents = [];
+  contentOrder.forEach(function(fieldName) {
+    if (omittedContentFields.includes(fieldName) || fieldName.startsWith('_')) {
+      return;
     }
 
-    // Render to HTML
-    var contentHtml = Handlebars.templates['partials/noteContent'](contents);
-    var html;
-    if (options.hash.noCollapse) {
-      html = '<div class="note-contents-collapse">' + contentHtml + '</div>';
+    var valueString = view.prettyContentValue(noteObj.content[fieldName]);
+    if (!valueString) {
+      return;
+    }
+
+    var invitationField = (invitation && invitation.reply.content[fieldName]) || {};
+
+    // Build download links or render markdown if enabled
+    if (valueString.indexOf('/attachment/') === 0) {
+      valueString = view.mkDownloadLink(noteObj.id, fieldName, valueString);
+    } else if (invitationField.markdown) {
+      valueString = DOMPurify.sanitize(marked(valueString));
     } else {
-  // Need a random id to prevent collisions if there are 2 of the same note displayed
-  var collapseId = noteObj.id + '-details-' + Math.floor(Math.random() * 1000);
-  html = '<a href="#' + collapseId + '" class="note-contents-toggle" role="button" data-toggle="collapse" aria-expanded="false">Show details</a>' +
-    '<div class="collapse" id="' + collapseId + '">' +
-      '<div class="note-contents-collapse">' + contentHtml + '</div>' +
-    '</div>';
+      valueString = Handlebars.Utils.escapeExpression(valueString);
+    }
+
+    contents.push({
+      fieldName: fieldName,
+      fieldValue: new Handlebars.SafeString(valueString),
+      markdownRendered: invitationField.markdown
+    });
+  });
+  if (!contents.length) {
+    return '';
+  }
+
+  // Render to HTML
+  var contentHtml = Handlebars.templates['partials/noteContent'](contents);
+  var html;
+  if (options.hash.noCollapse) {
+    html = '<div class="note-contents-collapse">' + contentHtml + '</div>';
+  } else {
+    // Need a random id to prevent collisions if there are 2 of the same note displayed
+    var collapseId = noteObj.id + '-details-' + Math.floor(Math.random() * 1000);
+    html = '<a href="#' + collapseId + '" class="note-contents-toggle" role="button" data-toggle="collapse" aria-expanded="false">Show details</a>' +
+      '<div class="collapse" id="' + collapseId + '">' +
+        '<div class="note-contents-collapse">' + contentHtml + '</div>' +
+      '</div>';
   }
 
   return new Handlebars.SafeString(html);

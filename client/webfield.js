@@ -1081,6 +1081,10 @@ module.exports = (function() {
 
           var newQueryParams = Object.assign(parseUrlParams(location.search), { page: pageNum });
           history.pushState(newQueryParams, 'group');
+
+          if (_.isFunction(options.onPageClickComplete)) {
+            options.onPageClickComplete();
+          }
         });
 
         return false;
@@ -1220,8 +1224,7 @@ module.exports = (function() {
         $('body').append(Handlebars.templates.genericModal({
           id: 'note-editor-modal',
           extraClasses: 'modal-lg',
-          showHeader: true,
-          title: 'Edit ' + view.prettyInvitationId(existingNote.invitation),
+          showHeader: false,
           showFooter: false
         }));
         $('#note-editor-modal').modal('show');
@@ -1237,7 +1240,7 @@ module.exports = (function() {
             );
             promptMessage('Note updated successfully');
 
-             // update notes object so that subsequent update has latest value
+            // update notes object so that subsequent update has latest value
             // result (from POST) can have more properties so can't just assign to note (from GET)
             var indexOfUpdatedNote = _.findIndex(notes, ['id', result.id]);
             Object.keys(notes[indexOfUpdatedNote]).forEach(function(key) {
@@ -1488,6 +1491,7 @@ module.exports = (function() {
     var groupId = group.id;
     var removedMembers = [];
     var selectedMembers = [];
+    var matchingMembers = []; // list to store result filtered by search
     var searchTerm = '';
     var $container = $(options.container);
     var editor;
@@ -1754,7 +1758,7 @@ module.exports = (function() {
       }
 
       var searchTermLower = searchTerm.toLowerCase();
-      var matchingMembers = group.members.filter(function(member) {
+      matchingMembers = group.members.filter(function(member) {
         return member.toLowerCase().indexOf(searchTermLower) > -1;
       });
       renderMembersTable(matchingMembers, []);
@@ -2839,7 +2843,7 @@ module.exports = (function() {
     $container.append(taskListHtml);
   };
 
-// Temporary hack:
+  // Temporary hack:
   // Mark expertise selection task as completed when reviewer profile confirmation
   // or AC profile confirmation tasks are complete
   var temporaryMarkExpertiseCompleted = function(invitationsGroup) {

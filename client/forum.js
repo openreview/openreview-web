@@ -71,22 +71,22 @@ module.exports = function(forumId, noteId, invitationId, user) {
         trash: true,
         details: 'replyCount,writable,revisions,original,overwriting,invitation,tags'
       }, { handleErrors: false })
-      .then(function(result) {
-        if (!result.notes || !result.notes.length) {
-          controller.removeHandler('forum');
-          replaceWithHome();
-          return;
-        }
-
-        var notes = result.notes;
-        notes.forEach(function(note) {
-          if (!note.replyto && note.id !== note.forum) {
-            note.replyto = note.forum;
+        .then(function(result) {
+          if (!result.notes || !result.notes.length) {
+            controller.removeHandler('forum');
+            replaceWithHome();
+            return;
           }
-        });
 
-        return getProfilesP(notes);
-      }, onError);
+          var notes = result.notes;
+          notes.forEach(function(note) {
+            if (!note.replyto && note.id !== note.forum) {
+              note.replyto = note.forum;
+            }
+          });
+
+          return getProfilesP(notes);
+        }, onError);
 
       invitationsP = Webfield.get('/invitations', {
         replyForum: forumId, details: 'repliedNotes'
@@ -117,16 +117,16 @@ module.exports = function(forumId, noteId, invitationId, user) {
       return Webfield.get('/invitations', {
         replyForum: original.id, details: 'repliedNotes'
       }, { handleErrors: false })
-      .then(function(result) {
-        if (!result.invitations || !result.invitations.length) {
-          return [];
-        }
-        return result.invitations.filter(function(invitation) {
-          return !_.has(invitation, 'multiReply')
-            || invitation.multiReply !== false
-            || !_.has(invitation, 'details.repliedNotes[0]');
-        });
-      }, onError);
+        .then(function(result) {
+          if (!result.invitations || !result.invitations.length) {
+            return [];
+          }
+          return result.invitations.filter(function(invitation) {
+            return !_.has(invitation, 'multiReply')
+              || invitation.multiReply !== false
+              || !_.has(invitation, 'details.repliedNotes[0]');
+          });
+        }, onError);
     };
 
     var noteRecsP = $.when(notesP, invitationsP).then(function(notes, invitations) {
@@ -185,8 +185,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
             originalInvitations: originalInvitations
           };
         });
-
       });
+
       return $.when.apply($, noteRecPs).then(function() {
         return _.toArray(arguments);
       });

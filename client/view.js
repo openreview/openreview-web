@@ -2,6 +2,7 @@
  * Changes:
  * - Replace all /static/images/ --> /images/
  * - Replace all $('body') --> $('#content')
+ * - Replace all { overlay: true } --> { scrollToTop: false }
  */
 module.exports = (function() {
 
@@ -2022,7 +2023,7 @@ module.exports = (function() {
     var $trashButton = null;
     var $editButton = null;
     var $actionButtons = null;
-    if ($('#content').hasClass('forum') || $('#content').hasClass('tasks')|| $('body').hasClass('revisions')) {
+    if ($('#content').hasClass('forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
       var canEdit = (details.original && details.writable && details.originalWritable) || (!details.original && details.writable);
 
       if (canEdit && params.onTrashedOrRestored) {
@@ -2269,10 +2270,6 @@ module.exports = (function() {
       );
     }
     $note.append($replyRow);
-
-    if (params.withSummary) {
-      $note.append($('<div>', {class: 'meta_row'}).append($('<span>', {class: 'item date'}).text(params.withSummary)));
-    }
 
     return $note;
 
@@ -3115,31 +3112,31 @@ module.exports = (function() {
         });
       }
       extraGroupsP
-      .then(function() {
-        setParentReaders(replyto, fieldDescription, 'values-dropdown', function(newFieldDescription) {
-          //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
-          var replyValues = _.intersection(newFieldDescription['values-dropdown'], fieldDescription['values-dropdown']);
+        .then(function() {
+          setParentReaders(replyto, fieldDescription, 'values-dropdown', function (newFieldDescription) {
+            //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
+            var replyValues = _.intersection(newFieldDescription['values-dropdown'], fieldDescription['values-dropdown']);
 
-          //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
-          var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
-          var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer'); });
-          if (hasReviewers && !hasAnonReviewers) {
-            fieldDescription['values-dropdown'].forEach(function(value) {
-              if (value.includes('AnonReviewer')) {
-                replyValues.push(value);
-              }
-            });
-          }
+            //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
+            var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
+            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer'); });
+            if (hasReviewers && !hasAnonReviewers) {
+              fieldDescription['values-dropdown'].forEach(function(value) {
+                if (value.includes('AnonReviewer')) {
+                  replyValues.push(value);
+                }
+              });
+            }
 
-          newFieldDescription['values-dropdown'] = replyValues;
-          if (_.difference(newFieldDescription.default, newFieldDescription['values-dropdown']).length !== 0) { //invitation default is not in list of possible values
-            done(undefined, 'Default reader is not in the list of readers');
-          }
-          var $readers = mkComposerInput('readers', newFieldDescription, fieldValue);
-          $readers.find('.small_heading').prepend(requiredText);
-          done($readers);
+            newFieldDescription['values-dropdown'] = replyValues;
+            if (_.difference(newFieldDescription.default, newFieldDescription['values-dropdown']).length !== 0) { //invitation default is not in list of possible values
+              done(undefined, 'Default reader is not in the list of readers');
+            }
+            var $readers = mkComposerInput('readers', newFieldDescription, fieldValue);
+            $readers.find('.small_heading').prepend(requiredText);
+            done($readers);
+          });
         });
-      });
 
     } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
       setParentReaders(replyto, fieldDescription, 'value-dropdown-hierarchy', function(newFieldDescription) {
@@ -3151,7 +3148,7 @@ module.exports = (function() {
       setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
         if (_.isEqual(newFieldDescription.values, fieldDescription.values)
           || fieldDescription.values.every(function (val) { return newFieldDescription.values.indexOf(val) !== -1; })) {
-            var $readers = mkComposerInput('readers', fieldDescription, fieldValue); //for values, readers must match with invitation instead of parent invitation
+          var $readers = mkComposerInput('readers', fieldDescription, fieldValue); //for values, readers must match with invitation instead of parent invitation
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
         } else {
