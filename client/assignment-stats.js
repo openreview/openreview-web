@@ -5,7 +5,7 @@
  * - removed code that has been converted to react component (set banner content)
  * - removed references to window.assignmentConfigNote
  * - added method runAssignmentsStats to chain method calls
-**/
+ */
 
 var Discrete = 'discrete';
 var Continuous = 'continuous';

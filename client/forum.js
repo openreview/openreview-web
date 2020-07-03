@@ -67,23 +67,25 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     } else {
       notesP = Webfield.get('/notes', {
-        forum: forumId, trash: true, details: 'replyCount,writable,revisions,original,overwriting,tags'
+        forum: forumId,
+        trash: true,
+        details: 'replyCount,writable,revisions,original,overwriting,invitation,tags'
       }, { handleErrors: false })
         .then(function(result) {
-          if (result.notes && result.notes.length) {
-            var notes = result.notes;
-            notes.map(function(note) {
-              if (!note.replyto && note.id !== note.forum) {
-                note.replyto = note.forum;
-              }
-              return note;
-            });
-
-            return getProfilesP(notes);
-          } else {
+          if (!result.notes || !result.notes.length) {
             controller.removeHandler('forum');
             replaceWithHome();
+            return;
           }
+
+          var notes = result.notes;
+          notes.forEach(function(note) {
+            if (!note.replyto && note.id !== note.forum) {
+              note.replyto = note.forum;
+            }
+          });
+
+          return getProfilesP(notes);
         }, onError);
 
       invitationsP = Webfield.get('/invitations', {
@@ -103,7 +105,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         replyForum: forum, tags: true
       }, { handleErrors: false })
         .then(function(result) {
-          return result.invitations;
+          return result.invitations || [];
         }, onError);
     };
 
@@ -116,8 +118,13 @@ module.exports = function(forumId, noteId, invitationId, user) {
         replyForum: original.id, details: 'repliedNotes'
       }, { handleErrors: false })
         .then(function(result) {
+          if (!result.invitations || !result.invitations.length) {
+            return [];
+          }
           return result.invitations.filter(function(invitation) {
-            return (!_.has(invitation, 'multiReply') || (invitation.multiReply !== false) || !_.has(invitation, 'details.repliedNotes[0]'));
+            return !_.has(invitation, 'multiReply')
+              || invitation.multiReply !== false
+              || !_.has(invitation, 'details.repliedNotes[0]');
           });
         }, onError);
     };
@@ -178,8 +185,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
             originalInvitations: originalInvitations
           };
         });
-
       });
+
       return $.when.apply($, noteRecPs).then(function() {
         return _.toArray(arguments);
       });
@@ -588,9 +595,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $childrenAnchor.empty().append(
       mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
     );
+
     try {
       MathJax.typeset();
-    } catch (e) {
+    } catch (error) {
       console.warn('Could not typeset TeX content');
     }
   };

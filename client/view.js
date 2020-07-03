@@ -2,6 +2,7 @@
  * Changes:
  * - Replace all /static/images/ --> /images/
  * - Replace all $('body') --> $('#content')
+ * - Replace all { overlay: true } --> { scrollToTop: false }
  */
 module.exports = (function() {
 
@@ -435,12 +436,22 @@ module.exports = (function() {
     }
 
     var $list = $('<div>', { class: 'list_adder_list' }).append(
-      _.map(_.difference(permList, initialList), function(value) {
+      _.map(_.differenceWith(permList, initialList, function (superSetElement, subSetElement) { //musthavevalue from invitation will have disable property so compare only id.
+        return superSetElement.id === subSetElement.id;
+      }), function (value) {
         return hoverText ? mkHoverItem(value.description, value.id) : mkItem(value.description);
       })
     ).append(
-      _.map(initialList, function(value) {
-        return hoverText ? mkHoverItem(value.description, value.id) : mkRemovableItem(value.description, value.id);
+      _.map(initialList, function (value) {
+        if (hoverText) {
+          return mkHoverItem(value.description, value.id);
+        } else if (value.disable) { //disabled removableitem
+          var removableItem = mkRemovableItem(value.description, value.id);
+          removableItem.addClass('disabled').children('.removable_item_button').addClass('disabled');
+          return removableItem;
+        } else {
+          return mkRemovableItem(value.description, value.id);// normal(enabled) removeableitem
+        }
       })
     );
 
@@ -471,6 +482,14 @@ module.exports = (function() {
       };
     });
 
+    var alwaysHaveValues = _.map(params.alwaysHaveValues, function (value) {
+      return {
+        id: value,
+        description: prettyId(value),
+        disable: true
+      };
+    });
+
     var differenceOptions = dropdownOptions;
 
     var filterIds = function(ids, selected) {
@@ -484,6 +503,19 @@ module.exports = (function() {
           nonSelectedValues.push(option);
         }
       });
+
+      if (selected) { //add musthavevalues
+        _.forEach(alwaysHaveValues, function (alwaysHaveValue) {
+          if (selectedValues.find(function (selectedValue) { //alwayshavevalue is already selected
+            return selectedValue.id === alwaysHaveValue.id;
+          })) {
+            selectedValues = selectedValues.filter(function (selectedValue) { //remove it
+              return selectedValue.id !== alwaysHaveValue.id;
+            });
+          }
+          selectedValues.unshift(alwaysHaveValue); //and add to front
+        });
+      }
 
       return selected ? selectedValues : nonSelectedValues;
     };
@@ -723,14 +755,16 @@ module.exports = (function() {
       return $row;
     };
 
-    var getNameFromProfileId = function(profileId) {
+    var getPreferredName = function(profile) {
+      var nameObj = _.find(profile.content.names, 'preferred');
+      var tildeId = nameObj && nameObj.username || profile.id;
       var setClass = function(className) {
         return function(match) {
           return '<span class="' + className + '">' + match + '</span>';
         };
       };
-      return $('<a>', { href: '/profile?id=' + profileId, target: '_blank' }).append(
-        profileId
+      return $('<a>', { href: '/profile?id=' + tildeId, target: '_blank' }).append(
+        tildeId
           .replace(/[^~_0-9]+/g, setClass('black'))
           .replace(/[~_0-9]+/g, setClass('light-gray'))
       );
@@ -768,11 +802,13 @@ module.exports = (function() {
           var $spanEmails;
           var title;
           if (_.startsWith(authorids[i], '~')) {
-            $spanFullname = getNameFromProfileId(authorids[i]);
-            var profileContent = _.find(profiles, ['id', authorids[i]]).content;
-            var emails = profileContent.emails;
-            title = formatProfileContent(profileContent).title;
-            $spanEmails = getEmails(emails);
+            // eslint-disable-next-line no-loop-func
+            var profile = _.find(profiles, function(profile) {
+              return profile.id === authorids[i] || _.find(profile.content.names, ['username', authorids[i]]);
+            });
+            $spanFullname = getPreferredName(profile);
+            title = formatProfileContent(profile.content).title;
+            $spanEmails = getEmails(profile.content.emails);
           } else {
             $spanFullname = $('<span>' + authors[i] + '</span>');
             $spanEmails = getEmails([authorids[i]]);
@@ -783,7 +819,7 @@ module.exports = (function() {
     }
 
     var createSearchResultRow = function(profile) {
-      var $fullName = getNameFromProfileId(profile.id);
+      var $fullName = getPreferredName(profile);
       var $emails = getEmails(profile.content.emails);
       var formattedProfile = formatProfileContent(profile.content);
       var $addButton = createAddButton($fullName, $emails, formattedProfile.title);
@@ -970,7 +1006,7 @@ module.exports = (function() {
     if (fieldDescription.scroll) {
       $description = $('<textarea class="form-control scroll-box" readonly>').text(fieldDescription.description);
     } else {
-      $description = $('<div class="hint">').text(fieldDescription.description);
+      $description = $('<div class="hint disable-tex-rendering">').text(fieldDescription.description);
     }
 
     var $row = $('<div>', { class: 'row' }).append(
@@ -980,12 +1016,81 @@ module.exports = (function() {
     return $row;
   };
 
+  var markdownInput = function($contentInput, fieldName, fieldDescription) {
+    var $smallHeading = $('<div>', { text: prettyField(fieldName), class: 'small_heading' });
+    if (fieldDescription.required) {
+      $smallHeading.prepend('<span class="required_field">*</span>');
+    }
+
+    var $description;
+    if (fieldDescription.scroll) {
+      $description = $('<textarea class="form-control scroll-box" readonly>').text(fieldDescription.description);
+    } else {
+      $description = $('<div class="hint disable-tex-rendering">').text(fieldDescription.description);
+    }
+
+    // Display a warning when "\\" is detected in a MathJax block ($...$ or $$ ... $$)
+    // All double backslashes need to be escaped or Markdown will convert it to "\"
+    $contentInput.on('input', function() {
+      var $warning = $(this).closest('.row').find('.content-warning');
+      if ($(this).val().match(/\$[\s\S]*\\\\[\s\S]*\$/)) {
+        if ($warning.length === 0) {
+          $(this).closest('.row').find('.char-counter').append(
+            '<div class="pull-right content-warning danger">' +
+              '<strong>IMPORTANT: All uses of "\\\\" in LaTeX formulas should be replaced with "\\\\\\\\"</strong>' +
+              '<br><span>Learn more about adding LaTeX formulas to Markdown content here: ' +
+              '<a href="/faq#question-tex-differences" target="_blank">FAQ</a></span>' +
+            '</div>'
+          );
+        }
+      } else {
+        $warning.remove();
+      }
+    });
+
+    var uniqueId = Math.floor(Math.random() * 1000);
+    var $markDownWithPreviewTabs = $(
+      '<ul class="nav nav-tabs markdown-preview-tabs" role="tablist">' +
+        '<li class="active" role="presentation">' +
+          '<a href="#markdown-panel-' + uniqueId + '" data-toggle="tab" role="tab">Write</a>' +
+        '</li>' +
+        '<li role="presentation">' +
+          '<a id="markdown-preview-tab-' + uniqueId + '" href="#markdown-preview-panel-' + uniqueId + '" data-toggle="tab" role="tab">Preview</a>' +
+        '</li>' +
+      '</ul>' +
+      '<div class="tab-content">' +
+        '<div class="markdown-panel tab-pane fade in active" id="markdown-panel-' + uniqueId + '" role="tabpanel"></div>' +
+        '<div class="markdown-preview-panel tab-pane fade " id="markdown-preview-panel-' + uniqueId + '" role="tabpanel"></div>' +
+      '</div>'
+    );
+    $markDownWithPreviewTabs.find('#markdown-panel-' + uniqueId).append($contentInput);
+
+    var $row = $('<div>', { class: 'row' }).append(
+      $smallHeading, $description, $markDownWithPreviewTabs
+    );
+
+    $('#markdown-preview-tab-' + uniqueId, $row).on('shown.bs.tab', function (e) {
+      var id = $(e.relatedTarget).attr('href');
+      var newTabId = $(e.target).attr('href');
+      var markdownContent = $(id).children().eq(0).val();
+      if (markdownContent) {
+        $(newTabId)[0].innerHTML = '<div class="note_content_value markdown-rendered">' +
+          DOMPurify.sanitize(marked(markdownContent)) + '</div>';
+        MathJax.typeset();
+      } else {
+        $(newTabId).text('Nothing to preview');
+      }
+    });
+
+    return $row;
+  };
+
   var mkComposerContentInput = function(fieldName, fieldDescription, fieldValue, params) {
 
     var mkCharCouterWidget = function($input, minChars, maxChars) {
       var $widget = $('<div>', {class: 'char-counter hint'}).append(
-        '<div style="display:none;">Additional characters required: <span class="min-count">' + minChars + '</span></div>',
-        '<div style="display:none;">Characters remaining: <span class="max-count">' + maxChars + '</span></div>'
+        '<div class="pull-left" style="display:none;">Additional characters required: <span class="min-count">' + minChars + '</span></div>',
+        '<div class="pull-left" style="display:none;">Characters remaining: <span class="max-count">' + maxChars + '</span></div>'
       );
       var $minCount = $widget.find('.min-count');
       var $maxCount = $widget.find('.max-count');
@@ -993,7 +1098,7 @@ module.exports = (function() {
 
       $input.on('input', _.throttle(function() {
         // Remove extra white spaces at the beginning, at the end and in between words.
-        var charsUsed = $input.val().trim().replace(/\s+/g, ' ').length;
+        var charsUsed = $input.val().trim().length;
         var charsRequired = minChars - charsUsed;
         var charsRemaining = maxChars - charsUsed;
         $minCount.text(charsRequired);
@@ -1055,7 +1160,13 @@ module.exports = (function() {
           name: fieldName,
           text: fieldValue
         });
-        $inputGroup = valueInput($input, fieldName, fieldDescription);
+
+        if (fieldDescription.markdown) {
+          $inputGroup = markdownInput($input, fieldName, fieldDescription);
+        } else {
+          $inputGroup = valueInput($input, fieldName, fieldDescription);
+        }
+
         if (!_.get(fieldDescription, 'hideCharCounter', false)) {
           var lenMatches = _.get(fieldDescription, 'value-regex', '').match(/\{(\d+),(\d+)\}$/);
           if (lenMatches) {
@@ -1078,7 +1189,7 @@ module.exports = (function() {
           name: fieldName,
           value: fieldValue
         });
-        $inputGroup = valueInput($input, fieldName, fieldDescription);
+        $inputGroup = valueInput($input, fieldName, fieldDescription); //input will probably be omitted field when rendered
       }
       if (!_.get(fieldDescription, 'disableAutosave', false)) {
         $input.addClass('autosave-enabled');
@@ -1151,7 +1262,7 @@ module.exports = (function() {
     } else if (_.has(fieldDescription, 'values-dropdown')) {
       return mkDropdownAdder(
         fieldName, fieldDescription.description, fieldDescription['values-dropdown'],
-        fieldValue, { hoverText: false, refreshData: true, required: fieldDescription.required }
+        fieldValue, { hoverText: false, refreshData: true, required: fieldDescription.required, alwaysHaveValues: fieldDescription.default }
       );
 
     } else if (_.has(fieldDescription, 'value-radio')) {
@@ -1550,19 +1661,29 @@ module.exports = (function() {
     return readersHtml;
   };
 
-  var order = function(replyContent) {
-    return _.map(_.sortBy(_.map(replyContent, function(v, k) {
-      var num = _.has(v, 'order') ? parseInt(v.order, 10) : NaN;
-      if (!isNaN(num)) {
-        return [k, num];
-      } else {
-        return [k, _.keys(replyContent).length];
-      }
-    }), function(pair) {
-      return pair[1];
-    }), function(pair) {
-      return pair[0];
-    });
+  var orderCache =  {};
+  var order = function(replyContent, invitationId) {
+    if (invitationId && orderCache[invitationId]) {
+      return orderCache[invitationId];
+    }
+
+    var orderedFields = _.map(
+      _.sortBy(
+        _.map(replyContent, function(fieldProps, fieldName) {
+          return {
+            field: fieldName,
+            order: fieldProps.order
+          };
+        }),
+        ['order']
+      ),
+      'field'
+    );
+    if (invitationId) {
+      orderCache[invitationId] = orderedFields;
+    }
+
+    return orderedFields;
   };
 
   var autolinkHtml = function(value) {
@@ -1691,79 +1812,159 @@ module.exports = (function() {
     return authorText;
   };
 
-  var appendNoteContent = function(note, $note, params, additionalOmittedFields) {
-    if (!params.withContent) return;
-    var notePastDue = note.ddate && note.ddate < Date.now();
-    var $body = _.has(note.content, 'body') ?
-      $('<div>', {class: '', text: note.content.body}) :
-      null;
+  var buildContent = function(note, params, additionalOmittedFields) {
+    if (!params.withContent || (note.ddate && note.ddate < Date.now())) {
+      return;
+    }
 
-    var contentOrder = params.invitation ?
-      order(params.invitation.reply.content) :
-      _.keys(note.content);
+    // Get order of content fields from invitation. If no invitation is provided,
+    // use default ordering of content object.
+    var invitation;
+    if (note.details) {
+      if (!_.isEmpty(note.details.originalInvitation)) {
+        invitation = note.details.originalInvitation;
+      } else if (!_.isEmpty(note.details.invitation)) {
+        invitation = note.details.invitation;
+      }
+    } else if (!_.isEmpty(params.invitation)) {
+      invitation = params.invitation;
+    }
 
-    var $contents = (function() {
-      if (notePastDue) {
-        return [];
+    var contentKeys = Object.keys(note.content);
+    var contentOrder = invitation
+      ? _.union(order(invitation.reply.content, invitation.id), contentKeys)
+      : contentKeys;
+
+    var omittedContentFields = [
+      'title', 'authors', 'author_emails', 'authorids', 'pdf',
+      'verdict', 'paperhash', 'ee', 'html', 'year', 'venue', 'venueid'
+    ].concat(additionalOmittedFields || []);
+
+    var $contents = [];
+    contentOrder.forEach(function(fieldName) {
+      if (omittedContentFields.includes(fieldName) || fieldName.startsWith('_')) {
+        return;
       }
 
-      // automatically exclude fields that begin with underscore ('_')
-      var omittedContentFields = [
-        'body', 'title', 'authors', 'author_emails', 'authorids',
-        'pdf', 'verdict', 'paperhash', 'ee', 'html', 'year', 'venue', 'venueid'
-      ].concat(additionalOmittedFields).concat(
-        _.filter(contentOrder, function(field) { return _.startsWith(field, '_'); })
-      );
+      var valueString = prettyContentValue(note.content[fieldName]);
+      if (!valueString) {
+        return;
+      }
 
-      var contentFields = _.difference(contentOrder, omittedContentFields);
+      var invitationField = (invitation && invitation.reply.content[fieldName]) || {};
 
-      return _.map(contentFields, function(fieldName) {
-        var v = note.content[fieldName];
-        if (_.isNumber(v) || (_.isArrayLike(v) && !_.isEmpty(v))) {
-          var valueString = prettyContentValue(v);
+      // Build download links
+      if (valueString.indexOf('/attachment/') === 0) {
+        $contents.push($('<div>', {class: 'note_contents'}).append(
+          $('<span>', {class: 'note_content_field'}).text(prettyField(fieldName) + ': '),
+          $('<span>', {class: 'note_content_value'}).html(
+            mkDownloadLink(note.id, fieldName, valueString, { isReference: params.isReference })
+          )
+        ));
+        return;
+      }
 
-          if (_.startsWith(valueString, '/attachment/')) {
-            return $('<div>', {class: 'note_contents'}).append(
-              $('<span>', {class: 'note_content_field'}).text(prettyField(fieldName) + ': '),
-              $('<span>', {class: 'note_content_value'}).html(
-                mkDownloadLink(note.id, fieldName, valueString, { isReference: params.isReference })
-              )
-            );
-          }
+      var $elem = $('<span>', {class: 'note_content_value'});
+      if (invitationField.markdown) {
+        $elem[0].innerHTML = DOMPurify.sanitize(marked(valueString));
+        $elem.addClass('markdown-rendered');
+      } else {
+        // First set content as text to escape HTML, then autolink escaped HTML
+        $elem.text(valueString);
+        $elem.html(autolinkHtml($elem.html()));
+      }
 
-          // First set content as text to escape HTML, then autolink escaped HTML
-          var elem = $('<span>', {class: 'note_content_value'}).text(valueString);
-          elem.html(autolinkHtml(elem.html()));
+      $contents.push($('<div>', {class: 'note_contents'}).append(
+        $('<span>', {class: 'note_content_field'}).text(prettyField(fieldName) + ': '),
+        $elem
+      ));
+    });
 
-          return $('<div>', {class: 'note_contents'}).append(
-            $('<span>', {class: 'note_content_field'}).text(prettyField(fieldName) + ': '),
-            elem
-          );
-        } else {
-          return '';
-        }
-      });
-    }());
+    return $contents;
+  };
 
-    if (params.collapseContent) {
-      // Need a random id to prevent collisions if there are 2 of the same note displayed
-      var rand = Math.floor(Math.random() * 1000);
-      var collapseId = note.id + '-details-'+ rand;
-      var $detailsButton = $(
-        '<div class="meta_row">' +
-          '<a href="#'+ collapseId +'" class="note-contents-toggle" role="button" data-toggle="collapse" aria-expanded="false">View Paper Details </a>' +
-        '</div>' +
-        '<div class="collapse" id="'+ collapseId +'">' +
-          '<div class="note-contents-collapse"></div>' +
-        '</div>'
-      );
-      $note.append($detailsButton);
-      $note.find('#' + collapseId +' > div').append($body, $contents);
-    } else {
-      $note.append(
-        $body, $contents
+  var buildOriginalNote = function(note, originalNote, params) {
+    var $originalNote = $('<div>', {id: 'original_note_' + originalNote.id, class: 'private-contents panel'});
+
+    // If the values in original Note and blind Note are the same we can omit the field
+    if (originalNote.content.authorids && !_.isEqual(note.content.authorids, originalNote.content.authorids)) {
+      var origAuthorText = getAuthorText(originalNote);
+      $originalNote.append(
+        // Add authors
+        $('<div>', {class: 'meta_row note_contents'}).append(
+          $('<span>', {class: 'note_content_field'}).html('Authors:'),
+          $('<span>', {class: 'signatures'}).html(origAuthorText)
+        )
       );
     }
+
+    if (originalNote.content.pdf && !note.content.pdf) {
+      $originalNote.append(
+        $('<div>', {class: 'note_contents'}).append(
+          $('<span>', {class: 'note_content_field'}).text('Pdf: '),
+          $('<span>', {class: 'note_content_value'}).html(
+            mkDownloadLink(originalNote.id, 'pdf', originalNote.content.pdf, { isReference: params.isReference })
+          )
+        )
+      );
+    }
+
+    if ((originalNote.content.ee && !note.content.ee) || (originalNote.content.html && !note.content.html)) {
+      var fieldName = originalNote.content.ee ? 'ee' : 'html';
+      var link = originalNote.content.ee || originalNote.content.html;
+      $originalNote.append(
+        $('<div>', {class: 'note_contents'}).append(
+          $('<span>', {class: 'note_content_field'}).text('Html: '),
+          $('<span>', {class: 'note_content_value'}).html(
+            '<a href="' + link + '" class="attachment-download-link" title="Download ' + prettyField(fieldName) + '" target="_blank">' +
+            link +
+            '</a>'
+          )
+        )
+      );
+    }
+
+    // We do not need to show duplicate information.
+    // If the values in original Note and blind Note are the same we can omit the field
+    var additionalOmittedFields = Object.keys(originalNote.content).filter(function(key) {
+      return _.isEqual(note.content[key], originalNote.content[key]);
+    });
+
+    $originalNote.append(buildContent(
+      originalNote,
+      { withContent: params.withContent, invitation: note.details && note.details.originalInvitation },
+      additionalOmittedFields
+    ));
+
+    if (!$originalNote.children().length) {
+      return null;
+    }
+
+    var notePastDue = note.ddate && note.ddate < Date.now();
+    var origFormattedDate = forumDate(originalNote.cdate, originalNote.tcdate, originalNote.mdate, originalNote.tmdate, originalNote.content.year);
+    var $origDateItem = (!notePastDue || note.details.writable) ?
+      $('<span>', {class: 'date item'}).text(origFormattedDate) :
+      null;
+    var $origInvItem = $('<span>', {class: 'item'}).text(originalNote.content.venue || prettyId(originalNote.invitation));
+    var $origReadersItem = null;
+    if (originalNote.readers && originalNote.readers.length) {
+      // Filtering out the venue Group, because it's confusing. If the reader is a substring of the Note's invitation
+      // then that means that the reader is the venue Group. E.g.
+      // Note invitation: thecvf.com/ECCV/2020/Conference/-/Submission
+      // Reader thecvf.com/ECCV/2020/Conference
+      // Reader is a substring of the Note invitation, so we filter it out
+      var filteredReaders = originalNote.readers.filter(function(reader) {
+        return originalNote.invitation.indexOf(reader) === -1;
+      });
+      $origReadersItem = $('<span>', { class: 'private-author-label' }).html('Revealed to ' + prettyReadersList(filteredReaders));
+    }
+    $originalNote.prepend(
+      $('<div>', { class: 'meta_row' }).append($origReadersItem),
+      $('<hr>', { class: 'small' }),
+      $('<div>', { class: 'meta_row' }).append($origDateItem, $origInvItem)
+    );
+
+    return $originalNote;
   };
 
 
@@ -1822,19 +2023,23 @@ module.exports = (function() {
     var $trashButton = null;
     var $editButton = null;
     var $actionButtons = null;
-    if ($('#content').hasClass('forum') || $('#content').hasClass('tasks')) {
-      if (details.writable && params.onTrashedOrRestored) {
+    if ($('#content').hasClass('forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
+      var canEdit = (details.original && details.writable && details.originalWritable) || (!details.original && details.writable);
+
+      if (canEdit && params.onTrashedOrRestored) {
         var buttonContent = notePastDue ? 'Restore' : '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>';
         $trashButton = $('<button id="trashbutton_' + note.id + '" class="btn btn-xs trash_button">' + buttonContent + '</button>');
         $trashButton.click(function() {
-          deleteOrRestoreNote(note, titleText, params.user, params.onTrashedOrRestored);
+          var noteToDelete = details.originalWritable ? details.original : note;
+          deleteOrRestoreNote(noteToDelete, titleText, params.user, params.onTrashedOrRestored);
         });
       }
 
-      if (details.writable && params.onEditRequested && !notePastDue) {
+      if (canEdit && params.onEditRequested && !notePastDue) {
         $editButton = $('<button class="btn btn-xs edit_button"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></button>');
         $editButton.click(function() {
-          params.onEditRequested();
+          var options = details.originalWritable ? { original: true } : {};
+          params.onEditRequested(null, options);
         });
       }
 
@@ -1948,10 +2153,14 @@ module.exports = (function() {
       $titleCollapsed,
       $parentNote,
       $contentAuthors,
-      $('<div class="clearfix">').append($metaEditRow, $metaActionsRow)
+      $('<div class="clearfix">').append($metaEditRow, $metaActionsRow),
+      buildContent(note, params)
     );
 
-    appendNoteContent(note, $note, params);
+    // Add info from origial note below content
+    if (details.original) {
+      $note.append(buildOriginalNote(note, details.original, params));
+    }
 
     var buildTag = function(tags, tagInvitation) {
       var buildRelations = function(relation) {
@@ -1998,7 +2207,6 @@ module.exports = (function() {
       });
     };
 
-
     // Group tags by invitation id and signatures
     var processedInvitations = [];
     var invitationsWithoutTags = [];
@@ -2006,7 +2214,7 @@ module.exports = (function() {
     var tagsWithoutInvitations = [];
 
     // Process tags
-    var groupByInvitation = _.groupBy(details.tags || [], 'invitation');
+    var groupByInvitation = _.groupBy(details.tags, 'invitation');
     _.forEach(groupByInvitation, function(tags) {
       var invitationId = tags[0].invitation;
       var tagInvitation = _.find(params.tagInvitations, ['id', invitationId]);
@@ -2049,94 +2257,6 @@ module.exports = (function() {
       );
     }
 
-    var $originalNote;
-    if (details.original) {
-      var originalNote = details.original;
-      $originalNote = $('<div>', {id: 'original_note_' + originalNote.id, class: 'note panel private-contents'});
-
-      // If the values in original Note and blind Note are the same we can omit the field
-      if (!_.isEqual(note.content.authorids, originalNote.content.authorids)) {
-        var origAuthorText = getAuthorText(originalNote);
-        $originalNote.append(
-          // Add authors
-          $('<div>', {class: 'meta_row note_contents'}).append(
-            $('<span>', {class: 'note_content_field'}).html('Authors:'),
-            $('<span>', {class: 'signatures'}).html(origAuthorText)
-          )
-        );
-      }
-
-      if (originalNote.content.pdf && _.isEmpty(note.content.pdf)) {
-        $originalNote.append(
-          $('<div>', {class: 'note_contents'}).append(
-            $('<span>', {class: 'note_content_field'}).text('Pdf: '),
-            $('<span>', {class: 'note_content_value'}).html(
-              mkDownloadLink(originalNote.id, 'pdf', originalNote.content.pdf, { isReference: params.isReference })
-            )
-          )
-        );
-      }
-
-      if (originalNote.content.ee && _.isEmpty(note.content.ee) || originalNote.content.html && _.isEmpty(note.content.html)) {
-        var fieldName = originalNote.content.ee ? 'ee' : 'html';
-        var link = originalNote.content.ee || originalNote.content.html;
-        $originalNote.append(
-          $('<div>', {class: 'note_contents'}).append(
-            $('<span>', {class: 'note_content_field'}).text('Html: '),
-            $('<span>', {class: 'note_content_value'}).html(
-              '<a href="' + link + '" class="attachment-download-link" title="Download ' + prettyField(fieldName) + '" target="_blank">' +
-              link +
-              '</a>'
-            )
-          )
-        );
-      }
-
-      // We do not need to show duplicate information.
-      // If the values in original Note and blind Note are the same we can omit the field
-      var additionalOmittedFields = _.filter(_.keys(originalNote.content), function(key) {
-        return _.isEqual(note.content[key], originalNote.content[key]);
-      });
-
-      appendNoteContent(originalNote, $originalNote, params, additionalOmittedFields);
-
-      if ($originalNote.children().length > 0) {
-        $originalNote.css('background-color', '#eee');
-        var origFormattedDate = forumDate(originalNote.cdate, originalNote.tcdate, originalNote.mdate, originalNote.tmdate, originalNote.content.year);
-        var $origDateItem = (!notePastDue || details.writable) ?
-          $('<span>', {class: 'date item'}).text(origFormattedDate) :
-          null;
-        var $origInvItem = $('<span>', {class: 'item'}).text(originalNote.content.venue || prettyId(originalNote.invitation));
-        var $origReadersItem = null;
-        if (_.has(originalNote, 'readers')) {
-          // Filtering out the venue Group, because it's confusing. If the reader is a substring of the Note's invitation
-          // then that means that the reader is the venue Group. E.g.
-          // Note invitation: thecvf.com/ECCV/2020/Conference/-/Submission
-          // Reader thecvf.com/ECCV/2020/Conference
-          // Reader is a substring of the Note invitation, so we filter it out
-          var filteredReaders = _.filter(originalNote.readers, function(reader) {
-            return originalNote.invitation.indexOf(reader) === -1;
-          });
-          $origReadersItem = $('<span>', { class: 'private-author-label' }).html('Revealed to ' + prettyReadersList(filteredReaders));
-        }
-        $originalNote.prepend(
-          $('<div>', { class: 'meta_row' }).append(
-            $origDateItem,
-            $origInvItem
-          )
-        );
-
-        $originalNote.prepend(
-          $('<div>', { class: 'meta_row' }).append($origReadersItem),
-          $('<hr>', { class: 'small' })
-        );
-      } else {
-        $originalNote.hide()
-      }
-    }
-
-    $note.append($originalNote);
-
     // Append invitation buttons
     var $replyRow = $('<div>', {class: 'reply_row clearfix'});
     if (!_.isEmpty(params.replyInvitations) && !notePastDue) {
@@ -2150,10 +2270,6 @@ module.exports = (function() {
       );
     }
     $note.append($replyRow);
-
-    if (params.withSummary) {
-      $note.append($('<div>', {class: 'meta_row'}).append($('<span>', {class: 'item date'}).text(params.withSummary)));
-    }
 
     return $note;
 
@@ -2320,10 +2436,10 @@ module.exports = (function() {
     if (!id) {
       return '';
 
-    } else if (id.indexOf('~') === 0) {
+    } else if (id.indexOf('~') === 0 && id.length > 1) {
       return id.substring(1).replace(/_|\d+/g, ' ').trim();
 
-    } else if (id === 'everyone' || id === '(anonymous)' || id === '(guest)') {
+    } else if (id === 'everyone' || id === '(anonymous)' || id === '(guest)' || id === '~') {
       return id;
 
     } else {
@@ -2761,9 +2877,9 @@ module.exports = (function() {
       return;
     }
 
-    var contentOrder = order(invitation.reply.content);
+    var contentOrder = order(invitation.reply.content, invitation.id);
     var $contentMap = _.reduce(contentOrder, function(ret, k) {
-      ret[k] = mkComposerInput(k, invitation.reply.content[k], '', { useDefaults: true });
+      ret[k] = mkComposerInput(k, invitation.reply.content[k], invitation.reply.content[k].default || '', { useDefaults: true });
       return ret;
     }, {});
 
@@ -2843,15 +2959,18 @@ module.exports = (function() {
 
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
+          if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
+            return controller.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+              note.content[fieldName] = result.url;
+              return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, note.content.pdf);
+            });
+          }
           var data = new FormData();
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return controller.sendFile('attachment', data).then(function(result) {
+          return controller.sendFile('/attachment', data).then(function(result) {
             note.content[fieldName] = result.url;
-            if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
-              return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, note.content.pdf);
-            }
             updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], note.content[fieldName]);
           });
         });
@@ -2885,11 +3004,15 @@ module.exports = (function() {
           $cancelButton.prop({ disabled: false });
         });
       };
-      var $noteTitle = $('<h2>', {class: "note_content_title", text: `New ${prettyInvitationId(invitation.id)}`})
-      var $requiredInfo = $('<div>', {class: 'required_field', text: '* denotes a required field'});
-      var $submitRow = $('<div>', {class: 'row'}).append($submitButton, $cancelButton);
-      var $noteEditor = $('<div>', {class: 'note_editor panel'}).append(
-        $noteTitle, $requiredInfo, _.values($contentMap), readers, signatures, $submitRow
+
+      var $noteEditor = $('<div>', { class: 'note_editor panel' }).append(
+        '<h2 class="note_content_title">New ' + prettyInvitationId(invitation.id) + '</h2>',
+        '<div class="required_field">* denotes a required field</div>',
+        '<hr class="small">',
+        _.values($contentMap),
+        readers,
+        signatures,
+        $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
       );
       $noteEditor.data('invitationId', invitation.id);
 
@@ -2910,11 +3033,11 @@ module.exports = (function() {
       }
     };
 
-    buildReaders(invitation.reply.readers, [], parentId, function(readers, error) {
+    buildReaders(invitation.reply.readers, [], parentId, function (readers, error) {
       if (error) {
         return handleError(error);
       }
-      buildSignatures(invitation.reply.signatures, [], user).then(function(signatures) {
+      buildSignatures(invitation.reply.signatures, invitation.reply.signatures.default || [], user).then(function (signatures) {
         buildEditor(readers, signatures);
       }).fail(function(error) {
         error = error === 'no_results' ?
@@ -2935,7 +3058,8 @@ module.exports = (function() {
             var parentReaders = result.notes[0].readers;
             if (!_.includes(parentReaders, 'everyone')) {
               newFieldDescription = {
-                description: fieldDescription.description
+                description: fieldDescription.description,
+                default: fieldDescription.default
               };
               newFieldDescription[fieldType] = parentReaders;
               if (!fieldValue.length) {
@@ -2988,13 +3112,31 @@ module.exports = (function() {
         });
       }
       extraGroupsP
-      .then(function() {
-        setParentReaders(replyto, fieldDescription, 'values-dropdown', function(newFieldDescription) {
-          var $readers = mkComposerInput('readers', newFieldDescription, fieldValue);
-          $readers.find('.small_heading').prepend(requiredText);
-          done($readers);
+        .then(function() {
+          setParentReaders(replyto, fieldDescription, 'values-dropdown', function (newFieldDescription) {
+            //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
+            var replyValues = _.intersection(newFieldDescription['values-dropdown'], fieldDescription['values-dropdown']);
+
+            //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
+            var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
+            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer'); });
+            if (hasReviewers && !hasAnonReviewers) {
+              fieldDescription['values-dropdown'].forEach(function(value) {
+                if (value.includes('AnonReviewer')) {
+                  replyValues.push(value);
+                }
+              });
+            }
+
+            newFieldDescription['values-dropdown'] = replyValues;
+            if (_.difference(newFieldDescription.default, newFieldDescription['values-dropdown']).length !== 0) { //invitation default is not in list of possible values
+              done(undefined, 'Default reader is not in the list of readers');
+            }
+            var $readers = mkComposerInput('readers', newFieldDescription, fieldValue);
+            $readers.find('.small_heading').prepend(requiredText);
+            done($readers);
+          });
         });
-      });
 
     } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
       setParentReaders(replyto, fieldDescription, 'value-dropdown-hierarchy', function(newFieldDescription) {
@@ -3004,8 +3146,9 @@ module.exports = (function() {
       });
     } else if (_.has(fieldDescription, 'values')) {
       setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
-        if (_.isEqual(newFieldDescription.values, fieldDescription.values)) {
-          var $readers = mkComposerInput('readers', newFieldDescription, fieldValue);
+        if (_.isEqual(newFieldDescription.values, fieldDescription.values)
+          || fieldDescription.values.every(function (val) { return newFieldDescription.values.indexOf(val) !== -1; })) {
+          var $readers = mkComposerInput('readers', fieldDescription, fieldValue); //for values, readers must match with invitation instead of parent invitation
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
         } else {
@@ -3027,9 +3170,9 @@ module.exports = (function() {
 
       if (fieldDescription['values-regex'] === '~.*') {
         if (user && user.profile) {
-          // TODO: allow users to sign with their preferred name, not just primary id
+          var prefId = user.profile.preferredId || user.profile.id;
           $signatures = mkDropdownList(
-            'signatures', fieldDescription.description, currentVal, [user.profile.id], true
+            'signatures', fieldDescription.description, currentVal, [prefId], true
           );
           return $.Deferred().resolve($signatures);
         } else {
@@ -3084,7 +3227,7 @@ module.exports = (function() {
       return false;
     }
 
-    var contentOrder = order(invitation.reply.content);
+    var contentOrder = order(invitation.reply.content, invitation.id);
     var $contentMap = _.reduce(contentOrder, function(map, fieldName) {
       var fieldContent = _.get(note, ['content', fieldName], '');
       map[fieldName] = mkComposerInput(fieldName, invitation.reply.content[fieldName], fieldContent, { note: note });
@@ -3149,6 +3292,9 @@ module.exports = (function() {
 
         if (invitation.reply.referent) {
           editNote.referent = invitation.reply.referent;
+          if (note.updateId) {
+            editNote.id = note.updateId;
+          }
         } else {
           editNote.id = note.id;
         }
@@ -3158,7 +3304,7 @@ module.exports = (function() {
         }
 
         var onError = function(e) {
-          var errorMsg = e.responseJSON && e.responseJSON.message || 'There was an error uploading the file';
+          var errorMsg = (e.responseJSON && e.responseJSON.message) || 'There was an error uploading the file';
           if (params.onError) {
             params.onError([errorMsg]);
           } else if (e.responseJSON && e.responseJSON.errors) {
@@ -3172,15 +3318,18 @@ module.exports = (function() {
 
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
+          if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
+            return controller.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+              editNote.content[fieldName] = result.url;
+              return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, editNote.content.pdf);
+            });
+          }
           var data = new FormData();
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return controller.sendFile('attachment' , data).then(function(result) {
+          return controller.sendFile('/attachment' , data).then(function(result) {
             editNote.content[fieldName] = result.url;
-            if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
-              return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, editNote.content.pdf);
-            }
             updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
           });
         });
@@ -3209,16 +3358,26 @@ module.exports = (function() {
           $noteEditor.remove();
           clearAutosaveData(autosaveStorageKeys);
         }, function(jqXhr, errorText) {
-          promptError(errorText);
+          if (params.onError) {
+            params.onError([errorText]);
+          } else {
+            promptError(errorText);
+          }
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
           $cancelButton.prop({ disabled: false });
         });
       };
 
-      var $requiredInfo = $('<div>', {class: 'required_field', text: '* denotes a required field'});
-      var $submitRow = $('<div>', {class: 'row'}).append($submitButton, $cancelButton);
-      var $noteEditor = $('<div>', {class: 'note_editor panel'}).append(
-        $requiredInfo, _.values($contentMap), readers, signatures, $submitRow
+      // For reference invitations show that a new reference is being created
+      var editorAction = invitation.reply.referent === note.id ? 'New' : 'Edit';
+      var $noteEditor = $('<div>', { class: 'note_editor existing panel' }).append(
+        '<h2 class="note_content_title">' + editorAction + ' ' + prettyInvitationId(invitation.id) + '</h2>',
+        '<div class="required_field">* denotes a required field</div>',
+        '<hr class="small">',
+        _.values($contentMap),
+        readers,
+        signatures,
+        $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
       );
       $noteEditor.data('invitationId', invitation.id);
 
@@ -3424,6 +3583,32 @@ module.exports = (function() {
     }));
   };
 
+  var setupMarked = function() {
+    var renderer = new marked.Renderer();
+
+    renderer.image = function(href, title, text) {
+      return $('<div />').text('<img src="' + href + '" alt="' + text + '" title="' + title + '">').html();
+    };
+    renderer.checkbox = function(checked) {
+      if (checked) return '[x]';
+      return '[ ]';
+    };
+    renderer.html = function(html) {
+      return $('<div />').text(html).html();
+    };
+
+    // For details on options see https://marked.js.org/#/USING_ADVANCED.md#options
+    marked.setOptions({
+      baseUrl: null,
+      breaks: false,
+      gfm: true,
+      headerIds: false,
+      langPrefix: 'language-',
+      mangle: true,
+      renderer: renderer,
+    });
+  };
+
   return {
     mkDropdown: mkDropdown,
     mkMapAdder: mkMapAdder,
@@ -3461,7 +3646,8 @@ module.exports = (function() {
     iTerm: iTerm,
     iMess: iMess,
     getCopiedValues : getCopiedValues,
-    freeTextTagWidgetLabel: freeTextTagWidgetLabel
+    freeTextTagWidgetLabel: freeTextTagWidgetLabel,
+    setupMarked: setupMarked
   };
 
 }());
