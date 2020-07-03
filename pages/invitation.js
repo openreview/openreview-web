@@ -28,8 +28,7 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
   useEffect(() => {
     if (clientJsLoading) return
 
-    window.MathJax = require('../lib/mathjax-config')
-    require('mathjax/es5/tex-chtml')
+    require('mathjax/es5/tex-chtml-full')
     window.moment = require('moment')
     require('moment-timezone')
     window.datetimepicker = require('../client/bootstrap-datetimepicker-4.17.47.min')

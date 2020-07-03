@@ -105,6 +105,7 @@ class OpenReviewApp extends App {
     window.Handlebars = require('handlebars/runtime')
     window.marked = require('marked')
     window.DOMPurify = require('dompurify')
+    window.MathJax = require('../lib/mathjax-config')
 
     // Load legacy JS code
     window.mkStateManager = require('../client/state-manager')

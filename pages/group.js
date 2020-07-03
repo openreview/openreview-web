@@ -27,8 +27,7 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
   useEffect(() => {
     if (clientJsLoading) return
 
-    window.MathJax = require('../lib/mathjax-config')
-    require('mathjax/es5/tex-chtml')
+    require('mathjax/es5/tex-chtml-full')
     window.moment = require('moment')
     require('moment-timezone')
 

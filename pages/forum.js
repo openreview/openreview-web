@@ -1,5 +1,3 @@
-/* eslint-disable global-require */
-
 import { useEffect, useContext } from 'react'
 import Head from 'next/head'
 import UserContext from '../components/UserContext'
@@ -101,9 +99,10 @@ const Forum = ({ forumNote, query, appContext }) => {
   useEffect(() => {
     if (clientJsLoading) return
 
-    window.MathJax = require('../lib/mathjax-config')
-    require('mathjax/es5/tex-chtml')
+    // eslint-disable-next-line global-require
+    require('mathjax/es5/tex-chtml-full')
 
+    // eslint-disable-next-line global-require
     const runForum = require('../client/forum')
     runForum(forumNote.id, query.noteId, query.invitationId, user)
   }, [clientJsLoading])

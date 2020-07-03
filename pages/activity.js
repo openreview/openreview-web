@@ -41,9 +41,7 @@ const Activity = ({ user, accessToken, appContext }) => {
     if (clientJsLoading || !activityNotes) return
 
     // eslint-disable-next-line global-require
-    window.MathJax = require('../lib/mathjax-config')
-    // eslint-disable-next-line global-require
-    require('mathjax/es5/tex-chtml')
+    require('mathjax/es5/tex-chtml-full')
 
     $(activityRef.current).empty()
     Webfield.ui.activityList(activityNotes, {
