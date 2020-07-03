@@ -35,7 +35,7 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
     window.datetimepicker = require('../client/bootstrap-datetimepicker-4.17.47.min')
 
     const script = document.createElement('script')
-    script.innerHTML = `window.user = ${JSON.stringify(user)}; ${webfieldCode}`
+    script.innerHTML = `window.user = ${JSON.stringify(user)};\n${webfieldCode}`
     document.body.appendChild(script)
 
     // Code to run after webfield has loaded
@@ -153,13 +153,11 @@ Invitation.getInitialProps = async (ctx) => {
             } else if (args.response === 'No') {
               response = 'decline';
             }
-            var accept = window.confirm('You have chosen to ' + response + ' this invitation. Do you want to continue?' );
-            if (accept) {
+            if (confirm('You have chosen to ' + response + ' this invitation. Do you want to continue?')) {
               $noteEditor.find('button:contains("Submit")').click();
             } else {
-              window.location = '/';
+              location = '/';
             }
-
           } else {
             $noteEditor.find('button:contains("Submit")').click();
           }
