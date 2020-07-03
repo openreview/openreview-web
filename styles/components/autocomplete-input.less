@@ -1,0 +1,59 @@
+@import "../utils/constants";
+
+.ui-autocomplete {
+  background: #fff;
+  border: 1px solid @backgroundGray;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  margin-top: 1px;
+  padding: 5px 0;
+  max-height: 488px;
+  min-width: 400px;
+  max-width: 540px;
+  overflow-y: scroll;
+  cursor: pointer;
+  position: absolute;
+}
+
+.ui-menu {
+  .ui-menu-item-wrapper {
+    font-size: .75rem;
+    padding: 4px 12px;
+  }
+  .ui-menu-item {
+    color: @mediumBlue;
+    list-style-image: none;
+
+    &:hover .ui-menu-item-wrapper {
+      background-color: @mediumBlue;
+      color: #fff;
+    }
+    .authlist {
+      color:@subtleGray;
+      font-size: .75rem;
+      font-style: italic;
+      padding-top: 0;
+      margin-top: -4px;
+    }
+    .ui-state-hover, .ui-state-active {
+      background-color: @mediumBlue;
+      color: #fff;
+      border: 0;
+    }
+  }
+
+  .ui-state-focus, .ui-state-active {
+    margin: 0;
+  }
+
+  .ui-menu-divider {
+    margin: 5px 0;
+    height: 0;
+    font-size: 0;
+    line-height: 0;
+    border-width: 1px 0 0 0;
+  }
+}
+
+.ui-widget.ui-widget-content {
+  border: 1px solid #c5c5c5;
+}
