@@ -1,5 +1,4 @@
 import { Selector } from 'testcafe'
-import axios from 'axios'
 
 require('dotenv').config()
 
@@ -10,20 +9,6 @@ const signupButtonSelector = Selector('button').withText('Sign Up')
 const passwordInputSelector = Selector('input').withAttribute('placeholder', 'Password')
 const sendActivationLinkButtonSelector = Selector('button').withText('Send Activation Link')
 const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
-
-fixture.only`setup`
-  .before(async ctx => {
-    //before test preparation
-    try {
-      const result = await axios.post(`${process.env.API_URL}/login`, { id: "", password: "" })
-      const superToken = result.data?.token
-      //do post with supertoken
-    } catch (error) {
-      console.log(error)
-    }
-  })
-test('setup',async t=>{
-})
 
 fixture`new profile`
   .page`http://localhost:${process.env.NEXT_PORT}/signup`
