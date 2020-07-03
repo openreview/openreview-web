@@ -106,15 +106,21 @@ module.exports = (function() {
   };
 
   var sendFile = function(url, data, contentType) {
+    var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
+    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
+    var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
     return $.ajax({
-      url: url,
+      url: baseUrl + url,
       type: 'put',
       cache: false,
       dataType: 'json',
       processData: false,
       contentType: contentType ? contentType : false,
       data: data,
-      headers: { 'Authorization': 'Bearer ' + (sm.has('token') ? sm.get('token') : '') }
+      headers:  Object.assign(defaultHeaders, authHeaders),
+      xhrFields: {
+        withCredentials: true
+      }
     }).fail(function(jqXhr, textStatus, errorThrown) {
       console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus);
       console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2));
