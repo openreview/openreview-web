@@ -4,12 +4,6 @@
  * - replaced all controller api calls with webfield versions
  * - added btn-default class to cancel button
  */
-
-/* globals view: false */
-/* globals controller: false */
-/* globals promptError: false */
-/* globals promptMessage: false */
-
 module.exports = function(profile, params, submitF, cancelF) {
 
   var mkGenderRow = function(gender) {

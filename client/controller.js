@@ -78,8 +78,15 @@ module.exports = (function() {
           }
         }
 
+        var notSignatoryError = errorText.type === 'notSignatory' && errorText.path === 'signatures' && _.startsWith(errorText.user, 'guest_');
+        var forbiddenError = errorText.type === 'forbidden' && _.startsWith(errorText.user, 'guest_');
+
         if (errorText === 'User does not exist') {
           location.reload(true);
+        } else if (notSignatoryError || forbiddenError) {
+          location.href = '/login?redirect=' + encodeURIComponent(
+            location.pathname + location.search + location.hash
+          );
         } else {
           if (typeof onError === 'function') {
             return onError(jqXhr, errorText);
@@ -98,14 +105,14 @@ module.exports = (function() {
     };
   };
 
-  var sendFile = function(url, data) {
+  var sendFile = function(url, data, contentType) {
     return $.ajax({
       url: url,
       type: 'put',
       cache: false,
       dataType: 'json',
       processData: false,
-      contentType: false,
+      contentType: contentType ? contentType : false,
       data: data,
       headers: { 'Authorization': 'Bearer ' + (sm.has('token') ? sm.get('token') : '') }
     }).fail(function(jqXhr, textStatus, errorThrown) {
@@ -128,6 +135,7 @@ module.exports = (function() {
       {id: id, password: password},
       function(result) {
         update('token', result.token);
+        localStorage.setItem('expireTime', Date.now() + 1000 * 60 * 60 * 24);
         if (typeof success === 'function') {
           success();
         }
@@ -138,10 +146,11 @@ module.exports = (function() {
   var logout = function(success) {
     return post(
       '/logout', {},
-      function(result) {
+      function() {
         sm.clean();
-        var token = getToken();
-        update('token', token);
+        update('token', getToken());
+        localStorage.removeItem('expireTime');
+
         if (typeof success === 'function') {
           success();
         } else {
