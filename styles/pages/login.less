@@ -3,7 +3,7 @@
 main.login {
   .login-container, .signup-container {
     margin-top: .5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
 
     form {
       margin-top: 1rem;
@@ -11,16 +11,22 @@ main.login {
     label {
       color: @orRed;
     }
+    input {
+      max-width: 480px;
+    }
 
     @media @tablet {
       input {
-        max-width: 320px;
+        max-width: 326px;
       }
     }
     @media @desktop {
       margin-top: 1.5rem;
       margin-bottom: 2rem;
       padding: 0 2rem;
+      input {
+        max-width: 100%;
+      }
     }
   }
 
