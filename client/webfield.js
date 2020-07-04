@@ -58,7 +58,11 @@ module.exports = (function() {
     }).then(jqSuccessCallback, errorCallback);
   };
 
-  var put = function(url, queryObj) {
+  var put = function(url, queryObj, options) {
+    var defaults = {
+      handleErrors: true,
+    };
+    options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
@@ -78,7 +82,11 @@ module.exports = (function() {
     }).then(jqSuccessCallback, errorCallback);
   };
 
-  var xhrDelete = function(url, queryObj) {
+  var xhrDelete = function(url, queryObj, options) {
+    var defaults = {
+      handleErrors: true,
+    };
+    options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
@@ -1596,11 +1604,6 @@ module.exports = (function() {
         searchTerm = '';
         selectedMembers = [];
         renderMembersTable(group.members, removedMembers, -1);
-
-        idsToAdd.forEach(function(id) {
-          var $tr = $('.group-members-table tr[data-id="' + id + '"]');
-          $tr.effect('highlight', { color: '#d6e9c6' }, 1000); // zz
-        });
 
         $('.group-members-form .add-member').attr('disabled', false);
         var othersText = idsToAdd.length > 1 ? ' and ' + (idsToAdd.length - 1) + ' others' : '';

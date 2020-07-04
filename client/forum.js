@@ -390,7 +390,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       var noteTitle = $(this).closest('.note_with_children').find('.note_content_title a').eq(0).text();
       var scrollPos = $('#note_children').offset().top - 51 - 12;
 
-      $('html, body').animate({scrollTop: scrollPos}, 400, 'swing', function() {
+      $('html, body').animate({scrollTop: scrollPos}, 400, function() {
         $childrenAnchor.fadeOut('fast', function() {
           $childrenAnchor.empty().append(
             '<div class="view-all-replies-container">' +
@@ -476,7 +476,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var doAnimation = function() {
       var navBarHeight = 51 - 12; // height in px of nav bar, plus extra padding
       var scrollPos = $(scrollToElem).offset().top - navBarHeight;
-      $('html, body').animate({scrollTop: scrollPos}, 400, 'swing', function() {
+      $('html, body').animate({scrollTop: scrollPos}, 400, function() {
         animationDone.resolve(true);
       });
     };
