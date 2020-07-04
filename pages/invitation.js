@@ -48,6 +48,11 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
     // eslint-disable-next-line consistent-return
     return () => {
       document.body.removeChild(script)
+
+      // Hide edit mode banner
+      if (document.querySelector('#flash-message-container .profile-flash-message')) {
+        document.getElementById('flash-message-container').style.display = 'none'
+      }
     }
   }, [clientJsLoading])
 
