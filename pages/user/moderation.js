@@ -9,6 +9,7 @@ import LoadSpinner from '../../components/LoadingSpinner'
 import PaginationLinks from '../../components/PaginationLinks'
 import api from '../../lib/api-client'
 import { prettyId, formatDateTime } from '../../lib/utils'
+import SimpleModal from '../../components/SimpleModal'
 
 const Moderation = ({ appContext, accessToken }) => {
   const { setBannerHidden } = appContext
@@ -193,32 +194,19 @@ const RejectionModal = ({
 
   return (
     <>
-      <div className="modal" tabIndex={-1} role="dialog" style={{ display: `${display ? 'block' : 'none'}` }}>
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-body">
-              <form>
-                <div className="form-group">
-                  {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-                  <label htmlFor="message">Reason for rejecting {prettyId(payload.profileIdToReject)}:</label>
-                  <textarea
-                    name="message"
-                    className="form-control"
-                    rows="5"
-                    value={rejectionMessage}
-                    onChange={e => setRejectionMessage(e.target.value)}
-                  />
-                </div>
-              </form>
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-default" data-dismiss="modal" onClick={cleanup}>Cancel</button>
-              <button type="button" className="btn btn-primary" onClick={submitRejection} disabled={!rejectionMessage}>Submit</button>
-            </div>
-          </div>
+      <SimpleModal displayFlag={display} firstButtonText="Cancel" firstButtonClick={cleanup} secondButtonText="Submit" secondButtonClick={submitRejection} disableSecondButton={!rejectionMessage}>
+        <div className="form-group">
+          {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+          <label htmlFor="message">Reason for rejecting {prettyId(payload.profileIdToReject)}:</label>
+          <textarea
+            name="message"
+            className="form-control"
+            rows="5"
+            value={rejectionMessage}
+            onChange={e => setRejectionMessage(e.target.value)}
+          />
         </div>
-      </div>
-      <div className="modal-backdrop fade in" style={{ display: `${display ? 'block' : 'none'}` }} />
+      </SimpleModal>
     </>
   )
 }
