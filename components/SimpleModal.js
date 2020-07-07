@@ -1,6 +1,6 @@
 const SimpleModal = ({
   // eslint-disable-next-line max-len
-  children, displayFlag, firstButtonText, firstButtonClick, secondButtonText, secondButtonClick, disableSecondButton, title,
+  children, displayFlag, firstButtonText, firstButtonClick, secondButtonText, secondButtonClick, disableSecondButton, title, text,
   // eslint-disable-next-line arrow-body-style
 }) => {
   return (
@@ -17,6 +17,7 @@ const SimpleModal = ({
               </div>
             )}
             <div className="modal-body">
+              {text && <p>{text}</p>}
               <form>
                 {children}
               </form>
