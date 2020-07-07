@@ -216,13 +216,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
         var isGuest = _.isEmpty(user) || _.startsWith(user.id, 'guest_');
         if (isGuest && errors[0] === 'You do not have permission to create a note') {
-          // Replace state so when the user is redirected back to forum the
-          // invitation will automatically open
-          history.replaceState(
-            { noteId: noteId, invitation: invitation.id },
-            'forum',
-            '/forum?id=' + forumId + '&noteId=' + forumId + '&invitationId=' + invitation.id
-          );
           promptLogin(user);
         } else {
           promptError(errors[0]);
@@ -405,12 +398,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
         });
       });
 
-      history.pushState(
-        {noteId: noteId, invitationId: null},
-        'forum',
-        '/forum?' + serializeUrlParams({id: forumId, noteId: noteId})
-      );
-
       return false;
     });
 
@@ -426,8 +413,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
         applyFilter();
         $childrenAnchor.fadeIn('fast');
       });
-
-      history.pushState({noteId: null, invitationId: null}, 'forum', '/forum?id=' + forumId);
 
       return false;
     });

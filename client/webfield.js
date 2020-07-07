@@ -1087,9 +1087,6 @@ module.exports = (function() {
           );
           setTimeout(function() { $overlay.remove(); }, 100);
 
-          var newQueryParams = Object.assign(parseUrlParams(location.search), { page: pageNum });
-          history.pushState(newQueryParams, 'group');
-
           if (_.isFunction(options.onPageClickComplete)) {
             options.onPageClickComplete();
           }
@@ -1097,31 +1094,6 @@ module.exports = (function() {
 
         return false;
       });
-
-      window.onpopstate = function() {
-        var pageNum = history.state && window.history.state.page;
-        if (!pageNum) {
-          location.reload();
-          return;
-        }
-
-        var $paginationContainer = $container.find('.pagination-container');
-        $paginationContainer.replaceWith(
-          view.paginationLinks(options.noteCount, options.pageSize, pageNum)
-        );
-
-        var offset = (pageNum - 1) * options.pageSize;
-        options.onPageClick(offset).then(function(newNotes) {
-          var scrollPos = $('#notes').offset().top - 51 - 12;
-          $('html, body').animate({scrollTop: scrollPos}, 400);
-          $('.submissions-list', $container).replaceWith(
-            Handlebars.templates['partials/noteList']({
-              notes: newNotes,
-              options: options.displayOptions
-            })
-          );
-        });
-      };
     }
 
     if (options.fadeIn) {
@@ -1356,16 +1328,6 @@ module.exports = (function() {
       '</div>'
     );
     $container.append($tabs);
-
-    $tabs.find('.nav-tabs > li > a').on('click', function(e, dontChangeState) {
-      // Extra parameters like dontChangeState can be passed to the handler using jQuery's
-      // trigger function, e.g. .trigger('click', [true]);
-      var urlHash = $(this).attr('href');
-
-      if (urlHash && !dontChangeState) {
-        history.replaceState({}, '', urlHash);
-      }
-    });
   };
 
   var setupAutoLoading = function(invitationId, pageSize, options) {
@@ -2930,7 +2892,7 @@ module.exports = (function() {
 
     if (options.scrollTo) {
       var scrollToElem;
-      var scrollToElemId = document.location.hash;
+      var scrollToElemId = window.location.hash;
       if ($('a[href="' + scrollToElemId + '"]').length) {
         scrollToElem = $('a[href="' + scrollToElemId + '"]');
       } else if ($(scrollToElemId).length) {
@@ -2939,7 +2901,6 @@ module.exports = (function() {
 
       if (scrollToElem) {
         scrollToElem.trigger('click', [true]);
-
         // 51 is the height of the nav bar, 12 is for padding
         var scrollPos = scrollToElem.offset().top - 51 - 12;
         $('html, body').animate({scrollTop: scrollPos}, 400);

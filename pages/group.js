@@ -1,5 +1,4 @@
 /* eslint-disable global-require */
-/* globals $: false */
 
 import { useEffect, useContext } from 'react'
 import omit from 'lodash/omit'
@@ -20,6 +19,23 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
   const { user } = useContext(UserContext)
   const { setBannerHidden, clientJsLoading } = appContext
 
+  const handleLinkClick = (e) => {
+    // Intercept clicks on links in webfields and use client side routing
+    if (e.target.tagName !== 'A' && e.target.parentElement.tagName !== 'A') return
+
+    const href = e.target.getAttribute('href') || e.target.parentElement.getAttribute('href')
+    if (!href) return
+
+    if (href.match(/^\/(forum|group|profile)/)) {
+      e.preventDefault()
+      // Need to manually scroll to top of page after using router.push,
+      // see https://github.com/vercel/next.js/issues/3249
+      router.push(e.target.getAttribute('href')).then(() => window.scrollTo(0, 0))
+    } else if (href.startsWith('#')) {
+      router.push(window.location.pathname + window.location.search + e.target.getAttribute('href'))
+    }
+  }
+
   useEffect(() => {
     setBannerHidden(true)
   }, [])
@@ -35,14 +51,6 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
     script.innerHTML = `window.user = ${JSON.stringify(user)}; ${webfieldCode}`
     document.body.appendChild(script)
 
-    // Code to run after webfield has loaded
-    setTimeout(() => {
-      $('#notes').on('click', 'a[href^="/forum"]', function onClick() {
-        router.push($(this).attr('href')).then(() => window.scrollTo(0, 0))
-        return false
-      })
-    }, 500)
-
     // eslint-disable-next-line consistent-return
     return () => {
       document.body.removeChild(script)
@@ -55,7 +63,7 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
   }, [clientJsLoading])
 
   return (
-    <div id="group-container">
+    <>
       <Head>
         <title key="title">{`${prettyId(groupId)} | OpenReview`}</title>
       </Head>
@@ -63,7 +71,10 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
       {clientJsLoading && (
         <LoadingSpinner />
       )}
-    </div>
+
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+      <div id="group-container" onClick={handleLinkClick} />
+    </>
   )
 }
 
