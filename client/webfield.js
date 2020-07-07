@@ -1946,7 +1946,7 @@ module.exports = (function() {
         var webfieldCode = response.groups[0].web;
 
         $.ajax({
-          url: 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.2/ace.js',
+          url: 'https://cdn.jsdelivr.net/npm/ace-builds@1.4.12/src-min/ace.js',
           dataType: 'script',
           cache: true
         }).then(function() {
@@ -2473,7 +2473,7 @@ module.exports = (function() {
         }
 
         $.ajax({
-          url: 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.2/ace.js',
+          url: 'https://cdn.jsdelivr.net/npm/ace-builds@1.4.12/src-min/ace.js',
           dataType: 'script',
           cache: true
         }).then(function() {

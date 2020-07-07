@@ -40,9 +40,6 @@ const Activity = ({ user, accessToken, appContext }) => {
   useEffect(() => {
     if (clientJsLoading || !activityNotes) return
 
-    // eslint-disable-next-line global-require
-    require('mathjax/es5/tex-chtml-full')
-
     $(activityRef.current).empty()
     Webfield.ui.activityList(activityNotes, {
       container: activityRef.current,
@@ -58,6 +55,7 @@ const Activity = ({ user, accessToken, appContext }) => {
     <div className="activity-container">
       <Head>
         <title key="title">Activity | OpenReview</title>
+        <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.0.5/es5/tex-chtml.js" />
       </Head>
 
       <header>

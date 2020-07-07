@@ -1,5 +1,3 @@
-/* eslint-disable global-require */
-
 import { useEffect, useContext } from 'react'
 import omit from 'lodash/omit'
 import Head from 'next/head'
@@ -43,8 +41,9 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
   useEffect(() => {
     if (clientJsLoading) return
 
-    require('mathjax/es5/tex-chtml-full')
+    // eslint-disable-next-line global-require
     window.moment = require('moment')
+    // eslint-disable-next-line global-require
     require('moment-timezone')
 
     const script = document.createElement('script')
@@ -66,6 +65,7 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
     <>
       <Head>
         <title key="title">{`${prettyId(groupId)} | OpenReview`}</title>
+        <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.0.5/es5/tex-chtml.js" />
       </Head>
 
       {clientJsLoading && (
