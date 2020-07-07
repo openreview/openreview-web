@@ -28,7 +28,7 @@ function Faq({ questions, appContext }) {
   }, [clientJsLoading])
 
   useEffect(() => {
-    if ($('#questions').length === 0) return
+    if (!formattedQuestions) return
 
     // Scroll to and expand question referenced in URL
     if (window.location.hash) {
@@ -45,7 +45,7 @@ function Faq({ questions, appContext }) {
 
     // Update URL hash when clicking a question
     $('#questions .panel-title a').on('click', function onClick() {
-      router.push(window.location.pathname + window.location.search + $(this).attr('href'))
+      router.replace(window.location.pathname + window.location.search + $(this).attr('href'))
     })
   }, [formattedQuestions])
 

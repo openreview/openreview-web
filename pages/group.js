@@ -32,7 +32,7 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
       // see https://github.com/vercel/next.js/issues/3249
       router.push(e.target.getAttribute('href')).then(() => window.scrollTo(0, 0))
     } else if (href.startsWith('#')) {
-      router.push(window.location.pathname + window.location.search + e.target.getAttribute('href'))
+      router.replace(window.location.pathname + window.location.search + e.target.getAttribute('href'))
     }
   }
 
