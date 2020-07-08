@@ -21,7 +21,7 @@ main.revisions {
   }
 
   .references-list {
-    margin-top: .5rem;
+    margin-top: .75rem;
 
     .row .checkbox {
       width: 30px;
@@ -33,10 +33,13 @@ main.revisions {
         height: 16px;
       }
     }
+    .row .col-sm-11 {
+      width: calc(100% - ~'30px');
+    }
 
     .note {
       padding-top: 0;
-      padding-bottom: 1rem;
+      padding-bottom: 1.25rem;
       h4 {
         font-size: 1.25rem;
         line-height: 1.375rem;
@@ -82,28 +85,144 @@ main.revisions {
     margin-bottom: 1.25rem;
   }
 
-  h2.note_content_title {
+  // Legacy note styles
+  // TODO: these should be removed after replacing view functions with components
+  .note_content_title {
     font-size: 1.25rem;
-    margin-bottom: 0;
+    font-weight: bold;
+    line-height: 1.375rem;
+    margin-top: 0;
+    margin-bottom: .125rem;
 
+    a {
+      color: @darkBlue;
+    }
+    a:hover {
+      text-decoration: none;
+      cursor: text;
+      &.note_content_pdf {
+        cursor: pointer;
+      }
+    }
     .note_content_pdf {
-      margin-left: 1rem;
+      font-size: .75rem;
+      line-height: 1.125rem;
+      margin-left: 1.125rem;
 
+      &.html-link {
+        margin-left: .5rem;
+      }
       img {
         width: 1.375rem;
         height: 1.375rem;
-        margin-top: -.5rem;
+        margin-top: -.375rem;
+      }
+    }
+    &.pull-left {
+      // Leave enough room for the edit and delete buttons
+      max-width: ~'calc(100% - 85px)';
+    }
+
+    @media @phone-only {
+      font-size: 1.75rem;
+      margin-bottom: .5rem;
+
+      .note_content_pdf img {
+        margin-top: -15px;
       }
     }
   }
 
+  .title_collapsed {
+    display: none;
+  }
+
+  .note_contents {
+    font-size: .75rem;
+    line-height: 1.125rem;
+    padding-left: 0;
+    margin-top: .125rem;
+    margin-bottom: .125rem;
+
+    .note_content_field {
+      color: @orRed;
+      font-weight: bold;
+      padding-right: 4px;
+    }
+  }
+
   .meta_row {
+    margin-right: .625rem;
+
     &.pull-left {
       max-width: none;
+      margin-right: 0;
+      @media @phone-only {
+        max-width: none;
+      }
     }
     .signatures, .author {
       font-size: .875rem;
       font-style: italic;
+      margin-right: 1rem;
+      a {
+        color: @darkBlue;
+      }
+      &.no-margin {
+        margin-right: 4px;
+      }
+    }
+    .item {
+      display: inline;
+      font-size: .75rem;
+      color: #777777;
+      padding-right: 1.25rem;
+      margin: 0;
+    }
+    .note_content_pdf {
+      color: @mediumBlue;
+    }
+    .readers-icon {
+      font-size: .875rem;
+      padding-left: .25rem;
+    }
+    .private-author-label {
+      font-size: .875rem;
+      font-style: italic;
+      margin-right: .875rem;
+      line-height: normal;
+      color: @subtleGray;
+    }
+    .trash_button, .edit_button {
+      margin-top: -1px;
+      margin-right: .25rem;
+    }
+  }
+
+  .meta_actions {
+    float: right;
+    margin-right: 0;
+
+    button:first-child {
+      margin-right: .25rem;
+    }
+    .trash_button, .edit_button {
+      display: inline-block;
+      float: none;
+    }
+  }
+
+  .private-contents {
+    background-color: rgba(0, 0, 0, .04);
+    padding: .25rem .5rem;
+    margin: .25rem -.5rem;
+    border-radius: 0;
+
+    hr {
+      margin-bottom: .125rem;
+    }
+    .signatures {
+      font-size: .875rem;
     }
   }
 
