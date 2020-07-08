@@ -1,12 +1,11 @@
 /* eslint-disable global-require */
 /* globals $: false */
 
-import { useEffect, useContext } from 'react'
+import { useEffect } from 'react'
 import omit from 'lodash/omit'
 import without from 'lodash/without'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import withError from '../components/withError'
 import api from '../lib/api-client'
@@ -18,7 +17,6 @@ import '../styles/pages/invitation.less'
 
 const Invitation = ({ invitationId, webfieldCode, appContext }) => {
   const router = useRouter()
-  const { user } = useContext(UserContext)
   const { setBannerHidden, clientJsLoading } = appContext
 
   useEffect(() => {
@@ -35,7 +33,7 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
     window.datetimepicker = require('../client/bootstrap-datetimepicker-4.17.47.min')
 
     const script = document.createElement('script')
-    script.innerHTML = `window.user = ${JSON.stringify(user)};\n${webfieldCode}`
+    script.innerHTML = webfieldCode
     document.body.appendChild(script)
 
     // Code to run after webfield has loaded
@@ -125,7 +123,7 @@ Invitation.getInitialProps = async (ctx) => {
           runWebfield(replyNote);
         },
         onNoteCancelled: function(result) {
-          replaceWithHome();
+          location.href = '/';
         },
         onError: function(errors) {
           // If there were errors with the submission display the error and the form
@@ -156,7 +154,7 @@ Invitation.getInitialProps = async (ctx) => {
             if (confirm('You have chosen to ' + response + ' this invitation. Do you want to continue?')) {
               $noteEditor.find('button:contains("Submit")').click();
             } else {
-              location = '/';
+              location.href = '/';
             }
           } else {
             $noteEditor.find('button:contains("Submit")').click();
@@ -165,11 +163,13 @@ Invitation.getInitialProps = async (ctx) => {
       }
     );`
 
+  const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
   const inlineJsCode = `
+    window.user = ${JSON.stringify(userOrGuest)};
     $(function() {
       var args = ${JSON.stringify(ctx.query)};
       var invitation = ${JSON.stringify(invitationObjSlim)};
-      var user = ${JSON.stringify(user)};
+      var user = ${JSON.stringify(userOrGuest)};
       var document = null;
       var window = null;
 
