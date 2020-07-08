@@ -102,6 +102,88 @@ table.table-minimal {
   background-color: transparent;
 }
 
+// Markdown Styles
+.markdown-content-styles {
+  white-space: normal;
+
+  h1, h2, h3, h4, h5, h6 {
+    color: @darkBlue;
+    margin-top: 0;
+    margin-bottom: .5rem;
+  }
+  h1 {
+    font-size: 1.375rem;
+    font-weight: bold;
+  }
+  h2 {
+    font-size: 1.25rem;
+  }
+  h3 {
+    font-size: 1rem;
+  }
+  h4, h5, h6 {
+    font-size: .75rem;
+    font-weight: normal;
+  }
+  p {
+    margin-bottom: .5rem;
+  }
+  ol, ul {
+    padding-left: 1.5rem;
+    margin-bottom: .5rem;
+    li p {
+      margin-bottom: .125rem;
+    }
+    ol, ul {
+      margin-bottom: .125rem;
+    }
+  }
+  hr {
+    margin: .5rem 0;
+  }
+  code {
+    color: @orRed;
+  }
+  pre {
+    padding: .25rem .5rem;
+    margin-bottom: .5rem;
+    code {
+      font-size: .75rem;
+      color: #333;
+    }
+  }
+  blockquote {
+    font-size: .75rem;
+    padding: .25rem .5rem;
+    margin-bottom: .5rem;
+    border-left-color: #ccc;
+    p {
+      margin-bottom: 0;
+    }
+  }
+  table {
+    max-width: 100%;
+    margin-bottom: .5rem;
+    thead > tr > th {
+      vertical-align: bottom;
+      border-top: 0;
+      border-bottom: 2px solid #ddd;
+    }
+    tr > td, tr > th {
+      padding: .25rem;
+      vertical-align: top;
+      border-top: 1px solid #ddd;
+    }
+  }
+
+  // Mathjax
+  mjx-container + mjx-container {
+    margin-bottom: 0;
+  }
+  mjx-container:last-child {
+    margin-bottom: 1em;
+  }
+}
 
 // Paper Notes List
 .submissions-list {
@@ -268,8 +350,10 @@ table.table-minimal {
     }
     .note-content-value {
       white-space: pre-wrap;
-      display: block;
       overflow-x: auto;
+      &.markdown-rendered {
+        .markdown-content-styles;
+      }
     }
     li {
       padding-bottom: .125rem;
@@ -824,6 +908,35 @@ table.table-minimal {
     background-color: @mediumBlue;
     color: #fff;
     outline: 0px solid transparent;
+  }
+}
+
+.markdown-preview-tabs {
+  margin-top: .5rem;
+  width: 80%;
+
+  li > a {
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    font-size: .75rem;
+  }
+}
+.tab-content > .markdown-panel {
+  padding-top: 0;
+  padding-left: 0;
+}
+.tab-content > .markdown-preview-panel {
+  width: 80%;
+  height: 280px;
+  font-size: .75rem;
+  border: 1px solid #ddd;
+  border-top: 0;
+  padding: .75rem 1rem;
+  background-color: @backgroundWhite;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  .note_content_value {
+    width: 100%;
   }
 }
 
