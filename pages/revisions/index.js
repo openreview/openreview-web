@@ -99,25 +99,31 @@ const Revisions = ({ appContext }) => {
     setParentNoteId(noteId)
 
     const setBanner = async () => {
-      const { notes } = await api.get('/notes', { id: noteId }, { accessToken })
-      if (notes?.length > 0) {
-        setBannerContent(forumLink(notes[0]))
-      } else {
+      try {
+        const { notes } = await api.get('/notes', { id: noteId }, { accessToken })
+        if (notes?.length > 0) {
+          setBannerContent(forumLink(notes[0]))
+        } else {
+          setBannerHidden(true)
+        }
+      } catch (apiError) {
         setBannerHidden(true)
       }
     }
-    try {
-      setBanner()
-    } catch (apiError) {
-      setBannerHidden(true)
-    }
+    setBanner()
 
     const loadRevisions = async () => {
-      const apiRes = await api.get('/references', {
-        referent: noteId, original: true, trash: true,
-      }, { accessToken })
-      const references = apiRes.references || []
+      let apiRes
+      try {
+        apiRes = await api.get('/references', {
+          referent: noteId, original: true, trash: true,
+        }, { accessToken })
+      } catch (apiError) {
+        setError(apiError)
+        return
+      }
 
+      const references = apiRes.references || []
       const invitationIds = Array.from(new Set(references.map(reference => (
         reference.details?.original?.invitation || reference.invitation
       ))))
@@ -131,11 +137,7 @@ const Revisions = ({ appContext }) => {
         return [reference, referenceInvitation]
       }))
     }
-    try {
-      loadRevisions()
-    } catch (apiError) {
-      setError(apiError)
-    }
+    loadRevisions()
   }, [userLoading, query, accessToken])
 
   return (
