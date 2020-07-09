@@ -34,6 +34,22 @@ test('create new profile', async t => {
   await t.expect(result2.messages[0].content.text).contains('http://localhost:3030/profile/activate?token=')
 })
 
+fixture `Resend Activtion link`
+  .page`http://localhost:${process.env.NEXT_PORT}/login`
+
+test('request a new activation link', async t => {
+  await t
+    .typeText(Selector('input').withAttribute('placeholder', 'Email'), 'melisa@test.com')
+    .click(Selector('a').withText('Didn\'t receive email confirmation?'))
+    .expect(Selector('#flash-message-container').exists).ok()
+    .expect(Selector('span').withAttribute('class', 'important_message').innerText).eql('A confirmation email with the subject "OpenReview signup confirmation" has been sent to test@mail.com. Please click the link in this email to confirm your email address and complete registration.')
+
+  const result = await api.post('/login', { id: 'openreview.net', password: '1234' })
+  const result2 = await api.get('/messages?to=melisa@test.com', {}, { accessToken: result.token })
+  await t.expect(result2.messages[0].content.text).contains('http://localhost:3030/profile/activate?token=')
+  await t.expect(result2.messages[1].content.text).contains('http://localhost:3030/profile/activate?token=')
+})
+
 fixture `Activate`
   .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=melisa@test.com`;
 
