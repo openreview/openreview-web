@@ -65,7 +65,6 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
     <>
       <Head>
         <title key="title">{`${prettyId(groupId)} | OpenReview`}</title>
-        <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.0.5/es5/tex-chtml.js" />
       </Head>
 
       {clientJsLoading && (

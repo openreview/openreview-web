@@ -581,9 +581,11 @@ module.exports = function(forumId, noteId, invitationId, user) {
       mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
     );
 
-    try {
-      MathJax.typeset();
-    } catch (error) {
+    if (MathJax.startup.promise) {
+      MathJax.startup.promise.then(MathJax.typesetPromise).catch(function(error) {
+        console.warn('Could not typeset TeX content');
+      })
+    } else {
       console.warn('Could not typeset TeX content');
     }
   };

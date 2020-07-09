@@ -108,7 +108,6 @@ const Forum = ({ forumNote, query, appContext }) => {
     <div className="forum-container">
       <Head>
         <title key="title">{`${forumNote.content.title || 'Forum'} | OpenReview`}</title>
-        <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.0.5/es5/tex-chtml.js" />
       </Head>
 
       <div className="note">

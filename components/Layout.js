@@ -11,6 +11,7 @@ const Layout = ({
   <>
     <Head>
       <title key="title">OpenReview</title>
+      <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.0.5/es5/tex-chtml.js" />
     </Head>
 
     <Nav />

@@ -55,7 +55,6 @@ const Activity = ({ user, accessToken, appContext }) => {
     <div className="activity-container">
       <Head>
         <title key="title">Activity | OpenReview</title>
-        <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.0.5/es5/tex-chtml.js" />
       </Head>
 
       <header>
