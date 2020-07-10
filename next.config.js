@@ -2,7 +2,6 @@ const withLess = require('@zeit/next-less')
 
 require('dotenv').config()
 
-console.log(process.env.SUPER_USER)
 // Without CSS Modules, with PostCSS
 module.exports = withLess({
   import: true,
