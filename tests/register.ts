@@ -91,3 +91,41 @@ test('reset password of active profile', async t => {
   await t.expect(result2.messages[0].content.text).contains('http://localhost:3030/account/password?token=')
 })
 
+
+fixture`Edit profile`
+  .page`http://localhost:${process.env.NEXT_PORT}/login`;
+
+test('add alternate email', async t => {
+  const getPageUrl = ClientFunction(() => window.location.href.toString());
+  await t
+    .typeText(Selector('#email-input'), 'melisa@test.com')
+    .typeText(Selector('#password-input'), '1234')
+    .click(Selector('button').withText('Login to OpenReview'))
+    .expect(getPageUrl()).contains('http://localhost:3030', { timeout: 10000 })
+    .expect(Selector('#user-menu').exists).ok()
+    .click(Selector('#user-menu'))
+    .expect(Selector('ul').withAttribute('class', 'dropdown-menu').exists).ok()
+    .click(Selector('a').withText('Profile'))
+    .click(Selector('a').withAttribute('href', '/profile/edit'))
+    .expect(Selector('h4').withText('Emails').exists).ok()
+    .click(Selector('div').withAttribute('class', 'profile-edit-container').child('section').nth(2).child('div'))
+    .expect(Selector('#emails_table').child('tbody').child('tr').count).eql(2)
+    .typeText(Selector('#emails_table').child('tbody').child('tr').nth(1).child('td').child('input'), 'melisa@alternate.com')
+    .click(Selector('#emails_table').child('tbody').child('tr').nth(1).child('td').nth(1).child('button'))
+    .expect(Selector('#flash-message-container').exists).ok()
+    .expect(Selector('span').withAttribute('class', 'important_message').innerText).eql('A confirmation email has been sent to melisa@alternate.com')
+
+    const result = await api.post('/login', { id: 'openreview.net', password: '1234' })
+    const result2 = await api.get('/messages?to=melisa@alternate.com&subject=OpenReview Account Linking', {}, { accessToken: result.token })
+    await t.expect(result2.messages[0].content.text).contains('http://localhost:3030/confirm?token=')
+})
+
+fixture`Confirm altenate email`
+  .page`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`;
+
+test('update profile', async t => {
+  await t
+    .expect(Selector('#flash-message-container').exists).ok()
+    .expect(Selector('span').withAttribute('class', 'important_message').innerText).eql('Thank you for confirming your email melisa@alternate.com')
+})
+
