@@ -1,0 +1,24 @@
+{
+  "apps" : [
+    {
+      "name": "openreview",
+      "script": "npm",
+      "args": "start",
+      "instances": 0,
+      "exec_mode": "cluster",
+      "watch": false,
+      "env" : {
+        "NODE_ENV": "development",
+        "NEXT_PORT": 3030
+      },
+      "env_staging": {
+        "NODE_ENV": "staging",
+        "NEXT_PORT": 3030
+      },
+      "env_production": {
+        "NODE_ENV": "production",
+        "NEXT_PORT": 3030
+      }
+    }
+  ]
+}
