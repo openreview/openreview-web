@@ -41,7 +41,7 @@ const CompareRevisions = ({ appContext }) => {
 
   const loadReferences = async () => {
     try {
-      const apiRes = api.get('/references', {
+      const apiRes = await api.get('/references', {
         referent: query.id, original: true, trash: true,
       }, { accessToken })
 
