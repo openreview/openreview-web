@@ -1,4 +1,5 @@
 import { Selector, ClientFunction } from 'testcafe'
+import fetch from 'node-fetch'
 import api from '../lib/api-client'
 import { setup, teardown } from './test-utils.js'
 
@@ -8,12 +9,14 @@ const emailAddressInputSelector = Selector('input').withAttribute('placeholder',
 const signupButtonSelector = Selector('button').withText('Sign Up')
 const passwordInputSelector = Selector('input').withAttribute('placeholder', 'Password')
 
-fixture `Signup`
+api.configure({ fetchFn: fetch })
+
+fixture`Signup`
   .page`http://localhost:${process.env.NEXT_PORT}/signup`
-  .before( async ctx => {
+  .before(async ctx => {
     setup()
   })
-  .after( async ctx => {
+  .after(async ctx => {
     teardown()
   });
 
@@ -34,7 +37,7 @@ test('create new profile', async t => {
   await t.expect(result2.messages[0].content.text).contains('http://localhost:3030/profile/activate?token=')
 })
 
-fixture `Resend Activtion link`
+fixture`Resend Activtion link`
   .page`http://localhost:${process.env.NEXT_PORT}/login`
 
 test('request a new activation link', async t => {
@@ -60,7 +63,7 @@ test('request a reset password with no active profile', async t => {
     .expect(getPageUrl()).contains('http://localhost:3030/reset', { timeout: 10000 });
 })
 
-fixture `Activate`
+fixture`Activate`
   .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=melisa@test.com`;
 
 test('update profile', async t => {
@@ -73,7 +76,7 @@ test('update profile', async t => {
     .expect(Selector('span').withAttribute('class', 'important_message').innerText).eql('Your OpenReview profile has been successfully created')
 })
 
-fixture `Reset password`
+fixture`Reset password`
   .page`http://localhost:${process.env.NEXT_PORT}/reset`;
 
 test('reset password of active profile', async t => {
