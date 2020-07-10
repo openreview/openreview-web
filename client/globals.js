@@ -22,19 +22,6 @@ window.parseUrlParams = function(urlStr) {
   }, {});
 };
 
-window.parseUrl = function(href) {
-  var location = document.createElement('a');
-  location.href = href;
-  // IE doesn't populate all link properties when setting .href with a relative URL,
-  // however .href will return an absolute URL which then can be used on itself
-  // to populate these additional fields.
-  if (location.host === '') {
-    // eslint-disable-next-line no-self-assign
-    location.href = location.href;
-  }
-  return location;
-};
-
 window.translateErrorMessage = function(error) {
   var topic = error && error.path ? [view.iTerm(error.path)] : '';
   var buildFeebackModalLink = function(linkText, formFields) {
@@ -250,13 +237,4 @@ $('#content').on('hide.bs.collapse', function(e) {
       $a.text('Show details');
     }
   }
-});
-
-// Forum Replies
-$('#content').on('click', 'a.collapse-comment-tree', function(e) {
-  var $container = $(this).parent();
-  $container.toggleClass('collapsed');
-
-  $(this).html($container.hasClass('collapsed') ? '[+]' : '[&ndash;]');
-  return false;
 });
