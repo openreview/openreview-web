@@ -50,7 +50,7 @@ test('request a new activation link', async t => {
   await new Promise(r => setTimeout(r, 2000));
 
   const result = await api.post('/login', { id: 'openreview.net', password: '1234' })
-  const result2 = await api.get('/messages?to=melisa@test.com', {}, { accessToken: result.token })
+  const result2 = await api.get('/messages?to=melisa@test.com&subject=OpenReview signup confirmation', {}, { accessToken: result.token })
   await t.expect(result2.messages[0].content.text).contains('http://localhost:3030/profile/activate?token=')
   await t.expect(result2.messages[1].content.text).contains('http://localhost:3030/profile/activate?token=')
 })
