@@ -73,3 +73,18 @@ test('update profile', async t => {
     .expect(Selector('span').withAttribute('class', 'important_message').innerText).eql('Your OpenReview profile has been successfully created')
 })
 
+fixture `Reset password`
+  .page`http://localhost:${process.env.NEXT_PORT}/reset`;
+
+test('reset password of active profile', async t => {
+  await t
+    .typeText(Selector('#email-input'), 'melisa@test.com')
+    .click(Selector('button').withText('Reset Password'))
+    .expect(Selector('div').withAttribute('role', 'alert').exists).ok()
+    //.expect(Selector('div').withAttribute('role', 'alert').innerText).contains('An email with the subject "OpenReview Password Reset" has been sent to')
+
+  const result = await api.post('/login', { id: 'openreview.net', password: '1234' })
+  const result2 = await api.get('/messages?to=melisa@test.com&subject=OpenReview password reset', {}, { accessToken: result.token })
+  await t.expect(result2.messages[0].content.text).contains('http://localhost:3030/account/password?token=')
+})
+
