@@ -17,6 +17,7 @@ class OpenReviewApp extends App {
 
     this.state = {
       user: null,
+      userLoading: true,
       accessToken: null,
       clientJsLoading: true,
       bannerHidden: false,
@@ -92,7 +93,9 @@ class OpenReviewApp extends App {
   componentDidMount() {
     const { user, token } = auth()
     if (user) {
-      this.setState({ user, accessToken: token })
+      this.setState({ user, accessToken: token, userLoading: false })
+    } else {
+      this.setState({ userLoading: false })
     }
 
     Router.events.on('routeChangeComplete', this.onRouteChange)
@@ -132,6 +135,7 @@ class OpenReviewApp extends App {
     const { Component, pageProps } = this.props
     const userContext = {
       user: this.state.user,
+      userLoading: this.state.userLoading,
       accessToken: this.state.accessToken,
       loginUser: this.loginUser,
       logoutUser: this.logoutUser,

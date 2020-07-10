@@ -1,8 +1,7 @@
-import { useEffect, useContext } from 'react'
+import { useEffect } from 'react'
 import omit from 'lodash/omit'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import withError from '../components/withError'
 import api from '../lib/api-client'
@@ -14,7 +13,6 @@ import '../styles/pages/group.less'
 
 const Group = ({ groupId, webfieldCode, appContext }) => {
   const router = useRouter()
-  const { user } = useContext(UserContext)
   const { setBannerHidden, clientJsLoading } = appContext
 
   const handleLinkClick = (e) => {
@@ -47,7 +45,7 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
     require('moment-timezone')
 
     const script = document.createElement('script')
-    script.innerHTML = `window.user = ${JSON.stringify(user)}; ${webfieldCode}`
+    script.innerHTML = webfieldCode
     document.body.appendChild(script)
 
     // eslint-disable-next-line consistent-return
@@ -78,7 +76,7 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
 }
 
 Group.getInitialProps = async (ctx) => {
-  const { token } = auth(ctx)
+  const { user, token } = auth(ctx)
   const groupRes = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
   const group = groupRes.groups && groupRes.groups.length && groupRes.groups[0]
   if (!group) {
@@ -98,20 +96,25 @@ Group.getInitialProps = async (ctx) => {
     Webfield.ui.setup($('#group-container'), '${group.id}');
     Webfield.ui.header('${prettyId(group.id)}')
       .append('<p><em>Nothing to display</em></p>');`
-  const groupObjSlim = omit(group, ['web'])
+
   const editorCode = isGroupWritable && editModeEnabled && `
     Webfield.ui.setup('#group-container', group.id);
     Webfield.ui.header('${groupTitle}');
     Webfield.ui.groupEditor(group, {
       container: '#notes'
     });`
+
   const infoCode = (infoModeEnabled || !group.web) && `
     Webfield.ui.setup('#group-container', group.id);
     Webfield.ui.header('${groupTitle}');
     Webfield.ui.groupInfo(group, {
       container: '#notes'
     });`
+
+  const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
+  const groupObjSlim = omit(group, ['web'])
   const inlineJsCode = `
+    window.user = ${JSON.stringify(userOrGuest)};
     $(function() {
       var args = ${JSON.stringify(ctx.query)};
       var group = ${JSON.stringify(groupObjSlim)};

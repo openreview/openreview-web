@@ -3184,7 +3184,7 @@ module.exports = (function() {
           return $.Deferred().reject('no_results');
         }
 
-        return controller.get('groups', {
+        return controller.get('/groups', {
           regex: fieldDescription['values-regex'], signatory: user.id
         }, function(result) {
           if (_.isEmpty(result.groups)) {
