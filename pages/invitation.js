@@ -29,9 +29,9 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
       e.preventDefault()
       // Need to manually scroll to top of page after using router.push,
       // see https://github.com/vercel/next.js/issues/3249
-      router.push(e.target.getAttribute('href')).then(() => window.scrollTo(0, 0))
+      router.push(href).then(() => window.scrollTo(0, 0))
     } else if (href.startsWith('#')) {
-      router.replace(window.location.pathname + window.location.search + e.target.getAttribute('href'))
+      router.replace(window.location.pathname + window.location.search + href)
     }
   }
 
@@ -59,7 +59,7 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
         document.getElementById('flash-message-container').style.display = 'none'
       }
     }
-  }, [clientJsLoading])
+  }, [clientJsLoading, webfieldCode])
 
   return (
     <>
