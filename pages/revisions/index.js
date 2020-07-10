@@ -261,7 +261,7 @@ const Revisions = ({ appContext }) => {
             <button
               type="button"
               className="btn btn-primary"
-              disabled={!revisions}
+              disabled={!revisions || revisions.length === 0}
               onClick={() => enterSelectMode()}
             >
               Compare Revisions
