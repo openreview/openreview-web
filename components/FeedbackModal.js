@@ -51,11 +51,11 @@ export default function FeedbackModal() {
       onClose={resetForm}
     >
       <p>{text}</p>
-      <form onSubmit={submitForm} ref={formRef}>
-        {error && (
-          <ErrorAlert error={error} />
-        )}
+      {error && (
+        <ErrorAlert error={error} />
+      )}
 
+      <form onSubmit={submitForm} ref={formRef}>
         <div className="form-group">
           <input type="email" name="from" className="form-control" placeholder="Email" required />
         </div>
