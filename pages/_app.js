@@ -110,6 +110,12 @@ class OpenReviewApp extends App {
     window.DOMPurify = require('dompurify')
     window.MathJax = require('../lib/mathjax-config')
 
+    // MathJax has to be loaded asynchronously from the CDN after the config file loads
+    const script = document.createElement('script')
+    script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.0.5/es5/tex-chtml.js'
+    script.async = true
+    document.head.appendChild(script)
+
     // Load legacy JS code
     window.mkStateManager = require('../client/state-manager')
     window.controller = require('../client/controller')
