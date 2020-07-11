@@ -7,7 +7,7 @@
     "lint": "eslint components/**/*.js lib/*.js pages/**/*.js",
     "build": "next build",
     "start": "next start --port $NEXT_PORT",
-    "test": "echo \"Sorry, no tests yet!  ¯\\_(ツ)_/¯\" && exit 0"
+    "test": "testcafe chrome -sf tests/register.ts"
   },
   "dependencies": {
     "@zeit/next-less": "github:zbialecki/next-less",
@@ -25,6 +25,7 @@
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
     "next": "^9.4.4",
+    "node-fetch": "^2.6.0",
     "query-string": "^6.13.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
@@ -39,6 +40,7 @@
     "eslint-plugin-jsx-a11y": "^6.3.1",
     "eslint-plugin-react": "^7.20.0",
     "eslint-plugin-react-hooks": "^4.0.4",
-    "testcafe": "^1.8.6"
+    "testcafe": "^1.8.6",
+    "node-fetch": "^2.6.0"
   }
 }
