@@ -432,16 +432,20 @@ table.table-minimal {
   }
 }
 
-.venues-list {
-  margin-bottom: 1.5rem;
+// Mathjax
+.note_content_value, .note-content-value {
+  mjx-container[jax="CHTML"][display="true"] {
+    overflow-x: scroll;
+    margin-bottom: 0;
 
-  & > li > a {
-    font-size: 1.125rem;
-    font-weight: bold;
-    line-height: 1.875rem;
+    &:last-child {
+      margin-bottom: 1em;
+    }
+    mjx-math {
+      padding: 1px 0;
+    }
   }
 }
-
 
 // Note search form used in notes list component
 .notes-search-form {
@@ -676,6 +680,10 @@ table.table-minimal {
     margin-left: 0;
     margin-right: 0;
     max-width: 900px;
+  }
+  &.panel {
+    background: transparent;
+    box-shadow: none;
   }
   .small_heading, .line_heading {
     font-size: 1rem;
