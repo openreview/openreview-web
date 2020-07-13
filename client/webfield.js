@@ -1225,7 +1225,7 @@ module.exports = (function() {
             });
             notes[indexOfUpdatedNote].details.isUpdated = true;
 
-            MathJax.typeset();
+            MathJax.typesetPromise();
             return _.isFunction(options.onNoteEdited) ? options.onNoteEdited(existingNote) : true;
           },
           onError: function(errors) {
