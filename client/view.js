@@ -1537,7 +1537,7 @@ module.exports = (function() {
       return mkRow(mkNotePdf('text'));
     } else if (invitationFileTransfer === 'either') {
 
-      var $span = $('<span>');
+      var $span = $('<div>', {class: 'item', style: 'width: 80%;'});
 
       var timestamp = Date.now();
       var $radioItem = $('<div>', {class: 'item'}).append(
