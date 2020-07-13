@@ -1,5 +1,6 @@
 /* globals $: false */
 /* globals Webfield: false */
+/* globals typesetMathJax: false */
 
 import { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
@@ -49,6 +50,8 @@ const Activity = ({ user, accessToken, appContext }) => {
     })
 
     $('[data-toggle="tooltip"]').tooltip()
+
+    typesetMathJax()
   }, [clientJsLoading, activityNotes])
 
   return (
