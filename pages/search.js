@@ -1,12 +1,12 @@
 import { useState, useEffect, useContext } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import Select from 'react-select'
 import truncate from 'lodash/truncate'
 import useQuery from '../hooks/useQuery'
 import api from '../lib/api-client'
 import { inflect, prettyId } from '../lib/utils'
 import UserContext from '../components/UserContext'
+import Dropdown from '../components/Dropdown'
 import NoteList from '../components/NoteList'
 import PaginationLinks from '../components/PaginationLinks'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -16,12 +16,18 @@ import ErrorAlert from '../components/ErrorAlert'
 import '../styles/pages/search.less'
 
 const FilterForm = ({ searchQuery }) => {
-  const router = useRouter()
+  const defaultOption = { value: 'all', label: 'all of OpenReview' }
   const [groupOptions, setGroupOptions] = useState([])
+  const selectedGroupOption = groupOptions.find(option => option.value === searchQuery.group) || defaultOption
+  const contentOptions = [
+    { value: 'all', label: 'All Content' },
+    { value: 'authors', label: 'Authors' },
+    { value: 'tags', label: 'Tags' },
+    { value: 'keywords', label: 'Keywords' },
+  ]
+  const selectedContentOption = contentOptions.find(option => option.value === searchQuery.content) || contentOptions[0]
   const sourceOptions = { all: 'All', forum: 'Papers Only', reply: 'Replies Only' }
-  const contentOptions = {
-    all: 'All Content', authors: 'Authors', tags: 'Tags', keywords: 'Keywords',
-  }
+  const router = useRouter()
 
   const updateQuery = (field, value) => {
     const newSearchQuery = { ...searchQuery, [field]: value }
@@ -30,63 +36,43 @@ const FilterForm = ({ searchQuery }) => {
 
   useEffect(() => {
     const getGroupOptions = async () => {
-      const defaultOptions = [{ value: 'all', label: 'all of OpenReview' }]
       try {
         const { groups } = await api.get('/groups', { id: 'host' })
         if (groups?.length > 0) {
           const members = groups[0].members.map(groupId => ({ value: groupId, label: prettyId(groupId) }))
-          setGroupOptions(defaultOptions.concat(members))
+          setGroupOptions([defaultOption].concat(members))
         } else {
-          setGroupOptions(defaultOptions)
+          setGroupOptions([defaultOption])
         }
       } catch (error) {
-        setGroupOptions(defaultOptions)
+        setGroupOptions([defaultOption])
       }
     }
 
     getGroupOptions()
   }, [])
-  // console.log(groupOptions)
 
   return (
     <form className="filter-form form-inline well" onSubmit={e => e.preventDefault()}>
       <div className="form-group">
         <label htmlFor="search-content">Search over</label>
-        <select
-          id="search-content"
-          className="form-control"
+        <Dropdown
           name="content"
-          onChange={e => updateQuery('content', e.target.value)}
-        >
-          {Object.entries(contentOptions).map(([val, label]) => (
-            <option key={val} value={val}>{label}</option>
-          ))}
-        </select>
+          className="search-content dropdown-select"
+          options={contentOptions}
+          value={selectedContentOption}
+          onChange={selectedOption => updateQuery('content', selectedOption.value)}
+        />
       </div>
       <div className="form-group">
         <label htmlFor="search-group">in</label>
-        <Select
+        <Dropdown
           name="group"
-          className="dropdown-select"
+          className="search-group dropdown-select"
           options={groupOptions}
-          value={searchQuery.group}
+          value={selectedGroupOption}
           onChange={selectedOption => updateQuery('group', selectedOption.value)}
-          isDisabled={!groupOptions}
           isSearchable
-          theme={theme => ({
-            ...theme,
-            borderRadius: 0,
-            colors: {
-              ...theme.colors,
-              primary25: '#aaa',
-              primary: '#4d8093',
-            },
-            spacing: {
-              baseUnit: 2,
-              menuGutter: 4,
-              controlHeight: 34,
-            },
-          })}
         />
       </div>
       <div className="form-group">

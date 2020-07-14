@@ -1,0 +1,33 @@
+@import "../utils/constants";
+
+.dropdown-select {
+  &__value-container {
+    padding-left: .5rem;
+    padding-right: .5rem;
+  }
+  &__menu {
+    background-color: #fff;
+  }
+  &__control {
+    border-width: 2px;
+    border-color: lighten(@mediumBlue, 10%);
+    &:hover {
+      border-color: lighten(@mediumBlue, 10%);
+    }
+    &--is-focused {
+      border-color: @mediumDarkBlue;
+      border-width: 2px;
+      box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102,175,233,.6);
+      &:hover {
+        border-color: @mediumDarkBlue;
+      }
+    }
+  }
+  &__single-value {
+    color: #555;
+  }
+}
+.form-group .dropdown-select {
+  display: inline-block;
+  vertical-align: middle;
+}
