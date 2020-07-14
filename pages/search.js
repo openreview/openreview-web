@@ -1,10 +1,11 @@
 import { useState, useEffect, useContext } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import Select from 'react-select'
 import truncate from 'lodash/truncate'
 import useQuery from '../hooks/useQuery'
 import api from '../lib/api-client'
-import { inflect } from '../lib/utils'
+import { inflect, prettyId } from '../lib/utils'
 import UserContext from '../components/UserContext'
 import NoteList from '../components/NoteList'
 import PaginationLinks from '../components/PaginationLinks'
@@ -16,6 +17,7 @@ import '../styles/pages/search.less'
 
 const FilterForm = ({ searchQuery }) => {
   const router = useRouter()
+  const [groupOptions, setGroupOptions] = useState([])
   const sourceOptions = { all: 'All', forum: 'Papers Only', reply: 'Replies Only' }
   const contentOptions = {
     all: 'All Content', authors: 'Authors', tags: 'Tags', keywords: 'Keywords',
@@ -25,6 +27,26 @@ const FilterForm = ({ searchQuery }) => {
     const newSearchQuery = { ...searchQuery, [field]: value }
     router.push({ pathname: '/search', query: newSearchQuery }, undefined, { shallow: true })
   }
+
+  useEffect(() => {
+    const getGroupOptions = async () => {
+      const defaultOptions = [{ value: 'all', label: 'all of OpenReview' }]
+      try {
+        const { groups } = await api.get('/groups', { id: 'host' })
+        if (groups?.length > 0) {
+          const members = groups[0].members.map(groupId => ({ value: groupId, label: prettyId(groupId) }))
+          setGroupOptions(defaultOptions.concat(members))
+        } else {
+          setGroupOptions(defaultOptions)
+        }
+      } catch (error) {
+        setGroupOptions(defaultOptions)
+      }
+    }
+
+    getGroupOptions()
+  }, [])
+  // console.log(groupOptions)
 
   return (
     <form className="filter-form form-inline well" onSubmit={e => e.preventDefault()}>
@@ -43,13 +65,28 @@ const FilterForm = ({ searchQuery }) => {
       </div>
       <div className="form-group">
         <label htmlFor="search-group">in</label>
-        <input
-          type="text"
-          id="search-group"
-          className="form-control"
+        <Select
           name="group"
+          className="dropdown-select"
+          options={groupOptions}
           value={searchQuery.group}
-          onChange={e => updateQuery('group', e.target.value)}
+          onChange={selectedOption => updateQuery('group', selectedOption.value)}
+          isDisabled={!groupOptions}
+          isSearchable
+          theme={theme => ({
+            ...theme,
+            borderRadius: 0,
+            colors: {
+              ...theme.colors,
+              primary25: '#aaa',
+              primary: '#4d8093',
+            },
+            spacing: {
+              baseUnit: 2,
+              menuGutter: 4,
+              controlHeight: 34,
+            },
+          })}
         />
       </div>
       <div className="form-group">
