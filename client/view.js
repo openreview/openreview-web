@@ -1076,7 +1076,7 @@ module.exports = (function() {
       if (markdownContent) {
         $(newTabId)[0].innerHTML = '<div class="note_content_value markdown-rendered">' +
           DOMPurify.sanitize(marked(markdownContent)) + '</div>';
-        MathJax.typeset();
+        MathJax.typesetPromise();
       } else {
         $(newTabId).text('Nothing to preview');
       }
@@ -1537,7 +1537,7 @@ module.exports = (function() {
       return mkRow(mkNotePdf('text'));
     } else if (invitationFileTransfer === 'either') {
 
-      var $span = $('<span>');
+      var $span = $('<div>', {class: 'item', style: 'width: 80%;'});
 
       var timestamp = Date.now();
       var $radioItem = $('<div>', {class: 'item'}).append(
@@ -3184,7 +3184,7 @@ module.exports = (function() {
           return $.Deferred().reject('no_results');
         }
 
-        return controller.get('groups', {
+        return controller.get('/groups', {
           regex: fieldDescription['values-regex'], signatory: user.id
         }, function(result) {
           if (_.isEmpty(result.groups)) {

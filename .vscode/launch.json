@@ -5,9 +5,9 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Client",
             "type": "chrome",
             "request": "launch",
-            "name": "Client",
             "url": "http://localhost:3030",
             "webRoot": "${workspaceFolder}",
             "skipFiles": [
@@ -15,11 +15,14 @@
                 "${workspaceFolder}/node_modules/**/*.js",
                 "${workspaceFolder}/_next/**/*.js"
             ],
+            "sourceMapPathOverrides": {
+                "webpack:///src/*": "${webRoot}/*"
+            }
         },
         {
+            "name": "Server",
             "type": "node",
             "request": "attach",
-            "name": "Server",
             "sourceMaps": true,
             "skipFiles": [
                 "<node_internals>/**/*.js",
