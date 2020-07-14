@@ -28,7 +28,7 @@ export default function FeedbackModal() {
         $('#feedback-modal').modal('hide')
       }, 2500)
     } catch (apiError) {
-      setError(apiError)
+      setError({ message: apiError.message })
     }
   }
 
