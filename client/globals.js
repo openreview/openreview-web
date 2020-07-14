@@ -252,6 +252,26 @@ $('#content').on('hide.bs.collapse', function(e) {
   }
 });
 
+// Typeset MathJax
+window.typesetMathJax = function() {
+  var runTypeset = function() {
+    MathJax.startup.promise.then(MathJax.typesetPromise).catch(function(error) {
+      console.warn('Could not typeset TeX content');
+    })
+  }
+  if (MathJax.startup.promise) {
+    runTypeset()
+  } else {
+    setTimeout(function() {
+      if (MathJax.startup.promise) {
+        runTypeset()
+      } else {
+        console.warn('Could not typeset TeX content');
+      }
+    }, 1500)
+  }
+}
+
 // Forum Replies
 $('#content').on('click', 'a.collapse-comment-tree', function(e) {
   var $container = $(this).parent();

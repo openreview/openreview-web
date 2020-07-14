@@ -1,4 +1,5 @@
 @import "../utils/constants";
+@import "../utils/mixins";
 
 main.forum {
   .note {
@@ -24,6 +25,9 @@ main.forum {
     }
     .note-content-value, .note_content_value {
       white-space: pre-wrap;
+      &.markdown-rendered {
+        .markdown-content-styles;
+      }
     }
     li {
       padding: .125rem 0;
@@ -33,13 +37,6 @@ main.forum {
     margin-top: .125rem;
     margin-bottom: .125rem;
     line-height: 1.125rem;
-
-    mjx-container + mjx-container {
-      margin-bottom: 0;
-    }
-    mjx-container:last-child {
-      margin-bottom: .75rem;
-    }
   }
 
   .view-more-replies {
@@ -89,10 +86,6 @@ main.forum {
 
   .tooltip .tooltip-inner {
     max-width: none;
-  }
-
-  mjx-container {
-    overflow-x: auto;
   }
 
   // Note heading
@@ -333,6 +326,20 @@ main.forum {
 
     div.note_contents {
       max-width: 850px;
+    }
+
+    .note_editor.panel .note_content_title {
+      margin-bottom: .5rem;
+    }
+    .note_editor.panel hr {
+      margin-top: .5rem;
+      margin-right: 1.25rem;
+    }
+    & > .note_editor.panel:not(.existing) {
+      padding: .75rem;
+      hr {
+        margin-right: 0;
+      }
     }
   }
 

@@ -1,5 +1,6 @@
 /* globals $: false */
 /* globals Webfield: false */
+/* globals typesetMathJax: false */
 
 import { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
@@ -40,11 +41,6 @@ const Activity = ({ user, accessToken, appContext }) => {
   useEffect(() => {
     if (clientJsLoading || !activityNotes) return
 
-    // eslint-disable-next-line global-require
-    window.MathJax = require('../lib/mathjax-config')
-    // eslint-disable-next-line global-require
-    require('mathjax/es5/tex-chtml')
-
     $(activityRef.current).empty()
     Webfield.ui.activityList(activityNotes, {
       container: activityRef.current,
@@ -54,6 +50,8 @@ const Activity = ({ user, accessToken, appContext }) => {
     })
 
     $('[data-toggle="tooltip"]').tooltip()
+
+    typesetMathJax()
   }, [clientJsLoading, activityNotes])
 
   return (

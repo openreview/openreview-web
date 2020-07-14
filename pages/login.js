@@ -90,12 +90,12 @@ const Login = ({ redirect }) => (
       <title key="title">Login | OpenReview</title>
     </Head>
 
-    <div className="login-container col-sm-12 col-md-5 col-lg-4 col-md-offset-1 col-lg-offset-2">
+    <div className="login-container col-sm-6 col-md-5 col-lg-4 col-md-offset-1 col-lg-offset-2">
       <h1>Login</h1>
       <LoginForm redirect={redirect} />
     </div>
 
-    <div className="signup-container col-sm-12 col-md-5 col-lg-4">
+    <div className="signup-container col-sm-6 col-md-5 col-lg-4">
       <h1>New User?</h1>
       <div>
         <Link href="/signup">

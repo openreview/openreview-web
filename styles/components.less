@@ -2,6 +2,7 @@
 // Need to be imported in _app.js so they can be used on any page
 
 @import "utils/constants";
+@import "utils/mixins";
 @import "vendor/bootstrap-datetimepicker";
 
 // Tab navigation
@@ -100,89 +101,6 @@ table.table-minimal {
 }
 .table table.table-minimal {
   background-color: transparent;
-}
-
-// Markdown Styles
-.markdown-content-styles {
-  white-space: normal;
-
-  h1, h2, h3, h4, h5, h6 {
-    color: @darkBlue;
-    margin-top: 0;
-    margin-bottom: .5rem;
-  }
-  h1 {
-    font-size: 1.375rem;
-    font-weight: bold;
-  }
-  h2 {
-    font-size: 1.25rem;
-  }
-  h3 {
-    font-size: 1rem;
-  }
-  h4, h5, h6 {
-    font-size: .75rem;
-    font-weight: normal;
-  }
-  p {
-    margin-bottom: .5rem;
-  }
-  ol, ul {
-    padding-left: 1.5rem;
-    margin-bottom: .5rem;
-    li p {
-      margin-bottom: .125rem;
-    }
-    ol, ul {
-      margin-bottom: .125rem;
-    }
-  }
-  hr {
-    margin: .5rem 0;
-  }
-  code {
-    color: @orRed;
-  }
-  pre {
-    padding: .25rem .5rem;
-    margin-bottom: .5rem;
-    code {
-      font-size: .75rem;
-      color: #333;
-    }
-  }
-  blockquote {
-    font-size: .75rem;
-    padding: .25rem .5rem;
-    margin-bottom: .5rem;
-    border-left-color: #ccc;
-    p {
-      margin-bottom: 0;
-    }
-  }
-  table {
-    max-width: 100%;
-    margin-bottom: .5rem;
-    thead > tr > th {
-      vertical-align: bottom;
-      border-top: 0;
-      border-bottom: 2px solid #ddd;
-    }
-    tr > td, tr > th {
-      padding: .25rem;
-      vertical-align: top;
-      border-top: 1px solid #ddd;
-    }
-  }
-
-  // Mathjax
-  mjx-container + mjx-container {
-    margin-bottom: 0;
-  }
-  mjx-container:last-child {
-    margin-bottom: 1em;
-  }
 }
 
 // Paper Notes List
@@ -514,16 +432,20 @@ table.table-minimal {
   }
 }
 
-.venues-list {
-  margin-bottom: 1.5rem;
+// Mathjax
+.note_content_value, .note-content-value {
+  mjx-container[jax="CHTML"][display="true"] {
+    overflow-x: scroll;
+    margin-bottom: 0;
 
-  & > li > a {
-    font-size: 1.125rem;
-    font-weight: bold;
-    line-height: 1.875rem;
+    &:last-child {
+      margin-bottom: 1em;
+    }
+    mjx-math {
+      padding: 1px 0;
+    }
   }
 }
-
 
 // Note search form used in notes list component
 .notes-search-form {
@@ -759,6 +681,10 @@ table.table-minimal {
     margin-right: 0;
     max-width: 900px;
   }
+  &.panel {
+    background: transparent;
+    box-shadow: none;
+  }
   .small_heading, .line_heading {
     font-size: 1rem;
     font-weight: bold;
@@ -779,6 +705,20 @@ table.table-minimal {
   .hint {
     margin-bottom: .25rem;
   }
+  .item {
+    display: inline-block;
+    margin-right: 0.5em;
+    input {
+      display: inline-block;
+      margin-right: 0.5rem;
+    }
+  }
+  .note_content_title {
+    line-height: normal;
+    font-weight: bold;
+    margin-top: 0;
+    margin-bottom: .5rem;
+  }
   .note_content_value, .note_content_value_input {
     white-space: pre-wrap;
     font-weight: 400;
@@ -788,6 +728,11 @@ table.table-minimal {
   }
   input[type="file"] {
     height: auto;
+  }
+  input[type="radio"] {
+    &.upload, &.url {
+      margin-right: .5rem;
+    }
   }
   .hover_title {
     display: inline-block;
@@ -840,6 +785,9 @@ table.table-minimal {
   .hover_title + .dropdown {
     vertical-align: middle;
   }
+  .list_adder, .map_adder, .list_adder_list {
+    display: inline-block;
+  }
   .char-counter {
     width: 80%;
     margin-top: .25rem;
@@ -868,6 +816,12 @@ table.table-minimal {
     }
   }
 }
+.modal-body .note_editor {
+  .note_content_title {
+    font-size: 1.25rem;
+  }
+}
+
 
 // Dropdowns
 .dropdown {

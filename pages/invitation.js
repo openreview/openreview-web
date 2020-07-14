@@ -1,5 +1,4 @@
 /* eslint-disable global-require */
-/* globals $: false */
 
 import { useEffect } from 'react'
 import omit from 'lodash/omit'
@@ -19,6 +18,23 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
   const router = useRouter()
   const { setBannerHidden, clientJsLoading } = appContext
 
+  const handleLinkClick = (e) => {
+    // Intercept clicks on links in webfields and use client side routing
+    if (e.target.tagName !== 'A' && e.target.parentElement.tagName !== 'A') return
+
+    const href = e.target.getAttribute('href') || e.target.parentElement.getAttribute('href')
+    if (!href) return
+
+    if (href.match(/^\/(forum|group|profile)/)) {
+      e.preventDefault()
+      // Need to manually scroll to top of page after using router.push,
+      // see https://github.com/vercel/next.js/issues/3249
+      router.push(href).then(() => window.scrollTo(0, 0))
+    } else if (href.startsWith('#')) {
+      router.replace(window.location.pathname + window.location.search + href)
+    }
+  }
+
   useEffect(() => {
     setBannerHidden(true)
   }, [])
@@ -26,8 +42,6 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
   useEffect(() => {
     if (clientJsLoading) return
 
-    window.MathJax = require('../lib/mathjax-config')
-    require('mathjax/es5/tex-chtml')
     window.moment = require('moment')
     require('moment-timezone')
     window.datetimepicker = require('../client/bootstrap-datetimepicker-4.17.47.min')
@@ -36,22 +50,19 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
     script.innerHTML = webfieldCode
     document.body.appendChild(script)
 
-    // Code to run after webfield has loaded
-    setTimeout(() => {
-      $('#notes').on('click', 'a[href^="/forum"]', function onClick() {
-        router.push($(this).attr('href')).then(() => window.scrollTo(0, 0))
-        return false
-      })
-    }, 500)
-
     // eslint-disable-next-line consistent-return
     return () => {
       document.body.removeChild(script)
+
+      // Hide edit mode banner
+      if (document.querySelector('#flash-message-container .profile-flash-message')) {
+        document.getElementById('flash-message-container').style.display = 'none'
+      }
     }
-  }, [clientJsLoading])
+  }, [clientJsLoading, webfieldCode])
 
   return (
-    <div id="invitation-container">
+    <>
       <Head>
         <title key="title">{`${prettyId(invitationId)} | OpenReview`}</title>
       </Head>
@@ -59,7 +70,10 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
       {clientJsLoading && (
         <LoadingSpinner />
       )}
-    </div>
+
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+      <div id="invitation-container" onClick={handleLinkClick} />
+    </>
   )
 }
 
@@ -117,8 +131,6 @@ Invitation.getInitialProps = async (ctx) => {
       user,
       {
         onNoteEdited: function(replyNote) {
-          history.replaceState({ id: args.id }, 'invitation', '/invitation?id=' + args.id);
-
           $('#invitation-container').empty();
           runWebfield(replyNote);
         },

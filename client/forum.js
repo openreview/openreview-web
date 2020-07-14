@@ -216,13 +216,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
         var isGuest = _.isEmpty(user) || _.startsWith(user.id, 'guest_');
         if (isGuest && errors[0] === 'You do not have permission to create a note') {
-          // Replace state so when the user is redirected back to forum the
-          // invitation will automatically open
-          history.replaceState(
-            { noteId: noteId, invitation: invitation.id },
-            'forum',
-            '/forum?id=' + forumId + '&noteId=' + forumId + '&invitationId=' + invitation.id
-          );
           promptLogin(user);
         } else {
           promptError(errors[0]);
@@ -308,7 +301,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         },
         onNoteCancelled: function() {
           $editor.replaceWith(mkPanel(forumData, $anchor));
-          MathJax.typeset();
+          MathJax.typesetPromise();
         },
         onCompleted: function(editor) {
           $editor = editor;
@@ -390,7 +383,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       var noteTitle = $(this).closest('.note_with_children').find('.note_content_title a').eq(0).text();
       var scrollPos = $('#note_children').offset().top - 51 - 12;
 
-      $('html, body').animate({scrollTop: scrollPos}, 400, 'swing', function() {
+      $('html, body').animate({scrollTop: scrollPos}, 400, function() {
         $childrenAnchor.fadeOut('fast', function() {
           $childrenAnchor.empty().append(
             '<div class="view-all-replies-container">' +
@@ -399,17 +392,11 @@ module.exports = function(forumId, noteId, invitationId, user) {
             '</div>',
             mkReplyNotes(replytoIdToChildren, _.filter(replytoIdToChildren[noteReplytoId], ['note.id', noteId]), 1)
           );
-          MathJax.typeset();
+          MathJax.typesetPromise();
           applyFilter();
           $childrenAnchor.fadeIn('fast');
         });
       });
-
-      history.pushState(
-        {noteId: noteId, invitationId: null},
-        'forum',
-        '/forum?' + serializeUrlParams({id: forumId, noteId: noteId})
-      );
 
       return false;
     });
@@ -422,12 +409,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
         $childrenAnchor.empty().append(
           mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
         );
-        MathJax.typeset();
+        MathJax.typesetPromise();
         applyFilter();
         $childrenAnchor.fadeIn('fast');
       });
-
-      history.pushState({noteId: null, invitationId: null}, 'forum', '/forum?id=' + forumId);
 
       return false;
     });
@@ -476,7 +461,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var doAnimation = function() {
       var navBarHeight = 51 - 12; // height in px of nav bar, plus extra padding
       var scrollPos = $(scrollToElem).offset().top - navBarHeight;
-      $('html, body').animate({scrollTop: scrollPos}, 400, 'swing', function() {
+      $('html, body').animate({scrollTop: scrollPos}, 400, function() {
         animationDone.resolve(true);
       });
     };
@@ -499,7 +484,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
             '</div>',
             mkReplyNotes(replytoIdToChildren, [parentNote], 1)
           );
-          MathJax.typeset();
+          MathJax.typesetPromise();
           doAnimation();
         }
       } else {
@@ -596,11 +581,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
     );
 
-    try {
-      MathJax.typeset();
-    } catch (error) {
-      console.warn('Could not typeset TeX content');
-    }
+    typesetMathJax();
   };
 
   var createMultiSelector = function(filters, id) {

@@ -58,7 +58,11 @@ module.exports = (function() {
     }).then(jqSuccessCallback, errorCallback);
   };
 
-  var put = function(url, queryObj) {
+  var put = function(url, queryObj, options) {
+    var defaults = {
+      handleErrors: true,
+    };
+    options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
@@ -78,7 +82,11 @@ module.exports = (function() {
     }).then(jqSuccessCallback, errorCallback);
   };
 
-  var xhrDelete = function(url, queryObj) {
+  var xhrDelete = function(url, queryObj, options) {
+    var defaults = {
+      handleErrors: true,
+    };
+    options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
@@ -1079,9 +1087,6 @@ module.exports = (function() {
           );
           setTimeout(function() { $overlay.remove(); }, 100);
 
-          var newQueryParams = Object.assign(parseUrlParams(location.search), { page: pageNum });
-          history.pushState(newQueryParams, 'group');
-
           if (_.isFunction(options.onPageClickComplete)) {
             options.onPageClickComplete();
           }
@@ -1089,31 +1094,6 @@ module.exports = (function() {
 
         return false;
       });
-
-      window.onpopstate = function() {
-        var pageNum = history.state && window.history.state.page;
-        if (!pageNum) {
-          location.reload();
-          return;
-        }
-
-        var $paginationContainer = $container.find('.pagination-container');
-        $paginationContainer.replaceWith(
-          view.paginationLinks(options.noteCount, options.pageSize, pageNum)
-        );
-
-        var offset = (pageNum - 1) * options.pageSize;
-        options.onPageClick(offset).then(function(newNotes) {
-          var scrollPos = $('#notes').offset().top - 51 - 12;
-          $('html, body').animate({scrollTop: scrollPos}, 400);
-          $('.submissions-list', $container).replaceWith(
-            Handlebars.templates['partials/noteList']({
-              notes: newNotes,
-              options: options.displayOptions
-            })
-          );
-        });
-      };
     }
 
     if (options.fadeIn) {
@@ -1189,11 +1169,6 @@ module.exports = (function() {
         $container, notes, Handlebars.templates['partials/noteActivity'], options
       );
     }
-    try {
-      MathJax.typeset();
-    } catch (e) {
-      console.warn('Could not typeset TeX content');
-    }
   };
 
   var _registerActionButtonHandlers = function($container, notes, noteTemplateFn, options) {
@@ -1250,7 +1225,7 @@ module.exports = (function() {
             });
             notes[indexOfUpdatedNote].details.isUpdated = true;
 
-            MathJax.typeset();
+            MathJax.typesetPromise();
             return _.isFunction(options.onNoteEdited) ? options.onNoteEdited(existingNote) : true;
           },
           onError: function(errors) {
@@ -1348,16 +1323,6 @@ module.exports = (function() {
       '</div>'
     );
     $container.append($tabs);
-
-    $tabs.find('.nav-tabs > li > a').on('click', function(e, dontChangeState) {
-      // Extra parameters like dontChangeState can be passed to the handler using jQuery's
-      // trigger function, e.g. .trigger('click', [true]);
-      var urlHash = $(this).attr('href');
-
-      if (urlHash && !dontChangeState) {
-        history.replaceState({}, '', urlHash);
-      }
-    });
   };
 
   var setupAutoLoading = function(invitationId, pageSize, options) {
@@ -1596,11 +1561,6 @@ module.exports = (function() {
         searchTerm = '';
         selectedMembers = [];
         renderMembersTable(group.members, removedMembers, -1);
-
-        idsToAdd.forEach(function(id) {
-          var $tr = $('.group-members-table tr[data-id="' + id + '"]');
-          $tr.effect('highlight', { color: '#d6e9c6' }, 1000); // zz
-        });
 
         $('.group-members-form .add-member').attr('disabled', false);
         var othersText = idsToAdd.length > 1 ? ' and ' + (idsToAdd.length - 1) + ' others' : '';
@@ -1981,7 +1941,7 @@ module.exports = (function() {
         var webfieldCode = response.groups[0].web;
 
         $.ajax({
-          url: 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.2/ace.js',
+          url: 'https://cdn.jsdelivr.net/npm/ace-builds@1.4.12/src-min/ace.js',
           dataType: 'script',
           cache: true
         }).then(function() {
@@ -2508,7 +2468,7 @@ module.exports = (function() {
         }
 
         $.ajax({
-          url: 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.2/ace.js',
+          url: 'https://cdn.jsdelivr.net/npm/ace-builds@1.4.12/src-min/ace.js',
           dataType: 'script',
           cache: true
         }).then(function() {
@@ -2927,7 +2887,7 @@ module.exports = (function() {
 
     if (options.scrollTo) {
       var scrollToElem;
-      var scrollToElemId = document.location.hash;
+      var scrollToElemId = window.location.hash;
       if ($('a[href="' + scrollToElemId + '"]').length) {
         scrollToElem = $('a[href="' + scrollToElemId + '"]');
       } else if ($(scrollToElemId).length) {
@@ -2936,7 +2896,6 @@ module.exports = (function() {
 
       if (scrollToElem) {
         scrollToElem.trigger('click', [true]);
-
         // 51 is the height of the nav bar, 12 is for padding
         var scrollPos = scrollToElem.offset().top - 51 - 12;
         $('html, body').animate({scrollTop: scrollPos}, 400);
@@ -2947,6 +2906,8 @@ module.exports = (function() {
         !$('.tabs-container ul.nav-tabs > li.active').length) {
       $('.tabs-container ul.nav-tabs > li > a:visible').eq(0).trigger('click', [true]);
     }
+
+    typesetMathJax();
   };
 
   return {
