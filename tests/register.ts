@@ -2,6 +2,7 @@ import { Selector, ClientFunction } from 'testcafe'
 import fetch from 'node-fetch'
 import api from '../lib/api-client'
 import { setup, teardown } from './test-utils.js'
+require('dotenv').config()
 
 const firstNameInputSelector = Selector('#first-input')
 const lastNameInputSelector = Selector('#last-input')
@@ -88,7 +89,7 @@ test('reset password of active profile', async t => {
 
   const result = await api.post('/login', { id: 'openreview.net', password: '1234' })
   const result2 = await api.get('/messages?to=melisa@test.com&subject=OpenReview password reset', {}, { accessToken: result.token })
-  await t.expect(result2.messages[0].content.text).contains('http://localhost:3030/account/password?token=')
+  await t.expect(result2.messages[0].content.text).contains('http://localhost:3030/user/password?token=')
 })
 
 

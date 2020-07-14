@@ -1,4 +1,5 @@
 import { Selector } from 'testcafe'
+require('dotenv').config()
 
 const firstNameInputSelector = Selector('#first-input')
 const lastNameInputSelector = Selector('#last-input')
