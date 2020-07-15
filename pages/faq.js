@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 import LoadingSpinner from '../components/LoadingSpinner'
 import Accordion from '../components/Accordion'
 
@@ -12,6 +13,7 @@ import '../styles/pages/faq.less'
 
 function Faq({ questions, appContext }) {
   const [formattedQuestions, setFormattedQuestions] = useState(null)
+  const router = useRouter()
   const { clientJsLoading } = appContext
 
   useEffect(() => {
@@ -26,7 +28,7 @@ function Faq({ questions, appContext }) {
   }, [clientJsLoading])
 
   useEffect(() => {
-    if ($('#questions').length === 0) return
+    if (!formattedQuestions) return
 
     // Scroll to and expand question referenced in URL
     if (window.location.hash) {
@@ -43,7 +45,7 @@ function Faq({ questions, appContext }) {
 
     // Update URL hash when clicking a question
     $('#questions .panel-title a').on('click', function onClick() {
-      window.history.replaceState(null, '', $(this).attr('href'))
+      router.replace(window.location.pathname + window.location.search + $(this).attr('href'))
     })
   }, [formattedQuestions])
 
