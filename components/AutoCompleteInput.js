@@ -57,7 +57,7 @@ const AutoCompleteInput = () => {
   const searchByTerm = async (term) => {
     try {
       const result = await api.get('/notes/search', {
-        term, type: 'terms', content: 'all', group: 'all', source: 'all', limit: 10,
+        term, type: 'prefix', content: 'all', group: 'all', source: 'all', limit: 10,
       })
       if (cancelRequest) return
       const tokenObjects = getTokenObjects(result.notes, term)
