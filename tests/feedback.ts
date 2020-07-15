@@ -40,11 +40,7 @@ test('send feedback as a guest user', async t => {
     .typeText(subjectInput, 'subject')
     .typeText(textInput, 'this is my feedback')
     .click(sendButton)
-
-  await new Promise(r => setTimeout(r, 1000));
-
-  await t
-    .expect(textPanel.innerText).eql(' Your feedback has been submitted. Thank you.')
+    .expect(textPanel.innerText).eql('Your feedback has been submitted. Thank you.')
 
     const result = await api.post('/login', { id: 'openreview.net', password: '1234' })
     const result2 = await api.get('/messages?to=info@openreview.net', {}, { accessToken: result.token })
