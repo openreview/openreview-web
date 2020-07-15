@@ -11,7 +11,7 @@ export default function Dropdown(props) {
       ...theme.colors,
       neutral0: '#fffaf4',
       primary25: '#ddd',
-      primary: '#659aae',
+      primary: '#4d8093',
     },
     spacing: {
       baseUnit: 2,
