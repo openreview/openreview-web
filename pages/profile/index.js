@@ -95,7 +95,7 @@ const ProfileHistory = ({ history }) => (
     <div className="institution">
       {history.institution.name}
       {' '}
-      <small>{`(${history.institution.domain})`}</small>
+      {history.institution.domain && <small>{`(${history.institution.domain})`}</small>}
     </div>
     <div className="timeframe">
       <em>
