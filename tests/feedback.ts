@@ -3,11 +3,14 @@ import fetch from 'node-fetch'
 import api from '../lib/api-client'
 import { setup, teardown } from './test-utils.js'
 
-const firstNameInputSelector = Selector('#first-input')
-const lastNameInputSelector = Selector('#last-input')
-const emailAddressInputSelector = Selector('input').withAttribute('placeholder', 'Email address')
-const signupButtonSelector = Selector('button').withText('Sign Up')
-const passwordInputSelector = Selector('input').withAttribute('placeholder', 'Password')
+const feedbackLink = Selector('a').withAttribute('data-target', '#feedback-modal')
+const feedbackModal = Selector('#feedback-modal')
+const emailInput = Selector('#feedback-modal form input[type="email"]')
+const subjectInput = Selector('#feedback-modal form input[type="text"]')
+const textInput = Selector('#feedback-modal form textarea[name="message"]')
+const sendButton = Selector('#feedback-modal button:nth-child(2)')
+const alertPanel = Selector('#feedback-modal .alert-danger')
+const textPanel = Selector('#feedback-modal p')
 
 api.configure({ fetchFn: fetch })
 
@@ -22,22 +25,26 @@ fixture`Feedback`
 
 test('send incomplete feedback as a guest user', async t => {
   await t
-    .click(Selector('a').withAttribute('data-target', '#feedback-modal'))
-    .expect(Selector('#feedback-modal').exists).ok()
-    .click(Selector('#feedback-modal').child('div').child('div').child(2).child('button').nth(1))
-    .expect(Selector('#feedback-modal').child('div').child('div').child(1).child('div').innerText).eql(' Error: Missing required fields')
+    .click(feedbackLink)
+    .expect(feedbackModal.exists).ok()
+    .click(sendButton)
+    .expect(alertPanel.innerText).eql(' Error: Missing required fields')
 })
 
 test('send feedback as a guest user', async t => {
   await t
-    .click(Selector('a').withAttribute('data-target', '#feedback-modal'))
-    .expect(Selector('#feedback-modal').exists).ok()
-    .typeText(Selector('#feedback-modal').child('div').child('div').child(1).child('form').child('div').child('input'), 'melisa@test.com')
-    .typeText(Selector('#feedback-modal').child('div').child('div').child(1).child('form').child('div').nth(1).child('input'), 'subject')
-    .typeText(Selector('#feedback-modal').child('div').child('div').child(1).child('form').child('div').nth(2).child('textarea'), 'this is my feedback')
-    .click(Selector('#feedback-modal').child('div').child('div').child(2).child('button').nth(1))
-    // Fix this assert
-    //.expect(Selector('#feedback-modal').child('div').child('div').child(1).child('p').innerText).eql(' Your feedback has been submitted. Thank you.')
+    .click(feedbackLink)
+    .expect(feedbackModal.exists).ok()
+    .expect(emailInput.exists).ok()
+    .typeText(emailInput, 'melisa@test.com')
+    .typeText(subjectInput, 'subject')
+    .typeText(textInput, 'this is my feedback')
+    .click(sendButton)
+
+  await new Promise(r => setTimeout(r, 1000));
+
+  await t
+    .expect(textPanel.innerText).eql(' Your feedback has been submitted. Thank you.')
 
     const result = await api.post('/login', { id: 'openreview.net', password: '1234' })
     const result2 = await api.get('/messages?to=info@openreview.net', {}, { accessToken: result.token })
