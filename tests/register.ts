@@ -1,7 +1,7 @@
 import { Selector, ClientFunction } from 'testcafe'
 import fetch from 'node-fetch'
 import api from '../lib/api-client'
-import { setup, teardown } from './test-utils.js'
+import { setup, teardown } from './test-utils'
 require('dotenv').config()
 
 const firstNameInputSelector = Selector('#first-input')
@@ -14,9 +14,9 @@ api.configure({ fetchFn: fetch })
 
 fixture`Signup`
   .page`http://localhost:${process.env.NEXT_PORT}/signup`
-  .before(async ctx => {
-    setup()
-  })
+  // .before(async ctx => {
+  //   setup()
+  // })
   .after(async ctx => {
     teardown()
   });
