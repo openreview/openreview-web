@@ -8,7 +8,6 @@ export function registerFixture() {
 }
 
 export function before() {
-  console.log('before initialized', initialized)
   if (!initialized) {
     initialized = true
 
