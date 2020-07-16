@@ -3,6 +3,7 @@ import Head from 'next/head'
 import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import NoteAuthors from '../components/NoteAuthors'
+import NoteReaders from '../components/NoteReaders'
 import NoteContent from '../components/NoteContent'
 import withError from '../components/withError'
 import api from '../lib/api-client'
@@ -64,9 +65,9 @@ const ForumMeta = ({ note }) => (
 
     {note.readers && (
       <span className="item">
-        readers:
+        Readers:
         {' '}
-        {note.readers.map(prettyId).join(', ')}
+        <NoteReaders readers={note.readers} />
       </span>
     )}
   </div>
