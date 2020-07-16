@@ -181,8 +181,6 @@ export async function createUser({
 export const constructBaseGroupJson = (baseGroupId, superUserName) => {
   const baseGroupJson = {
     id: baseGroupId,
-    cdate: null,
-    ddate: null,
     signatures: [superUserName],
     writers: [superUserName],
     members: [],
@@ -190,7 +188,6 @@ export const constructBaseGroupJson = (baseGroupId, superUserName) => {
     nonreaders: [],
     signatories: [baseGroupId],
     web: null,
-    details: null,
   }
   return baseGroupJson
 }
@@ -198,8 +195,6 @@ export const constructBaseGroupJson = (baseGroupId, superUserName) => {
 export const constructSubGroupJson = (subGroupId, baseGroupId) => {
   const subGroupJson = {
     id: subGroupId,
-    cdate: null,
-    ddate: null,
     signatures: [baseGroupId],
     writers: [baseGroupId],
     members: [],
@@ -207,7 +202,6 @@ export const constructSubGroupJson = (subGroupId, baseGroupId) => {
     nonreaders: [],
     signatories: [subGroupId],
     web: null,
-    details: null,
   }
   return subGroupJson
 }
@@ -215,8 +209,6 @@ export const constructSubGroupJson = (subGroupId, baseGroupId) => {
 export const constructConferenceGroupJson = (conferenceGroupId, baseGroupId, subGroupId) => {
   const conferenceGroupJson = {
     id: conferenceGroupId,
-    cdate: null,
-    ddate: null,
     signatures: [subGroupId],
     writers: [baseGroupId],
     members: [],
@@ -317,7 +309,6 @@ export const constructConferenceGroupJson = (conferenceGroupId, baseGroupId, sub
 
     // Go!
     main();`,
-    details: null,
   }
   return conferenceGroupJson
 }
