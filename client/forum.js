@@ -401,6 +401,15 @@ module.exports = function(forumId, noteId, invitationId, user) {
       return false;
     });
 
+    // Collapse/expand comment thread
+    $content.on('click', '.collapse-comment-tree', function() {
+      var $container = $(this).parent();
+      $container.toggleClass('collapsed');
+
+      $(this).html($container.hasClass('collapsed') ? '[+]' : '[&ndash;]');
+      return false;
+    });
+
     // Show top-level comments
     $content.on('click', '.view-all-replies', function() {
       var replytoIdToChildren = sm.get('replytoIdMap');
@@ -417,6 +426,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       return false;
     });
 
+    // Filter dropdowns
     $content.on('click', '.checkbox-menu', applyFilter);
 
     $content.on('click', '.select-all-checkbox', applySelectAllFilters);
