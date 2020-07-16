@@ -41,7 +41,7 @@ test('no task user', async t => {
     .expect(Selector('p.empty-message').textContent).eql('No current pending or completed tasks')
 })
 
-fixture.only`issue related tests`
+fixture`issue related tests`
 test('#77 should not show banner after navigation', async t => {
   await t.useRole(hasTaskUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
