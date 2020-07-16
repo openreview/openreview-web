@@ -2,6 +2,7 @@ import NoteTitle from './NoteTitle'
 import NoteAuthors from './NoteAuthors'
 import NoteReaders from './NoteReaders'
 import NoteContent from './NoteContent'
+import Icon from './Icon'
 import { prettyId, forumDate, inflect } from '../lib/utils'
 
 const Note = ({ note, options }) => (
@@ -14,6 +15,15 @@ const Note = ({ note, options }) => (
       signatures={note.signatures}
       options={options}
     />
+
+    {(note.forumContent && note.id !== note.forum) && (
+      <div className="note-parent-title">
+        <Icon name="share-alt" />
+        <strong>
+          {note.forumContent.title || 'No Title'}
+        </strong>
+      </div>
+    )}
 
     <div className="note-authors">
       <NoteAuthors
