@@ -24,7 +24,8 @@ const Contact = () => (
         <p>
           If you would like to send feedback to the developers, please use the
           {' '}
-          <a data-toggle="modal" data-target="#feedback-modal">Feedback form</a>
+          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+          <a href="#" data-toggle="modal" data-target="#feedback-modal">Feedback form</a>
           .
         </p>
       </div>
