@@ -7,9 +7,9 @@ const FooterMinimal = () => (
         <p className="text-center">
           &copy; 2020 OpenReview.net
           &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-          <Link href="/terms"><a>Terms &amp; Conditions</a></Link>
+          <Link href="/legal/terms"><a>Terms &amp; Conditions</a></Link>
           &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-          <Link href="/privacy"><a>Privacy Policy</a></Link>
+          <Link href="/legal/privacy"><a>Privacy Policy</a></Link>
         </p>
       </div>
     </div>

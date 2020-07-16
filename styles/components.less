@@ -112,7 +112,7 @@ table.table-minimal {
       font-size: 1.125rem;
       line-height: 1.375rem;
       margin-top: 0;
-      margin-bottom: .25rem;
+      margin-bottom: .125rem;
 
       .duedate, .completed-date {
         padding-left: .5rem;
@@ -131,18 +131,17 @@ table.table-minimal {
       }
     }
 
-    .parent-title {
+    .parent-title, .note-parent-title {
       color: @subtleGray;
-      line-height: 1.5rem;
+      margin-bottom: .125rem;
 
       .glyphicon {
         font-size: .75rem;
         top: 1px;
         padding-right: 4px;
       }
-      .title {
+      strong {
         font-size: .875rem;
-        font-weight: bold;
       }
       a {
         color: @subtleGray;
@@ -151,7 +150,7 @@ table.table-minimal {
 
     .note-authors {
       color: @darkBlue;
-      margin-bottom: .25rem;
+      margin-bottom: .125rem;
 
       a {
         color: @darkBlue;
@@ -182,7 +181,7 @@ table.table-minimal {
       font-size: .75rem;
       line-height: 1.25rem;
       color: @subtleGray;
-      margin-bottom: .25rem;
+      margin-bottom: .125rem;
 
       & > li {
         padding-right: .75rem;
@@ -306,7 +305,6 @@ table.table-minimal {
 
     h4 {
       font-size: 1rem;
-      margin-bottom: 0;
     }
 
     .note-meta-info {
