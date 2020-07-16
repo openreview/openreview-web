@@ -9,6 +9,8 @@ export const conferenceGroupId = 'TestVenue/2020/Conference'
 const conferenceSubmissionInvitationId = `${conferenceGroupId}/-/Submission`
 export const hasTaskUser = { first: 'FirstA', last: 'LastA', email: 'a@a.com', password: '1234' }
 export const hasNoTaskUser = { first: 'FirstB', last: 'LastB', email: 'b@b.com', password: '1234' }
+let hasTaskUserTildeId = ''
+let hasTaskUserToken = ''
 
 // the setup function is shared by all tests and should run only once. all data required by a test case should be put here
 export async function setup() {
@@ -16,6 +18,7 @@ export async function setup() {
   // reset super user password
   await resetAdminPassword('1234')
   const adminToken = await getToken()
+  //#region used by index.ts and tasks.ts
   // create a venue TestVenue
   await addGroup(constructBaseGroupJson(baseGroupId, circleciSuperUserName), adminToken) // create base venue group
   await addMembersToGroup('host', [baseGroupId], adminToken) // add group to host so that it's shown in all venues list
@@ -30,10 +33,14 @@ export async function setup() {
   await addGroup(constructSubGroupJson(`Another${subGroupId}`, `Another${baseGroupId}`), adminToken)
   await addGroup(constructConferenceGroupJson(`Another${conferenceGroupId}`, `Another${baseGroupId}`, `Another${subGroupId}`), adminToken)
   await addInvitation(constructSubmissionInvitationJson(`Another${conferenceSubmissionInvitationId}`, `Another${conferenceGroupId}`, Date.now() + 2 * 24 * 60 * 60 * 1000), adminToken) // 2 days later
-  //create a user
+  //#endregion
+  //#region used by tasks.ts
+  //create hastask user
   const result = await createUser(hasTaskUser)
-  const userTildeId = result.user.profile.id
-  const userToken = result.token
+  hasTaskUserTildeId = result.user.profile.id
+  hasTaskUserToken = result.token
+  //create notask user
+  await createUser(hasNoTaskUser)
   //add a note
   const noteJson = {
     content:
@@ -46,11 +53,11 @@ export async function setup() {
     },
     readers: ['everyone'],
     nonreaders: [],
-    signatures: [userTildeId],
-    writers: [userTildeId],
+    signatures: [hasTaskUserTildeId],
+    writers: [hasTaskUserTildeId],
     invitation: conferenceSubmissionInvitationId,
   }
-  const addNoteResult = await addNote(noteJson,userToken)
+  const addNoteResult = await addNote(noteJson, hasTaskUserToken)
   const noteId=addNoteResult.id
   //add reply invitation
   const replyInvitationJson = {
@@ -58,7 +65,7 @@ export async function setup() {
     readers: ['everyone'],
     writers: [conferenceGroupId],
     signatures: [conferenceGroupId],
-    invitees: ['everyone'],
+    invitees: [hasTaskUserTildeId],
     reply: {
       //'invitation': conferenceSubmissionInvitationId,
       'replyto':noteId,
@@ -90,12 +97,14 @@ export async function setup() {
   // create invitaiton for reply to notes
   // it has invitee everyone so it will be shown in tasks
   await addInvitation(replyInvitationJson, adminToken)
+  //#endregion
 }
 
 export function teardown() {
   console.log('TEARDOWN')
 }
 
+//#region helper functions used by setup()
 export async function addGroup(jsonToPost, adminToken) {
   const groupsUrl = '/groups'
   const result = await api.post(groupsUrl, { ...jsonToPost }, { accessToken: adminToken })
@@ -379,3 +388,4 @@ export const addNote = (jsonToPost, usertoken) => {
   const result = api.post(addNoteUrl, jsonToPost, { accessToken: usertoken })
   return result
 }
+//#endregion
