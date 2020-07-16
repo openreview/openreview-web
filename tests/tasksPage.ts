@@ -1,8 +1,15 @@
 import { Selector } from 'testcafe'
 import { hasTaskUser, hasNoTaskUser } from './test-utils'
+import { registerFixture, before, after } from './hooks'
+
 require('dotenv').config()
 
+registerFixture();
+
 fixture`tasks page`
+.before(async ctx => before())
+.after(async ctx => after());
+
 test('hastask user', async t => {
   await t.navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
     //has task user login

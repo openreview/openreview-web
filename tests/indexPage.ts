@@ -1,8 +1,14 @@
 import { Selector } from 'testcafe'
-import {baseGroupId,conferenceGroupId} from './test-utils'
+import { baseGroupId, conferenceGroupId } from './test-utils'
 require('dotenv').config()
+import { registerFixture, before, after } from './hooks'
+
+registerFixture();
 
 fixture`home page`
+  .before(async ctx => before())
+  .after(async ctx => after());
+
 test('show active venues', async t => {
   await t.navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
     //active venue has 2 items

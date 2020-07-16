@@ -1,7 +1,7 @@
 import { Selector, ClientFunction } from 'testcafe'
 import fetch from 'node-fetch'
 import api from '../lib/api-client'
-import { setup, teardown } from './test-utils'
+import { registerFixture, before, after } from './hooks'
 require('dotenv').config()
 
 const firstNameInputSelector = Selector('#first-input')
@@ -9,17 +9,17 @@ const lastNameInputSelector = Selector('#last-input')
 const emailAddressInputSelector = Selector('input').withAttribute('placeholder', 'Email address')
 const signupButtonSelector = Selector('button').withText('Sign Up')
 const passwordInputSelector = Selector('input').withAttribute('placeholder', 'Password')
+const sendActivationLinkButtonSelector = Selector('button').withText('Send Activation Link')
+const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
 
 api.configure({ fetchFn: fetch })
 
+registerFixture();
+
 fixture`Signup`
   .page`http://localhost:${process.env.NEXT_PORT}/signup`
-  // .before(async ctx => {
-  //   setup()
-  // })
-  .after(async ctx => {
-    teardown()
-  });
+  .before(async ctx => before())
+  .after(async ctx => after());
 
 test('create new profile', async t => {
   await t
@@ -38,8 +38,39 @@ test('create new profile', async t => {
   await t.expect(result2.messages[0].content.text).contains('http://localhost:3030/profile/activate?token=')
 })
 
-fixture`Resend Activtion link`
+test('enter invalid name', async t => {
+  await t
+    .typeText(firstNameInputSelector, 'abc')
+    .typeText(lastNameInputSelector, '1')
+    .expect(Selector('.important_message').exists).ok()
+    .expect(Selector('.important_message').textContent).eql('Name is not allowed to contain digits')
+})
+
+test('enter valid name invalid email and change to valid email and register', async t => {
+  const firstName = 'testFirstNameaac' //must be new each test run
+  const lastName = 'testLastNameaac' //must be new each test run
+  const email = 'testemailaac@test.com' //must be new each test run
+  await t
+    .typeText(firstNameInputSelector, firstName) //must be new each test run
+    .typeText(lastNameInputSelector, lastName) //must be new each test run
+    .typeText(emailAddressInputSelector, `${email}@test.com`)
+    .click(signupButtonSelector)
+    .expect(passwordInputSelector.exists).notOk() // password input should not show when email is invalid
+  await t
+    //enter a valid email
+    .typeText(emailAddressInputSelector, email, { replace: true })
+    .click(signupButtonSelector)
+    .expect(passwordInputSelector.exists).ok()
+    .typeText(passwordInputSelector, '1234')
+    .click(signupButtonSelector)
+    .expect(Selector('h1').withText('Thank You for Signing Up').exists).ok()
+    .expect(Selector('span').withAttribute('class', 'email').innerText).eql(email)
+})
+
+fixture`Resend Activation link`
   .page`http://localhost:${process.env.NEXT_PORT}/login`
+  .before(async ctx => before())
+  .after(async ctx => after());
 
 test('request a new activation link', async t => {
   await t
@@ -64,8 +95,76 @@ test('request a reset password with no active profile', async t => {
     .expect(getPageUrl()).contains('http://localhost:3030/reset', { timeout: 10000 });
 })
 
+fixture.skip`Send Activation Link from signup page`
+  .page`http://localhost:${process.env.NEXT_PORT}/signup`
+test('Send Activation Link', async t => {
+  const firstName = 'testFirstNameaaa' //must be existing inactivate acct
+  const lastName = 'testLastNameaaa'
+  const email = 'testemailaaa@test.com'
+  await t
+    .typeText(firstNameInputSelector, firstName.toLowerCase())
+    .typeText(lastNameInputSelector, lastName.toLowerCase())
+  const existingTildeId = await Selector('.new-username.hint').nth(0).innerText
+  const newTildeId = await Selector('.new-username.hint').nth(1).innerText
+  await t
+    .expect(newTildeId.substring(2)).notEql(existingTildeId.substring(3,)) // new sign up shoud have different tildeid
+    .expect(sendActivationLinkButtonSelector.exists).ok() // existing acct so should find associated email
+    .click(sendActivationLinkButtonSelector)
+    .typeText(Selector('.password-row').find('input'), `${email}abc`) // type wrong email should not trigger email sending
+    .click(sendActivationLinkButtonSelector)
+  await t
+    .selectText(Selector('.password-row').find('input'))
+    .pressKey('delete')
+    .typeText(Selector('.password-row').find('input'), email)
+    .click(sendActivationLinkButtonSelector)
+    .expect(Selector('h1').withText('Thank You for Signing Up').exists).ok()
+    .expect(Selector('span').withAttribute('class', 'email').innerText).eql(email)
+})
+
+fixture.skip`Claim Profile`
+  .page`http://localhost:${process.env.NEXT_PORT}/signup`
+test('enter invalid name', async t => {
+  const firstName = 'Andrew' //no email no password not active
+  const lastName = 'Naish'
+  await t
+    .typeText(firstNameInputSelector, firstName)
+    .typeText(lastNameInputSelector, lastName)
+    .expect(Selector('.submissions-list').find('.note').count).lte(3) // at most 3 recent publications
+    .expect(claimProfileButtonSelector.exists).ok()
+    .expect(claimProfileButtonSelector.hasAttribute('disabled')).ok()
+    .expect(signupButtonSelector.exists).ok()
+    .expect(signupButtonSelector.hasAttribute('disabled')).ok()
+})
+
+fixture.skip`Sign up`
+  .page`http://localhost:${process.env.NEXT_PORT}/signup`
+test('email address should be masked', async t => {
+  const firstName = 'Evan' //has email no password not active
+  const lastName = 'Sparks'
+  const email = 'testemailaaa@test.com'
+  await t
+    .typeText(firstNameInputSelector, firstName)
+    .typeText(lastNameInputSelector, lastName)
+    .expect(Selector('input').withAttribute('type','email').nth(0).value).contains('****') //email should be masked
+})
+
+fixture.skip`Reset Password·`
+  .page`http://localhost:${process.env.NEXT_PORT}/signup`
+test('email address should be masked', async t => {
+  const firstName = 'Evan' //has email no password not active
+  const lastName = 'Sparks'
+  const email = 'testemailaaa@test.com'
+  await t
+    .typeText(firstNameInputSelector, firstName)
+    .typeText(lastNameInputSelector, lastName)
+    .expect(Selector('input').withAttribute('type','email').nth(0).value).contains('****') //email should be masked
+})
+
+
 fixture`Activate`
-  .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=melisa@test.com`;
+  .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=melisa@test.com`
+  .before(async ctx => before())
+  .after(async ctx => after());
 
 test('update profile', async t => {
   await t
@@ -78,7 +177,9 @@ test('update profile', async t => {
 })
 
 fixture`Reset password`
-  .page`http://localhost:${process.env.NEXT_PORT}/reset`;
+  .page`http://localhost:${process.env.NEXT_PORT}/reset`
+  .before(async ctx => before())
+  .after(async ctx => after());
 
 test('reset password of active profile', async t => {
   await t
@@ -94,7 +195,9 @@ test('reset password of active profile', async t => {
 
 
 fixture`Edit profile`
-  .page`http://localhost:${process.env.NEXT_PORT}/login`;
+  .page`http://localhost:${process.env.NEXT_PORT}/login`
+  .before(async ctx => before())
+  .after(async ctx => after());
 
 test('add alternate email', async t => {
   const getPageUrl = ClientFunction(() => window.location.href.toString());
@@ -122,7 +225,9 @@ test('add alternate email', async t => {
 })
 
 fixture`Confirm altenate email`
-  .page`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`;
+  .page`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`
+  .before(async ctx => before())
+  .after(async ctx => after());
 
 test('update profile', async t => {
   await t

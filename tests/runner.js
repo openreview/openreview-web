@@ -1,22 +1,19 @@
 const createTestCafe = require('testcafe')
 
 const singleTestFileName = process.argv[2]
-const skipSetup = process.argv[3]
 
 const runTests = async () => {
   const testcafe = await createTestCafe()
-  let testFileSrc = './tests/*Page*.ts'
+  let testFileSrc = './tests/*.ts'
   if (singleTestFileName) testFileSrc = `./tests/${singleTestFileName}`
-  let runnerSrc = ['./tests/setup.ts', testFileSrc]
-  if (skipSetup) runnerSrc = [testFileSrc]
 
   try {
     const runner = testcafe.createRunner()
     const failedCount = await runner
-      .src(runnerSrc)
+      .src(testFileSrc)
       .browsers(['chrome'])
       .run({
-        // stopOnFirstFail: true,
+        stopOnFirstFail: true,
       })
   } finally {
     await testcafe.close()

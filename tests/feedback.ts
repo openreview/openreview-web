@@ -1,7 +1,10 @@
 import { Selector, ClientFunction } from 'testcafe'
 import fetch from 'node-fetch'
 import api from '../lib/api-client'
-import { setup, teardown } from './test-utils.js'
+import { registerFixture, before, after } from './hooks'
+
+api.configure({ fetchFn: fetch })
+registerFixture();
 
 const feedbackLink = Selector('a').withAttribute('data-target', '#feedback-modal')
 const feedbackModal = Selector('#feedback-modal')
@@ -12,16 +15,10 @@ const sendButton = Selector('#feedback-modal button:nth-child(2)')
 const alertPanel = Selector('#feedback-modal .alert-danger')
 const textPanel = Selector('#feedback-modal p')
 
-api.configure({ fetchFn: fetch })
-
 fixture`Feedback`
   .page`http://localhost:${process.env.NEXT_PORT}`
-  .before(async ctx => {
-    setup()
-  })
-  .after(async ctx => {
-    teardown()
-  });
+  .before(async ctx => before())
+  .after(async ctx => after());
 
 test('send incomplete feedback as a guest user', async t => {
   await t
