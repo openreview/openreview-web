@@ -22,19 +22,6 @@ window.parseUrlParams = function(urlStr) {
   }, {});
 };
 
-window.parseUrl = function(href) {
-  var location = document.createElement('a');
-  location.href = href;
-  // IE doesn't populate all link properties when setting .href with a relative URL,
-  // however .href will return an absolute URL which then can be used on itself
-  // to populate these additional fields.
-  if (location.host === '') {
-    // eslint-disable-next-line no-self-assign
-    location.href = location.href;
-  }
-  return location;
-};
-
 window.translateErrorMessage = function(error) {
   var topic = error && error.path ? [view.iTerm(error.path)] : '';
   var buildFeebackModalLink = function(linkText, formFields) {
@@ -271,53 +258,3 @@ window.typesetMathJax = function() {
     }, 1500)
   }
 }
-
-// Forum Replies
-$('#content').on('click', 'a.collapse-comment-tree', function(e) {
-  var $container = $(this).parent();
-  $container.toggleClass('collapsed');
-
-  $(this).html($container.hasClass('collapsed') ? '[+]' : '[&ndash;]');
-  return false;
-});
-
-// Feedback modal
-$('#feedback-modal').on('hidden.bs.modal', function () {
-  $(this).find('form')[0].reset();
-  $('#flash-message-container').slideUp();
-});
-
-$('#feedback-modal').on('shown.bs.modal', function () {
-  $('#feedback-modal p').text('Enter your feedback below and we\'ll get back to you as soon as possible');
-  $(this).find('.feedback-input').focus();
-});
-
-$('#feedback-modal .btn-primary').on('click', function() {
-  $('#feedback-modal form').submit();
-});
-
-$('#feedback-modal form').on('submit', function() {
-  var url = $(this).attr('action');
-  var feedbackData = {};
-  $.each($(this).serializeArray(), function(i, field) {
-    feedbackData[field.name] = field.value || '';
-  });
-
-  Webfield.put(url, feedbackData, { handleErrors: false })
-    .then(function(res) {
-      if (res.status === 'ok') {
-        $('#feedback-modal p').text('Successfully submitted feedback.');
-      } else {
-        $('#feedback-modal p').text('There was an error submitting feedback.');
-      }
-
-      setTimeout(function() {
-        $('#feedback-modal').modal('hide');
-      }, 2000);
-    })
-    .fail(function(jqXhr, textStatus) {
-      $('#feedback-modal p').text('There was an error submitting your feedback: ' + textStatus);
-    });
-
-  return false;
-});
