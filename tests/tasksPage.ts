@@ -36,6 +36,22 @@ test('hastask user open task page and complete task', async t => {
     .click(Selector('a').withText('Tasks')) //go tasks page
     .expect(Selector('a.show-tasks').innerText).eql('Show 0 pending tasks and 1 completed task')
 })
+test('task should change on delete and restore note', async t => {
+  await t.useRole(hasTaskUserRole)
+  .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
+  .click(Selector('a.show-tasks'))
+  .click(Selector('a').withText('Comment')) //go to forum page
+  .click(Selector('#note_children').find('button.trash_button'))
+  .click(Selector('button').withText('Delete')) //delete comment
+  .click(Selector('a').withText('Tasks'))
+  .expect(Selector('a.show-tasks').innerText).eql('Show 1 pending task')
+  .click(Selector('a.show-tasks'))
+  .click(Selector('a').withText('Comment'))
+  .click(Selector('button').withText('Cancel')) // don't add new comment
+  .click(Selector('button').withText('Restore'))
+  .click(Selector('a').withText('Tasks'))
+  .expect(Selector('a.show-tasks').innerText).eql('Show 0 pending tasks and 1 completed task')
+})
 test('no task user', async t => {
   await t.navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
     //no task user login
