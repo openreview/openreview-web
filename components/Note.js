@@ -30,7 +30,7 @@ const Note = ({ note, options }) => (
         authors={note.content.authors}
         authorIds={note.content.authorids}
         signatures={note.signatures}
-        original={note.details && note.details.original}
+        original={note.details?.original}
       />
     </div>
 
