@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/router'
+import { useState, useEffect, useContext } from 'react'
 import Head from 'next/head'
-import isEmpty from 'lodash/isEmpty'
-import pick from 'lodash/pick'
+import { useRouter } from 'next/router'
+import truncate from 'lodash/truncate'
+import useQuery from '../hooks/useQuery'
 import api from '../lib/api-client'
+import { inflect, prettyId } from '../lib/utils'
+import UserContext from '../components/UserContext'
+import Dropdown from '../components/Dropdown'
 import NoteList from '../components/NoteList'
 import PaginationLinks from '../components/PaginationLinks'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -12,40 +15,64 @@ import ErrorAlert from '../components/ErrorAlert'
 // Page Styles
 import '../styles/pages/search.less'
 
-const FilterForm = ({ searchQuery, setSearchQuery }) => {
+const FilterForm = ({ searchQuery }) => {
+  const defaultOption = { value: 'all', label: 'all of OpenReview' }
+  const [groupOptions, setGroupOptions] = useState([])
+  const selectedGroupOption = groupOptions.find(option => option.value === searchQuery.group) || defaultOption
+  const contentOptions = [
+    { value: 'all', label: 'All Content' },
+    { value: 'authors', label: 'Authors' },
+    { value: 'tags', label: 'Tags' },
+    { value: 'keywords', label: 'Keywords' },
+  ]
+  const selectedContentOption = contentOptions.find(option => option.value === searchQuery.content) || contentOptions[0]
   const sourceOptions = { all: 'All', forum: 'Papers Only', reply: 'Replies Only' }
-  const contentOptions = {
-    all: 'All Content', authors: 'Authors', tags: 'Tags', keywords: 'Keywords',
-  }
+  const router = useRouter()
 
   const updateQuery = (field, value) => {
-    setSearchQuery({ ...searchQuery, [field]: value })
+    const newSearchQuery = { ...searchQuery, [field]: value }
+    router.push({ pathname: '/search', query: newSearchQuery }, undefined, { shallow: true })
   }
+
+  useEffect(() => {
+    const getGroupOptions = async () => {
+      try {
+        const { groups } = await api.get('/groups', { id: 'host' })
+        if (groups?.length > 0) {
+          const members = groups[0].members.map(groupId => ({ value: groupId, label: prettyId(groupId) }))
+          setGroupOptions([defaultOption].concat(members))
+        } else {
+          setGroupOptions([defaultOption])
+        }
+      } catch (error) {
+        setGroupOptions([defaultOption])
+      }
+    }
+
+    getGroupOptions()
+  }, [])
 
   return (
     <form className="filter-form form-inline well" onSubmit={e => e.preventDefault()}>
       <div className="form-group">
         <label htmlFor="search-content">Search over</label>
-        <select
-          id="search-content"
-          className="form-control"
+        <Dropdown
           name="content"
-          onChange={e => updateQuery('content', e.target.value)}
-        >
-          {Object.entries(contentOptions).map(([val, label]) => (
-            <option key={val} value={val}>{label}</option>
-          ))}
-        </select>
+          className="search-content dropdown-select"
+          options={contentOptions}
+          value={selectedContentOption}
+          onChange={selectedOption => updateQuery('content', selectedOption.value)}
+        />
       </div>
       <div className="form-group">
         <label htmlFor="search-group">in</label>
-        <input
-          type="text"
-          id="search-group"
-          className="form-control"
+        <Dropdown
           name="group"
-          value={searchQuery.group}
-          onChange={e => updateQuery('group', e.target.value)}
+          className="search-group dropdown-select"
+          options={groupOptions}
+          value={selectedGroupOption}
+          onChange={selectedOption => updateQuery('group', selectedOption.value)}
+          isSearchable
         />
       </div>
       <div className="form-group">
@@ -68,26 +95,31 @@ const FilterForm = ({ searchQuery, setSearchQuery }) => {
 }
 
 const Search = ({ appContext }) => {
-  const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState(null)
+  const query = useQuery()
   const [searchResults, setSearchResults] = useState(null)
-  const [page, setPage] = useState(0)
   const [error, setError] = useState(null)
-
+  const { accessToken, userLoading } = useContext(UserContext)
+  const { setBannerHidden } = appContext
+  const page = parseInt(query?.page, 10) || 1
+  const pageSize = 25
   const displayOptions = {
     pdfLink: true,
     htmlLink: true,
     showContents: false,
+    emptyMessage: '',
   }
-  const pageSize = 25
 
   const loadSearchResults = async () => {
     try {
       const searchRes = await api.get('/notes/search', {
-        ...searchQuery,
+        term: query.term,
+        type: 'terms',
+        content: query.content || 'all',
+        group: query.group || 'all',
+        source: query.source || 'all',
         limit: pageSize,
         offset: pageSize * (page - 1),
-      }, {})
+      }, { accessToken })
 
       if (searchRes.notes) {
         setSearchResults(searchRes)
@@ -101,19 +133,17 @@ const Search = ({ appContext }) => {
   }
 
   useEffect(() => {
-    appContext.setBannerHidden(true)
+    if (userLoading || !query) return
 
-    if (isEmpty(router.query)) return
+    setBannerHidden(true)
 
-    setSearchQuery(pick(router.query, ['term', 'content', 'group', 'source', 'sort']))
-    setPage(parseInt(router.query.page, 10) || 1)
-  }, [router.query])
-
-  useEffect(() => {
-    if (!searchQuery || !page) return
+    if (!query.term) {
+      setError({ message: 'Missing search term or query' })
+      return
+    }
 
     loadSearchResults()
-  }, [searchQuery, page])
+  }, [userLoading, query])
 
   if (error) {
     return <ErrorAlert error={error} />
@@ -127,11 +157,16 @@ const Search = ({ appContext }) => {
         <title key="title">Search | OpenReview</title>
       </Head>
 
-      <FilterForm searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      <FilterForm searchQuery={query} />
 
       <div className="search-results">
-        {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-        <h3>{searchResults.count} results found for &quot;{searchQuery.term}&quot;</h3>
+        <h3>
+          {inflect(searchResults.count, 'result', 'results', true)}
+          {' '}
+          found for &quot;
+          {truncate(query.term, { length: 200, separator: /,? +/ })}
+          &quot;
+        </h3>
         <hr className="small" />
 
         <NoteList notes={searchResults.notes} displayOptions={displayOptions} />
@@ -141,7 +176,8 @@ const Search = ({ appContext }) => {
           itemsPerPage={pageSize}
           totalCount={searchResults.count}
           baseUrl="/search"
-          queryParams={searchQuery}
+          queryParams={query}
+          options={{ useShallowRouting: true }}
         />
       </div>
     </div>

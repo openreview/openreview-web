@@ -4,6 +4,7 @@ import Banner from './Banner'
 import FlashAlert from './FlashAlert'
 import Footer from './Footer'
 import FooterMinimal from './FooterMinimal'
+import FeedbackModal from './FeedbackModal'
 
 const Layout = ({
   children, bodyClass, bannerHidden, bannerContent, fullWidth, minimalFooter,
@@ -35,6 +36,8 @@ const Layout = ({
     ) : (
       <Footer />
     )}
+
+    <FeedbackModal />
   </>
 )
 

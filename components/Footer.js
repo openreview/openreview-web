@@ -20,7 +20,8 @@ const Footer = () => (
           <div className="col-sm-4">
             <ul className="list-unstyled">
               <li><Link href="/contact"><a>Contact</a></Link></li>
-              <li><a data-toggle="modal" data-target="#feedback-modal">Feedback</a></li>
+              {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+              <li><a href="#" data-toggle="modal" data-target="#feedback-modal">Feedback</a></li>
               <li><a href="https://codeforscience.org/jobs?job=OpenReview-Developer" target="_blank" rel="noopener noreferrer"><strong>Join the Team</strong></a></li>
             </ul>
           </div>
@@ -28,8 +29,8 @@ const Footer = () => (
           <div className="col-sm-4">
             <ul className="list-unstyled">
               <li><Link href="/faq"><a>Frequently Asked Questions</a></Link></li>
-              <li><Link href="/terms"><a>Terms of Service</a></Link></li>
-              <li><Link href="/privacy"><a>Privacy Policy</a></Link></li>
+              <li><Link href="/legal/terms"><a>Terms of Service</a></Link></li>
+              <li><Link href="/legal/privacy"><a>Privacy Policy</a></Link></li>
             </ul>
           </div>
         </div>
@@ -49,7 +50,8 @@ const Footer = () => (
             <ul className="list-unstyled">
               <li><Link href="/faq"><a>Frequently Asked Questions</a></Link></li>
               <li><Link href="/contact"><a>Contact</a></Link></li>
-              <li><a data-toggle="modal" data-target="#feedback-modal">Feedback</a></li>
+              {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+              <li><a href="#" data-toggle="modal" data-target="#feedback-modal">Feedback</a></li>
               <li><Link href="/terms"><a>Terms of Service</a></Link></li>
               <li><Link href="/privacy"><a>Privacy Policy</a></Link></li>
             </ul>
