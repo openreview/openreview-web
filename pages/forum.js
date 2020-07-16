@@ -127,7 +127,11 @@ const Forum = ({ forumNote, query, appContext }) => {
 
         <ForumMeta note={forumNote} />
 
-        <NoteContent content={content} />
+        <NoteContent
+          id={forumNote.id}
+          content={content}
+          invitation={forumNote.details.originalInvitation || forumNote.details.invitation}
+        />
 
         <ForumReplyCount count={forumNote.details.replyCount} />
       </div>
@@ -146,7 +150,7 @@ Forum.getInitialProps = async (ctx) => {
   let forumNote
   try {
     const apiRes = await api.get('/notes', {
-      id: ctx.query.id, trash: true, details: 'replyCount,writable,revisions,original,overwriting',
+      id: ctx.query.id, trash: true, details: 'replyCount,writable,revisions,original,overwriting,invitation',
     }, { accessToken: token })
     forumNote = apiRes.notes && apiRes.notes.length && apiRes.notes[0]
   } catch (error) {
