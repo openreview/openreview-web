@@ -1,5 +1,9 @@
-import api from '../lib/api-client'
+/* eslint-disable no-shadow */
+/* eslint-disable max-len */
+/* eslint-disable no-use-before-define */
 import fetch from 'node-fetch'
+import api from '../lib/api-client'
+
 api.configure({ fetchFn: fetch })
 
 export const circleciSuperUserName = 'openreview.net'
@@ -18,7 +22,7 @@ export async function setup() {
   // reset super user password
   await resetAdminPassword('1234')
   const adminToken = await getToken()
-  //#region used by index.ts and tasks.ts
+  // #region used by index.ts and tasks.ts
   // create a venue TestVenue
   await addGroup(constructBaseGroupJson(baseGroupId, circleciSuperUserName), adminToken) // create base venue group
   await addMembersToGroup('host', [baseGroupId], adminToken) // add group to host so that it's shown in all venues list
@@ -33,15 +37,15 @@ export async function setup() {
   await addGroup(constructSubGroupJson(`Another${subGroupId}`, `Another${baseGroupId}`), adminToken)
   await addGroup(constructConferenceGroupJson(`Another${conferenceGroupId}`, `Another${baseGroupId}`, `Another${subGroupId}`), adminToken)
   await addInvitation(constructSubmissionInvitationJson(`Another${conferenceSubmissionInvitationId}`, `Another${conferenceGroupId}`, Date.now() + 2 * 24 * 60 * 60 * 1000), adminToken) // 2 days later
-  //#endregion
-  //#region used by tasks.ts
-  //create hastask user
+  // #endregion
+  // #region used by tasks.ts
+  // create hastask user
   const result = await createUser(hasTaskUser)
   hasTaskUserTildeId = result.user.profile.id
   hasTaskUserToken = result.token
-  //create notask user
+  // create notask user
   await createUser(hasNoTaskUser)
-  //add a note
+  // add a note
   const noteJson = {
     content:
     {
@@ -58,8 +62,8 @@ export async function setup() {
     invitation: conferenceSubmissionInvitationId,
   }
   const addNoteResult = await addNote(noteJson, hasTaskUserToken)
-  const noteId=addNoteResult.id
-  //add reply invitation
+  const noteId = addNoteResult.id
+  // add reply invitation
   const replyInvitationJson = {
     id: `${conferenceGroupId}/-/Comment`,
     readers: ['everyone'],
@@ -67,44 +71,44 @@ export async function setup() {
     signatures: [conferenceGroupId],
     invitees: [hasTaskUserTildeId],
     reply: {
-      //'invitation': conferenceSubmissionInvitationId,
-      'replyto':noteId,
-      'forum':noteId,
-      'content': {
-        'title': {
-          'description': 'Comment title',
-          'order': 1,
-          'value-regex': '.*'
+      // 'invitation': conferenceSubmissionInvitationId,
+      replyto: noteId,
+      forum: noteId,
+      content: {
+        title: {
+          description: 'Comment title',
+          order: 1,
+          'value-regex': '.*',
         },
-        'comment': {
-          'description': 'Comment',
-          'order': 2,
-          'value-regex': '.{0,1000}'
-        }
+        comment: {
+          description: 'Comment',
+          order: 2,
+          'value-regex': '.{0,1000}',
+        },
       },
-      'readers': {
-        'values': ['everyone']
+      readers: {
+        values: ['everyone'],
       },
-      'signatures': {
-        'values-regex': '\\(anonymous\\)|~.*'
+      signatures: {
+        'values-regex': '\\(anonymous\\)|~.*',
       },
-      'writers': {
-        'values-regex': '\\(anonymous\\)|~.*'
-      }
+      writers: {
+        'values-regex': '\\(anonymous\\)|~.*',
+      },
     },
-    duedate:Date.now() + 2 * 24 * 60 * 60 * 1000
+    duedate: Date.now() + 2 * 24 * 60 * 60 * 1000,
   }
   // create invitaiton for reply to notes
   // it has invitee everyone so it will be shown in tasks
   await addInvitation(replyInvitationJson, adminToken)
-  //#endregion
+  // #endregion
 }
 
 export function teardown() {
   console.log('TEARDOWN')
 }
 
-//#region helper functions used by setup()
+// #region helper functions used by setup()
 export async function addGroup(jsonToPost, adminToken) {
   const groupsUrl = '/groups'
   const result = await api.post(groupsUrl, { ...jsonToPost }, { accessToken: adminToken })
@@ -379,4 +383,4 @@ export const addNote = (jsonToPost, usertoken) => {
   const result = api.post(addNoteUrl, jsonToPost, { accessToken: usertoken })
   return result
 }
-//#endregion
+// #endregion
