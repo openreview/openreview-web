@@ -1,4 +1,4 @@
-import { Selector } from 'testcafe'
+import { Selector, Role } from 'testcafe'
 import { hasTaskUser, hasNoTaskUser } from './test-utils'
 import { registerFixture, before, after } from './hooks'
 
@@ -10,13 +10,17 @@ fixture`tasks page`
 .before(async ctx => before())
 .after(async ctx => after());
 
-test('hastask user', async t => {
-  await t.navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
-    //has task user login
-    .click(Selector('a').withText('Login'))
+const hasTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async t => {
+  await t.click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), hasTaskUser.email)
     .typeText(Selector('#password-input'), hasTaskUser.password)
     .click(Selector('button').withText('Login to OpenReview'))
+})
+
+fixture`tasks page`
+test('hastask user open task page and complete task', async t => {
+  await t.useRole(hasTaskUserRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
     .click(Selector('a').withText('Tasks'))
     //should see 1 task in testvenue 2020 conference
     .expect(Selector('div.tasks-container').find('ul.list-unstyled').nth(0).childElementCount).eql(1) //has 1 task
@@ -43,4 +47,16 @@ test('no task user', async t => {
     //should see no task message
     .expect(Selector('p.empty-message').exists).ok()
     .expect(Selector('p.empty-message').textContent).eql('No current pending or completed tasks')
+})
+
+fixture`issue related tests`
+test('#77 should not show banner after navigation', async t => {
+  await t.useRole(hasTaskUserRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
+    .click(Selector('a.show-tasks'))
+    .click(Selector('a').withText('Comment')) //go to the actual forum page
+    .expect(Selector('.banner').find('a').withText('Back to Tasks').exists).ok() //banner shows back to tasks
+    .click(Selector('a.home.push-link')) //go to index page
+    .expect(Selector('.banner').find('a').withText('Back to Tasks').exists).notOk() //banner should not show back to tasks anymore
+    .expect(Selector('.banner').find('span.tagline').withText('Open Peer Review. Open Publishing. Open Access.').exists).ok()
 })
