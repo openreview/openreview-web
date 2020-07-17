@@ -2,8 +2,6 @@
 /* global test */
 
 import { Selector, ClientFunction } from 'testcafe'
-import fetch from 'node-fetch'
-import api from '../lib/api-client'
 import { registerFixture, before, after } from './hooks'
 
 require('dotenv').config()
@@ -16,14 +14,12 @@ const passwordInputSelector = Selector('input').withAttribute('placeholder', 'Pa
 const sendActivationLinkButtonSelector = Selector('button').withText('Send Activation Link')
 const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
 
-api.configure({ fetchFn: fetch })
-
 registerFixture()
 
 fixture`Signup`
   .page`http://localhost:${process.env.NEXT_PORT}/signup`
-  .before(async ctx => before())
-  .after(async ctx => after())
+  .before(async ctx => before(ctx))
+  .after(async ctx => after(ctx))
 
 test('create new profile', async (t) => {
   await t
@@ -40,9 +36,9 @@ test('create new profile', async (t) => {
     .expect(Selector('span').withAttribute('class', 'email').innerText)
     .eql('melisa@test.com')
 
-  const result = await api.post('/login', { id: 'openreview.net', password: '1234' })
-  const result2 = await api.get('/messages?to=melisa@test.com', {}, { accessToken: result.token })
-  await t.expect(result2.messages[0].content.text).contains('http://localhost:3030/profile/activate?token=')
+  const { api, superUserToken } = t.fixtureCtx
+  const result = await api.get('/messages?to=melisa@test.com', {}, { accessToken: superUserToken })
+  await t.expect(result.messages[0].content.text).contains('http://localhost:3030/profile/activate?token=')
 })
 
 test('enter invalid name', async (t) => {
@@ -80,8 +76,8 @@ test('enter valid name invalid email and change to valid email and register', as
 
 fixture`Resend Activation link`
   .page`http://localhost:${process.env.NEXT_PORT}/login`
-  .before(async ctx => before())
-  .after(async ctx => after())
+  .before(async ctx => before(ctx))
+  .after(async ctx => after(ctx))
 
 test('request a new activation link', async (t) => {
   await t
@@ -93,10 +89,10 @@ test('request a new activation link', async (t) => {
 
   await new Promise(r => setTimeout(r, 2000))
 
-  const result = await api.post('/login', { id: 'openreview.net', password: '1234' })
-  const result2 = await api.get('/messages?to=melisa@test.com&subject=OpenReview signup confirmation', {}, { accessToken: result.token })
-  await t.expect(result2.messages[0].content.text).contains('http://localhost:3030/profile/activate?token=')
-  await t.expect(result2.messages[1].content.text).contains('http://localhost:3030/profile/activate?token=')
+  const { api, superUserToken } = t.fixtureCtx
+  const result = await api.get('/messages?to=melisa@test.com&subject=OpenReview signup confirmation', {}, { accessToken: superUserToken })
+  await t.expect(result.messages[0].content.text).contains('http://localhost:3030/profile/activate?token=')
+  await t.expect(result.messages[1].content.text).contains('http://localhost:3030/profile/activate?token=')
 })
 
 test('request a reset password with no active profile', async (t) => {
@@ -109,8 +105,8 @@ test('request a reset password with no active profile', async (t) => {
 
 fixture.skip`Send Activation Link from signup page`
   .page`http://localhost:${process.env.NEXT_PORT}/signup`
-  .before(async ctx => before())
-  .after(async ctx => after())
+  .before(async ctx => before(ctx))
+  .after(async ctx => after(ctx))
 
 test('Send Activation Link', async (t) => {
   const firstName = 'testFirstNameaaa' // must be existing inactivate acct
@@ -140,8 +136,8 @@ test('Send Activation Link', async (t) => {
 
 fixture.skip`Claim Profile`
   .page`http://localhost:${process.env.NEXT_PORT}/signup`
-  .before(async ctx => before())
-  .after(async ctx => after())
+  .before(async ctx => before(ctx))
+  .after(async ctx => after(ctx))
 
 test('enter invalid name', async (t) => {
   const firstName = 'Andrew' // no email no password not active
@@ -162,8 +158,8 @@ test('enter invalid name', async (t) => {
 
 fixture.skip`Sign up`
   .page`http://localhost:${process.env.NEXT_PORT}/signup`
-  .before(async ctx => before())
-  .after(async ctx => after())
+  .before(async ctx => before(ctx))
+  .after(async ctx => after(ctx))
 
 test('email address should be masked', async (t) => {
   const firstName = 'Evan' // has email no password not active
@@ -177,8 +173,8 @@ test('email address should be masked', async (t) => {
 
 fixture.skip`Reset Password·`
   .page`http://localhost:${process.env.NEXT_PORT}/signup`
-  .before(async ctx => before())
-  .after(async ctx => after())
+  .before(async ctx => before(ctx))
+  .after(async ctx => after(ctx))
 
 test('email address should be masked', async (t) => {
   const firstName = 'Evan' // has email no password not active
@@ -192,8 +188,8 @@ test('email address should be masked', async (t) => {
 
 fixture`Activate`
   .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=melisa@test.com`
-  .before(async ctx => before())
-  .after(async ctx => after())
+  .before(async ctx => before(ctx))
+  .after(async ctx => after(ctx))
 
 test('update profile', async (t) => {
   await t
@@ -209,8 +205,8 @@ test('update profile', async (t) => {
 
 fixture`Reset password`
   .page`http://localhost:${process.env.NEXT_PORT}/reset`
-  .before(async ctx => before())
-  .after(async ctx => after())
+  .before(async ctx => before(ctx))
+  .after(async ctx => after(ctx))
 
 test('reset password of active profile', async (t) => {
   await t
@@ -220,15 +216,15 @@ test('reset password of active profile', async (t) => {
     // .expect(Selector('div').withAttribute('role', 'alert').innerText)
     // .contains('An email with the subject "OpenReview Password Reset" has been sent to')
 
-  const result = await api.post('/login', { id: 'openreview.net', password: '1234' })
-  const result2 = await api.get('/messages?to=melisa@test.com&subject=OpenReview password reset', {}, { accessToken: result.token })
-  await t.expect(result2.messages[0].content.text).contains('http://localhost:3030/user/password?token=')
+  const { api, superUserToken } = t.fixtureCtx
+  const result = await api.get('/messages?to=melisa@test.com&subject=OpenReview password reset', {}, { accessToken: superUserToken })
+  await t.expect(result.messages[0].content.text).contains('http://localhost:3030/user/password?token=')
 })
 
 fixture`Edit profile`
   .page`http://localhost:${process.env.NEXT_PORT}/login`
-  .before(async ctx => before())
-  .after(async ctx => after())
+  .before(async ctx => before(ctx))
+  .after(async ctx => after(ctx))
 
 test('add alternate email', async (t) => {
   const getPageUrl = ClientFunction(() => window.location.href.toString())
@@ -263,15 +259,15 @@ test('add alternate email', async (t) => {
     .expect(Selector('span').withAttribute('class', 'important_message').innerText)
     .eql('A confirmation email has been sent to melisa@alternate.com')
 
-  const result = await api.post('/login', { id: 'openreview.net', password: '1234' })
-  const result2 = await api.get('/messages?to=melisa@alternate.com&subject=OpenReview Account Linking', {}, { accessToken: result.token })
-  await t.expect(result2.messages[0].content.text).contains('http://localhost:3030/confirm?token=')
+  const { api, superUserToken } = t.fixtureCtx
+  const result = await api.get('/messages?to=melisa@alternate.com&subject=OpenReview Account Linking', {}, { accessToken: superUserToken })
+  await t.expect(result.messages[0].content.text).contains('http://localhost:3030/confirm?token=')
 })
 
 fixture`Confirm altenate email`
   .page`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`
-  .before(async ctx => before())
-  .after(async ctx => after())
+  .before(async ctx => before(ctx))
+  .after(async ctx => after(ctx))
 
 test('update profile', async (t) => {
   await t

@@ -10,8 +10,8 @@ require('dotenv').config()
 registerFixture()
 
 fixture`home page`
-  .before(async ctx => before())
-  .after(async ctx => after())
+  .before(async ctx => before(ctx))
+  .after(async ctx => after(ctx))
 
 test('show active venues', async (t) => {
   await t.navigateTo(`http://localhost:${process.env.NEXT_PORT}`)

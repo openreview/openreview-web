@@ -2,11 +2,8 @@
 /* global test */
 
 import { Selector, ClientFunction } from 'testcafe'
-import fetch from 'node-fetch'
-import api from '../lib/api-client'
 import { registerFixture, before, after } from './hooks'
 
-api.configure({ fetchFn: fetch })
 registerFixture()
 
 const feedbackLink = Selector('a').withAttribute('data-target', '#feedback-modal')
@@ -20,8 +17,8 @@ const textPanel = Selector('#feedback-modal p')
 
 fixture`Feedback`
   .page`http://localhost:${process.env.NEXT_PORT}`
-  .before(async ctx => before())
-  .after(async ctx => after())
+  .before(async ctx => before(ctx))
+  .after(async ctx => after(ctx))
 
 test('send incomplete feedback as a guest user', async (t) => {
   await t
@@ -45,7 +42,7 @@ test('send feedback as a guest user', async (t) => {
     .expect(textPanel.innerText)
     .eql('Your feedback has been submitted. Thank you.')
 
-  const result = await api.post('/login', { id: 'openreview.net', password: '1234' })
-  const result2 = await api.get('/messages?to=info@openreview.net', {}, { accessToken: result.token })
-  await t.expect(result2.messages[0].content.subject).contains('OpenReview Feedback: subject')
+  const { api, superUserToken } = t.fixtureCtx
+  const result = await api.get('/messages?to=info@openreview.net', {}, { accessToken: superUserToken })
+  await t.expect(result.messages[0].content.subject).contains('OpenReview Feedback: subject')
 })

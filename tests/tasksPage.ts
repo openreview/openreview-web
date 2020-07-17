@@ -10,8 +10,8 @@ require('dotenv').config()
 registerFixture()
 
 fixture`tasks page`
-  .before(async ctx => before())
-  .after(async ctx => after())
+  .before(async ctx => before(ctx))
+  .after(async ctx => after(ctx))
 
 const hasTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t.click(Selector('a').withText('Login'))
@@ -21,8 +21,8 @@ const hasTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async 
 })
 
 fixture`tasks page`
-  .before(async ctx => before())
-  .after(async ctx => after())
+  .before(async ctx => before(ctx))
+  .after(async ctx => after(ctx))
 test('hastask user open task page and complete task', async (t) => {
   await t.useRole(hasTaskUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
@@ -77,8 +77,8 @@ test('no task user', async (t) => {
 })
 
 fixture.skip`issue related tests`
-  .before(async ctx => before())
-  .after(async ctx => after())
+  .before(async ctx => before(ctx))
+  .after(async ctx => after(ctx))
 test('#77 should not show banner after navigation', async (t) => {
   await t.useRole(hasTaskUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)

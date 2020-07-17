@@ -27,7 +27,7 @@ let hasTaskUserTildeId = ''
 let hasTaskUserToken = ''
 
 // the setup function is shared by all tests and should run only once. all data required by a test case should be put here
-export async function setup() {
+export async function setup(ctx) {
   console.log('SETUP')
   // const result1 = await api.put('/reset/openreview.net', { password: '1234' })
   // reset super user password
@@ -113,6 +113,11 @@ export async function setup() {
   // it has invitee everyone so it will be shown in tasks
   await addInvitation(replyInvitationJson, adminToken)
   // #endregion
+
+  return {
+    superUserToken: adminToken,
+    api,
+  }
 }
 
 export function teardown() {

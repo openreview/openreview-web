@@ -1,29 +1,26 @@
 import { setup, teardown } from './test-utils'
 
 let activeFixturesCount = 0
-let initialized = false
+let context = null
 
 export function registerFixture() {
   activeFixturesCount += 1
 }
 
-export function before() {
-  if (!initialized) {
-    initialized = true
-
-    // perform initialization
-    return setup()
+export async function before(ctx) {
+  if (!context) {
+    context = await setup()
   }
-
-  return Promise.resolve()
+  ctx.superUserToken = context.superUserToken
+  ctx.api = context.api
+  return ctx
 }
 
-export function after() {
+export function after(ctx) {
   activeFixturesCount -= 1
 
   if (!activeFixturesCount) {
-    // perform teardown
-    return teardown()
+    return teardown(ctx)
   }
 
   return Promise.resolve()
