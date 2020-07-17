@@ -24,6 +24,17 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    - name: Checkout openreview API
+      uses: actions/checkout@v2
+      with:
+        repository: openreview/openreview
+        #token: ${{ secrets.GitHub_PAT }} # `GitHub_PAT` is a secret that contains your PAT
+        path: openreview-api
+        run: |
+          cd openreview-api
+          npm install
+          NODE_ENV=circleci node scripts/clean_start_app.js &
+
     - run: npm ci
     - run: npm run lint
     - run: npm run build
