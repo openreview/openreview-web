@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
 import LoadingSpinner from '../components/LoadingSpinner'
+import WebfieldContainer from '../components/WebfieldContainer'
 import ErrorAlert from '../components/ErrorAlert'
 import { auth } from '../lib/auth'
 import api from '../lib/api-client'
@@ -16,7 +17,7 @@ const Tasks = ({ accessToken, appContext }) => {
   const [groupedTasks, setGroupedTasks] = useState(null)
   const [error, setError] = useState(null)
   const tasksRef = useRef(null)
-  const { setBannerHidden, clientJsLoading } = appContext
+  const { setBannerHidden } = appContext
 
   const registerEventHandlers = () => {
     $('[data-toggle="tooltip"]').tooltip()
@@ -103,7 +104,7 @@ const Tasks = ({ accessToken, appContext }) => {
       {error && (
         <ErrorAlert error={error} />
       )}
-      <div ref={tasksRef} />
+      <WebfieldContainer ref={tasksRef} />
     </div>
   )
 }
