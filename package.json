@@ -7,7 +7,7 @@
     "lint": "eslint --ext .js,.ts pages/** components/** lib/** hooks/** tests/**",
     "build": "next build",
     "start": "next start --port $NEXT_PORT",
-    "test": "testcafe chrome -sf tests/register.ts"
+    "test": "node tests/utils/runner.js"
   },
   "dependencies": {
     "@zeit/next-less": "github:zbialecki/next-less",
