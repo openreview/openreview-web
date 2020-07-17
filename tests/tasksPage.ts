@@ -1,6 +1,3 @@
-/* global fixture */
-/* global test */
-
 import { Selector, Role } from 'testcafe'
 import { hasTaskUser, hasNoTaskUser } from './utils/api-helper'
 import { registerFixture, before, after } from './utils/hooks'

@@ -1,6 +1,3 @@
-/* global fixture */
-/* global test */
-
 import { Selector } from 'testcafe'
 import { baseGroupId, conferenceGroupId } from './utils/api-helper'
 import { registerFixture, before, after } from './utils/hooks'

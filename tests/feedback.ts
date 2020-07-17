@@ -1,6 +1,3 @@
-/* global fixture */
-/* global test */
-
 import { Selector } from 'testcafe'
 import { registerFixture, before, after } from './utils/hooks'
 
