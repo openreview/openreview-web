@@ -30,10 +30,11 @@ jobs:
         repository: openreview/openreview
         token: ${{ secrets.OPENREVIEW_ACCESS_TOKEN }}
         path: openreview-api
-        run: |
-          cd openreview-api
-          npm install
-          NODE_ENV=circleci node scripts/clean_start_app.js &
+    - name: Run openreview API
+      run: |
+        cd openreview-api
+        npm install
+        NODE_ENV=circleci node scripts/clean_start_app.js &
 
     - run: npm ci
     - run: npm run lint
