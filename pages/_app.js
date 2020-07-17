@@ -24,7 +24,6 @@ class OpenReviewApp extends App {
       bannerContent: null,
       layoutOptions: { fullWidth: false, footerMinimal: false },
     }
-    this.firstRouteChange = true
 
     this.loginUser = this.loginUser.bind(this)
     this.logoutUser = this.logoutUser.bind(this)
@@ -70,14 +69,12 @@ class OpenReviewApp extends App {
   }
 
   onRouteChange(url) {
-    // Reset banner only if coming from another page
-    if (!this.firstRouteChange) {
-      this.setState({
-        bannerHidden: false,
-        bannerContent: null,
-        layoutOptions: { fullWidth: false, footerMinimal: false },
-      })
-    }
+    // Reset banner
+    this.setState({
+      bannerHidden: false,
+      bannerContent: null,
+      layoutOptions: { fullWidth: false, footerMinimal: false },
+    })
 
     // Track pageview in Google Analytics
     // https://developers.google.com/analytics/devguides/collection/gtagjs/pages
@@ -86,8 +83,6 @@ class OpenReviewApp extends App {
         page_path: url,
       })
     }
-
-    this.firstRouteChange = false
   }
 
   componentDidMount() {
@@ -97,8 +92,6 @@ class OpenReviewApp extends App {
     } else {
       this.setState({ userLoading: false })
     }
-
-    Router.events.on('routeChangeComplete', this.onRouteChange)
 
     // Load required vendor libraries
     window.jQuery = require('jquery')
@@ -129,6 +122,9 @@ class OpenReviewApp extends App {
     window.OR_API_URL = process.env.API_URL
     window.Webfield.setToken(token)
     window.controller.setToken(token)
+
+    // Register route change handler
+    Router.events.on('routeChangeComplete', this.onRouteChange)
 
     this.setState({ clientJsLoading: false })
   }

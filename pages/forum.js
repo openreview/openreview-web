@@ -3,6 +3,7 @@ import Head from 'next/head'
 import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import NoteAuthors from '../components/NoteAuthors'
+import NoteReaders from '../components/NoteReaders'
 import NoteContent from '../components/NoteContent'
 import withError from '../components/withError'
 import api from '../lib/api-client'
@@ -64,9 +65,9 @@ const ForumMeta = ({ note }) => (
 
     {note.readers && (
       <span className="item">
-        readers:
+        Readers:
         {' '}
-        {note.readers.map(prettyId).join(', ')}
+        <NoteReaders readers={note.readers} />
       </span>
     )}
   </div>
@@ -126,7 +127,11 @@ const Forum = ({ forumNote, query, appContext }) => {
 
         <ForumMeta note={forumNote} />
 
-        <NoteContent content={content} />
+        <NoteContent
+          id={forumNote.id}
+          content={content}
+          invitation={forumNote.details.originalInvitation || forumNote.details.invitation}
+        />
 
         <ForumReplyCount count={forumNote.details.replyCount} />
       </div>
@@ -145,7 +150,7 @@ Forum.getInitialProps = async (ctx) => {
   let forumNote
   try {
     const apiRes = await api.get('/notes', {
-      id: ctx.query.id, trash: true, details: 'replyCount,writable,revisions,original,overwriting',
+      id: ctx.query.id, trash: true, details: 'replyCount,writable,revisions,original,overwriting,invitation',
     }, { accessToken: token })
     forumNote = apiRes.notes && apiRes.notes.length && apiRes.notes[0]
   } catch (error) {
