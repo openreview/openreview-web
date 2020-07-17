@@ -11,8 +11,18 @@ export const baseGroupId = 'TestVenue'
 const subGroupId = 'TestVenue/2020'
 export const conferenceGroupId = 'TestVenue/2020/Conference'
 const conferenceSubmissionInvitationId = `${conferenceGroupId}/-/Submission`
-export const hasTaskUser = { first: 'FirstA', last: 'LastA', email: 'a@a.com', password: '1234' }
-export const hasNoTaskUser = { first: 'FirstB', last: 'LastB', email: 'b@b.com', password: '1234' }
+export const hasTaskUser = {
+  first: 'FirstA',
+  last: 'LastA',
+  email: 'a@a.com',
+  password: '1234',
+}
+export const hasNoTaskUser = {
+  first: 'FirstB',
+  last: 'LastB',
+  email: 'b@b.com',
+  password: '1234',
+}
 let hasTaskUserTildeId = ''
 let hasTaskUserToken = ''
 
