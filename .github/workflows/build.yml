@@ -27,7 +27,7 @@ jobs:
     - name: Checkout openreview API
       uses: actions/checkout@v2
       with:
-        repository: openreview/openreview
+        repository: https://github.com/openreview/openreview.git
         #token: ${{ secrets.GitHub_PAT }} # `GitHub_PAT` is a secret that contains your PAT
         path: openreview-api
         run: |
