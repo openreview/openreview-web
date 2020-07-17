@@ -1,5 +1,3 @@
-/* eslint-disable no-shadow */
-/* eslint-disable max-len */
 /* eslint-disable no-use-before-define */
 import fetch from 'node-fetch'
 import api from '../../lib/api-client'
@@ -40,6 +38,7 @@ export async function setup(ctx) {
   await addMembersToGroup('active_venues', [baseGroupId], adminToken) // add group to active_venues so that it's shown in active venues list
   await addGroup(constructSubGroupJson(subGroupId, baseGroupId), adminToken) // create sub group
   await addGroup(constructConferenceGroupJson(conferenceGroupId, baseGroupId, subGroupId), adminToken) // create conference group
+  // eslint-disable-next-line max-len
   await addInvitation(constructSubmissionInvitationJson(conferenceSubmissionInvitationId, conferenceGroupId), adminToken) // create invitaiton for submissionex
   // create a venue AnotherTestVenue
   await addGroup(constructBaseGroupJson(`Another${baseGroupId}`, circleciSuperUserName), adminToken)
@@ -198,43 +197,43 @@ export async function createUser({
   return activateResult
 }
 
-export const constructBaseGroupJson = (baseGroupId, superUserName) => {
+export const constructBaseGroupJson = (baseGrpId, superUserName) => {
   const baseGroupJson = {
-    id: baseGroupId,
+    id: baseGrpId,
     signatures: [superUserName],
     writers: [superUserName],
     members: [],
     readers: ['everyone'],
     nonreaders: [],
-    signatories: [baseGroupId],
+    signatories: [baseGrpId],
     web: null,
   }
   return baseGroupJson
 }
 
-export const constructSubGroupJson = (subGroupId, baseGroupId) => {
+export const constructSubGroupJson = (subGrpId, baseGrpId) => {
   const subGroupJson = {
-    id: subGroupId,
-    signatures: [baseGroupId],
-    writers: [baseGroupId],
+    id: subGrpId,
+    signatures: [baseGrpId],
+    writers: [baseGrpId],
     members: [],
     readers: ['everyone'],
     nonreaders: [],
-    signatories: [subGroupId],
+    signatories: [subGrpId],
     web: null,
   }
   return subGroupJson
 }
 
-export const constructConferenceGroupJson = (conferenceGroupId, baseGroupId, subGroupId) => {
+export const constructConferenceGroupJson = (conferenceGrpId, baseGrpId, subGrpId) => {
   const conferenceGroupJson = {
-    id: conferenceGroupId,
-    signatures: [subGroupId],
-    writers: [baseGroupId],
+    id: conferenceGrpId,
+    signatures: [subGrpId],
+    writers: [baseGrpId],
     members: [],
     readers: ['everyone'],
     nonreaders: [],
-    signatories: [conferenceGroupId],
+    signatories: [conferenceGrpId],
     web: `// ------------------------------------
     // Basic venue homepage template
     //
@@ -243,7 +242,7 @@ export const constructConferenceGroupJson = (conferenceGroupId, baseGroupId, sub
     // ------------------------------------
 
     // Constants
-    var CONFERENCE = "${conferenceGroupId}";
+    var CONFERENCE = "${conferenceGrpId}";
     var INVITATION = CONFERENCE + '/-/Submission';
     var SUBJECT_AREAS = [
       // Add conference specific subject areas here
@@ -334,12 +333,12 @@ export const constructConferenceGroupJson = (conferenceGroupId, baseGroupId, sub
 }
 
 // eslint-disable-next-line max-len
-export const constructSubmissionInvitationJson = (invitationId, conferenceGroupId, dueDate = Date.now() + 24 * 60 * 60 * 1000) => {
+export const constructSubmissionInvitationJson = (invitationId, conferenceGrpId, dueDate = Date.now() + 24 * 60 * 60 * 1000) => {
   const submissionInvitationJson = {
     id: invitationId,
     readers: ['everyone'],
-    writers: [conferenceGroupId],
-    signatures: [conferenceGroupId],
+    writers: [conferenceGrpId],
+    signatures: [conferenceGrpId],
     invitees: ['~'], // doc use everyone, api is looking for ~
     duedate: dueDate, // default value is tomorrow
     reply: {
