@@ -27,7 +27,7 @@ jobs:
     - name: Checkout openreview API
       uses: actions/checkout@v2
       with:
-        repository: openreview/openreview.git
+        repository: openreview/openreview
         token: ${{ secrets.OPENREVIEW_ACCESS_TOKEN }}
         path: openreview-api
         run: |
