@@ -39,3 +39,7 @@ jobs:
     - run: npm ci
     - run: npm run lint
     - run: npm run build
+    - name: Run TestCafe Tests
+      uses: DevExpress/testcafe-action@latest
+      with:
+        args: "chrome -sf tests/register.ts"
