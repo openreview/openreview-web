@@ -2,7 +2,7 @@
 /* eslint-disable max-len */
 /* eslint-disable no-use-before-define */
 import fetch from 'node-fetch'
-import api from '../lib/api-client'
+import api from '../../lib/api-client'
 
 api.configure({ fetchFn: fetch })
 

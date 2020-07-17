@@ -1,4 +1,4 @@
-import { setup, teardown } from './test-utils'
+import { setup, teardown } from './api-helper'
 
 let activeFixturesCount = 0
 let context = null

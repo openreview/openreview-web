@@ -2,8 +2,8 @@
 /* global test */
 
 import { Selector } from 'testcafe'
-import { baseGroupId, conferenceGroupId } from './test-utils'
-import { registerFixture, before, after } from './hooks'
+import { baseGroupId, conferenceGroupId } from './utils/api-helper'
+import { registerFixture, before, after } from './utils/hooks'
 
 require('dotenv').config()
 

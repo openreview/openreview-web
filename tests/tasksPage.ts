@@ -2,8 +2,8 @@
 /* global test */
 
 import { Selector, Role } from 'testcafe'
-import { hasTaskUser, hasNoTaskUser } from './test-utils'
-import { registerFixture, before, after } from './hooks'
+import { hasTaskUser, hasNoTaskUser } from './utils/api-helper'
+import { registerFixture, before, after } from './utils/hooks'
 
 require('dotenv').config()
 

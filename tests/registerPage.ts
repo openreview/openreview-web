@@ -2,7 +2,7 @@
 /* global test */
 
 import { Selector, ClientFunction } from 'testcafe'
-import { registerFixture, before, after } from './hooks'
+import { registerFixture, before, after } from './utils/hooks'
 
 require('dotenv').config()
 
