@@ -82,15 +82,15 @@ const ForumReplyCount = ({ count }) => (
 const Forum = ({ forumNote, query, appContext }) => {
   const { user } = useContext(UserContext)
   const { clientJsLoading, setBannerContent } = appContext
-  const { content } = forumNote
+  const { id, content, details } = forumNote
 
   // Set banner link
   useEffect(() => {
     if (query.referrer) {
       setBannerContent(referrerLink(query.referrer))
     } else {
-      const groupId = forumNote.content.venueid
-        ? forumNote.content.venueid
+      const groupId = content.venueid
+        ? content.venueid
         : forumNote.invitation.split('/-/')[0]
       setBannerContent(venueHomepageLink(groupId))
     }
@@ -102,17 +102,18 @@ const Forum = ({ forumNote, query, appContext }) => {
 
     // eslint-disable-next-line global-require
     const runForum = require('../client/forum')
-    runForum(forumNote.id, query.noteId, query.invitationId, user)
+    runForum(id, query.noteId, query.invitationId, user)
   }, [clientJsLoading])
 
   return (
     <div className="forum-container">
       <Head>
-        <title key="title">{`${forumNote.content.title || 'Forum'} | OpenReview`}</title>
+        <title key="title">{`${content.title || 'Forum'} | OpenReview`}</title>
       </Head>
 
       <div className="note">
         <ForumTitle
+          id={id}
           title={content.title}
           pdf={content.pdf}
           html={content.html || content.ee}
@@ -122,18 +123,18 @@ const Forum = ({ forumNote, query, appContext }) => {
           authors={content.authors}
           authorIds={content.authorids}
           signatures={forumNote.signatures}
-          original={forumNote.details.original}
+          original={details.original}
         />
 
         <ForumMeta note={forumNote} />
 
         <NoteContent
-          id={forumNote.id}
+          id={id}
           content={content}
-          invitation={forumNote.details.originalInvitation || forumNote.details.invitation}
+          invitation={details.originalInvitation || details.invitation}
         />
 
-        <ForumReplyCount count={forumNote.details.replyCount} />
+        <ForumReplyCount count={details.replyCount} />
       </div>
 
       <hr />
