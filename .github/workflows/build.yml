@@ -34,7 +34,7 @@ jobs:
       run: |
         cd openreview-api
         npm install
-        NODE_ENV=circleci node scripts/clean_start_app.js &
+        NODE_ENV=circleci node scripts/clean_start_app.js
     - name: curl
       uses: wei/curl@v1
       with:
