@@ -70,7 +70,10 @@ jobs:
     - run: npm run start &
       env:
         NEXT_PORT: 3030
+        SUPER_USER: openreview.net
     - name: Run TestCafe Tests
       uses: DevExpress/testcafe-action@latest
       with:
         args: "chrome -sf tests/register.ts"
+      env:
+        NEXT_PORT: 3030
