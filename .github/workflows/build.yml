@@ -66,6 +66,7 @@ jobs:
     - run: npm run build
     - run: export NEXT_PORT=3030
     - run: export SUPER_USER=openreview.net
+    - run: cp .env.sample .env
     - run: npm run start
     - name: Run TestCafe Tests
       uses: DevExpress/testcafe-action@latest
