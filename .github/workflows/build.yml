@@ -67,7 +67,7 @@ jobs:
     - run: export NEXT_PORT=3030
     - run: export SUPER_USER=openreview.net
     - run: cp .env.sample .env
-    - run: npm run start
+    - run: npm run start &
       env:
         NEXT_PORT: 3030
     - name: Run TestCafe Tests
