@@ -7,6 +7,7 @@ module.exports = withLess({
   import: true,
   env: {
     IS_PRODUCTION: process.env.NODE_ENV === 'production',
+    IS_STAGING: process.env.NODE_ENV === 'staging',
     NEXT_PORT: process.env.NEXT_PORT,
     API_URL: process.env.API_URL,
     SECURE_ACTIVATION: false,
