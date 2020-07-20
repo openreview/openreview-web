@@ -68,6 +68,8 @@ jobs:
     - run: export SUPER_USER=openreview.net
     - run: cp .env.sample .env
     - run: npm run start
+      env:
+        NEXT_PORT: 3030
     - name: Run TestCafe Tests
       uses: DevExpress/testcafe-action@latest
       with:
