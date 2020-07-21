@@ -3,6 +3,8 @@
 import fetch from 'node-fetch'
 import api from '../../lib/api-client'
 
+require('dotenv').config()
+
 api.configure({ fetchFn: fetch })
 
 // #region exported constants
