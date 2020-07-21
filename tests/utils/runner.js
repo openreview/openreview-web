@@ -1,16 +1,17 @@
 const createTestCafe = require('testcafe')
 
+require('dotenv').config()
+
 const singleTestFileName = process.argv[2]
 
 const runTests = async () => {
   const testcafe = await createTestCafe()
-  let testFileSrc = './tests/*.ts'
-  if (singleTestFileName) testFileSrc = `./tests/${singleTestFileName}`
+  const testFiles = `./tests/${singleTestFileName || '*.ts'}`
 
   try {
     const runner = testcafe.createRunner()
     const failedCount = await runner
-      .src(testFileSrc)
+      .src(testFiles)
       .browsers(['chrome'])
       .run({
         stopOnFirstFail: true,

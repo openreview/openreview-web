@@ -1,14 +1,17 @@
 /* eslint-disable no-use-before-define */
+
 import fetch from 'node-fetch'
 import api from '../../lib/api-client'
 
 api.configure({ fetchFn: fetch })
 
-export const circleciSuperUserName = 'openreview.net'
+// #region exported constants
+export const superUserName = 'openreview.net'
 export const baseGroupId = 'TestVenue'
-const subGroupId = 'TestVenue/2020'
+export const subGroupId = 'TestVenue/2020'
 export const conferenceGroupId = 'TestVenue/2020/Conference'
-const conferenceSubmissionInvitationId = `${conferenceGroupId}/-/Submission`
+export const conferenceSubmissionInvitationId = `${conferenceGroupId}/-/Submission`
+
 export const hasTaskUser = {
   first: 'FirstA',
   last: 'LastA',
@@ -21,44 +24,52 @@ export const hasNoTaskUser = {
   email: 'b@b.com',
   password: '1234',
 }
-let hasTaskUserTildeId = ''
-let hasTaskUserToken = ''
+// #endregion
 
-// the setup function is shared by all tests and should run only once. all data required by a test case should be put here
+// The setup function is shared by all tests and should run only once. Any data
+// required by the test cases should be put here
 export async function setup(ctx) {
+  // eslint-disable-next-line no-console
   console.log('SETUP')
-  // const result1 = await api.put('/reset/openreview.net', { password: '1234' })
+
   // reset super user password
   await resetAdminPassword('1234')
   const adminToken = await getToken()
-  // #region used by index.ts and tasks.ts
+
   // create a venue TestVenue
-  await addGroup(constructBaseGroupJson(baseGroupId, circleciSuperUserName), adminToken) // create base venue group
+  await createGroup(buildBaseGroupJson(baseGroupId), adminToken) // create base venue group
   await addMembersToGroup('host', [baseGroupId], adminToken) // add group to host so that it's shown in all venues list
   await addMembersToGroup('active_venues', [baseGroupId], adminToken) // add group to active_venues so that it's shown in active venues list
-  await addGroup(constructSubGroupJson(subGroupId, baseGroupId), adminToken) // create sub group
-  await addGroup(constructConferenceGroupJson(conferenceGroupId, baseGroupId, subGroupId), adminToken) // create conference group
-  // eslint-disable-next-line max-len
-  await addInvitation(constructSubmissionInvitationJson(conferenceSubmissionInvitationId, conferenceGroupId), adminToken) // create invitaiton for submissionex
+  await createGroup(buildSubGroupJson(subGroupId, baseGroupId), adminToken) // create sub group
+  await createGroup(buildConferenceGroupJson(conferenceGroupId, baseGroupId, subGroupId), adminToken) // create conference group
+  await createInvitation(buildSubmissionInvitationJson(conferenceSubmissionInvitationId, conferenceGroupId), adminToken) // create invitaiton for submissions
+
   // create a venue AnotherTestVenue
-  await addGroup(constructBaseGroupJson(`Another${baseGroupId}`, circleciSuperUserName), adminToken)
+  await createGroup(buildBaseGroupJson(`Another${baseGroupId}`), adminToken)
   await addMembersToGroup('host', [`Another${baseGroupId}`], adminToken)
   await addMembersToGroup('active_venues', [`Another${baseGroupId}`], adminToken)
-  await addGroup(constructSubGroupJson(`Another${subGroupId}`, `Another${baseGroupId}`), adminToken)
-  await addGroup(constructConferenceGroupJson(`Another${conferenceGroupId}`, `Another${baseGroupId}`, `Another${subGroupId}`), adminToken)
-  await addInvitation(constructSubmissionInvitationJson(`Another${conferenceSubmissionInvitationId}`, `Another${conferenceGroupId}`, Date.now() + 2 * 24 * 60 * 60 * 1000), adminToken) // 2 days later
-  // #endregion
-  // #region used by tasks.ts
-  // create hastask user
-  const result = await createUser(hasTaskUser)
-  hasTaskUserTildeId = result.user.profile.id
-  hasTaskUserToken = result.token
-  // create notask user
+  await createGroup(buildSubGroupJson(`Another${subGroupId}`, `Another${baseGroupId}`), adminToken)
+  await createGroup(buildConferenceGroupJson(`Another${conferenceGroupId}`, `Another${baseGroupId}`, `Another${subGroupId}`), adminToken)
+  await createInvitation(buildSubmissionInvitationJson(`Another${conferenceSubmissionInvitationId}`, `Another${conferenceGroupId}`, Date.now() + 2 * 24 * 60 * 60 * 1000), adminToken) // 2 days later
+
+  await setupTasks(adminToken)
+
+  return {
+    superUserToken: adminToken,
+    api,
+  }
+}
+
+async function setupTasks(adminToken) {
+  // create users
+  const userRes = await createUser(hasTaskUser)
+  const hasTaskUserTildeId = userRes.user.profile.id
+  const hasTaskUserToken = userRes.token
   await createUser(hasNoTaskUser)
+
   // add a note
   const noteJson = {
-    content:
-    {
+    content: {
       title: 'test title',
       authors: ['test author'],
       authorids: [hasTaskUser.email],
@@ -71,9 +82,9 @@ export async function setup(ctx) {
     writers: [hasTaskUserTildeId],
     invitation: conferenceSubmissionInvitationId,
   }
-  const addNoteResult = await addNote(noteJson, hasTaskUserToken)
-  const noteId = addNoteResult.id
-  // add reply invitation
+  const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
+
+  // add reply invitation with invitee everyone so it will be shown in tasks
   const replyInvitationJson = {
     id: `${conferenceGroupId}/-/Comment`,
     readers: ['everyone'],
@@ -108,61 +119,50 @@ export async function setup(ctx) {
     },
     duedate: Date.now() + 2 * 24 * 60 * 60 * 1000,
   }
-  // create invitaiton for reply to notes
-  // it has invitee everyone so it will be shown in tasks
-  await addInvitation(replyInvitationJson, adminToken)
-  // #endregion
-
-  return {
-    superUserToken: adminToken,
-    api,
-  }
+  await createInvitation(replyInvitationJson, adminToken)
 }
 
 export function teardown() {
+  // eslint-disable-next-line no-console
   console.log('TEARDOWN')
 }
 
-// #region helper functions used by setup()
-export async function addGroup(jsonToPost, adminToken) {
-  const groupsUrl = '/groups'
-  const result = await api.post(groupsUrl, { ...jsonToPost }, { accessToken: adminToken })
+// #region API helper functions
+export function createGroup(jsonToPost, adminToken) {
+  return api.post('/groups', jsonToPost, { accessToken: adminToken })
 }
 
-export async function addInvitation(jsonToPost, adminToken) {
-  const invitationUrl = '/invitations'
-  const result = await api.post(invitationUrl, { ...jsonToPost }, { accessToken: adminToken })
+export function createInvitation(jsonToPost, adminToken) {
+  return api.post('/invitations', jsonToPost, { accessToken: adminToken })
 }
 
-export async function getToken(id = circleciSuperUserName, password = '1234') {
-  const loginUrl = '/login'
-  try {
-    const result = await api.post(loginUrl, { id, password })
-    return result.token
-  } catch (error) {
-    await resetAdminPassword(password)
-    return getToken()
-  }
+export function createNote(jsonToPost, userToken) {
+  return api.post('/notes', jsonToPost, { accessToken: userToken })
 }
 
-async function resetAdminPassword(password) {
-  const result = await api.put(`/reset/${circleciSuperUserName}`, { password })
+export function getToken(id = superUserName, password = '1234') {
+  return api.post('/login', { id, password })
+    .then(apiRes => apiRes.token)
 }
 
-export async function addMembersToGroup(groupId, membersList, adminToken) {
-  const addMembersToGroupUrl = '/groups/members'
-  const result = await api.put(addMembersToGroupUrl, { id: groupId, members: membersList }, { accessToken: adminToken })
+export function resetAdminPassword(password) {
+  return api.put(`/reset/${superUserName}`, { password })
+}
+
+export function addMembersToGroup(groupId, membersList, adminToken) {
+  return api.put('/groups/members', { id: groupId, members: membersList }, { accessToken: adminToken })
 }
 
 export async function createUser({
-  first, middle = '', last, email, password, homepage = 'http://www.google.com', history = {
-    position: 'Postdoc', start: 2000, end: 2000, institution: { domain: 'umass.edu', name: 'University of Massachusetts, Amherst' },
-  },
+  first, middle = '', last, email, password, homepage = 'http://www.google.com', history,
 }) {
   // register
-  const registerResult = await api.post('/register', { email, password, name: { first, middle, last } })
-  const tildeId = registerResult.id
+  const { id: tildeId } = await api.post('/register', { email, password, name: { first, middle, last } })
+
   // activate
+  const defaultHistory = {
+    position: 'Postdoc', start: 2000, end: 2000, institution: { domain: 'umass.edu', name: 'University of Massachusetts, Amherst' },
+  }
   const activateJson = {
     names: [{
       first, middle, last, preferred: true, username: tildeId, altUsernames: [],
@@ -187,18 +187,19 @@ export async function createUser({
       wikipedia: '',
       emails: [email],
       preferredEmail: email,
-      history: [history],
+      history: [history || defaultHistory],
       relations: [],
       expertise: [],
       publicationIdsToUnlink: [],
     },
   }
-  const activateResult = await api.put(`/activate/${email}`, activateJson)
-  return activateResult
+  return api.put(`/activate/${email}`, activateJson)
 }
+// #endregion
 
-export const constructBaseGroupJson = (baseGrpId, superUserName) => {
-  const baseGroupJson = {
+// #region data helper functions
+function buildBaseGroupJson(baseGrpId) {
+  return {
     id: baseGrpId,
     signatures: [superUserName],
     writers: [superUserName],
@@ -208,11 +209,10 @@ export const constructBaseGroupJson = (baseGrpId, superUserName) => {
     signatories: [baseGrpId],
     web: null,
   }
-  return baseGroupJson
 }
 
-export const constructSubGroupJson = (subGrpId, baseGrpId) => {
-  const subGroupJson = {
+function buildSubGroupJson(subGrpId, baseGrpId) {
+  return {
     id: subGrpId,
     signatures: [baseGrpId],
     writers: [baseGrpId],
@@ -222,11 +222,10 @@ export const constructSubGroupJson = (subGrpId, baseGrpId) => {
     signatories: [subGrpId],
     web: null,
   }
-  return subGroupJson
 }
 
-export const constructConferenceGroupJson = (conferenceGrpId, baseGrpId, subGrpId) => {
-  const conferenceGroupJson = {
+function buildConferenceGroupJson(conferenceGrpId, baseGrpId, subGrpId) {
+  return {
     id: conferenceGrpId,
     signatures: [subGrpId],
     writers: [baseGrpId],
@@ -234,113 +233,113 @@ export const constructConferenceGroupJson = (conferenceGrpId, baseGrpId, subGrpI
     readers: ['everyone'],
     nonreaders: [],
     signatories: [conferenceGrpId],
-    web: `// ------------------------------------
-    // Basic venue homepage template
-    //
-    // This webfield displays the conference header (#header), the submit button (#invitation),
-    // and a list of all submitted papers (#notes).
-    // ------------------------------------
+    web: `
+// ------------------------------------
+// Basic venue homepage template
+//
+// This webfield displays the conference header (#header), the submit button (#invitation),
+// and a list of all submitted papers (#notes).
+// ------------------------------------
 
-    // Constants
-    var CONFERENCE = "${conferenceGrpId}";
-    var INVITATION = CONFERENCE + '/-/Submission';
-    var SUBJECT_AREAS = [
-      // Add conference specific subject areas here
-    ];
-    var BUFFER = 1000 * 60 * 30;  // 30 minutes
-    var PAGE_SIZE = 50;
+// Constants
+var CONFERENCE = "${conferenceGrpId}";
+var INVITATION = CONFERENCE + '/-/Submission';
+var SUBJECT_AREAS = [
+  // Add conference specific subject areas here
+];
+var BUFFER = 1000 * 60 * 30;  // 30 minutes
+var PAGE_SIZE = 50;
 
-    var paperDisplayOptions = {
-      pdfLink: true,
-      replyCount: true,
-      showContents: true
-    };
+var paperDisplayOptions = {
+  pdfLink: true,
+  replyCount: true,
+  showContents: true
+};
 
-    // Main is the entry point to the webfield code and runs everything
-    function main() {
-      Webfield.ui.setup('#group-container', CONFERENCE);  // required
+// Main is the entry point to the webfield code and runs everything
+function main() {
+  Webfield.ui.setup('#group-container', CONFERENCE);  // required
 
-      renderConferenceHeader();
+  renderConferenceHeader();
 
+  load().then(render).then(function() {
+    Webfield.setupAutoLoading(INVITATION, PAGE_SIZE, paperDisplayOptions);
+  });
+}
+
+// RenderConferenceHeader renders the static info at the top of the page.
+function renderConferenceHeader() {
+  Webfield.ui.venueHeader({
+    title: "ICML ",
+    subtitle: "Recent Advances in Ubiquitous Computing",
+    location: "University of Rostock, Germany",
+    date: "2017, August 04",
+    website: "https://studip.uni-rostock.de/seminar_main.php?auswahl=c9b2fd0a6f525ce968d41d737de3ccb5",
+    instructions: null,  // Add any custom instructions here. Accepts HTML
+    deadline: "Submission Deadline: 2017, June 15th at 11:59 pm (CEST) "
+  });
+
+  Webfield.ui.spinner('#notes');
+}
+
+// Load makes all the API calls needed to get the data to render the page
+// It returns a jQuery deferred object: https://api.jquery.com/category/deferred-object/
+function load() {
+  var invitationP = Webfield.api.getSubmissionInvitation(INVITATION, {deadlineBuffer: BUFFER});
+  var notesP = Webfield.api.getSubmissions(INVITATION, {pageSize: PAGE_SIZE});
+
+  return $.when(invitationP, notesP);
+}
+
+// Render is called when all the data is finished being loaded from the server
+// It should also be called when the page needs to be refreshed, for example after a user
+// submits a new paper.
+function render(invitation, notes) {
+  // Display submission button and form
+  $('#invitation').empty();
+  Webfield.ui.submissionButton(invitation, user, {
+    onNoteCreated: function() {
+      // Callback funtion to be run when a paper has successfully been submitted (required)
       load().then(render).then(function() {
         Webfield.setupAutoLoading(INVITATION, PAGE_SIZE, paperDisplayOptions);
       });
     }
+  });
 
-    // RenderConferenceHeader renders the static info at the top of the page.
-    function renderConferenceHeader() {
-      Webfield.ui.venueHeader({
-        title: "ICML ",
-        subtitle: "Recent Advances in Ubiquitous Computing",
-        location: "University of Rostock, Germany",
-        date: "2017, August 04",
-        website: "https://studip.uni-rostock.de/seminar_main.php?auswahl=c9b2fd0a6f525ce968d41d737de3ccb5",
-        instructions: null,  // Add any custom instructions here. Accepts HTML
-        deadline: "Submission Deadline: 2017, June 15th at 11:59 pm (CEST) "
-      });
-
-      Webfield.ui.spinner('#notes');
+  // Display the list of all submitted papers
+  $('#notes').empty();
+  Webfield.ui.submissionList(notes, {
+    heading: 'Submitted Papers',
+    displayOptions: paperDisplayOptions,
+    search: {
+      enabled: true,
+      subjectAreas: SUBJECT_AREAS,
+      onResults: function(searchResults) {
+        Webfield.ui.searchResults(searchResults, paperDisplayOptions);
+        Webfield.disableAutoLoading();
+      },
+      onReset: function() {
+        Webfield.ui.searchResults(notes, paperDisplayOptions);
+        Webfield.setupAutoLoading(INVITATION, PAGE_SIZE, paperDisplayOptions);
+      }
     }
-
-    // Load makes all the API calls needed to get the data to render the page
-    // It returns a jQuery deferred object: https://api.jquery.com/category/deferred-object/
-    function load() {
-      var invitationP = Webfield.api.getSubmissionInvitation(INVITATION, {deadlineBuffer: BUFFER});
-      var notesP = Webfield.api.getSubmissions(INVITATION, {pageSize: PAGE_SIZE});
-
-      return $.when(invitationP, notesP);
-    }
-
-    // Render is called when all the data is finished being loaded from the server
-    // It should also be called when the page needs to be refreshed, for example after a user
-    // submits a new paper.
-    function render(invitation, notes) {
-      // Display submission button and form
-      $('#invitation').empty();
-      Webfield.ui.submissionButton(invitation, user, {
-        onNoteCreated: function() {
-          // Callback funtion to be run when a paper has successfully been submitted (required)
-          load().then(render).then(function() {
-            Webfield.setupAutoLoading(INVITATION, PAGE_SIZE, paperDisplayOptions);
-          });
-        }
-      });
-
-      // Display the list of all submitted papers
-      $('#notes').empty();
-      Webfield.ui.submissionList(notes, {
-        heading: 'Submitted Papers',
-        displayOptions: paperDisplayOptions,
-        search: {
-          enabled: true,
-          subjectAreas: SUBJECT_AREAS,
-          onResults: function(searchResults) {
-            Webfield.ui.searchResults(searchResults, paperDisplayOptions);
-            Webfield.disableAutoLoading();
-          },
-          onReset: function() {
-            Webfield.ui.searchResults(notes, paperDisplayOptions);
-            Webfield.setupAutoLoading(INVITATION, PAGE_SIZE, paperDisplayOptions);
-          }
-        }
-      });
-    }
-
-    // Go!
-    main();`,
-  }
-  return conferenceGroupJson
+  });
 }
 
-// eslint-disable-next-line max-len
-export const constructSubmissionInvitationJson = (invitationId, conferenceGrpId, dueDate = Date.now() + 24 * 60 * 60 * 1000) => {
-  const submissionInvitationJson = {
+// Go!
+main();
+    `,
+  }
+}
+
+function buildSubmissionInvitationJson(invitationId, conferenceGrpId, dueDate) {
+  return {
     id: invitationId,
     readers: ['everyone'],
     writers: [conferenceGrpId],
     signatures: [conferenceGrpId],
     invitees: ['~'], // doc use everyone, api is looking for ~
-    duedate: dueDate, // default value is tomorrow
+    duedate: dueDate || Date.now() + 24 * 60 * 60 * 1000, // default value is tomorrow
     reply: {
       forum: null,
       replyto: null,
@@ -371,8 +370,7 @@ export const constructSubmissionInvitationJson = (invitationId, conferenceGrpId,
         authorids: {
           description: 'Comma separated list of author email addresses, lowercased, in the same order as above. For authors with existing OpenReview accounts, please make sure that the provided email address(es) match those listed in the author\'s profile. Please provide real emails; identities will be anonymized.',
           order: 3,
-          // eslint-disable-next-line quotes
-          'values-regex': "[^;,\\n]+(,[^,\\n]+)*",
+          'values-regex': '[^;,\\n]+(,[^,\\n]+)*',
           required: true,
         },
         abstract: {
@@ -390,12 +388,5 @@ export const constructSubmissionInvitationJson = (invitationId, conferenceGrpId,
       },
     },
   }
-  return submissionInvitationJson
-}
-
-export const addNote = (jsonToPost, usertoken) => {
-  const addNoteUrl = '/notes'
-  const result = api.post(addNoteUrl, jsonToPost, { accessToken: usertoken })
-  return result
 }
 // #endregion

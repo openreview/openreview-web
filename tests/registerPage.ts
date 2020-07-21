@@ -1,8 +1,6 @@
 import { Selector, ClientFunction } from 'testcafe'
 import { registerFixture, before, after } from './utils/hooks'
 
-require('dotenv').config()
-
 const firstNameInputSelector = Selector('#first-input')
 const lastNameInputSelector = Selector('#last-input')
 const emailAddressInputSelector = Selector('input').withAttribute('placeholder', 'Email address')
@@ -59,8 +57,7 @@ test('enter valid name invalid email and change to valid email and register', as
     .expect(passwordInputSelector.exists)
     .notOk() // password input should not show when email is invalid
   await t
-    // enter a valid email
-    .typeText(emailAddressInputSelector, email, { replace: true })
+    .typeText(emailAddressInputSelector, email, { replace: true }) // enter a valid email
     .click(signupButtonSelector)
     .expect(passwordInputSelector.exists).ok()
     .typeText(passwordInputSelector, '1234')
@@ -125,10 +122,8 @@ test('Send Activation Link', async (t) => {
     .pressKey('delete')
     .typeText(Selector('.password-row').find('input'), email)
     .click(sendActivationLinkButtonSelector)
-    .expect(Selector('h1').withText('Thank You for Signing Up').exists)
-    .ok()
-    .expect(Selector('span').withAttribute('class', 'email').innerText)
-    .eql(email)
+    .expect(Selector('h1').withText('Thank You for Signing Up').exists).ok()
+    .expect(Selector('span').withAttribute('class', 'email').innerText).eql(email)
 })
 
 fixture.skip`Claim Profile`
@@ -194,8 +189,7 @@ test('update profile', async (t) => {
     .typeText(Selector('input').withAttribute('placeholder', 'Choose a position or type a new one'), 'MS student')
     .typeText(Selector('input').withAttribute('placeholder', 'Choose a domain or type a new one'), 'umass.edu')
     .click(Selector('button').withText('Register for OpenReview'))
-    .expect(Selector('#flash-message-container').exists)
-    .ok()
+    .expect(Selector('#flash-message-container').exists).ok()
     .expect(Selector('span').withAttribute('class', 'important_message').innerText)
     .eql('Your OpenReview profile has been successfully created')
 })
