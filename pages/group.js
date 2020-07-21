@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import omit from 'lodash/omit'
 import Head from 'next/head'
-import { useRouter } from 'next/router'
 import LoadingSpinner from '../components/LoadingSpinner'
+import WebfieldContainer from '../components/WebfieldContainer'
 import withError from '../components/withError'
 import api from '../lib/api-client'
 import { auth } from '../lib/auth'
@@ -12,25 +12,7 @@ import { prettyId } from '../lib/utils'
 import '../styles/pages/group.less'
 
 const Group = ({ groupId, webfieldCode, appContext }) => {
-  const router = useRouter()
   const { setBannerHidden, clientJsLoading } = appContext
-
-  const handleLinkClick = (e) => {
-    // Intercept clicks on links in webfields and use client side routing
-    if (e.target.tagName !== 'A' && e.target.parentElement.tagName !== 'A') return
-
-    const href = e.target.getAttribute('href') || e.target.parentElement.getAttribute('href')
-    if (!href) return
-
-    if (href.match(/^\/(forum|group|profile)/)) {
-      e.preventDefault()
-      // Need to manually scroll to top of page after using router.push,
-      // see https://github.com/vercel/next.js/issues/3249
-      router.push(href).then(() => window.scrollTo(0, 0))
-    } else if (href.startsWith('#')) {
-      router.replace(window.location.pathname + window.location.search + href)
-    }
-  }
 
   useEffect(() => {
     setBannerHidden(true)
@@ -69,8 +51,7 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
         <LoadingSpinner />
       )}
 
-      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
-      <div id="group-container" onClick={handleLinkClick} />
+      <WebfieldContainer id="group-container" />
     </>
   )
 }

@@ -1,7 +1,7 @@
 const GoogleAnalyticsScript = () => {
   const googleAnalyticsId = process.env.GA_PROPERTY_ID
 
-  if (!process.env.IS_PRODUCTION) {
+  if (!process.env.IS_PRODUCTION && !process.env.IS_STAGING) {
     return null
   }
 

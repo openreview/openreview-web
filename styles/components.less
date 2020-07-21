@@ -430,6 +430,16 @@ table.table-minimal {
   }
 }
 
+.venues-list {
+  margin-bottom: 1.5rem;
+
+  & > li > a {
+    font-size: 1.125rem;
+    font-weight: bold;
+    line-height: 1.875rem;
+  }
+}
+
 // Mathjax
 .note_content_value, .note-content-value {
   mjx-container[jax="CHTML"][display="true"] {
@@ -940,8 +950,8 @@ table.table-minimal {
   .submission-authors, .search-results {
     .author-row {
       display: inline-flex;
-      width: 80%;
-      margin: 0.3rem;
+      width: 96%;
+      margin: 0.25rem;
 
       @media @phone-only {
         width: 100%;
@@ -975,7 +985,7 @@ table.table-minimal {
       .profile-actions {
         flex: 1;
         .btn {
-          margin-top: 0.2rem;
+          margin-top: 0.25rem;
         }
       }
 
@@ -983,7 +993,7 @@ table.table-minimal {
   }
 
   .search-container {
-    width: 83.4%;
+    width: 100%;
     margin-bottom: 0.5rem;
     display: inline-flex;
 
@@ -991,6 +1001,7 @@ table.table-minimal {
       flex-grow: 1;
       white-space: pre-wrap;
       font-weight: 400;
+      margin-right: .5rem;
 
       @media @phone-only {
         margin-bottom: 0.5rem;

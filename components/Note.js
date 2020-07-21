@@ -5,7 +5,7 @@ import NoteContent from './NoteContent'
 import Icon from './Icon'
 import { prettyId, forumDate, inflect } from '../lib/utils'
 
-const Note = ({ note, options }) => (
+const Note = ({ note, invitation, options }) => (
   <div className="note">
     <NoteTitle
       id={note.id}
@@ -30,7 +30,7 @@ const Note = ({ note, options }) => (
         authors={note.content.authors}
         authorIds={note.content.authorids}
         signatures={note.signatures}
-        original={note.details && note.details.original}
+        original={note.details?.original}
       />
     </div>
 
@@ -44,8 +44,14 @@ const Note = ({ note, options }) => (
       )}
     </ul>
 
-    {options.showContents && (
-      <NoteContent content={note.content} />
+    {options.showContents && (!note.ddate || note.ddate > Date.now()) && (
+      <NoteContent
+        id={note.id}
+        content={note.content}
+        invitation={note.details?.originalInvitation || note.details?.invitation || invitation}
+        omit={options.omitFields}
+        isReference={options.isReference}
+      />
     )}
   </div>
 )

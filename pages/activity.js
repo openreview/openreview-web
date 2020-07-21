@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
 import LoadingSpinner from '../components/LoadingSpinner'
+import WebfieldContainer from '../components/WebfieldContainer'
 import ErrorAlert from '../components/ErrorAlert'
 import { auth } from '../lib/auth'
 import api from '../lib/api-client'
@@ -70,7 +71,7 @@ const Activity = ({ user, accessToken, appContext }) => {
       {error && (
         <ErrorAlert error={error} />
       )}
-      <div ref={activityRef} />
+      <WebfieldContainer ref={activityRef} />
     </div>
   )
 }
