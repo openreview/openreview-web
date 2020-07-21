@@ -384,7 +384,7 @@ Profile.getInitialProps = async (ctx) => {
   const profileFormatted = formatProfileData(profileRes.profiles[0])
   return {
     profile: profileFormatted,
-    publicProfile: true,
+    publicProfile: Object.keys(profileQuery).length > 0,
   }
 }
 
