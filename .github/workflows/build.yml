@@ -27,7 +27,7 @@ jobs:
     - name: Start MongoDB
       uses: supercharge/mongodb-github-action@1.3.0
       with:
-        mongodb-version: '3.6'
+        mongodb-version: '4.2'
     - name: Configure sysctl limits
       run: |
         sudo swapoff -a
@@ -74,6 +74,6 @@ jobs:
     - name: Run TestCafe Tests
       uses: DevExpress/testcafe-action@latest
       with:
-        args: "chrome"
+        args: "chrome tests"
       env:
         NEXT_PORT: 3030
