@@ -74,6 +74,6 @@ jobs:
     - name: Run TestCafe Tests
       uses: DevExpress/testcafe-action@latest
       with:
-        args: "chrome -sf tests/register.ts"
+        args: "chrome"
       env:
         NEXT_PORT: 3030
