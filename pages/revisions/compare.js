@@ -100,9 +100,8 @@ const CompareRevisions = ({ appContext }) => {
   }, [references])
 
   if (error) {
-    return <ErrorDisplay statusCode={error.statusCode} message={error.message} details={error.details} />
+    return <ErrorDisplay statusCode={error.status} message={error.message} details={error.details} />
   }
-
   return (
     <>
       <Head>

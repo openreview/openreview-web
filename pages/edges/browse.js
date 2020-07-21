@@ -142,7 +142,7 @@ const Browse = ({ appContext }) => {
   }, [error])
 
   if (error) {
-    return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
+    return <ErrorDisplay statusCode={error.status} message={error.message} />
   }
   return (
     <>

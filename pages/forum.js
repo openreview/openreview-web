@@ -1,5 +1,6 @@
 import { useEffect, useContext } from 'react'
 import Head from 'next/head'
+import Router from 'next/router'
 import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import NoteAuthors from '../components/NoteAuthors'
@@ -148,22 +149,27 @@ const Forum = ({ forumNote, query, appContext }) => {
 
 Forum.getInitialProps = async (ctx) => {
   const { token } = auth(ctx)
-  let forumNote
   try {
-    const apiRes = await api.get('/notes', {
+    const { notes } = await api.get('/notes', {
       id: ctx.query.id, trash: true, details: 'replyCount,writable,revisions,original,overwriting,invitation',
     }, { accessToken: token })
-    forumNote = apiRes.notes && apiRes.notes.length && apiRes.notes[0]
-  } catch (error) {
-    return { statusCode: 400, message: 'Forum not found' }
-  }
-  if (!forumNote) {
+    if (notes?.length > 0) {
+      return { forumNote: notes[0], query: ctx.query }
+    }
     return { statusCode: 404, message: 'Forum not found' }
-  }
-
-  return {
-    forumNote,
-    query: ctx.query,
+  } catch (error) {
+    if (error.type === 'forbidden') {
+      if (!token) {
+        if (ctx.req) {
+          ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
+        } else {
+          Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
+        }
+        return {}
+      }
+      return { statusCode: 403, message: 'You don\'t have permission to read this forum' }
+    }
+    return { statusCode: error.status, message: error.message }
   }
 }
 
