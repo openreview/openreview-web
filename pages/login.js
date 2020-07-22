@@ -1,7 +1,7 @@
 /* globals promptError: false */
 /* globals promptMessage: false */
 
-import { useState, useContext } from 'react'
+import { useState, useContext, useEffect } from 'react'
 import Link from 'next/link'
 import Head from 'next/head'
 import Router from 'next/router'
@@ -43,6 +43,12 @@ const LoginForm = ({ redirect }) => {
       promptError(error.message)
     }
   }
+
+  useEffect(() => {
+    if (redirect) {
+      promptMessage(`Please login to access ${redirect}`)
+    }
+  }, [redirect])
 
   return (
     <form onSubmit={handleSubmit}>

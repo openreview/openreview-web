@@ -76,7 +76,6 @@ const CompareRevisions = ({ appContext }) => {
 
     // Require user to be logged in to view comparisons
     if (!accessToken) {
-      promptMessage('Please login to view this page')
       router.replace(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)
       return
     }
