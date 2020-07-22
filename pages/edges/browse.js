@@ -107,7 +107,7 @@ const Browse = ({ appContext }) => {
         }
 
         setInvitations({
-          startInvitation: startInvitations,
+          startInvitation: startInvitations[0],
           traverseInvitations,
           editInvitations,
           browseInvitations,
@@ -154,7 +154,7 @@ const Browse = ({ appContext }) => {
 
       {invitations ? (
         <EdgeBrowser
-          startInvitation={invitations.startInvitations}
+          startInvitation={invitations.startInvitation}
           traverseInvitations={invitations.traverseInvitations}
           editInvitations={invitations.editInvitations}
           browseInvitations={invitations.browseInvitations}
