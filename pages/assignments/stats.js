@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import Head from 'next/head'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 import Link from 'next/link'
 import withError from '../../components/withError'
 import { auth } from '../../lib/auth'
@@ -14,6 +14,7 @@ import '../../styles/pages/assignment-stats.less'
 const AssignmentStats = ({
   groupId, assignmentConfigNote, referrer, appContext,
 }) => {
+  const router = useRouter()
   const { setBannerContent, clientJsLoading } = appContext
 
   useEffect(() => {
@@ -31,7 +32,7 @@ const AssignmentStats = ({
     // eslint-disable-next-line global-require
     const runAssignmentStats = require('../../client/assignment-stats')
 
-    runAssignmentStats(assignmentConfigNote)
+    runAssignmentStats(assignmentConfigNote, router.push)
   }, [clientJsLoading])
 
   return (

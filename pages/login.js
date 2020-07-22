@@ -5,6 +5,7 @@ import { useState, useContext, useEffect } from 'react'
 import Link from 'next/link'
 import Head from 'next/head'
 import Router from 'next/router'
+import truncate from 'lodash/truncate'
 import UserContext from '../components/UserContext'
 import api from '../lib/api-client'
 import { auth } from '../lib/auth'
@@ -46,7 +47,7 @@ const LoginForm = ({ redirect }) => {
 
   useEffect(() => {
     if (redirect) {
-      promptMessage(`Please login to access ${redirect}`)
+      promptMessage(`Please login to access ${truncate(redirect, { length: 100 })}`)
     }
   }, [redirect])
 
