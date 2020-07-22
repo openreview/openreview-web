@@ -81,3 +81,7 @@ jobs:
         args: "chrome tests"
       env:
         NEXT_PORT: 3030
+    - name: Check logs
+      run: |
+        cd openreview-api
+        cat logs/2020-07-21-results.log
