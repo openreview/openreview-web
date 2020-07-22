@@ -55,6 +55,10 @@ jobs:
     - name: Run openreview API
       run: |
         cd openreview-api
+        mkdir logs
+        mkdir files
+        mkdir files/attachments
+        mkdir files/pdfs
         npm install
         NODE_ENV=circleci node scripts/clean_start_app.js &
     # - name: Test openreview API
