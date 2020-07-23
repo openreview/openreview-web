@@ -84,10 +84,10 @@ export default function DblpImportModal({ profileId, profileNames }) {
       publicationsInOpenReview.current = await getAllPapersByGroupId(profileId)
       const { allExistInOpenReview } = getExistingFromDblpPubs(publications)
       if (allExistInOpenReview) {
-        setMessage(`${selectedPublications.length} publications were sucessfully imported.
+        setMessage(`${selectedPublications.length} publications were successfully imported.
             All ${publications.length} of the publications from DBLP now exist in OpenReview.`)
       } else {
-        setMessage(`${selectedPublications.length} publications were sucessfully imported.
+        setMessage(`${selectedPublications.length} publications were successfully imported.
             Please select any additional publications you would like to add to your profile.`)
       }
 
