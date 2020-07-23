@@ -78,12 +78,11 @@ jobs:
     - name: Run TestCafe Tests
       uses: DevExpress/testcafe-action@latest
       with:
-        args: "chrome tests"
+        args: "chrome tests/registerPage.ts"
       env:
         NEXT_PORT: 3030
     - name: Check logs
       if: ${{ failure() }}
       run: |
-        cd openreview-api
-        ls logs
-        cat logs/2020-07-23-results.log
+        cd openreview-api/logs
+        cat "$(ls -rt | tail -n1)"
