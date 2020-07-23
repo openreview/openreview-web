@@ -78,9 +78,14 @@ jobs:
     - name: Run TestCafe Tests
       uses: DevExpress/testcafe-action@latest
       with:
-        args: "chrome:headless tests/registerPage.ts"
+        args: "chrome tests/registerPage.ts --speed=0.3 --video videos"
       env:
         NEXT_PORT: 3030
+    - name: Upload Videos
+      uses: actions/upload-artifact@v2
+        with:
+          name: videos
+          path: /videos
     - name: Check logs
       if: ${{ failure() }}
       run: |
