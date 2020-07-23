@@ -20,12 +20,6 @@ const AssignmentStats = ({
   useEffect(() => {
     if (clientJsLoading) return
 
-    if (referrer) {
-      setBannerContent(referrerLink(referrer))
-    } else {
-      setBannerContent(venueHomepageLink(groupId, 'edit'))
-    }
-
     // eslint-disable-next-line global-require
     window.d3 = require('d3')
 
@@ -33,7 +27,15 @@ const AssignmentStats = ({
     const runAssignmentStats = require('../../client/assignment-stats')
 
     runAssignmentStats(assignmentConfigNote, router.push)
-  }, [clientJsLoading])
+  }, [clientJsLoading, assignmentConfigNote])
+
+  useEffect(() => {
+    if (referrer) {
+      setBannerContent(referrerLink(referrer))
+    } else {
+      setBannerContent(venueHomepageLink(groupId, 'edit'))
+    }
+  }, [referrer, groupId])
 
   return (
     <>
