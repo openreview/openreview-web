@@ -85,4 +85,5 @@ jobs:
       if: ${{ failure() }}
       run: |
         cd openreview-api
-        cat logs/2020-07-22-results.log
+        ls logs
+        cat logs/2020-07-23-results.log
