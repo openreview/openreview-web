@@ -68,7 +68,7 @@ test('enter valid name invalid email and change to valid email and register', as
     .eql(email)
 })
 
-fixture`Resend Activation link`
+fixture.skip`Resend Activation link`
   .page`http://localhost:${process.env.NEXT_PORT}/login`
   .before(async ctx => before(ctx))
   .after(async ctx => after(ctx))
@@ -194,7 +194,7 @@ test('update profile', async (t) => {
     .eql('Your OpenReview profile has been successfully created')
 })
 
-fixture`Reset password`
+fixture.skip`Reset password`
   .page`http://localhost:${process.env.NEXT_PORT}/reset`
   .before(async ctx => before(ctx))
   .after(async ctx => after(ctx))
@@ -255,7 +255,7 @@ test('add alternate email', async (t) => {
   await t.expect(result.messages[0].content.text).contains('http://localhost:3030/confirm?token=')
 })
 
-fixture`Confirm altenate email`
+fixture.skip`Confirm altenate email`
   .page`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`
   .before(async ctx => before(ctx))
   .after(async ctx => after(ctx))
