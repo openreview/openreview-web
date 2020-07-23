@@ -12,7 +12,7 @@ var Continuous = 'continuous';
 var Scalar = 'scalar';
 
 var useEdges = true;
-var buildEdgeBrowserUrl;
+var edgeBrowserRedirect;
 
 var loadFromNotes = function(assignmentConfigNote) {
   return Webfield.getAll('/notes', {
@@ -523,7 +523,7 @@ var renderHistogram = function(divId, stats) {
           data: dataList
         }));
         if (useEdges) {
-          window.location.href = buildEdgeBrowserUrl(key, stats.type);
+          edgeBrowserRedirect(key, stats.type);
         }
       });
     }
@@ -577,13 +577,13 @@ var renderScalar = function(k, stats) {
 };
 
 
-var generateBuildEdgeBrowserUrl = function(configNote) {
+var generateEdgeBrowserRedirect = function(id, configNote, navigateToPage) {
   return function(key, type) {
     var browseInvitations = Object.keys(configNote.scores_specification);
     var referrerText = view.prettyId(configNote.title) + ' Statistics';
     var typeParam = type === 'reviewer' ? 'type:tail' : 'type:head';
 
-    return '/edges/browse' +
+    navigateToPage('/edges/browse' +
       '?start=staticList,' + typeParam + ',storageKey:' + key +
       '&traverse=' + configNote.assignment_invitation + ',label:' + configNote.title +
       '&edit=' + configNote.assignment_invitation + ',label:' + configNote.title +
@@ -593,7 +593,7 @@ var generateBuildEdgeBrowserUrl = function(configNote) {
       (configNote.custom_max_papers_invitation ? ';' + configNote.custom_max_papers_invitation + ',head:ignore' : '') +
       (configNote.custom_load_invitation ? ';' + configNote.custom_load_invitation + ',head:ignore' : '') +
       '&maxColumns=3' +
-      '&referrer=' + encodeURIComponent('[' + referrerText + '](' + location.pathname + location.search + ')');
+      '&referrer=' + encodeURIComponent('[' + referrerText + '](/assignments/stats?id=' + id + ')'));
   }
 };
 
@@ -614,14 +614,14 @@ var showLoadingError = function(err) {
 };
 
 
-const runAssignmentStats = (note) => {
+const runAssignmentStats = (note, navigateToPage) => {
   if (!note) {
     console.warn('Must provide assignment configuration note in order to compute stats');
     return;
   }
 
   useEdges = !!note.content.scores_specification;
-  buildEdgeBrowserUrl = generateBuildEdgeBrowserUrl(note.content)
+  edgeBrowserRedirect = generateEdgeBrowserRedirect(note.id, note.content, navigateToPage)
 
   Webfield.ui.spinner('#stats-container-basic', { inline: true })
 
