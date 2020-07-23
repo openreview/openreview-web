@@ -86,7 +86,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: videos
-        path: /home/runner/work/openreview-web/openreview-web/tests/videos/
+        path: /home/runner/work/openreview-web/openreview-web/videos/
     - name: Check logs
       if: ${{ failure() }}
       run: |
