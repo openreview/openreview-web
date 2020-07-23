@@ -83,9 +83,9 @@ jobs:
         NEXT_PORT: 3030
     - name: Upload Videos
       uses: actions/upload-artifact@v2
-        with:
-          name: videos
-          path: tests/videos
+      with:
+        name: videos
+        path: tests/videos
     - name: Check logs
       if: ${{ failure() }}
       run: |
