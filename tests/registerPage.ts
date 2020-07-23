@@ -216,6 +216,17 @@ fixture`Edit profile`
   .page`http://localhost:${process.env.NEXT_PORT}/login`
   .before(async ctx => before(ctx))
   .after(async ctx => after(ctx))
+test('test for debugging', async (t) => {
+  const { api, superUserToken } = t.fixtureCtx
+  const result = await api.post('/login', { id: 'melisa@test.com', password: '1234' })
+  const melisaToken = result.token
+  const profileResult = await api.get('/profiles', {}, { accessToken: melisaToken })
+  console.log(profileResult)
+  const optionsResult = await api.get('/profiles/options', {}, { accessToken: melisaToken })
+  console.log(optionsResult)
+  const notesResult = await api.get('/notes?content.authorids=~Melisa_Bok1&details=invitation%2Coriginal&sort=tmdate%3Adesc&offset=0&limit=20', {}, { accessToken: melisaToken })
+  console.log(notesResult)
+})
 
 test('add alternate email', async (t) => {
   const getPageUrl = ClientFunction(() => window.location.href.toString())
