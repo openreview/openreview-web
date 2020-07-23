@@ -47,7 +47,7 @@ export default function LegacyProfileEditor({
 
     if (!hideDblpButton && !hidePublicationEditor) {
       $('#dblp-import-modal').on('hidden.bs.modal', () => {
-        renderPublicationEditor()
+        renderPublicationEditor(profile.id)
       })
     }
   }, [profile, dropdownOptions])

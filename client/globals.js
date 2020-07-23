@@ -54,10 +54,10 @@ window.translateErrorMessage = function(error) {
     invalidInvitation: [view.iMess(' is not a valid invitation')],
     alreadyConfirmed: [
       view.iMess(' is already associated with another OpenReview profile, '),
-      $('<a>', { href: '/profile?id=' + error.value, title: 'View profile', target: '_blank' }).text(error.value),
+      $('<a>', { href: '/profile?id=' + error.value, title: 'View profile', target: '_blank', class: 'action-link' }).text(error.value),
       view.iMess('. To merge this profile with your account, please click here to submit a support request: '),
       buildFeebackModalLink('Merge Profiles', {
-        from: error.value2,
+        from: error.user,
         subject: 'Merge Profiles',
         message: 'Hi OpenReview Support,\n\nPlease merge the profiles with the following usernames:\n' + error.value2 + '\n' + error.value + '\n\nThank you.'
       })
