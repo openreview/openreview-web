@@ -1,5 +1,6 @@
 import { useEffect, useContext } from 'react'
 import Head from 'next/head'
+import Router from 'next/router'
 import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import NoteAuthors from '../components/NoteAuthors'
@@ -148,22 +149,32 @@ const Forum = ({ forumNote, query, appContext }) => {
 
 Forum.getInitialProps = async (ctx) => {
   const { token } = auth(ctx)
-  let forumNote
   try {
-    const apiRes = await api.get('/notes', {
-      id: ctx.query.id, trash: true, details: 'replyCount,writable,revisions,original,overwriting,invitation',
-    }, { accessToken: token })
-    forumNote = apiRes.notes && apiRes.notes.length && apiRes.notes[0]
-  } catch (error) {
-    return { statusCode: 400, message: 'Forum not found' }
-  }
-  if (!forumNote) {
+    // Since the notes API will not return a proper error when details are requested,
+    // we need to make 2 simultaneos calls. The first will be used to check for an error
+    // and the second will actually be used for the page.
+    const noteDetails = 'replyCount,writable,revisions,original,overwriting,invitation'
+    const [apiRes1, apiRes2] = await Promise.all([
+      api.get('/notes', { id: ctx.query.id }, { accessToken: token }),
+      api.get('/notes', { id: ctx.query.id, trash: true, details: noteDetails }, { accessToken: token }),
+    ])
+    if (apiRes2.notes?.length > 0) {
+      return { forumNote: apiRes2.notes[0], query: ctx.query }
+    }
     return { statusCode: 404, message: 'Forum not found' }
-  }
-
-  return {
-    forumNote,
-    query: ctx.query,
+  } catch (error) {
+    if (error.name === 'forbidden') {
+      if (!token) {
+        if (ctx.req) {
+          ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
+        } else {
+          Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
+        }
+        return {}
+      }
+      return { statusCode: 403, message: 'You don\'t have permission to read this forum' }
+    }
+    return { statusCode: error.status, message: error.message }
   }
 }
 

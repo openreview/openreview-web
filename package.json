@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS='--inspect' next dev --port $NEXT_PORT",
-    "lint": "eslint components/**/*.js lib/*.js pages/**/*.js",
+    "lint": "eslint --ext .js,.ts pages/** components/** lib/** hooks/** tests/**",
     "build": "next build",
     "start": "next start --port $NEXT_PORT",
-    "test": "testcafe chrome -sf tests/register.ts"
+    "test": "testcafe chrome tests/*.ts"
   },
   "dependencies": {
     "@zeit/next-less": "github:zbialecki/next-less",

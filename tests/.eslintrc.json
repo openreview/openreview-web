@@ -1,0 +1,12 @@
+{
+  "env": {
+    "node": true
+  },
+  "globals": {
+    "fixture": "readonly",
+    "test": "readonly"
+  },
+  "rules" : {
+    "newline-per-chained-call": "off"
+  }
+}
