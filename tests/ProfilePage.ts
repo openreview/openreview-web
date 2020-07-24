@@ -33,12 +33,12 @@ const dblpImportModalAddToProfileBtn = Selector('div.modal-footer').find('button
 const dblpImportModalSelectCount = Selector('div.modal-footer').find('div.selected-count')
 // #endregion
 
-fixture.only`setup`
+fixture`setup`
   .before(async ctx => before(ctx))
   .after(async ctx => after(ctx))
 test('dummy test to run setup', async (t) => {})
 
-fixture`profile page`
+fixture.only`profile page`
   .before(async ctx => before(ctx))
   .after(async ctx => after(ctx))
 test('user open own profile', async (t) => {
@@ -93,7 +93,7 @@ test('user open own profile', async (t) => {
     .expect(errorMessageSelector.innerText).eql('Your profile information has been successfully updated')
 })
 test('import paper from dblp', async (t) => {
-  const testPersistentUrl = 'https://dblp.org/pid/m/AndrewMcCallum'
+  const testPersistentUrl = 'https://dblp.org/pid/95/7448-1'
   await t.useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled')).ok()
@@ -116,8 +116,8 @@ test('import paper from dblp', async (t) => {
     .click(dblpImportModalCancelButton)
     // add name to skip validation error
     .click(nameSectionPlusIconSelector)
-    .typeText(editFirstNameInputSelector, 'Andrew')
-    .typeText(editLastNameInputSelector, 'McCallum')
+    .typeText(editFirstNameInputSelector, 'Di')
+    .typeText(editLastNameInputSelector, 'Xu')
     .click(Selector('button').withText('Save Profile Changes'))
     .click(Selector('a').withText('Edit Profile'))
     .click(addDBLPPaperToProfileButton)
