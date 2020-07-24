@@ -226,6 +226,7 @@ test('test for debugging', async (t) => {
   console.log(optionsResult.institutions.length)
   const notesResult = await api.get('/notes?content.authorids=~Melisa_Bok1&details=invitation%2Coriginal&sort=tmdate%3Adesc&offset=0&limit=20', {}, { accessToken: melisaToken })
   console.log(notesResult)
+  console.log(123)
 })
 
 test('add alternate email', async (t) => {
