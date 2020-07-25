@@ -200,8 +200,7 @@ const Assignments = ({ groupId, referrer, appContext }) => {
     $('main').append(Handlebars.templates.genericModal({
       id: 'note-editor-modal',
       extraClasses: 'modal-lg',
-      showHeader: true,
-      title: 'New Configuration',
+      showHeader: false,
       showFooter: false,
     }))
 
@@ -222,8 +221,7 @@ const Assignments = ({ groupId, referrer, appContext }) => {
     $('main').append(Handlebars.templates.genericModal({
       id: 'note-editor-modal',
       extraClasses: 'modal-lg',
-      showHeader: true,
-      title: 'Edit Configuration',
+      showHeader: false,
       showFooter: false,
     }))
     $('#note-editor-modal').modal('show')
@@ -244,8 +242,7 @@ const Assignments = ({ groupId, referrer, appContext }) => {
     $('main').append(Handlebars.templates.genericModal({
       id: 'note-editor-modal',
       extraClasses: 'modal-lg',
-      showHeader: true,
-      title: 'Copy Configuration',
+      showHeader: false,
       showFooter: false,
     }))
     $('#note-editor-modal').modal('show')

@@ -224,9 +224,7 @@ export default function Column(props) {
 
   const [items, setItems] = useState(null)
   useEffect(() => {
-    if (props.loading) {
-      return
-    }
+    if (props.loading) return
 
     // If no parent id is provided, display the full list of entities. Used for
     // the first column when no start invitation is provided
