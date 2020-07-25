@@ -76,7 +76,6 @@ const CompareRevisions = ({ appContext }) => {
 
     // Require user to be logged in to view comparisons
     if (!accessToken) {
-      promptMessage('Please login to view this page')
       router.replace(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)
       return
     }
@@ -100,9 +99,8 @@ const CompareRevisions = ({ appContext }) => {
   }, [references])
 
   if (error) {
-    return <ErrorDisplay statusCode={error.statusCode} message={error.message} details={error.details} />
+    return <ErrorDisplay statusCode={error.status} message={error.message} details={error.details} />
   }
-
   return (
     <>
       <Head>

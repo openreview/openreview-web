@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import Head from 'next/head'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 import Link from 'next/link'
 import withError from '../../components/withError'
 import { auth } from '../../lib/auth'
@@ -14,16 +14,11 @@ import '../../styles/pages/assignment-stats.less'
 const AssignmentStats = ({
   groupId, assignmentConfigNote, referrer, appContext,
 }) => {
+  const router = useRouter()
   const { setBannerContent, clientJsLoading } = appContext
 
   useEffect(() => {
     if (clientJsLoading) return
-
-    if (referrer) {
-      setBannerContent(referrerLink(referrer))
-    } else {
-      setBannerContent(venueHomepageLink(groupId, 'edit'))
-    }
 
     // eslint-disable-next-line global-require
     window.d3 = require('d3')
@@ -31,8 +26,16 @@ const AssignmentStats = ({
     // eslint-disable-next-line global-require
     const runAssignmentStats = require('../../client/assignment-stats')
 
-    runAssignmentStats(assignmentConfigNote)
-  }, [clientJsLoading])
+    runAssignmentStats(assignmentConfigNote, router.push)
+  }, [clientJsLoading, assignmentConfigNote])
+
+  useEffect(() => {
+    if (referrer) {
+      setBannerContent(referrerLink(referrer))
+    } else {
+      setBannerContent(venueHomepageLink(groupId, 'edit'))
+    }
+  }, [referrer, groupId])
 
   return (
     <>
