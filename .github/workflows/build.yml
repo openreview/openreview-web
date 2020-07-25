@@ -61,10 +61,6 @@ jobs:
         mkdir files/pdfs
         npm install
         NODE_ENV=circleci node scripts/clean_start_app.js &
-    # - name: Test openreview API
-    #   uses: wei/wget@v1
-    #   with:
-    #     args: --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 10 http://localhost:3000
     - run: npm ci
     - run: npm run lint
     - run: npm run build
@@ -78,7 +74,7 @@ jobs:
     - name: Run TestCafe Tests
       uses: DevExpress/testcafe-action@latest
       with:
-        args: "chrome tests/registerPage.ts"
+        args: "chrome"
       env:
         NEXT_PORT: 3030
     - name: Check logs
