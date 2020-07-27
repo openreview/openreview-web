@@ -52,8 +52,8 @@ const Footer = () => (
               <li><Link href="/contact"><a>Contact</a></Link></li>
               {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
               <li><a href="#" data-toggle="modal" data-target="#feedback-modal">Feedback</a></li>
-              <li><Link href="/terms"><a>Terms of Service</a></Link></li>
-              <li><Link href="/privacy"><a>Privacy Policy</a></Link></li>
+              <li><Link href="/legal/terms"><a>Terms of Service</a></Link></li>
+              <li><Link href="/legal/privacy"><a>Privacy Policy</a></Link></li>
             </ul>
           </div>
         </div>

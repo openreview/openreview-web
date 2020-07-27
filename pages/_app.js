@@ -6,6 +6,7 @@ import Router from 'next/router'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
 import { auth, setAuthCookie, removeAuthCookie } from '../lib/auth'
+import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 // Global Styles
 import '../styles/global.less'
@@ -68,6 +69,35 @@ class OpenReviewApp extends App {
     }))
   }
 
+  getLegacyBannerObject() {
+    // Returns an object with all the functions that window.OpenBanner has in the old UI.
+    // Only needs to implement the methods that are actually used in webfield code.
+    return {
+      hide: () => {
+        this.setBannerHidden(true)
+      },
+      show: () => {
+        this.setBannerHidden(false)
+      },
+      welcome: () => {
+        this.setBannerContent(null)
+        this.setBannerHidden(false)
+      },
+      venueHomepageLink: (groupId) => {
+        this.setBannerContent(venueHomepageLink(groupId))
+        this.setBannerHidden(false)
+      },
+      referrerLink: (referrer) => {
+        this.setBannerContent(referrerLink(referrer))
+        this.setBannerHidden(false)
+      },
+      set: () => {},
+      clear: () => {},
+      forumLink: () => {},
+      breadcrumbs: () => {},
+    }
+  }
+
   onRouteChange(url) {
     // Reset banner
     this.setState({
@@ -78,7 +108,7 @@ class OpenReviewApp extends App {
 
     // Track pageview in Google Analytics
     // https://developers.google.com/analytics/devguides/collection/gtagjs/pages
-    if (process.env.IS_PRODUCTION) {
+    if (process.env.IS_PRODUCTION || process.env.IS_STAGING) {
       window.gtag('config', process.env.GA_PROPERTY_ID, {
         page_path: url,
       })
@@ -114,6 +144,7 @@ class OpenReviewApp extends App {
     window.controller = require('../client/controller')
     window.view = require('../client/view')
     window.Webfield = require('../client/webfield')
+    window.OpenBanner = this.getLegacyBannerObject()
     require('../client/templates')
     require('../client/template-helpers')
     require('../client/globals')
