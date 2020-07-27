@@ -72,7 +72,7 @@ jobs:
     - name: Run TestCafe Tests
       uses: DevExpress/testcafe-action@latest
       with:
-        args: "chrome --speed=0.3 --video videos"
+        args: "chrome --video videos"
     - name: Upload Videos
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
