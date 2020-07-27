@@ -119,9 +119,7 @@ class OpenReviewApp extends App {
     require('../client/globals')
 
     // Set required constants
-    // window.OR_API_URL = process.env.API_URL
-    console.log(`##### process.env.API_URL in _app.js is ${process.env.API_URL}#####`)
-    window.OR_API_URL = process.env.API_URL ? process.env.API_URL : 'http://localhost:3000'
+    window.OR_API_URL = process.env.API_URL
     window.Webfield.setToken(token)
     window.controller.setToken(token)
 

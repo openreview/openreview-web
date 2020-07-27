@@ -17,7 +17,7 @@ module.exports = (function() {
     options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
-    var baseUrl = window.OR_API_URL ? window.OR_API_URL : 'http://localhost:3000';
+    var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
     return $.ajax({
@@ -41,7 +41,7 @@ module.exports = (function() {
     options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
-    var baseUrl = window.OR_API_URL ? window.OR_API_URL : 'http://localhost:3000';
+    var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
     return $.ajax({
