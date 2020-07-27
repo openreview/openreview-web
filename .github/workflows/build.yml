@@ -74,7 +74,7 @@ jobs:
       with:
         args: "chrome --video videos"
     - name: Upload Videos
-      if: ${{ always() }}
+      if: ${{ failure() }}
       uses: actions/upload-artifact@v2
       with:
         name: videos
