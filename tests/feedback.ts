@@ -18,6 +18,9 @@ fixture`Feedback Modal`
   .after(async ctx => after(ctx))
 
 test('send incomplete feedback as a guest user', async (t) => {
+  const consoleInfo = await t.getBrowserConsoleMessages()
+  console.log('### console log ###')
+  console.log(consoleInfo)
   await t
     .click(feedbackLink)
     .expect(feedbackModal.exists).ok()
