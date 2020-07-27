@@ -26,6 +26,7 @@ export const hasNoTaskUser = {
   last: 'LastB',
   email: 'b@b.com',
   password: '1234',
+  tildeId: '~FirstB_LastB1',
 }
 // #endregion
 

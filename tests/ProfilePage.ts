@@ -1,4 +1,5 @@
 /* eslint-disable newline-per-chained-call */
+// note: existing es index may cause this test to fail. better to empty notes index
 import { Selector, Role } from 'testcafe'
 import { hasTaskUser, hasNoTaskUser as userB } from './utils/api-helper'
 import { registerFixture, before, after } from './utils/hooks'
@@ -31,14 +32,15 @@ const showPapersButton = Selector('div.persistent-url-input').find('button').wit
 const dblpImportModalCancelButton = Selector('div.modal-footer').find('button').withText('Cancel')
 const dblpImportModalAddToProfileBtn = Selector('div.modal-footer').find('button').withText('Add to Your Profile')
 const dblpImportModalSelectCount = Selector('div.modal-footer').find('div.selected-count')
+const saveProfileButton = Selector('button').withText('Save Profile Changes')
 // #endregion
 
-fixture`setup`
+fixture.skip`setup`
   .before(async ctx => before(ctx))
   .after(async ctx => after(ctx))
 test('dummy test to run setup', async (t) => {})
 
-fixture.only`profile page`
+fixture`profile page`
   .before(async ctx => before(ctx))
   .after(async ctx => after(ctx))
 test('user open own profile', async (t) => {
@@ -56,7 +58,7 @@ test('user open own profile', async (t) => {
     .expect(Selector('#or-banner').find('a').innerText).eql('Back to public profile')
     .expect(Selector('#show-dblp-import-modal').getAttribute('disabled')).eql('disabled')
     .expect(Selector('ul.submissions-list').find('.note').count).eql(1) // has 1 publication note
-    .expect(Selector('button').withText('Save Profile Changes').exists).ok()
+    .expect(saveProfileButton.exists).ok()
     // make some changes and save
     // add a name
     .click(nameSectionPlusIconSelector)
@@ -85,11 +87,11 @@ test('user open own profile', async (t) => {
     .typeText(Selector('#dblp_url'), 'test')
     .expect(Selector('#show-dblp-import-modal').getAttribute('disabled')).eql(undefined) // button is enabled
     // save
-    .click(Selector('button').withText('Save Profile Changes'))
+    .click(saveProfileButton)
     .expect(errorMessageSelector.innerText).eql('test is not a valid URL')
     .selectText(Selector('#dblp_url'))
     .pressKey('delete')
-    .click(Selector('button').withText('Save Profile Changes'))
+    .click(saveProfileButton)
     .expect(errorMessageSelector.innerText).eql('Your profile information has been successfully updated')
 })
 test('import paper from dblp', async (t) => {
@@ -118,7 +120,7 @@ test('import paper from dblp', async (t) => {
     .click(nameSectionPlusIconSelector)
     .typeText(editFirstNameInputSelector, 'Di')
     .typeText(editLastNameInputSelector, 'Xu')
-    .click(Selector('button').withText('Save Profile Changes'))
+    .click(saveProfileButton)
     .click(Selector('a').withText('Edit Profile'))
     .click(addDBLPPaperToProfileButton)
     .expect(Selector('#dblp-import-modal').find('div.modal-body').innerText).contains('Please select the new publications of which you are actually an author.')
@@ -145,6 +147,41 @@ test('unlink paper', async (t) => {
     .expect(Selector('ul.submissions-list').find('.glyphicon-repeat').count).eql(1)
     .click(Selector('ul.submissions-list').find('.glyphicon-repeat').nth(0)) // relink
     .expect(Selector('ul.submissions-list').find('.glyphicon-minus-sign').count).eql(2) // still 2 papers removable
+    // keep 1 publication to check history
+    .click(Selector('ul.submissions-list').find('.glyphicon-minus-sign').nth(1)) // unlink 2nd paper
+    .click(saveProfileButton)
+})
+test('check import history', async (t) => {
+  const { api, superUserToken } = t.fixtureCtx
+  let result = await api.get(`/notes/search?content=authors&term=${userB.tildeId}`, {}, { accessToken: superUserToken })
+  // should have only 1 note
+  await t.expect(result.count).eql(1)
+  const importedPaperId = result.notes[0].id
+  result = await api.get(`/references?referent=${importedPaperId}`, {}, { accessToken: superUserToken })
+  // shoud have 2 references: add paper and update authorid
+  await t.expect(result.count).eql(2)
+    .expect(result.references[1].content.authorids.includes(userB.tildeId)).notOk() // 1st post of paper has all dblp authorid
+    .expect(result.references[0].content.authorids.includes(userB.tildeId)).ok() // authorid is updated
+})
+test('reimport unlinked paper and import all', async (t) => { // to trigger only authorid reference update
+  await t.useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(addDBLPPaperToProfileButton)
+    .click(Selector('#dblp-import-modal').find('tr').withAttribute('class', undefined).nth(0).find('input'))
+    .click(dblpImportModalAddToProfileBtn)
+    .click(dblpImportModalCancelButton)
+    // import all
+    .click(addDBLPPaperToProfileButton)
+    .click(Selector('#dblp-import-modal').find('input').withAttribute('type', 'checkbox').nth(0)) // check import all
+    .click(dblpImportModalAddToProfileBtn)
+    .expect(Selector('#dblp-import-modal').visible).notOk() // after import all modal is auto hidden
+    .click(addDBLPPaperToProfileButton)
+    // select all checkbox should be selected and disabled
+    .expect(Selector('#dblp-import-modal').find('input').withAttribute('type', 'checkbox').nth(0).hasAttribute('disabled')).ok()
+    .expect(Selector('#dblp-import-modal').find('input').withAttribute('type', 'checkbox').nth(0).hasAttribute('checked')).ok()
+    // coauthors should have values now
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
+    .expect(Selector('section.coauthors').find('li').count).gt(0)
 })
 
 fixture`profile page different user`
@@ -176,8 +213,8 @@ fixture`issue related tests`
 test('#83 email status is missing', async (t) => {
   await t.useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
-    .expect(Selector('section.emails').find('span').innerText).contains('Confirmed') // not sure how the status will be added so selector may need to be updated
-    .expect(Selector('section.emails').find('span').innerText).contains('Preferred')
+    .expect(Selector('section.emails').find('div.list-compact').innerText).contains('Confirmed') // not sure how the status will be added so selector may need to be updated
+    .expect(Selector('section.emails').find('div.list-compact').innerText).contains('Preferred')
 })
 test('#84 merge profile feedback modal should fill in email', async (t) => {
   await t.useRole(userBRole)
@@ -196,5 +233,19 @@ test('#85 confirm profile email message', async (t) => {
     .click(Selector('button').withText('Confirm').filterVisible())
     .typeText(editEmailInputSelector, 'x@x.com', { replace: true })
     .click(Selector('button').withText('Confirm').filterVisible())
-    .expect(Selector('div.alert-content').innerText).eql('A confirmation email has been sent to x@x.com')
+    .expect(Selector('div.alert-content').innerText).contains('A confirmation email has been sent to x@x.com')
+})
+test.skip('#2143 date validation', async (t) => {
+  await t.useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    // modify history start date with invalid value
+    .typeText(Selector('#history_table').find('input.start').nth(0), '-2e-5', { replace: true, paste: true })
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText).notEql('Your profile information has been successfully updated') // should not save successfully
+})
+test.skip('#98 trailing slash error page', async (t) => {
+  await t.useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/`) // trailing slash should redirect to url without /
+    .expect(Selector('h1').withText('Error 404').exists).notOk()
+    .expect(Selector('pre.error-message').exists).notOk()
 })
