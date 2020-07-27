@@ -38,6 +38,14 @@ export async function setup(ctx) {
   await resetAdminPassword('1234')
   const adminToken = await getToken()
 
+  // create test user
+  await createUser({
+    first: 'Test',
+    last: 'User',
+    email: 'test@mail.com',
+    password: '1234',
+  })
+
   // create a venue TestVenue
   await createGroup(buildBaseGroupJson(baseGroupId), adminToken) // create base venue group
   await addMembersToGroup('host', [baseGroupId], adminToken) // add group to host so that it's shown in all venues list
@@ -54,11 +62,17 @@ export async function setup(ctx) {
   await createGroup(buildConferenceGroupJson(`Another${conferenceGroupId}`, `Another${baseGroupId}`, `Another${subGroupId}`), adminToken)
   await createInvitation(buildSubmissionInvitationJson(`Another${conferenceSubmissionInvitationId}`, `Another${conferenceGroupId}`, Date.now() + 2 * 24 * 60 * 60 * 1000), adminToken) // 2 days later
 
-  await setupTasks(adminToken)
+  const forumId = await setupTasks(adminToken)
+
+  const iclrData = await setupICLR(adminToken)
 
   return {
     superUserToken: adminToken,
     api,
+    data: {
+      testVenue: { forums: [forumId] },
+      iclr: iclrData,
+    },
   }
 }
 
@@ -81,7 +95,7 @@ async function setupTasks(adminToken) {
     readers: ['everyone'],
     nonreaders: [],
     signatures: [hasTaskUserTildeId],
-    writers: [hasTaskUserTildeId],
+    writers: [conferenceGroupId, hasTaskUser.email],
     invitation: conferenceSubmissionInvitationId,
   }
   const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
@@ -122,6 +136,40 @@ async function setupTasks(adminToken) {
     duedate: Date.now() + 2 * 24 * 60 * 60 * 1000,
   }
   await createInvitation(replyInvitationJson, adminToken)
+
+  return noteId
+}
+
+async function setupICLR(superToken) {
+  await createGroup(buildBaseGroupJson('ICLR.cc'), superToken)
+  await createGroup(buildSubGroupJson('ICLR.cc/2021', 'ICLR.cc'), superToken)
+  await createGroup(buildConferenceGroupJson('ICLR.cc/2021/Conference', 'ICLR.cc/2021', 'ICLR.cc'), superToken)
+  await addMembersToGroup('host', ['ICLR.cc/2021/Conference'], superToken)
+  await addMembersToGroup('active_venues', ['ICLR.cc/2021/Conference'], superToken)
+
+  await createInvitation(buildSubmissionInvitationJson('ICLR.cc/2021/Conference/-/Submission', 'ICLR.cc/2021/Conference', Date.now() + 2 * 24 * 60 * 60 * 1000, { public: false }), superToken)
+
+  const userToken = await getToken('a@a.com')
+  const noteJson = {
+    invitation: 'ICLR.cc/2021/Conference/-/Submission',
+    content: {
+      title: 'ICLR submission title',
+      authors: ['FirstA LastA'],
+      authorids: ['a@a.com'],
+      abstract: 'test iclr abstract abstract',
+      pdf: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf',
+    },
+    readers: ['ICLR.cc/2021/Conference', 'a@a.com', '~FirstA_LastA1'],
+    signatures: ['~FirstA_LastA1'],
+    writers: ['ICLR.cc/2021/Conference', 'a@a.com', '~FirstA_LastA1'],
+  }
+
+  const { id: noteId } = await createNote(noteJson, userToken)
+
+  return {
+    conferenceId: 'ICLR.cc/2021/Conference',
+    forums: [noteId],
+  }
 }
 
 export function teardown() {
@@ -334,7 +382,12 @@ main();
   }
 }
 
-function buildSubmissionInvitationJson(invitationId, conferenceGrpId, dueDate) {
+function buildSubmissionInvitationJson(invitationId, conferenceGrpId, dueDate, options) {
+  const defaultOptions = {
+    public: true,
+  }
+  const invitationOptions = { ...defaultOptions, ...options }
+  const replyReaders = invitationOptions.public ? { values: ['everyone'] } : { 'values-copied': [conferenceGrpId, '{content.authorids}', '{signatures}'] }
   return {
     id: invitationId,
     readers: ['everyone'],
@@ -345,16 +398,13 @@ function buildSubmissionInvitationJson(invitationId, conferenceGrpId, dueDate) {
     reply: {
       forum: null,
       replyto: null,
-      readers: {
-        description: 'The users who will be allowed to read the above content.',
-        values: ['everyone'],
-      },
+      readers: replyReaders,
       signatures: {
         description: 'Your authorized identity to be associated with the above content.',
         'values-regex': '~.*',
       },
       writers: {
-        'values-regex': '~.*',
+        'values-copied': [conferenceGrpId, '{content.authorids}', '{signatures}'],
       },
       content: {
         title: {
@@ -384,7 +434,10 @@ function buildSubmissionInvitationJson(invitationId, conferenceGrpId, dueDate) {
         pdf: {
           description: 'Upload a PDF file that ends with .pdf',
           order: 5,
-          'value-regex': 'upload',
+          'value-file': {
+            fileTypes: ['pdf'],
+            size: 50,
+          },
           required: true,
         },
       },
