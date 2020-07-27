@@ -74,9 +74,15 @@ jobs:
     - name: Run TestCafe Tests
       uses: DevExpress/testcafe-action@latest
       with:
-        args: "chrome"
+        args: "chrome --speed=0.3 --video videos"
       env:
         NEXT_PORT: 3030
+    - name: Upload Videos
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: videos
+        path: /home/runner/work/openreview-web/openreview-web/videos/
     - name: Check logs
       if: ${{ failure() }}
       run: |
