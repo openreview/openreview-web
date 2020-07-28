@@ -59,6 +59,7 @@ jobs:
         touch empty.json
         mv empty.json openreview-api
         cd openreview-api
+        pip install elasticsearch
         python scripts/create_index.py scripts/empty.json
         cd ..
     - name: Run OpenReview API
