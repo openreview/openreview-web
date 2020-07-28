@@ -381,6 +381,9 @@ module.exports = function(forumId, noteId, invitationId, user) {
       var noteId = $(this).data('noteId');
       var noteReplytoId = $(this).data('noteReplytoId');
       var noteTitle = $(this).closest('.note_with_children').find('.note_content_title a').eq(0).text();
+      console.log('### in view more replies click handler ###')
+      console.log($('#note_children'))
+      console.log($('#note_children').offset())
       var scrollPos = $('#note_children').offset().top - 51 - 12;
 
       $('html, body').animate({scrollTop: scrollPos}, 400, function() {
@@ -465,11 +468,17 @@ module.exports = function(forumId, noteId, invitationId, user) {
   };
 
   var scrollToNote = function(noteId) {
+    console.log('### in scrollToNoteCall ###')
+    console.log(`noteid is ${noteId}`)
     var scrollToElem = '#note_' + noteId;
+    console.log(`scrollToElem is ${scrollToElem}`)
     var animationDone = $.Deferred();
 
     var doAnimation = function() {
       var navBarHeight = 51 - 12; // height in px of nav bar, plus extra padding
+      console.log('### in doAnimation ###')
+      console.log($(scrollToElem))
+      console.log($(scrollToElem).offset())
       var scrollPos = $(scrollToElem).offset().top - navBarHeight;
       $('html, body').animate({scrollTop: scrollPos}, 400, function() {
         animationDone.resolve(true);

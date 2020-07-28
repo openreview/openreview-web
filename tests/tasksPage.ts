@@ -35,6 +35,9 @@ test('should open tasks page and complete pending task', async (t) => {
 })
 
 test('task should change when note is deleted and restored', async (t) => {
+  const consoleInfo = await t.getBrowserConsoleMessages()
+  console.log('### browser console log ###')
+  console.log(consoleInfo)
   await t.useRole(hasTaskUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
     .click(Selector('a.show-tasks'))
