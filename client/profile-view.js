@@ -363,9 +363,13 @@ module.exports = function(profile, params, submitF, cancelF) {
     var readonly = !_.isEmpty(username);
     var displayNewUsername = function($nameRow) {
       return function() {
-        var first = $nameRow.find('.first_name').val();
-        var middle = $nameRow.find('.middle_name').val();
-        var last = $nameRow.find('.last_name').val();
+        var first = _.upperFirst($nameRow.find('.first_name').val());
+        var middle = _.upperFirst($nameRow.find('.middle_name').val());
+        var last = _.upperFirst($nameRow.find('.last_name').val());
+
+        $nameRow.find('.first_name').val(first);
+        $nameRow.find('.middle_name').val(middle);
+        $nameRow.find('.last_name').val(last);
 
         Webfield.get('/tildeusername', {
           first: first,
