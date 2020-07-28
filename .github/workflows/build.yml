@@ -69,8 +69,6 @@ jobs:
     - run: npm run start &
     - name: Run TestCafe Tests
       uses: DevExpress/testcafe-action@latest
-      with:
-        args: "chrome --video videos"
     - name: Upload Videos
       if: ${{ failure() }}
       uses: actions/upload-artifact@v2
