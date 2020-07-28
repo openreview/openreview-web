@@ -477,8 +477,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var doAnimation = function() {
       var navBarHeight = 51 - 12; // height in px of nav bar, plus extra padding
       console.log('### in doAnimation ###')
-      console.log($(scrollToElem))
-      console.log($(scrollToElem).offset())
+      console.log(`$(scrollToElem) is ${JSON.stringify($(scrollToElem))}`)
+      console.log(`$(scrollToElem).offset() is ${JSON.stringify($(scrollToElem).offset())}`)
       var scrollPos = $(scrollToElem).offset().top - navBarHeight;
       $('html, body').animate({scrollTop: scrollPos}, 400, function() {
         animationDone.resolve(true);
