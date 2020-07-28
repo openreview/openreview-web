@@ -16,6 +16,7 @@ import '../styles/pages/invitation.less'
 
 const Invitation = ({ invitationId, webfieldCode, appContext }) => {
   const { setBannerHidden, clientJsLoading } = appContext
+  const invitationTitle = prettyId(invitationId)
 
   useEffect(() => {
     setBannerHidden(true)
@@ -46,7 +47,10 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
   return (
     <>
       <Head>
-        <title key="title">{`${prettyId(invitationId)} | OpenReview`}</title>
+        <title key="title">{`${invitationTitle} | OpenReview`}</title>
+        <meta name="description" content="" />
+        <meta property="og:title" key="og:title" content={invitationTitle} />
+        <meta property="og:description" key="og:description" content="" />
       </Head>
 
       {clientJsLoading && (
