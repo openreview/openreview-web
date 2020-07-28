@@ -1,3 +1,5 @@
+![Next.js CI](https://github.com/openreview/openreview-web/workflows/Next.js%20CI/badge.svg)
+
 # OpenReview Web
 
 The next-generation web interface to the [OpenReview API](https://github.com/openreview/openreview/),
