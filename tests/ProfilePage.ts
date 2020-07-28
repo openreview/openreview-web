@@ -175,7 +175,6 @@ test('reimport unlinked paper and import all', async (t) => { // to trigger only
     .click(addDBLPPaperToProfileButton)
     .click(Selector('#dblp-import-modal').find('input').withAttribute('type', 'checkbox').nth(0)) // check import all
     .click(dblpImportModalAddToProfileBtn)
-    .wait(3000)
     .expect(Selector('#dblp-import-modal').visible).notOk() // after import all modal is auto hidden
     .click(addDBLPPaperToProfileButton)
     // select all checkbox should be selected and disabled
