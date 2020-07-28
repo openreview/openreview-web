@@ -20,7 +20,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x, 14.x]
+        node-version: [14.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -38,14 +38,10 @@ jobs:
         sudo sysctl -w vm.swappiness=1
         sudo sysctl -w fs.file-max=262144
         sudo sysctl -w vm.max_map_count=262144
-    - uses: getong/elasticsearch-action@v1.2
+    - name: Runs Elasticsearch
+      uses: elastic/elastic-github-actions/elasticsearch@master
       with:
-        elasticsearch version: '7.6.1'
-        host port: 9200
-        container port: 9200
-        host node port: 9300
-        node port: 9300
-        discovery type: 'single-node'
+        stack-version: 7.6.0
     - name: Start Redis
       uses: supercharge/redis-github-action@1.1.0
       with:
