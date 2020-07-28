@@ -153,7 +153,8 @@ test('unlink paper', async (t) => {
 })
 test('check import history', async (t) => {
   const { api, superUserToken } = t.fixtureCtx
-  let result = await api.get(`/notes/search?content=authors&term=${userB.tildeId}&_=${Date.now()}`, {}, { accessToken: superUserToken })
+  // let result = await api.get(`/notes/search?content=authors&term=${userB.tildeId}&cache=false}`, {}, { accessToken: superUserToken })
+  let result = await api.get(`/notes?content.authorids=${userB.tildeId}`, {}, { accessToken: superUserToken })
   // should have only 1 note
   await t.expect(result.count).eql(1)
   const importedPaperId = result.notes[0].id
