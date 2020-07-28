@@ -24,7 +24,6 @@
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
     "next": "^9.4.4",
-    "node-fetch": "^2.6.0",
     "query-string": "^6.13.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
