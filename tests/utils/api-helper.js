@@ -3,6 +3,8 @@
 import fetch from 'node-fetch'
 import api from '../../lib/api-client'
 
+const fs = require('fs')
+
 require('dotenv').config()
 
 api.configure({ fetchFn: fetch })
@@ -150,6 +152,10 @@ async function setupICLR(superToken) {
   await createInvitation(buildSubmissionInvitationJson('ICLR.cc/2021/Conference/-/Submission', 'ICLR.cc/2021/Conference', Date.now() + 2 * 24 * 60 * 60 * 1000, { public: false }), superToken)
 
   const userToken = await getToken('a@a.com')
+
+  const readStream = fs.readFileSync(`${__dirname}/data/paper.pdf`)
+  const result = await api.sendFile(readStream, userToken)
+
   const noteJson = {
     invitation: 'ICLR.cc/2021/Conference/-/Submission',
     content: {
@@ -157,7 +163,7 @@ async function setupICLR(superToken) {
       authors: ['FirstA LastA'],
       authorids: ['a@a.com'],
       abstract: 'test iclr abstract abstract',
-      pdf: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf',
+      pdf: result.url,
     },
     readers: ['ICLR.cc/2021/Conference', 'a@a.com', '~FirstA_LastA1'],
     signatures: ['~FirstA_LastA1'],
