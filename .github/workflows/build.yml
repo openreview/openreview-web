@@ -54,6 +54,13 @@ jobs:
         repository: openreview/openreview
         token: ${{ secrets.OPENREVIEW_ACCESS_TOKEN }}
         path: openreview-api
+    - name: Create Elasticsearch index
+      run: |
+        touch empty.json
+        mv empty.json openreview-api
+        cd openreview-api
+        python scripts/create_index.py scripts/empty.json
+        cd ..
     - name: Run OpenReview API
       run: |
         cd openreview-api
