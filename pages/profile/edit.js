@@ -73,7 +73,7 @@ function ProfileEdit({ profile, appContext }) {
   }
 
   const returnToProfilePage = () => {
-    router.push('/profile')
+    router.push('/profile').then(() => window.scrollTo(0, 0))
   }
 
   useEffect(() => {
