@@ -59,7 +59,7 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
 Group.getInitialProps = async (ctx) => {
   const { user, token } = auth(ctx)
   const groupRes = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
-  const group = groupRes.groups && groupRes.groups.length && groupRes.groups[0]
+  const group = groupRes.groups?.length > 0 ? groupRes.groups[0] : null
   if (!group) {
     return {
       statusCode: 404,
@@ -67,8 +67,16 @@ Group.getInitialProps = async (ctx) => {
     }
   }
 
+  // Old HTML webfields are no longer supported
+  if (group.web?.includes('<script type="text/javascript">')) {
+    return {
+      statusCode: 400,
+      message: 'This group is no longer accessible. Please contact info@openreview.net if you require access.',
+    }
+  }
+
   const groupTitle = prettyId(group.id)
-  const isGroupWritable = group.details && group.details.writable
+  const isGroupWritable = group.details?.writable
   const editModeEnabled = ctx.query.mode === 'edit'
   const infoModeEnabled = ctx.query.mode === 'info'
   const showModeBanner = isGroupWritable || infoModeEnabled
@@ -101,6 +109,11 @@ Group.getInitialProps = async (ctx) => {
       var group = ${JSON.stringify(groupObjSlim)};
       var document = null;
       var window = null;
+      var model = {
+        tokenPayload: function() {
+          return { user: user }
+        }
+      };
 
       $('#group-container').empty();
 
