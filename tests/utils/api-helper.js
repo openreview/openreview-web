@@ -28,6 +28,13 @@ export const hasNoTaskUser = {
   password: '1234',
   tildeId: '~FirstB_LastB1',
 }
+export const inactiveUser = {
+  first: 'FirstC',
+  last: 'LastC',
+  email: 'c@c.com',
+  password: '1234',
+  activate: false,
+}
 // #endregion
 
 // The setup function is shared by all tests and should run only once. Any data
@@ -58,6 +65,7 @@ export async function setup(ctx) {
 
   await setupTasks(adminToken)
   await setupProfileViewEdit(adminToken)
+  await setupRegister()
 
   return {
     superUserToken: adminToken,
@@ -197,6 +205,11 @@ async function setupProfileViewEdit(adminToken) {
   await createInvitation(dblpAuthorCoreferenceJson, adminToken)
 }
 
+async function setupRegister() {
+  // create inactive user
+  await createUser(inactiveUser)
+}
+
 export function teardown() {
   // eslint-disable-next-line no-console
   console.log('TEARDOWN')
@@ -229,7 +242,7 @@ export function addMembersToGroup(groupId, membersList, adminToken) {
 }
 
 export async function createUser({
-  first, middle = '', last, email, password, homepage = 'http://www.google.com', history,
+  first, middle = '', last, email, password, homepage = 'http://www.google.com', history, activate = true,
 }) {
   // register
   const { id: tildeId } = await api.post('/register', { email, password, name: { first, middle, last } })
@@ -268,7 +281,10 @@ export async function createUser({
       publicationIdsToUnlink: [],
     },
   }
-  return api.put(`/activate/${email}`, activateJson)
+  if (activate) {
+    return api.put(`/activate/${email}`, activateJson)
+  }
+  return null
 }
 // #endregion
 

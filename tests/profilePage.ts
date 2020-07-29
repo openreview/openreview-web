@@ -35,7 +35,7 @@ const dblpImportModalSelectCount = Selector('div.modal-footer').find('div.select
 const saveProfileButton = Selector('button').withText('Save Profile Changes')
 // #endregion
 
-fixture.skip`setup`
+fixture.skip`setup` // for local debugging to setup data
   .before(async ctx => before(ctx))
   .after(async ctx => after(ctx))
 test('dummy test to run setup', async (t) => {})

@@ -1,5 +1,6 @@
 import { Selector, ClientFunction } from 'testcafe'
 import { registerFixture, before, after } from './utils/hooks'
+import { inactiveUser } from './utils/api-helper'
 
 const firstNameInputSelector = Selector('#first-input')
 const lastNameInputSelector = Selector('#last-input')
@@ -97,33 +98,30 @@ test('request a reset password with no active profile', async (t) => {
     .expect(getPageUrl()).contains('http://localhost:3030/reset', { timeout: 10000 })
 })
 
-fixture.skip`Send Activation Link from signup page`
+fixture`Send Activation Link from signup page`
   .page`http://localhost:${process.env.NEXT_PORT}/signup`
   .before(async ctx => before(ctx))
   .after(async ctx => after(ctx))
 
 test('Send Activation Link', async (t) => {
-  const firstName = 'testFirstNameaaa' // must be existing inactivate acct
-  const lastName = 'testLastNameaaa'
-  const email = 'testemailaaa@test.com'
   await t
-    .typeText(firstNameInputSelector, firstName.toLowerCase())
-    .typeText(lastNameInputSelector, lastName.toLowerCase())
+    .typeText(firstNameInputSelector, inactiveUser.first.toLowerCase())
+    .typeText(lastNameInputSelector, inactiveUser.last.toLowerCase())
   const existingTildeId = await Selector('.new-username.hint').nth(0).innerText
   const newTildeId = await Selector('.new-username.hint').nth(1).innerText
   await t
     .expect(newTildeId.substring(2)).notEql(existingTildeId.substring(3)) // new sign up shoud have different tildeid
     .expect(sendActivationLinkButtonSelector.exists).ok() // existing acct so should find associated email
     .click(sendActivationLinkButtonSelector)
-    .typeText(Selector('.password-row').find('input'), `${email}abc`) // type wrong email should not trigger email sending
+    .typeText(Selector('.password-row').find('input'), `${inactiveUser.email}abc`) // type wrong email should not trigger email sending
     .click(sendActivationLinkButtonSelector)
   await t
     .selectText(Selector('.password-row').find('input'))
     .pressKey('delete')
-    .typeText(Selector('.password-row').find('input'), email)
+    .typeText(Selector('.password-row').find('input'), inactiveUser.email)
     .click(sendActivationLinkButtonSelector)
     .expect(Selector('h1').withText('Thank You for Signing Up').exists).ok()
-    .expect(Selector('span').withAttribute('class', 'email').innerText).eql(email)
+    .expect(Selector('span').withAttribute('class', 'email').innerText).eql(inactiveUser.email)
 })
 
 fixture.skip`Claim Profile`
