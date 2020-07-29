@@ -1,6 +1,6 @@
 import { Selector, ClientFunction } from 'testcafe'
 import { registerFixture, before, after } from './utils/hooks'
-import { inactiveUser } from './utils/api-helper'
+import { inactiveUser, inActiveUserNoPassword, inActiveUserNoPasswordNoEmail } from './utils/api-helper'
 
 const firstNameInputSelector = Selector('#first-input')
 const lastNameInputSelector = Selector('#last-input')
@@ -124,55 +124,33 @@ test('Send Activation Link', async (t) => {
     .expect(Selector('span').withAttribute('class', 'email').innerText).eql(inactiveUser.email)
 })
 
-fixture.skip`Claim Profile`
+fixture`Claim Profile`
   .page`http://localhost:${process.env.NEXT_PORT}/signup`
   .before(async ctx => before(ctx))
   .after(async ctx => after(ctx))
 
 test('enter invalid name', async (t) => {
-  const firstName = 'Andrew' // no email no password not active
-  const lastName = 'Naish'
+  // user has no email no password and not active
   await t
-    .typeText(firstNameInputSelector, firstName)
-    .typeText(lastNameInputSelector, lastName)
+    .typeText(firstNameInputSelector, inActiveUserNoPasswordNoEmail.first)
+    .typeText(lastNameInputSelector, inActiveUserNoPasswordNoEmail.last)
     .expect(Selector('.submissions-list').find('.note').count).lte(3) // at most 3 recent publications
-    .expect(claimProfileButtonSelector.exists)
-    .ok()
-    .expect(claimProfileButtonSelector.hasAttribute('disabled'))
-    .ok()
-    .expect(signupButtonSelector.exists)
-    .ok()
-    .expect(signupButtonSelector.hasAttribute('disabled'))
-    .ok()
+    .expect(claimProfileButtonSelector.exists).ok()
+    .expect(claimProfileButtonSelector.hasAttribute('disabled')).ok()
+    .expect(signupButtonSelector.exists).ok()
+    .expect(signupButtonSelector.hasAttribute('disabled')).ok()
 })
 
-fixture.skip`Sign up`
+fixture`Sign up`
   .page`http://localhost:${process.env.NEXT_PORT}/signup`
   .before(async ctx => before(ctx))
   .after(async ctx => after(ctx))
 
 test('email address should be masked', async (t) => {
-  const firstName = 'Evan' // has email no password not active
-  const lastName = 'Sparks'
-  const email = 'testemailaaa@test.com'
+  // user has email but no password not active
   await t
-    .typeText(firstNameInputSelector, firstName)
-    .typeText(lastNameInputSelector, lastName)
-    .expect(Selector('input').withAttribute('type', 'email').nth(0).value).contains('****') // email should be masked
-})
-
-fixture.skip`Reset Password·`
-  .page`http://localhost:${process.env.NEXT_PORT}/signup`
-  .before(async ctx => before(ctx))
-  .after(async ctx => after(ctx))
-
-test('email address should be masked', async (t) => {
-  const firstName = 'Evan' // has email no password not active
-  const lastName = 'Sparks'
-  const email = 'testemailaaa@test.com'
-  await t
-    .typeText(firstNameInputSelector, firstName)
-    .typeText(lastNameInputSelector, lastName)
+    .typeText(firstNameInputSelector, inActiveUserNoPassword.first)
+    .typeText(lastNameInputSelector, inActiveUserNoPassword.last)
     .expect(Selector('input').withAttribute('type', 'email').nth(0).value).contains('****') // email should be masked
 })
 

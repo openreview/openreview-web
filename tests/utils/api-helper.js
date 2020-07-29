@@ -35,6 +35,17 @@ export const inactiveUser = {
   password: '1234',
   activate: false,
 }
+export const inActiveUserNoPassword = {
+  first: 'FirstD',
+  last: 'LastD',
+  email: 'd@d.com',
+  tildeId: '~FirstD_LastD1',
+}
+export const inActiveUserNoPasswordNoEmail = {
+  first: 'FirstE',
+  last: 'LastE',
+  tildeId: '~FirstE_LastE1',
+}
 // #endregion
 
 // The setup function is shared by all tests and should run only once. Any data
@@ -65,7 +76,7 @@ export async function setup(ctx) {
 
   await setupTasks(adminToken)
   await setupProfileViewEdit(adminToken)
-  await setupRegister()
+  await setupRegister(adminToken)
 
   return {
     superUserToken: adminToken,
@@ -205,9 +216,13 @@ async function setupProfileViewEdit(adminToken) {
   await createInvitation(dblpAuthorCoreferenceJson, adminToken)
 }
 
-async function setupRegister() {
+async function setupRegister(adminToken) {
   // create inactive user
   await createUser(inactiveUser)
+  // eslint-disable-next-line max-len
+  await createProfile(inActiveUserNoPassword.first, inActiveUserNoPassword.last, inActiveUserNoPassword.email, inActiveUserNoPassword.tildeId, adminToken)
+  // eslint-disable-next-line max-len
+  await createEmptyProfile(inActiveUserNoPasswordNoEmail.first, inActiveUserNoPasswordNoEmail.last, inActiveUserNoPasswordNoEmail.tildeId, adminToken)
 }
 
 export function teardown() {
@@ -285,6 +300,118 @@ export async function createUser({
     return api.put(`/activate/${email}`, activateJson)
   }
   return null
+}
+
+export async function createProfile(first, last, email, tildeId, adminToken,) {
+  // post tilde group
+  const tildeGroupJson = {
+    id: tildeId,
+    cdate: null,
+    ddate: null,
+    signatures: ['openreview.net'],
+    writers: ['openreview.net'],
+    members: [email],
+    readers: [tildeId],
+    nonreaders: null,
+    signatories: [tildeId],
+    web: null,
+    details: null,
+  }
+  await createGroup(tildeGroupJson, adminToken)
+  // post email group
+  const emailGroupJson = {
+    id: email,
+    cdate: null,
+    ddate: null,
+    signatures: ['openreview.net'],
+    writers: ['openreview.net'],
+    members: [tildeId],
+    readers: [email],
+    nonreaders: null,
+    signatories: [email],
+    web: null,
+    details: null,
+  }
+  await createGroup(emailGroupJson, adminToken)
+  // post profile
+  const profileJson = {
+
+    id: tildeId,
+    number: null,
+    tcdate: null,
+    tmdate: null,
+    referent: null,
+    packaging: null,
+    invitation: null,
+    readers: ['openreview.net', tildeId],
+    nonreaders: null,
+    signatures: null,
+    writers: null,
+    content: {
+      emails: [email],
+      preferredEmail: email,
+      names: [
+        {
+          first,
+          middle: '',
+          last,
+          username: tildeId,
+        },
+      ],
+    },
+    metaContent: null,
+    active: false,
+    password: false,
+  }
+  await api.post('/profiles', profileJson, { accessToken: adminToken })
+}
+
+export async function createEmptyProfile(first, last, tildeId, adminToken) {
+  // post tilde group
+  const tildeGroupJson = {
+    id: tildeId,
+    cdate: null,
+    ddate: null,
+    signatures: ['openreview.net'],
+    writers: ['openreview.net'],
+    members: [],
+    readers: [tildeId],
+    nonreaders: null,
+    signatories: [tildeId],
+    web: null,
+    details: null,
+  }
+  await createGroup(tildeGroupJson, adminToken)
+  // post profile
+  const profileJson = {
+
+    id: tildeId,
+    number: null,
+    tcdate: null,
+    tmdate: null,
+    referent: null,
+    packaging: null,
+    invitation: null,
+    readers: ['openreview.net', tildeId],
+    nonreaders: null,
+    signatures: null,
+    writers: null,
+    content: {
+      dblp: 'dummy dblp url',
+      names: [
+        {
+          first,
+          middle: '',
+          last,
+          username: tildeId,
+        },
+      ],
+    },
+    metaContent: null,
+    active: false,
+    password: false,
+  }
+  await api.post('/profiles', profileJson, { accessToken: adminToken })
 }
 // #endregion
 
