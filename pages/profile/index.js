@@ -95,7 +95,7 @@ const ProfileHistory = ({ history }) => (
     <div className="institution">
       {history.institution.name}
       {' '}
-      <small>{`(${history.institution.domain})`}</small>
+      {history.institution.domain && <small>{`(${history.institution.domain})`}</small>}
     </div>
     <div className="timeframe">
       <em>
@@ -180,7 +180,9 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
 
   return coAuthors.length > 0 ? (
     <ul className="list-unstyled">
-      {coAuthors.map(author => <li key={author.name}>{authorLink(author)}</li>)}
+      {coAuthors.map(author => (
+        <li key={`${author.name}${author.id || author.email}`}>{authorLink(author)}</li>
+      ))}
     </ul>
   ) : (
     <p className="empty-message">No co-authors</p>
@@ -256,7 +258,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
           >
             <div className="list-compact">
               {profile.names.filter(name => !name.duplicate)
-                .map(name => <ProfileName key={name.username} name={name} />)
+                .map(name => <ProfileName key={name.username || (name.first + name.last)} name={name} />)
                 .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
             </div>
           </ProfileSection>
@@ -314,7 +316,10 @@ const Profile = ({ profile, publicProfile, appContext }) => {
             actionLink="Suggest Relation"
           >
             {profile.relations?.length > 0 ? profile.relations.map(relation => (
-              <ProfileRelation key={relation.relation + relation.name} relation={relation} />
+              <ProfileRelation
+                key={relation.relation + relation.name + relation.email + relation.start + relation.end}
+                relation={relation}
+              />
             )) : (
               <p className="empty-message">No relations added</p>
             )}
@@ -379,7 +384,7 @@ Profile.getInitialProps = async (ctx) => {
   const profileFormatted = formatProfileData(profileRes.profiles[0])
   return {
     profile: profileFormatted,
-    publicProfile: true,
+    publicProfile: Object.keys(profileQuery).length > 0,
   }
 }
 

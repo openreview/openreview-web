@@ -22,19 +22,6 @@ window.parseUrlParams = function(urlStr) {
   }, {});
 };
 
-window.parseUrl = function(href) {
-  var location = document.createElement('a');
-  location.href = href;
-  // IE doesn't populate all link properties when setting .href with a relative URL,
-  // however .href will return an absolute URL which then can be used on itself
-  // to populate these additional fields.
-  if (location.host === '') {
-    // eslint-disable-next-line no-self-assign
-    location.href = location.href;
-  }
-  return location;
-};
-
 window.translateErrorMessage = function(error) {
   var topic = error && error.path ? [view.iTerm(error.path)] : '';
   var buildFeebackModalLink = function(linkText, formFields) {
@@ -67,10 +54,10 @@ window.translateErrorMessage = function(error) {
     invalidInvitation: [view.iMess(' is not a valid invitation')],
     alreadyConfirmed: [
       view.iMess(' is already associated with another OpenReview profile, '),
-      $('<a>', { href: '/profile?id=' + error.value, title: 'View profile', target: '_blank' }).text(error.value),
+      $('<a>', { href: '/profile?id=' + error.value, title: 'View profile', target: '_blank', class: 'action-link' }).text(error.value),
       view.iMess('. To merge this profile with your account, please click here to submit a support request: '),
       buildFeebackModalLink('Merge Profiles', {
-        from: error.value2,
+        from: error.user,
         subject: 'Merge Profiles',
         message: 'Hi OpenReview Support,\n\nPlease merge the profiles with the following usernames:\n' + error.value2 + '\n' + error.value + '\n\nThank you.'
       })
@@ -178,20 +165,6 @@ window.promptLogin = function(user) {
   }
 };
 
-// Disable legacy JS from interacting with the banner (banner.js)
-var noop = function() {};
-window.OpenBanner = {
-  clear: noop,
-  hide: noop,
-  show: noop,
-  welcome: noop,
-  set: noop,
-  venueHomepageLink: noop,
-  forumLink: noop,
-  referrerLink: noop,
-  breadcrumbs: noop
-}
-
 // Global Event Handlers (index.js)
 // Flash message bar
 $('#flash-message-container button.close').on('click', function() {
@@ -252,52 +225,22 @@ $('#content').on('hide.bs.collapse', function(e) {
   }
 });
 
-// Forum Replies
-$('#content').on('click', 'a.collapse-comment-tree', function(e) {
-  var $container = $(this).parent();
-  $container.toggleClass('collapsed');
-
-  $(this).html($container.hasClass('collapsed') ? '[+]' : '[&ndash;]');
-  return false;
-});
-
-// Feedback modal
-$('#feedback-modal').on('hidden.bs.modal', function () {
-  $(this).find('form')[0].reset();
-  $('#flash-message-container').slideUp();
-});
-
-$('#feedback-modal').on('shown.bs.modal', function () {
-  $('#feedback-modal p').text('Enter your feedback below and we\'ll get back to you as soon as possible');
-  $(this).find('.feedback-input').focus();
-});
-
-$('#feedback-modal .btn-primary').on('click', function() {
-  $('#feedback-modal form').submit();
-});
-
-$('#feedback-modal form').on('submit', function() {
-  var url = $(this).attr('action');
-  var feedbackData = {};
-  $.each($(this).serializeArray(), function(i, field) {
-    feedbackData[field.name] = field.value || '';
-  });
-
-  Webfield.put(url, feedbackData, { handleErrors: false })
-    .then(function(res) {
-      if (res.status === 'ok') {
-        $('#feedback-modal p').text('Successfully submitted feedback.');
-      } else {
-        $('#feedback-modal p').text('There was an error submitting feedback.');
-      }
-
-      setTimeout(function() {
-        $('#feedback-modal').modal('hide');
-      }, 2000);
+// Typeset MathJax
+window.typesetMathJax = function() {
+  var runTypeset = function() {
+    MathJax.startup.promise.then(MathJax.typesetPromise).catch(function(error) {
+      console.warn('Could not typeset TeX content');
     })
-    .fail(function(jqXhr, textStatus) {
-      $('#feedback-modal p').text('There was an error submitting your feedback: ' + textStatus);
-    });
-
-  return false;
-});
+  }
+  if (MathJax.startup.promise) {
+    runTypeset()
+  } else {
+    setTimeout(function() {
+      if (MathJax.startup.promise) {
+        runTypeset()
+      } else {
+        console.warn('Could not typeset TeX content');
+      }
+    }, 1500)
+  }
+}

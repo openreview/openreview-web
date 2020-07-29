@@ -83,10 +83,6 @@ const Impersonate = ({ accessToken }) => {
             Impersonate
           </button>
         </form>
-
-        <p className="help-block">
-          <Link href="/admin"><a>Back to Admin Console</a></Link>
-        </p>
       </div>
     </div>
   )

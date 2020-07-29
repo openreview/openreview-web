@@ -1,10 +1,12 @@
 /* globals $: false */
 /* globals Webfield: false */
+/* globals typesetMathJax: false */
 
 import { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
 import LoadingSpinner from '../components/LoadingSpinner'
+import WebfieldContainer from '../components/WebfieldContainer'
 import ErrorAlert from '../components/ErrorAlert'
 import { auth } from '../lib/auth'
 import api from '../lib/api-client'
@@ -40,11 +42,6 @@ const Activity = ({ user, accessToken, appContext }) => {
   useEffect(() => {
     if (clientJsLoading || !activityNotes) return
 
-    // eslint-disable-next-line global-require
-    window.MathJax = require('../lib/mathjax-config')
-    // eslint-disable-next-line global-require
-    require('mathjax/es5/tex-chtml')
-
     $(activityRef.current).empty()
     Webfield.ui.activityList(activityNotes, {
       container: activityRef.current,
@@ -54,6 +51,8 @@ const Activity = ({ user, accessToken, appContext }) => {
     })
 
     $('[data-toggle="tooltip"]').tooltip()
+
+    typesetMathJax()
   }, [clientJsLoading, activityNotes])
 
   return (
@@ -72,7 +71,7 @@ const Activity = ({ user, accessToken, appContext }) => {
       {error && (
         <ErrorAlert error={error} />
       )}
-      <div ref={activityRef} />
+      <WebfieldContainer ref={activityRef} />
     </div>
   )
 }

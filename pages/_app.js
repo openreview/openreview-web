@@ -6,6 +6,7 @@ import Router from 'next/router'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
 import { auth, setAuthCookie, removeAuthCookie } from '../lib/auth'
+import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 // Global Styles
 import '../styles/global.less'
@@ -17,13 +18,13 @@ class OpenReviewApp extends App {
 
     this.state = {
       user: null,
+      userLoading: true,
       accessToken: null,
       clientJsLoading: true,
       bannerHidden: false,
       bannerContent: null,
       layoutOptions: { fullWidth: false, footerMinimal: false },
     }
-    this.firstRouteChange = true
 
     this.loginUser = this.loginUser.bind(this)
     this.logoutUser = this.logoutUser.bind(this)
@@ -68,34 +69,59 @@ class OpenReviewApp extends App {
     }))
   }
 
-  onRouteChange(url) {
-    // Reset banner only if coming from another page
-    if (!this.firstRouteChange) {
-      this.setState({
-        bannerHidden: false,
-        bannerContent: null,
-        layoutOptions: { fullWidth: false, footerMinimal: false },
-      })
+  getLegacyBannerObject() {
+    // Returns an object with all the functions that window.OpenBanner has in the old UI.
+    // Only needs to implement the methods that are actually used in webfield code.
+    return {
+      hide: () => {
+        this.setBannerHidden(true)
+      },
+      show: () => {
+        this.setBannerHidden(false)
+      },
+      welcome: () => {
+        this.setBannerContent(null)
+        this.setBannerHidden(false)
+      },
+      venueHomepageLink: (groupId) => {
+        this.setBannerContent(venueHomepageLink(groupId))
+        this.setBannerHidden(false)
+      },
+      referrerLink: (referrer) => {
+        this.setBannerContent(referrerLink(referrer))
+        this.setBannerHidden(false)
+      },
+      set: () => {},
+      clear: () => {},
+      forumLink: () => {},
+      breadcrumbs: () => {},
     }
+  }
+
+  onRouteChange(url) {
+    // Reset banner
+    this.setState({
+      bannerHidden: false,
+      bannerContent: null,
+      layoutOptions: { fullWidth: false, footerMinimal: false },
+    })
 
     // Track pageview in Google Analytics
     // https://developers.google.com/analytics/devguides/collection/gtagjs/pages
-    if (process.env.IS_PRODUCTION) {
+    if (process.env.IS_PRODUCTION || process.env.IS_STAGING) {
       window.gtag('config', process.env.GA_PROPERTY_ID, {
         page_path: url,
       })
     }
-
-    this.firstRouteChange = false
   }
 
   componentDidMount() {
     const { user, token } = auth()
     if (user) {
-      this.setState({ user, accessToken: token })
+      this.setState({ user, accessToken: token, userLoading: false })
+    } else {
+      this.setState({ userLoading: false })
     }
-
-    Router.events.on('routeChangeComplete', this.onRouteChange)
 
     // Load required vendor libraries
     window.jQuery = require('jquery')
@@ -105,12 +131,20 @@ class OpenReviewApp extends App {
     window.Handlebars = require('handlebars/runtime')
     window.marked = require('marked')
     window.DOMPurify = require('dompurify')
+    window.MathJax = require('../lib/mathjax-config')
+
+    // MathJax has to be loaded asynchronously from the CDN after the config file loads
+    const script = document.createElement('script')
+    script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.0.5/es5/tex-chtml.js'
+    script.async = true
+    document.head.appendChild(script)
 
     // Load legacy JS code
     window.mkStateManager = require('../client/state-manager')
     window.controller = require('../client/controller')
     window.view = require('../client/view')
     window.Webfield = require('../client/webfield')
+    window.OpenBanner = this.getLegacyBannerObject()
     require('../client/templates')
     require('../client/template-helpers')
     require('../client/globals')
@@ -119,6 +153,9 @@ class OpenReviewApp extends App {
     window.OR_API_URL = process.env.API_URL
     window.Webfield.setToken(token)
     window.controller.setToken(token)
+
+    // Register route change handler
+    Router.events.on('routeChangeComplete', this.onRouteChange)
 
     this.setState({ clientJsLoading: false })
   }
@@ -131,6 +168,7 @@ class OpenReviewApp extends App {
     const { Component, pageProps } = this.props
     const userContext = {
       user: this.state.user,
+      userLoading: this.state.userLoading,
       accessToken: this.state.accessToken,
       loginUser: this.loginUser,
       logoutUser: this.logoutUser,

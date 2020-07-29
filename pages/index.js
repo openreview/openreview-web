@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import Head from 'next/head'
-import get from 'lodash/get'
 import uniqBy from 'lodash/uniqBy'
 import api from '../lib/api-client'
 import { prettyId, formatTimestamp } from '../lib/utils'
@@ -59,13 +58,12 @@ const Home = ({ activeVenues, openVenues, allVenues }) => (
 )
 
 Home.getInitialProps = async () => {
-  const formatGroupResults = apiRes => get(apiRes, 'groups[0].members', [])
+  const formatGroupResults = apiRes => (apiRes.groups?.[0]?.members || [])
     .map(groupId => ({ groupId, dueDate: null }))
 
   const formatInvitationResults = apiRes => uniqBy(
-    get(apiRes, 'invitations', [])
-      .map(inv => ({ groupId: inv.id.split('/-/')[0], dueDate: inv.duedate })),
-    'group',
+    (apiRes.invitations || []).map(inv => ({ groupId: inv.id.split('/-/')[0], dueDate: inv.duedate })),
+    'groupId',
   )
 
   try {

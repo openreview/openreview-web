@@ -27,7 +27,8 @@ const AutoCompleteInput = () => {
     }
   }, [searchTerm])
 
-  useEffect(() => { // hide items when search term is cleared
+  useEffect(() => {
+    // Hide items when search term is cleared
     if (!immediateSearchTerm) setAutoCompleteItems([])
     setCancelRequest(false)
   }, [immediateSearchTerm])
@@ -41,6 +42,7 @@ const AutoCompleteInput = () => {
         setImmediateSearchTerm('')
       }
     }
+
     Router.events.on('routeChangeStart', handleRouteChange)
     return () => {
       Router.events.off('routeChangeStart', handleRouteChange)
@@ -52,21 +54,21 @@ const AutoCompleteInput = () => {
     [],
   )
 
-  // eslint-disable-next-line no-shadow
-  const searchByTerm = async (searchTerm) => {
+  const searchByTerm = async (term) => {
     try {
-      // eslint-disable-next-line object-curly-newline
-      const result = await api.get('/notes/search', { type: 'prefix', term: searchTerm, content: 'all', group: 'all', source: 'all', limit: 10 })
+      const result = await api.get('/notes/search', {
+        term, type: 'prefix', content: 'all', group: 'all', source: 'all', limit: 10,
+      })
       if (cancelRequest) return
-      const tokenObjects = getTokenObjects(result.notes, searchTerm)
-      const titleObjects = getTitleObjects(result.notes, searchTerm)
+      const tokenObjects = getTokenObjects(result.notes, term)
+      const titleObjects = getTitleObjects(result.notes, term)
       if (tokenObjects.length && titleObjects.length) {
         setAutoCompleteItems([...tokenObjects, null, ...titleObjects]) // null maps to <hr/>
       } else {
         setAutoCompleteItems([...tokenObjects, ...titleObjects])
       }
     } catch (error) {
-      promptError(`There was an error while searching for "${searchTerm}".`)
+      promptError(`There was an error while searching for "${term}".`)
     }
   }
 

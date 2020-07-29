@@ -1,13 +1,11 @@
 /* eslint-disable global-require */
-/* globals $: false */
 
-import { useEffect, useContext } from 'react'
+import { useEffect } from 'react'
 import omit from 'lodash/omit'
 import without from 'lodash/without'
 import Head from 'next/head'
-import { useRouter } from 'next/router'
-import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
+import WebfieldContainer from '../components/WebfieldContainer'
 import withError from '../components/withError'
 import api from '../lib/api-client'
 import { auth, isSuperUser } from '../lib/auth'
@@ -17,8 +15,6 @@ import { prettyId } from '../lib/utils'
 import '../styles/pages/invitation.less'
 
 const Invitation = ({ invitationId, webfieldCode, appContext }) => {
-  const router = useRouter()
-  const { user } = useContext(UserContext)
   const { setBannerHidden, clientJsLoading } = appContext
 
   useEffect(() => {
@@ -28,32 +24,27 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
   useEffect(() => {
     if (clientJsLoading) return
 
-    window.MathJax = require('../lib/mathjax-config')
-    require('mathjax/es5/tex-chtml')
     window.moment = require('moment')
     require('moment-timezone')
     window.datetimepicker = require('../client/bootstrap-datetimepicker-4.17.47.min')
 
     const script = document.createElement('script')
-    script.innerHTML = `window.user = ${JSON.stringify(user)}; ${webfieldCode}`
+    script.innerHTML = webfieldCode
     document.body.appendChild(script)
-
-    // Code to run after webfield has loaded
-    setTimeout(() => {
-      $('#notes').on('click', 'a[href^="/forum"]', function onClick() {
-        router.push($(this).attr('href')).then(() => window.scrollTo(0, 0))
-        return false
-      })
-    }, 500)
 
     // eslint-disable-next-line consistent-return
     return () => {
       document.body.removeChild(script)
+
+      // Hide edit mode banner
+      if (document.querySelector('#flash-message-container .profile-flash-message')) {
+        document.getElementById('flash-message-container').style.display = 'none'
+      }
     }
-  }, [clientJsLoading])
+  }, [clientJsLoading, webfieldCode])
 
   return (
-    <div id="invitation-container">
+    <>
       <Head>
         <title key="title">{`${prettyId(invitationId)} | OpenReview`}</title>
       </Head>
@@ -61,7 +52,9 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
       {clientJsLoading && (
         <LoadingSpinner />
       )}
-    </div>
+
+      <WebfieldContainer id="invitation-container" />
+    </>
   )
 }
 
@@ -119,13 +112,11 @@ Invitation.getInitialProps = async (ctx) => {
       user,
       {
         onNoteEdited: function(replyNote) {
-          history.replaceState({ id: args.id }, 'invitation', '/invitation?id=' + args.id);
-
           $('#invitation-container').empty();
           runWebfield(replyNote);
         },
         onNoteCancelled: function(result) {
-          replaceWithHome();
+          location.href = '/';
         },
         onError: function(errors) {
           // If there were errors with the submission display the error and the form
@@ -153,13 +144,11 @@ Invitation.getInitialProps = async (ctx) => {
             } else if (args.response === 'No') {
               response = 'decline';
             }
-            var accept = window.confirm('You have chosen to ' + response + ' this invitation. Do you want to continue?' );
-            if (accept) {
+            if (confirm('You have chosen to ' + response + ' this invitation. Do you want to continue?')) {
               $noteEditor.find('button:contains("Submit")').click();
             } else {
-              window.location = '/';
+              location.href = '/';
             }
-
           } else {
             $noteEditor.find('button:contains("Submit")').click();
           }
@@ -167,11 +156,13 @@ Invitation.getInitialProps = async (ctx) => {
       }
     );`
 
+  const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
   const inlineJsCode = `
+    window.user = ${JSON.stringify(userOrGuest)};
     $(function() {
       var args = ${JSON.stringify(ctx.query)};
       var invitation = ${JSON.stringify(invitationObjSlim)};
-      var user = ${JSON.stringify(user)};
+      var user = ${JSON.stringify(userOrGuest)};
       var document = null;
       var window = null;
 

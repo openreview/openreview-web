@@ -1,4 +1,5 @@
 @import "../utils/constants";
+@import "../utils/mixins";
 
 main.group, main.invitation {
 
@@ -57,12 +58,22 @@ main.group, main.invitation {
   #invitation {
     margin-bottom: 1.5rem;
 
-    > div {
+    div.panel {
       .well;
       margin-bottom: 0;
     }
     .note_editor {
-      border-top: 0;
+      margin-top: -1px;
+
+      .note_content_title {
+        display: none;
+      }
+      hr {
+        display: none;
+      }
+      .hint {
+        margin-bottom: .25rem;
+      }
     }
   }
 
@@ -98,12 +109,115 @@ main.group, main.invitation {
     vertical-align: middle;
   }
 
-  .well {
-    background: @sandyBrown;
-    padding: .5rem;
-    margin-bottom: 1.875rem;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 0;
+  // Console webfield styles
+  .tab-pane form.search-form {
+    margin: -10px 0 10px -16px;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    padding: .75rem 1rem;
+
+    strong {
+      padding-right: .25rem;
+    }
+    select {
+      width: 330px;
+      margin-right: .5rem;
+    }
+    .btn {
+      margin-right: .25rem;
+    }
+  }
+
+  table {
+    margin-bottom: 0;
+  }
+
+  .console-table, .ac-console-table {
+    h4 {
+      margin-bottom: .5rem;
+    }
+    .note-number {
+      font-size: 1rem;
+    }
+    .note-authors {
+      margin-bottom: .5rem;
+    }
+    .note-contents-toggle {
+      font-size: .875rem;
+    }
+    .note-contents-collapse {
+      border-left: 0;
+    }
+    .note-content {
+      font-size: .75rem;
+      max-width: 850px;
+      strong {
+        padding-right: .25rem;
+        color: @orRed;
+      }
+      li {
+        padding: .125rem 0;
+      }
+    }
+    ul.list-unstyled {
+      margin-top: .25rem;
+    }
+    table.table-minimal {
+      margin-top: .25rem;
+      margin-bottom: 2px;
+    }
+    .btn-assign-reviewer {
+      vertical-align: top;
+    }
+    .input-assign-reviewer {
+      height: 26px;
+      width: 240px;
+      margin-right: 0.2rem;
+      font-size: 0.75rem;
+    }
+    .dropdown_content_assign_reviewer {
+      width: 240px;
+      font-size: 0.75rem;
+      overflow-x: hidden;
+    }
+    .div-add-reviewer {
+      margin-top: 0.4rem;
+      margin-bottom: 0.4rem;
+    }
+  }
+
+  .console-table {
+    .row-0 {
+      width: 4%;
+    }
+    .row-1 {
+      width: 28%;
+    }
+    .row-2 {
+      width: 40%;
+    }
+    .row-3 {
+      width: 28%;
+    }
+  }
+
+  .ac-console-table {
+    .row-0 {
+      width: 35px;
+    }
+    .row-1 {
+      width: 55px;
+    }
+    .row-2 {
+      width: 35%;
+    }
+    .row-3 {
+      width: 30%;
+    }
+    .row-4 {
+      width: auto;
+    }
   }
 
   // Edit and Info Mode

@@ -1,10 +1,10 @@
-/* eslint-disable global-require */
-
 import { useEffect, useContext } from 'react'
 import Head from 'next/head'
+import Router from 'next/router'
 import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import NoteAuthors from '../components/NoteAuthors'
+import NoteReaders from '../components/NoteReaders'
 import NoteContent from '../components/NoteContent'
 import withError from '../components/withError'
 import api from '../lib/api-client'
@@ -66,9 +66,9 @@ const ForumMeta = ({ note }) => (
 
     {note.readers && (
       <span className="item">
-        readers:
+        Readers:
         {' '}
-        {note.readers.map(prettyId).join(', ')}
+        <NoteReaders readers={note.readers} />
       </span>
     )}
   </div>
@@ -83,15 +83,15 @@ const ForumReplyCount = ({ count }) => (
 const Forum = ({ forumNote, query, appContext }) => {
   const { user } = useContext(UserContext)
   const { clientJsLoading, setBannerContent } = appContext
-  const { content } = forumNote
+  const { id, content, details } = forumNote
 
   // Set banner link
   useEffect(() => {
     if (query.referrer) {
       setBannerContent(referrerLink(query.referrer))
     } else {
-      const groupId = forumNote.content.venueid
-        ? forumNote.content.venueid
+      const groupId = content.venueid
+        ? content.venueid
         : forumNote.invitation.split('/-/')[0]
       setBannerContent(venueHomepageLink(groupId))
     }
@@ -101,21 +101,20 @@ const Forum = ({ forumNote, query, appContext }) => {
   useEffect(() => {
     if (clientJsLoading) return
 
-    window.MathJax = require('../lib/mathjax-config')
-    require('mathjax/es5/tex-chtml')
-
+    // eslint-disable-next-line global-require
     const runForum = require('../client/forum')
-    runForum(forumNote.id, query.noteId, query.invitationId, user)
+    runForum(id, query.noteId, query.invitationId, user)
   }, [clientJsLoading])
 
   return (
     <div className="forum-container">
       <Head>
-        <title key="title">{`${forumNote.content.title || 'Forum'} | OpenReview`}</title>
+        <title key="title">{`${content.title || 'Forum'} | OpenReview`}</title>
       </Head>
 
       <div className="note">
         <ForumTitle
+          id={id}
           title={content.title}
           pdf={content.pdf}
           html={content.html || content.ee}
@@ -125,14 +124,18 @@ const Forum = ({ forumNote, query, appContext }) => {
           authors={content.authors}
           authorIds={content.authorids}
           signatures={forumNote.signatures}
-          original={forumNote.details.original}
+          original={details.original}
         />
 
         <ForumMeta note={forumNote} />
 
-        <NoteContent content={content} />
+        <NoteContent
+          id={id}
+          content={content}
+          invitation={details.originalInvitation || details.invitation}
+        />
 
-        <ForumReplyCount count={forumNote.details.replyCount} />
+        <ForumReplyCount count={details.replyCount} />
       </div>
 
       <hr />
@@ -146,22 +149,32 @@ const Forum = ({ forumNote, query, appContext }) => {
 
 Forum.getInitialProps = async (ctx) => {
   const { token } = auth(ctx)
-  let forumNote
   try {
-    const apiRes = await api.get('/notes', {
-      id: ctx.query.id, trash: true, details: 'replyCount,writable,revisions,original,overwriting',
-    }, { accessToken: token })
-    forumNote = apiRes.notes && apiRes.notes.length && apiRes.notes[0]
-  } catch (error) {
-    return { statusCode: 400, message: 'Forum not found' }
-  }
-  if (!forumNote) {
+    // Since the notes API will not return a proper error when details are requested,
+    // we need to make 2 simultaneos calls. The first will be used to check for an error
+    // and the second will actually be used for the page.
+    const noteDetails = 'replyCount,writable,revisions,original,overwriting,invitation'
+    const [apiRes1, apiRes2] = await Promise.all([
+      api.get('/notes', { id: ctx.query.id }, { accessToken: token }),
+      api.get('/notes', { id: ctx.query.id, trash: true, details: noteDetails }, { accessToken: token }),
+    ])
+    if (apiRes2.notes?.length > 0) {
+      return { forumNote: apiRes2.notes[0], query: ctx.query }
+    }
     return { statusCode: 404, message: 'Forum not found' }
-  }
-
-  return {
-    forumNote,
-    query: ctx.query,
+  } catch (error) {
+    if (error.name === 'forbidden') {
+      if (!token) {
+        if (ctx.req) {
+          ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
+        } else {
+          Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
+        }
+        return {}
+      }
+      return { statusCode: 403, message: 'You don\'t have permission to read this forum' }
+    }
+    return { statusCode: error.status, message: error.message }
   }
 }
 
