@@ -302,7 +302,7 @@ export async function createUser({
   return null
 }
 
-export async function createProfile(first, last, email, tildeId, adminToken,) {
+export async function createProfile(first, last, email, tildeId, adminToken) {
   // post tilde group
   const tildeGroupJson = {
     id: tildeId,
