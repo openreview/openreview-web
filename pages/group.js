@@ -61,14 +61,14 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
 }
 
 Group.getInitialProps = async (ctx) => {
+  if (!ctx.query.id) {
+    return { statusCode: 400, message: 'Group ID is required' }
+  }
   const { user, token } = auth(ctx)
   const groupRes = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
   const group = groupRes.groups?.length > 0 ? groupRes.groups[0] : null
   if (!group) {
-    return {
-      statusCode: 404,
-      message: 'Group not found',
-    }
+    return { statusCode: 404, message: 'Group not found' }
   }
 
   // Old HTML webfields are no longer supported
