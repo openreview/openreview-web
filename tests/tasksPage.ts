@@ -30,7 +30,10 @@ test('should open tasks page and complete pending task', async (t) => {
     .click(Selector('button').withText('Submit')) // submit
     // should see 0 pending task and 1 completed
     .click(Selector('a').withText('Tasks')) // go tasks page
-    .expect(Selector('a.show-tasks').innerText)
+  const consoleInfo = await t.getBrowserConsoleMessages()
+  console.log('### browser console log ###')
+  console.log(consoleInfo)
+  await t.expect(Selector('a.show-tasks').innerText)
     .eql('Show 0 pending tasks and 1 completed task')
 })
 
