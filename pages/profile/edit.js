@@ -60,6 +60,7 @@ function ProfileEdit({ profile, appContext }) {
       content: omit(newProfileData.content, [
         'preferredName', 'currentInstitution', 'options', 'publicationIdsToUnlink',
       ]),
+      signatures: [newProfileData.id],
     }
     try {
       await api.post('/profiles', dataToSubmit, { accessToken })
