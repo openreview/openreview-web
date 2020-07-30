@@ -93,7 +93,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: |
-          ${{ github.workspace }}/node_modules
+          node_modules
         key: ${{ runner.os }}-web-node-modules-${{ hashFiles('package-lock.json') }}
     - name: Cache OpenReview Web Next Build
       uses: actions/cache@v2
