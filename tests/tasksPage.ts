@@ -36,6 +36,12 @@ test('should open tasks page and complete pending task', async (t) => {
   await t.expect(Selector('a.show-tasks').innerText)
     .eql('Show 0 pending tasks and 1 completed task')
 })
+  .clientScripts({
+    content: `
+      window.addEventListener('error', function (e) {
+          console.log(e);
+      });`,
+  })
 
 test('task should change when note is deleted and restored', async (t) => {
   await t.useRole(hasTaskUserRole)
