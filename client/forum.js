@@ -201,8 +201,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
     view.mkNewNoteEditor(invitation, forumId, replyto, user, {
       onNoteCreated: function(newNote) {
         getNoteRecsP().then(function(noteRecs) {
+          $content.one('forumRendered', function() {
+            scrollToNote(newNote.id);
+          });
           sm.update('noteRecs', noteRecs);
-          scrollToNote(newNote.id);
         });
       },
       onCompleted: function(editor) {
@@ -295,8 +297,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
       view.mkNoteEditor(note, invitation, user, {
         onNoteEdited: function(newNote) {
           getNoteRecsP().then(function(noteRecs) {
+            $content.one('forumRendered', function() {
+              scrollToNote(newNote.id);
+            });
             sm.update('noteRecs', noteRecs);
-            scrollToNote(newNote.id);
           });
         },
         onNoteCancelled: function() {
