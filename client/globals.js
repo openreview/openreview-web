@@ -165,20 +165,6 @@ window.promptLogin = function(user) {
   }
 };
 
-// Disable legacy JS from interacting with the banner (banner.js)
-var noop = function() {};
-window.OpenBanner = {
-  clear: noop,
-  hide: noop,
-  show: noop,
-  welcome: noop,
-  set: noop,
-  venueHomepageLink: noop,
-  forumLink: noop,
-  referrerLink: noop,
-  breadcrumbs: noop
-}
-
 // Global Event Handlers (index.js)
 // Flash message bar
 $('#flash-message-container button.close').on('click', function() {

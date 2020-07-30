@@ -11,12 +11,26 @@ on:
 
 jobs:
   build:
+    env:
+      API_URL: http://localhost:3000
+      NEXT_PORT: 3030
+      SUPER_USER: openreview.net
 
     runs-on: ubuntu-latest
 
+    services:
+      mongodb:
+        image: mongo:4.2
+        ports:
+          - 27017:27017
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+
     strategy:
       matrix:
-        node-version: [12.x, 14.x]
+        node-version: [14.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -24,6 +38,45 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    - name: Configure sysctl Limits
+      run: |
+        sudo swapoff -a
+        sudo sysctl -w vm.swappiness=1
+        sudo sysctl -w fs.file-max=262144
+        sudo sysctl -w vm.max_map_count=262144
+    - name: Run Elasticsearch
+      uses: elastic/elastic-github-actions/elasticsearch@master
+      with:
+        stack-version: 7.6.0
+    - name: Checkout OpenReview API
+      uses: actions/checkout@v2
+      with:
+        repository: openreview/openreview
+        token: ${{ secrets.OPENREVIEW_ACCESS_TOKEN }}
+        path: openreview-api
+    - name: Run OpenReview API
+      run: |
+        cd openreview-api
+        mkdir logs
+        mkdir files
+        mkdir files/attachments
+        mkdir files/pdfs
+        npm install
+        NODE_ENV=circleci node scripts/clean_start_app.js &
     - run: npm ci
     - run: npm run lint
     - run: npm run build
+    - run: npm run start &
+    - name: Run TestCafe Tests
+      uses: DevExpress/testcafe-action@latest
+    - name: Upload Test Videos
+      if: ${{ failure() }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: videos
+        path: /home/runner/work/openreview-web/openreview-web/videos/
+    - name: Check API Logs
+      if: ${{ failure() }}
+      run: |
+        cd openreview-api/logs
+        cat "$(ls -rt | tail -n1)"
