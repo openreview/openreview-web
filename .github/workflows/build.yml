@@ -88,16 +88,16 @@ jobs:
       run: |
         cd openreview-api
         NODE_ENV=circleci node scripts/clean_start_app.js &
-    - name: Cache OpenReview Web
-      id: cache-openreview-web
-      uses: actions/cache@v2
-      with:
-        path: |
-          node_modules
-        key: ${{ runner.os }}--web-node-modules-${{ hashFiles('package-lock.json') }}
+    # - name: Cache OpenReview Web
+    #   id: cache-openreview-web
+    #   uses: actions/cache@v2
+    #   with:
+    #     path: |
+    #       node_modules
+    #     key: ${{ runner.os }}--web-node-modules-${{ hashFiles('package-lock.json') }}
     - name: Install Package Web
-      if: steps.cache-openreview-web.outputs.cache-hit != 'true'
-      run: npm install
+    #  if: steps.cache-openreview-web.outputs.cache-hit != 'true'
+      run: npm ci
     - run: npm run lint
     - run: npm run build
     - run: npm run start &
