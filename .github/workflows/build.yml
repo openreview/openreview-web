@@ -65,7 +65,7 @@ jobs:
       if: steps.cache-openreview-api.outputs.cache-hit != 'true'
       run: npm install
     - name: Run OpenReview API 3
-        NODE_ENV=circleci node scripts/clean_start_app.js &
+      run: NODE_ENV=circleci node scripts/clean_start_app.js &
     - name: Cache OpenReview API
       id: cache-openreview-api
       uses: actions/cache@v2
