@@ -54,8 +54,9 @@ jobs:
         repository: openreview/openreview
         token: ${{ secrets.OPENREVIEW_ACCESS_TOKEN }}
         path: openreview-api
-    # - name: Run tree
-    #   run: |
+    - name: Run tree
+      run: |
+        echo 1
     #     apt-get install tree
     #     tree
     - name: Run OpenReview API 1
