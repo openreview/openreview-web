@@ -97,7 +97,7 @@ test('get a non existent forum and return a not found', async (t) => {
     .expect(Selector('.error-message').innerText).eql('Not Found')
 })
 
-test.skip('get original note and redirect to the blinded note', async (t) => {
+test('get original note and redirect to the blinded note', async (t) => {
   const { data } = t.fixtureCtx
   const originalNote = data.iclr.forums[0]
   const blindedNote = data.iclr.forums[1]

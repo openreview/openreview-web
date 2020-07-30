@@ -150,17 +150,34 @@ const Forum = ({ forumNote, query, appContext }) => {
 Forum.getInitialProps = async (ctx) => {
   const { token } = auth(ctx)
   try {
-    // Since the notes API will not return a proper error when details are requested,
-    // we need to make 2 simultaneos calls. The first will be used to check for an error
-    // and the second will actually be used for the page.
-    const noteDetails = 'replyCount,writable,revisions,original,overwriting,invitation'
-    const [apiRes1, apiRes2] = await Promise.all([
-      api.get('/notes', { id: ctx.query.id }, { accessToken: token }),
-      api.get('/notes', { id: ctx.query.id, trash: true, details: noteDetails }, { accessToken: token }),
-    ])
-    if (apiRes2.notes?.length > 0) {
-      return { forumNote: apiRes2.notes[0], query: ctx.query }
+    const result = await api.get('/notes', { id: ctx.query.id }, { accessToken: token })
+    if (result.notes.length) {
+      const note = result.notes[0]
+      note.details = {}
+
+      // if blind submission return the forum
+      if (note.original) {
+        return { forumNote: note, query: ctx.query }
+      }
+
+      // if it is the original of a blind submission, do redirection
+      const blindNotesResult = await api.get('/notes', { original: note.id }, { accessToken: token })
+
+      // if no blind submission found return the current forum
+      if (blindNotesResult.notes.length === 0) {
+        return { forumNote: note, query: ctx.query }
+      }
+
+      // redirect forum
+      const blindNote = blindNotesResult.notes[0]
+      if (ctx.req) {
+        ctx.res.writeHead(302, { Location: `/forum?id=${encodeURIComponent(blindNote.id)}` }).end()
+      } else {
+        Router.replace(`/forum?id=${encodeURIComponent(blindNote.id)}`)
+      }
+      return {}
     }
+
     return { statusCode: 404, message: 'Forum not found' }
   } catch (error) {
     if (error.name === 'forbidden') {
