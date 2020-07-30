@@ -469,11 +469,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var animationDone = $.Deferred();
 
     var doAnimation = function() {
-      var navBarHeight = 51 - 12; // height in px of nav bar, plus extra padding
-      // console.log below is for troubleshooting of $(scrollToElem).offset() undefined error in github actions
-      console.log('### in doAnimation ###')
-      console.log(`$(scrollToElem) is ${JSON.stringify($(scrollToElem))}`)
-      console.log(`$(scrollToElem).offset() is ${JSON.stringify($(scrollToElem).offset())}`)
+      var navBarHeight = 51 + 12; // height in px of nav bar, plus extra padding
       var scrollPos = $(scrollToElem).offset().top - navBarHeight;
       $('html, body').animate({scrollTop: scrollPos}, 400, function() {
         animationDone.resolve(true);
@@ -527,24 +523,27 @@ module.exports = function(forumId, noteId, invitationId, user) {
   // State handler functions
   var onTokenChange = function() {
     getNoteRecsP().then(function(recs) {
-      sm.update('noteRecs', recs);
-
-      // Determine if the url includes and noteId or invitationId param and scroll there
-      var noteOrForumRec = _.find(recs, ['note.id', noteId]);
-      if (noteOrForumRec) {
-        if (forumId !== noteId && !invitationId) {
-          scrollToNote(noteId);
-        }
-
-        if (invitationId) {
-          var invitation = _.find(noteOrForumRec.replyInvitations, ['id', invitationId]);
-          if (invitation) {
-            appendInvitation(invitation, noteId);
+      // Determine if the url includes and noteId or invitationId param and scroll there,
+      // but only after the forumRendered event is triggered
+      $content.one('forumRendered', function() {
+        console.log('here')
+        var noteOrForumRec = _.find(recs, ['note.id', noteId]);
+        if (noteOrForumRec) {
+          if (forumId !== noteId && !invitationId) {
+            scrollToNote(noteId);
+          }
+          if (invitationId) {
+            var invitation = _.find(noteOrForumRec.replyInvitations, ['id', invitationId]);
+            if (invitation) {
+              appendInvitation(invitation, noteId);
+            }
           }
         }
-      }
 
-      registerEventHelpers();
+        registerEventHelpers();
+      });
+
+      sm.update('noteRecs', recs);
     });
 
     sm.addHandler('forum', {
@@ -596,6 +595,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
     );
 
     typesetMathJax();
+
+    $content.trigger('forumRendered');
   };
 
   var createMultiSelector = function(filters, id) {
