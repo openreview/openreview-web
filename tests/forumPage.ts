@@ -78,6 +78,16 @@ test('get a deleted forum and return an ok only for super user', async (t) => {
     .expect(Selector('.signatures').innerText).eql('[Deleted]')
 })
 
+test('get a non existent forum and return a not found', async (t) => {
+  const forum = '12315sx'
+  await t
+    .useRole(authorRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
+    .expect(Selector('#content').exists).ok()
+    .expect(Selector('#content h1').innerText).eql('Error 404')
+    .expect(Selector('.error-message').innerText).eql('Not Found')
+})
+
 test.skip('get original note and redirect to the blinded note', async (t) => {
   const { data } = t.fixtureCtx
   const originalNote = data.iclr.forums[0]
