@@ -57,7 +57,7 @@ jobs:
     - name: Run tree
       run: |
         echo 6
-        apt-get install tree
+        sudo apt-get install tree
         tree
     - name: Cache OpenReview API
       uses: actions/cache@v2
