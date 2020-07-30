@@ -62,7 +62,7 @@ jobs:
         mkdir files/attachments
         mkdir files/pdfs
     - name: Run OpenReview API 2
-        if: steps.cache-openreview-api.outputs.cache-hit != 'true'
+      if: steps.cache-openreview-api.outputs.cache-hit != 'true'
         npm install
     - name: Run OpenReview API 3
         NODE_ENV=circleci node scripts/clean_start_app.js &
