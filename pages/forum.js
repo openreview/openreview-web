@@ -147,40 +147,50 @@ const Forum = ({ forumNote, query, appContext }) => {
   )
 }
 
+const shouldRedirect = async (noteId, token) => {
+  // if it is the original of a blind submission, do redirection
+  const blindNotesResult = await api.get('/notes', { original: noteId }, { accessToken: token })
+
+  // if no blind submission found return the current forum
+  if (blindNotesResult.notes.length) {
+    return blindNotesResult.notes[0]
+  }
+
+  return false
+}
+
+const redirectForum = (ctx, forumId) => {
+  if (ctx.req) {
+    ctx.res.writeHead(302, { Location: `/forum?id=${encodeURIComponent(forumId)}` }).end()
+  } else {
+    Router.replace(`/forum?id=${encodeURIComponent(forumId)}`)
+  }
+  return {}
+}
+
 Forum.getInitialProps = async (ctx) => {
   const { token } = auth(ctx)
   try {
     const result = await api.get('/notes', { id: ctx.query.id }, { accessToken: token })
-    if (result.notes.length) {
-      const note = result.notes[0]
-      note.details = {}
+    const note = result.notes[0]
+    note.details = {}
 
-      // if blind submission return the forum
-      if (note.original) {
-        return { forumNote: note, query: ctx.query }
-      }
-
-      // if it is the original of a blind submission, do redirection
-      const blindNotesResult = await api.get('/notes', { original: note.id }, { accessToken: token })
-
-      // if no blind submission found return the current forum
-      if (blindNotesResult.notes.length === 0) {
-        return { forumNote: note, query: ctx.query }
-      }
-
-      // redirect forum
-      const blindNote = blindNotesResult.notes[0]
-      if (ctx.req) {
-        ctx.res.writeHead(302, { Location: `/forum?id=${encodeURIComponent(blindNote.id)}` }).end()
-      } else {
-        Router.replace(`/forum?id=${encodeURIComponent(blindNote.id)}`)
-      }
-      return {}
+    // if blind submission return the forum
+    if (note.original) {
+      return { forumNote: note, query: ctx.query }
     }
 
-    return { statusCode: 404, message: 'Forum not found' }
+    const redirect = await shouldRedirect(note.id, token)
+    if (redirect) {
+      return redirectForum(ctx, redirect.id)
+    }
+    return { forumNote: note, query: ctx.query }
   } catch (error) {
     if (error.name === 'forbidden') {
+      const redirect = await shouldRedirect(ctx.query.id, token)
+      if (redirect) {
+        return redirectForum(ctx, redirect.id)
+      }
       if (!token) {
         if (ctx.req) {
           ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
