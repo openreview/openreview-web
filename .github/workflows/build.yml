@@ -96,11 +96,11 @@ jobs:
     #       node_modules
     #     key: ${{ runner.os }}--web-node-modules-${{ hashFiles('package-lock.json') }}
     - name: Cache OpenReview Web Next
-    uses: actions/cache@v2
-    with:
-      path: |
-        ${{ github.workspace }}/.next/cache
-      key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}
+      uses: actions/cache@v2
+      with:
+        path: |
+          ${{ github.workspace }}/.next/cache
+        key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}
     - name: Install Package Web
     #  if: steps.cache-openreview-web.outputs.cache-hit != 'true'
       run: npm ci
