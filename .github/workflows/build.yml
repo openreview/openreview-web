@@ -56,7 +56,7 @@ jobs:
         path: openreview-api
     - name: Run tree
       run: |
-        echo 2
+        echo 3
       #  apt-get install tree
       #  tree
     - name: Run OpenReview API 1
