@@ -88,18 +88,27 @@ jobs:
       run: |
         cd openreview-api
         NODE_ENV=circleci node scripts/clean_start_app.js &
-    # - run: npm ci
-    # - run: npm run lint
-    # - run: npm run build
-    # - run: npm run start &
-    #- name: Run TestCafe Tests
-    #  uses: DevExpress/testcafe-action@latest
-    #- name: Upload Test Videos
-    #  if: ${{ failure() }}
-    #  uses: actions/upload-artifact@v2
-    #  with:
-    #    name: videos
-    #    path: /home/runner/work/openreview-web/openreview-web/videos/
+    - name: Cache OpenReview Web
+      id: cache-openreview-web
+      uses: actions/cache@v2
+      with:
+        path: |
+          node_modules
+        key: ${{ runner.os }}--web-node-modules-${{ hashFiles('package-lock.json') }}
+    - name: Install Package Web
+      if: steps.cache-openreview-web.outputs.cache-hit != 'true'
+      run: npm install
+    - run: npm run lint
+    - run: npm run build
+    - run: npm run start &
+    - name: Run TestCafe Tests
+     uses: DevExpress/testcafe-action@latest
+    - name: Upload Test Videos
+     if: ${{ failure() }}
+     uses: actions/upload-artifact@v2
+     with:
+       name: videos
+       path: /home/runner/work/openreview-web/openreview-web/videos/
     - name: Check API Logs
       if: ${{ failure() }}
       run: |
