@@ -6,19 +6,29 @@ registerFixture()
 const titleLabel = Selector('.note_content_title a')
 const authorLabel = Selector('.meta_row a')
 const abstractLabel = Selector('.note_content_value')
+const emailInput = Selector('#email-input')
+const passwordInput = Selector('#password-input')
+const loginButton = Selector('button').withText('Login to OpenReview')
 
 const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t.click(Selector('a').withText('Login'))
-    .typeText(Selector('#email-input'), 'test@mail.com')
-    .typeText(Selector('#password-input'), '1234')
-    .click(Selector('button').withText('Login to OpenReview'))
+    .typeText(emailInput, 'test@mail.com')
+    .typeText(passwordInput, '1234')
+    .click(loginButton)
 })
 
 const authorRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t.click(Selector('a').withText('Login'))
-    .typeText(Selector('#email-input'), 'a@a.com')
-    .typeText(Selector('#password-input'), '1234')
-    .click(Selector('button').withText('Login to OpenReview'))
+    .typeText(emailInput, 'a@a.com')
+    .typeText(passwordInput, '1234')
+    .click(loginButton)
+})
+
+const superUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
+  await t.click(Selector('a').withText('Login'))
+    .typeText(emailInput, 'openreview.net')
+    .typeText(passwordInput, '1234')
+    .click(loginButton)
 })
 
 fixture`Forum page`
@@ -47,6 +57,25 @@ test('get a forbidden page', async (t) => {
     .expect(Selector('#content').exists).ok()
     .expect(Selector('#content h1').innerText).eql('Error 403')
     .expect(Selector('.error-message').innerText).eql('You don\'t have permission to read this forum')
+})
+
+test('get a deleted forum and return an ok only for super user', async (t) => {
+  const { data } = t.fixtureCtx
+  const forum = data.anotherTestVenue.forums[1]
+  await t
+    .useRole(authorRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
+    .expect(Selector('#content').exists).ok()
+    .expect(Selector('#content h1').innerText).eql('Error 404')
+    .expect(Selector('.error-message').innerText).eql('Not Found')
+
+  await t
+    .useRole(superUserRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
+    .expect(Selector('.forum-container').exists).ok()
+    .expect(Selector(`#note_${forum}`).exists).ok()
+    .expect(Selector(titleLabel).innerText).eql('test title')
+    .expect(Selector('.signatures').innerText).eql('[Deleted]')
 })
 
 test.skip('get original note and redirect to the blinded note', async (t) => {

@@ -82,6 +82,8 @@ export async function setup(ctx) {
     invitation: `Another${conferenceSubmissionInvitationId}`,
   }
   const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
+  noteJson.ddate = Date.now()
+  const { id: deletedNoteId } = await createNote(noteJson, hasTaskUserToken)
 
   const iclrData = await setupICLR(adminToken)
 
@@ -90,7 +92,7 @@ export async function setup(ctx) {
     api,
     data: {
       testVenue: { forums: [forumId] },
-      anotherTestVenue: { forums: [noteId] },
+      anotherTestVenue: { forums: [noteId, deletedNoteId] },
       iclr: iclrData,
     },
   }
