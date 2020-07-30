@@ -100,7 +100,7 @@ jobs:
     with:
       path: |
         ${{ github.workspace }}/.next/cache
-      key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}
+      key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}
     - name: Install Package Web
     #  if: steps.cache-openreview-web.outputs.cache-hit != 'true'
       run: npm ci
