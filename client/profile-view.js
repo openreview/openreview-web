@@ -182,10 +182,10 @@ module.exports = function(profile, params, submitF, cancelF) {
         $position
       ),
       $('<td>', {class: 'info_item'}).append(
-        $('<input>', {type: 'text', class: 'form-control start', value: prefill && prefill.start || '', placeholder: 'year'}).keypress(isNumber).on('paste',isPositiveInteger)
+        $('<input>', {type: 'text', class: 'form-control start', value: prefill && prefill.start || '', placeholder: 'year' }).keypress(isNumber).on('paste', isPositiveInteger)
       ),
       $('<td>', {class: 'info_item'}).append(
-        $('<input>', {type: 'text', class: 'form-control end', value: prefill && prefill.end || '', placeholder: 'year'}).keypress(isNumber).on('paste',isPositiveInteger)
+        $('<input>', {type: 'text', class: 'form-control end', value: prefill && prefill.end || '', placeholder: 'year'}).keypress(isNumber).on('paste', isPositiveInteger)
       ),
       $('<td>', {class: 'info_item'}).append(
         $domain
@@ -284,10 +284,10 @@ module.exports = function(profile, params, submitF, cancelF) {
         $('<input>', {type: 'text', class: 'form-control relation_email', value: prefill && prefill.email || ''})
       ),
       $('<td>', {class: 'info_item'}).append(
-        $('<input>', {type: 'text', class: 'form-control start', value: prefill && prefill.start || '', placeholder: 'year'}).keypress(isNumber).on('paste',isPositiveInteger)
+        $('<input>', {type: 'text', class: 'form-control start', value: prefill && prefill.start || '', placeholder: 'year'}).keypress(isNumber).on('paste', isPositiveInteger)
       ),
       $('<td>', {class: 'info_item'}).append(
-        $('<input>', {type: 'text', class: 'form-control end', value: prefill && prefill.end || '', placeholder: 'year'}).keypress(isNumber).on('paste',isPositiveInteger)
+        $('<input>', {type: 'text', class: 'form-control end', value: prefill && prefill.end || '', placeholder: 'year'}).keypress(isNumber).on('paste', isPositiveInteger)
       ),
       $('<td>', {class: 'info_item'}).append(
         $('<div>', {class: 'glyphicon glyphicon-minus-sign '}).click(function(event) {
@@ -324,10 +324,10 @@ module.exports = function(profile, params, submitF, cancelF) {
         $('<input>', {type: 'text', class: 'form-control expertise', value: expertise || ''})
       ),
       $('<td>', {class: 'info_item'}).append(
-        $('<input>', {type: 'text', class: 'form-control start', value: start || '', placeholder: 'year'}).keypress(isNumber).on('paste',isPositiveInteger)
+        $('<input>', {type: 'text', class: 'form-control start', value: start || '', placeholder: 'year'}).keypress(isNumber).on('paste', isPositiveInteger)
       ),
       $('<td>', {class: 'info_item'}).append(
-        $('<input>', {type: 'text', class: 'form-control end', value: end || '', placeholder: 'year'}).keypress(isNumber).on('paste',isPositiveInteger)
+        $('<input>', {type: 'text', class: 'form-control end', value: end || '', placeholder: 'year'}).keypress(isNumber).on('paste', isPositiveInteger)
       ),
       $('<td>', {class: 'info_item'}).append(
         $('<div>', {class: 'glyphicon glyphicon-minus-sign '}).click(function(event) {
@@ -495,8 +495,7 @@ module.exports = function(profile, params, submitF, cancelF) {
 
   var isPositiveInteger = function(e) {
     var number = Number(e.originalEvent.clipboardData.getData('text'));
-    if (Number.isInteger(number) && number > 0) return true;
-    return false;
+    return Number.isInteger(number) && number > 0;
   };
 
   var drawView = function(profile, prefixedPositions, prefixedInstitutions, institutions, prefixedRelations) {
