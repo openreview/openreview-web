@@ -30,18 +30,9 @@ test('should open tasks page and complete pending task', async (t) => {
     .click(Selector('button').withText('Submit')) // submit
     // should see 0 pending task and 1 completed
     .click(Selector('a').withText('Tasks')) // go tasks page
-  const consoleInfo = await t.getBrowserConsoleMessages()
-  console.log('### browser console log ###')
-  console.log(consoleInfo)
-  await t.expect(Selector('a.show-tasks').innerText)
+    .expect(Selector('a.show-tasks').innerText)
     .eql('Show 0 pending tasks and 1 completed task')
 })
-  .clientScripts({
-    content: `
-      window.addEventListener('error', function (e) {
-          console.log(e);
-      });`,
-  })
 
 test('task should change when note is deleted and restored', async (t) => {
   await t.useRole(hasTaskUserRole)
