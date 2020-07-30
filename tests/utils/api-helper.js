@@ -89,10 +89,10 @@ export async function setup(ctx) {
   const hasTaskUserToken = await getToken(hasTaskUser.email)
   const noteJson = {
     content: {
-      title: 'test title',
-      authors: ['test author'],
+      title: 'this is á "paper" title',
+      authors: ['FirstA LastA'],
       authorids: [hasTaskUser.email],
-      abstract: 'test abstract',
+      abstract: 'The abstract of test paper 1',
       pdf: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf',
     },
     readers: [`Another${conferenceGroupId}`, hasTaskUser.email, '~FirstA_LastA1'],

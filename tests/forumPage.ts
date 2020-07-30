@@ -48,7 +48,7 @@ test('show a valid forum', async (t) => {
     .expect(Selector(abstractLabel).innerText).eql('test abstract')
 })
 
-test('get a forbidden page', async (t) => {
+test('get a forbidden page for a nonreader', async (t) => {
   const { data } = t.fixtureCtx
   const forum = data.anotherTestVenue.forums[0]
   await t
@@ -57,6 +57,15 @@ test('get a forbidden page', async (t) => {
     .expect(Selector('#content').exists).ok()
     .expect(Selector('#content h1').innerText).eql('Error 403')
     .expect(Selector('.error-message').innerText).eql('You don\'t have permission to read this forum')
+
+  await t
+    .useRole(authorRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
+    .expect(Selector('.forum-container').exists).ok()
+    .expect(Selector(`#note_${forum}`).exists).ok()
+    .expect(Selector(titleLabel).innerText).eql('this is á "paper" title')
+    .expect(Selector(authorLabel).innerText).eql('FirstA LastA')
+    .expect(Selector(abstractLabel).innerText).eql('The abstract of test paper 1')
 })
 
 test('get a deleted forum and return an ok only for super user', async (t) => {
@@ -74,7 +83,7 @@ test('get a deleted forum and return an ok only for super user', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
     .expect(Selector('.forum-container').exists).ok()
     .expect(Selector(`#note_${forum}`).exists).ok()
-    .expect(Selector(titleLabel).innerText).eql('test title')
+    .expect(Selector(titleLabel).innerText).eql('this is á "paper" title')
     .expect(Selector('.signatures').innerText).eql('[Deleted]')
 })
 
@@ -138,4 +147,14 @@ test('get blinded note as a guest and do not see revealed data', async (t) => {
     .expect(Selector('#content').exists).ok()
     .expect(Selector('#content h1').innerText).eql('Error 404')
     .expect(Selector('.error-message').innerText).eql('Page not found')
+})
+
+test.skip('get forum page and see all available meta tags', async (t) => {
+  const { data } = t.fixtureCtx
+  const forum = data.anotherTestVenue.forums[0]
+  await t
+    .useRole(superUserRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
+    .expect(Selector('title').innerText).eql('this is á "paper" title | OpenReview')
+    .expect(Selector('meta').withAttribute('name', 'citation_title').exists).ok()
 })
