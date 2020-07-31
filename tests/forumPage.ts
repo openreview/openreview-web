@@ -192,7 +192,7 @@ test('get forum page and see all available meta tags', async (t) => {
   const htmlResponse = await fetch(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`, { method: 'GET', headers: { cookie: `openreview.accessToken=${superUserToken}` } })
   await t.expect(htmlResponse.ok).eql(true)
   const text = await htmlResponse.text()
-  await t.expect(text).contains('<meta name="citation_title" content="this is &#xE1; &#x22;paper&#x22; title"/>')
+  await t.expect(text).contains('<meta name="citation_title" content="this is &aacute; &quot;paper&quot; title"/>')
   await t.expect(text).contains('<meta name="citation_publication_date"')
   await t.expect(text).contains('<meta name="citation_online_date"')
   await t.expect(text).contains('<meta name="citation_pdf_url"')
