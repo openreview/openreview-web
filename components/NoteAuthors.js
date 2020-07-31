@@ -35,7 +35,9 @@ const NoteAuthors = ({
 
   const authorsLinks = authorsList.map(([author, authorId]) => {
     if (!author) return null
-    if (!authorId) return author
+    if (!authorId) {
+      return <span key={author}>{author}</span>
+    }
 
     let param
     if (authorId.indexOf('~') === 0) {
@@ -43,7 +45,9 @@ const NoteAuthors = ({
     } else if (authorId.includes('@')) {
       param = 'email'
     }
-    if (!param) return author
+    if (!param) {
+      return <span key={author}>{author}</span>
+    }
 
     return (
       <Link key={`${author} ${authorId}`} href={`/profile?${param}=${encodeURIComponent(authorId)}`}>
@@ -54,8 +58,8 @@ const NoteAuthors = ({
     )
   }).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)
 
-  const privateLabel = <span className="private-author-label">(privately revealed to you)</span>
-  return showPrivateLabel ? authorsLinks.concat([privateLabel]) : authorsLinks
+  const privateLabel = <span key="private-author-label" className="private-author-label">(privately revealed to you)</span>
+  return showPrivateLabel ? authorsLinks.concat([' ', privateLabel]) : authorsLinks
 }
 
 export default NoteAuthors
