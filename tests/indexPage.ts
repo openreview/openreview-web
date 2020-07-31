@@ -1,8 +1,5 @@
 import { Selector } from 'testcafe'
 import { baseGroupId, conferenceGroupId } from './utils/api-helper'
-import { registerFixture, before, after } from './utils/hooks'
-
-registerFixture()
 
 const activeVenues = Selector('#active-venues')
 const openVenues = Selector('#open-venues')
@@ -10,8 +7,8 @@ const allVenues = Selector('#all-venues')
 
 fixture`Home Page`
   .page`http://localhost:${process.env.NEXT_PORT}`
-  .before(async ctx => before(ctx))
-  .after(async ctx => after(ctx))
+  .before(async ctx => (ctx))
+  .after(async ctx => (ctx))
 
 test('show active venues', async (t) => {
   await t

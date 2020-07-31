@@ -50,13 +50,12 @@ export const inActiveUserNoPasswordNoEmail = {
 
 // The setup function is shared by all tests and should run only once. Any data
 // required by the test cases should be put here
-export async function setup(ctx) {
+export async function setup(superUserToken) {
   // eslint-disable-next-line no-console
   console.log('SETUP')
 
   // reset super user password
-  await resetAdminPassword('1234')
-  const adminToken = await getToken()
+  const adminToken = superUserToken
 
   // create a venue TestVenue
   await createGroup(buildBaseGroupJson(baseGroupId), adminToken) // create base venue group
@@ -548,6 +547,10 @@ function render(invitation, notes) {
 main();
     `,
   }
+}
+
+export async function getMessages(params, token) {
+  return api.get('/messages', params, { accessToken: token })
 }
 
 function buildSubmissionInvitationJson(invitationId, conferenceGrpId, dueDate) {
