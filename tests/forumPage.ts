@@ -5,10 +5,16 @@ registerFixture()
 
 const titleLabel = Selector('.note_content_title a')
 const authorLabel = Selector('.meta_row a')
+const signaturesLabel = Selector('.signatures')
 const abstractLabel = Selector('.note_content_value')
 const emailInput = Selector('#email-input')
 const passwordInput = Selector('#password-input')
 const loginButton = Selector('button').withText('Login to OpenReview')
+const container = Selector('.forum-container')
+const content = Selector('#content')
+const errorCodeLabel = Selector('#content h1')
+const errorMessageLabel = Selector('.error-message')
+const privateAuthorLabel = Selector('.private-author-label')
 
 const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t.click(Selector('a').withText('Login'))
@@ -41,11 +47,11 @@ test('show a valid forum', async (t) => {
   const forum = data.testVenue.forums[0]
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
-    .expect(Selector('.forum-container').exists).ok()
+    .expect(container.exists).ok()
     .expect(Selector(`#note_${forum}`).exists).ok()
-    .expect(Selector(titleLabel).innerText).eql('test title')
-    .expect(Selector(authorLabel).innerText).eql('test author')
-    .expect(Selector(abstractLabel).innerText).eql('test abstract')
+    .expect(titleLabel.innerText).eql('test title')
+    .expect(authorLabel.innerText).eql('test author')
+    .expect(abstractLabel.innerText).eql('test abstract')
 })
 
 test('get a forbidden page for a nonreader', async (t) => {
@@ -54,18 +60,18 @@ test('get a forbidden page for a nonreader', async (t) => {
   await t
     .useRole(testUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
-    .expect(Selector('#content').exists).ok()
-    .expect(Selector('#content h1').innerText).eql('Error 403')
-    .expect(Selector('.error-message').innerText).eql('You don\'t have permission to read this forum')
+    .expect(content.exists).ok()
+    .expect(errorCodeLabel.innerText).eql('Error 403')
+    .expect(errorMessageLabel.innerText).eql('You don\'t have permission to read this forum')
 
   await t
     .useRole(authorRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
-    .expect(Selector('.forum-container').exists).ok()
+    .expect(container.exists).ok()
     .expect(Selector(`#note_${forum}`).exists).ok()
-    .expect(Selector(titleLabel).innerText).eql('this is á "paper" title')
-    .expect(Selector(authorLabel).innerText).eql('FirstA LastA')
-    .expect(Selector(abstractLabel).innerText).eql('The abstract of test paper 1')
+    .expect(titleLabel.innerText).eql('this is á "paper" title')
+    .expect(authorLabel.innerText).eql('FirstA LastA')
+    .expect(abstractLabel.innerText).eql('The abstract of test paper 1')
 })
 
 test('get a forbidden error for a guest user', async (t) => {
@@ -79,8 +85,8 @@ test('get a forbidden error for a guest user', async (t) => {
     .typeText(passwordInput, '1234')
     .click(loginButton)
     .expect(Selector('#content').exists).ok()
-    .expect(Selector('#content h1').innerText).eql('Error 403')
-    .expect(Selector('.error-message').innerText).eql('You don\'t have permission to read this forum')
+    .expect(errorCodeLabel.innerText).eql('Error 403')
+    .expect(errorMessageLabel.innerText).eql('You don\'t have permission to read this forum')
 })
 
 test('get a deleted forum and return an ok only for super user', async (t) => {
@@ -89,17 +95,17 @@ test('get a deleted forum and return an ok only for super user', async (t) => {
   await t
     .useRole(authorRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
-    .expect(Selector('#content').exists).ok()
-    .expect(Selector('#content h1').innerText).eql('Error 404')
-    .expect(Selector('.error-message').innerText).eql('Not Found')
+    .expect(content.exists).ok()
+    .expect(errorCodeLabel.innerText).eql('Error 404')
+    .expect(errorMessageLabel.innerText).eql('Not Found')
 
   await t
     .useRole(superUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
-    .expect(Selector('.forum-container').exists).ok()
+    .expect(container.exists).ok()
     .expect(Selector(`#note_${forum}`).exists).ok()
-    .expect(Selector(titleLabel).innerText).eql('this is á "paper" title')
-    .expect(Selector('.signatures').innerText).eql('[Deleted]')
+    .expect(titleLabel.innerText).eql('this is á "paper" title')
+    .expect(signaturesLabel.innerText).eql('[Deleted]')
 })
 
 test('get a non existent forum and return a not found', async (t) => {
@@ -107,9 +113,9 @@ test('get a non existent forum and return a not found', async (t) => {
   await t
     .useRole(authorRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
-    .expect(Selector('#content').exists).ok()
-    .expect(Selector('#content h1').innerText).eql('Error 404')
-    .expect(Selector('.error-message').innerText).eql('Not Found')
+    .expect(content.exists).ok()
+    .expect(errorCodeLabel.innerText).eql('Error 404')
+    .expect(errorMessageLabel.innerText).eql('Not Found')
 })
 
 test('get original note and redirect to the blinded note', async (t) => {
@@ -121,12 +127,12 @@ test('get original note and redirect to the blinded note', async (t) => {
     .useRole(authorRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${originalNote}`)
     .expect(getPageUrl()).contains(`http://localhost:${process.env.NEXT_PORT}/forum?id=${blindedNote}`, { timeout: 10000 })
-    .expect(Selector('.forum-container').exists).ok()
+    .expect(container.exists).ok()
     .expect(Selector(`#note_${blindedNote}`).exists).ok()
-    .expect(Selector(titleLabel).innerText).eql('ICLR submission title')
-    .expect(Selector('.signatures').innerText).eql('Anonymous')
-    .expect(Selector(abstractLabel).innerText).eql('test iclr abstract abstract')
-    .expect(Selector('.private-author-label').exists).ok()
+    .expect(titleLabel.innerText).eql('ICLR submission title')
+    .expect(signaturesLabel.innerText).eql('Anonymous')
+    .expect(abstractLabel.innerText).eql('test iclr abstract abstract')
+    .expect(privateAuthorLabel.exists).ok()
 })
 
 test('get original note as a guest user and redirect to the blinded note', async (t) => {
@@ -138,12 +144,12 @@ test('get original note as a guest user and redirect to the blinded note', async
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${originalNote}`)
     .expect(getPageUrl()).contains(`http://localhost:${process.env.NEXT_PORT}/forum?id=${blindedNote}`, { timeout: 10000 })
-    .expect(Selector('.forum-container').exists).ok()
+    .expect(container.exists).ok()
     .expect(Selector(`#note_${blindedNote}`).exists).ok()
-    .expect(Selector(titleLabel).innerText).eql('ICLR submission title')
-    .expect(Selector('.signatures').innerText).eql('Anonymous')
-    .expect(Selector(abstractLabel).innerText).eql('test iclr abstract abstract')
-    .expect(Selector('.private-author-label').exists).notOk()
+    .expect(titleLabel.innerText).eql('ICLR submission title')
+    .expect(signaturesLabel.innerText).eql('Anonymous')
+    .expect(abstractLabel.innerText).eql('test iclr abstract abstract')
+    .expect(privateAuthorLabel.exists).notOk()
 })
 
 test.skip('get forum page and see all available meta tags', async (t) => {
