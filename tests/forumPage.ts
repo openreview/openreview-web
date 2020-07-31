@@ -1,3 +1,4 @@
+import fetch from 'node-fetch'
 import { Selector, ClientFunction, Role } from 'testcafe'
 import { registerFixture, before, after } from './utils/hooks'
 
@@ -163,6 +164,15 @@ test('get an forum page and see meta tags with conference title', async (t) => {
     .expect(Selector('meta').withAttribute('name', 'citation_online_date').exists).ok()
     .expect(Selector('meta').withAttribute('name', 'citation_pdf_url').exists).ok()
     .expect(Selector('meta').withAttribute('name', 'citation_conference_title').exists).ok()
+
+  const htmlResponse = await fetch(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`, { method: 'GET' })
+  await t.expect(htmlResponse.ok).eql(true)
+  const text = await htmlResponse.text()
+  await t.expect(text).contains('<meta name="citation_title" content="ICLR submission title"/>')
+  await t.expect(text).contains('<meta name="citation_publication_date"')
+  await t.expect(text).contains('<meta name="citation_online_date"')
+  await t.expect(text).contains('<meta name="citation_pdf_url"')
+  await t.expect(text).contains('<meta name="citation_conference_title" content="International Conference on Learning Representations"/>')
 })
 
 test('get forum page and see all available meta tags', async (t) => {
@@ -177,4 +187,13 @@ test('get forum page and see all available meta tags', async (t) => {
     .expect(Selector('meta').withAttribute('name', 'citation_online_date').exists).ok()
     .expect(Selector('meta').withAttribute('name', 'citation_pdf_url').exists).ok()
     .expect(Selector('meta').withAttribute('name', 'citation_conference_title').exists).notOk()
+
+  const { superUserToken } = t.fixtureCtx
+  const htmlResponse = await fetch(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`, { method: 'GET', headers: { cookie: `openreview.accessToken=${superUserToken}` } })
+  await t.expect(htmlResponse.ok).eql(true)
+  const text = await htmlResponse.text()
+  await t.expect(text).contains('<meta name="citation_title" content="this is &#xE1; &#x22;paper&#x22; title"/>')
+  await t.expect(text).contains('<meta name="citation_publication_date"')
+  await t.expect(text).contains('<meta name="citation_online_date"')
+  await t.expect(text).contains('<meta name="citation_pdf_url"')
 })
