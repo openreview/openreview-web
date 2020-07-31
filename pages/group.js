@@ -13,6 +13,7 @@ import '../styles/pages/group.less'
 
 const Group = ({ groupId, webfieldCode, appContext }) => {
   const { setBannerHidden, clientJsLoading } = appContext
+  const groupTitle = prettyId(groupId)
 
   useEffect(() => {
     setBannerHidden(true)
@@ -44,7 +45,10 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
   return (
     <>
       <Head>
-        <title key="title">{`${prettyId(groupId)} | OpenReview`}</title>
+        <title key="title">{`${groupTitle} | OpenReview`}</title>
+        <meta name="description" content={`Welcome to the OpenReview homepage for ${groupTitle}`} />
+        <meta property="og:title" key="og:title" content={groupTitle} />
+        <meta property="og:description" key="og:description" content={`Welcome to the OpenReview homepage for ${groupTitle}`} />
       </Head>
 
       {clientJsLoading && (
@@ -57,14 +61,14 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
 }
 
 Group.getInitialProps = async (ctx) => {
+  if (!ctx.query.id) {
+    return { statusCode: 400, message: 'Group ID is required' }
+  }
   const { user, token } = auth(ctx)
   const groupRes = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
   const group = groupRes.groups?.length > 0 ? groupRes.groups[0] : null
   if (!group) {
-    return {
-      statusCode: 404,
-      message: 'Group not found',
-    }
+    return { statusCode: 404, message: 'Group not found' }
   }
 
   // Old HTML webfields are no longer supported

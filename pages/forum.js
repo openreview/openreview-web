@@ -1,6 +1,7 @@
 import { useEffect, useContext } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
+import truncate from 'lodash/truncate'
 import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import NoteAuthors from '../components/NoteAuthors'
@@ -9,7 +10,9 @@ import NoteContent from '../components/NoteContent'
 import withError from '../components/withError'
 import api from '../lib/api-client'
 import { auth } from '../lib/auth'
-import { prettyId, inflect, forumDate } from '../lib/utils'
+import {
+  prettyId, inflect, forumDate, getConferenceName,
+} from '../lib/utils'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 // Page Styles
@@ -85,6 +88,16 @@ const Forum = ({ forumNote, query, appContext }) => {
   const { clientJsLoading, setBannerContent } = appContext
   const { id, content, details } = forumNote
 
+  const truncatedTitle = truncate(content.title, { length: 70, separator: /,? +/ })
+  const truncatedAbstract = truncate(content['TL;DR'] || content.abstract, { length: 200, separator: /,? +/ })
+  const authors = (Array.isArray(content.authors) || typeof content.authors === 'string')
+    ? [content.authors].flat()
+    : []
+  const creationDate = new Date(forumNote.cdate || forumNote.tcdate || Date.now()).toISOString().slice(0, 10).replace(/-/g, '/')
+  const modificationDate = new Date(forumNote.tmdate || Date.now()).toISOString().slice(0, 10).replace(/-/g, '/')
+  // eslint-disable-next-line no-underscore-dangle
+  const conferenceName = getConferenceName(content._bibtex)
+
   // Set banner link
   useEffect(() => {
     if (query.referrer) {
@@ -95,7 +108,7 @@ const Forum = ({ forumNote, query, appContext }) => {
         : forumNote.invitation.split('/-/')[0]
       setBannerContent(venueHomepageLink(groupId))
     }
-  }, [forumNote])
+  }, [forumNote, query])
 
   // Load and execute legacy forum code
   useEffect(() => {
@@ -104,12 +117,40 @@ const Forum = ({ forumNote, query, appContext }) => {
     // eslint-disable-next-line global-require
     const runForum = require('../client/forum')
     runForum(id, query.noteId, query.invitationId, user)
-  }, [clientJsLoading])
+  }, [clientJsLoading, user])
 
   return (
     <div className="forum-container">
       <Head>
         <title key="title">{`${content.title || 'Forum'} | OpenReview`}</title>
+        <meta name="description" content={content['TL;DR'] || content.abstract || ''} />
+
+        <meta property="og:title" key="og:title" content={truncatedTitle} />
+        <meta property="og:description" key="og:description" content={truncatedAbstract} />
+        <meta property="og:type" key="og:type" content="article" />
+
+        {/* For more information on required meta tags for Google Scholar see: */}
+        {/* https://scholar.google.com/intl/en/scholar/inclusion.html#indexing */}
+        {forumNote.invitation.startsWith('OpenReview.net') ? (
+          <meta name="robots" content="noindex" />
+        ) : (
+          <>
+            {content.title && (
+              <meta name="citation_title" content={content.title} />
+            )}
+            {authors.map(author => (
+              <meta key={author} name="citation_author" content={author} />
+            ))}
+            <meta name="citation_publication_date" content={creationDate} />
+            <meta name="citation_online_date" content={modificationDate} />
+            {content.pdf && (
+              <meta name="citation_pdf_url" content={`https://openreview.net/pdf?id=${id}`} />
+            )}
+            {conferenceName && (
+              <meta name="citation_conference_title" content={conferenceName} />
+            )}
+          </>
+        )}
       </Head>
 
       <div className="note">
