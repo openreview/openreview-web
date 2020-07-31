@@ -221,6 +221,7 @@ async function setupICLR(superToken) {
     content: {
       authors: ['Anonymous'],
       authorids: ['ICLR.cc/2021/Conference/Paper1/Authors'],
+      _bibtex: '@inproceedings{\nAnonymous,\ntitle={test iclr abstract abstracts},\nauthor={Anonymous},\nbooktitle={International Conference on Learning Representations},\nyear={2021},\nurl={https://openreview.net/forum?id=1111}\n}',
     },
     readers: ['everyone'],
     signatures: ['ICLR.cc/2021/Conference'],

@@ -152,12 +152,29 @@ test('get original note as a guest user and redirect to the blinded note', async
     .expect(privateAuthorLabel.exists).notOk()
 })
 
-test.skip('get forum page and see all available meta tags', async (t) => {
+test('get an forum page and see meta tags with conference title', async (t) => {
+  const { data } = t.fixtureCtx
+  const forum = data.iclr.forums[1]
+  await t
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
+    .expect(Selector('title').innerText).eql('ICLR submission title | OpenReview')
+    .expect(Selector('meta').withAttribute('name', 'citation_title').withAttribute('content', 'ICLR submission title').exists).ok()
+    .expect(Selector('meta').withAttribute('name', 'citation_publication_date').exists).ok()
+    .expect(Selector('meta').withAttribute('name', 'citation_online_date').exists).ok()
+    .expect(Selector('meta').withAttribute('name', 'citation_pdf_url').exists).ok()
+    .expect(Selector('meta').withAttribute('name', 'citation_conference_title').exists).ok()
+})
+
+test('get forum page and see all available meta tags', async (t) => {
   const { data } = t.fixtureCtx
   const forum = data.anotherTestVenue.forums[0]
   await t
     .useRole(superUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
     .expect(Selector('title').innerText).eql('this is á "paper" title | OpenReview')
-    .expect(Selector('meta').withAttribute('name', 'citation_title').exists).ok()
+    .expect(Selector('meta').withAttribute('name', 'citation_title').withAttribute('content', 'this is á "paper" title').exists).ok()
+    .expect(Selector('meta').withAttribute('name', 'citation_publication_date').exists).ok()
+    .expect(Selector('meta').withAttribute('name', 'citation_online_date').exists).ok()
+    .expect(Selector('meta').withAttribute('name', 'citation_pdf_url').exists).ok()
+    .expect(Selector('meta').withAttribute('name', 'citation_conference_title').exists).notOk()
 })
