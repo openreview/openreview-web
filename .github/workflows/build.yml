@@ -56,7 +56,7 @@ jobs:
         path: openreview-api
     - name: Run tree
       run: |
-        echo 9
+        echo 10
         sudo apt-get install tree
         tree
     - name: Cache OpenReview API
