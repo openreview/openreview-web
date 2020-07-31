@@ -16,6 +16,7 @@ import '../styles/pages/invitation.less'
 
 const Invitation = ({ invitationId, webfieldCode, appContext }) => {
   const { setBannerHidden, clientJsLoading } = appContext
+  const invitationTitle = prettyId(invitationId)
 
   useEffect(() => {
     setBannerHidden(true)
@@ -46,7 +47,10 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
   return (
     <>
       <Head>
-        <title key="title">{`${prettyId(invitationId)} | OpenReview`}</title>
+        <title key="title">{`${invitationTitle} | OpenReview`}</title>
+        <meta name="description" content="" />
+        <meta property="og:title" key="og:title" content={invitationTitle} />
+        <meta property="og:description" key="og:description" content="" />
       </Head>
 
       {clientJsLoading && (
@@ -59,14 +63,14 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
 }
 
 Invitation.getInitialProps = async (ctx) => {
+  if (!ctx.query.id) {
+    return { statusCode: 400, message: 'Invitation ID is required' }
+  }
   const { user, token } = auth(ctx)
   const invitationRes = await api.get('/invitations', { id: ctx.query.id }, { accessToken: token })
   const invitation = invitationRes.invitations?.length && invitationRes.invitations[0]
   if (!invitation) {
-    return {
-      statusCode: 404,
-      message: 'Invitation not found',
-    }
+    return { statusCode: 404, message: 'Invitation not found' }
   }
 
   const invitationTitle = prettyId(invitation.id)
