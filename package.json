@@ -10,7 +10,7 @@
     "test": "testcafe"
   },
   "dependencies": {
-    "@zeit/next-less": "github:zbialecki/next-less",
+    "@zeit/next-less": "^1.0.1",
     "bootstrap": "^3.4.1",
     "d3": "^5.16.0",
     "dompurify": "^2.0.12",
@@ -18,7 +18,7 @@
     "handlebars": "^4.7.6",
     "jquery": "^2.2.4",
     "jwt-decode": "^2.2.0",
-    "less": "^3.11.3",
+    "less": "^3.12.2",
     "lodash": "^4.17.19",
     "marked": "^1.1.0",
     "moment": "^2.27.0",
