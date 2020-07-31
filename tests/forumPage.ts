@@ -68,6 +68,21 @@ test('get a forbidden page for a nonreader', async (t) => {
     .expect(Selector(abstractLabel).innerText).eql('The abstract of test paper 1')
 })
 
+test('get a forbidden error for a guest user', async (t) => {
+  const { data } = t.fixtureCtx
+  const forum = data.anotherTestVenue.forums[0]
+  const getPageUrl = ClientFunction(() => window.location.href.toString())
+  await t
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
+    .expect(getPageUrl()).contains(`http://localhost:${process.env.NEXT_PORT}/login`, { timeout: 10000 })
+    .typeText(emailInput, 'test@mail.com')
+    .typeText(passwordInput, '1234')
+    .click(loginButton)
+    .expect(Selector('#content').exists).ok()
+    .expect(Selector('#content h1').innerText).eql('Error 403')
+    .expect(Selector('.error-message').innerText).eql('You don\'t have permission to read this forum')
+})
+
 test('get a deleted forum and return an ok only for super user', async (t) => {
   const { data } = t.fixtureCtx
   const forum = data.anotherTestVenue.forums[1]
@@ -129,41 +144,6 @@ test('get original note as a guest user and redirect to the blinded note', async
     .expect(Selector('.signatures').innerText).eql('Anonymous')
     .expect(Selector(abstractLabel).innerText).eql('test iclr abstract abstract')
     .expect(Selector('.private-author-label').exists).notOk()
-})
-
-test('get blinded note as an author and see revealed data', async (t) => {
-  const { data } = t.fixtureCtx
-  const blindedNote = data.iclr.forums[1]
-  await t
-    .useRole(authorRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${blindedNote}`)
-    .expect(Selector('.forum-container').exists).ok()
-    .expect(Selector(`#note_${blindedNote}`).exists).ok()
-    .expect(Selector(titleLabel).innerText).eql('ICLR submission title')
-    .expect(Selector('.signatures').innerText).eql('Anonymous')
-    .expect(Selector(abstractLabel).innerText).eql('test iclr abstract abstract')
-    .expect(Selector('.private-author-label').exists).ok()
-    .click(Selector('a.note_content_pdf'))
-    .expect(Selector('#content').exists).ok()
-    .expect(Selector('#content h1').innerText).eql('Error 404')
-    .expect(Selector('.error-message').innerText).eql('Page not found')
-})
-
-test('get blinded note as a guest and do not see revealed data', async (t) => {
-  const { data } = t.fixtureCtx
-  const blindedNote = data.iclr.forums[1]
-  await t
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${blindedNote}`)
-    .expect(Selector('.forum-container').exists).ok()
-    .expect(Selector(`#note_${blindedNote}`).exists).ok()
-    .expect(Selector(titleLabel).innerText).eql('ICLR submission title')
-    .expect(Selector('.signatures').innerText).eql('Anonymous')
-    .expect(Selector(abstractLabel).innerText).eql('test iclr abstract abstract')
-    .expect(Selector('.private-author-label').exists).notOk()
-    .click(Selector('a.note_content_pdf'))
-    .expect(Selector('#content').exists).ok()
-    .expect(Selector('#content h1').innerText).eql('Error 404')
-    .expect(Selector('.error-message').innerText).eql('Page not found')
 })
 
 test.skip('get forum page and see all available meta tags', async (t) => {
