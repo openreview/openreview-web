@@ -141,9 +141,21 @@ Handlebars.registerHelper('formattedDate', function(modifiedDate, trueModifiedDa
   var dateToDisplay = modifiedDate || trueModifiedDate;
   var defaultDisplay = hash.default || '';
   var useCompactFormat = hash.compact || false;
+  var isGroupPage = hash.group || false;
 
   if (!dateToDisplay) {
     return defaultDisplay;
+  }
+
+  if (isGroupPage) {
+    return new Date(dateToDisplay).toLocaleDateString('en-US', {
+      hour: 'numeric',
+      minute: 'numeric',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      timeZoneName: 'short',
+    });
   }
 
   var d = moment.tz(dateToDisplay, moment.tz.guess());
