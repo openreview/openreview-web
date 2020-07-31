@@ -1,7 +1,9 @@
 {
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
   "parserOptions": {
-    "ecmaVersion": 2019
+    "babelOptions": {
+      "configFile": "./.babelrc.json"
+    }
   },
   "env": {
     "browser": true,
@@ -9,6 +11,7 @@
     "es6": true
   },
   "extends": "airbnb",
+  "plugins": ["@babel"],
   "rules": {
     "semi": ["error", "never"],
     "no-unused-vars": ["off"],
