@@ -9,7 +9,7 @@ import NoteReaders from '../components/NoteReaders'
 import NoteContent from '../components/NoteContent'
 import withError from '../components/withError'
 import api from '../lib/api-client'
-import { auth } from '../lib/auth'
+import { auth, isSuperUser } from '../lib/auth'
 import {
   prettyId, inflect, forumDate, getConferenceName,
 } from '../lib/utils'
@@ -189,22 +189,53 @@ const Forum = ({ forumNote, query, appContext }) => {
 }
 
 Forum.getInitialProps = async (ctx) => {
-  const { token } = auth(ctx)
-  try {
-    // Since the notes API will not return a proper error when details are requested,
-    // we need to make 2 simultaneos calls. The first will be used to check for an error
-    // and the second will actually be used for the page.
-    const noteDetails = 'replyCount,writable,revisions,original,overwriting,invitation'
-    const [apiRes1, apiRes2] = await Promise.all([
-      api.get('/notes', { id: ctx.query.id }, { accessToken: token }),
-      api.get('/notes', { id: ctx.query.id, trash: true, details: noteDetails }, { accessToken: token }),
-    ])
-    if (apiRes2.notes?.length > 0) {
-      return { forumNote: apiRes2.notes[0], query: ctx.query }
+  const { user, token } = auth(ctx)
+  const shouldRedirect = async (noteId) => {
+    // if it is the original of a blind submission, do redirection
+    const blindNotesResult = await api.get('/notes', { original: noteId }, { accessToken: token })
+
+    // if no blind submission found return the current forum
+    if (blindNotesResult.notes.length) {
+      return blindNotesResult.notes[0]
     }
-    return { statusCode: 404, message: 'Forum not found' }
+
+    return false
+  }
+
+  const redirectForum = (forumId) => {
+    if (ctx.req) {
+      ctx.res.writeHead(302, { Location: `/forum?id=${encodeURIComponent(forumId)}` }).end()
+    } else {
+      Router.replace(`/forum?id=${forumId}`)
+    }
+    return {}
+  }
+
+  try {
+    const result = await api.get('/notes', { id: ctx.query.id, trash: true, details: 'original,invitation,replyCount' }, { accessToken: token })
+    const note = result.notes[0]
+
+    // Only super user can see deleted forums
+    if (note.ddate && !isSuperUser(user)) {
+      return { statusCode: 404, message: 'Not Found' }
+    }
+
+    // if blind submission return the forum
+    if (note.original) {
+      return { forumNote: note, query: ctx.query }
+    }
+
+    const redirect = await shouldRedirect(note.id)
+    if (redirect) {
+      return redirectForum(redirect.id)
+    }
+    return { forumNote: note, query: ctx.query }
   } catch (error) {
     if (error.name === 'forbidden') {
+      const redirect = await shouldRedirect(ctx.query.id)
+      if (redirect) {
+        return redirectForum(redirect.id)
+      }
       if (!token) {
         if (ctx.req) {
           ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
