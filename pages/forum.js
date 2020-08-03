@@ -9,7 +9,7 @@ import NoteReaders from '../components/NoteReaders'
 import NoteContent from '../components/NoteContent'
 import withError from '../components/withError'
 import api from '../lib/api-client'
-import { auth } from '../lib/auth'
+import { auth, isSuperUser } from '../lib/auth'
 import {
   prettyId, inflect, forumDate, getConferenceName,
 } from '../lib/utils'
@@ -189,7 +189,7 @@ const Forum = ({ forumNote, query, appContext }) => {
 }
 
 Forum.getInitialProps = async (ctx) => {
-  const { token } = auth(ctx)
+  const { user, token } = auth(ctx)
   const shouldRedirect = async (noteId) => {
     // if it is the original of a blind submission, do redirection
     const blindNotesResult = await api.get('/notes', { original: noteId }, { accessToken: token })
@@ -212,9 +212,13 @@ Forum.getInitialProps = async (ctx) => {
   }
 
   try {
-    const result = await api.get('/notes', { id: ctx.query.id }, { accessToken: token })
+    const result = await api.get('/notes', { id: ctx.query.id, trash: true, details: 'original,invitation,replyCount' }, { accessToken: token })
     const note = result.notes[0]
-    note.details = {}
+
+    // Only super user can see deleted forums
+    if (note.ddate && !isSuperUser(user)) {
+      return { statusCode: 404, message: 'Not Found' }
+    }
 
     // if blind submission return the forum
     if (note.original) {
