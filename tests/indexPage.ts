@@ -24,7 +24,7 @@ test('show active venues', async (t) => {
     .expect(openVenues.child.length).eql(2)
     .expect(openVenues.find('a').nth(0).textContent).eql(conferenceGroupId.replace(/\//g, ' '))
     .expect(openVenues.find('a').nth(1).textContent).eql(`Another${conferenceGroupId}`.replace(/\//g, ' '))
-    .expect(openVenues.find('span').withText('Due').count).eql(2)
+    .expect(openVenues.find('span').withText('Due').count).eql(3)
 
     // All venues
     .expect(allVenues.child.length).eql(2)
