@@ -55,31 +55,26 @@ jobs:
         token: ${{ secrets.OPENREVIEW_ACCESS_TOKEN }}
         path: openreview-api
     - name: Cache OpenReview API
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('openreview-api/package-lock.json') }}
-    - name: Cache OpenReview API Node Modules
       id: cache-openreview-api
       uses: actions/cache@v2
       with:
         path: |
+          ~/.npm
           openreview-api/node_modules
-        key: ${{ runner.os }}-node-modules-${{ hashFiles('openreview-api/package-lock.json') }}
-    - name: Run OpenReview API 1
+        key: ${{ runner.os }}-node-${{ hashFiles('openreview-api/package-lock.json') }}
+    - name: Setup OpenReview API 1
       run: |
         cd openreview-api
         mkdir logs
         mkdir files
         mkdir files/attachments
         mkdir files/pdfs
-    - name: Run OpenReview API 2
+    - name: Setup OpenReview API 2
       if: steps.cache-openreview-api.outputs.cache-hit != 'true'
       run: |
         cd openreview-api
         npm install
-    - name: Run OpenReview API 3
+    - name: Run OpenReview API
       run: |
         cd openreview-api
         NODE_ENV=circleci node scripts/clean_start_app.js &
