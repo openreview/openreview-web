@@ -21,12 +21,6 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
 
   useEffect(() => {
     if (clientJsLoading) return
-
-    // eslint-disable-next-line global-require
-    window.moment = require('moment')
-    // eslint-disable-next-line global-require
-    require('moment-timezone')
-
     const script = document.createElement('script')
     script.innerHTML = webfieldCode
     document.body.appendChild(script)
