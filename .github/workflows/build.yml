@@ -85,6 +85,7 @@ jobs:
           ${{ github.workspace }}/.next/cache
         key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}
     - run: npm ci
+    - run: echo test123
     - run: npm run lint
     - run: npm run build
     - run: npm run start &
