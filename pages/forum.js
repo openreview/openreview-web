@@ -188,29 +188,29 @@ const Forum = ({ forumNote, query, appContext }) => {
   )
 }
 
-const shouldRedirect = async (noteId, token) => {
-  // if it is the original of a blind submission, do redirection
-  const blindNotesResult = await api.get('/notes', { original: noteId }, { accessToken: token })
-
-  // if no blind submission found return the current forum
-  if (blindNotesResult.notes.length) {
-    return blindNotesResult.notes[0]
-  }
-
-  return false
-}
-
-const redirectForum = (ctx, forumId) => {
-  if (ctx.req) {
-    ctx.res.writeHead(302, { Location: `/forum?id=${encodeURIComponent(forumId)}` }).end()
-  } else {
-    Router.replace(`/forum?id=${encodeURIComponent(forumId)}`)
-  }
-  return {}
-}
-
 Forum.getInitialProps = async (ctx) => {
   const { token } = auth(ctx)
+  const shouldRedirect = async (noteId) => {
+    // if it is the original of a blind submission, do redirection
+    const blindNotesResult = await api.get('/notes', { original: noteId }, { accessToken: token })
+
+    // if no blind submission found return the current forum
+    if (blindNotesResult.notes.length) {
+      return blindNotesResult.notes[0]
+    }
+
+    return false
+  }
+
+  const redirectForum = (forumId) => {
+    if (ctx.req) {
+      ctx.res.writeHead(302, { Location: `/forum?id=${encodeURIComponent(forumId)}` }).end()
+    } else {
+      Router.replace(`/forum?id=${forumId}`)
+    }
+    return {}
+  }
+
   try {
     const result = await api.get('/notes', { id: ctx.query.id }, { accessToken: token })
     const note = result.notes[0]
@@ -221,16 +221,16 @@ Forum.getInitialProps = async (ctx) => {
       return { forumNote: note, query: ctx.query }
     }
 
-    const redirect = await shouldRedirect(note.id, token)
+    const redirect = await shouldRedirect(note.id)
     if (redirect) {
-      return redirectForum(ctx, redirect.id)
+      return redirectForum(redirect.id)
     }
     return { forumNote: note, query: ctx.query }
   } catch (error) {
     if (error.name === 'forbidden') {
-      const redirect = await shouldRedirect(ctx.query.id, token)
+      const redirect = await shouldRedirect(ctx.query.id)
       if (redirect) {
-        return redirectForum(ctx, redirect.id)
+        return redirectForum(redirect.id)
       }
       if (!token) {
         if (ctx.req) {
