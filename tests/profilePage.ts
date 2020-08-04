@@ -1,12 +1,9 @@
 /* eslint-disable newline-per-chained-call */
 // note: existing es index may cause this test to fail. better to empty notes index
 import { Selector, Role } from 'testcafe'
-import { hasTaskUser, hasNoTaskUser as userB } from './utils/api-helper'
-import { registerFixture, before, after } from './utils/hooks'
-
-require('dotenv').config()
-
-registerFixture()
+import {
+  hasTaskUser, hasNoTaskUser as userB, getToken, getMessages, getNotes, getReferences,
+} from './utils/api-helper'
 
 const userBRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t.click(Selector('a').withText('Login'))
@@ -35,14 +32,11 @@ const dblpImportModalSelectCount = Selector('div.modal-footer').find('div.select
 const saveProfileButton = Selector('button').withText('Save Profile Changes')
 // #endregion
 
-fixture.skip`setup` // for local debugging to setup data
-  .before(async ctx => before(ctx))
-  .after(async ctx => after(ctx))
-test('dummy test to run setup', async (t) => {})
-
 fixture`profile page`
-  .before(async ctx => before(ctx))
-  .after(async ctx => after(ctx))
+  .before(async (ctx) => {
+    ctx.superUserToken = await getToken('openreview.net', '1234')
+    return ctx
+  })
 test('user open own profile', async (t) => {
   await t.navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
     .click(Selector('a').withText('Login'))
@@ -79,9 +73,9 @@ test('user open own profile', async (t) => {
     .expect(errorMessageSelector.innerText).eql('A confirmation email has been sent to a@aa.com')
     .click(Selector('button').withText('Remove').filterVisible())
 
-  const { api, superUserToken } = t.fixtureCtx
-  const result = await api.get('/messages?to=a@aa.com&subject=OpenReview Account Linking', {}, { accessToken: superUserToken })
-  await t.expect(result.messages[0].content.text).contains('Click on the link below to confirm that a@aa.com and a@a.com both belong to the same person')
+  const { superUserToken } = t.fixtureCtx
+  const messages = await getMessages({ to: 'a@aa.com', subject: 'OpenReview Account Linking' }, superUserToken)
+  await t.expect(messages[0].content.text).contains('Click on the link below to confirm that a@aa.com and a@a.com both belong to the same person')
     // personal links
     .expect(Selector('#show-dblp-import-modal').getAttribute('disabled')).eql('disabled')
     .typeText(Selector('#dblp_url'), 'test')
@@ -154,15 +148,15 @@ test('unlink paper', async (t) => {
 test('check import history', async (t) => {
   const { api, superUserToken } = t.fixtureCtx
   // let result = await api.get(`/notes/search?content=authors&term=${userB.tildeId}&cache=false}`, {}, { accessToken: superUserToken })
-  let result = await api.get(`/notes?content.authorids=${userB.tildeId}`, {}, { accessToken: superUserToken })
+  const notes = await getNotes({ 'content.authorids': `${userB.tildeId}` }, superUserToken)
   // should have only 1 note
-  await t.expect(result.count).eql(1)
-  const importedPaperId = result.notes[0].id
-  result = await api.get(`/references?referent=${importedPaperId}`, {}, { accessToken: superUserToken })
+  await t.expect(notes.length).eql(1)
+  const importedPaperId = notes[0].id
+  const references = await getReferences({ referent: `${importedPaperId}` }, superUserToken)
   // shoud have 2 references: add paper and update authorid
-  await t.expect(result.count).eql(2)
-    .expect(result.references[1].content.authorids.includes(userB.tildeId)).notOk() // 1st post of paper has all dblp authorid
-    .expect(result.references[0].content.authorids.includes(userB.tildeId)).ok() // authorid is updated
+  await t.expect(references.length).eql(2)
+    .expect(references[1].content.authorids.includes(userB.tildeId)).notOk() // 1st post of paper has all dblp authorid
+    .expect(references[0].content.authorids.includes(userB.tildeId)).ok() // authorid is updated
 })
 test('reimport unlinked paper and import all', async (t) => { // to trigger only authorid reference update
   await t.useRole(userBRole)
@@ -186,9 +180,8 @@ test('reimport unlinked paper and import all', async (t) => { // to trigger only
     .expect(Selector('section.coauthors').find('li').count).gt(0)
 })
 
+// eslint-disable-next-line no-unused-expressions
 fixture`profile page different user`
-  .before(async ctx => before(ctx))
-  .after(async ctx => after(ctx))
 test('open profile of other user by email', async (t) => {
   await t.navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
     .click(Selector('a').withText('Login'))
@@ -209,9 +202,9 @@ test('open profile of other user by id', async (t) => {
     .expect(profileViewEmail.innerText).contains('****')
 })
 
+// eslint-disable-next-line no-unused-expressions
 fixture`issue related tests`
-  .before(async ctx => before(ctx))
-  .after(async ctx => after(ctx))
+
 test('#83 email status is missing', async (t) => {
   await t.useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)

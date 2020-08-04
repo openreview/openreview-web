@@ -649,6 +649,11 @@ export function getNotes(params, token) {
     .then(result => result.notes)
 }
 
+export function getReferences(params, token) {
+  return api.get('/references', params, { accessToken: token })
+    .then(result => result.references)
+}
+
 function buildSubmissionInvitationJson(invitationId, conferenceGrpId, dueDate, options) {
   const defaultOptions = {
     public: true,

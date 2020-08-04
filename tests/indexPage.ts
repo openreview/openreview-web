@@ -6,9 +6,7 @@ const openVenues = Selector('#open-venues')
 const allVenues = Selector('#all-venues')
 
 fixture`Home Page`
-  .page`http://localhost:${process.env.NEXT_PORT}`
-  .before(async ctx => (ctx))
-  .after(async ctx => (ctx))
+  .page(`http://localhost:${process.env.NEXT_PORT}`)
 
 test('show active venues', async (t) => {
   await t
