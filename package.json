@@ -1,6 +1,6 @@
 {
   "name": "openreview-web",
-  "version": "0.1.0",
+  "version": "1.0.0-beta.1",
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS='--inspect' next dev --port $NEXT_PORT",
@@ -18,12 +18,12 @@
     "handlebars": "^4.7.6",
     "jquery": "^2.2.4",
     "jwt-decode": "^2.2.0",
-    "less": "^3.11.3",
+    "less": "^3.12.2",
     "lodash": "^4.17.19",
-    "marked": "^1.1.0",
+    "marked": "^1.1.1",
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
-    "next": "^9.4.4",
+    "next": "^9.5.1",
     "query-string": "^6.13.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
@@ -33,13 +33,13 @@
   "devDependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.0.20",
     "babel-eslint": "^10.1.0",
-    "chokidar": "^3.4.0",
-    "eslint": "^7.4.0",
+    "chokidar": "^3.4.1",
+    "eslint": "^7.6.0",
     "eslint-config-airbnb": "^18.2.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jsx-a11y": "^6.3.1",
-    "eslint-plugin-react": "^7.20.3",
-    "eslint-plugin-react-hooks": "^4.0.5",
+    "eslint-plugin-react": "^7.20.5",
+    "eslint-plugin-react-hooks": "^4.0.8",
     "node-fetch": "^2.6.0",
     "testcafe": "^1.8.8"
   }
