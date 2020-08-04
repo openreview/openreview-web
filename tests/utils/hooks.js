@@ -13,6 +13,7 @@ export async function before(ctx) {
   }
   ctx.superUserToken = context.superUserToken
   ctx.api = context.api
+  ctx.data = context.data
   return ctx
 }
 
