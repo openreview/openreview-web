@@ -245,7 +245,7 @@ test.skip('#2143 date validation', async (t) => {
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText).notEql('Your profile information has been successfully updated') // should not save successfully
 })
-test.skip('#98 trailing slash error page', async (t) => {
+test('#98 trailing slash error page', async (t) => {
   await t.useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/`) // trailing slash should redirect to url without /
     .expect(Selector('h1').withText('Error 404').exists).notOk()
