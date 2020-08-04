@@ -1,8 +1,5 @@
 import { Selector, Role } from 'testcafe'
 import { hasTaskUser, hasNoTaskUser } from './utils/api-helper'
-import { registerFixture, before, after } from './utils/hooks'
-
-registerFixture()
 
 const hasTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t.click(Selector('a').withText('Login'))
@@ -11,9 +8,8 @@ const hasTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async 
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
+// eslint-disable-next-line no-unused-expressions
 fixture`Tasks Page`
-  .before(async ctx => before(ctx))
-  .after(async ctx => after(ctx))
 
 test('should open tasks page and complete pending task', async (t) => {
   await t.useRole(hasTaskUserRole)
