@@ -1,8 +1,7 @@
 import { useState, useEffect, useContext } from 'react'
 import Head from 'next/head'
-import { useRouter } from 'next/router'
-import isEmpty from 'lodash/isEmpty'
 import uniq from 'lodash/uniq'
+import useQuery from '../../hooks/useQuery'
 import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import EdgeBrowser from '../../components/browser/EdgeBrowser'
@@ -19,8 +18,8 @@ const Browse = ({ appContext }) => {
   const [titleInvitation, setTitleInvitation] = useState(null)
   const [maxColumns, setMaxColumns] = useState(-1)
   const [error, setError] = useState(null)
-  const { user, accessToken } = useContext(UserContext)
-  const { query } = useRouter()
+  const { user, accessToken, userLoading } = useContext(UserContext)
+  const query = useQuery()
   const { setBannerHidden, setBannerContent, setLayoutOptions } = appContext
 
   const notFoundError = {
@@ -37,7 +36,7 @@ const Browse = ({ appContext }) => {
   }
 
   useEffect(() => {
-    if (!user || isEmpty(query)) return
+    if (userLoading || !query) return
 
     if (!query.traverse || !query.browse) {
       setError(notFoundError)
@@ -127,7 +126,7 @@ const Browse = ({ appContext }) => {
         }
         setError(unknownError)
       })
-  }, [user, query])
+  }, [userLoading, query, user])
 
   useEffect(() => {
     setLayoutOptions({ fullWidth: true, minimalFooter: true })
@@ -142,7 +141,7 @@ const Browse = ({ appContext }) => {
   }, [error])
 
   if (error) {
-    return <ErrorDisplay statusCode={error.status} message={error.message} />
+    return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
   }
   return (
     <>

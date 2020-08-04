@@ -13,7 +13,7 @@ import withError from '../../components/withError'
 import api from '../../lib/api-client'
 import { auth } from '../../lib/auth'
 import { formatProfileData } from '../../lib/profiles'
-import { referrerLink } from '../../lib/banner-links'
+import { viewProfileLink } from '../../lib/banner-links'
 
 // Page Styles
 import '../../styles/pages/profile-edit.less'
@@ -80,7 +80,7 @@ function ProfileEdit({ profile, appContext }) {
   useEffect(() => {
     if (clientJsLoading) return
 
-    setBannerContent(referrerLink('[public profile](/profile)'))
+    setBannerContent(viewProfileLink())
   }, [clientJsLoading])
 
   return (

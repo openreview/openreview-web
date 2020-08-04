@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
+import Router from 'next/router'
 import pick from 'lodash/pick'
 import UserContext from '../../components/UserContext'
 import NoteList from '../../components/NoteList'
@@ -9,7 +10,7 @@ import api from '../../lib/api-client'
 import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
 import { prettyList } from '../../lib/utils'
 import { auth } from '../../lib/auth'
-import { generalLink } from '../../lib/banner-links'
+import { editProfileLink } from '../../lib/banner-links'
 
 // Page Styles
 import '../../styles/pages/profile.less'
@@ -224,7 +225,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
   useEffect(() => {
     if (profile.id === user?.profile?.id) {
       setBannerHidden(false) // setBannerContent has no effect if banner is hidden
-      setBannerContent(generalLink('Edit Profile', '/profile/edit'))
+      setBannerContent(editProfileLink())
     }
   }, [profile, user])
 
@@ -379,6 +380,15 @@ Profile.getInitialProps = async (ctx) => {
     }
   } catch (error) {
     return { statusCode: 404, message: 'Profile not found' }
+  }
+
+  // TODO: remove this redirect when all profile edit links have been changed
+  if (token && ctx.query.mode === 'edit') {
+    if (ctx.req) {
+      ctx.res.writeHead(302, { Location: '/profile/edit' }).end()
+    } else {
+      Router.replace('/profile/edit')
+    }
   }
 
   const profileFormatted = formatProfileData(profileRes.profiles[0])

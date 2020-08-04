@@ -55,7 +55,7 @@ test('user open own profile', async (t) => {
     // go to profile edit page
     .click(Selector('a').withText('Edit Profile'))
     .expect(Selector('h1').withText('Edit Profile').exists).ok()
-    .expect(Selector('#or-banner').find('a').innerText).eql('Back to public profile')
+    .expect(Selector('#or-banner').find('a').innerText).eql('View Profile')
     .expect(Selector('#show-dblp-import-modal').getAttribute('disabled')).eql('disabled')
     .expect(Selector('ul.submissions-list').find('.note').count).eql(3) // has 1 publication note
     .expect(saveProfileButton.exists).ok()
