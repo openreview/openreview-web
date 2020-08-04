@@ -639,8 +639,14 @@ main();
   }
 }
 
-export async function getMessages(params, token) {
+export function getMessages(params, token) {
   return api.get('/messages', params, { accessToken: token })
+    .then(result => result.messages)
+}
+
+export function getNotes(params, token) {
+  return api.get('/notes', params, { accessToken: token })
+    .then(result => result.notes)
 }
 
 function buildSubmissionInvitationJson(invitationId, conferenceGrpId, dueDate, options) {
