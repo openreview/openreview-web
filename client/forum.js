@@ -499,7 +499,9 @@ module.exports = function(forumId, noteId, invitationId, user) {
             mkReplyNotes(replytoIdToChildren, [parentNote], 1)
           );
           MathJax.typesetPromise();
-          doAnimation();
+          if ($(scrollToElem).length) {
+            doAnimation();
+          }
         }
       } else {
         animationDone.resolve(null);
@@ -530,7 +532,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
       // Determine if the url includes and noteId or invitationId param and scroll there,
       // but only after the forumRendered event is triggered
       $content.one('forumRendered', function() {
-        console.log('here')
         var noteOrForumRec = _.find(recs, ['note.id', noteId]);
         if (noteOrForumRec) {
           if (forumId !== noteId && !invitationId) {

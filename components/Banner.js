@@ -2,7 +2,7 @@ const Banner = ({ content, hidden }) => (
   <div
     id="or-banner"
     className="banner"
-    style={hidden ? { display: 'none' } : {}}
+    style={hidden ? { display: 'none' } : null}
   >
     <div className="container">
       <div className="row">
