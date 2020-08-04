@@ -34,7 +34,7 @@ test('create new profile', async (t) => {
     .eql('melisa@test.com')
 
   const { superUserToken } = t.fixtureCtx
-  const messages = await getMessages({ to: 'melisa@test.com'}, superUserToken)
+  const messages = await getMessages({ to: 'melisa@test.com' }, superUserToken)
   await t.expect(messages[0].content.text).contains('http://localhost:3030/profile/activate?token=')
 })
 
@@ -185,7 +185,7 @@ test('reset password of active profile', async (t) => {
     // .contains('An email with the subject "OpenReview Password Reset" has been sent to')
 
   const { superUserToken } = t.fixtureCtx
-  const messages = await getMessages({ to: 'melisa@test.com', subject: 'OpenReview password reset'}, superUserToken)
+  const messages = await getMessages({ to: 'melisa@test.com', subject: 'OpenReview password reset' }, superUserToken)
   await t.expect(messages[0].content.text).contains('http://localhost:3030/user/password?token=')
 })
 
