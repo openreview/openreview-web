@@ -15,7 +15,8 @@ const GoogleAnalyticsScript = () => {
             function gtag() { dataLayer.push(arguments); }
             gtag('js', new Date());
             gtag('config', '${googleAnalyticsId}', {
-              page_path: window.location.pathname,
+              page_path: window.location.pathname + window.location.search,
+              transport_type: 'beacon'
             });`,
         }}
       />
