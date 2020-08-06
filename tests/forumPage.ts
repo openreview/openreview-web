@@ -1,8 +1,6 @@
 import fetch from 'node-fetch'
 import { Selector, ClientFunction, Role } from 'testcafe'
-import { registerFixture, before, after } from './utils/hooks'
-
-registerFixture()
+import { getToken, getNotes } from './utils/api-helper'
 
 const titleLabel = Selector('.note_content_title a')
 const authorLabel = Selector('.meta_row a')
@@ -40,12 +38,15 @@ const superUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t
 
 fixture`Forum page`
   .page`http://localhost:${process.env.NEXT_PORT}`
-  .before(async ctx => before(ctx))
-  .after(async ctx => after(ctx))
+  .before(async (ctx) => {
+    ctx.superUserToken = await getToken('openreview.net', '1234')
+    return ctx
+  })
 
 test('show a valid forum', async (t) => {
-  const { data } = t.fixtureCtx
-  const forum = data.testVenue.forums[0]
+  const { superUserToken } = t.fixtureCtx
+  const notes = await getNotes({ invitation: 'TestVenue/2020/Conference/-/Submission' }, superUserToken)
+  const forum = notes[0].id
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
     .expect(container.exists).ok()
@@ -56,8 +57,9 @@ test('show a valid forum', async (t) => {
 })
 
 test('get a forbidden page for a nonreader', async (t) => {
-  const { data } = t.fixtureCtx
-  const forum = data.anotherTestVenue.forums[0]
+  const { superUserToken } = t.fixtureCtx
+  const notes = await getNotes({ invitation: 'AnotherTestVenue/2020/Conference/-/Submission' }, superUserToken)
+  const forum = notes[0].id
   await t
     .useRole(testUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
@@ -76,8 +78,9 @@ test('get a forbidden page for a nonreader', async (t) => {
 })
 
 test('get a forbidden error for a guest user', async (t) => {
-  const { data } = t.fixtureCtx
-  const forum = data.anotherTestVenue.forums[0]
+  const { superUserToken } = t.fixtureCtx
+  const notes = await getNotes({ invitation: 'AnotherTestVenue/2020/Conference/-/Submission' }, superUserToken)
+  const forum = notes[0].id
   const getPageUrl = ClientFunction(() => window.location.href.toString())
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
@@ -91,8 +94,9 @@ test('get a forbidden error for a guest user', async (t) => {
 })
 
 test('get a deleted forum and return an ok only for super user', async (t) => {
-  const { data } = t.fixtureCtx
-  const forum = data.anotherTestVenue.forums[1]
+  const { superUserToken } = t.fixtureCtx
+  const notes = await getNotes({ invitation: 'AnotherTestVenue/2020/Conference/-/Submission', trash: true }, superUserToken)
+  const forum = notes[0].id
   await t
     .useRole(authorRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
@@ -120,9 +124,10 @@ test('get a non existent forum and return a not found', async (t) => {
 })
 
 test('get original note and redirect to the blinded note', async (t) => {
-  const { data } = t.fixtureCtx
-  const originalNote = data.iclr.forums[0]
-  const blindedNote = data.iclr.forums[1]
+  const { superUserToken } = t.fixtureCtx
+  const notes = await getNotes({ invitation: 'ICLR.cc/2021/Conference/-/Blind_Submission' }, superUserToken)
+  const originalNote = notes[0].original
+  const blindedNote = notes[0].id
   const getPageUrl = ClientFunction(() => window.location.href.toString())
   await t
     .useRole(authorRole)
@@ -137,9 +142,10 @@ test('get original note and redirect to the blinded note', async (t) => {
 })
 
 test('get original note as a guest user and redirect to the blinded note', async (t) => {
-  const { data } = t.fixtureCtx
-  const originalNote = data.iclr.forums[0]
-  const blindedNote = data.iclr.forums[1]
+  const { superUserToken } = t.fixtureCtx
+  const notes = await getNotes({ invitation: 'ICLR.cc/2021/Conference/-/Blind_Submission' }, superUserToken)
+  const originalNote = notes[0].original
+  const blindedNote = notes[0].id
   const getPageUrl = ClientFunction(() => window.location.href.toString())
 
   await t
@@ -154,8 +160,9 @@ test('get original note as a guest user and redirect to the blinded note', async
 })
 
 test('get an forum page and see meta tags with conference title', async (t) => {
-  const { data } = t.fixtureCtx
-  const forum = data.iclr.forums[1]
+  const { superUserToken } = t.fixtureCtx
+  const notes = await getNotes({ invitation: 'ICLR.cc/2021/Conference/-/Blind_Submission' }, superUserToken)
+  const forum = notes[0].id
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
     .expect(Selector('title').innerText).eql('ICLR submission title | OpenReview')
@@ -176,8 +183,9 @@ test('get an forum page and see meta tags with conference title', async (t) => {
 })
 
 test('get forum page and see all available meta tags', async (t) => {
-  const { data } = t.fixtureCtx
-  const forum = data.anotherTestVenue.forums[0]
+  const { superUserToken } = t.fixtureCtx
+  const notes = await getNotes({ invitation: 'AnotherTestVenue/2020/Conference/-/Submission' }, superUserToken)
+  const forum = notes[0].id
   await t
     .useRole(superUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
@@ -188,7 +196,6 @@ test('get forum page and see all available meta tags', async (t) => {
     .expect(Selector('meta').withAttribute('name', 'citation_pdf_url').exists).ok()
     .expect(Selector('meta').withAttribute('name', 'citation_conference_title').exists).notOk()
 
-  const { superUserToken } = t.fixtureCtx
   const htmlResponse = await fetch(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`, { method: 'GET', headers: { cookie: `openreview.accessToken=${superUserToken}` } })
   await t.expect(htmlResponse.ok).eql(true)
   const text = await htmlResponse.text()
