@@ -191,8 +191,7 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
 }
 
 const Profile = ({ profile, publicProfile, appContext }) => {
-  const [loading, setLoading] = useState(true)
-  const [publications, setPublications] = useState([])
+  const [publications, setPublications] = useState(null)
   const [count, setCount] = useState(0)
   const [coAuthors, setCoAuthors] = useState([])
   const { accessToken, user } = useContext(UserContext)
@@ -213,12 +212,9 @@ const Profile = ({ profile, publicProfile, appContext }) => {
       setPublications(apiRes.notes)
       setCount(apiRes.count)
     }
-    setLoading(false)
   }
 
   useEffect(() => {
-    loadPublications()
-
     setBannerHidden(true)
   }, [])
 
@@ -227,13 +223,15 @@ const Profile = ({ profile, publicProfile, appContext }) => {
       setBannerHidden(false) // setBannerContent has no effect if banner is hidden
       setBannerContent(editProfileLink())
     }
-  }, [profile, user])
+
+    loadPublications()
+  }, [profile, user, accessToken])
 
   useEffect(() => {
-    if (loading) return
+    if (!publications) return
 
     setCoAuthors(getCoAuthorsFromPublications(profile, publications))
-  }, [loading, publications])
+  }, [publications])
 
   return (
     <div className="profile-container">
@@ -351,14 +349,14 @@ const Profile = ({ profile, publicProfile, appContext }) => {
               profileId={profile.id}
               publications={publications}
               count={count}
-              loading={loading}
+              loading={!publications}
             />
           </ProfileSection>
 
           <ProfileSection name="coauthors" title="Co-Authors">
             <CoAuthorsList
               coAuthors={coAuthors}
-              loading={loading}
+              loading={!publications}
             />
           </ProfileSection>
 
