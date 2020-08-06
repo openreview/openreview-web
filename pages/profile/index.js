@@ -374,7 +374,10 @@ Profile.getInitialProps = async (ctx) => {
   try {
     profileRes = await api.get('/profiles', profileQuery, { accessToken: token })
     if (!profileRes.profiles?.length) {
-      return { statusCode: 404, message: 'Profile not found' }
+      return {
+        statusCode: 404,
+        message: `The user ${profileQuery.id || profileQuery.email} has not set up an OpenReview profile yet`,
+      }
     }
   } catch (error) {
     return { statusCode: 404, message: 'Profile not found' }
