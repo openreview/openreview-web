@@ -19,7 +19,7 @@ export default function withError(Component) {
         props = await Component.getInitialProps(ctx)
       } catch (error) {
         props = {
-          statusCode: error.status,
+          statusCode: error.status || 500,
           message: error.message,
         }
       }
