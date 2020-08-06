@@ -80,3 +80,14 @@ jobs:
       run: |
         cd openreview-api/logs
         cat "$(ls -rt | tail -n1)"
+    - name: Install Google Cloud
+      if: github.event.pull_request.merged == true
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        version: 'latest'
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        export_default_credentials: true
+    - name: Deploy
+      if: github.event.pull_request.merged == true
+      run: gcloud compute --project "sunlit-realm-131518" ssh --zone "us-central1-b" openreview@dev-instance-1 --command 'cd bin && bash deploy.sh' --quiet
