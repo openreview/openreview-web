@@ -132,6 +132,93 @@ For more details on the difference between OpenReview's TeX support and other sy
     a: `The best way to get help with a specific issue is to contact the program chairs or organizers of the venue you are participating in. Contact info can usually be found on the venue's OpenReview page.
 
 For general iquiries, you can contact the OpenReview team by emailing [info@openreview.net](mailto:info@openreview.net) or use the feedback form linked in the footer below.`,
+  }, {
+    q: 'How can I extend the submission deadline?',
+    id: 'question-extend-submission-deadline',
+    a: 'On the request form for your venue, click on the ‘Revision’ button and modify the Submission Deadline field to the new submission deadline.',
+  }, {
+    q: 'How can I add/remove fields to the submission form?',
+    id: 'question-review-form-fields',
+    a: '',
+  }, {
+    q: 'How can I make reviews visible to authors?',
+    id: 'question-release-reviews-authors',
+    a: 'On the request form for your venue, click on the ‘Review Stage’ button. Select Yes under Release Reviews to Authors and then submit. This will immediately release any existing reviews to authors and make subsequent posted reviews readily available to authors.',
+  }, {
+    q: 'How can I make reviews visible to reviewers?',
+    id: 'question-release-reviews-reviewers',
+    a: 'On the request form for your venue, click on the ‘Review Stage’ button. Reviews can be released to all reviewers, to only a paper\'s assigned reviewers, or to a paper\'s assigned reviewers who have already submitted their review.',
+  }, {
+    q: 'How do I get email addresses of accepted/all papers authors?',
+    id: 'question-getting-author-emails',
+    a: 'Please refer to the section on obtaining data in the documentation for our [Python API](https://openreview-py.readthedocs.io/en/latest/)',
+  }, {
+    q: 'How can I manually assign reviewers to papers?',
+    id: 'question-manually-assign-reviewers',
+    a: 'To manually assign reviewers to papers after the submission deadline has passed, you must first set the review stage by clicking on the ‘Review Stage’ button on the request form for your venue. You will then be able to assign reviewers to papers under the ‘Paper Status’ tab in the PC console.',
+  }, {
+    q: 'How can I automatically assign reviewers to papers based on their affinity and/or bids?',
+    id: 'question-run-matcher',
+    a: 'To automaticall assign reviewers to papers after the submission deadline has passed, you must first set the review stage by clicking on the ‘Review Stage’ button on the request form for your venue. You will then be able to run the matcher by clicking on ‘Reviewers Paper Assignment’ under the ‘Overview’ tab in the PC console.',
+  }, {
+    q: 'How can I enable comments on papers?',
+    id: 'question-enable-comments',
+    a: '',
+  }, {
+    q: 'How can I contact the reviewers, area chairs or authors?',
+    id: '',
+    a: '',
+  }, {
+    q: 'Does OpenReview support supplementary material?',
+    id: 'question-supplementary-material',
+    a: `Yes, OpenReview supports supplementary material.
+
+  You can add supplementary material to the submission form by clicking on the 'Revision' button and adding the following JSON under Additional Submission Options:
+  \`\`\`
+  {
+    "supplementary_material": {
+      "description": "Supplementary material (e.g. code or video). All supplementary material must be self-contained and zipped into a single file.",
+      "order": 10,
+      "value-file": {
+          "fileTypes": [
+              "zip"
+          ],
+          "size": 50
+      },
+      "required": false
+    }
+  }
+  \`\`\`
+
+  This will add a supplementary material field to upload zipped files of size up to 50 MB.`,
+  }, {
+    q: 'Is there a max size for files upload?',
+    id: 'question-file-upload',
+    a: '',
+  }, {
+    q: 'An author of a submission can not access their own paper, what is the problem?',
+    id: 'question-author-permissions',
+    a: 'If an author cannot access their own submission, they must make sure that the email address associated with the submission has been added to their profile and confirmed.',
+  }, {
+    q: 'How can I edit a submission after the deadline?',
+    id: 'question-edit-submission-after-deadline',
+    a: '',
+  }, {
+    q: 'Is it possible to make the submission public after the decisions are made?',
+    id: 'question-release-submissions',
+    a: '',
+  }, {
+    q: 'Can an author withdraw a rejected paper?',
+    id: 'question-withdraw-paper',
+    a: '',
+  }, {
+    q: 'How can I enable the camera-ready revision upload for the accepted papers?',
+    id: 'question-camera-ready-revision',
+    a: 'On the request form for your venue, click on the ‘Submission Revision Stage’ button.',
+  }, {
+    q: 'How can I remove/modify an email/name from my Profile?',
+    id: '',
+    a: '',
   }]
 
   return {
