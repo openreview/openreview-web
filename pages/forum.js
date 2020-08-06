@@ -246,7 +246,7 @@ Forum.getInitialProps = async (ctx) => {
       }
       return { statusCode: 403, message: 'You don\'t have permission to read this forum' }
     }
-    return { statusCode: error.status || '500', message: error.message }
+    return { statusCode: error.status || 500, message: error.message }
   }
 }
 
