@@ -19,7 +19,7 @@ import { viewProfileLink } from '../../lib/banner-links'
 import '../../styles/pages/profile-edit.less'
 
 function ProfileEdit({ profile, appContext }) {
-  const { accessToken } = useContext(UserContext)
+  const { accessToken, updateUserName } = useContext(UserContext)
   const router = useRouter()
   const { setBannerContent, clientJsLoading } = appContext
   const profileNames = profile.names.map(name => (
@@ -63,7 +63,9 @@ function ProfileEdit({ profile, appContext }) {
       signatures: [newProfileData.id],
     }
     try {
-      await api.post('/profiles', dataToSubmit, { accessToken })
+      const result = await api.post('/profiles', dataToSubmit, { accessToken })
+      const { first, middle, last } = result?.content?.names.filter(p => p.preferred === true)[0]
+      updateUserName(first, middle, last) // for nav to get updated name
       await Promise.all(publicationIdsToUnlink.map(publicationId => unlinkPublication(profile.id, publicationId)))
       promptMessage('Your profile information has been successfully updated')
       router.push('/profile')

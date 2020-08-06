@@ -57,6 +57,15 @@ class OpenReviewApp extends App {
     Router.push(redirectPath)
   }
 
+  updateUserName = (first, middle, last) => {
+    // eslint-disable-next-line react/no-access-state-in-setstate
+    const userCopy = { ...this.state.user }
+    userCopy.profile.first = first
+    userCopy.profile.middle = middle
+    userCopy.profile.last = last
+    this.setState({ user: userCopy })
+  }
+
   setBannerHidden(newHidden) {
     this.setState({ bannerHidden: newHidden })
     this.shouldResetBanner = false
@@ -184,6 +193,7 @@ class OpenReviewApp extends App {
       accessToken: this.state.accessToken,
       loginUser: this.loginUser,
       logoutUser: this.logoutUser,
+      updateUserName: this.updateUserName,
     }
     const appContext = {
       clientJsLoading: this.state.clientJsLoading,
