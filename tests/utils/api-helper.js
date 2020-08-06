@@ -3,6 +3,8 @@
 import fetch from 'node-fetch'
 import api from '../../lib/api-client'
 
+const fs = require('fs')
+
 require('dotenv').config()
 
 api.configure({ fetchFn: fetch })
@@ -50,13 +52,20 @@ export const inActiveUserNoPasswordNoEmail = {
 
 // The setup function is shared by all tests and should run only once. Any data
 // required by the test cases should be put here
-export async function setup(ctx) {
+export async function setup(superUserToken) {
   // eslint-disable-next-line no-console
   console.log('SETUP')
 
   // reset super user password
-  await resetAdminPassword('1234')
-  const adminToken = await getToken()
+  const adminToken = superUserToken
+
+  // create test user
+  await createUser({
+    first: 'Test',
+    last: 'User',
+    email: 'test@mail.com',
+    password: '1234',
+  })
 
   // create a venue TestVenue
   await createGroup(buildBaseGroupJson(baseGroupId), adminToken) // create base venue group
@@ -72,15 +81,41 @@ export async function setup(ctx) {
   await addMembersToGroup('active_venues', [`Another${baseGroupId}`], adminToken)
   await createGroup(buildSubGroupJson(`Another${subGroupId}`, `Another${baseGroupId}`), adminToken)
   await createGroup(buildConferenceGroupJson(`Another${conferenceGroupId}`, `Another${baseGroupId}`, `Another${subGroupId}`), adminToken)
-  await createInvitation(buildSubmissionInvitationJson(`Another${conferenceSubmissionInvitationId}`, `Another${conferenceGroupId}`, Date.now() + 2 * 24 * 60 * 60 * 1000), adminToken) // 2 days later
+  await createInvitation(buildSubmissionInvitationJson(`Another${conferenceSubmissionInvitationId}`, `Another${conferenceGroupId}`, Date.now() + 2 * 24 * 60 * 60 * 1000, { public: false }), adminToken) // 2 days later
 
-  await setupTasks(adminToken)
+  const forumId = await setupTasks(adminToken)
+
+  const hasTaskUserToken = await getToken(hasTaskUser.email)
+  const noteJson = {
+    content: {
+      title: 'this is á "paper" title',
+      authors: ['FirstA LastA'],
+      authorids: [hasTaskUser.email],
+      abstract: 'The abstract of test paper 1',
+      pdf: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf',
+    },
+    readers: [`Another${conferenceGroupId}`, hasTaskUser.email, '~FirstA_LastA1'],
+    nonreaders: [],
+    signatures: ['~FirstA_LastA1'],
+    writers: [`Another${conferenceGroupId}`, hasTaskUser.email, '~FirstA_LastA1'],
+    invitation: `Another${conferenceSubmissionInvitationId}`,
+  }
+  const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
+  noteJson.ddate = Date.now()
+  const { id: deletedNoteId } = await createNote(noteJson, hasTaskUserToken)
+
+  const iclrData = await setupICLR(adminToken)
   await setupProfileViewEdit(adminToken)
   await setupRegister(adminToken)
 
   return {
     superUserToken: adminToken,
     api,
+    data: {
+      testVenue: { forums: [forumId] },
+      anotherTestVenue: { forums: [noteId, deletedNoteId] },
+      iclr: iclrData,
+    },
   }
 }
 
@@ -103,7 +138,7 @@ async function setupTasks(adminToken) {
     readers: ['everyone'],
     nonreaders: [],
     signatures: [hasTaskUserTildeId],
-    writers: [hasTaskUserTildeId],
+    writers: [conferenceGroupId, hasTaskUser.email],
     invitation: conferenceSubmissionInvitationId,
   }
   const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
@@ -144,6 +179,60 @@ async function setupTasks(adminToken) {
     duedate: Date.now() + 2 * 24 * 60 * 60 * 1000,
   }
   await createInvitation(replyInvitationJson, adminToken)
+
+  return noteId
+}
+
+async function setupICLR(superToken) {
+  await createGroup(buildBaseGroupJson('ICLR.cc'), superToken)
+  await createGroup(buildSubGroupJson('ICLR.cc/2021', 'ICLR.cc'), superToken)
+  await createGroup(buildConferenceGroupJson('ICLR.cc/2021/Conference', 'ICLR.cc/2021', 'ICLR.cc'), superToken)
+  await addMembersToGroup('host', ['ICLR.cc/2021/Conference'], superToken)
+  await addMembersToGroup('active_venues', ['ICLR.cc/2021/Conference'], superToken)
+
+  await createInvitation(buildSubmissionInvitationJson('ICLR.cc/2021/Conference/-/Submission', 'ICLR.cc/2021/Conference', Date.now() + 2 * 24 * 60 * 60 * 1000, { public: false }), superToken)
+  await createInvitation(buildBlindSubmissionInvitationJson('ICLR.cc/2021/Conference/-/Blind_Submission', 'ICLR.cc/2021/Conference', Date.now() + 2 * 24 * 60 * 60 * 1000, { public: true }), superToken)
+
+  const userToken = await getToken('a@a.com')
+
+  const readStream = fs.readFileSync(`${__dirname}/data/paper.pdf`)
+  const result = await api.sendFile(readStream, userToken)
+
+  const noteJson = {
+    invitation: 'ICLR.cc/2021/Conference/-/Submission',
+    content: {
+      title: 'ICLR submission title',
+      authors: ['FirstA LastA'],
+      authorids: ['a@a.com'],
+      abstract: 'test iclr abstract abstract',
+      pdf: result.url,
+    },
+    readers: ['ICLR.cc/2021/Conference', 'a@a.com', '~FirstA_LastA1'],
+    signatures: ['~FirstA_LastA1'],
+    writers: ['ICLR.cc/2021/Conference', 'a@a.com', '~FirstA_LastA1'],
+  }
+
+  const { id: noteId } = await createNote(noteJson, userToken)
+
+  const blindNoteJson = {
+    invitation: 'ICLR.cc/2021/Conference/-/Blind_Submission',
+    original: noteId,
+    content: {
+      authors: ['Anonymous'],
+      authorids: ['ICLR.cc/2021/Conference/Paper1/Authors'],
+      _bibtex: '@inproceedings{\nAnonymous,\ntitle={test iclr abstract abstracts},\nauthor={Anonymous},\nbooktitle={International Conference on Learning Representations},\nyear={2021},\nurl={https://openreview.net/forum?id=1111}\n}',
+    },
+    readers: ['everyone'],
+    signatures: ['ICLR.cc/2021/Conference'],
+    writers: ['ICLR.cc/2021/Conference'],
+  }
+
+  const { id: blindNoteId } = await createNote(blindNoteJson, superToken)
+
+  return {
+    conferenceId: 'ICLR.cc/2021/Conference',
+    forums: [noteId, blindNoteId],
+  }
 }
 
 async function setupProfileViewEdit(adminToken) {
@@ -550,7 +639,27 @@ main();
   }
 }
 
-function buildSubmissionInvitationJson(invitationId, conferenceGrpId, dueDate) {
+export function getMessages(params, token) {
+  return api.get('/messages', params, { accessToken: token })
+    .then(result => result.messages)
+}
+
+export function getNotes(params, token) {
+  return api.get('/notes', params, { accessToken: token })
+    .then(result => result.notes)
+}
+
+export function getReferences(params, token) {
+  return api.get('/references', params, { accessToken: token })
+    .then(result => result.references)
+}
+
+function buildSubmissionInvitationJson(invitationId, conferenceGrpId, dueDate, options) {
+  const defaultOptions = {
+    public: true,
+  }
+  const invitationOptions = { ...defaultOptions, ...options }
+  const replyReaders = invitationOptions.public ? { values: ['everyone'] } : { 'values-copied': [conferenceGrpId, '{content.authorids}', '{signatures}'] }
   return {
     id: invitationId,
     readers: ['everyone'],
@@ -561,16 +670,13 @@ function buildSubmissionInvitationJson(invitationId, conferenceGrpId, dueDate) {
     reply: {
       forum: null,
       replyto: null,
-      readers: {
-        description: 'The users who will be allowed to read the above content.',
-        values: ['everyone'],
-      },
+      readers: replyReaders,
       signatures: {
         description: 'Your authorized identity to be associated with the above content.',
         'values-regex': '~.*',
       },
       writers: {
-        'values-regex': '~.*',
+        'values-copied': [conferenceGrpId, '{content.authorids}', '{signatures}'],
       },
       content: {
         title: {
@@ -600,7 +706,52 @@ function buildSubmissionInvitationJson(invitationId, conferenceGrpId, dueDate) {
         pdf: {
           description: 'Upload a PDF file that ends with .pdf',
           order: 5,
-          'value-regex': 'upload',
+          'value-file': {
+            fileTypes: ['pdf'],
+            size: 50,
+          },
+          required: true,
+        },
+      },
+    },
+  }
+}
+
+function buildBlindSubmissionInvitationJson(invitationId, conferenceGrpId, dueDate, options) {
+  const defaultOptions = {
+    public: true,
+  }
+  const invitationOptions = { ...defaultOptions, ...options }
+  const replyReaders = invitationOptions.public ? { values: ['everyone'] } : { 'values-copied': [conferenceGrpId, '{content.authorids}', '{signatures}'] }
+  return {
+    id: invitationId,
+    readers: ['everyone'],
+    writers: [conferenceGrpId],
+    signatures: [conferenceGrpId],
+    invitees: [conferenceGrpId], // doc use everyone, api is looking for ~
+    duedate: dueDate || Date.now() + 24 * 60 * 60 * 1000, // default value is tomorrow
+    reply: {
+      forum: null,
+      replyto: null,
+      readers: replyReaders,
+      signatures: {
+        description: 'Your authorized identity to be associated with the above content.',
+        values: [conferenceGrpId],
+      },
+      writers: {
+        values: [conferenceGrpId],
+      },
+      content: {
+        authors: {
+          description: 'Comma separated list of author names. Please provide real names; identities will be anonymized.',
+          order: 1,
+          'values-regex': '.*',
+          required: true,
+        },
+        authorids: {
+          description: 'Comma separated list of author email addresses, lowercased, in the same order as above. For authors with existing OpenReview accounts, please make sure that the provided email address(es) match those listed in the author\'s profile. Please provide real emails; identities will be anonymized.',
+          order: 2,
+          'values-regex': '.*',
           required: true,
         },
       },

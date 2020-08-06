@@ -25,13 +25,15 @@ class OpenReviewApp extends App {
       bannerContent: null,
       layoutOptions: { fullWidth: false, footerMinimal: false },
     }
+    this.shouldResetBanner = false
 
     this.loginUser = this.loginUser.bind(this)
     this.logoutUser = this.logoutUser.bind(this)
     this.setBannerHidden = this.setBannerHidden.bind(this)
     this.setBannerContent = this.setBannerContent.bind(this)
     this.setLayoutOptions = this.setLayoutOptions.bind(this)
-    this.onRouteChange = this.onRouteChange.bind(this)
+    this.onRouteChangeStart = this.onRouteChangeStart.bind(this)
+    this.onRouteChangeComplete = this.onRouteChangeComplete.bind(this)
   }
 
   loginUser(authenticatedUser, userAccessToken, redirectPath = '/') {
@@ -57,10 +59,12 @@ class OpenReviewApp extends App {
 
   setBannerHidden(newHidden) {
     this.setState({ bannerHidden: newHidden })
+    this.shouldResetBanner = false
   }
 
   setBannerContent(newContent) {
     this.setState({ bannerContent: newContent })
+    this.shouldResetBanner = false
   }
 
   setLayoutOptions(options) {
@@ -98,13 +102,19 @@ class OpenReviewApp extends App {
     }
   }
 
-  onRouteChange(url) {
+  onRouteChangeStart() {
+    this.shouldResetBanner = true
+  }
+
+  onRouteChangeComplete(url) {
     // Reset banner
-    this.setState({
-      bannerHidden: false,
-      bannerContent: null,
-      layoutOptions: { fullWidth: false, footerMinimal: false },
-    })
+    if (this.shouldResetBanner) {
+      this.setState({
+        bannerHidden: false,
+        bannerContent: null,
+        layoutOptions: { fullWidth: false, footerMinimal: false },
+      })
+    }
 
     // Track pageview in Google Analytics
     // https://developers.google.com/analytics/devguides/collection/gtagjs/pages
@@ -154,14 +164,16 @@ class OpenReviewApp extends App {
     window.Webfield.setToken(token)
     window.controller.setToken(token)
 
-    // Register route change handler
-    Router.events.on('routeChangeComplete', this.onRouteChange)
-
     this.setState({ clientJsLoading: false })
+
+    // Register route change handlers
+    Router.events.on('routeChangeStart', this.onRouteChangeStart)
+    Router.events.on('routeChangeComplete', this.onRouteChangeComplete)
   }
 
   componentWillUnmount() {
-    Router.events.off('routeChangeComplete', this.onRouteChange)
+    Router.events.off('routeChangeStart', this.onRouteChangeStart)
+    Router.events.off('routeChangeComplete', this.onRouteChangeComplete)
   }
 
   render() {
