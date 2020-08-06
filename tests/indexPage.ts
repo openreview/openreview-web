@@ -5,8 +5,9 @@ const activeVenues = Selector('#active-venues')
 const openVenues = Selector('#open-venues')
 const allVenues = Selector('#all-venues')
 
+// eslint-disable-next-line no-unused-expressions
 fixture`Home Page`
-  .page(`http://localhost:${process.env.NEXT_PORT}`)
+  .page`http://localhost:${process.env.NEXT_PORT}`
 
 test('show active venues', async (t) => {
   await t
