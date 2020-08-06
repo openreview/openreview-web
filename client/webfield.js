@@ -1421,6 +1421,7 @@ module.exports = (function() {
     }
 
     $container.append(noteListHtml);
+    typesetMathJax();
   };
 
   var groupInfo = function(group, options) {
