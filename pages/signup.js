@@ -1,4 +1,5 @@
 /* globals promptError: false */
+/* globals $: false */
 
 import { useState, useEffect, useCallback } from 'react'
 import Head from 'next/head'
@@ -107,6 +108,18 @@ const SignupForm = ({ setSignupConfirmation }) => {
     getMatchingProfiles(firstName, lastName)
   }, [firstName, lastName])
 
+  useEffect(() => {
+    $('#feedback-modal').on('shown.bs.modal', (e) => {
+      if (e.relatedTarget.innerText === 'contact us') { // clicked the link in body not footer
+        $('#feedback-modal').find('[name=\'subject\']').val('Merge Profiles')
+        $('#feedback-modal').find('[name=\'message\']').val('Hi OpenReview,\n\nBelow are my profile e-mail addresses:\n<replace-me>@<some-domain.com>\n<replace-me>@<some-domain.com>\n\nThanks.')
+      }
+    })
+    return () => {
+      $('#feedback-modal').off('shown.bs.modal')
+    }
+  }, [])
+
   return (
     <div className="signup-form-container">
       <form onSubmit={e => e.preventDefault()}>
@@ -187,7 +200,8 @@ const SignupForm = ({ setSignupConfirmation }) => {
         <p className="merge-message hint">
           If two or more of the profiles above belong to you, please
           {' '}
-          <Link href="/contact"><a>contact us</a></Link>
+          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+          <a href="#" data-toggle="modal" data-target="#feedback-modal">contact us</a>
           {' '}
           and we will assist you in merging your profiles.
         </p>
