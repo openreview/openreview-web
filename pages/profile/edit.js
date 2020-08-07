@@ -64,7 +64,7 @@ function ProfileEdit({ profile, appContext }) {
     }
     try {
       const result = await api.post('/profiles', dataToSubmit, { accessToken })
-      const { first, middle, last } = result.content?.names?.filter(p => p.preferred === true)?.[0]
+      const { first, middle, last } = result.content?.names?.filter(p => p.preferred === true)?.[0] ?? {}
       if (first && last) updateUserName(first, middle, last) // for nav to get updated name
       await Promise.all(publicationIdsToUnlink.map(publicationId => unlinkPublication(profile.id, publicationId)))
       promptMessage('Your profile information has been successfully updated')
