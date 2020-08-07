@@ -113,7 +113,6 @@ ProfileEdit.getInitialProps = async (ctx) => {
     } else {
       Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
     }
-    return {}
   }
 
   const profileRes = await api.get('/profiles', {}, { accessToken: token })

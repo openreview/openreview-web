@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 import pick from 'lodash/pick'
 import UserContext from '../../components/UserContext'
 import NoteList from '../../components/NoteList'
@@ -190,11 +190,14 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
   )
 }
 
-const Profile = ({ profile, publicProfile, appContext }) => {
+const Profile = ({
+  profile, profileQuery, publicProfile, appContext,
+}) => {
   const [publications, setPublications] = useState(null)
   const [count, setCount] = useState(0)
   const [coAuthors, setCoAuthors] = useState([])
   const { accessToken, user } = useContext(UserContext)
+  const router = useRouter()
   const { setBannerHidden, setBannerContent } = appContext
 
   const loadPublications = async () => {
@@ -219,13 +222,18 @@ const Profile = ({ profile, publicProfile, appContext }) => {
   }, [])
 
   useEffect(() => {
+    // Replace id param in URL with the user's preferred username
+    if (profileQuery.email || (profileQuery.id && profileQuery.id !== profile.preferredId)) {
+      router.replace(`/profile?id=${profile.preferredId}`, undefined, { shallow: true })
+    }
+
     if (profile.id === user?.profile?.id) {
-      setBannerHidden(false) // setBannerContent has no effect if banner is hidden
+      setBannerHidden(false)
       setBannerContent(editProfileLink())
     }
 
     loadPublications()
-  }, [profile, user, accessToken])
+  }, [profile, profileQuery, user, accessToken])
 
   useEffect(() => {
     if (!publications) return
@@ -396,6 +404,7 @@ Profile.getInitialProps = async (ctx) => {
   return {
     profile: profileFormatted,
     publicProfile: Object.keys(profileQuery).length > 0,
+    profileQuery,
   }
 }
 
