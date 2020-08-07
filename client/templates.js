@@ -1949,7 +1949,7 @@ window.Handlebars["templates"]["partials/accordion"] = Handlebars.template({"1":
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depths[1] != null ? lookupProperty(depths[1],"options") : depths[1])) != null ? lookupProperty(stack1,"collapsed") : stack1),{"name":"if","hash":{},"fn":container.program(7, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":8,"column":33},"end":{"line":8,"column":77}}})) != null ? stack1 : "")
     + "\" role=\"button\"\n             data-toggle=\"collapse\" data-parent=\"#"
     + alias3(alias2(((stack1 = (depths[1] != null ? lookupProperty(depths[1],"options") : depths[1])) != null ? lookupProperty(stack1,"id") : stack1), depth0))
-    + "\" href=\"#"
+    + "\" data-target=\"#"
     + ((stack1 = container.invokePartial(lookupProperty(partials,"sectionId"),depth0,{"name":"sectionId","hash":{"parentId":((stack1 = (depths[1] != null ? lookupProperty(depths[1],"options") : depths[1])) != null ? lookupProperty(stack1,"id") : stack1)},"data":data,"helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
     + "\"\n             aria-controls=\""
     + ((stack1 = container.invokePartial(lookupProperty(partials,"sectionId"),depth0,{"name":"sectionId","hash":{"parentId":((stack1 = (depths[1] != null ? lookupProperty(depths[1],"options") : depths[1])) != null ? lookupProperty(stack1,"id") : stack1)},"data":data,"helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
@@ -1957,7 +1957,7 @@ window.Handlebars["templates"]["partials/accordion"] = Handlebars.template({"1":
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depths[1] != null ? lookupProperty(depths[1],"options") : depths[1])) != null ? lookupProperty(stack1,"collapsed") : stack1),{"name":"if","hash":{},"fn":container.program(7, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":13,"column":20},"end":{"line":13,"column":64}}})) != null ? stack1 : "")
     + "\" role=\"button\"\n             data-toggle=\"collapse\" data-parent=\"#"
     + alias3(alias2(((stack1 = (depths[1] != null ? lookupProperty(depths[1],"options") : depths[1])) != null ? lookupProperty(stack1,"id") : stack1), depth0))
-    + "\" href=\"#"
+    + "\" data-target=\"#"
     + ((stack1 = container.invokePartial(lookupProperty(partials,"sectionId"),depth0,{"name":"sectionId","hash":{"parentId":((stack1 = (depths[1] != null ? lookupProperty(depths[1],"options") : depths[1])) != null ? lookupProperty(stack1,"id") : stack1)},"data":data,"helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
     + "\"\n             aria-controls=\""
     + ((stack1 = container.invokePartial(lookupProperty(partials,"sectionId"),depth0,{"name":"sectionId","hash":{"parentId":((stack1 = (depths[1] != null ? lookupProperty(depths[1],"options") : depths[1])) != null ? lookupProperty(stack1,"id") : stack1)},"data":data,"helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
