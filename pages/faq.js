@@ -11,8 +11,11 @@ import Accordion from '../components/Accordion'
 // Page Styles
 import '../styles/pages/faq.less'
 
-function Faq({ questions, appContext }) {
-  const [formattedQuestions, setFormattedQuestions] = useState(null)
+function Faq({ generalQuestions, pcQuestions, appContext }) {
+  console.log(generalQuestions)
+  console.log(pcQuestions)
+  const [formattedGeneralQuestions, setFormattedGeneralQuestions] = useState(null)
+  const [formattedPCQuestions, setFormattedPCQuestions] = useState(null)
   const router = useRouter()
   const { clientJsLoading } = appContext
 
@@ -20,7 +23,12 @@ function Faq({ questions, appContext }) {
     if (clientJsLoading) return
 
     const defaultRenderer = new marked.Renderer()
-    setFormattedQuestions(questions.map(obj => ({
+    setFormattedGeneralQuestions(generalQuestions.map(obj => ({
+      id: obj.id,
+      heading: obj.q,
+      body: DOMPurify.sanitize(marked(obj.a, { renderer: defaultRenderer })),
+    })))
+    setFormattedPCQuestions(pcQuestions.map(obj => ({
       id: obj.id,
       heading: obj.q,
       body: DOMPurify.sanitize(marked(obj.a, { renderer: defaultRenderer })),
@@ -28,7 +36,7 @@ function Faq({ questions, appContext }) {
   }, [clientJsLoading])
 
   useEffect(() => {
-    if (!formattedQuestions) return
+    if (!formattedGeneralQuestions || !formattedPCQuestions) return
 
     // Scroll to and expand question referenced in URL
     if (window.location.hash) {
@@ -47,7 +55,7 @@ function Faq({ questions, appContext }) {
     $('#questions .panel-title a').on('click', function onClick() {
       router.replace(window.location.pathname + window.location.search + $(this).attr('href'))
     })
-  }, [formattedQuestions])
+  }, [formattedGeneralQuestions, formattedPCQuestions])
 
   return (
     <div>
@@ -64,10 +72,21 @@ function Faq({ questions, appContext }) {
       <div className="row">
         <div className="col-xs-12 col-md-10 col-md-offset-1 faq-container">
 
-          {formattedQuestions ? (
+          {formattedGeneralQuestions ? (
             <Accordion
-              sections={formattedQuestions}
-              options={{ id: 'questions', collapsed: true, html: true }}
+              title="General Questions"
+              sections={formattedGeneralQuestions}
+              options={{ id: 'general-questions', collapsed: true, html: true }}
+            />
+          ) : (
+            <LoadingSpinner />
+          )}
+
+          {formattedPCQuestions ? (
+            <Accordion
+              title="Program Chairs Questions"
+              sections={formattedPCQuestions}
+              options={{ id: 'pc-questions', collapsed: true, html: true }}
             />
           ) : (
             <LoadingSpinner />
@@ -75,13 +94,14 @@ function Faq({ questions, appContext }) {
 
         </div>
       </div>
+
     </div>
   )
 }
 
 export async function getStaticProps() {
   // TODO: get this content from database or CMS
-  const questions = [{
+  const generalQuestions = [{
     q: 'How do I add formatting to my reviews or comments?',
     id: 'question-add-formatting',
     a: `Venues can choose to allow users to add basic formatting to text content by enabling Markdown in specific places like official reviews and rebuttals. Markdown is a plain text format for writing structured documents, based on common conventions for indicating formatting and is currently used by many prominent websites including GitHub and StackOverflow. It can be used to add headings, bold, italics, lists, tables, and more. For a brief overview of the features of Markdown see [CommonMark.org’s reference](https://commonmark.org/help/). OpenReview follows the [CommonMark spec](https://spec.commonmark.org/0.29/), with the exception of images and inline HTML which are not supported.
@@ -132,7 +152,9 @@ For more details on the difference between OpenReview's TeX support and other sy
     a: `The best way to get help with a specific issue is to contact the program chairs or organizers of the venue you are participating in. Contact info can usually be found on the venue's OpenReview page.
 
 For general iquiries, you can contact the OpenReview team by emailing [info@openreview.net](mailto:info@openreview.net) or use the feedback form linked in the footer below.`,
-  }, {
+  }]
+
+  const pcQuestions = [{
     q: 'How can I extend the submission deadline?',
     id: 'question-extend-submission-deadline',
     a: 'On the request form for your venue, click on the ‘Revision’ button and modify the Submission Deadline field to the new submission deadline.',
@@ -222,7 +244,7 @@ For general iquiries, you can contact the OpenReview team by emailing [info@open
   }]
 
   return {
-    props: { questions },
+    props: { generalQuestions, pcQuestions },
   }
 }
 

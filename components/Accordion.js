@@ -1,12 +1,13 @@
 import Icon from './Icon'
 
-const Accordion = ({ sections, options }) => (
+const Accordion = ({ title, sections, options }) => (
   <div
     id={options.id}
     className={`webfield-accordion panel-group ${options.extraClasses}`}
     role="tablist"
     aria-multiselectable="true"
   >
+    <h3>{title}</h3>
     {sections.map((section, i) => {
       const sectionId = section.id || `${options.id}-section-${i}`
       return (
