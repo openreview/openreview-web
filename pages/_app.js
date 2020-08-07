@@ -12,7 +12,7 @@ import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 import '../styles/global.less'
 import '../styles/components.less'
 
-class OpenReviewApp extends App {
+export default class OpenReviewApp extends App {
   constructor(props) {
     super(props)
 
@@ -133,6 +133,25 @@ class OpenReviewApp extends App {
       this.setState({ userLoading: false })
     }
 
+    // Track unhandled JavaScript errors
+    const reportError = (errorDescription) => {
+      if (process.env.IS_PRODUCTION || process.env.IS_STAGING) {
+        window.gtag('event', 'exception', {
+          description: errorDescription,
+          fatal: true,
+        })
+      }
+    }
+    window.addEventListener('error', (event) => {
+      const description = `JavaScript Error: "${event.message}" in ${event.filename} at line ${event.lineno}`
+      reportError(description)
+      return false
+    })
+    window.addEventListener('unhandledrejection', (event) => {
+      const description = `Unhandled Promise Rejection: ${event.reason}`
+      reportError(description)
+    })
+
     // Load required vendor libraries
     window.jQuery = require('jquery')
     window.$ = window.jQuery
@@ -208,4 +227,17 @@ class OpenReviewApp extends App {
   }
 }
 
-export default OpenReviewApp
+// Send page page performace information to Google Analytics. For more info see:
+// https://nextjs.org/docs/advanced-features/measuring-performance
+export function reportWebVitals({
+  id, name, label, value,
+}) {
+  if (process.env.IS_PRODUCTION || process.env.IS_STAGING) {
+    window.gtag('event', name, {
+      event_category: label === 'web-vital' ? 'Web Vitals' : 'Next.js Metrics',
+      value: Math.round(name === 'CLS' ? value * 1000 : value),
+      event_label: id,
+      non_interaction: true,
+    })
+  }
+}
