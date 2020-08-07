@@ -1096,6 +1096,8 @@ module.exports = (function() {
       });
     }
 
+    typesetMathJax();
+
     if (options.fadeIn) {
       return $container.fadeIn('fast').promise();
     }
@@ -1169,6 +1171,8 @@ module.exports = (function() {
         $container, notes, Handlebars.templates['partials/noteActivity'], options
       );
     }
+
+    typesetMathJax();
   };
 
   var _registerActionButtonHandlers = function($container, notes, noteTemplateFn, options) {
@@ -2907,8 +2911,6 @@ module.exports = (function() {
         !$('.tabs-container ul.nav-tabs > li.active').length) {
       $('.tabs-container ul.nav-tabs > li > a:visible').eq(0).trigger('click', [true]);
     }
-
-    typesetMathJax();
   };
 
   return {
