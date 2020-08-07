@@ -241,6 +241,109 @@ For general iquiries, you can contact the OpenReview team by emailing [info@open
     q: 'How can I remove/modify an email/name from my Profile?',
     id: '',
     a: '',
+  }, {
+    q: 'Which field types are supported in the forms?',
+    id: 'question-field-type-supported',
+    a: `Each field can support the following properties, all the properties are optional expect the field type:
+- field type
+- description
+- order
+- required
+- default
+
+You can have different types of fields:
+- **value**, **values**: string or array of strings, the value/s can not be modified by the user.
+
+    \`\`\`
+    "title": {
+      "value": "this is a static value"
+    },
+    "keywords": {
+      "values": ["Deep Learning", "Machine Learning"]
+    }
+    \`\`\`
+- **value-regex**, **values-regex**: string or array of strings, the value should pass the regex validation.
+
+    \`\`\`
+    "title": {
+      "order": 0,
+      "value-regex": ".{1,500}",
+      "description": "Brief summary of your comment.",
+      "required": true
+    },
+    "emails": {
+      "description": "Comma separated list of author email addresses, lowercased, in the same order as above. For authors with existing OpenReview accounts, please make sure that the provided email address(es) match those listed in the author\'s profile.",
+      "order": 3,
+      "values-regex": "([a-z0-9_\-\.]{1,}@[a-z0-9_\-\.]{2,}\.[a-z]{2,},){0,}([a-z0-9_\-\.]{1,}@[a-z0-9_\-\.]{2,}\.[a-z]{2,})",
+      "required":true
+    }
+    \`\`\`
+
+to be continue....
+    `,
+  }, {
+    q: 'Which are the default submission, review and comment forms?',
+    id: 'question-default-forms',
+    a: `These are the field required for each form:
+- **Submission form**, please note that title, authors and authorids should be always present in the submission form.
+
+    \`\`\`
+    {
+      "title": {
+        "description": "Title of paper. Add TeX formulas using the following formats: $In-line Formula$ or $$Block Formula$$",
+        "order": 1,
+        "value-regex": ".{1,250}",
+        "required": true
+      },
+      "authors": {
+          "description": "Comma separated list of author names.",
+          "order": 2,
+          "values-regex": "[^;,\\n]+(,[^,\\n]+)*",
+          "required": true
+      },
+      "authorids": {
+          "description": "Comma separated list of author email addresses, lowercased, in the same order as above. For authors with existing OpenReview accounts, please make sure that the provided email address(es) match those listed in the author's profile.",
+          "order": 3,
+          "values-regex": "([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})",
+          "required": true
+      },
+      "keywords": {
+          "description": "Comma separated list of keywords.",
+          "order": 6,
+          "values-regex": "(^$)|[^;,\\n]+(,[^,\\n]+)*"
+      },
+      "TL;DR": {
+          "description": "\"Too Long; Didn't Read\": a short sentence describing your paper",
+          "order": 7,
+          "value-regex": "[^\\n]{0,250}",
+          "required": false
+      },
+      "abstract": {
+          "description": "Abstract of paper. Add TeX formulas using the following formats: $In-line Formula$ or $$Block Formula$$",
+          "order": 8,
+          "value-regex": "[\\S\\s]{1,5000}",
+          "required": true
+      },
+      "pdf": {
+          "description": "Upload a PDF file that ends with .pdf",
+          "order": 9,
+          "value-file": {
+              "fileTypes": [
+                  "pdf"
+              ],
+              "size": 50000000
+          },
+          "required": true
+      }
+    }
+    \`\`\`
+
+will be displayed as:
+
+![Submission form image](/images/faq-submission-form.png)
+
+to be continue....
+    `,
   }]
 
   return {
