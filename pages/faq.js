@@ -12,8 +12,6 @@ import Accordion from '../components/Accordion'
 import '../styles/pages/faq.less'
 
 function Faq({ generalQuestions, pcQuestions, appContext }) {
-  console.log(generalQuestions)
-  console.log(pcQuestions)
   const [formattedGeneralQuestions, setFormattedGeneralQuestions] = useState(null)
   const [formattedPCQuestions, setFormattedPCQuestions] = useState(null)
   const router = useRouter()
@@ -272,9 +270,9 @@ You can have different types of fields:
       "required": true
     },
     "emails": {
-      "description": "Comma separated list of author email addresses, lowercased, in the same order as above. For authors with existing OpenReview accounts, please make sure that the provided email address(es) match those listed in the author\'s profile.",
+      "description": "Comma separated list of author email addresses, lowercased, in the same order as above. For authors with existing OpenReview accounts, please make sure that the provided email address(es) match those listed in the author\\'s profile.",
       "order": 3,
-      "values-regex": "([a-z0-9_\-\.]{1,}@[a-z0-9_\-\.]{2,}\.[a-z]{2,},){0,}([a-z0-9_\-\.]{1,}@[a-z0-9_\-\.]{2,}\.[a-z]{2,})",
+      "values-regex": "([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})",
       "required":true
     }
     \`\`\`
@@ -313,7 +311,7 @@ to be continue....
           "values-regex": "(^$)|[^;,\\n]+(,[^,\\n]+)*"
       },
       "TL;DR": {
-          "description": "\"Too Long; Didn't Read\": a short sentence describing your paper",
+          "description": "\\"Too Long; Didn't Read\\": a short sentence describing your paper",
           "order": 7,
           "value-regex": "[^\\n]{0,250}",
           "required": false
