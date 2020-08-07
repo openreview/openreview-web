@@ -3,7 +3,7 @@
 
 import { useEffect, useContext } from 'react'
 import Head from 'next/head'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import get from 'lodash/get'
 import omit from 'lodash/omit'
 import UserContext from '../../components/UserContext'
@@ -107,6 +107,15 @@ function ProfileEdit({ profile, appContext }) {
 
 ProfileEdit.getInitialProps = async (ctx) => {
   const { token } = auth(ctx)
+  if (!token) {
+    if (ctx.req) {
+      ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
+    } else {
+      Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
+    }
+    return {}
+  }
+
   const profileRes = await api.get('/profiles', {}, { accessToken: token })
   if (!profileRes.profiles?.length) {
     return { statusCode: 404, message: 'Profile not found' }
