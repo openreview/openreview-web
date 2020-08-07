@@ -59,8 +59,13 @@ class OpenReviewApp extends App {
 
   updateUserName = (first, middle, last) => {
     this.setState((state, props) => ({
-      user: { ...state.user, profile: { ...state.user.profile, first, middle, last } }
-    )}
+      user: {
+        ...state.user,
+        profile: {
+          ...state.user.profile, first, middle, last,
+        },
+      },
+    }))
   }
 
   setBannerHidden(newHidden) {
