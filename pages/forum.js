@@ -212,6 +212,7 @@ Forum.getInitialProps = async (ctx) => {
   }
 
   try {
+    if (!ctx.query.id) return { statusCode: 404, message: 'Not Found' }
     const result = await api.get('/notes', { id: ctx.query.id, trash: true, details: 'original,invitation,replyCount' }, { accessToken: token })
     const note = result.notes[0]
 
