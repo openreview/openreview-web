@@ -29,6 +29,7 @@ class OpenReviewApp extends App {
 
     this.loginUser = this.loginUser.bind(this)
     this.logoutUser = this.logoutUser.bind(this)
+    this.updateUserName = this.updateUserName.bind(this)
     this.setBannerHidden = this.setBannerHidden.bind(this)
     this.setBannerContent = this.setBannerContent.bind(this)
     this.setLayoutOptions = this.setLayoutOptions.bind(this)
@@ -57,7 +58,7 @@ class OpenReviewApp extends App {
     Router.push(redirectPath)
   }
 
-  updateUserName = (first, middle, last) => {
+  updateUserName(first, middle, last) {
     this.setState((state, props) => ({
       user: {
         ...state.user,
