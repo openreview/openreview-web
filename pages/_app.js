@@ -58,12 +58,9 @@ class OpenReviewApp extends App {
   }
 
   updateUserName = (first, middle, last) => {
-    // eslint-disable-next-line react/no-access-state-in-setstate
-    const userCopy = { ...this.state.user }
-    userCopy.profile.first = first
-    userCopy.profile.middle = middle
-    userCopy.profile.last = last
-    this.setState({ user: userCopy })
+    this.setState((state, props) => ({
+      user: { ...state.user, profile: { ...state.user.profile, first, middle, last } }
+    )}
   }
 
   setBannerHidden(newHidden) {
