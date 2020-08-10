@@ -204,3 +204,13 @@ test('get forum page and see all available meta tags', async (t) => {
   await t.expect(text).contains('<meta name="citation_online_date"')
   await t.expect(text).contains('<meta name="citation_pdf_url"')
 })
+
+test('#139 no id param should show an error message', async (t) => {
+  await t.navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum`)
+    .expect(Selector('Header').innerText).eql('Error 400')
+    .expect(Selector('.error-message').innerText).eql('Forum ID is required')
+  await t.useRole(superUserRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum`)
+    .expect(Selector('Header').innerText).eql('Error 400')
+    .expect(Selector('.error-message').innerText).eql('Forum ID is required')
+})
