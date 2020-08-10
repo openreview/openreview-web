@@ -189,6 +189,10 @@ const Forum = ({ forumNote, query, appContext }) => {
 }
 
 Forum.getInitialProps = async (ctx) => {
+  if (!ctx.query.id) {
+    return { statusCode: 400, message: 'Forum ID is required' }
+  }
+
   const { user, token } = auth(ctx)
   const shouldRedirect = async (noteId) => {
     // if it is the original of a blind submission, do redirection
@@ -201,7 +205,6 @@ Forum.getInitialProps = async (ctx) => {
 
     return false
   }
-
   const redirectForum = (forumId) => {
     if (ctx.req) {
       ctx.res.writeHead(302, { Location: `/forum?id=${encodeURIComponent(forumId)}` }).end()
@@ -212,7 +215,9 @@ Forum.getInitialProps = async (ctx) => {
   }
 
   try {
-    const result = await api.get('/notes', { id: ctx.query.id, trash: true, details: 'original,invitation,replyCount' }, { accessToken: token })
+    const result = await api.get('/notes', {
+      id: ctx.query.id, trash: true, details: 'original,invitation,replyCount',
+    }, { accessToken: token })
     const note = result.notes[0]
 
     // Only super user can see deleted forums

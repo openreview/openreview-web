@@ -7,7 +7,7 @@ import api from '../lib/api-client'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 const Logout = () => {
-  const { user, logoutUser } = useContext(UserContext)
+  const { user, userLoading, logoutUser } = useContext(UserContext)
   const router = useRouter()
 
   const performLogout = async () => {
@@ -16,27 +16,19 @@ const Logout = () => {
       logoutUser()
     } catch (error) {
       promptError(error.message)
+      router.replace('/')
     }
-
-    router.replace('/')
   }
 
   useEffect(() => {
+    if (userLoading) return
+
     if (user) {
-      performLogout(false)
+      performLogout()
+    } else {
+      router.replace('/')
     }
-  }, [user])
-
-  // Redirect unauthenticated users after 1 second
-  useEffect(() => {
-    const timerId = setTimeout(() => {
-      if (!user) {
-        router.replace('/')
-      }
-    }, 1000)
-
-    return () => clearTimeout(timerId)
-  }, [])
+  }, [userLoading, user])
 
   return <LoadingSpinner />
 }
