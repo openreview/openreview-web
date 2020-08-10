@@ -5,5 +5,5 @@ fixture`Setup`
 
 test('setup data', async (t) => {
   const superUserToken = await getToken('openreview.net', '1234')
-  setup(superUserToken)
+  const result = await setup(superUserToken)
 })

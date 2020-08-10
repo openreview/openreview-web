@@ -203,92 +203,77 @@ async function setupICLR(superToken) {
         'john@mail.com',
         'tom@mail.com'],
       contact_email: 'iclr@mail.com',
-      'Area Chairs (Metareviewers)': 'No, our venue does not have Area Chairs',
+      'Area Chairs (Metareviewers)': 'Yes, our venue has Area Chairs',
       'Venue Start Date': '2021/11/01',
       'Submission Deadline': '2021/11/01',
       Location: 'Virtual',
       'Paper Matching': [
         'Reviewer Bid Scores',
         'Reviewer Recommendation Scores'],
-      'Author and Reviewer Anonymity': 'Single-blind (Reviewers are anonymous)',
-      'Open Reviewing Policy': 'Submissions and reviews should both be private.',
+      'Author and Reviewer Anonymity': 'Double-blind',
+      'Open Reviewing Policy': 'Submissions and reviews should both be public.',
       'Public Commentary': 'Yes, allow members of the public to comment non-anonymously.',
-      withdrawn_submissions_visibility: 'No, withdrawn submissions should not be made public.',
+      withdrawn_submissions_visibility: 'Yes, withdrawn submissions should be made public.',
       withdrawn_submissions_author_anonymity: 'No, authors of withdrawn submissions should not be anonymized.',
       email_pcs_for_withdrawn_submissions: 'Yes, email PCs.',
-      desk_rejected_submissions_visibility: 'No, desk rejected submissions should not be made public.',
+      desk_rejected_submissions_visibility: 'Yes, desk rejected submissions should be made public.',
       desk_rejected_submissions_author_anonymity: 'No, authors of desk rejected submissions should not be anonymized.',
       'How did you hear about us?': 'ML conferences',
-      'Expected Submissions': '100',
+      'Expected Submissions': '6000',
     },
   }
-  const { id: noteId, number } = await createNote(requestVenueJson, superToken)
+  const { id: requestForumId, number } = await createNote(requestVenueJson, superToken)
 
   await new Promise(r => setTimeout(r, 2000))
 
   const deployVenueJson = {
     content: { venue_id: 'ICLR.cc/2021/Conference' },
-    forum: noteId,
+    forum: requestForumId,
     invitation: `openreview.net/Support/-/Request${number}/Deploy`,
     readers: ['openreview.net/Support'],
-    referent: noteId,
-    replyto: noteId,
+    referent: requestForumId,
+    replyto: requestForumId,
     signatures: ['openreview.net/Support'],
     writers: ['openreview.net/Support'],
   }
 
   await createNote(deployVenueJson, superToken)
 
-  return {}
-  // await createGroup(buildBaseGroupJson('ICLR.cc'), superToken)
-  // await createGroup(buildSubGroupJson('ICLR.cc/2021', 'ICLR.cc'), superToken)
-  // await createGroup(buildConferenceGroupJson('ICLR.cc/2021/Conference', 'ICLR.cc/2021', 'ICLR.cc'), superToken)
-  // await addMembersToGroup('host', ['ICLR.cc/2021/Conference'], superToken)
-  // await addMembersToGroup('active_venues', ['ICLR.cc/2021/Conference'], superToken)
+  await new Promise(r => setTimeout(r, 2000))
 
-  // await createInvitation(buildSubmissionInvitationJson('ICLR.cc/2021/Conference/-/Submission', 'ICLR.cc/2021/Conference', Date.now() + 2 * 24 * 60 * 60 * 1000, { public: false }), superToken)
-  // await createInvitation(buildBlindSubmissionInvitationJson('ICLR.cc/2021/Conference/-/Blind_Submission', 'ICLR.cc/2021/Conference', Date.now() + 2 * 24 * 60 * 60 * 1000, { public: true }), superToken)
+  const userToken = await getToken('a@a.com')
 
-  // const userToken = await getToken('a@a.com')
+  const readStream = fs.readFileSync(`${__dirname}/data/paper.pdf`)
+  const result = await api.sendFile(readStream, userToken)
 
-  // const readStream = fs.readFileSync(`${__dirname}/data/paper.pdf`)
-  // const result = await api.sendFile(readStream, userToken)
+  const noteJson = {
+    invitation: 'ICLR.cc/2021/Conference/-/Submission',
+    content: {
+      title: 'ICLR submission title',
+      authors: ['FirstA LastA'],
+      authorids: ['~FirstA_LastA1'],
+      abstract: 'test iclr abstract abstract',
+      pdf: result.url,
+    },
+    readers: ['ICLR.cc/2021/Conference', '~FirstA_LastA1'],
+    signatures: ['~FirstA_LastA1'],
+    writers: ['ICLR.cc/2021/Conference', '~FirstA_LastA1'],
+  }
 
-  // const noteJson = {
-  //   invitation: 'ICLR.cc/2021/Conference/-/Submission',
-  //   content: {
-  //     title: 'ICLR submission title',
-  //     authors: ['FirstA LastA'],
-  //     authorids: ['a@a.com'],
-  //     abstract: 'test iclr abstract abstract',
-  //     pdf: result.url,
-  //   },
-  //   readers: ['ICLR.cc/2021/Conference', 'a@a.com', '~FirstA_LastA1'],
-  //   signatures: ['~FirstA_LastA1'],
-  //   writers: ['ICLR.cc/2021/Conference', 'a@a.com', '~FirstA_LastA1'],
-  // }
+  const { id: noteId } = await createNote(noteJson, userToken)
 
-  // const { id: noteId } = await createNote(noteJson, userToken)
+  const postSubmissionJson = {
+    content: { force: 'Yes' },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Post_Submission`,
+    readers: ['openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['openreview.net/Support'],
+    writers: ['openreview.net/Support'],
+  }
 
-  // const blindNoteJson = {
-  //   invitation: 'ICLR.cc/2021/Conference/-/Blind_Submission',
-  //   original: noteId,
-  //   content: {
-  //     authors: ['Anonymous'],
-  //     authorids: ['ICLR.cc/2021/Conference/Paper1/Authors'],
-  //     _bibtex: '@inproceedings{\nAnonymous,\ntitle={test iclr abstract abstracts},\nauthor={Anonymous},\nbooktitle={International Conference on Learning Representations},\nyear={2021},\nurl={https://openreview.net/forum?id=1111}\n}',
-  //   },
-  //   readers: ['everyone'],
-  //   signatures: ['ICLR.cc/2021/Conference'],
-  //   writers: ['ICLR.cc/2021/Conference'],
-  // }
-
-  // const { id: blindNoteId } = await createNote(blindNoteJson, superToken)
-
-  // return {
-  //   conferenceId: 'ICLR.cc/2021/Conference',
-  //   forums: [noteId, blindNoteId],
-  // }
+  await createNote(postSubmissionJson, superToken)
 }
 
 async function setupProfileViewEdit(adminToken) {
