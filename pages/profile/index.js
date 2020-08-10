@@ -384,7 +384,7 @@ Profile.getInitialProps = async (ctx) => {
     if (!profileRes.profiles?.length) {
       return {
         statusCode: 404,
-        message: `The user ${profileQuery.id || profileQuery.email} has not set up an OpenReview profile yet`,
+        message: profileQuery.id || profileQuery.email ? `The user ${profileQuery.id || profileQuery.email} has not set up an OpenReview profile yet` : 'Id is required',
       }
     }
   } catch (error) {
