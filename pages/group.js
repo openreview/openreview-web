@@ -21,8 +21,9 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
 
   useEffect(() => {
     if (clientJsLoading) return
+
     const script = document.createElement('script')
-    script.innerHTML = webfieldCode
+    script.innerHTML = 'runWebfield();'
     document.body.appendChild(script)
 
     // eslint-disable-next-line consistent-return
@@ -50,6 +51,11 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
       )}
 
       <WebfieldContainer id="group-container" />
+
+      <script
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: webfieldCode }}
+      />
     </>
   )
 }
@@ -102,7 +108,7 @@ Group.getInitialProps = async (ctx) => {
   const groupObjSlim = omit(group, ['web'])
   const inlineJsCode = `
     window.user = ${JSON.stringify(userOrGuest)};
-    $(function() {
+    function runWebfield() {
       var args = ${JSON.stringify(ctx.query)};
       var group = ${JSON.stringify(groupObjSlim)};
       var document = null;
@@ -118,7 +124,7 @@ Group.getInitialProps = async (ctx) => {
       ${editorCode || infoCode || webfieldCode}
 
       ${showModeBanner ? 'Webfield.editModeBanner(group.id, args.mode);' : ''}
-    });`
+    }`
 
   return {
     groupId: group.id,
