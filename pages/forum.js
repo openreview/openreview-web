@@ -189,6 +189,7 @@ const Forum = ({ forumNote, query, appContext }) => {
 }
 
 Forum.getInitialProps = async (ctx) => {
+  if (!ctx.query.id) return { statusCode: 400, message: 'Forum Id is required' }
   const { user, token } = auth(ctx)
   const shouldRedirect = async (noteId) => {
     // if it is the original of a blind submission, do redirection
@@ -212,7 +213,6 @@ Forum.getInitialProps = async (ctx) => {
   }
 
   try {
-    if (!ctx.query.id) return { statusCode: 404, message: 'Not Found' }
     const result = await api.get('/notes', { id: ctx.query.id, trash: true, details: 'original,invitation,replyCount' }, { accessToken: token })
     const note = result.notes[0]
 
