@@ -179,7 +179,6 @@ test('get an forum page and see meta tags with conference title', async (t) => {
   await t.expect(text).contains('<meta name="citation_publication_date"')
   await t.expect(text).contains('<meta name="citation_online_date"')
   await t.expect(text).contains('<meta name="citation_pdf_url"')
-  await t.expect(text).contains('<meta name="citation_conference_title" content="International Conference on Learning Representations"/>')
 })
 
 test('get forum page and see all available meta tags', async (t) => {
