@@ -92,6 +92,11 @@ const SignupForm = ({ setSignupConfirmation }) => {
     }
   }
 
+  const populateFeedbackForm = () => {
+    $('#feedback-modal [name="subject"]').val('Merge Profiles')
+    $('#feedback-modal [name="message"]').val('Hi OpenReview,\n\nBelow are my profile e-mail addresses:\n<replace-me>@<some-domain.com>\n<replace-me>@<some-domain.com>\n\nThanks.')
+  }
+
   useEffect(() => {
     if (firstName.trim().length < 1 || lastName.trim().length < 1) {
       setNewUsername('')
@@ -107,18 +112,6 @@ const SignupForm = ({ setSignupConfirmation }) => {
     }
     getMatchingProfiles(firstName, lastName)
   }, [firstName, lastName])
-
-  useEffect(() => {
-    $('#feedback-modal').on('shown.bs.modal', (e) => {
-      if (e.relatedTarget.innerText === 'contact us') { // clicked the link in body not footer
-        $('#feedback-modal').find('[name=\'subject\']').val('Merge Profiles')
-        $('#feedback-modal').find('[name=\'message\']').val('Hi OpenReview,\n\nBelow are my profile e-mail addresses:\n<replace-me>@<some-domain.com>\n<replace-me>@<some-domain.com>\n\nThanks.')
-      }
-    })
-    return () => {
-      $('#feedback-modal').off('shown.bs.modal')
-    }
-  }, [])
 
   return (
     <div className="signup-form-container">
@@ -201,7 +194,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
           If two or more of the profiles above belong to you, please
           {' '}
           {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-          <a href="#" data-toggle="modal" data-target="#feedback-modal">contact us</a>
+          <a href="#" data-toggle="modal" data-target="#feedback-modal" onClick={populateFeedbackForm}>contact us</a>
           {' '}
           and we will assist you in merging your profiles.
         </p>
