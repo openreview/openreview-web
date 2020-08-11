@@ -22,15 +22,12 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
   useEffect(() => {
     if (clientJsLoading) return
 
-    const script = document.createElement('script')
-    script.innerHTML = 'runWebfield();'
-    document.body.appendChild(script)
+    // Trigger function set up in getInitialProps to run webfield code
+    window.runWebfield()
 
+    // Hide edit mode banner when navigating away from the page
     // eslint-disable-next-line consistent-return
     return () => {
-      document.body.removeChild(script)
-
-      // Hide edit mode banner
       if (document.querySelector('#flash-message-container .profile-flash-message')) {
         document.getElementById('flash-message-container').style.display = 'none'
       }

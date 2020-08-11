@@ -29,15 +29,12 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
     require('moment-timezone')
     window.datetimepicker = require('../client/bootstrap-datetimepicker-4.17.47.min')
 
-    const script = document.createElement('script')
-    script.innerHTML = webfieldCode
-    document.body.appendChild(script)
+    // Trigger function set up in getInitialProps to run webfield code
+    window.runWebfield()
 
+    // Hide edit mode banner when navigating away from the page
     // eslint-disable-next-line consistent-return
     return () => {
-      document.body.removeChild(script)
-
-      // Hide edit mode banner
       if (document.querySelector('#flash-message-container .profile-flash-message')) {
         document.getElementById('flash-message-container').style.display = 'none'
       }
@@ -58,6 +55,11 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
       )}
 
       <WebfieldContainer id="invitation-container" />
+
+      <script
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: webfieldCode }}
+      />
     </>
   )
 }
@@ -102,10 +104,6 @@ Invitation.getInitialProps = async (ctx) => {
 
   const noteParams = without(Object.keys(ctx.query), 'id', 'mode', 'referrer')
   const noteEditorCode = noteParams.length && `
-    var runWebfield = function(note) {
-      ${webfieldCode}
-    };
-
     var $noteEditor;
     view.mkNoteEditor(
       {
@@ -115,9 +113,10 @@ Invitation.getInitialProps = async (ctx) => {
       invitation,
       user,
       {
-        onNoteEdited: function(replyNote) {
+        onNoteEdited: function(note) {
           $('#invitation-container').empty();
-          runWebfield(replyNote);
+
+          ${webfieldCode}
         },
         onNoteCancelled: function(result) {
           location.href = '/';
@@ -163,7 +162,7 @@ Invitation.getInitialProps = async (ctx) => {
   const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
   const inlineJsCode = `
     window.user = ${JSON.stringify(userOrGuest)};
-    $(function() {
+    function runWebfield() {
       var args = ${JSON.stringify(ctx.query)};
       var invitation = ${JSON.stringify(invitationObjSlim)};
       var user = ${JSON.stringify(userOrGuest)};
@@ -175,7 +174,7 @@ Invitation.getInitialProps = async (ctx) => {
       ${editorCode || infoCode || noteEditorCode || webfieldCode}
 
       ${showModeBanner ? 'Webfield.editModeBanner(invitation.id, args.mode);' : ''}
-    });`
+    }`
 
   return {
     invitationId: invitation.id,
