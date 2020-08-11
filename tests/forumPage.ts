@@ -52,7 +52,7 @@ test('show a valid forum', async (t) => {
     .expect(container.exists).ok()
     .expect(Selector(`#note_${forum}`).exists).ok()
     .expect(titleLabel.innerText).eql('test title')
-    .expect(authorLabel.innerText).eql('test author')
+    .expect(authorLabel.innerText).eql('FirstA LastA')
     .expect(abstractLabel.innerText).eql('test abstract')
 })
 

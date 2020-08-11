@@ -71,12 +71,12 @@ export async function setup(superUserToken) {
   await setupAnotherTestVenue(superUserToken)
 
   // create a venue AnotherTestVenue
-  await createGroup(buildBaseGroupJson(`Another${baseGroupId}`), adminToken)
-  await addMembersToGroup('host', [`Another${baseGroupId}`], adminToken)
-  await addMembersToGroup('active_venues', [`Another${baseGroupId}`], adminToken)
-  await createGroup(buildSubGroupJson(`Another${subGroupId}`, `Another${baseGroupId}`), adminToken)
-  await createGroup(buildConferenceGroupJson(`Another${conferenceGroupId}`, `Another${baseGroupId}`, `Another${subGroupId}`), adminToken)
-  await createInvitation(buildSubmissionInvitationJson(`Another${conferenceSubmissionInvitationId}`, `Another${conferenceGroupId}`, Date.now() + 2 * 24 * 60 * 60 * 1000, { public: false }), adminToken) // 2 days later
+  // await createGroup(buildBaseGroupJson(`Another${baseGroupId}`), adminToken)
+  // await addMembersToGroup('host', [`Another${baseGroupId}`], adminToken)
+  // await addMembersToGroup('active_venues', [`Another${baseGroupId}`], adminToken)
+  // await createGroup(buildSubGroupJson(`Another${subGroupId}`, `Another${baseGroupId}`), adminToken)
+  // await createGroup(buildConferenceGroupJson(`Another${conferenceGroupId}`, `Another${baseGroupId}`, `Another${subGroupId}`), adminToken)
+  // await createInvitation(buildSubmissionInvitationJson(`Another${conferenceSubmissionInvitationId}`, `Another${conferenceGroupId}`, Date.now() + 2 * 24 * 60 * 60 * 1000, { public: false }), adminToken) // 2 days later
 
   // const forumId = await setupTasks(adminToken)
 
@@ -388,7 +388,6 @@ async function setupTestVenue(superToken) {
   await addMembersToGroup('TestVenue/2020/Conference/Paper1/Reviewers', [hasTaskUserTildeId], superToken)
 }
 
-
 async function setupAnotherTestVenue(superToken) {
   const requestVenueJson = {
     invitation: 'openreview.net/Support/-/Request_Form',
@@ -402,8 +401,8 @@ async function setupAnotherTestVenue(superToken) {
     writers: [],
     content: {
       title: 'AnotherTest Venue Conference',
-      'Official Venue Name': 'Test Venue Conference',
-      'Abbreviated Venue Name': 'Test Venue',
+      'Official Venue Name': 'AnotherTest Venue Conference',
+      'Abbreviated Venue Name': 'AnotherTest Venue',
       'Official Website URL': 'https://testvenue.cc',
       program_chair_emails: [
         'john@mail.com',
@@ -417,7 +416,7 @@ async function setupAnotherTestVenue(superToken) {
         'Reviewer Bid Scores',
         'Reviewer Recommendation Scores'],
       'Author and Reviewer Anonymity': 'No anonymity',
-      'Open Reviewing Policy': 'Submissions and reviews should both be public.',
+      'Open Reviewing Policy': 'Submissions and reviews should both be private.',
       'Public Commentary': 'Yes, allow members of the public to comment non-anonymously.',
       withdrawn_submissions_visibility: 'Yes, withdrawn submissions should be made public.',
       withdrawn_submissions_author_anonymity: 'No, authors of withdrawn submissions should not be anonymized.',
@@ -433,7 +432,7 @@ async function setupAnotherTestVenue(superToken) {
   await new Promise(r => setTimeout(r, 2000))
 
   const deployVenueJson = {
-    content: { venue_id: 'TestVenue/2020/Conference' },
+    content: { venue_id: 'AnotherTestVenue/2020/Conference' },
     forum: requestForumId,
     invitation: `openreview.net/Support/-/Request${number}/Deploy`,
     readers: ['openreview.net/Support'],
@@ -447,65 +446,25 @@ async function setupAnotherTestVenue(superToken) {
 
   await new Promise(r => setTimeout(r, 2000))
 
-  const userRes = await createUser(hasTaskUser)
-  const hasTaskUserTildeId = userRes.user.profile.id
-  const hasTaskUserToken = userRes.token
-  await createUser(hasNoTaskUser)
-
-  // add a note
+  const hasTaskUserToken = await getToken(hasTaskUser.email)
   const noteJson = {
     content: {
-      title: 'test title',
+      title: 'this is á "paper" title',
       authors: ['FirstA LastA'],
-      authorids: [hasTaskUserTildeId],
-      abstract: 'test abstract',
+      authorids: ['~FirstA_LastA1'],
+      abstract: 'The abstract of test paper 1',
       pdf: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf',
     },
-    readers: ['everyone'],
+    readers: [`Another${conferenceGroupId}`, '~FirstA_LastA1'],
     nonreaders: [],
-    signatures: [hasTaskUserTildeId],
-    writers: [conferenceGroupId, hasTaskUserTildeId],
-    invitation: conferenceSubmissionInvitationId,
+    signatures: ['~FirstA_LastA1'],
+    writers: [`Another${conferenceGroupId}`, '~FirstA_LastA1'],
+    invitation: `Another${conferenceSubmissionInvitationId}`,
   }
   const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
-
-  const postSubmissionJson = {
-    content: { force: 'Yes' },
-    forum: requestForumId,
-    invitation: `openreview.net/Support/-/Request${number}/Post_Submission`,
-    readers: ['openreview.net/Support'],
-    referent: requestForumId,
-    replyto: requestForumId,
-    signatures: ['openreview.net/Support'],
-    writers: ['openreview.net/Support'],
-  }
-
-  await createNote(postSubmissionJson, superToken)
-
-  await new Promise(r => setTimeout(r, 2000))
-
-  const reviewStageJson = {
-    content: {
-      review_deadline: '2020/11/13',
-      make_reviews_public: 'Yes, reviews should be revealed publicly when they are posted',
-      release_reviews_to_authors: 'Yes, reviews should be revealed when they are posted to the paper\'s authors',
-      release_reviews_to_reviewers: 'Yes, reviews should be immediately revealed to the all paper\'s reviewers',
-      email_program_chairs_about_reviews: 'No, do not email program chairs about received reviews',
-    },
-    forum: requestForumId,
-    invitation: `openreview.net/Support/-/Request${number}/Review_Stage`,
-    readers: ['TestVenue/2020/Conference/Program_Chairs', 'openreview.net/Support'],
-    referent: requestForumId,
-    replyto: requestForumId,
-    signatures: ['openreview.net/Support'],
-    writers: ['openreview.net/Support'],
-  }
-
-  await createNote(reviewStageJson, superToken)
-
-  await addMembersToGroup('TestVenue/2020/Conference/Paper1/Reviewers', [hasTaskUserTildeId], superToken)
+  noteJson.ddate = Date.now()
+  const { id: deletedNoteId } = await createNote(noteJson, hasTaskUserToken)
 }
-
 
 async function setupProfileViewEdit(adminToken) {
   // add group dblp.org
