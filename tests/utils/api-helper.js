@@ -67,13 +67,8 @@ export async function setup(superUserToken) {
     password: '1234',
   })
 
-  // create a venue TestVenue
-  await createGroup(buildBaseGroupJson(baseGroupId), adminToken) // create base venue group
-  await addMembersToGroup('host', [baseGroupId], adminToken) // add group to host so that it's shown in all venues list
-  await addMembersToGroup('active_venues', [baseGroupId], adminToken) // add group to active_venues so that it's shown in active venues list
-  await createGroup(buildSubGroupJson(subGroupId, baseGroupId), adminToken) // create sub group
-  await createGroup(buildConferenceGroupJson(conferenceGroupId, baseGroupId, subGroupId), adminToken) // create conference group
-  await createInvitation(buildSubmissionInvitationJson(conferenceSubmissionInvitationId, conferenceGroupId), adminToken) // create invitaiton for submissions
+  await setupTestVenue(superUserToken)
+  await setupAnotherTestVenue(superUserToken)
 
   // create a venue AnotherTestVenue
   await createGroup(buildBaseGroupJson(`Another${baseGroupId}`), adminToken)
@@ -83,39 +78,39 @@ export async function setup(superUserToken) {
   await createGroup(buildConferenceGroupJson(`Another${conferenceGroupId}`, `Another${baseGroupId}`, `Another${subGroupId}`), adminToken)
   await createInvitation(buildSubmissionInvitationJson(`Another${conferenceSubmissionInvitationId}`, `Another${conferenceGroupId}`, Date.now() + 2 * 24 * 60 * 60 * 1000, { public: false }), adminToken) // 2 days later
 
-  const forumId = await setupTasks(adminToken)
+  // const forumId = await setupTasks(adminToken)
 
-  const hasTaskUserToken = await getToken(hasTaskUser.email)
-  const noteJson = {
-    content: {
-      title: 'this is á "paper" title',
-      authors: ['FirstA LastA'],
-      authorids: [hasTaskUser.email],
-      abstract: 'The abstract of test paper 1',
-      pdf: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf',
-    },
-    readers: [`Another${conferenceGroupId}`, hasTaskUser.email, '~FirstA_LastA1'],
-    nonreaders: [],
-    signatures: ['~FirstA_LastA1'],
-    writers: [`Another${conferenceGroupId}`, hasTaskUser.email, '~FirstA_LastA1'],
-    invitation: `Another${conferenceSubmissionInvitationId}`,
-  }
-  const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
-  noteJson.ddate = Date.now()
-  const { id: deletedNoteId } = await createNote(noteJson, hasTaskUserToken)
+  // const hasTaskUserToken = await getToken(hasTaskUser.email)
+  // const noteJson = {
+  //   content: {
+  //     title: 'this is á "paper" title',
+  //     authors: ['FirstA LastA'],
+  //     authorids: [hasTaskUser.email],
+  //     abstract: 'The abstract of test paper 1',
+  //     pdf: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf',
+  //   },
+  //   readers: [`Another${conferenceGroupId}`, hasTaskUser.email, '~FirstA_LastA1'],
+  //   nonreaders: [],
+  //   signatures: ['~FirstA_LastA1'],
+  //   writers: [`Another${conferenceGroupId}`, hasTaskUser.email, '~FirstA_LastA1'],
+  //   invitation: `Another${conferenceSubmissionInvitationId}`,
+  // }
+  // const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
+  // noteJson.ddate = Date.now()
+  // const { id: deletedNoteId } = await createNote(noteJson, hasTaskUserToken)
 
-  const iclrData = await setupICLR(adminToken)
-  await setupProfileViewEdit(adminToken)
-  await setupRegister(adminToken)
+  const iclrData = await setupICLR(superUserToken)
+  await setupProfileViewEdit(superUserToken)
+  await setupRegister(superUserToken)
 
   return {
-    superUserToken: adminToken,
-    api,
-    data: {
-      testVenue: { forums: [forumId] },
-      anotherTestVenue: { forums: [noteId, deletedNoteId] },
-      iclr: iclrData,
-    },
+    // superUserToken: adminToken,
+    // api,
+    // data: {
+    //   testVenue: { forums: [forumId] },
+    //   anotherTestVenue: { forums: [noteId, deletedNoteId] },
+    //   iclr: iclrData,
+    // },
   }
 }
 
@@ -275,6 +270,242 @@ async function setupICLR(superToken) {
 
   await createNote(postSubmissionJson, superToken)
 }
+
+async function setupTestVenue(superToken) {
+  const requestVenueJson = {
+    invitation: 'openreview.net/Support/-/Request_Form',
+    signatures: ['~Super_User1'],
+    readers: [
+      'openreview.net/Support',
+      '~Super_User1',
+      'john@mail.com',
+      'tom@mail.com',
+    ],
+    writers: [],
+    content: {
+      title: 'Test Venue Conference',
+      'Official Venue Name': 'Test Venue Conference',
+      'Abbreviated Venue Name': 'Test Venue',
+      'Official Website URL': 'https://testvenue.cc',
+      program_chair_emails: [
+        'john@mail.com',
+        'tom@mail.com'],
+      contact_email: 'testvenue@mail.com',
+      'Area Chairs (Metareviewers)': 'No, our venue does not have Area Chairs',
+      'Venue Start Date': '2021/11/01',
+      'Submission Deadline': '2021/11/01',
+      Location: 'Virtual',
+      'Paper Matching': [
+        'Reviewer Bid Scores',
+        'Reviewer Recommendation Scores'],
+      'Author and Reviewer Anonymity': 'No anonymity',
+      'Open Reviewing Policy': 'Submissions and reviews should both be public.',
+      'Public Commentary': 'Yes, allow members of the public to comment non-anonymously.',
+      withdrawn_submissions_visibility: 'Yes, withdrawn submissions should be made public.',
+      withdrawn_submissions_author_anonymity: 'No, authors of withdrawn submissions should not be anonymized.',
+      email_pcs_for_withdrawn_submissions: 'Yes, email PCs.',
+      desk_rejected_submissions_visibility: 'Yes, desk rejected submissions should be made public.',
+      desk_rejected_submissions_author_anonymity: 'No, authors of desk rejected submissions should not be anonymized.',
+      'How did you hear about us?': 'ML conferences',
+      'Expected Submissions': '6000',
+    },
+  }
+  const { id: requestForumId, number } = await createNote(requestVenueJson, superToken)
+
+  await new Promise(r => setTimeout(r, 2000))
+
+  const deployVenueJson = {
+    content: { venue_id: 'TestVenue/2020/Conference' },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Deploy`,
+    readers: ['openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['openreview.net/Support'],
+    writers: ['openreview.net/Support'],
+  }
+
+  await createNote(deployVenueJson, superToken)
+
+  await new Promise(r => setTimeout(r, 2000))
+
+  const userRes = await createUser(hasTaskUser)
+  const hasTaskUserTildeId = userRes.user.profile.id
+  const hasTaskUserToken = userRes.token
+  await createUser(hasNoTaskUser)
+
+  // add a note
+  const noteJson = {
+    content: {
+      title: 'test title',
+      authors: ['FirstA LastA'],
+      authorids: [hasTaskUserTildeId],
+      abstract: 'test abstract',
+      pdf: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf',
+    },
+    readers: ['everyone'],
+    nonreaders: [],
+    signatures: [hasTaskUserTildeId],
+    writers: [conferenceGroupId, hasTaskUserTildeId],
+    invitation: conferenceSubmissionInvitationId,
+  }
+  const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
+
+  const postSubmissionJson = {
+    content: { force: 'Yes' },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Post_Submission`,
+    readers: ['openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['openreview.net/Support'],
+    writers: ['openreview.net/Support'],
+  }
+
+  await createNote(postSubmissionJson, superToken)
+
+  await new Promise(r => setTimeout(r, 2000))
+
+  const reviewStageJson = {
+    content: {
+      review_deadline: '2020/11/13',
+      make_reviews_public: 'Yes, reviews should be revealed publicly when they are posted',
+      release_reviews_to_authors: 'Yes, reviews should be revealed when they are posted to the paper\'s authors',
+      release_reviews_to_reviewers: 'Yes, reviews should be immediately revealed to the all paper\'s reviewers',
+      email_program_chairs_about_reviews: 'No, do not email program chairs about received reviews',
+    },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Review_Stage`,
+    readers: ['TestVenue/2020/Conference/Program_Chairs', 'openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['openreview.net/Support'],
+    writers: ['openreview.net/Support'],
+  }
+
+  await createNote(reviewStageJson, superToken)
+
+  await addMembersToGroup('TestVenue/2020/Conference/Paper1/Reviewers', [hasTaskUserTildeId], superToken)
+}
+
+
+async function setupAnotherTestVenue(superToken) {
+  const requestVenueJson = {
+    invitation: 'openreview.net/Support/-/Request_Form',
+    signatures: ['~Super_User1'],
+    readers: [
+      'openreview.net/Support',
+      '~Super_User1',
+      'john@mail.com',
+      'tom@mail.com',
+    ],
+    writers: [],
+    content: {
+      title: 'AnotherTest Venue Conference',
+      'Official Venue Name': 'Test Venue Conference',
+      'Abbreviated Venue Name': 'Test Venue',
+      'Official Website URL': 'https://testvenue.cc',
+      program_chair_emails: [
+        'john@mail.com',
+        'tom@mail.com'],
+      contact_email: 'testvenue@mail.com',
+      'Area Chairs (Metareviewers)': 'No, our venue does not have Area Chairs',
+      'Venue Start Date': '2021/11/01',
+      'Submission Deadline': '2021/11/01',
+      Location: 'Virtual',
+      'Paper Matching': [
+        'Reviewer Bid Scores',
+        'Reviewer Recommendation Scores'],
+      'Author and Reviewer Anonymity': 'No anonymity',
+      'Open Reviewing Policy': 'Submissions and reviews should both be public.',
+      'Public Commentary': 'Yes, allow members of the public to comment non-anonymously.',
+      withdrawn_submissions_visibility: 'Yes, withdrawn submissions should be made public.',
+      withdrawn_submissions_author_anonymity: 'No, authors of withdrawn submissions should not be anonymized.',
+      email_pcs_for_withdrawn_submissions: 'Yes, email PCs.',
+      desk_rejected_submissions_visibility: 'Yes, desk rejected submissions should be made public.',
+      desk_rejected_submissions_author_anonymity: 'No, authors of desk rejected submissions should not be anonymized.',
+      'How did you hear about us?': 'ML conferences',
+      'Expected Submissions': '6000',
+    },
+  }
+  const { id: requestForumId, number } = await createNote(requestVenueJson, superToken)
+
+  await new Promise(r => setTimeout(r, 2000))
+
+  const deployVenueJson = {
+    content: { venue_id: 'TestVenue/2020/Conference' },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Deploy`,
+    readers: ['openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['openreview.net/Support'],
+    writers: ['openreview.net/Support'],
+  }
+
+  await createNote(deployVenueJson, superToken)
+
+  await new Promise(r => setTimeout(r, 2000))
+
+  const userRes = await createUser(hasTaskUser)
+  const hasTaskUserTildeId = userRes.user.profile.id
+  const hasTaskUserToken = userRes.token
+  await createUser(hasNoTaskUser)
+
+  // add a note
+  const noteJson = {
+    content: {
+      title: 'test title',
+      authors: ['FirstA LastA'],
+      authorids: [hasTaskUserTildeId],
+      abstract: 'test abstract',
+      pdf: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf',
+    },
+    readers: ['everyone'],
+    nonreaders: [],
+    signatures: [hasTaskUserTildeId],
+    writers: [conferenceGroupId, hasTaskUserTildeId],
+    invitation: conferenceSubmissionInvitationId,
+  }
+  const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
+
+  const postSubmissionJson = {
+    content: { force: 'Yes' },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Post_Submission`,
+    readers: ['openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['openreview.net/Support'],
+    writers: ['openreview.net/Support'],
+  }
+
+  await createNote(postSubmissionJson, superToken)
+
+  await new Promise(r => setTimeout(r, 2000))
+
+  const reviewStageJson = {
+    content: {
+      review_deadline: '2020/11/13',
+      make_reviews_public: 'Yes, reviews should be revealed publicly when they are posted',
+      release_reviews_to_authors: 'Yes, reviews should be revealed when they are posted to the paper\'s authors',
+      release_reviews_to_reviewers: 'Yes, reviews should be immediately revealed to the all paper\'s reviewers',
+      email_program_chairs_about_reviews: 'No, do not email program chairs about received reviews',
+    },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Review_Stage`,
+    readers: ['TestVenue/2020/Conference/Program_Chairs', 'openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['openreview.net/Support'],
+    writers: ['openreview.net/Support'],
+  }
+
+  await createNote(reviewStageJson, superToken)
+
+  await addMembersToGroup('TestVenue/2020/Conference/Paper1/Reviewers', [hasTaskUserTildeId], superToken)
+}
+
 
 async function setupProfileViewEdit(adminToken) {
   // add group dblp.org
