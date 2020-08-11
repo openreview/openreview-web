@@ -228,6 +228,7 @@ const Profile = ({
     }
 
     if (profile.id === user?.profile?.id) {
+      router.replace(`/profile?id=${profile.id}`, undefined, { shallow: true })
       setBannerHidden(false)
       setBannerContent(editProfileLink())
     }
