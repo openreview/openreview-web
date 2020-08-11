@@ -15,6 +15,8 @@ export const baseGroupId = 'TestVenue'
 export const subGroupId = 'TestVenue/2020'
 export const conferenceGroupId = 'TestVenue/2020/Conference'
 export const conferenceSubmissionInvitationId = `${conferenceGroupId}/-/Submission`
+const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
+const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1}/${submissionDate.getDate()}`
 
 export const hasTaskUser = {
   first: 'FirstA',
@@ -82,7 +84,7 @@ async function setupICLR(superToken) {
       contact_email: 'iclr@mail.com',
       'Area Chairs (Metareviewers)': 'Yes, our venue has Area Chairs',
       'Venue Start Date': '2021/11/01',
-      'Submission Deadline': '2021/11/01',
+      'Submission Deadline': submissionDateString,
       Location: 'Virtual',
       'Paper Matching': [
         'Reviewer Bid Scores',
@@ -175,7 +177,7 @@ async function setupTestVenue(superToken) {
       contact_email: 'testvenue@mail.com',
       'Area Chairs (Metareviewers)': 'No, our venue does not have Area Chairs',
       'Venue Start Date': '2021/11/01',
-      'Submission Deadline': '2021/11/01',
+      'Submission Deadline': submissionDateString,
       Location: 'Virtual',
       'Paper Matching': [
         'Reviewer Bid Scores',
@@ -292,7 +294,7 @@ async function setupAnotherTestVenue(superToken) {
       contact_email: 'testvenue@mail.com',
       'Area Chairs (Metareviewers)': 'No, our venue does not have Area Chairs',
       'Venue Start Date': '2021/11/01',
-      'Submission Deadline': '2021/11/01',
+      'Submission Deadline': submissionDateString,
       Location: 'Virtual',
       'Paper Matching': [
         'Reviewer Bid Scores',
