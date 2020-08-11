@@ -30,6 +30,7 @@ const dblpImportModalCancelButton = Selector('div.modal-footer').find('button').
 const dblpImportModalAddToProfileBtn = Selector('div.modal-footer').find('button').withText('Add to Your Profile')
 const dblpImportModalSelectCount = Selector('div.modal-footer').find('div.selected-count')
 const saveProfileButton = Selector('button').withText('Save Profile Changes')
+const nameMakePreferredButton = Selector('#names_table').find('button.preferred_button').filterVisible().nth(0)
 // #endregion
 
 fixture`profile page`
@@ -243,4 +244,13 @@ test('#98 trailing slash error page', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/`) // trailing slash should redirect to url without /
     .expect(Selector('h1').withText('Error 404').exists).notOk()
     .expect(Selector('pre.error-message').exists).notOk()
+})
+test('#123 update name in nav when preferred name is updated ', async (t) => {
+  await t.useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .expect(Selector('#user-menu').innerText).eql('FirstB LastB ')
+    .click(nameMakePreferredButton)
+    .click(saveProfileButton)
+    .expect(Selector('#user-menu').innerText).eql('Di Xu ')
+    .expect(Selector('div.title-container').find('h1').innerText).eql('Di Xu')
 })

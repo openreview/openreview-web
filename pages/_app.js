@@ -29,6 +29,7 @@ export default class OpenReviewApp extends App {
 
     this.loginUser = this.loginUser.bind(this)
     this.logoutUser = this.logoutUser.bind(this)
+    this.updateUserName = this.updateUserName.bind(this)
     this.setBannerHidden = this.setBannerHidden.bind(this)
     this.setBannerContent = this.setBannerContent.bind(this)
     this.setLayoutOptions = this.setLayoutOptions.bind(this)
@@ -55,6 +56,17 @@ export default class OpenReviewApp extends App {
     window.controller.setToken(null)
 
     Router.push(redirectPath)
+  }
+
+  updateUserName(first, middle, last) {
+    this.setState((state, props) => ({
+      user: {
+        ...state.user,
+        profile: {
+          ...state.user.profile, first, middle, last,
+        },
+      },
+    }))
   }
 
   setBannerHidden(newHidden) {
@@ -203,6 +215,7 @@ export default class OpenReviewApp extends App {
       accessToken: this.state.accessToken,
       loginUser: this.loginUser,
       logoutUser: this.logoutUser,
+      updateUserName: this.updateUserName,
     }
     const appContext = {
       clientJsLoading: this.state.clientJsLoading,
