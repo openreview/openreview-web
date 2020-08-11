@@ -159,7 +159,9 @@ For general iquiries, you can contact the OpenReview team by emailing [info@open
   }, {
     q: 'How can I add/remove fields to the submission form?',
     id: 'question-review-form-fields',
-    a: '',
+    a: `On the request form for your venue, click on the ‘Revision’ button. Under Additional Submission Options, add a JSON with any extra fields you want to appear on the submission form. To remove fields, select the fields to remove under Remove Submission Options.
+
+  For more information on supported field types, [click here.](https://openreview.net/faq#question-field-type-supported)`,
   }, {
     q: 'How can I make reviews visible to authors?',
     id: 'question-release-reviews-authors',
@@ -167,7 +169,7 @@ For general iquiries, you can contact the OpenReview team by emailing [info@open
   }, {
     q: 'How can I make reviews visible to reviewers?',
     id: 'question-release-reviews-reviewers',
-    a: 'On the request form for your venue, click on the ‘Review Stage’ button. Reviews can be released to all reviewers, to only a paper\'s assigned reviewers, or to a paper\'s assigned reviewers who have already submitted their review.',
+    a: 'On the request form for your venue, click on the ‘Review Stage’ button. Reviews can be released to all reviewers, to a paper\'s assigned reviewers, or to a paper\'s assigned reviewers who have already submitted their review.',
   }, {
     q: 'How do I get email addresses of accepted/all papers authors?',
     id: 'question-getting-author-emails',
@@ -179,15 +181,15 @@ For general iquiries, you can contact the OpenReview team by emailing [info@open
   }, {
     q: 'How can I automatically assign reviewers to papers based on their affinity and/or bids?',
     id: 'question-run-matcher',
-    a: 'To automaticall assign reviewers to papers after the submission deadline has passed, you must first set the review stage by clicking on the ‘Review Stage’ button on the request form for your venue. You will then be able to run the matcher by clicking on ‘Reviewers Paper Assignment’ under the ‘Overview’ tab in the PC console.',
+    a: 'To automatically assign reviewers to papers after the submission deadline has passed, you must first set the review stage by clicking on the ‘Review Stage’ button on the request form for your venue. You will then be able to run the matcher by clicking on ‘Reviewers Paper Assignment’ under the ‘Overview’ tab in the PC console.',
   }, {
     q: 'How can I enable comments on papers?',
     id: 'question-enable-comments',
-    a: '',
+    a: 'On the request from for your venue, click on the ‘Comment Stage’ button to set up confidential comments and/or public comments.',
   }, {
     q: 'How can I contact the reviewers, area chairs or authors?',
-    id: '',
-    a: '',
+    id: 'question-contact-venue-roles',
+    a: 'Under the ‘Overview’ tab of the PC console for your venue, you will find a ‘Venue Roles’ section. Clicking on any of the links will take you to the respective group. On this page, you have the option to email selected members of the group.',
   }, {
     q: 'Does OpenReview support supplementary material?',
     id: 'question-supplementary-material',
@@ -214,7 +216,7 @@ For general iquiries, you can contact the OpenReview team by emailing [info@open
   }, {
     q: 'Is there a max size for files upload?',
     id: 'question-file-upload',
-    a: '',
+    a: 'The max size for files upload is 100MB.',
   }, {
     q: 'An author of a submission can not access their own paper, what is the problem?',
     id: 'question-author-permissions',
@@ -222,32 +224,42 @@ For general iquiries, you can contact the OpenReview team by emailing [info@open
   }, {
     q: 'How can I edit a submission after the deadline?',
     id: 'question-edit-submission-after-deadline',
-    a: '',
+    a: 'To edit a submission after the deadline, please contact the OpenReview team by emailing info@openreview.net.',
   }, {
-    q: 'Is it possible to make the submission public after the decisions are made?',
+    q: 'How to make the submission public after the decisions are made?',
     id: 'question-release-submissions',
+    a: 'To make submissions public after decisions are made, please contact the OpenReview team by emailing info@openreview.net.',
+  }, {
+    q: 'How to release the identity of the authors of the accepted papers only?',
+    id: 'question-release-author-names',
+    a: 'To release the identity of authors of accepted papers, please contact the OpenReview team by emailing info@openreview.net.',
+  }, {
+    q: 'How to contact the authors of the accepted papers only?',
+    id: 'question-contact-authors-accepted',
     a: '',
   }, {
     q: 'Can an author withdraw a rejected paper?',
     id: 'question-withdraw-paper',
-    a: '',
+    a: 'Yes, authors are able to withdraw their paper at any time during the review process. Similarly, PCs can desk-reject papers at any time during the review process.',
   }, {
     q: 'How can I enable the camera-ready revision upload for the accepted papers?',
     id: 'question-camera-ready-revision',
-    a: 'On the request form for your venue, click on the ‘Submission Revision Stage’ button.',
+    a: 'On the request form for your venue, click on the ‘Submission Revision Stage’ button to set up camera-ready revisions for papers.',
   }, {
-    q: 'How can I remove/modify an email/name from my Profile?',
-    id: '',
-    a: '',
+    q: 'How can I remove/modify an email/name from my profile?',
+    id: 'question-remove-email',
+    a: `To remove an email that has not been confirmed, go to your profile and click on ‘Edit Profile’. Confirmed emails cannot be removed from your profile, since these are used in conflict detection and paper coreference.
+
+  If your profile contains a confirmed email or a name that does not belong to you, please contact the OpenReview team by emailing info@openreview.net.`,
   }, {
     q: 'Which field types are supported in the forms?',
     id: 'question-field-type-supported',
-    a: `Each field can support the following properties, all the properties are optional expect the field type:
-- field type
-- description
-- order
-- required
-- default
+    a: `Each field must be a valid JSON with a title and the following optional properties (with the exception of field type, which is required):
+- field type: the type of the field, which includes value(s), value(s)-regex, value-radio, value(s)-checkbox, value(s)-dropdown, value-file
+- description: a string describing how users should fill this field
+- order: a number representing the order in which the field will appear on the form
+- required: a boolean representing whether the field is required(true) or optional(false)
+- default: the default value of the field
 
 You can have different types of fields:
 - **value**, **values**: string or array of strings, the value/s can not be modified by the user.
@@ -263,7 +275,7 @@ You can have different types of fields:
 - **value-regex**, **values-regex**: string or array of strings, the value should pass the regex validation.
 
     \`\`\`
-    "title": {
+    "comment": {
       "order": 0,
       "value-regex": ".{1,500}",
       "description": "Brief summary of your comment.",
@@ -273,10 +285,51 @@ You can have different types of fields:
       "description": "Comma separated list of author email addresses, lowercased, in the same order as above. For authors with existing OpenReview accounts, please make sure that the provided email address(es) match those listed in the author\\'s profile.",
       "order": 3,
       "values-regex": "([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})",
-      "required":true
+      "required": true
     }
     \`\`\`
+- **value-radio**: string or array of strings, the user can only choose one option.
 
+    \`\`\`
+    "confirmation": {
+      "description": "Please confirm you have read the venue's policies.",
+      "value-radio': [
+          "I have read and agree with the venue's policy on behalf of myself and my co-authors."
+      ],
+      "order": 2,
+      "required": true
+    }.
+    "agreement": {
+      "description": "Choose one option.",
+      "value-radio': [
+          "Agree",
+          "Neutral",
+          "Disagree
+      ],
+      "order": 3,
+      "required": true
+    }
+    \`\`\`
+- **value-checkbox**, **values-checkbox**: string or array of strings, the user can choose multiple options.
+    \`\`\`
+    "profile_confirmed": {
+      "description": "Please confirm that your OpenReview profile is up-to-date by selecting "Yes".",
+      "value-checkbox": "Yes",
+      "required": true,
+      "order": 1
+  },
+  "keywords": {
+    "description": "Please check all keywords that apply.",
+      "values-checkbox": [
+        "Deep Learning",
+        "Machine Learning",
+        "Computer Vision",
+        "Database Design"
+      ],
+      "required": true,
+      "order": 3
+  }
+    \`\`\`
 to be continue....
     `,
   }, {
