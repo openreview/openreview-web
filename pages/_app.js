@@ -75,7 +75,7 @@ export default class OpenReviewApp extends App {
   }
 
   setBannerContent(newContent) {
-    this.setState({ bannerContent: newContent })
+    this.setState({ bannerContent: newContent, bannerHidden: false })
     this.shouldResetBanner = false
   }
 
@@ -119,6 +119,9 @@ export default class OpenReviewApp extends App {
   }
 
   onRouteChangeComplete(url) {
+    console.log('complete called')
+    console.log(this.shouldResetBanner)
+    console.log(this.state)
     // Reset banner
     if (this.shouldResetBanner) {
       this.setState({
