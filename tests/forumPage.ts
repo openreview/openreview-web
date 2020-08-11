@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 import { Selector, ClientFunction, Role } from 'testcafe'
-import { getToken, getNotes } from './utils/api-helper'
+import { getToken, getNotes, createUser } from './utils/api-helper'
 
 const titleLabel = Selector('.note_content_title a')
 const authorLabel = Selector('.meta_row a')
@@ -40,6 +40,13 @@ fixture`Forum page`
   .page`http://localhost:${process.env.NEXT_PORT}`
   .before(async (ctx) => {
     ctx.superUserToken = await getToken('openreview.net', '1234')
+    await createUser({
+      first: 'Test',
+      last: 'User',
+      email: 'test@mail.com',
+      password: '1234',
+      history: undefined,
+    })
     return ctx
   })
 
