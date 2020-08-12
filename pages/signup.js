@@ -261,7 +261,7 @@ const ExistingProfileForm = ({
             onChange={e => setEmail(e.target.value)}
             autoComplete="email"
           />
-          {hasPassword && <button type="submit" className="btn">{buttonLabel}</button>}
+          {hasPassword && <button type="submit" className="btn" disabled={!email}>{buttonLabel}</button>}
         </div>
       )}
       {passwordVisible && !hasPassword && (
@@ -274,7 +274,7 @@ const ExistingProfileForm = ({
             onChange={e => setPassword(e.target.value)}
             required
           />
-          <button type="submit" className="btn">{buttonLabel}</button>
+          <button type="submit" className="btn" disabled={!email || !password}>{buttonLabel}</button>
         </div>
       )}
     </form>
@@ -350,7 +350,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
             autoComplete="new-password"
             required
           />
-          <button type="submit" className="btn">Claim Profile</button>
+          <button type="submit" className="btn" disabled={!password}>Claim Profile</button>
         </div>
       )}
     </form>
@@ -408,7 +408,7 @@ const NewProfileForm = ({ id, registerUser }) => {
             autoComplete="new-password"
             required
           />
-          <button type="submit" className="btn">Sign Up</button>
+          <button type="submit" className="btn" disabled={!password}>Sign Up</button>
         </div>
       )}
     </form>
@@ -469,15 +469,15 @@ const SignUp = () => {
           registeredEmail={signupConfirmation.registeredEmail}
         />
       ) : (
-        <div className="col-sm-12 col-md-10 col-lg-8 col-md-offset-1 col-lg-offset-2">
-          <h1>Sign Up for OpenReview</h1>
-          <p className="text-muted">
-            Enter your name as you would normally write it as the author of a paper.
+          <div className="col-sm-12 col-md-10 col-lg-8 col-md-offset-1 col-lg-offset-2">
+            <h1>Sign Up for OpenReview</h1>
+            <p className="text-muted">
+              Enter your name as you would normally write it as the author of a paper.
           </p>
 
-          <SignupForm setSignupConfirmation={setSignupConfirmation} />
-        </div>
-      )}
+            <SignupForm setSignupConfirmation={setSignupConfirmation} />
+          </div>
+        )}
     </div>
   )
 }
