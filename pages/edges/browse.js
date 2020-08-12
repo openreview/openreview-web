@@ -134,7 +134,6 @@ const Browse = ({ appContext }) => {
   useEffect(() => {
     if (!error) return
 
-    setBannerHidden(false)
     setBannerContent(null)
     setLayoutOptions({ fullWidth: false, minimalFooter: false })
   }, [error])
