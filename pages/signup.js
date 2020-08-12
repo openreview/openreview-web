@@ -469,15 +469,15 @@ const SignUp = () => {
           registeredEmail={signupConfirmation.registeredEmail}
         />
       ) : (
-          <div className="col-sm-12 col-md-10 col-lg-8 col-md-offset-1 col-lg-offset-2">
-            <h1>Sign Up for OpenReview</h1>
-            <p className="text-muted">
-              Enter your name as you would normally write it as the author of a paper.
+        <div className="col-sm-12 col-md-10 col-lg-8 col-md-offset-1 col-lg-offset-2">
+          <h1>Sign Up for OpenReview</h1>
+          <p className="text-muted">
+            Enter your name as you would normally write it as the author of a paper.
           </p>
 
-            <SignupForm setSignupConfirmation={setSignupConfirmation} />
-          </div>
-        )}
+          <SignupForm setSignupConfirmation={setSignupConfirmation} />
+        </div>
+      )}
     </div>
   )
 }
