@@ -6,6 +6,7 @@ import Footer from './Footer'
 import FooterMinimal from './FooterMinimal'
 import FeedbackModal from './FeedbackModal'
 import GoogleAnalyticsScript from './GoogleAnalyticsScript'
+import BibtexModal from './BibtexModal'
 
 export default function Layout({
   children, bodyClass, bannerHidden, bannerContent, fullWidth, minimalFooter,
@@ -57,6 +58,7 @@ export default function Layout({
       )}
 
       <FeedbackModal />
+      <BibtexModal />
 
       <GoogleAnalyticsScript />
 
