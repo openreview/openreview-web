@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 import pick from 'lodash/pick'
 import UserContext from '../../components/UserContext'
 import NoteList from '../../components/NoteList'
@@ -190,12 +190,14 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
   )
 }
 
-const Profile = ({ profile, publicProfile, appContext }) => {
-  const [loading, setLoading] = useState(true)
-  const [publications, setPublications] = useState([])
+const Profile = ({
+  profile, profileQuery, publicProfile, appContext,
+}) => {
+  const [publications, setPublications] = useState(null)
   const [count, setCount] = useState(0)
   const [coAuthors, setCoAuthors] = useState([])
   const { accessToken, user } = useContext(UserContext)
+  const router = useRouter()
   const { setBannerHidden, setBannerContent } = appContext
 
   const loadPublications = async () => {
@@ -213,27 +215,31 @@ const Profile = ({ profile, publicProfile, appContext }) => {
       setPublications(apiRes.notes)
       setCount(apiRes.count)
     }
-    setLoading(false)
   }
 
   useEffect(() => {
-    loadPublications()
-
     setBannerHidden(true)
   }, [])
 
   useEffect(() => {
+    // Replace id param in URL with the user's preferred username
+    if (profileQuery.email || (profileQuery.id && profileQuery.id !== profile.preferredId)) {
+      router.replace(`/profile?id=${profile.preferredId}`, undefined, { shallow: true })
+    }
+
     if (profile.id === user?.profile?.id) {
-      setBannerHidden(false) // setBannerContent has no effect if banner is hidden
+      setBannerHidden(false)
       setBannerContent(editProfileLink())
     }
-  }, [profile, user])
+
+    loadPublications()
+  }, [profile, profileQuery, user, accessToken])
 
   useEffect(() => {
-    if (loading) return
+    if (!publications) return
 
     setCoAuthors(getCoAuthorsFromPublications(profile, publications))
-  }, [loading, publications])
+  }, [publications])
 
   return (
     <div className="profile-container">
@@ -351,14 +357,14 @@ const Profile = ({ profile, publicProfile, appContext }) => {
               profileId={profile.id}
               publications={publications}
               count={count}
-              loading={loading}
+              loading={!publications}
             />
           </ProfileSection>
 
           <ProfileSection name="coauthors" title="Co-Authors">
             <CoAuthorsList
               coAuthors={coAuthors}
-              loading={loading}
+              loading={!publications}
             />
           </ProfileSection>
 
@@ -371,12 +377,18 @@ const Profile = ({ profile, publicProfile, appContext }) => {
 Profile.getInitialProps = async (ctx) => {
   const profileQuery = pick(ctx.query, ['id', 'email'])
   const { token } = auth(ctx)
+  if (!token && !profileQuery.id && !profileQuery.email) {
+    return { statusCode: 400, message: 'Profile ID or email is required' }
+  }
 
   let profileRes
   try {
     profileRes = await api.get('/profiles', profileQuery, { accessToken: token })
     if (!profileRes.profiles?.length) {
-      return { statusCode: 404, message: 'Profile not found' }
+      return {
+        statusCode: 404,
+        message: `The user ${profileQuery.id || profileQuery.email} has not set up an OpenReview profile yet`,
+      }
     }
   } catch (error) {
     return { statusCode: 404, message: 'Profile not found' }
@@ -395,6 +407,7 @@ Profile.getInitialProps = async (ctx) => {
   return {
     profile: profileFormatted,
     publicProfile: Object.keys(profileQuery).length > 0,
+    profileQuery,
   }
 }
 
