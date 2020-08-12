@@ -228,7 +228,6 @@ const Profile = ({
     }
 
     if (profile.id === user?.profile?.id) {
-      setBannerHidden(false)
       setBannerContent(editProfileLink())
     }
 
