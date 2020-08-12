@@ -55,7 +55,6 @@ export const inActiveUserNoPasswordNoEmail = {
 // The setup function is shared by all tests and should run only once. Any data
 // required by the test cases should be put here
 export async function setup(superUserToken) {
-  await setupAnotherTestVenue(superUserToken)
   await setupICLR(superUserToken)
   await setupProfileViewEdit(superUserToken)
   await setupRegister(superUserToken)
@@ -152,84 +151,6 @@ async function setupICLR(superToken) {
   }
 
   await createNote(postSubmissionJson, superToken)
-}
-
-async function setupAnotherTestVenue(superToken) {
-  const requestVenueJson = {
-    invitation: 'openreview.net/Support/-/Request_Form',
-    signatures: ['~Super_User1'],
-    readers: [
-      'openreview.net/Support',
-      '~Super_User1',
-      'john@mail.com',
-      'tom@mail.com',
-    ],
-    writers: [],
-    content: {
-      title: 'AnotherTest Venue Conference',
-      'Official Venue Name': 'AnotherTest Venue Conference',
-      'Abbreviated Venue Name': 'AnotherTest Venue',
-      'Official Website URL': 'https://testvenue.cc',
-      program_chair_emails: [
-        'john@mail.com',
-        'tom@mail.com'],
-      contact_email: 'testvenue@mail.com',
-      'Area Chairs (Metareviewers)': 'No, our venue does not have Area Chairs',
-      'Venue Start Date': '2021/11/01',
-      'Submission Deadline': submissionDateString,
-      Location: 'Virtual',
-      'Paper Matching': [
-        'Reviewer Bid Scores',
-        'Reviewer Recommendation Scores'],
-      'Author and Reviewer Anonymity': 'No anonymity',
-      'Open Reviewing Policy': 'Submissions and reviews should both be private.',
-      'Public Commentary': 'Yes, allow members of the public to comment non-anonymously.',
-      withdrawn_submissions_visibility: 'Yes, withdrawn submissions should be made public.',
-      withdrawn_submissions_author_anonymity: 'No, authors of withdrawn submissions should not be anonymized.',
-      email_pcs_for_withdrawn_submissions: 'Yes, email PCs.',
-      desk_rejected_submissions_visibility: 'Yes, desk rejected submissions should be made public.',
-      desk_rejected_submissions_author_anonymity: 'No, authors of desk rejected submissions should not be anonymized.',
-      'How did you hear about us?': 'ML conferences',
-      'Expected Submissions': '6000',
-    },
-  }
-  const { id: requestForumId, number } = await createNote(requestVenueJson, superToken)
-
-  await new Promise(r => setTimeout(r, 2000))
-
-  const deployVenueJson = {
-    content: { venue_id: 'AnotherTestVenue/2020/Conference' },
-    forum: requestForumId,
-    invitation: `openreview.net/Support/-/Request${number}/Deploy`,
-    readers: ['openreview.net/Support'],
-    referent: requestForumId,
-    replyto: requestForumId,
-    signatures: ['openreview.net/Support'],
-    writers: ['openreview.net/Support'],
-  }
-
-  await createNote(deployVenueJson, superToken)
-
-  await new Promise(r => setTimeout(r, 2000))
-
-  const hasTaskUserToken = await getToken(hasTaskUser.email)
-  const noteJson = {
-    content: {
-      title: 'this is á "paper" title',
-      authors: ['FirstA LastA'],
-      authorids: ['~FirstA_LastA1'],
-      abstract: 'The abstract of test paper 1',
-      pdf: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf',
-    },
-    readers: [`Another${conferenceGroupId}`, '~FirstA_LastA1'],
-    nonreaders: [],
-    signatures: ['~FirstA_LastA1'],
-    writers: [`Another${conferenceGroupId}`, '~FirstA_LastA1'],
-    invitation: `Another${conferenceSubmissionInvitationId}`,
-  }
-  const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
-  noteJson.ddate = Date.now()
-  const { id: deletedNoteId } = await createNote(noteJson, hasTaskUserToken)
 }
 
 async function setupProfileViewEdit(adminToken) {
