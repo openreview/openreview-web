@@ -45,7 +45,6 @@ const Browse = ({ appContext }) => {
 
     if (query.referrer) {
       setBannerContent(referrerLink(query.referrer))
-      setBannerHidden(false)
     } else {
       setBannerHidden(true)
     }
@@ -135,7 +134,6 @@ const Browse = ({ appContext }) => {
   useEffect(() => {
     if (!error) return
 
-    setBannerHidden(false)
     setBannerContent(null)
     setLayoutOptions({ fullWidth: false, minimalFooter: false })
   }, [error])
