@@ -3,7 +3,7 @@ import {
   conferenceGroupId, conferenceSubmissionInvitationId, sendFile, setupProfileViewEdit, setupRegister,
 } from './utils/api-helper'
 
-fixture`setup data`
+fixture`Setup data`
   .before(async (ctx) => {
     ctx.superUserToken = await getToken('openreview.net', '1234')
     await setupProfileViewEdit(ctx.superUserToken)
