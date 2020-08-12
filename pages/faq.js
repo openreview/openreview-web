@@ -252,12 +252,12 @@ For general iquiries, you can contact the OpenReview team by emailing [info@open
 
   If your profile contains a confirmed email or a name that does not belong to you, please contact the OpenReview team by emailing info@openreview.net.`,
   }, {
-    q: 'Which field types are supported in the forms?',
+    q: 'What field types are supported in the forms?',
     id: 'question-field-type-supported',
     a: `Each field must be a valid JSON with a title and the following optional properties (with the exception of field type, which is required):
 - field type: the type of the field, which includes value(s), value(s)-regex, value-radio, value(s)-checkbox, value(s)-dropdown, value-file
 - description: a string describing how users should fill this field
-- order: a number representing the order in which the field will appear on the form
+- order: a number representing the position in which the field will appear on the form
 - required: a boolean representing whether the field is required(true) or optional(false)
 - default: the default value of the field
 
@@ -292,48 +292,81 @@ You can have different types of fields:
 
     \`\`\`
     "confirmation": {
-      "description": "Please confirm you have read the venue's policies.",
+      "description": "Please confirm you have read the workshop's policies.",
       "value-radio': [
-          "I have read and agree with the venue's policy on behalf of myself and my co-authors."
+          "I have read and agree with the workshop's policy on behalf of myself and my co-authors."
       ],
       "order": 2,
       "required": true
     }.
-    "agreement": {
-      "description": "Choose one option.",
+    "soundness": {
+      "description": "Indicate your agreement with the following: This paper is technically sound.",
       "value-radio': [
           "Agree",
           "Neutral",
-          "Disagree
+          "Disagree"
       ],
       "order": 3,
       "required": true
     }
     \`\`\`
-- **value-checkbox**, **values-checkbox**: string or array of strings, the user can choose multiple options.
+- **value-checkbox**, **values-checkbox**: string or array of strings, the user can select one or more options.
     \`\`\`
     "profile_confirmed": {
       "description": "Please confirm that your OpenReview profile is up-to-date by selecting "Yes".",
       "value-checkbox": "Yes",
       "required": true,
       "order": 1
-  },
-  "keywords": {
-    "description": "Please check all keywords that apply.",
-      "values-checkbox": [
-        "Deep Learning",
-        "Machine Learning",
-        "Computer Vision",
-        "Database Design"
+    },
+    "keywords": {
+      "description": "Please check all keywords that apply.",
+        "values-checkbox": [
+          "Deep Learning",
+          "Machine Learning",
+          "Computer Vision",
+          "Database Design"
+        ],
+        "required": true,
+        "order": 3
+    }
+    \`\`\`
+- **value-dropdown**, **values-dropdown**: array of strings, the user can select one or more options from a dropdown.
+    \`\`\`
+    "novelty": {
+      "order": 2,
+      "value-dropdown": ["Very High", "High", "Neutral", "Low", "Very Low"],
+      "description": "Indicate your agreement with the following: This paper is highly novel.",
+      "required": true
+    },
+    "keywords": {
+      "order" : 5,
+      "description" : "Select or type subject area",
+      "values-dropdown": [
+        "Computer Vision Theory",
+        "Dataset and Evaluation",
+        "Human Computer Interaction",
+        'Machine Learning",
+        "Unsupervised Learning"
       ],
-      "required": true,
-      "order": 3
+      "required": true
+    }
+    \`\`\`
+- **value-file**: a valid JSON specifying the expected upload file type and size in MB. Supported file types are pdf, zip and mp4.
+    \`\`\`
+    "pdf": {
+      "description": "Upload a PDF file that ends with .pdf",
+      "order": 6,
+      "value-file": {
+          "fileTypes": ["pdf"],
+          "size": 50
+      },
+      "required":true
   }
     \`\`\`
-to be continue....
+
     `,
   }, {
-    q: 'Which are the default submission, review and comment forms?',
+    q: 'What are the default submission, review, metareview, comment and decision forms?',
     id: 'question-default-forms',
     a: `These are the field required for each form:
 - **Submission form**, please note that title, authors and authorids should be always present in the submission form.
