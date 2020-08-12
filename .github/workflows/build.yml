@@ -46,6 +46,16 @@ jobs:
       uses: elastic/elastic-github-actions/elasticsearch@master
       with:
         stack-version: 7.6.0
+    - name: Clone openreview-py
+      uses: actions/checkout@v2
+      with:
+        repository: openreview/openreview-py
+        path: openreview-py
+    - name: Install openreview-py
+      run: |
+        curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+        sudo python3 get-pip.py
+        sudo pip3 install openreview-py
     - name: Checkout OpenReview API
       uses: actions/checkout@v2
       with:
