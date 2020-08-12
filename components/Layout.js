@@ -58,7 +58,6 @@ export default function Layout({
       )}
 
       <FeedbackModal />
-
       <BibtexModal />
 
       <GoogleAnalyticsScript />

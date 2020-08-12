@@ -2094,7 +2094,7 @@ module.exports = (function() {
 
     // Display modal showing full BibTeX reference. Click handler is definied in public/index.js
     var $bibtexLink = (note.content._bibtex && params.withBibtexLink) ?
-      $('<span class="item"><a href="#" data-target="#bibtex-modal" data-toggle="modal" class="action-bibtex-modal" data-bibtex="' + encodeURIComponent(note.content._bibtex) + '">Show Bibtex</a></span>') :
+      $('<span class="item"><a href="#" data-target="#bibtex-modal" data-toggle="modal" data-bibtex="' + encodeURIComponent(note.content._bibtex) + '">Show Bibtex</a></span>') :
       null;
 
     var $metaEditRow = $('<div>', {class: 'meta_row'});
