@@ -154,7 +154,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="last-input"
               className="form-control"
               value={lastName}
-              onChange={e => setLastName(upperFirst(e.target.value))}
+              onChange={e => setLastName(lastName ? e.target.value : upperFirst(e.target.value))}
               placeholder="Last name"
               autoComplete="family-name"
             />
