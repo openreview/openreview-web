@@ -368,8 +368,8 @@ You can have different types of fields:
   }, {
     q: 'What are the default submission, review, metareview, comment and decision forms?',
     id: 'question-default-forms',
-    a: `These are the field required for each form:
-- **Submission form**, please note that title, authors and authorids should be always present in the submission form.
+    a: `These are the default fields for each form:
+- **Submission form**, please note that title, authors and authorids should always be present in the submission form.
 
     \`\`\`
     {
@@ -424,9 +424,151 @@ You can have different types of fields:
 
 will be displayed as:
 
-![Submission form image](/images/faq-submission-form.png)
+![Submission](/images/faq-submission-form.png)
 
-to be continue....
+- **Review form**
+
+    \`\`\`
+    {
+      "title": {
+          "order": 1,
+          "value-regex": ".{0,500}",
+          "description": "Brief summary of your review.",
+          "required": true
+      },
+      "review": {
+          "order": 2,
+          "value-regex": "[\\S\\s]{1,200000}",
+          "description": "Please provide an evaluation of the quality, clarity, originality and significance of this work, including a list of its pros and cons (max 200000 characters). Add formatting using Markdown and formulas using LaTeX. For more information see https://openreview.net/faq",
+          "required": true,
+          "markdown": true
+      },
+      "rating": {
+          "order": 3,
+          "value-dropdown": [
+              "10: Top 5% of accepted papers, seminal paper",
+              "9: Top 15% of accepted papers, strong accept",
+              "8: Top 50% of accepted papers, clear accept",
+              "7: Good paper, accept",
+              "6: Marginally above acceptance threshold",
+              "5: Marginally below acceptance threshold",
+              "4: Ok but not good enough - rejection",
+              "3: Clear rejection",
+              "2: Strong rejection",
+              "1: Trivial or wrong"
+          ],
+          "required": true
+      },
+      "confidence": {
+          "order": 4,
+          "value-radio": [
+              "5: The reviewer is absolutely certain that the evaluation is correct and very familiar with the relevant literature",
+              "4: The reviewer is confident but not absolutely certain that the evaluation is correct",
+              "3: The reviewer is fairly confident that the evaluation is correct",
+              "2: The reviewer is willing to defend the evaluation, but it is quite likely that the reviewer did not understand central parts of the paper",
+              "1: The reviewer's evaluation is an educated guess"
+          ],
+          "required": true
+      }
+    }
+    \`\`\`
+
+will be displayed as:
+
+![Review](/images/faq-review-form.png)
+
+- **Metareview form**
+
+    \`\`\`
+    {
+      "metareview": {
+          "order": 1,
+          "value-regex": "[\\S\\s]{1,5000}",
+          "description": "Please provide an evaluation of the quality, clarity, originality and significance of this work, including a list of its pros and cons. Your comment or reply (max 5000 characters). Add formatting using Markdown and formulas using LaTeX. For more information see https://openreview.net/faq",
+          "required": true,
+          "markdown": true
+      },
+      "recommendation": {
+          "order": 2,
+          "value-dropdown": [
+              "Accept (Oral)",
+              "Accept (Poster)",
+              "Reject"
+          ],
+          "required": true
+      },
+      "confidence": {
+          "order": 3,
+          "value-radio": [
+              "5: The area chair is absolutely certain",
+              "4: The area chair is confident but not absolutely certain",
+              "3: The area chair is somewhat confident",
+              "2: The area chair is not sure",
+              "1: The area chair's evaluation is an educated guess"
+          ],
+          "required": true
+      }
+    }
+    \`\`\`
+
+will be displayed as:
+
+![Metareview](/images/faq-metareview-form.png)
+
+- **Comment form**
+    \`\`\`
+    {
+      "title": {
+          "order": 0,
+          "value-regex": ".{1,500}",
+          "description": "Brief summary of your comment.",
+          "required": true
+      },
+      "comment": {
+          "order": 1,
+          "value-regex": "[\\S\\s]{1,5000}",
+          "description": "Your comment or reply (max 5000 characters). Add formatting using Markdown and formulas using LaTeX. For more information see https://openreview.net/faq",
+          "required": true,
+          "markdown": true
+      }
+  }
+    \`\`\`
+
+will be displayed as:
+
+![Comment](/images/faq-comment-form.png)
+
+- **Decision form**
+
+    \`\`\`
+    {
+      "title": {
+          "order": 1,
+          "required": true,
+          "value": "Paper Decision"
+      },
+      "decision": {
+          "order": 2,
+          "required": true,
+          "value-radio": [
+              "Accept (Oral)",
+              "Accept (Poster)",
+              "Reject"
+          ],
+          "description": "Decision"
+      },
+      "comment": {
+          "order": 3,
+          "required": false,
+          "value-regex": "[\\S\\s]{0,5000}",
+          "description": ""
+      }
+    }
+    \`\`\`
+
+will be displayed as:
+
+![Decision](/images/faq-decision-form.png)
     `,
   }]
 
