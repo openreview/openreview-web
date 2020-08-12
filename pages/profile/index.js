@@ -377,6 +377,9 @@ const Profile = ({
 Profile.getInitialProps = async (ctx) => {
   const profileQuery = pick(ctx.query, ['id', 'email'])
   const { token } = auth(ctx)
+  if (!token && !profileQuery.id && !profileQuery.email) {
+    return { statusCode: 400, message: 'Profile ID or email is required' }
+  }
 
   let profileRes
   try {
@@ -384,7 +387,7 @@ Profile.getInitialProps = async (ctx) => {
     if (!profileRes.profiles?.length) {
       return {
         statusCode: 404,
-        message: profileQuery.id || profileQuery.email ? `The user ${profileQuery.id || profileQuery.email} has not set up an OpenReview profile yet` : 'Id is required',
+        message: `The user ${profileQuery.id || profileQuery.email} has not set up an OpenReview profile yet`,
       }
     }
   } catch (error) {
