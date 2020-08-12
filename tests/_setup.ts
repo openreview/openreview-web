@@ -1,11 +1,13 @@
 import {
   createNote, createUser, getToken, addMembersToGroup, getProcessLogs, hasTaskUser, hasNoTaskUser,
-  conferenceGroupId, conferenceSubmissionInvitationId,
+  conferenceGroupId, conferenceSubmissionInvitationId, sendFile, setupProfileViewEdit, setupRegister
 } from './utils/api-helper'
 
 fixture`setup data`
   .before(async (ctx) => {
     ctx.superUserToken = await getToken('openreview.net', '1234')
+    await setupProfileViewEdit(ctx.superUserToken)
+    await setupRegister(ctx.superUserToken)
     return ctx
   })
 
@@ -230,4 +232,116 @@ test('setup AnotherTestVenue', async (t) => {
   const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
   noteJson.ddate = Date.now()
   const { id: deletedNoteId } = await createNote(noteJson, hasTaskUserToken)
+})
+
+test('setup ICLR', async (t) => {
+  const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
+  const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1}/${submissionDate.getDate()}`
+  const { superUserToken } = t.fixtureCtx
+
+  const requestVenueJson = {
+    invitation: 'openreview.net/Support/-/Request_Form',
+    signatures: ['~Super_User1'],
+    readers: [
+      'openreview.net/Support',
+      '~Super_User1',
+      'john@mail.com',
+      'tom@mail.com',
+    ],
+    writers: [],
+    content: {
+      title: 'ICLR 2021 Conference',
+      'Official Venue Name': 'ICLR 2021 Conference',
+      'Abbreviated Venue Name': 'ICLR 2021',
+      'Official Website URL': 'https://iclr.cc',
+      program_chair_emails: [
+        'john@mail.com',
+        'tom@mail.com'],
+      contact_email: 'iclr@mail.com',
+      'Area Chairs (Metareviewers)': 'Yes, our venue has Area Chairs',
+      'Venue Start Date': '2021/11/01',
+      'Submission Deadline': submissionDateString,
+      Location: 'Virtual',
+      'Paper Matching': [
+        'Reviewer Bid Scores',
+        'Reviewer Recommendation Scores'],
+      'Author and Reviewer Anonymity': 'Double-blind',
+      'Open Reviewing Policy': 'Submissions and reviews should both be public.',
+      'Public Commentary': 'Yes, allow members of the public to comment non-anonymously.',
+      withdrawn_submissions_visibility: 'Yes, withdrawn submissions should be made public.',
+      withdrawn_submissions_author_anonymity: 'No, author identities of withdrawn submissions should not be revealed.',
+      email_pcs_for_withdrawn_submissions: 'Yes, email PCs.',
+      desk_rejected_submissions_visibility: 'Yes, desk rejected submissions should be made public.',
+      desk_rejected_submissions_author_anonymity: 'No, author identities of desk rejected submissions should not be revealed.',
+      'How did you hear about us?': 'ML conferences',
+      'Expected Submissions': '6000',
+    },
+  }
+  const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
+
+  await new Promise(r => setTimeout(r, 2000))
+
+  let logs = await getProcessLogs(requestForumId, superUserToken)
+  await t.expect(logs[0].status).eql('ok')
+
+  const deployVenueJson = {
+    content: { venue_id: 'ICLR.cc/2021/Conference' },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Deploy`,
+    readers: ['openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['openreview.net/Support'],
+    writers: ['openreview.net/Support'],
+  }
+
+  const { id: deployId } = await createNote(deployVenueJson, superUserToken)
+
+  await new Promise(r => setTimeout(r, 2000))
+
+  logs = await getProcessLogs(deployId, superUserToken)
+  await t.expect(logs[0].status).eql('ok')
+
+  const userToken = await getToken('a@a.com')
+
+  const result = await sendFile('paper.pdf', userToken)
+
+  const noteJson = {
+    invitation: 'ICLR.cc/2021/Conference/-/Submission',
+    content: {
+      title: 'ICLR submission title',
+      authors: ['FirstA LastA'],
+      authorids: ['~FirstA_LastA1'],
+      abstract: 'test iclr abstract abstract',
+      pdf: result.url,
+    },
+    readers: ['ICLR.cc/2021/Conference', '~FirstA_LastA1'],
+    signatures: ['~FirstA_LastA1'],
+    writers: ['ICLR.cc/2021/Conference', '~FirstA_LastA1'],
+  }
+
+  const { id: noteId } = await createNote(noteJson, userToken)
+
+  await new Promise(r => setTimeout(r, 2000))
+
+  logs = await getProcessLogs(noteId, superUserToken)
+  await t.expect(logs[0].status).eql('ok')
+
+  const postSubmissionJson = {
+    content: { force: 'Yes' },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Post_Submission`,
+    readers: ['openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['openreview.net/Support'],
+    writers: ['openreview.net/Support'],
+  }
+
+  const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
+
+  await new Promise(r => setTimeout(r, 2000))
+
+  logs = await getProcessLogs(postSubmissionId, superUserToken)
+  await t.expect(logs[0].status).eql('ok')
 })

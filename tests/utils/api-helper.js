@@ -15,8 +15,6 @@ export const baseGroupId = 'TestVenue'
 export const subGroupId = 'TestVenue/2020'
 export const conferenceGroupId = 'TestVenue/2020/Conference'
 export const conferenceSubmissionInvitationId = `${conferenceGroupId}/-/Submission`
-const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
-const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1}/${submissionDate.getDate()}`
 
 export const hasTaskUser = {
   first: 'FirstA',
@@ -52,108 +50,8 @@ export const inActiveUserNoPasswordNoEmail = {
 }
 // #endregion
 
-// The setup function is shared by all tests and should run only once. Any data
-// required by the test cases should be put here
-export async function setup(superUserToken) {
-  await setupICLR(superUserToken)
-  await setupProfileViewEdit(superUserToken)
-  await setupRegister(superUserToken)
-}
-
-async function setupICLR(superToken) {
-  const requestVenueJson = {
-    invitation: 'openreview.net/Support/-/Request_Form',
-    signatures: ['~Super_User1'],
-    readers: [
-      'openreview.net/Support',
-      '~Super_User1',
-      'john@mail.com',
-      'tom@mail.com',
-    ],
-    writers: [],
-    content: {
-      title: 'ICLR 2021 Conference',
-      'Official Venue Name': 'ICLR 2021 Conference',
-      'Abbreviated Venue Name': 'ICLR 2021',
-      'Official Website URL': 'https://iclr.cc',
-      program_chair_emails: [
-        'john@mail.com',
-        'tom@mail.com'],
-      contact_email: 'iclr@mail.com',
-      'Area Chairs (Metareviewers)': 'Yes, our venue has Area Chairs',
-      'Venue Start Date': '2021/11/01',
-      'Submission Deadline': submissionDateString,
-      Location: 'Virtual',
-      'Paper Matching': [
-        'Reviewer Bid Scores',
-        'Reviewer Recommendation Scores'],
-      'Author and Reviewer Anonymity': 'Double-blind',
-      'Open Reviewing Policy': 'Submissions and reviews should both be public.',
-      'Public Commentary': 'Yes, allow members of the public to comment non-anonymously.',
-      withdrawn_submissions_visibility: 'Yes, withdrawn submissions should be made public.',
-      withdrawn_submissions_author_anonymity: 'No, authors of withdrawn submissions should not be anonymized.',
-      email_pcs_for_withdrawn_submissions: 'Yes, email PCs.',
-      desk_rejected_submissions_visibility: 'Yes, desk rejected submissions should be made public.',
-      desk_rejected_submissions_author_anonymity: 'No, authors of desk rejected submissions should not be anonymized.',
-      'How did you hear about us?': 'ML conferences',
-      'Expected Submissions': '6000',
-    },
-  }
-  const { id: requestForumId, number } = await createNote(requestVenueJson, superToken)
-
-  await new Promise(r => setTimeout(r, 2000))
-
-  const deployVenueJson = {
-    content: { venue_id: 'ICLR.cc/2021/Conference' },
-    forum: requestForumId,
-    invitation: `openreview.net/Support/-/Request${number}/Deploy`,
-    readers: ['openreview.net/Support'],
-    referent: requestForumId,
-    replyto: requestForumId,
-    signatures: ['openreview.net/Support'],
-    writers: ['openreview.net/Support'],
-  }
-
-  await createNote(deployVenueJson, superToken)
-
-  await new Promise(r => setTimeout(r, 2000))
-
-  const userToken = await getToken('a@a.com')
-
-  const readStream = fs.readFileSync(`${__dirname}/data/paper.pdf`)
-  const result = await api.sendFile(readStream, userToken)
-
-  const noteJson = {
-    invitation: 'ICLR.cc/2021/Conference/-/Submission',
-    content: {
-      title: 'ICLR submission title',
-      authors: ['FirstA LastA'],
-      authorids: ['~FirstA_LastA1'],
-      abstract: 'test iclr abstract abstract',
-      pdf: result.url,
-    },
-    readers: ['ICLR.cc/2021/Conference', '~FirstA_LastA1'],
-    signatures: ['~FirstA_LastA1'],
-    writers: ['ICLR.cc/2021/Conference', '~FirstA_LastA1'],
-  }
-
-  const { id: noteId } = await createNote(noteJson, userToken)
-
-  const postSubmissionJson = {
-    content: { force: 'Yes' },
-    forum: requestForumId,
-    invitation: `openreview.net/Support/-/Request${number}/Post_Submission`,
-    readers: ['openreview.net/Support'],
-    referent: requestForumId,
-    replyto: requestForumId,
-    signatures: ['openreview.net/Support'],
-    writers: ['openreview.net/Support'],
-  }
-
-  await createNote(postSubmissionJson, superToken)
-}
-
-async function setupProfileViewEdit(adminToken) {
+// this should be move to openreview-py
+export async function setupProfileViewEdit(adminToken) {
   // add group dblp.org
   const dblpGroupJson = {
     id: 'dblp.org',
@@ -223,18 +121,13 @@ async function setupProfileViewEdit(adminToken) {
   await createInvitation(dblpAuthorCoreferenceJson, adminToken)
 }
 
-async function setupRegister(adminToken) {
+export async function setupRegister(adminToken) {
   // create inactive user
   await createUser(inactiveUser)
   // eslint-disable-next-line max-len
   await createProfile(inActiveUserNoPassword.first, inActiveUserNoPassword.last, inActiveUserNoPassword.email, inActiveUserNoPassword.tildeId, adminToken)
   // eslint-disable-next-line max-len
   await createEmptyProfile(inActiveUserNoPasswordNoEmail.first, inActiveUserNoPasswordNoEmail.last, inActiveUserNoPasswordNoEmail.tildeId, adminToken)
-}
-
-export function teardown() {
-  // eslint-disable-next-line no-console
-  console.log('TEARDOWN')
 }
 
 // #region API helper functions
@@ -250,13 +143,14 @@ export function createNote(jsonToPost, userToken) {
   return api.post('/notes', jsonToPost, { accessToken: userToken })
 }
 
+export function sendFile(fileName, userToken) {
+  const readStream = fs.readFileSync(`${__dirname}/data/${fileName}`)
+  return api.sendFile(readStream, userToken)
+}
+
 export function getToken(id = superUserName, password = '1234') {
   return api.post('/login', { id, password })
     .then(apiRes => apiRes.token)
-}
-
-export function resetAdminPassword(password) {
-  return api.put(`/reset/${superUserName}`, { password })
 }
 
 export function addMembersToGroup(groupId, membersList, adminToken) {
