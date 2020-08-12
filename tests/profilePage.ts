@@ -254,3 +254,15 @@ test('#123 update name in nav when preferred name is updated ', async (t) => {
     .expect(Selector('#user-menu').innerText).eql('Di Xu ')
     .expect(Selector('div.title-container').find('h1').innerText).eql('Di Xu')
 })
+test('#160 allow user to overwrite last name to be lowercase', async (t) => {
+  await t.useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(nameSectionPlusIconSelector)
+    .typeText(editFirstNameInputSelector, 'Di')
+    .typeText(editLastNameInputSelector, 'van Gogh', { speed: 0.3 }) // it will trigger call to generate ~ id so typing fast won't trigger capitalization
+    .expect(editLastNameInputSelector.value).eql('Van Gogh')
+    .pressKey('left left left left left left left left delete v')
+    .expect(editLastNameInputSelector.value).eql('van Gogh')
+    .click(saveProfileButton)
+    .expect(Selector('span').withText('van Gogh').exists).ok()
+})

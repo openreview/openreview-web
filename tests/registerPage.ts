@@ -243,3 +243,14 @@ test('update profile', async (t) => {
     .expect(Selector('#flash-message-container').exists).ok()
     .expect(Selector('span').withAttribute('class', 'important_message').innerText).eql('Thank you for confirming your email melisa@alternate.com')
 })
+
+// eslint-disable-next-line no-unused-expressions
+fixture`issue related tests`
+test('#160 allow user to overwrite last name to be lowercase', async (t) => {
+  await t.navigateTo(`http://localhost:${process.env.NEXT_PORT}/signup`)
+    .typeText(firstNameInputSelector, 'Melisa')
+    .typeText(lastNameInputSelector, 'van Gogh')
+    .expect(lastNameInputSelector.value).eql('Van Gogh')
+    .pressKey('left left left left left left left left delete v')
+    .expect(lastNameInputSelector.value).eql('van Gogh')
+})
