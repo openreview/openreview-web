@@ -53,9 +53,10 @@ jobs:
         path: openreview-py
     - name: Install openreview-py
       run: |
+        cd openreview-py
         curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
         sudo python3 get-pip.py
-        sudo pip3 install openreview-py
+        sudo pip3 install .
     - name: Checkout OpenReview API
       uses: actions/checkout@v2
       with:
