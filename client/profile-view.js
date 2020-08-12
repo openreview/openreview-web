@@ -367,7 +367,7 @@ module.exports = function(profile, params, submitF, cancelF) {
         var middle = _.upperFirst($nameRow.find('.middle_name').val());
 
         var lastNameVal = $nameRow.find('.last_name').val()
-        var last = lastNameVal.length == 1 ? _.upperFirst(lastNameVal) : lastNameVal;
+        var last = lastNameVal.length === 1 ? _.upperFirst(lastNameVal) : lastNameVal;
 
         $nameRow.find('.first_name').val(first);
         $nameRow.find('.middle_name').val(middle);
