@@ -1,6 +1,6 @@
 import {
   createNote, createUser, getToken, addMembersToGroup, getProcessLogs, hasTaskUser, hasNoTaskUser,
-  conferenceGroupId, conferenceSubmissionInvitationId, sendFile, setupProfileViewEdit, setupRegister
+  conferenceGroupId, conferenceSubmissionInvitationId, sendFile, setupProfileViewEdit, setupRegister,
 } from './utils/api-helper'
 
 fixture`setup data`
