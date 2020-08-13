@@ -219,7 +219,7 @@ const Profile = ({
 
   useEffect(() => {
     setBannerHidden(true)
-  }, [])
+  }, [profileQuery])
 
   useEffect(() => {
     // Replace id param in URL with the user's preferred username
@@ -374,27 +374,8 @@ const Profile = ({
 }
 
 Profile.getInitialProps = async (ctx) => {
-  const profileQuery = pick(ctx.query, ['id', 'email'])
-  const { token } = auth(ctx)
-  if (!token && !profileQuery.id && !profileQuery.email) {
-    return { statusCode: 400, message: 'Profile ID or email is required' }
-  }
-
-  let profileRes
-  try {
-    profileRes = await api.get('/profiles', profileQuery, { accessToken: token })
-    if (!profileRes.profiles?.length) {
-      return {
-        statusCode: 404,
-        message: `The user ${profileQuery.id || profileQuery.email} has not set up an OpenReview profile yet`,
-      }
-    }
-  } catch (error) {
-    return { statusCode: 404, message: 'Profile not found' }
-  }
-
   // TODO: remove this redirect when all profile edit links have been changed
-  if (token && ctx.query.mode === 'edit') {
+  if (ctx.query.mode === 'edit') {
     if (ctx.req) {
       ctx.res.writeHead(302, { Location: '/profile/edit' }).end()
     } else {
@@ -402,9 +383,30 @@ Profile.getInitialProps = async (ctx) => {
     }
   }
 
-  const profileFormatted = formatProfileData(profileRes.profiles[0])
+  const profileQuery = pick(ctx.query, ['id', 'email'])
+  const { token } = auth(ctx)
+  if (!token && !profileQuery.id && !profileQuery.email) {
+    return { statusCode: 400, message: 'Profile ID or email is required' }
+  }
+
+  let profile
+  try {
+    const { profiles } = await api.get('/profiles', profileQuery, { accessToken: token })
+    if (profiles?.length > 0) {
+      profile = profiles[0]
+    }
+  } catch (error) {
+    return { statusCode: 404, message: 'Profile not found' }
+  }
+  if (!profile) {
+    return {
+      statusCode: 404,
+      message: `The user ${profileQuery.id || profileQuery.email} has not set up an OpenReview profile yet`,
+    }
+  }
+
   return {
-    profile: profileFormatted,
+    profile: formatProfileData(profile),
     publicProfile: Object.keys(profileQuery).length > 0,
     profileQuery,
   }
