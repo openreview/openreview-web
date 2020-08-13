@@ -17,7 +17,7 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
 
   useEffect(() => {
     setBannerHidden(true)
-  }, [])
+  }, [groupId])
 
   useEffect(() => {
     if (clientJsLoading) return
@@ -100,25 +100,25 @@ Group.getInitialProps = async (ctx) => {
 
   const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
   const groupObjSlim = omit(group, ['web'])
-  const inlineJsCode = `
-    window.user = ${JSON.stringify(userOrGuest)};
-    $(function() {
-      var args = ${JSON.stringify(ctx.query)};
-      var group = ${JSON.stringify(groupObjSlim)};
-      var document = null;
-      var window = null;
-      var model = {
-        tokenPayload: function() {
-          return { user: user }
-        }
-      };
+  const inlineJsCode = `// Webfield Code for ${groupObjSlim.id}
+window.user = ${JSON.stringify(userOrGuest)};
+$(function() {
+  var args = ${JSON.stringify(ctx.query)};
+  var group = ${JSON.stringify(groupObjSlim)};
+  var document = null;
+  var window = null;
+  var model = {
+    tokenPayload: function() {
+      return { user: user }
+    }
+  };
 
-      $('#group-container').empty();
+  $('#group-container').empty();
+  ${showModeBanner ? 'Webfield.editModeBanner(group.id, args.mode);' : ''}
 
-      ${editorCode || infoCode || webfieldCode}
-
-      ${showModeBanner ? 'Webfield.editModeBanner(group.id, args.mode);' : ''}
-    });`
+  ${editorCode || infoCode || webfieldCode}
+});
+//# sourceURL=webfieldCode.js`
 
   return {
     groupId: group.id,

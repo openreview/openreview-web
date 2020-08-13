@@ -13,8 +13,8 @@ test('show active venues', async (t) => {
   await t
     // Active venues
     .expect(activeVenues.child.length).eql(2)
-    .expect(activeVenues.find('a').nth(0).textContent).eql(baseGroupId)
-    .expect(activeVenues.find('a').nth(1).textContent).eql(`Another${baseGroupId}`)
+    .expect(activeVenues.find('a').nth(0).textContent).eql('TestVenue 2020 Conference')
+    .expect(activeVenues.find('a').nth(1).textContent).eql('ICLR 2021 Conference')
 
     // Open for submissions
     .expect(openVenues.child.length).eql(2)
