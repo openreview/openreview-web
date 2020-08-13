@@ -7,7 +7,7 @@ function NoteContent({
 }) {
   const contentKeys = Object.keys(content)
   const contentOrder = invitation
-    ? union(orderReplyFields(invitation?.reply?.content || {}, invitation.id), contentKeys)
+    ? union(orderReplyFields(invitation.reply?.content || {}, invitation.id), contentKeys)
     : contentKeys
 
   const omittedFields = [
