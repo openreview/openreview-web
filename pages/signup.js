@@ -125,7 +125,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="first-input"
               className="form-control"
               value={firstName}
-              onChange={e => setFirstName(upperFirst(e.target.value))}
+              onChange={e => setFirstName(firstName ? e.target.value : upperFirst(e.target.value))}
               placeholder="First name"
               autoComplete="given-name"
             />
@@ -142,7 +142,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="middle-input"
               className="form-control"
               value={middleName}
-              onChange={e => setMiddleName(upperFirst(e.target.value))}
+              onChange={e => setMiddleName(middleName ? e.target.value : upperFirst(e.target.value))}
               placeholder="Middle name"
               autoComplete="additional-name"
             />
@@ -155,7 +155,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="last-input"
               className="form-control"
               value={lastName}
-              onChange={e => setLastName(upperFirst(e.target.value))}
+              onChange={e => setLastName(lastName ? e.target.value : upperFirst(e.target.value))}
               placeholder="Last name"
               autoComplete="family-name"
             />
