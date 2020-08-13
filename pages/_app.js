@@ -75,7 +75,7 @@ export default class OpenReviewApp extends App {
   }
 
   setBannerContent(newContent) {
-    this.setState({ bannerContent: newContent })
+    this.setState({ bannerContent: newContent, bannerHidden: false })
     this.shouldResetBanner = false
   }
 
@@ -97,15 +97,12 @@ export default class OpenReviewApp extends App {
       },
       welcome: () => {
         this.setBannerContent(null)
-        this.setBannerHidden(false)
       },
       venueHomepageLink: (groupId) => {
         this.setBannerContent(venueHomepageLink(groupId))
-        this.setBannerHidden(false)
       },
       referrerLink: (referrer) => {
         this.setBannerContent(referrerLink(referrer))
-        this.setBannerHidden(false)
       },
       set: () => {},
       clear: () => {},

@@ -363,9 +363,13 @@ module.exports = function(profile, params, submitF, cancelF) {
     var readonly = !_.isEmpty(username);
     var displayNewUsername = function($nameRow) {
       return function() {
-        var first = _.upperFirst($nameRow.find('.first_name').val());
-        var middle = _.upperFirst($nameRow.find('.middle_name').val());
-        var last = _.upperFirst($nameRow.find('.last_name').val());
+        var firstNameVal = $nameRow.find('.first_name').val()
+        var middleNameVal = $nameRow.find('.middle_name').val()
+        var lastNameVal = $nameRow.find('.last_name').val()
+
+        var first = firstNameVal.length === 1 ? _.upperFirst(firstNameVal) : firstNameVal;
+        var middle = middleNameVal.length === 1 ? _.upperFirst(middleNameVal) : middleNameVal;
+        var last = lastNameVal.length === 1 ? _.upperFirst(lastNameVal) : lastNameVal;
 
         $nameRow.find('.first_name').val(first);
         $nameRow.find('.middle_name').val(middle);

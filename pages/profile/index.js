@@ -229,7 +229,6 @@ const Profile = ({
 
     if (profile.id === user?.profile?.id) {
       router.replace(`/profile?id=${profile.id}`, undefined, { shallow: true })
-      setBannerHidden(false)
       setBannerContent(editProfileLink())
     }
 
@@ -378,6 +377,9 @@ const Profile = ({
 Profile.getInitialProps = async (ctx) => {
   const profileQuery = pick(ctx.query, ['id', 'email'])
   const { token } = auth(ctx)
+  if (!token && !profileQuery.id && !profileQuery.email) {
+    return { statusCode: 400, message: 'Profile ID or email is required' }
+  }
 
   let profileRes
   try {
