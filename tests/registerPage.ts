@@ -4,6 +4,7 @@ import {
 } from './utils/api-helper'
 
 const firstNameInputSelector = Selector('#first-input')
+const middleNameInputSelector = Selector('#middle-input')
 const lastNameInputSelector = Selector('#last-input')
 const emailAddressInputSelector = Selector('input').withAttribute('placeholder', 'Email address')
 const signupButtonSelector = Selector('button').withText('Sign Up')
@@ -271,4 +272,22 @@ test('update profile', async (t) => {
   await t
     .expect(messagePanelSelector.exists).ok()
     .expect(messageSelector.innerText).eql('Thank you for confirming your email melisa@alternate.com')
+})
+
+// eslint-disable-next-line no-unused-expressions
+fixture`issue related tests`
+test('#160 allow user to overwrite last/middle/first name to be lowercase', async (t) => {
+  await t.navigateTo(`http://localhost:${process.env.NEXT_PORT}/signup`)
+    .typeText(firstNameInputSelector, 'first')
+    .expect(firstNameInputSelector.value).eql('First')
+    .pressKey('left left left left left delete f')
+    .expect(firstNameInputSelector.value).eql('first')
+    .typeText(middleNameInputSelector, 'middle')
+    .expect(middleNameInputSelector.value).eql('Middle')
+    .pressKey('left left left left left left delete m')
+    .expect(middleNameInputSelector.value).eql('middle')
+    .typeText(lastNameInputSelector, 'last')
+    .expect(lastNameInputSelector.value).eql('Last')
+    .pressKey('left left left left delete l')
+    .expect(lastNameInputSelector.value).eql('last')
 })
