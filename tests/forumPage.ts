@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 import { Selector, ClientFunction, Role } from 'testcafe'
-import { getToken, getNotes } from './utils/api-helper'
+import { getToken, getNotes, createUser } from './utils/api-helper'
 
 const titleLabel = Selector('.note_content_title a')
 const authorLabel = Selector('.meta_row a')
@@ -40,6 +40,13 @@ fixture`Forum page`
   .page`http://localhost:${process.env.NEXT_PORT}`
   .before(async (ctx) => {
     ctx.superUserToken = await getToken('openreview.net', '1234')
+    await createUser({
+      first: 'Test',
+      last: 'User',
+      email: 'test@mail.com',
+      password: '1234',
+      history: undefined,
+    })
     return ctx
   })
 
@@ -52,7 +59,7 @@ test('show a valid forum', async (t) => {
     .expect(container.exists).ok()
     .expect(Selector(`#note_${forum}`).exists).ok()
     .expect(titleLabel.innerText).eql('test title')
-    .expect(authorLabel.innerText).eql('test author')
+    .expect(authorLabel.innerText).eql('FirstA LastA')
     .expect(abstractLabel.innerText).eql('test abstract')
 })
 
@@ -179,7 +186,6 @@ test('get an forum page and see meta tags with conference title', async (t) => {
   await t.expect(text).contains('<meta name="citation_publication_date"')
   await t.expect(text).contains('<meta name="citation_online_date"')
   await t.expect(text).contains('<meta name="citation_pdf_url"')
-  await t.expect(text).contains('<meta name="citation_conference_title" content="International Conference on Learning Representations"/>')
 })
 
 test('get forum page and see all available meta tags', async (t) => {
