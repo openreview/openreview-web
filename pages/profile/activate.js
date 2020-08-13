@@ -4,6 +4,7 @@
 import { useEffect, useState, useContext } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
+import useQuery from '../../hooks/useQuery'
 import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import LegacyProfileEditor from '../../components/LegacyProfileEditor'
@@ -17,20 +18,19 @@ const ActivateProfile = ({ appContext }) => {
   const [activateToken, setActivateToken] = useState('')
   const [profile, setProfile] = useState(null)
   const { loginUser } = useContext(UserContext)
-  const { query, replace } = useRouter()
+  const query = useQuery()
+  const router = useRouter()
 
   const { setBannerHidden } = appContext
 
   const loadActivatableProfile = async (token) => {
-    if (!token) return
-
     try {
       const apiRes = await api.get(`/activatable/${token}`)
       setProfile(formatProfileData(apiRes.profile))
       setActivateToken(token)
     } catch (error) {
       promptError(error.message)
-      replace('/')
+      router.replace('/')
     }
   }
 
@@ -48,7 +48,12 @@ const ActivateProfile = ({ appContext }) => {
   useEffect(() => {
     if (!query) return
 
-    loadActivatableProfile(query.token)
+    if (query.token) {
+      loadActivatableProfile(query.token)
+    } else {
+      promptError('Invalid profile activation link. Please check your email and try again.')
+      router.replace('/')
+    }
   }, [query])
 
   useEffect(() => {

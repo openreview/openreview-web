@@ -10,6 +10,8 @@ const signupButtonSelector = Selector('button').withText('Sign Up')
 const passwordInputSelector = Selector('input').withAttribute('placeholder', 'Password')
 const sendActivationLinkButtonSelector = Selector('button').withText('Send Activation Link')
 const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
+const messageSelector = Selector('span').withAttribute('class', 'important_message')
+const messagePanelSelector = Selector('#flash-message-container')
 
 fixture`Signup`
   .page`http://localhost:${process.env.NEXT_PORT}/signup`
@@ -81,8 +83,8 @@ test('request a new activation link', async (t) => {
   await t
     .typeText(Selector('input').withAttribute('placeholder', 'Email'), 'melisa@test.com')
     .click(Selector('a').withText('Didn\'t receive email confirmation?'))
-    .expect(Selector('#flash-message-container').exists).ok()
-    .expect(Selector('span').withAttribute('class', 'important_message').innerText)
+    .expect(messagePanelSelector.exists).ok()
+    .expect(messageSelector.innerText)
     .eql('A confirmation email with the subject "OpenReview signup confirmation" has been sent to melisa@test.com. Please click the link in this email to confirm your email address and complete registration.')
 
   await new Promise(r => setTimeout(r, 2000))
@@ -164,9 +166,36 @@ test('update profile', async (t) => {
     .typeText(Selector('input').withAttribute('placeholder', 'Choose a position or type a new one'), 'MS student')
     .typeText(Selector('input').withAttribute('placeholder', 'Choose a domain or type a new one'), 'umass.edu')
     .click(Selector('button').withText('Register for OpenReview'))
-    .expect(Selector('#flash-message-container').exists).ok()
-    .expect(Selector('span').withAttribute('class', 'important_message').innerText)
+    .expect(messagePanelSelector.exists).ok()
+    .expect(messageSelector.innerText)
     .eql('Your OpenReview profile has been successfully created')
+})
+
+// eslint-disable-next-line no-unused-expressions
+fixture`Activate with errors`
+
+test('try to activate a profile with no token and get an error', async (t) => {
+  await t
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate`)
+    .expect(messagePanelSelector.exists).ok()
+    .expect(messageSelector.innerText)
+    .eql('Invalid profile activation link. Please check your email and try again.')
+})
+
+test('try to activate a profile with empty token and get an error', async (t) => {
+  await t
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=`)
+    .expect(messagePanelSelector.exists).ok()
+    .expect(messageSelector.innerText)
+    .eql('Invalid profile activation link. Please check your email and try again.')
+})
+
+test('try to activate a profile with invalid token and get an error', async (t) => {
+  await t
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=fhtbsk`)
+    .expect(messagePanelSelector.exists).ok()
+    .expect(messageSelector.innerText)
+    .eql('Activation token is not valid')
 })
 
 fixture`Reset password`
@@ -224,9 +253,9 @@ test('add alternate email', async (t) => {
       .child('td')
       .nth(1)
       .child('button'))
-    .expect(Selector('#flash-message-container').exists)
+    .expect(messagePanelSelector.exists)
     .ok()
-    .expect(Selector('span').withAttribute('class', 'important_message').innerText)
+    .expect(messageSelector.innerText)
     .eql('A confirmation email has been sent to melisa@alternate.com')
 
   const { superUserToken } = t.fixtureCtx
@@ -240,8 +269,8 @@ fixture`Confirm altenate email`
 
 test('update profile', async (t) => {
   await t
-    .expect(Selector('#flash-message-container').exists).ok()
-    .expect(Selector('span').withAttribute('class', 'important_message').innerText).eql('Thank you for confirming your email melisa@alternate.com')
+    .expect(messagePanelSelector.exists).ok()
+    .expect(messageSelector.innerText).eql('Thank you for confirming your email melisa@alternate.com')
 })
 
 // eslint-disable-next-line no-unused-expressions
