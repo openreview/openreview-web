@@ -20,7 +20,7 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
 
   useEffect(() => {
     setBannerHidden(true)
-  }, [])
+  }, [invitationId])
 
   useEffect(() => {
     if (clientJsLoading) return
@@ -161,21 +161,21 @@ Invitation.getInitialProps = async (ctx) => {
     );`
 
   const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
-  const inlineJsCode = `
-    window.user = ${JSON.stringify(userOrGuest)};
-    $(function() {
-      var args = ${JSON.stringify(ctx.query)};
-      var invitation = ${JSON.stringify(invitationObjSlim)};
-      var user = ${JSON.stringify(userOrGuest)};
-      var document = null;
-      var window = null;
+  const inlineJsCode = `// Webfield Code for ${invitation.id}
+window.user = ${JSON.stringify(userOrGuest)};
+$(function() {
+  var args = ${JSON.stringify(ctx.query)};
+  var invitation = ${JSON.stringify(invitationObjSlim)};
+  var user = ${JSON.stringify(userOrGuest)};
+  var document = null;
+  var window = null;
 
-      $('#invitation-container').empty();
+  $('#invitation-container').empty();
+  ${showModeBanner ? 'Webfield.editModeBanner(invitation.id, args.mode);' : ''}
 
-      ${editorCode || infoCode || noteEditorCode || webfieldCode}
-
-      ${showModeBanner ? 'Webfield.editModeBanner(invitation.id, args.mode);' : ''}
-    });`
+  ${editorCode || infoCode || noteEditorCode || webfieldCode}
+});
+//# sourceURL=webfieldCode.js`
 
   return {
     invitationId: invitation.id,
