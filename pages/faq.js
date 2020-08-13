@@ -38,7 +38,7 @@ function Faq({ generalQuestions, pcQuestions, appContext }) {
 
     // Scroll to and expand question referenced in URL
     if (window.location.hash) {
-      const $titleLink = $(`#questions .panel-title a[href="${window.location.hash}"]`).eq(0)
+      const $titleLink = $(`.panel-title a[href="${window.location.hash}"]`).eq(0)
       if ($titleLink.length) {
         $titleLink.click()
 
@@ -50,7 +50,7 @@ function Faq({ generalQuestions, pcQuestions, appContext }) {
     }
 
     // Update URL hash when clicking a question
-    $('#questions .panel-title a').on('click', function onClick() {
+    $('.faq-container .panel-title a').on('click', function onClick() {
       router.replace(window.location.pathname + window.location.search + $(this).attr('href'))
     })
   }, [formattedGeneralQuestions, formattedPCQuestions])
@@ -70,22 +70,20 @@ function Faq({ generalQuestions, pcQuestions, appContext }) {
       <div className="row">
         <div className="col-xs-12 col-md-10 col-md-offset-1 faq-container">
 
-          {formattedGeneralQuestions ? (
-            <Accordion
-              title="General Questions"
-              sections={formattedGeneralQuestions}
-              options={{ id: 'general-questions', collapsed: true, html: true }}
-            />
-          ) : (
-            <LoadingSpinner />
-          )}
+          {(formattedGeneralQuestions && formattedPCQuestions) ? (
+            <>
+              <h3>General Questions</h3>
+              <Accordion
+                sections={formattedGeneralQuestions}
+                options={{ id: 'general-questions', collapsed: true, html: true }}
+              />
 
-          {formattedPCQuestions ? (
-            <Accordion
-              title="Program Chairs Questions"
-              sections={formattedPCQuestions}
-              options={{ id: 'pc-questions', collapsed: true, html: true }}
-            />
+              <h3>Program Chair Questions</h3>
+              <Accordion
+                sections={formattedPCQuestions}
+                options={{ id: 'pc-questions', collapsed: true, html: true }}
+              />
+            </>
           ) : (
             <LoadingSpinner />
           )}
@@ -157,17 +155,17 @@ For general iquiries, you can contact the OpenReview team by emailing [info@open
     id: 'question-extend-submission-deadline',
     a: 'On the request form for your venue, click on the ‘Revision’ button and modify the Submission Deadline field to the new submission deadline.',
   }, {
-    q: 'How can I add/remove fields to the submission form?',
+    q: 'How do I add/remove fields to the submission form?',
     id: 'question-review-form-fields',
     a: `On the request form for your venue, click on the ‘Revision’ button. Under Additional Submission Options, add a JSON with any extra fields you want to appear on the submission form. To remove fields, select the fields to remove under Remove Submission Options.
 
   For more information on supported field types, [click here.](https://openreview.net/faq#question-field-type-supported)`,
   }, {
-    q: 'How can I make reviews visible to authors?',
+    q: 'How do I make reviews visible to authors?',
     id: 'question-release-reviews-authors',
     a: 'On the request form for your venue, click on the ‘Review Stage’ button. Select Yes under Release Reviews to Authors and then submit. This will immediately release any existing reviews to authors and make subsequent posted reviews readily available to authors.',
   }, {
-    q: 'How can I make reviews visible to reviewers?',
+    q: 'How do I make reviews visible to reviewers?',
     id: 'question-release-reviews-reviewers',
     a: 'On the request form for your venue, click on the ‘Review Stage’ button. Reviews can be released to all reviewers, to a paper\'s assigned reviewers, or to a paper\'s assigned reviewers who have already submitted their review.',
   }, {
@@ -191,7 +189,7 @@ For general iquiries, you can contact the OpenReview team by emailing [info@open
     id: 'question-contact-venue-roles',
     a: 'Under the ‘Overview’ tab of the PC console for your venue, you will find a ‘Venue Roles’ section. Clicking on any of the links will take you to the respective group. On this page, you have the option to email selected members of the group.',
   }, {
-    q: 'Does OpenReview support supplementary material?',
+    q: 'Does OpenReview support supplementary materials for submissions?',
     id: 'question-supplementary-material',
     a: `Yes, OpenReview supports supplementary material.
 
@@ -214,11 +212,11 @@ For general iquiries, you can contact the OpenReview team by emailing [info@open
 
   This will add a supplementary material field to upload zipped files of size up to 50 MB.`,
   }, {
-    q: 'Is there a max size for files upload?',
+    q: 'Is there a max file size for uploads?',
     id: 'question-file-upload',
-    a: 'The max size for files upload is 100MB.',
+    a: 'Yes, the maximum file size for all uploads is 100MB.',
   }, {
-    q: 'An author of a submission can not access their own paper, what is the problem?',
+    q: 'An author of a submission cannot access their own paper, what is the problem?',
     id: 'question-author-permissions',
     a: 'If an author cannot access their own submission, they must make sure that the email address associated with the submission has been added to their profile and confirmed.',
   }, {
@@ -226,17 +224,17 @@ For general iquiries, you can contact the OpenReview team by emailing [info@open
     id: 'question-edit-submission-after-deadline',
     a: 'To edit a submission after the deadline, please contact the OpenReview team by emailing info@openreview.net.',
   }, {
-    q: 'How to make the submission public after the decisions are made?',
+    q: 'How do I make submissions public after the decisions are made?',
     id: 'question-release-submissions',
     a: 'To make submissions public after decisions are made, please contact the OpenReview team by emailing info@openreview.net.',
   }, {
-    q: 'How to release the identity of the authors of the accepted papers only?',
+    q: 'How do I release the identities of the authors of the accepted papers only?',
     id: 'question-release-author-names',
-    a: 'To release the identity of authors of accepted papers, please contact the OpenReview team by emailing info@openreview.net.',
+    a: 'To release the identities of authors of accepted papers, please contact the OpenReview team by emailing info@openreview.net.',
   }, {
-    q: 'How to contact the authors of the accepted papers only?',
+    q: 'How do I contact the authors of the accepted papers only?',
     id: 'question-contact-authors-accepted',
-    a: '',
+    a: 'Please contact the OpenReview team by emailing info@openreview.net',
   }, {
     q: 'Can an author withdraw a rejected paper?',
     id: 'question-withdraw-paper',
@@ -262,7 +260,7 @@ For general iquiries, you can contact the OpenReview team by emailing [info@open
 - default: the default value of the field
 
 You can have different types of fields:
-- **value**, **values**: string or array of strings, the value/s can not be modified by the user.
+- **value**, **values**: string or array of strings, the value/s cannot be modified by the user.
 
     \`\`\`
     "title": {
@@ -272,6 +270,7 @@ You can have different types of fields:
       "values": ["Deep Learning", "Machine Learning"]
     }
     \`\`\`
+
 - **value-regex**, **values-regex**: string or array of strings, the value should pass the regex validation.
 
     \`\`\`
@@ -288,6 +287,7 @@ You can have different types of fields:
       "required": true
     }
     \`\`\`
+
 - **value-radio**: string or array of strings, the user can only choose one option.
 
     \`\`\`
@@ -310,7 +310,9 @@ You can have different types of fields:
       "required": true
     }
     \`\`\`
+
 - **value-checkbox**, **values-checkbox**: string or array of strings, the user can select one or more options.
+
     \`\`\`
     "profile_confirmed": {
       "description": "Please confirm that your OpenReview profile is up-to-date by selecting "Yes".",
@@ -330,7 +332,9 @@ You can have different types of fields:
         "order": 3
     }
     \`\`\`
+
 - **value-dropdown**, **values-dropdown**: array of strings, the user can select one or more options from a dropdown.
+
     \`\`\`
     "novelty": {
       "order": 2,
@@ -351,7 +355,9 @@ You can have different types of fields:
       "required": true
     }
     \`\`\`
+
 - **value-file**: a valid JSON specifying the expected upload file type and size in MB. Supported file types are pdf, zip and mp4.
+
     \`\`\`
     "pdf": {
       "description": "Upload a PDF file that ends with .pdf",
@@ -361,12 +367,10 @@ You can have different types of fields:
           "size": 50
       },
       "required":true
-  }
-    \`\`\`
-
-    `,
+    }
+    \`\`\``,
   }, {
-    q: 'What are the default submission, review, metareview, comment and decision forms?',
+    q: 'What do the default submission, review, metareview, comment and decision forms look like?',
     id: 'question-default-forms',
     a: `These are the default fields for each form:
 - **Submission form**, please note that title, authors and authorids should always be present in the submission form.
@@ -422,9 +426,9 @@ You can have different types of fields:
     }
     \`\`\`
 
-will be displayed as:
+    will be displayed as:
 
-![Submission](/images/faq-submission-form.png)
+    ![Submission](/images/faq-submission-form.png)
 
 - **Review form**
 
@@ -473,9 +477,9 @@ will be displayed as:
     }
     \`\`\`
 
-will be displayed as:
+    will be displayed as:
 
-![Review](/images/faq-review-form.png)
+    ![Review](/images/faq-review-form.png)
 
 - **Metareview form**
 
@@ -511,11 +515,12 @@ will be displayed as:
     }
     \`\`\`
 
-will be displayed as:
+    will be displayed as:
 
-![Metareview](/images/faq-metareview-form.png)
+    ![Metareview](/images/faq-metareview-form.png)
 
 - **Comment form**
+
     \`\`\`
     {
       "title": {
@@ -531,12 +536,12 @@ will be displayed as:
           "required": true,
           "markdown": true
       }
-  }
+    }
     \`\`\`
 
-will be displayed as:
+    will be displayed as:
 
-![Comment](/images/faq-comment-form.png)
+    ![Comment](/images/faq-comment-form.png)
 
 - **Decision form**
 
@@ -566,10 +571,9 @@ will be displayed as:
     }
     \`\`\`
 
-will be displayed as:
+    will be displayed as:
 
-![Decision](/images/faq-decision-form.png)
-    `,
+    ![Decision](/images/faq-decision-form.png)`,
   }]
 
   return {

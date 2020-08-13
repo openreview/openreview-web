@@ -4,8 +4,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
-import Link from 'next/link'
-import upperFirst from 'lodash/upperFirst'
 import debounce from 'lodash/debounce'
 import NoteList from '../components/NoteList'
 import { auth } from '../lib/auth'
@@ -124,7 +122,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="first-input"
               className="form-control"
               value={firstName}
-              onChange={e => setFirstName(firstName ? e.target.value : upperFirst(e.target.value))}
+              onChange={e => setFirstName(e.target.value.length === 1 ? e.target.value.toUpperCase() : e.target.value)}
               placeholder="First name"
               autoComplete="given-name"
             />
@@ -141,7 +139,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="middle-input"
               className="form-control"
               value={middleName}
-              onChange={e => setMiddleName(middleName ? e.target.value : upperFirst(e.target.value))}
+              onChange={e => setMiddleName(e.target.value.length === 1 ? e.target.value.toUpperCase() : e.target.value)}
               placeholder="Middle name"
               autoComplete="additional-name"
             />
@@ -154,7 +152,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="last-input"
               className="form-control"
               value={lastName}
-              onChange={e => setLastName(lastName ? e.target.value : upperFirst(e.target.value))}
+              onChange={e => setLastName(e.target.value.length === 1 ? e.target.value.toUpperCase() : e.target.value)}
               placeholder="Last name"
               autoComplete="family-name"
             />
