@@ -6,6 +6,7 @@ import pick from 'lodash/pick'
 import UserContext from '../../components/UserContext'
 import NoteList from '../../components/NoteList'
 import withError from '../../components/withError'
+import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
 import { prettyList } from '../../lib/utils'
@@ -195,13 +196,14 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
 }
 
 const Profile = ({
-  profile, profileQuery, publicProfile, appContext,
+  profile, publicProfile, appContext,
 }) => {
   const [publications, setPublications] = useState(null)
   const [count, setCount] = useState(0)
   const [coAuthors, setCoAuthors] = useState([])
-  const { accessToken, user } = useContext(UserContext)
+  const { accessToken, user, userLoading } = useContext(UserContext)
   const router = useRouter()
+  const profileQuery = useQuery()
   const { setBannerHidden, setBannerContent } = appContext
 
   const loadPublications = async () => {
@@ -222,11 +224,15 @@ const Profile = ({
   }
 
   useEffect(() => {
-    setBannerHidden(true)
+    if (profileQuery) {
+      setBannerHidden(true)
+    }
   }, [profileQuery])
 
   useEffect(() => {
-    // Replace id param in URL with the user's preferred username
+    if (userLoading || !profileQuery) return
+
+    // Always show user's preferred username in the URL
     if (profileQuery.email || (profileQuery.id !== profile.preferredId)) {
       router.replace(`/profile?id=${profile.preferredId}`)
     }
@@ -418,7 +424,6 @@ Profile.getInitialProps = async (ctx) => {
   return {
     profile: formatProfileData(profile),
     publicProfile: Object.keys(profileQuery).length > 0,
-    profileQuery,
   }
 }
 
