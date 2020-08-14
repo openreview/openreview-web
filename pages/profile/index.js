@@ -228,7 +228,7 @@ const Profile = ({
   useEffect(() => {
     // Replace id param in URL with the user's preferred username
     if (profileQuery.email || (profileQuery.id && profileQuery.id !== profile.preferredId)) {
-      router.replace(`/profile?id=${profile.preferredId}`, undefined, { shallow: true })
+      router.replace(`/profile?id=${profile.preferredId}`)
     }
 
     if (profile.id === user?.profile?.id) {
