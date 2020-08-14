@@ -228,6 +228,7 @@ const Profile = ({
     }
 
     if (profile.id === user?.profile?.id) {
+      router.replace(`/profile?id=${profile.preferredId}`, undefined, { shallow: true })
       setBannerContent(editProfileLink())
     }
 
@@ -375,14 +376,16 @@ const Profile = ({
 
 Profile.getInitialProps = async (ctx) => {
   const profileQuery = pick(ctx.query, ['id', 'email'])
-  const { token } = auth(ctx)
+  const { token, user } = auth(ctx)
   if (!token && !profileQuery.id && !profileQuery.email) {
     return { statusCode: 400, message: 'Profile ID or email is required' }
   }
 
   let profileRes
   try {
-    profileRes = await api.get('/profiles', profileQuery, { accessToken: token })
+    let profileAPIQuery = profileQuery
+    if (profileAPIQuery.id === user?.profile?.preferredId) profileAPIQuery = {} // don't pass query if own profile
+    profileRes = await api.get('/profiles', profileAPIQuery, { accessToken: token })
     if (!profileRes.profiles?.length) {
       return {
         statusCode: 404,
