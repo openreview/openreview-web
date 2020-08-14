@@ -46,7 +46,7 @@ const NoteAuthors = ({
       param = 'email'
     } else if (authorId.startsWith('https://dblp.org')) {
       return (
-        <a href={authorId} title={authorId} data-toggle="tooltip" data-placement="top" target="_blank" rel="noopener noreferrer">
+        <a key={`${author} ${authorId}`} href={authorId} title={authorId} data-toggle="tooltip" data-placement="top" target="_blank" rel="noopener noreferrer">
           {author}
         </a>
       )
