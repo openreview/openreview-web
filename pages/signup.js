@@ -1,14 +1,15 @@
 /* globals promptError: false */
 /* globals $: false */
 
-import { useState, useEffect, useCallback } from 'react'
+import {
+  useState, useEffect, useCallback, useContext,
+} from 'react'
 import Head from 'next/head'
-import Router from 'next/router'
-import Link from 'next/link'
+import { useRouter } from 'next/router'
 import upperFirst from 'lodash/upperFirst'
 import debounce from 'lodash/debounce'
+import UserContext from '../components/UserContext'
 import NoteList from '../components/NoteList'
-import { auth } from '../lib/auth'
 import api from '../lib/api-client'
 
 // Page Styles
@@ -456,6 +457,15 @@ const ConfirmationMessage = ({ registrationType, registeredEmail }) => {
 
 const SignUp = () => {
   const [signupConfirmation, setSignupConfirmation] = useState(null)
+  const { user, userLoading } = useContext(UserContext)
+  const router = useRouter()
+
+  // Redirect user to the homepage if not logged in
+  useEffect(() => {
+    if (!userLoading && user) {
+      router.replace('/')
+    }
+  }, [userLoading])
 
   return (
     <div className="row">
@@ -480,19 +490,6 @@ const SignUp = () => {
       )}
     </div>
   )
-}
-
-SignUp.getInitialProps = (ctx) => {
-  const { user } = auth(ctx)
-  if (user) {
-    if (ctx.req) {
-      ctx.res.writeHead(302, { Location: '/' }).end()
-    } else {
-      Router.replace('/')
-    }
-  }
-
-  return {}
 }
 
 SignUp.bodyClass = 'sign-up'
