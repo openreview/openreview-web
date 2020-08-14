@@ -3,6 +3,21 @@ import {
   conferenceGroupId, conferenceSubmissionInvitationId, sendFile, setupProfileViewEdit, setupRegister,
 } from './utils/api-helper'
 
+const waitForLogs = (noteId, superUserToken) => new Promise((resolve, reject) => {
+  const interval = setInterval(async () => {
+    try {
+      const logs = await getProcessLogs(noteId, superUserToken)
+      if (logs.length) {
+        clearInterval(interval)
+        resolve(logs)
+      }
+    } catch (err) {
+      clearInterval(interval)
+      reject(err)
+    }
+  }, 1000)
+})
+
 fixture`Setup data`
   .before(async (ctx) => {
     ctx.superUserToken = await getToken('openreview.net', '1234')
@@ -55,9 +70,7 @@ test('setup TestVenue', async (t) => {
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  let logs = await getProcessLogs(requestForumId, superUserToken)
+  let logs = await waitForLogs(requestForumId, superUserToken)
   await t.expect(logs[0].status).eql('ok')
 
   const deployVenueJson = {
@@ -73,9 +86,7 @@ test('setup TestVenue', async (t) => {
 
   const { id: deployId } = await createNote(deployVenueJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  logs = await getProcessLogs(deployId, superUserToken)
+  logs = await waitForLogs(deployId, superUserToken)
   await t.expect(logs[0].status).eql('ok')
 
   const userRes = await createUser(hasTaskUser)
@@ -113,9 +124,7 @@ test('setup TestVenue', async (t) => {
 
   const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  logs = await getProcessLogs(postSubmissionId, superUserToken)
+  logs = await waitForLogs(postSubmissionId, superUserToken)
   await t.expect(logs[0].status).eql('ok')
 
   const reviewStageJson = {
@@ -137,9 +146,7 @@ test('setup TestVenue', async (t) => {
 
   const { id: reviewStageId } = await createNote(reviewStageJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  logs = await getProcessLogs(reviewStageId, superUserToken)
+  logs = await waitForLogs(reviewStageId, superUserToken)
   await t.expect(logs[0].status).eql('ok')
 
   await addMembersToGroup('TestVenue/2020/Conference/Paper1/Reviewers', [hasTaskUserTildeId], superUserToken)
@@ -190,9 +197,7 @@ test('setup AnotherTestVenue', async (t) => {
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  let logs = await getProcessLogs(requestForumId, superUserToken)
+  let logs = await waitForLogs(requestForumId, superUserToken)
   await t.expect(logs[0].status).eql('ok')
 
   const deployVenueJson = {
@@ -208,9 +213,7 @@ test('setup AnotherTestVenue', async (t) => {
 
   const { id: deployId } = await createNote(deployVenueJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  logs = await getProcessLogs(deployId, superUserToken)
+  logs = await waitForLogs(deployId, superUserToken)
   await t.expect(logs[0].status).eql('ok')
 
   const hasTaskUserToken = await getToken(hasTaskUser.email)
@@ -279,9 +282,7 @@ test('setup ICLR', async (t) => {
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  let logs = await getProcessLogs(requestForumId, superUserToken)
+  let logs = await waitForLogs(requestForumId, superUserToken)
   await t.expect(logs[0].status).eql('ok')
 
   const deployVenueJson = {
@@ -297,9 +298,7 @@ test('setup ICLR', async (t) => {
 
   const { id: deployId } = await createNote(deployVenueJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  logs = await getProcessLogs(deployId, superUserToken)
+  logs = await waitForLogs(deployId, superUserToken)
   await t.expect(logs[0].status).eql('ok')
 
   const userToken = await getToken('a@a.com')
@@ -322,9 +321,7 @@ test('setup ICLR', async (t) => {
 
   const { id: noteId } = await createNote(noteJson, userToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  logs = await getProcessLogs(noteId, superUserToken)
+  logs = await waitForLogs(noteId, superUserToken)
   await t.expect(logs[0].status).eql('ok')
 
   const postSubmissionJson = {
@@ -340,8 +337,6 @@ test('setup ICLR', async (t) => {
 
   const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  logs = await getProcessLogs(postSubmissionId, superUserToken)
+  logs = await waitForLogs(postSubmissionId, superUserToken)
   await t.expect(logs[0].status).eql('ok')
 })
