@@ -2362,7 +2362,7 @@ module.exports = (function() {
       primaryButtonText: 'Delete'
     }));
 
-    $signaturesDropdown.removeClass('row').addClass('legacy-styles text-center');
+    $signaturesDropdown.removeClass('row').addClass('note_editor text-center mb-2');
     $signaturesDropdown.find('.required_field').remove();
     $signaturesDropdown.find('span.line_heading').text('Signature:');
     $('#confirm-delete-modal .modal-body').append($signaturesDropdown);
