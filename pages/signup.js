@@ -8,6 +8,7 @@ import debounce from 'lodash/debounce'
 import NoteList from '../components/NoteList'
 import { auth } from '../lib/auth'
 import api from '../lib/api-client'
+import { isValidEmail } from '../lib/utils'
 
 // Page Styles
 import '../styles/pages/signup.less'
@@ -259,7 +260,7 @@ const ExistingProfileForm = ({
             onChange={e => setEmail(e.target.value)}
             autoComplete="email"
           />
-          {hasPassword && <button type="submit" className="btn">{buttonLabel}</button>}
+          {hasPassword && <button type="submit" className="btn" disabled={!isValidEmail(email)}>{buttonLabel}</button>}
         </div>
       )}
       {passwordVisible && !hasPassword && (
@@ -272,7 +273,7 @@ const ExistingProfileForm = ({
             onChange={e => setPassword(e.target.value)}
             required
           />
-          <button type="submit" className="btn">{buttonLabel}</button>
+          <button type="submit" className="btn" disabled={!isValidEmail(email) || !password}>{buttonLabel}</button>
         </div>
       )}
     </form>
@@ -332,7 +333,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
           onChange={e => setEmail(e.target.value)}
         />
         {!passwordVisible && (
-          <button type="submit" className="btn" disabled={!email}>Claim Profile</button>
+          <button type="submit" className="btn" disabled={!isValidEmail(email)}>Claim Profile</button>
         )}
         <span className="new-username hint">{`for ${id}`}</span>
       </div>
@@ -348,7 +349,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
             autoComplete="new-password"
             required
           />
-          <button type="submit" className="btn">Claim Profile</button>
+          <button type="submit" className="btn" disabled={!password}>Claim Profile</button>
         </div>
       )}
     </form>
@@ -389,7 +390,7 @@ const NewProfileForm = ({ id, registerUser }) => {
           autoComplete="email"
         />
         {!passwordVisible && (
-          <button type="submit" className="btn" disabled={!id || !email}>Sign Up</button>
+          <button type="submit" className="btn" disabled={!id || !isValidEmail(email)}>Sign Up</button>
         )}
         {id && (
           <span className="new-username hint">{`as ${id}`}</span>
@@ -406,7 +407,7 @@ const NewProfileForm = ({ id, registerUser }) => {
             autoComplete="new-password"
             required
           />
-          <button type="submit" className="btn">Sign Up</button>
+          <button type="submit" className="btn" disabled={!password}>Sign Up</button>
         </div>
       )}
     </form>
