@@ -227,7 +227,7 @@ const Profile = ({
 
   useEffect(() => {
     // Replace id param in URL with the user's preferred username
-    if (profileQuery.email || (profileQuery.id && profileQuery.id !== profile.preferredId)) {
+    if (profileQuery.email || (profileQuery.id !== profile.preferredId)) {
       router.replace(`/profile?id=${profile.preferredId}`)
     }
 
@@ -387,10 +387,16 @@ Profile.getInitialProps = async (ctx) => {
     }
   }
 
-  const profileQuery = pick(ctx.query, ['id', 'email'])
-  const { token } = auth(ctx)
-  if (!token && !profileQuery.id && !profileQuery.email) {
+  let profileQuery = pick(ctx.query, ['id', 'email'])
+  const { token, user } = auth(ctx)
+  if (!user && !profileQuery.id && !profileQuery.email) {
     return { statusCode: 400, message: 'Profile ID or email is required' }
+  }
+
+  // Don't use query params if this is user's own profile
+  if (user && ((profileQuery.id && user.profile.usernames.includes(profileQuery.id))
+    || (profileQuery.email && user.profile.emails.includes(profileQuery.email)))) {
+    profileQuery = {}
   }
 
   let profile
