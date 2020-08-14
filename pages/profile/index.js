@@ -242,7 +242,7 @@ const Profile = ({
     }
 
     loadPublications()
-  }, [profile, profileQuery, user, accessToken])
+  }, [profile, profileQuery, user, userLoading, accessToken])
 
   useEffect(() => {
     if (!publications) return
@@ -400,8 +400,11 @@ Profile.getInitialProps = async (ctx) => {
   }
 
   // Don't use query params if this is user's own profile
-  if (user && ((profileQuery.id && user.profile.usernames.includes(profileQuery.id))
-    || (profileQuery.email && user.profile.emails.includes(profileQuery.email)))) {
+  if (user && (
+    (profileQuery.id && user.profile.usernames.includes(profileQuery.id))
+    || (profileQuery.email && user.profile.emails.includes(profileQuery.email))
+    || (profileQuery.id === '' || profileQuery.email === '')
+  )) {
     profileQuery = {}
   }
 
