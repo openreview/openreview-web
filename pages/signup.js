@@ -4,12 +4,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
-import Link from 'next/link'
-import upperFirst from 'lodash/upperFirst'
 import debounce from 'lodash/debounce'
 import NoteList from '../components/NoteList'
 import { auth } from '../lib/auth'
 import api from '../lib/api-client'
+import { isValidEmail } from '../lib/utils'
 
 // Page Styles
 import '../styles/pages/signup.less'
@@ -124,7 +123,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="first-input"
               className="form-control"
               value={firstName}
-              onChange={e => setFirstName(firstName ? e.target.value : upperFirst(e.target.value))}
+              onChange={e => setFirstName(e.target.value.length === 1 ? e.target.value.toUpperCase() : e.target.value)}
               placeholder="First name"
               autoComplete="given-name"
             />
@@ -141,7 +140,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="middle-input"
               className="form-control"
               value={middleName}
-              onChange={e => setMiddleName(middleName ? e.target.value : upperFirst(e.target.value))}
+              onChange={e => setMiddleName(e.target.value.length === 1 ? e.target.value.toUpperCase() : e.target.value)}
               placeholder="Middle name"
               autoComplete="additional-name"
             />
@@ -154,7 +153,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="last-input"
               className="form-control"
               value={lastName}
-              onChange={e => setLastName(lastName ? e.target.value : upperFirst(e.target.value))}
+              onChange={e => setLastName(e.target.value.length === 1 ? e.target.value.toUpperCase() : e.target.value)}
               placeholder="Last name"
               autoComplete="family-name"
             />
@@ -261,7 +260,7 @@ const ExistingProfileForm = ({
             onChange={e => setEmail(e.target.value)}
             autoComplete="email"
           />
-          {hasPassword && <button type="submit" className="btn">{buttonLabel}</button>}
+          {hasPassword && <button type="submit" className="btn" disabled={!isValidEmail(email)}>{buttonLabel}</button>}
         </div>
       )}
       {passwordVisible && !hasPassword && (
@@ -274,7 +273,7 @@ const ExistingProfileForm = ({
             onChange={e => setPassword(e.target.value)}
             required
           />
-          <button type="submit" className="btn">{buttonLabel}</button>
+          <button type="submit" className="btn" disabled={!isValidEmail(email) || !password}>{buttonLabel}</button>
         </div>
       )}
     </form>
@@ -334,7 +333,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
           onChange={e => setEmail(e.target.value)}
         />
         {!passwordVisible && (
-          <button type="submit" className="btn" disabled={!email}>Claim Profile</button>
+          <button type="submit" className="btn" disabled={!isValidEmail(email)}>Claim Profile</button>
         )}
         <span className="new-username hint">{`for ${id}`}</span>
       </div>
@@ -350,7 +349,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
             autoComplete="new-password"
             required
           />
-          <button type="submit" className="btn">Claim Profile</button>
+          <button type="submit" className="btn" disabled={!password}>Claim Profile</button>
         </div>
       )}
     </form>
@@ -391,7 +390,7 @@ const NewProfileForm = ({ id, registerUser }) => {
           autoComplete="email"
         />
         {!passwordVisible && (
-          <button type="submit" className="btn" disabled={!id || !email}>Sign Up</button>
+          <button type="submit" className="btn" disabled={!id || !isValidEmail(email)}>Sign Up</button>
         )}
         {id && (
           <span className="new-username hint">{`as ${id}`}</span>
@@ -408,7 +407,7 @@ const NewProfileForm = ({ id, registerUser }) => {
             autoComplete="new-password"
             required
           />
-          <button type="submit" className="btn">Sign Up</button>
+          <button type="submit" className="btn" disabled={!password}>Sign Up</button>
         </div>
       )}
     </form>

@@ -2,11 +2,16 @@
   "apps" : [
     {
       "name": "openreview-web",
-      "script": "npm",
-      "args": "start",
-      "instances": 0,
+      "script": "./node_modules/.bin/next",
+      "args": "start -p 3030",
+      "instances": "max",
       "exec_mode": "cluster",
       "watch": false,
+      "combine_logs": true,
+      "merge_logs": true,
+      "error_file": "/home/openreview/logs/openreview-web-error.log",
+      "out_file": "/home/openreview/logs/openreview-web-out.log",
+      "log_date_format": "YYYY-MM-DD HH:mm Z",
       "env" : {
         "NODE_ENV": "development",
         "NEXT_PORT": 3030
