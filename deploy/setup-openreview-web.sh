@@ -26,7 +26,7 @@ sudo -u openreview bash -c 'gsutil cp gs://openreview-files/conf/deploy-web.sh /
 sudo -u openreview bash -c 'cd ~/ && export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && bash /home/openreview/bin/clone-web.sh'
 # Create and start openreview service
 sudo -u openreview bash -c 'gsutil cp gs://openreview-files/conf/openreview-web.service /home/openreview/bin/'
-# sudo -u openreview bash -c 'sudo cp /home/openreview/bin/openreview-web.service /lib/systemd/system'
-# sudo -u openreview bash -c 'cd ~/ && sudo systemctl daemon-reload'
-# sudo -u openreview bash -c 'cd ~/ && sudo systemctl start openreview-web'
-# sudo -u openreview bash -c 'cd ~/ && sudo systemctl enable openreview-web'
+sudo -u openreview bash -c 'sudo cp /home/openreview/bin/openreview-web.service /lib/systemd/system'
+sudo -u openreview bash -c 'cd ~/ && sudo systemctl daemon-reload'
+sudo -u openreview bash -c 'cd ~/ && sudo systemctl start openreview-web'
+sudo -u openreview bash -c 'cd ~/ && sudo systemctl enable openreview-web'
