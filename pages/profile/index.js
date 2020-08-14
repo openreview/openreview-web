@@ -172,7 +172,7 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
   const authorLink = ({ name, id, email }) => {
     if (id) return <Link href={`/profile?id=${id}`}><a>{name}</a></Link>
     if (email) {
-      return email.startWith('https://dblp.org')
+      return email.startsWith('https://dblp.org')
         ? <a href={email} target="_blank" rel="noopener noreferrer">{name}</a>
         : <Link href={`/profile?email=${email}`}><a>{name}</a></Link>
     }
