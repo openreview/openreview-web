@@ -1,7 +1,11 @@
 import Table from './Table'
 
 export default function DblpPublicationTable({
-  dblpPublications, openReviewPublications, selectedPublications, setSelectedPublications,
+  dblpPublications,
+  openReviewPublications,
+  selectedPublications,
+  setSelectedPublications,
+  openReviewPublicationsImportedByOtherProfile,
 }) {
   const dblpPubsInOpenReview = []
   const dblpPubsNotInOpenReview = []
@@ -57,6 +61,11 @@ export default function DblpPublicationTable({
     <Table headings={headings}>
       {dblpPublications.map((publication, index) => {
         const existingPublication = openReviewPublications.find(orPub => orPub.title === publication.formattedTitle)
+        const existingPublicationOfOtherProfile = openReviewPublicationsImportedByOtherProfile.find(
+          p => p.title === publication.formattedTitle,
+        )
+        // eslint-disable-next-line no-nested-ternary
+        const category = existingPublication ? 'existing-publication' : (existingPublicationOfOtherProfile ? 'existing-different-profile' : 'nonExisting')
         return (
           <DblpPublicationRow
             // eslint-disable-next-line react/no-array-index-key
@@ -66,6 +75,9 @@ export default function DblpPublicationTable({
             openReviewId={existingPublication?.id}
             selected={selectedPublications.includes(index)}
             toggleSelected={selectPublication(index)}
+            otherProfileId={existingPublicationOfOtherProfile?.existingProfileId}
+            otherProfileNoteId={existingPublicationOfOtherProfile?.noteId}
+            category={category}
           />
         )
       })}
@@ -73,10 +85,26 @@ export default function DblpPublicationTable({
   )
 }
 
+const PublicationLink = (category, openReviewId, title, otherProfileNoteId, otherProfileId) => {
+  switch (category) {
+    case 'existing-publication':
+      return <a href={`/forum?id=${openReviewId}`} target="_blank" rel="noreferrer">{title}</a>
+    case 'existing-different-profile':
+      return (
+        <>
+          <a href={`/forum?id=${otherProfileNoteId}`} target="_blank" rel="noreferrer">{title}</a>
+          <a className="different-profile-link" href={`/profile?id=${otherProfileId}`} target="_blank" rel="noreferrer">{`(associated with ${otherProfileId})`}</a>
+        </>
+      )
+    default:
+      return <span>{title}</span>
+  }
+}
+
 const DblpPublicationRow = ({
-  title, authors, openReviewId, selected, toggleSelected,
+  title, authors, openReviewId, selected, toggleSelected, otherProfileId, otherProfileNoteId, category,
 }) => (
-  <tr className={openReviewId ? 'existing-publication-row' : ''}>
+  <tr className={category === 'nonExisting' ? '' : `${category}-row`}>
     <th scope="row">
       <input
         type="checkbox"
@@ -88,11 +116,7 @@ const DblpPublicationRow = ({
 
     <td>
       <div className="publication-title">
-        {openReviewId ? (
-          <a href={`/forum?id=${openReviewId}`} target="_blank" rel="noreferrer">{title}</a>
-        ) : (
-          <span>{title}</span>
-        )}
+        {PublicationLink(category, openReviewId, title, otherProfileNoteId,otherProfileId)}
       </div>
       <div className="publication-author-names">
         {authors.join(', ')}

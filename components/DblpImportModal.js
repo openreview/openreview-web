@@ -5,11 +5,13 @@ import {
 } from 'react'
 import LoadingSpinner from './LoadingSpinner'
 import DblpPublicationTable from './DblpPublicationTable'
-import { getDblpPublicationsFromXmlUrl, getAllPapersByGroupId, postOrUpdatePaper } from '../lib/profiles'
+import {
+  getDblpPublicationsFromXmlUrl, getAllPapersByGroupId, postOrUpdatePaper, getAllPapersImportedByOtherProfiles,
+} from '../lib/profiles'
 import UserContext from './UserContext'
 import { inflect } from '../lib/utils'
 
-export default function DblpImportModal({ profileId, profileNames }) {
+export default function DblpImportModal({ profileId, profileNames, email }) {
   const [dblpUrl, setDblpUrl] = useState('')
   const [dblpPersistentUrl, setDblpPersistentUrl] = useState('')
   const [message, setMessage] = useState('')
@@ -19,6 +21,7 @@ export default function DblpImportModal({ profileId, profileNames }) {
   const [isSavingPublications, setIsSavingPublications] = useState(false)
   const [isFetchingPublications, setIsFetchingPublications] = useState(false)
   const publicationsInOpenReview = useRef([]) // user's existing publications in openreview (for filtering and constructing publication link)
+  const publicationsImportedByOtherProfiles = useRef([])
   const modalEl = useRef(null)
   const { accessToken } = useContext(UserContext)
 
@@ -39,6 +42,13 @@ export default function DblpImportModal({ profileId, profileNames }) {
     if (isPersistentUrl) setDblpUrl(dblpPersistentUrl)
 
     try {
+      // first check for profiles with the same dblp url
+      // const profileIdWithSameDblp = await getProfileByDblpUrl(url.trim())
+      // if (profileIdWithSameDblp) {
+      //   $('#dblp-import-modal').modal('hide')
+      //   promptError({ type: 'alreadyConfirmed', value: profileIdWithSameDblp, value2: profileId, path: `The dblp url ${url.trim()}`, user: email })
+      //   throw new Error(`${url.trim()} is already associated with another OpenReview profile,<a href='/profile?id=${profileIdWithSameDblp}'>${profileIdWithSameDblp}</a>. To merge this profile with your account, please click here to submit a support request:`)
+      // }
       const allDblpPublications = await getDblpPublicationsFromXmlUrl(`${url.trim()}.xml`, profileId)
       if (!allDblpPublications.some(p => profileNames.some(name => p.note.content.dblp.includes(name)))) {
         throw new Error('Please ensure that the DBLP URL provided is yours')
@@ -48,13 +58,21 @@ export default function DblpImportModal({ profileId, profileNames }) {
 
       // contains id (for link) and title (for filtering) of existing publications in openreivew
       publicationsInOpenReview.current = await getAllPapersByGroupId(profileId, accessToken)
+      const result = await getAllPapersImportedByOtherProfiles(allDblpPublications.map(
+        (p) => { const q = { authorIndex: p.authorIndex, title: p.formattedTitle }; return q },
+      ), profileId, accessToken)
+      publicationsImportedByOtherProfiles.current = result.filter(p => p)
       const { numExisting, allExistInOpenReview } = getExistingFromDblpPubs(allDblpPublications)
       if (allExistInOpenReview) {
         setMessage(`All ${allDblpPublications.length} of the publications fetched from DBLP already
             exist in OpenReview.`)
       } else {
+        const pubImportedByOtherProfileCount = publicationsImportedByOtherProfiles.current.length
+        const newPubCount = allDblpPublications.length - numExisting - pubImportedByOtherProfileCount
         setMessage(` We found ${allDblpPublications.length} publications on your DBLP home page,
-          ${numExisting} of which already exist in OpenReview, ${allDblpPublications.length - numExisting} of which ${allDblpPublications.length - numExisting === 1 ? 'is' : 'are'} new.
+          ${numExisting} of which already exist in OpenReview,
+          ${pubImportedByOtherProfileCount ? `${pubImportedByOtherProfileCount} of which ${pubImportedByOtherProfileCount === 1 ? 'is' : 'are'} associated with other profiles,` : ''}
+          ${newPubCount} of which ${newPubCount === 1 ? 'is' : 'are'} new.
           Please select the new publications of which you are actually an author. Then click "Add to Your Profile" to import them.
           Then don't forget to "Save Profile Changes" at the bottom of the page.`)
       }
@@ -204,6 +222,7 @@ export default function DblpImportModal({ profileId, profileNames }) {
             <DblpPublicationTable
               dblpPublications={publications}
               openReviewPublications={publicationsInOpenReview.current}
+              openReviewPublicationsImportedByOtherProfile={publicationsImportedByOtherProfiles.current}
               selectedPublications={selectedPublications}
               setSelectedPublications={setSelectedPublications}
             />
