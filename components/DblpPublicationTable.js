@@ -116,7 +116,7 @@ const DblpPublicationRow = ({
 
     <td>
       <div className="publication-title">
-        {PublicationLink(category, openReviewId, title, otherProfileNoteId,otherProfileId)}
+        {PublicationLink(category, openReviewId, title, otherProfileNoteId, otherProfileId)}
       </div>
       <div className="publication-author-names">
         {authors.join(', ')}
