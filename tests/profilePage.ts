@@ -105,12 +105,12 @@ test('import paper from dblp', async (t) => {
     // put persistent url of other people in modal
     .typeText(persistentUrlInput, testPersistentUrl)
     .click(showPapersButton)
-    .expect(Selector('#dblp-import-modal').find('div.modal-body').innerText).eql('Please ensure that the DBLP URL provided is yours')
+    .expect(Selector('#dblp-import-modal').find('div.modal-body').innerText).eql('Please ensure that the DBLP URL provided is yours and your name from DBLP papers is listed in your profile.')
     .click(dblpImportModalCancelButton)
     // put persistent url of other people in page
     .typeText(Selector('input#dblp_url'), testPersistentUrl, { replace: true })
     .click(addDBLPPaperToProfileButton)
-    .expect(Selector('#dblp-import-modal').find('div.modal-body').innerText).eql('Please ensure that the DBLP URL provided is yours')
+    .expect(Selector('#dblp-import-modal').find('div.modal-body').innerText).eql('Please ensure that the DBLP URL provided is yours and your name from DBLP papers is listed in your profile.')
     .click(dblpImportModalCancelButton)
     // add name to skip validation error
     .click(nameSectionPlusIconSelector)
