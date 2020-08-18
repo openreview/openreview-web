@@ -52,7 +52,7 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
       // contains id (for link) and title (for filtering) of existing publications in openreivew
       publicationsInOpenReview.current = await getAllPapersByGroupId(profileId, accessToken)
       const result = await getAllPapersImportedByOtherProfiles(allDblpPublications.map(p => ({
-        authorIndex: p.authorIndex, 
+        authorIndex: p.authorIndex,
         title: p.formattedTitle,
       })), profileId, accessToken)
       publicationsImportedByOtherProfiles.current = result.filter(p => p)
