@@ -42,13 +42,6 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
     if (isPersistentUrl) setDblpUrl(dblpPersistentUrl)
 
     try {
-      // first check for profiles with the same dblp url
-      // const profileIdWithSameDblp = await getProfileByDblpUrl(url.trim())
-      // if (profileIdWithSameDblp) {
-      //   $('#dblp-import-modal').modal('hide')
-      //   promptError({ type: 'alreadyConfirmed', value: profileIdWithSameDblp, value2: profileId, path: `The dblp url ${url.trim()}`, user: email })
-      //   throw new Error(`${url.trim()} is already associated with another OpenReview profile,<a href='/profile?id=${profileIdWithSameDblp}'>${profileIdWithSameDblp}</a>. To merge this profile with your account, please click here to submit a support request:`)
-      // }
       const allDblpPublications = await getDblpPublicationsFromXmlUrl(`${url.trim()}.xml`, profileId)
       if (!allDblpPublications.some(p => profileNames.some(name => p.note.content.dblp.includes(name)))) {
         throw new Error('Please ensure that the DBLP URL provided is yours')
