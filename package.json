@@ -25,6 +25,7 @@
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
     "next": "^9.5.2",
+    "next-build-id": "^3.0.0",
     "query-string": "^6.13.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
