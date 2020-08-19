@@ -14,6 +14,8 @@ sudo -u openreview bash -c 'mkdir -p /home/openreview/deploy'
 sudo -u openreview bash -c 'mkdir -p /home/openreview/bin'
 # Create folder to store production config
 sudo -u openreview bash -c 'mkdir -p /home/openreview/conf'
+# Create folder to store logs
+sudo -u openreview bash -c 'mkdir -p /home/openreview/logs'
 # Install google sdk tools
 sudo -u openreview bash -c 'echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list'
 sudo -u openreview bash -c 'sudo apt-get install -y apt-transport-https ca-certificates gnupg'
