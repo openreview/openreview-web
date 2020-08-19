@@ -44,6 +44,11 @@ const ForumAuthors = ({
   authors, authorIds, signatures, original,
 }) => (
   <div className="meta_row">
+    {/* Temporary workaround for meta tag issue */}
+    <h3 className="citation_author">
+      {authors.join(', ')}
+    </h3>
+
     <h3 className="signatures author">
       <NoteAuthors
         authors={authors}
@@ -117,7 +122,15 @@ const Forum = ({ forumNote, query, appContext }) => {
     // eslint-disable-next-line global-require
     const runForum = require('../client/forum')
     runForum(id, query.noteId, query.invitationId, user)
-  }, [clientJsLoading, user])
+
+    // Temporary workaround for meta tag issue
+    authors.forEach((author) => {
+      const metaEl = document.createElement('meta')
+      metaEl.name = 'citation_author'
+      metaEl.content = author
+      document.getElementsByTagName('head')[0].appendChild(metaEl)
+    })
+  }, [clientJsLoading, user, authors])
 
   return (
     <div className="forum-container">
@@ -138,9 +151,11 @@ const Forum = ({ forumNote, query, appContext }) => {
             {content.title && (
               <meta name="citation_title" content={content.title} />
             )}
+            {/*
             {authors.map(author => (
               <meta key={author} name="citation_author" content={author} />
             ))}
+            */}
             <meta name="citation_publication_date" content={creationDate} />
             <meta name="citation_online_date" content={modificationDate} />
             {content.pdf && (
