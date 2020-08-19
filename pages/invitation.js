@@ -131,7 +131,6 @@ Invitation.getInitialProps = async (ctx) => {
             Webfield.ui.setup('#invitation-container', '${invitation.id}');
             Webfield.ui.header('${invitationTitle}');
 
-            $noteEditor.removeClass('note_editor');  // remove class so top border is visible
             $('#invitation').append($noteEditor);
           }
         },

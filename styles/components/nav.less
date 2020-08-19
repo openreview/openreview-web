@@ -44,6 +44,10 @@ nav.navbar {
     max-width: 360px;
     white-space: nowrap;
     overflow: hidden;
+
+    @media @phone-only {
+      max-width: 100%;
+    }
   }
 
   .dropdown-menu {
@@ -142,12 +146,11 @@ nav.navbar {
     border-top: 0;
     margin-top: 0;
     margin-bottom: 0px;
-    height: 30px;
+  }
 
-    .form-group {
-      @media @phone-only {
-        margin-bottom: 0;
-      }
+  @media @phone-only {
+    .navbar-form .form-group {
+      margin-bottom: 0;
     }
   }
 }

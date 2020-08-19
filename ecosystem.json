@@ -7,6 +7,11 @@
       "instances": "max",
       "exec_mode": "cluster",
       "watch": false,
+      "combine_logs": true,
+      "merge_logs": true,
+      "error_file": "/home/openreview/logs/openreview-web-error.log",
+      "out_file": "/home/openreview/logs/openreview-web-out.log",
+      "log_date_format": "YYYY-MM-DD HH:mm Z",
       "env" : {
         "NODE_ENV": "development",
         "NEXT_PORT": 3030
