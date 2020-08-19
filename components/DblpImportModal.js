@@ -29,9 +29,14 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
     const existingPubsInAllDblpPubs = allDblpPubs.filter(
       dblpPub => publicationsInOpenReview.current.find(orPub => orPub.title === dblpPub.formattedTitle),
     )
+    const associatedWithOtherProfilesPubsInAllDblpPubs = allDblpPubs.filter(
+      dblpPub => publicationsImportedByOtherProfiles.current.find(orPub => orPub.title === dblpPub.formattedTitle),
+    )
     return {
       numExisting: existingPubsInAllDblpPubs.length,
-      allExistInOpenReview: allDblpPubs.length === existingPubsInAllDblpPubs.length,
+      numAssociatedWithOtherProfile: associatedWithOtherProfilesPubsInAllDblpPubs.length,
+      noPubsToImport: allDblpPubs.length === (
+        existingPubsInAllDblpPubs.length + associatedWithOtherProfilesPubsInAllDblpPubs.length),
     }
   }
 
@@ -56,16 +61,19 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
         title: p.formattedTitle,
       })), profileId, accessToken)
       publicationsImportedByOtherProfiles.current = result.filter(p => p)
-      const { numExisting, allExistInOpenReview } = getExistingFromDblpPubs(allDblpPublications)
-      if (allExistInOpenReview) {
+      const {
+        numExisting,
+        numAssociatedWithOtherProfile,
+        noPubsToImport,
+      } = getExistingFromDblpPubs(allDblpPublications)
+      if (noPubsToImport) {
         setMessage(`All ${allDblpPublications.length} of the publications fetched from DBLP already
             exist in OpenReview.`)
       } else {
-        const pubImportedByOtherProfileCount = publicationsImportedByOtherProfiles.current.length
-        const newPubCount = allDblpPublications.length - numExisting - pubImportedByOtherProfileCount
+        const newPubCount = allDblpPublications.length - numExisting - numAssociatedWithOtherProfile
         setMessage(` We found ${allDblpPublications.length} publications on your DBLP home page,
           ${numExisting} of which already exist in OpenReview,
-          ${pubImportedByOtherProfileCount ? `${pubImportedByOtherProfileCount} of which ${pubImportedByOtherProfileCount === 1 ? 'is' : 'are'} associated with other profiles,` : ''}
+          ${numAssociatedWithOtherProfile ? `${numAssociatedWithOtherProfile} of which ${numAssociatedWithOtherProfile === 1 ? 'is' : 'are'} associated with other profiles,` : ''}
           ${newPubCount} of which ${newPubCount === 1 ? 'is' : 'are'} new.
           Please select the new publications of which you are actually an author. Then click "Add to Your Profile" to import them.
           Then don't forget to "Save Profile Changes" at the bottom of the page.`)
@@ -94,7 +102,7 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
       )))
 
       publicationsInOpenReview.current = await getAllPapersByGroupId(profileId)
-      const { allExistInOpenReview } = getExistingFromDblpPubs(publications)
+      const { noPubsToImport: allExistInOpenReview } = getExistingFromDblpPubs(publications)
       if (allExistInOpenReview) {
         setMessage(`${selectedPublications.length} publications were successfully imported.
             All ${publications.length} of the publications from DBLP now exist in OpenReview.`)

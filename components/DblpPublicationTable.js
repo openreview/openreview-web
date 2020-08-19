@@ -7,25 +7,28 @@ export default function DblpPublicationTable({
   setSelectedPublications,
   openReviewPublicationsImportedByOtherProfile,
 }) {
-  const dblpPubsInOpenReview = []
-  const dblpPubsNotInOpenReview = []
+  const pubsCouldNotImport = [] // either existing or associated with other profile
+  const pubsCouldImport = []
   dblpPublications.forEach((dblpPub, index) => {
     const existing = openReviewPublications.find(orPub => orPub.title === dblpPub.formattedTitle)
-    if (existing) {
-      dblpPubsInOpenReview.push(index)
+    const existingWithOtherProfile = openReviewPublicationsImportedByOtherProfile.find(
+      p => p.title === dblpPub.formattedTitle,
+    )
+    if (existing || existingWithOtherProfile) {
+      pubsCouldNotImport.push(index)
     } else {
-      dblpPubsNotInOpenReview.push(index)
+      pubsCouldImport.push(index)
     }
   })
-  const allExistInOpenReview = dblpPublications.length === dblpPubsInOpenReview.length
-  const allChecked = dblpPublications.length - dblpPubsInOpenReview.length === selectedPublications.length
+  const allExistInOpenReview = dblpPublications.length === pubsCouldNotImport.length
+  const allChecked = dblpPublications.length - pubsCouldNotImport.length === selectedPublications.length
 
   const toggleSelectAll = (checked) => {
     if (!checked) {
       setSelectedPublications([])
       return
     }
-    setSelectedPublications(dblpPubsNotInOpenReview)
+    setSelectedPublications(pubsCouldImport)
   }
 
   const selectPublication = index => (checked) => {
@@ -72,7 +75,7 @@ export default function DblpPublicationTable({
             key={index}
             title={publication.title}
             authors={publication.authorNames}
-            openReviewId={existingPublication?.id}
+            openReviewId={existingPublication?.id || existingPublicationOfOtherProfile?.noteId}
             selected={selectedPublications.includes(index)}
             toggleSelected={selectPublication(index)}
             otherProfileId={existingPublicationOfOtherProfile?.existingProfileId}
@@ -88,14 +91,8 @@ export default function DblpPublicationTable({
 const PublicationLink = (category, openReviewId, title, otherProfileNoteId, otherProfileId) => {
   switch (category) {
     case 'existing-publication':
-      return <a href={`/forum?id=${openReviewId}`} target="_blank" rel="noreferrer">{title}</a>
     case 'existing-different-profile':
-      return (
-        <>
-          <a href={`/forum?id=${otherProfileNoteId}`} target="_blank" rel="noreferrer">{title}</a>
-          <a className="different-profile-link" href={`/profile?id=${otherProfileId}`} target="_blank" rel="noreferrer">{`(associated with ${otherProfileId})`}</a>
-        </>
-      )
+      return <a href={`/forum?id=${openReviewId}`} target="_blank" rel="noreferrer">{title}</a>
     default:
       return <span>{title}</span>
   }
@@ -121,6 +118,7 @@ const DblpPublicationRow = ({
       <div className="publication-author-names">
         {authors.join(', ')}
       </div>
+      {category === 'existing-different-profile' && <a className="different-profile-link" href={`/profile?id=${otherProfileId}`} target="_blank" rel="noreferrer">{`This paper is associated to profile ${otherProfileId}`}</a>}
     </td>
   </tr>
 )
