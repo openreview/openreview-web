@@ -130,6 +130,14 @@ const Forum = ({ forumNote, query, appContext }) => {
       metaEl.content = author
       document.getElementsByTagName('head')[0].appendChild(metaEl)
     })
+
+    // eslint-disable-next-line consistent-return
+    return () => {
+      const headEl = document.getElementsByTagName('head')[0]
+      document.querySelectorAll('head meta[name="citation_author"]').forEach((node) => {
+        headEl.removeChild(node)
+      })
+    }
   }, [clientJsLoading, user, authors])
 
   return (
