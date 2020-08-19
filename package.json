@@ -20,11 +20,11 @@
     "jquery": "^2.2.4",
     "jwt-decode": "^2.2.0",
     "less": "^3.12.2",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.20",
     "marked": "^1.1.1",
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
-    "next": "^9.5.1",
+    "next": "^9.5.2",
     "query-string": "^6.13.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
@@ -34,14 +34,14 @@
   "devDependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.0.20",
     "babel-eslint": "^10.1.0",
-    "chokidar": "^3.4.1",
-    "eslint": "^7.6.0",
+    "chokidar": "^3.4.2",
+    "eslint": "^7.7.0",
     "eslint-config-airbnb": "^18.2.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jsx-a11y": "^6.3.1",
-    "eslint-plugin-react": "^7.20.5",
-    "eslint-plugin-react-hooks": "^4.0.8",
+    "eslint-plugin-react": "^7.20.6",
+    "eslint-plugin-react-hooks": "^4.1.0",
     "node-fetch": "^2.6.0",
-    "testcafe": "^1.8.8"
+    "testcafe": "^1.9.1"
   }
 }
