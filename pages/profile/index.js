@@ -6,6 +6,7 @@ import pick from 'lodash/pick'
 import UserContext from '../../components/UserContext'
 import NoteList from '../../components/NoteList'
 import withError from '../../components/withError'
+import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
 import { prettyList } from '../../lib/utils'
@@ -171,7 +172,11 @@ const RecentPublications = ({
 const CoAuthorsList = ({ coAuthors, loading }) => {
   const authorLink = ({ name, id, email }) => {
     if (id) return <Link href={`/profile?id=${id}`}><a>{name}</a></Link>
-    if (email) return <Link href={`/profile?email=${email}`}><a>{name}</a></Link>
+    if (email) {
+      return email.startsWith('https://dblp.org')
+        ? <a href={email} target="_blank" rel="noopener noreferrer">{name}</a>
+        : <Link href={`/profile?email=${email}`}><a>{name}</a></Link>
+    }
     return <span>{name}</span>
   }
 
@@ -191,13 +196,14 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
 }
 
 const Profile = ({
-  profile, profileQuery, publicProfile, appContext,
+  profile, publicProfile, appContext,
 }) => {
   const [publications, setPublications] = useState(null)
   const [count, setCount] = useState(0)
   const [coAuthors, setCoAuthors] = useState([])
-  const { accessToken, user } = useContext(UserContext)
+  const { accessToken, user, userLoading } = useContext(UserContext)
   const router = useRouter()
+  const profileQuery = useQuery()
   const { setBannerHidden, setBannerContent } = appContext
 
   const loadPublications = async () => {
@@ -218,13 +224,17 @@ const Profile = ({
   }
 
   useEffect(() => {
-    setBannerHidden(true)
-  }, [])
+    if (profileQuery) {
+      setBannerHidden(true)
+    }
+  }, [profileQuery])
 
   useEffect(() => {
-    // Replace id param in URL with the user's preferred username
-    if (profileQuery.email || (profileQuery.id && profileQuery.id !== profile.preferredId)) {
-      router.replace(`/profile?id=${profile.preferredId}`, undefined, { shallow: true })
+    if (userLoading || !profileQuery) return
+
+    // Always show user's preferred username in the URL
+    if (profileQuery.email || (profileQuery.id !== profile.preferredId)) {
+      router.replace(`/profile?id=${profile.preferredId}`)
     }
 
     if (profile.id === user?.profile?.id) {
@@ -232,7 +242,7 @@ const Profile = ({
     }
 
     loadPublications()
-  }, [profile, profileQuery, user, accessToken])
+  }, [profile, profileQuery, user, userLoading, accessToken])
 
   useEffect(() => {
     if (!publications) return
@@ -374,27 +384,8 @@ const Profile = ({
 }
 
 Profile.getInitialProps = async (ctx) => {
-  const profileQuery = pick(ctx.query, ['id', 'email'])
-  const { token } = auth(ctx)
-  if (!token && !profileQuery.id && !profileQuery.email) {
-    return { statusCode: 400, message: 'Profile ID or email is required' }
-  }
-
-  let profileRes
-  try {
-    profileRes = await api.get('/profiles', profileQuery, { accessToken: token })
-    if (!profileRes.profiles?.length) {
-      return {
-        statusCode: 404,
-        message: `The user ${profileQuery.id || profileQuery.email} has not set up an OpenReview profile yet`,
-      }
-    }
-  } catch (error) {
-    return { statusCode: 404, message: 'Profile not found' }
-  }
-
   // TODO: remove this redirect when all profile edit links have been changed
-  if (token && ctx.query.mode === 'edit') {
+  if (ctx.query.mode === 'edit') {
     if (ctx.req) {
       ctx.res.writeHead(302, { Location: '/profile/edit' }).end()
     } else {
@@ -402,11 +393,40 @@ Profile.getInitialProps = async (ctx) => {
     }
   }
 
-  const profileFormatted = formatProfileData(profileRes.profiles[0])
+  let profileQuery = pick(ctx.query, ['id', 'email'])
+  const { token, user } = auth(ctx)
+  if (!user && !profileQuery.id && !profileQuery.email) {
+    return { statusCode: 400, message: 'Profile ID or email is required' }
+  }
+
+  // Don't use query params if this is user's own profile
+  if (user && (
+    (profileQuery.id && user.profile.usernames.includes(profileQuery.id))
+    || (profileQuery.email && user.profile.emails.includes(profileQuery.email))
+    || (profileQuery.id === '' || profileQuery.email === '')
+  )) {
+    profileQuery = {}
+  }
+
+  let profile
+  try {
+    const { profiles } = await api.get('/profiles', profileQuery, { accessToken: token })
+    if (profiles?.length > 0) {
+      profile = profiles[0]
+    }
+  } catch (error) {
+    return { statusCode: 404, message: 'Profile not found' }
+  }
+  if (!profile) {
+    return {
+      statusCode: 404,
+      message: `The user ${profileQuery.id || profileQuery.email} has not set up an OpenReview profile yet`,
+    }
+  }
+
   return {
-    profile: profileFormatted,
+    profile: formatProfileData(profile),
     publicProfile: Object.keys(profileQuery).length > 0,
-    profileQuery,
   }
 }
 
