@@ -9,6 +9,7 @@ import truncate from 'lodash/truncate'
 import UserContext from '../components/UserContext'
 import api from '../lib/api-client'
 import { auth } from '../lib/auth'
+import { isValidEmail } from '../lib/utils'
 
 // Page Styles
 import '../styles/pages/login.less'
@@ -77,7 +78,7 @@ const LoginForm = ({ redirect }) => {
         />
       </div>
 
-      <button type="submit" className="btn btn-login">
+      <button type="submit" className="btn btn-login" disabled={!isValidEmail(email) || !password}>
         Login to OpenReview
       </button>
 

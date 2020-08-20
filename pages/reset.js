@@ -6,6 +6,7 @@ import Head from 'next/head'
 import UserContext from '../components/UserContext'
 import Alert from '../components/Alert'
 import api from '../lib/api-client'
+import { isValidEmail } from '../lib/utils'
 
 // Page Styles
 import '../styles/pages/reset.less'
@@ -52,7 +53,7 @@ const ResetForm = ({ setEmailSent }) => {
         />
       </div>
 
-      <button type="submit" className="btn btn-primary">
+      <button type="submit" className="btn btn-primary" disabled={!isValidEmail(email)}>
         Reset Password
       </button>
     </form>
