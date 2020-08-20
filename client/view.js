@@ -3290,8 +3290,8 @@ module.exports = (function() {
           replyto: note.replyto || invitation.reply.replyto || invitation.reply.forum, //For some reason invitation.reply.replyto is null, see scripts
         };
 
-        if (invitation.reply.referent) {
-          editNote.referent = invitation.reply.referent;
+        if (invitation.reply.referent || invitation.reply.referentInvitation) {
+          editNote.referent = invitation.reply.referent || note.id;
           if (note.updateId) {
             editNote.id = note.updateId;
           }
