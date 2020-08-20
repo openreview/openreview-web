@@ -1,7 +1,28 @@
 import {
-  createNote, createUser, getToken, addMembersToGroup, getProcessLogs, hasTaskUser, hasNoTaskUser,
+  createNote, createUser, getToken, addMembersToGroup, getJobsStatus, hasTaskUser, hasNoTaskUser,
   conferenceGroupId, conferenceSubmissionInvitationId, sendFile, setupProfileViewEdit, setupRegister,
 } from './utils/api-helper'
+
+const waitForJobs = (noteId, superUserToken) => new Promise((resolve, reject) => {
+  const interval = setInterval(async () => {
+    try {
+      const statuses = await getJobsStatus(superUserToken)
+      if (statuses.pyQueueStatus.failed > 0) {
+        clearInterval(interval)
+        reject(new Error('Process function failed'))
+      }
+      const queueCount = Object.values(statuses)
+        .reduce((count, job) => count + job.waiting + job.active + job.delayed, 0)
+      if (queueCount === 0) {
+        clearInterval(interval)
+        resolve()
+      }
+    } catch (err) {
+      clearInterval(interval)
+      reject(err)
+    }
+  }, 500)
+})
 
 fixture`Setup data`
   .before(async (ctx) => {
@@ -55,10 +76,7 @@ test('setup TestVenue', async (t) => {
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  let logs = await getProcessLogs(requestForumId, superUserToken)
-  await t.expect(logs[0].status).eql('ok')
+  await waitForJobs(requestForumId, superUserToken)
 
   const deployVenueJson = {
     content: { venue_id: 'TestVenue/2020/Conference' },
@@ -73,10 +91,7 @@ test('setup TestVenue', async (t) => {
 
   const { id: deployId } = await createNote(deployVenueJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  logs = await getProcessLogs(deployId, superUserToken)
-  await t.expect(logs[0].status).eql('ok')
+  await waitForJobs(deployId, superUserToken)
 
   const userRes = await createUser(hasTaskUser)
   const hasTaskUserTildeId = userRes.user.profile.id
@@ -113,10 +128,7 @@ test('setup TestVenue', async (t) => {
 
   const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  logs = await getProcessLogs(postSubmissionId, superUserToken)
-  await t.expect(logs[0].status).eql('ok')
+  await waitForJobs(postSubmissionId, superUserToken)
 
   const reviewStageJson = {
     content: {
@@ -137,10 +149,7 @@ test('setup TestVenue', async (t) => {
 
   const { id: reviewStageId } = await createNote(reviewStageJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  logs = await getProcessLogs(reviewStageId, superUserToken)
-  await t.expect(logs[0].status).eql('ok')
+  await waitForJobs(reviewStageId, superUserToken)
 
   await addMembersToGroup('TestVenue/2020/Conference/Paper1/Reviewers', [hasTaskUserTildeId], superUserToken)
 })
@@ -190,10 +199,7 @@ test('setup AnotherTestVenue', async (t) => {
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  let logs = await getProcessLogs(requestForumId, superUserToken)
-  await t.expect(logs[0].status).eql('ok')
+  await waitForJobs(requestForumId, superUserToken)
 
   const deployVenueJson = {
     content: { venue_id: 'AnotherTestVenue/2020/Conference' },
@@ -208,10 +214,7 @@ test('setup AnotherTestVenue', async (t) => {
 
   const { id: deployId } = await createNote(deployVenueJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  logs = await getProcessLogs(deployId, superUserToken)
-  await t.expect(logs[0].status).eql('ok')
+  await waitForJobs(deployId, superUserToken)
 
   const hasTaskUserToken = await getToken(hasTaskUser.email)
   const noteJson = {
@@ -279,10 +282,7 @@ test('setup ICLR', async (t) => {
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  let logs = await getProcessLogs(requestForumId, superUserToken)
-  await t.expect(logs[0].status).eql('ok')
+  await waitForJobs(requestForumId, superUserToken)
 
   const deployVenueJson = {
     content: { venue_id: 'ICLR.cc/2021/Conference' },
@@ -297,10 +297,7 @@ test('setup ICLR', async (t) => {
 
   const { id: deployId } = await createNote(deployVenueJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  logs = await getProcessLogs(deployId, superUserToken)
-  await t.expect(logs[0].status).eql('ok')
+  await waitForJobs(deployId, superUserToken)
 
   const userToken = await getToken('a@a.com')
 
@@ -322,10 +319,7 @@ test('setup ICLR', async (t) => {
 
   const { id: noteId } = await createNote(noteJson, userToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  logs = await getProcessLogs(noteId, superUserToken)
-  await t.expect(logs[0].status).eql('ok')
+  await waitForJobs(noteId, superUserToken)
 
   const postSubmissionJson = {
     content: { force: 'Yes' },
@@ -340,8 +334,5 @@ test('setup ICLR', async (t) => {
 
   const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
 
-  await new Promise(r => setTimeout(r, 2000))
-
-  logs = await getProcessLogs(postSubmissionId, superUserToken)
-  await t.expect(logs[0].status).eql('ok')
+  await waitForJobs(postSubmissionId, superUserToken)
 })
