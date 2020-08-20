@@ -1,4 +1,5 @@
 const withLess = require('@zeit/next-less')
+const nextBuildId = require('next-build-id')
 
 require('dotenv').config()
 
@@ -17,5 +18,6 @@ module.exports = withLess({
     ERROR_EMAIL: 'errors@openreview.net',
     GA_PROPERTY_ID: process.env.GA_PROPERTY_ID,
   },
+  generateBuildId: () => nextBuildId({ dir: __dirname, describe: true }),
   poweredByHeader: false,
 })
