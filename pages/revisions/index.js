@@ -216,15 +216,24 @@ const Revisions = ({ appContext }) => {
       const invitationIds = Array.from(new Set(references.map(reference => (
         reference.details?.original?.invitation || reference.invitation
       ))))
-      const { invitations } = await api.get('/invitations', { ids: invitationIds })
 
-      setRevisions(references.map((reference) => {
-        const invId = (reference.details && reference.details.original)
-          ? reference.details.original.invitation
-          : reference.invitation
-        const referenceInvitation = invitations.find(invitation => invitation.id === invId)
-        return [reference, referenceInvitation]
-      }))
+      try {
+        const { invitations } = await api.get('/invitations', { ids: invitationIds })
+
+        if (invitations?.length > 0) {
+          setRevisions(references.map((reference) => {
+            const invId = (reference.details && reference.details.original)
+              ? reference.details.original.invitation
+              : reference.invitation
+            const referenceInvitation = invitations.find(invitation => invitation.id === invId)
+            return [reference, referenceInvitation]
+          }))
+        } else {
+          setRevisions([])
+        }
+      } catch (apiError) {
+        setError(apiError)
+      }
     }
     loadRevisions()
   }, [userLoading, query, accessToken])
