@@ -21,7 +21,7 @@ const waitForJobs = (noteId, superUserToken) => new Promise((resolve, reject) =>
       clearInterval(interval)
       reject(err)
     }
-  }, 1000)
+  }, 500)
 })
 
 fixture`Setup data`
