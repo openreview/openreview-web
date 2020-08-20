@@ -220,8 +220,8 @@ test('setup AnotherTestVenue', async (t) => {
   const noteJson = {
     content: {
       title: 'this is á "paper" title',
-      authors: ['FirstA LastA'],
-      authorids: ['~FirstA_LastA1'],
+      authors: ['FirstA LastA', 'Melisa Bok'],
+      authorids: ['~FirstA_LastA1', 'bok@mail.com'],
       abstract: 'The abstract of test paper 1',
       pdf: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf',
     },
@@ -307,8 +307,8 @@ test('setup ICLR', async (t) => {
     invitation: 'ICLR.cc/2021/Conference/-/Submission',
     content: {
       title: 'ICLR submission title',
-      authors: ['FirstA LastA'],
-      authorids: ['~FirstA_LastA1'],
+      authors: ['FirstA LastA', 'Another Author'],
+      authorids: ['~FirstA_LastA1', 'another_author@mail.com'],
       abstract: 'test iclr abstract abstract',
       pdf: result.url,
     },
