@@ -77,7 +77,7 @@ export default function FeedbackModal() {
           <input type="email" name="from" className="form-control" placeholder="Email" required value={state.email} onChange={e => dispatch({ type: 'email', payload: e.target.value })} />
         </div>
         <div className="form-group">
-          <input type="text" name="subject" className="form-control" placeholder="Subject" required value={state.subject} onChange={e => dispatch({ type: 'subject', payload: e.target.value })} />
+          <input type="text" name="subject" className="form-control" placeholder="Subject" value={state.subject} onChange={e => dispatch({ type: 'subject', payload: e.target.value })} />
         </div>
         <div className="form-group">
           <textarea name="message" className="form-control feedback-input" rows="5" placeholder="Message" required value={state.message} onChange={e => dispatch({ type: 'message', payload: e.target.value })} />
