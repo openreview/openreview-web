@@ -40,13 +40,13 @@ fixture`Forum page`
   .page`http://localhost:${process.env.NEXT_PORT}`
   .before(async (ctx) => {
     ctx.superUserToken = await getToken('openreview.net', '1234')
-    await createUser({
-      first: 'Test',
-      last: 'User',
-      email: 'test@mail.com',
-      password: '1234',
-      history: undefined,
-    })
+    // await createUser({
+    //   first: 'Test',
+    //   last: 'User',
+    //   email: 'test@mail.com',
+    //   password: '1234',
+    //   history: undefined,
+    // })
     return ctx
   })
 
@@ -228,4 +228,30 @@ test('#139 no id param should show an error message', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum`)
     .expect(Selector('Header').innerText).eql('Error 400')
     .expect(Selector('.error-message').innerText).eql('Forum ID is required')
+})
+
+test('get forum page from a request venue form', async (t) => {
+  const { superUserToken } = t.fixtureCtx
+  const notes = await getNotes({ invitation: 'openreview.net/Support/-/Request_Form' }, superUserToken)
+  const forum = notes[0].id
+  await t
+    .useRole(superUserRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
+    .expect(Selector('title').innerText).eql('this is á "paper" title | OpenReview')
+    .expect(Selector('meta').withAttribute('name', 'citation_title').exists).notOk()
+    .expect(Selector('meta').withAttribute('name', 'citation_publication_date').exists).notOk()
+    .expect(Selector('meta').withAttribute('name', 'citation_online_date').exists).notOk()
+    .expect(Selector('meta').withAttribute('name', 'citation_pdf_url').exists).notOk()
+    .expect(Selector('meta').withAttribute('name', 'citation_conference_title').exists).notOk()
+    .expect(Selector('meta').withAttribute('name', 'citation_author').exists).notOk()
+
+  const htmlResponse = await fetch(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`, { method: 'GET', headers: { cookie: `openreview.accessToken=${superUserToken}` } })
+  await t.expect(htmlResponse.ok).eql(true)
+  const text = await htmlResponse.text()
+  await t.expect(text).notContains('<meta name="citation_title"')
+  await t.expect(text).notContains('<meta name="citation_publication_date"')
+  await t.expect(text).notContains('<meta name="citation_online_date"')
+  await t.expect(text).notContains('<meta name="citation_pdf_url"')
+  await t.expect(text).notContains('<meta name="citation_author"')
+  await t.expect(text).notContains('<h3 class="citation_author">')
 })
