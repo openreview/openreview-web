@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { useState } from 'react'
 import NavUserLinks from './NavUserLinks'
 import AutoCompleteInput from './AutoCompleteInput'
 
@@ -7,14 +8,17 @@ import '../styles/components/nav.less'
 
 function Nav() {
   const router = useRouter()
+  const [term, setTerm] = useState('')
 
   const handleSearch = (e) => {
     e.preventDefault()
-    const formData = new FormData(e.target)
-    const query = {}
-    formData.forEach((value, name) => {
-      query[name] = value
-    })
+    const query = {
+      term,
+      group: 'all',
+      content: 'all',
+      source: 'all',
+      sort: 'cdate:desc',
+    }
     router.push({ pathname: '/search', query })
   }
 
@@ -49,7 +53,7 @@ function Nav() {
             role="search"
             onSubmit={handleSearch}
           >
-            <AutoCompleteInput />
+            <AutoCompleteInput setNavTerm={setTerm} />
             <input name="group" type="hidden" value="all" />
             <input name="content" type="hidden" value="all" />
             <input name="source" type="hidden" value="all" />

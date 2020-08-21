@@ -10,7 +10,7 @@ import { getTitleObjects, getTokenObjects } from '../client/search'
 
 import '../styles/components/autocomplete-input.less'
 
-const AutoCompleteInput = () => {
+const AutoCompleteInput = ({ setNavTerm }) => {
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [autoCompleteItems, setAutoCompleteItems] = useState([])
@@ -40,6 +40,7 @@ const AutoCompleteInput = () => {
       if (!url.startsWith('/search')) {
         setSearchTerm('')
         setImmediateSearchTerm('')
+        setNavTerm('')
       }
     }
 
@@ -114,6 +115,7 @@ const AutoCompleteInput = () => {
 
     if (autoCompleteItems[newHoverIndexValue]) {
       setImmediateSearchTerm(autoCompleteItems[newHoverIndexValue].value ?? '')
+      setNavTerm(autoCompleteItems[newHoverIndexValue].value ?? '')
       autoCompleteItemsRef.current[newHoverIndexValue].scrollIntoView(false)
     }
     setHoverIndex(newHoverIndexValue)
@@ -129,7 +131,11 @@ const AutoCompleteInput = () => {
           value={immediateSearchTerm}
           placeholder="Search OpenReview..."
           autoComplete="off"
-          onChange={(e) => { setImmediateSearchTerm(e.target.value); delaySearch(e.target.value) }}
+          onChange={(e) => {
+            setImmediateSearchTerm(e.target.value)
+            setNavTerm(e.target.value)
+            delaySearch(e.target.value)
+          }}
           onKeyDown={e => keyDownHandler(e)}
         />
         <Icon name="search" extraClasses="form-control-feedback" />
