@@ -45,9 +45,11 @@ const ForumAuthors = ({
 }) => (
   <div className="meta_row">
     {/* Temporary workaround for meta tag issue */}
-    <h3 className="citation_author">
-      {authors.join(', ')}
-    </h3>
+    {authors && (
+      <h3 className="citation_author">
+        {authors.join(', ')}
+      </h3>
+    )}
 
     <h3 className="signatures author">
       <NoteAuthors
@@ -152,7 +154,7 @@ const Forum = ({ forumNote, query, appContext }) => {
 
         {/* For more information on required meta tags for Google Scholar see: */}
         {/* https://scholar.google.com/intl/en/scholar/inclusion.html#indexing */}
-        {forumNote.invitation.startsWith('OpenReview.net') ? (
+        {forumNote.invitation.startsWith(`${process.env.SUPER_USER}`) ? (
           <meta name="robots" content="noindex" />
         ) : (
           <>
