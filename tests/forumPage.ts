@@ -40,13 +40,13 @@ fixture`Forum page`
   .page`http://localhost:${process.env.NEXT_PORT}`
   .before(async (ctx) => {
     ctx.superUserToken = await getToken('openreview.net', '1234')
-    // await createUser({
-    //   first: 'Test',
-    //   last: 'User',
-    //   email: 'test@mail.com',
-    //   password: '1234',
-    //   history: undefined,
-    // })
+    await createUser({
+      first: 'Test',
+      last: 'User',
+      email: 'test@mail.com',
+      password: '1234',
+      history: undefined,
+    })
     return ctx
   })
 
@@ -230,14 +230,14 @@ test('#139 no id param should show an error message', async (t) => {
     .expect(Selector('.error-message').innerText).eql('Forum ID is required')
 })
 
-test('get forum page from a request venue form', async (t) => {
+test('get forum page from a request venue form and do not render any meta tag', async (t) => {
   const { superUserToken } = t.fixtureCtx
   const notes = await getNotes({ invitation: 'openreview.net/Support/-/Request_Form' }, superUserToken)
   const forum = notes[0].id
   await t
     .useRole(superUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
-    .expect(Selector('title').innerText).eql('this is á "paper" title | OpenReview')
+    .expect(Selector('title').innerText).eql('ICLR 2021 Conference | OpenReview')
     .expect(Selector('meta').withAttribute('name', 'citation_title').exists).notOk()
     .expect(Selector('meta').withAttribute('name', 'citation_publication_date').exists).notOk()
     .expect(Selector('meta').withAttribute('name', 'citation_online_date').exists).notOk()
