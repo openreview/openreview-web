@@ -79,7 +79,6 @@ export default function DblpPublicationTable({
             selected={selectedPublications.includes(index)}
             toggleSelected={selectPublication(index)}
             otherProfileId={existingPublicationOfOtherProfile?.existingProfileId}
-            otherProfileNoteId={existingPublicationOfOtherProfile?.noteId}
             category={category}
           />
         )
@@ -88,18 +87,8 @@ export default function DblpPublicationTable({
   )
 }
 
-const PublicationLink = (category, openReviewId, title, otherProfileNoteId, otherProfileId) => {
-  switch (category) {
-    case 'existing-publication':
-    case 'existing-different-profile':
-      return <a href={`/forum?id=${openReviewId}`} target="_blank" rel="noreferrer">{title}</a>
-    default:
-      return <span>{title}</span>
-  }
-}
-
 const DblpPublicationRow = ({
-  title, authors, openReviewId, selected, toggleSelected, otherProfileId, otherProfileNoteId, category,
+  title, authors, openReviewId, selected, toggleSelected, otherProfileId, category,
 }) => (
   <tr className={category === 'nonExisting' ? '' : `${category}-row`}>
     <th scope="row">
@@ -113,7 +102,11 @@ const DblpPublicationRow = ({
 
     <td>
       <div className="publication-title">
-        {PublicationLink(category, openReviewId, title, otherProfileNoteId, otherProfileId)}
+        {
+            (category === 'existing-publication' || category === 'existing-different-profile')
+              ? <a href={`/forum?id=${openReviewId}`} target="_blank" rel="noreferrer">{title}</a>
+              : <span>{title}</span>
+        }
       </div>
       <div className="publication-author-names">
         {authors.join(', ')}
