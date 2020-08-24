@@ -18,6 +18,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   var $content = $('#content > .forum-container');
   var $childrenAnchor = $('#note_children');
+  var sm = mkStateManager();
 
   // Data fetching functions
   var getProfilesP = function(notes) {
@@ -74,7 +75,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         .then(function(result) {
           if (!result.notes || !result.notes.length) {
             controller.removeHandler('forum');
-            replaceWithHome();
+            location.href = '/';
             return;
           }
 
@@ -835,14 +836,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $filtersContainer.append('<span>Show </span>', invitationMultiSelector, '<span> from </span>', signatureMultiSelector);
     return $filtersContainer;
   };
-
-  var sm = mkStateManager();
-
-  if (!forumId) {
-    sm.removeAllBut('main');
-    replaceWithHome();
-    return;
-  }
 
   onTokenChange();
 };
