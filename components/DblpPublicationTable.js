@@ -2,18 +2,17 @@ import Table from './Table'
 
 export default function DblpPublicationTable({
   dblpPublications,
-  openReviewPublications,
+  orPublications,
   selectedPublications,
   setSelectedPublications,
-  openReviewPublicationsImportedByOtherProfile,
+  orPublicationsImportedByOtherProfile,
 }) {
   const pubsCouldNotImport = [] // either existing or associated with other profile
   const pubsCouldImport = []
   dblpPublications.forEach((dblpPub, index) => {
-    const existing = openReviewPublications.find(orPub => orPub.title === dblpPub.formattedTitle)
-    const existingWithOtherProfile = openReviewPublicationsImportedByOtherProfile.find(
-      p => p.title === dblpPub.formattedTitle,
-    )
+    const titleMatch = orPub => orPub.title === dblpPub.formattedTitle
+    const existing = orPublications.find(titleMatch)
+    const existingWithOtherProfile = orPublicationsImportedByOtherProfile.find(titleMatch)
     if (existing || existingWithOtherProfile) {
       pubsCouldNotImport.push(index)
     } else {
@@ -63,12 +62,14 @@ export default function DblpPublicationTable({
   return (
     <Table headings={headings}>
       {dblpPublications.map((publication, index) => {
-        const existingPublication = openReviewPublications.find(orPub => orPub.title === publication.formattedTitle)
-        const existingPublicationOfOtherProfile = openReviewPublicationsImportedByOtherProfile.find(
-          p => p.title === publication.formattedTitle,
-        )
+        const titleMatch = orPub => orPub.title === publication.formattedTitle
+        const existingPublication = orPublications.find(titleMatch)
+        const existingPublicationOfOtherProfile = orPublicationsImportedByOtherProfile.find(titleMatch)
         // eslint-disable-next-line no-nested-ternary
-        const category = existingPublication ? 'existing-publication' : (existingPublicationOfOtherProfile ? 'existing-different-profile' : 'nonExisting')
+        const category = existingPublication
+          ? 'existing-publication'
+          : (existingPublicationOfOtherProfile ? 'existing-different-profile' : 'nonExisting')
+
         return (
           <DblpPublicationRow
             // eslint-disable-next-line react/no-array-index-key
@@ -102,16 +103,22 @@ const DblpPublicationRow = ({
 
     <td>
       <div className="publication-title">
-        {
-            (category === 'existing-publication' || category === 'existing-different-profile')
-              ? <a href={`/forum?id=${openReviewId}`} target="_blank" rel="noreferrer">{title}</a>
-              : <span>{title}</span>
-        }
+        {(category === 'existing-publication' || category === 'existing-different-profile') ? (
+          <a href={`/forum?id=${openReviewId}`} target="_blank" rel="noreferrer">{title}</a>
+        ) : (
+          <span>{title}</span>
+        )}
       </div>
       <div className="publication-author-names">
         {authors.join(', ')}
       </div>
-      {category === 'existing-different-profile' && <a className="different-profile-link" href={`/profile?id=${otherProfileId}`} target="_blank" rel="noreferrer">{`This paper is associated to profile ${otherProfileId}`}</a>}
+      {category === 'existing-different-profile' && (
+        <a className="different-profile-link" href={`/profile?id=${otherProfileId}`} target="_blank" rel="noreferrer">
+          This paper is associated with the user
+          {' '}
+          {otherProfileId}
+        </a>
+      )}
     </td>
   </tr>
 )
