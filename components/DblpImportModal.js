@@ -49,7 +49,7 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
     try {
       const allDblpPublications = await getDblpPublicationsFromXmlUrl(`${url.trim()}.xml`, profileId)
       if (!allDblpPublications.some(p => profileNames.some(name => p.note.content.dblp.includes(name)))) {
-        throw new Error('Please ensure that the DBLP URL provided is yours and your author name is listed in your profile.')
+        throw new Error('Please ensure that the DBLP URL provided is yours and the name used in your DBLP papers is listed in your profile.')
       }
       setPublications(allDblpPublications)
       setMessage(`${allDblpPublications.length} publications fetched.`)
