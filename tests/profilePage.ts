@@ -103,6 +103,7 @@ test('import paper from dblp', async (t) => {
     .expect(Selector('#dblp-import-modal').visible).ok()
     .expect(Selector('#dblp-import-modal').find('div.body-message').innerText).contains('Visit your DBLP home page: xxx')
     // put persistent url of other people in modal
+    .click(persistentUrlInput) // to make sure input get focus
     .typeText(persistentUrlInput, testPersistentUrl)
     .click(showPapersButton)
     .expect(Selector('#dblp-import-modal').find('div.modal-body').innerText).eql('Please ensure that the DBLP URL provided is yours and your name from DBLP papers is listed in your profile.')

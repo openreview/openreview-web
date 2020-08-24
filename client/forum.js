@@ -135,6 +135,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       var commonInvitations = _.filter(invitations, function(invitation) {
         return _.isEmpty(invitation.reply.replyto) &&
           _.isEmpty(invitation.reply.referent) &&
+          _.isEmpty(invitation.reply.referentInvitation) &&
           _.isEmpty(invitation.reply.invitation);
       });
 
@@ -149,7 +150,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
         var referenceInvitations = _.filter(invitations, function(invitation) {
           // Check if invitation is replying to this note
-          var isInvitationRelated = (invitation.reply.referent === note.id);
+          var isInvitationRelated = (invitation.reply.referent === note.id) || (invitation.reply.referentInvitation === note.invitation);
           // Check if invitation does not have multiReply OR invitation has the field multiReply but it is not set to false OR invitation has the field multireply which is set to false but there have not been any replies yet
           var isMultireplyApplicable = (!_.has(invitation, 'multiReply') || (invitation.multiReply !== false) || !_.has(invitation, 'details.repliedNotes[0]'));
           return isInvitationRelated && isMultireplyApplicable;

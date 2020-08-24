@@ -127,7 +127,7 @@ const AutoCompleteInput = () => {
           name="term"
           className="form-control"
           value={immediateSearchTerm}
-          placeholder="Search OpenReivew..."
+          placeholder="Search OpenReview..."
           autoComplete="off"
           onChange={(e) => { setImmediateSearchTerm(e.target.value); delaySearch(e.target.value) }}
           onKeyDown={e => keyDownHandler(e)}
