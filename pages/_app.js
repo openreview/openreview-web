@@ -175,6 +175,7 @@ export default class OpenReviewApp extends App {
     window.Handlebars = require('handlebars/runtime')
     window.marked = require('marked')
     window.DOMPurify = require('dompurify')
+    require('formdata-polyfill')
     window.MathJax = require('../lib/mathjax-config')
 
     // MathJax has to be loaded asynchronously from the CDN after the config file loads
