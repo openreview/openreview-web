@@ -103,7 +103,7 @@ function ProfileEdit({ profile, appContext }) {
         submitButtonText="Save Profile Changes"
       />
 
-      <DblpImportModal profileId={profile.id} profileNames={profileNames} />
+      <DblpImportModal profileId={profile.id} profileNames={profileNames} email={profile.preferredEmail} />
     </div>
   )
 }
