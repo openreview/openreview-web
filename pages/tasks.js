@@ -53,16 +53,17 @@ const Tasks = ({ accessToken, appContext }) => {
   useEffect(() => {
     setBannerHidden(true)
 
+    const options = { cache: false, accessToken }
     Promise.all([
       api.get('/invitations', {
         invitee: true, duedate: true, replyto: true, details: 'replytoNote,repliedNotes',
-      }, { accessToken }).then(addPropertyToInvitations('noteInvitation')),
+      }, options).then(addPropertyToInvitations('noteInvitation')),
       api.get('/invitations', {
         invitee: true, duedate: true, type: 'tags', details: 'repliedTags',
-      }, { accessToken }).then(addPropertyToInvitations('tagInvitation')),
+      }, options).then(addPropertyToInvitations('tagInvitation')),
       api.get('/invitations', {
         invitee: true, duedate: true, type: 'edges', details: 'repliedEdges',
-      }, { accessToken }).then(addPropertyToInvitations('tagInvitation')),
+      }, options).then(addPropertyToInvitations('tagInvitation')),
     ])
       .then(allInvitations => setGroupedTasks(formatTasksData(allInvitations)))
       .catch(apiError => setError(apiError))
