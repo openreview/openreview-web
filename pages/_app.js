@@ -26,6 +26,7 @@ export default class OpenReviewApp extends App {
       layoutOptions: { fullWidth: false, footerMinimal: false },
     }
     this.shouldResetBanner = false
+    this.shouldResetLayout = false
 
     this.loginUser = this.loginUser.bind(this)
     this.logoutUser = this.logoutUser.bind(this)
@@ -83,6 +84,7 @@ export default class OpenReviewApp extends App {
     this.setState(previous => ({
       layoutOptions: { ...previous.layoutOptions, ...options },
     }))
+    this.shouldResetLayout = false
   }
 
   getLegacyBannerObject() {
@@ -113,6 +115,7 @@ export default class OpenReviewApp extends App {
 
   onRouteChangeStart() {
     this.shouldResetBanner = true
+    this.shouldResetLayout = true
 
     // Close mobile nav menu if open
     if (document.getElementById('navbar').attributes['aria-expanded']?.value === 'true') {
@@ -121,11 +124,15 @@ export default class OpenReviewApp extends App {
   }
 
   onRouteChangeComplete(url) {
-    // Reset banner
+    // Reset banner and Layout
     if (this.shouldResetBanner) {
       this.setState({
         bannerHidden: false,
         bannerContent: null,
+      })
+    }
+    if (this.shouldResetLayout) {
+      this.setState({
         layoutOptions: { fullWidth: false, footerMinimal: false },
       })
     }
