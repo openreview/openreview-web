@@ -436,6 +436,9 @@ module.exports = (function() {
     };
     options = _.defaults(options, defaults);
 
+    if (venueInfo.website && !venueInfo.website.startsWith('http')) {
+      venueInfo.website = 'http://' + venueInfo.website
+    }
     if (options.showInfoLink) {
       venueInfo.groupInfoLink = window.location.pathname + '?' +
         serializeUrlParams(_.assign(parseUrlParams(window.location.search), { mode: 'info' }));
