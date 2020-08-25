@@ -164,12 +164,13 @@ export default class OpenReviewApp extends App {
       }
     }
     window.addEventListener('error', (event) => {
+      if (event.message === 'ResizeObserver loop limit exceeded') return false
       const description = `JavaScript Error: "${event.message}" in ${event.filename} at line ${event.lineno}`
       reportError(description)
       return false
     })
     window.addEventListener('unhandledrejection', (event) => {
-      const description = `Unhandled Promise Rejection: ${event.reason}`
+      const description = `Unhandled Promise Rejection: ${JSON.stringify(event.reason)}`
       reportError(description)
     })
 
@@ -181,6 +182,7 @@ export default class OpenReviewApp extends App {
     window.Handlebars = require('handlebars/runtime')
     window.marked = require('marked')
     window.DOMPurify = require('dompurify')
+    require('formdata-polyfill')
     window.MathJax = require('../lib/mathjax-config')
 
     // MathJax has to be loaded asynchronously from the CDN after the config file loads
