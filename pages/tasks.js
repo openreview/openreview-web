@@ -53,17 +53,17 @@ const Tasks = ({ accessToken, appContext }) => {
   useEffect(() => {
     setBannerHidden(true)
 
-    const options = { cache: false, accessToken }
+    const isIE = !!window.MSInputMethodContext && !!document.documentMode
     Promise.all([
       api.get('/invitations', {
-        invitee: true, duedate: true, replyto: true, details: 'replytoNote,repliedNotes',
-      }, options).then(addPropertyToInvitations('noteInvitation')),
+        invitee: true, duedate: true, replyto: true, details: 'replytoNote,repliedNotes', _: isIE ? Date.now() : undefined,
+      }, { accessToken }).then(addPropertyToInvitations('noteInvitation')),
       api.get('/invitations', {
-        invitee: true, duedate: true, type: 'tags', details: 'repliedTags',
-      }, options).then(addPropertyToInvitations('tagInvitation')),
+        invitee: true, duedate: true, type: 'tags', details: 'repliedTags', _: isIE ? Date.now() : undefined,
+      }, { accessToken }).then(addPropertyToInvitations('tagInvitation')),
       api.get('/invitations', {
-        invitee: true, duedate: true, type: 'edges', details: 'repliedEdges',
-      }, options).then(addPropertyToInvitations('tagInvitation')),
+        invitee: true, duedate: true, type: 'edges', details: 'repliedEdges', _: isIE ? Date.now() : undefined,
+      }, { accessToken }).then(addPropertyToInvitations('tagInvitation')),
     ])
       .then(allInvitations => setGroupedTasks(formatTasksData(allInvitations)))
       .catch(apiError => setError(apiError))
