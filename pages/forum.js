@@ -136,7 +136,7 @@ const Forum = ({ forumNote, query, appContext }) => {
     // eslint-disable-next-line consistent-return
     return () => {
       const headEl = document.getElementsByTagName('head')[0]
-      document.querySelectorAll('head meta[name="citation_author"]').forEach((node) => {
+      Array.from(document.querySelectorAll('head meta[name="citation_author"]')).forEach((node) => {
         headEl.removeChild(node)
       })
     }
