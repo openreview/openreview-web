@@ -31,8 +31,7 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-select": "^3.1.0",
-    "universal-cookie": "^4.0.3",
-    "wgxpath": "^1.2.0"
+    "universal-cookie": "^4.0.3"
   },
   "devDependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.0.20",
