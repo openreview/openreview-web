@@ -56,13 +56,13 @@ const Tasks = ({ accessToken, appContext }) => {
     Promise.all([
       api.get('/invitations', {
         invitee: true, duedate: true, replyto: true, details: 'replytoNote,repliedNotes',
-      }, { accessToken }).then(addPropertyToInvitations('noteInvitation')),
+      }, { accessToken, cachePolicy: 'no-ie' }).then(addPropertyToInvitations('noteInvitation')),
       api.get('/invitations', {
         invitee: true, duedate: true, type: 'tags', details: 'repliedTags',
-      }, { accessToken }).then(addPropertyToInvitations('tagInvitation')),
+      }, { accessToken, cachePolicy: 'no-ie' }).then(addPropertyToInvitations('tagInvitation')),
       api.get('/invitations', {
         invitee: true, duedate: true, type: 'edges', details: 'repliedEdges',
-      }, { accessToken }).then(addPropertyToInvitations('tagInvitation')),
+      }, { accessToken, cachePolicy: 'no-ie' }).then(addPropertyToInvitations('tagInvitation')),
     ])
       .then(allInvitations => setGroupedTasks(formatTasksData(allInvitations)))
       .catch(apiError => setError(apiError))
