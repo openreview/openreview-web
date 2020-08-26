@@ -410,7 +410,7 @@ Profile.getInitialProps = async (ctx) => {
 
   let profile
   try {
-    const { profiles } = await api.get('/profiles', profileQuery, { accessToken: token })
+    const { profiles } = await api.get('/profiles', profileQuery, { accessToken: token, cachePolicy: 'no-ie' })
     if (profiles?.length > 0) {
       profile = profiles[0]
     }
