@@ -2,8 +2,8 @@
   "apps" : [
     {
       "name": "openreview-web",
-      "script": "$PWD/node_modules/.bin/next",
-      "cwd": "$PWD",
+      "script": "/home/openreview/deploy/openreview-web/current/node_modules/.bin/next",
+      "cwd": "/home/openreview/deploy/openreview-web/current",
       "args": "start -p 3030",
       "instances": "max",
       "exec_mode": "cluster",
