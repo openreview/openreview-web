@@ -9,7 +9,7 @@ sudo -u openreview bash -c 'cd ~/ && export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_D
 # Install PM2
 sudo -u openreview bash -c 'cd ~/ && export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && npm install -g pm2'
 # Create folder for OpenReview repo
-sudo -u openreview bash -c 'mkdir -p /home/openreview/deploy'
+sudo -u openreview bash -c 'mkdir -p /home/openreview/deploy/openreview-web'
 # Create folder to store deploy script
 sudo -u openreview bash -c 'mkdir -p /home/openreview/bin'
 # Create folder to store production config
@@ -22,10 +22,9 @@ sudo -u openreview bash -c 'sudo apt-get install -y apt-transport-https ca-certi
 sudo -u openreview bash -c 'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -'
 sudo -u openreview bash -c 'sudo apt-get -y update && sudo apt-get install -y google-cloud-sdk'
 # Retrieve deploy and conf files
-sudo -u openreview bash -c 'gsutil cp gs://openreview-files/conf/clone-web.sh /home/openreview/bin/'
 sudo -u openreview bash -c 'gsutil cp gs://openreview-files/conf/deploy-web.sh /home/openreview/bin/'
-# Clone
-sudo -u openreview bash -c 'cd ~/ && export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && bash /home/openreview/bin/clone-web.sh'
+# Deploy
+sudo -u openreview bash -c 'cd ~/ && export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && bash /home/openreview/bin/deploy-web.sh'
 # Create and start openreview service
 sudo -u openreview bash -c 'gsutil cp gs://openreview-files/conf/openreview-web.service /home/openreview/bin/'
 sudo -u openreview bash -c 'sudo cp /home/openreview/bin/openreview-web.service /lib/systemd/system'
