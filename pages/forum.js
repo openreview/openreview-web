@@ -44,12 +44,6 @@ const ForumAuthors = ({
   authors, authorIds, signatures, original,
 }) => (
   <div className="meta_row">
-    {/* Temporary workaround for meta tag issue */}
-    {authors && (
-      <h3 className="citation_author">
-        {authors.join(', ')}
-      </h3>
-    )}
 
     <h3 className="signatures author">
       <NoteAuthors
@@ -91,7 +85,7 @@ const ForumReplyCount = ({ count }) => (
 )
 
 const Forum = ({ forumNote, query, appContext }) => {
-  const { user } = useContext(UserContext)
+  const { user, userLoading } = useContext(UserContext)
   const { clientJsLoading, setBannerContent } = appContext
   const { id, content, details } = forumNote
 
@@ -119,28 +113,12 @@ const Forum = ({ forumNote, query, appContext }) => {
 
   // Load and execute legacy forum code
   useEffect(() => {
-    if (clientJsLoading) return
+    if (clientJsLoading || userLoading) return
 
     // eslint-disable-next-line global-require
     const runForum = require('../client/forum')
     runForum(id, query.noteId, query.invitationId, user)
-
-    // Temporary workaround for meta tag issue
-    authors.forEach((author) => {
-      const metaEl = document.createElement('meta')
-      metaEl.name = 'citation_author'
-      metaEl.content = author
-      document.getElementsByTagName('head')[0].appendChild(metaEl)
-    })
-
-    // eslint-disable-next-line consistent-return
-    return () => {
-      const headEl = document.getElementsByTagName('head')[0]
-      Array.from(document.querySelectorAll('head meta[name="citation_author"]')).forEach((node) => {
-        headEl.removeChild(node)
-      })
-    }
-  }, [clientJsLoading, user, authors])
+  }, [clientJsLoading, user, authors, userLoading])
 
   return (
     <div className="forum-container">
@@ -166,6 +144,8 @@ const Forum = ({ forumNote, query, appContext }) => {
               <meta key={author} name="citation_author" content={author} />
             ))}
             */}
+            {/* temporary hack to get google scholar to work, revert to above code when next.js unique issue is solved */}
+            <meta name="citation_authors" content={authors.join('; ')} />
             <meta name="citation_publication_date" content={creationDate} />
             <meta name="citation_online_date" content={modificationDate} />
             {content.pdf && (
