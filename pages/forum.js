@@ -44,12 +44,6 @@ const ForumAuthors = ({
   authors, authorIds, signatures, original,
 }) => (
   <div className="meta_row">
-    {/* Temporary workaround for meta tag issue */}
-    {authors && (
-      <h3 className="citation_author">
-        {authors.join(', ')}
-      </h3>
-    )}
 
     <h3 className="signatures author">
       <NoteAuthors
@@ -124,22 +118,6 @@ const Forum = ({ forumNote, query, appContext }) => {
     // eslint-disable-next-line global-require
     const runForum = require('../client/forum')
     runForum(id, query.noteId, query.invitationId, user)
-
-    // Temporary workaround for meta tag issue
-    authors.forEach((author) => {
-      const metaEl = document.createElement('meta')
-      metaEl.name = 'citation_author'
-      metaEl.content = author
-      document.getElementsByTagName('head')[0].appendChild(metaEl)
-    })
-
-    // eslint-disable-next-line consistent-return
-    return () => {
-      const headEl = document.getElementsByTagName('head')[0]
-      document.querySelectorAll('head meta[name="citation_author"]').forEach((node) => {
-        headEl.removeChild(node)
-      })
-    }
   }, [clientJsLoading, user, authors])
 
   return (
@@ -166,6 +144,8 @@ const Forum = ({ forumNote, query, appContext }) => {
               <meta key={author} name="citation_author" content={author} />
             ))}
             */}
+            {/* temporary hack to get google scholar to work, revert to above code when next.js unique issue is solved */}
+            <meta name="citation_authors" content={authors.join('; ')} />
             <meta name="citation_publication_date" content={creationDate} />
             <meta name="citation_online_date" content={modificationDate} />
             {content.pdf && (

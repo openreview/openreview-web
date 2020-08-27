@@ -13,6 +13,7 @@ module.exports = (function() {
   var get = function(url, queryObj, options) {
     var defaults = {
       handleErrors: true,
+      cache: true // Note: IE won't get updated when cache is enabled
     };
     options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
@@ -21,7 +22,7 @@ module.exports = (function() {
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
     return $.ajax({
-      cache: true,
+      cache: options.cache,
       dataType: 'json',
       type: 'get',
       contentType: 'application/x-www-form-urlencoded; charset=UTF-8',

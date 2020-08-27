@@ -26,6 +26,7 @@ export default class OpenReviewApp extends App {
       layoutOptions: { fullWidth: false, footerMinimal: false },
     }
     this.shouldResetBanner = false
+    this.shouldResetLayout = false
 
     this.loginUser = this.loginUser.bind(this)
     this.logoutUser = this.logoutUser.bind(this)
@@ -83,6 +84,7 @@ export default class OpenReviewApp extends App {
     this.setState(previous => ({
       layoutOptions: { ...previous.layoutOptions, ...options },
     }))
+    this.shouldResetLayout = false
   }
 
   getLegacyBannerObject() {
@@ -113,6 +115,7 @@ export default class OpenReviewApp extends App {
 
   onRouteChangeStart() {
     this.shouldResetBanner = true
+    this.shouldResetLayout = true
 
     // Close mobile nav menu if open
     if (document.getElementById('navbar').attributes['aria-expanded']?.value === 'true') {
@@ -121,11 +124,15 @@ export default class OpenReviewApp extends App {
   }
 
   onRouteChangeComplete(url) {
-    // Reset banner
+    // Reset banner and Layout
     if (this.shouldResetBanner) {
       this.setState({
         bannerHidden: false,
         bannerContent: null,
+      })
+    }
+    if (this.shouldResetLayout) {
+      this.setState({
         layoutOptions: { fullWidth: false, footerMinimal: false },
       })
     }
@@ -157,12 +164,13 @@ export default class OpenReviewApp extends App {
       }
     }
     window.addEventListener('error', (event) => {
+      if (event.message === 'ResizeObserver loop limit exceeded') return false
       const description = `JavaScript Error: "${event.message}" in ${event.filename} at line ${event.lineno}`
       reportError(description)
       return false
     })
     window.addEventListener('unhandledrejection', (event) => {
-      const description = `Unhandled Promise Rejection: ${event.reason}`
+      const description = `Unhandled Promise Rejection: ${JSON.stringify(event.reason)}`
       reportError(description)
     })
 
@@ -174,6 +182,7 @@ export default class OpenReviewApp extends App {
     window.Handlebars = require('handlebars/runtime')
     window.marked = require('marked')
     window.DOMPurify = require('dompurify')
+    require('formdata-polyfill')
     window.MathJax = require('../lib/mathjax-config')
 
     // MathJax has to be loaded asynchronously from the CDN after the config file loads
