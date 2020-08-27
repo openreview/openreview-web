@@ -18,6 +18,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   var $content = $('#content > .forum-container');
   var $childrenAnchor = $('#note_children');
+  var sm = mkStateManager();
 
   // Data fetching functions
   var getProfilesP = function(notes) {
@@ -74,7 +75,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         .then(function(result) {
           if (!result.notes || !result.notes.length) {
             controller.removeHandler('forum');
-            replaceWithHome();
+            location.href = '/';
             return;
           }
 
@@ -386,7 +387,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       var noteId = $(this).data('noteId');
       var noteReplytoId = $(this).data('noteReplytoId');
       var noteTitle = $(this).closest('.note_with_children').find('.note_content_title a').eq(0).text();
-      var scrollPos = $('#note_children').offset().top - 51 - 12;
+      var scrollPos = $childrenAnchor.offset().top - 51 - 12;
 
       $('html, body').animate({scrollTop: scrollPos}, 400, function() {
         $childrenAnchor.fadeOut('fast', function() {
@@ -835,14 +836,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $filtersContainer.append('<span>Show </span>', invitationMultiSelector, '<span> from </span>', signatureMultiSelector);
     return $filtersContainer;
   };
-
-  var sm = mkStateManager();
-
-  if (!forumId) {
-    sm.removeAllBut('main');
-    replaceWithHome();
-    return;
-  }
 
   onTokenChange();
 };
