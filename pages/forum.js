@@ -85,7 +85,7 @@ const ForumReplyCount = ({ count }) => (
 )
 
 const Forum = ({ forumNote, query, appContext }) => {
-  const { user } = useContext(UserContext)
+  const { user, userLoading } = useContext(UserContext)
   const { clientJsLoading, setBannerContent } = appContext
   const { id, content, details } = forumNote
 
@@ -113,12 +113,12 @@ const Forum = ({ forumNote, query, appContext }) => {
 
   // Load and execute legacy forum code
   useEffect(() => {
-    if (clientJsLoading) return
+    if (clientJsLoading || userLoading) return
 
     // eslint-disable-next-line global-require
     const runForum = require('../client/forum')
     runForum(id, query.noteId, query.invitationId, user)
-  }, [clientJsLoading, user, authors])
+  }, [clientJsLoading, user, authors, userLoading])
 
   return (
     <div className="forum-container">
