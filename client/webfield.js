@@ -2817,7 +2817,7 @@ module.exports = (function() {
   // or AC profile confirmation tasks are complete
   var temporaryMarkExpertiseCompleted = function(invitationsGroup) {
     var profileConfirmationInv = _.find(invitationsGroup, function(inv) {
-      return _.endsWith(inv.id, 'Profile_Confirmation');
+      return _.endsWith(inv.id, 'Profile_Confirmation') || _.endsWith(inv.id, 'Registration');
     });
     var expertiseInv = _.find(invitationsGroup, function(inv) {
       return _.endsWith(inv.id, 'Expertise_Selection');
