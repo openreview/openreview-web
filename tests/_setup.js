@@ -29,6 +29,20 @@ fixture`Setup data`
     ctx.superUserToken = await getToken('openreview.net', '1234')
     await setupProfileViewEdit(ctx.superUserToken)
     await setupRegister(ctx.superUserToken)
+    await createUser({
+      first: 'Test',
+      last: 'User',
+      email: 'test@mail.com',
+      password: '1234',
+      history: undefined,
+    })
+    await createUser({
+      first: 'John',
+      last: 'Test',
+      email: 'john@mail.com',
+      password: '1234',
+      history: undefined,
+    })
     return ctx
   })
 

@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import omit from 'lodash/omit'
 import Head from 'next/head'
+import Router from 'next/router'
 import LoadingSpinner from '../components/LoadingSpinner'
 import WebfieldContainer from '../components/WebfieldContainer'
 import withError from '../components/withError'
@@ -55,52 +56,51 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
 }
 
 Group.getInitialProps = async (ctx) => {
-  if (!ctx.query.id) {
-    return { statusCode: 400, message: 'Group ID is required' }
-  }
   const { user, token } = auth(ctx)
-  const groupRes = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
-  const group = groupRes.groups?.length > 0 ? groupRes.groups[0] : null
-  if (!group) {
-    return { statusCode: 404, message: 'Group not found' }
-  }
-
-  // Old HTML webfields are no longer supported
-  if (group.web?.includes('<script type="text/javascript">')) {
-    return {
-      statusCode: 400,
-      message: 'This group is no longer accessible. Please contact info@openreview.net if you require access.',
+  try {
+    if (!ctx.query.id) {
+      return { statusCode: 400, message: 'Group ID is required' }
     }
-  }
+    const groupRes = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
+    const group = groupRes.groups?.length > 0 ? groupRes.groups[0] : null
+    if (!group) {
+      return { statusCode: 404, message: 'Group not found' }
+    }
+    // Old HTML webfields are no longer supported
+    if (group.web?.includes('<script type="text/javascript">')) {
+      return {
+        statusCode: 400,
+        message: 'This group is no longer accessible. Please contact info@openreview.net if you require access.',
+      }
+    }
+    const groupTitle = prettyId(group.id)
+    const isGroupWritable = group.details?.writable
+    const editModeEnabled = ctx.query.mode === 'edit'
+    const infoModeEnabled = ctx.query.mode === 'info'
+    const showModeBanner = isGroupWritable || infoModeEnabled
 
-  const groupTitle = prettyId(group.id)
-  const isGroupWritable = group.details?.writable
-  const editModeEnabled = ctx.query.mode === 'edit'
-  const infoModeEnabled = ctx.query.mode === 'info'
-  const showModeBanner = isGroupWritable || infoModeEnabled
+    const webfieldCode = group.web || `
+      Webfield.ui.setup($('#group-container'), '${group.id}');
+      Webfield.ui.header('${prettyId(group.id)}')
+        .append('<p><em>Nothing to display</em></p>');`
 
-  const webfieldCode = group.web || `
-    Webfield.ui.setup($('#group-container'), '${group.id}');
-    Webfield.ui.header('${prettyId(group.id)}')
-      .append('<p><em>Nothing to display</em></p>');`
+    const editorCode = isGroupWritable && editModeEnabled && `
+      Webfield.ui.setup('#group-container', group.id);
+      Webfield.ui.header('${groupTitle}');
+      Webfield.ui.groupEditor(group, {
+        container: '#notes'
+      });`
 
-  const editorCode = isGroupWritable && editModeEnabled && `
-    Webfield.ui.setup('#group-container', group.id);
-    Webfield.ui.header('${groupTitle}');
-    Webfield.ui.groupEditor(group, {
-      container: '#notes'
-    });`
+    const infoCode = (infoModeEnabled || !group.web) && `
+      Webfield.ui.setup('#group-container', group.id);
+      Webfield.ui.header('${groupTitle}');
+      Webfield.ui.groupInfo(group, {
+        container: '#notes'
+      });`
 
-  const infoCode = (infoModeEnabled || !group.web) && `
-    Webfield.ui.setup('#group-container', group.id);
-    Webfield.ui.header('${groupTitle}');
-    Webfield.ui.groupInfo(group, {
-      container: '#notes'
-    });`
-
-  const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
-  const groupObjSlim = omit(group, ['web'])
-  const inlineJsCode = `// Webfield Code for ${groupObjSlim.id}
+    const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
+    const groupObjSlim = omit(group, ['web'])
+    const inlineJsCode = `// Webfield Code for ${groupObjSlim.id}
 window.user = ${JSON.stringify(userOrGuest)};
 $(function() {
   var args = ${JSON.stringify(ctx.query)};
@@ -118,12 +118,26 @@ $(function() {
 
   ${editorCode || infoCode || webfieldCode}
 });
-//# sourceURL=webfieldCode.js`
+  //# sourceURL=webfieldCode.js`
 
-  return {
-    groupId: group.id,
-    webfieldCode: inlineJsCode,
-    query: ctx.query,
+    return {
+      groupId: group.id,
+      webfieldCode: inlineJsCode,
+      query: ctx.query,
+    }
+  } catch (error) {
+    if (error.name === 'forbidden') {
+      if (!token) {
+        if (ctx.req) {
+          ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
+        } else {
+          Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
+        }
+        return {}
+      }
+      return { statusCode: 403, message: 'You don\'t have permission to read this group' }
+    }
+    return { statusCode: error.status || 500, message: error.message }
   }
 }
 
