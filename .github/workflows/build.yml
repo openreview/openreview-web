@@ -59,6 +59,7 @@ jobs:
         curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
         sudo python3 get-pip.py
         sudo pip3 install -e .
+        sudo pip3 install "setuptools!=50.0" --force-reinstall
     - name: Checkout OpenReview API
       uses: actions/checkout@v2
       with:
