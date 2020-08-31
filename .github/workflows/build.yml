@@ -53,7 +53,6 @@ jobs:
       with:
         repository: openreview/openreview-py
         path: openreview-py
-        ref: fix/setup-tools-version
     - name: Install openreview-py
       run: |
         cd openreview-py
