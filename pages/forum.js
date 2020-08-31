@@ -118,7 +118,7 @@ const Forum = ({ forumNote, query, appContext }) => {
     // eslint-disable-next-line global-require
     const runForum = require('../client/forum')
     runForum(id, query.noteId, query.invitationId, user)
-  }, [clientJsLoading, user, authors, userLoading])
+  }, [clientJsLoading, user, JSON.stringify(authors), userLoading]) // authors is reset when clientJsLoading turns false
 
   return (
     <div className="forum-container">
