@@ -184,7 +184,7 @@ const Others = ({ fieldContent, highlightValue }) => {
             style={content.confirmed ? null : { color: '#8c1b13' }}
           >
             <td>
-              {content.value.startsWith('http') ? (
+              {content.value?.startsWith('http') ? (
                 <a href={content.value} target="_blank" rel="noreferrer">
                   <span className={highlightValue.includes(content.value) ? 'highlight' : null}>{content.value}</span>
                 </a>
