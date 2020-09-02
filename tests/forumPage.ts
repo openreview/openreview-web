@@ -40,13 +40,6 @@ fixture`Forum page`
   .page`http://localhost:${process.env.NEXT_PORT}`
   .before(async (ctx) => {
     ctx.superUserToken = await getToken('openreview.net', '1234')
-    await createUser({
-      first: 'Test',
-      last: 'User',
-      email: 'test@mail.com',
-      password: '1234',
-      history: undefined,
-    })
     return ctx
   })
 
