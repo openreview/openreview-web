@@ -74,6 +74,6 @@ fixture`Invitation page`
 test('accessing an invalid invitation should get a not found error', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/invitation?id=dslkjf`)
-    .expect(errorCodeLabel.innerText).eql('Error 400')
+    .expect(errorCodeLabel.innerText).eql('Error 404')
     .expect(errorMessageLabel.innerText).eql('Invitation Not Found: dslkjf')
 })
