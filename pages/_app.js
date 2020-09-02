@@ -201,6 +201,9 @@ export default class OpenReviewApp extends App {
     require('../client/template-helpers')
     require('../client/globals')
 
+    // setup marked options and renderer overwrite
+    window.view.setupMarked()
+
     // Set required constants
     window.OR_API_URL = process.env.API_URL
     window.Webfield.setToken(token)
