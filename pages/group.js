@@ -56,51 +56,39 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
 }
 
 Group.getInitialProps = async (ctx) => {
-  const { user, token } = auth(ctx)
-  try {
-    if (!ctx.query.id) {
-      return { statusCode: 400, message: 'Group ID is required' }
-    }
-    const groupRes = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
-    const group = groupRes.groups?.length > 0 ? groupRes.groups[0] : null
-    if (!group) {
-      return { statusCode: 404, message: 'Group not found' }
-    }
-    // Old HTML webfields are no longer supported
-    if (group.web?.includes('<script type="text/javascript">')) {
-      return {
-        statusCode: 400,
-        message: 'This group is no longer accessible. Please contact info@openreview.net if you require access.',
-      }
-    }
+  if (!ctx.query.id) {
+    return { statusCode: 400, message: 'Group ID is required' }
+  }
+
+  const generateWebfieldCode = (group, user, mode) => {
     const groupTitle = prettyId(group.id)
     const isGroupWritable = group.details?.writable
-    const editModeEnabled = ctx.query.mode === 'edit'
-    const infoModeEnabled = ctx.query.mode === 'info'
+    const editModeEnabled = mode === 'edit'
+    const infoModeEnabled = mode === 'info'
     const showModeBanner = isGroupWritable || infoModeEnabled
 
     const webfieldCode = group.web || `
-      Webfield.ui.setup($('#group-container'), '${group.id}');
-      Webfield.ui.header('${prettyId(group.id)}')
-        .append('<p><em>Nothing to display</em></p>');`
+Webfield.ui.setup($('#group-container'), '${group.id}');
+Webfield.ui.header('${prettyId(group.id)}')
+  .append('<p><em>Nothing to display</em></p>');`
 
     const editorCode = isGroupWritable && editModeEnabled && `
-      Webfield.ui.setup('#group-container', group.id);
-      Webfield.ui.header('${groupTitle}');
-      Webfield.ui.groupEditor(group, {
-        container: '#notes'
-      });`
+Webfield.ui.setup('#group-container', group.id);
+Webfield.ui.header('${groupTitle}');
+Webfield.ui.groupEditor(group, {
+  container: '#notes'
+});`
 
     const infoCode = (infoModeEnabled || !group.web) && `
-      Webfield.ui.setup('#group-container', group.id);
-      Webfield.ui.header('${groupTitle}');
-      Webfield.ui.groupInfo(group, {
-        container: '#notes'
-      });`
+Webfield.ui.setup('#group-container', group.id);
+Webfield.ui.header('${groupTitle}');
+Webfield.ui.groupInfo(group, {
+  container: '#notes'
+});`
 
     const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
     const groupObjSlim = omit(group, ['web'])
-    const inlineJsCode = `// Webfield Code for ${groupObjSlim.id}
+    return `// Webfield Code for ${groupObjSlim.id}
 window.user = ${JSON.stringify(userOrGuest)};
 $(function() {
   var args = ${JSON.stringify(ctx.query)};
@@ -118,11 +106,28 @@ $(function() {
 
   ${editorCode || infoCode || webfieldCode}
 });
-  //# sourceURL=webfieldCode.js`
+//# sourceURL=webfieldCode.js`
+  }
+
+  const { user, token } = auth(ctx)
+  try {
+    const { groups } = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
+    const group = groups?.length > 0 ? groups[0] : null
+    if (!group) {
+      return { statusCode: 404, message: 'Group not found' }
+    }
+
+    // Old HTML webfields are no longer supported
+    if (group.web?.includes('<script type="text/javascript">')) {
+      return {
+        statusCode: 400,
+        message: 'This group is no longer accessible. Please contact info@openreview.net if you require access.',
+      }
+    }
 
     return {
       groupId: group.id,
-      webfieldCode: inlineJsCode,
+      webfieldCode: generateWebfieldCode(group, user, ctx.query.mode),
       query: ctx.query,
     }
   } catch (error) {
