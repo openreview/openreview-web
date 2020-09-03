@@ -29,6 +29,27 @@ fixture`Setup data`
     ctx.superUserToken = await getToken('openreview.net', '1234')
     await setupProfileViewEdit(ctx.superUserToken)
     await setupRegister(ctx.superUserToken)
+    await createUser({
+      first: 'Test',
+      last: 'User',
+      email: 'test@mail.com',
+      password: '1234',
+      history: undefined,
+    })
+    await createUser({
+      first: 'John',
+      last: 'Test',
+      email: 'john@mail.com',
+      password: '1234',
+      history: undefined,
+    })
+    await createUser({
+      first: 'Reviewer',
+      last: 'ICLR',
+      email: 'reviewer_iclr@mail.com',
+      password: '1234',
+      history: undefined,
+    })
     return ctx
   })
 
@@ -335,4 +356,21 @@ test('setup ICLR', async (t) => {
   const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
 
   await waitForJobs(postSubmissionId, superUserToken)
+
+  const bidStageJson = {
+    content: { bid_due_date: submissionDateString },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Bid_Stage`,
+    readers: ['ICLR.cc/2021/Conference/Program_Chairs', 'openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['~Super_User1'],
+    writers: ['~Super_User1'],
+  }
+
+  const { id: bidStageId } = await createNote(bidStageJson, superUserToken)
+
+  await waitForJobs(bidStageId, superUserToken)
+
+  await addMembersToGroup('ICLR.cc/2021/Conference/Reviewers', ['reviewer_iclr@mail.com'], superUserToken)
 })
