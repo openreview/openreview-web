@@ -44,6 +44,47 @@ To check for ESLint errors, run:
 npm run lint
 ```
 
+## Testing
+
+OpenReview Web uses [TestCafe](https://devexpress.github.io/testcafe/) to run
+end-to-end tests of the UI. To run the test suite, first start openreview-api
+in test mode:
+
+```bash
+NODE_ENV=circleci node scripts/clean_start_app.js
+```
+
+Then create a production build of the frontend using the proper value for the `$SUPER_USER`
+env var and start the Next.js server:
+
+```bash
+SUPER_USER=openreview.net npm run build
+npm run start
+```
+
+Finally, run the tests:
+
+```bash
+npm run test
+```
+
+To run specific tests, pass the `-f` option to TestCafe to only run a specific
+fixture. For example:
+
+```bash
+npm run test -- -f "Invitation page"
+```
+
+Any option supported by the TestCafe CLI can be passed in after the "`--`", a full
+list of flags can be found in the [TestCafe docs](https://devexpress.github.io/testcafe/documentation/reference/command-line-interface.html#-f-name---fixture-name).
+
+Note that you may need to run the spcial setup test before running specific tests
+if the test data has not already been generated:
+
+```bash
+npm run test-setup
+```
+
 ## Deployment
 
 To create an optimized production build of the application run:

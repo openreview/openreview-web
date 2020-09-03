@@ -195,9 +195,7 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
   )
 }
 
-const Profile = ({
-  profile, publicProfile, appContext,
-}) => {
+const Profile = ({ profile, publicProfile, appContext }) => {
   const [publications, setPublications] = useState(null)
   const [count, setCount] = useState(0)
   const [coAuthors, setCoAuthors] = useState([])
@@ -234,7 +232,7 @@ const Profile = ({
 
     // Always show user's preferred username in the URL
     if (profileQuery.email || (profileQuery.id !== profile.preferredId)) {
-      router.replace(`/profile?id=${profile.preferredId}`)
+      router.replace(`/profile?id=${profile.preferredId}`, undefined, { shallow: true })
     }
 
     if (profile.id === user?.profile?.id) {
