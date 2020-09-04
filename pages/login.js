@@ -4,21 +4,22 @@
 import { useState, useContext, useEffect } from 'react'
 import Link from 'next/link'
 import Head from 'next/head'
-import Router from 'next/router'
+import { useRouter } from 'next/router'
 import truncate from 'lodash/truncate'
 import UserContext from '../components/UserContext'
+import useQuery from '../hooks/useQuery'
 import api from '../lib/api-client'
-import { auth } from '../lib/auth'
 import { isValidEmail } from '../lib/utils'
 
 // Page Styles
 import '../styles/pages/login.less'
 
-const LoginForm = ({ redirect }) => {
+const LoginForm = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState(null)
   const { loginUser } = useContext(UserContext)
+  const query = useQuery()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -26,7 +27,7 @@ const LoginForm = ({ redirect }) => {
 
     try {
       const { user, token } = await api.post('/login', { id: email, password })
-      loginUser(user, token, redirect)
+      loginUser(user, token, query?.redirect)
     } catch (error) {
       setLoginError(error)
       promptError(error.message)
@@ -47,10 +48,10 @@ const LoginForm = ({ redirect }) => {
   }
 
   useEffect(() => {
-    if (redirect) {
-      promptMessage(`Please login to access ${truncate(redirect, { length: 100 })}`)
+    if (query?.redirect) {
+      promptMessage(`Please login to access ${truncate(query.redirect, { length: 100 })}`)
     }
-  }, [redirect])
+  }, [query])
 
   return (
     <form onSubmit={handleSubmit}>
@@ -92,41 +93,38 @@ const LoginForm = ({ redirect }) => {
   )
 }
 
-const Login = ({ redirect }) => (
-  <div className="row">
-    <Head>
-      <title key="title">Login | OpenReview</title>
-    </Head>
+const Login = () => {
+  const { user, userLoading } = useContext(UserContext)
+  const router = useRouter()
 
-    <div className="login-container col-sm-6 col-md-5 col-lg-4 col-md-offset-1 col-lg-offset-2">
-      <h1>Login</h1>
-      <LoginForm redirect={redirect} />
-    </div>
+  // Redirect user to the homepage if not logged in
+  useEffect(() => {
+    if (!userLoading && user) {
+      router.replace('/')
+    }
+  }, [userLoading, user])
 
-    <div className="signup-container col-sm-6 col-md-5 col-lg-4">
-      <h1>New User?</h1>
-      <div>
-        <Link href="/signup">
-          <a className="btn">Sign Up</a>
-        </Link>
+  return (
+    <div className="row">
+      <Head>
+        <title key="title">Login | OpenReview</title>
+      </Head>
+
+      <div className="login-container col-sm-6 col-md-5 col-lg-4 col-md-offset-1 col-lg-offset-2">
+        <h1>Login</h1>
+        <LoginForm />
+      </div>
+
+      <div className="signup-container col-sm-6 col-md-5 col-lg-4">
+        <h1>New User?</h1>
+        <div>
+          <Link href="/signup">
+            <a className="btn">Sign Up</a>
+          </Link>
+        </div>
       </div>
     </div>
-  </div>
-)
-
-Login.getInitialProps = (ctx) => {
-  const { user } = auth(ctx)
-  if (user) {
-    if (ctx.req) {
-      ctx.res.writeHead(302, { Location: '/' }).end()
-    } else {
-      Router.replace('/')
-    }
-  }
-
-  return {
-    redirect: ctx.query.redirect,
-  }
+  )
 }
 
 Login.bodyClass = 'login'
