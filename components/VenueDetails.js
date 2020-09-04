@@ -8,44 +8,45 @@ const VenueDetails = ({ venue }) => (
       </a>
     </Link>
 
-    <p>
-      <br />
+    <p className="mt-1 mb-0">
       {venue.content.location && (
         <>
-          <span class="glyphicon glyphicon-map-marker" aria-hidden="true"></span>
-            &nbsp;{venue.content.location}
+          <span className="glyphicon glyphicon-map-marker mr-1" aria-hidden="true" />
+            &nbsp;
+          {venue.content.location}
         </>
       )}
-      &nbsp;&nbsp;&nbsp;&nbsp;
+      <span className="mr-4" />
       {venue.content.startdate && venue.content.enddate && (
         <>
-          <span class="glyphicon glyphicon-calendar"></span>
-          &nbsp;
-          {new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "long", day: "2-digit" }).format(venue.content.startdate)}
+          <span className="glyphicon glyphicon-calendar mr-1" />
+          {new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'long', day: '2-digit' }).format(venue.content.startdate)}
               &nbsp;&#8211;&nbsp;
-          {new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "long", day: "2-digit" }).format(venue.content.enddate)}
+          {new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'long', day: '2-digit' }).format(venue.content.enddate)}
         </>
       )}
-      &nbsp;&nbsp;&nbsp;&nbsp;
+      <span className="mr-4" />
       {venue.content.dblp_url && (
         <>
-          <span class="glyphicon glyphicon-link"></span>
-          &nbsp;<a href={venue.content.dblp_url}>DBLP Link</a>
+          <span className="glyphicon glyphicon-link mr-1" />
+          <a href={venue.content.dblp_url}>DBLP Page</a>
         </>
       )}
     </p>
     {venue.content.publisher && (
-      <p>
-        Publisher: {venue.content.publisher}
+      <p className="mt-1 mb-0">
+        Publisher:
+        {' '}
+        {venue.content.publisher}
       </p>
     )}
     {venue.content.program_chairs && venue.content.program_chairs.length > 0 && (
-      <p>
+      <p className="mt-1 mb-0">
         Program chairs:
+        {' '}
         {venue.content.program_chairs.map(pc => (
           <a key={pc.url} href={pc.url}>{pc.name}</a>
-        )).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)
-        }
+        )).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
       </p>
     )}
   </>

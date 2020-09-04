@@ -8,17 +8,19 @@ import { prettyId } from '../lib/utils'
 // Page Styles
 import '../styles/pages/venues.less'
 
-const VenueItem = ({ venue }) => {
-  return (
-    <>
-      <p>{venue.content.shortname} &#8211;
-      <Link href={`/venue?id=${venue.id}`}>
-          <a title="Click to view the proceedings of this conference"> {venue.content.name}</a>
-        </Link>
-      </p>
-    </>
-  )
-}
+const VenueItem = ({ venue }) => (
+  <p>
+    {venue.content.shortname}
+    {' '}
+    &#8211;
+    <Link href={`/venue?id=${venue.id}`}>
+      <a title="Click to view the proceedings of this conference">
+        {' '}
+        {venue.content.name}
+      </a>
+    </Link>
+  </p>
+)
 
 const Venues = ({ venues, pagination }) => (
   <>
@@ -32,16 +34,9 @@ const Venues = ({ venues, pagination }) => (
     </header>
 
     <div className="groups">
-      {/* <ul className="list-unstyled venues-list"> */}
-      {venues.map(venue => {
-        // console.log("venue.id: " + venue.id + " , venue.content.name: " + venue.content.name);
-        return (
-          // <li key={venue.id}>
-          <VenueItem key={venue.id} venue={venue} />
-          // </li>
-        )
-      })}
-      {/* </ul> */}
+      {venues.map(venue => (
+        <VenueItem key={venue.id} venue={venue} />
+      ))}
     </div>
 
     <PaginationLinks
@@ -62,14 +57,12 @@ Venues.getInitialProps = async (ctx) => {
     limit: notesPerPage,
     offset: notesPerPage * (currentPage - 1),
   })
-  // console.log("count: " + count)
-  // console.log("venue: " + JSON.stringify(venues))
 
   const pagination = {
     currentPage,
     notesPerPage,
     totalCount: count,
-    baseUrl: '/venues'
+    baseUrl: '/venues',
   }
 
   if (!venues) {

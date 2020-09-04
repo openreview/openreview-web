@@ -1,56 +1,31 @@
+/* globals $: false */
+/* globals marked: false */
+
 import Head from 'next/head'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
+import { renderToString } from 'react-dom/server'
+import { groupBy } from 'lodash'
 import withError from '../components/withError'
 import api from '../lib/api-client'
 import { prettyId } from '../lib/utils'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/router'
 import LoadingSpinner from '../components/LoadingSpinner'
 import Accordion from '../components/Accordion'
-import { renderToString } from 'react-dom/server'
 
 // Page Styles
 import '../styles/pages/venues.less'
 import VenueDetails from '../components/VenueDetails'
 
-const VenuesForYear = ({ year, filtered_venues }) => (
-  <>
-    {/* <h2>{year} : {filtered_venues.length}</h2>
-    <hr /> */}
-
-    <div className="groups">
-      <ul className="list-unstyled venues-list">
-        {filtered_venues.map(venue => (
-          <li key={venue.id}>
-            <VenueDetails venue={venue} />
-            <br />
-          </li>
-        ))}
-      </ul>
-    </div>
-  </>
-)
-
-const Venues = ({ venueSeries, groupByYear }) => (
-  <>
-    <Head>
-      <title key="title">Venue Directory | OpenReview</title>
-    </Head>
-
-    <header className="clearfix">
-      <h2>{venueSeries.content.name}</h2>
-      {venueSeries.content.noteline && (<p>{venueSeries.content.noteline}</p>)}
-      {
-        venueSeries.content.external_links && venueSeries.content.external_links.length > 0 &&
-        (<span Style="padding-right: 5px; word-wrap: break-word">External Links: </span>)
-      }
-      {venueSeries.content.external_links.map(el => {
-        if (el.link && el.name) {
-          return (<span Style="padding-right: 15px; word-wrap: break-word" key={el.link}><a href={el.link}>{el.name}</a></span>)
-        }
-      })}
-      <hr />
-    </header>
-  </>
+const VenuesForYear = ({ year, filteredVenues }) => (
+  <div className="groups">
+    <ul className="list-unstyled venues-list">
+      {filteredVenues.map(venue => (
+        <li className="mb-4" key={venue.id}>
+          <VenueDetails venue={venue} />
+        </li>
+      ))}
+    </ul>
+  </div>
 )
 
 function Venue({ venueSeries, groupByYear, appContext }) {
@@ -64,8 +39,18 @@ function Venue({ venueSeries, groupByYear, appContext }) {
     const defaultRenderer = new marked.Renderer()
     setVenuesByYear(Object.keys(groupByYear).sort().reverse().map((year, index) => ({
       id: year,
-      heading: <><span className="h3">{year}</span>{' '}<span className="h5">({groupByYear[year].length} {groupByYear[year].length > 1 ? 'venues' : 'venue'})</span></>,
-      body: renderToString(<VenuesForYear year={year} filtered_venues={groupByYear[year]} />),
+      heading: <>
+        <span className="h3">{year}</span>
+        {' '}
+        <span className="h4" style={{ color: '#777777' }}>
+          (
+          {groupByYear[year].length}
+          {' '}
+          {groupByYear[year].length > 1 ? 'venues' : 'venue'}
+          )
+        </span>
+      </>,
+      body: renderToString(<VenuesForYear year={year} filteredVenues={groupByYear[year]} />),
     })))
   }, [clientJsLoading])
 
@@ -93,32 +78,31 @@ function Venue({ venueSeries, groupByYear, appContext }) {
       </Head>
 
       <header className="clearfix">
-        <h2>{venueSeries.content.name}</h2>
-        {venueSeries.content.noteline && (<p>{venueSeries.content.noteline}</p>)}
+        <h1>{venueSeries.content.name}</h1>
+        {venueSeries.content.noteline && (<p Style="font-size: 1.25rem; color:@subtleGray">{venueSeries.content.noteline}</p>)}
         {
-          venueSeries.content.external_links && venueSeries.content.external_links.length > 0 &&
-          (<span Style="padding-right: 5px; word-wrap: break-word">External Links: </span>)
+          venueSeries.content.external_links && venueSeries.content.external_links.length > 0
+          && (<span Style="padding-right: 5px; word-wrap: break-word">External Links: </span>)
         }
-        {venueSeries.content.external_links.map(el => {
-          // <li key={pc.url}><a href={pc.url}>{pc.name}</a></li>
-          if (el.link && el.name) {
-            return (<span Style="padding-right: 15px; word-wrap: break-word" key={el.link}><a href={el.link}>{el.name}</a></span>)
+        {venueSeries.content.external_links.map((el) => {
+          if (el.link && el.domain) {
+            return (<span Style="word-wrap: break-word" key={el.link}><a href={el.link}>{el.domain.toUpperCase()}</a></span>)
           }
-        })}
-        <hr></hr>
+        }).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+        <hr />
       </header>
 
       <div className="row">
-
-        {venuesByYear ? (
-          <Accordion
-            sections={venuesByYear}
-            options={{ id: 'venues', collapsed: true, html: true }}
-          />
-        ) : (
+        {
+          venuesByYear ? (
+            <Accordion
+              sections={venuesByYear}
+              options={{ id: 'venues', collapsed: true, html: true }}
+            />
+          ) : (
             <LoadingSpinner />
-          )}
-
+          )
+        }
       </div>
     </>
   )
@@ -126,23 +110,12 @@ function Venue({ venueSeries, groupByYear, appContext }) {
 
 Venue.getInitialProps = async (ctx) => {
   const venueSeriesResponse = await api.get('/venues', { id: ctx.query.id })
-  let venueSeries;
-  if (venueSeriesResponse.venues.length > 0)
-    venueSeries = venueSeriesResponse.venues[0]
+  let venueSeries
+  if (venueSeriesResponse.venues.length > 0) venueSeries = venueSeriesResponse.venues[0]
 
   const apiRes = await api.get('/venues', { parents: ctx.query.id })
-  const filtered_venues = apiRes.venues
-
-  const groupBy = (array, key) => {
-    return array.reduce((result, currentValue) => {
-      (result[currentValue.content[key]] = result[currentValue.content[key]] || []).push(
-        currentValue
-      );
-      return result;
-    }, {});
-  };
-
-  const groupByYear = groupBy(filtered_venues, 'year');
+  const filteredVenues = apiRes.venues
+  const groupByYear = groupBy(filteredVenues, venue => venue.content.year)
 
   if (!groupByYear) {
     return {
