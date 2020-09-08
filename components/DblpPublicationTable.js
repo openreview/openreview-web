@@ -119,7 +119,7 @@ const DblpPublicationRow = ({
             {' '}
             {otherProfileId}
           </a>
-          <div className="different-profile-link">If you think this profile might be yours, please contact us</div>
+          <div className="different-profile-link">Please contact us if you think this profile might be yours</div>
         </>
       )}
     </td>
