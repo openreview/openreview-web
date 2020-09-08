@@ -113,11 +113,14 @@ const DblpPublicationRow = ({
         {authors.join(', ')}
       </div>
       {category === 'existing-different-profile' && (
-        <a className="different-profile-link" href={`/profile?id=${otherProfileId}`} target="_blank" rel="noreferrer">
-          This paper is associated with the user
-          {' '}
-          {otherProfileId}
-        </a>
+        <>
+          <a className="different-profile-link" href={`/profile?id=${otherProfileId}`} target="_blank" rel="noreferrer">
+            This paper is associated with the user
+            {' '}
+            {otherProfileId}
+          </a>
+          <div className="different-profile-link">Please contact us if this profile belongs to you.</div>
+        </>
       )}
     </td>
   </tr>
