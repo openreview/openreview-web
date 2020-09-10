@@ -36,7 +36,7 @@ function ProfileEdit({ profile, appContext }) {
       'OpenReview.net/Archive/-/Direct_Upload': 'OpenReview.net/Archive/-/Direct_Upload_Revision',
     }
     if (!authorIds || !invitationMap[invitation]) {
-      return Promise.reject()
+      throw new Error(`Something wrong with the paper ${noteId}.`)
     }
     const allAuthorIds = [
       ...profile.emailsConfirmed,
@@ -46,9 +46,8 @@ function ProfileEdit({ profile, appContext }) {
       if (allAuthorIds.includes(authorId)) matchedIndex.push(index)
       return matchedIndex
     }, [])
-    const idx = authorIds.indexOf(profileId)
     if (matchedIdx.length !== 1) { // no match or multiple match
-      Promise.reject()
+      throw new Error(`Multiple matches found in authors of paper ${noteId}.`)
     }
     authorIds[matchedIdx[0]] = null // the only match
 
