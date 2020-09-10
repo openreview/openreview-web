@@ -97,12 +97,14 @@ const Login = () => {
   const { user, userLoading } = useContext(UserContext)
   const router = useRouter()
 
-  // Redirect user to the homepage if not logged in
+  // Redirect user to the homepage if not logged in. Effect should only run when
+  // userLoading changes, otherwise the page will redirect as soon as the login
+  // form is submitted
   useEffect(() => {
     if (!userLoading && user) {
       router.replace('/')
     }
-  }, [userLoading, user])
+  }, [userLoading])
 
   return (
     <div className="row">

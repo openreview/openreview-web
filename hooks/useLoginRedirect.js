@@ -12,7 +12,7 @@ export default function useLoginRedirect() {
     if (!userLoading && !user) {
       router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
     }
-  }, [userLoading, user])
+  }, [userLoading])
 
   return { user, accessToken, userLoading }
 }
