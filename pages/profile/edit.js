@@ -29,19 +29,33 @@ function ProfileEdit({ profile, appContext }) {
   const unlinkPublication = async (profileId, noteId) => {
     const notes = await api.get('/notes', { id: noteId }, { accessToken })
     const authorIds = get(notes, 'notes[0].content.authorids')
-    if (!authorIds) {
+    const invitation = get(notes, 'notes[0].invitation')
+    const invitationMap = {
+      'dblp.org/-/record': 'dblp.org/-/author_coreference',
+      'OpenReview.net/Archive/-/Imported_Record': 'OpenReview.net/Archive/-/Imported_Record_Revision',
+      'OpenReview.net/Archive/-/Direct_Upload': 'OpenReview.net/Archive/-/Direct_Upload_Revision',
+    }
+    if (!authorIds || !invitationMap[invitation]) {
       return Promise.reject()
     }
+    const allAuthorIds = [
+      ...profile.emailsConfirmed,
+      ...profile.names?.map(p => p.username).filter(p => p),
+    ]
+    const matchedIdx = authorIds.reduce((matchedIndex, authorId, index) => { // find all matched index of all author ids
+      if (allAuthorIds.includes(authorId)) matchedIndex.push(index)
+      return matchedIndex
+    }, [])
     const idx = authorIds.indexOf(profileId)
-    if (idx < 0) {
+    if (matchedIdx.length !== 1) { // no match or multiple match
       Promise.reject()
     }
-    authorIds[idx] = null
+    authorIds[matchedIdx[0]] = null // the only match
 
     const updateAuthorIdsObject = {
       id: null,
       referent: noteId,
-      invitation: 'dblp.org/-/author_coreference',
+      invitation: invitationMap[invitation],
       signatures: [profileId],
       readers: ['everyone'],
       writers: [],

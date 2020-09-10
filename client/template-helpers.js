@@ -916,6 +916,14 @@ Handlebars.registerHelper('debug', function(optionalValue) {
   }
 });
 
+Handlebars.registerHelper('canUnlink', function(value, options) {
+  const invitationsAllowUnlink = ["dblp.org/-/record", "OpenReview.net/Archive/-/Imported_Record", "OpenReview.net/Archive/-/Direct_Upload"]
+  if (invitationsAllowUnlink.includes(value)) {
+    return options.fn(this);
+  }
+  return options.inverse(this);
+});
+
 // Register Handlebars partials
 Handlebars.registerPartial('noteContent', Handlebars.templates['partials/noteContent']);
 

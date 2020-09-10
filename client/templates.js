@@ -3598,7 +3598,7 @@ window.Handlebars["templates"]["partials/noteBasic"] = Handlebars.template({"1":
         return undefined
     };
 
-  return ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"invitation") : depth0),"dblp.org/-/record",{"name":"is","hash":{},"fn":container.program(20, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":22,"column":4},"end":{"line":24,"column":11}}})) != null ? stack1 : "");
+  return ((stack1 = (lookupProperty(helpers,"canUnlink")||(depth0 && lookupProperty(depth0,"canUnlink"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"invitation") : depth0),{"name":"canUnlink","hash":{},"fn":container.program(20, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":22,"column":4},"end":{"line":24,"column":18}}})) != null ? stack1 : "");
 },"20":function(container,depth0,helpers,partials,data) {
     return "      <span class=\"unlink-publication glyphicon glyphicon-minus-sign\"></span>\n";
 },"22":function(container,depth0,helpers,partials,data) {
