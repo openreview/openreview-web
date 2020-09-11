@@ -74,7 +74,6 @@ const Browse = ({ appContext }) => {
           return
         }
 
-        let allValid = true
         allInvitations.forEach((invObj) => {
           const fullInvitation = apiRes.invitations.find((inv) => {
             // For static lists, use the properties of the first traverse invitation
@@ -82,7 +81,9 @@ const Browse = ({ appContext }) => {
             return inv.id === invId
           })
           if (!fullInvitation) {
-            allValid = false
+            setError({
+              name: 'Not Found', message: `Could not load edge explorer. Invitation not found: ${invObj.id}`, statusCode: 404,
+            })
             return
           }
 
@@ -99,10 +100,6 @@ const Browse = ({ appContext }) => {
             signatures,
           })
         })
-        if (!allValid) {
-          setError(invalidError)
-          return
-        }
 
         setInvitations({
           startInvitation: startInvitations[0],
