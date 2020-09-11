@@ -87,10 +87,10 @@ test('setup TestVenue', async (t) => {
       'Open Reviewing Policy': 'Submissions and reviews should both be public.',
       'Public Commentary': 'Yes, allow members of the public to comment non-anonymously.',
       withdrawn_submissions_visibility: 'Yes, withdrawn submissions should be made public.',
-      withdrawn_submissions_author_anonymity: 'No, author identities of withdrawn submissions should not be revealed.',
+      withdrawn_submissions_author_anonymity: 'Yes, author identities of withdrawn submissions should be revealed.',
       email_pcs_for_withdrawn_submissions: 'Yes, email PCs.',
       desk_rejected_submissions_visibility: 'Yes, desk rejected submissions should be made public.',
-      desk_rejected_submissions_author_anonymity: 'No, author identities of desk rejected submissions should not be revealed.',
+      desk_rejected_submissions_author_anonymity: 'Yes, author identities of desk rejected submissions should be revealed.',
       'How did you hear about us?': 'ML conferences',
       'Expected Submissions': '6000',
     },
@@ -209,11 +209,11 @@ test('setup AnotherTestVenue', async (t) => {
       'Author and Reviewer Anonymity': 'No anonymity',
       'Open Reviewing Policy': 'Submissions and reviews should both be private.',
       'Public Commentary': 'Yes, allow members of the public to comment non-anonymously.',
-      withdrawn_submissions_visibility: 'Yes, withdrawn submissions should be made public.',
-      withdrawn_submissions_author_anonymity: 'No, author identities of withdrawn submissions should not be revealed.',
+      withdrawn_submissions_visibility: 'No, withdrawn submissions should not be made public.',
+      withdrawn_submissions_author_anonymity: 'Yes, author identities of withdrawn submissions should be revealed.',
       email_pcs_for_withdrawn_submissions: 'Yes, email PCs.',
-      desk_rejected_submissions_visibility: 'Yes, desk rejected submissions should be made public.',
-      desk_rejected_submissions_author_anonymity: 'No, author identities of desk rejected submissions should not be revealed.',
+      desk_rejected_submissions_visibility: 'No, desk rejected submissions should not be made public.',
+      desk_rejected_submissions_author_anonymity: 'Yes, author identities of desk rejected submissions should be revealed.',
       'How did you hear about us?': 'ML conferences',
       'Expected Submissions': '6000',
     },
@@ -256,6 +256,21 @@ test('setup AnotherTestVenue', async (t) => {
   const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
   noteJson.ddate = Date.now()
   const { id: deletedNoteId } = await createNote(noteJson, hasTaskUserToken)
+
+  const postSubmissionJson = {
+    content: { force: 'Yes' },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Post_Submission`,
+    readers: ['openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['openreview.net/Support'],
+    writers: ['openreview.net/Support'],
+  }
+
+  const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
+
+  await waitForJobs(postSubmissionId, superUserToken)
 })
 
 test('setup ICLR', async (t) => {
