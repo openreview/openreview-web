@@ -35,13 +35,17 @@ function ProfileEdit({ profile, appContext }) {
       'OpenReview.net/Archive/-/Imported_Record': 'OpenReview.net/Archive/-/Imported_Record_Revision',
       'OpenReview.net/Archive/-/Direct_Upload': 'OpenReview.net/Archive/-/Direct_Upload_Revision',
     }
-    if (!authorIds || !invitationMap[invitation]) {
-      throw new Error(`Something wrong with the paper ${noteId}.`)
+    if (!authorIds) {
+      throw new Error(`Note ${noteId} is missing author ids`)
+    }
+    if (!invitationMap[invitation]) {
+      throw new Error(`Note ${noteId} uses an unsupported invitation`)
     }
     const allAuthorIds = [
-      ...profile.emailsConfirmed,
+      ...profile.emails?.filter(p => p.confirmed).map(p => p.email),
       ...profile.names?.map(p => p.username).filter(p => p),
     ]
+
     const matchedIdx = authorIds.reduce((matchedIndex, authorId, index) => { // find all matched index of all author ids
       if (allAuthorIds.includes(authorId)) matchedIndex.push(index)
       return matchedIndex
@@ -62,7 +66,8 @@ function ProfileEdit({ profile, appContext }) {
         authorids: authorIds,
       },
     }
-    return api.post('/notes', updateAuthorIdsObject, { accessToken })
+    return null
+    // return api.post('/notes', updateAuthorIdsObject, { accessToken })
   }
 
   const saveProfile = async (newProfileData, done) => {
