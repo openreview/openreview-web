@@ -66,8 +66,7 @@ function ProfileEdit({ profile, appContext }) {
         authorids: authorIds,
       },
     }
-    return null
-    // return api.post('/notes', updateAuthorIdsObject, { accessToken })
+    return api.post('/notes', updateAuthorIdsObject, { accessToken })
   }
 
   const saveProfile = async (newProfileData, done) => {
