@@ -87,13 +87,13 @@ const Home = () => {
 
       <h1>Open for Submissions</h1>
       <hr className="small" />
-      <div id="active-venues" className="conferences">
+      <div id="open-venues" className="conferences">
         <VenueList name="open venues" venues={venues.open} />
       </div>
 
       <h1>All Venues</h1>
       <hr className="small" />
-      <div id="active-venues" className="conferences">
+      <div id="all-venues" className="conferences">
         <VenueList name="all venues" venues={venues.all} />
       </div>
     </div>

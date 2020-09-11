@@ -12,7 +12,7 @@ const waitForJobs = (noteId, superUserToken) => new Promise((resolve, reject) =>
         reject(new Error('Process function failed'))
       }
       const queueCount = Object.values(statuses)
-        .reduce((count, job) => count + job.waiting + job.active + job.delayed, 0)
+        .reduce((count, job: any) => count + job.waiting + job.active + job.delayed, 0)
       if (queueCount === 0) {
         clearInterval(interval)
         resolve()
