@@ -785,7 +785,7 @@ module.exports = (function() {
     };
 
     var createAddButton = function($fullName, $emails, title) {
-      return $('<button class="btn btn-xs"><span class="glyphicon glyphicon-plus"></span></button>').on('click', function() {
+      return $('<button class="btn btn-xs"><span>Add this author</span></button>').on('click', function() {
         $authors.append(createAuthorRow($fullName, $emails, title));
         $searchResults.empty();
       });
@@ -854,13 +854,13 @@ module.exports = (function() {
     var $emailSearch = $('<input>', { id: 'email-search', class:'search-input form-control note-content-search', type:'text', placeholder:'Email' });
 
     var addDirectly = function() {
-      $(this).prop('disabled', true);
+      $(this).hide();
       var $fullName = getNameFromInput($firstNameSearch.val(), $middleNameSearch.val(), $lastNameSearch.val());
       var $emails = $('<span>').append(_.trim($emailSearch.val()));
       $authors.append(createAuthorRow($fullName, $emails));
     };
 
-    var $addDirectlyButton = $('<button id="add-directly" class="btn btn-xs" disabled><span class="glyphicon glyphicon-plus"></span></button>').on('click', addDirectly);
+    var $addDirectlyButton = $('<button id="add-directly" class="btn btn-xs"><span>Add this author</span></button>').on('click', addDirectly).hide();
     if (!allowUserDefined) {
       $addDirectlyButton.hide();
     }
@@ -915,12 +915,12 @@ module.exports = (function() {
       var first = _.trim($firstNameSearch.val());
       var last = _.trim($lastNameSearch.val());
       if (emailResponse && !emailResponse.count && isValidEmail(email) && isValidName(first, last)) {
-        $addDirectlyButton.prop('disabled', false);
+        $addDirectlyButton.show();
       }
     };
 
     var combinedSearch = function() {
-      $addDirectlyButton.prop('disabled', true);
+      $addDirectlyButton.hide();
       var firstName = _.trim($firstNameSearch.val());
       var lastName = _.trim($lastNameSearch.val());
       var email = _.trim($emailSearch.val());
