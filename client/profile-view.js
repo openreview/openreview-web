@@ -248,8 +248,8 @@ module.exports = function(profile, params, submitF, cancelF) {
       $('<td>', {class: 'info_item'}).append(
         $('<div>', {text: 'Start', class: 'small_heading row_heading'})
       ),
-      $('<td>', {class: 'info_item'}).append(
-        $('<div>', {text: 'End', class: 'small_heading row_heading'})
+      $('<td>', {class: 'info_item', colspan: '2'}).append(
+        $('<div>', {class: 'small_heading row_heading'}).append(['End ', '<span class="hint">(optional)</span>'])
       )
     );
 
