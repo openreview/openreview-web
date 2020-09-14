@@ -82,6 +82,9 @@ const Browse = ({ appContext }) => {
             return inv.id === invId
           })
           if (!fullInvitation) {
+            setError({
+              name: 'Not Found', message: `Could not load edge explorer. Invitation not found: ${invObj.id}`, statusCode: 404,
+            })
             allValid = false
             return
           }
@@ -100,7 +103,6 @@ const Browse = ({ appContext }) => {
           })
         })
         if (!allValid) {
-          setError(invalidError)
           return
         }
 

@@ -43,19 +43,36 @@ export default function ProfileEdit({ appContext }) {
   const unlinkPublication = async (profileId, noteId) => {
     const notes = await api.get('/notes', { id: noteId }, { accessToken })
     const authorIds = get(notes, 'notes[0].content.authorids')
+    const invitation = get(notes, 'notes[0].invitation')
+    const invitationMap = {
+      'dblp.org/-/record': 'dblp.org/-/author_coreference',
+      'OpenReview.net/Archive/-/Imported_Record': 'OpenReview.net/Archive/-/Imported_Record_Revision',
+      'OpenReview.net/Archive/-/Direct_Upload': 'OpenReview.net/Archive/-/Direct_Upload_Revision',
+    }
     if (!authorIds) {
-      return Promise.reject()
+      throw new Error(`Note ${noteId} is missing author ids`)
     }
-    const idx = authorIds.indexOf(profileId)
-    if (idx < 0) {
-      Promise.reject()
+    if (!invitationMap[invitation]) {
+      throw new Error(`Note ${noteId} uses an unsupported invitation`)
     }
-    authorIds[idx] = null
+    const allAuthorIds = [
+      ...profile.emails?.filter(p => p.confirmed).map(p => p.email),
+      ...profile.names?.map(p => p.username).filter(p => p),
+    ]
+
+    const matchedIdx = authorIds.reduce((matchedIndex, authorId, index) => { // find all matched index of all author ids
+      if (allAuthorIds.includes(authorId)) matchedIndex.push(index)
+      return matchedIndex
+    }, [])
+    if (matchedIdx.length !== 1) { // no match or multiple match
+      throw new Error(`Multiple matches found in authors of paper ${noteId}.`)
+    }
+    authorIds[matchedIdx[0]] = null // the only match
 
     const updateAuthorIdsObject = {
       id: null,
       referent: noteId,
-      invitation: 'dblp.org/-/author_coreference',
+      invitation: invitationMap[invitation],
       signatures: [profileId],
       readers: ['everyone'],
       writers: [],
