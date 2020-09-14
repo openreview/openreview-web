@@ -785,7 +785,7 @@ module.exports = (function() {
     };
 
     var createAddButton = function($fullName, $emails, title) {
-      return $('<button class="btn btn-xs"><span>Add this author</span></button>').on('click', function() {
+      return $('<button class="btn btn-xs"><span class="glyphicon glyphicon-plus"></span></button>').on('click', function() {
         $authors.append(createAuthorRow($fullName, $emails, title));
         $searchResults.empty();
       });
@@ -843,7 +843,7 @@ module.exports = (function() {
 
     var $noResults = $('<table>', { class: 'table' }).append(
       $('<tr>').append(
-        '<td><span>No profiles were found</span></td>'
+        '<td><span>No profiles were found with those filter, fill in author info and click the + button to add the author to the list.</span></td>'
       )
     );
     $noResults.hide();
@@ -860,7 +860,7 @@ module.exports = (function() {
       $authors.append(createAuthorRow($fullName, $emails));
     };
 
-    var $addDirectlyButton = $('<button id="add-directly" class="btn btn-xs"><span>Add this author</span></button>').on('click', addDirectly).hide();
+    var $addDirectlyButton = $('<button id="add-directly" class="btn btn-xs"><span class="glyphicon glyphicon-plus"></span></button>').on('click', addDirectly).hide();
     if (!allowUserDefined) {
       $addDirectlyButton.hide();
     }
@@ -906,6 +906,7 @@ module.exports = (function() {
         profilesWithEmails.forEach(function(profile) {
           $searchResults.append(createSearchResultRow(profile));
         });
+        $searchResults.append($('<div>', { style: "color: #8c1b13;text-align: center;"}).append("Click on the '+' of the profile you want to add to the authors list"))
       } else {
         $noResults.show();
       }
@@ -2663,6 +2664,11 @@ module.exports = (function() {
 
       if (replyContent[fieldName].required && _.isEmpty(content[fieldName])) {
         errorList.push('Field missing: ' + prettyField(fieldName));
+      }
+
+      // authors search has pending results to be added
+      if(fieldName==='authorids' && $('div.search-results>div.author-row').length){
+        errorList.push('You have pending authors to be added to authors list');
       }
     });
 
