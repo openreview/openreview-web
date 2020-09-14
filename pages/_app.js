@@ -142,6 +142,7 @@ export default class OpenReviewApp extends App {
     if (process.env.IS_PRODUCTION || process.env.IS_STAGING) {
       window.gtag('config', process.env.GA_PROPERTY_ID, {
         page_path: url,
+        transport_type: 'beacon',
       })
     }
   }
