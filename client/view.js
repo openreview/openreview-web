@@ -779,8 +779,8 @@ module.exports = (function() {
     };
 
     var getEmails = function(emails) {
-      return $(emails.map(function(mail) {
-        return '<span>' + mail.toLowerCase() + '</span>';
+      return $(emails.filter(Boolean).map(function(email) {
+        return '<span>' + email.toLowerCase() + '</span>';
       }).join(', '));
     };
 

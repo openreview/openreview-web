@@ -21,6 +21,8 @@ import '../../styles/pages/revisions.less'
 const RevisionsList = ({
   revisions, user, selectedIndexes, setSelectedIndexes,
 }) => {
+  const router = useRouter()
+
   const toggleSelected = (idx, checked) => {
     if (checked) {
       setSelectedIndexes([...selectedIndexes, idx].sort((a, b) => a - b))
@@ -52,6 +54,7 @@ const RevisionsList = ({
       onNoteEdited: (newNote) => {
         $('#note-editor-modal').modal('hide')
         promptMessage('Note updated successfully')
+        router.reload()
         return true
       },
       onError: (errors) => {
