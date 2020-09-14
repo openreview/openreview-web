@@ -1,11 +1,10 @@
 /* globals promptMessage: false */
 
-import { useEffect, useContext, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
 import useQuery from '../../hooks/useQuery'
-import UserContext from '../../components/UserContext'
+import useLoginRedirect from '../../hooks/useLoginRedirect'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import api from '../../lib/api-client'
@@ -21,8 +20,7 @@ const CompareRevisions = ({ appContext }) => {
   const [draftableUrl, setDraftableUrl] = useState('')
   const [contentDiff, setContentDiff] = useState(null)
   const [error, setError] = useState(null)
-  const { accessToken, userLoading } = useContext(UserContext)
-  const router = useRouter()
+  const { accessToken, userLoading } = useLoginRedirect()
   const query = useQuery()
   const { setBannerContent, setBannerHidden } = appContext
 
@@ -73,12 +71,6 @@ const CompareRevisions = ({ appContext }) => {
 
   useEffect(() => {
     if (userLoading || !query) return
-
-    // Require user to be logged in to view comparisons
-    if (!accessToken) {
-      router.replace(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)
-      return
-    }
 
     if (!(query.id && query.left && query.right)) {
       setError({ statusCode: 404, message: 'Missing required parameter' })
