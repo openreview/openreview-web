@@ -38,7 +38,7 @@ function Faq({ generalQuestions, pcQuestions, appContext }) {
 
     // Scroll to and expand question referenced in URL
     if (window.location.hash) {
-      const $titleLink = $(`.panel-title a[href="${window.location.hash}"]`).eq(0)
+      const $titleLink = $(`.panel-title a[data-target="${window.location.hash}"]`).eq(0)
       if ($titleLink.length) {
         $titleLink.click()
 
@@ -51,7 +51,7 @@ function Faq({ generalQuestions, pcQuestions, appContext }) {
 
     // Update URL hash when clicking a question
     $('.faq-container .panel-title a').on('click', function onClick() {
-      router.replace(window.location.pathname + window.location.search + $(this).attr('href'))
+      router.replace(window.location.pathname + window.location.search + $(this).attr('data-target'))
     })
   }, [formattedGeneralQuestions, formattedPCQuestions])
 

@@ -36,7 +36,7 @@ const SectionHeading = ({ id, heading, options }) => (
 
 const SectionHeadingLink = ({ targetId, parentId, children }) => (
   <a
-    href={`#${targetId}`}
+    data-target={`#${targetId}`}
     className="collapse-btn collapsed"
     role="button"
     data-toggle="collapse"
