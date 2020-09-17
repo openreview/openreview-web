@@ -19,9 +19,9 @@
   {{/if}}{{/if}}
   {{!-- unlink dblp publication button in profile page --}}
   {{#if options.showUnlinkPublicationButton}}
-    {{#is invitation "dblp.org/-/record"}}
+    {{#canUnlink invitation}}
       <span class="unlink-publication glyphicon glyphicon-minus-sign"></span>
-    {{/is}}
+    {{/canUnlink}}
   {{/if}}
 </h4>
 
