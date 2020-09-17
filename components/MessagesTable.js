@@ -16,7 +16,16 @@ const MessageRow = ({ message }) => (
         <div className="email-to pull-left">
           To:
           {' '}
-          <span>{message.content?.to}</span>
+          <a
+            href={`/profile?email=${encodeURIComponent(message.content?.to)}`}
+            className="profile-link"
+            target="_blank"
+            rel="noreferrer"
+            data-toggle="tooltip"
+            data-placement="top"
+          >
+            {message.content?.to}
+          </a>
         </div>
         <div className="email-sent pull-right">
           Sent:
