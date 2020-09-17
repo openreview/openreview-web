@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import debounce from 'lodash/debounce'
 import Head from 'next/head'
-import withAdminAuth from '../components/withAdminAuth'
 import MessagesTable from '../components/MessagesTable'
 import ErrorAlert from '../components/ErrorAlert'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -33,9 +32,12 @@ const FilterForm = ({ onFiltersChange, loading }) => {
   const handleRecipientChange = (value) => {
     onFiltersChange({ type: 'recipient', recipient: value })
   }
+  const handleParentGroupChange = (value) => {
+    onFiltersChange({ type: 'parentGroup', parentGroup: value })
+  }
 
   return (
-    <form className="filter-controls form-inline text-center well" onSubmit={e => e.preventDefault()}>
+    <form className="filter-controls form-inline well" onSubmit={e => e.preventDefault()}>
       <div className="form-group">
         <label htmlFor="status-search-dropdown">Status:</label>
         <MultiSelectorDropdown
@@ -53,6 +55,10 @@ const FilterForm = ({ onFiltersChange, loading }) => {
       <div className="form-group">
         <label htmlFor="to-search-input">To:</label>
         <input type="text" id="to-search-input" className="form-control" placeholder="To address" disabled={loading} onChange={e => handleRecipientChange(e.target.value)} />
+      </div>
+      <div className="form-group">
+        <label htmlFor="parent-group-search-input">Parent:</label>
+        <input type="text" id="parent-group-search-input" className="form-control" placeholder="Parent group" disabled={loading} onChange={e => handleParentGroupChange(e.target.value)} />
       </div>
       {loading && (
         <div className="spinner-small">
@@ -77,6 +83,7 @@ const Messages = ({
     status: null,
     subject: null,
     to: null,
+    parentGroup: null,
   })
   const [page, setPage] = useState(1)
 
@@ -95,6 +102,10 @@ const Messages = ({
     if (filters.type === 'recipient' && (filters.recipient === '' || filters.recipient.includes('@'))) {
       setPage(1)
       setSearchParams({ ...searchParams, to: filters.recipient })
+    }
+    if (filters.type === 'parentGroup') {
+      setPage(1)
+      setSearchParams({ ...searchParams, parentGroup: filters.parentGroup })
     }
   }
 
@@ -171,4 +182,4 @@ const Messages = ({
 
 Messages.bodyClass = 'messages'
 
-export default withAdminAuth(Messages)
+export default Messages
