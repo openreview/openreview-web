@@ -1,47 +1,78 @@
 /* globals promptMessage: false */
 /* globals promptError: false */
 
-import { useEffect, useContext } from 'react'
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import get from 'lodash/get'
 import omit from 'lodash/omit'
-import UserContext from '../../components/UserContext'
 import LegacyProfileEditor from '../../components/LegacyProfileEditor'
+import ErrorDisplay from '../../components/ErrorDisplay'
+import LoadingSpinner from '../../components/LoadingSpinner'
 import DblpImportModal from '../../components/DblpImportModal'
-import withError from '../../components/withError'
+import useLoginRedirect from '../../hooks/useLoginRedirect'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { auth } from '../../lib/auth'
 import { formatProfileData } from '../../lib/profiles'
 import { viewProfileLink } from '../../lib/banner-links'
 
 // Page Styles
 import '../../styles/pages/profile-edit.less'
 
-function ProfileEdit({ profile, appContext }) {
-  const { accessToken, updateUserName } = useContext(UserContext)
+export default function ProfileEdit({ appContext }) {
+  const { accessToken } = useLoginRedirect()
+  const { updateUserName } = useUser()
+  const [profile, setProfile] = useState(null)
+  const [error, setError] = useState(null)
   const router = useRouter()
-  const { setBannerContent, clientJsLoading } = appContext
-  const profileNames = profile.names.map(name => (
-    name.middle ? `${name.first} ${name.middle} ${name.last}` : `${name.first} ${name.last}`
-  ))
+  const { setBannerContent } = appContext
+
+  const loadProfile = async () => {
+    try {
+      const { profiles } = await api.get('/profiles', {}, { accessToken })
+      if (profiles?.length > 0) {
+        setProfile(formatProfileData(profiles[0]))
+      } else {
+        setError({ statusCode: 404, message: 'Profile not found' })
+      }
+    } catch (apiError) {
+      setError({ statusCode: apiError.status, message: apiError.message })
+    }
+  }
 
   const unlinkPublication = async (profileId, noteId) => {
     const notes = await api.get('/notes', { id: noteId }, { accessToken })
     const authorIds = get(notes, 'notes[0].content.authorids')
+    const invitation = get(notes, 'notes[0].invitation')
+    const invitationMap = {
+      'dblp.org/-/record': 'dblp.org/-/author_coreference',
+      'OpenReview.net/Archive/-/Imported_Record': 'OpenReview.net/Archive/-/Imported_Record_Revision',
+      'OpenReview.net/Archive/-/Direct_Upload': 'OpenReview.net/Archive/-/Direct_Upload_Revision',
+    }
     if (!authorIds) {
-      return Promise.reject()
+      throw new Error(`Note ${noteId} is missing author ids`)
     }
-    const idx = authorIds.indexOf(profileId)
-    if (idx < 0) {
-      Promise.reject()
+    if (!invitationMap[invitation]) {
+      throw new Error(`Note ${noteId} uses an unsupported invitation`)
     }
-    authorIds[idx] = null
+    const allAuthorIds = [
+      ...profile.emails?.filter(p => p.confirmed).map(p => p.email),
+      ...profile.names?.map(p => p.username).filter(p => p),
+    ]
+
+    const matchedIdx = authorIds.reduce((matchedIndex, authorId, index) => { // find all matched index of all author ids
+      if (allAuthorIds.includes(authorId)) matchedIndex.push(index)
+      return matchedIndex
+    }, [])
+    if (matchedIdx.length !== 1) { // no match or multiple match
+      throw new Error(`Multiple matches found in authors of paper ${noteId}.`)
+    }
+    authorIds[matchedIdx[0]] = null // the only match
 
     const updateAuthorIdsObject = {
       id: null,
       referent: noteId,
-      invitation: 'dblp.org/-/author_coreference',
+      invitation: invitationMap[invitation],
       signatures: [profileId],
       readers: ['everyone'],
       writers: [],
@@ -63,15 +94,17 @@ function ProfileEdit({ profile, appContext }) {
       signatures: [newProfileData.id],
     }
     try {
-      const result = await api.post('/profiles', dataToSubmit, { accessToken })
-      const prefName = result.content?.names?.find(name => name.preferred === true)
-      if (prefName) updateUserName(prefName.first, prefName.middle, prefName.last) // for nav to get updated name
+      const apiRes = await api.post('/profiles', dataToSubmit, { accessToken })
+      const prefName = apiRes.content?.names?.find(name => name.preferred === true)
+      if (prefName) {
+        updateUserName(prefName.first, prefName.middle, prefName.last) // update nav dropdown
+      }
 
       await Promise.all(publicationIdsToUnlink.map(publicationId => unlinkPublication(profile.id, publicationId)))
       promptMessage('Your profile information has been successfully updated')
       router.push('/profile')
-    } catch (error) {
-      promptError(error.message)
+    } catch (apiError) {
+      promptError(apiError.message)
       done()
     }
   }
@@ -81,10 +114,16 @@ function ProfileEdit({ profile, appContext }) {
   }
 
   useEffect(() => {
-    if (clientJsLoading) return
+    if (!accessToken) return
 
     setBannerContent(viewProfileLink())
-  }, [clientJsLoading])
+
+    loadProfile()
+  }, [accessToken])
+
+  if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
+
+  if (!profile) return <LoadingSpinner />
 
   return (
     <div>
@@ -103,32 +142,15 @@ function ProfileEdit({ profile, appContext }) {
         submitButtonText="Save Profile Changes"
       />
 
-      <DblpImportModal profileId={profile.id} profileNames={profileNames} email={profile.preferredEmail} />
+      <DblpImportModal
+        profileId={profile.id}
+        profileNames={profile.names.map(name => (
+          name.middle ? `${name.first} ${name.middle} ${name.last}` : `${name.first} ${name.last}`
+        ))}
+        email={profile.preferredEmail}
+      />
     </div>
   )
 }
 
-ProfileEdit.getInitialProps = async (ctx) => {
-  const { token } = auth(ctx)
-  if (!token) {
-    if (ctx.req) {
-      ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
-    } else {
-      Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
-    }
-  }
-
-  const profileRes = await api.get('/profiles', {}, { accessToken: token })
-  if (!profileRes.profiles?.length) {
-    return { statusCode: 404, message: 'Profile not found' }
-  }
-
-  const profileFormatted = formatProfileData(profileRes.profiles[0])
-  return {
-    profile: profileFormatted,
-  }
-}
-
 ProfileEdit.bodyClass = 'profile-edit'
-
-export default withError(ProfileEdit)

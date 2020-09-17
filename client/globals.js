@@ -45,7 +45,7 @@ window.translateErrorMessage = function(error) {
     notArray: [view.iMess(' is not an array')],
     notObject: [view.iMess(' is not an object')],
     forbidden: [view.iMess(' is not accessible by user '), view.iTerm(error.user)],
-    notSignatory: (_.isEmpty(error.value)) ? [view.iMess(' is missing')] : [view.iMess(' does not have signatory user '), view.iTerm(error.user)],
+    notSignatory: (_.isEmpty(error.value)) ? [view.iMess(' is missing')] : [view.iMess(' ' + error.value[0] + ' is not permitted for user '), view.iTerm(error.user)],
     notForum: [view.iMess(' is not a forum of '), view.iTerm(error.value2), view.iMess(' in '), view.iMess(error.path2)],
     notMatch: [view.iMess(' does not meet requirements')],
     missing: [view.iMess(' is missing')],
