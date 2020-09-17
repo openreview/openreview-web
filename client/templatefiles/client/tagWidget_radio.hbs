@@ -1,0 +1,19 @@
+<div class="tag-widget {{#unless tag.value}}incomplete{{/unless}} {{extraClasses}}"
+     data-type="radio" data-id="{{tag.id}}" data-invitation-id="{{tag.invitationId}}">
+  <label>{{options.label}}:</label>
+  <div class="btn-group btn-group-xs" role="group" data-toggle="buttons">
+    {{#each tag.options}}
+      {{!--
+        Mark as active if option matches tag value,
+        if no value is selected mark placeholder active
+      --}}
+      <label class="btn btn-default radio-toggle {{#if ../tag.value}}
+        {{#is this ../tag.value}}active{{/is}}
+        {{/if}}" data-value="{{this}}" {{#if ../isTagWidget}}data-weight="{{this}}"{{/if}}>
+        <input type="radio" name="tag-options" autocomplete="off" {{#if ../tag.value}}
+          {{#is this ../tag.value}}checked{{/is}}
+          {{/if}}> {{this}}
+      </label>
+    {{/each}}
+  </div>
+</div>

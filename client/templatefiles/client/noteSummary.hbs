@@ -1,0 +1,21 @@
+{{!-- Used by area chair console in status table --}}
+<div id="note-summary-{{number}}" class="note" data-id="{{id}}">
+  <h4>
+    <a href="/forum?id={{forum}}{{#if referrer}}&referrer={{referrer}}{{/if}}" target="_blank">{{content.title}}</a>
+  </h4>
+  {{#if content.pdf}}
+    <div style="margin-bottom: .5rem;">
+      <a href="{{pdfUrl this false}}" class="attachment-download-link" title="Download PDF" target="_blank" download="{{number}}.pdf">
+        <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download PDF
+      </a>
+    </div>
+  {{/if}}
+  {{#if content.authors}}
+    <div class="note-authors">{{join content.authors}}</div>
+  {{/if}}
+  {{#if content.authorDomains}}
+    <div class="note-authors">Conflict Domains: {{join content.authorDomains}}</div>
+  {{/if}}
+
+  {{noteContentCollapsible this}}
+</div>

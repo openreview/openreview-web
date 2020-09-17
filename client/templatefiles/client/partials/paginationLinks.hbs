@@ -1,0 +1,13 @@
+<nav class="pagination-container text-center {{#if options.loading}}loading{{/if}}" aria-label="page navigation">
+  <ul class="pagination">
+    {{#each pageList}}
+      <li class="{{#if disabled}}disabled{{/if}} {{#if active}}active{{/if}} {{extraClasses}}" data-page-number="{{number}}">
+        {{#if disabled}}
+          <span>{{{label}}}</span>
+        {{else}}
+          <a href="{{#if ../baseUrl}}{{../baseUrl}}&page={{number}}{{else}}#{{/if}}">{{{label}}}</a>
+        {{/if}}
+      </li>
+    {{/each}}
+  </ul>
+</nav>

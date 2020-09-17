@@ -1,0 +1,12 @@
+<div class="tag-widget recommend {{#unless tag.value}}incomplete{{/unless}} {{extraClasses}}" data-id="{{tag.id}}" data-type="recommend" data-invitation-id="{{tag.invitationId}}">
+  <label>{{options.placeholder}}:</label>
+  {{#each tag.value}}
+    <span class="selected-reviewer" data-id="{{this.id}}" data-tag="{{this.tag}}">
+      {{this.name}} <a href="#" title="Delete recommendation"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>
+    </span>
+  {{/each}}
+
+  <div class="dropdown-container" style="display:none;"></div>
+  <a href="#" class="show-reviewer-dropdown">Add&hellip;</a>
+  <a href="#" class="hide-reviewer-dropdown" style="display:none;">Done</a>
+</div>

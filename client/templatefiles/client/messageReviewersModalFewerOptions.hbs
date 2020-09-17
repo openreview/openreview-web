@@ -1,0 +1,52 @@
+<div id="message-reviewers-modal" class="modal fade" tabindex="-1" role="dialog" >
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h3 class="modal-title">Message
+          {{#is filter 'msg-all-reviewers'}} All Reviewers of Selected Papers{{/is}}
+          {{#is filter 'msg-submitted-reviewers'}} Reviewers of Selected Papers with Submitted Reviews{{/is}}
+          {{#is filter 'msg-unsubmitted-reviewers'}} Reviewers of Selected Papers with Unsubmitted Reviews{{/is}}
+        </h3>
+      </div>
+      <div class="modal-body step-1">
+        <p>
+          You may customize the message that will be sent to the {{#if singleRecipient}}reviewer{{else}}reviewers{{/if}}.
+          In the email body, the text [[SUBMIT_REVIEW_LINK]] will be replaced with a hyperlink to the form
+          where the reviewer can fill out his or her review.
+        </p>
+        <form id="message-reviewers-form" method="POST" {{#if singleRecipient}}data-forum-url="{{forumUrl}}"{{/if}}>
+          {{#if singleRecipient}}
+            <div class="form-group">
+              <label for="userId">Reviewer</label>
+              <input type="text" name="userId" class="form-control" value="{{prettyId reviewerId}}" disabled="disabled">
+            </div>
+          {{/if}}
+
+          <div class="form-group">
+            <label for="subject">Email Subject</label>
+            <input type="text" name="subject" class="form-control" placeholder="Subject" value="{{defaultSubject}}" required>
+          </div>
+
+          <div class="form-group">
+            <label for="message">Email Body</label>
+            <textarea name="message" class="form-control feedback-input" rows="6" placeholder="Message" required>{{defaultBody}}</textarea>
+          </div>
+        </form>
+      </div>
+
+      {{#unless singleRecipient}}
+        <div class="modal-body step-2" style="display: none;">
+          <p>A total of <span class="num-reviewers"></span> reminder emails will be sent to the following reviewers:</p>
+          <div class="well reviewer-list"></div>
+        </div>
+      {{/unless}}
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary step-1" data-filter="{{filter}}">Next</button>
+        <button type="button" class="btn btn-primary step-2" style="display: none;">Confirm &amp; Send Messages</button>
+      </div>
+    </div>
+  </div>
+</div>
