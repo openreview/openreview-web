@@ -3,7 +3,7 @@
  * - to generate this file, run at root folder the following command:
  * - npm run templates
  * - or go to /client and run
- * - npx handlebars templatefiles/client -n 'window.Handlebars["templates"]' -f templates.js -e "hbs" -m
+ * - handlebars templatefiles/client -n 'window.Handlebars["templates"]' -f templates.js -e "hbs" -m
  * - -n is namespace; -f is output; -e is template extension; -m is to minimize size
  * - Replace all /static/images/ --> /images/
  */
