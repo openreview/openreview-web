@@ -4,17 +4,16 @@
 /* globals promptError: false */
 /* globals promptMessage: false */
 
-import { useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Head from 'next/head'
-import Router from 'next/router'
-import withError from '../../components/withError'
-import UserContext from '../../components/UserContext'
 import Table from '../../components/Table'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import Icon from '../../components/Icon'
+import ErrorDisplay from '../../components/ErrorDisplay'
+import useLoginRedirect from '../../hooks/useLoginRedirect'
+import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
-import { auth } from '../../lib/auth'
 import api from '../../lib/api-client'
 import { prettyId, formatDateTime, cloneAssignmentConfigNote } from '../../lib/utils'
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
@@ -114,36 +113,37 @@ const AssignmentRow = ({
   )
 }
 
-const Assignments = ({ groupId, referrer, appContext }) => {
+const Assignments = ({ appContext }) => {
+  const { accessToken } = useLoginRedirect()
   const [assignmentNotes, setAssignmentNotes] = useState(null)
   const [configInvitation, setConfigInvitation] = useState(null)
-  const { accessToken } = useContext(UserContext)
-  const { setBannerContent, clientJsLoading } = appContext
-  const referrerStr = encodeURIComponent(`[all assignments for ${prettyId(groupId)}](/assignments?group=${groupId})`)
+  const [error, setError] = useState(null)
+  const query = useQuery()
+  const { setBannerContent } = appContext
 
   // API functions
   const getAssignmentNotes = async () => {
     try {
       const { notes } = await api.get('/notes', {
-        invitation: `${groupId}/-/Assignment_Configuration`,
+        invitation: `${query.group}/-/Assignment_Configuration`,
       }, { accessToken })
 
       setAssignmentNotes(notes || [])
-    } catch (error) {
-      promptError(error.message)
+    } catch (apiError) {
+      promptError(apiError.message)
     }
   }
 
   const getConfigInvitation = async () => {
     try {
       const { invitations } = await api.get('/invitations', {
-        id: `${groupId}/-/Assignment_Configuration`,
+        id: `${query.group}/-/Assignment_Configuration`,
       }, { accessToken })
       if (invitations?.length > 0) {
         setConfigInvitation(invitations[0])
       }
-    } catch (error) {
-      promptError(error.details)
+    } catch (apiError) {
+      setError({ statusCode: 404, message: 'Could not list assignments. Invitation not found.' })
     }
   }
 
@@ -261,24 +261,28 @@ const Assignments = ({ groupId, referrer, appContext }) => {
     try {
       const apiRes = await api.post('/match', { configNoteId: id }, { accessToken })
       promptMessage('Matching started. The status of the assignments will be updated when the matching process is complete')
-    } catch (error) {
-      promptError(error.message)
+    } catch (apiError) {
+      promptError(apiError.message)
     }
   }
 
   // Effects
   useEffect(() => {
-    if (clientJsLoading || !accessToken) return
+    if (!accessToken || !query) return
 
-    if (referrer) {
-      setBannerContent(referrerLink(referrer))
+    if (!query.group) {
+      setError({ statusCode: 404, message: 'Could not list assignments. Missing parameter group.' })
+    }
+
+    if (query.referrer) {
+      setBannerContent(referrerLink(query.referrer))
     } else {
-      setBannerContent(venueHomepageLink(groupId))
+      setBannerContent(venueHomepageLink(query.group))
     }
 
     getAssignmentNotes()
     getConfigInvitation()
-  }, [clientJsLoading, accessToken])
+  }, [accessToken, query])
 
   useEffect(() => {
     if (assignmentNotes) {
@@ -290,15 +294,17 @@ const Assignments = ({ groupId, referrer, appContext }) => {
     getAssignmentNotes()
   }, 5000)
 
+  if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
+
   return (
     <>
       <Head>
-        <title key="title">{`${prettyId(groupId)} Assignments | OpenReview`}</title>
+        <title key="title">{`${prettyId(query?.group)} Assignments | OpenReview`}</title>
       </Head>
 
       <header className="row">
         <div className="col-xs-12 col-md-9">
-          <h1>{`${prettyId(groupId)} Assignments`}</h1>
+          <h1>{`${prettyId(query?.group)} Assignments`}</h1>
         </div>
         <div className="col-xs-12 col-md-3 text-right">
           <button type="button" className="btn" disabled={!configInvitation} onClick={handleNewConfiguration}>
@@ -330,7 +336,7 @@ const Assignments = ({ groupId, referrer, appContext }) => {
                   handleEditConfiguration={handleEditConfiguration}
                   handleCloneConfiguration={handleCloneConfiguration}
                   handleRunMatcher={handleRunMatcher}
-                  referrer={referrerStr}
+                  referrer={encodeURIComponent(`[all assignments for ${prettyId(query?.group)}](/assignments?group=${query?.group})`)}
                 />
               ))}
             </Table>
@@ -350,24 +356,6 @@ const Assignments = ({ groupId, referrer, appContext }) => {
   )
 }
 
-Assignments.getInitialProps = async (ctx) => {
-  const { group: groupId, referrer } = ctx.query
-  if (!groupId) {
-    return { statusCode: 404, message: 'Could not list generated assignments. Missing parameter group.' }
-  }
-
-  const { user } = auth(ctx)
-  if (!user) {
-    if (ctx.req) {
-      ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
-    } else {
-      Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
-    }
-  }
-
-  return { groupId, referrer }
-}
-
 Assignments.bodyClass = 'assignments-list'
 
-export default withError(Assignments)
+export default Assignments
