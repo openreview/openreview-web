@@ -9,7 +9,7 @@
     "start": "next start --port $NEXT_PORT",
     "test": "testcafe",
     "test-setup": "testcafe chrome tests/_setup.ts",
-    "templates": "handlebars client/templates/client -n 'window.Handlebars[\"templates\"]' -f client/templates.js -e \"hbs\" -m"
+    "templates": "handlebars client/templates/ -n 'window.Handlebars[\"templates\"]' -f client/templates.js -e \"hbs\""
   },
   "dependencies": {
     "@zeit/next-less": "github:zbialecki/next-less",
