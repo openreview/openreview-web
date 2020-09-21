@@ -843,7 +843,7 @@ module.exports = (function() {
 
     var $noResults = $('<table>', { class: 'table' }).append(
       $('<tr>').append(
-        '<td><span>No profiles were found with those filter, fill in author info and click the + button to add the author to the list.</span></td>'
+        '<td><span>No matching profiles found. Please enter the author\'s full name and email, then click the + button to add the author.</span></td>'
       )
     );
     $noResults.hide();
@@ -906,7 +906,7 @@ module.exports = (function() {
         profilesWithEmails.forEach(function(profile) {
           $searchResults.append(createSearchResultRow(profile));
         });
-        $searchResults.append($('<div>', { style: "color: #8c1b13;text-align: center;"}).append("Click on the '+' of the profile you want to add to the authors list"))
+        $searchResults.append($('<div>', { class: 'text-center' }).append('<span class="hint">Click the + button of the profile you wish to add to the authors list</span>'))
       } else {
         $noResults.show();
       }
@@ -2667,8 +2667,8 @@ module.exports = (function() {
       }
 
       // authors search has pending results to be added
-      if(fieldName==='authorids' && $('div.search-results>div.author-row').length){
-        errorList.push('You have pending authors to be added to authors list');
+      if (fieldName === 'authorids' && $('div.search-results>div.author-row').length) {
+        errorList.push('You have additional authors to be added to authors list');
       }
     });
 
