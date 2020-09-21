@@ -1534,6 +1534,8 @@ module.exports = (function() {
           return false;
         });
       }
+
+      $section.append('<a href="/messages?parentGroup=' + group.id + '" target="_blank" rel="nofollow">View Messages sent to this group</a>')
     };
 
     var getOffsetFromPageNum = function(limit, membersCount, pageNum) {
