@@ -3,11 +3,11 @@
  * - to generate this file, run at root folder the following command:
  * - npm run templates
  * - or go to /client and run
- * - handlebars templatefiles -n 'window.Handlebars["templates"]' -f templates.js -e "hbs"
+ * - handlebars templatefiles -n 'window.Handlebars.templates' -f templates.js -e "hbs"
  * - -n is namespace; -f is output; -e is template extension;
  */
 (function() {
-  var template = Handlebars.template, templates = window.Handlebars["templates"] = window.Handlebars["templates"] || {};
+  var template = Handlebars.template, templates = window.Handlebars.templates = window.Handlebars.templates || {};
 templates['committeeSummary'] = template({"1":function(container,depth0,helpers,partials,data) {
     var helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
