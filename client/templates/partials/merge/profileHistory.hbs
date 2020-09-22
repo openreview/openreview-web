@@ -1,0 +1,10 @@
+<table style="width: 100%;">
+  {{#each history}}
+    <tr {{#unless confirmed}} style="color: #8c1b13;" {{/unless}} {{> signatureTooltip signatures=signatures}}>
+      <td class="position"><strong>{{position}}</strong></td>
+      <td class="institution">
+        <span class="{{#if (isEqual ../index 0)}}left-profile-value{{else}}right-profile-value{{/if}}">{{institution.name}}</span> {{#if institution.domain}} <small class="{{#if (isEqual ../index 0)}}left-profile-value{{else}}right-profile-value{{/if}}">({{institution.domain}})</small> {{/if}}
+      </td>
+    </tr>
+  {{/each}}
+</table>

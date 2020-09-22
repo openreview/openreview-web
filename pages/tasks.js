@@ -3,17 +3,17 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
-import Router from 'next/router'
 import LoadingSpinner from '../components/LoadingSpinner'
 import WebfieldContainer from '../components/WebfieldContainer'
 import ErrorAlert from '../components/ErrorAlert'
-import { auth } from '../lib/auth'
+import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 import { formatTasksData } from '../lib/utils'
 
 import '../styles/pages/tasks.less'
 
-const Tasks = ({ accessToken, appContext }) => {
+const Tasks = ({ appContext }) => {
+  const { accessToken } = useLoginRedirect()
   const [groupedTasks, setGroupedTasks] = useState(null)
   const [error, setError] = useState(null)
   const tasksRef = useRef(null)
@@ -46,12 +46,14 @@ const Tasks = ({ accessToken, appContext }) => {
     })
   }
 
-  const addPropertyToInvitations = propertyName => apiRes => (
-    apiRes.invitations.map(inv => ({ ...inv, [propertyName]: true }))
-  )
-
   useEffect(() => {
+    if (!accessToken) return
+
     setBannerHidden(true)
+
+    const addPropertyToInvitations = propertyName => apiRes => (
+      apiRes.invitations.map(inv => ({ ...inv, [propertyName]: true }))
+    )
 
     Promise.all([
       api.get('/invitations', {
@@ -66,7 +68,7 @@ const Tasks = ({ accessToken, appContext }) => {
     ])
       .then(allInvitations => setGroupedTasks(formatTasksData(allInvitations)))
       .catch(apiError => setError(apiError))
-  }, [])
+  }, [accessToken])
 
   useEffect(() => {
     if (!groupedTasks) return
@@ -107,18 +109,6 @@ const Tasks = ({ accessToken, appContext }) => {
       <WebfieldContainer ref={tasksRef} />
     </div>
   )
-}
-
-Tasks.getInitialProps = (ctx) => {
-  const { user, token } = auth(ctx)
-  if (!user) {
-    if (ctx.req) {
-      ctx.res.writeHead(302, { Location: '/login?redirect=/tasks' }).end()
-    } else {
-      Router.replace('/login?redirect=/tasks')
-    }
-  }
-  return { accessToken: token }
 }
 
 Tasks.bodyClass = 'tasks'

@@ -1,0 +1,51 @@
+<section class="general">
+  <h4>General Info</h4>
+
+  {{> invitationInfoTable editable=true}}
+</section>
+
+<section class="subinvitations">
+  <h4>Child Invitations</h4>
+
+  {{> spinner extraClasses="spinner-inline"}}
+</section>
+
+<section class="reply">
+  <h4>Reply Parameters</h4>
+
+  <form class="invitation-reply-form">
+    <textarea name="reply" class="form-control" rows="10">{{replyJson}}</textarea>
+    <div class="alert alert-danger" style="display: none;">
+      <strong>Error:</strong> Reply content is not valid JSON. Make sure all quotes and brackets match.
+    </div>
+    <button type="submit" class="btn btn-sm btn-primary">Save Invitation</button>
+  </form>
+</section>
+
+<section class="webfield">
+  <h4>Invitation UI Code</h4>
+
+  <button class="btn btn-primary load-editor-btn">Show Code Editor</button>
+
+  <div class="webfield-editor-container" style="display: none;">
+    <div id="webfield-editor"></div>
+
+    <button class="btn btn-primary save-btn">Update Code</button>
+    <button class="btn btn-default cancel-btn">Cancel</button>
+  </div>
+</section>
+
+{{#if options.showProcessEditor}}
+  <section class="process">
+    <h4>Process Function Code</h4>
+
+    <button class="btn btn-primary load-editor-btn">Show Code Editor</button>
+
+    <div class="webfield-editor-container" style="display: none;">
+      <div id="process-editor"></div>
+
+      <button class="btn btn-primary save-btn">Update Code</button>
+      <button class="btn btn-default cancel-btn">Cancel</button>
+    </div>
+  </section>
+{{/if}}

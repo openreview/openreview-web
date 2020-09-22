@@ -465,7 +465,7 @@ const SignUp = () => {
     if (!userLoading && user) {
       router.replace('/')
     }
-  }, [userLoading])
+  }, [userLoading, user])
 
   return (
     <div className="row">

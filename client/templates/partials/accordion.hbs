@@ -1,0 +1,32 @@
+{{#* inline "sectionId"}}{{#if id}}{{id}}{{else}}{{parentId}}-section-{{@index}}{{/if}}{{/inline}}
+
+<div class="panel-group webfield-accordion {{extraClasses}}" id="{{options.id}}" role="tablist" aria-multiselectable="true">
+  {{#each sections}}
+    <div class="panel panel-default">
+      <div class="panel-heading" role="tab">
+        <h4 class="panel-title">
+          <a class="collapse-btn {{#if ../options.collapsed}}collapsed{{/if}}" role="button"
+             data-toggle="collapse" data-parent="#{{../options.id}}" data-target="#{{> sectionId parentId=../options.id}}"
+             aria-controls="{{> sectionId parentId=../options.id}}">
+            <span class="glyphicon glyphicon-triangle-bottom"></span>
+          </a>
+          <a class="{{#if ../options.collapsed}}collapsed{{/if}}" role="button"
+             data-toggle="collapse" data-parent="#{{../options.id}}" data-target="#{{> sectionId parentId=../options.id}}"
+             aria-controls="{{> sectionId parentId=../options.id}}">
+            {{heading}}
+          </a>
+        </h4>
+      </div>
+      <div id="{{> sectionId parentId=../options.id}}" class="panel-collapse collapse {{#unless ../options.collapsed}}in{{/unless}}" role="tabpanel">
+        <div class="panel-body">
+          {{#if ../options.html}}
+            {{{body}}}
+          {{else}}
+            <p>{{body}}</p>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+    <hr class="webfield-accordion-divider">
+  {{/each}}
+</div>

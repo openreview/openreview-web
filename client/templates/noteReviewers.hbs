@@ -1,0 +1,57 @@
+<div id="{{paperNumber}}-reviewer-progress" class="reviewer-progress" data-paper-forum="{{noteId}}">
+  <h4>{{numSubmittedReviews}} of {{numReviewers}} Reviews Submitted</h4>
+
+  {{#if reviewers}}
+    <a href="#{{noteId}}-reviewers" class="collapse-btn{{#unless expandReviewerList}} collapsed{{/unless}}" role="button" data-toggle="collapse" aria-expanded="{{#if expandReviewerList}}true{{else}}false{{/if}}">{{#if expandReviewerList}}Hide reviewers{{else}}Show reviewers{{/if}}</a>
+  {{/if}}
+  <div id="{{noteId}}-reviewers" class="collapse{{#if expandReviewerList}} in{{/if}}">
+    <table class="table table-condensed table-minimal">
+      <tbody>
+        {{#each reviewers as |user reviewerNum|}}
+          <tr>
+            <td style="width: 20px;"><strong>{{reviewerNum}}.</strong></td>
+            <td>
+              {{user.name}} <span class="text-muted">({{user.email}})</span>
+              {{#if user.completedReview}}
+                <br>
+                {{#if user.preliminary_rating}}Rating preliminary: {{user.preliminary_rating}}|final: {{user.rating}}{{else}}{{#if user.rating}}Rating: {{user.rating}}{{/if}}{{/if}}{{#if user.confidence}} / Confidence: {{user.confidence}}{{/if}}
+                <br>
+                {{#if user.reviewLength}}Review length: {{user.reviewLength}} / {{/if}}{{#if user.ranking}}Ranking: {{user.ranking}}{{/if}}
+                <br>
+                <a href="/forum?id={{user.forum}}&noteId={{user.note}}{{#if ../referrer}}&referrer={{../referrer}}{{/if}}" target="_blank">Read Review</a>
+              {{else}}
+                <br>
+                {{#if ../enableReviewerReassignment}}
+                  <a href="#" class="unassign-reviewer-link" data-paper-forum="{{user.forum}}" data-user-id="{{user.id}}" data-paper-number="{{user.paperNumber}}" data-reviewer-number="{{reviewerNum}}">Unassign</a>
+                  {{#if ../sendReminder}} &nbsp;&bull;&nbsp;{{/if}}
+                {{/if}}
+                {{#if ../sendReminder}}
+                  <a href="#" class="send-reminder-link" data-user-id="{{user.id}}" data-forum-url="{{{user.forumUrl}}}">Send Reminder</a>
+                  {{#if user.lastReminderSent}}(Last sent: {{user.lastReminderSent}}){{/if}}
+                {{/if}}
+              {{/if}}
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+    {{#if enableReviewerReassignment}}
+      <div id="{{paperNumber}}-add-reviewer" class="div-add-reviewer"></div>
+    {{/if}}
+  </div>
+
+  <div>
+    {{#if averageRating}}
+      <br>
+      <strong>Average Rating:</strong> {{averageRating}} (Min: {{minRating}}, Max: {{maxRating}})
+    {{/if}}
+    {{#if averageConfidence}}
+      <br>
+      <strong>Average Confidence:</strong> {{averageConfidence}} (Min: {{minConfidence}}, Max: {{maxConfidence}})
+    {{/if}}
+    {{#isnt forumReplyCount undefined}}
+      <br>
+      <strong>Number of Forum replies:</strong> {{forumReplyCount}}
+    {{/isnt}}
+  </div>
+</div>

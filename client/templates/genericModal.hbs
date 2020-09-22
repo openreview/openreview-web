@@ -1,0 +1,23 @@
+<div id="{{id}}" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog {{extraClasses}}">
+    <div class="modal-content">
+      {{#if showHeader}}
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h3 class="modal-title">{{title}}</h3>
+        </div>
+      {{/if}}
+
+      <div class="modal-body">
+        {{{body}}}
+      </div>
+
+      {{#if showFooter}}
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary">{{#if primaryButtonText}}{{primaryButtonText}}{{else}}Submit{{/if}}</button>
+        </div>
+      {{/if}}
+    </div>
+  </div>
+</div>

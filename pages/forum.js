@@ -246,6 +246,7 @@ Forum.getInitialProps = async (ctx) => {
       if (redirect) {
         return redirectForum(redirect.id)
       }
+
       if (!token) {
         if (ctx.req) {
           ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()

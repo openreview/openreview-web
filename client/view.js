@@ -843,7 +843,7 @@ module.exports = (function() {
 
     var $noResults = $('<table>', { class: 'table' }).append(
       $('<tr>').append(
-        '<td><span>No profiles were found</span></td>'
+        '<td><span>No matching profiles found. Please enter the author\'s full name and email, then click the + button to add the author.</span></td>'
       )
     );
     $noResults.hide();
@@ -854,13 +854,13 @@ module.exports = (function() {
     var $emailSearch = $('<input>', { id: 'email-search', class:'search-input form-control note-content-search', type:'text', placeholder:'Email' });
 
     var addDirectly = function() {
-      $(this).prop('disabled', true);
+      $(this).hide();
       var $fullName = getNameFromInput($firstNameSearch.val(), $middleNameSearch.val(), $lastNameSearch.val());
       var $emails = $('<span>').append(_.trim($emailSearch.val()));
       $authors.append(createAuthorRow($fullName, $emails));
     };
 
-    var $addDirectlyButton = $('<button id="add-directly" class="btn btn-xs" disabled><span class="glyphicon glyphicon-plus"></span></button>').on('click', addDirectly);
+    var $addDirectlyButton = $('<button id="add-directly" class="btn btn-xs"><span class="glyphicon glyphicon-plus"></span></button>').on('click', addDirectly).hide();
     if (!allowUserDefined) {
       $addDirectlyButton.hide();
     }
@@ -906,6 +906,7 @@ module.exports = (function() {
         profilesWithEmails.forEach(function(profile) {
           $searchResults.append(createSearchResultRow(profile));
         });
+        $searchResults.append($('<div>', { class: 'text-center' }).append('<span class="hint">Click the + button of the profile you wish to add to the authors list</span>'))
       } else {
         $noResults.show();
       }
@@ -915,12 +916,12 @@ module.exports = (function() {
       var first = _.trim($firstNameSearch.val());
       var last = _.trim($lastNameSearch.val());
       if (emailResponse && !emailResponse.count && isValidEmail(email) && isValidName(first, last)) {
-        $addDirectlyButton.prop('disabled', false);
+        $addDirectlyButton.show();
       }
     };
 
     var combinedSearch = function() {
-      $addDirectlyButton.prop('disabled', true);
+      $addDirectlyButton.hide();
       var firstName = _.trim($firstNameSearch.val());
       var lastName = _.trim($lastNameSearch.val());
       var email = _.trim($emailSearch.val());
@@ -2663,6 +2664,11 @@ module.exports = (function() {
 
       if (replyContent[fieldName].required && _.isEmpty(content[fieldName])) {
         errorList.push('Field missing: ' + prettyField(fieldName));
+      }
+
+      // authors search has pending results to be added
+      if (fieldName === 'authorids' && $('div.search-results>div.author-row').length) {
+        errorList.push('You have additional authors to be added to authors list');
       }
     });
 
