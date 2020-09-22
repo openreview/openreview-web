@@ -27,27 +27,27 @@ const MessageRow = ({ message }) => (
             {message.content?.to}
           </a>
         </div>
-        {message?.referrer && (
-        <div className="email-parent">
-          Parent:
-          {' '}
-          <a
-            href={`/group?id=${encodeURIComponent(message?.referrer)}&mode=edit`}
-            className="profile-link"
-            target="_blank"
-            rel="noreferrer"
-            data-toggle="tooltip"
-            data-placement="top"
-          >
-            {message?.referrer}
-          </a>
-        </div>
-        )}
         <div className="email-sent pull-right">
           Sent:
           {' '}
           <span>{formatTimestamp(message.timestamp * 1000)}</span>
         </div>
+        {message?.referrer && (
+          <div className="email-parent">
+            Parent:
+            {' '}
+            <a
+              href={`/group?id=${encodeURIComponent(message?.referrer)}&mode=edit`}
+              className="profile-link"
+              target="_blank"
+              rel="noreferrer"
+              data-toggle="tooltip"
+              data-placement="top"
+            >
+              {message?.referrer}
+            </a>
+          </div>
+        )}
       </div>
 
       <div className="email-title">

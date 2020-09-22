@@ -74,7 +74,7 @@ const FilterForm = ({ searchQuery, loading }) => {
       </div>
       <div className="form-group">
         <label htmlFor="parent-group-search-input">Parent:</label>
-        <input type="text" id="parent-group-search-input" className="form-control" placeholder="Parent group" disabled={loading} onChange={e => handleParentGroupChange(e.target.value)} />
+        <input type="text" id="parent-group-search-input" className="form-control" placeholder="Parent group" disabled={loading} value={searchQuery?.parentGroup ?? ''} onChange={e => handleParentGroupChange(e.target.value)} />
       </div>
       {loading && (
         <div className="spinner-small">
@@ -117,7 +117,6 @@ const Messages = ({ appContext }) => {
 
   useEffect(() => {
     if (userLoading || !query) return
-
     setBannerHidden(true)
 
     loadMessages()
