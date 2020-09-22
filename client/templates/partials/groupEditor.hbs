@@ -1,0 +1,42 @@
+<section class="general">
+  <h4>General Info</h4>
+
+  {{> groupInfoTable editable=true}}
+</section>
+
+<section class="members">
+  <h4>Group Members {{#if groupMembersCount}}({{groupMembersCount}}){{/if}}</h4>
+
+  {{> spinner extraClasses="spinner-inline"}}
+</section>
+
+<section class="notes">
+  <h4>Signed Notes</h4>
+
+  {{> spinner extraClasses="spinner-inline"}}
+</section>
+
+<section class="children">
+  <h4>Child Groups</h4>
+
+  {{> spinner extraClasses="spinner-inline"}}
+</section>
+
+<section class="invitations">
+  <h4>Related Invitations</h4>
+
+  {{> spinner extraClasses="spinner-inline"}}
+</section>
+
+<section class="webfield">
+  <h4>Group UI Code</h4>
+
+  <button class="btn btn-primary load-editor-btn">Show Code Editor</button>
+
+  <div class="webfield-editor-container" style="display: none;">
+    <div id="webfield-editor"></div>
+
+    <button class="btn btn-primary save-btn">Update Code</button>
+    <button class="btn btn-default cancel-btn">Cancel</button>
+  </div>
+</section>

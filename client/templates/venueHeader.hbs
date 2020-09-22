@@ -1,0 +1,47 @@
+<h1>{{title}}</h1>
+<h3>{{{subtitle}}}</h3>
+
+{{#unless noIcons}}
+  <h4>
+    {{#if location}}
+      <span class="venue-location">
+        <span class="glyphicon glyphicon-globe" aria-hidden="true"></span> {{location}}
+      </span>
+    {{/if}}
+    {{#if date}}
+      <span class="venue-date">
+        <span class="glyphicon glyphicon-calendar" aria-hidden="true"></span> {{date}}
+      </span>
+    {{/if}}
+    {{#if website}}
+      <span class="venue-website">
+        <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span> <a href="{{website}}" title="{{title}} Homepage" target="_blank">{{truncate website 60}}</a>
+      </span>
+    {{/if}}
+    {{#if contact}}
+      <span class="venue-contact">
+        <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span> <a href="mailto:{{contact}}" target="_blank">{{contact}}</a>
+      </span>
+    {{/if}}
+    {{#if groupInfoLink}}
+      <span class="venue-info">
+        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> <a href="{{groupInfoLink}}" title="Group Details">More Info</a>
+      </span>
+    {{/if}}
+  </h4>
+{{else}}
+  <h4>{{location}}</h4>
+  <h4><a href="{{website}}" target="_blank">{{website}}</a></h4>
+  {{#if groupInfoLink}}
+    <h4><a href="{{groupInfoLink}}" title="Group Details">More Info</a></h4>
+  {{/if}}
+{{/unless}}
+
+<div class="description">
+  {{#if instructions}}
+    {{{instructions}}}
+  {{else}}
+    <p class="no-margin">Please see the venue website for more information.</p>
+  {{/if}}
+  <p>{{deadline}}</p>
+</div>

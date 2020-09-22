@@ -1,0 +1,30 @@
+<div id="{{paperNumber}}-metareview-status">
+  {{#if recommendation}}
+    <h4>AC Recommendation:</h4>
+    <p>
+      <strong>{{recommendation}}</strong>
+    </p>
+    <p>
+      <a href="{{editUrl}}" target="_blank">Read{{#if invitationUrl}}/Edit{{/if}}</a>
+    </p>
+  {{else}}
+    <h4>
+      {{#if invitationUrl}}
+        <a href="{{invitationUrl}}" target="_blank">Submit</a>
+      {{else}}
+        <strong>No Recommendation</strong>
+      {{/if}}
+    </h4>
+  {{/if}}
+
+  {{#if ratingUrl}}
+    <strong>Reviewer Ratings{{#unless reviewerRatings}} <span>(Incomplete)</span>{{/unless}}:</strong>
+    <ul class="list-unstyled">
+      {{#each reviewerRatings as |rating reviewerNum|}}
+        <li><strong>Reviewer {{reviewerNum}}:</strong> {{rating}} / {{../ratingMax}}</li>
+      {{else}}
+        <li><a href="{{ratingUrl}}" target="_blank">Enter Reviewer Ratings</a></li>
+      {{/each}}
+    </ul>
+  {{/if}}
+</div>
