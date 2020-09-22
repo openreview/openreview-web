@@ -34,11 +34,12 @@ const saveProfileButton = Selector('button').withText('Save Profile Changes')
 const nameMakePreferredButton = Selector('#names_table').find('button.preferred_button').filterVisible().nth(0)
 // #endregion
 
-fixture`profile page`
+fixture`Profile page`
   .before(async (ctx) => {
     ctx.superUserToken = await getToken('openreview.net', '1234')
     return ctx
   })
+
 test('user open own profile', async (t) => {
   await t.navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
     .click(Selector('a').withText('Login'))
@@ -90,6 +91,7 @@ test('user open own profile', async (t) => {
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText).eql('Your profile information has been successfully updated')
 })
+
 test('import paper from dblp', async (t) => {
   const testPersistentUrl = 'https://dblp.org/pid/95/7448-1'
   await t.useRole(userBRole)
@@ -133,6 +135,7 @@ test('import paper from dblp', async (t) => {
     .click(Selector('#dblp-import-modal').find('span').withExactText('×'))
     .expect(Selector('ul.submissions-list').find('.glyphicon-minus-sign').count).eql(2) // imported 2 papers are removable/unlinkable
 })
+
 test('unlink paper', async (t) => {
   await t.useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
@@ -148,6 +151,7 @@ test('unlink paper', async (t) => {
     .click(Selector('ul.submissions-list').find('.glyphicon-minus-sign').nth(1)) // unlink 2nd paper
     .click(saveProfileButton)
 })
+
 test('check import history', async (t) => {
   const { api, superUserToken } = t.fixtureCtx
   // let result = await api.get(`/notes/search?content=authors&term=${userB.tildeId}&cache=false}`, {}, { accessToken: superUserToken })
@@ -161,6 +165,7 @@ test('check import history', async (t) => {
     .expect(references[1].content.authorids.includes(userB.tildeId)).notOk() // 1st post of paper has all dblp authorid
     .expect(references[0].content.authorids.includes(userB.tildeId)).ok() // authorid is updated
 })
+
 test('reimport unlinked paper and import all', async (t) => { // to trigger only authorid reference update
   await t.useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
@@ -185,6 +190,7 @@ test('reimport unlinked paper and import all', async (t) => { // to trigger only
 
 // eslint-disable-next-line no-unused-expressions
 fixture`profile page different user`
+
 test('open profile of other user by email', async (t) => {
   await t.navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
     .click(Selector('a').withText('Login'))
@@ -197,6 +203,7 @@ test('open profile of other user by email', async (t) => {
     .expect(pageHeader.innerText).eql(`${hasTaskUser.first} ${hasTaskUser.last}`)
     .expect(profileViewEmail.innerText).contains('****') // email should be masked
 })
+
 test('open profile of other user by id', async (t) => {
   // access FirstA LastA's profile page by tildeId
   await t.navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile?id=${hasTaskUser.tildeId}`)

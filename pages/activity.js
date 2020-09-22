@@ -4,16 +4,16 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
-import Router from 'next/router'
 import LoadingSpinner from '../components/LoadingSpinner'
 import WebfieldContainer from '../components/WebfieldContainer'
 import ErrorAlert from '../components/ErrorAlert'
-import { auth } from '../lib/auth'
+import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 
 import '../styles/pages/activity.less'
 
-const Activity = ({ user, accessToken, appContext }) => {
+const Activity = ({ appContext }) => {
+  const { user, accessToken } = useLoginRedirect()
   const [activityNotes, setActivityNotes] = useState(null)
   const [error, setError] = useState(null)
   const activityRef = useRef(null)
@@ -21,23 +21,26 @@ const Activity = ({ user, accessToken, appContext }) => {
 
   const loadActivityData = async () => {
     try {
-      const apiRes = await api.get('/notes', {
+      const { notes } = await api.get('/notes', {
         tauthor: true,
         trash: true,
         details: 'forumContent,writable,invitation',
         limit: 200,
       }, { accessToken })
-      setActivityNotes(apiRes.notes)
+
+      setActivityNotes(notes)
     } catch (apiError) {
       setError(apiError)
     }
   }
 
   useEffect(() => {
+    if (!accessToken) return
+
     setBannerHidden(true)
 
     loadActivityData()
-  }, [])
+  }, [accessToken])
 
   useEffect(() => {
     if (clientJsLoading || !activityNotes) return
@@ -74,18 +77,6 @@ const Activity = ({ user, accessToken, appContext }) => {
       <WebfieldContainer ref={activityRef} />
     </div>
   )
-}
-
-Activity.getInitialProps = (ctx) => {
-  const { user, token } = auth(ctx)
-  if (!user) {
-    if (ctx.req) {
-      ctx.res.writeHead(302, { Location: '/login' }).end()
-    } else {
-      Router.replace('/login')
-    }
-  }
-  return { user, accessToken: token }
 }
 
 Activity.bodyClass = 'activity'
