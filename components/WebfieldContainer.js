@@ -11,6 +11,10 @@ const WebfieldContainer = React.forwardRef((props, ref) => {
     const href = e.target.getAttribute('href') || e.target.parentElement.getAttribute('href')
     if (!href) return
 
+    if (e.target.getAttribute('target') === '_blank' || e.target.parentElement.getAttribute('target') === '_blank') { // respect attribute set in element
+      window.open(href, '_blank')
+    }
+
     if (href.match(/^\/(forum|group|profile)/)) {
       e.preventDefault()
       // Need to manually scroll to top of page after using router.push,

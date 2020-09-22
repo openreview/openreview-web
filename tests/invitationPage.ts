@@ -33,7 +33,7 @@ test('guest user should be redirected to login page and be able to access the in
     .typeText(passwordInput, '1234')
     .click(loginButton)
     .expect(Selector('#invitation-container').exists).ok()
-    .expect(Selector('#invitation-container h1').innerText).eql('ICLR 2021 Bidding Console')
+    .expect(Selector('#invitation-container h1').innerText).eql('Reviewers Bidding Console')
     .expect(Selector('#notes').exists).ok()
 })
 
@@ -54,7 +54,7 @@ test('logged in user should be able to access to the invitation', async (t) => {
     .useRole(reviewerRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/invitation?id=ICLR.cc/2021/Conference/Reviewers/-/Bid`)
     .expect(Selector('#invitation-container').exists).ok()
-    .expect(Selector('#invitation-container h1').innerText).eql('ICLR 2021 Bidding Console')
+    .expect(Selector('#invitation-container h1').innerText).eql('Reviewers Bidding Console')
     .expect(Selector('#notes').exists).ok()
 })
 
