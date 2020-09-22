@@ -5,7 +5,9 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import withError from '../../components/withError'
+import ErrorDisplay from '../../components/ErrorDisplay'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 
 import '../../styles/pages/reset.less'
@@ -77,42 +79,65 @@ const ResetForm = ({ resetToken }) => {
   )
 }
 
-const PasswordReset = ({ resetToken }) => (
-  <div className="row">
-    <Head>
-      <title key="title">Change Password | OpenReview</title>
-    </Head>
+const PasswordReset = () => {
+  const [resetToken, setResetToken] = useState(null)
+  const [error, setError] = useState(null)
+  const query = useQuery()
 
-    <div className="reset-container col-sm-12 col-md-8 col-lg-6 col-md-offset-2 col-lg-offset-3">
-      <h1>Reset Password</h1>
+  const loadResetToken = async (token) => {
+    try {
+      const { resettable } = await api.get(`/resettable/${token}`)
+      if (resettable?.token) {
+        setResetToken(resettable.token)
+      } else {
+        setError({ statusCode: 400, message: 'Token not found' })
+      }
+    } catch (apiError) {
+      setError({ statusCode: apiError.status, message: apiError.message })
+    }
+  }
 
-      <p className="text-muted">
-        Enter your new password below.
-      </p>
-      <ResetForm resetToken={resetToken} />
+  useEffect(() => {
+    if (!query) return
 
-      <p className="help-block">
-        <Link href="/login"><a>Back to Login</a></Link>
-      </p>
+    if (!query.token) {
+      setError({ statusCode: 404, message: 'Page not found' })
+      return
+    }
+
+    loadResetToken(query.token)
+  }, [query])
+
+  if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
+
+  return (
+    <div className="row">
+      <Head>
+        <title key="title">Change Password | OpenReview</title>
+      </Head>
+
+      <div className="reset-container col-sm-12 col-md-8 col-lg-6 col-md-offset-2 col-lg-offset-3">
+        <h1>Reset Password</h1>
+
+        {resetToken ? (
+          <>
+            <p className="text-muted">
+              Enter your new password below.
+            </p>
+            <ResetForm resetToken={resetToken} />
+
+            <p className="help-block">
+              <Link href="/login"><a>Back to Login</a></Link>
+            </p>
+          </>
+        ) : (
+          <LoadingSpinner inline />
+        )}
+      </div>
     </div>
-  </div>
-)
-
-PasswordReset.getInitialProps = async (ctx) => {
-  if (!ctx.query.token) {
-    return { statusCode: 404, message: 'Page not found' }
-  }
-
-  const resetToken = ctx.query.token
-  try {
-    const apiRes = await api.get(`/resettable/${resetToken}`)
-  } catch (error) {
-    return { statusCode: 400, message: error.message }
-  }
-
-  return { resetToken }
+  )
 }
 
 PasswordReset.bodyClass = 'reset'
 
-export default withError(PasswordReset)
+export default PasswordReset
