@@ -66,11 +66,11 @@ const FilterForm = ({ searchQuery, loading }) => {
       </div>
       <div className="form-group">
         <label htmlFor="subject-search-input">Subject:</label>
-        <input type="text" id="subject-search-input" className="form-control" placeholder="Message subject" disabled={loading} onChange={e => handleSubjectChange(e.target.value)} />
+        <input type="text" id="subject-search-input" className="form-control" placeholder="Message subject" disabled={loading} value={searchQuery?.subject ?? ''} onChange={e => handleSubjectChange(e.target.value)} />
       </div>
       <div className="form-group">
         <label htmlFor="to-search-input">To:</label>
-        <input type="text" id="to-search-input" className="form-control" placeholder="To address" disabled={loading} onChange={e => handleRecipientChange(e.target.value)} />
+        <input type="text" id="to-search-input" className="form-control" placeholder="To address" disabled={loading} value={searchQuery?.to ?? ''} onChange={e => handleRecipientChange(e.target.value)} />
       </div>
       <div className="form-group">
         <label htmlFor="parent-group-search-input">Parent:</label>
