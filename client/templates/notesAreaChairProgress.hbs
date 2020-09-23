@@ -1,0 +1,20 @@
+<div class="reviewer-progress">
+  <h4>{{numCompletedReviews}} of {{numPapers}} Papers Reviews Completed</h4>
+
+  <strong>Papers:</strong>
+  <table class="table table-condensed table-minimal">
+    <tbody>
+      {{#each papers}}
+        <tr>
+          <td style="width: 28px;"><strong>{{note.number}}.</strong></td>
+          <td style="width: 314px;"><a href="/forum?id={{note.forum}}{{#if ../referrer}}&referrer={{../referrer}}{{/if}}" target="_blank">{{note.content.title}}</a></td>
+        </tr>
+        <tr>
+          <td style="width: 28px;"></td>
+          <td style="width: 314px;"><strong>{{numOfReviews}} of {{numOfReviewers}} Reviews Submitted </strong>/ Average Rating:</strong> {{averageRating}} (Min: {{minRating}}, Max: {{maxRating}})</td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+</div>

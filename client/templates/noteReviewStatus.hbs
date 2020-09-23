@@ -1,0 +1,24 @@
+<div>
+  {{#if editUrl}}
+    <h4>Your Ratings:</h4>
+    <p>{{paperRating}}</p>
+    <h4>Your Review:</h4>
+    <p>{{review}}</p>
+    <p>
+      <a href="{{editUrl}}" target="_blank">Edit {{invitationName}}</a>
+    </p>
+  {{else}}
+    <h4><a href="{{invitationUrl}}" target="_blank">Submit {{invitationName}}</a></h4>
+  {{/if}}
+
+  {{#if ratingUrl}}
+  <strong>Reviewer Ratings{{#unless reviewerRatings}} <span>(Incomplete)</span>{{/unless}}:</strong>
+  <ul class="list-unstyled">
+    {{#each reviewerRatings as |rating reviewerNum|}}
+      <li><strong>Reviewer {{reviewerNum}}:</strong> {{rating}} / {{../ratingMax}}</li>
+    {{else}}
+      <li><a href="{{ratingUrl}}" target="_blank">Enter Reviewer Ratings</a></li>
+    {{/each}}
+  </ul>
+  {{/if}}
+</div>

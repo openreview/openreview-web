@@ -1,0 +1,20 @@
+<section class="general info-mode">
+  <h4>General Info</h4>
+
+  {{> invitationInfoTable editable=false}}
+</section>
+
+<section class="subinvitations info-mode">
+  <h4>Child Invitations</h4>
+
+  {{> spinner extraClasses="spinner-inline info-mode"}}
+</section>
+
+<section class="reply info-mode">
+  <h4>Reply Parameters</h4>
+
+  <form class="invitation-reply-form">
+    <textarea name="reply" class="form-control" cols="100" rows="10" disabled>{{replyJson}}</textarea>
+  </form>
+</section>
+

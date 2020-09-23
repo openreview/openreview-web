@@ -19,6 +19,7 @@
 # misc
 .DS_Store
 .env
+deploy-out-1
 
 # debug
 npm-debug.log*

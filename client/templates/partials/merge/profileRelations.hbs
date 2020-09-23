@@ -1,0 +1,9 @@
+<table style="width: 100%;">
+  {{#each relations}}
+    <tr {{#unless confirmed}} style="color: #8c1b13;" {{/unless}} {{> signatureTooltip signatures=signatures}}>
+      <td><strong class="{{#if (isEqual ../index 0)}}left-profile-value{{else}}right-profile-value{{/if}}">{{name}}</strong></td>
+      <td><small class="{{#if (isEqual ../index 0)}}left-profile-value{{else}}right-profile-value{{/if}}">{{email}}</small></td>
+      <td><span>{{relation}}</span></td>
+    </tr>
+  {{/each}}
+</table>

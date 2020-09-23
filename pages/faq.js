@@ -164,6 +164,10 @@ For general inquiries, you can contact the OpenReview team by emailing [info@ope
 - Go to the venue request page [here](https://openreview.net/group?id=OpenReview.net/Support) and click on your submitted request.
 - Under the ‘Overview’ tab in the PC console, click on ‘Full Venue Configuration’.`,
   }, {
+    q: 'How can I recruit reviewers for my venue?',
+    id: 'question-recruitment',
+    a: 'On the request form for your venue, click on the ‘Recruitment’ button to recruit reviewers (and ACs if applicable).',
+  }, {
     q: 'How can I extend the submission deadline?',
     id: 'question-extend-submission-deadline',
     a: 'On the request form for your venue, click on the ‘Revision’ button and modify the Submission Deadline field to the new submission deadline.',

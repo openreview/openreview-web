@@ -8,13 +8,13 @@ WorkingDirectory=/home/openreview/deploy/openreview-web/current
 LimitNOFILE=infinity
 LimitNPROC=infinity
 LimitCORE=infinity
-Environment=PATH=$PATH:/home/openreview/.nvm/versions/node/v14.5.0/bin
+Environment=PATH=$PATH:/home/openreview/.nvm/versions/node/v14.11.0/bin
 Environment=PM2_HOME=/home/openreview/.pm2
 Type=simple
 User=openreview
-ExecStart=/home/openreview/.nvm/versions/node/v14.5.0/lib/node_modules/pm2/bin/pm2 start /home/openreview/deploy/openreview-web/current/ecosystem.json --env production --no-daemon --update-env
-ExecReload=/home/openreview/.nvm/versions/node/v14.5.0/lib/node_modules/pm2/bin/pm2 restart openreview-web --update-env
-ExecStop=/home/openreview/.nvm/versions/node/v14.5.0/lib/node_modules/pm2/bin/pm2 stop /home/openreview/deploy/openreview-web/current/ecosystem.json
+ExecStart=/home/openreview/.nvm/versions/node/v14.11.0/lib/node_modules/pm2/bin/pm2 start /home/openreview/deploy/openreview-web/current/ecosystem.json --env production --no-daemon --update-env
+ExecReload=/home/openreview/.nvm/versions/node/v14.11.0/lib/node_modules/pm2/bin/pm2 restart openreview-web --update-env
+ExecStop=/home/openreview/.nvm/versions/node/v14.11.0/lib/node_modules/pm2/bin/pm2 stop /home/openreview/deploy/openreview-web/current/ecosystem.json
 Restart=on-failure
 RestartSec=8
 TimeoutStartSec=8

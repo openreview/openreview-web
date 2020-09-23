@@ -1,0 +1,26 @@
+<div class="arechair-progress">
+  <h4>{{numMetaReview}} Meta Review Submitted</h4>
+
+  <strong>Area Chair:</strong>
+  <table class="table table-condensed table-minimal">
+    <tbody>
+      <tr>
+        <td style="width: 320px;">{{areachair.name}} <span class="text-muted">({{areachair.email}})</span>
+      </tr>
+      {{#if metaReview}}
+      <tr>
+        <td>
+          <br>Recommendation: {{metaReview.content.recommendation}}
+          {{#if metaReview.content.format}}/ Format: {{metaReview.content.format}}{{/if}}
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <a href="/forum?id={{metaReview.forum}}&noteId={{metaReview.id}}{{#if referrer}}&referrer={{referrer}}{{/if}}" target="_blank">Read Meta Review</a>
+        </td>
+      </tr>
+      {{/if}}
+    </tbody>
+  </table>
+
+</div>

@@ -1,0 +1,10 @@
+<div class="tag-widget text {{#unless tag.value}}incomplete{{/unless}} {{extraClasses}}" data-id="{{tag.id}}" data-type="text">
+  <form class="form-inline">
+    <label>{{options.label}}</label>
+    <span class="current-value">{{tag.value}}</span>
+    <input type="text" class="form-control new-value" value="{{tag.value}}" placeholder="{{options.placeholder}}" style="display:none;">
+    {{#unless options.readOnly}}
+      <button class="btn btn-default btn-xs btn-link toggle-edit-value" type="button">Edit</button>
+    {{/unless}}
+  </form>
+</div>

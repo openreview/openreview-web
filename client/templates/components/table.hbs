@@ -1,0 +1,17 @@
+<div class="table-container">
+  <table class="table table-striped {{extraClasses}}">
+    {{#if headings}}
+      <thead>
+        <tr>
+          {{#each headings}}<th class="row-{{@index}}">{{{this}}}</th>{{/each}}
+        </tr>
+      </thead>
+    {{/if}}
+
+    <tbody>
+      {{#each rows}}
+        <tr>{{#each this}}<td>{{{this}}}</td>{{/each}}</tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>

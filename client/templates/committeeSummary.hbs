@@ -1,0 +1,25 @@
+<div class="note" data-id="{{id}}">
+  {{#if name}}
+    <h4><a href="/profile?id={{id}}" target="_blank">{{name}}</a></h4>
+    <p class="text-muted">({{email}})</p>
+  {{else}}
+    <h4><a href="/profile?email={{email}}" target="_blank">{{email}}</a></h4>
+  {{/if}}
+
+  <p>
+    {{#if showBids}}
+      Completed Bids: {{completedBids}}&nbsp;
+      {{#if completedBids}}
+        (<a href="{{edgeBrowserBidsUrl}}" class="show-reviewer-bids" target="_blank">view all</a>)
+      {{/if}}
+      <br>
+    {{/if}}
+
+    {{#if showRecommendations}}
+      Reviewers Recommended: {{completedRecs}}&nbsp;
+      {{#if completedRecs}}
+        (<a href="{{edgeBrowserRecsUrl}}" class="show-reviewer-bids" target="_blank">view all</a>)
+      {{/if}}
+    {{/if}}
+  </p>
+</div>
