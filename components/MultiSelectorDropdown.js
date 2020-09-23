@@ -1,26 +1,39 @@
+import { useState } from 'react'
+
 export default function MultiSelectorDropdown({
-  id, options, selectedValues, setSelectedValues, disabled,
+  id, options, selectedOptions, onSelectionChange, disabled,
 }) {
+  console.log('dropdown', {selectedOptions});
+  const [selectedValues, setSelectedValues] = useState(selectedOptions)
+  console.log('after selectedValues', selectedValues);
   const allValues = options.map(f => f.value)
   const numOptions = allValues.length
 
   const handleSelectAllChange = () => {
+    console.log('handleSelectAllChange', selectedValues, numOptions);
     if (selectedValues.length === numOptions) {
+      console.log('set empty selected vakyes');
       setSelectedValues([])
+      onSelectionChange([])
     } else {
       setSelectedValues(allValues)
+      onSelectionChange(allValues)
     }
   }
 
   const handleSelectValueChange = (value) => {
+    console.log('handleSelectValueChange');
     if (selectedValues.includes(value)) {
       setSelectedValues(selectedValues.filter(v => v !== value))
+      onSelectionChange(selectedValues.filter(v => v !== value))
     } else {
       setSelectedValues([...selectedValues, value])
+      onSelectionChange([...selectedValues, value])
     }
   }
 
   const getButtonText = () => {
+    console.log('buttonText', selectedValues);
     if (selectedValues.length === numOptions) return 'All'
     if (selectedValues.length === 0) return 'None'
     if (selectedValues.length === 1) return selectedValues[0]

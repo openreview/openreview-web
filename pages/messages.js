@@ -25,11 +25,16 @@ const FilterForm = ({ searchQuery, loading }) => {
     { text: 'Blocked', value: 'blocked' },
     { text: 'Deferred', value: 'deferred' },
   ]
-  const selectedValues = (searchQuery && searchQuery.status)
-    ? searchQuery.status
-    : statusOptions.map(option => option.value)
+  // const selectedStatuses = (searchQuery && searchQuery.status)
+  //   ? searchQuery.status
+  //   : statusOptions.map(option => option.value)
+  const queryStatus = searchQuery?.status ?? []
+  const queryStatusArray = Array.isArray(queryStatus) ? queryStatus : [queryStatus]
+  const selectedStatuses = (queryStatusArray.length && queryStatusArray) || statusOptions.map(option => option.value)
+
   // TODO: initialize the statuses with the values of searchquery doesn't work
-  const [selectedStatuses, setSelectedStatuses] = useState(selectedValues)
+  console.log({selectedStatuses})
+  //const [selectedStatuses, setSelectedStatuses] = useState(selectedValues)
   const router = useRouter()
 
   const onFiltersChange = (field, value) => {
@@ -39,7 +44,7 @@ const FilterForm = ({ searchQuery, loading }) => {
   const updateFilters = useCallback(debounce(onFiltersChange, 300), [searchQuery])
 
   const handleSelectStatusChange = (values) => {
-    setSelectedStatuses(values)
+    //setSelectedStatuses(values)
     onFiltersChange('status', values.length === statusOptions.length ? null : values)
   }
   const handleSubjectChange = (value) => {
@@ -59,8 +64,8 @@ const FilterForm = ({ searchQuery, loading }) => {
         <MultiSelectorDropdown
           id="status-search-dropdown"
           options={statusOptions}
-          selectedValues={selectedStatuses}
-          setSelectedValues={handleSelectStatusChange}
+          selectedOptions={selectedStatuses}
+          onSelectionChange={handleSelectStatusChange}
           disabled={loading}
         />
       </div>
