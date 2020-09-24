@@ -101,8 +101,8 @@ const Messages = ({ appContext }) => {
     try {
       let validStatus
       if (Array.isArray(query?.status)) {
-        validStatus = query?.status?.filter(p => statusOptions.some(q => q.value.toLowerCase() === p))
-      } else if (statusOptions.some(r => r.value.toLowerCase() === query?.status)) {
+        validStatus = query?.status?.filter(p => statusOptions.some(q => q.value === p))
+      } else if (statusOptions.some(r => r.value === query?.status)) {
         validStatus = query?.status
       }
       const apiRes = await api.get('/messages', {
