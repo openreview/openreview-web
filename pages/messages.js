@@ -25,11 +25,8 @@ const FilterForm = ({ searchQuery, loading }) => {
     { text: 'Blocked', value: 'blocked' },
     { text: 'Deferred', value: 'deferred' },
   ]
-  const selectedValues = (searchQuery && searchQuery.status)
-    ? searchQuery.status
-    : statusOptions.map(option => option.value)
-  // TODO: initialize the statuses with the values of searchquery doesn't work
-  const [selectedStatuses, setSelectedStatuses] = useState(selectedValues)
+  const queryStatus = searchQuery?.status ?? []
+  const selectedStatuses = Array.isArray(queryStatus) ? queryStatus : [queryStatus]
   const router = useRouter()
 
   const onFiltersChange = (field, value) => {
@@ -39,8 +36,7 @@ const FilterForm = ({ searchQuery, loading }) => {
   const updateFilters = useCallback(debounce(onFiltersChange, 300), [searchQuery])
 
   const handleSelectStatusChange = (values) => {
-    setSelectedStatuses(values)
-    onFiltersChange('status', values.length === statusOptions.length ? null : values)
+    onFiltersChange('status', values)
   }
   const handleSubjectChange = (value) => {
     onFiltersChange('subject', value)
