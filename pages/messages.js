@@ -26,7 +26,9 @@ const FilterForm = ({ searchQuery, loading }) => {
     { text: 'Deferred', value: 'deferred' },
   ]
   const queryStatus = searchQuery?.status ?? []
-  const selectedStatuses = Array.isArray(queryStatus) ? queryStatus : [queryStatus]
+  const queryStatutes = Array.isArray(queryStatus) ? queryStatus : [queryStatus]
+  const optionValues = statusOptions.map(o => o.value)
+  const selectedStatuses = queryStatutes.filter(s => optionValues.includes(s))
   const router = useRouter()
 
   const onFiltersChange = (field, value) => {
