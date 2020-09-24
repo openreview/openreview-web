@@ -5,7 +5,7 @@ import debounce from 'lodash/debounce'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import useQuery from '../hooks/useQuery'
-import UserContext from '../components/UserContext'
+import useLoginRedirect from '../hooks/useLoginRedirect'
 import MessagesTable from '../components/MessagesTable'
 import ErrorAlert from '../components/ErrorAlert'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -145,6 +145,7 @@ const Messages = ({ appContext }) => {
           totalCount={count}
           baseUrl="/messages"
           queryParams={query}
+          options={{ useShallowRouting: true }}
         />
       )}
 
