@@ -122,11 +122,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
           if (!result.invitations || !result.invitations.length) {
             return [];
           }
-          return result.invitations.filter(function(invitation) {
-            return !_.has(invitation, 'multiReply')
-              || invitation.multiReply !== false
-              || !_.has(invitation, 'details.repliedNotes[0]');
-          });
+          return result.invitations;
         }, onError);
     };
 
@@ -234,9 +230,17 @@ module.exports = function(forumId, noteId, invitationId, user) {
   var mkPanel = function(rec, $anchor) {
     var $note = view.mkNotePanel(rec.note, {
       onEditRequested: function(invitation, options) {
-        var params = Object.assign({}, options);
-        var noteToRender = params.original ? rec.note.details.original : rec.note;
-        mkEditor(rec, noteToRender, invitation, $anchor, function(editor) {
+        var noteToRender;
+        if (options.original) {
+          noteToRender = rec.note.details?.original;
+        } else if (options.revision) {
+          noteToRender = invitation.details?.repliedNotes?.[0]
+          if (noteToRender) {
+            // Include both the referent and the note id so the API doesn't create a new reference
+            noteToRender.updateId = noteToRender.id
+          }
+        }
+        mkEditor(rec, noteToRender || rec.note, invitation, $anchor, function(editor) {
           if (editor) {
             $note.replaceWith(editor);
           }
@@ -540,9 +544,14 @@ module.exports = function(forumId, noteId, invitationId, user) {
             scrollToNote(noteId);
           }
           if (invitationId) {
-            var invitation = _.find(noteOrForumRec.replyInvitations, ['id', invitationId]);
-            if (invitation) {
-              appendInvitation(invitation, noteId);
+            var replyInv = _.find(noteOrForumRec.replyInvitations, ['id', invitationId]);
+            if (replyInv) {
+              appendInvitation(replyInv, noteId);
+            } else {
+              var origInv = _.find(noteOrForumRec.originalInvitations, ['id', invitationId]);
+              if (origInv) {
+                $('#note_' + forumId + ' .meta_actions .edit_button').trigger('click')
+              }
             }
           }
         }
