@@ -2090,7 +2090,7 @@ module.exports = (function() {
     }
 
     var $revisionsLink = (params.withRevisionsLink && details.revisions) ?
-      $('<a>', { class: 'note_content_pdf item', href: '/revisions?id=' + note.id, text: 'Show Revisions', target: '_blank' }) :
+      $('<a>', { class: 'note_content_pdf item', href: '/revisions?id=' + note.id, text: 'Show Revisions' }) :
       null;
 
     // Display modal showing full BibTeX reference. Click handler is definied in public/index.js
@@ -2130,8 +2130,15 @@ module.exports = (function() {
     }
 
     var $originalInvitations = _.map(params.originalInvitations, function(invitation) {
-      return $('<button class="btn btn-xs edit_button">').text(prettyInvitationId(invitation.id)).click(function() {
-        params.onEditRequested(invitation, { original: true });
+      var buttonText = prettyInvitationId(invitation.id);
+      var editorOptions = { original: true }
+      if (buttonText === 'Revision' && invitation.multiReply === false && invitation.details.repliedNotes?.length) {
+        buttonText = 'Edit Revision';
+        editorOptions = { revision: true }
+      }
+
+      return $('<button class="btn btn-xs edit_button">').text(buttonText).on('click', function() {
+        params.onEditRequested(invitation, editorOptions);
       });
     });
 
