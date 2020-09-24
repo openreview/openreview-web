@@ -100,7 +100,7 @@ const RevisionsList = ({
         showEditorModal(noteToShow, revisionInvitation, editorOptions)
       },
       onTrashedOrRestored: () => {
-        $('.references-list').find(`#note-${note.id}`).hide()
+        $(`#note_${note.id}`).closest('.row').remove()
         promptMessage('Revision deleted')
       },
     }).removeClass('panel')
