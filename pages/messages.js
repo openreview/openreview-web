@@ -92,7 +92,7 @@ const Messages = ({ appContext }) => {
   const page = parseInt(query?.page, 10) || 1
   const pageSize = 25
   const { setBannerHidden } = appContext
-  const { accessToken, userLoading } = useContext(UserContext)
+  const { accessToken, userLoading } = useLoginRedirect()
 
   const loadMessages = async () => {
     try {
