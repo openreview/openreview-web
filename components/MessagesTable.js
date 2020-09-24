@@ -13,7 +13,7 @@ const MessageRow = ({ message }) => (
 
     <td>
       <div className="clearfix">
-        <div className="email-to pull-left">
+        <div className="email-to pull-left mr-3">
           To:
           {' '}
           <a
@@ -21,33 +21,29 @@ const MessageRow = ({ message }) => (
             className="profile-link"
             target="_blank"
             rel="noreferrer"
-            data-toggle="tooltip"
-            data-placement="top"
           >
             {message.content?.to}
           </a>
         </div>
+        {message.referrer && (
+          <div className="email-parent pull-left mr-4">
+            Parent:
+            {' '}
+            <a
+              href={`/group?id=${encodeURIComponent(message.referrer)}&mode=edit`}
+              className="profile-link"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {message.referrer}
+            </a>
+          </div>
+        )}
         <div className="email-sent pull-right">
           Sent:
           {' '}
           <span>{formatTimestamp(message.timestamp * 1000)}</span>
         </div>
-        {message?.referrer && (
-          <div className="email-parent">
-            Parent:
-            {' '}
-            <a
-              href={`/group?id=${encodeURIComponent(message?.referrer)}&mode=edit`}
-              className="profile-link"
-              target="_blank"
-              rel="noreferrer"
-              data-toggle="tooltip"
-              data-placement="top"
-            >
-              {message?.referrer}
-            </a>
-          </div>
-        )}
       </div>
 
       <div className="email-title">

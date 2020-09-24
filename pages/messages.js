@@ -1,6 +1,4 @@
-import {
-  useState, useEffect, useContext, useCallback,
-} from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import debounce from 'lodash/debounce'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
