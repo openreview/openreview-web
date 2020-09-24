@@ -15,16 +15,17 @@ import api from '../lib/api-client'
 
 import '../styles/pages/messages.less'
 
+const statusOptions = [
+  { text: 'Delivered', value: 'delivered' },
+  { text: 'Bounced', value: 'bounce' },
+  { text: 'Processed', value: 'processed' },
+  { text: 'Dropped', value: 'dropped' },
+  { text: 'Error', value: 'error' },
+  { text: 'Blocked', value: 'blocked' },
+  { text: 'Deferred', value: 'deferred' },
+]
+
 const FilterForm = ({ searchQuery, loading }) => {
-  const statusOptions = [
-    { text: 'Delivered', value: 'delivered' },
-    { text: 'Bounced', value: 'bounce' },
-    { text: 'Processed', value: 'processed' },
-    { text: 'Dropped', value: 'dropped' },
-    { text: 'Error', value: 'error' },
-    { text: 'Blocked', value: 'blocked' },
-    { text: 'Deferred', value: 'deferred' },
-  ]
   const queryStatus = searchQuery?.status ?? []
   const queryStatutes = Array.isArray(queryStatus) ? queryStatus : [queryStatus]
   const optionValues = statusOptions.map(o => o.value)
@@ -98,8 +99,15 @@ const Messages = ({ appContext }) => {
 
   const loadMessages = async () => {
     try {
+      let validStatus
+      if (Array.isArray(query?.status)) {
+        validStatus = query?.status?.filter(p => statusOptions.some(q => q.value.toLowerCase() === p))
+      } else if (statusOptions.some(r => r.value.toLowerCase() === query?.status)) {
+        validStatus = query?.status
+      }
       const apiRes = await api.get('/messages', {
         ...query,
+        status: validStatus,
         limit: pageSize,
         offset: pageSize * (page - 1),
       }, { accessToken })
