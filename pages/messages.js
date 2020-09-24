@@ -22,31 +22,17 @@ const statusOptions = [
   { text: 'Blocked', value: 'blocked' },
   { text: 'Deferred', value: 'deferred' },
 ]
+const statusOptionValues = statusOptions.map(o => o.value)
 
 const FilterForm = ({ searchQuery, loading }) => {
   const queryStatus = searchQuery?.status ?? []
   const queryStatutes = Array.isArray(queryStatus) ? queryStatus : [queryStatus]
-  const optionValues = statusOptions.map(o => o.value)
-  const selectedStatuses = queryStatutes.filter(s => optionValues.includes(s))
+  const selectedStatuses = queryStatutes.filter(s => statusOptionValues.includes(s))
   const router = useRouter()
 
   const onFiltersChange = (field, value) => {
     const newSearchQuery = { ...searchQuery, [field]: value }
     router.push({ pathname: '/messages', query: newSearchQuery }, undefined, { shallow: true })
-  }
-  const updateFilters = useCallback(debounce(onFiltersChange, 300), [searchQuery])
-
-  const handleSelectStatusChange = (values) => {
-    onFiltersChange('status', values)
-  }
-  const handleSubjectChange = (value) => {
-    onFiltersChange('subject', value)
-  }
-  const handleRecipientChange = (value) => {
-    onFiltersChange('to', value)
-  }
-  const handleParentGroupChange = (value) => {
-    onFiltersChange('parentGroup', value)
   }
 
   return (
@@ -57,21 +43,45 @@ const FilterForm = ({ searchQuery, loading }) => {
           id="status-search-dropdown"
           options={statusOptions}
           selectedValues={selectedStatuses}
-          setSelectedValues={handleSelectStatusChange}
+          setSelectedValues={values => onFiltersChange('status', values)}
           disabled={loading}
         />
       </div>
       <div className="form-group">
         <label htmlFor="subject-search-input">Subject:</label>
-        <input type="text" id="subject-search-input" className="form-control" placeholder="Message subject" disabled={loading} value={searchQuery?.subject ?? ''} onChange={e => handleSubjectChange(e.target.value)} />
+        <input
+          type="text"
+          id="subject-search-input"
+          className="form-control"
+          placeholder="Message subject"
+          disabled={loading}
+          value={searchQuery?.subject ?? ''}
+          onChange={e => onFiltersChange('subject', e.target.value)}
+        />
       </div>
       <div className="form-group">
         <label htmlFor="to-search-input">To:</label>
-        <input type="text" id="to-search-input" className="form-control" placeholder="To address" disabled={loading} value={searchQuery?.to ?? ''} onChange={e => handleRecipientChange(e.target.value)} />
+        <input
+          type="text"
+          id="to-search-input"
+          className="form-control"
+          placeholder="To address"
+          disabled={loading}
+          value={searchQuery?.to ?? ''}
+          onChange={e => onFiltersChange('to', e.target.value)}
+        />
       </div>
       <div className="form-group">
         <label htmlFor="parent-group-search-input">Parent:</label>
-        <input type="text" id="parent-group-search-input" className="form-control" placeholder="Parent group" disabled={loading} value={searchQuery?.parentGroup ?? ''} onChange={e => handleParentGroupChange(e.target.value)} />
+        <input
+          type="text"
+          id="parent-group-search-input"
+          className="form-control"
+          placeholder="Parent group"
+          disabled={loading}
+          value={searchQuery?.parentGroup ?? ''}
+          onChange={e => onFiltersChange('parentGroup', e.target.value)}
+        />
       </div>
       {loading && (
         <div className="spinner-small">
@@ -86,6 +96,7 @@ const FilterForm = ({ searchQuery, loading }) => {
 }
 
 const Messages = ({ appContext }) => {
+  const { accessToken, userLoading } = useLoginRedirect()
   const query = useQuery()
   const [messages, setMessages] = useState(null)
   const [count, setCount] = useState(0)
@@ -93,16 +104,16 @@ const Messages = ({ appContext }) => {
   const page = parseInt(query?.page, 10) || 1
   const pageSize = 25
   const { setBannerHidden } = appContext
-  const { accessToken, userLoading } = useLoginRedirect()
 
   const loadMessages = async () => {
+    let validStatus
+    if (Array.isArray(query.status)) {
+      validStatus = query.status?.filter(status => statusOptionValues.includes(status))
+    } else if (statusOptionValues.includes(query.status)) {
+      validStatus = query.status
+    }
+
     try {
-      let validStatus
-      if (Array.isArray(query?.status)) {
-        validStatus = query?.status?.filter(p => statusOptions.some(q => q.value === p))
-      } else if (statusOptions.some(r => r.value === query?.status)) {
-        validStatus = query?.status
-      }
       const apiRes = await api.get('/messages', {
         ...query,
         status: validStatus,
