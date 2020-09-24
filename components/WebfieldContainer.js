@@ -11,8 +11,11 @@ const WebfieldContainer = React.forwardRef((props, ref) => {
     const href = e.target.getAttribute('href') || e.target.parentElement.getAttribute('href')
     if (!href) return
 
-    if (e.target.getAttribute('target') === '_blank' || e.target.parentElement.getAttribute('target') === '_blank') { // respect attribute set in element
+    // Respect target attribute
+    if (e.target.getAttribute('target') === '_blank' || e.target.parentElement.getAttribute('target') === '_blank') {
+      e.preventDefault()
       window.open(href, '_blank')
+      return
     }
 
     if (href.match(/^\/(forum|group|profile)/)) {
