@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import debounce from 'lodash/debounce'
 import Head from 'next/head'
-import withAdminAuth from '../components/withAdminAuth'
+import { useRouter } from 'next/router'
+import useQuery from '../hooks/useQuery'
+import useLoginRedirect from '../hooks/useLoginRedirect'
 import MessagesTable from '../components/MessagesTable'
 import ErrorAlert from '../components/ErrorAlert'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -11,48 +13,75 @@ import api from '../lib/api-client'
 
 import '../styles/pages/messages.less'
 
-const FilterForm = ({ onFiltersChange, loading }) => {
-  const statusOptions = [
-    { text: 'Delivered', value: 'delivered' },
-    { text: 'Bounced', value: 'bounce' },
-    { text: 'Processed', value: 'processed' },
-    { text: 'Dropped', value: 'dropped' },
-    { text: 'Error', value: 'error' },
-    { text: 'Blocked', value: 'blocked' },
-    { text: 'Deferred', value: 'deferred' },
-  ]
-  const [selectedStatuses, setSelectedStatuses] = useState(statusOptions.map(option => option.value))
+const statusOptions = [
+  { text: 'Delivered', value: 'delivered' },
+  { text: 'Bounced', value: 'bounce' },
+  { text: 'Processed', value: 'processed' },
+  { text: 'Dropped', value: 'dropped' },
+  { text: 'Error', value: 'error' },
+  { text: 'Blocked', value: 'blocked' },
+  { text: 'Deferred', value: 'deferred' },
+]
+const statusOptionValues = statusOptions.map(o => o.value)
 
-  const handleSelectStatusChange = (values) => {
-    setSelectedStatuses(values)
-    onFiltersChange({ type: 'status', statuses: values.length === statusOptions.length ? null : values })
-  }
-  const handleSubjectChange = (value) => {
-    onFiltersChange({ type: 'subject', subject: value })
-  }
-  const handleRecipientChange = (value) => {
-    onFiltersChange({ type: 'recipient', recipient: value })
+const FilterForm = ({ searchQuery, loading }) => {
+  const queryStatus = searchQuery?.status ?? []
+  const queryStatutes = Array.isArray(queryStatus) ? queryStatus : [queryStatus]
+  const selectedStatuses = queryStatutes.filter(s => statusOptionValues.includes(s))
+  const router = useRouter()
+
+  const onFiltersChange = (field, value) => {
+    const newSearchQuery = { ...searchQuery, [field]: value }
+    router.push({ pathname: '/messages', query: newSearchQuery }, undefined, { shallow: true })
   }
 
   return (
-    <form className="filter-controls form-inline text-center well" onSubmit={e => e.preventDefault()}>
+    <form className="filter-controls form-inline well" onSubmit={e => e.preventDefault()}>
       <div className="form-group">
         <label htmlFor="status-search-dropdown">Status:</label>
         <MultiSelectorDropdown
           id="status-search-dropdown"
           options={statusOptions}
           selectedValues={selectedStatuses}
-          setSelectedValues={handleSelectStatusChange}
+          setSelectedValues={values => onFiltersChange('status', values)}
           disabled={loading}
         />
       </div>
       <div className="form-group">
         <label htmlFor="subject-search-input">Subject:</label>
-        <input type="text" id="subject-search-input" className="form-control" placeholder="Message subject" disabled={loading} onChange={e => handleSubjectChange(e.target.value)} />
+        <input
+          type="text"
+          id="subject-search-input"
+          className="form-control"
+          placeholder="Message subject"
+          disabled={loading}
+          value={searchQuery?.subject ?? ''}
+          onChange={e => onFiltersChange('subject', e.target.value)}
+        />
       </div>
       <div className="form-group">
         <label htmlFor="to-search-input">To:</label>
-        <input type="text" id="to-search-input" className="form-control" placeholder="To address" disabled={loading} onChange={e => handleRecipientChange(e.target.value)} />
+        <input
+          type="text"
+          id="to-search-input"
+          className="form-control"
+          placeholder="To address"
+          disabled={loading}
+          value={searchQuery?.to ?? ''}
+          onChange={e => onFiltersChange('to', e.target.value)}
+        />
+      </div>
+      <div className="form-group">
+        <label htmlFor="parent-group-search-input">Parent:</label>
+        <input
+          type="text"
+          id="parent-group-search-input"
+          className="form-control"
+          placeholder="Parent group"
+          disabled={loading}
+          value={searchQuery?.parentGroup ?? ''}
+          onChange={e => onFiltersChange('parentGroup', e.target.value)}
+        />
       </div>
       {loading && (
         <div className="spinner-small">
@@ -66,70 +95,47 @@ const FilterForm = ({ onFiltersChange, loading }) => {
   )
 }
 
-const Messages = ({
-  accessToken, appContext,
-}) => {
+const Messages = ({ appContext }) => {
+  const { accessToken, userLoading } = useLoginRedirect()
+  const query = useQuery()
   const [messages, setMessages] = useState(null)
   const [count, setCount] = useState(0)
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [searchParams, setSearchParams] = useState({
-    status: null,
-    subject: null,
-    to: null,
-  })
-  const [page, setPage] = useState(1)
-
+  const page = parseInt(query?.page, 10) || 1
   const pageSize = 25
   const { setBannerHidden } = appContext
 
-  const handleSearchParamChange = (filters) => {
-    if (filters.type === 'status') {
-      setPage(1)
-      setSearchParams({ ...searchParams, status: filters.statuses })
-    }
-    if (filters.type === 'subject') {
-      setPage(1)
-      setSearchParams({ ...searchParams, subject: filters.subject ? `${filters.subject}.*` : '' })
-    }
-    if (filters.type === 'recipient' && (filters.recipient === '' || filters.recipient.includes('@'))) {
-      setPage(1)
-      setSearchParams({ ...searchParams, to: filters.recipient })
-    }
-  }
-
-  const updateFilters = useCallback(debounce(handleSearchParamChange, 300), [searchParams])
-
   const loadMessages = async () => {
-    setLoading(true)
+    let validStatus
+    if (Array.isArray(query.status)) {
+      validStatus = query.status?.filter(status => statusOptionValues.includes(status))
+    } else if (statusOptionValues.includes(query.status)) {
+      validStatus = query.status
+    }
+
     try {
       const apiRes = await api.get('/messages', {
-        ...searchParams,
+        ...query,
+        status: validStatus,
         limit: pageSize,
         offset: pageSize * (page - 1),
       }, { accessToken })
 
       setMessages(apiRes.messages || [])
       setCount(apiRes.count || 0)
+      setError(null)
     } catch (apiError) {
       setError(apiError)
       setMessages(null)
     }
-    setLoading(false)
   }
 
   useEffect(() => {
+    if (userLoading || !query) return
     setBannerHidden(true)
-  }, [])
 
-  useEffect(() => {
-    if (searchParams.status?.length === 0) {
-      setMessages([])
-      setCount(0)
-    } else {
-      loadMessages()
-    }
-  }, [searchParams, page])
+    loadMessages()
+  }, [userLoading, query])
 
   return (
     <div>
@@ -141,24 +147,24 @@ const Messages = ({
         <h1 className="text-center">Message Viewer</h1>
       </header>
 
-      <FilterForm onFiltersChange={updateFilters} loading={loading} />
+      <FilterForm searchQuery={query} />
 
       {error && (
         <ErrorAlert error={error} />
       )}
 
       {messages && (
-        <MessagesTable messages={messages} />
+        <MessagesTable messages={messages} loading={userLoading} />
       )}
 
       {messages && (
         <PaginationLinks
           currentPage={page}
-          setCurrentPage={setPage}
           itemsPerPage={pageSize}
           totalCount={count}
           baseUrl="/messages"
-          queryParams={searchParams}
+          queryParams={query}
+          options={{ useShallowRouting: true }}
         />
       )}
 
@@ -171,4 +177,4 @@ const Messages = ({
 
 Messages.bodyClass = 'messages'
 
-export default withAdminAuth(Messages)
+export default Messages

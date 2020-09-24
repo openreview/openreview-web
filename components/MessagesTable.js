@@ -13,11 +13,32 @@ const MessageRow = ({ message }) => (
 
     <td>
       <div className="clearfix">
-        <div className="email-to pull-left">
+        <div className="email-to pull-left mr-3">
           To:
           {' '}
-          <span>{message.content?.to}</span>
+          <a
+            href={`/profile?email=${encodeURIComponent(message.content?.to)}`}
+            className="profile-link"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {message.content?.to}
+          </a>
         </div>
+        {message.referrer && (
+          <div className="email-parent pull-left mr-4">
+            Parent:
+            {' '}
+            <a
+              href={`/group?id=${encodeURIComponent(message.referrer)}&mode=edit`}
+              className="profile-link"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {message.referrer}
+            </a>
+          </div>
+        )}
         <div className="email-sent pull-right">
           Sent:
           {' '}
