@@ -190,6 +190,7 @@ export default class OpenReviewApp extends App {
     const script = document.createElement('script')
     script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.0.5/es5/tex-chtml.js'
     script.async = true
+    script.crossOrigin = 'anonymous'
     document.head.appendChild(script)
 
     // Load legacy JS code

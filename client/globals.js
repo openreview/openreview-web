@@ -232,11 +232,11 @@ window.typesetMathJax = function() {
       console.warn('Could not typeset TeX content');
     })
   }
-  if (MathJax.startup.promise) {
+  if (MathJax.startup?.promise) {
     runTypeset()
   } else {
     setTimeout(function() {
-      if (MathJax.startup.promise) {
+      if (MathJax.startup?.promise) {
         runTypeset()
       } else {
         console.warn('Could not typeset TeX content');

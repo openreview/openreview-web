@@ -517,6 +517,7 @@ module.exports = (function() {
 
       view.mkNewNoteEditor(invitationData, null, null, user, {
         onCompleted: function($editor) {
+          if (!$editor) return;
           $editor.hide();
           $container.append($editor);
           $editor.slideDown();
@@ -541,6 +542,7 @@ module.exports = (function() {
     var $container = $(options.container);
     view.mkNewNoteEditor(invitationData, null, null, user, {
       onCompleted: function($editor) {
+        if (!$editor) return;
         $editor.hide();
         $editor.children().eq(3).hide();
         $editor.children().eq(4).hide();
@@ -1252,12 +1254,13 @@ module.exports = (function() {
           onNoteCancelled: function() {
             $('#note-editor-modal').modal('hide');
           },
-          onCompleted: function(editor) {
+          onCompleted: function($editor) {
+            if (!$editor) return;
             $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append(
               '<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
                 '<span aria-hidden="true">&times;</span>' +
               '</button>',
-              editor
+              $editor
             );
           }
         });
