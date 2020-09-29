@@ -231,9 +231,9 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var $note = view.mkNotePanel(rec.note, {
       onEditRequested: function(invitation, options) {
         var noteToRender;
-        if (options.original) {
+        if (options?.original) {
           noteToRender = rec.note.details?.original;
-        } else if (options.revision) {
+        } else if (options?.revision) {
           noteToRender = invitation.details?.repliedNotes?.[0]
           if (noteToRender) {
             // Include both the referent and the note id so the API doesn't create a new reference
