@@ -43,6 +43,8 @@ const Browse = ({ appContext }) => {
       return
     }
 
+    setLayoutOptions({ fullWidth: true, minimalFooter: true })
+
     if (query.referrer) {
       setBannerContent(referrerLink(query.referrer))
     } else {
@@ -128,10 +130,6 @@ const Browse = ({ appContext }) => {
         setError(unknownError)
       })
   }, [userLoading, query, user])
-
-  useEffect(() => {
-    setLayoutOptions({ fullWidth: true, minimalFooter: true })
-  }, [])
 
   useEffect(() => {
     if (!error) return
