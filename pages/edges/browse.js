@@ -1,8 +1,8 @@
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import uniq from 'lodash/uniq'
 import useQuery from '../../hooks/useQuery'
-import UserContext from '../../components/UserContext'
+import useLoginRedirect from '../../hooks/useLoginRedirect'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import EdgeBrowser from '../../components/browser/EdgeBrowser'
 import EdgeBrowserHeader from '../../components/browser/EdgeBrowserHeader'
@@ -14,11 +14,11 @@ import { referrerLink } from '../../lib/banner-links'
 import '../../styles/pages/edge-browser.less'
 
 const Browse = ({ appContext }) => {
+  const { user, accessToken, userLoading } = useLoginRedirect()
   const [invitations, setInvitations] = useState(null)
   const [titleInvitation, setTitleInvitation] = useState(null)
   const [maxColumns, setMaxColumns] = useState(-1)
   const [error, setError] = useState(null)
-  const { user, accessToken, userLoading } = useContext(UserContext)
   const query = useQuery()
   const { setBannerHidden, setBannerContent, setLayoutOptions } = appContext
 
@@ -42,6 +42,8 @@ const Browse = ({ appContext }) => {
       setError(notFoundError)
       return
     }
+
+    setLayoutOptions({ fullWidth: true, minimalFooter: true })
 
     if (query.referrer) {
       setBannerContent(referrerLink(query.referrer))
@@ -130,10 +132,6 @@ const Browse = ({ appContext }) => {
   }, [userLoading, query, user])
 
   useEffect(() => {
-    setLayoutOptions({ fullWidth: true, minimalFooter: true })
-  }, [])
-
-  useEffect(() => {
     if (!error) return
 
     setBannerContent(null)
@@ -143,6 +141,7 @@ const Browse = ({ appContext }) => {
   if (error) {
     return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
   }
+
   return (
     <>
       <Head>
