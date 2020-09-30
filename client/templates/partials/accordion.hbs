@@ -6,12 +6,12 @@
       <div class="panel-heading" role="tab">
         <h4 class="panel-title">
           <a class="collapse-btn {{#if ../options.collapsed}}collapsed{{/if}}" role="button"
-             data-toggle="collapse" data-parent="#{{../options.id}}" data-target="#{{> sectionId parentId=../options.id}}"
+             data-toggle="collapse" data-parent="#{{../options.id}}" href="#{{> sectionId parentId=../options.id}}"
              aria-controls="{{> sectionId parentId=../options.id}}">
             <span class="glyphicon glyphicon-triangle-bottom"></span>
           </a>
           <a class="{{#if ../options.collapsed}}collapsed{{/if}}" role="button"
-             data-toggle="collapse" data-parent="#{{../options.id}}" data-target="#{{> sectionId parentId=../options.id}}"
+             data-toggle="collapse" data-parent="#{{../options.id}}" href="#{{> sectionId parentId=../options.id}}"
              aria-controls="{{> sectionId parentId=../options.id}}">
             {{heading}}
           </a>
