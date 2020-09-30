@@ -2,7 +2,7 @@
 <ul class="nav nav-tabs" role="tablist">
   {{#each sections}}
     <li role="presentation" {{#if active}}class="active"{{/if}}>
-      <a href="#{{id}}" aria-controls="{{id}}" role="tab" data-toggle="tab" data-tab-index="{{@index}}">
+      <a href="#{{id}}" aria-controls="{{id}}" role="tab" data-toggle="tab" data-tab-index="{{@index}}" data-modify-history="true">
         {{{heading}}}{{#if headingCount}} <span class="badge">{{headingCount}}</span>{{/if}}
       </a>
     </li>

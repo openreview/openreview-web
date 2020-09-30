@@ -38,6 +38,15 @@ This will watch for any changes and rebuild the page. The OpenReview API server
 also has to be running at the same time, and accessible at the URL specified by
 the `$API_URL` env var.
 
+After editing any Handlebars template file, make sure to run:
+
+```bash
+npm run templates
+```
+
+This command compiles all the .hbs files found in the `client/templates` dir and
+builds the file client/templates.js which is used by the legacy frontend code.
+
 To check for ESLint errors, run:
 
 ```bash

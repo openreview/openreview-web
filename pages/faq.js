@@ -4,7 +4,6 @@
 
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
-import { useRouter } from 'next/router'
 import LoadingSpinner from '../components/LoadingSpinner'
 import Accordion from '../components/Accordion'
 
@@ -14,7 +13,6 @@ import '../styles/pages/faq.less'
 function Faq({ generalQuestions, pcQuestions, appContext }) {
   const [formattedGeneralQuestions, setFormattedGeneralQuestions] = useState(null)
   const [formattedPCQuestions, setFormattedPCQuestions] = useState(null)
-  const router = useRouter()
   const { clientJsLoading } = appContext
 
   useEffect(() => {
@@ -40,7 +38,7 @@ function Faq({ generalQuestions, pcQuestions, appContext }) {
     if (window.location.hash) {
       const $titleLink = $(`.panel-title a[href="${window.location.hash}"]`).eq(0)
       if ($titleLink.length) {
-        $titleLink.click()
+        $titleLink.trigger('click')
 
         setTimeout(() => {
           const scrollPos = $titleLink.closest('.panel-default').offset().top - 55
@@ -48,11 +46,6 @@ function Faq({ generalQuestions, pcQuestions, appContext }) {
         }, 200)
       }
     }
-
-    // Update URL hash when clicking a question
-    $('.faq-container .panel-title a').on('click', function onClick() {
-      router.replace(window.location.pathname + window.location.search + $(this).attr('href'))
-    })
   }, [formattedGeneralQuestions, formattedPCQuestions])
 
   return (
