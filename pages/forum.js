@@ -204,7 +204,7 @@ Forum.getInitialProps = async (ctx) => {
     const blindNotesResult = await api.get('/notes', { original: noteId }, { accessToken: token })
 
     // if no blind submission found return the current forum
-    if (blindNotesResult.notes.length) {
+    if (blindNotesResult.notes?.length) {
       return blindNotesResult.notes[0]
     }
 

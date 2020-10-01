@@ -2,7 +2,7 @@
 /* globals $: false */
 
 import {
-  useState, useEffect, useCallback, useContext,
+  useState, useEffect, useCallback, useContext, createContext,
 } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -15,11 +15,14 @@ import { isValidEmail } from '../lib/utils'
 // Page Styles
 import '../styles/pages/signup.less'
 
+const LoadingContext = createContext()
+
 const SignupForm = ({ setSignupConfirmation }) => {
   const [firstName, setFirstName] = useState('')
   const [middleName, setMiddleName] = useState('')
   const [lastName, setLastName] = useState('')
   const [newUsername, setNewUsername] = useState('')
+  const [loading, setLoading] = useState(false)
   const [existingProfiles, setExistingProfiles] = useState([])
 
   const getNewUsername = useCallback(debounce(async (first, middle, last) => {
@@ -52,6 +55,8 @@ const SignupForm = ({ setSignupConfirmation }) => {
   }, 300), [])
 
   const registerUser = async (registrationType, email, password, id) => {
+    setLoading(true)
+
     let bodyData = {}
     if (registrationType === 'new') {
       const name = { first: firstName.trim(), middle: middleName.trim(), last: lastName.trim() }
@@ -69,6 +74,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
     } catch (apiError) {
       promptError(apiError.message)
     }
+    setLoading(false)
   }
 
   const resetPassword = async (username, email) => {
@@ -165,30 +171,32 @@ const SignupForm = ({ setSignupConfirmation }) => {
 
       <hr className="spacer" />
 
-      {existingProfiles.map((profile) => {
-        let formComponents
-        if (profile.emails.length > 0) {
-          formComponents = profile.emails.map(confirmedEmail => (
-            <ExistingProfileForm
-              key={confirmedEmail}
-              id={profile.id}
-              obfuscatedEmail={confirmedEmail}
-              hasPassword={profile.password}
-              isActive={profile.active}
-              registerUser={registerUser}
-              resetPassword={resetPassword}
-              sendActivationLink={sendActivationLink}
-            />
-          ))
-        } else {
-          formComponents = [
-            <ClaimProfileForm key={profile.id} id={profile.id} registerUser={registerUser} />,
-          ]
-        }
-        return formComponents.concat(<hr key={`${profile.id}-spacer`} className="spacer" />)
-      })}
+      <LoadingContext.Provider value={loading}>
+        {existingProfiles.map((profile) => {
+          let formComponents
+          if (profile.emails.length > 0) {
+            formComponents = profile.emails.map(confirmedEmail => (
+              <ExistingProfileForm
+                key={confirmedEmail}
+                id={profile.id}
+                obfuscatedEmail={confirmedEmail}
+                hasPassword={profile.password}
+                isActive={profile.active}
+                registerUser={registerUser}
+                resetPassword={resetPassword}
+                sendActivationLink={sendActivationLink}
+              />
+            ))
+          } else {
+            formComponents = [
+              <ClaimProfileForm key={profile.id} id={profile.id} registerUser={registerUser} />,
+            ]
+          }
+          return formComponents.concat(<hr key={`${profile.id}-spacer`} className="spacer" />)
+        })}
 
-      <NewProfileForm id={newUsername} registerUser={registerUser} />
+        <NewProfileForm id={newUsername} registerUser={registerUser} />
+      </LoadingContext.Provider>
 
       {existingProfiles.length > 0 && (
         <p className="merge-message hint">
@@ -262,7 +270,7 @@ const ExistingProfileForm = ({
             onChange={e => setEmail(e.target.value)}
             autoComplete="email"
           />
-          {hasPassword && <button type="submit" className="btn" disabled={!isValidEmail(email)}>{buttonLabel}</button>}
+          {hasPassword && <SubmitButton disabled={!isValidEmail(email)}>{buttonLabel}</SubmitButton>}
         </div>
       )}
       {passwordVisible && !hasPassword && (
@@ -275,7 +283,7 @@ const ExistingProfileForm = ({
             onChange={e => setPassword(e.target.value)}
             required
           />
-          <button type="submit" className="btn" disabled={!isValidEmail(email) || !password}>{buttonLabel}</button>
+          <SubmitButton disabled={!isValidEmail(email) || !password}>{buttonLabel}</SubmitButton>
         </div>
       )}
     </form>
@@ -351,7 +359,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
             autoComplete="new-password"
             required
           />
-          <button type="submit" className="btn" disabled={!password}>Claim Profile</button>
+          <SubmitButton disabled={!password}>Claim Profile</SubmitButton>
         </div>
       )}
     </form>
@@ -409,10 +417,29 @@ const NewProfileForm = ({ id, registerUser }) => {
             autoComplete="new-password"
             required
           />
-          <button type="submit" className="btn" disabled={!password}>Sign Up</button>
+          <SubmitButton disabled={!password}>Sign Up</SubmitButton>
         </div>
       )}
     </form>
+  )
+}
+
+const SubmitButton = ({ disabled, children }) => {
+  const loading = useContext(LoadingContext)
+
+  return (
+    <button type="submit" className="btn" disabled={disabled || loading}>
+      {children}
+      {' '}
+      {loading && (
+        <div className="spinner-small">
+          <div className="rect1" />
+          <div className="rect2" />
+          <div className="rect3" />
+          <div className="rect4" />
+        </div>
+      )}
+    </button>
   )
 }
 
