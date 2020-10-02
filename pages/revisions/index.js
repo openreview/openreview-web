@@ -221,7 +221,7 @@ const Revisions = ({ appContext }) => {
       ))))
 
       try {
-        const { invitations } = await api.get('/invitations', { ids: invitationIds })
+        const { invitations } = await api.get('/invitations', { ids: invitationIds, expired: true })
 
         if (invitations?.length > 0) {
           setRevisions(references.map((reference) => {
