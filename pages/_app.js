@@ -155,6 +155,13 @@ export default class OpenReviewApp extends App {
       this.setState({ userLoading: false })
     }
 
+    // When the user logs out in another tab, trigger logout for this app
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'openreview.lastLogout') {
+        this.logoutUser()
+      }
+    })
+
     // Track unhandled JavaScript errors
     const reportError = (errorDescription) => {
       if (process.env.IS_PRODUCTION || process.env.IS_STAGING) {
