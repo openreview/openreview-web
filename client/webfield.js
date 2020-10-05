@@ -878,7 +878,7 @@ module.exports = (function() {
           var errorText = getErrorFromJqXhr(jqXhr, textStatus);
           promptError(_.isString(errorText) ? errorText : 'The specified tag could not be updated. Please reload the page and try again.');
           $self.parent().removeClass('disabled');
-          $widget.trigger('apiReturnedError',error);
+          $widget.trigger('apiReturnedError', errorText);
         };
 
         var requestBody;
