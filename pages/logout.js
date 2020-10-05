@@ -14,6 +14,7 @@ const Logout = () => {
     try {
       await api.post('/logout')
       logoutUser()
+      window.localStorage.setItem('openreview.lastLogout', Date.now())
     } catch (error) {
       promptError(error.message)
       router.replace('/')

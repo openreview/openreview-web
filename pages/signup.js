@@ -78,6 +78,8 @@ const SignupForm = ({ setSignupConfirmation }) => {
   }
 
   const resetPassword = async (username, email) => {
+    setLoading(true)
+
     try {
       const { id: registeredEmail } = await api.post('/resettable', { id: email })
       setSignupConfirmation({ type: 'reset', registeredEmail: registeredEmail || email })
@@ -88,15 +90,19 @@ const SignupForm = ({ setSignupConfirmation }) => {
         promptError(apiError.message)
       }
     }
+    setLoading(false)
   }
 
   const sendActivationLink = async (email) => {
+    setLoading(true)
+
     try {
       const { id: registeredEmail } = await api.post('/activatable', { id: email })
       setSignupConfirmation({ type: 'activate', registeredEmail: registeredEmail || email })
     } catch (apiError) {
       promptError(apiError.message)
     }
+    setLoading(false)
   }
 
   const populateFeedbackForm = () => {

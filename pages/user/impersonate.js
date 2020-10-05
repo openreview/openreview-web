@@ -2,7 +2,6 @@
 
 import { useContext, useState } from 'react'
 import Head from 'next/head'
-import Link from 'next/link'
 import Icon from '../../components/Icon'
 import ErrorAlert from '../../components/ErrorAlert'
 import withAdminAuth from '../../components/withAdminAuth'
