@@ -680,7 +680,7 @@ module.exports = (function() {
             if (term) {
               filterNotes(notes, {
                 term: term,
-                pageSize: options.pageSize,
+                pageSize: 1000,
                 invitation: options.search.invitation,
                 onResults: options.search.onResults,
                 localSearch: options.search.localSearch
@@ -706,7 +706,7 @@ module.exports = (function() {
             } else {
               filterNotes(notes, {
                 term: term,
-                pageSize: options.pageSize,
+                pageSize: 1000,
                 subject: selectedSubject,
                 invitation: options.search.invitation,
                 onResults: options.search.onResults,
@@ -739,7 +739,7 @@ module.exports = (function() {
 
             filterNotes(notes, {
               term: term,
-              pageSize: options.pageSize,
+              pageSize: 1000,
               subject: selectedSubject,
               invitation: options.search.invitation,
               onResults: options.search.onResults,
@@ -776,7 +776,7 @@ module.exports = (function() {
             var extraParams = filterSubjects ? {subject: selectedSubject} : {};
             filterNotes(notes, _.assign({
               term: term,
-              pageSize: options.pageSize,
+              pageSize: 1000,
               invitation: options.search.invitation,
               onResults: options.search.onResults,
               localSearch: options.search.localSearch
