@@ -5,7 +5,9 @@ import App from 'next/app'
 import Router from 'next/router'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
-import { auth, setAuthCookie, removeAuthCookie } from '../lib/auth'
+import {
+  auth, setAuthCookie, removeAuthCookie, cookieExpiration,
+} from '../lib/auth'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 // Global Styles
@@ -27,6 +29,7 @@ export default class OpenReviewApp extends App {
     }
     this.shouldResetBanner = false
     this.shouldResetLayout = false
+    this.logoutTimer = null
 
     this.loginUser = this.loginUser.bind(this)
     this.logoutUser = this.logoutUser.bind(this)
@@ -46,6 +49,11 @@ export default class OpenReviewApp extends App {
     window.Webfield.setToken(userAccessToken)
     window.controller.setToken(userAccessToken)
 
+    const timeToExpiration = cookieExpiration * 1000 - 1000
+    this.logoutTimer = setTimeout(() => {
+      this.logoutUser()
+    }, timeToExpiration)
+
     Router.push(redirectPath)
   }
 
@@ -55,6 +63,8 @@ export default class OpenReviewApp extends App {
 
     window.Webfield.setToken(null)
     window.controller.setToken(null)
+
+    clearTimeout(this.logoutTimer)
 
     Router.push(redirectPath)
   }
@@ -148,12 +158,26 @@ export default class OpenReviewApp extends App {
   }
 
   componentDidMount() {
-    const { user, token } = auth()
+    // Load user state from auth cookie
+    const { user, token, expiration } = auth()
     if (user) {
       this.setState({ user, accessToken: token, userLoading: false })
+
+      // Automatically log the user out slightly before the token is set to expire
+      const timeToExpiration = expiration - Date.now() - 1000
+      this.logoutTimer = setTimeout(() => {
+        this.logoutUser()
+      }, timeToExpiration)
     } else {
       this.setState({ userLoading: false })
     }
+
+    // When the user logs out in another tab, trigger logout for this app
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'openreview.lastLogout') {
+        this.logoutUser()
+      }
+    })
 
     // Track unhandled JavaScript errors
     const reportError = (errorDescription) => {
