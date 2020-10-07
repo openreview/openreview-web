@@ -86,7 +86,7 @@ const AssignmentRow = ({
           label="Edit"
           iconName="pencil"
           onClick={() => handleEditConfiguration(note)}
-          disabled={status === 'Running' || status === 'Complete' || status === 'Deploying' || status === 'Deployed' || !configInvitation}
+          disabled={['Running', 'Complete', 'Deploying', 'Deployed'].includes(status) || !configInvitation}
         />
         <ActionLink
           label="Copy"
