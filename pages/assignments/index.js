@@ -49,7 +49,8 @@ const ActionLink = ({
 }
 
 const AssignmentRow = ({
-  note, configInvitation, handleEditConfiguration, handleCloneConfiguration, handleRunMatcher, referrer,
+  note, configInvitation, handleEditConfiguration, handleCloneConfiguration, handleRunMatcher, handleDeployMatcher,
+  referrer,
 }) => {
   const edgeBrowserUrl = getEdgeBrowserUrl(note.content)
   const { status, error_message: errorMessage } = note.content
@@ -85,7 +86,7 @@ const AssignmentRow = ({
           label="Edit"
           iconName="pencil"
           onClick={() => handleEditConfiguration(note)}
-          disabled={status === 'Running' || !configInvitation}
+          disabled={status === 'Running' || status === 'Complete' || status === 'Deploying' || status === 'Deployed' || !configInvitation}
         />
         <ActionLink
           label="Copy"
@@ -106,7 +107,7 @@ const AssignmentRow = ({
           </>
         )}
         {status === 'Complete' && (
-          <ActionLink label="Deploy Assignment" iconName="share" onClick={() => {}} disabled />
+          <ActionLink label="Deploy Assignment" iconName="share" onClick={() => handleDeployMatcher(note.id)} />
         )}
       </td>
     </tr>
@@ -266,6 +267,15 @@ const Assignments = ({ appContext }) => {
     }
   }
 
+  const handleDeployMatcher = async (id) => {
+    try {
+      const apiRes = await api.post('/deploy', { configNoteId: id }, { accessToken })
+      promptMessage('Deployment started.')
+    } catch (apiError) {
+      promptError(apiError.message)
+    }
+  }
+
   // Effects
   useEffect(() => {
     if (!accessToken || !query) return
@@ -336,6 +346,7 @@ const Assignments = ({ appContext }) => {
                   handleEditConfiguration={handleEditConfiguration}
                   handleCloneConfiguration={handleCloneConfiguration}
                   handleRunMatcher={handleRunMatcher}
+                  handleDeployMatcher={handleDeployMatcher}
                   referrer={encodeURIComponent(`[all assignments for ${prettyId(query?.group)}](/assignments?group=${query?.group})`)}
                 />
               ))}
