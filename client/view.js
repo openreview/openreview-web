@@ -2686,6 +2686,18 @@ module.exports = (function() {
       }
     }
 
+    if (invitation.reply.readers.hasOwnProperty('values-checkbox')) {
+      var inputValues = [];
+      readersWidget.find('.note_content_value input[type="checkbox"]').each(function(i) {
+        if ($(this).prop('checked')) {
+          inputValues.push($(this).val());
+        }
+      });
+      if (!inputValues.length) {
+        errorList.push('Readers can not be empty. You must select at least one reader');
+      }
+    }
+
     return errorList;
   };
 
@@ -2834,6 +2846,14 @@ module.exports = (function() {
       invitationValues = invitation.reply.readers['values-dropdown'];
     } else if (_.has(invitation.reply.readers, 'value-dropdown-hierarchy')) {
       invitationValues = invitation.reply.readers['value-dropdown-hierarchy'];
+    } else if (_.has(invitation.reply.readers, 'values-checkbox')) {
+      inputValues = [];
+      widget.find('.note_content_value input[type="checkbox"]').each(function(i) {
+        if ($(this).prop('checked')) {
+          inputValues.push($(this).val());
+        }
+      });
+      invitationValues = invitation.reply.readers['values-checkbox'];
     }
 
     // Add signature if exists in the invitation readers list
@@ -3168,6 +3188,48 @@ module.exports = (function() {
           done(undefined, 'Can not create note, readers must match parent note');
         }
       });
+    } else if (_.has(fieldDescription, 'values-checkbox')) {
+      var initialValues = fieldDescription['values-checkbox'];
+      var promise = $.Deferred().resolve();
+      var index = _.findIndex(initialValues, function(g) { return g.indexOf('.*') >=0; });
+      if (index >= 0) {
+        var regexGroup = initialValues[index];
+        promise = controller.get('/groups', { regex: regexGroup })
+        .then(function(result) {
+          if (result.groups && result.groups.length) {
+            var groups = result.groups.map(function(g) { return g.id; });
+            fieldDescription['values-checkbox'] = initialValues.slice(0, index).concat(groups, initialValues.slice(index + 1));
+          } else {
+            fieldDescription['values-checkbox'].splice(index, 1);
+          }
+        });
+      }
+      promise
+        .then(function() {
+          setParentReaders(replyto, fieldDescription, 'values-checkbox', function (newFieldDescription) {
+            //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
+            var replyValues = _.intersection(newFieldDescription['values-checkbox'], fieldDescription['values-checkbox']);
+
+            //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
+            var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
+            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer'); });
+            if (hasReviewers && !hasAnonReviewers) {
+              fieldDescription['values-checkbox'].forEach(function(value) {
+                if (value.includes('AnonReviewer')) {
+                  replyValues.push(value);
+                }
+              });
+            }
+
+            newFieldDescription['values-checkbox'] = replyValues;
+            if (_.difference(newFieldDescription.default, newFieldDescription['values-checkbox']).length !== 0) { //invitation default is not in list of possible values
+              done(undefined, 'Default reader is not in the list of readers');
+            }
+            var $readers = mkComposerInput('readers', newFieldDescription, fieldValue.length ? fieldValue : newFieldDescription.default);
+            $readers.find('.small_heading').prepend(requiredText);
+            done($readers);
+          });
+        });
     } else {
       var $readers = mkComposerInput('readers', fieldDescription, fieldValue);
       $readers.find('.small_heading').prepend(requiredText);
