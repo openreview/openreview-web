@@ -152,7 +152,7 @@ For more details on the difference between OpenReview's TeX support and other sy
 
   You can then go to your OpenReview profile page, click 'Edit Profile', paste your persistent DBLP URL to the corresponding input, and then click the 'Add DBLP Papers to Profile' button to start importing DBLP papers.
 
-  If you get an error about 'please ensure the provided DBLP URL is yours', it's because the name in your OpenReview profile does not match the name in DBLP papers. You can add a matching name to your OpenReview Profile, save your profile and try importing again.`,
+  If you get an error that says 'please ensure the provided DBLP URL is yours,' it may be because none of the names in your OpenReview profile match any of the author names in the DBLP papers. You can add a matching name to your OpenReview profile, save your profile and try importing again.`,
   }, {
     q: 'I couldn\'t find the answer to my question on this page. Where can I get more help?',
     id: 'question-more-help',
