@@ -1294,7 +1294,7 @@ module.exports = (function() {
       var checkboxes = _.map(options, function(option) {
         var checked = _.includes(checkedValues, option) ? 'checked' : '';
         return '<label class="checkbox-inline">' +
-          '<input type="checkbox" name="' + fieldName + '" value="' + option + '" ' + checked + '> ' + option +
+          '<input type="checkbox" name="' + fieldName + '" value="' + option + '" ' + checked + '> ' + (params.prettyId ? prettyId(option) : option) +
           '</label>';
       });
       return valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
@@ -3225,7 +3225,7 @@ module.exports = (function() {
             if (_.difference(newFieldDescription.default, newFieldDescription['values-checkbox']).length !== 0) { //invitation default is not in list of possible values
               done(undefined, 'Default reader is not in the list of readers');
             }
-            var $readers = mkComposerInput('readers', newFieldDescription, fieldValue.length ? fieldValue : newFieldDescription.default);
+            var $readers = mkComposerInput('readers', newFieldDescription, fieldValue.length ? fieldValue : newFieldDescription.default, { prettyId: true});
             $readers.find('.small_heading').prepend(requiredText);
             done($readers);
           });
