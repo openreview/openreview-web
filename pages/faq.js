@@ -146,7 +146,7 @@ For more details on the difference between OpenReview's TeX support and other sy
     id: 'question-dblp-import',
     a: `To import DBLP publications, you need to get the "Persistent DBLP URL" from your DBLP homepage.
 
-  You can hover over the <img src="/images/share_alt.svg" alt="share" class="share" /> icon to the right of your name in DBLP page heading and copy the peristent URL in hover menu.
+  To do so, hover over the <img src="/images/share_alt.svg" alt="share" class="share" /> icon to the right of your name in DBLP page heading and copy the persistent URL from the hover menu.
 
   ![Comment](/images/faq-dblp.png)
 
