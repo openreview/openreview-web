@@ -50,9 +50,7 @@ export default class OpenReviewApp extends App {
     window.controller.setToken(userAccessToken)
 
     const timeToExpiration = cookieExpiration * 1000 - 1000
-    this.logoutTimer = setTimeout(() => {
-      this.logoutUser()
-    }, timeToExpiration)
+    this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
 
     Router.push(redirectPath)
   }
@@ -66,7 +64,9 @@ export default class OpenReviewApp extends App {
 
     clearTimeout(this.logoutTimer)
 
-    Router.push(redirectPath)
+    if (redirectPath) {
+      Router.push(redirectPath)
+    }
   }
 
   updateUserName(first, middle, last) {
@@ -165,9 +165,7 @@ export default class OpenReviewApp extends App {
 
       // Automatically log the user out slightly before the token is set to expire
       const timeToExpiration = expiration - Date.now() - 1000
-      this.logoutTimer = setTimeout(() => {
-        this.logoutUser()
-      }, timeToExpiration)
+      this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
     } else {
       this.setState({ userLoading: false })
     }
@@ -175,7 +173,7 @@ export default class OpenReviewApp extends App {
     // When the user logs out in another tab, trigger logout for this app
     window.addEventListener('storage', (e) => {
       if (e.key === 'openreview.lastLogout') {
-        this.logoutUser()
+        this.logoutUser(null)
       }
     })
 
