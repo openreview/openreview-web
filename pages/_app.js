@@ -23,6 +23,7 @@ export default class OpenReviewApp extends App {
       userLoading: true,
       accessToken: null,
       clientJsLoading: true,
+      logoutRedirect: false,
       bannerHidden: false,
       bannerContent: null,
       layoutOptions: { fullWidth: false, footerMinimal: false },
@@ -42,7 +43,7 @@ export default class OpenReviewApp extends App {
   }
 
   loginUser(authenticatedUser, userAccessToken, redirectPath = '/') {
-    this.setState({ user: authenticatedUser, accessToken: userAccessToken })
+    this.setState({ user: authenticatedUser, accessToken: userAccessToken, logoutRedirect: false })
     setAuthCookie(userAccessToken)
 
     // Need pass new accessToken to Webfield and controller so legacy ajax functions work
@@ -56,7 +57,7 @@ export default class OpenReviewApp extends App {
   }
 
   logoutUser(redirectPath = '/') {
-    this.setState({ user: null, accessToken: null })
+    this.setState({ user: null, accessToken: null, logoutRedirect: !!redirectPath })
     removeAuthCookie()
 
     window.Webfield.setToken(null)
@@ -253,6 +254,7 @@ export default class OpenReviewApp extends App {
       accessToken: this.state.accessToken,
       loginUser: this.loginUser,
       logoutUser: this.logoutUser,
+      logoutRedirect: this.state.logoutRedirect,
       updateUserName: this.updateUserName,
     }
     const appContext = {
