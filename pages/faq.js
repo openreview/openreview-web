@@ -142,6 +142,18 @@ For more details on the difference between OpenReview's TeX support and other sy
 
   If your profile contains a confirmed email or a name that does not belong to you, please contact the OpenReview team by emailing info@openreview.net.`,
   }, {
+    q: 'How do I import my papers from DBLP?',
+    id: 'question-dblp-import',
+    a: `To import DBLP publications, you need to get the "Persistent DBLP URL" from your DBLP homepage.
+
+  To do so, hover over the <img src="/images/share_alt.svg" alt="share" class="share" /> icon to the right of your name in DBLP page heading and copy the persistent URL from the hover menu.
+
+  ![Comment](/images/faq-dblp.png)
+
+  You can then go to your OpenReview profile page, click 'Edit Profile', paste your persistent DBLP URL to the corresponding input, and then click the 'Add DBLP Papers to Profile' button to start importing DBLP papers.
+
+  If you get an error that says 'please ensure the provided DBLP URL is yours,' it may be because none of the names in your OpenReview profile match any of the author names in the DBLP papers. You can add a matching name to your OpenReview profile, save your profile and try importing again.`,
+  }, {
     q: 'I couldn\'t find the answer to my question on this page. Where can I get more help?',
     id: 'question-more-help',
     a: `The best way to get help with a specific issue is to contact the program chairs or organizers of the venue you are participating in. Contact info can usually be found on the venue's OpenReview page.
