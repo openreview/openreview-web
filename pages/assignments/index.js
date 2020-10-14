@@ -276,12 +276,17 @@ const Assignments = ({ appContext }) => {
     }))
     $('#note-editor-modal').modal('show')
 
-    const $notePanel = view.mkNotePanel(note, {
-      invitation: configInvitation,
-      withContent: true,
-    })
+    // const $notePanel = view.mkNotePanel(note, {
+    //   invitation: configInvitation,
+    //   withContent: true,
+    // })
+    // eslint-disable-next-line no-param-reassign
+    note.options = {
+      showContents: true,
+    }
+    const notePanel = Handlebars.templates['partials/noteBasic'](note)
 
-    $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append($notePanel)
+    $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append(notePanel)
   }
 
   const handleRunMatcher = async (id) => {
