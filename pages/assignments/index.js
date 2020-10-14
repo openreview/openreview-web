@@ -49,8 +49,8 @@ const ActionLink = ({
 }
 
 const AssignmentRow = ({
-  note, configInvitation, handleEditConfiguration, handleCloneConfiguration, handleRunMatcher, handleDeployMatcher,
-  referrer,
+  note, configInvitation, handleEditConfiguration, handleViewConfiguration, handleCloneConfiguration, handleRunMatcher,
+  handleDeployMatcher, referrer,
 }) => {
   const edgeBrowserUrl = getEdgeBrowserUrl(note.content)
   const { status, error_message: errorMessage } = note.content
@@ -87,6 +87,12 @@ const AssignmentRow = ({
           iconName="pencil"
           onClick={() => handleEditConfiguration(note)}
           disabled={['Running', 'Complete', 'Deploying', 'Deployed'].includes(status) || !configInvitation}
+        />
+        <ActionLink
+          label="View"
+          iconName="info-sign"
+          onClick={() => handleViewConfiguration(note)}
+          disabled={!configInvitation}
         />
         <ActionLink
           label="Copy"
@@ -258,6 +264,26 @@ const Assignments = ({ appContext }) => {
     })
   }
 
+  const handleViewConfiguration = (note) => {
+    if (!configInvitation) return
+
+    $('#note-editor-modal').remove()
+    $('main').append(Handlebars.templates.genericModal({
+      id: 'note-editor-modal',
+      extraClasses: 'modal-lg',
+      showHeader: false,
+      showFooter: false,
+    }))
+    $('#note-editor-modal').modal('show')
+
+    const $notePanel = view.mkNotePanel(note, {
+      invitation: configInvitation,
+      withContent: true,
+    })
+
+    $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append($notePanel)
+  }
+
   const handleRunMatcher = async (id) => {
     try {
       const apiRes = await api.post('/match', { configNoteId: id }, { accessToken })
@@ -344,6 +370,7 @@ const Assignments = ({ appContext }) => {
                   note={assignmentNote}
                   configInvitation={configInvitation}
                   handleEditConfiguration={handleEditConfiguration}
+                  handleViewConfiguration={handleViewConfiguration}
                   handleCloneConfiguration={handleCloneConfiguration}
                   handleRunMatcher={handleRunMatcher}
                   handleDeployMatcher={handleDeployMatcher}
