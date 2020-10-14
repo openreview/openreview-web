@@ -618,7 +618,7 @@ export default function Column(props) {
             removeEdgeFromEntity={removeEdgeFromEntity}
             setSelectedItemId={setSelectedItemId}
             canTraverse={!props.finalColumn}
-            showHiddenItems={itemsHeading === 'Search Results'}
+            showHiddenItems={false}
           />
         )}
       </div>
