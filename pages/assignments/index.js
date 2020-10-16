@@ -4,7 +4,7 @@
 /* globals promptError: false */
 /* globals promptMessage: false */
 
-import { useEffect, useState, Modal } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Head from 'next/head'
 import Table from '../../components/Table'
@@ -127,7 +127,6 @@ const Assignments = ({ appContext }) => {
   const [assignmentNotes, setAssignmentNotes] = useState(null)
   const [configInvitation, setConfigInvitation] = useState(null)
   const [error, setError] = useState(null)
-  const [viewModalTitle, setViewModalTitle] = useState(null)
   const [viewModalContent, setViewModalContent] = useState(null)
   const query = useQuery()
   const { setBannerContent } = appContext
@@ -269,10 +268,14 @@ const Assignments = ({ appContext }) => {
   }
 
   const handleViewConfiguration = (note) => {
-    setViewModalTitle(note.content.title || note.content.label)
-    setViewModalContent(
-      <NoteContent id={note.id} content={note.content} invitation={configInvitation} />,
-    )
+    if (note.id !== viewModalContent?.id) {
+      setViewModalContent({
+        id: note.id,
+        title: note.content.title || note.content.label,
+        content: note.content,
+      })
+    }
+
     $('#note-view-modal').modal('show')
   }
 
@@ -385,11 +388,15 @@ const Assignments = ({ appContext }) => {
 
       <BasicModal
         id="note-view-modal"
-        title={viewModalTitle}
+        title={viewModalContent?.title}
         cancelButtonText="Done"
         primaryButtonText={null}
       >
-        {viewModalContent}
+        {viewModalContent ? (
+          <NoteContent id={viewModalContent.id} content={viewModalContent.content} invitation={configInvitation} />
+        ) : (
+          <LoadingSpinner inline />
+        )}
       </BasicModal>
     </>
   )
