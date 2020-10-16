@@ -11,6 +11,8 @@ import Table from '../../components/Table'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import Icon from '../../components/Icon'
 import ErrorDisplay from '../../components/ErrorDisplay'
+import BasicModal from '../../components/BasicModal'
+import NoteContent from '../../components/NoteContent'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
@@ -49,7 +51,8 @@ const ActionLink = ({
 }
 
 const AssignmentRow = ({
-  note, configInvitation, handleEditConfiguration, handleCloneConfiguration, handleRunMatcher, referrer,
+  note, configInvitation, handleEditConfiguration, handleViewConfiguration, handleCloneConfiguration,
+  handleRunMatcher, handleDeployMatcher, referrer,
 }) => {
   const edgeBrowserUrl = getEdgeBrowserUrl(note.content)
   const { status, error_message: errorMessage } = note.content
@@ -82,10 +85,16 @@ const AssignmentRow = ({
 
       <td>
         <ActionLink
+          label="View"
+          iconName="info-sign"
+          onClick={() => handleViewConfiguration(note)}
+          disabled={!configInvitation}
+        />
+        <ActionLink
           label="Edit"
           iconName="pencil"
           onClick={() => handleEditConfiguration(note)}
-          disabled={status === 'Running' || !configInvitation}
+          disabled={['Running', 'Complete', 'Deploying', 'Deployed'].includes(status) || !configInvitation}
         />
         <ActionLink
           label="Copy"
@@ -106,7 +115,7 @@ const AssignmentRow = ({
           </>
         )}
         {status === 'Complete' && (
-          <ActionLink label="Deploy Assignment" iconName="share" onClick={() => {}} disabled />
+          <ActionLink label="Deploy Assignment" iconName="share" onClick={() => handleDeployMatcher(note.id)} />
         )}
       </td>
     </tr>
@@ -118,6 +127,7 @@ const Assignments = ({ appContext }) => {
   const [assignmentNotes, setAssignmentNotes] = useState(null)
   const [configInvitation, setConfigInvitation] = useState(null)
   const [error, setError] = useState(null)
+  const [viewModalContent, setViewModalContent] = useState(null)
   const query = useQuery()
   const { setBannerContent } = appContext
 
@@ -257,10 +267,31 @@ const Assignments = ({ appContext }) => {
     })
   }
 
+  const handleViewConfiguration = (note) => {
+    if (note.id !== viewModalContent?.id) {
+      setViewModalContent({
+        id: note.id,
+        title: note.content.title || note.content.label,
+        content: note.content,
+      })
+    }
+
+    $('#note-view-modal').modal('show')
+  }
+
   const handleRunMatcher = async (id) => {
     try {
       const apiRes = await api.post('/match', { configNoteId: id }, { accessToken })
       promptMessage('Matching started. The status of the assignments will be updated when the matching process is complete')
+    } catch (apiError) {
+      promptError(apiError.message)
+    }
+  }
+
+  const handleDeployMatcher = async (id) => {
+    try {
+      const apiRes = await api.post('/deploy', { configNoteId: id }, { accessToken })
+      promptMessage('Deployment started.')
     } catch (apiError) {
       promptError(apiError.message)
     }
@@ -334,8 +365,10 @@ const Assignments = ({ appContext }) => {
                   note={assignmentNote}
                   configInvitation={configInvitation}
                   handleEditConfiguration={handleEditConfiguration}
+                  handleViewConfiguration={handleViewConfiguration}
                   handleCloneConfiguration={handleCloneConfiguration}
                   handleRunMatcher={handleRunMatcher}
+                  handleDeployMatcher={handleDeployMatcher}
                   referrer={encodeURIComponent(`[all assignments for ${prettyId(query?.group)}](/assignments?group=${query?.group})`)}
                 />
               ))}
@@ -352,6 +385,19 @@ const Assignments = ({ appContext }) => {
           )}
         </div>
       </div>
+
+      <BasicModal
+        id="note-view-modal"
+        title={viewModalContent?.title}
+        cancelButtonText="Done"
+        primaryButtonText={null}
+      >
+        {viewModalContent ? (
+          <NoteContent id={viewModalContent.id} content={viewModalContent.content} invitation={configInvitation} />
+        ) : (
+          <LoadingSpinner inline />
+        )}
+      </BasicModal>
     </>
   )
 }
