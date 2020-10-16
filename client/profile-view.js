@@ -32,6 +32,7 @@ module.exports = function(profile, params, submitF, cancelF) {
       type: 'email',
       class: 'form-control email profile',
       value: email || '',
+      maxlength: 254,
       readonly: confirmed
     });
     $input.keyup(function() {

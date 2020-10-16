@@ -49,6 +49,7 @@ const ResetForm = ({ setEmailSent }) => {
           className={`form-control ${error ? 'form-invalid' : ''}`}
           placeholder="Email address"
           value={email}
+          maxLength={254}
           onChange={e => setEmail(e.target.value.trim())}
         />
       </div>
