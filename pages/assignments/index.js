@@ -11,7 +11,8 @@ import Table from '../../components/Table'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import Icon from '../../components/Icon'
 import ErrorDisplay from '../../components/ErrorDisplay'
-import NoteModal from '../../components/NoteModal'
+import BasicModal from '../../components/BasicModal'
+import NoteContent from '../../components/NoteContent'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
@@ -50,8 +51,8 @@ const ActionLink = ({
 }
 
 const AssignmentRow = ({
-  note, configInvitation, handleEditConfiguration, handleViewConfiguration, handleCloneConfiguration, handleRunMatcher,
-  handleDeployMatcher, referrer,
+  note, configInvitation, handleEditConfiguration, handleViewConfiguration, handleCloneConfiguration,
+  handleRunMatcher, handleDeployMatcher, referrer,
 }) => {
   const edgeBrowserUrl = getEdgeBrowserUrl(note.content)
   const { status, error_message: errorMessage } = note.content
@@ -84,22 +85,17 @@ const AssignmentRow = ({
 
       <td>
         <ActionLink
+          label="View"
+          iconName="info-sign"
+          onClick={() => handleViewConfiguration(note)}
+          disabled={!configInvitation}
+        />
+        <ActionLink
           label="Edit"
           iconName="pencil"
           onClick={() => handleEditConfiguration(note)}
           disabled={['Running', 'Complete', 'Deploying', 'Deployed'].includes(status) || !configInvitation}
         />
-        {/* <ActionLink
-          label="View"
-          iconName="info-sign"
-          onClick={() => handleViewConfiguration(note)}
-          disabled={!configInvitation}
-        /> */}
-        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-        <a href="#" data-toggle="modal" data-target="#note-modal">
-          <Icon name="info-sign" />
-          View
-        </a>
         <ActionLink
           label="Copy"
           iconName="duplicate"
@@ -131,13 +127,10 @@ const Assignments = ({ appContext }) => {
   const [assignmentNotes, setAssignmentNotes] = useState(null)
   const [configInvitation, setConfigInvitation] = useState(null)
   const [error, setError] = useState(null)
+  const [viewModalTitle, setViewModalTitle] = useState(null)
+  const [viewModalContent, setViewModalContent] = useState(null)
   const query = useQuery()
   const { setBannerContent } = appContext
-  const [showModal, setShowModal] = useState(false)
-
-  const onCloseModal = () => {
-    setShowModal(false)
-  }
 
   // API functions
   const getAssignmentNotes = async () => {
@@ -276,29 +269,11 @@ const Assignments = ({ appContext }) => {
   }
 
   const handleViewConfiguration = (note) => {
-    setShowModal(true)
-    // if (!configInvitation) return
-
-    // $('#note-editor-modal').remove()
-    // $('main').append(Handlebars.templates.genericModal({
-    //   id: 'note-editor-modal',
-    //   extraClasses: 'modal-lg',
-    //   showHeader: false,
-    //   showFooter: false,
-    // }))
-    // $('#note-editor-modal').modal('show')
-
-    // // const $notePanel = view.mkNotePanel(note, {
-    // //   invitation: configInvitation,
-    // //   withContent: true,
-    // // })
-    // // eslint-disable-next-line no-param-reassign
-    // note.options = {
-    //   showContents: true,
-    // }
-    // const notePanel = Handlebars.templates['partials/noteBasic'](note)
-
-    // $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append(notePanel)
+    setViewModalTitle(note.content.title || note.content.label)
+    setViewModalContent(
+      <NoteContent id={note.id} content={note.content} invitation={configInvitation} />,
+    )
+    $('#note-view-modal').modal('show')
   }
 
   const handleRunMatcher = async (id) => {
@@ -407,7 +382,15 @@ const Assignments = ({ appContext }) => {
           )}
         </div>
       </div>
-      <NoteModal />
+
+      <BasicModal
+        id="note-view-modal"
+        title={viewModalTitle}
+        cancelButtonText="Done"
+        primaryButtonText={null}
+      >
+        {viewModalContent}
+      </BasicModal>
     </>
   )
 }
