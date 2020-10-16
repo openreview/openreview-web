@@ -4,13 +4,14 @@
 /* globals promptError: false */
 /* globals promptMessage: false */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Modal } from 'react'
 import Link from 'next/link'
 import Head from 'next/head'
 import Table from '../../components/Table'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import Icon from '../../components/Icon'
 import ErrorDisplay from '../../components/ErrorDisplay'
+import NoteModal from '../../components/NoteModal'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
@@ -88,12 +89,17 @@ const AssignmentRow = ({
           onClick={() => handleEditConfiguration(note)}
           disabled={['Running', 'Complete', 'Deploying', 'Deployed'].includes(status) || !configInvitation}
         />
-        <ActionLink
+        {/* <ActionLink
           label="View"
           iconName="info-sign"
           onClick={() => handleViewConfiguration(note)}
           disabled={!configInvitation}
-        />
+        /> */}
+        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+        <a href="#" data-toggle="modal" data-target="#note-modal">
+          <Icon name="info-sign" />
+          View
+        </a>
         <ActionLink
           label="Copy"
           iconName="duplicate"
@@ -127,6 +133,11 @@ const Assignments = ({ appContext }) => {
   const [error, setError] = useState(null)
   const query = useQuery()
   const { setBannerContent } = appContext
+  const [showModal, setShowModal] = useState(false)
+
+  const onCloseModal = () => {
+    setShowModal(false)
+  }
 
   // API functions
   const getAssignmentNotes = async () => {
@@ -265,28 +276,29 @@ const Assignments = ({ appContext }) => {
   }
 
   const handleViewConfiguration = (note) => {
-    if (!configInvitation) return
+    setShowModal(true)
+    // if (!configInvitation) return
 
-    $('#note-editor-modal').remove()
-    $('main').append(Handlebars.templates.genericModal({
-      id: 'note-editor-modal',
-      extraClasses: 'modal-lg',
-      showHeader: false,
-      showFooter: false,
-    }))
-    $('#note-editor-modal').modal('show')
+    // $('#note-editor-modal').remove()
+    // $('main').append(Handlebars.templates.genericModal({
+    //   id: 'note-editor-modal',
+    //   extraClasses: 'modal-lg',
+    //   showHeader: false,
+    //   showFooter: false,
+    // }))
+    // $('#note-editor-modal').modal('show')
 
-    // const $notePanel = view.mkNotePanel(note, {
-    //   invitation: configInvitation,
-    //   withContent: true,
-    // })
-    // eslint-disable-next-line no-param-reassign
-    note.options = {
-      showContents: true,
-    }
-    const notePanel = Handlebars.templates['partials/noteBasic'](note)
+    // // const $notePanel = view.mkNotePanel(note, {
+    // //   invitation: configInvitation,
+    // //   withContent: true,
+    // // })
+    // // eslint-disable-next-line no-param-reassign
+    // note.options = {
+    //   showContents: true,
+    // }
+    // const notePanel = Handlebars.templates['partials/noteBasic'](note)
 
-    $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append(notePanel)
+    // $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append(notePanel)
   }
 
   const handleRunMatcher = async (id) => {
@@ -395,6 +407,7 @@ const Assignments = ({ appContext }) => {
           )}
         </div>
       </div>
+      <NoteModal />
     </>
   )
 }
