@@ -140,19 +140,19 @@ Handlebars.registerHelper('formattedDate', function(modifiedDate, trueModifiedDa
   var hash = options.hash ? options.hash : {};
   var dateToDisplay = modifiedDate || trueModifiedDate;
   var defaultDisplay = hash.default || '';
-  var useCompactFormat = hash.compact || false;
 
   if (!dateToDisplay) {
     return defaultDisplay;
   }
 
-  var d = moment.tz(dateToDisplay, moment.tz.guess());
-  if (!d.isValid()) {
-    return defaultDisplay;
-  }
-
-  var formatString = useCompactFormat ? 'll LT' : 'LLL z';
-  return d.format(formatString);
+  return new Date(dateToDisplay).toLocaleDateString('en-US', {
+    hour: 'numeric',
+    minute: 'numeric',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    timeZoneName: 'short',
+  });
 });
 
 Handlebars.registerHelper('noteTitle', function(invitation, signatures) {
@@ -914,6 +914,14 @@ Handlebars.registerHelper('debug', function(optionalValue) {
     console.log('====================');
     console.log(optionalValue);
   }
+});
+
+Handlebars.registerHelper('canUnlink', function(value, options) {
+  const invitationsAllowUnlink = ["dblp.org/-/record", "OpenReview.net/Archive/-/Imported_Record", "OpenReview.net/Archive/-/Direct_Upload"]
+  if (invitationsAllowUnlink.includes(value)) {
+    return options.fn(this);
+  }
+  return options.inverse(this);
 });
 
 // Register Handlebars partials

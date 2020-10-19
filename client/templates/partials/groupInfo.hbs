@@ -1,0 +1,39 @@
+<section class="general info-mode">
+  <h4>General Info</h4>
+
+  {{> groupInfoTable}}
+</section>
+
+<section class="members info-mode">
+  <h4>Group Members {{#if groupMembersCount}}({{groupMembersCount}}){{/if}}</h4>
+
+  <div class="group-info-table">
+    <ul class="list-unstyled">
+      {{#each group.members}}
+        <li data-id="{{this}}">
+          <a href="{{groupUrl this}}" class="push-link" target="_blank">{{this}}</a>
+        </li>
+      {{else}}
+        <li><p class="empty-message">No members to display</p></li>
+      {{/each}}
+    </ul>
+  </div>
+</section>
+
+<section class="notes">
+  <h4>Signed Notes</h4>
+
+  {{> spinner extraClasses="spinner-inline"}}
+</section>
+
+<section class="children info-mode">
+  <h4>Child Groups</h4>
+
+  {{> spinner extraClasses="spinner-inline"}}
+</section>
+
+<section class="invitations info-mode">
+  <h4>Related Invitations</h4>
+
+  {{> spinner extraClasses="spinner-inline"}}
+</section>

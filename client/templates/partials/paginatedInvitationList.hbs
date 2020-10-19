@@ -1,0 +1,11 @@
+<h4>{{title}} ({{totalCount}})</h4>
+
+<ul class="list-unstyled list-paginated">
+  {{#each sortedList}}
+    <li data-id="{{id}}">
+      <a href="/invitation?id={{id}}&mode=edit" class="push-link">{{prettyId id}}</a>
+    </li>
+  {{else}}
+    <li><p class="empty-message">No {{toLowerCase title}}</p></li>
+  {{/each}}
+</ul>

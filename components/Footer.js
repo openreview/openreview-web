@@ -12,7 +12,7 @@ const Footer = () => (
           <div className="col-sm-4">
             <ul className="list-unstyled">
               <li><Link href="/about"><a>About OpenReview</a></Link></li>
-              <li><Link href="/group?id=OpenReview.net/Support"><a>Hosting a Venue</a></Link></li>
+              <li><Link href={`/group?id=${process.env.SUPER_USER}/Support`}><a>Hosting a Venue</a></Link></li>
               <li><Link href="/venues"><a>All Venues</a></Link></li>
             </ul>
           </div>
@@ -22,7 +22,7 @@ const Footer = () => (
               <li><Link href="/contact"><a>Contact</a></Link></li>
               {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
               <li><a href="#" data-toggle="modal" data-target="#feedback-modal">Feedback</a></li>
-              <li><a href="https://codeforscience.org/jobs?job=OpenReview-Developer" target="_blank" rel="noopener noreferrer"><strong>Join the Team</strong></a></li>
+              <li><a className="join-the-team" href="https://codeforscience.org/jobs?job=OpenReview-Developer" target="_blank" rel="noopener noreferrer"><strong>Join the Team</strong></a></li>
             </ul>
           </div>
 
@@ -40,9 +40,9 @@ const Footer = () => (
           <div className="col-xs-6">
             <ul className="list-unstyled">
               <li><Link href="/about"><a>About OpenReview</a></Link></li>
-              <li><Link href="/group?id=OpenReview.net/Support"><a>Hosting a Venue</a></Link></li>
+              <li><Link href={`/group?id=${process.env.SUPER_USER}/Support`}><a>Hosting a Venue</a></Link></li>
               <li><Link href="/venues"><a>All Venues</a></Link></li>
-              <li><a href="https://codeforscience.org/jobs?job=OpenReview-Developer" target="_blank" rel="noopener noreferrer"><strong>Join the Team</strong></a></li>
+              <li><a className="join-the-team" href="https://codeforscience.org/jobs?job=OpenReview-Developer" target="_blank" rel="noopener noreferrer"><strong>Join the Team</strong></a></li>
             </ul>
           </div>
 

@@ -131,6 +131,13 @@ table.table-minimal {
       }
     }
 
+    .unlink-publication, .relink-publication {
+      top: 3px;
+      font-size: 1.125rem;
+      padding-left: .25rem;
+      cursor: pointer;
+    }
+
     .parent-title, .note-parent-title {
       color: @subtleGray;
       margin-bottom: .125rem;
@@ -779,11 +786,23 @@ table.table-minimal {
   .removable_item, .removable_pair {
     margin-right: 0.75rem;
     line-height: 1.5rem;
+
+    &.disabled{
+      color: @subtleGray;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
   }
   .removable_item .removable_item_button {
     color: @mediumBlue;
     margin-left: 0.25rem;
     cursor: pointer;
+
+    &.disabled{
+      color: @subtleGray;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
   }
   .removable_pair .removable_pair_button {
     margin-left: 0.25rem;

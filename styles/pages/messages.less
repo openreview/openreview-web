@@ -8,22 +8,30 @@ main.messages {
 
     .form-group {
       margin-right: .75rem;
+      margin-bottom: .5rem;
 
       label {
         margin-right: .25rem;
       }
       .multiselector {
+        margin-left: 0;
         margin-right: 0;
       }
     }
     input[type="text"] {
       line-height: 34px;
     }
+    #status-search-dropdown {
+      width: 110px;
+    }
     #subject-search-input {
       width: 250px;
     }
     #to-search-input {
-      width: 200px;
+      width: 180px;
+    }
+    #parent-group-search-input {
+      width: 320px;
     }
     .spinner-small {
       vertical-align: middle;
@@ -32,6 +40,12 @@ main.messages {
 
       & > div {
         background-color: @orRed;
+      }
+    }
+
+    @media @large {
+      .form-group {
+        margin-bottom: 0;
       }
     }
   }

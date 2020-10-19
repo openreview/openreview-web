@@ -1,9 +1,8 @@
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
-import { useRouter } from 'next/router'
-import isEmpty from 'lodash/isEmpty'
 import uniq from 'lodash/uniq'
-import UserContext from '../../components/UserContext'
+import useQuery from '../../hooks/useQuery'
+import useLoginRedirect from '../../hooks/useLoginRedirect'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import EdgeBrowser from '../../components/browser/EdgeBrowser'
 import EdgeBrowserHeader from '../../components/browser/EdgeBrowserHeader'
@@ -15,12 +14,12 @@ import { referrerLink } from '../../lib/banner-links'
 import '../../styles/pages/edge-browser.less'
 
 const Browse = ({ appContext }) => {
+  const { user, accessToken, userLoading } = useLoginRedirect()
   const [invitations, setInvitations] = useState(null)
   const [titleInvitation, setTitleInvitation] = useState(null)
   const [maxColumns, setMaxColumns] = useState(-1)
   const [error, setError] = useState(null)
-  const { user, accessToken } = useContext(UserContext)
-  const { query } = useRouter()
+  const query = useQuery()
   const { setBannerHidden, setBannerContent, setLayoutOptions } = appContext
 
   const notFoundError = {
@@ -37,16 +36,17 @@ const Browse = ({ appContext }) => {
   }
 
   useEffect(() => {
-    if (!user || isEmpty(query)) return
+    if (userLoading || !query) return
 
     if (!query.traverse || !query.browse) {
       setError(notFoundError)
       return
     }
 
+    setLayoutOptions({ fullWidth: true, minimalFooter: true })
+
     if (query.referrer) {
       setBannerContent(referrerLink(query.referrer))
-      setBannerHidden(false)
     } else {
       setBannerHidden(true)
     }
@@ -84,6 +84,9 @@ const Browse = ({ appContext }) => {
             return inv.id === invId
           })
           if (!fullInvitation) {
+            setError({
+              name: 'Not Found', message: `Could not load edge explorer. Invitation not found: ${invObj.id}`, statusCode: 404,
+            })
             allValid = false
             return
           }
@@ -102,7 +105,6 @@ const Browse = ({ appContext }) => {
           })
         })
         if (!allValid) {
-          setError(invalidError)
           return
         }
 
@@ -127,23 +129,19 @@ const Browse = ({ appContext }) => {
         }
         setError(unknownError)
       })
-  }, [user, query])
-
-  useEffect(() => {
-    setLayoutOptions({ fullWidth: true, minimalFooter: true })
-  }, [])
+  }, [userLoading, query, user])
 
   useEffect(() => {
     if (!error) return
 
-    setBannerHidden(false)
     setBannerContent(null)
     setLayoutOptions({ fullWidth: false, minimalFooter: false })
   }, [error])
 
   if (error) {
-    return <ErrorDisplay statusCode={error.status} message={error.message} />
+    return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
   }
+
   return (
     <>
       <Head>

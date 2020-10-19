@@ -1,9 +1,11 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import Link from 'next/link'
-import withError from '../../components/withError'
-import { auth } from '../../lib/auth'
+import ErrorDisplay from '../../components/ErrorDisplay'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import useLoginRedirect from '../../hooks/useLoginRedirect'
+import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { getGroupIdfromInvitation } from '../../lib/utils'
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
@@ -11,14 +13,41 @@ import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
 import '../../styles/pages/assignment-stats.less'
 
-const AssignmentStats = ({
-  groupId, assignmentConfigNote, referrer, appContext,
-}) => {
+const AssignmentStats = ({ appContext }) => {
+  const { accessToken } = useLoginRedirect()
+  const [assignmentConfigNote, setAssignmentConfigNote] = useState(null)
+  const [groupId, setGroupId] = useState(null)
+  const [error, setError] = useState(null)
   const router = useRouter()
+  const query = useQuery()
   const { setBannerContent, clientJsLoading } = appContext
 
+  const loadConfigNote = async (assignmentConfigId) => {
+    try {
+      const { notes } = await api.get('/notes', { id: assignmentConfigId }, { accessToken })
+      if (notes?.length > 0) {
+        setAssignmentConfigNote(notes[0])
+        setGroupId(getGroupIdfromInvitation(notes[0].invitation))
+      } else {
+        setError({ statusCode: 404, message: `No assignment note with the ID "${assignmentConfigId}" found` })
+      }
+    } catch (apiError) {
+      setError({ statusCode: apiError.status, message: apiError.message })
+    }
+  }
+
   useEffect(() => {
-    if (clientJsLoading) return
+    if (!accessToken || !query) return
+
+    if (!query.id) {
+      setError({ statusCode: 400, message: 'Could not load assignment statistics. Missing parameter id.' })
+    } else {
+      loadConfigNote(query.id)
+    }
+  }, [accessToken, query])
+
+  useEffect(() => {
+    if (clientJsLoading || !assignmentConfigNote) return
 
     // eslint-disable-next-line global-require
     window.d3 = require('d3')
@@ -30,12 +59,18 @@ const AssignmentStats = ({
   }, [clientJsLoading, assignmentConfigNote])
 
   useEffect(() => {
-    if (referrer) {
-      setBannerContent(referrerLink(referrer))
+    if (!query || !groupId) return
+
+    if (query.referrer) {
+      setBannerContent(referrerLink(query.referrer))
     } else {
       setBannerContent(venueHomepageLink(groupId, 'edit'))
     }
-  }, [referrer, groupId])
+  }, [query, groupId])
+
+  if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
+
+  if (!assignmentConfigNote) return <LoadingSpinner />
 
   return (
     <>
@@ -97,35 +132,6 @@ const AssignmentStats = ({
   )
 }
 
-AssignmentStats.getInitialProps = async (ctx) => {
-  const { token, user } = auth(ctx)
-  if (!user) {
-    if (ctx.req) {
-      ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
-    } else {
-      Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
-    }
-  }
-
-  const assignmentConfigId = ctx.query.id
-  if (!assignmentConfigId) {
-    return { statusCode: 404, message: 'Could not load assignment statistics. Missing parameter id.' }
-  }
-
-  const { notes } = await api.get('/notes', { id: assignmentConfigId }, { accessToken: token })
-  if (!notes || notes.length === 0) {
-    return { statusCode: 404, message: `No assignment note with the ID "${assignmentConfigId}" found` }
-  }
-
-  const assignmentConfigNote = notes[0]
-  const groupId = getGroupIdfromInvitation(assignmentConfigNote.invitation)
-  return {
-    groupId,
-    assignmentConfigNote,
-    referrer: ctx.query.referrer,
-  }
-}
-
 AssignmentStats.bodyClass = 'assignment-stats'
 
-export default withError(AssignmentStats)
+export default AssignmentStats

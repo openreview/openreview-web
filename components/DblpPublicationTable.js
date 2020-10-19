@@ -1,27 +1,33 @@
 import Table from './Table'
 
 export default function DblpPublicationTable({
-  dblpPublications, openReviewPublications, selectedPublications, setSelectedPublications,
+  dblpPublications,
+  orPublications,
+  selectedPublications,
+  setSelectedPublications,
+  orPublicationsImportedByOtherProfile,
 }) {
-  const dblpPubsInOpenReview = []
-  const dblpPubsNotInOpenReview = []
+  const pubsCouldNotImport = [] // either existing or associated with other profile
+  const pubsCouldImport = []
   dblpPublications.forEach((dblpPub, index) => {
-    const existing = openReviewPublications.find(orPub => orPub.title === dblpPub.formattedTitle)
-    if (existing) {
-      dblpPubsInOpenReview.push(index)
+    const titleMatch = orPub => orPub.title === dblpPub.formattedTitle
+    const existing = orPublications.find(titleMatch)
+    const existingWithOtherProfile = orPublicationsImportedByOtherProfile.find(titleMatch)
+    if (existing || existingWithOtherProfile) {
+      pubsCouldNotImport.push(index)
     } else {
-      dblpPubsNotInOpenReview.push(index)
+      pubsCouldImport.push(index)
     }
   })
-  const allExistInOpenReview = dblpPublications.length === dblpPubsInOpenReview.length
-  const allChecked = dblpPublications.length - dblpPubsInOpenReview.length === selectedPublications.length
+  const allExistInOpenReview = dblpPublications.length === pubsCouldNotImport.length
+  const allChecked = dblpPublications.length - pubsCouldNotImport.length === selectedPublications.length
 
   const toggleSelectAll = (checked) => {
     if (!checked) {
       setSelectedPublications([])
       return
     }
-    setSelectedPublications(dblpPubsNotInOpenReview)
+    setSelectedPublications(pubsCouldImport)
   }
 
   const selectPublication = index => (checked) => {
@@ -56,16 +62,25 @@ export default function DblpPublicationTable({
   return (
     <Table headings={headings}>
       {dblpPublications.map((publication, index) => {
-        const existingPublication = openReviewPublications.find(orPub => orPub.title === publication.formattedTitle)
+        const titleMatch = orPub => orPub.title === publication.formattedTitle
+        const existingPublication = orPublications.find(titleMatch)
+        const existingPublicationOfOtherProfile = orPublicationsImportedByOtherProfile.find(titleMatch)
+        // eslint-disable-next-line no-nested-ternary
+        const category = existingPublication
+          ? 'existing-publication'
+          : (existingPublicationOfOtherProfile ? 'existing-different-profile' : 'nonExisting')
+
         return (
           <DblpPublicationRow
             // eslint-disable-next-line react/no-array-index-key
             key={index}
             title={publication.title}
             authors={publication.authorNames}
-            openReviewId={existingPublication?.id}
+            openReviewId={existingPublication?.id || existingPublicationOfOtherProfile?.noteId}
             selected={selectedPublications.includes(index)}
             toggleSelected={selectPublication(index)}
+            otherProfileId={existingPublicationOfOtherProfile?.existingProfileId}
+            category={category}
           />
         )
       })}
@@ -74,9 +89,9 @@ export default function DblpPublicationTable({
 }
 
 const DblpPublicationRow = ({
-  title, authors, openReviewId, selected, toggleSelected,
+  title, authors, openReviewId, selected, toggleSelected, otherProfileId, category,
 }) => (
-  <tr className={openReviewId ? 'existing-publication-row' : ''}>
+  <tr className={category === 'nonExisting' ? '' : `${category}-row`}>
     <th scope="row">
       <input
         type="checkbox"
@@ -88,7 +103,7 @@ const DblpPublicationRow = ({
 
     <td>
       <div className="publication-title">
-        {openReviewId ? (
+        {(category === 'existing-publication' || category === 'existing-different-profile') ? (
           <a href={`/forum?id=${openReviewId}`} target="_blank" rel="noreferrer">{title}</a>
         ) : (
           <span>{title}</span>
@@ -97,6 +112,16 @@ const DblpPublicationRow = ({
       <div className="publication-author-names">
         {authors.join(', ')}
       </div>
+      {category === 'existing-different-profile' && (
+        <>
+          <a className="different-profile-link" href={`/profile?id=${otherProfileId}`} target="_blank" rel="noreferrer">
+            This paper is associated with the user
+            {' '}
+            {otherProfileId}
+          </a>
+          <div className="different-profile-link">Please contact us if you think this profile might be yours</div>
+        </>
+      )}
     </td>
   </tr>
 )

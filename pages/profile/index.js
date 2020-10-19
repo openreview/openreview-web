@@ -1,15 +1,17 @@
 import { useState, useEffect, useContext } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
+import Router, { useRouter } from 'next/router'
 import pick from 'lodash/pick'
 import UserContext from '../../components/UserContext'
 import NoteList from '../../components/NoteList'
 import withError from '../../components/withError'
+import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
 import { prettyList } from '../../lib/utils'
 import { auth } from '../../lib/auth'
-import { generalLink } from '../../lib/banner-links'
+import { editProfileLink } from '../../lib/banner-links'
 
 // Page Styles
 import '../../styles/pages/profile.less'
@@ -170,7 +172,11 @@ const RecentPublications = ({
 const CoAuthorsList = ({ coAuthors, loading }) => {
   const authorLink = ({ name, id, email }) => {
     if (id) return <Link href={`/profile?id=${id}`}><a>{name}</a></Link>
-    if (email) return <Link href={`/profile?email=${email}`}><a>{name}</a></Link>
+    if (email) {
+      return email.startsWith('https://dblp.org')
+        ? <a href={email} target="_blank" rel="noopener noreferrer">{name}</a>
+        : <Link href={`/profile?email=${email}`}><a>{name}</a></Link>
+    }
     return <span>{name}</span>
   }
 
@@ -190,11 +196,12 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
 }
 
 const Profile = ({ profile, publicProfile, appContext }) => {
-  const [loading, setLoading] = useState(true)
-  const [publications, setPublications] = useState([])
+  const [publications, setPublications] = useState(null)
   const [count, setCount] = useState(0)
   const [coAuthors, setCoAuthors] = useState([])
-  const { accessToken, user } = useContext(UserContext)
+  const { accessToken, user, userLoading } = useContext(UserContext)
+  const router = useRouter()
+  const profileQuery = useQuery()
   const { setBannerHidden, setBannerContent } = appContext
 
   const loadPublications = async () => {
@@ -212,27 +219,34 @@ const Profile = ({ profile, publicProfile, appContext }) => {
       setPublications(apiRes.notes)
       setCount(apiRes.count)
     }
-    setLoading(false)
   }
 
   useEffect(() => {
-    loadPublications()
-
-    setBannerHidden(true)
-  }, [])
-
-  useEffect(() => {
-    if (profile.id === user?.profile?.id) {
-      setBannerHidden(false) // setBannerContent has no effect if banner is hidden
-      setBannerContent(generalLink('Edit Profile', '/profile/edit'))
+    if (profileQuery) {
+      setBannerHidden(true)
     }
-  }, [profile, user])
+  }, [profileQuery])
 
   useEffect(() => {
-    if (loading) return
+    if (userLoading || !profileQuery) return
+
+    // Always show user's preferred username in the URL
+    if (profileQuery.email || (profileQuery.id !== profile.preferredId)) {
+      router.replace(`/profile?id=${profile.preferredId}`, undefined, { shallow: true })
+    }
+
+    if (profile.id === user?.profile?.id) {
+      setBannerContent(editProfileLink())
+    }
+
+    loadPublications()
+  }, [profile, profileQuery, user, userLoading, accessToken])
+
+  useEffect(() => {
+    if (!publications) return
 
     setCoAuthors(getCoAuthorsFromPublications(profile, publications))
-  }, [loading, publications])
+  }, [publications])
 
   return (
     <div className="profile-container">
@@ -350,14 +364,14 @@ const Profile = ({ profile, publicProfile, appContext }) => {
               profileId={profile.id}
               publications={publications}
               count={count}
-              loading={loading}
+              loading={!publications}
             />
           </ProfileSection>
 
           <ProfileSection name="coauthors" title="Co-Authors">
             <CoAuthorsList
               coAuthors={coAuthors}
-              loading={loading}
+              loading={!publications}
             />
           </ProfileSection>
 
@@ -368,22 +382,48 @@ const Profile = ({ profile, publicProfile, appContext }) => {
 }
 
 Profile.getInitialProps = async (ctx) => {
-  const profileQuery = pick(ctx.query, ['id', 'email'])
-  const { token } = auth(ctx)
+  // TODO: remove this redirect when all profile edit links have been changed
+  if (ctx.query.mode === 'edit') {
+    if (ctx.req) {
+      ctx.res.writeHead(302, { Location: '/profile/edit' }).end()
+    } else {
+      Router.replace('/profile/edit')
+    }
+  }
 
-  let profileRes
+  let profileQuery = pick(ctx.query, ['id', 'email'])
+  const { token, user } = auth(ctx)
+  if (!user && !profileQuery.id && !profileQuery.email) {
+    return { statusCode: 400, message: 'Profile ID or email is required' }
+  }
+
+  // Don't use query params if this is user's own profile
+  if (user && (
+    (profileQuery.id && user.profile.usernames.includes(profileQuery.id))
+    || (profileQuery.email && user.profile.emails.includes(profileQuery.email))
+    || (profileQuery.id === '' || profileQuery.email === '')
+  )) {
+    profileQuery = {}
+  }
+
+  let profile
   try {
-    profileRes = await api.get('/profiles', profileQuery, { accessToken: token })
-    if (!profileRes.profiles?.length) {
-      return { statusCode: 404, message: 'Profile not found' }
+    const { profiles } = await api.get('/profiles', profileQuery, { accessToken: token })
+    if (profiles?.length > 0) {
+      profile = profiles[0]
     }
   } catch (error) {
     return { statusCode: 404, message: 'Profile not found' }
   }
+  if (!profile) {
+    return {
+      statusCode: 404,
+      message: `The user ${profileQuery.id || profileQuery.email} has not set up an OpenReview profile yet`,
+    }
+  }
 
-  const profileFormatted = formatProfileData(profileRes.profiles[0])
   return {
-    profile: profileFormatted,
+    profile: formatProfileData(profile),
     publicProfile: Object.keys(profileQuery).length > 0,
   }
 }

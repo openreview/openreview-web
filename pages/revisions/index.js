@@ -21,6 +21,8 @@ import '../../styles/pages/revisions.less'
 const RevisionsList = ({
   revisions, user, selectedIndexes, setSelectedIndexes,
 }) => {
+  const router = useRouter()
+
   const toggleSelected = (idx, checked) => {
     if (checked) {
       setSelectedIndexes([...selectedIndexes, idx].sort((a, b) => a - b))
@@ -52,6 +54,7 @@ const RevisionsList = ({
       onNoteEdited: (newNote) => {
         $('#note-editor-modal').modal('hide')
         promptMessage('Note updated successfully')
+        router.reload()
         return true
       },
       onError: (errors) => {
@@ -90,7 +93,6 @@ const RevisionsList = ({
       isReference: true,
       withModificationDate: true,
       withDateTime: true,
-      withBibtexLink: false,
       user,
       onEditRequested: (inv, options) => {
         const noteToShow = options.original ? note.details.original : note
@@ -98,7 +100,7 @@ const RevisionsList = ({
         showEditorModal(noteToShow, revisionInvitation, editorOptions)
       },
       onTrashedOrRestored: () => {
-        $('.references-list').find(`#note-${note.id}`).hide()
+        $(`#note_${note.id}`).closest('.row').remove()
         promptMessage('Revision deleted')
       },
     }).removeClass('panel')
@@ -217,15 +219,24 @@ const Revisions = ({ appContext }) => {
       const invitationIds = Array.from(new Set(references.map(reference => (
         reference.details?.original?.invitation || reference.invitation
       ))))
-      const { invitations } = await api.get('/invitations', { ids: invitationIds })
 
-      setRevisions(references.map((reference) => {
-        const invId = (reference.details && reference.details.original)
-          ? reference.details.original.invitation
-          : reference.invitation
-        const referenceInvitation = invitations.find(invitation => invitation.id === invId)
-        return [reference, referenceInvitation]
-      }))
+      try {
+        const { invitations } = await api.get('/invitations', { ids: invitationIds, expired: true })
+
+        if (invitations?.length > 0) {
+          setRevisions(references.map((reference) => {
+            const invId = (reference.details && reference.details.original)
+              ? reference.details.original.invitation
+              : reference.invitation
+            const referenceInvitation = invitations.find(invitation => invitation.id === invId)
+            return [reference, referenceInvitation]
+          }))
+        } else {
+          setRevisions([])
+        }
+      } catch (apiError) {
+        setError(apiError)
+      }
     }
     loadRevisions()
   }, [userLoading, query, accessToken])

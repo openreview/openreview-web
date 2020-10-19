@@ -25,6 +25,7 @@ main.forum {
     }
     .note-content-value, .note_content_value {
       white-space: pre-wrap;
+      overflow-wrap: break-word;
       &.markdown-rendered {
         .markdown-content-styles;
       }
@@ -142,6 +143,10 @@ main.forum {
     }
   }
 
+  .citation_author {
+    display: none;
+  }
+
   div.note_contents {
     padding-left: 0;
     margin-top: .125rem;
@@ -177,6 +182,7 @@ main.forum {
     }
     h3 {
       margin-top: 0;
+      margin-bottom: .25rem;
     }
     .item {
       display: inline;

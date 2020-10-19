@@ -1,23 +1,28 @@
 /* globals promptError: false */
+/* globals $: false */
 
-import { useState, useEffect, useCallback } from 'react'
+import {
+  useState, useEffect, useCallback, useContext, createContext,
+} from 'react'
 import Head from 'next/head'
-import Router from 'next/router'
-import Link from 'next/link'
-import upperFirst from 'lodash/upperFirst'
+import { useRouter } from 'next/router'
 import debounce from 'lodash/debounce'
+import UserContext from '../components/UserContext'
 import NoteList from '../components/NoteList'
-import { auth } from '../lib/auth'
 import api from '../lib/api-client'
+import { isValidEmail } from '../lib/utils'
 
 // Page Styles
 import '../styles/pages/signup.less'
+
+const LoadingContext = createContext()
 
 const SignupForm = ({ setSignupConfirmation }) => {
   const [firstName, setFirstName] = useState('')
   const [middleName, setMiddleName] = useState('')
   const [lastName, setLastName] = useState('')
   const [newUsername, setNewUsername] = useState('')
+  const [loading, setLoading] = useState(false)
   const [existingProfiles, setExistingProfiles] = useState([])
 
   const getNewUsername = useCallback(debounce(async (first, middle, last) => {
@@ -50,6 +55,8 @@ const SignupForm = ({ setSignupConfirmation }) => {
   }, 300), [])
 
   const registerUser = async (registrationType, email, password, id) => {
+    setLoading(true)
+
     let bodyData = {}
     if (registrationType === 'new') {
       const name = { first: firstName.trim(), middle: middleName.trim(), last: lastName.trim() }
@@ -67,9 +74,12 @@ const SignupForm = ({ setSignupConfirmation }) => {
     } catch (apiError) {
       promptError(apiError.message)
     }
+    setLoading(false)
   }
 
   const resetPassword = async (username, email) => {
+    setLoading(true)
+
     try {
       const { id: registeredEmail } = await api.post('/resettable', { id: email })
       setSignupConfirmation({ type: 'reset', registeredEmail: registeredEmail || email })
@@ -80,15 +90,24 @@ const SignupForm = ({ setSignupConfirmation }) => {
         promptError(apiError.message)
       }
     }
+    setLoading(false)
   }
 
   const sendActivationLink = async (email) => {
+    setLoading(true)
+
     try {
       const { id: registeredEmail } = await api.post('/activatable', { id: email })
       setSignupConfirmation({ type: 'activate', registeredEmail: registeredEmail || email })
     } catch (apiError) {
       promptError(apiError.message)
     }
+    setLoading(false)
+  }
+
+  const populateFeedbackForm = () => {
+    $('#feedback-modal [name="subject"]').val('Merge Profiles')
+    $('#feedback-modal [name="message"]').val('Hi OpenReview,\n\nBelow are my profile e-mail addresses:\n<replace-me>@<some-domain.com>\n<replace-me>@<some-domain.com>\n\nThanks.')
   }
 
   useEffect(() => {
@@ -118,7 +137,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="first-input"
               className="form-control"
               value={firstName}
-              onChange={e => setFirstName(upperFirst(e.target.value))}
+              onChange={e => setFirstName(e.target.value.length === 1 ? e.target.value.toUpperCase() : e.target.value)}
               placeholder="First name"
               autoComplete="given-name"
             />
@@ -135,7 +154,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="middle-input"
               className="form-control"
               value={middleName}
-              onChange={e => setMiddleName(upperFirst(e.target.value))}
+              onChange={e => setMiddleName(e.target.value.length === 1 ? e.target.value.toUpperCase() : e.target.value)}
               placeholder="Middle name"
               autoComplete="additional-name"
             />
@@ -148,7 +167,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="last-input"
               className="form-control"
               value={lastName}
-              onChange={e => setLastName(upperFirst(e.target.value))}
+              onChange={e => setLastName(e.target.value.length === 1 ? e.target.value.toUpperCase() : e.target.value)}
               placeholder="Last name"
               autoComplete="family-name"
             />
@@ -158,36 +177,39 @@ const SignupForm = ({ setSignupConfirmation }) => {
 
       <hr className="spacer" />
 
-      {existingProfiles.map((profile) => {
-        let formComponents
-        if (profile.emails.length > 0) {
-          formComponents = profile.emails.map(confirmedEmail => (
-            <ExistingProfileForm
-              key={confirmedEmail}
-              id={profile.id}
-              obfuscatedEmail={confirmedEmail}
-              hasPassword={profile.password}
-              isActive={profile.active}
-              registerUser={registerUser}
-              resetPassword={resetPassword}
-              sendActivationLink={sendActivationLink}
-            />
-          ))
-        } else {
-          formComponents = [
-            <ClaimProfileForm key={profile.id} id={profile.id} registerUser={registerUser} />,
-          ]
-        }
-        return formComponents.concat(<hr key={`${profile.id}-spacer`} className="spacer" />)
-      })}
+      <LoadingContext.Provider value={loading}>
+        {existingProfiles.map((profile) => {
+          let formComponents
+          if (profile.emails.length > 0) {
+            formComponents = profile.emails.map(confirmedEmail => (
+              <ExistingProfileForm
+                key={confirmedEmail}
+                id={profile.id}
+                obfuscatedEmail={confirmedEmail}
+                hasPassword={profile.password}
+                isActive={profile.active}
+                registerUser={registerUser}
+                resetPassword={resetPassword}
+                sendActivationLink={sendActivationLink}
+              />
+            ))
+          } else {
+            formComponents = [
+              <ClaimProfileForm key={profile.id} id={profile.id} registerUser={registerUser} />,
+            ]
+          }
+          return formComponents.concat(<hr key={`${profile.id}-spacer`} className="spacer" />)
+        })}
 
-      <NewProfileForm id={newUsername} registerUser={registerUser} />
+        <NewProfileForm id={newUsername} registerUser={registerUser} />
+      </LoadingContext.Provider>
 
       {existingProfiles.length > 0 && (
         <p className="merge-message hint">
           If two or more of the profiles above belong to you, please
           {' '}
-          <Link href="/contact"><a>contact us</a></Link>
+          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+          <a href="#" data-toggle="modal" data-target="#feedback-modal" onClick={populateFeedbackForm}>contact us</a>
           {' '}
           and we will assist you in merging your profiles.
         </p>
@@ -254,7 +276,7 @@ const ExistingProfileForm = ({
             onChange={e => setEmail(e.target.value)}
             autoComplete="email"
           />
-          {hasPassword && <button type="submit" className="btn">{buttonLabel}</button>}
+          {hasPassword && <SubmitButton disabled={!isValidEmail(email)}>{buttonLabel}</SubmitButton>}
         </div>
       )}
       {passwordVisible && !hasPassword && (
@@ -267,7 +289,7 @@ const ExistingProfileForm = ({
             onChange={e => setPassword(e.target.value)}
             required
           />
-          <button type="submit" className="btn">{buttonLabel}</button>
+          <SubmitButton disabled={!isValidEmail(email) || !password}>{buttonLabel}</SubmitButton>
         </div>
       )}
     </form>
@@ -327,7 +349,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
           onChange={e => setEmail(e.target.value)}
         />
         {!passwordVisible && (
-          <button type="submit" className="btn" disabled={!email}>Claim Profile</button>
+          <button type="submit" className="btn" disabled={!isValidEmail(email)}>Claim Profile</button>
         )}
         <span className="new-username hint">{`for ${id}`}</span>
       </div>
@@ -343,7 +365,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
             autoComplete="new-password"
             required
           />
-          <button type="submit" className="btn">Claim Profile</button>
+          <SubmitButton disabled={!password}>Claim Profile</SubmitButton>
         </div>
       )}
     </form>
@@ -384,7 +406,7 @@ const NewProfileForm = ({ id, registerUser }) => {
           autoComplete="email"
         />
         {!passwordVisible && (
-          <button type="submit" className="btn" disabled={!id || !email}>Sign Up</button>
+          <button type="submit" className="btn" disabled={!id || !isValidEmail(email)}>Sign Up</button>
         )}
         {id && (
           <span className="new-username hint">{`as ${id}`}</span>
@@ -401,10 +423,29 @@ const NewProfileForm = ({ id, registerUser }) => {
             autoComplete="new-password"
             required
           />
-          <button type="submit" className="btn">Sign Up</button>
+          <SubmitButton disabled={!password}>Sign Up</SubmitButton>
         </div>
       )}
     </form>
+  )
+}
+
+const SubmitButton = ({ disabled, children }) => {
+  const loading = useContext(LoadingContext)
+
+  return (
+    <button type="submit" className="btn" disabled={disabled || loading}>
+      {children}
+      {' '}
+      {loading && (
+        <div className="spinner-small">
+          <div className="rect1" />
+          <div className="rect2" />
+          <div className="rect3" />
+          <div className="rect4" />
+        </div>
+      )}
+    </button>
   )
 }
 
@@ -449,6 +490,15 @@ const ConfirmationMessage = ({ registrationType, registeredEmail }) => {
 
 const SignUp = () => {
   const [signupConfirmation, setSignupConfirmation] = useState(null)
+  const { user, userLoading } = useContext(UserContext)
+  const router = useRouter()
+
+  // Redirect user to the homepage if not logged in
+  useEffect(() => {
+    if (!userLoading && user) {
+      router.replace('/')
+    }
+  }, [userLoading, user])
 
   return (
     <div className="row">
@@ -473,19 +523,6 @@ const SignUp = () => {
       )}
     </div>
   )
-}
-
-SignUp.getInitialProps = (ctx) => {
-  const { user } = auth(ctx)
-  if (user) {
-    if (ctx.req) {
-      ctx.res.writeHead(302, { Location: '/' }).end()
-    } else {
-      Router.replace('/')
-    }
-  }
-
-  return {}
 }
 
 SignUp.bodyClass = 'sign-up'

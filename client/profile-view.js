@@ -182,10 +182,10 @@ module.exports = function(profile, params, submitF, cancelF) {
         $position
       ),
       $('<td>', {class: 'info_item'}).append(
-        $('<input>', {type: 'text', class: 'form-control start', value: prefill && prefill.start || '', placeholder: 'year'}).keypress(isNumber)
+        $('<input>', {type: 'text', class: 'form-control start', value: prefill && prefill.start || '', placeholder: 'year' }).keypress(isNumber).on('paste', isPositiveInteger)
       ),
       $('<td>', {class: 'info_item'}).append(
-        $('<input>', {type: 'text', class: 'form-control end', value: prefill && prefill.end || '', placeholder: 'year'}).keypress(isNumber)
+        $('<input>', {type: 'text', class: 'form-control end', value: prefill && prefill.end || '', placeholder: 'year'}).keypress(isNumber).on('paste', isPositiveInteger)
       ),
       $('<td>', {class: 'info_item'}).append(
         $domain
@@ -248,8 +248,8 @@ module.exports = function(profile, params, submitF, cancelF) {
       $('<td>', {class: 'info_item'}).append(
         $('<div>', {text: 'Start', class: 'small_heading row_heading'})
       ),
-      $('<td>', {class: 'info_item'}).append(
-        $('<div>', {text: 'End', class: 'small_heading row_heading'})
+      $('<td>', {class: 'info_item', colspan: '2'}).append(
+        $('<div>', {class: 'small_heading row_heading'}).append(['End ', '<span class="hint">(optional)</span>'])
       )
     );
 
@@ -284,10 +284,10 @@ module.exports = function(profile, params, submitF, cancelF) {
         $('<input>', {type: 'text', class: 'form-control relation_email', value: prefill && prefill.email || ''})
       ),
       $('<td>', {class: 'info_item'}).append(
-        $('<input>', {type: 'text', class: 'form-control start', value: prefill && prefill.start || '', placeholder: 'year'}).keypress(isNumber)
+        $('<input>', {type: 'text', class: 'form-control start', value: prefill && prefill.start || '', placeholder: 'year'}).keypress(isNumber).on('paste', isPositiveInteger)
       ),
       $('<td>', {class: 'info_item'}).append(
-        $('<input>', {type: 'text', class: 'form-control end', value: prefill && prefill.end || '', placeholder: 'year'}).keypress(isNumber)
+        $('<input>', {type: 'text', class: 'form-control end', value: prefill && prefill.end || '', placeholder: 'year'}).keypress(isNumber).on('paste', isPositiveInteger)
       ),
       $('<td>', {class: 'info_item'}).append(
         $('<div>', {class: 'glyphicon glyphicon-minus-sign '}).click(function(event) {
@@ -324,10 +324,10 @@ module.exports = function(profile, params, submitF, cancelF) {
         $('<input>', {type: 'text', class: 'form-control expertise', value: expertise || ''})
       ),
       $('<td>', {class: 'info_item'}).append(
-        $('<input>', {type: 'text', class: 'form-control start', value: start || '', placeholder: 'year'}).keypress(isNumber)
+        $('<input>', {type: 'text', class: 'form-control start', value: start || '', placeholder: 'year'}).keypress(isNumber).on('paste', isPositiveInteger)
       ),
       $('<td>', {class: 'info_item'}).append(
-        $('<input>', {type: 'text', class: 'form-control end', value: end || '', placeholder: 'year'}).keypress(isNumber)
+        $('<input>', {type: 'text', class: 'form-control end', value: end || '', placeholder: 'year'}).keypress(isNumber).on('paste', isPositiveInteger)
       ),
       $('<td>', {class: 'info_item'}).append(
         $('<div>', {class: 'glyphicon glyphicon-minus-sign '}).click(function(event) {
@@ -363,9 +363,13 @@ module.exports = function(profile, params, submitF, cancelF) {
     var readonly = !_.isEmpty(username);
     var displayNewUsername = function($nameRow) {
       return function() {
-        var first = _.upperFirst($nameRow.find('.first_name').val());
-        var middle = _.upperFirst($nameRow.find('.middle_name').val());
-        var last = _.upperFirst($nameRow.find('.last_name').val());
+        var firstVal = $nameRow.find('.first_name').val();
+        var middleVal = $nameRow.find('.middle_name').val();
+        var lastVal = $nameRow.find('.last_name').val();
+
+        var first = firstVal.length === 1 ? firstVal.toUpperCase() : firstVal;
+        var middle = middleVal.length === 1 ? middleVal.toUpperCase() : middleVal;
+        var last = lastVal.length === 1 ? lastVal.toUpperCase() : lastVal;
 
         $nameRow.find('.first_name').val(first);
         $nameRow.find('.middle_name').val(middle);
@@ -491,6 +495,11 @@ module.exports = function(profile, params, submitF, cancelF) {
     if (String.fromCharCode(charCode).match(/[^0-9]/g)) {
       return false;
     }
+  };
+
+  var isPositiveInteger = function(e) {
+    var number = Number(e.originalEvent.clipboardData.getData('text'));
+    return Number.isInteger(number) && number > 0;
   };
 
   var drawView = function(profile, prefixedPositions, prefixedInstitutions, institutions, prefixedRelations) {

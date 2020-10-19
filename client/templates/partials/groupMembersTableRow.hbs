@@ -1,0 +1,22 @@
+<tr class="{{#if removed}}removed{{/if}} {{#if selected}}selected{{/if}}" data-id="{{memberId}}">
+  <td>
+    <input type="checkbox" {{#if removed}}disabled{{/if}} {{#if selected}}checked{{/if}}>
+  </td>
+
+  <td>
+    {{#if removed}}
+      <span>{{memberId}}</span> <em>(Deleted)</em>
+    {{else}}
+      <a href="{{groupUrl memberId}}" class="push-link" target="_blank">{{memberId}}</a>
+    {{/if}}
+  </td>
+
+  <td class="action-links">
+    {{#if removed}}
+      <button class="btn btn-xs undo-remove-member"><span class="glyphicon glyphicon-repeat"></span> Undo</button>
+    {{else}}
+      <button class="btn btn-xs message-member"><span class="glyphicon glyphicon-envelope"></span> Message</button>
+      <button class="btn btn-xs remove-member"><span class="glyphicon glyphicon-remove"></span>  Remove</button>
+    {{/if}}
+  </td>
+</tr>

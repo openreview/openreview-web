@@ -5,14 +5,16 @@ import App from 'next/app'
 import Router from 'next/router'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
-import { auth, setAuthCookie, removeAuthCookie } from '../lib/auth'
+import {
+  auth, setAuthCookie, removeAuthCookie, cookieExpiration,
+} from '../lib/auth'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 // Global Styles
 import '../styles/global.less'
 import '../styles/components.less'
 
-class OpenReviewApp extends App {
+export default class OpenReviewApp extends App {
   constructor(props) {
     super(props)
 
@@ -21,52 +23,79 @@ class OpenReviewApp extends App {
       userLoading: true,
       accessToken: null,
       clientJsLoading: true,
+      logoutRedirect: false,
       bannerHidden: false,
       bannerContent: null,
       layoutOptions: { fullWidth: false, footerMinimal: false },
     }
+    this.shouldResetBanner = false
+    this.shouldResetLayout = false
+    this.logoutTimer = null
 
     this.loginUser = this.loginUser.bind(this)
     this.logoutUser = this.logoutUser.bind(this)
+    this.updateUserName = this.updateUserName.bind(this)
     this.setBannerHidden = this.setBannerHidden.bind(this)
     this.setBannerContent = this.setBannerContent.bind(this)
     this.setLayoutOptions = this.setLayoutOptions.bind(this)
-    this.onRouteChange = this.onRouteChange.bind(this)
+    this.onRouteChangeStart = this.onRouteChangeStart.bind(this)
+    this.onRouteChangeComplete = this.onRouteChangeComplete.bind(this)
   }
 
   loginUser(authenticatedUser, userAccessToken, redirectPath = '/') {
-    this.setState({ user: authenticatedUser, accessToken: userAccessToken })
+    this.setState({ user: authenticatedUser, accessToken: userAccessToken, logoutRedirect: false })
     setAuthCookie(userAccessToken)
 
     // Need pass new accessToken to Webfield and controller so legacy ajax functions work
     window.Webfield.setToken(userAccessToken)
     window.controller.setToken(userAccessToken)
 
+    const timeToExpiration = cookieExpiration * 1000 - 1000
+    this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
+
     Router.push(redirectPath)
   }
 
   logoutUser(redirectPath = '/') {
-    this.setState({ user: null, accessToken: null })
+    this.setState({ user: null, accessToken: null, logoutRedirect: !!redirectPath })
     removeAuthCookie()
 
     window.Webfield.setToken(null)
     window.controller.setToken(null)
 
-    Router.push(redirectPath)
+    clearTimeout(this.logoutTimer)
+
+    if (redirectPath) {
+      Router.push(redirectPath)
+    }
+  }
+
+  updateUserName(first, middle, last) {
+    this.setState((state, props) => ({
+      user: {
+        ...state.user,
+        profile: {
+          ...state.user.profile, first, middle, last,
+        },
+      },
+    }))
   }
 
   setBannerHidden(newHidden) {
     this.setState({ bannerHidden: newHidden })
+    this.shouldResetBanner = false
   }
 
   setBannerContent(newContent) {
-    this.setState({ bannerContent: newContent })
+    this.setState({ bannerContent: newContent, bannerHidden: false })
+    this.shouldResetBanner = false
   }
 
   setLayoutOptions(options) {
     this.setState(previous => ({
       layoutOptions: { ...previous.layoutOptions, ...options },
     }))
+    this.shouldResetLayout = false
   }
 
   getLegacyBannerObject() {
@@ -81,15 +110,12 @@ class OpenReviewApp extends App {
       },
       welcome: () => {
         this.setBannerContent(null)
-        this.setBannerHidden(false)
       },
       venueHomepageLink: (groupId) => {
         this.setBannerContent(venueHomepageLink(groupId))
-        this.setBannerHidden(false)
       },
       referrerLink: (referrer) => {
         this.setBannerContent(referrerLink(referrer))
-        this.setBannerHidden(false)
       },
       set: () => {},
       clear: () => {},
@@ -98,30 +124,79 @@ class OpenReviewApp extends App {
     }
   }
 
-  onRouteChange(url) {
-    // Reset banner
-    this.setState({
-      bannerHidden: false,
-      bannerContent: null,
-      layoutOptions: { fullWidth: false, footerMinimal: false },
-    })
+  onRouteChangeStart() {
+    this.shouldResetBanner = true
+    this.shouldResetLayout = true
+
+    // Close mobile nav menu if open
+    if (document.getElementById('navbar').attributes['aria-expanded']?.value === 'true') {
+      document.querySelector('nav.navbar button.navbar-toggle').click()
+    }
+  }
+
+  onRouteChangeComplete(url) {
+    // Reset banner and Layout
+    if (this.shouldResetBanner) {
+      this.setState({
+        bannerHidden: false,
+        bannerContent: null,
+      })
+    }
+    if (this.shouldResetLayout) {
+      this.setState({
+        layoutOptions: { fullWidth: false, footerMinimal: false },
+      })
+    }
 
     // Track pageview in Google Analytics
     // https://developers.google.com/analytics/devguides/collection/gtagjs/pages
     if (process.env.IS_PRODUCTION || process.env.IS_STAGING) {
       window.gtag('config', process.env.GA_PROPERTY_ID, {
         page_path: url,
+        transport_type: 'beacon',
       })
     }
   }
 
   componentDidMount() {
-    const { user, token } = auth()
+    // Load user state from auth cookie
+    const { user, token, expiration } = auth()
     if (user) {
       this.setState({ user, accessToken: token, userLoading: false })
+
+      // Automatically log the user out slightly before the token is set to expire
+      const timeToExpiration = expiration - Date.now() - 1000
+      this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
     } else {
       this.setState({ userLoading: false })
     }
+
+    // When the user logs out in another tab, trigger logout for this app
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'openreview.lastLogout') {
+        this.logoutUser(null)
+      }
+    })
+
+    // Track unhandled JavaScript errors
+    const reportError = (errorDescription) => {
+      if (process.env.IS_PRODUCTION || process.env.IS_STAGING) {
+        window.gtag('event', 'exception', {
+          description: errorDescription,
+          fatal: true,
+        })
+      }
+    }
+    window.addEventListener('error', (event) => {
+      if (event.message === 'ResizeObserver loop limit exceeded') return false
+      const description = `JavaScript Error: "${event.message}" in ${event.filename} at line ${event.lineno}`
+      reportError(description)
+      return false
+    })
+    window.addEventListener('unhandledrejection', (event) => {
+      const description = `Unhandled Promise Rejection: ${JSON.stringify(event.reason)}`
+      reportError(description)
+    })
 
     // Load required vendor libraries
     window.jQuery = require('jquery')
@@ -131,12 +206,14 @@ class OpenReviewApp extends App {
     window.Handlebars = require('handlebars/runtime')
     window.marked = require('marked')
     window.DOMPurify = require('dompurify')
+    require('formdata-polyfill')
     window.MathJax = require('../lib/mathjax-config')
 
     // MathJax has to be loaded asynchronously from the CDN after the config file loads
     const script = document.createElement('script')
     script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.0.5/es5/tex-chtml.js'
     script.async = true
+    script.crossOrigin = 'anonymous'
     document.head.appendChild(script)
 
     // Load legacy JS code
@@ -149,19 +226,24 @@ class OpenReviewApp extends App {
     require('../client/template-helpers')
     require('../client/globals')
 
+    // setup marked options and renderer overwrite
+    window.view.setupMarked()
+
     // Set required constants
     window.OR_API_URL = process.env.API_URL
     window.Webfield.setToken(token)
     window.controller.setToken(token)
 
-    // Register route change handler
-    Router.events.on('routeChangeComplete', this.onRouteChange)
-
     this.setState({ clientJsLoading: false })
+
+    // Register route change handlers
+    Router.events.on('routeChangeStart', this.onRouteChangeStart)
+    Router.events.on('routeChangeComplete', this.onRouteChangeComplete)
   }
 
   componentWillUnmount() {
-    Router.events.off('routeChangeComplete', this.onRouteChange)
+    Router.events.off('routeChangeStart', this.onRouteChangeStart)
+    Router.events.off('routeChangeComplete', this.onRouteChangeComplete)
   }
 
   render() {
@@ -172,6 +254,8 @@ class OpenReviewApp extends App {
       accessToken: this.state.accessToken,
       loginUser: this.loginUser,
       logoutUser: this.logoutUser,
+      logoutRedirect: this.state.logoutRedirect,
+      updateUserName: this.updateUserName,
     }
     const appContext = {
       clientJsLoading: this.state.clientJsLoading,
@@ -196,4 +280,17 @@ class OpenReviewApp extends App {
   }
 }
 
-export default OpenReviewApp
+// Send page page performace information to Google Analytics. For more info see:
+// https://nextjs.org/docs/advanced-features/measuring-performance
+export function reportWebVitals({
+  id, name, label, value,
+}) {
+  if (process.env.IS_PRODUCTION || process.env.IS_STAGING) {
+    window.gtag('event', name, {
+      event_category: label === 'web-vital' ? 'Web Vitals' : 'Next.js Metrics',
+      value: Math.round(name === 'CLS' ? value * 1000 : value),
+      event_label: id,
+      non_interaction: true,
+    })
+  }
+}

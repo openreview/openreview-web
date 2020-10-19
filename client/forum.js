@@ -18,6 +18,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   var $content = $('#content > .forum-container');
   var $childrenAnchor = $('#note_children');
+  var sm = mkStateManager();
 
   // Data fetching functions
   var getProfilesP = function(notes) {
@@ -74,7 +75,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         .then(function(result) {
           if (!result.notes || !result.notes.length) {
             controller.removeHandler('forum');
-            replaceWithHome();
+            location.href = '/';
             return;
           }
 
@@ -121,11 +122,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
           if (!result.invitations || !result.invitations.length) {
             return [];
           }
-          return result.invitations.filter(function(invitation) {
-            return !_.has(invitation, 'multiReply')
-              || invitation.multiReply !== false
-              || !_.has(invitation, 'details.repliedNotes[0]');
-          });
+          return result.invitations;
         }, onError);
     };
 
@@ -135,21 +132,22 @@ module.exports = function(forumId, noteId, invitationId, user) {
       var commonInvitations = _.filter(invitations, function(invitation) {
         return _.isEmpty(invitation.reply.replyto) &&
           _.isEmpty(invitation.reply.referent) &&
+          _.isEmpty(invitation.reply.referentInvitation) &&
           _.isEmpty(invitation.reply.invitation);
       });
 
       var noteRecPs = _.map(notes, function(note) {
         var noteInvitations = _.filter(invitations, function(invitation) {
           // Check if invitation is replying to this note
-          var isInvitationRelated = (invitation.reply.replyto === note.id);
+          var isInvitationRelated = (invitation.reply.replyto === note.id) || (invitation.reply.invitation === note.invitation);
           // Check if invitation does not have multiReply OR invitation has the field multiReply but it is not set to false OR invitation has the field multireply which is set to false but there have not been any replies yet
           var isMultireplyApplicable = (!_.has(invitation, 'multiReply') || (invitation.multiReply !== false) || !_.has(invitation, 'details.repliedNotes[0]'));
-          return (isInvitationRelated && isMultireplyApplicable) || (invitation.reply.invitation === note.invitation);
+          return isInvitationRelated && isMultireplyApplicable;
         });
 
         var referenceInvitations = _.filter(invitations, function(invitation) {
           // Check if invitation is replying to this note
-          var isInvitationRelated = (invitation.reply.referent === note.id);
+          var isInvitationRelated = (invitation.reply.referent === note.id) || (invitation.reply.referentInvitation === note.invitation);
           // Check if invitation does not have multiReply OR invitation has the field multiReply but it is not set to false OR invitation has the field multireply which is set to false but there have not been any replies yet
           var isMultireplyApplicable = (!_.has(invitation, 'multiReply') || (invitation.multiReply !== false) || !_.has(invitation, 'details.repliedNotes[0]'));
           return isInvitationRelated && isMultireplyApplicable;
@@ -201,8 +199,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
     view.mkNewNoteEditor(invitation, forumId, replyto, user, {
       onNoteCreated: function(newNote) {
         getNoteRecsP().then(function(noteRecs) {
+          $content.one('forumRendered', function() {
+            scrollToNote(newNote.id);
+          });
           sm.update('noteRecs', noteRecs);
-          scrollToNote(newNote.id);
         });
       },
       onCompleted: function(editor) {
@@ -230,9 +230,17 @@ module.exports = function(forumId, noteId, invitationId, user) {
   var mkPanel = function(rec, $anchor) {
     var $note = view.mkNotePanel(rec.note, {
       onEditRequested: function(invitation, options) {
-        var params = Object.assign({}, options);
-        var noteToRender = params.original ? rec.note.details.original : rec.note;
-        mkEditor(rec, noteToRender, invitation, $anchor, function(editor) {
+        var noteToRender;
+        if (options?.original) {
+          noteToRender = rec.note.details?.original;
+        } else if (options?.revision) {
+          noteToRender = invitation.details?.repliedNotes?.[0]
+          if (noteToRender) {
+            // Include both the referent and the note id so the API doesn't create a new reference
+            noteToRender.updateId = noteToRender.id
+          }
+        }
+        mkEditor(rec, noteToRender || rec.note, invitation, $anchor, function(editor) {
           if (editor) {
             $note.replaceWith(editor);
           }
@@ -295,8 +303,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
       view.mkNoteEditor(note, invitation, user, {
         onNoteEdited: function(newNote) {
           getNoteRecsP().then(function(noteRecs) {
+            $content.one('forumRendered', function() {
+              scrollToNote(newNote.id);
+            });
             sm.update('noteRecs', noteRecs);
-            scrollToNote(newNote.id);
           });
         },
         onNoteCancelled: function() {
@@ -381,7 +391,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       var noteId = $(this).data('noteId');
       var noteReplytoId = $(this).data('noteReplytoId');
       var noteTitle = $(this).closest('.note_with_children').find('.note_content_title a').eq(0).text();
-      var scrollPos = $('#note_children').offset().top - 51 - 12;
+      var scrollPos = $childrenAnchor.offset().top - 51 - 12;
 
       $('html, body').animate({scrollTop: scrollPos}, 400, function() {
         $childrenAnchor.fadeOut('fast', function() {
@@ -469,11 +479,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var animationDone = $.Deferred();
 
     var doAnimation = function() {
-      var navBarHeight = 51 - 12; // height in px of nav bar, plus extra padding
-      // console.log below is for troubleshooting of $(scrollToElem).offset() undefined error in github actions
-      console.log('### in doAnimation ###')
-      console.log(`$(scrollToElem) is ${JSON.stringify($(scrollToElem))}`)
-      console.log(`$(scrollToElem).offset() is ${JSON.stringify($(scrollToElem).offset())}`)
+      var navBarHeight = 51 + 12; // height in px of nav bar, plus extra padding
       var scrollPos = $(scrollToElem).offset().top - navBarHeight;
       $('html, body').animate({scrollTop: scrollPos}, 400, function() {
         animationDone.resolve(true);
@@ -499,7 +505,9 @@ module.exports = function(forumId, noteId, invitationId, user) {
             mkReplyNotes(replytoIdToChildren, [parentNote], 1)
           );
           MathJax.typesetPromise();
-          doAnimation();
+          if ($(scrollToElem).length) {
+            doAnimation();
+          }
         }
       } else {
         animationDone.resolve(null);
@@ -527,24 +535,31 @@ module.exports = function(forumId, noteId, invitationId, user) {
   // State handler functions
   var onTokenChange = function() {
     getNoteRecsP().then(function(recs) {
-      sm.update('noteRecs', recs);
-
-      // Determine if the url includes and noteId or invitationId param and scroll there
-      var noteOrForumRec = _.find(recs, ['note.id', noteId]);
-      if (noteOrForumRec) {
-        if (forumId !== noteId && !invitationId) {
-          scrollToNote(noteId);
-        }
-
-        if (invitationId) {
-          var invitation = _.find(noteOrForumRec.replyInvitations, ['id', invitationId]);
-          if (invitation) {
-            appendInvitation(invitation, noteId);
+      // Determine if the url includes and noteId or invitationId param and scroll there,
+      // but only after the forumRendered event is triggered
+      $content.one('forumRendered', function() {
+        var noteOrForumRec = _.find(recs, ['note.id', noteId]);
+        if (noteOrForumRec) {
+          if (forumId !== noteId && !invitationId) {
+            scrollToNote(noteId);
+          }
+          if (invitationId) {
+            var replyInv = _.find(noteOrForumRec.replyInvitations, ['id', invitationId]);
+            if (replyInv) {
+              appendInvitation(replyInv, noteId);
+            } else {
+              var origInv = _.find(noteOrForumRec.originalInvitations, ['id', invitationId]);
+              if (origInv) {
+                $('#note_' + forumId + ' .meta_actions .edit_button').trigger('click')
+              }
+            }
           }
         }
-      }
 
-      registerEventHelpers();
+        registerEventHelpers();
+      });
+
+      sm.update('noteRecs', recs);
     });
 
     sm.addHandler('forum', {
@@ -596,6 +611,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
     );
 
     typesetMathJax();
+
+    $content.trigger('forumRendered');
   };
 
   var createMultiSelector = function(filters, id) {
@@ -828,14 +845,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $filtersContainer.append('<span>Show </span>', invitationMultiSelector, '<span> from </span>', signatureMultiSelector);
     return $filtersContainer;
   };
-
-  var sm = mkStateManager();
-
-  if (!forumId) {
-    sm.removeAllBut('main');
-    replaceWithHome();
-    return;
-  }
 
   onTokenChange();
 };

@@ -47,9 +47,11 @@ export default function BasicModal({
               <button type="button" className="btn btn-default" data-dismiss="modal">
                 {cancelButtonText}
               </button>
-              <button type="button" className="btn btn-primary" onClick={onPrimaryButtonClick} disabled={primaryButtonDisabled}>
-                {primaryButtonText}
-              </button>
+              {primaryButtonText && (
+                <button type="button" className="btn btn-primary" onClick={onPrimaryButtonClick} disabled={primaryButtonDisabled}>
+                  {primaryButtonText}
+                </button>
+              )}
             </div>
           )}
         </div>

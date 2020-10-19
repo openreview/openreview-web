@@ -13,6 +13,7 @@ module.exports = (function() {
   var get = function(url, queryObj, options) {
     var defaults = {
       handleErrors: true,
+      cache: true // Note: IE won't get updated when cache is enabled
     };
     options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
@@ -21,7 +22,7 @@ module.exports = (function() {
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
     return $.ajax({
-      cache: true,
+      cache: options.cache,
       dataType: 'json',
       type: 'get',
       contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -436,6 +437,9 @@ module.exports = (function() {
     };
     options = _.defaults(options, defaults);
 
+    if (venueInfo.website && !venueInfo.website.startsWith('http')) {
+      venueInfo.website = 'http://' + venueInfo.website
+    }
     if (options.showInfoLink) {
       venueInfo.groupInfoLink = window.location.pathname + '?' +
         serializeUrlParams(_.assign(parseUrlParams(window.location.search), { mode: 'info' }));
@@ -513,6 +517,7 @@ module.exports = (function() {
 
       view.mkNewNoteEditor(invitationData, null, null, user, {
         onCompleted: function($editor) {
+          if (!$editor) return;
           $editor.hide();
           $container.append($editor);
           $editor.slideDown();
@@ -537,6 +542,7 @@ module.exports = (function() {
     var $container = $(options.container);
     view.mkNewNoteEditor(invitationData, null, null, user, {
       onCompleted: function($editor) {
+        if (!$editor) return;
         $editor.hide();
         $editor.children().eq(3).hide();
         $editor.children().eq(4).hide();
@@ -674,7 +680,7 @@ module.exports = (function() {
             if (term) {
               filterNotes(notes, {
                 term: term,
-                pageSize: options.pageSize,
+                pageSize: 1000,
                 invitation: options.search.invitation,
                 onResults: options.search.onResults,
                 localSearch: options.search.localSearch
@@ -700,7 +706,7 @@ module.exports = (function() {
             } else {
               filterNotes(notes, {
                 term: term,
-                pageSize: options.pageSize,
+                pageSize: 1000,
                 subject: selectedSubject,
                 invitation: options.search.invitation,
                 onResults: options.search.onResults,
@@ -733,7 +739,7 @@ module.exports = (function() {
 
             filterNotes(notes, {
               term: term,
-              pageSize: options.pageSize,
+              pageSize: 1000,
               subject: selectedSubject,
               invitation: options.search.invitation,
               onResults: options.search.onResults,
@@ -770,7 +776,7 @@ module.exports = (function() {
             var extraParams = filterSubjects ? {subject: selectedSubject} : {};
             filterNotes(notes, _.assign({
               term: term,
-              pageSize: options.pageSize,
+              pageSize: 1000,
               invitation: options.search.invitation,
               onResults: options.search.onResults,
               localSearch: options.search.localSearch
@@ -872,7 +878,7 @@ module.exports = (function() {
           var errorText = getErrorFromJqXhr(jqXhr, textStatus);
           promptError(_.isString(errorText) ? errorText : 'The specified tag could not be updated. Please reload the page and try again.');
           $self.parent().removeClass('disabled');
-          $widget.trigger('apiReturnedError',error);
+          $widget.trigger('apiReturnedError', errorText);
         };
 
         var requestBody;
@@ -1096,6 +1102,8 @@ module.exports = (function() {
       });
     }
 
+    typesetMathJax();
+
     if (options.fadeIn) {
       return $container.fadeIn('fast').promise();
     }
@@ -1169,6 +1177,8 @@ module.exports = (function() {
         $container, notes, Handlebars.templates['partials/noteActivity'], options
       );
     }
+
+    typesetMathJax();
   };
 
   var _registerActionButtonHandlers = function($container, notes, noteTemplateFn, options) {
@@ -1244,12 +1254,13 @@ module.exports = (function() {
           onNoteCancelled: function() {
             $('#note-editor-modal').modal('hide');
           },
-          onCompleted: function(editor) {
+          onCompleted: function($editor) {
+            if (!$editor) return;
             $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append(
               '<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
                 '<span aria-hidden="true">&times;</span>' +
               '</button>',
-              editor
+              $editor
             );
           }
         });
@@ -1421,6 +1432,7 @@ module.exports = (function() {
     }
 
     $container.append(noteListHtml);
+    typesetMathJax();
   };
 
   var groupInfo = function(group, options) {
@@ -1525,6 +1537,8 @@ module.exports = (function() {
           return false;
         });
       }
+
+      $section.append('<a href="/messages?parentGroup=' + group.id + '" target="_blank" rel="nofollow">View Messages sent to this group</a>')
     };
 
     var getOffsetFromPageNum = function(limit, membersCount, pageNum) {
@@ -2808,7 +2822,7 @@ module.exports = (function() {
   // or AC profile confirmation tasks are complete
   var temporaryMarkExpertiseCompleted = function(invitationsGroup) {
     var profileConfirmationInv = _.find(invitationsGroup, function(inv) {
-      return _.endsWith(inv.id, 'Profile_Confirmation');
+      return _.endsWith(inv.id, 'Profile_Confirmation') || _.endsWith(inv.id, 'Registration');
     });
     var expertiseInv = _.find(invitationsGroup, function(inv) {
       return _.endsWith(inv.id, 'Expertise_Selection');
@@ -2906,8 +2920,6 @@ module.exports = (function() {
         !$('.tabs-container ul.nav-tabs > li.active').length) {
       $('.tabs-container ul.nav-tabs > li > a:visible').eq(0).trigger('click', [true]);
     }
-
-    typesetMathJax();
   };
 
   return {

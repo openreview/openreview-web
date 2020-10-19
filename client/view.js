@@ -779,8 +779,8 @@ module.exports = (function() {
     };
 
     var getEmails = function(emails) {
-      return $(emails.map(function(mail) {
-        return '<span>' + mail.toLowerCase() + '</span>';
+      return $(emails.filter(Boolean).map(function(email) {
+        return '<span>' + email.toLowerCase() + '</span>';
       }).join(', '));
     };
 
@@ -843,7 +843,7 @@ module.exports = (function() {
 
     var $noResults = $('<table>', { class: 'table' }).append(
       $('<tr>').append(
-        '<td><span>No profiles were found</span></td>'
+        '<td><span>No matching profiles found. Please enter the author\'s full name and email, then click the + button to add the author.</span></td>'
       )
     );
     $noResults.hide();
@@ -854,13 +854,13 @@ module.exports = (function() {
     var $emailSearch = $('<input>', { id: 'email-search', class:'search-input form-control note-content-search', type:'text', placeholder:'Email' });
 
     var addDirectly = function() {
-      $(this).prop('disabled', true);
+      $(this).hide();
       var $fullName = getNameFromInput($firstNameSearch.val(), $middleNameSearch.val(), $lastNameSearch.val());
       var $emails = $('<span>').append(_.trim($emailSearch.val()));
       $authors.append(createAuthorRow($fullName, $emails));
     };
 
-    var $addDirectlyButton = $('<button id="add-directly" class="btn btn-xs" disabled><span class="glyphicon glyphicon-plus"></span></button>').on('click', addDirectly);
+    var $addDirectlyButton = $('<button id="add-directly" class="btn btn-xs"><span class="glyphicon glyphicon-plus"></span></button>').on('click', addDirectly).hide();
     if (!allowUserDefined) {
       $addDirectlyButton.hide();
     }
@@ -906,6 +906,7 @@ module.exports = (function() {
         profilesWithEmails.forEach(function(profile) {
           $searchResults.append(createSearchResultRow(profile));
         });
+        $searchResults.append($('<div>', { class: 'text-center' }).append('<span class="hint">Click the + button of the profile you wish to add to the authors list</span>'))
       } else {
         $noResults.show();
       }
@@ -915,12 +916,12 @@ module.exports = (function() {
       var first = _.trim($firstNameSearch.val());
       var last = _.trim($lastNameSearch.val());
       if (emailResponse && !emailResponse.count && isValidEmail(email) && isValidName(first, last)) {
-        $addDirectlyButton.prop('disabled', false);
+        $addDirectlyButton.show();
       }
     };
 
     var combinedSearch = function() {
-      $addDirectlyButton.prop('disabled', true);
+      $addDirectlyButton.hide();
       var firstName = _.trim($firstNameSearch.val());
       var lastName = _.trim($lastNameSearch.val());
       var email = _.trim($emailSearch.val());
@@ -1289,11 +1290,13 @@ module.exports = (function() {
         [fieldDescription['value-checkbox']] :
         fieldDescription['values-checkbox'];
       var checkedValues = _.isArray(fieldValue) ? fieldValue : [fieldValue];
+      var requiredValues = fieldDescription.default;
 
       var checkboxes = _.map(options, function(option) {
         var checked = _.includes(checkedValues, option) ? 'checked' : '';
+        var disabled = _.includes(requiredValues, option) ? 'disabled' : '';
         return '<label class="checkbox-inline">' +
-          '<input type="checkbox" name="' + fieldName + '" value="' + option + '" ' + checked + '> ' + option +
+          '<input type="checkbox" name="' + fieldName + '" value="' + option + '" ' + checked + ' ' + disabled + '> ' + (params.prettyId ? prettyId(option) : option) +
           '</label>';
       });
       return valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
@@ -2089,12 +2092,12 @@ module.exports = (function() {
     }
 
     var $revisionsLink = (params.withRevisionsLink && details.revisions) ?
-      $('<a>', { class: 'note_content_pdf item', href: '/revisions?id=' + note.id, text: 'Show Revisions', target: '_blank' }) :
+      $('<a>', { class: 'note_content_pdf item', href: '/revisions?id=' + note.id, text: 'Show Revisions' }) :
       null;
 
     // Display modal showing full BibTeX reference. Click handler is definied in public/index.js
     var $bibtexLink = (note.content._bibtex && params.withBibtexLink) ?
-      $('<span class="item"><a class="action-bibtex-modal" data-bibtex="' + encodeURIComponent(note.content._bibtex) + '">Show Bibtex</a></span>') :
+      $('<span class="item"><a href="#" data-target="#bibtex-modal" data-toggle="modal" data-bibtex="' + encodeURIComponent(note.content._bibtex) + '">Show Bibtex</a></span>') :
       null;
 
     var $metaEditRow = $('<div>', {class: 'meta_row'});
@@ -2129,8 +2132,15 @@ module.exports = (function() {
     }
 
     var $originalInvitations = _.map(params.originalInvitations, function(invitation) {
-      return $('<button class="btn btn-xs edit_button">').text(prettyInvitationId(invitation.id)).click(function() {
-        params.onEditRequested(invitation, { original: true });
+      var buttonText = prettyInvitationId(invitation.id);
+      var editorOptions = { original: true }
+      if (buttonText === 'Revision' && invitation.multiReply === false && invitation.details.repliedNotes?.length) {
+        buttonText = 'Edit Revision';
+        editorOptions = { revision: true }
+      }
+
+      return $('<button class="btn btn-xs edit_button">').text(buttonText).on('click', function() {
+        params.onEditRequested(invitation, editorOptions);
       });
     });
 
@@ -2362,7 +2372,7 @@ module.exports = (function() {
       primaryButtonText: 'Delete'
     }));
 
-    $signaturesDropdown.removeClass('row').addClass('legacy-styles text-center');
+    $signaturesDropdown.removeClass('row').addClass('note_editor text-center mb-2');
     $signaturesDropdown.find('.required_field').remove();
     $signaturesDropdown.find('span.line_heading').text('Signature:');
     $('#confirm-delete-modal .modal-body').append($signaturesDropdown);
@@ -2664,10 +2674,27 @@ module.exports = (function() {
       if (replyContent[fieldName].required && _.isEmpty(content[fieldName])) {
         errorList.push('Field missing: ' + prettyField(fieldName));
       }
+
+      // authors search has pending results to be added
+      if (fieldName === 'authorids' && $('div.search-results>div.author-row').length) {
+        errorList.push('You have additional authors to be added to authors list');
+      }
     });
 
     if (invitation.reply.readers.hasOwnProperty('values-dropdown')) {
       var inputValues = idsFromListAdder(readersWidget, invitation.reply.readers);
+      if (!inputValues.length) {
+        errorList.push('Readers can not be empty. You must select at least one reader');
+      }
+    }
+
+    if (invitation.reply.readers.hasOwnProperty('values-checkbox')) {
+      var inputValues = [];
+      readersWidget.find('.note_content_value input[type="checkbox"]').each(function(i) {
+        if ($(this).prop('checked')) {
+          inputValues.push($(this).val());
+        }
+      });
       if (!inputValues.length) {
         errorList.push('Readers can not be empty. You must select at least one reader');
       }
@@ -2821,6 +2848,14 @@ module.exports = (function() {
       invitationValues = invitation.reply.readers['values-dropdown'];
     } else if (_.has(invitation.reply.readers, 'value-dropdown-hierarchy')) {
       invitationValues = invitation.reply.readers['value-dropdown-hierarchy'];
+    } else if (_.has(invitation.reply.readers, 'values-checkbox')) {
+      inputValues = [];
+      widget.find('.note_content_value input[type="checkbox"]').each(function(i) {
+        if ($(this).prop('checked')) {
+          inputValues.push($(this).val());
+        }
+      });
+      invitationValues = invitation.reply.readers['values-checkbox'];
     }
 
     // Add signature if exists in the invitation readers list
@@ -3155,6 +3190,48 @@ module.exports = (function() {
           done(undefined, 'Can not create note, readers must match parent note');
         }
       });
+    } else if (_.has(fieldDescription, 'values-checkbox')) {
+      var initialValues = fieldDescription['values-checkbox'];
+      var promise = $.Deferred().resolve();
+      var index = _.findIndex(initialValues, function(g) { return g.indexOf('.*') >=0; });
+      if (index >= 0) {
+        var regexGroup = initialValues[index];
+        promise = controller.get('/groups', { regex: regexGroup })
+        .then(function(result) {
+          if (result.groups && result.groups.length) {
+            var groups = result.groups.map(function(g) { return g.id; });
+            fieldDescription['values-checkbox'] = initialValues.slice(0, index).concat(groups, initialValues.slice(index + 1));
+          } else {
+            fieldDescription['values-checkbox'].splice(index, 1);
+          }
+        });
+      }
+      promise
+        .then(function() {
+          setParentReaders(replyto, fieldDescription, 'values-checkbox', function (newFieldDescription) {
+            //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
+            var replyValues = _.intersection(newFieldDescription['values-checkbox'], fieldDescription['values-checkbox']);
+
+            //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
+            var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
+            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer'); });
+            if (hasReviewers && !hasAnonReviewers) {
+              fieldDescription['values-checkbox'].forEach(function(value) {
+                if (value.includes('AnonReviewer')) {
+                  replyValues.push(value);
+                }
+              });
+            }
+
+            newFieldDescription['values-checkbox'] = replyValues;
+            if (_.difference(newFieldDescription.default, newFieldDescription['values-checkbox']).length !== 0) { //invitation default is not in list of possible values
+              done(undefined, 'Default reader is not in the list of readers');
+            }
+            var $readers = mkComposerInput('readers', newFieldDescription, fieldValue.length ? fieldValue : newFieldDescription.default, { prettyId: true});
+            $readers.find('.small_heading').prepend(requiredText);
+            done($readers);
+          });
+        });
     } else {
       var $readers = mkComposerInput('readers', fieldDescription, fieldValue);
       $readers.find('.small_heading').prepend(requiredText);
@@ -3290,8 +3367,8 @@ module.exports = (function() {
           replyto: note.replyto || invitation.reply.replyto || invitation.reply.forum, //For some reason invitation.reply.replyto is null, see scripts
         };
 
-        if (invitation.reply.referent) {
-          editNote.referent = invitation.reply.referent;
+        if (invitation.reply.referent || invitation.reply.referentInvitation) {
+          editNote.referent = invitation.reply.referent || note.id;
           if (note.updateId) {
             editNote.id = note.updateId;
           }
