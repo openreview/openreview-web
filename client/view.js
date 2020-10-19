@@ -1500,8 +1500,8 @@ module.exports = (function() {
 
   // Private function that creates the input element for entering a pdf, and binds
   // the arxivAutofill callback if the pdf is the first field in the form.
-  var mkFileInput = function(type, order, regexStr) {
-    var $notePdf = $('<input>', {type: type, class: 'form-control note_content_value_input note_pdf'});
+  var mkFileInput = function(fieldName, type, order, regexStr) {
+    var $notePdf = $('<input>', {type: type, class: 'form-control note_content_value_input note_' + fieldName});
     var $clearBtn = null;
 
     if (type === 'text' && order <= 1) {
@@ -1509,7 +1509,11 @@ module.exports = (function() {
     } else if (type === 'file') {
       $clearBtn = $('<button class="btn"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>')
         .on('click', function() {
+          // Clear current selection from file input and reset existing selection
           $notePdf.val('');
+          var $fieldRow = $(this).closest('.row');
+          $fieldRow.find('.note_content_value').val('');
+          $fieldRow.find('.existing-filename').text('').hide();
         });
     }
 
@@ -1528,17 +1532,9 @@ module.exports = (function() {
 
     var $noteContentVal = $('<input>', {class: 'note_content_value', name: fieldName, value: fieldValue, style: 'display: none;'})
 
-    var $fieldValue = null;
-    if (fieldValue) {
-      $fieldValue = $('<span class="item hint" style="margin-top: .25rem;">').append(
-        'Current: ' + fieldValue + ' &nbsp;&nbsp;',
-        $('<a>', {href: '#'}).text('Remove').on('click', function(e) {
-          $noteContentVal.val('');
-          $fieldValue.hide();
-          return false;
-        })
-      )
-    }
+    var $fieldValue = fieldValue
+      ? $('<span class="item hint existing-filename">(' + fieldValue + ')</span>')
+      : null;
 
     return $('<div>', {class: 'row'}).append(
       smallHeading,
@@ -1555,10 +1551,10 @@ module.exports = (function() {
     var invitationFileTransfer = fileTransferByInvitation(regexStr);
 
     if (invitationFileTransfer === 'upload') {
-      return mkFileRow(mkFileInput('file', order, regexStr), 'pdf', fieldDescription, fieldValue);
+      return mkFileRow(mkFileInput('pdf', 'file', order, regexStr), 'pdf', fieldDescription, fieldValue);
 
     } else if (invitationFileTransfer === 'url') {
-      return mkFileRow(mkFileInput('text', order, regexStr), 'pdf', fieldDescription, fieldValue);
+      return mkFileRow(mkFileInput('pdf', 'text', order, regexStr), 'pdf', fieldDescription, fieldValue);
 
     } else if (invitationFileTransfer === 'either') {
       var $span = $('<div>', {class: 'item', style: 'width: 80%'});
@@ -1566,13 +1562,13 @@ module.exports = (function() {
       var $radioItem = $('<div>', {class: 'item'}).append(
         $('<div>').append(
           $('<input>', {class: 'upload', type: 'radio', name: 'pdf_' + timestamp}).click(function() {
-            $span.html(mkFileInput('file', order, regexStr));
+            $span.html(mkFileInput('pdf', 'file', order, regexStr));
           }),
           $('<span>', {class: 'item', text: 'Upload PDF file'})
         ),
         $('<div>').append(
           $('<input>', {class: 'url', type: 'radio', name: 'pdf_' + timestamp}).click(function() {
-            $span.html(mkFileInput('text', order, regexStr));
+            $span.html(mkFileInput('pdf', 'text', order, regexStr));
           }),
           $('<span>', {class: 'item', text: 'Enter URL'})
         )
@@ -1600,10 +1596,10 @@ module.exports = (function() {
     }
 
     if (invitationFileTransfer === 'upload') {
-      return mkFileRow(mkFileInput('file', order, regexStr), fieldName, fieldDescription, fieldValue);
+      return mkFileRow(mkFileInput(fieldName, 'file', order, regexStr), fieldName, fieldDescription, fieldValue);
 
     } else if (invitationFileTransfer === 'url') {
-      return mkFileRow(mkFileInput('text', order, regexStr), fieldName, fieldDescription, fieldValue);
+      return mkFileRow(mkFileInput(fieldName, 'text', order, regexStr), fieldName, fieldDescription, fieldValue);
 
     } else if (invitationFileTransfer === 'either') {
       var $span = $('<div>', {class: 'item', style: 'width: 80%'});
@@ -1611,13 +1607,13 @@ module.exports = (function() {
       var $radioItem = $('<div>', {class: 'item'}).append(
         $('<div>').append(
           $('<input>', {class: 'upload', type: 'radio', name: fieldName + '_' + timestamp}).click(function() {
-            $span.html(mkFileInput('file', order, regexStr));
+            $span.html(mkFileInput(fieldName, 'file', order, regexStr));
           }),
           $('<span>', {class: 'item', text: 'Upload file'})
         ),
         $('<div>').append(
           $('<input>', {class: 'url', type: 'radio', name: fieldName + '_' + timestamp}).click(function() {
-            $span.html(mkFileInput('text', order, regexStr));
+            $span.html(mkFileInput(fieldName, 'text', order, regexStr));
           }),
           $('<span>', {class: 'item', text: 'Enter URL'})
         )
