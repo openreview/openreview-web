@@ -1512,7 +1512,7 @@ module.exports = (function() {
           // Clear current selection from file input and reset existing selection
           $notePdf.val('');
           var $fieldRow = $(this).closest('.row');
-          $fieldRow.find('.note_content_value').val('');
+          $fieldRow.find('.note_content_value').val('').data('fileRemoved', true);
           $fieldRow.find('.existing-filename').text('').hide();
         });
     }
@@ -2707,7 +2707,8 @@ module.exports = (function() {
       if (contentObj.hidden) {
         return ret;
       }
-      var inputVal = $contentMap[k].find('.note_content_value[name="' + k + '"]').val();
+      var $inputVal = $contentMap[k].find('.note_content_value[name="' + k + '"]');
+      var inputVal = $inputVal.val();
 
       if (contentObj.hasOwnProperty('values-dropdown') || contentObj.hasOwnProperty('values')) {
         inputVal = idsFromListAdder($contentMap[k], ret);
@@ -2773,15 +2774,17 @@ module.exports = (function() {
         var file = $fileInput && $fileInput.val() ? $fileInput[0].files[0] : null;
         var $textInput = $fileSection && $fileSection.find('input.note_' + k + '[type="text"]');
         var url = $textInput && $textInput.val();
-        // Check if there's a file
-        // If not, check that the field (inputVal) is not empty
-        // If it's not empty update ONLY if the new input value (url) is different from the current
-        // value (inputVal). This is for revisions.
-        if (file || !inputVal || (url && url !== inputVal)) {
-          inputVal = file ? file.name : url;
-        }
+
+        // Check if there's a file. If not, check if there's a url and update ONLY if the new value
+        // (url) is different from the current value (inputVal). If the file has been removed by the
+        // user set inputVal to and empty string. This is for revisions.
         if (file) {
+          inputVal = file.name;
           files[k] = file;
+        } else if (url && (!inputVal || url !== inputVal)) {
+          inputVal = url;
+        } else if ($inputVal.data('fileRemoved')) {
+          ret[k] = ''
         }
       }
 
@@ -2791,21 +2794,6 @@ module.exports = (function() {
 
       return ret;
     }, {});
-
-    var $pdf = $contentMap.pdf;
-    var $fileInput = $pdf && $pdf.find('input.note_pdf[type="file"]');
-    var pdf = $fileInput && $fileInput.val() ? $fileInput[0].files[0] : null;
-    var $textInput = $pdf && $pdf.find('input.note_pdf[type="text"]');
-    var url = $textInput && $textInput.val();
-
-    if ($fileInput && pdf) {
-      content = _.assign(content, { pdf: pdf.name });
-      files.pdf = pdf;
-    }
-
-    if ($fileInput && url) {
-      content = _.assign(content, { pdf: url });
-    }
 
     return [content, files, errors];
   };
