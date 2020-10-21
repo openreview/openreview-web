@@ -29,10 +29,10 @@
                   <a href="#" class="send-reminder-link" data-user-id="{{user.id}}" data-forum-url="{{{user.forumUrl}}}">Send Reminder</a>
                   {{#if user.lastReminderSent}}(Last sent: {{user.lastReminderSent}}){{/if}}
                 {{/if}}
-                {{#if ../showActivityModal}}
-                  {{#if ../sendReminder}}<br>{{/if}}
-                  <a href="#" class="show-activity-link" data-toggle="modal" data-target="#reviewer-activity-modal" data-user-id="{{user.id}}">Show Reviewer Activity</a>
-                {{/if}}
+              {{/if}}
+              {{#if ../showActivityModal}}
+                <br>
+                <a href="#" class="show-activity-modal" data-paper-num="{{../paperNumber}}" data-reviewer-num="{{reviewerNum}}">Show Reviewer Activity</a>
               {{/if}}
             </td>
           </tr>
