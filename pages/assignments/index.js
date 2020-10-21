@@ -94,7 +94,7 @@ const AssignmentRow = ({
           label="Edit"
           iconName="pencil"
           onClick={() => handleEditConfiguration(note)}
-          disabled={['Running', 'Complete', 'Deploying', 'Deployed'].includes(status) || !configInvitation}
+          disabled={['Running', 'Complete', 'Deploying', 'Deployed', 'Deployment Error'].includes(status) || !configInvitation}
         />
         <ActionLink
           label="Copy"
@@ -105,16 +105,16 @@ const AssignmentRow = ({
       </td>
 
       <td className="assignment-actions">
-        {(status === 'Initialized' || status === 'Error' || status === 'No Solution') && (
+        {['Initialized', 'Error', 'No Solution'].includes(status) && (
           <ActionLink label="Run Matcher" iconName="cog" onClick={() => handleRunMatcher(note.id)} />
         )}
-        {(status === 'Complete' || status === 'Deployed') && (
+        {['Complete', 'Deploying', 'Deployed', 'Deployment Error'].includes(status) && (
           <>
             <ActionLink label="Browse Assignments" iconName="eye-open" href={edgeBrowserUrl} disabled={!edgeBrowserUrl} />
             <ActionLink label="View Statistics" iconName="stats" href={`/assignments/stats?id=${note.id}&referrer=${referrer}`} />
           </>
         )}
-        {status === 'Complete' && (
+        {['Complete', 'Deployed', 'Deployment Error'].includes(status) && (
           <ActionLink label="Deploy Assignment" iconName="share" onClick={() => handleDeployMatcher(note.id)} />
         )}
       </td>

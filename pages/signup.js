@@ -259,6 +259,7 @@ const ExistingProfileForm = ({
           type="email"
           className="form-control"
           value={obfuscatedEmail}
+          maxLength={254}
           readOnly
         />
         {!passwordVisible && (
@@ -273,6 +274,7 @@ const ExistingProfileForm = ({
             className="form-control"
             placeholder={`Full email for ${obfuscatedEmail}`}
             value={email}
+            maxLength={254}
             onChange={e => setEmail(e.target.value)}
             autoComplete="email"
           />
@@ -346,6 +348,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
           className="form-control"
           placeholder="Your email address"
           value={email}
+          maxLength={254}
           onChange={e => setEmail(e.target.value)}
         />
         {!passwordVisible && (
@@ -402,6 +405,7 @@ const NewProfileForm = ({ id, registerUser }) => {
           className="form-control"
           placeholder="Email address"
           value={email}
+          maxLength={254}
           onChange={e => setEmail(e.target.value.trim())}
           autoComplete="email"
         />

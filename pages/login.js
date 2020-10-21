@@ -63,6 +63,7 @@ const LoginForm = () => {
           className={`form-control ${loginError ? 'form-invalid' : ''}`}
           placeholder="Email"
           value={email}
+          maxLength={254}
           onChange={e => setEmail(e.target.value)}
         />
       </div>
