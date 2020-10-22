@@ -582,12 +582,13 @@ var generateEdgeBrowserRedirect = function(id, configNote, navigateToPage) {
     var browseInvitations = Object.keys(configNote.scores_specification);
     var referrerText = view.prettyId(configNote.title) + ' Statistics';
     var typeParam = type === 'reviewer' ? 'type:tail' : 'type:head';
+    const assignmentLabel = encodeURIComponent(configNote.title)
 
     navigateToPage('/edges/browse' +
       '?start=staticList,' + typeParam + ',storageKey:' + key +
-      '&traverse=' + configNote.assignment_invitation + ',label:' + configNote.title +
-      '&edit=' + configNote.assignment_invitation + ',label:' + configNote.title +
-      '&browse=' + configNote.aggregate_score_invitation + ',label:' + configNote.title +
+      '&traverse=' + configNote.assignment_invitation + ',label:' + assignmentLabel +
+      '&edit=' + configNote.assignment_invitation + ',label:' + assignmentLabel +
+      '&browse=' + configNote.aggregate_score_invitation + ',label:' + assignmentLabel +
       ';' + browseInvitations.join(';') +
       ';' + configNote.conflicts_invitation +
       (configNote.custom_max_papers_invitation ? ';' + configNote.custom_max_papers_invitation + ',head:ignore' : '') +
