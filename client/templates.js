@@ -791,7 +791,7 @@ templates['noteReviewers'] = template({"1":function(container,depth0,helpers,par
     + container.escapeExpression(container.lambda(((stack1 = blockParams[3][0]) != null ? lookupProperty(stack1,"lastReminderSent") : stack1), depth0))
     + ")";
 },"36":function(container,depth0,helpers,partials,data,blockParams,depths) {
-    var alias1=container.lambda, alias2=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+    var stack1, alias1=container.lambda, alias2=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
         }
@@ -802,6 +802,10 @@ templates['noteReviewers'] = template({"1":function(container,depth0,helpers,par
     + alias2(alias1((depths[1] != null ? lookupProperty(depths[1],"paperNumber") : depths[1]), depth0))
     + "\" data-reviewer-num=\""
     + alias2(alias1(blockParams[1][1], depth0))
+    + "\" data-reviewer-name=\""
+    + alias2(alias1(((stack1 = blockParams[1][0]) != null ? lookupProperty(stack1,"name") : stack1), depth0))
+    + "\" data-reviewer-email=\""
+    + alias2(alias1(((stack1 = blockParams[1][0]) != null ? lookupProperty(stack1,"email") : stack1), depth0))
     + "\">Show Reviewer Activity</a>\n";
 },"38":function(container,depth0,helpers,partials,data) {
     var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
