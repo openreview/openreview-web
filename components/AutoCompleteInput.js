@@ -75,7 +75,8 @@ const AutoCompleteInput = () => {
   const itemClickHandler = (item) => {
     setAutoCompleteItems([])
     if (item.section === 'titles') {
-      Router.push({ pathname: '/forum', query: { id: item.forum, noteId: item.id } })
+      const query = item.forum === item.id ? { id: item.forum } : { id: item.forum, noteId: item.id }
+      Router.push({ pathname: '/forum', query })
     } else if (item.value.startsWith('~')) {
       Router.push({ pathname: '/profile', query: { id: item.value } })
     } else {
