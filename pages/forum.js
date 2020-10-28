@@ -1,13 +1,14 @@
-import { useEffect, useContext } from 'react'
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
 import truncate from 'lodash/truncate'
-import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
+import ForumReply from '../components/ForumReply'
 import NoteAuthors from '../components/NoteAuthors'
 import NoteReaders from '../components/NoteReaders'
 import NoteContent from '../components/NoteContent'
 import withError from '../components/withError'
+import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { auth, isSuperUser } from '../lib/auth'
 import {
@@ -85,8 +86,9 @@ const ForumReplyCount = ({ count }) => (
 )
 
 const Forum = ({ forumNote, query, appContext }) => {
-  const { user, userLoading } = useContext(UserContext)
-  const { clientJsLoading, setBannerContent } = appContext
+  const { userLoading, accessToken } = useUser()
+  const [replyNotes, setReplyNotes] = useState(null)
+  const { setBannerContent } = appContext
   const { id, content, details } = forumNote
 
   const truncatedTitle = truncate(content.title, { length: 70, separator: /,? +/ })
@@ -98,6 +100,40 @@ const Forum = ({ forumNote, query, appContext }) => {
   const modificationDate = new Date(forumNote.tmdate || Date.now()).toISOString().slice(0, 10).replace(/-/g, '/')
   // eslint-disable-next-line no-underscore-dangle
   const conferenceName = getConferenceName(content._bibtex)
+
+  const loadReplies = async () => {
+    const { notes } = await api.get('/notes', {
+      forum: id, trash: true, details: 'replyCount,writable,revisions,original,overwriting,invitation,tags',
+    }, { accessToken })
+    if (!notes) {
+      setReplyNotes([])
+      return
+    }
+
+    const replyMap = {}
+    notes.forEach((note) => {
+      if (note.id === note.forum) return
+
+      const parentId = note.replyto || id
+      if (!replyMap[parentId]) {
+        replyMap[parentId] = []
+      }
+      replyMap[parentId].push(note)
+    })
+
+    const getAllReplies = (noteId) => {
+      if (!replyMap[noteId]) return []
+
+      return replyMap[noteId].reduce((replies, note) => replies.concat(note, getAllReplies(note.id)), [])
+    }
+
+    const combinedNotes = replyMap[id]
+    for (let i = 0; i < combinedNotes.length; i += 1) {
+      combinedNotes[i].replies = getAllReplies(combinedNotes[i].id).sort((a, b) => a.cdate - b.cdate)
+    }
+
+    setReplyNotes(combinedNotes)
+  }
 
   // Set banner link
   useEffect(() => {
@@ -111,14 +147,12 @@ const Forum = ({ forumNote, query, appContext }) => {
     }
   }, [forumNote, query])
 
-  // Load and execute legacy forum code
+  // Load forum replies
   useEffect(() => {
-    if (clientJsLoading || userLoading) return
+    if (userLoading) return
 
-    // eslint-disable-next-line global-require
-    const runForum = require('../client/forum')
-    runForum(id, query.noteId, query.invitationId, user)
-  }, [clientJsLoading, user, JSON.stringify(authors), userLoading]) // authors is reset when clientJsLoading turns false
+    loadReplies()
+  }, [userLoading, accessToken])
 
   return (
     <div className="forum-container">
@@ -186,8 +220,12 @@ const Forum = ({ forumNote, query, appContext }) => {
 
       <hr />
 
-      <div id="note_children">
-        <LoadingSpinner />
+      <div id="note-children">
+        {replyNotes ? replyNotes.map(replyNote => (
+          <ForumReply key={replyNote.id} note={replyNote} />
+        )) : (
+          <LoadingSpinner />
+        )}
       </div>
     </div>
   )

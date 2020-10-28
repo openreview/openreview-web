@@ -426,6 +426,63 @@ main.forum {
     margin-bottom: .5rem;
     border-radius: 0;
   }
+
+  // New Forum
+  #note-children {
+    margin-top: 1rem;
+    width: 80%;
+
+    & > div {
+      margin-bottom: 1.5rem;
+    }
+  }
+  .note-replies {
+    margin-top: .5rem;
+    border-left: 2px solid #ddd;
+    padding-left: 2rem;
+  }
+  .note {
+    h4 {
+      color: @darkBlue;
+      line-height: 1.25rem;
+      margin-bottom: .25rem;
+      margin-top: 0;
+      strong {
+        padding-right: .5rem;
+      }
+      > span {
+        padding-left: .5rem;
+        padding-right: .5rem;
+      }
+      .signatures, .created-date, .readers {
+        color: @subtleGray;
+        font-weight: 400;
+        font-size: .75rem;
+      }
+    }
+    .note-content-container {
+      position: relative;
+
+      &.collapsed {
+        max-height: 150px;
+        overflow: hidden;
+
+        .gradient-overlay {
+          display: block;
+          position: absolute;
+          left: 0;
+          top: 110px;
+          height: 40px;
+          width: 100%;
+          background-image: linear-gradient(to bottom, transparent 0%, @backgroundWhite 100%);
+          content: '';
+        }
+      }
+      &:focus {
+        outline: none;
+      }
+    }
+  }
 }
 
 #bibtex-modal {
