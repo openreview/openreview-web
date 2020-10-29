@@ -1153,10 +1153,14 @@ module.exports = (function() {
       }), fieldName, fieldDescription);
 
     } else if (_.has(fieldDescription, 'values')) {
-      return mkDropdownAdder(
+      var $inputGroup = mkDropdownAdder(
         fieldName, fieldDescription.description, fieldDescription.values,
         fieldValue, { hoverText: true, refreshData: false, required: fieldDescription.required }
       );
+      if (fieldDescription.hidden) {
+        return $inputGroup.hide();
+      }
+      return $inputGroup;
 
     } else if (_.has(fieldDescription, 'value-regex')) {
       var $inputGroup;
@@ -2731,10 +2735,12 @@ module.exports = (function() {
       var $inputVal = $contentMap[k].find('.note_content_value[name="' + k + '"]');
       var inputVal = $inputVal.val();
 
-      if (contentObj.hasOwnProperty('values-dropdown') || contentObj.hasOwnProperty('values')) {
+      if (contentObj.hasOwnProperty('values-dropdown') || (contentObj.hasOwnProperty('values') && k !== 'authorids')) {
         inputVal = idsFromListAdder($contentMap[k], ret);
 
-      } else if (contentObj.hasOwnProperty('values-regex') && contentObj['values-regex'].indexOf('~.*') !== -1 && k === 'authorids') {
+      } else if (k === 'authorids' && (
+        (contentObj['values-regex'] && contentObj['values-regex'].indexOf('~.*') !== -1) || contentObj['values']
+      )) {
         ret.authorids = [];
         ret.authors = [];
         $contentMap.authorids.find('.author-row').each(function() {
