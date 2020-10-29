@@ -7,7 +7,7 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { getGroupIdfromInvitation } from '../../lib/utils'
+import { prettyId, getGroupIdfromInvitation } from '../../lib/utils'
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
@@ -61,11 +61,7 @@ const AssignmentStats = ({ appContext }) => {
   useEffect(() => {
     if (!query || !groupId) return
 
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
-    } else {
-      setBannerContent(venueHomepageLink(groupId, 'edit'))
-    }
+    setBannerContent(referrerLink(query.referrer || `[all assignments for ${prettyId(groupId)}](/assignments?group=${groupId})`))
   }, [query, groupId])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
