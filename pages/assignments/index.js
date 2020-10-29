@@ -74,7 +74,7 @@ const AssignmentRow = ({
       <td>{note.tmdate === note.tcdate ? null : formatDateTime(note.tmdate)}</td>
 
       <td>
-        {(status === 'Error' || status === 'No Solution') ? (
+        {['Error', 'No Solution', 'Deployment Error'].includes(status) ? (
           <span className="assignment-status" data-toggle="tooltip" data-placement="top" title={errorMessage}>
             {status}
           </span>
