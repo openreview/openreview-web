@@ -238,19 +238,13 @@ export async function createProfile(first, last, email, tildeId, superUserToken)
   const profileJson = {
 
     id: tildeId,
-    number: null,
-    tcdate: null,
-    tmdate: null,
-    referent: null,
-    packaging: null,
-    invitation: null,
+    invitation: '~/-/profiles',
     readers: ['openreview.net', tildeId],
-    nonreaders: null,
-    signatures: null,
-    writers: null,
+    signatures: [tildeId],
     content: {
       emails: [email],
       preferredEmail: email,
+      homepage: 'http://homepage.do',
       names: [
         {
           first,
@@ -260,9 +254,6 @@ export async function createProfile(first, last, email, tildeId, superUserToken)
         },
       ],
     },
-    metaContent: null,
-    active: false,
-    password: false,
   }
   await api.post('/profiles', profileJson, { accessToken: superUserToken })
 }
@@ -285,18 +276,10 @@ export async function createEmptyProfile(first, last, tildeId, superUserToken) {
   await createGroup(tildeGroupJson, superUserToken)
   // post profile
   const profileJson = {
-
     id: tildeId,
-    number: null,
-    tcdate: null,
-    tmdate: null,
-    referent: null,
-    packaging: null,
-    invitation: null,
+    invitation: '~/-/profiles',
     readers: ['openreview.net', tildeId],
-    nonreaders: null,
-    signatures: null,
-    writers: null,
+    signatures: [tildeId],
     content: {
       dblp: 'dummy dblp url',
       names: [
@@ -308,9 +291,6 @@ export async function createEmptyProfile(first, last, tildeId, superUserToken) {
         },
       ],
     },
-    metaContent: null,
-    active: false,
-    password: false,
   }
   await api.post('/profiles', profileJson, { accessToken: superUserToken })
 }
