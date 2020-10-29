@@ -30,6 +30,10 @@
                   {{#if user.lastReminderSent}}(Last sent: {{user.lastReminderSent}}){{/if}}
                 {{/if}}
               {{/if}}
+              {{#if ../showActivityModal}}
+                <br>
+                <a href="#" class="show-activity-modal" data-paper-num="{{../paperNumber}}" data-reviewer-num="{{reviewerNum}}" data-reviewer-name="{{user.name}}" data-reviewer-email="{{user.email}}">Show Reviewer Activity</a>
+              {{/if}}
             </td>
           </tr>
         {{/each}}
