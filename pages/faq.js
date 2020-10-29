@@ -19,6 +19,7 @@ function Faq({ generalQuestions, pcQuestions, appContext }) {
     if (clientJsLoading) return
 
     const defaultRenderer = new marked.Renderer()
+
     setFormattedGeneralQuestions(generalQuestions.map(obj => ({
       id: obj.id,
       heading: obj.q,
@@ -124,7 +125,7 @@ For more information on LaTeX notation we recommend [Overleaf's Guide](https://w
 
 Second, some features in MathJax might be limited. For example, MathJax only implements a limited subset of the array environment’s preamble; i.e., only the l, r, c, and | characters alongside : for dashed lines — everything else is ignored.
 
-When adding TeX content to a Markdown enabled field, it is important that all backslashes (\\) are escaped (i.e. replaced with \\\\) to prevent Markdown from stripping the backslashes before the TeX notation is parsed. If Markdown is not enabled, this is not necessary.
+When adding TeX content to a Markdown enabled field, it is important that all backslashes (\\\\) are escaped (i.e. replaced with \\\\\\\\) to prevent Markdown from stripping the backslashes before the TeX notation is parsed. If Markdown is not enabled, this is not necessary.
 
 Keep in mind that your mathematics is part of an HTML document, so you need to be aware of the special characters used by HTML as part of its markup. There cannot be HTML tags within the math delimiters as TeX-formatted math does not include HTML tags. Make sure to add spaces around any \`<\` or \`>\` symbols to ensure they are not treated as open tags.`,
   }, {
