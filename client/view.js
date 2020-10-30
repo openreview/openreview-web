@@ -715,7 +715,12 @@ module.exports = (function() {
     return $profileCard;
   };
 
-  var mkSearchProfile = function(authors, authorids, allowUserDefined) {
+  var mkSearchProfile = function(authors, authorids, options) {
+    var defaults = {
+      allowUserDefined: true,
+      allowAddRemove: true
+    };
+    options = _.defaults(options, defaults);
     var $container = $('<div>', { class: 'search-profile' });
     var $authors = $('<div>', { class: 'submission-authors' });
 
@@ -733,23 +738,22 @@ module.exports = (function() {
       $('.search-input').each(function() {
         $(this).val('');
       });
-      $noResults.hide();
+      if ($noResults) $noResults.hide();
       // Add row with buttons UP and REMOVE to control the order of authors
       // or to remove authors from the table
       var $row = $('<div>', { class: 'author-row' });
+      var $upButton = $('<button class="btn btn-xs"><span class="glyphicon glyphicon-arrow-up"></span></button>').on('click', function() {
+        $row.insertBefore($row.prev());
+      });
+      var $deleteButton = $('<button class="btn btn-xs"><span class="glyphicon glyphicon-minus"></span></button>').on('click', function() {
+        $row.remove();
+      });
+
       $row.append(
-        mkProfileCard(
-          $fullName,
-          $emails,
-          $title
-        ),
+        mkProfileCard($fullName, $emails, $title),
         $('<div>', { class: 'profile-actions' }).append(
-          $('<button class="btn btn-xs"><span class="glyphicon glyphicon-arrow-up"></span></button>').on('click', function() {
-            $row.insertBefore($row.prev());
-          }),
-          $('<button class="btn btn-xs"><span class="glyphicon glyphicon-minus"></span></button>').on('click', function() {
-            $row.remove();
-          })
+          $upButton,
+          options.allowAddRemove ? $deleteButton : null
         )
       );
       return $row;
@@ -818,6 +822,11 @@ module.exports = (function() {
       });
     }
 
+    if (!options.allowAddRemove) {
+      $container.append($authors);
+      return $container;
+    }
+
     var createSearchResultRow = function(profile) {
       var $fullName = getPreferredName(profile);
       var $emails = getEmails(profile.content.emails);
@@ -861,7 +870,7 @@ module.exports = (function() {
     };
 
     var $addDirectlyButton = $('<button id="add-directly" class="btn btn-xs"><span class="glyphicon glyphicon-plus"></span></button>').on('click', addDirectly).hide();
-    if (!allowUserDefined) {
+    if (!options.allowUserDefined) {
       $addDirectlyButton.hide();
     }
 
@@ -1144,10 +1153,14 @@ module.exports = (function() {
       }), fieldName, fieldDescription);
 
     } else if (_.has(fieldDescription, 'values')) {
-      return mkDropdownAdder(
+      var $inputGroup = mkDropdownAdder(
         fieldName, fieldDescription.description, fieldDescription.values,
         fieldValue, { hoverText: true, refreshData: false, required: fieldDescription.required }
       );
+      if (fieldDescription.hidden) {
+        return $inputGroup.hide();
+      }
+      return $inputGroup;
 
     } else if (_.has(fieldDescription, 'value-regex')) {
       var $inputGroup;
@@ -1390,15 +1403,27 @@ module.exports = (function() {
       return mkPdfSection(fieldDescription, fieldValue);
     }
 
-    if (fieldName === 'authorids' && _.has(fieldDescription, 'values-regex') && fieldDescription['values-regex'].indexOf('~.*') !== -1) {
+    if (fieldName === 'authorids' && (
+      (_.has(fieldDescription, 'values-regex') && fieldDescription['values-regex'].indexOf('~.*') !== -1) ||
+      _.has(fieldDescription, 'values')
+    )) {
       var authors;
       var authorids;
       if (params && params.note) {
         authors = params.note.content.authors;
         authorids = params.note.content.authorids;
       }
+      var invitationRegex = fieldDescription['values-regex'];
       // Enable allowUserDefined if the values-regex has '~.*|'
-      return valueInput(mkSearchProfile(authors, authorids, fieldDescription['values-regex'].indexOf('~.*|') !== -1), 'authors', fieldDescription);
+      // Don't enable adding or removing authors if invitation uses 'values' instead of values-regex
+      return valueInput(
+        mkSearchProfile(authors, authorids, {
+          allowUserDefined: invitationRegex && invitationRegex.indexOf('~.*|') !== -1,
+          allowAddRemove: !!invitationRegex
+        }),
+        'authors',
+        fieldDescription
+      );
     }
 
     return mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
@@ -2710,10 +2735,12 @@ module.exports = (function() {
       var $inputVal = $contentMap[k].find('.note_content_value[name="' + k + '"]');
       var inputVal = $inputVal.val();
 
-      if (contentObj.hasOwnProperty('values-dropdown') || contentObj.hasOwnProperty('values')) {
+      if (contentObj.hasOwnProperty('values-dropdown') || (contentObj.hasOwnProperty('values') && k !== 'authorids')) {
         inputVal = idsFromListAdder($contentMap[k], ret);
 
-      } else if (contentObj.hasOwnProperty('values-regex') && contentObj['values-regex'].indexOf('~.*') !== -1 && k === 'authorids') {
+      } else if (k === 'authorids' && (
+        (contentObj['values-regex'] && contentObj['values-regex'].indexOf('~.*') !== -1) || contentObj['values']
+      )) {
         ret.authorids = [];
         ret.authors = [];
         $contentMap.authorids.find('.author-row').each(function() {
