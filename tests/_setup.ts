@@ -127,7 +127,7 @@ test('setup TestVenue', async (t) => {
       abstract: 'test abstract',
       pdf: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf',
     },
-    readers: ['everyone'],
+    readers: ['TestVenue/2020/Conference', hasTaskUserTildeId],
     nonreaders: [],
     signatures: [hasTaskUserTildeId],
     writers: [conferenceGroupId, hasTaskUserTildeId],
