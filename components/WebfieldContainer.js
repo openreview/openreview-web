@@ -1,7 +1,7 @@
-import React from 'react'
+import { forwardRef } from 'react'
 import { useRouter } from 'next/router'
 
-const WebfieldContainer = React.forwardRef((props, ref) => {
+const WebfieldContainer = forwardRef((props, ref) => {
   const router = useRouter()
 
   const handleLinkClick = (e) => {
