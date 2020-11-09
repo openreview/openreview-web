@@ -70,7 +70,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       notesP = Webfield.get('/notes', {
         forum: forumId,
         trash: true,
-        details: 'replyCount,writable,revisions,original,overwriting,invitation,tags'
+        details: 'replyCount,writable,revisions,original,overwriting,tags'
       }, { handleErrors: false })
         .then(function(result) {
           if (!result.notes || !result.notes.length) {

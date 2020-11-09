@@ -2461,7 +2461,7 @@ module.exports = (function() {
       return id;
 
     } else {
-      var tokens = id.split('/');
+      var tokens = id.replace(/^\./, '').split('/');
       if (onlyLast) {
         var sliceIndex = _.findIndex(tokens, function(token) {
           return token.match(/^[pP]aper\d+$/);
@@ -2963,14 +2963,17 @@ module.exports = (function() {
         }
 
         var note = {
-          content: content[0],
-          readers: readerValues,
-          nonreaders: nonReadersValues,
+          note: {
+            forum: forum || invitation.reply.forum,
+            content: _.fromPairs(Object.keys(content[0]).map(function(k) {  return [k, { 'value': content[0][k] }]; }))
+          },
+          //readers: readerValues,
+          //nonreaders: nonReadersValues,
           signatures: signatureInputValues,
-          writers: writerValues,
-          invitation: invitation.id,
-          forum: forum || invitation.reply.forum,
-          replyto: replyto || invitation.reply.replyto
+          //writers: writerValues,
+          invitation: invitation.id
+          //forum: forum || invitation.reply.forum,
+          //replyto: replyto || invitation.reply.replyto
         };
 
         if (_.isEmpty(files)) {
@@ -2994,8 +2997,8 @@ module.exports = (function() {
         var promises = fieldNames.map(function(fieldName) {
           if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
             return controller.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
-              note.content[fieldName] = result.url;
-              return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, note.content.pdf);
+              note.note.content[fieldName].value = result.url;
+              return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, note.note.content[fieldName].value);
             });
           }
           var data = new FormData();
@@ -3003,8 +3006,8 @@ module.exports = (function() {
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
           return controller.sendFile('/attachment', data).then(function(result) {
-            note.content[fieldName] = result.url;
-            updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], note.content[fieldName]);
+            note.note.content[fieldName].value = result.url;
+            updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], note.note.content[fieldName].value);
           });
         });
 
@@ -3025,7 +3028,7 @@ module.exports = (function() {
       var saveNote = function(note) {
         // apply any 'value-copied' fields
         note = getCopiedValues(note, invitation.reply);
-        controller.post('/notes', note, function(result) {
+        controller.post('/edits', note, function(result) {
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
           }
@@ -3354,16 +3357,32 @@ module.exports = (function() {
           return;
         }
 
+        // var editNote = {
+        //   content: content[0],
+        //   readers: readerValues,
+        //   nonreaders: nonreaderValues,
+        //   signatures: signatureInputValues,
+        //   writers: writerValues,
+        //   invitation: invitation.id,
+        //   forum: note.forum || invitation.reply.forum,
+        //   replyto: note.replyto || invitation.reply.replyto || invitation.reply.forum, //For some reason invitation.reply.replyto is null, see scripts
+        // };
+
         var editNote = {
-          content: content[0],
-          readers: readerValues,
-          nonreaders: nonreaderValues,
+          note: {
+            forum: note.forum || invitation.reply.forum,
+            replyto: note.replyto || invitation.reply.replyto || invitation.reply.forum, //For some reason invitation.reply.replyto is null, see scripts
+            content: _.fromPairs(Object.keys(content[0]).map(function(k) {  return [k, { 'value': content[0][k] }]; }))
+          },
+          //readers: readerValues,
+          //nonreaders: nonReadersValues,
           signatures: signatureInputValues,
-          writers: writerValues,
-          invitation: invitation.id,
-          forum: note.forum || invitation.reply.forum,
-          replyto: note.replyto || invitation.reply.replyto || invitation.reply.forum, //For some reason invitation.reply.replyto is null, see scripts
+          //writers: writerValues,
+          invitation: invitation.id
+          //forum: forum || invitation.reply.forum,
+          //replyto: replyto || invitation.reply.replyto
         };
+
 
         if (invitation.reply.referent || invitation.reply.referentInvitation) {
           editNote.referent = invitation.reply.referent || note.id;
@@ -3395,8 +3414,8 @@ module.exports = (function() {
         var promises = fieldNames.map(function(fieldName) {
           if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
             return controller.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
-              editNote.content[fieldName] = result.url;
-              return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, editNote.content.pdf);
+              editNote.note.content[fieldName].value = result.url;
+              return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, editNote.note.content[fieldName].value);
             });
           }
           var data = new FormData();
@@ -3404,8 +3423,8 @@ module.exports = (function() {
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
           return controller.sendFile('/attachment' , data).then(function(result) {
-            editNote.content[fieldName] = result.url;
-            updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
+            editNote.note.content[fieldName].value = result.url;
+            updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.note.content[fieldName].value);
           });
         });
 
@@ -3426,7 +3445,7 @@ module.exports = (function() {
       var saveNote = function(note) {
         // apply any 'value-copied' fields
         note = getCopiedValues(note, invitation.reply);
-        controller.post('/notes', note, function(result) {
+        controller.post('/edits', note, function(result) {
           if (params.onNoteEdited) {
             params.onNoteEdited(result);
           }
