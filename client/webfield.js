@@ -1200,11 +1200,6 @@ module.exports = (function() {
       return get('/invitations', { id: existingNote.invitation }).then(function(result) {
         var invitationObj = _.get(result, 'invitations[0]', {});
 
-        if (invitationObj.expdate && invitationObj.expdate < Date.now()) {
-          promptError('Cannot edit the note. Invitation has expired.');
-          return;
-        }
-
         $('#note-editor-modal').remove();
         $('body').append(Handlebars.templates.genericModal({
           id: 'note-editor-modal',
