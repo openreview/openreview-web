@@ -295,10 +295,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
       });
 
     return invitationP.then(function(invitation) {
-      if (invitation.expdate && invitation.expdate < Date.now()) {
-        promptError('Cannot edit the note. Invitation has expired.');
-        return;
-      }
 
       view.mkNoteEditor(note, invitation, user, {
         onNoteEdited: function(newNote) {
