@@ -32,7 +32,6 @@ const RevisionsList = ({
   }
 
   const showEditorModal = (note, invitation, editorOptions) => {
-
     $('#note-editor-modal').remove()
     $('body').append(Handlebars.templates.genericModal({
       id: 'note-editor-modal',
