@@ -93,7 +93,7 @@ test('get a forbidden error for a guest user', async (t) => {
     .expect(errorMessageLabel.innerText).eql('You don\'t have permission to read this forum')
 })
 
-test('get a deleted forum and return an ok only for super user', async (t) => {
+test('get a deleted forum and return an ok only for writers of the note', async (t) => {
   const { superUserToken } = t.fixtureCtx
   const notes = await getNotes({ invitation: 'AnotherTestVenue/2020/Conference/-/Submission', trash: true }, superUserToken)
   const forum = notes[0].id
@@ -101,8 +101,8 @@ test('get a deleted forum and return an ok only for super user', async (t) => {
     .useRole(authorRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
     .expect(content.exists).ok()
-    .expect(errorCodeLabel.innerText).eql('Error 404')
-    .expect(errorMessageLabel.innerText).eql('Not Found')
+    .expect(titleLabel.innerText).eql('this is á "paper" title')
+    .expect(signaturesLabel.innerText).eql('[Deleted]')
 
   await t
     .useRole(superUserRole)
