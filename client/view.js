@@ -2322,10 +2322,17 @@ module.exports = (function() {
     if (isDeleted) {
       // Restore deleted note
       newNote.ddate = null;
-      return controller.post('/notes', newNote, null, function(jqXhr, error) {
+      return controller.post('/edits', {
+        invitation: newNote.invitation,
+        signatures: newNote.signatures,
+        referent: newNote.id,
+        note: {
+          ddate: null
+        }
+      }, null, function(jqXhr, error) {
         promptError(error, { scrollToTop: false });
       }, true).then(function(updatedNote) {
-        onTrashedOrRestored(Object.assign(newNote, updatedNote));
+        onTrashedOrRestored(Object.assign(newNote, updatedNote.note));
       });
     }
 
@@ -2336,10 +2343,17 @@ module.exports = (function() {
       }
       newNote.signatures = newSignatures;
       newNote.ddate = Date.now();
-      controller.post('/notes', newNote, null, function(jqXhr, error) {
+      controller.post('/edits', {
+        invitation: newNote.invitation,
+        signatures: newNote.signatures,
+        referent: newNote.id,
+        note: {
+          ddate: newNote.ddate
+        }
+      }, null, function(jqXhr, error) {
         promptError(error, { scrollToTop: false });
       }, true).then(function(updatedNote) {
-        onTrashedOrRestored(Object.assign(newNote, updatedNote));
+        onTrashedOrRestored(Object.assign(newNote, updatedNote.note));
       });
     };
 
@@ -2965,6 +2979,7 @@ module.exports = (function() {
         var note = {
           note: {
             forum: forum || invitation.reply.forum,
+            replyto: replyto || invitation.reply.replyto,
             content: _.fromPairs(Object.keys(content[0]).map(function(k) {  return [k, { 'value': content[0][k] }]; }))
           },
           //readers: readerValues,
@@ -3384,7 +3399,7 @@ module.exports = (function() {
         };
 
 
-        if (invitation.reply.referent || invitation.reply.referentInvitation) {
+        if (invitation.reply.referent || invitation.reply.referentInvitation || options.destructiveEdit) {
           editNote.referent = invitation.reply.referent || note.id;
           if (note.updateId) {
             editNote.id = note.updateId;

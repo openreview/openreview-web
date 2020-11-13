@@ -297,6 +297,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     return invitationP.then(function(invitation) {
 
       view.mkNoteEditor(note, invitation, user, {
+        destructiveEdit: true,
         onNoteEdited: function(newNote) {
           getNoteRecsP().then(function(noteRecs) {
             $content.one('forumRendered', function() {
