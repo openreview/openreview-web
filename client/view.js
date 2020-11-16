@@ -3400,7 +3400,7 @@ module.exports = (function() {
 
 
         if (invitation.reply.referent || invitation.reply.referentInvitation || options.destructiveEdit) {
-          editNote.referent = invitation.reply.referent || note.id;
+          editNote.referent = invitation.reply.referent || note.referent || note.id;
           if (note.updateId) {
             editNote.id = note.updateId;
           }

@@ -46,6 +46,7 @@ const RevisionsList = ({
     note.updateId = note.id
 
     view.mkNoteEditor(note, invitation, user, {
+      destructiveEdit: true,
       onNoteEdited: (newNote) => {
         $('#note-editor-modal').modal('hide')
         promptMessage('Note updated successfully')
