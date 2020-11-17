@@ -113,7 +113,7 @@ Venue.getInitialProps = async (ctx) => {
   let venueSeries
   if (venueSeriesResponse.venues.length > 0) venueSeries = venueSeriesResponse.venues[0]
 
-  const apiRes = await api.get('/venues', { parents: ctx.query.id })
+  const apiRes = await api.get('/venues', { 'content.parents': ctx.query.id })
   const filteredVenues = apiRes.venues
   const groupByYear = groupBy(filteredVenues, venue => venue.content.year)
 
