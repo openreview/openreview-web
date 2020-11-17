@@ -759,9 +759,14 @@ module.exports = (function() {
       return $row;
     };
 
-    var getPreferredName = function(profile) {
-      var nameObj = _.find(profile.content.names, 'preferred');
-      var tildeId = nameObj && nameObj.username || profile.id;
+    var getPreferredName = function(profile, username) {
+      var tildeId;
+      if (profile) {
+        var nameObj = _.find(profile.content.names, 'preferred');
+        tildeId = nameObj && nameObj.username || profile.id;
+      } else {
+        tildeId = username
+      }
       var setClass = function(className) {
         return function(match) {
           return '<span class="' + className + '">' + match + '</span>';
@@ -810,7 +815,9 @@ module.exports = (function() {
             var profile = _.find(profiles, function(profile) {
               return profile.id === authorids[i] || _.find(profile.content.names, ['username', authorids[i]]);
             });
-            $spanFullname = getPreferredName(profile);
+            $spanFullname = options.allowAddRemove
+              ? getPreferredName(profile)
+              : getPreferredName(null, authorids[i]);
             title = formatProfileContent(profile.content).title;
             $spanEmails = getEmails(profile.content.emails);
           } else {
