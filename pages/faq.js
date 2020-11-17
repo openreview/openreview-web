@@ -249,7 +249,7 @@ For general inquiries, you can contact the OpenReview team by emailing [info@ope
   }, {
     q: 'How can I edit a submission after the deadline?',
     id: 'question-edit-submission-after-deadline',
-    a: 'To edit a submission after the deadline, please contact the OpenReview team by emailing info@openreview.net or post a comment on the request form for your venue.',
+    a: 'To edit a submission after the deadline, go to the forum of the paper you wish to edit and click on the edit button. Similarly, you can use the trash button to delete the submission.',
   }, {
     q: 'How do I make submissions public after the decisions are made?',
     id: 'question-release-submissions',
