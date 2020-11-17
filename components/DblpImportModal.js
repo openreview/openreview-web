@@ -15,12 +15,14 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
   const [dblpUrl, setDblpUrl] = useState('')
   const [dblpPersistentUrl, setDblpPersistentUrl] = useState('')
   const [message, setMessage] = useState('')
-  const [showPersistentUrlInput, setShowPersistentUrlInput] = useState(false) // show persistent url input and button if dblp url in profile is not working
-  const [publications, setPublications] = useState([]) // publications to display in modal body
+  // show persistent url input and button if dblp url in profile is not working
+  const [showPersistentUrlInput, setShowPersistentUrlInput] = useState(false)
+  const [publications, setPublications] = useState([])
   const [selectedPublications, setSelectedPublications] = useState([])
   const [isSavingPublications, setIsSavingPublications] = useState(false)
   const [isFetchingPublications, setIsFetchingPublications] = useState(false)
-  const publicationsInOpenReview = useRef([]) // user's existing publications in openreview (for filtering and constructing publication link)
+  // user's existing publications in openreview (for filtering and constructing publication link)
+  const publicationsInOpenReview = useRef([])
   const publicationsImportedByOtherProfiles = useRef([])
   const modalEl = useRef(null)
   const { accessToken } = useContext(UserContext)

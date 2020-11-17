@@ -131,7 +131,7 @@ test('import paper from dblp', async (t) => {
     .click(Selector('#dblp-import-modal').find('tr').withAttribute('class', undefined).nth(1).find('input'))
     .expect(dblpImportModalSelectCount.innerText).eql('2 publications selected')
     .click(dblpImportModalAddToProfileBtn)
-    // .expect(Selector('#dblp-import-modal').find('.modal-body').find('p').innerText).contains('2 publications were successfully imported.') // will fail till #87 is fixed
+    .expect(Selector('#dblp-import-modal').find('.modal-body').find('p').innerText).contains('2 publications were successfully imported.')
     .click(Selector('#dblp-import-modal').find('span').withExactText('×'))
     .expect(Selector('ul.submissions-list').find('.glyphicon-minus-sign').count).eql(2) // imported 2 papers are removable/unlinkable
 })
@@ -153,8 +153,7 @@ test('unlink paper', async (t) => {
 })
 
 test('check import history', async (t) => {
-  const { api, superUserToken } = t.fixtureCtx
-  // let result = await api.get(`/notes/search?content=authors&term=${userB.tildeId}&cache=false}`, {}, { accessToken: superUserToken })
+  const { superUserToken } = t.fixtureCtx
   const notes = await getNotes({ 'content.authorids': `${userB.tildeId}` }, superUserToken)
   // should have only 1 note
   await t.expect(notes.length).eql(1)
