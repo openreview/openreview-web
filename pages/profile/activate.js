@@ -37,8 +37,14 @@ const ActivateProfile = ({ appContext }) => {
   const saveProfile = async (newProfileData, done) => {
     try {
       const { user, token } = await api.put(`/activate/${activateToken}`, newProfileData)
-      promptMessage('Your OpenReview profile has been successfully created', { scrollToTop: false })
-      loginUser(user, token)
+      if (token) {
+        promptMessage('Your OpenReview profile has been successfully created', { scrollToTop: false })
+        loginUser(user, token)
+      } else {
+        // If user moderation is enabled, PUT /activate/${token} will return an empty response
+        promptMessage('Your OpenReview profile has been created. Please allow up to 12 hours for your profile to be activated.')
+        router.push('/')
+      }
     } catch (error) {
       promptError(error.message)
       done()

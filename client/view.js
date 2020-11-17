@@ -715,7 +715,12 @@ module.exports = (function() {
     return $profileCard;
   };
 
-  var mkSearchProfile = function(authors, authorids, allowUserDefined) {
+  var mkSearchProfile = function(authors, authorids, options) {
+    var defaults = {
+      allowUserDefined: true,
+      allowAddRemove: true
+    };
+    options = _.defaults(options, defaults);
     var $container = $('<div>', { class: 'search-profile' });
     var $authors = $('<div>', { class: 'submission-authors' });
 
@@ -733,23 +738,22 @@ module.exports = (function() {
       $('.search-input').each(function() {
         $(this).val('');
       });
-      $noResults.hide();
+      if ($noResults) $noResults.hide();
       // Add row with buttons UP and REMOVE to control the order of authors
       // or to remove authors from the table
       var $row = $('<div>', { class: 'author-row' });
+      var $upButton = $('<button class="btn btn-xs"><span class="glyphicon glyphicon-arrow-up"></span></button>').on('click', function() {
+        $row.insertBefore($row.prev());
+      });
+      var $deleteButton = $('<button class="btn btn-xs"><span class="glyphicon glyphicon-minus"></span></button>').on('click', function() {
+        $row.remove();
+      });
+
       $row.append(
-        mkProfileCard(
-          $fullName,
-          $emails,
-          $title
-        ),
+        mkProfileCard($fullName, $emails, $title),
         $('<div>', { class: 'profile-actions' }).append(
-          $('<button class="btn btn-xs"><span class="glyphicon glyphicon-arrow-up"></span></button>').on('click', function() {
-            $row.insertBefore($row.prev());
-          }),
-          $('<button class="btn btn-xs"><span class="glyphicon glyphicon-minus"></span></button>').on('click', function() {
-            $row.remove();
-          })
+          $upButton,
+          options.allowAddRemove ? $deleteButton : null
         )
       );
       return $row;
@@ -818,6 +822,11 @@ module.exports = (function() {
       });
     }
 
+    if (!options.allowAddRemove) {
+      $container.append($authors);
+      return $container;
+    }
+
     var createSearchResultRow = function(profile) {
       var $fullName = getPreferredName(profile);
       var $emails = getEmails(profile.content.emails);
@@ -861,7 +870,7 @@ module.exports = (function() {
     };
 
     var $addDirectlyButton = $('<button id="add-directly" class="btn btn-xs"><span class="glyphicon glyphicon-plus"></span></button>').on('click', addDirectly).hide();
-    if (!allowUserDefined) {
+    if (!options.allowUserDefined) {
       $addDirectlyButton.hide();
     }
 
@@ -1144,10 +1153,14 @@ module.exports = (function() {
       }), fieldName, fieldDescription);
 
     } else if (_.has(fieldDescription, 'values')) {
-      return mkDropdownAdder(
+      var $inputGroup = mkDropdownAdder(
         fieldName, fieldDescription.description, fieldDescription.values,
         fieldValue, { hoverText: true, refreshData: false, required: fieldDescription.required }
       );
+      if (fieldDescription.hidden) {
+        return $inputGroup.hide();
+      }
+      return $inputGroup;
 
     } else if (_.has(fieldDescription, 'value-regex')) {
       var $inputGroup;
@@ -1390,15 +1403,27 @@ module.exports = (function() {
       return mkPdfSection(fieldDescription, fieldValue);
     }
 
-    if (fieldName === 'authorids' && _.has(fieldDescription, 'values-regex') && fieldDescription['values-regex'].indexOf('~.*') !== -1) {
+    if (fieldName === 'authorids' && (
+      (_.has(fieldDescription, 'values-regex') && fieldDescription['values-regex'].indexOf('~.*') !== -1) ||
+      _.has(fieldDescription, 'values')
+    )) {
       var authors;
       var authorids;
       if (params && params.note) {
         authors = params.note.content.authors;
         authorids = params.note.content.authorids;
       }
+      var invitationRegex = fieldDescription['values-regex'];
       // Enable allowUserDefined if the values-regex has '~.*|'
-      return valueInput(mkSearchProfile(authors, authorids, fieldDescription['values-regex'].indexOf('~.*|') !== -1), 'authors', fieldDescription);
+      // Don't enable adding or removing authors if invitation uses 'values' instead of values-regex
+      return valueInput(
+        mkSearchProfile(authors, authorids, {
+          allowUserDefined: invitationRegex && invitationRegex.indexOf('~.*|') !== -1,
+          allowAddRemove: !!invitationRegex
+        }),
+        'authors',
+        fieldDescription
+      );
     }
 
     return mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
@@ -1498,68 +1523,82 @@ module.exports = (function() {
     }
   };
 
-  var mkPdfSection = function(fieldDescription, fieldValue) {
+  // Private function that creates the input element for entering a pdf, and binds
+  // the arxivAutofill callback if the pdf is the first field in the form.
+  var mkFileInput = function(fieldName, type, order, regexStr) {
+    var $notePdf = $('<input>', {type: type, class: 'form-control note_content_value_input note_' + fieldName});
+    var $clearBtn = null;
 
-    var description = fieldDescription.description;
+    if (type === 'text' && order <= 1) {
+      $notePdf.on('keyup', null, {regexStr: regexStr}, arxivAutofill);
+    } else if (type === 'file') {
+      $clearBtn = $('<button class="btn"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>')
+        .on('click', function() {
+          // Clear current selection from file input and reset existing selection
+          $notePdf.val('');
+          var $fieldRow = $(this).closest('.row');
+          $fieldRow.find('.note_content_value').val('').data('fileRemoved', true);
+          $fieldRow.find('.existing-filename').text('').hide();
+        });
+    }
+
+    return $clearBtn
+      ? $('<div class="input-group file-input-group">').append($notePdf, $('<span class="input-group-btn">').append($clearBtn))
+      : $notePdf
+  };
+
+  // Private helper function used by mkPdfSection and mkAttachmentSection
+  var mkFileRow = function($widgets, fieldName, fieldDescription, fieldValue) {
+    var smallHeading = $('<div>', {text: prettyField(fieldName), class: 'small_heading'});
+    if (_.has(fieldDescription,'required') && fieldDescription.required) {
+      var requiredText = $('<span>', {text: '*', class: 'required_field'});
+      smallHeading.prepend(requiredText);
+    }
+
+    var $noteContentVal = $('<input>', {class: 'note_content_value', name: fieldName, value: fieldValue, style: 'display: none;'})
+
+    var $fieldValue = fieldValue
+      ? $('<span class="item hint existing-filename">(' + fieldValue + ')</span>')
+      : null;
+
+    return $('<div>', {class: 'row'}).append(
+      smallHeading,
+      $('<div>', {text: fieldDescription.description, class: 'hint'}),
+      $noteContentVal,
+      $widgets,
+      $fieldValue
+    );
+  };
+
+  var mkPdfSection = function(fieldDescription, fieldValue) {
     var order = fieldDescription.order;
     var regexStr = fieldDescription['value-regex'];
-
     var invitationFileTransfer = fileTransferByInvitation(regexStr);
 
-    // inner function that creates the input DOM object for entering a pdf,
-    // and binds the arxivAutofill callback if the pdf is the first field in the form.
-    var mkNotePdf = function(type) {
-      var $notePdf = $('<input>', {type: type, class: 'form-control note_content_value_input note_pdf'});
-      if (type === 'text' && order <= 1) {
-        $notePdf.keyup({regexStr:regexStr}, arxivAutofill);
-      }
-      return $notePdf;
-    };
-
-    var mkRow = function($widgets) {
-      var smallHeading = $('<div>', {text: prettyField('pdf'), class: 'small_heading'});
-      if (_.has(fieldDescription,'required') && fieldDescription.required) {
-        var requiredText = $('<span>',{text: '*', class: 'required_field'});
-        smallHeading.prepend(requiredText);
-      }
-
-      return $('<div>', {class: 'row'}).append(
-        smallHeading,
-        $('<div>', {text: description, class: 'hint'}),
-        $('<input>', { class: 'note_content_value', name: 'pdf', value: fieldValue, style: 'display: none;'}),
-        $widgets,
-        fieldValue ? $('<span>').append(
-          $('<span>', {class: 'item hint', text: ' (' + fieldValue + ') '}).css('margin-left', '6px')
-        ) : null
-      );
-    };
-
     if (invitationFileTransfer === 'upload') {
-      return mkRow(mkNotePdf('file'));
+      return mkFileRow(mkFileInput('pdf', 'file', order, regexStr), 'pdf', fieldDescription, fieldValue);
+
     } else if (invitationFileTransfer === 'url') {
-      return mkRow(mkNotePdf('text'));
+      return mkFileRow(mkFileInput('pdf', 'text', order, regexStr), 'pdf', fieldDescription, fieldValue);
+
     } else if (invitationFileTransfer === 'either') {
-
-      var $span = $('<div>', {class: 'item', style: 'width: 80%;'});
-
+      var $span = $('<div>', {class: 'item', style: 'width: 80%'});
       var timestamp = Date.now();
       var $radioItem = $('<div>', {class: 'item'}).append(
         $('<div>').append(
           $('<input>', {class: 'upload', type: 'radio', name: 'pdf_' + timestamp}).click(function() {
-            $span.html(mkNotePdf('file'));
+            $span.html(mkFileInput('pdf', 'file', order, regexStr));
           }),
           $('<span>', {class: 'item', text: 'Upload PDF file'})
         ),
-
         $('<div>').append(
           $('<input>', {class: 'url', type: 'radio', name: 'pdf_' + timestamp}).click(function() {
-            $span.html(mkNotePdf('text'));
+            $span.html(mkFileInput('pdf', 'text', order, regexStr));
           }),
           $('<span>', {class: 'item', text: 'Enter URL'})
         )
       );
-
-      return mkRow([$radioItem, $span]);
+      return mkFileRow([$radioItem, $span], 'pdf', fieldDescription, fieldValue);
     }
   };
 
@@ -1569,7 +1608,6 @@ module.exports = (function() {
   };
 
   var mkAttachmentSection = function(fieldName, fieldDescription, fieldValue) {
-    var description = fieldDescription.description;
     var order = fieldDescription.order;
     var regexStr = fieldDescription['value-file'].regex;
     var mimeType = fieldDescription['value-file'].mimetype;
@@ -1582,60 +1620,30 @@ module.exports = (function() {
       invitationFileTransfer = 'upload';
     }
 
-    // inner function that creates the input DOM object for entering a pdf,
-    // and binds the arxivAutofill callback if the pdf is the first field in the form.
-    var mkFileNote = function(type) {
-      var $fileNote = $('<input>', {type: type, class: 'form-control note_content_value_input note_' + fieldName});
-      if (type === 'text' && order <= 1) {
-        $fileNote.keyup({regexStr:regexStr}, arxivAutofill);
-      }
-      return $fileNote;
-    };
-
-    var mkRow = function($widgets) {
-      var smallHeading = $('<div>', {text: prettyField(fieldName), class: 'small_heading'});
-      if (_.has(fieldDescription,'required') && fieldDescription.required) {
-        var requiredText = $('<span>',{text: '*', class: 'required_field'});
-        smallHeading.prepend(requiredText);
-      }
-
-      return $('<div>', {class: 'row'}).append(
-        smallHeading,
-        $('<div>', {text: description, class: 'hint'}),
-        $('<input>', { class: 'note_content_value', name: fieldName, value: fieldValue, style: 'display: none;'}),
-        $widgets,
-        fieldValue ? $('<span>').append(
-          $('<span>', {class: 'item hint', text: ' (' + fieldValue + ') '}).css('margin-left', '6px')
-        ) : null
-      );
-    };
-
     if (invitationFileTransfer === 'upload') {
-      return mkRow(mkFileNote('file'));
+      return mkFileRow(mkFileInput(fieldName, 'file', order, regexStr), fieldName, fieldDescription, fieldValue);
+
     } else if (invitationFileTransfer === 'url') {
-      return mkRow(mkFileNote('text'));
+      return mkFileRow(mkFileInput(fieldName, 'text', order, regexStr), fieldName, fieldDescription, fieldValue);
+
     } else if (invitationFileTransfer === 'either') {
-
-      var $span = $('<span>');
-
+      var $span = $('<div>', {class: 'item', style: 'width: 80%'});
       var timestamp = Date.now();
       var $radioItem = $('<div>', {class: 'item'}).append(
         $('<div>').append(
           $('<input>', {class: 'upload', type: 'radio', name: fieldName + '_' + timestamp}).click(function() {
-            $span.html(mkFileNote('file'));
+            $span.html(mkFileInput(fieldName, 'file', order, regexStr));
           }),
           $('<span>', {class: 'item', text: 'Upload file'})
         ),
-
         $('<div>').append(
           $('<input>', {class: 'url', type: 'radio', name: fieldName + '_' + timestamp}).click(function() {
-            $span.html(mkFileNote('text'));
+            $span.html(mkFileInput(fieldName, 'text', order, regexStr));
           }),
           $('<span>', {class: 'item', text: 'Enter URL'})
         )
       );
-
-      return mkRow([$radioItem, $span]);
+      return mkFileRow([$radioItem, $span], fieldName, fieldDescription, fieldValue);
     }
   };
 
@@ -2724,12 +2732,15 @@ module.exports = (function() {
       if (contentObj.hidden) {
         return ret;
       }
-      var inputVal = $contentMap[k].find('.note_content_value[name="' + k + '"]').val();
+      var $inputVal = $contentMap[k].find('.note_content_value[name="' + k + '"]');
+      var inputVal = $inputVal.val();
 
-      if (contentObj.hasOwnProperty('values-dropdown') || contentObj.hasOwnProperty('values')) {
+      if (contentObj.hasOwnProperty('values-dropdown') || (contentObj.hasOwnProperty('values') && k !== 'authorids')) {
         inputVal = idsFromListAdder($contentMap[k], ret);
 
-      } else if (contentObj.hasOwnProperty('values-regex') && contentObj['values-regex'].indexOf('~.*') !== -1 && k === 'authorids') {
+      } else if (k === 'authorids' && (
+        (contentObj['values-regex'] && contentObj['values-regex'].indexOf('~.*') !== -1) || contentObj['values']
+      )) {
         ret.authorids = [];
         ret.authors = [];
         $contentMap.authorids.find('.author-row').each(function() {
@@ -2790,15 +2801,17 @@ module.exports = (function() {
         var file = $fileInput && $fileInput.val() ? $fileInput[0].files[0] : null;
         var $textInput = $fileSection && $fileSection.find('input.note_' + k + '[type="text"]');
         var url = $textInput && $textInput.val();
-        // Check if there's a file
-        // If not, check that the field (inputVal) is not empty
-        // If it's not empty update ONLY if the new input value (url) is different from the current
-        // value (inputVal). This is for revisions.
-        if (file || !inputVal || (url && url !== inputVal)) {
-          inputVal = file ? file.name : url;
-        }
+
+        // Check if there's a file. If not, check if there's a url and update ONLY if the new value
+        // (url) is different from the current value (inputVal). If the file has been removed by the
+        // user set inputVal to and empty string. This is for revisions.
         if (file) {
+          inputVal = file.name;
           files[k] = file;
+        } else if (url && (!inputVal || url !== inputVal)) {
+          inputVal = url;
+        } else if ($inputVal.data('fileRemoved')) {
+          ret[k] = ''
         }
       }
 
@@ -2808,21 +2821,6 @@ module.exports = (function() {
 
       return ret;
     }, {});
-
-    var $pdf = $contentMap.pdf;
-    var $fileInput = $pdf && $pdf.find('input.note_pdf[type="file"]');
-    var pdf = $fileInput && $fileInput.val() ? $fileInput[0].files[0] : null;
-    var $textInput = $pdf && $pdf.find('input.note_pdf[type="text"]');
-    var url = $textInput && $textInput.val();
-
-    if ($fileInput && pdf) {
-      content = _.assign(content, { pdf: pdf.name });
-      files.pdf = pdf;
-    }
-
-    if ($fileInput && url) {
-      content = _.assign(content, { pdf: url });
-    }
 
     return [content, files, errors];
   };

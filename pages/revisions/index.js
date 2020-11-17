@@ -32,11 +32,6 @@ const RevisionsList = ({
   }
 
   const showEditorModal = (note, invitation, editorOptions) => {
-    if (invitation.expdate && invitation.expdate < Date.now()) {
-      promptError('Cannot edit the note. Invitation has expired.')
-      return
-    }
-
     $('#note-editor-modal').remove()
     $('body').append(Handlebars.templates.genericModal({
       id: 'note-editor-modal',

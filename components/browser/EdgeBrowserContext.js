@@ -1,5 +1,5 @@
-import React from 'react'
+import { createContext } from 'react'
 
-const EdgeBrowserContext = React.createContext()
+const EdgeBrowserContext = createContext()
 
 export default EdgeBrowserContext

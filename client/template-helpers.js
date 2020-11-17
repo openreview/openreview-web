@@ -771,11 +771,12 @@ Handlebars.registerHelper('edgeBrowserUrl', function(configNoteId, configNoteCon
     var browseInvitations = Object.keys(configNoteContent.scores_specification);
     var referrerText = 'all assignments for ' + view.prettyId(configNoteContent.match_group);
     var referrerUrl = '/assignments?group=' + configNoteContent.match_group;
+    var assignmentLabel = encodeURIComponent(configNoteContent.title)
 
     return '/edges/browse' +
-      '?traverse=' + configNoteContent.assignment_invitation + ',label:' + configNoteContent.title +
-      '&edit=' + configNoteContent.assignment_invitation + ',label:' + configNoteContent.title +
-      '&browse=' + configNoteContent.aggregate_score_invitation + ',label:' + configNoteContent.title +
+      '?traverse=' + configNoteContent.assignment_invitation + ',label:' + assignmentLabel +
+      '&edit=' + configNoteContent.assignment_invitation + ',label:' + assignmentLabel +
+      '&browse=' + configNoteContent.aggregate_score_invitation + ',label:' + assignmentLabel +
       ';' + browseInvitations.join(';') +
       ';' + configNoteContent.conflicts_invitation +
       (configNoteContent.custom_max_papers_invitation ? ';' + configNoteContent.custom_max_papers_invitation + ',head:ignore' : '') +
