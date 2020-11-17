@@ -2802,7 +2802,7 @@ module.exports = (function() {
           }
         }
 
-      } else if (contentObj.hasOwnProperty('value-file')) {
+      } else if (contentObj.hasOwnProperty('value-file') || (contentObj['value-regex'] && contentObj['value-regex'] === 'upload')) {
         var $fileSection = $contentMap[k];
         var $fileInput = $fileSection && $fileSection.find('input.note_' + k + '[type="file"]');
         var file = $fileInput && $fileInput.val() ? $fileInput[0].files[0] : null;
