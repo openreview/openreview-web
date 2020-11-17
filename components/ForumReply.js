@@ -37,25 +37,28 @@ function ReplyTitle({ note }) {
     id, invitation, content, signatures,
   } = note
   return (
-    <h4>
-      {content.title ? (
-        <>
+    <div>
+      <h4>
+        {content.title ? (
           <strong>{content.title}</strong>
-          &bull;
-          <span className="signatures">
-            by
-            {' '}
-            {signatures.map(signature => prettyId(signature, true)).join(', ')}
-          </span>
-        </>
-      ) : (
-        <span>{buildNoteTitle(invitation, signatures)}</span>
-      )}
-      &bull;
-      <span className="created-date">{forumDate(note.cdate, note.tcdate, note.mdate)}</span>
-      &bull;
-      <span className="readers"><NoteReaders readers={note.readers} /></span>
-    </h4>
+        ) : (
+          <span>{buildNoteTitle(invitation, signatures)}</span>
+        )}
+      </h4>
+      <div className="subheading">
+        <span className="invitation">
+          {prettyId(invitation)}
+        </span>
+        &bull;
+        <span className="signatures">
+          {signatures.map(signature => prettyId(signature, true)).join(', ')}
+        </span>
+        &bull;
+        <span className="created-date">{forumDate(note.cdate, note.tcdate, note.mdate)}</span>
+        &bull;
+        <span className="readers"><NoteReaders readers={note.readers} /></span>
+      </div>
+    </div>
   )
 }
 
@@ -72,7 +75,10 @@ function NoteContentCollapsible({ id, content, invitation }) {
         content={content}
         invitation={invitation}
       />
-      <div className="gradient-overlay" />
+      <div className="gradient-overlay">
+        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+        <a href="#" onClick={e => e.preventDefault()}>Show more</a>
+      </div>
     </div>
   )
 }

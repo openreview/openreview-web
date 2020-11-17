@@ -178,7 +178,7 @@ const Forum = ({ forumNote, query, appContext }) => {
               <meta key={author} name="citation_author" content={author} />
             ))}
             */}
-            {/* temporary hack to get google scholar to work, revert to above code when next.js unique issue is solved */}
+            {/* temporary hack to get google scholar to work, revert to above code when Next.js issue is solved */}
             <meta name="citation_authors" content={authors.join('; ')} />
             <meta name="citation_publication_date" content={creationDate} />
             <meta name="citation_online_date" content={modificationDate} />

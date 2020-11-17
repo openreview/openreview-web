@@ -447,6 +447,8 @@ main.forum {
       line-height: 1.25rem;
       margin-bottom: .25rem;
       margin-top: 0;
+    }
+    .subheading {
       strong {
         padding-right: .5rem;
       }
@@ -454,10 +456,13 @@ main.forum {
         padding-left: .5rem;
         padding-right: .5rem;
       }
-      .signatures, .created-date, .readers {
+      .signatures, .invitation, .created-date, .readers {
         color: @subtleGray;
         font-weight: 400;
         font-size: .75rem;
+      }
+      .invitation {
+        padding-left: 0;
       }
     }
     .note-content-container {
@@ -471,11 +476,17 @@ main.forum {
           display: block;
           position: absolute;
           left: 0;
-          top: 110px;
+          top: 130px;
           height: 40px;
           width: 100%;
-          background-image: linear-gradient(to bottom, transparent 0%, @backgroundWhite 100%);
+          // background-image: linear-gradient(to bottom, transparent 0%, @backgroundWhite 100%);
+          background-color: @backgroundWhite;
           content: '';
+        }
+      }
+      .gradient-overlay {
+        a {
+          font-size: .75rem;
         }
       }
       &:focus {
