@@ -222,7 +222,7 @@ const Forum = ({ forumNote, query, appContext }) => {
 
       <div id="note-children">
         {replyNotes ? replyNotes.map(replyNote => (
-          <ForumReply key={replyNote.id} note={replyNote} />
+          <ForumReply key={replyNote.id} note={replyNote} collapse={1} />
         )) : (
           <LoadingSpinner />
         )}

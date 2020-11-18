@@ -2,16 +2,18 @@ import NoteReaders from './NoteReaders'
 import NoteContent from './NoteContent'
 import { prettyId, buildNoteTitle, forumDate } from '../lib/utils'
 
-export default function ForumReply({ note }) {
+export default function ForumReply({ note, collapse }) {
   return (
     <div className="note">
-      <ReplyTitle note={note} />
+      <ReplyTitle note={note} collapse={collapse} />
 
-      <NoteContentCollapsible
-        id={note.id}
-        content={note.content}
-        invitation={note.details?.originalInvitation || note.details?.invitation}
-      />
+      {collapse === 1 && (
+        <NoteContentCollapsible
+          id={note.id}
+          content={note.content}
+          invitation={note.details?.originalInvitation || note.details?.invitation}
+        />
+      )}
 
       {note.replies && (
         <div className="note-replies">
@@ -32,10 +34,31 @@ export default function ForumReply({ note }) {
   )
 }
 
-function ReplyTitle({ note }) {
+function ReplyTitle({ note, collapse }) {
   const {
     id, invitation, content, signatures,
   } = note
+
+  if (collapse === 0) {
+    return (
+      <div>
+        <h4>
+          {content.title ? (
+            <>
+              <strong>{content.title}</strong>
+              {' '}
+              &bull;
+              {' '}
+              {signatures.map(signature => prettyId(signature, true)).join(', ')}
+            </>
+          ) : (
+            <span>{buildNoteTitle(invitation, signatures)}</span>
+          )}
+        </h4>
+      </div>
+    )
+  }
+
   return (
     <div>
       <h4>
@@ -47,7 +70,7 @@ function ReplyTitle({ note }) {
       </h4>
       <div className="subheading">
         <span className="invitation">
-          {prettyId(invitation)}
+          {prettyId(invitation, true)}
         </span>
         &bull;
         <span className="signatures">
