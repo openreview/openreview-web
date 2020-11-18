@@ -11,9 +11,10 @@ import api from '../lib/api-client'
 import { prettyId } from '../lib/utils'
 import LoadingSpinner from '../components/LoadingSpinner'
 import Accordion from '../components/Accordion'
+import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 // Page Styles
-import '../styles/pages/venues.less'
+import '../styles/pages/venue.less'
 import VenueDetails from '../components/VenueDetails'
 
 const VenuesForYear = ({ year, filteredVenues }) => (
@@ -28,28 +29,35 @@ const VenuesForYear = ({ year, filteredVenues }) => (
   </div>
 )
 
+function headingElement(year, groupByYear) {
+  return (
+    <>
+      <span className="h3">{year}</span>
+      {' '}
+      <span className="h4">
+        (
+        {groupByYear[year].length}
+        {' '}
+        {groupByYear[year].length > 1 ? 'venues' : 'venue'}
+        )
+      </span>
+    </>
+  )
+}
+
 function Venue({ venueSeries, groupByYear, appContext }) {
   const [venuesByYear, setVenuesByYear] = useState(null)
   const router = useRouter()
-  const { clientJsLoading } = appContext
+  const { clientJsLoading, setBannerContent } = appContext
 
   useEffect(() => {
     if (clientJsLoading) return
+    setBannerContent(referrerLink('[All Venues](/venues)'))
 
     const defaultRenderer = new marked.Renderer()
     setVenuesByYear(Object.keys(groupByYear).sort().reverse().map((year, index) => ({
       id: year,
-      heading: <>
-        <span className="h3">{year}</span>
-        {' '}
-        <span className="h4" style={{ color: '#777777' }}>
-          (
-          {groupByYear[year].length}
-          {' '}
-          {groupByYear[year].length > 1 ? 'venues' : 'venue'}
-          )
-        </span>
-      </>,
+      heading: headingElement(year, groupByYear),
       body: renderToString(<VenuesForYear year={year} filteredVenues={groupByYear[year]} />),
     })))
   }, [clientJsLoading])
@@ -57,7 +65,7 @@ function Venue({ venueSeries, groupByYear, appContext }) {
   useEffect(() => {
     if (!venuesByYear) return
 
-    // Scroll to and expand question referenced in URL
+    // Scroll to and expand venue referenced in URL
     if (window.location.hash) {
       const $titleLink = $(`#questions .panel-title a[href="${window.location.hash}"]`).eq(0)
       if ($titleLink.length) {
@@ -79,15 +87,16 @@ function Venue({ venueSeries, groupByYear, appContext }) {
 
       <header className="clearfix">
         <h1>{venueSeries.content.name}</h1>
-        {venueSeries.content.noteline && (<p Style="font-size: 1.25rem; color:@subtleGray">{venueSeries.content.noteline}</p>)}
+        {venueSeries.content.noteline && (<p className="noteline">{venueSeries.content.noteline}</p>)}
         {
           venueSeries.content.external_links && venueSeries.content.external_links.length > 0
-          && (<span Style="padding-right: 5px; word-wrap: break-word">External Links: </span>)
+          && (<span className="external-links">External Links: </span>)
         }
         {venueSeries.content.external_links.map((el) => {
           if (el.link && el.domain) {
-            return (<span Style="word-wrap: break-word" key={el.link}><a href={el.link}>{el.domain.toUpperCase()}</a></span>)
+            return (<span className="external-links" key={el.link}><a href={el.link}>{el.domain.toUpperCase()}</a></span>)
           }
+          return (<span />)
         }).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
         <hr />
       </header>
@@ -127,6 +136,6 @@ Venue.getInitialProps = async (ctx) => {
   return { venueSeries, groupByYear }
 }
 
-Venue.bodyClass = 'venues'
+Venue.bodyClass = 'venue'
 
 export default withError(Venue)
