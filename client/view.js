@@ -1093,7 +1093,9 @@ module.exports = (function() {
       if (markdownContent) {
         $(newTabId)[0].innerHTML = '<div class="note_content_value markdown-rendered">' +
           DOMPurify.sanitize(marked(markdownContent)) + '</div>';
-        MathJax.typesetPromise();
+        setTimeout(function() {
+          MathJax.typesetPromise();
+        }, 100);
       } else {
         $(newTabId).text('Nothing to preview');
       }
