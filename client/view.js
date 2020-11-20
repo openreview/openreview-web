@@ -759,9 +759,14 @@ module.exports = (function() {
       return $row;
     };
 
-    var getPreferredName = function(profile) {
-      var nameObj = _.find(profile.content.names, 'preferred');
-      var tildeId = nameObj && nameObj.username || profile.id;
+    var getPreferredName = function(profile, username) {
+      var tildeId;
+      if (profile) {
+        var nameObj = _.find(profile.content.names, 'preferred');
+        tildeId = nameObj && nameObj.username || profile.id;
+      } else {
+        tildeId = username
+      }
       var setClass = function(className) {
         return function(match) {
           return '<span class="' + className + '">' + match + '</span>';
@@ -810,7 +815,9 @@ module.exports = (function() {
             var profile = _.find(profiles, function(profile) {
               return profile.id === authorids[i] || _.find(profile.content.names, ['username', authorids[i]]);
             });
-            $spanFullname = getPreferredName(profile);
+            $spanFullname = options.allowAddRemove
+              ? getPreferredName(profile)
+              : getPreferredName(null, authorids[i]);
             title = formatProfileContent(profile.content).title;
             $spanEmails = getEmails(profile.content.emails);
           } else {
@@ -1086,7 +1093,9 @@ module.exports = (function() {
       if (markdownContent) {
         $(newTabId)[0].innerHTML = '<div class="note_content_value markdown-rendered">' +
           DOMPurify.sanitize(marked(markdownContent)) + '</div>';
-        MathJax.typesetPromise();
+        setTimeout(function() {
+          MathJax.typesetPromise();
+        }, 100);
       } else {
         $(newTabId).text('Nothing to preview');
       }
@@ -1699,7 +1708,7 @@ module.exports = (function() {
 
   var autolinkHtml = function(value) {
     // Regex based on https://gist.github.com/dperini/729294 modified to not accept FTP urls
-    var urlRegex = /(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*)?/ig;
+    var urlRegex = /(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*[^.,()"'\s])?/ig;
     var profileRegex = /\B~[^\d\s]+\_[^\d\s]+[0-9]+/ig;
 
     var intermediate = value.replace(urlRegex, function(match) {
@@ -2795,7 +2804,7 @@ module.exports = (function() {
           }
         }
 
-      } else if (contentObj.hasOwnProperty('value-file')) {
+      } else if (contentObj.hasOwnProperty('value-file') || (contentObj['value-regex'] && contentObj['value-regex'] === 'upload')) {
         var $fileSection = $contentMap[k];
         var $fileInput = $fileSection && $fileSection.find('input.note_' + k + '[type="file"]');
         var file = $fileInput && $fileInput.val() ? $fileInput[0].files[0] : null;
