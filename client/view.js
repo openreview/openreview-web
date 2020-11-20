@@ -3305,7 +3305,7 @@ module.exports = (function() {
     var contentOrder = order(invitation.reply.content, invitation.id);
     var $contentMap = _.reduce(contentOrder, function(map, fieldName) {
       var fieldContent = _.get(note, ['content', fieldName], '');
-      map[fieldName] = mkComposerInput(fieldName, invitation.reply.content[fieldName], fieldContent, { note: note });
+      map[fieldName] = mkComposerInput(fieldName, invitation.reply.content[fieldName], fieldContent, { note: note, useDefaults: true });
       return map;
     }, {});
 
