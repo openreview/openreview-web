@@ -3,7 +3,7 @@
 
 import Head from 'next/head'
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/router'
+import Router from 'next/router'
 import { renderToString } from 'react-dom/server'
 import { groupBy } from 'lodash'
 import withError from '../components/withError'
@@ -12,53 +12,54 @@ import { prettyId } from '../lib/utils'
 import LoadingSpinner from '../components/LoadingSpinner'
 import Accordion from '../components/Accordion'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
+import { auth } from '../lib/auth'
 
 // Page Styles
 import '../styles/pages/venue.less'
 import VenueDetails from '../components/VenueDetails'
 
-const VenuesForYear = ({ year, filteredVenues }) => (
-  <div className="groups">
-    <ul className="list-unstyled venues-list">
-      {filteredVenues.map(venue => (
-        <li className="mb-4" key={venue.id}>
-          <VenueDetails venue={venue} />
-        </li>
-      ))}
-    </ul>
-  </div>
-)
+function VenuesForYear({ filteredVenues }) {
+  return (
+    <div className="groups">
+      <ul className="list-unstyled venues-list">
+        {filteredVenues.map(venue => (
+          <li className="mb-4" key={venue.id}>
+            <VenueDetails venue={venue} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
 
-function headingElement(year, groupByYear) {
+function HeadingElement({ year, venuesGroupedByYear }) {
   return (
     <>
       <span className="h3">{year}</span>
       {' '}
       <span className="h4">
         (
-        {groupByYear[year].length}
+        {venuesGroupedByYear[year].length}
         {' '}
-        {groupByYear[year].length > 1 ? 'venues' : 'venue'}
+        {venuesGroupedByYear[year].length > 1 ? 'venues' : 'venue'}
         )
       </span>
     </>
   )
 }
 
-function Venue({ venueSeries, groupByYear, appContext }) {
+function Venue({ venueSeries, venuesGroupedByYear, appContext }) {
   const [venuesByYear, setVenuesByYear] = useState(null)
-  const router = useRouter()
   const { clientJsLoading, setBannerContent } = appContext
 
   useEffect(() => {
     if (clientJsLoading) return
     setBannerContent(referrerLink('[All Venues](/venues)'))
 
-    const defaultRenderer = new marked.Renderer()
-    setVenuesByYear(Object.keys(groupByYear).sort().reverse().map((year, index) => ({
+    setVenuesByYear(Object.keys(venuesGroupedByYear).sort().reverse().map((year, index) => ({
       id: year,
-      heading: headingElement(year, groupByYear),
-      body: renderToString(<VenuesForYear year={year} filteredVenues={groupByYear[year]} />),
+      heading: <HeadingElement year={year} venuesGroupedByYear={venuesGroupedByYear} />,
+      body: renderToString(<VenuesForYear filteredVenues={venuesGroupedByYear[year]} />),
     })))
   }, [clientJsLoading])
 
@@ -89,7 +90,7 @@ function Venue({ venueSeries, groupByYear, appContext }) {
         <h1>{venueSeries.content.name}</h1>
         {venueSeries.content.noteline && (<p className="noteline">{venueSeries.content.noteline}</p>)}
         {
-          venueSeries.content.external_links && venueSeries.content.external_links.length > 0
+          venueSeries.content.external_links?.length > 0
           && (<span className="external-links">External Links: </span>)
         }
         {venueSeries.content.external_links.map((el) => {
@@ -119,21 +120,34 @@ function Venue({ venueSeries, groupByYear, appContext }) {
 
 Venue.getInitialProps = async (ctx) => {
   const venueSeriesResponse = await api.get('/venues', { id: ctx.query.id })
-  let venueSeries
-  if (venueSeriesResponse.venues.length > 0) venueSeries = venueSeriesResponse.venues[0]
+  const venueSeries = venueSeriesResponse.venues.length > 0 ? venueSeriesResponse.venues[0] : null
 
-  const apiRes = await api.get('/venues', { 'content.parents': ctx.query.id })
-  const filteredVenues = apiRes.venues
-  const groupByYear = groupBy(filteredVenues, venue => venue.content.year)
+  const { user, token } = auth(ctx)
+  try {
+    const { venues } = await api.get('/venues', { 'content.parents': ctx.query.id })
+    const venuesGroupedByYear = groupBy(venues, venue => venue.content.year)
 
-  if (!groupByYear) {
-    return {
-      statusCode: 400,
-      message: 'Venues list unavailable. Please try again later',
+    if (!venuesGroupedByYear) {
+      return {
+        statusCode: 400,
+        message: 'Venues list unavailable. Please try again later',
+      }
     }
+    return { venueSeries, venuesGroupedByYear }
+  } catch (error) {
+    if (error.name === 'forbidden') {
+      if (!token) {
+        if (ctx.req) {
+          ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
+        } else {
+          Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
+        }
+        return {}
+      }
+      return { statusCode: 403, message: 'You don\'t have permission to read this venue' }
+    }
+    return { statusCode: error.status || 500, message: error.message }
   }
-
-  return { venueSeries, groupByYear }
 }
 
 Venue.bodyClass = 'venue'
