@@ -1,24 +1,21 @@
 /* globals $: false */
-/* globals marked: false */
 
 import Head from 'next/head'
 import { useState, useEffect } from 'react'
 import Router from 'next/router'
-import { renderToString } from 'react-dom/server'
 import { groupBy } from 'lodash'
 import withError from '../components/withError'
 import api from '../lib/api-client'
-import { prettyId } from '../lib/utils'
 import LoadingSpinner from '../components/LoadingSpinner'
 import Accordion from '../components/Accordion'
-import { referrerLink, venueHomepageLink } from '../lib/banner-links'
+import { referrerLink } from '../lib/banner-links'
 import { auth } from '../lib/auth'
 
 // Page Styles
 import '../styles/pages/venue.less'
 import VenueDetails from '../components/VenueDetails'
 
-function VenuesForYear({ filteredVenues }) {
+function VenuesList({ filteredVenues }) {
   return (
     <div className="groups">
       <ul className="list-unstyled venues-list">
@@ -32,7 +29,7 @@ function VenuesForYear({ filteredVenues }) {
   )
 }
 
-function HeadingElement({ year, venuesGroupedByYear }) {
+function GroupHeading({ year, venuesGroupedByYear }) {
   return (
     <>
       <span className="h3">{year}</span>
@@ -58,8 +55,8 @@ function Venue({ venueSeries, venuesGroupedByYear, appContext }) {
 
     setVenuesByYear(Object.keys(venuesGroupedByYear).sort().reverse().map((year, index) => ({
       id: year,
-      heading: <HeadingElement year={year} venuesGroupedByYear={venuesGroupedByYear} />,
-      body: renderToString(<VenuesForYear filteredVenues={venuesGroupedByYear[year]} />),
+      heading: <GroupHeading year={year} venuesGroupedByYear={venuesGroupedByYear} />,
+      body: <VenuesList filteredVenues={venuesGroupedByYear[year]} />,
     })))
   }, [clientJsLoading])
 
@@ -88,43 +85,51 @@ function Venue({ venueSeries, venuesGroupedByYear, appContext }) {
 
       <header className="clearfix">
         <h1>{venueSeries.content.name}</h1>
-        {venueSeries.content.noteline && (<p className="noteline">{venueSeries.content.noteline}</p>)}
-        {
-          venueSeries.content.external_links?.length > 0
-          && (<span className="external-links">External Links: </span>)
-        }
-        {venueSeries.content.external_links.map((el) => {
-          if (el.link && el.domain) {
-            return (<span className="external-links" key={el.link}><a href={el.link}>{el.domain.toUpperCase()}</a></span>)
-          }
-          return (<span />)
-        }).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+        {venueSeries.content.noteline && (
+          <p className="noteline">{venueSeries.content.noteline}</p>
+        )}
+        {venueSeries.content.external_links?.length > 0 && (
+          <>
+            <span className="external-links">External Links:</span>
+            {' '}
+            {venueSeries.content.external_links.map((el) => {
+              if (el.link && el.domain) {
+                return (
+                  <span className="external-links" key={el.link}>
+                    <a href={el.link}>{el.domain.toUpperCase()}</a>
+                  </span>
+                )
+              }
+              return null
+            }).filter(Boolean).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+          </>
+        )}
         <hr />
       </header>
 
       <div className="row">
-        {
-          venuesByYear ? (
+        <div className="col-xs-12">
+          {venuesByYear ? (
             <Accordion
               sections={venuesByYear}
-              options={{ id: 'venues', collapsed: true, html: true }}
+              options={{ id: 'venues', collapsed: true }}
             />
           ) : (
             <LoadingSpinner />
-          )
-        }
+          )}
+        </div>
       </div>
     </>
   )
 }
 
 Venue.getInitialProps = async (ctx) => {
-  const venueSeriesResponse = await api.get('/venues', { id: ctx.query.id })
-  const venueSeries = venueSeriesResponse.venues.length > 0 ? venueSeriesResponse.venues[0] : null
+  const venueSeriesRes = await api.get('/venues', { id: ctx.query.id })
+  const venueSeries = venueSeriesRes.venues?.length > 0 ? venueSeriesRes.venues[0] : null
 
   const { user, token } = auth(ctx)
   try {
-    const { venues } = await api.get('/venues', { 'content.parents': ctx.query.id })
+    const { venues } = await api.get('/venues', { 'content.parents': ctx.query.id }, { accessToken: token })
     const venuesGroupedByYear = groupBy(venues, venue => venue.content.year)
 
     if (!venuesGroupedByYear) {
@@ -144,7 +149,7 @@ Venue.getInitialProps = async (ctx) => {
         }
         return {}
       }
-      return { statusCode: 403, message: 'You don\'t have permission to read this venue' }
+      return { statusCode: 403, message: 'You don\'t have permission to view this venue' }
     }
     return { statusCode: error.status || 500, message: error.message }
   }

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Icon from './Icon'
 
 const VenueDetails = ({ venue }) => (
   <>
@@ -11,25 +12,26 @@ const VenueDetails = ({ venue }) => (
     <p className="mt-1 mb-0">
       {venue.content.location && (
         <span className="mr-4">
-          <span className="glyphicon glyphicon-map-marker mr-1" aria-hidden="true" />
-            &nbsp;
+          <Icon name="map-marker" extraClasses="mr-1" />
+          {' '}
           {venue.content.location}
         </span>
       )}
 
       {venue.content.startdate && venue.content.enddate && (
         <span className="mr-4">
-          <span className="glyphicon glyphicon-calendar mr-1" />
+          <Icon name="calendar" extraClasses="mr-1" />
           {new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'long', day: '2-digit' }).format(venue.content.startdate)}
-              &nbsp;&#8211;&nbsp;
+          {' – '}
           {new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'long', day: '2-digit' }).format(venue.content.enddate)}
         </span>
       )}
 
       {venue.content.dblp_url && (
         <span className="mr-4">
-          <span className="glyphicon glyphicon-link mr-1" />
-          <a href={venue.content.dblp_url}>DBLP Page</a>
+          <Icon name="link" extraClasses="mr-1" />
+          {' '}
+          <a href={venue.content.dblp_url} target="_blank" rel="noreferrer">DBLP Page</a>
         </span>
       )}
     </p>
@@ -42,7 +44,7 @@ const VenueDetails = ({ venue }) => (
       </p>
     )}
 
-    {venue.content.program_chairs && venue.content.program_chairs.length > 0 && (
+    {venue.content.program_chairs?.length > 0 && (
       <p className="mt-1 mb-0">
         Program chairs:
         {' '}

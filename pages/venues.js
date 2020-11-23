@@ -1,10 +1,8 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import Router from 'next/router'
 import withError from '../components/withError'
 import api from '../lib/api-client'
 import PaginationLinks from '../components/PaginationLinks'
-import { prettyId } from '../lib/utils'
 import { auth } from '../lib/auth'
 
 // Page Styles
@@ -13,13 +11,9 @@ import '../styles/pages/venues.less'
 const VenueItem = ({ venue }) => (
   <p>
     {venue.content.shortname}
-    {' '}
-    &#8211;
-    {' '}
+    {' – '}
     <Link href={`/venue?id=${venue.id}`}>
-      <a title="Click to view the proceedings of this conference">
-        {venue.content.name}
-      </a>
+      <a title={`View proceedings of ${venue.content.name}`}>{venue.content.name}</a>
     </Link>
   </p>
 )
@@ -54,42 +48,28 @@ Venues.getInitialProps = async (ctx) => {
   const currentPage = Math.max(parseInt(ctx.query.page, 10) || 1, 1)
   const notesPerPage = 25
 
-  const { user, token } = auth(ctx)
-  try {
-    const { venues, count } = await api.get('/venues', {
-      invitations: 'dblp.org/-/conference',
-      limit: notesPerPage,
-      offset: notesPerPage * (currentPage - 1),
-    })
+  const { token } = auth(ctx)
+  const { venues, count } = await api.get('/venues', {
+    invitations: 'dblp.org/-/conference',
+    limit: notesPerPage,
+    offset: notesPerPage * (currentPage - 1),
+  }, { accessToken: token })
 
-    const pagination = {
-      currentPage,
-      notesPerPage,
-      totalCount: count,
-      baseUrl: '/venues',
+  if (!venues) {
+    return {
+      statusCode: 400,
+      message: 'Venues list unavailable. Please try again later',
     }
-
-    if (!venues) {
-      return {
-        statusCode: 400,
-        message: 'Venues list unavailable. Please try again later',
-      }
-    }
-    return { venues, pagination }
-  } catch (error) {
-    if (error.name === 'forbidden') {
-      if (!token) {
-        if (ctx.req) {
-          ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
-        } else {
-          Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
-        }
-        return {}
-      }
-      return { statusCode: 403, message: 'You don\'t have permission to read this page' }
-    }
-    return { statusCode: error.status || 500, message: error.message }
   }
+
+  const pagination = {
+    currentPage,
+    notesPerPage,
+    totalCount: count,
+    baseUrl: '/venues',
+  }
+
+  return { venues, pagination }
 }
 
 Venues.bodyClass = 'venues'
