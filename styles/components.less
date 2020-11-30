@@ -919,6 +919,11 @@ table.table-minimal {
   overflow-x: hidden;
   .note_content_value {
     width: 100%;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    &.markdown-rendered {
+      .markdown-content-styles;
+    }
   }
 }
 
