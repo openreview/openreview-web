@@ -150,9 +150,11 @@ test('setup TestVenue', async (t) => {
 
   await waitForJobs(postSubmissionId, superUserToken)
 
+  const reviewDeadline = new Date(Date.now() + 24 * 60 * 60 * 1000)
+  const reviewDeadlineString = `${reviewDeadline.getFullYear()}/${reviewDeadline.getMonth() + 1}/${reviewDeadline.getDate()}`
   const reviewStageJson = {
     content: {
-      review_deadline: '2020/11/13',
+      review_deadline: reviewDeadlineString,
       make_reviews_public: 'Yes, reviews should be revealed publicly when they are posted',
       release_reviews_to_authors: 'Yes, reviews should be revealed when they are posted to the paper\'s authors',
       release_reviews_to_reviewers: 'Yes, reviews should be immediately revealed to the all paper\'s reviewers',
