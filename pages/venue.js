@@ -124,6 +124,10 @@ function Venue({ venueSeries, venuesGroupedByYear, appContext }) {
 }
 
 Venue.getInitialProps = async (ctx) => {
+  if (!process.env.USE_DBLP_VENUES) {
+    return { statusCode: 404, message: 'The page could not be found' }
+  }
+
   const venueSeriesRes = await api.get('/venues', { id: ctx.query.id })
   const venueSeries = venueSeriesRes.venues?.length > 0 ? venueSeriesRes.venues[0] : null
 

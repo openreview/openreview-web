@@ -30,9 +30,11 @@ const Venues = ({ venues, pagination }) => (
     </header>
 
     <div className="groups">
-      {venues.map(venue => (
+      {process.env.USE_DBLP_VENUES ? venues.map(venue => (
         <VenueItem key={venue.id} venue={venue} />
-      ))}
+      )) : (
+        <h4>Venue</h4>
+      )}
     </div>
 
     <PaginationLinks
@@ -45,31 +47,34 @@ const Venues = ({ venues, pagination }) => (
 )
 
 Venues.getInitialProps = async (ctx) => {
-  const currentPage = Math.max(parseInt(ctx.query.page, 10) || 1, 1)
-  const notesPerPage = 25
+  if (process.env.USE_DBLP_VENUES) {
+    const currentPage = Math.max(parseInt(ctx.query.page, 10) || 1, 1)
+    const notesPerPage = 25
 
-  const { token } = auth(ctx)
-  const { venues, count } = await api.get('/venues', {
-    invitations: 'dblp.org/-/conference',
-    limit: notesPerPage,
-    offset: notesPerPage * (currentPage - 1),
-  }, { accessToken: token })
+    const { token } = auth(ctx)
+    const { venues, count } = await api.get('/venues', {
+      invitations: 'dblp.org/-/conference',
+      limit: notesPerPage,
+      offset: notesPerPage * (currentPage - 1),
+    }, { accessToken: token })
 
-  if (!venues) {
-    return {
-      statusCode: 400,
-      message: 'Venues list unavailable. Please try again later',
+    if (!venues) {
+      return {
+        statusCode: 400,
+        message: 'Venues list unavailable. Please try again later',
+      }
     }
-  }
 
-  const pagination = {
-    currentPage,
-    notesPerPage,
-    totalCount: count,
-    baseUrl: '/venues',
+    const pagination = {
+      currentPage,
+      notesPerPage,
+      totalCount: count,
+      baseUrl: '/venues',
+    }
+    return { venues, pagination }
+  } else {
+    return {}
   }
-
-  return { venues, pagination }
 }
 
 Venues.bodyClass = 'venues'
