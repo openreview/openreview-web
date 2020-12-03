@@ -2,16 +2,19 @@ import NoteReaders from './NoteReaders'
 import NoteContent from './NoteContent'
 import { prettyId, buildNoteTitle, forumDate } from '../lib/utils'
 
-export default function ForumReply({ note, collapse }) {
+export default function ForumReply({ note, collapse, setCollapse }) {
   return (
     <div className="note">
+      <button type="button" className="btn btn-link collapse-link" onClick={e => setCollapse(collapse === 0 ? 1 : 0)}>[–]</button>
+
       <ReplyTitle note={note} collapse={collapse} />
 
-      {collapse === 1 && (
+      {collapse > 0 && (
         <NoteContentCollapsible
           id={note.id}
           content={note.content}
           invitation={note.details?.originalInvitation || note.details?.invitation}
+          collapsed={collapse === 1}
         />
       )}
 
@@ -19,13 +22,16 @@ export default function ForumReply({ note, collapse }) {
         <div className="note-replies">
           {note.replies.map(childNote => (
             <div className="note">
-              <ReplyTitle note={childNote} />
+              <ReplyTitle note={childNote} collapse={collapse} />
 
-              <NoteContentCollapsible
-                id={childNote.id}
-                content={childNote.content}
-                invitation={childNote.details?.originalInvitation || childNote.details?.invitation}
-              />
+              {collapse > 0 && (
+                <NoteContentCollapsible
+                  id={childNote.id}
+                  content={childNote.content}
+                  invitation={childNote.details?.originalInvitation || childNote.details?.invitation}
+                  collapsed={collapse === 1}
+                />
+              )}
             </div>
           ))}
         </div>
@@ -42,14 +48,18 @@ function ReplyTitle({ note, collapse }) {
   if (collapse === 0) {
     return (
       <div>
-        <h4>
+        <h4 className="minimal-title">
           {content.title ? (
             <>
               <strong>{content.title}</strong>
               {' '}
               &bull;
               {' '}
-              {signatures.map(signature => prettyId(signature, true)).join(', ')}
+              <span className="signatures">
+                by
+                {' '}
+                {signatures.map(signature => prettyId(signature, true)).join(', ')}
+              </span>
             </>
           ) : (
             <span>{buildNoteTitle(invitation, signatures)}</span>
@@ -85,12 +95,14 @@ function ReplyTitle({ note, collapse }) {
   )
 }
 
-function NoteContentCollapsible({ id, content, invitation }) {
+function NoteContentCollapsible({
+  id, content, invitation, collapsed,
+}) {
   return (
     <div
       role="button"
       tabIndex="0"
-      className="note-content-container collapsed"
+      className={`note-content-container ${collapsed ? 'collapsed' : ''}`}
       onClick={e => e.currentTarget.classList.toggle('collapsed')}
     >
       <NoteContent

@@ -8,6 +8,7 @@ import NoteAuthors from '../components/NoteAuthors'
 import NoteReaders from '../components/NoteReaders'
 import NoteContent from '../components/NoteContent'
 import withError from '../components/withError'
+import ForumReplyContext from '../components/ForumReplyContext'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { auth, isSuperUser } from '../lib/auth'
@@ -88,6 +89,9 @@ const ForumReplyCount = ({ count }) => (
 const Forum = ({ forumNote, query, appContext }) => {
   const { userLoading, accessToken } = useUser()
   const [replyNotes, setReplyNotes] = useState(null)
+  const [nestingLevel, setNestingLevel] = useState(1)
+  const [displayOptions, setDisplayOptions] = useState(null)
+
   const { setBannerContent } = appContext
   const { id, content, details } = forumNote
 
@@ -111,6 +115,7 @@ const Forum = ({ forumNote, query, appContext }) => {
     }
 
     const replyMap = {}
+    const replyOptions = {}
     notes.forEach((note) => {
       if (note.id === note.forum) return
 
@@ -119,7 +124,11 @@ const Forum = ({ forumNote, query, appContext }) => {
         replyMap[parentId] = []
       }
       replyMap[parentId].push(note)
+
+      replyOptions[note.id] = { collapseLevel: 1 }
     })
+
+    setDisplayOptions(replyOptions)
 
     const getAllReplies = (noteId) => {
       if (!replyMap[noteId]) return []
@@ -133,6 +142,24 @@ const Forum = ({ forumNote, query, appContext }) => {
     }
 
     setReplyNotes(combinedNotes)
+
+    setTimeout(() => {
+      // eslint-disable-next-line no-undef
+      typesetMathJax()
+    }, 200)
+  }
+
+  const setCollapseLevel = (level) => {
+    const newDisplayOptions = { ...displayOptions }
+    Object.keys(displayOptions).forEach((replyId) => {
+      newDisplayOptions[replyId] = { collapseLevel: level }
+    })
+    setDisplayOptions(newDisplayOptions)
+  }
+
+  const setReplyCollapse = replyId => (level) => {
+    console.log(replyId, level)
+    setDisplayOptions({ ...displayOptions, [replyId]: { collapseLevel: level } })
   }
 
   // Set banner link
@@ -220,12 +247,86 @@ const Forum = ({ forumNote, query, appContext }) => {
 
       <hr />
 
-      <div id="note-children">
-        {replyNotes ? replyNotes.map(replyNote => (
-          <ForumReply key={replyNote.id} note={replyNote} collapse={1} />
-        )) : (
-          <LoadingSpinner />
-        )}
+      <div className="row">
+        <ForumReplyContext.Provider value={{ displayOptions, setDisplayOptions }}>
+          <div id="note-children" className="col-md-9">
+            <div className="controls">
+              <div className="btn-toolbar" role="toolbar">
+                <div className="btn-group btn-group-sm" role="group" aria-label="Nesting control">
+                  <button type="button" className="btn btn-default" onClick={e => setNestingLevel(2)}>Nested</button>
+                  <button type="button" className="btn btn-default" onClick={e => setNestingLevel(1)}>Threaded</button>
+                  <button type="button" className="btn btn-default" onClick={e => setNestingLevel(0)}>Linear</button>
+                </div>
+                <div className="btn-group btn-group-sm" role="group" aria-label="Nesting control">
+                  <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(0)}>Collapsed</button>
+                  <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(1)}>Default</button>
+                  <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(2)}>Expanded</button>
+                </div>
+              </div>
+            </div>
+
+            {replyNotes ? replyNotes.map(replyNote => (
+              <ForumReply
+                key={replyNote.id}
+                note={replyNote}
+                collapse={displayOptions[replyNote.id].collapseLevel}
+                setCollapse={setReplyCollapse(replyNote.id)}
+              />
+            )) : (
+              <LoadingSpinner />
+            )}
+          </div>
+
+          <div className="col-md-3">
+            <aside className="filters">
+              <form className="form-horizontal">
+                <div className="form-group">
+                  <label for="keyword-input" className="col-sm-3 control-label">Sort:</label>
+                  <div className="col-sm-9">
+                    <select className="form-control">
+                      <option>Most Recent</option>
+                      <option>Most Tagged</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label for="keyword-input" className="col-sm-3 control-label">Type:</label>
+                  <div className="col-sm-9">
+                    <select className="form-control">
+                      <option>All</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label for="keyword-input" className="col-sm-3 control-label">Author:</label>
+                  <div className="col-sm-9">
+                    <select className="form-control">
+                      <option>All</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label for="keyword-input" className="col-sm-3 control-label">Tag:</label>
+                  <div className="col-sm-9">
+                    <select className="form-control" disabled>
+                      <option> </option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label for="keyword-input" className="col-sm-3 control-label">Search:</label>
+                  <div className="col-sm-9">
+                    <input type="text" className="form-control" id="keyword-input" placeholder="Keywords" />
+                  </div>
+                </div>
+              </form>
+            </aside>
+          </div>
+        </ForumReplyContext.Provider>
       </div>
     </div>
   )

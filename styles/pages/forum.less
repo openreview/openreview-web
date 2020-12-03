@@ -430,23 +430,50 @@ main.forum {
   // New Forum
   #note-children {
     margin-top: 1rem;
-    width: 80%;
 
     & > div {
       margin-bottom: 1.5rem;
     }
+    & > div.controls {
+      margin-bottom: 1.25rem;
+    }
   }
   .note-replies {
-    margin-top: .5rem;
+    margin-top: .875rem;
     border-left: 2px solid #ddd;
     padding-left: 2rem;
+
+    & > .note:last-child {
+      padding-bottom: 0;
+    }
+
+  }
+  .collapse-link {
+    border: none;
+    padding: 0;
+    text-align: left;
+    width: auto;
+    min-width: auto;
+    display: inline-block;
+    left: -24px;
+    top: 1px;
+    position: absolute;
+    font-weight: normal;
   }
   .note {
+    position: relative;
     h4 {
       color: @darkBlue;
       line-height: 1.25rem;
       margin-bottom: .25rem;
       margin-top: 0;
+
+      &.minimal-title {
+        .signatures {
+          color: @subtleGray;
+          font-weight: normal;
+        }
+      }
     }
     .subheading {
       strong {
@@ -482,16 +509,60 @@ main.forum {
           // background-image: linear-gradient(to bottom, transparent 0%, @backgroundWhite 100%);
           background-color: @backgroundWhite;
           content: '';
+          a {
+            display: inline;
+          }
         }
       }
       .gradient-overlay {
         a {
           font-size: .75rem;
+          display: none;
         }
       }
       &:focus {
         outline: none;
       }
+    }
+  }
+
+  .controls {
+    padding: .5rem;
+    background: rgba(239, 239, 239, .5);
+    border: 1px solid #e5e5e5;
+
+    .btn-toolbar {
+      margin-left: -.75rem;
+    }
+    .btn-toolbar > .btn-group {
+      margin-left: .75rem;
+    }
+    .btn-group .btn + .btn {
+      margin-left: -2px;
+    }
+    .btn {
+      background-color: #fff;
+      border-color: lighten(@mediumBlue, 10%);
+      color: @mediumDarkBlue;
+    }
+  }
+  .filters {
+    margin-top: 1rem;
+    padding: .5rem;
+    background: rgba(239, 239, 239, .5);
+    border: 1px solid #e5e5e5;
+
+    .form-horizontal .control-label {
+      text-align: left;
+    }
+    form .form-group:last-child {
+      margin-bottom: 0;
+    }
+    .form-control {
+      background-color: #fff;
+    }
+    .form-control[disabled] {
+      background-color: #eee;
     }
   }
 }
