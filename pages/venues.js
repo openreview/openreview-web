@@ -45,15 +45,13 @@ const Venues = ({ venues, pagination }) => (
       {process.env.USE_DBLP_VENUES ? venues.map(venue => (
         <VenueItemDBLP key={venue.id} venue={venue} />
       )) : (
-        <div className="groups">
-          <ul className="list-unstyled venues-list">
-            {venues.map(group => (
-              <li key={group.id}>
-                <VenueItem id={group.id} name={group.name} />
-              </li>
-            ))}
-          </ul>
-        </div>
+        <ul className="list-unstyled venues-list">
+          {venues.map(group => (
+            <li key={group.id}>
+              <VenueItem id={group.id} name={group.name} />
+            </li>
+          ))}
+        </ul>
       )}
     </div>
 
