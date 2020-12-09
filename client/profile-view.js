@@ -7,7 +7,7 @@
 module.exports = function(profile, params, submitF, cancelF) {
 
   var mkGenderRow = function(gender) {
-    var genderOptions = ['Male', 'Female', 'Unspecified'];
+    var genderOptions = ['Male', 'Female', 'Non-Binary', 'Not Specified'];
 
     var filteredPositions = function(options, prefix) {
       return _.filter(options, function(p) {
