@@ -21,7 +21,7 @@ export default function ForumReply({ note, collapse, setCollapse }) {
       {note.replies && (
         <div className="note-replies">
           {note.replies.map(childNote => (
-            <div className="note">
+            <div key={childNote.id} className="note">
               <ReplyTitle note={childNote} collapse={collapse} />
 
               {collapse > 0 && (

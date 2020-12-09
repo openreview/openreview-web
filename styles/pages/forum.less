@@ -465,7 +465,7 @@ main.forum {
     h4 {
       color: @darkBlue;
       line-height: 1.25rem;
-      margin-bottom: .25rem;
+      margin-bottom: .125rem;
       margin-top: 0;
 
       &.minimal-title {
@@ -530,12 +530,29 @@ main.forum {
     padding: .5rem;
     background: rgba(239, 239, 239, .5);
     border: 1px solid #e5e5e5;
+    margin-top: .875rem;
 
-    .btn-toolbar {
-      margin-left: -.75rem;
+    .form-group {
+      margin-right: .625rem;
+
+      label {
+        padding-right: .25rem;
+      }
+      select, input {
+        width: 125px;
+        height: 32px;
+        padding: 0.25rem 0.75rem;
+      }
+      input {
+        padding-top: .125rem;
+      }
     }
-    .btn-toolbar > .btn-group {
-      margin-left: .75rem;
+
+    .btn-group {
+      margin-right: .5rem;
+      button {
+        min-width: 2.5rem;
+      }
     }
     .btn-group .btn + .btn {
       margin-left: -2px;
@@ -544,6 +561,13 @@ main.forum {
       background-color: #fff;
       border-color: lighten(@mediumBlue, 10%);
       color: @mediumDarkBlue;
+    }
+
+    .form-control {
+      background-color: #fff;
+    }
+    .form-control[disabled] {
+      background-color: #eee;
     }
   }
   .filters {

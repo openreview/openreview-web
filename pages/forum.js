@@ -6,6 +6,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import ForumReply from '../components/ForumReply'
 import NoteAuthors from '../components/NoteAuthors'
 import NoteReaders from '../components/NoteReaders'
+import Icon from '../components/Icon'
 import NoteContent from '../components/NoteContent'
 import withError from '../components/withError'
 import ForumReplyContext from '../components/ForumReplyContext'
@@ -89,6 +90,7 @@ const ForumReplyCount = ({ count }) => (
 const Forum = ({ forumNote, query, appContext }) => {
   const { userLoading, accessToken } = useUser()
   const [replyNotes, setReplyNotes] = useState(null)
+  const [filteredReplies, setFilteredReplies] = useState(null)
   const [nestingLevel, setNestingLevel] = useState(1)
   const [displayOptions, setDisplayOptions] = useState(null)
 
@@ -109,44 +111,12 @@ const Forum = ({ forumNote, query, appContext }) => {
     const { notes } = await api.get('/notes', {
       forum: id, trash: true, details: 'replyCount,writable,revisions,original,overwriting,invitation,tags',
     }, { accessToken })
-    if (!notes) {
+
+    if (notes?.length > 0) {
+      setReplyNotes(notes.filter(note => note.id !== note.forum))
+    } else {
       setReplyNotes([])
-      return
     }
-
-    const replyMap = {}
-    const replyOptions = {}
-    notes.forEach((note) => {
-      if (note.id === note.forum) return
-
-      const parentId = note.replyto || id
-      if (!replyMap[parentId]) {
-        replyMap[parentId] = []
-      }
-      replyMap[parentId].push(note)
-
-      replyOptions[note.id] = { collapseLevel: 1 }
-    })
-
-    setDisplayOptions(replyOptions)
-
-    const getAllReplies = (noteId) => {
-      if (!replyMap[noteId]) return []
-
-      return replyMap[noteId].reduce((replies, note) => replies.concat(note, getAllReplies(note.id)), [])
-    }
-
-    const combinedNotes = replyMap[id]
-    for (let i = 0; i < combinedNotes.length; i += 1) {
-      combinedNotes[i].replies = getAllReplies(combinedNotes[i].id).sort((a, b) => a.cdate - b.cdate)
-    }
-
-    setReplyNotes(combinedNotes)
-
-    setTimeout(() => {
-      // eslint-disable-next-line no-undef
-      typesetMathJax()
-    }, 200)
   }
 
   const setCollapseLevel = (level) => {
@@ -158,7 +128,6 @@ const Forum = ({ forumNote, query, appContext }) => {
   }
 
   const setReplyCollapse = replyId => (level) => {
-    console.log(replyId, level)
     setDisplayOptions({ ...displayOptions, [replyId]: { collapseLevel: level } })
   }
 
@@ -180,6 +149,56 @@ const Forum = ({ forumNote, query, appContext }) => {
 
     loadReplies()
   }, [userLoading, accessToken])
+
+  // Update view
+  useEffect(() => {
+    if (!replyNotes) return
+
+    const replyMap = {}
+    const replyOptions = {}
+    replyNotes.forEach((note) => {
+      const parentId = note.replyto || id
+      if (!replyMap[parentId]) {
+        replyMap[parentId] = []
+      }
+      replyMap[parentId].push(note)
+
+      replyOptions[note.id] = { collapseLevel: 1 }
+    })
+    setDisplayOptions(replyOptions)
+    console.log(replyOptions)
+
+    const leastRecentComp = (a, b) => a.cdate - b.cdate
+    const mostRecentComp = (a, b) => b.cdate - a.cdate
+
+    let combinedNotes = []
+    if (nestingLevel === 0) {
+      // Linear (chat) view
+      combinedNotes = replyNotes.map(note => ({ ...note, replies: [] })).sort(mostRecentComp)
+    } else if (nestingLevel === 1) {
+      // Threaded view
+      const getAllReplies = (noteId) => {
+        if (!replyMap[noteId]) return []
+
+        return replyMap[noteId].reduce((replies, note) => replies.concat(note, getAllReplies(note.id)), [])
+      }
+
+      combinedNotes = replyMap[id].map(note => ({
+        ...note,
+        replies: getAllReplies(note.id).sort(leastRecentComp),
+      }))
+    } else if (nestingLevel === 2) {
+      // TODO: Nested view
+    }
+    console.log(combinedNotes)
+
+    setFilteredReplies(combinedNotes)
+
+    setTimeout(() => {
+      // eslint-disable-next-line no-undef
+      typesetMathJax()
+    }, 200)
+  }, [replyNotes, nestingLevel])
 
   return (
     <div className="forum-container">
@@ -248,24 +267,80 @@ const Forum = ({ forumNote, query, appContext }) => {
       <hr />
 
       <div className="row">
-        <ForumReplyContext.Provider value={{ displayOptions, setDisplayOptions }}>
-          <div id="note-children" className="col-md-9">
-            <div className="controls">
-              <div className="btn-toolbar" role="toolbar">
+        <div className="col-xs-12">
+          <ForumReplyContext.Provider value={{ displayOptions, setDisplayOptions }}>
+            <form className="form-inline controls">
+              <div className="form-group">
+                <label htmlFor="keyword-input" className="control-label">Sort:</label>
+                <select className="form-control">
+                  <option>Most Recent</option>
+                  <option>Least Recent</option>
+                  <option>Most Tagged</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="keyword-input" className="control-label">Type:</label>
+                <select className="form-control" onChange={(e) => { console.log(e.target.value) }}>
+                  <option>All</option>
+                  <option>Decision</option>
+                  <option>Official Comment</option>
+                  <option>Official Review</option>
+                  <option>Public Comment</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="keyword-input" className="control-label">Author:</label>
+                <select className="form-control">
+                  <option>All</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="keyword-input" className="control-label">Search:</label>
+                <input type="text" className="form-control" id="keyword-input" placeholder="Keywords" />
+              </div>
+
+              <div className="form-group">
                 <div className="btn-group btn-group-sm" role="group" aria-label="Nesting control">
-                  <button type="button" className="btn btn-default" onClick={e => setNestingLevel(2)}>Nested</button>
-                  <button type="button" className="btn btn-default" onClick={e => setNestingLevel(1)}>Threaded</button>
-                  <button type="button" className="btn btn-default" onClick={e => setNestingLevel(0)}>Linear</button>
+                  <button type="button" className="btn btn-default" onClick={e => setNestingLevel(2)}>
+                    <Icon name="indent-left" />
+                    <span className="sr-only">Nested</span>
+                  </button>
+                  <button type="button" className="btn btn-default" onClick={e => setNestingLevel(1)}>
+                    <Icon name="align-left" />
+                    <span className="sr-only">Threaded</span>
+                  </button>
+                  <button type="button" className="btn btn-default" onClick={e => setNestingLevel(0)}>
+                    <Icon name="list" />
+                    <span className="sr-only">Linear</span>
+                  </button>
                 </div>
                 <div className="btn-group btn-group-sm" role="group" aria-label="Nesting control">
-                  <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(0)}>Collapsed</button>
-                  <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(1)}>Default</button>
-                  <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(2)}>Expanded</button>
+                  <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(0)}>
+                    <Icon name="resize-small" />
+                    <span className="sr-only">Collapsed</span>
+                  </button>
+                  <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(1)}>
+                    <Icon name="resize-full" />
+                    <span className="sr-only">Default</span>
+                  </button>
+                  <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(2)}>
+                    <Icon name="fullscreen" />
+                    <span className="sr-only">Expanded</span>
+                  </button>
                 </div>
               </div>
-            </div>
+            </form>
+          </ForumReplyContext.Provider>
+        </div>
+      </div>
 
-            {replyNotes ? replyNotes.map(replyNote => (
+      <div className="row">
+        <ForumReplyContext.Provider value={{ displayOptions, setDisplayOptions }}>
+          <div id="note-children" className="col-md-9">
+            {filteredReplies ? filteredReplies.map(replyNote => (
               <ForumReply
                 key={replyNote.id}
                 note={replyNote}
@@ -278,10 +353,11 @@ const Forum = ({ forumNote, query, appContext }) => {
           </div>
 
           <div className="col-md-3">
+            {/*
             <aside className="filters">
               <form className="form-horizontal">
                 <div className="form-group">
-                  <label for="keyword-input" className="col-sm-3 control-label">Sort:</label>
+                  <label htmlFor="keyword-input" className="col-sm-3 control-label">Sort:</label>
                   <div className="col-sm-9">
                     <select className="form-control">
                       <option>Most Recent</option>
@@ -291,7 +367,7 @@ const Forum = ({ forumNote, query, appContext }) => {
                 </div>
 
                 <div className="form-group">
-                  <label for="keyword-input" className="col-sm-3 control-label">Type:</label>
+                  <label htmlFor="keyword-input" className="col-sm-3 control-label">Type:</label>
                   <div className="col-sm-9">
                     <select className="form-control">
                       <option>All</option>
@@ -300,7 +376,7 @@ const Forum = ({ forumNote, query, appContext }) => {
                 </div>
 
                 <div className="form-group">
-                  <label for="keyword-input" className="col-sm-3 control-label">Author:</label>
+                  <label htmlFor="keyword-input" className="col-sm-3 control-label">Author:</label>
                   <div className="col-sm-9">
                     <select className="form-control">
                       <option>All</option>
@@ -309,7 +385,7 @@ const Forum = ({ forumNote, query, appContext }) => {
                 </div>
 
                 <div className="form-group">
-                  <label for="keyword-input" className="col-sm-3 control-label">Tag:</label>
+                  <label htmlFor="keyword-input" className="col-sm-3 control-label">Tag:</label>
                   <div className="col-sm-9">
                     <select className="form-control" disabled>
                       <option> </option>
@@ -318,13 +394,14 @@ const Forum = ({ forumNote, query, appContext }) => {
                 </div>
 
                 <div className="form-group">
-                  <label for="keyword-input" className="col-sm-3 control-label">Search:</label>
+                  <label htmlFor="keyword-input" className="col-sm-3 control-label">Search:</label>
                   <div className="col-sm-9">
                     <input type="text" className="form-control" id="keyword-input" placeholder="Keywords" />
                   </div>
                 </div>
               </form>
             </aside>
+            */}
           </div>
         </ForumReplyContext.Provider>
       </div>
