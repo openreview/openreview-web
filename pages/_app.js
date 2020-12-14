@@ -264,6 +264,10 @@ export default class OpenReviewApp extends App {
       setLayoutOptions: this.setLayoutOptions,
     }
 
+    if (Component.bodyClass === 'embed') {
+      return <Component {...pageProps} appContext={appContext} userContext={userContext} />
+    }
+
     return (
       <UserContext.Provider value={userContext}>
         <Layout
