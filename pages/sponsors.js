@@ -3,11 +3,10 @@ import Head from 'next/head'
 // Page Styles
 import '../styles/pages/sponsors.less'
 
-function Sponsor({ name, image }) {
+function Sponsor({ name, image, size }) {
   return (
-    <div>
-      <h4>{name}</h4>
-      <img src={`/images/sponsors/${image}`} alt="" />
+    <div className={`col-xs-${size > 4 ? 12 : 6} col-sm-${size}`}>
+      <img src={`/images/sponsors/${image}`} alt={name} />
     </div>
   )
 }
@@ -30,24 +29,32 @@ export default function Sponsors({ sponsors }) {
         <div className="col-xs-12 col-md-10 col-md-offset-1 sponsors-container">
 
           <h2>Platinum</h2>
-          {sponsors.platinum.map(sponsor => (
-            <Sponsor name={sponsor.name} image={sponsor.image} />
-          ))}
+          <div className="row">
+            {sponsors.platinum.map(sponsor => (
+              <Sponsor name={sponsor.name} image={sponsor.image} size={5} />
+            ))}
+          </div>
 
           <h2>Gold</h2>
-          {sponsors.gold.map(sponsor => (
-            <Sponsor name={sponsor.name} image={sponsor.image} />
-          ))}
+          <div className="row">
+            {sponsors.gold.map(sponsor => (
+              <Sponsor name={sponsor.name} image={sponsor.image} size={4} />
+            ))}
+          </div>
 
           <h2>Silver</h2>
-          {sponsors.silver.map(sponsor => (
-            <Sponsor name={sponsor.name} image={sponsor.image} />
-          ))}
+          <div className="row">
+            {sponsors.silver.map(sponsor => (
+              <Sponsor name={sponsor.name} image={sponsor.image} size={3} />
+            ))}
+          </div>
 
           <h2>Bronze</h2>
-          {sponsors.bronze.map(sponsor => (
-            <Sponsor name={sponsor.name} image={sponsor.image} />
-          ))}
+          <div className="row">
+            {sponsors.bronze.map(sponsor => (
+              <Sponsor name={sponsor.name} image={sponsor.image} size={2} />
+            ))}
+          </div>
 
         </div>
       </div>
