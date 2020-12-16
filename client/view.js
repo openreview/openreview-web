@@ -1421,6 +1421,10 @@ module.exports = (function() {
       if (params && params.note) {
         authors = params.note.content.authors;
         authorids = params.note.content.authorids;
+      } else if (params && params.user) {
+        var userProfile = params.user.profile
+        authors = [userProfile.first + ' ' + userProfile.middle + ' ' + userProfile.last];
+        authorids = [userProfile.preferredId];
       }
       var invitationRegex = fieldDescription['values-regex'];
       // Enable allowUserDefined if the values-regex has '~.*|'
@@ -2921,7 +2925,7 @@ module.exports = (function() {
 
     var contentOrder = order(invitation.reply.content, invitation.id);
     var $contentMap = _.reduce(contentOrder, function(ret, k) {
-      ret[k] = mkComposerInput(k, invitation.reply.content[k], invitation.reply.content[k].default || '', { useDefaults: true });
+      ret[k] = mkComposerInput(k, invitation.reply.content[k], invitation.reply.content[k].default || '', { useDefaults: true, user: user });
       return ret;
     }, {});
 
