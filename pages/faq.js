@@ -170,6 +170,26 @@ For general inquiries, you can contact the OpenReview team by emailing [info@ope
 - Go to the venue request page [here](https://openreview.net/group?id=OpenReview.net/Support) and click on your submitted request.
 - Under the ‘Overview’ tab in the PC console, click on ‘Full Venue Configuration’.`,
   }, {
+    q: 'How can I override the information displayed on my venue\'s homepage?',
+    id: 'question-homepage-override',
+    a: `On the request form for your venue, click on the ‘Revision’ button and modify the Homepage Override field, which expects a valid JSON.
+
+Example:
+\`\`\`
+{
+  "title": "Medical Imaging with Deep Learning",
+  "subtitle": "MIDL 2020",
+  "location": "Montreal, QC, Canada",
+  "deadline": "Registration Deadline: Jan 28 2020 11:59PM AoE,  Submission Deadline: Jan 30 2020 11:59PM AoE",
+  "date": " Jul 06 2019",
+  "website": "https://2020.midl.io/",
+  "instructions": "After the registration period is over the Submission button will be inactive. To upload your pdf, select your paper and press 'Revision'. If you have any questions, please contact the Program Chairs at pcs@2020.midl.io"
+}
+\`\`\`
+which will be displayed as:
+
+![homepage](/images/faq-homepage-override.png)`,
+  }, {
     q: 'How can I recruit reviewers for my venue?',
     id: 'question-recruitment',
     a: 'On the request form for your venue, click on the ‘Recruitment’ button to recruit reviewers (and ACs if applicable).',
@@ -258,6 +278,19 @@ For general inquiries, you can contact the OpenReview team by emailing [info@ope
     q: 'How do I release the identities of the authors of the accepted papers only?',
     id: 'question-release-author-names',
     a: 'Once decisions have been posted, you will see a ‘Post Decision Stage’ button on the request form for your venue. Click on this button to choose between revealing identities of authors of all papers or only accepted papers to the public.',
+  }, {
+    q: 'How do I modify the homepage layout to show decision tabs?',
+    id: 'question-homepage-layout',
+    a: `Once decisions have been posted, you will see a ‘Post Decision Stage’ button on the request form for your venue. Once you click on this button, you will be able to specify the name of each tab you want to include in the homepage in the form of a dictionary.
+
+  Note that each key must be a valid decision option. For example, a venue with the decision options Accept (Oral), Accept (Spotlight), Accept (Poster) and Reject could choose to hide the rejected papers tab as follows:
+  \`\`\`
+  {
+    "Accept (Oral)": "Accepted Oral submissions",
+    "Accept (Spotlight)": "Accepted Spotlight submissions",
+    "Accept (Poster)": "Accepted Poster submissions"
+  }
+  \`\`\``,
   }, {
     q: 'How do I contact the authors of the accepted papers only?',
     id: 'question-contact-authors-accepted',
