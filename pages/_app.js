@@ -129,7 +129,7 @@ export default class OpenReviewApp extends App {
     this.shouldResetLayout = true
 
     // Close mobile nav menu if open
-    if (document.getElementById('navbar').attributes['aria-expanded']?.value === 'true') {
+    if (document.getElementById('navbar')?.attributes['aria-expanded']?.value === 'true') {
       document.querySelector('nav.navbar button.navbar-toggle').click()
     }
   }
