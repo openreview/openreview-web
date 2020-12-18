@@ -2044,7 +2044,7 @@ module.exports = (function() {
     var $editButton = null;
     var $actionButtons = null;
     if ($('#content').hasClass('forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
-      var canEdit = (details.original && details.writable && details.originalWritable) || (!details.original && details.writable);
+      var canEdit = (details.original && details.originalWritable) || (!details.originalWritable && details.writable);
 
       if (canEdit && params.onTrashedOrRestored) {
         var buttonContent = notePastDue ? 'Restore' : '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>';
