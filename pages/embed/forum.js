@@ -1,13 +1,12 @@
 /* globals DOMPurify: false */
 /* globals marked: false */
 
-import {
-  useEffect, useLayoutEffect, useRef, useState,
-} from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
+import useSWR from 'swr'
 import truncate from 'lodash/truncate'
 import upperFirst from 'lodash/upperFirst'
-import { useRouter } from 'next/router'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import Icon from '../../components/Icon'
 import useQuery from '../../hooks/useQuery'
@@ -19,47 +18,27 @@ import '../../styles/pages/embed.less'
 
 export default function EmbeddedForum({ appContext, userContext }) {
   const [forumNote, setForumNote] = useState(null)
-  const [replyNotes, setReplyNotes] = useState(null)
   const [displayMode, setDisplayMode] = useState('linear')
+  const [filters, setFilters] = useState([])
   const [error, setError] = useState(null)
-  const bottomElRef = useRef()
   const query = useQuery()
   const router = useRouter()
   const { clientJsLoading } = appContext
   const { user, userLoading, accessToken } = userContext
 
-  const loadNotes = async (forumId, invitationId) => {
-    if (!forumId) {
-      setError('Could not load forum. Missing forum ID.')
-      return
-    }
-    if (!invitationId) {
-      setError('Could not load forum. Missing invitation ID.')
-      return
-    }
-
-    const apiRes = await api.get('/notes', { id: forumId }, { accessToken })
-    if (apiRes.notes?.length > 0) {
-      const noteCopy = apiRes.notes[0]
-      noteCopy.content.truncatedTitle = truncate(noteCopy.content.title, { length: 70, separator: /,? +/ })
-      noteCopy.content.truncatedAbstract = truncate(noteCopy.content['TL;DR'] || noteCopy.content.abstract, { length: 200, separator: /,? +/ })
-      setForumNote(noteCopy)
-    } else {
-      setError(`Could not load forum. Forum ${forumId} not found.`)
-      return
-    }
-
-    const { notes } = await api.get('/notes', {
-      forum: forumId,
-      invitation: invitationId,
-      trash: true,
-      details: 'replyCount,writable,revisions,original,overwriting,invitation,tags',
-    }, { accessToken })
-
-    if (notes?.length > 0) {
-      setReplyNotes(notes.filter(note => note.id !== note.forum).sort((a, b) => a.cdate - b.cdate))
-    } else {
-      setReplyNotes([])
+  const loadForumNote = async (forumId) => {
+    try {
+      const { notes } = await api.get('/notes', { id: forumId }, { accessToken })
+      if (notes?.length > 0) {
+        const noteCopy = notes[0]
+        noteCopy.content.truncatedTitle = truncate(noteCopy.content.title, { length: 70, separator: /,? +/ })
+        noteCopy.content.truncatedAbstract = truncate(noteCopy.content['TL;DR'] || noteCopy.content.abstract, { length: 200, separator: /,? +/ })
+        setForumNote(noteCopy)
+      } else {
+        setError(`Could not load forum. Forum ${forumId} not found.`)
+      }
+    } catch (apiError) {
+      setError(`Could not load forum. Error fetching forum ${forumId}.`)
     }
   }
 
@@ -83,21 +62,23 @@ export default function EmbeddedForum({ appContext, userContext }) {
       return
     }
 
+    // Check required query params
+    if (!query.id) {
+      setError('Could not load forum. Missing forum ID.')
+      return
+    }
+    if (!query.invitation) {
+      setError('Could not load forum. Missing invitation ID.')
+      return
+    }
+
+    loadForumNote(query.id)
+
     // Set display params and filters
     if (['linear', 'threaded', 'nested'].includes(query.display)) {
       setDisplayMode(query.display)
     }
-
-    loadNotes(query.id, query.invitation)
   }, [userLoading, query, clientJsLoading])
-
-  useEffect(() => {
-    if (replyNotes && bottomElRef.current) {
-      setTimeout(() => {
-        bottomElRef.current.scrollIntoView()
-      }, 20)
-    }
-  }, [replyNotes, bottomElRef])
 
   return (
     <>
@@ -123,13 +104,15 @@ export default function EmbeddedForum({ appContext, userContext }) {
         {/* eslint-disable-next-line no-nested-ternary */}
         {error ? (
           <ErrorMessage message={error} />
-        ) : replyNotes ? (
+        ) : forumNote ? (
           <>
             <ForumReplies
-              notes={replyNotes}
+              forumId={forumNote.id}
+              invitationId={query.invitation}
+              contentField={query.content}
+              accessToken={accessToken}
+              filters={filters}
               displayMode={displayMode}
-              contentField={query.content || 'message'}
-              bottomElRef={bottomElRef}
             />
             <SubmitForm user={user.profile} contentField={query.content || 'message'} postNote={postNote} />
           </>
@@ -196,11 +179,46 @@ function ErrorMessage({ message }) {
 }
 
 function ForumReplies({
-  notes, displayMode, contentField, bottomElRef,
+  forumId, invitationId, contentField = 'message', accessToken, filters, displayMode,
 }) {
+  const bottomElRef = useRef()
+
+  const fetchNotes = (url, forum, invitation, userAccessToken) => {
+    const query = {
+      forum,
+      invitation,
+      trash: true,
+      details: 'replyCount,writable,revisions,original,overwriting,invitation,tags',
+      sort: 'cdate:asc',
+    }
+    return api.get(url, query, { accessToken: userAccessToken }).then(({ notes }) => {
+      if (notes?.length > 0) {
+        return notes.filter(note => note.id !== note.forum)
+      }
+      return []
+    })
+  }
+  const { data: replyNotes, error } = useSWR(
+    ['/notes', forumId, invitationId, accessToken],
+    fetchNotes,
+    { refreshInterval: 1000 },
+  )
+
+  useEffect(() => {
+    if (replyNotes && bottomElRef.current) {
+      setTimeout(() => {
+        bottomElRef.current.scrollIntoView()
+      }, 20)
+    }
+  }, [replyNotes, bottomElRef])
+
+  if (!replyNotes) {
+    return <LoadingSpinner />
+  }
+
   return (
     <div className="notes-container">
-      {notes.map(replyNote => (
+      {replyNotes && replyNotes.map(replyNote => (
         <div key={replyNote.id} className="message">
           <div className="img">OR</div>
           <h4>
@@ -211,6 +229,9 @@ function ForumReplies({
           <MessageContent content={replyNote.content[contentField]} />
         </div>
       ))}
+      {error && (
+        <ErrorMessage message={error.message} />
+      )}
       <div className="spacer" ref={bottomElRef}>{' '}</div>
     </div>
   )
