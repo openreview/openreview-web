@@ -185,6 +185,8 @@ export default class OpenReviewApp extends App {
           description: errorDescription,
           fatal: true,
         })
+      } else {
+        console.error(errorDescription)
       }
     }
     window.addEventListener('error', (event) => {
