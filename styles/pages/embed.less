@@ -2,6 +2,8 @@
 @import "../utils/mixins";
 
 main.embed {
+  padding-bottom: 8px;
+
   .notes-container {
     max-width: 100%;
     margin-bottom: 1rem;
@@ -56,11 +58,22 @@ main.embed {
   }
   .submit-container {
     margin-top: .5rem;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid @mediumBlue;
     padding-top: 1rem;
 
+    &.message:hover {
+      background-color: transparent;
+      box-shadow: none;
+    }
+    div.img {
+      top: 6px;
+    }
     .form-group {
       margin-bottom: 6px;
+    }
+    textarea {
+      border: 1px solid @borderGray;
+      box-shadow: none;
     }
     label {
       margin-bottom: 2px;

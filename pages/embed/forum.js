@@ -288,24 +288,23 @@ function SubmitForm({ user, contentField, postNote }) {
   }
 
   return (
-    <div className="submit-container">
+    <div className="submit-container message">
       <form className="form-inline" onSubmit={submitForm}>
-        <div className="form-group">
-          <label htmlFor="note-content">
-            {upperFirst(contentField)}
-            :
-          </label>
-          <textarea id="note-content" className="form-control" rows="2" placeholder="Enter your message" />
-        </div>
-        <div className="form-group">
-          <label htmlFor="note-signature">
-            Posting as:
-          </label>
+        <div className="img">OR</div>
+        <h4>
+          {prettyId(user.usernames[0], true)}
+          {' '}
+          <span><a href="#">change</a></span>
+        </h4>
+        <div className="form-group" style={{ display: 'none' }}>
           <select id="note-signature" className="form-control">
             {user.usernames.map(username => (
               <option key={username} value={username}>{prettyId(username)}</option>
             ))}
           </select>
+        </div>
+        <div className="form-group">
+          <textarea id="note-content" className="form-control" rows="2" placeholder="Enter your message" />
         </div>
         <button type="submit" className="btn btn-primary">Post</button>
       </form>
