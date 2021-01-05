@@ -174,16 +174,17 @@ For general inquiries, you can contact the OpenReview team by emailing [info@ope
     id: 'question-homepage-override',
     a: `On the request form for your venue, click on the ‘Revision’ button and modify the Homepage Override field, which expects a valid JSON.
 
+The instruction field of the JSON accepts HTML, allowing the formatting of the instructions section to be fully customized. All HTML should be validated to ensure that it will not break the layout of the page: https://validator.w3.org/#validate_by_input
+
 Example:
 \`\`\`
 {
-  "title": "Medical Imaging with Deep Learning",
-  "subtitle": "MIDL 2020",
-  "location": "Montreal, QC, Canada",
-  "deadline": "Registration Deadline: Jan 28 2020 11:59PM AoE,  Submission Deadline: Jan 30 2020 11:59PM AoE",
-  "date": " Jul 06 2019",
-  "website": "https://2020.midl.io/",
-  "instructions": "After the registration period is over the Submission button will be inactive. To upload your pdf, select your paper and press 'Revision'. If you have any questions, please contact the Program Chairs at pcs@2020.midl.io"
+  "title": "tinyML 2021",
+  "subtitle": "First International Research Symposium on Tiny Machine Learning (tinyML)",
+  "location": "Burlingame, CA",
+  "deadline": "Submission Deadline: November 30, 2020 11:59pm AOE",
+  "website": "https://tinyml.org/home/index.html",
+  "instructions": "<h1>Important Dates</h1><li>Submission Deadline: November <strike>23</strike> 30, 2020 11:59pm AOE <b>(extended)</b></li><li>Author Notification: Jan 15th, 2021</li><li>Camera Ready: Feb 15th, 2021</li></br><h1>Submission Format</h1><li>Page limit is 6 to 8 pages, including references and any appendix material</li><li>Submissions must be blind for the double-blind review process</li><li>For paper formatting, please use the <a href=\"https://www.acm.org/publications/proceedings-template\">ACM SIGCONF template</a>.</li></br>"
 }
 \`\`\`
 which will be displayed as:
