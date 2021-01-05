@@ -10,6 +10,7 @@ import upperFirst from 'lodash/upperFirst'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import Icon from '../../components/Icon'
 import useQuery from '../../hooks/useQuery'
+import useInterval from '../../hooks/useInterval'
 import { prettyId, forumDate } from '../../lib/utils'
 import api from '../../lib/api-client'
 
@@ -178,31 +179,52 @@ function ErrorMessage({ message }) {
   )
 }
 
+const updateInterval = 1000
+
+// Define stateless fetcher function outside the component scope so it isn't redeclared
+// every render
+function fetchNotes(url, forum, invitation, userAccessToken, initialFetch) {
+  const query = {
+    forum,
+    invitation,
+    trash: true,
+    details: 'replyCount,writable,revisions,original,overwriting,invitation,tags',
+    sort: 'cdate:asc',
+  }
+  if (!initialFetch) {
+    query.mintcdate = Date.now() - updateInterval
+  }
+
+  return api.get(url, query, { accessToken: userAccessToken }).then(({ notes }) => {
+    if (notes?.length > 0) {
+      return initialFetch ? notes.filter(note => note.id !== note.forum) : notes
+    }
+    return []
+  })
+}
+
 function ForumReplies({
   forumId, invitationId, contentField = 'message', accessToken, filters, displayMode,
 }) {
+  const [replyNotes, setReplyNotes] = useState(null)
   const bottomElRef = useRef()
 
-  const fetchNotes = (url, forum, invitation, userAccessToken) => {
-    const query = {
-      forum,
-      invitation,
-      trash: true,
-      details: 'replyCount,writable,revisions,original,overwriting,invitation,tags',
-      sort: 'cdate:asc',
-    }
-    return api.get(url, query, { accessToken: userAccessToken }).then(({ notes }) => {
-      if (notes?.length > 0) {
-        return notes.filter(note => note.id !== note.forum)
-      }
-      return []
-    })
-  }
-  const { data: replyNotes, error } = useSWR(
-    ['/notes', forumId, invitationId, accessToken],
-    fetchNotes,
-    { refreshInterval: 1000 },
-  )
+  const { data, error } = useSWR(['/notes', forumId, invitationId, accessToken, true], fetchNotes, {
+    onSuccess: (noteData) => {
+      setReplyNotes(noteData)
+    },
+  })
+
+  useInterval(() => {
+    if (!data) return
+
+    fetchNotes('/notes', forumId, invitationId, accessToken, false)
+      .then((notes) => {
+        if (notes.length) {
+          setReplyNotes([...data, ...notes])
+        }
+      })
+  }, updateInterval)
 
   useEffect(() => {
     if (replyNotes && bottomElRef.current) {
@@ -253,9 +275,13 @@ function MessageContent({ content = '' }) {
 function SubmitForm({ user, contentField, postNote }) {
   const submitForm = (e) => {
     e.preventDefault()
+    const form = e.target
     const message = document.getElementById('note-content').value
     const signature = document.getElementById('note-signature').value
     postNote({ [contentField]: message }, signature)
+      .then(() => {
+        form.reset()
+      })
       .catch((error) => {
         console.log(error)
       })
