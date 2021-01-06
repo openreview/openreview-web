@@ -273,18 +273,20 @@ function MessageContent({ content = '' }) {
 }
 
 function SubmitForm({ user, contentField, postNote }) {
-  const submitForm = (e) => {
+  const [selectedSignature, setSelectedSignature] = useState(user.usernames[0])
+
+  const submitForm = async (e) => {
     e.preventDefault()
     const form = e.target
     const message = document.getElementById('note-content').value
     const signature = document.getElementById('note-signature').value
-    postNote({ [contentField]: message }, signature)
-      .then(() => {
-        form.reset()
-      })
-      .catch((error) => {
-        console.log(error)
-      })
+
+    try {
+      await postNote({ [contentField]: message }, signature)
+      form.reset()
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   return (
@@ -292,9 +294,9 @@ function SubmitForm({ user, contentField, postNote }) {
       <form className="form-inline" onSubmit={submitForm}>
         <div className="img">OR</div>
         <h4>
-          {prettyId(user.usernames[0], true)}
+          {prettyId(selectedSignature, true)}
           {' '}
-          <span><a href="#">change</a></span>
+          <span><a>change</a></span>
         </h4>
         <div className="form-group" style={{ display: 'none' }}>
           <select id="note-signature" className="form-control">

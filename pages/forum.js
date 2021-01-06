@@ -183,7 +183,7 @@ const Forum = ({ forumNote, query, appContext }) => {
         return replyMap[noteId].reduce((replies, note) => replies.concat(note, getAllReplies(note.id)), [])
       }
 
-      combinedNotes = replyMap[id].map(note => ({
+      combinedNotes = (replyMap[id] ?? []).map(note => ({
         ...note,
         replies: getAllReplies(note.id).sort(leastRecentComp),
       }))
