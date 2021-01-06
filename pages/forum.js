@@ -437,12 +437,12 @@ Forum.getInitialProps = async (ctx) => {
 
   try {
     const result = await api.get('/notes', {
-      id: ctx.query.id, trash: true, details: 'original,invitation,replyCount',
+      id: ctx.query.id, trash: true, details: 'original,invitation,replyCount,writable',
     }, { accessToken: token })
     const note = result.notes[0]
 
     // Only super user can see deleted forums
-    if (note.ddate && !isSuperUser(user)) {
+    if (note.ddate && !note.details.writable) {
       return { statusCode: 404, message: 'Not Found' }
     }
 
