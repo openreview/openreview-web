@@ -212,6 +212,9 @@ function ForumReplies({
   const { data, error } = useSWR(['/notes', forumId, invitationId, accessToken, true], fetchNotes, {
     onSuccess: (noteData) => {
       setReplyNotes(noteData)
+      setTimeout(() => {
+        bottomElRef.current.scrollIntoView()
+      }, 20)
     },
   })
 
@@ -225,14 +228,6 @@ function ForumReplies({
         }
       })
   }, updateInterval)
-
-  useEffect(() => {
-    if (replyNotes && bottomElRef.current) {
-      setTimeout(() => {
-        bottomElRef.current.scrollIntoView()
-      }, 20)
-    }
-  }, [replyNotes, bottomElRef])
 
   if (!replyNotes) {
     return <LoadingSpinner />
