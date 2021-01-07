@@ -213,7 +213,7 @@ function ForumReplies({
     onSuccess: (noteData) => {
       setReplyNotes(noteData)
       setTimeout(() => {
-        bottomElRef.current.scrollIntoView()
+        document.documentElement.scrollTop = bottomElRef.current.offsetTop
       }, 20)
     },
   })
