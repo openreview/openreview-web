@@ -139,13 +139,9 @@ const Forum = ({ forumNote, query, appContext }) => {
             {content.title && (
               <meta name="citation_title" content={content.title} />
             )}
-            {/*
             {authors.map(author => (
               <meta key={author} name="citation_author" content={author} />
             ))}
-            */}
-            {/* temporary hack to get google scholar to work, revert to above code when next.js unique issue is solved */}
-            <meta name="citation_authors" content={authors.join('; ')} />
             <meta name="citation_publication_date" content={creationDate} />
             <meta name="citation_online_date" content={modificationDate} />
             {content.pdf && (
