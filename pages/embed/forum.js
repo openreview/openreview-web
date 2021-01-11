@@ -21,11 +21,12 @@ export default function EmbeddedForum({ appContext, userContext }) {
   const [forumNote, setForumNote] = useState(null)
   const [displayMode, setDisplayMode] = useState('linear')
   const [filters, setFilters] = useState([])
+  const [timeoutId, setTimeoutId] = useState(null)
   const [error, setError] = useState(null)
   const query = useQuery()
   const router = useRouter()
   const { clientJsLoading } = appContext
-  const { user, userLoading, accessToken } = userContext
+  const { user, accessToken, loginUserWithToken } = userContext
 
   const loadForumNote = async (forumId) => {
     try {
@@ -56,12 +57,12 @@ export default function EmbeddedForum({ appContext, userContext }) {
   }
 
   useEffect(() => {
+    // Handle window.postMessage events, including commands sent from the parent frame
     const handleWindowMessage = (event) => {
       const message = event.data ?? {}
 
       if (message.command === 'login') {
-        // TODO: Handle login
-        console.log(`Received login message. Token: ${message.token}`)
+        loginUserWithToken(message.token)
       }
     }
 
@@ -72,12 +73,22 @@ export default function EmbeddedForum({ appContext, userContext }) {
   }, [])
 
   useEffect(() => {
-    if (userLoading || !query || clientJsLoading) return
-
-    if (!user) {
+    // If auto-login doesn't work, redirect user to login page after 5 seconds
+    const timer = setTimeout(() => {
       router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
-      return
+    }, 5000)
+    setTimeoutId(timer)
+
+    return () => {
+      clearTimeout(timer)
     }
+  }, [])
+
+  useEffect(() => {
+    if (!user || !query || clientJsLoading) return
+
+    // User is logged in so cancel the redirect
+    clearTimeout(timeoutId)
 
     // Check required query params
     if (!query.id) {
@@ -95,7 +106,7 @@ export default function EmbeddedForum({ appContext, userContext }) {
     if (['linear', 'threaded', 'nested'].includes(query.display)) {
       setDisplayMode(query.display)
     }
-  }, [userLoading, query, clientJsLoading])
+  }, [user, query, clientJsLoading])
 
   return (
     <>
@@ -121,7 +132,7 @@ export default function EmbeddedForum({ appContext, userContext }) {
         {/* eslint-disable-next-line no-nested-ternary */}
         {error ? (
           <ErrorMessage message={error} />
-        ) : forumNote ? (
+        ) : forumNote && user ? (
           <>
             <ForumReplies
               forumId={forumNote.id}
