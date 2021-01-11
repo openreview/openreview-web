@@ -56,6 +56,22 @@ export default function EmbeddedForum({ appContext, userContext }) {
   }
 
   useEffect(() => {
+    const handleWindowMessage = (event) => {
+      const message = event.data ?? {}
+
+      if (message.command === 'login') {
+        // TODO: Handle login
+        console.log(`Received login message. Token: ${message.token}`)
+      }
+    }
+
+    window.addEventListener('message', handleWindowMessage, false)
+    return () => {
+      window.removeEventListener('message', handleWindowMessage)
+    }
+  }, [])
+
+  useEffect(() => {
     if (userLoading || !query || clientJsLoading) return
 
     if (!user) {
