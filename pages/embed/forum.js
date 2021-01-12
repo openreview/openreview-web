@@ -62,11 +62,12 @@ export default function EmbeddedForum({ appContext, userContext }) {
       const message = event.data ?? {}
 
       if (message.command === 'login') {
-        loginUserWithToken(message.token)
+        loginUserWithToken(message.token, false)
       }
     }
 
     window.addEventListener('message', handleWindowMessage, false)
+    window.parent.postMessage({ ready: true }, '*')
     return () => {
       window.removeEventListener('message', handleWindowMessage)
     }
@@ -251,7 +252,7 @@ function ForumReplies({
     fetchNotes('/notes', forumId, invitationId, accessToken, false)
       .then((notes) => {
         if (notes.length) {
-          setReplyNotes([...data, ...notes])
+          setReplyNotes([...replyNotes, ...notes])
         }
       })
   }, updateInterval)

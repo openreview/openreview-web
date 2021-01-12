@@ -57,11 +57,13 @@ export default class OpenReviewApp extends App {
     Router.push(redirectPath)
   }
 
-  loginUserWithToken(userAccessToken) {
+  loginUserWithToken(userAccessToken, setCookie = true) {
     const { user: authenticatedUser, exp: tokenExpiration } = getTokenPayload(userAccessToken)
     if (!authenticatedUser) return
 
     this.setState({ user: authenticatedUser, accessToken: userAccessToken, logoutRedirect: false })
+
+    if (!setCookie) return
     setAuthCookie(userAccessToken)
 
     // Need pass new accessToken to Webfield and controller so legacy ajax functions work
