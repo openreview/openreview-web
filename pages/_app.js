@@ -51,7 +51,7 @@ export default class OpenReviewApp extends App {
     window.Webfield.setToken(userAccessToken)
     window.controller.setToken(userAccessToken)
 
-    const timeToExpiration = cookieExpiration * 1000 - Date.now() - 1000
+    const timeToExpiration = cookieExpiration - 1000
     this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
 
     Router.push(redirectPath)
