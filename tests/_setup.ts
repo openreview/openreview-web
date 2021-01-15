@@ -157,7 +157,7 @@ test('setup TestVenue', async (t) => {
       review_deadline: reviewDeadlineString,
       make_reviews_public: 'Yes, reviews should be revealed publicly when they are posted',
       release_reviews_to_authors: 'Yes, reviews should be revealed when they are posted to the paper\'s authors',
-      release_reviews_to_reviewers: 'Yes, reviews should be immediately revealed to the all paper\'s reviewers',
+      release_reviews_to_reviewers: 'Reviews should be immediately revealed to the paper\'s reviewers',
       email_program_chairs_about_reviews: 'No, do not email program chairs about received reviews',
     },
     forum: requestForumId,
