@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
 import truncate from 'lodash/truncate'
+import uniq from 'lodash/uniq'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ForumReply from '../components/ForumReply'
 import NoteAuthors from '../components/NoteAuthors'
@@ -14,12 +15,12 @@ import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { auth, isSuperUser } from '../lib/auth'
 import {
-  prettyId, inflect, forumDate, getConferenceName,
+  prettyId, inflect, forumDate, getConferenceName, prettyInvitationId,
 } from '../lib/utils'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 // Page Styles
-import '../styles/pages/forum.less'
+import '../styles/pages/forum-new.less'
 
 const ForumTitle = ({
   id, title, pdf, html,
@@ -92,6 +93,8 @@ const Forum = ({ forumNote, query, appContext }) => {
   const [replyNotes, setReplyNotes] = useState(null)
   const [filteredReplies, setFilteredReplies] = useState(null)
   const [nestingLevel, setNestingLevel] = useState(1)
+  const [invitationOptions, setInvitationOptions] = useState(null)
+  const [signatureOptions, setSignatureOptions] = useState(null)
   const [displayOptions, setDisplayOptions] = useState(null)
 
   const { setBannerContent } = appContext
@@ -113,7 +116,10 @@ const Forum = ({ forumNote, query, appContext }) => {
     }, { accessToken })
 
     if (notes?.length > 0) {
-      setReplyNotes(notes.filter(note => note.id !== note.forum))
+      const replies = notes.filter(note => note.id !== note.forum)
+      setReplyNotes(replies)
+      setInvitationOptions(uniq(replies.map(note => note.invitation)))
+      setSignatureOptions(uniq(replies.map(note => note.signatures[0])))
     } else {
       setReplyNotes([])
     }
@@ -129,6 +135,35 @@ const Forum = ({ forumNote, query, appContext }) => {
 
   const setReplyCollapse = replyId => (level) => {
     setDisplayOptions({ ...displayOptions, [replyId]: { collapseLevel: level } })
+  }
+
+  const setInvitationFilter = (invitationId) => {
+    if (invitationId === 'All') {
+      setCollapseLevel(2)
+      return
+    }
+
+    const newDisplayOptions = { ...displayOptions }
+    replyNotes.forEach((note) => {
+      if (note.invitation === invitationId) {
+        newDisplayOptions[note.id] = { collapseLevel: 2 }
+      } else {
+        newDisplayOptions[note.id] = { collapseLevel: 0 }
+      }
+    })
+    setDisplayOptions(newDisplayOptions)
+  }
+
+  const setSignatureFilter = (groupId) => {
+    const newDisplayOptions = { ...displayOptions }
+    replyNotes.forEach((note) => {
+      if (note.signatures[0] === groupId) {
+        newDisplayOptions[note.id] = { collapseLevel: 2 }
+      } else {
+        newDisplayOptions[note.id] = { collapseLevel: 0 }
+      }
+    })
+    setDisplayOptions(newDisplayOptions)
   }
 
   // Set banner link
@@ -166,7 +201,6 @@ const Forum = ({ forumNote, query, appContext }) => {
       replyOptions[note.id] = { collapseLevel: 1 }
     })
     setDisplayOptions(replyOptions)
-    console.log(replyOptions)
 
     const leastRecentComp = (a, b) => a.cdate - b.cdate
     const mostRecentComp = (a, b) => b.cdate - a.cdate
@@ -190,8 +224,6 @@ const Forum = ({ forumNote, query, appContext }) => {
     } else if (nestingLevel === 2) {
       // TODO: Nested view
     }
-    console.log(combinedNotes)
-
     setFilteredReplies(combinedNotes)
 
     setTimeout(() => {
@@ -271,34 +303,32 @@ const Forum = ({ forumNote, query, appContext }) => {
           <ForumReplyContext.Provider value={{ displayOptions, setDisplayOptions }}>
             <form className="form-inline controls">
               <div className="form-group">
-                <label htmlFor="keyword-input" className="control-label">Sort:</label>
                 <select className="form-control">
-                  <option>Most Recent</option>
+                  <option>Sort By: Most Recent</option>
                   <option>Least Recent</option>
                   <option>Most Tagged</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label htmlFor="keyword-input" className="control-label">Type:</label>
-                <select className="form-control" onChange={(e) => { console.log(e.target.value) }}>
+                <select className="form-control" onChange={(e) => { setInvitationFilter(e.target.value) }} disabled={!invitationOptions}>
                   <option>All</option>
-                  <option>Decision</option>
-                  <option>Official Comment</option>
-                  <option>Official Review</option>
-                  <option>Public Comment</option>
+                  {invitationOptions?.map(invitationId => (
+                    <option key={invitationId} value={invitationId}>{prettyInvitationId(invitationId)}</option>
+                  ))}
                 </select>
               </div>
 
               <div className="form-group">
-                <label htmlFor="keyword-input" className="control-label">Author:</label>
-                <select className="form-control">
+                <select className="form-control" onChange={(e) => { setSignatureFilter(e.target.value) }} disabled={!signatureOptions}>
                   <option>All</option>
+                  {signatureOptions?.map(signature => (
+                    <option key={signature} value={signature}>{prettyId(signature)}</option>
+                  ))}
                 </select>
               </div>
 
               <div className="form-group">
-                <label htmlFor="keyword-input" className="control-label">Search:</label>
                 <input type="text" className="form-control" id="keyword-input" placeholder="Keywords" />
               </div>
 

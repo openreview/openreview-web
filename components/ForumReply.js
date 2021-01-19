@@ -5,7 +5,11 @@ import { prettyId, buildNoteTitle, forumDate } from '../lib/utils'
 export default function ForumReply({ note, collapse, setCollapse }) {
   return (
     <div className="note">
-      <button type="button" className="btn btn-link collapse-link" onClick={e => setCollapse(collapse === 0 ? 1 : 0)}>[–]</button>
+      <button type="button" className="btn btn-link collapse-link" onClick={e => setCollapse(collapse === 0 ? 1 : 0)}>
+        [
+        {collapse !== 0 ? '–' : '+'}
+        ]
+      </button>
 
       <ReplyTitle note={note} collapse={collapse} />
 
@@ -18,7 +22,7 @@ export default function ForumReply({ note, collapse, setCollapse }) {
         />
       )}
 
-      {note.replies && (
+      {note.replies?.length > 0 && (
         <div className="note-replies">
           {note.replies.map(childNote => (
             <div key={childNote.id} className="note">
