@@ -81,7 +81,7 @@ Handlebars.registerHelper('prettyInvitationId', function(invitationId, options) 
   }
 
   var entityStr = '';
-  var entities = ['Reviewers', 'Authors', 'Area_Chairs', 'Program_Chairs', 'Emergency_Reviewers'];
+  var entities = ['Reviewers', 'Authors', 'Area_Chairs', 'Program_Chairs', 'Emergency_Reviewers', 'AEs'];
   var groupSpecifier = invitationId.split('/-/')[0].split('/').pop();
   if (_.includes(entities, groupSpecifier)) {
     entityStr = groupSpecifier.replace(/_/g, ' ').slice(0, -1) + ' ';

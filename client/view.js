@@ -3415,6 +3415,7 @@ module.exports = (function() {
         if (invitation.reply.referent || invitation.reply.referentInvitation || options.destructiveEdit) {
           editNote.note.id = invitation.reply.referent || note.referent || note.id;
           editNote.note.forum = undefined;
+          editNote.note.replyto = undefined;
           if (note.updateId) {
             editNote.id = note.updateId;
           }
