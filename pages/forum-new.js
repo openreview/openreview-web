@@ -335,6 +335,7 @@ const Forum = ({ forumNote, query, appContext }) => {
         <div className="col-xs-12">
           <form className="form-inline controls">
             <div className="form-group">
+              {/* TODO: https://codesandbox.io/s/v638kx67w7 */}
               <Dropdown
                 name="filters"
                 className="replies-filter"
