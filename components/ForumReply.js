@@ -42,7 +42,7 @@ export default function ForumReply({
                     id={childNote.id}
                     content={childNote.content}
                     invitation={childNote.details?.originalInvitation || childNote.details?.invitation}
-                    collapsed={options.contentExpanded}
+                    collapsed={!options.contentExpanded}
                   />
                 )}
               </div>
