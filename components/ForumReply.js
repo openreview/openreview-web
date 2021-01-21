@@ -1,55 +1,65 @@
+import { useContext } from 'react'
 import NoteReaders from './NoteReaders'
 import NoteContent from './NoteContent'
+import ForumReplyContext from './ForumReplyContext'
 import { prettyId, buildNoteTitle, forumDate } from '../lib/utils'
 
-export default function ForumReply({ note, collapse, setCollapse }) {
+export default function ForumReply({
+  note, replies, collapsed, setCollapsed, contentExpanded, hidden,
+}) {
+  const { displayOptionsMap } = useContext(ForumReplyContext)
+  const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
+
   return (
-    <div className="note">
-      <button type="button" className="btn btn-link collapse-link" onClick={e => setCollapse(collapse === 0 ? 1 : 0)}>
+    <div className="note" style={hidden && allRepliesHidden ? { display: 'none' } : {}}>
+      <button type="button" className="btn btn-link collapse-link" onClick={e => setCollapsed(!collapsed)}>
         [
-        {collapse !== 0 ? '–' : '+'}
+        {collapsed ? '+' : '–'}
         ]
       </button>
 
-      <ReplyTitle note={note} collapse={collapse} />
+      <ReplyTitle note={note} collapsed={collapsed} />
 
-      {collapse > 0 && (
+      {!collapsed && (
         <NoteContentCollapsible
           id={note.id}
           content={note.content}
           invitation={note.details?.originalInvitation || note.details?.invitation}
-          collapsed={collapse === 1}
+          collapsed={!contentExpanded}
         />
       )}
 
-      {note.replies?.length > 0 && (
+      {!collapsed && replies?.length > 0 && (
         <div className="note-replies">
-          {note.replies.map(childNote => (
-            <div key={childNote.id} className="note">
-              <ReplyTitle note={childNote} collapse={collapse} />
+          {replies.map((childNote) => {
+            const options = displayOptionsMap[childNote.id]
+            return (
+              <div key={childNote.id} className="note" style={options.hidden ? { display: 'none' } : {}}>
+                <ReplyTitle note={childNote} collapsed={options.collapsed} />
 
-              {collapse > 0 && (
-                <NoteContentCollapsible
-                  id={childNote.id}
-                  content={childNote.content}
-                  invitation={childNote.details?.originalInvitation || childNote.details?.invitation}
-                  collapsed={collapse === 1}
-                />
-              )}
-            </div>
-          ))}
+                {!collapsed && (
+                  <NoteContentCollapsible
+                    id={childNote.id}
+                    content={childNote.content}
+                    invitation={childNote.details?.originalInvitation || childNote.details?.invitation}
+                    collapsed={options.contentExpanded}
+                  />
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
   )
 }
 
-function ReplyTitle({ note, collapse }) {
+function ReplyTitle({ note, collapsed }) {
   const {
     id, invitation, content, signatures,
   } = note
 
-  if (collapse === 0) {
+  if (collapsed) {
     return (
       <div>
         <h4 className="minimal-title">

@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
 import truncate from 'lodash/truncate'
-import uniq from 'lodash/uniq'
+import groupBy from 'lodash/groupBy'
 import LoadingSpinner from '../components/LoadingSpinner'
+import Dropdown from '../components/Dropdown'
 import ForumReply from '../components/ForumReply'
 import NoteAuthors from '../components/NoteAuthors'
 import NoteReaders from '../components/NoteReaders'
@@ -82,20 +83,21 @@ const ForumMeta = ({ note }) => (
   </div>
 )
 
-const ForumReplyCount = ({ count }) => (
-  <div className="reply_row clearfix">
-    <div className="item" id="reply_count">{inflect(count, 'Reply', 'Replies', true)}</div>
-  </div>
+const ForumReplyCount = () => (
+  <div className="reply-container" />
 )
 
 const Forum = ({ forumNote, query, appContext }) => {
   const { userLoading, accessToken } = useUser()
-  const [replyNotes, setReplyNotes] = useState(null)
-  const [filteredReplies, setFilteredReplies] = useState(null)
+  const [replyNoteMap, setReplyNoteMap] = useState(null)
+  const [parentMap, setParentMap] = useState(null)
+  const [displayOptionsMap, setDisplayOptionsMap] = useState(null)
+  const [orderedReplies, setOrderedReplies] = useState(null)
   const [nestingLevel, setNestingLevel] = useState(1)
-  const [invitationOptions, setInvitationOptions] = useState(null)
-  const [signatureOptions, setSignatureOptions] = useState(null)
-  const [displayOptions, setDisplayOptions] = useState(null)
+  const [filterOptions, setFilterOptions] = useState(null)
+  const [selectedFilters, setSelectedFilters] = useState({
+    invitations: null, signatures: null, keywords: null,
+  })
 
   const { setBannerContent } = appContext
   const { id, content, details } = forumNote
@@ -110,60 +112,84 @@ const Forum = ({ forumNote, query, appContext }) => {
   // eslint-disable-next-line no-underscore-dangle
   const conferenceName = getConferenceName(content._bibtex)
 
+  const numRepliesHidden = displayOptionsMap
+    ? Object.values(displayOptionsMap).reduce((count, options) => count + (options.hidden ? 1 : 0), 0)
+    : 0
+
   const loadReplies = async () => {
     const { notes } = await api.get('/notes', {
       forum: id, trash: true, details: 'replyCount,writable,revisions,original,overwriting,invitation,tags',
     }, { accessToken })
 
     if (notes?.length > 0) {
-      const replies = notes.filter(note => note.id !== note.forum)
-      setReplyNotes(replies)
-      setInvitationOptions(uniq(replies.map(note => note.invitation)))
-      setSignatureOptions(uniq(replies.map(note => note.signatures[0])))
+      const replyMap = {}
+      const displayOptions = {}
+      const parentIdMap = {}
+      const invitationIds = new Set()
+      const groupIds = new Set()
+      notes.forEach((note) => {
+        // Don't include forum note
+        if (note.id === note.forum) return
+
+        replyMap[note.id] = note
+        displayOptions[note.id] = { collapsed: false, contentExpanded: false, hidden: false }
+
+        const parentId = note.replyto || id
+        if (!parentIdMap[parentId]) {
+          parentIdMap[parentId] = []
+        }
+        parentIdMap[parentId].push(note.id)
+
+        // For filter dropdown
+        invitationIds.add(note.invitation)
+        groupIds.add(note.signatures[0])
+      })
+      setReplyNoteMap(replyMap)
+      setDisplayOptionsMap(displayOptions)
+      setParentMap(parentIdMap)
+      setFilterOptions([
+        {
+          label: 'Reply Type',
+          options: Array.from(invitationIds).map(invitationId => ({
+            value: invitationId,
+            label: prettyInvitationId(invitationId),
+            type: 'invitation',
+          })),
+        },
+        {
+          label: 'Author',
+          options: Array.from(groupIds).map(groupId => ({
+            value: groupId,
+            label: prettyId(groupId, true),
+            type: 'signature',
+          })),
+        },
+      ])
     } else {
-      setReplyNotes([])
+      setReplyNoteMap({})
     }
   }
 
   const setCollapseLevel = (level) => {
-    const newDisplayOptions = { ...displayOptions }
-    Object.keys(displayOptions).forEach((replyId) => {
-      newDisplayOptions[replyId] = { collapseLevel: level }
-    })
-    setDisplayOptions(newDisplayOptions)
-  }
-
-  const setReplyCollapse = replyId => (level) => {
-    setDisplayOptions({ ...displayOptions, [replyId]: { collapseLevel: level } })
-  }
-
-  const setInvitationFilter = (invitationId) => {
-    if (invitationId === 'All') {
-      setCollapseLevel(2)
-      return
-    }
-
-    const newDisplayOptions = { ...displayOptions }
-    replyNotes.forEach((note) => {
-      if (note.invitation === invitationId) {
-        newDisplayOptions[note.id] = { collapseLevel: 2 }
-      } else {
-        newDisplayOptions[note.id] = { collapseLevel: 0 }
+    const newDisplayOptions = {}
+    Object.keys(displayOptionsMap).forEach((noteId) => {
+      newDisplayOptions[noteId] = {
+        ...displayOptionsMap[noteId],
+        collapsed: level === 0,
+        contentExpanded: level === 2,
       }
     })
-    setDisplayOptions(newDisplayOptions)
+    setDisplayOptionsMap(newDisplayOptions)
   }
 
-  const setSignatureFilter = (groupId) => {
-    const newDisplayOptions = { ...displayOptions }
-    replyNotes.forEach((note) => {
-      if (note.signatures[0] === groupId) {
-        newDisplayOptions[note.id] = { collapseLevel: 2 }
-      } else {
-        newDisplayOptions[note.id] = { collapseLevel: 0 }
-      }
+  const setReplyCollapsed = noteId => (newCollapsed) => {
+    setDisplayOptionsMap({
+      ...displayOptionsMap,
+      [noteId]: {
+        ...displayOptionsMap[noteId],
+        collapsed: newCollapsed,
+      },
     })
-    setDisplayOptions(newDisplayOptions)
   }
 
   // Set banner link
@@ -187,50 +213,54 @@ const Forum = ({ forumNote, query, appContext }) => {
 
   // Update view
   useEffect(() => {
-    if (!replyNotes) return
+    if (!replyNoteMap || !parentMap) return
 
-    const replyMap = {}
-    const replyOptions = {}
-    replyNotes.forEach((note) => {
-      const parentId = note.replyto || id
-      if (!replyMap[parentId]) {
-        replyMap[parentId] = []
-      }
-      replyMap[parentId].push(note)
+    const leastRecentComp = (a, b) => replyNoteMap[a].cdate - replyNoteMap[b].cdate
+    const mostRecentComp = (a, b) => replyNoteMap[b].cdate - replyNoteMap[a].cdate
 
-      replyOptions[note.id] = { collapseLevel: 1 }
-    })
-    setDisplayOptions(replyOptions)
-
-    const leastRecentComp = (a, b) => a.cdate - b.cdate
-    const mostRecentComp = (a, b) => b.cdate - a.cdate
-
-    let combinedNotes = []
+    let orderedNotes = []
     if (nestingLevel === 0) {
       // Linear (chat) view
-      combinedNotes = replyNotes.map(note => ({ ...note, replies: [] })).sort(mostRecentComp)
+      orderedNotes = Object.keys(replyNoteMap).map(noteId => ({ id: noteId, replies: [] })).sort(mostRecentComp)
     } else if (nestingLevel === 1) {
       // Threaded view
       const getAllReplies = (noteId) => {
-        if (!replyMap[noteId]) return []
-
-        return replyMap[noteId].reduce((replies, note) => replies.concat(note, getAllReplies(note.id)), [])
+        if (!parentMap[noteId]) return []
+        return parentMap[noteId].reduce((replies, childId) => replies.concat(childId, getAllReplies(childId)), [])
       }
 
-      combinedNotes = (replyMap[id] ?? []).map(note => ({
-        ...note,
-        replies: getAllReplies(note.id).sort(leastRecentComp),
+      orderedNotes = (parentMap[id] ?? []).map(childId => ({
+        id: childId,
+        replies: getAllReplies(childId).sort(leastRecentComp),
       }))
     } else if (nestingLevel === 2) {
       // TODO: Nested view
     }
-    setFilteredReplies(combinedNotes)
+    setOrderedReplies(orderedNotes)
 
     setTimeout(() => {
       // eslint-disable-next-line no-undef
       typesetMathJax()
     }, 200)
-  }, [replyNotes, nestingLevel])
+  }, [replyNoteMap, parentMap, nestingLevel])
+
+  useEffect(() => {
+    if (!replyNoteMap || !displayOptionsMap) return
+
+    const newDisplayOptions = {}
+    Object.values(replyNoteMap).forEach((note) => {
+      const isVisible = (
+        (!selectedFilters.invitations || selectedFilters.invitations.includes(note.invitation))
+        && (!selectedFilters.signatures || selectedFilters.signatures.includes(note.signatures[0]))
+        && (!selectedFilters.keywords || note.searchText.includes(selectedFilters.keywords))
+      )
+      newDisplayOptions[note.id] = {
+        ...displayOptionsMap[note.id],
+        hidden: !isVisible,
+      }
+    })
+    setDisplayOptionsMap(newDisplayOptions)
+  }, [replyNoteMap, selectedFilters])
 
   return (
     <div className="forum-container">
@@ -293,89 +323,110 @@ const Forum = ({ forumNote, query, appContext }) => {
           invitation={details.originalInvitation || details.invitation}
         />
 
-        <ForumReplyCount count={details.replyCount} />
+        <ForumReplyCount />
       </div>
 
       <hr />
 
       <div className="row">
         <div className="col-xs-12">
-          <ForumReplyContext.Provider value={{ displayOptions, setDisplayOptions }}>
-            <form className="form-inline controls">
-              <div className="form-group">
-                <select className="form-control">
-                  <option>Sort By: Most Recent</option>
-                  <option>Least Recent</option>
-                  <option>Most Tagged</option>
-                </select>
-              </div>
+          {/* <ForumReplyContext.Provider value={{ displayOptionsMap, setDisplayOptionsMap }}> */}
+          <form className="form-inline controls">
+            <div className="form-group">
+              <Dropdown
+                name="filters"
+                className="replies-filter"
+                options={filterOptions || []}
+                isDisabled={!filterOptions}
+                onChange={(selectedOptions) => {
+                  const groupedOptions = groupBy(selectedOptions, 'type')
+                  setSelectedFilters({
+                    ...selectedFilters,
+                    invitations: groupedOptions.invitation?.map(option => option.value) ?? null,
+                    signatures: groupedOptions.signature?.map(option => option.value) ?? null,
+                  })
+                }}
+                placeholder="Filter..."
+                instanceId="replies-filter"
+                height={32}
+                isMulti
+                isSearchable
+              />
+            </div>
 
-              <div className="form-group">
-                <select className="form-control" onChange={(e) => { setInvitationFilter(e.target.value) }} disabled={!invitationOptions}>
-                  <option>All</option>
-                  {invitationOptions?.map(invitationId => (
-                    <option key={invitationId} value={invitationId}>{prettyInvitationId(invitationId)}</option>
-                  ))}
-                </select>
-              </div>
+            <div className="form-group">
+              <input
+                type="text"
+                className="form-control"
+                id="keyword-input"
+                placeholder="Search..."
+                onBlur={(e) => { setSelectedFilters({ ...selectedFilters, keywords: e.target.value.toLowerCase() }) }}
+              />
+            </div>
 
-              <div className="form-group">
-                <select className="form-control" onChange={(e) => { setSignatureFilter(e.target.value) }} disabled={!signatureOptions}>
-                  <option>All</option>
-                  {signatureOptions?.map(signature => (
-                    <option key={signature} value={signature}>{prettyId(signature)}</option>
-                  ))}
-                </select>
-              </div>
+            <div className="form-group">
+              {/* <label htmlFor="keyword-input" className="control-label">Sort:</label> */}
+              <select className="form-control">
+                <option>Sort: Most Recent</option>
+                <option>Sort: Least Recent</option>
+                <option>Sort: Most Tagged</option>
+              </select>
+            </div>
 
-              <div className="form-group">
-                <input type="text" className="form-control" id="keyword-input" placeholder="Keywords" />
+            <div className="form-group">
+              <div className="btn-group btn-group-sm" role="group" aria-label="Nesting control">
+                <button type="button" className="btn btn-default" onClick={e => setNestingLevel(2)}>
+                  <Icon name="indent-left" />
+                  <span className="sr-only">Nested</span>
+                </button>
+                <button type="button" className="btn btn-default" onClick={e => setNestingLevel(1)}>
+                  <Icon name="align-left" />
+                  <span className="sr-only">Threaded</span>
+                </button>
+                <button type="button" className="btn btn-default" onClick={e => setNestingLevel(0)}>
+                  <Icon name="list" />
+                  <span className="sr-only">Linear</span>
+                </button>
               </div>
+              <div className="btn-group btn-group-sm" role="group" aria-label="Nesting control">
+                <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(0)}>
+                  <Icon name="resize-small" />
+                  <span className="sr-only">Collapsed</span>
+                </button>
+                <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(1)}>
+                  <Icon name="resize-full" />
+                  <span className="sr-only">Default</span>
+                </button>
+                <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(2)}>
+                  <Icon name="fullscreen" />
+                  <span className="sr-only">Expanded</span>
+                </button>
+              </div>
+            </div>
 
-              <div className="form-group">
-                <div className="btn-group btn-group-sm" role="group" aria-label="Nesting control">
-                  <button type="button" className="btn btn-default" onClick={e => setNestingLevel(2)}>
-                    <Icon name="indent-left" />
-                    <span className="sr-only">Nested</span>
-                  </button>
-                  <button type="button" className="btn btn-default" onClick={e => setNestingLevel(1)}>
-                    <Icon name="align-left" />
-                    <span className="sr-only">Threaded</span>
-                  </button>
-                  <button type="button" className="btn btn-default" onClick={e => setNestingLevel(0)}>
-                    <Icon name="list" />
-                    <span className="sr-only">Linear</span>
-                  </button>
-                </div>
-                <div className="btn-group btn-group-sm" role="group" aria-label="Nesting control">
-                  <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(0)}>
-                    <Icon name="resize-small" />
-                    <span className="sr-only">Collapsed</span>
-                  </button>
-                  <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(1)}>
-                    <Icon name="resize-full" />
-                    <span className="sr-only">Default</span>
-                  </button>
-                  <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(2)}>
-                    <Icon name="fullscreen" />
-                    <span className="sr-only">Expanded</span>
-                  </button>
-                </div>
-              </div>
-            </form>
-          </ForumReplyContext.Provider>
+            <div className="form-group">
+              <em className="control-label">
+                {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+                Showing {details.replyCount - numRepliesHidden} / {inflect(details.replyCount, 'Reply', 'Replies', true)}
+              </em>
+            </div>
+          </form>
+          {/* </ForumReplyContext.Provider> */}
         </div>
       </div>
 
       <div className="row">
-        <ForumReplyContext.Provider value={{ displayOptions, setDisplayOptions }}>
+        <ForumReplyContext.Provider value={{ displayOptionsMap, setDisplayOptionsMap }}>
           <div id="note-children" className="col-md-9">
-            {filteredReplies ? filteredReplies.map(replyNote => (
+            {(replyNoteMap && displayOptionsMap && orderedReplies) ? orderedReplies.map(reply => (
               <ForumReply
-                key={replyNote.id}
-                note={replyNote}
-                collapse={displayOptions[replyNote.id].collapseLevel}
-                setCollapse={setReplyCollapse(replyNote.id)}
+                key={reply.id}
+                note={replyNoteMap[reply.id]}
+                replies={reply.replies.map(childId => replyNoteMap[childId])}
+                collapsed={displayOptionsMap[reply.id].collapsed}
+                setCollapsed={setReplyCollapsed(reply.id)}
+                contentExpanded={displayOptionsMap[reply.id].contentExpanded}
+                hidden={displayOptionsMap[reply.id].hidden}
               />
             )) : (
               <LoadingSpinner />
