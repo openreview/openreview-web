@@ -64,7 +64,7 @@ const ForumAuthors = ({
 const ForumMeta = ({ note }) => (
   <div className="meta_row">
     <span className="date item">
-      {forumDate(note.cdate, note.tcdatem, note.mdate, note.tmdate, note.content.year)}
+      {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year)}
     </span>
 
     {note.content.venue ? (
@@ -220,8 +220,11 @@ const Forum = ({ forumNote, query, appContext }) => {
 
     let orderedNotes = []
     if (nestingLevel === 0) {
-      // Linear (chat) view
-      orderedNotes = Object.keys(replyNoteMap).map(noteId => ({ id: noteId, replies: [] })).sort(mostRecentComp)
+      // Linear view
+      orderedNotes = Object.keys(replyNoteMap).sort(mostRecentComp).map(noteId => ({
+        id: noteId,
+        replies: [],
+      }))
     } else if (nestingLevel === 1) {
       // Threaded view
       const getAllReplies = (noteId) => {
@@ -330,7 +333,6 @@ const Forum = ({ forumNote, query, appContext }) => {
 
       <div className="row">
         <div className="col-xs-12">
-          {/* <ForumReplyContext.Provider value={{ displayOptionsMap, setDisplayOptionsMap }}> */}
           <form className="form-inline controls">
             <div className="form-group">
               <Dropdown
@@ -375,17 +377,17 @@ const Forum = ({ forumNote, query, appContext }) => {
 
             <div className="form-group">
               <div className="btn-group btn-group-sm" role="group" aria-label="Nesting control">
-                <button type="button" className="btn btn-default" onClick={e => setNestingLevel(2)}>
-                  <Icon name="indent-left" />
-                  <span className="sr-only">Nested</span>
+                <button type="button" className="btn btn-default" onClick={e => setNestingLevel(0)}>
+                  <Icon name="list" />
+                  <span className="sr-only">Linear</span>
                 </button>
                 <button type="button" className="btn btn-default" onClick={e => setNestingLevel(1)}>
                   <Icon name="align-left" />
                   <span className="sr-only">Threaded</span>
                 </button>
-                <button type="button" className="btn btn-default" onClick={e => setNestingLevel(0)}>
-                  <Icon name="list" />
-                  <span className="sr-only">Linear</span>
+                <button type="button" className="btn btn-default" onClick={e => setNestingLevel(2)}>
+                  <Icon name="indent-left" />
+                  <span className="sr-only">Nested</span>
                 </button>
               </div>
               <div className="btn-group btn-group-sm" role="group" aria-label="Nesting control">
@@ -411,7 +413,6 @@ const Forum = ({ forumNote, query, appContext }) => {
               </em>
             </div>
           </form>
-          {/* </ForumReplyContext.Provider> */}
         </div>
       </div>
 
