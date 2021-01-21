@@ -1,3 +1,7 @@
+/* globals DOMPurify: false */
+/* globals marked: false */
+
+import { useState, useEffect } from 'react'
 import union from 'lodash/union'
 import { prettyField, prettyContentValue, orderReplyFields } from '../lib/utils'
 import Icon from './Icon'
@@ -27,13 +31,13 @@ function NoteContent({
           <li key={fieldName}>
             <NoteContentField name={fieldName} />
             {' '}
-            <span className="note-content-value">
-              {fieldValue.startsWith('/attachment/') ? (
+            {fieldValue.startsWith('/attachment/') ? (
+              <span className="note-content-value">
                 <DownloadLink noteId={id} fieldName={fieldName} fieldValue={fieldValue} isReference={isReference} />
-              ) : (
-                fieldValue
-              )}
-            </span>
+              </span>
+            ) : (
+              <NoteContentValue content={fieldValue} enableMarkdown={false} />
+            )}
           </li>
         )
       })}
@@ -47,6 +51,25 @@ function NoteContentField({ name }) {
       {prettyField(name)}
       :
     </strong>
+  )
+}
+
+function NoteContentValue({ content = '', enableMarkdown }) {
+  const [sanitizedHtml, setSanitizedHtml] = useState('')
+
+  useEffect(() => {
+    if (enableMarkdown) {
+      setSanitizedHtml(DOMPurify.sanitize(marked(content)))
+    }
+  }, [])
+
+  return enableMarkdown ? (
+    // eslint-disable-next-line react/no-danger
+    <div className="note-content-value markdown-rendered" dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+  ) : (
+    <span className="note-content-value">
+      {content}
+    </span>
   )
 }
 

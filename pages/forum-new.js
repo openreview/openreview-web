@@ -118,7 +118,7 @@ const Forum = ({ forumNote, query, appContext }) => {
 
   const loadReplies = async () => {
     const { notes } = await api.get('/notes', {
-      forum: id, trash: true, details: 'replyCount,writable,revisions,original,overwriting,invitation,tags',
+      forum: id, details: 'replyCount,writable,revisions,original,overwriting,invitation,tags',
     }, { accessToken })
 
     if (notes?.length > 0) {
