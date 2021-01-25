@@ -170,6 +170,27 @@ For general inquiries, you can contact the OpenReview team by emailing [info@ope
 - Go to the venue request page [here](https://openreview.net/group?id=OpenReview.net/Support) and click on your submitted request.
 - Under the ‘Overview’ tab in the PC console, click on ‘Full Venue Configuration’.`,
   }, {
+    q: 'How can I override the information displayed on my venue\'s homepage?',
+    id: 'question-homepage-override',
+    a: `On the request form for your venue, click on the ‘Revision’ button and modify the Homepage Override field, which expects a valid JSON.
+
+The instruction field of the JSON accepts HTML, allowing the formatting of the instructions section to be fully customized. All HTML should be validated to ensure that it will not break the layout of the page: https://validator.w3.org/#validate_by_input
+
+Example:
+\`\`\`
+{
+  "title": "tinyML 2021",
+  "subtitle": "First International Research Symposium on Tiny Machine Learning (tinyML)",
+  "location": "Burlingame, CA",
+  "deadline": "Submission Deadline: November 30, 2020 11:59pm AOE",
+  "website": "https://tinyml.org/home/index.html",
+  "instructions": "<h1>Important Dates</h1><li>Submission Deadline: November <strike>23</strike> 30, 2020 11:59pm AOE <b>(extended)</b></li><li>Author Notification: Jan 15th, 2021</li><li>Camera Ready: Feb 15th, 2021</li></br><h1>Submission Format</h1><li>Page limit is 6 to 8 pages, including references and any appendix material</li><li>Submissions must be blind for the double-blind review process</li><li>For paper formatting, please use the <a href=\\"https://www.acm.org/publications/proceedings-template\\">ACM SIGCONF template</a>.</li></br>"
+}
+\`\`\`
+which will be displayed as:
+
+![homepage](/images/faq-homepage-override.png)`,
+  }, {
     q: 'How can I recruit reviewers for my venue?',
     id: 'question-recruitment',
     a: 'On the request form for your venue, click on the ‘Recruitment’ button to recruit reviewers (and ACs if applicable).',
@@ -258,6 +279,19 @@ For general inquiries, you can contact the OpenReview team by emailing [info@ope
     q: 'How do I release the identities of the authors of the accepted papers only?',
     id: 'question-release-author-names',
     a: 'Once decisions have been posted, you will see a ‘Post Decision Stage’ button on the request form for your venue. Click on this button to choose between revealing identities of authors of all papers or only accepted papers to the public.',
+  }, {
+    q: 'How do I modify the homepage layout to show decision tabs?',
+    id: 'question-homepage-layout',
+    a: `Once decisions have been posted, you will see a ‘Post Decision Stage’ button on the request form for your venue. Once you click on this button, you will be able to specify the name of each tab you want to include in the homepage in the form of a dictionary.
+
+  Note that each key must be a valid decision option. For example, a venue with the decision options Accept (Oral), Accept (Spotlight), Accept (Poster) and Reject could choose to hide the rejected papers tab as follows:
+  \`\`\`
+  {
+    "Accept (Oral)": "Accepted Oral submissions",
+    "Accept (Spotlight)": "Accepted Spotlight submissions",
+    "Accept (Poster)": "Accepted Poster submissions"
+  }
+  \`\`\``,
   }, {
     q: 'How do I contact the authors of the accepted papers only?',
     id: 'question-contact-authors-accepted',
