@@ -4,15 +4,14 @@ import NoteContent from './NoteContent'
 import ForumReplyContext from './ForumReplyContext'
 import { prettyId, buildNoteTitle, forumDate } from '../lib/utils'
 
-export default function ForumReply({
-  note, replies, collapsed, setCollapsed, contentExpanded, hidden,
-}) {
-  const { displayOptionsMap } = useContext(ForumReplyContext)
+export default function ForumReply({ note, replies }) {
+  const { displayOptionsMap, setCollapsed } = useContext(ForumReplyContext)
+  const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
   const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
 
   return (
-    <div className="note" style={hidden && allRepliesHidden ? { display: 'none' } : {}}>
-      <button type="button" className="btn btn-link collapse-link" onClick={e => setCollapsed(!collapsed)}>
+    <div className="note" style={(hidden && allRepliesHidden) ? { display: 'none' } : {}}>
+      <button type="button" className="btn btn-link collapse-link" onClick={e => setCollapsed(note.id, !collapsed)}>
         [
         {collapsed ? '+' : '–'}
         ]
@@ -29,15 +28,21 @@ export default function ForumReply({
         />
       )}
 
-      {!collapsed && replies?.length > 0 && (
+      {(!collapsed || !allRepliesHidden) && replies?.length > 0 && (
         <div className="note-replies">
           {replies.map((childNote) => {
             const options = displayOptionsMap[childNote.id]
             return (
               <div key={childNote.id} className="note" style={options.hidden ? { display: 'none' } : {}}>
+                <button type="button" className="btn btn-link collapse-link" onClick={e => setCollapsed(childNote.id, !options.collapsed)}>
+                  [
+                  {options.collapsed ? '+' : '–'}
+                  ]
+                </button>
+
                 <ReplyTitle note={childNote} collapsed={options.collapsed} />
 
-                {!collapsed && (
+                {!options.collapsed && (
                   <NoteContentCollapsible
                     id={childNote.id}
                     content={childNote.content}

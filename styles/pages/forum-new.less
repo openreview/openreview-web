@@ -221,8 +221,8 @@ main.forum {
 
   .note-replies {
     margin-top: .875rem;
-    border-left: 2px solid #ddd;
-    padding-left: 2rem;
+    // border-left: 2px solid #ddd;
+    padding-left: 2.5rem;
 
     & > .note:last-child {
       padding-bottom: 0;
@@ -345,11 +345,14 @@ main.forum {
       }
     }
 
-
     .btn-group {
       margin-right: .5rem;
       button {
         min-width: 2.5rem;
+      }
+      label {
+        padding-right: .375rem;
+        padding-left: .375rem;
       }
     }
     .btn-group .btn + .btn {
@@ -366,6 +369,12 @@ main.forum {
     }
     .form-control[disabled] {
       background-color: #eee;
+    }
+
+    .form-row {
+      display: block;
+      margin: 0;
+      margin-top: .5rem;
     }
   }
 
