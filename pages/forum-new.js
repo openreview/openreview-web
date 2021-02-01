@@ -3,7 +3,7 @@ import Head from 'next/head'
 import Router from 'next/router'
 import truncate from 'lodash/truncate'
 import groupBy from 'lodash/groupBy'
-import difference from 'lodash/difference'
+import isEqual from 'lodash/isEqual'
 import LoadingSpinner from '../components/LoadingSpinner'
 import Dropdown from '../components/Dropdown'
 import ToggleButtonGroup from '../components/form/ToggleButtonGroup'
@@ -25,7 +25,6 @@ import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 // Page Styles
 import '../styles/pages/forum-new.less'
-import { intersection } from 'lodash'
 
 const ForumTitle = ({
   id, title, pdf, html,
@@ -143,7 +142,7 @@ const Forum = ({ forumNote, query, appContext }) => {
           cdate: note.cdate || note.tcdate,
           content: note.content,
           signatures: note.signatures,
-          readers: note.readers,
+          readers: note.readers.sort(),
           searchText: buildNoteSearchText(note),
         }
         displayOptions[note.id] = { collapsed: false, contentExpanded: false, hidden: false }
@@ -240,10 +239,8 @@ const Forum = ({ forumNote, query, appContext }) => {
       date_asc: (a, b) => replyNoteMap[a.id].cdate - replyNoteMap[b.id].cdate,
       date_desc: (a, b) => replyNoteMap[b.id].cdate - replyNoteMap[a.id].cdate,
     }
-    const orderedNotes = [...orderedReplies]
-    orderedNotes.sort(sortMap[sortType])
 
-    setOrderedReplies(orderedNotes)
+    setOrderedReplies([...orderedReplies].sort(sortMap[sortType]))
   }
 
   // Set banner link
@@ -289,9 +286,9 @@ const Forum = ({ forumNote, query, appContext }) => {
         return parentMap[noteId].reduce((replies, childId) => replies.concat(childId, getAllReplies(childId)), [])
       }
 
-      orderedNotes = (parentMap[id] ?? []).sort(selectedSortFn).map(childId => ({
-        id: childId,
-        replies: getAllReplies(childId).sort(leastRecentComp),
+      orderedNotes = (parentMap[id] ?? []).sort(selectedSortFn).map(noteId => ({
+        id: noteId,
+        replies: getAllReplies(noteId).sort(leastRecentComp),
       }))
     } else if (nestingLevel === 2) {
       // TODO: Nested view
@@ -306,37 +303,34 @@ const Forum = ({ forumNote, query, appContext }) => {
 
   // Update filters
   useEffect(() => {
-    if (!orderedReplies || !replyNoteMap || !displayOptionsMap) return
+    if (!replyNoteMap || !orderedReplies || !displayOptionsMap) return
 
     const newDisplayOptions = {}
-    const updateMap = (note, someChildrenVisible) => {
+    Object.values(replyNoteMap).forEach((note) => {
       const isVisible = (
         (!selectedFilters.invitations || selectedFilters.invitations.includes(note.invitation))
         && (!selectedFilters.signatures || selectedFilters.signatures.includes(note.signatures[0]))
         && (!selectedFilters.keywords || note.searchText.includes(selectedFilters.keywords[0]))
-        && (!selectedFilters.readers || (
-          note.readers.length === selectedFilters.readers.length
-          && intersection(note.readers, selectedFilters.readers).length === note.readers.length
-        ))
+        && (!selectedFilters.readers || isEqual(note.readers, selectedFilters.readers))
       )
       const currentOptions = displayOptionsMap[note.id]
       newDisplayOptions[note.id] = {
         ...currentOptions,
-        hidden: !isVisible && !someChildrenVisible,
+        hidden: !isVisible,
+        collapsed: !isVisible,
       }
-    }
+    })
 
-    orderedReplies.forEach((reply) => {
-      reply.replies.forEach((childId) => {
-        const childNote = replyNoteMap[childId]
-        updateMap(childNote, false)
-      })
-
-      const someChildrenVisible = reply.replies.some(childId => !newDisplayOptions[childId].hidden)
-      updateMap(replyNoteMap[reply.id], someChildrenVisible)
+    orderedReplies.forEach((note) => {
+      const { hidden } = newDisplayOptions[note.id]
+      const someChildrenVisible = note.replies.some(childId => !newDisplayOptions[childId].hidden)
+      if (hidden && someChildrenVisible) {
+        newDisplayOptions[note.id].hidden = false
+        newDisplayOptions[note.id].collapsed = true
+      }
     })
     setDisplayOptionsMap(newDisplayOptions)
-  }, [replyNoteMap, selectedFilters])
+  }, [replyNoteMap, orderedReplies, selectedFilters])
 
   return (
     <div className="forum-container">
@@ -492,7 +486,7 @@ const Forum = ({ forumNote, query, appContext }) => {
               </em>
             </div>
 
-            {readersFilterOptions?.length > 0 && (
+            {readersFilterOptions?.length > 1 && (
               <div className="form-group form-row">
                 <ToggleButtonGroup
                   name="readers-filter"
@@ -500,9 +494,12 @@ const Forum = ({ forumNote, query, appContext }) => {
                   options={readersFilterOptions || []}
                   isDisabled={!readersFilterOptions}
                   onChange={(selectedOptions) => {
+                    const selectedReaders = selectedOptions.length > 0
+                      ? selectedOptions.map(option => option.value).sort()
+                      : null
                     setSelectedFilters({
                       ...selectedFilters,
-                      readers: selectedOptions.length > 0 ? selectedOptions.map(option => option.value) : null,
+                      readers: selectedReaders,
                     })
                   }}
                 />
@@ -523,7 +520,7 @@ const Forum = ({ forumNote, query, appContext }) => {
                 replies={reply.replies.map(childId => replyNoteMap[childId])}
               />
             )) : (
-              <LoadingSpinner />
+              <LoadingSpinner inline />
             )}
           </div>
 

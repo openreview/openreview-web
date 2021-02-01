@@ -6,6 +6,7 @@ import { prettyId, buildNoteTitle, forumDate } from '../lib/utils'
 
 export default function ForumReply({ note, replies }) {
   const { displayOptionsMap, setCollapsed } = useContext(ForumReplyContext)
+  if (!displayOptionsMap[note.id]) console.log(note, displayOptionsMap)
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
   const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
 
