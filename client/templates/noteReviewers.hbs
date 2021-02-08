@@ -45,14 +45,14 @@
   </div>
 
   <div>
-    {{#if averageRating}}
+    {{#isnt averageRating undefined}}
       <br>
       <strong>Average Rating:</strong> {{averageRating}} (Min: {{minRating}}, Max: {{maxRating}})
-    {{/if}}
-    {{#if averageConfidence}}
+    {{/isnt}}
+    {{#isnt averageConfidence undefined}}
       <br>
       <strong>Average Confidence:</strong> {{averageConfidence}} (Min: {{minConfidence}}, Max: {{maxConfidence}})
-    {{/if}}
+    {{/isnt}}
     {{#isnt forumReplyCount undefined}}
       <br>
       <strong>Number of Forum replies:</strong> {{forumReplyCount}}
