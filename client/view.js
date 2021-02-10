@@ -505,7 +505,7 @@ module.exports = (function() {
       });
 
       if (selected) { //add musthavevalues
-        _.forEach(alwaysHaveValues, function (alwaysHaveValue) {
+        _.forEachRight(alwaysHaveValues, function (alwaysHaveValue) {
           if (selectedValues.find(function (selectedValue) { //alwayshavevalue is already selected
             return selectedValue.id === alwaysHaveValue.id;
           })) {
