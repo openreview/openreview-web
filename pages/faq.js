@@ -145,15 +145,46 @@ For more details on the difference between OpenReview's TeX support and other sy
   }, {
     q: 'How do I import my papers from DBLP?',
     id: 'question-dblp-import',
-    a: `To import DBLP publications, you need to get the "Persistent DBLP URL" from your DBLP homepage.
+    a: `To add existing DBLP publications to your OpenReview profile:
+
+  1. **Login to OpenReview**<br/>
+  You can click on the "Login" on the right of navigation menu to login to OpenReview.
+
+
+  2. **Go to edit mode of your profile page**<br/>
+  Click on your name on the right of navigation menu and click on "Profile" link in the dropdown displayed.
+  ![go to profile page](/images/faq-dblp-profile.png)
+  When you are directed to the profile page, click on the "Edit Profile" button in the ribbon displayed under the navigation bar.
+  ![go to profile page](/images/faq-dblp-edit-profile.png)
+
+
+  3. **Add DBLP URL**<br/>
+  Look for "DBLP URL" text input under "Personal Links" section and enter the "Persistent DBLP URL".
+  ![dblp url input](/images/faq-dblp-input.png)
+
+  You can get the "Persistent DBLP URL" from your DBLP homepage.
 
   To do so, hover over the <img src="/images/share_alt.svg" alt="share" class="share" /> icon to the right of your name in DBLP page heading and copy the persistent URL from the hover menu.
 
   ![Comment](/images/faq-dblp.png)
 
-  You can then go to your OpenReview profile page, click 'Edit Profile', paste your persistent DBLP URL to the corresponding input, and then click the 'Add DBLP Papers to Profile' button to start importing DBLP papers.
+  You can then go to your OpenReview profile page, click "Edit Profile", paste your persistent DBLP URL to the corresponding input.
 
-  If you get an error that says 'please ensure the provided DBLP URL is yours,' it may be because none of the names in your OpenReview profile match any of the author names in the DBLP papers. You can add a matching name to your OpenReview profile, save your profile and try importing again.`,
+
+  4. **Click "Add DBLP Papers to Profile" button**<br/>
+  Valid DBLP URL will enable the "Add DBLP Papers to Profile" button. Click the button and your DBLP publications will be listed in a modal window.
+
+
+  5. **Select the papers to upload**<br/>
+  Use the checkbox in front of each paper to select the papers which you would like to import to your OpenReview profile.
+
+
+  6. **Click "Add to Your Profile" button**<br/>
+  Click the "Add to Your Profile" button at the bottom of the modal window to import selected papers.
+  ![import papers](/images/faq-dblp-import.png)
+
+If you get an error that says "please ensure the provided DBLP URL is yours", please ensure that name (or one of the names) in your OpenReview profile **matches exactly** with the name used in DBLP publications.
+You can add a matching name to your OpenReview profile by clicking the plus icon in "Names" section of the profile edit page, saving your profile by clicking the "Save Profile Changes" button at the bottom of profile edit page and try importing again.`,
   }, {
     q: 'I couldn\'t find the answer to my question on this page. Where can I get more help?',
     id: 'question-more-help',
