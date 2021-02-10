@@ -1,3 +1,5 @@
+/* globals $: false */
+
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
@@ -298,6 +300,7 @@ const Forum = ({ forumNote, query, appContext }) => {
     setTimeout(() => {
       // eslint-disable-next-line no-undef
       typesetMathJax()
+      $('[data-toggle="tooltip"]').tooltip()
     }, 200)
   }, [replyNoteMap, parentMap, nestingLevel])
 
@@ -488,6 +491,8 @@ const Forum = ({ forumNote, query, appContext }) => {
 
             {readersFilterOptions?.length > 1 && (
               <div className="form-group form-row">
+                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                <label className="control-label icon-label" data-toggle="tooltip" data-placement="top" title="Visible to"><Icon name="eye-open" /></label>
                 <ToggleButtonGroup
                   name="readers-filter"
                   className="readers-filter"

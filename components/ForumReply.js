@@ -1,12 +1,13 @@
 import { useContext } from 'react'
-import NoteReaders from './NoteReaders'
 import NoteContent from './NoteContent'
 import ForumReplyContext from './ForumReplyContext'
-import { prettyId, buildNoteTitle, forumDate } from '../lib/utils'
+import {
+  prettyId, prettyInvitationId, buildNoteTitle, forumDate,
+} from '../lib/utils'
+import Icon from './Icon'
 
 export default function ForumReply({ note, replies }) {
   const { displayOptionsMap, setCollapsed } = useContext(ForumReplyContext)
-  if (!displayOptionsMap[note.id]) console.log(note, displayOptionsMap)
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
   const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
 
@@ -64,6 +65,13 @@ function ReplyTitle({ note, collapsed }) {
   const {
     id, invitation, content, signatures,
   } = note
+  const styleMap = {
+    'Official Comment': { 'background-color': '#bbf', color: '#2c3a4a' },
+    Decision: { 'background-color': '#bbf', color: '#2c3a4a' },
+    'Meta Review': { 'background-color': '#fbf', color: '#2c3a4a' },
+    'Public Comment': { 'background-color': '#bfb', color: '#2c3a4a' },
+    'Official Review': { 'background-color': '#fbb', color: '#2c3a4a' },
+  }
 
   if (collapsed) {
     return (
@@ -99,17 +107,22 @@ function ReplyTitle({ note, collapsed }) {
         )}
       </h4>
       <div className="subheading">
-        <span className="invitation">
-          {prettyId(invitation, true)}
+        <span className="invitation highlight" data-toggle="tooltip" data-placement="top" title="Reply type" style={styleMap[prettyInvitationId(invitation)]}>
+          <Icon name="tag" />
+          {prettyInvitationId(invitation, true)}
         </span>
-        &bull;
-        <span className="signatures">
+        <span className="signatures" data-toggle="tooltip" data-placement="top" title="Reply Author">
+          <Icon name="user" />
           {signatures.map(signature => prettyId(signature, true)).join(', ')}
         </span>
-        &bull;
-        <span className="created-date">{forumDate(note.cdate, note.tcdate, note.mdate)}</span>
-        &bull;
-        <span className="readers"><NoteReaders readers={note.readers} /></span>
+        <span className="created-date" data-toggle="tooltip" data-placement="top" title="Date created">
+          <Icon name="calendar" />
+          {forumDate(note.cdate, note.tcdate, note.mdate)}
+        </span>
+        <span className="readers" data-toggle="tooltip" data-placement="top" title="Visible to">
+          <Icon name="eye-open" />
+          {note.readers.map(reader => prettyId(reader, true)).join(', ')}
+        </span>
       </div>
     </div>
   )

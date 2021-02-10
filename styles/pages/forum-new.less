@@ -141,6 +141,12 @@ main.forum {
       margin-top: -1px;
       margin-right: .25rem;
     }
+    .color-dot {
+      background-color: #aaf;
+      padding: 0 .375rem;
+      border-radius: .5rem;
+      font-size: .7rem;
+    }
   }
 
   .meta_actions {
@@ -221,7 +227,6 @@ main.forum {
 
   .note-replies {
     margin-top: .875rem;
-    // border-left: 2px solid #ddd;
     padding-left: 2.5rem;
 
     & > .note:last-child {
@@ -274,6 +279,15 @@ main.forum {
       .invitation {
         padding-left: 0;
       }
+      .glyphicon {
+        padding-right: .25rem;
+      }
+      .highlight {
+        background-color: @mediumBlue;
+        color: #fff;
+        padding: 0 4px;
+        border-radius: 2px;
+      }
     }
     .note-content-container {
       position: relative;
@@ -321,6 +335,9 @@ main.forum {
       label {
         padding-right: .25rem;
       }
+      label.icon-label {
+        padding-right: .5rem;
+      }
       select.form-control, input.form-control {
         width: 160px;
         height: 32px;
@@ -353,6 +370,11 @@ main.forum {
       label {
         padding-right: .375rem;
         padding-left: .375rem;
+      }
+      .btn.active {
+        background-color: @mediumBlue;
+        color: #fff;
+        box-shadow: none;
       }
     }
     .btn-group .btn + .btn {
