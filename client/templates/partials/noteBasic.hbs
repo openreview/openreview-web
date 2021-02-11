@@ -1,6 +1,6 @@
 {{!-- Basic note. Used when displaying lists of paper submissions --}}
 <h4>
-  <a href="/forum?id={{forum}}{{#isnt id forum}}&noteId={{id}}{{/isnt}}{{#if options.referrer}}&referrer={{options.referrer}}{{/if}}" {{#if options.openInNewTab}}target="_blank"{{/if}}>
+  <a href="/{{#if options.path}}{{options.path}}{{else}}forum{{/if}}?id={{forum}}{{#isnt id forum}}&noteId={{id}}{{/isnt}}{{#if options.referrer}}&referrer={{options.referrer}}{{/if}}" {{#if options.openInNewTab}}target="_blank"{{/if}}>
     {{#if content.title}}
       {{content.title}}
     {{else}}
