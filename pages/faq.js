@@ -18,14 +18,12 @@ function Faq({ generalQuestions, pcQuestions, appContext }) {
   useEffect(() => {
     if (clientJsLoading) return
 
-    const defaultRenderer = new marked.Renderer()
-    const customImageRenderer = new marked.Renderer()
-    customImageRenderer.image = (href, title, text) => (`<div><img style="border:1px solid #ccc" src=${href.split(' ')[0]} width=${title?.split('=')?.[1] ?? 'auto'} alt=${text} title=${title?.split('=')?.[0]}/></div>`)
+                  const defaultRenderer = new marked.Renderer()
 
     setFormattedGeneralQuestions(generalQuestions.map(obj => ({
       id: obj.id,
       heading: obj.q,
-      body: DOMPurify.sanitize(marked(obj.a, { renderer: customImageRenderer })),
+      body: DOMPurify.sanitize(marked(obj.a, { renderer: defaultRenderer })),
     })))
     setFormattedPCQuestions(pcQuestions.map(obj => ({
       id: obj.id,
@@ -155,20 +153,20 @@ For more details on the difference between OpenReview's TeX support and other sy
 
   2. **Go to edit mode of your profile page**<br/>
   Click on your name on the right of navigation menu and click on "Profile" link in the dropdown displayed.
-  ![go to profile page](/images/faq-dblp-profile.png "=500px")<br/>
+  <img src="/images/faq-dblp-profile.png" alt="go to profile page" class="img-answer"/><br/>
+
   When you are directed to the profile page, click on the "Edit Profile" button in the ribbon displayed under the navigation bar.
-  ![go to profile page](/images/faq-dblp-edit-profile.png "=500px")
+  <img src="/images/faq-dblp-edit-profile.png" alt="go to edit mode" class="img-answer"/><br/>
 
 
   3. **Add DBLP URL**<br/>
   Look for "DBLP URL" text input under "Personal Links" section and enter the "Persistent DBLP URL".
-  ![dblp url input](/images/faq-dblp-input.png "=500px")
+  <img src="/images/faq-dblp-input.png" alt="dblp url input" class="img-answer"/><br/>
 
   You can get the "Persistent DBLP URL" from your DBLP homepage.
 
   To do so, hover over the <img src="/images/share_alt.svg" alt="share" class="share" /> icon to the right of your name in DBLP page heading and copy the persistent URL from the hover menu.
-
-  ![Comment](/images/faq-dblp.png "=500px")
+  <img src="/images/faq-dblp.png" alt="dblp website" class="img-answer"/><br/>
 
   You can then go to your OpenReview profile page, click "Edit Profile", paste your persistent DBLP URL to the corresponding input.
 
@@ -183,7 +181,7 @@ For more details on the difference between OpenReview's TeX support and other sy
 
   6. **Click "Add to Your Profile" button**<br/>
   Click the "Add to Your Profile" button at the bottom of the modal window to import selected papers.
-  ![import papers](/images/faq-dblp-import.png "=500px")
+  <img src="/images/faq-dblp-import.png" alt="import papers" class="img-answer"/><br/>
 
 If you get an error that says "please ensure the provided DBLP URL is yours", please ensure that name (or one of the names) in your OpenReview profile **matches exactly** with the name used in DBLP publications.
 You can add a matching name to your OpenReview profile by clicking the plus icon in "Names" section of the profile edit page, saving your profile by clicking the "Save Profile Changes" button at the bottom of profile edit page and try importing again.`,
