@@ -18,7 +18,7 @@ function Faq({ generalQuestions, pcQuestions, appContext }) {
   useEffect(() => {
     if (clientJsLoading) return
 
-                  const defaultRenderer = new marked.Renderer()
+    const defaultRenderer = new marked.Renderer()
 
     setFormattedGeneralQuestions(generalQuestions.map(obj => ({
       id: obj.id,
