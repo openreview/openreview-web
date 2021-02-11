@@ -366,7 +366,7 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
     html = '<div class="note-contents-collapse">' + contentHtml + '</div>';
   } else {
     // Need a random id to prevent collisions if there are 2 of the same note displayed
-    var collapseId = noteObj.id + '-details-' + Math.floor(Math.random() * 1000);
+    var collapseId = noteObj.id.replace('~', '') + '-details-' + Math.floor(Math.random() * 1000);
     html = '<a href="#' + collapseId + '" class="note-contents-toggle" role="button" data-toggle="collapse" aria-expanded="false">Show details</a>' +
       '<div class="collapse" id="' + collapseId + '">' +
         '<div class="note-contents-collapse">' + contentHtml + '</div>' +
