@@ -145,7 +145,7 @@ For more details on the difference between OpenReview's TeX support and other sy
   }, {
     q: 'How do I import my papers from DBLP?',
     id: 'question-dblp-import',
-    a: `To add existing DBLP publications to your OpenReview profile:
+    a: `**To add existing DBLP publications to your OpenReview profile**:
 
   1. **Login to OpenReview**<br/>
   You can click on the "Login" on the right of navigation menu to login to OpenReview.
@@ -184,7 +184,19 @@ For more details on the difference between OpenReview's TeX support and other sy
   <img src="/images/faq-dblp-import.png" alt="import papers" class="img-answer"/><br/>
 
 If you get an error that says "please ensure the provided DBLP URL is yours", please ensure that name (or one of the names) in your OpenReview profile **matches exactly** with the name used in DBLP publications.
-You can add a matching name to your OpenReview profile by clicking the plus icon in "Names" section of the profile edit page, saving your profile by clicking the "Save Profile Changes" button at the bottom of profile edit page and try importing again.`,
+You can add a matching name to your OpenReview profile by clicking the plus icon in "Names" section of the profile edit page, saving your profile by clicking the "Save Profile Changes" button at the bottom of profile edit page and try importing again.
+
+**To remove publications which are imported from DBLP from your profile**:
+
+Go to the edit mode of your profile page. Scroll to the bottom of the page and look for "Publications" section. All publications associated with your profile will be listed here but those imported from DBLP
+will have a minus icon displayed after the title.
+
+<img src="/images/faq-dblp-remove.png" alt="remove a paper" class="img-answer"/><br/>
+
+You can click on the minus icon to remove a publication from your profile. If you accidently clicked the remove (minus) icon and do not intend to remove the publication from your profile, you can click the icon again to reverse your operation.
+
+You must click the "**Save Profile Changes**" button at the bottom of the page so that selected publications are removed from your profile.
+`,
   }, {
     q: 'I couldn\'t find the answer to my question on this page. Where can I get more help?',
     id: 'question-more-help',
