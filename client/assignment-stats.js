@@ -50,7 +50,7 @@ var loadFromEdges = function(assignmentConfigNote) {
   } else {
     papersP = Webfield.get('/groups', {id: paperInvitationElements[0]})
     .then(function(result) {
-      return _.get(result, 'groups[0].members').map(function(member) { return { id: member }; });
+      return _.get(result, 'groups[0].members', []).map(function(member) { return { id: member }; });
     });
   }
   var usersP = Webfield.get('/groups', {id: assignmentConfigNote.match_group})
