@@ -234,6 +234,19 @@ const Forum = ({ forumNote, query, appContext }) => {
     })
   }
 
+  const setInvitationFilter = (invitationId) => {
+    setSelectedFilters({
+      ...selectedFilters,
+      invitations: invitationId ? [invitationId] : null,
+    })
+  }
+  const setSignatureFilter = (groupId) => {
+    setSelectedFilters({
+      ...selectedFilters,
+      signatures: groupId ? [groupId] : null,
+    })
+  }
+
   const sortReplies = (sortType) => {
     if (sortType !== 'date_asc' && sortType !== 'date_desc') return
 
@@ -516,7 +529,11 @@ const Forum = ({ forumNote, query, appContext }) => {
 
       <div className="row">
         {/* eslint-disable-next-line object-curly-newline */}
-        <ForumReplyContext.Provider value={{ displayOptionsMap, setCollapsed, setHidden, setContentExpanded }}>
+        <ForumReplyContext.Provider
+          value={{
+            displayOptionsMap, setCollapsed, setHidden, setContentExpanded, setInvitationFilter,
+          }}
+        >
           <div id="note-children" className="col-md-9">
             {(replyNoteMap && displayOptionsMap && orderedReplies) ? orderedReplies.map(reply => (
               <ForumReply

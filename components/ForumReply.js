@@ -7,7 +7,7 @@ import {
 import Icon from './Icon'
 
 export default function ForumReply({ note, replies }) {
-  const { displayOptionsMap, setCollapsed } = useContext(ForumReplyContext)
+  const { displayOptionsMap, setCollapsed, setInvitationFilter } = useContext(ForumReplyContext)
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
   const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
 
@@ -19,7 +19,7 @@ export default function ForumReply({ note, replies }) {
         ]
       </button>
 
-      <ReplyTitle note={note} collapsed={collapsed} />
+      <ReplyTitle note={note} collapsed={collapsed} setInvitationFilter={setInvitationFilter} />
 
       {!collapsed && (
         <NoteContentCollapsible
@@ -61,16 +61,16 @@ export default function ForumReply({ note, replies }) {
   )
 }
 
-function ReplyTitle({ note, collapsed }) {
+function ReplyTitle({ note, collapsed, setInvitationFilter }) {
   const {
     id, invitation, content, signatures,
   } = note
   const styleMap = {
-    'Official Comment': { 'background-color': '#bbf', color: '#2c3a4a' },
-    Decision: { 'background-color': '#bbf', color: '#2c3a4a' },
-    'Meta Review': { 'background-color': '#fbf', color: '#2c3a4a' },
-    'Public Comment': { 'background-color': '#bfb', color: '#2c3a4a' },
-    'Official Review': { 'background-color': '#fbb', color: '#2c3a4a' },
+    'Official Comment': { backgroundColor: '#bbf', color: '#2c3a4a' },
+    Decision: { backgroundColor: '#bbf', color: '#2c3a4a' },
+    'Meta Review': { backgroundColor: '#fbf', color: '#2c3a4a' },
+    'Public Comment': { backgroundColor: '#bfb', color: '#2c3a4a' },
+    'Official Review': { backgroundColor: '#fbb', color: '#2c3a4a' },
   }
 
   if (collapsed) {
@@ -107,12 +107,19 @@ function ReplyTitle({ note, collapsed }) {
         )}
       </h4>
       <div className="subheading">
-        <span className="invitation highlight" data-toggle="tooltip" data-placement="top" title="Reply type" style={styleMap[prettyInvitationId(invitation)]}>
-          <Icon name="tag" />
-          {prettyInvitationId(invitation, true)}
-        </span>
+        <button type="button" className="btn-link" onClick={(e) => { setInvitationFilter(invitation) }}>
+          <span
+            className="invitation highlight"
+            data-toggle="tooltip"
+            data-placement="top"
+            title="Reply type"
+            style={styleMap[prettyInvitationId(invitation)]}
+          >
+            {prettyInvitationId(invitation, true)}
+          </span>
+        </button>
         <span className="signatures" data-toggle="tooltip" data-placement="top" title="Reply Author">
-          <Icon name="user" />
+          <Icon name="pencil" />
           {signatures.map(signature => prettyId(signature, true)).join(', ')}
         </span>
         <span className="created-date" data-toggle="tooltip" data-placement="top" title="Date created">
