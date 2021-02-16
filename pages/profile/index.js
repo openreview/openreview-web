@@ -3,6 +3,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import Router, { useRouter } from 'next/router'
 import pick from 'lodash/pick'
+import random from 'lodash/random'
 import UserContext from '../../components/UserContext'
 import NoteList from '../../components/NoteList'
 import withError from '../../components/withError'
@@ -314,7 +315,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
           >
             {profile.history?.length > 0 ? profile.history.map(history => (
               <ProfileHistory
-                key={history.position + history.institution.name + history.start + history.end}
+                key={history.institution.name + (history.position || random(1, 100)) + (history.start || '') + (history.end || '')}
                 history={history}
               />
             )) : (
