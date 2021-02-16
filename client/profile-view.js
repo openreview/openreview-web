@@ -249,15 +249,18 @@ module.exports = function(profile, params, submitF, cancelF) {
       $('<td>', {class: 'info_item'}).append(
         $('<div>', {text: 'Start', class: 'small_heading row_heading'})
       ),
-      $('<td>', {class: 'info_item', colspan: '2'}).append(
-        $('<div>', {class: 'small_heading row_heading'}).append(['End ', '<span class="hint">(optional)</span>'])
-      )
+      $('<td>', {class: 'info_item'}).append(
+        $('<div>', {text:'End', class: 'small_heading row_heading'})
+      ),
+      $('<td>', {class: 'info_item'}).append(
+        $('<div>', {text: 'Visible to', class: 'small_heading row_heading visible-heading'})
+      ),
     );
 
     return $row;
   };
 
-  var mkRelationRow = function(prefill, prefixedRelations) {
+  var mkRelationRow = function(prefill, prefixedRelations, prefixedRelationReaders) {
 
     var filteredPositions = function(positions, prefix) {
       return _.filter(positions, function(p) {
@@ -273,6 +276,18 @@ module.exports = function(profile, params, submitF, cancelF) {
       }
     });
     $relation.find('input').attr({class:'form-control relation'});
+
+    var getDropdownText = function (readers) {
+      if (!readers || readers?.includes('everyone')) return 'everyone';
+      var readerString = readers?.join(',');
+      return readerString.length > 10 ? `${readerString.slice(0, 12)}...` : readerString;
+    }
+
+    var $relationReader = Handlebars.templates['partials/multiselectorDropdown']({
+      buttonText: getDropdownText(prefill.readers),
+      id: 'relation-reader',
+      htmlFilters: prefixedRelationReaders?.map(p => ({ valueFilter: p, textFilter: p }))
+    });
 
     var $row = $('<tr>', {border: 0, class: 'info_row'}).append(
       $('<td>', {class: 'info_item'}).append(
@@ -291,12 +306,43 @@ module.exports = function(profile, params, submitF, cancelF) {
         $('<input>', {type: 'text', class: 'form-control end', value: prefill && prefill.end || '', placeholder: 'year'}).keypress(isNumber).on('paste', isPositiveInteger)
       ),
       $('<td>', {class: 'info_item'}).append(
+        $relationReader
+      ),
+      $('<td>', {class: 'info_item'}).append(
         $('<div>', {class: 'glyphicon glyphicon-minus-sign '}).click(function(event) {
           $row.remove();
         })
       )
     );
 
+    $row.find('.multiselector').data('val', prefill.readers || prefixedRelationReaders); // store the array value
+    $row.find('.dropdown-menu').find('input').prop('checked', false);
+    if(prefill.readers){
+      $row.find('.dropdown-menu').find('input').each((index, element) => { if (prefill.readers.includes(element.value)) $(element).prop('checked', true) });
+    }
+
+    $row.find('.dropdown-menu').on('change', (e) => {
+      if ($(e.target).attr('class') === 'select-all-checkbox') {
+        $row.find('.dropdown-menu').find('input').prop('checked', e.target.checked);
+        $row.find('.multiselector').data('val', e.target.checked ? prefixedRelationReaders : ['everyone']); // set data attr, default to everyone
+        if (!e.target.checked) $row.find('.dropdown-menu').find('input[value="everyone"]').prop('checked', true); // leave everyone checked
+        $row.find('#relation-reader').html('everyone'); // display text
+      } else {
+        var selectedReaders = [];
+        // set select all checkbox
+        $row.find('.dropdown-menu').find('input.relation-reader-multiselector-checkbox:checked').each((index, element) => selectedReaders.push(element.value));
+        $row.find('.dropdown-menu').find('input.select-all-checkbox').prop('checked', _.isEqual(selectedReaders.sort(), prefixedRelationReaders.sort()));
+        // set default value (everyone) if nothing selected
+        if (selectedReaders.length === 0) {
+          $row.find('.dropdown-menu').find('input[value="everyone"]').prop('checked', true);
+          selectedReaders.push('everyone');
+        }
+        // set display text
+        $row.find('#relation-reader').html(getDropdownText(selectedReaders));
+        // set data attr
+        $row.find('.multiselector').data('val', selectedReaders);
+      }
+    });
     return $row;
 
   };
@@ -503,7 +549,7 @@ module.exports = function(profile, params, submitF, cancelF) {
     return Number.isInteger(number) && number > 0;
   };
 
-  var drawView = function(profile, prefixedPositions, prefixedInstitutions, institutions, prefixedRelations) {
+  var drawView = function(profile, prefixedPositions, prefixedInstitutions, institutions, prefixedRelations, prefixedRelationReaders) {
 
     var $namesTable = $('<table>', {id: 'names_table', class: 'info_table'}).append(
       mkNameHeader()
@@ -602,18 +648,18 @@ module.exports = function(profile, params, submitF, cancelF) {
     var relations = profile.relations;
     if (relations && relations.length) {
       $relationTable.append(_.flatten(_.map(relations, function(relation) {
-        return [mkRelationRow(relation, prefixedRelations)];
+        return [mkRelationRow(relation, prefixedRelations, prefixedRelationReaders)];
       })));
     } else {
       $relationTable.append(
-        mkRelationRow({}, prefixedRelations),
-        mkRelationRow({}, prefixedRelations),
-        mkRelationRow({}, prefixedRelations)
+        mkRelationRow({readers:['everyone']}, prefixedRelations, prefixedRelationReaders),
+        mkRelationRow({readers:['everyone']}, prefixedRelations, prefixedRelationReaders),
+        mkRelationRow({readers:['everyone']}, prefixedRelations, prefixedRelationReaders)
       );
     }
 
     var $addRelationRow = $('<div>', {class: 'glyphicon glyphicon-plus-sign '}).click(function() {
-      $relationTable.append(mkRelationRow({}, prefixedRelations));
+      $relationTable.append(mkRelationRow({readers:['everyone']}, prefixedRelations, prefixedRelationReaders));
     });
 
     var homepageVal = _.get(_.find(profile.links, ['key', 'homepage']), 'url', '');
@@ -622,6 +668,7 @@ module.exports = function(profile, params, submitF, cancelF) {
     var orcidVal = _.get(_.find(profile.links, ['key', 'orcid']), 'url', '');
     var wikipediaVal = _.get(_.find(profile.links, ['key', 'wikipedia']), 'url', '');
     var linkedinVal = _.get(_.find(profile.links, ['key', 'linkedin']), 'url', '');
+    var semanticScholarVal = _.get(_.find(profile.links,['key','semanticScholar']), 'url', '');
 
     var $urlTable1 = $('<table>', {id: 'url1_table', class: 'info_table'}).append(
       $('<tr>', {border: 0, class: ''}).append(
@@ -643,7 +690,9 @@ module.exports = function(profile, params, submitF, cancelF) {
 
       $('<tr>', { border: 0, class: '' }).append(
         $('<td>', { class: 'info_item'}).append(
-          $('<div>', { text: 'DBLP URL', class: 'small_heading' })
+          $('<div>', { text: 'DBLP URL', class: 'small_heading' }).append($('<div>', {class: 'glyphicon glyphicon-info-sign faq-link '}).on('click',()=>{
+            window.open(`${location.origin}/faq#question-dblp-import`, '_blank');
+          }))
         )
       ),
       $('<tr>', { border: 0, class: 'info_row' }).append(
@@ -694,11 +743,19 @@ module.exports = function(profile, params, submitF, cancelF) {
       $('<tr>', {border: 0, class: ''}).append(
         $('<td>', {class: 'info_item'}).append(
           $('<div>', {text: 'Linkedin URL', class: 'small_heading'})
+        ),
+        $('<td>', {class: 'info_item'}).append(
+          $('<div>', {text: 'Semantic Scholar URL', class: 'small_heading'}).append($('<div>', {class: 'glyphicon glyphicon-info-sign faq-link '}).on('click',()=>{
+            window.open(`${location.origin}/faq#question-semantic-scholar`, '_blank');
+          }))
         )
       ),
       $('<tr>', {border: 0, class: 'info_row'}).append(
         $('<td>', {class: 'info_item'}).append(
           $('<input>', {class: 'form-control', type: 'text', id: 'linkedin_url', value: linkedinVal})
+        ),
+        $('<td>', {class: 'info_item'}).append(
+          $('<input>', {class: 'form-control', type: 'text', id: 'semanticScholar_url', value: semanticScholarVal})
         )
       )
     );
@@ -887,7 +944,8 @@ module.exports = function(profile, params, submitF, cancelF) {
       dblp: content.dblp,
       orcid: content.orcid,
       linkedin: content.linkedin,
-      wikipedia: content.wikipedia
+      wikipedia: content.wikipedia,
+      semanticScholar: content.semanticScholar,
     };
     if (!validateUrls(personalLinks, $('#url1_table'))) {
       return false;
@@ -1060,6 +1118,7 @@ module.exports = function(profile, params, submitF, cancelF) {
   var mkProfilePanel = function(profile, params, submitF) {
     var prefixedPositions = params.prefixedPositions;
     var prefixedRelations = params.prefixedRelations;
+    var prefixedRelationReaders = params.prefixedRelationReaders;
     var institutions = params.institutions;
     var prefixedInstitutions = institutions.map(function(i) {
       return i.id;
@@ -1150,7 +1209,8 @@ module.exports = function(profile, params, submitF, cancelF) {
             email: self.find('.relation_email').val().trim().toLowerCase(),
             relation: relation,
             start: Number(self.find('.start').val().trim()) || null,
-            end: Number(self.find('.end').val().trim()) || null
+            end: Number(self.find('.end').val().trim()) || null,
+            readers: self.find('.multiselector').data('val')
           });
         }
 
@@ -1200,6 +1260,7 @@ module.exports = function(profile, params, submitF, cancelF) {
         orcid: $urlTable.find('#orcid_url').val().trim(),
         linkedin: $urlTable.find('#linkedin_url').val().trim(),
         wikipedia: $urlTable.find('#wikipedia_url').val().trim(),
+        semanticScholar : $urlTable.find('#semanticScholar_url').val().trim(),
         emails: emailData[0],
         preferredEmail: emailData[1],
         history: historyData,
@@ -1210,7 +1271,7 @@ module.exports = function(profile, params, submitF, cancelF) {
 
 
     var $mainView = $('<div>', {class: 'profile-edit-container'});
-    var $panel = drawView(profile, prefixedPositions, prefixedInstitutions, institutions, prefixedRelations);
+    var $panel = drawView(profile, prefixedPositions, prefixedInstitutions, institutions, prefixedRelations, prefixedRelationReaders);
     renderPublicationEditor(profile.id);
 
     var $submitButton = $('<button class="btn">' + buttonText + '</button>').click(function() {

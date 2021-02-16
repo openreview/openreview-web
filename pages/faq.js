@@ -198,6 +198,17 @@ You can click on the minus icon to remove a publication from your profile. If yo
 You must click the "**Save Profile Changes**" button at the bottom of the page so that selected publications are removed from your profile.
 `,
   }, {
+    q: 'Where can I find the Semantic Scholar URL?',
+    id: 'question-semantic-scholar',
+    a: `To locate your Semantic Scholar URL, go to https://semanticscholar.org and search for the name your publish by.
+
+If Semantic Scholar has your data, an author tile with your name will appear under the search bar. Click on the author tile.
+
+<img src="/images/faq-semantic-search.png" alt="semantic scholar search result" class="img-answer"/><br/>
+
+Once you have identified your author page, the URL in the browser address bar is the Semantic Scholar URL that you can use in OpenReview profile edit page.
+    `,
+  }, {
     q: 'I couldn\'t find the answer to my question on this page. Where can I get more help?',
     id: 'question-more-help',
     a: `The best way to get help with a specific issue is to contact the program chairs or organizers of the venue you are participating in. Contact info can usually be found on the venue's OpenReview page.
