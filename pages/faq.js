@@ -200,13 +200,20 @@ You must click the "**Save Profile Changes**" button at the bottom of the page s
   }, {
     q: 'Where can I find the Semantic Scholar URL?',
     id: 'question-semantic-scholar',
-    a: `To locate your Semantic Scholar URL, go to https://semanticscholar.org and search for the name your publish by.
+    a: `To locate your Semantic Scholar URL, go to https://semanticscholar.org and search for the name you publish by.
 
-If Semantic Scholar has your data, an author tile with your name will appear under the search bar. Click on the author tile.
+If Semantic Scholar has your data, an author tile with your name will appear under the search bar. If your name is not immediately one of the top tiles, click the "Show All Authors" link to expand the tile section. Click on the author tile.
 
 <img src="/images/faq-semantic-search.png" alt="semantic scholar search result" class="img-answer"/><br/>
 
-Once you have identified your author page, the URL in the browser address bar is the Semantic Scholar URL that you can use in OpenReview profile edit page.
+Once you have identified your author page with the associated papers, **The URL in the browser address bar is the Semantic Scholar URL that you can use in OpenReview profile edit page**.
+
+You may use the "Claim Author Page" button located under your name at the top left of Semantic Scholar author page.
+
+<img src="/images/faq-semantic-claim.png" alt="semantic scholar search result"/><br/>
+
+After you have claimed your page and the claim has been approved you will receive email from Semantic Scholar for instructions of editing and updating your author page.
+If you find your papers under multiple author name variations in Semantic Scholar, you will have the option to add additional papers into your claimed Semantic Scholar author page.
     `,
   }, {
     q: 'I couldn\'t find the answer to my question on this page. Where can I get more help?',

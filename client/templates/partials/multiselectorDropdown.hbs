@@ -5,11 +5,13 @@
           {{buttonText}}
   </button>
   <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="{{id}}">
+    {{#unless hideSelectAll}}
     <li class="select-all-item">
       <label>
         <input class="select-all-checkbox" type="checkbox" checked/> Select All
       </label>
     </li>
+    {{/unless}}
     {{#each htmlFilters}}
       <li>
         <label>

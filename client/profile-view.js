@@ -286,7 +286,8 @@ module.exports = function(profile, params, submitF, cancelF) {
     var $relationReader = Handlebars.templates['partials/multiselectorDropdown']({
       buttonText: getDropdownText(prefill.readers),
       id: 'relation-reader',
-      htmlFilters: prefixedRelationReaders?.map(p => ({ valueFilter: p, textFilter: p }))
+      htmlFilters: prefixedRelationReaders?.map(p => ({ valueFilter: p, textFilter: view.prettyId(p) })),
+      hideSelectAll: prefixedRelationReaders?.length <= 1 // false to render select all
     });
 
     var $row = $('<tr>', {border: 0, class: 'info_row'}).append(
