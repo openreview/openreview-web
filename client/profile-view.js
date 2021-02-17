@@ -691,7 +691,11 @@ module.exports = function(profile, params, submitF, cancelF) {
 
       $('<tr>', { border: 0, class: '' }).append(
         $('<td>', { class: 'info_item'}).append(
-          $('<div>', { text: 'DBLP URL', class: 'small_heading' }).append($('<a>', { class: 'glyphicon glyphicon-info-sign faq-link', href: `${location.origin}/faq#question-dblp-import`, target: "_blank", rel: "noreferrer" }))
+          $('<div>', { text: 'DBLP URL', class: 'small_heading' }).append(
+            $('<a>', { class: 'faq-link', href: '/faq#question-dblp-import', target: '_blank', rel: 'noreferrer' }).append(
+              '<span class="glyphicon glyphicon-info-sign"></span>'
+            )
+          )
         )
       ),
       $('<tr>', { border: 0, class: 'info_row' }).append(
@@ -744,7 +748,11 @@ module.exports = function(profile, params, submitF, cancelF) {
           $('<div>', {text: 'Linkedin URL', class: 'small_heading'})
         ),
         $('<td>', {class: 'info_item'}).append(
-          $('<div>', { text: 'Semantic Scholar URL', class: 'small_heading' }).append($('<a>', { class: 'glyphicon glyphicon-info-sign faq-link', href: `${location.origin}/faq#question-semantic-scholar`, target: "_blank", rel: "noreferrer" }))
+          $('<div>', { text: 'Semantic Scholar URL', class: 'small_heading' }).append(
+            $('<a>', { class: 'faq-link', href: '/faq#question-semantic-scholar', target: '_blank', rel: 'noreferrer' }).append(
+              '<span class="glyphicon glyphicon-info-sign"></span>'
+            )
+          )
         )
       ),
       $('<tr>', {border: 0, class: 'info_row'}).append(
