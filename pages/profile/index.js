@@ -110,6 +110,11 @@ const ProfileHistory = ({ history }) => (
   </ProfileItem>
 )
 
+const getRelationVisibilityText = (readers) => {
+  if (!readers) return 'publicly visible'
+  return readers.includes('everyone') ? 'publicly visible' : 'not visible'
+}
+
 const ProfileRelation = ({ relation, isProfileOwner }) => (
   <ProfileItem className="table-row" itemMeta={relation.meta} editBadgeDiv>
     <div><strong>{relation.relation}</strong></div>
@@ -122,7 +127,7 @@ const ProfileRelation = ({ relation, isProfileOwner }) => (
         {relation.end ? relation.end : 'Present'}
       </em>
     </div>
-    {isProfileOwner && <div className="relation-visible">{`${relation.readers?.includes('everyone') ? 'publicly visible' : 'not visible'}`}</div>}
+    {isProfileOwner && <div className="relation-visible">{getRelationVisibilityText(relation.readers)}</div>}
   </ProfileItem>
 )
 
