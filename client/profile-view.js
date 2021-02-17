@@ -277,7 +277,7 @@ module.exports = function(profile, params, submitF, cancelF) {
     });
     $relation.find('input').attr({class:'form-control relation'});
 
-    var getDropdownText = function (readers) {
+    var getDropdownText = function(readers) {
       if (!readers || readers?.includes('everyone')) return 'everyone';
       var readerString = readers?.join(',');
       return readerString.length > 10 ? `${readerString.slice(0, 12)}...` : readerString;
@@ -317,25 +317,25 @@ module.exports = function(profile, params, submitF, cancelF) {
     );
 
     $row.find('.multiselector').data('val', prefill.readers || prefixedRelationReaders); // store the array value
-    $row.find('.dropdown-menu').find('input').prop('checked', false);
-    if(prefill.readers){
-      $row.find('.dropdown-menu').find('input').each((index, element) => { if (prefill.readers.includes(element.value)) $(element).prop('checked', true) });
+    $row.find('.dropdown-menu input').prop('checked', false);
+    if (prefill.readers) {
+      $row.find('.dropdown-menu input').each((index, element) => { if (prefill.readers.includes(element.value)) $(element).prop('checked', true) });
     }
 
     $row.find('.dropdown-menu').on('change', (e) => {
       if ($(e.target).attr('class') === 'select-all-checkbox') {
-        $row.find('.dropdown-menu').find('input').prop('checked', e.target.checked);
+        $row.find('.dropdown-menu input').prop('checked', e.target.checked);
         $row.find('.multiselector').data('val', e.target.checked ? prefixedRelationReaders : ['everyone']); // set data attr, default to everyone
         if (!e.target.checked) $row.find('.dropdown-menu').find('input[value="everyone"]').prop('checked', true); // leave everyone checked
         $row.find('#relation-reader').html('everyone'); // display text
       } else {
         var selectedReaders = [];
         // set select all checkbox
-        $row.find('.dropdown-menu').find('input.relation-reader-multiselector-checkbox:checked').each((index, element) => selectedReaders.push(element.value));
-        $row.find('.dropdown-menu').find('input.select-all-checkbox').prop('checked', _.isEqual(selectedReaders.sort(), prefixedRelationReaders.sort()));
+        $row.find('.dropdown-menu input.relation-reader-multiselector-checkbox:checked').each((index, element) => selectedReaders.push(element.value));
+        $row.find('.dropdown-menu input.select-all-checkbox').prop('checked', _.isEqual(selectedReaders.sort(), prefixedRelationReaders.sort()));
         // set default value (everyone) if nothing selected
         if (selectedReaders.length === 0) {
-          $row.find('.dropdown-menu').find('input[value="everyone"]').prop('checked', true);
+          $row.find('.dropdown-menu input[value="everyone"]').prop('checked', true);
           selectedReaders.push('everyone');
         }
         // set display text
@@ -691,9 +691,7 @@ module.exports = function(profile, params, submitF, cancelF) {
 
       $('<tr>', { border: 0, class: '' }).append(
         $('<td>', { class: 'info_item'}).append(
-          $('<div>', { text: 'DBLP URL', class: 'small_heading' }).append($('<div>', {class: 'glyphicon glyphicon-info-sign faq-link '}).on('click',()=>{
-            window.open(`${location.origin}/faq#question-dblp-import`, '_blank');
-          }))
+          $('<div>', { text: 'DBLP URL', class: 'small_heading' }).append($('<a>', { class: 'glyphicon glyphicon-info-sign faq-link', href: `${location.origin}/faq#question-dblp-import`, target: "_blank", rel: "noreferrer" }))
         )
       ),
       $('<tr>', { border: 0, class: 'info_row' }).append(
@@ -746,9 +744,7 @@ module.exports = function(profile, params, submitF, cancelF) {
           $('<div>', {text: 'Linkedin URL', class: 'small_heading'})
         ),
         $('<td>', {class: 'info_item'}).append(
-          $('<div>', {text: 'Semantic Scholar URL', class: 'small_heading'}).append($('<div>', {class: 'glyphicon glyphicon-info-sign faq-link '}).on('click',()=>{
-            window.open(`${location.origin}/faq#question-semantic-scholar`, '_blank');
-          }))
+          $('<div>', { text: 'Semantic Scholar URL', class: 'small_heading' }).append($('<a>', { class: 'glyphicon glyphicon-info-sign faq-link', href: `${location.origin}/faq#question-semantic-scholar`, target: "_blank", rel: "noreferrer" }))
         )
       ),
       $('<tr>', {border: 0, class: 'info_row'}).append(

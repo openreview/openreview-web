@@ -110,10 +110,10 @@ const ProfileHistory = ({ history }) => (
   </ProfileItem>
 )
 
-const ProfileRelation = ({ relation }) => (
+const ProfileRelation = ({ relation, isProfileOwner }) => (
   <ProfileItem className="table-row" itemMeta={relation.meta} editBadgeDiv>
     <div><strong>{relation.relation}</strong></div>
-    <div><span>{relation.name}</span></div>
+    <div className={`${isProfileOwner ? 'show-reader' : null}`}><span>{relation.name}</span></div>
     <div><small>{relation.email}</small></div>
     <div>
       <em>
@@ -122,6 +122,7 @@ const ProfileRelation = ({ relation }) => (
         {relation.end ? relation.end : 'Present'}
       </em>
     </div>
+    {isProfileOwner && <div className="relation-visible">{`${relation.readers?.includes('everyone') ? 'publicly visible' : 'not visible'}`}</div>}
   </ProfileItem>
 )
 
@@ -334,6 +335,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
               <ProfileRelation
                 key={relation.relation + relation.name + relation.email + relation.start + relation.end}
                 relation={relation}
+                isProfileOwner={profile.id === user?.profile?.id}
               />
             )) : (
               <p className="empty-message">No relations added</p>

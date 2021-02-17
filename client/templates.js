@@ -2575,7 +2575,7 @@ templates['partials/invitationInfoTable'] = template({"1":function(container,dep
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"editable") : depth0),{"name":"if","hash":{},"fn":container.program(16, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":64,"column":0},"end":{"line":186,"column":7}}})) != null ? stack1 : "");
 },"useData":true});
 templates['partials/multiselectorDropdown'] = template({"1":function(container,depth0,helpers,partials,data) {
-    return "    <li class=\"select-all-item\">\n      <label>\n        <input class=\"select-all-checkbox\" type=\"checkbox\" checked/> Select All\n      </label>\n    </li>\n";
+    return "      <li class=\"select-all-item\">\n        <label>\n          <input class=\"select-all-checkbox\" type=\"checkbox\" checked/> Select All\n        </label>\n      </li>\n";
 },"3":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var helper, alias1=container.escapeExpression, alias2=depth0 != null ? depth0 : (container.nullContext || {}), alias3=container.hooks.helperMissing, alias4="function", lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
