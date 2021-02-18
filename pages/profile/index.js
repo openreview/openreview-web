@@ -11,7 +11,7 @@ import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
 import { prettyList } from '../../lib/utils'
-import { auth } from '../../lib/auth'
+import { auth, isSuperUser } from '../../lib/auth'
 import { editProfileLink } from '../../lib/banner-links'
 
 // Page Styles
@@ -342,7 +342,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
               <ProfileRelation
                 key={relation.relation + relation.name + relation.email + relation.start + relation.end}
                 relation={relation}
-                isProfileOwner={profile.id === user?.profile?.id}
+                isProfileOwner={profile.id === user?.profile?.id || isSuperUser(user)}
               />
             )) : (
               <p className="empty-message">No relations added</p>

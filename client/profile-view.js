@@ -316,7 +316,7 @@ module.exports = function(profile, params, submitF, cancelF) {
       )
     );
 
-    $row.find('.multiselector').data('val', prefill.readers || prefixedRelationReaders); // store the array value
+    $row.find('.multiselector').data('val', prefill.readers || ['everyone']); // store the array value
     $row.find('.dropdown-menu input').prop('checked', false);
     $row.find('.dropdown-menu input[value="everyone"]').prop('checked', true); // everyone is the default value in case no reader present
     if (prefill.readers) {
