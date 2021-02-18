@@ -111,8 +111,10 @@ const ProfileHistory = ({ history }) => (
 )
 
 const getRelationVisibilityText = (readers) => {
-  if (!readers) return 'publicly visible'
-  return readers.includes('everyone') ? 'publicly visible' : 'not visible'
+  if (!readers) return null
+  return readers.includes('everyone')
+    ? null
+    : <span className="glyphicon glyphicon-eye-close relation-visible-icon" title="privately revealed to you" />
 }
 
 const ProfileRelation = ({ relation, isProfileOwner }) => (

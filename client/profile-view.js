@@ -318,8 +318,9 @@ module.exports = function(profile, params, submitF, cancelF) {
 
     $row.find('.multiselector').data('val', prefill.readers || prefixedRelationReaders); // store the array value
     $row.find('.dropdown-menu input').prop('checked', false);
+    $row.find('.dropdown-menu input[value="everyone"]').prop('checked', true); // everyone is the default value in case no reader present
     if (prefill.readers) {
-      $row.find('.dropdown-menu input').each((index, element) => { if (prefill.readers.includes(element.value)) $(element).prop('checked', true) });
+      $row.find('.dropdown-menu input').each((index, element) => { $(element).prop('checked', prefill.readers.includes(element.value)) });
     }
 
     $row.find('.dropdown-menu').on('change', (e) => {

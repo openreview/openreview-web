@@ -147,7 +147,7 @@ main.profile {
   @nameColWidth: 160px;
   @emailColWidth: 260px;
   @badgeColWidth: 16px;
-  @readerColWidth: 100px;
+  @readerColWidth: 10px;
 
   section.links {
     .section-content {
@@ -210,13 +210,16 @@ main.profile {
       }
       div.relation-visible{
         width: @readerColWidth;
-        font-size: .75rem;
-        color: @subtleGray;
       }
       div.edited {
         text-align: right;
         width: @badgeColWidth;
         padding-right: 2px;
+      }
+      .relation-visible-icon{
+        font-size: .75rem;
+        cursor: pointer;
+        color: @subtleGray;
       }
     }
   }
