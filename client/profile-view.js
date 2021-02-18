@@ -278,14 +278,13 @@ module.exports = function(profile, params, submitF, cancelF) {
     $relation.find('input').attr({class:'form-control relation'});
 
     var getDropdownText = function(readers) {
-      if (!readers || readers?.includes('everyone')) return 'everyone';
-      var readerString = readers?.join(',');
-      return readerString.length > 10 ? `${readerString.slice(0, 12)}...` : readerString;
+      if (!readers || readers.includes('everyone')) return 'everyone';
+      return _.truncate(readers.join(','), { length: 12 });
     }
 
     var $relationReader = Handlebars.templates['partials/multiselectorDropdown']({
       buttonText: getDropdownText(prefill.readers),
-      id: 'relation-reader',
+      id: 'relation-reader-' + _.random(1, 1000),
       htmlFilters: prefixedRelationReaders?.map(p => ({ valueFilter: p, textFilter: view.prettyId(p) })),
       hideSelectAll: prefixedRelationReaders?.length <= 1 // false to render select all
     });
@@ -328,7 +327,7 @@ module.exports = function(profile, params, submitF, cancelF) {
         $row.find('.dropdown-menu input').prop('checked', e.target.checked);
         $row.find('.multiselector').data('val', e.target.checked ? prefixedRelationReaders : ['everyone']); // set data attr, default to everyone
         if (!e.target.checked) $row.find('.dropdown-menu').find('input[value="everyone"]').prop('checked', true); // leave everyone checked
-        $row.find('#relation-reader').html('everyone'); // display text
+        $row.find('.multiselector .dropdown-toggle').html('everyone'); // display text
       } else {
         var selectedReaders = [];
         // set select all checkbox
@@ -340,7 +339,7 @@ module.exports = function(profile, params, submitF, cancelF) {
           selectedReaders.push('everyone');
         }
         // set display text
-        $row.find('#relation-reader').html(getDropdownText(selectedReaders));
+        $row.find('.multiselector .dropdown-toggle').html(getDropdownText(selectedReaders));
         // set data attr
         $row.find('.multiselector').data('val', selectedReaders);
       }
@@ -654,14 +653,14 @@ module.exports = function(profile, params, submitF, cancelF) {
       })));
     } else {
       $relationTable.append(
-        mkRelationRow({readers:['everyone']}, prefixedRelations, prefixedRelationReaders),
-        mkRelationRow({readers:['everyone']}, prefixedRelations, prefixedRelationReaders),
-        mkRelationRow({readers:['everyone']}, prefixedRelations, prefixedRelationReaders)
+        mkRelationRow({readers: ['everyone']}, prefixedRelations, prefixedRelationReaders),
+        mkRelationRow({readers: ['everyone']}, prefixedRelations, prefixedRelationReaders),
+        mkRelationRow({readers: ['everyone']}, prefixedRelations, prefixedRelationReaders)
       );
     }
 
     var $addRelationRow = $('<div>', {class: 'glyphicon glyphicon-plus-sign '}).click(function() {
-      $relationTable.append(mkRelationRow({readers:['everyone']}, prefixedRelations, prefixedRelationReaders));
+      $relationTable.append(mkRelationRow({readers: ['everyone']}, prefixedRelations, prefixedRelationReaders));
     });
 
     var homepageVal = _.get(_.find(profile.links, ['key', 'homepage']), 'url', '');
@@ -670,7 +669,7 @@ module.exports = function(profile, params, submitF, cancelF) {
     var orcidVal = _.get(_.find(profile.links, ['key', 'orcid']), 'url', '');
     var wikipediaVal = _.get(_.find(profile.links, ['key', 'wikipedia']), 'url', '');
     var linkedinVal = _.get(_.find(profile.links, ['key', 'linkedin']), 'url', '');
-    var semanticScholarVal = _.get(_.find(profile.links,['key','semanticScholar']), 'url', '');
+    var semanticScholarVal = _.get(_.find(profile.links, ['key','semanticScholar']), 'url', '');
 
     var $urlTable1 = $('<table>', {id: 'url1_table', class: 'info_table'}).append(
       $('<tr>', {border: 0, class: ''}).append(
