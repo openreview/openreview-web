@@ -282,9 +282,11 @@ module.exports = function(profile, params, submitF, cancelF) {
       return _.truncate(readers.join(','), { length: 12 });
     }
 
+    var uniqueId = 'relation-reader-' + _.random(1, 1000);
+
     var $relationReader = Handlebars.templates['partials/multiselectorDropdown']({
       buttonText: getDropdownText(prefill.readers),
-      id: 'relation-reader-' + _.random(1, 1000),
+      id: uniqueId,
       htmlFilters: prefixedRelationReaders?.map(p => ({ valueFilter: p, textFilter: view.prettyId(p) })),
       hideSelectAll: prefixedRelationReaders?.length <= 1 // false to render select all
     });
@@ -331,7 +333,7 @@ module.exports = function(profile, params, submitF, cancelF) {
       } else {
         var selectedReaders = [];
         // set select all checkbox
-        $row.find('.dropdown-menu input.relation-reader-multiselector-checkbox:checked').each((index, element) => selectedReaders.push(element.value));
+        $row.find('.dropdown-menu input.' + uniqueId + '-multiselector-checkbox:checked').each((index, element) => selectedReaders.push(element.value));
         $row.find('.dropdown-menu input.select-all-checkbox').prop('checked', _.isEqual(selectedReaders.sort(), prefixedRelationReaders.sort()));
         // set default value (everyone) if nothing selected
         if (selectedReaders.length === 0) {
