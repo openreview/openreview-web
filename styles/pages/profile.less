@@ -189,10 +189,7 @@ main.profile {
         width: @nameColWidth;
       }
       div:nth-child(2) {
-        width: calc(~'100%' - (@nameColWidth + @dateColWidth + @badgeColWidth + @emailColWidth));
-      }
-      div:nth-child(2).show-reader{
-          width: calc(~'100%' - (@nameColWidth + @dateColWidth + @badgeColWidth + @emailColWidth + @readerColWidth));
+        width: calc(~'100%' - (@nameColWidth + @dateColWidth + @badgeColWidth + @emailColWidth + @readerColWidth));
       }
       div:nth-child(3) {
         width: @emailColWidth;
@@ -208,10 +205,10 @@ main.profile {
       div:nth-child(4) {
         width: @dateColWidth;
       }
-      div.relation-visible{
+      div:nth-child(5) {
         width: @readerColWidth;
       }
-      div.edited {
+      div:nth-child(6) {
         text-align: right;
         width: @badgeColWidth;
         padding-right: 2px;
@@ -220,6 +217,7 @@ main.profile {
         font-size: .75rem;
         cursor: pointer;
         color: @subtleGray;
+        vertical-align: top;
       }
     }
   }

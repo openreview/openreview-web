@@ -11,7 +11,7 @@ import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
 import { prettyList } from '../../lib/utils'
-import { auth, isSuperUser } from '../../lib/auth'
+import { auth } from '../../lib/auth'
 import { editProfileLink } from '../../lib/banner-links'
 
 // Page Styles
@@ -49,14 +49,10 @@ const ProfileItem = ({
   }
 
   const editBadge = itemMeta.signatures && (
-    <span className="edit-badge glyphicon glyphicon-info-sign" aria-hidden="true" />
+    <span className="edit-badge glyphicon glyphicon-info-sign" aria-hidden="true" title={`Edited by ${prettyList(itemMeta.signatures)}`} />
   )
   return (
-    <div
-      className={`${className}${itemMeta.confirmed ? ' edit-confirmed' : ''}`}
-      data-toggle="tooltip"
-      title={`Edited by ${prettyList(itemMeta.signatures)}`}
-    >
+    <div className={`${className}${itemMeta.confirmed ? ' edit-confirmed' : ''}`}>
       {children}
       {' '}
       {editBadgeDiv ? <div className="edited">{editBadge}</div> : editBadge}
@@ -117,10 +113,10 @@ const getRelationVisibilityText = (readers) => {
     : <span className="glyphicon glyphicon-eye-close relation-visible-icon" title="privately revealed to you" />
 }
 
-const ProfileRelation = ({ relation, isProfileOwner }) => (
+const ProfileRelation = ({ relation }) => (
   <ProfileItem className="table-row" itemMeta={relation.meta} editBadgeDiv>
     <div><strong>{relation.relation}</strong></div>
-    <div className={`${isProfileOwner ? 'show-reader' : null}`}><span>{relation.name}</span></div>
+    <div><span>{relation.name}</span></div>
     <div><small>{relation.email}</small></div>
     <div>
       <em>
@@ -129,7 +125,7 @@ const ProfileRelation = ({ relation, isProfileOwner }) => (
         {relation.end ? relation.end : 'Present'}
       </em>
     </div>
-    {isProfileOwner && <div className="relation-visible">{getRelationVisibilityText(relation.readers)}</div>}
+    <div className="relation-visible">{getRelationVisibilityText(relation.readers)}</div>
   </ProfileItem>
 )
 
@@ -342,7 +338,6 @@ const Profile = ({ profile, publicProfile, appContext }) => {
               <ProfileRelation
                 key={relation.relation + relation.name + relation.email + relation.start + relation.end}
                 relation={relation}
-                isProfileOwner={profile.id === user?.profile?.id || isSuperUser(user)}
               />
             )) : (
               <p className="empty-message">No relations added</p>
