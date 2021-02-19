@@ -930,9 +930,13 @@ table.table-minimal {
 // User Moderation
 .moderation-container {
   .profiles-list {
-    width: 940px;
+    width: 1040px;
     margin: 1.75rem auto;
     min-height: 100px;
+
+    ul.list-paginated > li.blocked{
+      opacity: 50%;
+    }
 
     ul.list-paginated > li > span {
       line-height: 26px;
@@ -956,7 +960,7 @@ table.table-minimal {
         }
       }
       &.col-actions {
-        width: 160px;
+        width: 260px;
         text-align: right;
       }
     }

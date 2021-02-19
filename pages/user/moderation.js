@@ -43,7 +43,9 @@ const UserModerationQueue = ({
   const [profiles, setProfiles] = useState(null)
   const [pageNumber, setPageNumber] = useState(1)
   const [showRejectionModal, setShowRejectionModal] = useState(false)
+  const [showBlockConfirmationModal, setShowBlockConfirmationModal] = useState(false)
   const [profileIdToReject, setProfileIdToReject] = useState(null)
+  const [profileToBlock, setProfileToBlock] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
 
   const getProfiles = async () => {
@@ -55,6 +57,8 @@ const UserModerationQueue = ({
         sort: 'tcdate:desc',
         limit: pageSize,
         offset: (pageNumber - 1) * pageSize,
+        cache: false,
+        trash: !onlyModeration,
       }, { accessToken })
       setTotalCount(result.count ?? 0)
       setProfiles(result.profiles ?? [])
@@ -78,6 +82,11 @@ const UserModerationQueue = ({
     setShowRejectionModal(true)
   }
 
+  const blockUser = async (profile) => {
+    setProfileToBlock(profile)
+    setShowBlockConfirmationModal(true)
+  }
+
   useEffect(() => {
     getProfiles()
   }, [pageNumber])
@@ -92,7 +101,7 @@ const UserModerationQueue = ({
           {profiles.map((profile) => {
             const name = profile.content.names[0]
             return (
-              <li key={profile.id}>
+              <li key={profile.id} className={`${profile.ddate ? 'blocked' : null}`}>
                 <span className="col-name">
                   <a href={`/profile?id=${profile.id}`} target="_blank" rel="noreferrer" title={profile.id}>
                     {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
@@ -123,6 +132,12 @@ const UserModerationQueue = ({
                         <Icon name="remove-circle" />
                         {' '}
                         Reject
+                      </button>
+                      {' '}
+                      <button type="button" className="btn btn-xs" onClick={() => blockUser(profile)}>
+                        <Icon name="remove-circle" />
+                        {' '}
+                        Block
                       </button>
                     </>
                   ) : (
@@ -160,6 +175,13 @@ const UserModerationQueue = ({
         setDisplay={setShowRejectionModal}
         onModalClosed={() => getProfiles()}
         payload={{ accessToken, profileIdToReject }}
+      />
+
+      <BlockConfirmationModal
+        display={showBlockConfirmationModal}
+        setDisplay={setShowBlockConfirmationModal}
+        onModalClosed={() => getProfiles()}
+        payload={{ accessToken, profileToBlock }}
       />
     </div>
   )
@@ -214,6 +236,47 @@ const RejectionModal = ({
             <div className="modal-footer">
               <button type="button" className="btn btn-default" data-dismiss="modal" onClick={cleanup}>Cancel</button>
               <button type="button" className="btn btn-primary" onClick={submitRejection} disabled={!rejectionMessage}>Submit</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="modal-backdrop fade in" style={{ display: `${display ? 'block' : 'none'}` }} />
+    </>
+  )
+}
+
+const BlockConfirmationModal = ({
+  display, setDisplay, onModalClosed, payload,
+}) => {
+  const cleanup = () => {
+    setDisplay(false)
+    if (typeof onModalClosed === 'function') {
+      onModalClosed()
+    }
+  }
+
+  const blockUser = async (profileId) => {
+    try {
+      await api.post('/activate/moderate', { id: payload.profileToBlock.id, block: true }, { accessToken: payload.accessToken })
+      promptMessage(`${prettyId(profileId)} is blocked`)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  return (
+    <>
+      <div className="modal" tabIndex={-1} role="dialog" style={{ display: `${display ? 'block' : 'none'}` }}>
+        <div className="modal-dialog">
+          <div className="modal-content">
+
+            <div className="modal-body">
+              {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+              Blocking {`${payload.profileToBlock?.content?.names?.[0]?.first} ${payload.profileToBlock?.content?.names?.[0]?.last}`}, confirm?
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-default" data-dismiss="modal" onClick={cleanup}>Cancel</button>
+              <button type="button" className="btn btn-primary" onClick={blockUser}>Block</button>
             </div>
           </div>
         </div>
