@@ -1,15 +1,17 @@
 <div class="multiselector dropdown">
-  <button class="form-control input-sm dropdown-toggle" type="button"
+  <button class="form-control dropdown-toggle" type="button"
           id="{{id}}" data-toggle="dropdown"
           aria-haspopup="true" aria-expanded="true">
           {{buttonText}}
   </button>
   <ul class="dropdown-menu checkbox-menu allow-focus" aria-labelledby="{{id}}">
-    <li class="select-all-item">
-      <label>
-        <input class="select-all-checkbox" type="checkbox" checked/> Select All
-      </label>
-    </li>
+    {{#unless hideSelectAll}}
+      <li class="select-all-item">
+        <label>
+          <input class="select-all-checkbox" type="checkbox" checked/> Select All
+        </label>
+      </li>
+    {{/unless}}
     {{#each htmlFilters}}
       <li>
         <label>
