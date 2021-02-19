@@ -208,12 +208,12 @@ If Semantic Scholar has your data, an author tile with your name will appear und
 
 Once you have identified your author page with the associated papers, **The URL in the browser address bar is the Semantic Scholar URL that you can use in OpenReview profile edit page**.
 
-You may use the "Claim Author Page" button located under your name at the top left of Semantic Scholar author page.
+If you would like to edit your Semantic Scholar author page or add additional metadata (e.g. affiliation data) you may use the "Claim Author Page" button located under your name at the top left of your Semantic Scholar author page.
 
 <img src="/images/faq-semantic-claim.png" alt="semantic scholar search result"/><br/>
 
-After you have claimed your page and the claim has been approved you will receive email from Semantic Scholar for instructions of editing and updating your author page.
-If you find your papers under multiple author name variations in Semantic Scholar, you will have the option to add additional papers into your claimed Semantic Scholar author page.
+After you have claimed your page and the claim has been approved you will receive an email from Semantic Scholar with instructions to edit and update your author page.
+You will have the option to edit or add metadata, remove papers or add additional papers to your claimed Semantic Scholar author page (in case there are multiple author pages with your name).
     `,
   }, {
     q: 'I couldn\'t find the answer to my question on this page. Where can I get more help?',
