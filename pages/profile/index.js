@@ -175,6 +175,8 @@ const RecentPublications = ({
 }
 
 const CoAuthorsList = ({ coAuthors, loading }) => {
+  const [coAuthorsToShow, setCoAuthorsToShow] = useState([])
+  const numOfCoAuthorsToShow = 20
   const authorLink = ({ name, id, email }) => {
     if (id) return <Link href={`/profile?id=${id}`}><a>{name}</a></Link>
     if (email) {
@@ -185,16 +187,30 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
     return <span>{name}</span>
   }
 
+  const handleViewAllClick = () => {
+    setCoAuthorsToShow(coAuthors)
+  }
+
+  useEffect(() => {
+    setCoAuthorsToShow(coAuthors.slice(0, numOfCoAuthorsToShow))
+  }, [coAuthors])
+
   if (loading) {
     return <p className="loading-message"><em>Loading...</em></p>
   }
 
-  return coAuthors.length > 0 ? (
-    <ul className="list-unstyled">
-      {coAuthors.map(author => (
-        <li key={`${author.name}${author.id || author.email}`}>{authorLink(author)}</li>
-      ))}
-    </ul>
+  return coAuthorsToShow.length > 0 ? (
+    <>
+      <ul className="list-unstyled">
+        {coAuthorsToShow.map(author => (
+          <li key={`${author.name}${author.id || author.email}`}>{authorLink(author)}</li>
+        ))}
+      </ul>
+      <br />
+      {coAuthors.length > numOfCoAuthorsToShow && coAuthorsToShow.length <= numOfCoAuthorsToShow
+        // eslint-disable-next-line jsx-a11y/interactive-supports-focus, react/jsx-one-expression-per-line, jsx-a11y/anchor-is-valid
+        && <a onClick={handleViewAllClick} role="button">View all {coAuthors.length} co-authors</a>}
+    </>
   ) : (
     <p className="empty-message">No co-authors</p>
   )
