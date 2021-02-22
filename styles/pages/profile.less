@@ -143,10 +143,11 @@ main.profile {
     }
   }
 
-  @dateColWidth: 95px;
+  @dateColWidth: 100px;
   @nameColWidth: 160px;
   @emailColWidth: 260px;
   @badgeColWidth: 16px;
+  @readerColWidth: 10px;
 
   section.links {
     .section-content {
@@ -184,13 +185,13 @@ main.profile {
 
   section.relations {
     .table-row {
-      div:nth-child(1) {
+      > div:nth-child(1) {
         width: @nameColWidth;
       }
-      div:nth-child(2) {
-        width: calc(~'100%' - (@nameColWidth + @dateColWidth + @badgeColWidth + @emailColWidth));
+      > div:nth-child(2) {
+        width: calc(~'100%' - (@nameColWidth + @dateColWidth + @badgeColWidth + @emailColWidth + @readerColWidth));
       }
-      div:nth-child(3) {
+      > div:nth-child(3) {
         width: @emailColWidth;
         max-width: @emailColWidth;
         padding-right: 4px;
@@ -201,13 +202,23 @@ main.profile {
           max-width: @emailColWidth + 95px;
         }
       }
-      div:nth-child(4) {
+      > div:nth-child(4) {
         width: @dateColWidth;
       }
-      div:nth-child(5) {
+      > div:nth-child(5) {
+        width: @readerColWidth;
+      }
+      > div:nth-child(6) {
         text-align: right;
         width: @badgeColWidth;
         padding-right: 2px;
+      }
+
+      .relation-visible-icon {
+        font-size: .75rem;
+        cursor: pointer;
+        color: @subtleGray;
+        vertical-align: top;
       }
     }
   }
@@ -258,6 +269,9 @@ main.profile {
   section.coauthors {
     ul li {
       line-height: 1.25rem;
+    }
+    .list-unstyled {
+      margin-bottom: 1rem;
     }
   }
 

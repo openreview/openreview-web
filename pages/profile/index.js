@@ -1,10 +1,14 @@
+/* globals $: false */
+
 import { useState, useEffect, useContext } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import Router, { useRouter } from 'next/router'
 import pick from 'lodash/pick'
+import random from 'lodash/random'
 import UserContext from '../../components/UserContext'
 import NoteList from '../../components/NoteList'
+import Icon from '../../components/Icon'
 import withError from '../../components/withError'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
@@ -48,14 +52,10 @@ const ProfileItem = ({
   }
 
   const editBadge = itemMeta.signatures && (
-    <span className="edit-badge glyphicon glyphicon-info-sign" aria-hidden="true" />
+    <Icon name="info-sign" extraClasses="edit-badge" tooltip={`Edited by ${prettyList(itemMeta.signatures)}`} />
   )
   return (
-    <div
-      className={`${className}${itemMeta.confirmed ? ' edit-confirmed' : ''}`}
-      data-toggle="tooltip"
-      title={`Edited by ${prettyList(itemMeta.signatures)}`}
-    >
+    <div className={`${className}${itemMeta.confirmed ? ' edit-confirmed' : ''}`}>
       {children}
       {' '}
       {editBadgeDiv ? <div className="edited">{editBadge}</div> : editBadge}
@@ -121,6 +121,11 @@ const ProfileRelation = ({ relation }) => (
         {relation.end ? relation.end : 'Present'}
       </em>
     </div>
+    <div className="relation-visible">
+      {relation.readers && !relation.readers.includes('everyone') && (
+        <Icon name="eye-close" extraClasses="relation-visible-icon" tooltip="Privately revealed to you" />
+      )}
+    </div>
   </ProfileItem>
 )
 
@@ -152,24 +157,28 @@ const RecentPublications = ({
   }
 
   return publications.length > 0 ? (
-    <div>
+    <>
       <NoteList
         notes={publications.slice(0, numPublicationsToShow)}
         displayOptions={displayOptions}
       />
+
       {count > numPublicationsToShow && (
         <Link href={`/search?term=${profileId}&content=authors&group=all&source=forum&sort=cdate:desc`}>
           {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
           <a>View all {count} publications</a>
         </Link>
       )}
-    </div>
+    </>
   ) : (
     <p className="empty-message">No recent publications</p>
   )
 }
 
 const CoAuthorsList = ({ coAuthors, loading }) => {
+  const [visibleCoAuthors, setVisibleCoAuthors] = useState([])
+  const numCoAuthorsToShow = 25
+
   const authorLink = ({ name, id, email }) => {
     if (id) return <Link href={`/profile?id=${id}`}><a>{name}</a></Link>
     if (email) {
@@ -180,16 +189,34 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
     return <span>{name}</span>
   }
 
+  const handleViewAllClick = (e) => {
+    e.preventDefault()
+    setVisibleCoAuthors(coAuthors)
+  }
+
+  useEffect(() => {
+    if (coAuthors) {
+      setVisibleCoAuthors(coAuthors.slice(0, numCoAuthorsToShow))
+    }
+  }, [coAuthors])
+
   if (loading) {
     return <p className="loading-message"><em>Loading...</em></p>
   }
 
-  return coAuthors.length > 0 ? (
-    <ul className="list-unstyled">
-      {coAuthors.map(author => (
-        <li key={`${author.name}${author.id || author.email}`}>{authorLink(author)}</li>
-      ))}
-    </ul>
+  return visibleCoAuthors.length > 0 ? (
+    <>
+      <ul className="list-unstyled">
+        {visibleCoAuthors.map(author => (
+          <li key={`${author.name}${author.id || author.email}`}>{authorLink(author)}</li>
+        ))}
+      </ul>
+
+      {coAuthors.length > visibleCoAuthors.length && (
+        // eslint-disable-next-line react/jsx-one-expression-per-line, jsx-a11y/anchor-is-valid
+        <a href="#" onClick={handleViewAllClick} role="button">View all {coAuthors.length} co-authors</a>
+      )}
+    </>
   ) : (
     <p className="empty-message">No co-authors</p>
   )
@@ -240,6 +267,8 @@ const Profile = ({ profile, publicProfile, appContext }) => {
     }
 
     loadPublications()
+
+    $('[data-toggle="tooltip"]').tooltip()
   }, [profile, profileQuery, user, userLoading, accessToken])
 
   useEffect(() => {
@@ -314,7 +343,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
           >
             {profile.history?.length > 0 ? profile.history.map(history => (
               <ProfileHistory
-                key={history.position + history.institution.name + history.start + history.end}
+                key={history.institution.name + (history.position || random(1, 100)) + (history.start || '') + (history.end || '')}
                 history={history}
               />
             )) : (

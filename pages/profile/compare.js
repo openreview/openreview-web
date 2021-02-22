@@ -361,6 +361,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       gscholar: addMetadata(profile, 'gscholar'),
       linkedin: addMetadata(profile, 'linkedin'),
       wikipedia: addMetadata(profile, 'wikipedia'),
+      semanticScholar: addMetadata(profile, 'semanticScholar'),
       orcid: addMetadata(profile, 'orcid'),
       history: addMetadata(profile, 'history'),
       expertise: addMetadata(profile, 'expertise'),

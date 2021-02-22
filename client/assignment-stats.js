@@ -39,12 +39,20 @@ var loadFromNotes = function(assignmentConfigNote) {
 
 var loadFromEdges = function(assignmentConfigNote) {
   var paperInvitationElements = assignmentConfigNote.paper_invitation.split('&');
-  var getNotesArgs = {invitation: paperInvitationElements[0]};
-  paperInvitationElements.slice(1).forEach(function(filter) {
-    var filterElements = filter.split('=');
-    getNotesArgs[filterElements[0]] = filterElements[1];
-  });
-  var papersP = Webfield.getAll('/notes', getNotesArgs);
+  var papersP;
+  if (paperInvitationElements[0].includes('/-/')) {
+    var getNotesArgs = {invitation: paperInvitationElements[0]};
+    paperInvitationElements.slice(1).forEach(function(filter) {
+      var filterElements = filter.split('=');
+      getNotesArgs[filterElements[0]] = filterElements[1];
+    });
+    papersP = Webfield.getAll('/notes', getNotesArgs);
+  } else {
+    papersP = Webfield.get('/groups', {id: paperInvitationElements[0]})
+    .then(function(result) {
+      return _.get(result, 'groups[0].members', []).map(function(member) { return { id: member }; });
+    });
+  }
   var usersP = Webfield.get('/groups', {id: assignmentConfigNote.match_group})
   .then(function(result) {
     return _.get(result, 'groups[0].members');

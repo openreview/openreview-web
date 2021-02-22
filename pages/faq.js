@@ -145,15 +145,76 @@ For more details on the difference between OpenReview's TeX support and other sy
   }, {
     q: 'How do I import my papers from DBLP?',
     id: 'question-dblp-import',
-    a: `To import DBLP publications, you need to get the "Persistent DBLP URL" from your DBLP homepage.
+    a: `**To add existing DBLP publications to your OpenReview profile**:
+
+  1. **Login to OpenReview**<br/>
+  You can click on the "Login" on the right of navigation menu to login to OpenReview.
+
+
+  2. **Go to edit mode of your profile page**<br/>
+  Click on your name on the right of navigation menu and click on "Profile" link in the dropdown displayed.
+  <img src="/images/faq-dblp-profile.png" alt="go to profile page" class="img-answer"/><br/>
+
+  When you are directed to the profile page, click on the "Edit Profile" button in the ribbon displayed under the navigation bar.
+  <img src="/images/faq-dblp-edit-profile.png" alt="go to edit mode" class="img-answer"/><br/>
+
+
+  3. **Add DBLP URL**<br/>
+  Look for "DBLP URL" text input under "Personal Links" section and enter the "Persistent DBLP URL".
+  <img src="/images/faq-dblp-input.png" alt="dblp url input" class="img-answer"/><br/>
+
+  You can get the "Persistent DBLP URL" from your DBLP homepage.
 
   To do so, hover over the <img src="/images/share_alt.svg" alt="share" class="share" /> icon to the right of your name in DBLP page heading and copy the persistent URL from the hover menu.
+  <img src="/images/faq-dblp.png" alt="dblp website" class="img-answer"/><br/>
 
-  ![Comment](/images/faq-dblp.png)
+  You can then go to your OpenReview profile page, click "Edit Profile", paste your persistent DBLP URL to the corresponding input.
 
-  You can then go to your OpenReview profile page, click 'Edit Profile', paste your persistent DBLP URL to the corresponding input, and then click the 'Add DBLP Papers to Profile' button to start importing DBLP papers.
 
-  If you get an error that says 'please ensure the provided DBLP URL is yours,' it may be because none of the names in your OpenReview profile match any of the author names in the DBLP papers. You can add a matching name to your OpenReview profile, save your profile and try importing again.`,
+  4. **Click "Add DBLP Papers to Profile" button**<br/>
+  Valid DBLP URL will enable the "Add DBLP Papers to Profile" button. Click the button and your DBLP publications will be listed in a modal window.
+
+
+  5. **Select the papers to upload**<br/>
+  Use the checkbox in front of each paper to select the papers which you would like to import to your OpenReview profile.
+
+
+  6. **Click "Add to Your Profile" button**<br/>
+  Click the "Add to Your Profile" button at the bottom of the modal window to import selected papers.
+  <img src="/images/faq-dblp-import.png" alt="import papers" class="img-answer"/><br/>
+
+If you get an error that says "please ensure the provided DBLP URL is yours", please ensure that name (or one of the names) in your OpenReview profile **matches exactly** with the name used in DBLP publications.
+You can add a matching name to your OpenReview profile by clicking the plus icon in "Names" section of the profile edit page, saving your profile by clicking the "Save Profile Changes" button at the bottom of profile edit page and try importing again.
+
+**To remove publications which are imported from DBLP from your profile**:
+
+Go to the edit mode of your profile page. Scroll to the bottom of the page and look for "Publications" section. All publications associated with your profile will be listed here but those imported from DBLP
+will have a minus icon displayed after the title.
+
+<img src="/images/faq-dblp-remove.png" alt="remove a paper" class="img-answer"/><br/>
+
+You can click on the minus icon to remove a publication from your profile. If you accidently clicked the remove (minus) icon and do not intend to remove the publication from your profile, you can click the icon again to reverse your operation.
+
+You must click the "**Save Profile Changes**" button at the bottom of the page so that selected publications are removed from your profile.
+`,
+  }, {
+    q: 'Where can I find the Semantic Scholar URL?',
+    id: 'question-semantic-scholar',
+    a: `To locate your Semantic Scholar URL, go to https://semanticscholar.org and search for the name you publish by.
+
+If Semantic Scholar has your data, an author tile with your name will appear under the search bar. If your name is not immediately one of the top tiles, click the "Show All Authors" link to expand the tile section. Click on the author tile.
+
+<img src="/images/faq-semantic-search.png" alt="semantic scholar search result" class="img-answer"/><br/>
+
+Once you have identified your author page with the associated papers, **The URL in the browser address bar is the Semantic Scholar URL that you can use in OpenReview profile edit page**.
+
+If you would like to edit your Semantic Scholar author page or add additional metadata (e.g. affiliation data) you may use the "Claim Author Page" button located under your name at the top left of your Semantic Scholar author page.
+
+<img src="/images/faq-semantic-claim.png" alt="semantic scholar search result"/><br/>
+
+After you have claimed your page and the claim has been approved you will receive an email from Semantic Scholar with instructions to edit and update your author page.
+You will have the option to edit or add metadata, remove papers or add additional papers to your claimed Semantic Scholar author page (in case there are multiple author pages with your name).
+    `,
   }, {
     q: 'I couldn\'t find the answer to my question on this page. Where can I get more help?',
     id: 'question-more-help',

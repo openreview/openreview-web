@@ -81,7 +81,7 @@ Handlebars.registerHelper('prettyInvitationId', function(invitationId, options) 
   }
 
   var entityStr = '';
-  var entities = ['Reviewers', 'Authors', 'Area_Chairs', 'Program_Chairs', 'Emergency_Reviewers'];
+  var entities = ['Reviewers', 'Authors', 'Area_Chairs', 'Program_Chairs', 'Emergency_Reviewers', 'Senior_Area_Chairs'];
   var groupSpecifier = invitationId.split('/-/')[0].split('/').pop();
   if (_.includes(entities, groupSpecifier)) {
     entityStr = groupSpecifier.replace(/_/g, ' ').slice(0, -1) + ' ';
@@ -366,7 +366,7 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
     html = '<div class="note-contents-collapse">' + contentHtml + '</div>';
   } else {
     // Need a random id to prevent collisions if there are 2 of the same note displayed
-    var collapseId = noteObj.id + '-details-' + Math.floor(Math.random() * 1000);
+    var collapseId = noteObj.id.replace('~', '') + '-details-' + Math.floor(Math.random() * 1000);
     html = '<a href="#' + collapseId + '" class="note-contents-toggle" role="button" data-toggle="collapse" aria-expanded="false">Show details</a>' +
       '<div class="collapse" id="' + collapseId + '">' +
         '<div class="note-contents-collapse">' + contentHtml + '</div>' +
