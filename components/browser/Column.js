@@ -590,7 +590,7 @@ export default function Column(props) {
               <label>Order By:</label>
               <select className="form-control input-sm" onChange={e => setColumnSort(e.target.value)}>
                 <option key={traverseInvitation.id} value="default">
-                  {prettyInvitationId(traverseInvitation.id)}
+                  default
                 </option>
                 {browseInvitations.map(inv => (
                   <option key={inv.id} value={inv.id}>
