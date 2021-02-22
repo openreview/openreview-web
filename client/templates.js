@@ -630,9 +630,9 @@ templates['noteReviewers'] = template({"1":function(container,depth0,helpers,par
         return undefined
     };
 
-  return "          <tr>\n            <td style=\"width: 20px;\"><strong>"
+  return "          <tr>\n            <td style=\"width: 40px;\"><strong>"
     + alias2(alias1(blockParams[0][1], depth0))
-    + ".</strong></td>\n            <td>\n              "
+    + "</strong></td>\n            <td>\n              "
     + alias2(alias1(((stack1 = blockParams[0][0]) != null ? lookupProperty(stack1,"name") : stack1), depth0))
     + " <span class=\"text-muted\">("
     + alias2(alias1(((stack1 = blockParams[0][0]) != null ? lookupProperty(stack1,"email") : stack1), depth0))
