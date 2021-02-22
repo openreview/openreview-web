@@ -97,8 +97,26 @@ export default function Column(props) {
 
     // First column
     if (!parentId && !startInvitation) {
-      const queryField = type === 'head' ? 'invitation' : 'group'
-      const entityInvitationName = prettyId(traverseInvitation[type].query[queryField])
+      const columnType = traverseInvitation[type].type
+      let entityInvitation = null
+      let defautEntityName = null
+      switch (columnType) {
+        case 'Note':
+          entityInvitation = traverseInvitation[type].query.invitation
+          defautEntityName = 'Notes'
+          break
+        case 'Profile':
+          entityInvitation = traverseInvitation[type].query.group
+          defautEntityName = 'Users'
+          break
+        case 'Group':
+          entityInvitation = traverseInvitation[type].query.group
+          defautEntityName = 'Groups'
+          break
+        default:
+          break
+      }
+      const entityInvitationName = entityInvitation ? prettyId(entityInvitation) : defautEntityName
       // eslint-disable-next-line react/jsx-one-expression-per-line
       return <p><strong>All {entityInvitationName}s</strong></p>
     }
