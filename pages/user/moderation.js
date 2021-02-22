@@ -144,11 +144,11 @@ const UserModerationQueue = ({
                     <button
                       type="button"
                       className="btn btn-xs delete-profile"
-                      disabled
+                      onClick={() => blockUser(profile)}
                     >
                       <Icon name="remove-circle" />
                       {' '}
-                      Delete
+                      Block
                     </button>
                   )}
                 </span>
