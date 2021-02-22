@@ -2875,7 +2875,7 @@ module.exports = (function() {
       var signatureId = signatures[0];
 
       //Where the signature is an AnonReviewer and it is not selected in the readers value
-      var index = signatureId.indexOf('AnonReviewer');
+      var index = Math.max(signatureId.indexOf('AnonReviewer'), signatureId.indexOf('Reviewers_'));
       if (index >= 0) {
         var reviewersSubmittedId = signatureId.slice(0, index).concat('Reviewers/Submitted');
         var reviewersId = signatureId.slice(0, index).concat('Reviewers');
@@ -3165,10 +3165,10 @@ module.exports = (function() {
 
             //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
             var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
-            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer'); });
+            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewers_');  });
             if (hasReviewers && !hasAnonReviewers) {
               fieldDescription['values-dropdown'].forEach(function(value) {
-                if (value.includes('AnonReviewer')) {
+                if (value.includes('AnonReviewer') || value.includes('Reviewers_')) {
                   replyValues.push(value);
                 }
               });
