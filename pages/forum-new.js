@@ -18,7 +18,7 @@ import withError from '../components/withError'
 import ForumReplyContext from '../components/ForumReplyContext'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
-import { auth, isSuperUser } from '../lib/auth'
+import { auth } from '../lib/auth'
 import {
   prettyId, inflect, forumDate, getConferenceName, prettyInvitationId,
 } from '../lib/utils'
@@ -69,20 +69,19 @@ const ForumAuthors = ({
 const ForumMeta = ({ note }) => (
   <div className="meta_row">
     <span className="date item">
+      <Icon name="calendar" />
       {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year)}
     </span>
 
-    {note.content.venue ? (
-      <span className="item">{note.content.venue}</span>
-    ) : (
-      <span className="item">{prettyId(note.invitation)}</span>
-    )}
+    <span className="item">
+      <Icon name="folder-open" />
+      {note.content.venue || prettyId(note.invitation)}
+    </span>
 
     {note.readers && (
-      <span className="item">
-        Readers:
-        {' '}
-        <NoteReaders readers={note.readers} />
+      <span className="item readers" data-toggle="tooltip" data-placement="top" title={`Visible to ${note.readers.join(', ')}`}>
+        <Icon name="eye-open" />
+        {note.readers.map(reader => prettyId(reader, true)).join(', ')}
       </span>
     )}
   </div>
@@ -466,29 +465,29 @@ const Forum = ({ forumNote, query, appContext }) => {
 
             <div className="form-group">
               <div className="btn-group btn-group-sm" role="group" aria-label="nesting level">
-                <button type="button" className="btn btn-default" onClick={e => setNestingLevel(0)}>
+                <button type="button" className={`btn btn-default ${nestingLevel === 0 ? 'active' : ''}`} onClick={e => setNestingLevel(0)}>
                   <Icon name="list" />
                   <span className="sr-only">Linear</span>
                 </button>
-                <button type="button" className="btn btn-default" onClick={e => setNestingLevel(1)}>
+                <button type="button" className={`btn btn-default ${nestingLevel === 1 ? 'active' : ''}`} onClick={e => setNestingLevel(1)}>
                   <Icon name="align-left" />
                   <span className="sr-only">Threaded</span>
                 </button>
-                <button type="button" className="btn btn-default" onClick={e => setNestingLevel(2)}>
+                <button type="button" className={`btn btn-default ${nestingLevel === 2 ? 'active' : ''}`} onClick={e => setNestingLevel(2)}>
                   <Icon name="indent-left" />
                   <span className="sr-only">Nested</span>
                 </button>
               </div>
               <div className="btn-group btn-group-sm" role="group" aria-label="collapse level">
-                <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(0)}>
+                <button type="button" className={`btn btn-default ${setCollapseLevel === 0 ? 'active' : ''}`} onClick={e => setCollapseLevel(0)}>
                   <Icon name="resize-small" />
                   <span className="sr-only">Collapsed</span>
                 </button>
-                <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(1)}>
+                <button type="button" className={`btn btn-default ${setCollapseLevel === 1 ? 'active' : ''}`} onClick={e => setCollapseLevel(1)}>
                   <Icon name="resize-full" />
                   <span className="sr-only">Default</span>
                 </button>
-                <button type="button" className="btn btn-default" onClick={e => setCollapseLevel(2)}>
+                <button type="button" className={`btn btn-default ${setCollapseLevel === 2 ? 'active' : ''}`} onClick={e => setCollapseLevel(2)}>
                   <Icon name="fullscreen" />
                   <span className="sr-only">Expanded</span>
                 </button>
@@ -508,7 +507,7 @@ const Forum = ({ forumNote, query, appContext }) => {
                 <label className="control-label icon-label" data-toggle="tooltip" data-placement="top" title="Visible to"><Icon name="eye-open" /></label>
                 <ToggleButtonGroup
                   name="readers-filter"
-                  className="readers-filter"
+                  className={`readers-filter ${selectedFilters.readers ? '' : 'no-selection-highlighted'}`}
                   options={readersFilterOptions || []}
                   isDisabled={!readersFilterOptions}
                   onChange={(selectedOptions) => {
