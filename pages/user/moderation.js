@@ -9,6 +9,7 @@ import LoadSpinner from '../../components/LoadingSpinner'
 import PaginationLinks from '../../components/PaginationLinks'
 import api from '../../lib/api-client'
 import { prettyId, formatDateTime } from '../../lib/utils'
+import '../../styles/pages/moderation.less'
 
 const Moderation = ({ appContext, accessToken }) => {
   const { setBannerHidden } = appContext
@@ -45,7 +46,7 @@ const UserModerationQueue = ({
   const [showRejectionModal, setShowRejectionModal] = useState(false)
   const [showBlockConfirmationModal, setShowBlockConfirmationModal] = useState(false)
   const [profileIdToReject, setProfileIdToReject] = useState(null)
-  const [profileToBlock, setProfileToBlock] = useState(null)
+  const [profileToBlockUnblock, setProfileToBlockUnblock] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
 
   const getProfiles = async () => {
@@ -82,8 +83,8 @@ const UserModerationQueue = ({
     setShowRejectionModal(true)
   }
 
-  const blockUser = async (profile) => {
-    setProfileToBlock(profile)
+  const blockUnblockUser = async (profile) => {
+    setProfileToBlockUnblock(profile)
     setShowBlockConfirmationModal(true)
   }
 
@@ -134,21 +135,21 @@ const UserModerationQueue = ({
                         Reject
                       </button>
                       {' '}
-                      <button type="button" className="btn btn-xs" onClick={() => blockUser(profile)}>
-                        <Icon name="remove-circle" />
-                        {' '}
+                      <button type="button" className="btn btn-xs block-profile" onClick={() => blockUnblockUser(profile)}>
+                        <Icon name="ban-circle" />
+                        {'   '}
                         Block
                       </button>
                     </>
                   ) : (
                     <button
                       type="button"
-                      className="btn btn-xs delete-profile"
-                      onClick={() => blockUser(profile)}
+                      className="btn btn-xs block-profile"
+                      onClick={() => blockUnblockUser(profile)}
                     >
-                      <Icon name="remove-circle" />
+                      <Icon name={`${profile.ddate ? 'refresh' : 'ban-circle'}`} />
                       {' '}
-                      Block
+                      {`${profile.ddate ? 'Unblock' : 'Block'}`}
                     </button>
                   )}
                 </span>
@@ -181,7 +182,7 @@ const UserModerationQueue = ({
         display={showBlockConfirmationModal}
         setDisplay={setShowBlockConfirmationModal}
         onModalClosed={() => getProfiles()}
-        payload={{ accessToken, profileToBlock }}
+        payload={{ accessToken, profileToBlockUnblock }}
       />
     </div>
   )
@@ -248,6 +249,8 @@ const RejectionModal = ({
 const BlockConfirmationModal = ({
   display, setDisplay, onModalClosed, payload,
 }) => {
+  const actionIsBlock = !payload.profileToBlockUnblock?.ddate
+
   const cleanup = () => {
     setDisplay(false)
     if (typeof onModalClosed === 'function') {
@@ -255,12 +258,13 @@ const BlockConfirmationModal = ({
     }
   }
 
-  const blockUser = async (profileId) => {
+  const blockUnblockUser = async (profileId) => {
     try {
-      await api.post('/activate/moderate', { id: payload.profileToBlock.id, block: true }, { accessToken: payload.accessToken })
-      promptMessage(`${prettyId(profileId)} is blocked`)
+      await api.post('/profiles/block', { id: payload.profileToBlockUnblock.id, block: actionIsBlock ? true : undefined }, { accessToken: payload.accessToken })
     } catch (error) {
       promptError(error.message)
+    } finally {
+      cleanup()
     }
   }
 
@@ -272,11 +276,11 @@ const BlockConfirmationModal = ({
 
             <div className="modal-body">
               {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-              Blocking {`${payload.profileToBlock?.content?.names?.[0]?.first} ${payload.profileToBlock?.content?.names?.[0]?.last}`}, confirm?
+              {`${payload.profileToBlockUnblock?.content?.names?.[0]?.first} ${payload.profileToBlockUnblock?.content?.names?.[0]?.last} will be ${actionIsBlock ? 'blocked' : 'unblocked'}`}, confirm?
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-default" data-dismiss="modal" onClick={cleanup}>Cancel</button>
-              <button type="button" className="btn btn-primary" onClick={blockUser}>Block</button>
+              <button type="button" className="btn btn-primary" onClick={blockUnblockUser}>{`${actionIsBlock ? 'Block' : 'Unblock'}`}</button>
             </div>
           </div>
         </div>
