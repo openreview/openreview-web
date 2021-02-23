@@ -1,8 +1,10 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/destructuring-assignment */
 /* globals Webfield: false */
+/* globals $: false */
 
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
+import Icon from '../Icon'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
@@ -108,13 +110,18 @@ export default function NoteEntity(props) {
     }
   }
 
+  useEffect(() => {
+    $('[data-toggle="tooltip"]').tooltip()
+  }, [])
+
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <li className={`entry entry-note ${extraClasses.join(' ')}`} onClick={handleClick}>
       <div className="note-heading">
         <h3>
           <a href={`/forum?id=${forum}`} title="Open forum for this paper" target="_blank" rel="noreferrer">
-            {title}
+            {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+            {title} {editEdge?.id && <Icon name="info-sign" tooltip={`created by ${editEdge.signatures.join(',')}`} />}
           </a>
           {' '}
           <span>{`(#${number})`}</span>

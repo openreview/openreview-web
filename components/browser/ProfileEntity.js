@@ -1,8 +1,10 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/destructuring-assignment */
 /* globals Webfield: false */
+/* globals $: false */
 
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
+import Icon from '../Icon'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
@@ -99,6 +101,10 @@ export default function ProfileEntity(props) {
     }
   }
 
+  useEffect(() => {
+    $('[data-toggle="tooltip"]').tooltip()
+  }, [])
+
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <li className={`entry entry-reviewer ${extraClasses.join(' ')}`} onClick={handleClick}>
@@ -106,7 +112,7 @@ export default function ProfileEntity(props) {
         <h3>
           <a href={`/profile?id=${id}`} title={`Profile for ${id}`} target="_blank" rel="noreferrer">
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            {content.name.first} {content.name.middle} {content.name.last}
+            {content.name.first} {content.name.middle} {content.name.last} {editEdge?.id && <Icon name="info-sign" tooltip={`Edited by ${editEdge?.signatures?.join(',')}`} />}
           </a>
         </h3>
 
