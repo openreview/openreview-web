@@ -3,7 +3,7 @@
 /* globals Webfield: false */
 /* globals $: false */
 
-import { useContext, useEffect } from 'react'
+import { useContext } from 'react'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
