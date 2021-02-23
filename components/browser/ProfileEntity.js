@@ -105,7 +105,6 @@ export default function ProfileEntity(props) {
     }
   }
 
-
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <li className={`entry entry-reviewer ${extraClasses.join(' ')}`} onClick={handleClick} onMouseEnter={e => handleHover(e.target)}>
