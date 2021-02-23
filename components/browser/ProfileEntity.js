@@ -4,7 +4,6 @@
 /* globals $: false */
 
 import { useContext, useEffect } from 'react'
-import Icon from '../Icon'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
@@ -68,6 +67,11 @@ export default function ProfileEntity(props) {
       .then(res => props.addEdgeToEntity(id, res))
   }
 
+  const handleHover = (target) => {
+    if (!editEdge?.id) return
+    $(target).tooltip({ title: `Edited by ${editEdge.signatures?.join(',')}` })
+  }
+
   // TODO: determine what widget to use based on the reply object of the edit invitation
   let editEdgeWidget = null
   if (editEdge && editEdge.invitation === editInvitation.id) {
@@ -101,18 +105,15 @@ export default function ProfileEntity(props) {
     }
   }
 
-  useEffect(() => {
-    $('[data-toggle="tooltip"]').tooltip()
-  }, [])
 
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-    <li className={`entry entry-reviewer ${extraClasses.join(' ')}`} onClick={handleClick}>
+    <li className={`entry entry-reviewer ${extraClasses.join(' ')}`} onClick={handleClick} onMouseEnter={e => handleHover(e.target)}>
       <div className="reviewer-heading">
         <h3>
           <a href={`/profile?id=${id}`} title={`Profile for ${id}`} target="_blank" rel="noreferrer">
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            {content.name.first} {content.name.middle} {content.name.last} {editEdge?.id && <Icon name="info-sign" tooltip={`Edited by ${editEdge?.signatures?.join(',')}`} />}
+            {content.name.first} {content.name.middle} {content.name.last}
           </a>
         </h3>
 

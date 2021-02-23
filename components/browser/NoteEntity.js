@@ -4,7 +4,6 @@
 /* globals $: false */
 
 import { useContext, useEffect } from 'react'
-import Icon from '../Icon'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
@@ -74,6 +73,11 @@ export default function NoteEntity(props) {
       .then(res => props.addEdgeToEntity(id, res))
   }
 
+  const handleHover = (target) => {
+    if (!editEdge?.id) return
+    $(target).tooltip({ title: `Edited by ${editEdge.signatures?.join(',')}` })
+  }
+
   let editEdgeWidget = null
   let editEdgeWidgetPosition
 
@@ -110,18 +114,13 @@ export default function NoteEntity(props) {
     }
   }
 
-  useEffect(() => {
-    $('[data-toggle="tooltip"]').tooltip()
-  }, [])
-
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-    <li className={`entry entry-note ${extraClasses.join(' ')}`} onClick={handleClick}>
+    <li className={`entry entry-note ${extraClasses.join(' ')}`} onClick={handleClick} onMouseEnter={e => handleHover(e.target)}>
       <div className="note-heading">
         <h3>
           <a href={`/forum?id=${forum}`} title="Open forum for this paper" target="_blank" rel="noreferrer">
-            {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            {title} {editEdge?.id && <Icon name="info-sign" tooltip={`created by ${editEdge.signatures.join(',')}`} />}
+            {title}
           </a>
           {' '}
           <span>{`(#${number})`}</span>
