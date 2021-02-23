@@ -6,26 +6,11 @@ import NoteEntity from './NoteEntity'
 import GroupEntity from './GroupEntity'
 import ProfileEntity from './ProfileEntity'
 import TagEntity from './TagEntity'
+import { pluralizeString } from '../../lib/utils'
 
 export default function EntityList(props) {
   const { traverseInvitation } = useContext(EdgeBrowserContext)
-
-  let traverseLabel = 'Edges'
-  if (traverseInvitation.name === 'Paper Assignment') {
-    if (props.type === 'Note') {
-      traverseLabel = 'Assigned Reviewers'
-    } else if (props.type === 'Profile') {
-      traverseLabel = 'Assigned Papers'
-    }
-  } else if (traverseInvitation.name === 'Paper Similarity') {
-    traverseLabel = 'Similar Papers'
-  } else if (traverseInvitation.name === 'Recommendation') {
-    if (props.type === 'Note') {
-      traverseLabel = 'Recommended Reviewers'
-    } else if (props.type === 'Profile') {
-      traverseLabel = 'Number of Recommendations'
-    }
-  }
+  const traverseLabel = pluralizeString(traverseInvitation.name.split(' ').pop())
 
   const renderEntity = (entity) => {
     if ((entity.metadata && entity.metadata.isHidden) && !props.showHiddenItems) {
