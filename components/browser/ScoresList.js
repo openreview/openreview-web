@@ -6,14 +6,13 @@ export default function ScoresList({ edges }) {
   return (
     <div className="scores-list">
       <ul className="list-unstyled">
-        {edges.map((e, i) => {
+        {edges.map((e) => {
           const val = (e.name === 'Conflict' || e.name === 'Bid' || e.weight == null)
             ? e.label
             : e.weight
 
           return (
-            // eslint-disable-next-line react/no-array-index-key
-            <li key={`${e.id}-${i}`}>
+            <li key={e.id}>
               <span>{`${e.name}:`}</span>
               {' '}
               <span>{val}</span>
