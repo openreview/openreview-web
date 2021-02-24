@@ -97,10 +97,28 @@ export default function Column(props) {
 
     // First column
     if (!parentId && !startInvitation) {
-      const queryField = type === 'head' ? 'invitation' : 'group'
-      const entityInvitationName = prettyId(traverseInvitation[type].query[queryField])
+      const columnType = traverseInvitation[type].type
+      let entityInvitation = null
+      let defautEntityName = null
+      switch (columnType) {
+        case 'Note':
+          entityInvitation = traverseInvitation[type].query.invitation
+          defautEntityName = 'Note'
+          break
+        case 'Profile':
+          entityInvitation = traverseInvitation[type].query.group
+          defautEntityName = 'User'
+          break
+        case 'Group':
+          entityInvitation = traverseInvitation[type].query.group
+          defautEntityName = 'Group'
+          break
+        default:
+          break
+      }
+      const entityInvitationName = entityInvitation ? prettyId(entityInvitation) : pluralizeString(defautEntityName)
       // eslint-disable-next-line react/jsx-one-expression-per-line
-      return <p><strong>All {entityInvitationName}s</strong></p>
+      return <p><strong>All {entityInvitationName}</strong></p>
     }
 
     const invitationName = startInvitation ? startInvitation.name : traverseInvitation.name
@@ -590,7 +608,7 @@ export default function Column(props) {
               <label>Order By:</label>
               <select className="form-control input-sm" onChange={e => setColumnSort(e.target.value)}>
                 <option key={traverseInvitation.id} value="default">
-                  {prettyInvitationId(traverseInvitation.id)}
+                  default
                 </option>
                 {browseInvitations.map(inv => (
                   <option key={inv.id} value={inv.id}>
