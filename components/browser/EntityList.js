@@ -52,7 +52,7 @@ export default function EntityList(props) {
       case 'Profile':
         return (
           <ProfileEntity
-            key={`${entity.id}`}
+            key={entity.id}
             profile={entity}
             traverseLabel={traverseLabel}
             addNewColumn={props.addNewColumn}
