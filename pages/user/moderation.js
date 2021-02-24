@@ -1,7 +1,7 @@
 /* globals promptError: false */
 /* globals promptMessage: false */
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useReducer } from 'react'
 import Head from 'next/head'
 import withAdminAuth from '../../components/withAdminAuth'
 import Icon from '../../components/Icon'
@@ -13,6 +13,7 @@ import '../../styles/pages/moderation.less'
 
 const Moderation = ({ appContext, accessToken }) => {
   const { setBannerHidden } = appContext
+  const [shouldReload, reload] = useReducer(p => !p, true)
 
   useEffect(() => {
     setBannerHidden(true)
@@ -30,16 +31,16 @@ const Moderation = ({ appContext, accessToken }) => {
       </header>
 
       <div className="moderation-container">
-        <UserModerationQueue accessToken={accessToken} title="Recently Created Profiles" onlyModeration={false} />
+        <UserModerationQueue accessToken={accessToken} title="Recently Created Profiles" onlyModeration={false} reload={reload} shouldReload={shouldReload} />
 
-        <UserModerationQueue accessToken={accessToken} title="New Profiles Pending Moderation" />
+        <UserModerationQueue accessToken={accessToken} title="New Profiles Pending Moderation" reload={reload} shouldReload={shouldReload} />
       </div>
     </>
   )
 }
 
 const UserModerationQueue = ({
-  accessToken, title, onlyModeration = true, pageSize = 15,
+  accessToken, title, onlyModeration = true, pageSize = 15, reload, shouldReload,
 }) => {
   const [profiles, setProfiles] = useState(null)
   const [pageNumber, setPageNumber] = useState(1)
@@ -58,7 +59,6 @@ const UserModerationQueue = ({
         sort: 'tcdate:desc',
         limit: pageSize,
         offset: (pageNumber - 1) * pageSize,
-        cache: false,
         trash: !onlyModeration,
       }, { accessToken })
       setTotalCount(result.count ?? 0)
@@ -90,7 +90,7 @@ const UserModerationQueue = ({
 
   useEffect(() => {
     getProfiles()
-  }, [pageNumber])
+  }, [pageNumber, shouldReload])
 
   return (
     <div className="profiles-list">
@@ -181,7 +181,7 @@ const UserModerationQueue = ({
       <BlockConfirmationModal
         display={showBlockConfirmationModal}
         setDisplay={setShowBlockConfirmationModal}
-        onModalClosed={() => getProfiles()}
+        onModalClosed={reload}
         payload={{ accessToken, profileToBlockUnblock }}
       />
     </div>
@@ -260,7 +260,7 @@ const BlockConfirmationModal = ({
 
   const blockUnblockUser = async (profileId) => {
     try {
-      await api.post('/profiles/block', { id: payload.profileToBlockUnblock.id, block: actionIsBlock ? true : undefined }, { accessToken: payload.accessToken })
+      await api.post('/profile/moderate', { id: payload.profileToBlockUnblock.id, block: actionIsBlock }, { accessToken: payload.accessToken })
     } catch (error) {
       promptError(error.message)
     } finally {
