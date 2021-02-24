@@ -70,8 +70,8 @@ const UserModerationQueue = ({
 
   const acceptUser = async (profileId) => {
     try {
-      await api.post('/activate/moderate', { id: profileId, activate: true }, { accessToken })
-      getProfiles()
+      await api.post('/profile/moderate', { id: profileId, activate: true }, { accessToken })
+      reload()
       promptMessage(`${prettyId(profileId)} is now active`)
     } catch (error) {
       promptError(error.message)
@@ -174,7 +174,7 @@ const UserModerationQueue = ({
       <RejectionModal
         display={showRejectionModal}
         setDisplay={setShowRejectionModal}
-        onModalClosed={() => getProfiles()}
+        onModalClosed={reload}
         payload={{ accessToken, profileIdToReject }}
       />
 
@@ -203,7 +203,7 @@ const RejectionModal = ({
 
   const submitRejection = async () => {
     try {
-      await api.post('/activate/moderate', {
+      await api.post('/profile/moderate', {
         id: payload.profileIdToReject,
         activate: false,
         reason: rejectionMessage,
