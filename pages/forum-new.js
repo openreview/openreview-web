@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 import truncate from 'lodash/truncate'
 import groupBy from 'lodash/groupBy'
 import isEqual from 'lodash/isEqual'
@@ -11,7 +11,6 @@ import Dropdown from '../components/Dropdown'
 import ToggleButtonGroup from '../components/form/ToggleButtonGroup'
 import ForumReply from '../components/ForumReply'
 import NoteAuthors from '../components/NoteAuthors'
-import NoteReaders from '../components/NoteReaders'
 import Icon from '../components/Icon'
 import NoteContent from '../components/NoteContent'
 import withError from '../components/withError'
@@ -27,6 +26,7 @@ import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 // Page Styles
 import '../styles/pages/forum-new.less'
+import useQuery from '../hooks/useQuery'
 
 const ForumTitle = ({
   id, title, pdf, html,
@@ -91,7 +91,133 @@ const ForumReplyCount = () => (
   <div className="reply-container" />
 )
 
-const Forum = ({ forumNote, query, appContext }) => {
+const FilterForm = ({ filterQuery, filterOptions, readersFilterOptions }) => {
+  const router = useRouter()
+
+  const updateQuery = (partialQuery) => {
+    const newSearchQuery = { id: filterQuery.id }
+
+    Object.keys(partialQuery).forEach((key) => {
+      if (partialQuery[key]) {
+        newSearchQuery[key] = Array.isArray(partialQuery[key])
+          ? partialQuery[key].join(',')
+          : partialQuery[key]
+      }
+    })
+
+    router.push({ pathname: '/forum-new', query: newSearchQuery }, undefined, { shallow: true })
+  }
+
+  return (
+    <form className="form-inline controls">
+      <div className="form-group">
+        {/* TODO: https://codesandbox.io/s/v638kx67w7 */}
+        <Dropdown
+          name="filters"
+          className="replies-filter"
+          options={filterOptions || []}
+          isDisabled={!filterOptions}
+          onChange={(selectedOptions) => {
+            const groupedOptions = groupBy(selectedOptions, 'type')
+            updateQuery({
+              filterInvitations: groupedOptions.invitation?.map(option => option.value) ?? null,
+              filterSignatures: groupedOptions.signature?.map(option => option.value) ?? null,
+            })
+          }}
+          placeholder="Filter..."
+          instanceId="replies-filter"
+          height={32}
+          isMulti
+          isSearchable
+        />
+      </div>
+
+      <div className="form-group">
+        <input
+          type="text"
+          className="form-control"
+          id="keyword-input"
+          placeholder="Search..."
+          onBlur={(e) => {
+            updateQuery({
+              filterKeywords: e.target.value ? [e.target.value.toLowerCase()] : null,
+            })
+          }}
+        />
+      </div>
+
+      <div className="form-group">
+        {/* <label htmlFor="keyword-input" className="control-label">Sort:</label> */}
+        <select id="sort-dropdown" className="form-control" onChange={(e) => { updateQuery({ sort: e.target.value }) }}>
+          <option value="date_desc">Sort: Most Recent</option>
+          <option value="date_asc">Sort: Least Recent</option>
+          {/* <option value="tag_desc">Sort: Most Tagged</option> */}
+        </select>
+      </div>
+
+      <div className="form-group">
+        <div className="btn-group btn-group-sm" role="group" aria-label="nesting level">
+          <button type="button" className={`btn btn-default ${filterQuery.view === 0 ? 'active' : ''}`} onClick={e => updateQuery({ view: 0 })}>
+            <Icon name="list" />
+            <span className="sr-only">Linear</span>
+          </button>
+          <button type="button" className={`btn btn-default ${!filterQuery.view || filterQuery.view === 1 ? 'active' : ''}`} onClick={e => updateQuery({ view: 0 })}>
+            <Icon name="align-left" />
+            <span className="sr-only">Threaded</span>
+          </button>
+          <button type="button" className={`btn btn-default ${filterQuery.view === 2 ? 'active' : ''}`} onClick={e => updateQuery({ view: 0 })}>
+            <Icon name="indent-left" />
+            <span className="sr-only">Nested</span>
+          </button>
+        </div>
+        <div className="btn-group btn-group-sm" role="group" aria-label="collapse level">
+          <button type="button" className={`btn btn-default ${filterQuery.collapse === 0 ? 'active' : ''}`} onClick={e => updateQuery({ collapse: 0 })}>
+            <Icon name="resize-small" />
+            <span className="sr-only">Collapsed</span>
+          </button>
+          <button type="button" className={`btn btn-default ${!filterQuery.collapse || filterQuery.collapse === 1 ? 'active' : ''}`} onClick={e => updateQuery({ collapse: 1 })}>
+            <Icon name="resize-full" />
+            <span className="sr-only">Default</span>
+          </button>
+          <button type="button" className={`btn btn-default ${filterQuery.collapse === 2 ? 'active' : ''}`} onClick={e => updateQuery({ collapse: 1 })}>
+            <Icon name="fullscreen" />
+            <span className="sr-only">Expanded</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="form-group">
+        <em className="control-label">
+          {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+          {/* details.replyCount - numRepliesHidden} / {inflect(details.replyCount, 'reply', 'replies', true)} shown */}
+        </em>
+      </div>
+
+      {readersFilterOptions?.length > 1 && (
+        <div className="form-group form-row">
+          {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+          <label className="control-label icon-label" data-toggle="tooltip" data-placement="top" title="Visible to"><Icon name="eye-open" /></label>
+          <ToggleButtonGroup
+            name="readers-filter"
+            className={`readers-filter ${filterQuery.filterReaders ? '' : 'no-selection-highlighted'}`}
+            options={readersFilterOptions || []}
+            isDisabled={!readersFilterOptions}
+            onChange={(selectedOptions) => {
+              const selectedReaders = selectedOptions.length > 0
+                ? selectedOptions.map(option => option.value).sort()
+                : null
+              updateQuery({
+                filterReaders: selectedReaders,
+              })
+            }}
+          />
+        </div>
+      )}
+    </form>
+  )
+}
+
+const Forum = ({ forumNote, appContext }) => {
   const { userLoading, accessToken } = useUser()
   const [replyNoteMap, setReplyNoteMap] = useState(null)
   const [parentMap, setParentMap] = useState(null)
@@ -103,6 +229,7 @@ const Forum = ({ forumNote, query, appContext }) => {
   const [selectedFilters, setSelectedFilters] = useState({
     invitations: null, signatures: null, keywords: null, readers: null,
   })
+  const query = useQuery()
 
   const { setBannerContent } = appContext
   const { id, content, details } = forumNote
@@ -347,6 +474,23 @@ const Forum = ({ forumNote, query, appContext }) => {
     setDisplayOptionsMap(newDisplayOptions)
   }, [replyNoteMap, orderedReplies, selectedFilters])
 
+  useEffect(() => {
+    setSelectedFilters({
+      invitations: query.filterInvitations?.split(',') ?? null,
+      signatures: query.filterSignatures?.split(',') ?? null,
+      keywords: query.filterKeywords?.split(',') ?? null,
+      readers: query.filterReaders?.split(',') ?? null,
+    })
+
+    if (query.view) {
+      setNestingLevel(query.view)
+    }
+
+    if (query.collapse) {
+      setCollapseLevel(query.collapse)
+    }
+  }, [query])
+
   return (
     <div className="forum-container">
       <Head>
@@ -415,114 +559,7 @@ const Forum = ({ forumNote, query, appContext }) => {
 
       <div className="row">
         <div className="col-xs-12">
-          <form className="form-inline controls">
-            <div className="form-group">
-              {/* TODO: https://codesandbox.io/s/v638kx67w7 */}
-              <Dropdown
-                name="filters"
-                className="replies-filter"
-                options={filterOptions || []}
-                isDisabled={!filterOptions}
-                onChange={(selectedOptions) => {
-                  const groupedOptions = groupBy(selectedOptions, 'type')
-                  setSelectedFilters({
-                    ...selectedFilters,
-                    invitations: groupedOptions.invitation?.map(option => option.value) ?? null,
-                    signatures: groupedOptions.signature?.map(option => option.value) ?? null,
-                  })
-                }}
-                placeholder="Filter..."
-                instanceId="replies-filter"
-                height={32}
-                isMulti
-                isSearchable
-              />
-            </div>
-
-            <div className="form-group">
-              <input
-                type="text"
-                className="form-control"
-                id="keyword-input"
-                placeholder="Search..."
-                onBlur={(e) => {
-                  setSelectedFilters({
-                    ...selectedFilters,
-                    keywords: e.target.value ? [e.target.value.toLowerCase()] : null,
-                  })
-                }}
-              />
-            </div>
-
-            <div className="form-group">
-              {/* <label htmlFor="keyword-input" className="control-label">Sort:</label> */}
-              <select id="sort-dropdown" className="form-control" onChange={(e) => { sortReplies(e.target.value) }}>
-                <option value="date_desc">Sort: Most Recent</option>
-                <option value="date_asc">Sort: Least Recent</option>
-                {/* <option value="tag_desc">Sort: Most Tagged</option> */}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <div className="btn-group btn-group-sm" role="group" aria-label="nesting level">
-                <button type="button" className={`btn btn-default ${nestingLevel === 0 ? 'active' : ''}`} onClick={e => setNestingLevel(0)}>
-                  <Icon name="list" />
-                  <span className="sr-only">Linear</span>
-                </button>
-                <button type="button" className={`btn btn-default ${nestingLevel === 1 ? 'active' : ''}`} onClick={e => setNestingLevel(1)}>
-                  <Icon name="align-left" />
-                  <span className="sr-only">Threaded</span>
-                </button>
-                <button type="button" className={`btn btn-default ${nestingLevel === 2 ? 'active' : ''}`} onClick={e => setNestingLevel(2)}>
-                  <Icon name="indent-left" />
-                  <span className="sr-only">Nested</span>
-                </button>
-              </div>
-              <div className="btn-group btn-group-sm" role="group" aria-label="collapse level">
-                <button type="button" className={`btn btn-default ${setCollapseLevel === 0 ? 'active' : ''}`} onClick={e => setCollapseLevel(0)}>
-                  <Icon name="resize-small" />
-                  <span className="sr-only">Collapsed</span>
-                </button>
-                <button type="button" className={`btn btn-default ${setCollapseLevel === 1 ? 'active' : ''}`} onClick={e => setCollapseLevel(1)}>
-                  <Icon name="resize-full" />
-                  <span className="sr-only">Default</span>
-                </button>
-                <button type="button" className={`btn btn-default ${setCollapseLevel === 2 ? 'active' : ''}`} onClick={e => setCollapseLevel(2)}>
-                  <Icon name="fullscreen" />
-                  <span className="sr-only">Expanded</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <em className="control-label">
-                {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-                {details.replyCount - numRepliesHidden} / {inflect(details.replyCount, 'reply', 'replies', true)} shown
-              </em>
-            </div>
-
-            {readersFilterOptions?.length > 1 && (
-              <div className="form-group form-row">
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                <label className="control-label icon-label" data-toggle="tooltip" data-placement="top" title="Visible to"><Icon name="eye-open" /></label>
-                <ToggleButtonGroup
-                  name="readers-filter"
-                  className={`readers-filter ${selectedFilters.readers ? '' : 'no-selection-highlighted'}`}
-                  options={readersFilterOptions || []}
-                  isDisabled={!readersFilterOptions}
-                  onChange={(selectedOptions) => {
-                    const selectedReaders = selectedOptions.length > 0
-                      ? selectedOptions.map(option => option.value).sort()
-                      : null
-                    setSelectedFilters({
-                      ...selectedFilters,
-                      readers: selectedReaders,
-                    })
-                  }}
-                />
-              </div>
-            )}
-          </form>
+          <FilterForm filterQuery={query} filterOptions={filterOptions} readersFilterOptions={readersFilterOptions} />
         </div>
       </div>
 
@@ -641,14 +678,14 @@ Forum.getInitialProps = async (ctx) => {
 
     // if blind submission return the forum
     if (note.original) {
-      return { forumNote: note, query: ctx.query }
+      return { forumNote: note }
     }
 
     const redirect = await shouldRedirect(note.id)
     if (redirect) {
       return redirectForum(redirect.id)
     }
-    return { forumNote: note, query: ctx.query }
+    return { forumNote: note }
   } catch (error) {
     if (error.name === 'forbidden') {
       const redirect = await shouldRedirect(ctx.query.id)
