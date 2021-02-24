@@ -75,7 +75,7 @@ export default function NoteEntity(props) {
 
   const handleHover = (target) => {
     if (!editEdge?.id) return
-    $(target).tooltip({ title: `Edited by ${editEdge.signatures?.join(',')}` })
+    $(target).tooltip({ title: `Edited by ${editEdge.signatures?.join(',')}`, trigger: 'hover' })
   }
 
   let editEdgeWidget = null

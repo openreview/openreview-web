@@ -69,7 +69,7 @@ export default function ProfileEntity(props) {
 
   const handleHover = (target) => {
     if (!editEdge?.id) return
-    $(target).tooltip({ title: `Edited by ${editEdge.signatures?.join(',')}` })
+    $(target).tooltip({ title: `Edited by ${editEdge.signatures?.join(',')}`, trigger: 'hover' })
   }
 
   // TODO: determine what widget to use based on the reply object of the edit invitation
