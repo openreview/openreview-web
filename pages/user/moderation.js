@@ -68,7 +68,7 @@ const UserModerationQueue = ({
 
   const acceptUser = async (profileId) => {
     try {
-      await api.post('/profile/moderate', { id: profileId, activate: true }, { accessToken })
+      await api.post('/profile/moderate', { id: profileId, status: 'accept' }, { accessToken })
       reload()
       promptMessage(`${prettyId(profileId)} is now active`)
     } catch (error) {
@@ -87,7 +87,7 @@ const UserModerationQueue = ({
     const confirmResult = window.confirm(`${profile?.content?.names?.[0]?.first} ${profile?.content?.names?.[0]?.last} will be ${actionIsBlock ? 'blocked' : 'unblocked'}, confirm?`)
     if (confirmResult) {
       try {
-        await api.post('/profile/moderate', { id: profile.id, block: actionIsBlock }, { accessToken })
+        await api.post('/profile/moderate', { id: profile.id, status: actionIsBlock ? 'block' : 'unblock' }, { accessToken })
       } catch (error) {
         promptError(error.message)
       } finally {
@@ -215,7 +215,7 @@ const RejectionModal = ({
     try {
       await api.post('/profile/moderate', {
         id: payload.profileIdToReject,
-        activate: false,
+        status: 'reject',
         reason: rejectionMessage,
       }, { accessToken: payload.accessToken })
     } catch (error) {
