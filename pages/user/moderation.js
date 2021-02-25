@@ -84,15 +84,14 @@ const UserModerationQueue = ({
   const blockUnblockUser = async (profile) => {
     const actionIsBlock = !profile?.ddate
     // eslint-disable-next-line no-alert
-    const confirmResult = window.confirm(`${profile?.content?.names?.[0]?.first} ${profile?.content?.names?.[0]?.last} will be ${actionIsBlock ? 'blocked' : 'unblocked'}, confirm?`)
+    const confirmResult = window.confirm(`Are you sure you want to ${actionIsBlock ? 'block' : 'unblock'} ${profile?.content?.names?.[0]?.first} ${profile?.content?.names?.[0]?.last}?`)
     if (confirmResult) {
       try {
         await api.post('/profile/moderate', { id: profile.id, status: actionIsBlock ? 'block' : 'unblock' }, { accessToken })
       } catch (error) {
         promptError(error.message)
-      } finally {
-        reload()
       }
+      reload()
     }
   }
 
