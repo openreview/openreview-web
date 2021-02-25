@@ -9,7 +9,7 @@ import LoadSpinner from '../../components/LoadingSpinner'
 import PaginationLinks from '../../components/PaginationLinks'
 import api from '../../lib/api-client'
 import { prettyId, formatDateTime } from '../../lib/utils'
-import '../../styles/pages/moderation.less'
+import Dropdown from '../../components/Dropdown'
 
 const Moderation = ({ appContext, accessToken }) => {
   const { setBannerHidden } = appContext
@@ -45,9 +45,7 @@ const UserModerationQueue = ({
   const [profiles, setProfiles] = useState(null)
   const [pageNumber, setPageNumber] = useState(1)
   const [showRejectionModal, setShowRejectionModal] = useState(false)
-  const [showBlockConfirmationModal, setShowBlockConfirmationModal] = useState(false)
   const [profileIdToReject, setProfileIdToReject] = useState(null)
-  const [profileToBlockUnblock, setProfileToBlockUnblock] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
 
   const getProfiles = async () => {
@@ -84,8 +82,18 @@ const UserModerationQueue = ({
   }
 
   const blockUnblockUser = async (profile) => {
-    setProfileToBlockUnblock(profile)
-    setShowBlockConfirmationModal(true)
+    const actionIsBlock = !profile?.ddate
+    // eslint-disable-next-line no-alert
+    const confirmResult = window.confirm(`${profile?.content?.names?.[0]?.first} ${profile?.content?.names?.[0]?.last} will be ${actionIsBlock ? 'blocked' : 'unblocked'}, confirm?`)
+    if (confirmResult) {
+      try {
+        await api.post('/profile/moderate', { id: profile.id, block: actionIsBlock }, { accessToken })
+      } catch (error) {
+        promptError(error.message)
+      } finally {
+        reload()
+      }
+    }
   }
 
   useEffect(() => {
@@ -135,7 +143,7 @@ const UserModerationQueue = ({
                         Reject
                       </button>
                       {' '}
-                      <button type="button" className="btn btn-xs block-profile" onClick={() => blockUnblockUser(profile)}>
+                      <button type="button" className="btn btn-xs btn-block-profile" onClick={() => blockUnblockUser(profile)}>
                         <Icon name="ban-circle" />
                         {'   '}
                         Block
@@ -144,7 +152,7 @@ const UserModerationQueue = ({
                   ) : (
                     <button
                       type="button"
-                      className="btn btn-xs block-profile"
+                      className="btn btn-xs btn-block-profile"
                       onClick={() => blockUnblockUser(profile)}
                     >
                       <Icon name={`${profile.ddate ? 'refresh' : 'ban-circle'}`} />
@@ -177,13 +185,6 @@ const UserModerationQueue = ({
         onModalClosed={reload}
         payload={{ accessToken, profileIdToReject }}
       />
-
-      <BlockConfirmationModal
-        display={showBlockConfirmationModal}
-        setDisplay={setShowBlockConfirmationModal}
-        onModalClosed={reload}
-        payload={{ accessToken, profileToBlockUnblock }}
-      />
     </div>
   )
 }
@@ -192,6 +193,15 @@ const RejectionModal = ({
   display, setDisplay, onModalClosed, payload,
 }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
+  const [selectedRejectionReason, setSelectedRejectionReason] = useState('')
+
+  const CommonRejectionText = 'Please go back to the sign up page, enter the same name and email, click the Resend Activation button, and use the link in the email to update your profile with'
+  const rejectionReasons = [
+    { value: 'invalidName', label: 'Invalid Name', rejectionText: `${CommonRejectionText} a valid name.` },
+    { value: 'invalidEmail', label: 'Missing Institution Email', rejectionText: `${CommonRejectionText} institution email.` },
+    { value: 'invalidHomepage', label: 'Invalid Homepage', rejectionText: `${CommonRejectionText} valid home page.` },
+    { value: 'invalidHistory', label: 'Missing Latest Career/Education history', rejectionText: `${CommonRejectionText} most recent career/education history. The info is used for conflict of interest detection.` },
+  ]
 
   const cleanup = () => {
     setDisplay(false)
@@ -221,9 +231,17 @@ const RejectionModal = ({
           <div className="modal-content">
             <div className="modal-body">
               <form>
-                <div className="form-group">
+                <div className="form-group form-rejection">
                   {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
                   <label htmlFor="message">Reason for rejecting {prettyId(payload.profileIdToReject)}:</label>
+                  <Dropdown
+                    name="rejection-reason"
+                    instanceId="rejection-reason"
+                    placeholder="Choose a common reject reason..."
+                    options={rejectionReasons}
+                    value={selectedRejectionReason}
+                    onChange={(p) => { setRejectionMessage(p.rejectionText) }}
+                  />
                   <textarea
                     name="message"
                     className="form-control"
@@ -237,50 +255,6 @@ const RejectionModal = ({
             <div className="modal-footer">
               <button type="button" className="btn btn-default" data-dismiss="modal" onClick={cleanup}>Cancel</button>
               <button type="button" className="btn btn-primary" onClick={submitRejection} disabled={!rejectionMessage}>Submit</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="modal-backdrop fade in" style={{ display: `${display ? 'block' : 'none'}` }} />
-    </>
-  )
-}
-
-const BlockConfirmationModal = ({
-  display, setDisplay, onModalClosed, payload,
-}) => {
-  const actionIsBlock = !payload.profileToBlockUnblock?.ddate
-
-  const cleanup = () => {
-    setDisplay(false)
-    if (typeof onModalClosed === 'function') {
-      onModalClosed()
-    }
-  }
-
-  const blockUnblockUser = async (profileId) => {
-    try {
-      await api.post('/profile/moderate', { id: payload.profileToBlockUnblock.id, block: actionIsBlock }, { accessToken: payload.accessToken })
-    } catch (error) {
-      promptError(error.message)
-    } finally {
-      cleanup()
-    }
-  }
-
-  return (
-    <>
-      <div className="modal" tabIndex={-1} role="dialog" style={{ display: `${display ? 'block' : 'none'}` }}>
-        <div className="modal-dialog">
-          <div className="modal-content">
-
-            <div className="modal-body">
-              {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-              {`${payload.profileToBlockUnblock?.content?.names?.[0]?.first} ${payload.profileToBlockUnblock?.content?.names?.[0]?.last} will be ${actionIsBlock ? 'blocked' : 'unblocked'}`}, confirm?
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-default" data-dismiss="modal" onClick={cleanup}>Cancel</button>
-              <button type="button" className="btn btn-primary" onClick={blockUnblockUser}>{`${actionIsBlock ? 'Block' : 'Unblock'}`}</button>
             </div>
           </div>
         </div>
