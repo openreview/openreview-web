@@ -1,6 +1,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/destructuring-assignment */
 /* globals Webfield: false */
+/* globals $: false */
 
 import { useContext } from 'react'
 import EdgeBrowserContext from './EdgeBrowserContext'
@@ -72,6 +73,11 @@ export default function NoteEntity(props) {
       .then(res => props.addEdgeToEntity(id, res))
   }
 
+  const handleHover = (target) => {
+    if (!editEdge?.id) return
+    $(target).tooltip({ title: `Edited by ${editEdge.signatures?.join(',')}`, trigger: 'hover' })
+  }
+
   let editEdgeWidget = null
   let editEdgeWidgetPosition
 
@@ -110,7 +116,7 @@ export default function NoteEntity(props) {
 
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-    <li className={`entry entry-note ${extraClasses.join(' ')}`} onClick={handleClick}>
+    <li className={`entry entry-note ${extraClasses.join(' ')}`} onClick={handleClick} onMouseEnter={e => handleHover(e.currentTarget)}>
       <div className="note-heading">
         <h3>
           <a href={`/forum?id=${forum}`} title="Open forum for this paper" target="_blank" rel="noreferrer">

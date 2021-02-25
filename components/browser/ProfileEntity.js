@@ -1,6 +1,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/destructuring-assignment */
 /* globals Webfield: false */
+/* globals $: false */
 
 import { useContext } from 'react'
 import EdgeBrowserContext from './EdgeBrowserContext'
@@ -66,6 +67,11 @@ export default function ProfileEntity(props) {
       .then(res => props.addEdgeToEntity(id, res))
   }
 
+  const handleHover = (target) => {
+    if (!editEdge?.id) return
+    $(target).tooltip({ title: `Edited by ${editEdge.signatures?.join(',')}`, trigger: 'hover' })
+  }
+
   // TODO: determine what widget to use based on the reply object of the edit invitation
   let editEdgeWidget = null
   if (editEdge && editEdge.invitation === editInvitation.id) {
@@ -101,7 +107,7 @@ export default function ProfileEntity(props) {
 
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-    <li className={`entry entry-reviewer ${extraClasses.join(' ')}`} onClick={handleClick}>
+    <li className={`entry entry-reviewer ${extraClasses.join(' ')}`} onClick={handleClick} onMouseEnter={e => handleHover(e.currentTarget)}>
       <div className="reviewer-heading">
         <h3>
           <a href={`/profile?id=${id}`} title={`Profile for ${id}`} target="_blank" rel="noreferrer">
