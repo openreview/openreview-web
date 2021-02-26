@@ -1840,13 +1840,15 @@ module.exports = (function() {
         groups: groupIds,
         subject: subject,
         message: message,
-        parentGroup: groupId
+        parentGroup: groupId,
+        useJob: true
       }, { handleErrors: false })
         .then(function(response) {
           $('#message-group-members-modal').modal('hide');
 
-          var messagedIds = getMessagedIds(response.groups);
-          showAlert('Email sent to ' + messagedIds.length + ' group member' + (messagedIds.length === 1 ? '' : 's'));
+          showAlert('Your emails have been added to the queue. Check the Group Messages section for progress.');
+
+          showEmailProgress(response.jobId)
 
           // Save the timestamp in the local storage (used in PC console)
           for (var i = 0; i < messagedIds.length; i++) {
@@ -1887,6 +1889,10 @@ module.exports = (function() {
       }
 
       return messagedIds;
+    };
+
+    var showEmailProgress = function(jobId) {
+      // TODO
     };
 
     $container.on('change', 'tbody input[type="checkbox"]', function() {
