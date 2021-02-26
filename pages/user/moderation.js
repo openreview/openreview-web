@@ -245,7 +245,7 @@ const RejectionModal = ({
                   />
                   <textarea
                     name="message"
-                    className="form-control"
+                    className="form-control mt-2"
                     rows="5"
                     value={rejectionMessage}
                     onChange={e => setRejectionMessage(e.target.value)}
