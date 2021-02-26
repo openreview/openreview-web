@@ -9,7 +9,7 @@
       <tbody>
         {{#each reviewers as |user reviewerNum|}}
           <tr>
-            <td style="width: 20px;"><strong>{{reviewerNum}}.</strong></td>
+            <td style="width: 40px;"><strong>{{reviewerNum}}</strong></td>
             <td>
               {{user.name}} <span class="text-muted">({{user.email}})</span>
               {{#if user.completedReview}}
