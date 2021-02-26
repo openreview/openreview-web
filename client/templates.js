@@ -2103,7 +2103,7 @@ templates['partials/groupEditor'] = template({"1":function(container,depth0,help
     + ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"groupMembersCount") : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":8,"column":20},"end":{"line":8,"column":75}}})) != null ? stack1 : "")
     + "</h4>\n\n"
     + ((stack1 = container.invokePartial(lookupProperty(partials,"spinner"),depth0,{"name":"spinner","hash":{"extraClasses":"spinner-inline"},"data":data,"indent":"  ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
-    + "</section>\n\n<section class=\"notes\">\n  <h4>Signed Notes</h4>\n\n"
+    + "</section>\n\n<section class=\"messages\">\n  <h4>Group Messages</h4>\n\n  <div class=\"send-progress\"></div>\n\n  <a href=\"/messages?parentGroup=' + group.id + '\" target=\"_blank\" rel=\"nofollow\">View all messages sent to this group &raquo;</a>\n</section>\n\n<section class=\"notes\">\n  <h4>Signed Notes</h4>\n\n"
     + ((stack1 = container.invokePartial(lookupProperty(partials,"spinner"),depth0,{"name":"spinner","hash":{"extraClasses":"spinner-inline"},"data":data,"indent":"  ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
     + "</section>\n\n<section class=\"children\">\n  <h4>Child Groups</h4>\n\n"
     + ((stack1 = container.invokePartial(lookupProperty(partials,"spinner"),depth0,{"name":"spinner","hash":{"extraClasses":"spinner-inline"},"data":data,"indent":"  ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")

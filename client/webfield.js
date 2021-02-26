@@ -1492,7 +1492,7 @@ module.exports = (function() {
 
       // Move cursor to end of the search input
       var $input = $section.find('.group-members-form .add-member-input');
-      $input.focus();
+      $input.trigger('focus');
       var pos = searchTerm.length;
       if ($input[0].setSelectionRange) {
         $input[0].setSelectionRange(pos, pos);
@@ -1532,8 +1532,6 @@ module.exports = (function() {
           return false;
         });
       }
-
-      $section.append('<a href="/messages?parentGroup=' + group.id + '" target="_blank" rel="nofollow">View Messages sent to this group</a>')
     };
 
     var getOffsetFromPageNum = function(limit, membersCount, pageNum) {
@@ -2868,9 +2866,14 @@ module.exports = (function() {
   var editModeBanner = function(groupOrInvitationId, mode) {
     mode = mode || 'default';
     var otherMode = mode === 'default' ? 'edit' : 'default';
-    var pageType = window.location.pathname.substr(1).toLowerCase();
+    var pageType = window.location.pathname.toLowerCase().indexOf('group') !== -1 ? 'group' : 'invitation';
     var buttonText = mode === 'default' ? 'Edit' : 'View';
-    var buttonUrl = window.location.pathname + '?id=' + groupOrInvitationId + '&mode=' + otherMode;
+    var buttonUrl;
+    if (pageType === 'group') {
+      buttonUrl = (mode === 'default' ? '/group/edit' : '/group') + '?id=' + groupOrInvitationId;
+    } else {
+      buttonUrl = window.location.pathname + '?id=' + groupOrInvitationId + '&mode=' + otherMode;
+    }
     var messageHtml = '<span class="important_message profile-flash-message">' +
       'Currently showing ' + pageType + ' in ' + mode + ' mode &nbsp;' +
       '<a href="' + buttonUrl + '" class="btn btn-xs btn-primary toggle-profile-mode">' +
