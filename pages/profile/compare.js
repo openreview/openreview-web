@@ -176,9 +176,10 @@ const Others = ({ fieldContent, highlightValue }) => {
   return (
     <table>
       <tbody>
-        {fieldContent && fieldContent.map(content => (
+        {fieldContent && fieldContent.map((content, i) => (
           <tr
-            key={content.value}
+            // eslint-disable-next-line react/no-array-index-key
+            key={`${content.value}-${i}`}
             data-toggle={content.signatures && 'tooltip'}
             title={content.signature && `Edited by ${content.signatures}`}
             style={content.confirmed ? null : { color: '#8c1b13' }}
@@ -324,6 +325,8 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     }
 
     return localProfile.content[fieldName].map((c, index) => {
+      if (fieldName === 'emails' && localProfile.content.emailsConfirmed?.includes(c) === false) return {}
+
       const { signatures } = localProfile.metaContent[fieldName][index]
       return {
         ...c,
