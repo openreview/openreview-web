@@ -1076,6 +1076,20 @@ module.exports = function(profile, params, submitF, cancelF) {
       var h = data[i];
       row = rows.eq(i + 1);
 
+      var validYearRegex = /^(19|20)\d{2}$/; // 1900~2099
+
+      if(h.start && !validYearRegex.test(h.start)){
+        promptError('Start date should be a valid year');
+        row.find('.start').addClass('invalid_value');
+        return false;
+      }
+
+      if(h.end && !validYearRegex.test(h.end)){
+        promptError('End date should be a valid year');
+        row.find('.end').addClass('invalid_value');
+        return false;
+      }
+
       if (h.start && h.end && h.start > h.end) {
         promptError('End date should be higher than start date');
         row.find('.start').addClass('invalid_value');
