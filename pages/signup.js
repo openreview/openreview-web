@@ -44,7 +44,8 @@ const SignupForm = ({ setSignupConfirmation }) => {
       if (profiles) {
         setExistingProfiles(profiles.map(profile => ({
           id: profile.id,
-          emails: profile.content?.emailsConfirmed || [],
+          emails: profile.content?.emails || [],
+          emailsConfirmed: profile.content?.emailsConfirmed || [],
           active: profile.active,
           password: profile.password,
         })))
@@ -180,12 +181,16 @@ const SignupForm = ({ setSignupConfirmation }) => {
       <LoadingContext.Provider value={loading}>
         {existingProfiles.map((profile) => {
           let formComponents
-          if (profile.emails.length > 0) {
-            formComponents = profile.emails.map(confirmedEmail => (
+          let allEmails = profile.emailsConfirmed
+          if (!profile.active) {
+            allEmails = allEmails.concat(profile.emails)
+          }
+          if (allEmails.length > 0) {
+            formComponents = allEmails.map(email => (
               <ExistingProfileForm
-                key={confirmedEmail}
+                key={email}
                 id={profile.id}
-                obfuscatedEmail={confirmedEmail}
+                obfuscatedEmail={email}
                 hasPassword={profile.password}
                 isActive={profile.active}
                 registerUser={registerUser}
