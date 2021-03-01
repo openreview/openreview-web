@@ -376,7 +376,7 @@ export default function Column(props) {
         hideEdges.forEach(updateColumnItems('browseEdges', colItems, true))
 
         // Add existing edit edges to items
-        editEdges.forEach(updateColumnItems('editEdge', colItems))
+        editEdges.forEach(updateColumnItems('editEdge', colItems.slice(0, 1)))
 
         // Finally, make sure all have edit edges and create them if they do not
         if (editInvitation) {

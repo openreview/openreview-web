@@ -7,6 +7,7 @@ import { useContext } from 'react'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
+import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import ScoresList from './ScoresList'
 
 export default function ProfileEntity(props) {
@@ -54,8 +55,10 @@ export default function ProfileEntity(props) {
   }
 
   const addEdge = (e, updatedEdgeFields = {}) => {
-    e.preventDefault()
-    e.stopPropagation()
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
 
     // Create new edge
     Webfield.post('/edges', {
@@ -74,36 +77,105 @@ export default function ProfileEntity(props) {
 
   // TODO: determine what widget to use based on the reply object of the edit invitation
   let editEdgeWidget = null
+  // #region existing
+  // switch (editInvitation.name) {
+  //   case 'Paper Assignment':
+  //     editEdgeWidget = (
+  //       <EditEdgeToggle
+  //         isAssigned={metadata.isAssigned}
+  //         addEdge={addEdge}
+  //         removeEdge={removeEdge}
+  //       />
+  //     )
+  //     break
+
+  //   case 'Recommendation':
+  //     editEdgeWidget = (
+  //       <EditEdgeDropdown
+  //         label={editInvitation.name}
+  //         isAssigned={metadata.isAssigned}
+  //         options={editInvitation.weight['value-dropdown']}
+  //         selected={editEdge.weight}
+  //         default=" "
+  //         addEdge={addEdge}
+  //         removeEdge={removeEdge}
+  //       />
+  //     )
+  //     break
+
+  //   default:
+  //     break
+  // }
+  // #endregion
+
+  // #region updated
+  const editEdgeDropdown = (type, controlType) => (
+    <EditEdgeDropdown
+      label={editInvitation.name}
+      isAssigned={metadata.isAssigned}
+      options={editInvitation?.[type]?.[controlType]}
+      selected={editEdge[type]}
+      default=" "
+      addEdge={addEdge}
+      removeEdge={removeEdge}
+      type={type} // label or weight
+    />
+  )
+
+  const editEdgeToggle = (
+    <EditEdgeToggle
+      isAssigned={metadata.isAssigned}
+      addEdge={addEdge}
+      removeEdge={removeEdge}
+    />
+  )
+
+  const editEdgeTwoDropdowns = controlType => (
+    <EditEdgeTwoDropdowns
+      editInvitation={editInvitation}
+      label2="weight"
+      edgeEdgeExist={editEdge.id}
+      selected1={editEdge.id && editEdge.label}
+      selected2={editEdge.id && editEdge.weight}
+      controlType={controlType}
+      default=" "
+      addEdge={addEdge}
+      removeEdge={removeEdge}
+      defaultLabel={editEdge.label}
+    />
+  )
+
   if (editEdge && editEdge.invitation === editInvitation.id) {
-    switch (editInvitation.name) {
-      case 'Paper Assignment':
-        editEdgeWidget = (
-          <EditEdgeToggle
-            isAssigned={metadata.isAssigned}
-            addEdge={addEdge}
-            removeEdge={removeEdge}
-          />
-        )
-        break
+    const labelRadio = editInvitation.label?.['value-radio']
+    const labelDropdown = editInvitation.label?.['value-dropdown']
+    const weightRadio = editInvitation.weight?.['value-radio']
+    const weightDropdown = editInvitation.weight?.['value-dropdown']
 
-      case 'Recommendation':
-        editEdgeWidget = (
-          <EditEdgeDropdown
-            label={editInvitation.name}
-            isAssigned={metadata.isAssigned}
-            options={editInvitation.weight['value-dropdown']}
-            selected={editEdge.weight}
-            default=" "
-            addEdge={addEdge}
-            removeEdge={removeEdge}
-          />
-        )
-        break
+    const shouldRenderTwoRadio = labelRadio && weightRadio
+    const shouldRenderTwoDropdown = labelDropdown && weightDropdown
+    const shouldRenderLabelRadio = labelRadio && !editInvitation.weight
+    const shouldRenderWeightRadio = weightRadio && !editInvitation.label
+    const shouldRenderLabelDropdown = labelDropdown && !editInvitation.weight
+    const shouldRenderWeightDropdown = weightDropdown && !editInvitation.label
 
-      default:
-        break
+    if (shouldRenderTwoRadio) {
+      editEdgeWidget = 'two radio button lists'
+    } else if (shouldRenderTwoDropdown) {
+      editEdgeWidget = 'two dropdowns'
+    } else if (shouldRenderLabelRadio) {
+      editEdgeWidget = editEdgeDropdown('label', 'value-radio') // for now treat radio the same as dropdown
+    } else if (shouldRenderWeightRadio) {
+      editEdgeWidget = editEdgeDropdown('weight', 'value-radio') // for now treat radio the same as dropdown
+    } else if (shouldRenderLabelDropdown) {
+      editEdgeWidget = editEdgeDropdown('label', 'value-dropdown')
+    } else if (shouldRenderWeightDropdown) {
+      // editEdgeWidget = editEdgeDropdown('weight', 'value-dropdown')
+      editEdgeWidget = editEdgeTwoDropdowns('value-dropdown')
+    } else {
+      editEdgeWidget = editEdgeToggle
     }
   }
+  // #endregion
 
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions

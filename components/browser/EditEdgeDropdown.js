@@ -17,6 +17,7 @@ export default function EditEdgeDropdown(props) {
           data-toggle="dropdown"
           aria-haspopup="true"
           aria-expanded="false"
+          onClick={e => e.stopPropagation()}
         >
           <span className="edge-weight">{props.isAssigned ? props.selected : defaultOption}</span>
           <span className="caret" />
@@ -24,7 +25,7 @@ export default function EditEdgeDropdown(props) {
         <ul className="dropdown-menu">
           {props.options && props.options.map(option => (
             <li key={option}>
-              <a href="#" onClick={e => props.addEdge(e, { weight: option })}>{option}</a>
+              <a href="#" onClick={e => props.addEdge(e, { [props.type]: option })}>{option}</a>
             </li>
           ))}
         </ul>
