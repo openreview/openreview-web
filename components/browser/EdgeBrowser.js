@@ -14,7 +14,7 @@ export default class EdgeBrowser extends React.Component {
 
     this.startInvitation = props.startInvitation
     this.traverseInvitation = props.traverseInvitations[0]
-    this.editInvitation = props.editInvitations.length ? props.editInvitations[0] : null
+    this.editInvitations = props.editInvitations.length ? props.editInvitations : null
     this.browseInvitations = props.browseInvitations
     this.hideInvitation = props.hideInvitations.length ? props.hideInvitations[0] : null
     this.maxColumns = props.maxColumns
@@ -230,7 +230,7 @@ export default class EdgeBrowser extends React.Component {
   render() {
     const invitations = {
       traverseInvitation: this.traverseInvitation,
-      editInvitation: this.editInvitation,
+      editInvitations: this.editInvitations,
       browseInvitations: this.browseInvitations,
       hideInvitation: this.hideInvitation,
     }

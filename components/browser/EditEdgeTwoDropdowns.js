@@ -18,9 +18,15 @@ export default function EditEdgeTwoDropdowns(props) {
   const addEdge = (e) => {
     // add new edge or save existing edge
     e.stopPropagation()
-    props.addEdge(null, { label: label ?? props.defaultLabel, weight })
+    props.addEdge({
+      e,
+      existingEdge: props.existingEdge,
+      editEdgeTemplate: props.editEdgeTemplate,
+      updatedEdgeFields: { label: label ?? props.defaultLabel, weight },
+    })
   }
 
+  if (!props.existingEdge && !props.canAddEdge) return null
   return (
     <div className="edit-controls full-width d-flex">
       <div className="d-flex">

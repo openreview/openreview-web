@@ -23,7 +23,7 @@ export default function Column(props) {
   } = props
   const {
     traverseInvitation,
-    editInvitation,
+    editInvitations,
     browseInvitations,
     hideInvitation,
   } = useContext(EdgeBrowserContext)
@@ -47,7 +47,7 @@ export default function Column(props) {
     signatures: edge.signatures || [],
   })
 
-  const buildNewEditEdge = (entityId, weight = 0) => {
+  const buildNewEditEdge = (editInvitation, entityId, weight = 0) => {
     if (!editInvitation) return null
 
     const finalReaders = editInvitation.readers.map((reader) => {
@@ -154,16 +154,19 @@ export default function Column(props) {
   }
 
   const getColumnDescription = () => {
-    if (!parentId || !editInvitation || !editInvitation[type].description) {
+    if (!parentId || !editInvitations.length) {
       return null
     }
 
-    return (
-      <p className="description">
-        <Icon name="info-sign" />
-        {editInvitation[type].description}
-      </p>
-    )
+    return editInvitations.map((editInvitation) => {
+      if (!editInvitation[type].description) return null
+      return (
+        <p className="description" key={editInvitation.id}>
+          <Icon name="info-sign" />
+          {`${editInvitation.name} - ${editInvitation[type].description}`}
+        </p>
+      )
+    })
   }
 
   const getSearchPlaceholder = () => {
@@ -222,7 +225,7 @@ export default function Column(props) {
       : _.get(props.metadataMap, [parentId, headOrTailId], {})
     const itemToAddFormatted = {
       ...itemToAdd,
-      editEdge: null,
+      editEdges: [],
       browseEdges: [],
       metadata: {
         ...columnMetadata,
@@ -315,9 +318,12 @@ export default function Column(props) {
     const traverseEdgesP = Webfield.get('/edges', buildQuery(
       traverseInvitation.id, traverseInvitation.query,
     )).then(response => response.edges)
-    const editEdgesP = editInvitation ? Webfield.get('/edges', buildQuery(
-      editInvitation.id, editInvitation.query,
-    )).then(response => response.edges) : Promise.resolve([])
+    // const editEdgesP = editInvitation ? Webfield.get('/edges', buildQuery(
+    //   editInvitation.id, editInvitation.query,
+    // )).then(response => response.edges) : Promise.resolve([])
+    const editEdgesP = editInvitations.map(inv => Webfield.getAll('/edges', buildQuery(
+      inv.id, inv.query,
+    )))
     const hideEdgesP = hideInvitation ? Webfield.get('/edges', buildQuery(
       hideInvitation.id, hideInvitation.query,
     )).then(response => response.edges) : Promise.resolve([])
@@ -327,8 +333,10 @@ export default function Column(props) {
 
     // Load all edges related to parent and build lists of assigned items and
     // alternate items, adding edges to each cell
-    Promise.all([traverseEdgesP, editEdgesP, hideEdgesP, ...browseEdgesP])
-      .then(([traverseEdges, editEdges, hideEdges, ...browseEdgeGroups]) => {
+    Promise.all([traverseEdgesP, hideEdgesP, ...editEdgesP, ...browseEdgesP])
+      .then(([traverseEdges, hideEdges, ...browseEditEdgeGroups]) => {
+        const editEdgeGroups = browseEditEdgeGroups.slice(0, editEdgesP.length)
+        const browseEdgeGroups = browseEditEdgeGroups.slice(editEdgesP.length)
         const colItems = []
 
         traverseEdges.forEach((tEdge) => {
@@ -344,6 +352,7 @@ export default function Column(props) {
           colItems.push({
             ...globalEntityMap[headOrTailId],
             browseEdges: [],
+            editEdges: [],
             metadata: {
               ...columnMetadata,
               isAssigned: true,
@@ -376,17 +385,17 @@ export default function Column(props) {
         hideEdges.forEach(updateColumnItems('browseEdges', colItems, true))
 
         // Add existing edit edges to items
-        editEdges.forEach(updateColumnItems('editEdge', colItems.slice(0, 1)))
+        editEdgeGroups.forEach(editEdge => editEdge.forEach(updateColumnItems('editEdges', colItems)))
 
-        // Finally, make sure all have edit edges and create them if they do not
-        if (editInvitation) {
+        // Add each editInvitation as a template so that new invitation can be added
+        if (editInvitations.length) {
           colItems.forEach((item) => {
-            if (!_.isEmpty(item.editEdge)) return
+            // if (item.editEdges?.length > 0) return
 
             const hasAggregateScoreEdge = item.browseEdges.length && item.browseEdges[0].name === 'Aggregate_Score'
             const edgeWeight = hasAggregateScoreEdge ? item.browseEdges[0].weight : 0
-            // eslint-disable-next-line no-param-reassign
-            item.editEdge = buildNewEditEdge(item.id, edgeWeight)
+            // eslint-disable-next-line no-param-reassign,max-len
+            item.editEdgeTemplates = editInvitations.map(editInvitation => buildNewEditEdge(editInvitation, item.id, edgeWeight))
           })
         }
 
@@ -495,21 +504,30 @@ export default function Column(props) {
     const entityIndex = _.findIndex(items, ['id', id])
     let modifiedExistingEdge = false
 
+    const isAddingTraverseEdge = newEdge.invitation === traverseInvitation.id // controls the green background
+    const shouldUserBeAssigned = isAddingTraverseEdge ? true : items[entityIndex].metadata.isUserAssigned // set to existing value if not adding traverse edge
+
     if (entityIndex > -1) {
       // Added (or modified) from existing list
-      const editEdgeId = items[entityIndex].editEdge.id
-      if (editEdgeId && editEdgeId === newEdge.id) {
+      const existingEditEdges = items[entityIndex].editEdges.filter(p => p.id === newEdge.id)
+      if (existingEditEdges.length) {
         modifiedExistingEdge = true
       }
 
       const itemToAdd = {
         ...items[entityIndex],
-        editEdge: newEdge,
+        editEdges: modifiedExistingEdge
+          ? [...items[entityIndex].editEdges.filter(p => p.id !== newEdge.id), newEdge]
+            // eslint-disable-next-line max-len
+            .sort((a, b) => (editInvitations.map(p => p.id).indexOf(a.invitation) - editInvitations.map(p => p.id).indexOf(b.invitation)))
+          : [...items[entityIndex].editEdges, newEdge]
+            // eslint-disable-next-line max-len
+            .sort((a, b) => (editInvitations.map(p => p.id).indexOf(a.invitation) - editInvitations.map(p => p.id).indexOf(b.invitation))),
         metadata: {
           ...items[entityIndex].metadata,
-          isAssigned: true,
-          isUserAssigned: true,
-          isUserUnassigned: false,
+          isAssigned: isAddingTraverseEdge ? true : items[entityIndex].metadata.isAssigned,
+          isUserAssigned: shouldUserBeAssigned,
+          isUserUnassigned: !shouldUserBeAssigned,
         },
       }
       setItems([
@@ -521,7 +539,7 @@ export default function Column(props) {
       // Added from search
       const newItem = {
         ...globalEntityMap[id],
-        editEdge: buildNewEditEdge(id),
+        editEdges: [buildNewEditEdge(id)],
         browseEdges: [],
         metadata: {
           isAssigned: true,
@@ -533,9 +551,11 @@ export default function Column(props) {
     }
 
     if (type === 'head') {
-      props.updateMetadataMap(id, parentId, { isUserAssigned: true, isUserUnassigned: false })
+      // eslint-disable-next-line max-len
+      props.updateMetadataMap(id, parentId, { isUserAssigned: shouldUserBeAssigned, isUserUnassigned: !shouldUserBeAssigned })
     } else {
-      props.updateMetadataMap(parentId, id, { isUserAssigned: true, isUserUnassigned: false })
+      // eslint-disable-next-line max-len
+      props.updateMetadataMap(parentId, id, { isUserAssigned: shouldUserBeAssigned, isUserUnassigned: !shouldUserBeAssigned })
     }
 
     // Update global head and tail maps

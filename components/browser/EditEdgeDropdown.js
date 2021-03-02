@@ -4,6 +4,7 @@
 export default function EditEdgeDropdown(props) {
   const defaultOption = props.default ? props.default : props.options[0]
 
+  if (!props.existingEdge && !props.canAddEdge) return null
   return (
     <div className="edit-controls full-width">
       <label>
@@ -19,19 +20,29 @@ export default function EditEdgeDropdown(props) {
           aria-expanded="false"
           onClick={e => e.stopPropagation()}
         >
-          <span className="edge-weight">{props.isAssigned ? props.selected : defaultOption}</span>
+          <span className="edge-weight">{props.selected}</span>
           <span className="caret" />
         </button>
         <ul className="dropdown-menu">
           {props.options && props.options.map(option => (
             <li key={option}>
-              <a href="#" onClick={e => props.addEdge(e, { [props.type]: option })}>{option}</a>
+              <a
+                href="#"
+                onClick={e => props.addEdge({
+                  e,
+                  existingEdge: props.existingEdge,
+                  editEdgeTemplate: props.editEdgeTemplate,
+                  updatedEdgeFields: { [props.type]: option },
+                })}
+              >
+                {option}
+              </a>
             </li>
           ))}
         </ul>
       </div>
-      {props.isAssigned && (
-        <a href="#" className="edit-edge-remove" onClick={props.removeEdge}>
+      {props.existingEdge && (
+        <a href="#" className="edit-edge-remove" onClick={(e) => { e.stopPropagation(); props.removeEdge() }}>
           <span className="glyphicon glyphicon-trash" />
         </a>
       )}

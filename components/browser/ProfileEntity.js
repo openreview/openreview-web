@@ -3,7 +3,7 @@
 /* globals Webfield: false */
 /* globals $: false */
 
-import { useContext } from 'react'
+import React, { useContext } from 'react'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
@@ -19,16 +19,17 @@ export default function ProfileEntity(props) {
   const {
     id,
     content,
-    editEdge,
+    editEdges,
+    editEdgeTemplates,
   } = props.profile
-  const { editInvitation } = useContext(EdgeBrowserContext)
+  const { editInvitations } = useContext(EdgeBrowserContext)
 
   const metadata = props.profile.metadata || {}
   const extraClasses = []
   if (metadata.isAssigned || metadata.isUserAssigned) extraClasses.push('is-assigned')
   if (metadata.hasConflict) extraClasses.push('has-conflict')
   if (metadata.isHidden) extraClasses.push('is-hidden')
-  if (editEdge) extraClasses.push('is-editable')
+  if (editEdges.length) extraClasses.push('is-editable')
   if (props.isSelected) extraClasses.push('is-selected')
 
   // Event handlers
@@ -44,17 +45,15 @@ export default function ProfileEntity(props) {
     props.addNewColumn(id)
   }
 
-  const removeEdge = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-
+  const removeEdge = (editEdge) => {
     // Delete existing edge
     // TODO: allow ProfileItems to be head objects
     Webfield.post('/edges', { tail: id, ddate: Date.now(), ...editEdge })
       .then(res => props.removeEdgeFromEntity(id, res))
   }
 
-  const addEdge = (e, updatedEdgeFields = {}) => {
+  // eslint-disable-next-line object-curly-newline
+  const addEdge = ({ e, existingEdge, editEdgeTemplate, updatedEdgeFields = {} }) => {
     if (e) {
       e.preventDefault()
       e.stopPropagation()
@@ -64,88 +63,59 @@ export default function ProfileEntity(props) {
     Webfield.post('/edges', {
       tail: id,
       ddate: null,
-      ...editEdge,
+      ...existingEdge ?? editEdgeTemplate,
       ...updatedEdgeFields,
     })
       .then(res => props.addEdgeToEntity(id, res))
   }
 
-  const handleHover = (target) => {
-    if (!editEdge?.id) return
-    $(target).tooltip({ title: `Edited by ${editEdge.signatures?.join(',')}`, trigger: 'hover' })
+  const handleHover = (target) => { // show if has only 1 edit edge
+    if (editEdges.length === 1) $(target).tooltip({ title: `Edited by ${editEdges[0].signatures?.join(',')}`, trigger: 'hover' })
   }
 
-  // TODO: determine what widget to use based on the reply object of the edit invitation
-  let editEdgeWidget = null
-  // #region existing
-  // switch (editInvitation.name) {
-  //   case 'Paper Assignment':
-  //     editEdgeWidget = (
-  //       <EditEdgeToggle
-  //         isAssigned={metadata.isAssigned}
-  //         addEdge={addEdge}
-  //         removeEdge={removeEdge}
-  //       />
-  //     )
-  //     break
+  const renderEditEdgeWidget = ({ editEdge, editInvitation }) => {
+    const editEdgeDropdown = (type, controlType) => (
+      <EditEdgeDropdown
+        existingEdge={editEdge}
+        canAddEdge={editEdges.filter(p => p.invitation === editInvitation.id).length === 0 || editInvitation.multiReply} // no editedge or invitation allow multiple edges
+        label={editInvitation.name}
+        options={editInvitation?.[type]?.[controlType]}
+        selected={editEdge?.[type]}
+        default=" "
+        addEdge={addEdge}
+        removeEdge={() => removeEdge(editEdge)}
+        type={type} // label or weight
+        editEdgeTemplate={editEdgeTemplates.find(p => p.invitation === editInvitation.id)} // required for adding new one
+      />
+    )
+    const editEdgeToggle = () => (
+      <EditEdgeToggle
+        existingEdge={editEdge}
+        // isAssigned={metadata.isAssigned}
+        addEdge={addEdge}
+        removeEdge={() => removeEdge(editEdge)}
+        canAddEdge={editEdges.filter(p => p.invitation === editInvitation.id).length === 0 || editInvitation.multiReply} // no editedge or invitation allow multiple edges
+        editEdgeTemplate={editEdgeTemplates.find(p => p.invitation === editInvitation.id)} // required for adding new one
+      />
+    )
+    const editEdgeTwoDropdowns = controlType => (
+      <EditEdgeTwoDropdowns
+        canAddEdge={editEdges.filter(p => p.invitation === editInvitation.id).length === 0 || editInvitation.multiReply} // no editedge or invitation allow multiple edges
+        existingEdge={editEdge}
+        editInvitation={editInvitation}
+        label2="weight"
+        edgeEdgeExist={editEdge?.id}
+        selected1={editEdge?.id && editEdge?.label}
+        selected2={editEdge?.id && editEdge?.weight}
+        controlType={controlType}
+        default=" "
+        addEdge={addEdge}
+        removeEdge={removeEdge}
+        defaultLabel={editEdge?.label}
+        editEdgeTemplate={editEdgeTemplates.find(p => p.invitation === editInvitation.id)} // required for adding new one
+      />
+    )
 
-  //   case 'Recommendation':
-  //     editEdgeWidget = (
-  //       <EditEdgeDropdown
-  //         label={editInvitation.name}
-  //         isAssigned={metadata.isAssigned}
-  //         options={editInvitation.weight['value-dropdown']}
-  //         selected={editEdge.weight}
-  //         default=" "
-  //         addEdge={addEdge}
-  //         removeEdge={removeEdge}
-  //       />
-  //     )
-  //     break
-
-  //   default:
-  //     break
-  // }
-  // #endregion
-
-  // #region updated
-  const editEdgeDropdown = (type, controlType) => (
-    <EditEdgeDropdown
-      label={editInvitation.name}
-      isAssigned={metadata.isAssigned}
-      options={editInvitation?.[type]?.[controlType]}
-      selected={editEdge[type]}
-      default=" "
-      addEdge={addEdge}
-      removeEdge={removeEdge}
-      type={type} // label or weight
-    />
-  )
-
-  const editEdgeToggle = (
-    <EditEdgeToggle
-      isAssigned={metadata.isAssigned}
-      addEdge={addEdge}
-      removeEdge={removeEdge}
-    />
-  )
-
-  const editEdgeTwoDropdowns = controlType => (
-    <EditEdgeTwoDropdowns
-      editInvitation={editInvitation}
-      label2="weight"
-      edgeEdgeExist={editEdge.id}
-      selected1={editEdge.id && editEdge.label}
-      selected2={editEdge.id && editEdge.weight}
-      controlType={controlType}
-      default=" "
-      addEdge={addEdge}
-      removeEdge={removeEdge}
-      defaultLabel={editEdge.label}
-    />
-  )
-
-  if (editEdge && editEdge.invitation === editInvitation.id) {
     const labelRadio = editInvitation.label?.['value-radio']
     const labelDropdown = editInvitation.label?.['value-dropdown']
     const weightRadio = editInvitation.weight?.['value-radio']
@@ -158,24 +128,14 @@ export default function ProfileEntity(props) {
     const shouldRenderLabelDropdown = labelDropdown && !editInvitation.weight
     const shouldRenderWeightDropdown = weightDropdown && !editInvitation.label
 
-    if (shouldRenderTwoRadio) {
-      editEdgeWidget = 'two radio button lists'
-    } else if (shouldRenderTwoDropdown) {
-      editEdgeWidget = 'two dropdowns'
-    } else if (shouldRenderLabelRadio) {
-      editEdgeWidget = editEdgeDropdown('label', 'value-radio') // for now treat radio the same as dropdown
-    } else if (shouldRenderWeightRadio) {
-      editEdgeWidget = editEdgeDropdown('weight', 'value-radio') // for now treat radio the same as dropdown
-    } else if (shouldRenderLabelDropdown) {
-      editEdgeWidget = editEdgeDropdown('label', 'value-dropdown')
-    } else if (shouldRenderWeightDropdown) {
-      // editEdgeWidget = editEdgeDropdown('weight', 'value-dropdown')
-      editEdgeWidget = editEdgeTwoDropdowns('value-dropdown')
-    } else {
-      editEdgeWidget = editEdgeToggle
-    }
+    if (shouldRenderTwoRadio) return 'two radio button lists'
+    if (shouldRenderTwoDropdown) return 'two dropdowns'
+    if (shouldRenderLabelRadio) return editEdgeDropdown('label', 'value-radio') // for now treat radio the same as dropdown
+    if (shouldRenderWeightRadio) return editEdgeDropdown('weight', 'value-radio') // for now treat radio the same as dropdown
+    if (shouldRenderLabelDropdown) return editEdgeDropdown('label', 'value-dropdown')
+    if (shouldRenderWeightDropdown) return editEdgeTwoDropdowns('value-dropdown')// editEdgeDropdown('weight', 'value-dropdown')
+    return editEdgeToggle()
   }
-  // #endregion
 
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
@@ -191,7 +151,14 @@ export default function ProfileEntity(props) {
         <p>{content.title}</p>
       </div>
 
-      {editEdgeWidget}
+      { // existing editEdges
+        // eslint-disable-next-line max-len,react/no-array-index-key
+        editEdges.map((editEdge, index) => <React.Fragment key={index}>{renderEditEdgeWidget({ editEdge, editInvitation: editInvitations.find(p => p.id === editEdge.invitation) })}</React.Fragment>)
+      }
+      { // adding new editEdge
+        // eslint-disable-next-line max-len,react/no-array-index-key
+        editInvitations.map((editInvitation, index) => <React.Fragment key={index}>{renderEditEdgeWidget({ editInvitation })}</React.Fragment>)
+      }
 
       <ScoresList edges={props.profile.browseEdges} />
 
