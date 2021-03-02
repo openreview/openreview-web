@@ -1,7 +1,7 @@
 import Icon from '../Icon'
 
 // eslint-disable-next-line object-curly-newline
-export default function EditEdgeToggle({ addEdge, removeEdge, existingEdge, canAddEdge,editEdgeTemplate }) {
+export default function EditEdgeToggle({ addEdge, removeEdge, existingEdge, canAddEdge, editEdgeTemplate }) {
   const addOrRemoveEdge = (e) => {
     if (existingEdge) {
       e.stopPropagation()

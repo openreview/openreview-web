@@ -29,7 +29,7 @@ export default function ProfileEntity(props) {
   if (metadata.isAssigned || metadata.isUserAssigned) extraClasses.push('is-assigned')
   if (metadata.hasConflict) extraClasses.push('has-conflict')
   if (metadata.isHidden) extraClasses.push('is-hidden')
-  if (editEdges.length) extraClasses.push('is-editable')
+  if (editEdges?.length) extraClasses.push('is-editable')
   if (props.isSelected) extraClasses.push('is-selected')
 
   // Event handlers
@@ -70,14 +70,15 @@ export default function ProfileEntity(props) {
   }
 
   const handleHover = (target) => { // show if has only 1 edit edge
-    if (editEdges.length === 1) $(target).tooltip({ title: `Edited by ${editEdges[0].signatures?.join(',')}`, trigger: 'hover' })
+    if (editEdges?.length === 1) $(target).tooltip({ title: `Edited by ${editEdges[0].signatures?.join(',')}`, trigger: 'hover' })
   }
 
   const renderEditEdgeWidget = ({ editEdge, editInvitation }) => {
     const editEdgeDropdown = (type, controlType) => (
       <EditEdgeDropdown
         existingEdge={editEdge}
-        canAddEdge={editEdges.filter(p => p.invitation === editInvitation.id).length === 0 || editInvitation.multiReply} // no editedge or invitation allow multiple edges
+        // eslint-disable-next-line max-len
+        canAddEdge={editEdges?.filter(p => p?.invitation === editInvitation.id).length === 0 || editInvitation.multiReply} // no editedge or invitation allow multiple edges
         label={editInvitation.name}
         options={editInvitation?.[type]?.[controlType]}
         selected={editEdge?.[type]}
@@ -94,13 +95,15 @@ export default function ProfileEntity(props) {
         // isAssigned={metadata.isAssigned}
         addEdge={addEdge}
         removeEdge={() => removeEdge(editEdge)}
-        canAddEdge={editEdges.filter(p => p.invitation === editInvitation.id).length === 0 || editInvitation.multiReply} // no editedge or invitation allow multiple edges
+        // eslint-disable-next-line max-len
+        canAddEdge={editEdges?.filter(p => p?.invitation === editInvitation.id).length === 0 || editInvitation.multiReply} // no editedge or invitation allow multiple edges
         editEdgeTemplate={editEdgeTemplates.find(p => p.invitation === editInvitation.id)} // required for adding new one
       />
     )
     const editEdgeTwoDropdowns = controlType => (
       <EditEdgeTwoDropdowns
-        canAddEdge={editEdges.filter(p => p.invitation === editInvitation.id).length === 0 || editInvitation.multiReply} // no editedge or invitation allow multiple edges
+        // eslint-disable-next-line max-len
+        canAddEdge={editEdges?.filter(p => p?.invitation === editInvitation.id).length === 0 || editInvitation.multiReply} // no editedge or invitation allow multiple edges
         existingEdge={editEdge}
         editInvitation={editInvitation}
         label2="weight"
@@ -153,11 +156,11 @@ export default function ProfileEntity(props) {
 
       { // existing editEdges
         // eslint-disable-next-line max-len,react/no-array-index-key
-        editEdges.map((editEdge, index) => <React.Fragment key={index}>{renderEditEdgeWidget({ editEdge, editInvitation: editInvitations.find(p => p.id === editEdge.invitation) })}</React.Fragment>)
+        editEdges?.map((editEdge, index) => <React.Fragment key={index}>{renderEditEdgeWidget({ editEdge, editInvitation: editInvitations.find(p => p.id === editEdge.invitation) })}</React.Fragment>)
       }
       { // adding new editEdge
         // eslint-disable-next-line max-len,react/no-array-index-key
-        editInvitations.map((editInvitation, index) => <React.Fragment key={index}>{renderEditEdgeWidget({ editInvitation })}</React.Fragment>)
+        editInvitations?.map((editInvitation, index) => <React.Fragment key={index}>{renderEditEdgeWidget({ editInvitation })}</React.Fragment>)
       }
 
       <ScoresList edges={props.profile.browseEdges} />

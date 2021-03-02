@@ -154,7 +154,7 @@ export default function Column(props) {
   }
 
   const getColumnDescription = () => {
-    if (!parentId || !editInvitations.length) {
+    if (!parentId || !editInvitations?.length) {
       return null
     }
 
@@ -321,9 +321,9 @@ export default function Column(props) {
     // const editEdgesP = editInvitation ? Webfield.get('/edges', buildQuery(
     //   editInvitation.id, editInvitation.query,
     // )).then(response => response.edges) : Promise.resolve([])
-    const editEdgesP = editInvitations.map(inv => Webfield.getAll('/edges', buildQuery(
+    const editEdgesP = editInvitations?.map(inv => Webfield.getAll('/edges', buildQuery(
       inv.id, inv.query,
-    )))
+    ))) ?? []
     const hideEdgesP = hideInvitation ? Webfield.get('/edges', buildQuery(
       hideInvitation.id, hideInvitation.query,
     )).then(response => response.edges) : Promise.resolve([])
@@ -388,7 +388,7 @@ export default function Column(props) {
         editEdgeGroups.forEach(editEdge => editEdge.forEach(updateColumnItems('editEdges', colItems)))
 
         // Add each editInvitation as a template so that new invitation can be added
-        if (editInvitations.length) {
+        if (editInvitations?.length) {
           colItems.forEach((item) => {
             // if (item.editEdges?.length > 0) return
 
