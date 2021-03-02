@@ -114,7 +114,6 @@ export default function ProfileEntity(props) {
         default=" "
         addEdge={addEdge}
         removeEdge={removeEdge}
-        defaultLabel={editEdge?.label}
         editEdgeTemplate={editEdgeTemplates.find(p => p.invitation === editInvitation.id)} // required for adding new one
       />
     )
@@ -131,12 +130,12 @@ export default function ProfileEntity(props) {
     const shouldRenderLabelDropdown = labelDropdown && !editInvitation.weight
     const shouldRenderWeightDropdown = weightDropdown && !editInvitation.label
 
-    if (shouldRenderTwoRadio) return 'two radio button lists'
-    if (shouldRenderTwoDropdown) return 'two dropdowns'
+    if (shouldRenderTwoRadio) return editEdgeTwoDropdowns('value-radio')
+    if (shouldRenderTwoDropdown) return editEdgeTwoDropdowns('value-dropdown')
     if (shouldRenderLabelRadio) return editEdgeDropdown('label', 'value-radio') // for now treat radio the same as dropdown
     if (shouldRenderWeightRadio) return editEdgeDropdown('weight', 'value-radio') // for now treat radio the same as dropdown
     if (shouldRenderLabelDropdown) return editEdgeDropdown('label', 'value-dropdown')
-    if (shouldRenderWeightDropdown) return editEdgeTwoDropdowns('value-dropdown')// editEdgeDropdown('weight', 'value-dropdown')
+    if (shouldRenderWeightDropdown) return editEdgeDropdown('weight', 'value-dropdown')
     return editEdgeToggle()
   }
 

@@ -22,7 +22,7 @@ export default function EditEdgeTwoDropdowns(props) {
       e,
       existingEdge: props.existingEdge,
       editEdgeTemplate: props.editEdgeTemplate,
-      updatedEdgeFields: { label: label ?? props.defaultLabel, weight },
+      updatedEdgeFields: { label: label ?? props.editEdgeTemplate.label, weight },
     })
   }
 
