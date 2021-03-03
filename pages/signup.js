@@ -181,11 +181,9 @@ const SignupForm = ({ setSignupConfirmation }) => {
       <LoadingContext.Provider value={loading}>
         {existingProfiles.map((profile) => {
           let formComponents
-          let allEmails = profile.emailsConfirmed
-          if (!profile.active) {
-            allEmails = allEmails.concat(profile.emails)
-            allEmails = Array.from(new Set(allEmails))
-          }
+          const allEmails = profile.active
+            ? profile.emailsConfirmed
+            : Array.from(new Set([...profile.emailsConfirmed, ...profile.emails]))
 
           if (profile.password) {
             formComponents = allEmails.map(email => (
