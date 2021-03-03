@@ -137,7 +137,7 @@ window.generalPrompt = function(type, content, options) {
     msgHtml = content;
   } else if (type === 'error') {
     var errorLabel = options.hideErrorLabel ? null : '<strong>Error: </strong>';
-    msgHtml = _.flatten([errorLabel, options.newFormat ? translateOpenReviewErrorMessage(content) : translateErrorMessage(content)]);
+    msgHtml = _.flatten([errorLabel, content.version ? translateOpenReviewErrorMessage(content) : translateErrorMessage(content)]);
   } else {
     msgHtml = view.iMess(content);
   }
