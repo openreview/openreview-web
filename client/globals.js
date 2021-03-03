@@ -79,6 +79,22 @@ window.translateErrorMessage = function(error) {
   }
 };
 
+// OpenReview Error(API) has the following properties
+// name:string,status,message:string,path?:string,fields?:Array<Array<string>>
+window.translateOpenReviewErrorMessage = function (error) {
+  let errorFields = null
+  let errorPath = error?.path
+  const errorPathTokens = errorPath?.split('.')
+  if (errorPathTokens?.length >= 2) {
+    errorPath = `${errorPathTokens[errorPathTokens.length - 1]} of ${errorPathTokens[errorPathTokens.length - 2]}`
+  }
+  if (error.fields?.length) {
+    errorFields = error.fields.map(p => p.join(' and ')).join(' or ')
+  }
+  let readableErrorMessage = `${errorPath} ${error.message}${errorFields ? ` ${errorFields}` : ''}.`
+  return view.iMess(readableErrorMessage)
+}
+
 // Flash Alert Functions (main.js)
 var flashMessageTimer;
 window.generalPrompt = function(type, content, options) {
@@ -121,7 +137,7 @@ window.generalPrompt = function(type, content, options) {
     msgHtml = content;
   } else if (type === 'error') {
     var errorLabel = options.hideErrorLabel ? null : '<strong>Error: </strong>';
-    msgHtml = _.flatten([errorLabel, translateErrorMessage(content)]);
+    msgHtml = _.flatten([errorLabel, options.newFormat ? translateOpenReviewErrorMessage(content) : translateErrorMessage(content)]);
   } else {
     msgHtml = view.iMess(content);
   }
