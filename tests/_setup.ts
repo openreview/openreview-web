@@ -139,7 +139,7 @@ test('setup TestVenue', async (t) => {
     content: { force: 'Yes' },
     forum: requestForumId,
     invitation: `openreview.net/Support/-/Request${number}/Post_Submission`,
-    readers: ['openreview.net/Support'],
+    readers: ['TestVenue/2020/Conference/Program_Chairs', 'openreview.net/Support'],
     referent: requestForumId,
     replyto: requestForumId,
     signatures: ['openreview.net/Support'],
