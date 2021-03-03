@@ -184,8 +184,10 @@ const SignupForm = ({ setSignupConfirmation }) => {
           let allEmails = profile.emailsConfirmed
           if (!profile.active) {
             allEmails = allEmails.concat(profile.emails)
+            allEmails = Array.from(new Set(allEmails))
           }
-          if (allEmails.length > 0) {
+
+          if (profile.password) {
             formComponents = allEmails.map(email => (
               <ExistingProfileForm
                 key={email}
@@ -199,13 +201,24 @@ const SignupForm = ({ setSignupConfirmation }) => {
               />
             ))
           } else {
-            formComponents = [
-              <ClaimProfileForm key={profile.id} id={profile.id} registerUser={registerUser} />,
-            ]
+            formComponents = [<ClaimProfileForm key={profile.id} id={profile.id} registerUser={registerUser} />]
+            if (allEmails.length > 0) {
+              formComponents = formComponents.concat(allEmails.map(email => (
+                <ExistingProfileForm
+                  key={email}
+                  id={profile.id}
+                  obfuscatedEmail={email}
+                  hasPassword={profile.password}
+                  isActive={profile.active}
+                  registerUser={registerUser}
+                  resetPassword={resetPassword}
+                  sendActivationLink={sendActivationLink}
+                />
+              )))
+            }
           }
           return formComponents.concat(<hr key={`${profile.id}-spacer`} className="spacer" />)
         })}
-
         <NewProfileForm id={newUsername} registerUser={registerUser} />
       </LoadingContext.Provider>
 
