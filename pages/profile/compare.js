@@ -162,7 +162,7 @@ const Publications = ({ publications, highlightValue }) => (
   </table>
 )
 
-const Others = ({ fieldContent, highlightValue }) => {
+const Others = ({ fieldContent, highlightValue, isEmailSection }) => {
   if (typeof fieldContent === 'string') {
     if (fieldContent.startsWith('http')) {
       return (
@@ -190,7 +190,10 @@ const Others = ({ fieldContent, highlightValue }) => {
                   <span className={highlightValue.includes(content.value) ? 'highlight' : null}>{content.value}</span>
                 </a>
               ) : (
-                <span className={highlightValue.includes(content.value) ? 'highlight' : null}>{content.value}</span>
+                <>
+                  <span className={highlightValue.includes(content.value) ? 'highlight' : null}>{content.value}</span>
+                  {isEmailSection && content.isConfirmedEmail && <small> (Confirmed)</small>}
+                </>
               )}
             </td>
           </tr>
@@ -283,7 +286,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       }
       if (Array.isArray(value)) {
         value.forEach((p) => {
-          if (!p.excludeFromHighlight) compareFields.push(p.value)
+          compareFields.push(p.value)
         })
       }
     })
@@ -325,25 +328,18 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     }
 
     return localProfile.content[fieldName].map((c, index) => {
-      let showConfirmedLabel = false
-      let excludeFromHighlight = false
+      let isConfirmedEmail = false
 
-      if (fieldName === 'emails') {
-        if (localProfile.content.emailsConfirmed?.includes(c) === true) {
-          showConfirmedLabel = true
-        } else {
-          excludeFromHighlight = true
-        }
-      }
+      if (fieldName === 'emails' && localProfile.content.emailsConfirmed?.includes(c) === true) isConfirmedEmail = true
 
       const { signatures } = localProfile.metaContent[fieldName][index]
       return {
         ...c,
-        value: `${c}${showConfirmedLabel ? ' (confirmed)' : ''}`,
+        value: c,
         signatures: signatures.map(signature => prettyId(signature)).join(', '),
         confirmed: (signatures.includes('~Super_User1') || signatures.includes('OpenReview.net'))
           || signatures.some(signature => profileUsernames.includes(signature)),
-        excludeFromHighlight,
+        isConfirmedEmail,
       }
     })
   }
@@ -396,7 +392,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       case 'publications':
         return <Publications publications={profile.publications} highlightValue={highlightValue} />
       default:
-        return <Others fieldContent={profile[fieldName]} highlightValue={highlightValue} />
+        return <Others fieldContent={profile[fieldName]} highlightValue={highlightValue} isEmailSection={fieldName === 'emails'} />
     }
   }
 
