@@ -283,7 +283,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       }
       if (Array.isArray(value)) {
         value.forEach((p) => {
-          compareFields.push(p.value)
+          if (!p.excludeFromHighlight) compareFields.push(p.value)
         })
       }
     })
@@ -325,16 +325,25 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     }
 
     return localProfile.content[fieldName].map((c, index) => {
-      let showUnconfirmedLabel = false
-      if (fieldName === 'emails' && localProfile.content.emailsConfirmed?.includes(c) === false) showUnconfirmedLabel = true
+      let showConfirmedLabel = false
+      let excludeFromHighlight = false
+
+      if (fieldName === 'emails') {
+        if (localProfile.content.emailsConfirmed?.includes(c) === true) {
+          showConfirmedLabel = true
+        } else {
+          excludeFromHighlight = true
+        }
+      }
 
       const { signatures } = localProfile.metaContent[fieldName][index]
       return {
         ...c,
-        value: `${c}${showUnconfirmedLabel ? ' (not confirmed)' : ''}`,
+        value: `${c}${showConfirmedLabel ? ' (confirmed)' : ''}`,
         signatures: signatures.map(signature => prettyId(signature)).join(', '),
         confirmed: (signatures.includes('~Super_User1') || signatures.includes('OpenReview.net'))
           || signatures.some(signature => profileUsernames.includes(signature)),
+        excludeFromHighlight,
       }
     })
   }
