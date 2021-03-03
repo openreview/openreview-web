@@ -143,7 +143,7 @@ test('setup TestVenue', async (t) => {
     referent: requestForumId,
     replyto: requestForumId,
     signatures: ['openreview.net/Support'],
-    writers: ['openreview.net/Support'],
+    writers: [],
   }
 
   const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
@@ -166,7 +166,7 @@ test('setup TestVenue', async (t) => {
     referent: requestForumId,
     replyto: requestForumId,
     signatures: ['openreview.net/Support'],
-    writers: ['openreview.net/Support'],
+    writers: [],
   }
 
   const { id: reviewStageId } = await createNote(reviewStageJson, superUserToken)
@@ -265,7 +265,7 @@ test('setup AnotherTestVenue', async (t) => {
     referent: requestForumId,
     replyto: requestForumId,
     signatures: ['openreview.net/Support'],
-    writers: ['openreview.net/Support'],
+    writers: [],
   }
 
   const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
@@ -364,7 +364,7 @@ test('setup ICLR', async (t) => {
     referent: requestForumId,
     replyto: requestForumId,
     signatures: ['openreview.net/Support'],
-    writers: ['openreview.net/Support'],
+    writers: [],
   }
 
   const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
@@ -379,7 +379,7 @@ test('setup ICLR', async (t) => {
     referent: requestForumId,
     replyto: requestForumId,
     signatures: ['~Super_User1'],
-    writers: ['~Super_User1'],
+    writers: [],
   }
 
   const { id: bidStageId } = await createNote(bidStageJson, superUserToken)
