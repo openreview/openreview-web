@@ -325,12 +325,13 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     }
 
     return localProfile.content[fieldName].map((c, index) => {
-      if (fieldName === 'emails' && localProfile.content.emailsConfirmed?.includes(c) === false) return {}
+      let showUnconfirmedLabel = false
+      if (fieldName === 'emails' && localProfile.content.emailsConfirmed?.includes(c) === false) showUnconfirmedLabel = true
 
       const { signatures } = localProfile.metaContent[fieldName][index]
       return {
         ...c,
-        value: c,
+        value: `${c}${showUnconfirmedLabel ? ' (not confirmed)' : ''}`,
         signatures: signatures.map(signature => prettyId(signature)).join(', '),
         confirmed: (signatures.includes('~Super_User1') || signatures.includes('OpenReview.net'))
           || signatures.some(signature => profileUsernames.includes(signature)),
