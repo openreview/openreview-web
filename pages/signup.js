@@ -44,7 +44,8 @@ const SignupForm = ({ setSignupConfirmation }) => {
       if (profiles) {
         setExistingProfiles(profiles.map(profile => ({
           id: profile.id,
-          emails: profile.content?.emailsConfirmed || [],
+          emails: profile.content?.emails || [],
+          emailsConfirmed: profile.content?.emailsConfirmed || [],
           active: profile.active,
           password: profile.password,
         })))
@@ -180,12 +181,16 @@ const SignupForm = ({ setSignupConfirmation }) => {
       <LoadingContext.Provider value={loading}>
         {existingProfiles.map((profile) => {
           let formComponents
-          if (profile.emails.length > 0) {
-            formComponents = profile.emails.map(confirmedEmail => (
+          const allEmails = profile.active
+            ? profile.emailsConfirmed
+            : Array.from(new Set([...profile.emailsConfirmed, ...profile.emails]))
+
+          if (profile.password) {
+            formComponents = allEmails.map(email => (
               <ExistingProfileForm
-                key={confirmedEmail}
+                key={email}
                 id={profile.id}
-                obfuscatedEmail={confirmedEmail}
+                obfuscatedEmail={email}
                 hasPassword={profile.password}
                 isActive={profile.active}
                 registerUser={registerUser}
@@ -194,13 +199,24 @@ const SignupForm = ({ setSignupConfirmation }) => {
               />
             ))
           } else {
-            formComponents = [
-              <ClaimProfileForm key={profile.id} id={profile.id} registerUser={registerUser} />,
-            ]
+            formComponents = [<ClaimProfileForm key={profile.id} id={profile.id} registerUser={registerUser} />]
+            if (allEmails.length > 0) {
+              formComponents = formComponents.concat(allEmails.map(email => (
+                <ExistingProfileForm
+                  key={email}
+                  id={profile.id}
+                  obfuscatedEmail={email}
+                  hasPassword={profile.password}
+                  isActive={profile.active}
+                  registerUser={registerUser}
+                  resetPassword={resetPassword}
+                  sendActivationLink={sendActivationLink}
+                />
+              )))
+            }
           }
           return formComponents.concat(<hr key={`${profile.id}-spacer`} className="spacer" />)
         })}
-
         <NewProfileForm id={newUsername} registerUser={registerUser} />
       </LoadingContext.Provider>
 
