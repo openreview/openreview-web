@@ -270,6 +270,14 @@ which will be displayed as:
 
   For more information on supported field types, [click here.](/faq#question-field-type-supported)`,
   }, {
+    q: 'How do I make submissions available before the submission deadline?',
+    id: 'question-post-submission-button',
+    a: `On the request form for your venue, click on the ‘Post Submission’ button to make submissions available according to the settings selected in the fields ‘Author and Reviewer Anonymity’ and ‘Open Reviewing Policy’ of the venue request.
+  This means that:
+  - If submissions are double blind, blind copies of submissions will be created (make sure to select Force=True). You can also choose which fields are kept hidden (author names are automatically hidden).
+  - If submissions should be public, then they will be released to everyone.
+  - If submissions are private, then they will be released to the committee groups (senior area chairs, area chairs  and reviewers).`,
+  }, {
     q: 'How do I make reviews visible to authors?',
     id: 'question-release-reviews-authors',
     a: 'On the request form for your venue, click on the ‘Review Stage’ button. Select Yes under Release Reviews to Authors and then submit. This will immediately release any existing reviews to authors and make subsequent posted reviews readily available to authors.',
@@ -288,7 +296,10 @@ which will be displayed as:
   }, {
     q: 'How can I automatically assign reviewers to papers based on their affinity and/or bids?',
     id: 'question-run-matcher',
-    a: 'To automatically assign reviewers to papers after the submission deadline has passed, you must first set the review stage by clicking on the ‘Review Stage’ button on the request form for your venue. You will then be able to run the matcher by clicking on ‘Reviewers Paper Assignment’ under the ‘Overview’ tab in the PC console.',
+    a: `To automatically assign reviewers to papers after the submission deadline has passed, you must first set the review stage by clicking on the ‘Review Stage’ button on the request form for your venue. You will then be able to run the matcher by clicking on ‘Reviewers Paper Assignment’ under the ‘Overview’ tab in the PC console.
+
+  Once you are satisfied with the paper assignment, click on the 'Deploy' button next to the configuration you would like to deploy. Note that deploying an assignment does not send an email to reviewers about their new assignments.
+  For more information on how to contact reviewers, [click here.](/faq#question-contact-venue-roles)`,
   }, {
     q: 'How can I enable comments on papers?',
     id: 'question-enable-comments',
@@ -393,7 +404,7 @@ You can have different types of fields:
 - **value-regex**, **values-regex**: string or array of strings; the value entered by the user should pass the regex validation.
 
     \`\`\`
-    "comment": {
+    "title": {
       "order": 0,
       "value-regex": ".{1,500}",
       "description": "Brief summary of your comment.",
@@ -510,30 +521,31 @@ You can have different types of fields:
       "authors": {
           "description": "Comma separated list of author names.",
           "order": 2,
-          "values-regex": "[^;,\\n]+(,[^,\\n]+)*",
-          "required": true
+          "values-regex": "[^;,\\\\n]+(,[^,\\\\n]+)*",
+          "required": true,
+          "hidden" true
       },
       "authorids": {
-          "description": "Comma separated list of author email addresses, lowercased, in the same order as above. For authors with existing OpenReview accounts, please make sure that the provided email address(es) match those listed in the author's profile.",
+          "description": "Search author profile by first, middle and last name or email address. If the profile is not found, you can add the author by completing first, middle, and last names as well as author email address.",
           "order": 3,
-          "values-regex": "([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})",
+          "values-regex": "~.*|([a-z0-9_\\\\-\\\\.]{1,}@[a-z0-9_\\\\-\\\\.]{2,}\\\\.[a-z]{2,},){0,}([a-z0-9_\\\\-\\\\.]{1,}@[a-z0-9_\\\\-\\\\.]{2,}\\\\.[a-z]{2,})",
           "required": true
       },
       "keywords": {
           "description": "Comma separated list of keywords.",
           "order": 6,
-          "values-regex": "(^$)|[^;,\\n]+(,[^,\\n]+)*"
+          "values-regex": "(^$)|[^;,\\\\n]+(,[^,\\\\n]+)*"
       },
       "TL;DR": {
           "description": "\\"Too Long; Didn't Read\\": a short sentence describing your paper",
           "order": 7,
-          "value-regex": "[^\\n]{0,250}",
+          "value-regex": "[^\\\\n]{0,250}",
           "required": false
       },
       "abstract": {
           "description": "Abstract of paper. Add TeX formulas using the following formats: $In-line Formula$ or $$Block Formula$$",
           "order": 8,
-          "value-regex": "[\\S\\s]{1,5000}",
+          "value-regex": "[\\\\S\\\\s]{1,5000}",
           "required": true
       },
       "pdf": {
@@ -543,7 +555,7 @@ You can have different types of fields:
               "fileTypes": [
                   "pdf"
               ],
-              "size": 50000000
+              "size": 50
           },
           "required": true
       }
@@ -566,7 +578,7 @@ You can have different types of fields:
       },
       "review": {
           "order": 2,
-          "value-regex": "[\\S\\s]{1,200000}",
+          "value-regex": "[\\\\S\\\\s]{1,200000}",
           "description": "Please provide an evaluation of the quality, clarity, originality and significance of this work, including a list of its pros and cons (max 200000 characters). Add formatting using Markdown and formulas using LaTeX. For more information see https://openreview.net/faq",
           "required": true,
           "markdown": true
@@ -611,7 +623,7 @@ You can have different types of fields:
     {
       "metareview": {
           "order": 1,
-          "value-regex": "[\\S\\s]{1,5000}",
+          "value-regex": "[\\\\S\\\\s]{1,5000}",
           "description": "Please provide an evaluation of the quality, clarity, originality and significance of this work, including a list of its pros and cons. Your comment or reply (max 5000 characters). Add formatting using Markdown and formulas using LaTeX. For more information see https://openreview.net/faq",
           "required": true,
           "markdown": true
@@ -655,7 +667,7 @@ You can have different types of fields:
       },
       "comment": {
           "order": 1,
-          "value-regex": "[\\S\\s]{1,5000}",
+          "value-regex": "[\\\\S\\\\s]{1,5000}",
           "description": "Your comment or reply (max 5000 characters). Add formatting using Markdown and formulas using LaTeX. For more information see https://openreview.net/faq",
           "required": true,
           "markdown": true
@@ -689,7 +701,7 @@ You can have different types of fields:
       "comment": {
           "order": 3,
           "required": false,
-          "value-regex": "[\\S\\s]{0,5000}",
+          "value-regex": "[\\\\S\\\\s]{0,5000}",
           "description": ""
       }
     }
