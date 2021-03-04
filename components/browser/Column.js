@@ -573,14 +573,17 @@ export default function Column(props) {
       return
     }
 
+    const isRemovingTraverseEdge = removedEdge.invitation === traverseInvitation.id // controls the green background
+    const shouldUserRemainAssigned = isRemovingTraverseEdge ? false : items[entityIndex].metadata.isUserAssigned // set to existing value if not deleting traverse edge
+
     const itemToAdd = {
       ...items[entityIndex],
       editEdge: removedEdge,
       metadata: {
         ...items[entityIndex].metadata,
-        isAssigned: false,
-        isUserAssigned: false,
-        isUserUnassigned: true,
+        isAssigned: isRemovingTraverseEdge ? false : items[entityIndex].metadata.isAssigned,
+        isUserAssigned: shouldUserRemainAssigned,
+        isUserUnassigned: !shouldUserRemainAssigned,
       },
     }
     setItems([

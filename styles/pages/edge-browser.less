@@ -67,7 +67,7 @@ main.edge-browser {
       .reviewer-heading,
       .note-heading {
         float: left;
-        width: ~"calc(100% - 60px)";
+        // width: ~"calc(100% - 60px)"; // edit widget is moved to next row
       }
     }
     &.divider {
@@ -89,10 +89,6 @@ main.edge-browser {
       }
     }
     .edit-controls {
-      // float: right;
-      // text-align: right;
-      width: 55px;
-
       &.full-width {
         float: none;
         width: 100%;
@@ -166,6 +162,16 @@ main.edge-browser {
         font-size: .75rem;
         padding-left: .5rem;
         padding-right: .5rem;
+      }
+      .edit-edge-toggle-description{
+          display: inline-block;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          width: 300px;
+          white-space: nowrap;
+      }
+      .edit-edge-toggle-btn{
+        vertical-align: super;
       }
     }
     .scores-list, .action-links {
