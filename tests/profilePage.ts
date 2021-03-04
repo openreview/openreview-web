@@ -284,3 +284,11 @@ test('#160 allow user to overwrite last/middle/first name to be lowercase', asyn
     .expect(Selector('span').withText('middle').exists).ok()
     .expect(Selector('span').withText('last').exists).ok()
 })
+test('fail before 2099', async (t) => {
+  await t.useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .typeText(Selector('#history_table').find('input.end'), `${new Date().getFullYear() + 10}`, { replace: true }) // to fail in 2090, update validation regex
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText).eql('Your profile information has been successfully updated')
+    .wait(5000)
+})
