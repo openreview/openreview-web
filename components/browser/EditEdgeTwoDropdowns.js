@@ -87,7 +87,7 @@ export default function EditEdgeTwoDropdowns(props) {
           <a href="#" className="ml-1" onClick={addEdge}>
             <span className="glyphicon glyphicon-floppy-disk" />
           </a>
-          <a href="#" className="ml-1" onClick={props.removeEdge}>
+          <a href="#" className="ml-1" onClick={(e) => { e.stopPropagation(); props.removeEdge() }}>
             <span className="glyphicon glyphicon-trash" />
           </a>
         </>

@@ -113,7 +113,7 @@ export default function ProfileEntity(props) {
         controlType={controlType}
         default=" "
         addEdge={addEdge}
-        removeEdge={removeEdge}
+        removeEdge={() => removeEdge(editEdge)}
         editEdgeTemplate={editEdgeTemplates.find(p => p.invitation === editInvitation.id)} // required for adding new one
       />
     )
@@ -141,7 +141,7 @@ export default function ProfileEntity(props) {
 
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-    <li className={`entry entry-reviewer ${extraClasses.join(' ')}`} onClick={handleClick} onMouseEnter={e => handleHover(e.currentTarget)}>
+    <li className={`entry entry-reviewer d-flex ${extraClasses.join(' ')}`} onClick={handleClick} onMouseEnter={e => handleHover(e.currentTarget)}>
       <div className="reviewer-heading">
         <h3>
           <a href={`/profile?id=${id}`} title={`Profile for ${id}`} target="_blank" rel="noreferrer">
@@ -161,26 +161,26 @@ export default function ProfileEntity(props) {
         // eslint-disable-next-line max-len,react/no-array-index-key
         editInvitations?.map((editInvitation, index) => <React.Fragment key={index}>{renderEditEdgeWidget({ editInvitation })}</React.Fragment>)
       }
-
-      <ScoresList edges={props.profile.browseEdges} />
-
-      <div className="action-links">
-        <ul className="list-unstyled text-right">
-          <li>
-            {props.canTraverse ? (
-              <a href="#" className="show-assignments">
-                {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-                {props.traverseLabel} ({props.profile.traverseEdgesCount}) &raquo;
-              </a>
-            ) : (
-              <>
-                <span>{`${props.traverseLabel}:`}</span>
-                {' '}
-                <span>{props.profile.traverseEdgesCount}</span>
-              </>
-            )}
-          </li>
-        </ul>
+      <div>
+        <ScoresList edges={props.profile.browseEdges} />
+        <div className="action-links">
+          <ul className="list-unstyled text-right">
+            <li>
+              {props.canTraverse ? (
+                <a href="#" className="show-assignments">
+                  {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+                  {props.traverseLabel} ({props.profile.traverseEdgesCount}) &raquo;
+                </a>
+              ) : (
+                <>
+                  <span>{`${props.traverseLabel}:`}</span>
+                  {' '}
+                  <span>{props.profile.traverseEdgesCount}</span>
+                </>
+              )}
+            </li>
+          </ul>
+        </div>
       </div>
     </li>
   )
