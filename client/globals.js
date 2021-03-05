@@ -84,15 +84,35 @@ window.translateErrorMessage = function(error) {
 window.translateOpenReviewErrorMessage = function (error) {
   let errorFields = null
   let errorPath = error?.path
-  const errorPathTokens = errorPath?.split('.')
-  if (errorPathTokens?.length >= 2) {
-    errorPath = `${errorPathTokens[errorPathTokens.length - 1]} of ${errorPathTokens[errorPathTokens.length - 2]}`
+
+  const getErrorPath = (errorType, errorPath) => {
+    const errorPathTokens = errorPath?.split('.')
+    const isDeeplyNestedPath = errorPathTokens?.length >= 2
+    switch (errorType) {
+      case "Missing Fields":
+      case "Missing Required":
+      default:
+        return isDeeplyNestedPath ? `${errorPathTokens[errorPathTokens.length - 1]} of ${errorPathTokens[errorPathTokens.length - 2]}` : errorPath
+    }
   }
-  if (error.fields?.length) {
-    errorFields = error.fields.map(p => p.join(' and ')).join(' or ')
+  const getErrorFields = (errorType, errorFields) => {
+    switch (errorType) {
+      case "Missing Fields":
+      case "Missing Required":
+      default:
+        return errorFields?.length ? errorFields.map(p => p.join(' and ')).join(' or ') : null
+    }
   }
-  let readableErrorMessage = `${errorPath} ${error.message}${errorFields ? ` ${errorFields}` : ''}.`
-  return view.iMess(readableErrorMessage)
+  const getReadableErrorMessage = (errorType, path, fields, message) => {
+    switch (errorType) {
+      case "Missing Fields":
+      case "Missing Required":
+      default:
+        return `${path} ${message}${fields ? ` ${fields}` : ''}.`
+    }
+  }
+
+  return view.iMess(getReadableErrorMessage(error.name, getErrorPath(), getErrorFields(), error.message))
 }
 
 // Flash Alert Functions (main.js)
