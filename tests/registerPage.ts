@@ -154,7 +154,7 @@ test('email address should be masked', async (t) => {
   await t
     .typeText(firstNameInputSelector, inActiveUserNoPassword.first)
     .typeText(lastNameInputSelector, inActiveUserNoPassword.last)
-    .expect(Selector('input').withAttribute('type', 'email').nth(0).value).contains('****') // email should be masked
+    .expect(Selector('input').withAttribute('type', 'email').nth(1).value).contains('****') // email should be masked
 })
 
 // eslint-disable-next-line no-unused-expressions
