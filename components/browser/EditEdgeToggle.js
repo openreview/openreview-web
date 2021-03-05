@@ -20,7 +20,7 @@ export default function EditEdgeToggle({ addEdge, removeEdge, existingEdge, canA
 
   return (
     <div className="edit-controls">
-      <span className="edit-edge-toggle-description">{`${editEdgeTemplate.name}:${editEdgeTemplate.label ?? '(NO LABEL)'}`}</span>
+      <label className="edit-edge-toggle-description">{`${editEdgeTemplate.name}:${editEdgeTemplate.label ?? '(NO LABEL)'}`}</label>
       <button
         type="button"
         className="btn btn-xs btn-default ml-1 edit-edge-toggle-btn"

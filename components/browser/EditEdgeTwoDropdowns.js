@@ -34,26 +34,32 @@ export default function EditEdgeTwoDropdowns(props) {
           {props.editInvitation.name}
           :
         </label>
-        <div className="btn-group edit-edge-dropdown">
-          <button
-            className="btn btn-default btn-xs btn-link dropdown-toggle flex-button"
-            type="button"
-            data-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false"
-            onClick={e => e.stopPropagation()}
-          >
-            <span className="two-dropdowns-edge-label">{label ?? defaultOption}</span>
-            <span className="caret" />
-          </button>
-          <ul className="dropdown-menu">
-            {labelOptions && labelOptions.map(option => (
-              <li key={option}>
-                <a href="#" onClick={() => setLabel(option)}>{option}</a>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {
+          props.editEdgeTemplate.label
+            ? <label>{props.editEdgeTemplate.label}</label>
+            : (
+              <div className="btn-group edit-edge-dropdown">
+                <button
+                  className="btn btn-default btn-xs btn-link dropdown-toggle flex-button"
+                  type="button"
+                  data-toggle="dropdown"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <span className="two-dropdowns-edge-label">{label ?? defaultOption}</span>
+                  <span className="caret" />
+                </button>
+                <ul className="dropdown-menu">
+                  {labelOptions && labelOptions.map(option => (
+                    <li key={option}>
+                      <a href="#" onClick={() => setLabel(option)}>{option}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+        }
       </div>
       <div className="d-flex ml-1">
         <label>
