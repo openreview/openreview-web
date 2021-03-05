@@ -82,17 +82,23 @@ window.translateErrorMessage = function(error) {
 // OpenReview Error(API) has the following properties
 // name:string,status,message:string,path?:string,fields?:Array<Array<string>>
 window.translateOpenReviewErrorMessage = function (error) {
-  let errorFields = null
-  let errorPath = error?.path
-
   const getErrorPath = (errorType, errorPath) => {
     const errorPathTokens = errorPath?.split('.')
     const isDeeplyNestedPath = errorPathTokens?.length >= 2
+
     switch (errorType) {
       case "Missing Fields":
       case "Missing Required":
       default:
         return isDeeplyNestedPath ? `${errorPathTokens[errorPathTokens.length - 1]} of ${errorPathTokens[errorPathTokens.length - 2]}` : errorPath
+    }
+  }
+  const getErrorMessage = (errorType, errorMessage) => {
+    switch (errorType) {
+      case "Missing Fields":
+      case "Missing Required":
+      default:
+        return errorMessage
     }
   }
   const getErrorFields = (errorType, errorFields) => {
@@ -108,11 +114,16 @@ window.translateOpenReviewErrorMessage = function (error) {
       case "Missing Fields":
       case "Missing Required":
       default:
-        return `${path} ${message}${fields ? ` ${fields}` : ''}.`
+        return view.iMess(`${path} ${message}${fields ? ` ${fields}` : ''}.`)
     }
   }
 
-  return view.iMess(getReadableErrorMessage(error.name, getErrorPath(), getErrorFields(), error.message))
+  return getReadableErrorMessage(
+    error.name,
+    getErrorPath(error.name, error.path),
+    getErrorFields(error.name, error.fields),
+    getErrorMessage(error.name, error.message)
+  )
 }
 
 // Flash Alert Functions (main.js)
