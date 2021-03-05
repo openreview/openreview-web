@@ -57,7 +57,7 @@ const UserModerationQueue = ({
         sort: 'tcdate:desc',
         limit: pageSize,
         offset: (pageNumber - 1) * pageSize,
-        trash: !onlyModeration,
+        withBlocked: onlyModeration ? undefined : true,
       }, { accessToken })
       setTotalCount(result.count ?? 0)
       setProfiles(result.profiles ?? [])
