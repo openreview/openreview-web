@@ -113,6 +113,7 @@ view.mkNoteEditor(
   {
     onNoteEdited: function(replyNote) {
       $('#invitation-container').empty();
+      history.replaceState({}, '', '/invitation?id=' + invitation.id)
       runWebfield(replyNote);
     },
     onNoteCancelled: function(result) {
