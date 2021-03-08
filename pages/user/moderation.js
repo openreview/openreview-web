@@ -82,7 +82,7 @@ const UserModerationQueue = ({
   }
 
   const blockUnblockUser = async (profile) => {
-    const actionIsBlock = !profile?.ddate
+    const actionIsBlock = !profile?.block
     // eslint-disable-next-line no-alert
     const confirmResult = window.confirm(`Are you sure you want to ${actionIsBlock ? 'block' : 'unblock'} ${profile?.content?.names?.[0]?.first} ${profile?.content?.names?.[0]?.last}?`)
     if (confirmResult) {
@@ -109,7 +109,7 @@ const UserModerationQueue = ({
           {profiles.map((profile) => {
             const name = profile.content.names[0]
             return (
-              <li key={profile.id} className={`${profile.ddate ? 'blocked' : null}`}>
+              <li key={profile.id} className={`${profile.block ? 'blocked' : null}`}>
                 <span className="col-name">
                   <a href={`/profile?id=${profile.id}`} target="_blank" rel="noreferrer" title={profile.id}>
                     {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
@@ -154,9 +154,9 @@ const UserModerationQueue = ({
                       className="btn btn-xs btn-block-profile"
                       onClick={() => blockUnblockUser(profile)}
                     >
-                      <Icon name={`${profile.ddate ? 'refresh' : 'ban-circle'}`} />
+                      <Icon name={`${profile.block ? 'refresh' : 'ban-circle'}`} />
                       {' '}
-                      {`${profile.ddate ? 'Unblock' : 'Block'}`}
+                      {`${profile.block ? 'Unblock' : 'Block'}`}
                     </button>
                   )}
                 </span>
