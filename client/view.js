@@ -1716,7 +1716,9 @@ module.exports = (function() {
     var profileRegex = /\B~[^\d\s]+\_[^\d\s]+[0-9]+/ig;
 
     var intermediate = value.replace(urlRegex, function(match) {
-      return '<a href="' + match + '" target="_blank" rel="nofollow">' + match + '</a>';
+      var showAsRelativeUrl = false
+      if (match.startsWith('https://openreview.net')) showAsRelativeUrl = true
+      return `<a href="${match}" target="_blank" rel="nofollow">${showAsRelativeUrl ? match.replace('https://openreview.net', '') : match}</a>`;
     });
 
     return intermediate.replace(profileRegex, function(match) {
@@ -1896,6 +1898,7 @@ module.exports = (function() {
         // First set content as text to escape HTML, then autolink escaped HTML
         $elem.text(valueString);
         $elem.html(autolinkHtml($elem.html()));
+
       }
 
       $contents.push($('<div>', {class: 'note_contents'}).append(
