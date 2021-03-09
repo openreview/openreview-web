@@ -94,6 +94,7 @@ const Browse = ({ appContext }) => {
           const readers = buildInvitationReplyArr(fullInvitation, 'readers', user.profile.id)
           const writers = buildInvitationReplyArr(fullInvitation, 'writers', user.profile.id) || readers
           const signatures = buildInvitationReplyArr(fullInvitation, 'signatures', user.profile.id)
+          const nonreaders = buildInvitationReplyArr(fullInvitation, 'nonreaders', user.profile.id)
           Object.assign(invObj, {
             head: fullInvitation.reply.content.head,
             tail: fullInvitation.reply.content.tail,
@@ -102,6 +103,7 @@ const Browse = ({ appContext }) => {
             readers,
             writers,
             signatures,
+            nonreaders,
           })
         })
         if (!allValid) {

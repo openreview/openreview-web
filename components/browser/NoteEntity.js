@@ -69,7 +69,13 @@ export default function NoteEntity(props) {
     Webfield.post('/edges', {
       tail: id,
       ddate: null,
-      ...existingEdge ?? editEdgeTemplate,
+      ...existingEdge ?? {
+        ...editEdgeTemplate,
+        readers: editEdgeTemplate.readers.map(r => r.replace('{head.number}', number)),
+        nonreaders: editEdgeTemplate.nonreaders.map(r => r.replace('{head.number}', number)),
+        writers: editEdgeTemplate.writers.map(r => r.replace('{head.number}', number)),
+        signatures: editEdgeTemplate.signatures.resolveAtEntity ? editEdgeTemplate.signatures.value.split('|').filter(p => p.includes('{head.number}')).map(q => q.replace('{head.number}', number)) : editEdgeTemplate.signatures,
+      },
       ...updatedEdgeFields,
     })
       .then(res => props.addEdgeToEntity(id, res))

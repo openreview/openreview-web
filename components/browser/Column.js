@@ -12,6 +12,8 @@ import EntityList from './EntityList'
 import {
   prettyId, prettyInvitationId, pluralizeString,
 } from '../../lib/utils'
+import api from '../../lib/api-client'
+import useLoginRedirect from '../../hooks/useLoginRedirect'
 
 export default function Column(props) {
   const {
@@ -30,6 +32,7 @@ export default function Column(props) {
   const parent = parentId ? altGlobalEntityMap[parentId] : null
   const otherType = type === 'head' ? 'tail' : 'head'
   const colBodyEl = useRef(null)
+  const { user, accessToken } = useLoginRedirect()
 
   // Helpers
   const formatEdge = edge => ({
@@ -45,17 +48,43 @@ export default function Column(props) {
     writers: edge.writers || [],
     readers: edge.readers || [],
     signatures: edge.signatures || [],
+    nonreaders: edge.nonreaders || [],
   })
 
-  const buildNewEditEdge = (editInvitation, entityId, weight = 0) => {
-    if (!editInvitation) return null
+  const getInterpolatedValue = (value, entityId) => { // readers/nonreaders/writers
+    if (typeof value === 'string' && type === 'tail') return value.replace('{head.number}', parent.number)
+    if (Array.isArray(value)) {
+      return value.map((v) => {
+        let finalV = v
+        if (v.includes('{tail}')) {
+          finalV = finalV.replace('{tail}', `${type === 'tail' ? entityId : parentId}`)
+        }
+        if (v.includes('{head.number}') && type === 'tail') { // it's the same for only tail(profile) column
+          finalV = finalV.replace('{head.number}', parent.number)
+        }
+        return finalV
+      })
+    }
+    return value // to be resolved at entity
+  }
 
-    const finalReaders = editInvitation.readers.map((reader) => {
-      if (reader === '{tail}') {
-        return type === 'tail' ? entityId : parentId
+  const getInterpolatedSignature = (signaturesOfInvitation, editInvitation, groupLooksupResult) => {
+    if (typeof (signaturesOfInvitation) === 'object' && Array.isArray(signaturesOfInvitation) === false) {
+      // values-regex
+      const venueId = editInvitation.id.split('/').slice(0, 3).join('/')
+      if (groupLooksupResult.groups?.some(p => p?.id === venueId)) {
+        // user can sign with venue id, pc
+        return [venueId]
       }
-      return reader
-    })
+      if (type === 'tail') { // resolve if tail, otherwise resolve at entity
+        return signaturesOfInvitation.value.split('|').filter(p => p.includes('{head.number}')).map(q => q.replace('{head.number}', parent.number))
+      }
+    }
+    return signaturesOfInvitation
+  }
+
+  const buildNewEditEdge = (editInvitation, entityId, weight = 0, groupLooksupResult) => {
+    if (!editInvitation) return null
 
     return {
       invitation: editInvitation.id,
@@ -64,9 +93,10 @@ export default function Column(props) {
       [otherType]: parentId,
       label: editInvitation.query.label,
       weight,
-      readers: finalReaders,
-      writers: editInvitation.writers,
-      signatures: editInvitation.signatures,
+      readers: getInterpolatedValue(editInvitation.readers, entityId),
+      writers: getInterpolatedValue(editInvitation.writers, entityId),
+      signatures: getInterpolatedSignature(editInvitation.signatures, editInvitation, groupLooksupResult),
+      nonreaders: getInterpolatedValue(editInvitation.nonreaders, entityId),
     }
   }
 
@@ -387,19 +417,27 @@ export default function Column(props) {
         // Add existing edit edges to items
         editEdgeGroups.forEach(editEdge => editEdge.forEach(updateColumnItems('editEdges', colItems)))
 
-        // Add each editInvitation as a template so that new invitation can be added
-        if (editInvitations?.length) {
-          colItems.forEach((item) => {
-            // if (item.editEdges?.length > 0) return
+        Promise.all(editInvitations.map((p) => { // get groups that user can sign with
+          if (typeof (p.signatures) === 'object' && Array.isArray(p.signatures) === false) {
+            // values-regex
+            return api.get('/groups', { regex: p.signatures.value, signatory: user.preferredEmail }, { accessToken })
+          }
+          return null
+        })).then((groupLookupResults) => {
+          // Add each editInvitation as a template so that new invitation can be added
+          if (editInvitations?.length) {
+            colItems.forEach((item) => {
+              // if (item.editEdges?.length > 0) return
 
-            const hasAggregateScoreEdge = item.browseEdges.length && item.browseEdges[0].name === 'Aggregate_Score'
-            const edgeWeight = hasAggregateScoreEdge ? item.browseEdges[0].weight : 0
-            // eslint-disable-next-line no-param-reassign,max-len
-            item.editEdgeTemplates = editInvitations.map(editInvitation => buildNewEditEdge(editInvitation, item.id, edgeWeight))
-          })
-        }
+              const hasAggregateScoreEdge = item.browseEdges.length && item.browseEdges[0].name === 'Aggregate_Score'
+              const edgeWeight = hasAggregateScoreEdge ? item.browseEdges[0].weight : 0
+              // eslint-disable-next-line no-param-reassign,max-len
+              item.editEdgeTemplates = editInvitations.map((editInvitation, index) => buildNewEditEdge(editInvitation, item.id, edgeWeight, groupLookupResults[index]))
+            })
+          }
 
-        setItems(colItems)
+          setItems(colItems)
+        })
       })
   }, [props.loading, globalEntityMap])
 
