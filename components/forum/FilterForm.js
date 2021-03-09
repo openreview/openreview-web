@@ -122,7 +122,7 @@ export default function FilterForm({
             <Icon name="resize-full" />
             <span className="sr-only">Default</span>
           </button>
-          <button type="button" className={`btn btn-default ${collapse === 2 ? 'active' : ''}`} onClick={(e) => { setCollapse(1); setCollapseLevel(2) }}>
+          <button type="button" className={`btn btn-default ${collapse === 2 ? 'active' : ''}`} onClick={(e) => { setCollapse(2); setCollapseLevel(2) }}>
             <Icon name="fullscreen" />
             <span className="sr-only">Expanded</span>
           </button>
@@ -144,7 +144,7 @@ export default function FilterForm({
             name="readers-filter"
             className="readers-filter"
             options={readersToggleOptions}
-            defaultValue={[
+            values={[
               selectedFilters.readers ?? [],
               selectedFilters.excludedReaders ?? [],
             ]}

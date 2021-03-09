@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
+import Link from 'next/link'
 import Router, { useRouter } from 'next/router'
 import truncate from 'lodash/truncate'
 import intersection from 'lodash/intersection'
@@ -14,6 +15,7 @@ import withError from '../components/withError'
 import FilterForm from '../components/forum/FilterForm'
 import ForumReplyContext from '../components/ForumReplyContext'
 import useUser from '../hooks/useUser'
+import useQuery from '../hooks/useQuery'
 import api from '../lib/api-client'
 import { auth } from '../lib/auth'
 import { prettyId, forumDate, getConferenceName } from '../lib/utils'
@@ -23,7 +25,6 @@ import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 // Page Styles
 import '../styles/pages/forum-new.less'
-import useQuery from '../hooks/useQuery'
 
 const ForumTitle = ({
   id, title, pdf, html,
@@ -100,10 +101,12 @@ const Forum = ({ forumNote, appContext }) => {
   const [selectedFilters, setSelectedFilters] = useState({
     invitations: null, signatures: null, keywords: null, readers: null, excludedReaders: null,
   })
+  const router = useRouter()
   const query = useQuery()
 
   const { setBannerContent } = appContext
   const { id, content, details } = forumNote
+  const { replyForumViews } = details.invitation
 
   const truncatedTitle = truncate(content.title, { length: 70, separator: /,? +/ })
   const truncatedAbstract = truncate(content['TL;DR'] || content.abstract, { length: 200, separator: /,? +/ })
@@ -225,6 +228,31 @@ const Forum = ({ forumNote, appContext }) => {
       setBannerContent(venueHomepageLink(groupId))
     }
   }, [forumNote, query])
+
+  // Handle url hash changes
+  useEffect(() => {
+    const handleRouteChange = (url) => {
+      const [_, tabId] = url.split('#')
+      if (!tabId || !replyForumViews) return
+      const tab = replyForumViews.find(view => view.id === tabId)
+      if (!tab) return
+
+      if (tab.filter) {
+        setSelectedFilters(parseFilterQuery(tab.filter))
+      }
+      if (tab.layout) {
+        setLayout(tab.layout)
+      }
+      if (tab.sort) {
+        setSort(tab.sort)
+      }
+    }
+
+    router.events.on('hashChangeComplete', handleRouteChange)
+    return () => {
+      router.events.off('hashChangeComplete', handleRouteChange)
+    }
+  }, [])
 
   // Load forum replies
   useEffect(() => {
@@ -399,7 +427,21 @@ const Forum = ({ forumNote, appContext }) => {
         <ForumReplyCount />
       </div>
 
-      <hr />
+      {(replyForumViews && replyNoteMap) ? (
+        <div className="row">
+          <div className="col-xs-12">
+            <ul className="nav nav-tabs">
+              {replyForumViews.map(view => (
+                <li key={view.id} role="presentation" className={window.location.hash.slice(1) === view.id ? 'active' : ''}>
+                  <Link href={`?id=${id}#${view.id}`} shallow><a>{view.label}</a></Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ) : (
+        <hr />
+      )}
 
       <div className="row">
         <div className="col-xs-12">

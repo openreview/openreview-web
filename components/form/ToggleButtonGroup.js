@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import findIndex from 'lodash/findIndex'
 
 export default function ToggleButtonGroup({
-  name, className, options, defaultValue, isDisabled, onChange,
+  name, className, options, values, isDisabled, onChange,
 }) {
   if (!options) return null
 
@@ -33,10 +33,10 @@ export default function ToggleButtonGroup({
   }
 
   useEffect(() => {
-    if (!defaultValue) return
+    if (!values) return
 
     const newOptionStates = [...optionStates]
-    defaultValue.forEach((selectedValues, state) => {
+    values.forEach((selectedValues, state) => {
       selectedValues.forEach((val) => {
         const index = findIndex(options, option => option.value === val)
         newOptionStates[index] = state + 1
@@ -44,7 +44,7 @@ export default function ToggleButtonGroup({
     })
 
     setOptionStates(newOptionStates)
-  }, [])
+  }, [values])
 
   return (
     <div
