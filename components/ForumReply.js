@@ -7,7 +7,7 @@ import {
 import Icon from './Icon'
 
 export default function ForumReply({ note, replies }) {
-  const { displayOptionsMap, setCollapsed, setInvitationFilter } = useContext(ForumReplyContext)
+  const { displayOptionsMap, setCollapsed } = useContext(ForumReplyContext)
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
   const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
 
@@ -19,7 +19,7 @@ export default function ForumReply({ note, replies }) {
         ]
       </button>
 
-      <ReplyTitle note={note} collapsed={collapsed} setInvitationFilter={setInvitationFilter} />
+      <ReplyTitle note={note} collapsed={collapsed} />
 
       {!collapsed && (
         <NoteContentCollapsible
@@ -107,17 +107,15 @@ function ReplyTitle({ note, collapsed, setInvitationFilter }) {
         )}
       </h4>
       <div className="subheading">
-        <button type="button" className="btn-link" onClick={(e) => { setInvitationFilter(invitation) }}>
-          <span
-            className="invitation highlight"
-            data-toggle="tooltip"
-            data-placement="top"
-            title="Reply type"
-            style={styleMap[prettyInvitationId(invitation)]}
-          >
-            {prettyInvitationId(invitation, true)}
-          </span>
-        </button>
+        <span
+          className="invitation highlight"
+          data-toggle="tooltip"
+          data-placement="top"
+          title="Reply type"
+          style={styleMap[prettyInvitationId(invitation)]}
+        >
+          {prettyInvitationId(invitation, true)}
+        </span>
         <span className="signatures" data-toggle="tooltip" data-placement="top" title="Reply Author">
           <Icon name="pencil" />
           {signatures.map(signature => prettyId(signature, true)).join(', ')}
