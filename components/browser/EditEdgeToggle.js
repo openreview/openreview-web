@@ -17,10 +17,15 @@ export default function EditEdgeToggle({ addEdge, removeEdge, existingEdge, canA
   }
 
   if (!existingEdge && !canAddEdge) return null
+  const getLabel = () => {
+    const weight = existingEdge?.weight ? `, ${existingEdge.weight}` : ''
+    const label = editEdgeTemplate.label ? editEdgeTemplate.label : '(NO LABEL)'
+    return `${editEdgeTemplate.name}: ${label}${weight}`
+  }
 
   return (
-    <div className="edit-controls">
-      <label className="edit-edge-toggle-description">{`${editEdgeTemplate.name}:${editEdgeTemplate.label ?? '(NO LABEL)'}`}</label>
+    <div className="edit-controls d-flex">
+      <label className="edit-edge-toggle-description">{getLabel()}</label>
       <button
         type="button"
         className="btn btn-xs btn-default ml-1 edit-edge-toggle-btn"
