@@ -60,9 +60,9 @@ test('user open own profile', async (t) => {
     // add a name
     .click(nameSectionPlusIconSelector)
     .typeText(editFirstNameInputSelector, '111')
-    .expect(errorMessageSelector.innerText).eql('Name is not allowed to contain digits')
+    .expect(errorMessageSelector.innerText).eql('The first name 111 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed')
     .typeText(editFirstNameInputSelector, '`', { replace: true })
-    .expect(errorMessageSelector.innerText).eql('Name contains invalid characters: ~`_')
+    .expect(errorMessageSelector.innerText).eql('The first name ` is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed')
     .click(Selector('button.remove_button').filterVisible())
     // add a email
     .click(emailSectionPlusIconSelector)
