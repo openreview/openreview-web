@@ -81,7 +81,7 @@ export default function Column(props) {
         return [venueId]
       }
       if (type === 'tail') { // resolve if tail, otherwise resolve at entity
-        if (parentEntityType === 'Note') return signaturesOfInvitation.value.split('|').filter(p => p.includes('{head.number}')).map(q => q.replace('{head.number}', parent.number))
+        if (parentColumnType === 'Note') return signaturesOfInvitation.value.split('|').filter(p => p.includes('{head.number}')).map(q => q.replace('{head.number}', parent.number))
       }
     }
     return signaturesOfInvitation
