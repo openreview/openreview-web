@@ -349,8 +349,12 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
       valueString = DOMPurify.sanitize(marked(valueString));
     } else if (urlRegex.test(valueString)) {
       var showAsRelativeUrl = false
-      if (valueString.startsWith('https://openreview.net')) showAsRelativeUrl = true
-      valueString = `<a href="${valueString}" target="_blank" rel="nofollow noreferrer">${showAsRelativeUrl ? valueString.replace('https://openreview.net', '') : valueString}</a>`;
+      let relativeUrl = undefined
+      if (valueString.startsWith('https://openreview.net')) {
+        showAsRelativeUrl = true
+        relativeUrl = valueString.replace('https://openreview.net', '')
+      }
+      valueString = `<a href="${showAsRelativeUrl ? relativeUrl : valueString}" target="_blank" rel="nofollow noreferrer">${showAsRelativeUrl ? relativeUrl : valueString}</a>`;
     } else {
       valueString = Handlebars.Utils.escapeExpression(valueString);
     }

@@ -1715,10 +1715,14 @@ module.exports = (function() {
     var urlRegex = /(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*[^.,()"'\s])?/ig;
     var profileRegex = /\B~[^\d\s]+\_[^\d\s]+[0-9]+/ig;
 
-    var intermediate = value.replace(urlRegex, function(match) {
+    var intermediate = value.replace(urlRegex, function (match) {
       var showAsRelativeUrl = false
-      if (match.startsWith('https://openreview.net')) showAsRelativeUrl = true
-      return `<a href="${match}" target="_blank" rel="nofollow">${showAsRelativeUrl ? match.replace('https://openreview.net', '') : match}</a>`;
+      let relativeUrl = undefined
+      if (match.startsWith('https://openreview.net')) {
+        showAsRelativeUrl = true
+        relativeUrl = match.replace('https://openreview.net', '')
+      }
+      return `<a href="${showAsRelativeUrl ? relativeUrl : match}" target="_blank" rel="nofollow">${showAsRelativeUrl ? relativeUrl : match}</a>`;
     });
 
     return intermediate.replace(profileRegex, function(match) {
