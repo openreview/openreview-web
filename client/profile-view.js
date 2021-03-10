@@ -1216,21 +1216,16 @@ module.exports = function(profile, params, submitF, cancelF) {
     var getRelations = function() {
       var list = [];
       var $relationTable = $('#relation_table');
-      $relationTable.find('.info_row').each(function(index) {
+      $relationTable.find('.info_row').each(function (index) {
         var self = $(this);
-        var relation = self.find('.relation').val().trim();
-
-        if (relation) {
-          list.push({
-            name: self.find('.relation_name').val().trim() || null,
-            email: self.find('.relation_email').val().trim().toLowerCase(),
-            relation: relation,
-            start: Number(self.find('.start').val().trim()) || null,
-            end: Number(self.find('.end').val().trim()) || null,
-            readers: self.find('.multiselector').data('val')
-          });
-        }
-
+        list.push({
+          name: self.find('.relation_name').val().trim() || null,
+          email: self.find('.relation_email').val().trim().toLowerCase(),
+          relation: self.find('.relation').val().trim(),
+          start: Number(self.find('.start').val().trim()) || null,
+          end: Number(self.find('.end').val().trim()) || null,
+          readers: self.find('.multiselector').data('val')
+        });
       });
 
       return list;
