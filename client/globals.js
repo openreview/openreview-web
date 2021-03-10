@@ -87,32 +87,32 @@ window.translateOpenReviewErrorMessage = function (error) {
     const isDeeplyNestedPath = errorPathTokens?.length >= 2
 
     switch (errorType) {
-      case "Missing Fields":
-      case "Missing Required":
+      case "MissingFieldsError":
+      case "MissingRequiredError":
       default:
         return isDeeplyNestedPath ? `${errorPathTokens[errorPathTokens.length - 1]} of ${errorPathTokens[errorPathTokens.length - 2]}` : errorPath
     }
   }
   const getErrorMessage = (errorType, errorMessage) => {
     switch (errorType) {
-      case "Missing Fields":
-      case "Missing Required":
+      case "MissingFieldsError":
+      case "MissingRequiredError":
       default:
         return errorMessage
     }
   }
   const getErrorFields = (errorType, errorFields) => {
     switch (errorType) {
-      case "Missing Fields":
-      case "Missing Required":
+      case "MissingFieldsError":
+      case "MissingRequiredError":
       default:
         return errorFields?.length ? errorFields.map(p => p.join(' and ')).join(' or ') : null
     }
   }
   const getReadableErrorMessage = (errorType, path, fields, message) => {
     switch (errorType) {
-      case "Missing Fields":
-      case "Missing Required":
+      case "MissingFieldsError":
+      case "MissingRequiredError":
       default:
         return view.iMess(`${path} ${message}${fields ? ` ${fields}` : ''}.`)
     }
@@ -168,7 +168,7 @@ window.generalPrompt = function(type, content, options) {
     msgHtml = content;
   } else if (type === 'error') {
     var errorLabel = options.hideErrorLabel ? null : '<strong>Error: </strong>';
-    msgHtml = _.flatten([errorLabel, content.version ? translateOpenReviewErrorMessage(content) : translateErrorMessage(content)]);
+    msgHtml = _.flatten([errorLabel, content.version === 2 ? translateOpenReviewErrorMessage(content) : translateErrorMessage(content)]);
   } else {
     msgHtml = view.iMess(content);
   }
