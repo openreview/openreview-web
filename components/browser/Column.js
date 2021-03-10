@@ -320,7 +320,7 @@ export default function Column(props) {
             return
           }
 
-          const hideEdge = ['Paper Assignment', 'Conflict'].includes(startInvitation.name)
+          const hideEdge = ['Paper Assignment', 'Conflict', 'Assignment'].includes(startInvitation.name)
           const colItems = []
           const existingItems = new Set()
           startEdges.forEach((sEdge) => {
