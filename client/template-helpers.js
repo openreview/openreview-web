@@ -348,13 +348,8 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
     } else if (invitationField.markdown) {
       valueString = DOMPurify.sanitize(marked(valueString));
     } else if (urlRegex.test(valueString)) {
-      var showAsRelativeUrl = false
-      let relativeUrl = undefined
-      if (valueString.startsWith('https://openreview.net')) {
-        showAsRelativeUrl = true
-        relativeUrl = valueString.replace('https://openreview.net', '')
-      }
-      valueString = `<a href="${showAsRelativeUrl ? relativeUrl : valueString}" target="_blank" rel="nofollow noreferrer">${showAsRelativeUrl ? relativeUrl : valueString}</a>`;
+      var url = valueString.startsWith('https://openreview.net') ? valueString.replace('https://openreview.net', '') : valueString
+      valueString = `<a href="${url}" target="_blank" rel="nofollow noreferrer">${url}</a>`;
     } else {
       valueString = Handlebars.Utils.escapeExpression(valueString);
     }

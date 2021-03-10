@@ -1716,13 +1716,8 @@ module.exports = (function() {
     var profileRegex = /\B~[^\d\s]+\_[^\d\s]+[0-9]+/ig;
 
     var intermediate = value.replace(urlRegex, function (match) {
-      var showAsRelativeUrl = false
-      let relativeUrl = undefined
-      if (match.startsWith('https://openreview.net')) {
-        showAsRelativeUrl = true
-        relativeUrl = match.replace('https://openreview.net', '')
-      }
-      return `<a href="${showAsRelativeUrl ? relativeUrl : match}" target="_blank" rel="nofollow">${showAsRelativeUrl ? relativeUrl : match}</a>`;
+      var url = match.startsWith('https://openreview.net') ? match.replace('https://openreview.net', '') : match
+      return `<a href="${url}" target="_blank" rel="nofollow">${url}</a>`;
     });
 
     return intermediate.replace(profileRegex, function(match) {
