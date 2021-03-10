@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/destructuring-assignment */
 /* globals Webfield: false */
@@ -71,14 +72,26 @@ export default function NoteEntity(props) {
       ddate: null,
       ...existingEdge ?? {
         ...editEdgeTemplate,
-        readers: editEdgeTemplate.readers.map(r => r.replace('{head.number}', number)),
-        nonreaders: editEdgeTemplate.nonreaders.map(r => r.replace('{head.number}', number)),
-        writers: editEdgeTemplate.writers.map(r => r.replace('{head.number}', number)),
-        signatures: editEdgeTemplate.signatures.resolveAtEntity ? editEdgeTemplate.signatures.value.split('|').filter(p => p.includes('{head.number}')).map(q => q.replace('{head.number}', number)) : editEdgeTemplate.signatures,
+        readers: getInterpolatedValue(editEdgeTemplate.readers),
+        nonreaders: getInterpolatedValue(editEdgeTemplate.nonreaders),
+        writers: getInterpolatedValue(editEdgeTemplate.writers),
+        signatures: getInterpolatedValue(editEdgeTemplate.signatures),
       },
       ...updatedEdgeFields,
     })
       .then(res => props.addEdgeToEntity(id, res))
+  }
+
+  const getInterpolatedValue = (value) => { // readers/nonreaders/writers/signatures
+    if (value.resolveAtEntity) {
+      return value.value
+        .split('|')
+        .filter(p => p.includes('{head.number}') || p.includes('Paper.*'))
+        .map(q => q
+          .replace('{head.number}', number)
+          .replace('Paper.*', `Paper${number}`))
+    }
+    return value.map(p => p.replace('{head.number}', number).replace('Paper.*', `Paper${number}`))
   }
 
   const handleHover = (target) => {

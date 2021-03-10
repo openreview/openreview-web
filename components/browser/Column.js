@@ -22,6 +22,7 @@ export default function Column(props) {
     globalEntityMap,
     altGlobalEntityMap,
     startInvitation,
+    parentColumnType,
   } = props
   const {
     traverseInvitation,
@@ -60,10 +61,13 @@ export default function Column(props) {
           finalV = finalV.replace('{tail}', `${type === 'tail' ? entityId : parentId}`)
         }
         if (v.includes('{head.number}') && type === 'tail') { // it's the same for only tail(profile) column
-          finalV = finalV.replace('{head.number}', parent.number)
+          if (parentColumnType === 'Note') finalV = finalV.replace('{head.number}', parent.number)
         }
         return finalV
       })
+    }
+    if (type === 'tail' && value.value?.includes('Paper.*')) {
+      if (parentColumnType === 'Note') return [value.value.replace('Paper.*', `Paper${parent.number}`)]
     }
     return value // to be resolved at entity
   }
@@ -77,7 +81,7 @@ export default function Column(props) {
         return [venueId]
       }
       if (type === 'tail') { // resolve if tail, otherwise resolve at entity
-        return signaturesOfInvitation.value.split('|').filter(p => p.includes('{head.number}')).map(q => q.replace('{head.number}', parent.number))
+        if (parentEntityType === 'Note') return signaturesOfInvitation.value.split('|').filter(p => p.includes('{head.number}')).map(q => q.replace('{head.number}', parent.number))
       }
     }
     return signaturesOfInvitation
