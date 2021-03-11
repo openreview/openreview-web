@@ -32,6 +32,7 @@ const dblpImportModalAddToProfileBtn = Selector('div.modal-footer').find('button
 const dblpImportModalSelectCount = Selector('div.modal-footer').find('div.selected-count')
 const saveProfileButton = Selector('button').withText('Save Profile Changes')
 const nameMakePreferredButton = Selector('#names_table').find('button.preferred_button').filterVisible().nth(0)
+const relationSectionMinusIconSelector = Selector('section').nth(5).find('.glyphicon-minus-sign')
 // #endregion
 
 fixture`Profile page`
@@ -88,6 +89,9 @@ test('user open own profile', async (t) => {
     .expect(errorMessageSelector.innerText).eql('test is not a valid URL')
     .selectText(Selector('#dblp_url'))
     .pressKey('delete')
+    .click(relationSectionMinusIconSelector.nth(0))
+    .click(relationSectionMinusIconSelector.nth(0))
+    .click(relationSectionMinusIconSelector.nth(0))
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText).eql('Your profile information has been successfully updated')
 })
@@ -119,6 +123,9 @@ test('import paper from dblp', async (t) => {
     .click(nameSectionPlusIconSelector)
     .typeText(editFirstNameInputSelector, 'Di')
     .typeText(editLastNameInputSelector, 'Xu')
+    .click(relationSectionMinusIconSelector.nth(0))
+    .click(relationSectionMinusIconSelector.nth(0))
+    .click(relationSectionMinusIconSelector.nth(0))
     .click(saveProfileButton)
     .click(Selector('a').withText('Edit Profile'))
     .click(addDBLPPaperToProfileButton)
@@ -149,6 +156,9 @@ test('unlink paper', async (t) => {
     .expect(Selector('ul.submissions-list').find('.glyphicon-minus-sign').count).eql(2) // still 2 papers removable
     // keep 1 publication to check history
     .click(Selector('ul.submissions-list').find('.glyphicon-minus-sign').nth(1)) // unlink 2nd paper
+    .click(relationSectionMinusIconSelector.nth(0))
+    .click(relationSectionMinusIconSelector.nth(0))
+    .click(relationSectionMinusIconSelector.nth(0))
     .click(saveProfileButton)
 })
 
@@ -245,6 +255,9 @@ test.skip('#2143 date validation', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     // modify history start date with invalid value
     .typeText(Selector('#history_table').find('input.start').nth(0), '-2e-5', { replace: true, paste: true })
+    .click(relationSectionMinusIconSelector.nth(0))
+    .click(relationSectionMinusIconSelector.nth(0))
+    .click(relationSectionMinusIconSelector.nth(0))
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText).notEql('Your profile information has been successfully updated') // should not save successfully
 })
@@ -259,6 +272,9 @@ test('#123 update name in nav when preferred name is updated ', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .expect(Selector('#user-menu').innerText).eql('FirstB LastB ')
     .click(nameMakePreferredButton)
+    .click(relationSectionMinusIconSelector.nth(0))
+    .click(relationSectionMinusIconSelector.nth(0))
+    .click(relationSectionMinusIconSelector.nth(0))
     .click(saveProfileButton)
     .expect(Selector('#user-menu').innerText).eql('Di Xu ')
     .expect(Selector('div.title-container').find('h1').innerText).eql('Di Xu')
@@ -279,6 +295,9 @@ test('#160 allow user to overwrite last/middle/first name to be lowercase', asyn
     .expect(editLastNameInputSelector.value).eql('Last')
     .pressKey('left left left left delete l')
     .expect(editLastNameInputSelector.value).eql('last')
+    .click(relationSectionMinusIconSelector.nth(0))
+    .click(relationSectionMinusIconSelector.nth(0))
+    .click(relationSectionMinusIconSelector.nth(0))
     .click(saveProfileButton)
     .expect(Selector('span').withText('first').exists).ok()
     .expect(Selector('span').withText('middle').exists).ok()
@@ -288,6 +307,9 @@ test('fail before 2099', async (t) => {
   await t.useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .typeText(Selector('#history_table').find('input.end'), `${new Date().getFullYear() + 10}`, { replace: true }) // to fail in 2090, update validation regex
+    .click(relationSectionMinusIconSelector.nth(0))
+    .click(relationSectionMinusIconSelector.nth(0))
+    .click(relationSectionMinusIconSelector.nth(0))
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText).eql('Your profile information has been successfully updated')
     .wait(5000)
