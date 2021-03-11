@@ -185,6 +185,7 @@ module.exports = (function() {
 
   var getErrorFromJqXhr = function(jqXhr, textStatus) {
     var errorResponse = jqXhr.responseJSON;
+    if (errorResponse?.details?.version === 2) return errorResponse
     var errorText = 'Something went wrong';
     if (textStatus === 'timeout') {
       // If the request timed out, display a special message and don't call

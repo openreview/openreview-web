@@ -104,7 +104,7 @@ export default function ProfileEdit({ appContext }) {
       promptMessage('Your profile information has been successfully updated')
       router.push('/profile')
     } catch (apiError) {
-      promptError(apiError.version === 2 ? apiError : apiError.message)
+      promptError(apiError.details?.version === 2 ? apiError : apiError.message)
       done()
     }
   }

@@ -86,44 +86,39 @@ window.translateOpenReviewErrorMessage = function (error) {
     const errorPathTokens = errorPath?.split('.')
     const isDeeplyNestedPath = errorPathTokens?.length >= 2
 
-    switch (errorType) {
-      case "MissingFieldsError":
-      case "MissingRequiredError":
-      default:
-        return isDeeplyNestedPath ? `${errorPathTokens[errorPathTokens.length - 1]} of ${errorPathTokens[errorPathTokens.length - 2]}` : errorPath
-    }
+    // switch/if errorType here as required
+    // MissingFieldsError;MissingRequiredError;InvalidValueError;InvalidFieldTypeError
+    return isDeeplyNestedPath ? `${errorPathTokens[errorPathTokens.length - 1]} of ${errorPathTokens[errorPathTokens.length - 2]}` : errorPath
   }
   const getErrorMessage = (errorType, errorMessage) => {
-    switch (errorType) {
-      case "MissingFieldsError":
-      case "MissingRequiredError":
-      default:
-        return errorMessage
-    }
+    // switch/if errorType here as required
+    // MissingFieldsError;MissingRequiredError;InvalidValueError;InvalidFieldTypeError
+    return errorMessage
   }
   const getErrorFields = (errorType, errorFields) => {
-    switch (errorType) {
-      case "MissingFieldsError":
-      case "MissingRequiredError":
-      default:
-        return errorFields?.length ? errorFields.map(p => p.join(' and ')).join(' or ') : null
-    }
+    // switch/if errorType here as required
+    // MissingFieldsError;MissingRequiredError;InvalidValueError;InvalidFieldTypeError
+    return errorFields?.length ? errorFields.map(p => p.join(' and ')).join(' or ') : null
   }
-  const getReadableErrorMessage = (errorType, path, fields, message) => {
-    switch (errorType) {
-      case "MissingFieldsError":
-      case "MissingRequiredError":
-      default:
-        return view.iMess(`${path} ${message}${fields ? ` ${fields}` : ''}.`)
+  const getReadableErrorMessage = (error) => {
+    const path = getErrorPath(error.name, error.details?.path)
+    const message = getErrorMessage(error.name, error.message)
+    const fields = getErrorFields(error.name, error.details?.fields)
+
+    switch (error.name) {
+      case "MissingFieldsError": break;
+      case "MissingRequiredError": break;
+      case "InvalidValueError": // details.value;details.expectedValue(optional)
+        const expectedValue = error.details.expectedValue ? `${error.details.expectedValue} is expected.` : ''
+        return view.iMess(`${path} ${error.details.value} is invalid. ${expectedValue}`)
+      case "InvalidFieldTypeError": // details.valueType;details.expectedValueType(optional)
+        const expectedValueType = error.details.expectedValue ? `Expecting ${error.details.expectedValue}.` : ''
+        return view.iMess(`${path} has invalid type ${error.details.valueType}. ${expectedValueType}`)
     }
+    return view.iMess(`${path} ${message}${fields ? ` ${fields}` : ''}.`)
   }
 
-  return getReadableErrorMessage(
-    error.name,
-    getErrorPath(error.name, error.path),
-    getErrorFields(error.name, error.fields),
-    getErrorMessage(error.name, error.message)
-  )
+  return getReadableErrorMessage(error)
 }
 
 // Flash Alert Functions (main.js)
@@ -168,7 +163,7 @@ window.generalPrompt = function(type, content, options) {
     msgHtml = content;
   } else if (type === 'error') {
     var errorLabel = options.hideErrorLabel ? null : '<strong>Error: </strong>';
-    msgHtml = _.flatten([errorLabel, content.version === 2 ? translateOpenReviewErrorMessage(content) : translateErrorMessage(content)]);
+    msgHtml = _.flatten([errorLabel, content?.details?.version === 2 ? translateOpenReviewErrorMessage(content) : translateErrorMessage(content)]);
   } else {
     msgHtml = view.iMess(content);
   }
