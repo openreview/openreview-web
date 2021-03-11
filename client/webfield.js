@@ -1893,15 +1893,16 @@ module.exports = (function() {
     };
 
     var showEmailProgress = function(jobId) {
+      var failures = 0;
       var loadProgress = function() {
         get('/logs/process', { id: jobId }).then(function(response) {
           if (!response.logs || !response.logs.length) {
-            throw new Error('Message progress could not be loaded');
+            $.Deferred().reject('Message progress could not be loaded');
           }
           var status = response.logs[0];
 
           if (!status || !status.progress || status.progress.length !== 2) {
-            throw new Error('Message progress could not be loaded');
+            $.Deferred().reject('Message progress could not be loaded');
           }
           var sent = status.progress[0];
           var total = status.progress[1];
@@ -1922,7 +1923,11 @@ module.exports = (function() {
         }).fail(function(err) {
           $container.find('section.messages .progress').show();
           $container.find('section.messages .progress-status').text('Email progress could not be loaded');
-          clearInterval(refreshTimer)
+
+          failures += 1;
+          if (failures > 5) {
+            clearInterval(refreshTimer);
+          }
         });
       };
       var refreshTimer = setInterval(loadProgress, 2000);
