@@ -1715,8 +1715,9 @@ module.exports = (function() {
     var urlRegex = /(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*[^.,()"'\s])?/ig;
     var profileRegex = /\B~[^\d\s]+\_[^\d\s]+[0-9]+/ig;
 
-    var intermediate = value.replace(urlRegex, function(match) {
-      return '<a href="' + match + '" target="_blank" rel="nofollow">' + match + '</a>';
+    var intermediate = value.replace(urlRegex, function (match) {
+      var url = match.startsWith('https://openreview.net') ? match.replace('https://openreview.net', '') : match
+      return `<a href="${url}" target="_blank" rel="nofollow">${url}</a>`;
     });
 
     return intermediate.replace(profileRegex, function(match) {
@@ -1896,6 +1897,7 @@ module.exports = (function() {
         // First set content as text to escape HTML, then autolink escaped HTML
         $elem.text(valueString);
         $elem.html(autolinkHtml($elem.html()));
+
       }
 
       $contents.push($('<div>', {class: 'note_contents'}).append(
