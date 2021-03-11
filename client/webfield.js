@@ -1846,13 +1846,14 @@ module.exports = (function() {
         .then(function(response) {
           $('#message-group-members-modal').modal('hide');
 
-          showAlert('Your emails have been added to the queue. Check the Group Messages section for progress.');
+          var scrollPos = $container.find('section.messages').offset().top - 51 - 12;
+          $('html, body').animate({scrollTop: scrollPos}, 400);
 
           showEmailProgress(response.jobId)
 
           // Save the timestamp in the local storage (used in PC console)
-          for (var i = 0; i < messagedIds.length; i++) {
-            localStorage.setItem(groupId + '|' + messagedIds[i], Date.now());
+          for (var i = 0; i < groupIds.length; i++) {
+            localStorage.setItem(groupId + '|' + groupIds[i], Date.now());
           }
         })
         .fail(function(jqXhr, textStatus) {
@@ -1892,7 +1893,45 @@ module.exports = (function() {
     };
 
     var showEmailProgress = function(jobId) {
-      // TODO
+      var loadProgress = function() {
+        get('/logs/process', { id: jobId }).then(function(response) {
+          if (!response.logs || !response.logs.length) {
+            throw new Error('Message progress could not be loaded');
+          }
+          var status = response.logs[0];
+
+          if (!status || !status.progress || status.progress.length !== 2) {
+            throw new Error('Message progress could not be loaded');
+          }
+          var sent = status.progress[0];
+          var total = status.progress[1];
+          var percentComplete = _.round((sent / total) * 100, 2);
+
+          var $progress = $container.find('section.messages .progress').show();
+          $progress.find('.progress-bar')
+            .attr('aria-valuenow', sent)
+            .attr('aria-valuemax', total)
+            .css('width', percentComplete + '%')
+            .find('span').text(percentComplete + '%');
+          $container.find('section.messages .progress-status')
+            .text(sent === total ? 'All ' + total + ' emails have been sent' : 'Sending emails: ' + sent + ' / ' + total + ' sent');
+
+          if (sent === total) {
+            clearInterval(refreshTimer)
+          }
+        }).fail(function(err) {
+          $container.find('section.messages .progress').show();
+          $container.find('section.messages .progress-status').text('Email progress could not be loaded');
+          clearInterval(refreshTimer)
+        });
+      };
+      var refreshTimer = setInterval(loadProgress, 2000);
+
+      $container.find('section.messages .progress-bar')
+        .attr('aria-valuenow', 0).attr('aria-valuemax', 10).css('width', 0 + '%').find('span').text(0 + '%');
+      $container.find('section.messages .progress-status')
+        .text('');
+      loadProgress();
     };
 
     $container.on('change', 'tbody input[type="checkbox"]', function() {
