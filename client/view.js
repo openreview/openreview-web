@@ -2653,7 +2653,7 @@ module.exports = (function() {
         });
       }
 
-      if (typeof value === 'object' && !_.isUndefined(content)) {
+      if (typeof value === 'object' && !_.isNil(content)) {
         replaceCopiedValues(content[key], value, original);
       }
     });
