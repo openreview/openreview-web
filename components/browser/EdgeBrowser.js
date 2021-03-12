@@ -7,6 +7,7 @@ import _ from 'lodash'
 import Column from './Column'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import { formatEntityContent, buildSearchText } from '../../lib/edge-utils'
+import api from '../../lib/api-client'
 
 export default class EdgeBrowser extends React.Component {
   constructor(props) {
@@ -43,24 +44,31 @@ export default class EdgeBrowser extends React.Component {
       metadataMap: {},
       columns: [initialColumn],
       loading: true,
+      availableSignatures: [],
     }
 
     this.exploreInterfaceRef = React.createRef()
     this.updateGlobalEntityMap = this.updateGlobalEntityMap.bind(this)
     this.updateMetadataMap = this.updateMetadataMap.bind(this)
+
+    this.userId = props.userInfo.userId
+    this.accessToken = props.userInfo.accessToken
   }
 
   componentDidMount() {
     // Create gloabl head and tail maps by querying all possible head and tail objects
+    // create global signature list
     Promise.all([
       this.buildEntityMapFromInvitation('head'),
       this.buildEntityMapFromInvitation('tail'),
+      this.lookupSignatures(),
     ])
-      .then(([headMap, tailMap]) => {
+      .then(([headMap, tailMap, signatureLookupResult]) => {
         this.setState({
           headMap,
           tailMap,
           loading: false,
+          availableSignatures: signatureLookupResult,
         })
       })
   }
@@ -164,6 +172,30 @@ export default class EdgeBrowser extends React.Component {
       })
   }
 
+  lookupSignatures() {
+    const editInvitationPromises = this.editInvitations.map((p) => {
+      if (typeof (p.signatures) === 'object' && Array.isArray(p.signatures) === false) { // regex
+        const interpolatedSignature = p.signatures.value.replace('{head.number}', '.*')
+        return api.get('/groups', { regex: interpolatedSignature, signatory: this.userId }, { accessToken: this.accessToken })
+      }
+      return p.signatures
+    })
+    return Promise.all(editInvitationPromises).then(
+      // eslint-disable-next-line arrow-body-style
+      (result) => {
+        return result.map(
+          // eslint-disable-next-line arrow-body-style
+          (singleEditInvitationGroups, index) => {
+            return {
+              editInvitationId: this.editInvitations[index].id,
+              signaturesAvailable: singleEditInvitationGroups.groups.map(group => (group.id)),
+            }
+          },
+        )
+      },
+    )
+  }
+
   addNewColumn(index) {
     return (parentId) => {
       if (!parentId) {
@@ -233,6 +265,7 @@ export default class EdgeBrowser extends React.Component {
       editInvitations: this.editInvitations,
       browseInvitations: this.browseInvitations,
       hideInvitation: this.hideInvitation,
+      availableSignatures: this.state.availableSignatures,
     }
 
     return (

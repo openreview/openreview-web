@@ -160,6 +160,7 @@ const Browse = ({ appContext }) => {
           browseInvitations={invitations.browseInvitations}
           hideInvitations={invitations.hideInvitations}
           maxColumns={maxColumns}
+          userInfo={{ userId: user?.id, accessToken }}
         />
       ) : (
         <LoadingSpinner />

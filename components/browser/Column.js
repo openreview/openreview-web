@@ -29,11 +29,11 @@ export default function Column(props) {
     editInvitations,
     browseInvitations,
     hideInvitation,
+    availableSignatures,
   } = useContext(EdgeBrowserContext)
   const parent = parentId ? altGlobalEntityMap[parentId] : null
   const otherType = type === 'head' ? 'tail' : 'head'
   const colBodyEl = useRef(null)
-  const { user, accessToken } = useLoginRedirect()
 
   // Helpers
   const formatEdge = edge => ({
@@ -72,22 +72,21 @@ export default function Column(props) {
     return value // to be resolved at entity
   }
 
-  const getInterpolatedSignature = (signaturesOfInvitation, editInvitation, groupLooksupResult) => {
-    if (typeof (signaturesOfInvitation) === 'object' && Array.isArray(signaturesOfInvitation) === false) {
-      // values-regex
+  const getSignatures = (editInvitation) => {
+    if (editInvitation.signatures.resolveAtEntity) {
+      // eslint-disable-next-line max-len
+      const availableSignaturesOfInvitation = availableSignatures.filter(p => p.editInvitationId === editInvitation.id)?.[0]
       const venueId = editInvitation.id.split('/').slice(0, 3).join('/')
-      if (groupLooksupResult.groups?.some(p => p?.id === venueId)) {
-        // user can sign with venue id, pc
-        return [venueId]
-      }
-      if (type === 'tail') { // resolve if tail, otherwise resolve at entity
-        if (parentColumnType === 'Note') return signaturesOfInvitation.value.split('|').filter(p => p.includes('{head.number}')).map(q => q.replace('{head.number}', parent.number))
+      const canSignWithVenueId = !!availableSignaturesOfInvitation?.signaturesAvailable?.includes(venueId)
+      if (canSignWithVenueId) return [venueId] // pc
+      if (type === 'tail' && parentColumnType === 'Note') {
+        return [availableSignaturesOfInvitation?.signaturesAvailable?.filter(q => q.includes(`Paper${parent.number}`))?.[0]]
       }
     }
-    return signaturesOfInvitation
+    return editInvitation.signatures
   }
 
-  const buildNewEditEdge = (editInvitation, entityId, weight = 0, groupLooksupResult) => {
+  const buildNewEditEdge = (editInvitation, entityId, weight = 0) => {
     if (!editInvitation) return null
 
     return {
@@ -99,7 +98,7 @@ export default function Column(props) {
       weight,
       readers: getInterpolatedValue(editInvitation.readers, entityId),
       writers: getInterpolatedValue(editInvitation.writers, entityId),
-      signatures: getInterpolatedSignature(editInvitation.signatures, editInvitation, groupLooksupResult),
+      signatures: getSignatures(editInvitation),
       nonreaders: getInterpolatedValue(editInvitation.nonreaders, entityId),
     }
   }
@@ -421,27 +420,19 @@ export default function Column(props) {
         // Add existing edit edges to items
         editEdgeGroups.forEach(editEdge => editEdge.forEach(updateColumnItems('editEdges', colItems)))
 
-        Promise.all(editInvitations.map((p) => { // get groups that user can sign with
-          if (typeof (p.signatures) === 'object' && Array.isArray(p.signatures) === false) {
-            // values-regex
-            return api.get('/groups', { regex: p.signatures.value, signatory: user.preferredEmail }, { accessToken })
-          }
-          return null
-        })).then((groupLookupResults) => {
-          // Add each editInvitation as a template so that new invitation can be added
-          if (editInvitations?.length) {
-            colItems.forEach((item) => {
-              // if (item.editEdges?.length > 0) return
+        // Add each editInvitation as a template so that new invitation can be added
+        if (editInvitations?.length) {
+          colItems.forEach((item) => {
+            // if (item.editEdges?.length > 0) return
 
-              const hasAggregateScoreEdge = item.browseEdges.length && item.browseEdges[0].name === 'Aggregate_Score'
-              const edgeWeight = hasAggregateScoreEdge ? item.browseEdges[0].weight : 0
-              // eslint-disable-next-line no-param-reassign,max-len
-              item.editEdgeTemplates = editInvitations.map((editInvitation, index) => buildNewEditEdge(editInvitation, item.id, edgeWeight, groupLookupResults[index]))
-            })
-          }
+            const hasAggregateScoreEdge = item.browseEdges.length && item.browseEdges[0].name === 'Aggregate_Score'
+            const edgeWeight = hasAggregateScoreEdge ? item.browseEdges[0].weight : 0
+            // eslint-disable-next-line no-param-reassign,max-len
+            item.editEdgeTemplates = editInvitations.map(editInvitation => buildNewEditEdge(editInvitation, item.id, edgeWeight))
+          })
+        }
 
-          setItems(colItems)
-        })
+        setItems(colItems)
       })
   }, [props.loading, globalEntityMap])
 

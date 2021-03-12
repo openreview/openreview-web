@@ -28,7 +28,7 @@ export default function NoteEntity(props) {
     editEdges,
     editEdgeTemplates,
   } = props.note
-  const { editInvitations } = useContext(EdgeBrowserContext)
+  const { editInvitations, availableSignatures } = useContext(EdgeBrowserContext)
   const title = content.title ? content.title : 'No Title'
 
   const metadata = props.note.metadata || {}
@@ -65,7 +65,6 @@ export default function NoteEntity(props) {
       e.preventDefault()
       e.stopPropagation()
     }
-
     // Create new edge
     Webfield.post('/edges', {
       tail: id,
@@ -75,14 +74,16 @@ export default function NoteEntity(props) {
         readers: getInterpolatedValue(editEdgeTemplate.readers),
         nonreaders: getInterpolatedValue(editEdgeTemplate.nonreaders),
         writers: getInterpolatedValue(editEdgeTemplate.writers),
-        signatures: getInterpolatedValue(editEdgeTemplate.signatures),
+        signatures: editEdgeTemplate.signatures.resolveAtEntity
+          ? [availableSignatures.filter(p => p.editInvitationId === editEdgeTemplate.invitation)?.[0]?.signaturesAvailable?.filter(q => q.includes(`Paper${number}`))?.[0]]
+          : editEdgeTemplate.signatures,
       },
       ...updatedEdgeFields,
     })
       .then(res => props.addEdgeToEntity(id, res))
   }
 
-  const getInterpolatedValue = (value) => { // readers/nonreaders/writers/signatures
+  const getInterpolatedValue = (value) => { // readers/nonreaders/writers
     if (value.resolveAtEntity) {
       return value.value
         .split('|')
