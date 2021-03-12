@@ -240,7 +240,8 @@ export default class EdgeBrowser extends React.Component {
         <div className={`row explore-interface expand-columns-${this.maxColumns}`} ref={this.exploreInterfaceRef}>
           {this.state.columns.map((column, i) => (
             <Column
-              key={`${column.parentId || 'start-col'}`}
+              // eslint-disable-next-line react/no-array-index-key
+              key={`${column.parentId || 'start-col'}-${i}`}
               type={column.type}
               entityType={column.entityType}
               parentId={column.parentId}

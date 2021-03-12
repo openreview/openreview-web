@@ -21,31 +21,36 @@
             ],
         },
         {
-            "name": "Client",
             "type": "chrome",
             "request": "launch",
+            "name": "Launch Chrome",
             "url": "http://localhost:3030",
-            "webRoot": "${workspaceFolder}",
-            "skipFiles": [
-                "<node_internals>/**/*.js",
-                "${workspaceFolder}/node_modules/**/*.js",
-                "${workspaceFolder}/_next/**/*.js"
-            ],
-            "sourceMapPathOverrides": {
-                "webpack:///src/*": "${webRoot}/*"
-            }
+            "webRoot": "${workspaceFolder}"
         },
         {
-            "name": "Server",
             "type": "node",
-            "request": "attach",
-            "sourceMaps": true,
+            "request": "launch",
+            "name": "Launch Next.js",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run-script",
+                "debug"
+            ],
             "skipFiles": [
                 "<node_internals>/**/*.js",
                 "${workspaceFolder}/node_modules/**/*.js",
                 "${workspaceFolder}/.next/**/*.js"
             ],
             "port": 9229
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Debug Next.js + Chrome",
+            "configurations": [
+                "Launch Next.js",
+                "Launch Chrome"
+            ]
         }
     ]
 }

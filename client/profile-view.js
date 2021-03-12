@@ -288,7 +288,7 @@ module.exports = function(profile, params, submitF, cancelF) {
       buttonText: getDropdownText(prefill.readers),
       id: uniqueId,
       htmlFilters: prefixedRelationReaders?.map(p => ({ valueFilter: p, textFilter: view.prettyId(p) })),
-      hideSelectAll: prefixedRelationReaders?.length <= 1 // false to render select all
+      hideSelectAll: true
     });
 
     var $row = $('<tr>', {border: 0, class: 'info_row'}).append(
@@ -325,16 +325,13 @@ module.exports = function(profile, params, submitF, cancelF) {
     }
 
     $row.find('.dropdown-menu').on('change', (e) => {
-      if ($(e.target).attr('class') === 'select-all-checkbox') {
-        $row.find('.dropdown-menu input').prop('checked', e.target.checked);
-        $row.find('.multiselector').data('val', e.target.checked ? prefixedRelationReaders : ['everyone']); // set data attr, default to everyone
-        if (!e.target.checked) $row.find('.dropdown-menu').find('input[value="everyone"]').prop('checked', true); // leave everyone checked
-        $row.find('.multiselector .dropdown-toggle').html('everyone'); // display text
-      } else {
         var selectedReaders = [];
-        // set select all checkbox
         $row.find('.dropdown-menu input.' + uniqueId + '-multiselector-checkbox:checked').each((index, element) => selectedReaders.push(element.value));
-        $row.find('.dropdown-menu input.select-all-checkbox').prop('checked', _.isEqual(selectedReaders.sort(), prefixedRelationReaders.sort()));
+        // uncheck everyone when another option is selected
+        if(e.target.value!=='everyone' && e.target.checked) {
+          $row.find('.dropdown-menu input[value="everyone"]').prop('checked', false);
+          selectedReaders = selectedReaders.filter(p => p !== 'everyone');
+        }
         // set default value (everyone) if nothing selected
         if (selectedReaders.length === 0) {
           $row.find('.dropdown-menu input[value="everyone"]').prop('checked', true);
@@ -344,7 +341,6 @@ module.exports = function(profile, params, submitF, cancelF) {
         $row.find('.multiselector .dropdown-toggle').html(getDropdownText(selectedReaders));
         // set data attr
         $row.find('.multiselector').data('val', selectedReaders);
-      }
     });
     return $row;
 
@@ -1079,6 +1075,20 @@ module.exports = function(profile, params, submitF, cancelF) {
     for (var i = 0; i < data.length; i++) {
       var h = data[i];
       row = rows.eq(i + 1);
+
+      var validYearRegex = /^(19|20)\d{2}$/; // 1900~2099
+
+      if(h.start && !validYearRegex.test(h.start)){
+        promptError('Start date should be a valid year');
+        row.find('.start').addClass('invalid_value');
+        return false;
+      }
+
+      if(h.end && !validYearRegex.test(h.end)){
+        promptError('End date should be a valid year');
+        row.find('.end').addClass('invalid_value');
+        return false;
+      }
 
       if (h.start && h.end && h.start > h.end) {
         promptError('End date should be higher than start date');

@@ -1,7 +1,7 @@
 /* globals promptError: false */
 /* globals promptMessage: false */
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useReducer } from 'react'
 import Head from 'next/head'
 import withAdminAuth from '../../components/withAdminAuth'
 import Icon from '../../components/Icon'
@@ -9,9 +9,11 @@ import LoadSpinner from '../../components/LoadingSpinner'
 import PaginationLinks from '../../components/PaginationLinks'
 import api from '../../lib/api-client'
 import { prettyId, formatDateTime } from '../../lib/utils'
+import Dropdown from '../../components/Dropdown'
 
 const Moderation = ({ appContext, accessToken }) => {
   const { setBannerHidden } = appContext
+  const [shouldReload, reload] = useReducer(p => !p, true)
 
   useEffect(() => {
     setBannerHidden(true)
@@ -29,16 +31,16 @@ const Moderation = ({ appContext, accessToken }) => {
       </header>
 
       <div className="moderation-container">
-        <UserModerationQueue accessToken={accessToken} title="Recently Created Profiles" onlyModeration={false} />
+        <UserModerationQueue accessToken={accessToken} title="Recently Created Profiles" onlyModeration={false} reload={reload} shouldReload={shouldReload} />
 
-        <UserModerationQueue accessToken={accessToken} title="New Profiles Pending Moderation" />
+        <UserModerationQueue accessToken={accessToken} title="New Profiles Pending Moderation" reload={reload} shouldReload={shouldReload} />
       </div>
     </>
   )
 }
 
 const UserModerationQueue = ({
-  accessToken, title, onlyModeration = true, pageSize = 15,
+  accessToken, title, onlyModeration = true, pageSize = 15, reload, shouldReload,
 }) => {
   const [profiles, setProfiles] = useState(null)
   const [pageNumber, setPageNumber] = useState(1)
@@ -55,6 +57,7 @@ const UserModerationQueue = ({
         sort: 'tcdate:desc',
         limit: pageSize,
         offset: (pageNumber - 1) * pageSize,
+        withBlocked: onlyModeration ? undefined : true,
       }, { accessToken })
       setTotalCount(result.count ?? 0)
       setProfiles(result.profiles ?? [])
@@ -65,8 +68,8 @@ const UserModerationQueue = ({
 
   const acceptUser = async (profileId) => {
     try {
-      await api.post('/activate/moderate', { id: profileId, activate: true }, { accessToken })
-      getProfiles()
+      await api.post('/profile/moderate', { id: profileId, decision: 'accept' }, { accessToken })
+      reload()
       promptMessage(`${prettyId(profileId)} is now active`)
     } catch (error) {
       promptError(error.message)
@@ -78,9 +81,23 @@ const UserModerationQueue = ({
     setShowRejectionModal(true)
   }
 
+  const blockUnblockUser = async (profile) => {
+    const actionIsBlock = !profile?.block
+    // eslint-disable-next-line no-alert
+    const confirmResult = window.confirm(`Are you sure you want to ${actionIsBlock ? 'block' : 'unblock'} ${profile?.content?.names?.[0]?.first} ${profile?.content?.names?.[0]?.last}?`)
+    if (confirmResult) {
+      try {
+        await api.post('/profile/moderate', { id: profile.id, decision: actionIsBlock ? 'block' : 'unblock' }, { accessToken })
+      } catch (error) {
+        promptError(error.message)
+      }
+      reload()
+    }
+  }
+
   useEffect(() => {
     getProfiles()
-  }, [pageNumber])
+  }, [pageNumber, shouldReload])
 
   return (
     <div className="profiles-list">
@@ -92,7 +109,7 @@ const UserModerationQueue = ({
           {profiles.map((profile) => {
             const name = profile.content.names[0]
             return (
-              <li key={profile.id}>
+              <li key={profile.id} className={`${profile.block ? 'blocked' : null}`}>
                 <span className="col-name">
                   <a href={`/profile?id=${profile.id}`} target="_blank" rel="noreferrer" title={profile.id}>
                     {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
@@ -124,16 +141,22 @@ const UserModerationQueue = ({
                         {' '}
                         Reject
                       </button>
+                      {' '}
+                      <button type="button" className="btn btn-xs btn-block-profile" onClick={() => blockUnblockUser(profile)}>
+                        <Icon name="ban-circle" />
+                        {'   '}
+                        Block
+                      </button>
                     </>
                   ) : (
                     <button
                       type="button"
-                      className="btn btn-xs delete-profile"
-                      disabled
+                      className="btn btn-xs btn-block-profile"
+                      onClick={() => blockUnblockUser(profile)}
                     >
-                      <Icon name="remove-circle" />
+                      <Icon name={`${profile.block ? 'refresh' : 'ban-circle'}`} />
                       {' '}
-                      Delete
+                      {`${profile.block ? 'Unblock' : 'Block'}`}
                     </button>
                   )}
                 </span>
@@ -158,7 +181,7 @@ const UserModerationQueue = ({
       <RejectionModal
         display={showRejectionModal}
         setDisplay={setShowRejectionModal}
-        onModalClosed={() => getProfiles()}
+        onModalClosed={reload}
         payload={{ accessToken, profileIdToReject }}
       />
     </div>
@@ -169,10 +192,21 @@ const RejectionModal = ({
   display, setDisplay, onModalClosed, payload,
 }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
+  const [selectedRejectionReason, setSelectedRejectionReason] = useState(null)
+
+  const instructionText = 'Please go back to the sign up page, enter the same name and email, click the Resend Activation button and complete the missing data.'
+  const rejectionReasons = [
+    { value: 'invalidHomepageAndEmail', label: 'Invalid Homepage + Missing Institution Email', rejectionText: `A valid Homepage and institutional email is required.\n\n${instructionText}` },
+    { value: 'invalidEmail', label: 'Missing Institution Email', rejectionText: `An Institution email is required.\n\n${instructionText}` },
+    { value: 'invalidHomepage', label: 'Invalid Homepage', rejectionText: `A valid Homepage is required.\n\n${instructionText}` },
+    { value: 'invalidName', label: 'Invalid Name', rejectionText: `A valid name is required.\n\n${instructionText}` },
+    { value: 'invalidHistory', label: 'Missing Latest Career/Education history', rejectionText: `Latest Career/Education history is missing. The info is used for conflict of interest detection.\n\n${instructionText}` },
+  ]
 
   const cleanup = () => {
     setDisplay(false)
     setRejectionMessage('')
+    setSelectedRejectionReason(null)
     if (typeof onModalClosed === 'function') {
       onModalClosed()
     }
@@ -180,9 +214,9 @@ const RejectionModal = ({
 
   const submitRejection = async () => {
     try {
-      await api.post('/activate/moderate', {
+      await api.post('/profile/moderate', {
         id: payload.profileIdToReject,
-        activate: false,
+        decision: 'reject',
         reason: rejectionMessage,
       }, { accessToken: payload.accessToken })
     } catch (error) {
@@ -198,12 +232,20 @@ const RejectionModal = ({
           <div className="modal-content">
             <div className="modal-body">
               <form>
-                <div className="form-group">
+                <div className="form-group form-rejection">
                   {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
                   <label htmlFor="message">Reason for rejecting {prettyId(payload.profileIdToReject)}:</label>
+                  <Dropdown
+                    name="rejection-reason"
+                    instanceId="rejection-reason"
+                    placeholder="Choose a common reject reason..."
+                    options={rejectionReasons}
+                    value={selectedRejectionReason}
+                    onChange={(p) => { setRejectionMessage(p.rejectionText); setSelectedRejectionReason(p) }}
+                  />
                   <textarea
                     name="message"
-                    className="form-control"
+                    className="form-control mt-2"
                     rows="5"
                     value={rejectionMessage}
                     onChange={e => setRejectionMessage(e.target.value)}

@@ -1715,8 +1715,9 @@ module.exports = (function() {
     var urlRegex = /(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*[^.,()"'\s])?/ig;
     var profileRegex = /\B~[^\d\s]+\_[^\d\s]+[0-9]+/ig;
 
-    var intermediate = value.replace(urlRegex, function(match) {
-      return '<a href="' + match + '" target="_blank" rel="nofollow">' + match + '</a>';
+    var intermediate = value.replace(urlRegex, function (match) {
+      var url = match.startsWith('https://openreview.net') ? match.replace('https://openreview.net', '') : match
+      return `<a href="${url}" target="_blank" rel="nofollow">${url}</a>`;
     });
 
     return intermediate.replace(profileRegex, function(match) {
@@ -1896,6 +1897,7 @@ module.exports = (function() {
         // First set content as text to escape HTML, then autolink escaped HTML
         $elem.text(valueString);
         $elem.html(autolinkHtml($elem.html()));
+
       }
 
       $contents.push($('<div>', {class: 'note_contents'}).append(
@@ -2653,7 +2655,7 @@ module.exports = (function() {
         });
       }
 
-      if (typeof value === 'object' && !_.isUndefined(content)) {
+      if (typeof value === 'object' && !_.isNil(content)) {
         replaceCopiedValues(content[key], value, original);
       }
     });
@@ -2875,7 +2877,7 @@ module.exports = (function() {
       var signatureId = signatures[0];
 
       //Where the signature is an AnonReviewer and it is not selected in the readers value
-      var index = signatureId.indexOf('AnonReviewer');
+      var index = Math.max(signatureId.indexOf('AnonReviewer'), signatureId.indexOf('Reviewer_'));
       if (index >= 0) {
         var reviewersSubmittedId = signatureId.slice(0, index).concat('Reviewers/Submitted');
         var reviewersId = signatureId.slice(0, index).concat('Reviewers');
@@ -2890,9 +2892,9 @@ module.exports = (function() {
           }
         }
       } else {
-        var acIndex = signatureId.indexOf('Area_Chair1');
+        var acIndex = Math.max(signatureId.indexOf('Area_Chair1'), signatureId.indexOf('Area_Chair_'));
         if (acIndex >= 0) {
-          signatureId = signatureId.replace('Area_Chair1', 'Area_Chairs');
+          signatureId = signatureId.slice(0, acIndex).concat('Area_Chairs');
         }
 
         if (_.includes(invitationValues, signatureId)) {
@@ -3165,10 +3167,10 @@ module.exports = (function() {
 
             //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
             var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
-            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer'); });
+            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_');  });
             if (hasReviewers && !hasAnonReviewers) {
               fieldDescription['values-dropdown'].forEach(function(value) {
-                if (value.includes('AnonReviewer')) {
+                if (value.includes('AnonReviewer') || value.includes('Reviewer_')) {
                   replyValues.push(value);
                 }
               });
@@ -3225,10 +3227,10 @@ module.exports = (function() {
 
             //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
             var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
-            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer'); });
+            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_'); });
             if (hasReviewers && !hasAnonReviewers) {
               fieldDescription['values-checkbox'].forEach(function(value) {
-                if (value.includes('AnonReviewer')) {
+                if (value.includes('AnonReviewer') || v.includes('/Reviewer_')) {
                   replyValues.push(value);
                 }
               });
