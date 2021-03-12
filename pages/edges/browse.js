@@ -93,7 +93,7 @@ const Browse = ({ appContext }) => {
 
           const readers = buildInvitationReplyArr(fullInvitation, 'readers', user.profile.id)
           const writers = buildInvitationReplyArr(fullInvitation, 'writers', user.profile.id) || readers
-          const signatures = buildInvitationReplyArr(fullInvitation, 'signatures', user.profile.id)
+          const signatures = fullInvitation?.reply?.signatures
           const nonreaders = buildInvitationReplyArr(fullInvitation, 'nonreaders', user.profile.id)
           Object.assign(invObj, {
             head: fullInvitation.reply.content.head,
@@ -160,7 +160,7 @@ const Browse = ({ appContext }) => {
           browseInvitations={invitations.browseInvitations}
           hideInvitations={invitations.hideInvitations}
           maxColumns={maxColumns}
-          userInfo={{ userId: user?.id, accessToken }}
+          userInfo={{ userId: user?.id, accessToken, tildeId: user?.profile?.id }}
         />
       ) : (
         <LoadingSpinner />

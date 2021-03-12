@@ -44,7 +44,6 @@ export default class EdgeBrowser extends React.Component {
       metadataMap: {},
       columns: [initialColumn],
       loading: true,
-      availableSignatures: [],
     }
 
     this.exploreInterfaceRef = React.createRef()
@@ -53,22 +52,22 @@ export default class EdgeBrowser extends React.Component {
 
     this.userId = props.userInfo.userId
     this.accessToken = props.userInfo.accessToken
+    this.userTildeId = props.userInfo.tildeId
   }
 
   componentDidMount() {
+    this.lookupSignatures()
     // Create gloabl head and tail maps by querying all possible head and tail objects
     // create global signature list
     Promise.all([
       this.buildEntityMapFromInvitation('head'),
       this.buildEntityMapFromInvitation('tail'),
-      this.lookupSignatures(),
     ])
       .then(([headMap, tailMap, signatureLookupResult]) => {
         this.setState({
           headMap,
           tailMap,
           loading: false,
-          availableSignatures: signatureLookupResult,
         })
       })
   }
@@ -174,22 +173,24 @@ export default class EdgeBrowser extends React.Component {
 
   lookupSignatures() {
     const editInvitationPromises = this.editInvitations.map((p) => {
-      if (typeof (p.signatures) === 'object' && Array.isArray(p.signatures) === false) { // regex
-        const interpolatedSignature = p.signatures.value.replace('{head.number}', '.*')
+      if (!p.signatures) return null
+      if (p.signatures.values) return p.signatures.values
+      if (p.signatures['values-regex']?.startsWith('~.*')) return [this.userTildeId]
+      if (p.signatures['values-regex']) {
+        const interpolatedSignature = p.signatures['values-regex'].replace('{head.number}', '.*')
         return api.get('/groups', { regex: interpolatedSignature, signatory: this.userId }, { accessToken: this.accessToken })
       }
       return p.signatures
     })
     return Promise.all(editInvitationPromises).then(
       // eslint-disable-next-line arrow-body-style
-      (result) => {
-        return result.map(
+      (signatureValuesOfInvitations) => {
+        signatureValuesOfInvitations.forEach(
           // eslint-disable-next-line arrow-body-style
-          (singleEditInvitationGroups, index) => {
-            return {
-              editInvitationId: this.editInvitations[index].id,
-              signaturesAvailable: singleEditInvitationGroups.groups.map(group => (group.id)),
-            }
+          (signatureValuesOfInvitation, index) => {
+            this.editInvitations[index].signatureValues = signatureValuesOfInvitation.groups
+              ? signatureValuesOfInvitation.groups.map(group => (group.id)) // from api call
+              : signatureValuesOfInvitation
           },
         )
       },
@@ -265,7 +266,6 @@ export default class EdgeBrowser extends React.Component {
       editInvitations: this.editInvitations,
       browseInvitations: this.browseInvitations,
       hideInvitation: this.hideInvitation,
-      availableSignatures: this.state.availableSignatures,
     }
 
     return (

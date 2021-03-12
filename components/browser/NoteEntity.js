@@ -74,8 +74,8 @@ export default function NoteEntity(props) {
         readers: getInterpolatedValue(editEdgeTemplate.readers),
         nonreaders: getInterpolatedValue(editEdgeTemplate.nonreaders),
         writers: getInterpolatedValue(editEdgeTemplate.writers),
-        signatures: editEdgeTemplate.signatures.resolveAtEntity
-          ? [availableSignatures.filter(p => p.editInvitationId === editEdgeTemplate.invitation)?.[0]?.signaturesAvailable?.filter(q => q.includes(`Paper${number}`))?.[0]]
+        signatures: editEdgeTemplate.signatures['values-regex']
+          ? [editInvitations.filter(p => p.id === editEdgeTemplate.invitation)?.[0]?.signatureValues?.filter(q => q.includes(`Paper${number}`))?.[0]]
           : editEdgeTemplate.signatures,
       },
       ...updatedEdgeFields,

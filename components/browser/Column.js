@@ -71,17 +71,13 @@ export default function Column(props) {
   }
 
   const getSignatures = (editInvitation) => {
-    if (editInvitation.signatures.resolveAtEntity) {
-      // eslint-disable-next-line max-len
-      const availableSignaturesOfInvitation = availableSignatures.filter(p => p.editInvitationId === editInvitation.id)?.[0]
-      const venueId = editInvitation.id.split('/').slice(0, 3).join('/')
-      const canSignWithVenueId = !!availableSignaturesOfInvitation?.signaturesAvailable?.includes(venueId)
-      if (canSignWithVenueId) return [venueId] // pc
-      if (type === 'tail' && parentColumnType === 'Note') {
-        return [availableSignaturesOfInvitation?.signaturesAvailable?.filter(q => q.includes(`Paper${parent.number}`))?.[0]]
-      }
+    if (editInvitation.signatures['values-regex']) {
+      const nonPaperSpecificGroup = editInvitation.signatureValues.filter(p => !/(Paper)[0-9]\d*/.test(p))[0]
+      if (nonPaperSpecificGroup) return [nonPaperSpecificGroup]
+      if (type === 'tail' && parentColumnType === 'Note') return editInvitation.signatureValues.filter(p => p.includes(`Paper${parent.number}`))[0]
+      return editInvitation.signatures // non pc don't know paper number, resolve at entity
     }
-    return editInvitation.signatures
+    return editInvitation.signatureValues
   }
 
   const buildNewEditEdge = (editInvitation, entityId, weight = 0) => {
