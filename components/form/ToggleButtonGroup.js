@@ -33,18 +33,19 @@ export default function ToggleButtonGroup({
   }
 
   useEffect(() => {
-    if (!values) return
+    if (!values || !options.length) return
 
-    const newOptionStates = [...optionStates]
+    const newOptionStates = (new Array(options.length)).fill(0)
     values.forEach((selectedValues, state) => {
-      selectedValues.forEach((val) => {
-        const index = findIndex(options, option => option.value === val)
-        newOptionStates[index] = state + 1
+      options.forEach((option, i) => {
+        if (selectedValues.includes(option.value)) {
+          newOptionStates[i] = state + 1
+        }
       })
     })
 
     setOptionStates(newOptionStates)
-  }, [values])
+  }, [options, values])
 
   return (
     <div

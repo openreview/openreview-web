@@ -234,18 +234,28 @@ const Forum = ({ forumNote, appContext }) => {
     const handleRouteChange = (url) => {
       const [_, tabId] = url.split('#')
       if (!tabId || !replyForumViews) return
+
       const tab = replyForumViews.find(view => view.id === tabId)
       if (!tab) return
 
-      if (tab.filter) {
-        setSelectedFilters(parseFilterQuery(tab.filter))
-      }
+      setSelectedFilters({
+        invitations: null,
+        signatures: null,
+        readers: null,
+        excludedReaders: null,
+        keywords: null,
+        ...parseFilterQuery(tab.filter, tab.keywords),
+      })
       if (tab.layout) {
         setLayout(tab.layout)
       }
       if (tab.sort) {
         setSort(tab.sort)
       }
+    }
+
+    if (window.location.hash) {
+      handleRouteChange(window.location.hash)
     }
 
     router.events.on('hashChangeComplete', handleRouteChange)
