@@ -46,6 +46,8 @@ export default function ProfileEntity(props) {
   }
 
   const removeEdge = (editEdge) => {
+    // remove toolip otherwise it stays
+    $('div.tooltip').hide()
     // Delete existing edge
     // TODO: allow ProfileItems to be head objects
     Webfield.post('/edges', { tail: id, ddate: Date.now(), ...editEdge })
