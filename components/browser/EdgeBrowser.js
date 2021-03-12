@@ -1,6 +1,7 @@
 /* globals Webfield: false */
 /* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/no-access-state-in-setstate */
+/* globals promptError: false */
 
 import React from 'react'
 import _ from 'lodash'
@@ -173,7 +174,10 @@ export default class EdgeBrowser extends React.Component {
 
   lookupSignatures() {
     const editInvitationPromises = this.editInvitations.map((p) => {
-      if (!p.signatures) return null
+      if (!p.signatures) {
+        promptError(`signature of ${p.id} should not be empty`)
+        return null
+      }
       if (p.signatures.values) return p.signatures.values
       if (p.signatures['values-regex']?.startsWith('~.*')) return [this.userTildeId]
       if (p.signatures['values-regex']) {
