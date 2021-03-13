@@ -9,6 +9,7 @@ import Column from './Column'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import { formatEntityContent, buildSearchText } from '../../lib/edge-utils'
 import api from '../../lib/api-client'
+import { prettyId } from '../../lib/utils'
 
 export default class EdgeBrowser extends React.Component {
   constructor(props) {
@@ -175,7 +176,7 @@ export default class EdgeBrowser extends React.Component {
   lookupSignatures() {
     const editInvitationPromises = this.editInvitations.map((p) => {
       if (!p.signatures) {
-        promptError(`signature of ${p.id} should not be empty`)
+        promptError(`signature of ${prettyId(p.id)} should not be empty`)
         return null
       }
       if (p.signatures.values) return p.signatures.values
@@ -192,6 +193,10 @@ export default class EdgeBrowser extends React.Component {
         signatureValuesOfInvitations.forEach(
           // eslint-disable-next-line arrow-body-style
           (signatureValuesOfInvitation, index) => {
+            if (signatureValuesOfInvitation.groups?.length === 0) {
+              promptError(`You don't have permission to edit ${prettyId(this.editInvitations[index].id)} edges`)
+            }
+
             this.editInvitations[index].signatureValues = signatureValuesOfInvitation.groups
               ? signatureValuesOfInvitation.groups.map(group => (group.id)) // from api call
               : signatureValuesOfInvitation

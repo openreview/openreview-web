@@ -74,10 +74,9 @@ export default function Column(props) {
     if (editInvitation.signatures['values-regex']) {
       const nonPaperSpecificGroup = editInvitation.signatureValues.filter(p => !/(Paper)[0-9]\d*/.test(p))[0]
       if (nonPaperSpecificGroup) return [nonPaperSpecificGroup]
-      if (type === 'tail' && parentColumnType === 'Note') return editInvitation.signatureValues.filter(p => p.includes(`Paper${parent.number}`))[0]
-      return editInvitation.signatures // non pc don't know paper number, resolve at entity
+      if (type === 'tail' && parentColumnType === 'Note') return [editInvitation.signatureValues.filter(p => p.includes(`Paper${parent.number}`))[0]]
     }
-    return editInvitation.signatureValues
+    return editInvitation.signatureValues // can be either non values-regex or ac+don't know paper number
   }
 
   const buildNewEditEdge = (editInvitation, entityId, weight = 0) => {

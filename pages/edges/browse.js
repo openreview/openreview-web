@@ -94,9 +94,8 @@ const Browse = ({ appContext }) => {
 
           const readers = buildInvitationReplyArr(fullInvitation, 'readers', user.profile.id)
           const writers = buildInvitationReplyArr(fullInvitation, 'writers', user.profile.id) || readers
-          const signatures = fullInvitation.reply?.signatures ?? null
+          const signatures = fullInvitation.reply?.signatures
           const nonreaders = buildInvitationReplyArr(fullInvitation, 'nonreaders', user.profile.id)
-          if (!signatures) promptError(`signature of ${fullInvitation.id} should not be empty`)
           Object.assign(invObj, {
             head: fullInvitation.reply.content.head,
             tail: fullInvitation.reply.content.tail,

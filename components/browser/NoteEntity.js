@@ -68,6 +68,7 @@ export default function NoteEntity(props) {
       e.stopPropagation()
     }
     // Create new edge
+    const editInvitation = editInvitations.filter(p => p.id === editEdgeTemplate.invitation)?.[0]
     Webfield.post('/edges', {
       tail: id,
       ddate: null,
@@ -76,8 +77,8 @@ export default function NoteEntity(props) {
         readers: getInterpolatedValue(editEdgeTemplate.readers),
         nonreaders: getInterpolatedValue(editEdgeTemplate.nonreaders),
         writers: getInterpolatedValue(editEdgeTemplate.writers),
-        signatures: editEdgeTemplate.signatures['values-regex']
-          ? [editInvitations.filter(p => p.id === editEdgeTemplate.invitation)?.[0]?.signatureValues?.filter(q => q.includes(`Paper${number}`))?.[0]]
+        signatures: editInvitation.signatures['values-regex']?.includes('{head.number}')
+          ? [editInvitation?.signatureValues?.filter(q => q.includes(`Paper${number}`))?.[0]]
           : editEdgeTemplate.signatures,
       },
       ...updatedEdgeFields,
