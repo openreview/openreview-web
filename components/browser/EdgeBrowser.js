@@ -58,7 +58,6 @@ export default class EdgeBrowser extends React.Component {
   }
 
   componentDidMount() {
-    this.lookupSignatures()
     // Create gloabl head and tail maps by querying all possible head and tail objects
     // create global signature list
     Promise.all([
@@ -173,39 +172,6 @@ export default class EdgeBrowser extends React.Component {
       })
   }
 
-  lookupSignatures() {
-    const editInvitationPromises = this.editInvitations.map((p) => {
-      if (!p.signatures) {
-        promptError(`signature of ${prettyId(p.id)} should not be empty`)
-        return null
-      }
-      if (p.signatures.values) return p.signatures.values
-      if (p.signatures['values-regex']?.startsWith('~.*')) return [this.userTildeId]
-      if (p.signatures['values-regex']) {
-        const interpolatedSignature = p.signatures['values-regex'].replace('{head.number}', '.*')
-        return api.get('/groups', { regex: interpolatedSignature, signatory: this.userId }, { accessToken: this.accessToken })
-      }
-      return p.signatures
-    })
-    return Promise.all(editInvitationPromises).then(
-      // eslint-disable-next-line arrow-body-style
-      (signatureValuesOfInvitations) => {
-        signatureValuesOfInvitations.forEach(
-          // eslint-disable-next-line arrow-body-style
-          (signatureValuesOfInvitation, index) => {
-            if (signatureValuesOfInvitation.groups?.length === 0) {
-              promptError(`You don't have permission to edit ${prettyId(this.editInvitations[index].id)} edges`)
-            }
-
-            this.editInvitations[index].signatureValues = signatureValuesOfInvitation.groups
-              ? signatureValuesOfInvitation.groups.map(group => (group.id)) // from api call
-              : signatureValuesOfInvitation
-          },
-        )
-      },
-    )
-  }
-
   addNewColumn(index) {
     return (parentId) => {
       if (!parentId) {
@@ -275,6 +241,11 @@ export default class EdgeBrowser extends React.Component {
       editInvitations: this.editInvitations,
       browseInvitations: this.browseInvitations,
       hideInvitation: this.hideInvitation,
+      userInfo: {
+        userId: this.userId,
+        userTildeId: this.userTildeId,
+        accessToken: this.accessToken,
+      },
     }
 
     return (

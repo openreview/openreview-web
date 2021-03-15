@@ -1,9 +1,14 @@
+/* eslint-disable no-use-before-define */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/destructuring-assignment */
 /* globals Webfield: false */
 /* globals $: false */
+/* globals promptError: false */
 
-import React, { useContext } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
+import api from '../../lib/api-client'
+import { prettyId } from '../../lib/utils'
+import LoadingSpinner from '../LoadingSpinner'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
@@ -22,7 +27,9 @@ export default function ProfileEntity(props) {
     editEdges,
     editEdgeTemplates,
   } = props.profile
-  const { editInvitations } = useContext(EdgeBrowserContext)
+  const { editInvitations, userInfo } = useContext(EdgeBrowserContext)
+  const [editInvitationSignatureMap, setEditInvitationSignatureMap] = useState(null) // signatures available for all edit invitations of the entity
+  const [isLoading, setIsLoading] = useState(false)
 
   const metadata = props.profile.metadata || {}
   const extraClasses = []
@@ -50,12 +57,12 @@ export default function ProfileEntity(props) {
     $('div.tooltip').hide()
     // Delete existing edge
     // TODO: allow ProfileItems to be head objects
-    const signatureInTemplate = editEdgeTemplates?.filter(p => p?.invitation === editEdge.invitation)?.[0]?.signatures
+    const editInvitation = editInvitations.filter(p => p.id === editEdge.invitation)?.[0]
     Webfield.post('/edges', {
       tail: id,
       ddate: Date.now(),
       ...editEdge,
-      signatures: signatureInTemplate,
+      signatures: getSignatures(editInvitation),
     })
       .then(res => props.removeEdgeFromEntity(id, res))
   }
@@ -68,13 +75,48 @@ export default function ProfileEntity(props) {
     }
 
     // Create new edge
+    const editInvitation = editInvitations.filter(p => p.id === editEdgeTemplate.invitation)?.[0]
     Webfield.post('/edges', {
       tail: id,
       ddate: null,
-      ...existingEdge ?? editEdgeTemplate,
+      ...existingEdge ?? {
+        ...editEdgeTemplate,
+        readers: getInterpolatedValue(editEdgeTemplate.readers),
+        nonreaders: getInterpolatedValue(editEdgeTemplate.nonreaders),
+        writers: getInterpolatedValue(editEdgeTemplate.writers),
+        signatures: getSignatures(editInvitation),
+      },
       ...updatedEdgeFields,
     })
       .then(res => props.addEdgeToEntity(id, res))
+  }
+
+  const getSignatures = (editInvitation) => { // pick the correct signature from the several available signatures
+    // eslint-disable-next-line max-len
+    const availableSignatures = editInvitationSignatureMap.filter(p => p.invitation === editInvitation.id)?.[0]?.signature
+    if (editInvitation.signatures['values-regex'] && editInvitation.signatures['values-regex'].includes('{head.number}')) {
+      const nonPaperSpecificGroup = availableSignatures.filter(p => !/(Paper)[0-9]\d*/.test(p))[0]
+      if (nonPaperSpecificGroup) return [nonPaperSpecificGroup]
+      return [availableSignatures?.filter(q => q.includes(`Paper${props.parentInfo.number}`))?.[0]]
+    }
+    return availableSignatures
+  }
+
+  const getInterpolatedValue = (value) => { // readers/nonreaders/writers
+    if (typeof value === 'string') {
+      if (props.columnType === 'head') return value.replace('{tail}', props.parentInfo.id)
+      // tail
+      return value.replace('{head.number}', props.parentInfo.number).replace('{tail}', id)
+    }
+    if (Array.isArray(value)) {
+      return value.map((v) => {
+        let finalV = v
+        if (props.columnType === 'head') finalV = finalV.replace('{tail}', props.parentInfo.id)
+        if (props.columnType === 'tail') finalV = finalV.replace('{head.number}', props.parentInfo.number).replace('{tail}', id)
+        return finalV
+      })
+    }
+    return value
   }
 
   const handleHover = (target) => { // show if has only 1 edit edge
@@ -146,6 +188,41 @@ export default function ProfileEntity(props) {
     if (shouldRenderWeightDropdown) return editEdgeDropdown('weight', 'value-dropdown')
     return editEdgeToggle()
   }
+
+  const getInterpolatedSignatures = (editInvitationSignatures, editInvitationId) => { // interpolate signature(still a regex) so that api return less results
+    if (!editInvitationSignatures) {
+      promptError(`signature of ${prettyId(editInvitationId)} should not be empty`)
+      return null
+    }
+    if (editInvitationSignatures.values) return editInvitationSignatures.values
+    if (editInvitationSignatures['values-regex']?.startsWith('~.*')) return [userInfo.userTildId]
+    if (editInvitationSignatures['values-regex']) {
+      const interpolatedSignature = editInvitationSignatures['values-regex'].replace('{head.number}', props.parentInfo.number)
+      return api.get('/groups', { regex: interpolatedSignature, signatory: userInfo.userId }, { accessToken: userInfo.accessToken })
+    }
+    return editInvitationSignatures
+  }
+
+  useEffect(() => {
+    const constructEditEdgeTemplates = async () => {
+      // eslint-disable-next-line max-len
+      const editInvitationsP = editInvitations.map(editInvitation => getInterpolatedSignatures(editInvitation.signatures, editInvitation.id))
+      Promise.all(editInvitationsP).then((results) => {
+        // eslint-disable-next-line arrow-body-style
+        setEditInvitationSignatureMap(results.map((result, index) => {
+          return {
+            invitation: editInvitations[index].id,
+            signature: result.groups ? result.groups.map(group => (group.id)) : result,
+          }
+        }))
+        setIsLoading(false)
+      })
+    }
+    setIsLoading(true)
+    constructEditEdgeTemplates()
+  }, [])
+
+  if (isLoading) return <LoadingSpinner />
 
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions

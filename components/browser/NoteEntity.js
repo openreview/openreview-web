@@ -3,8 +3,9 @@
 /* eslint-disable react/destructuring-assignment */
 /* globals Webfield: false */
 /* globals $: false */
+/* globals promptError: false */
 
-import React, { useContext } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
@@ -12,6 +13,9 @@ import NoteAuthors from './NoteAuthors'
 import NoteContent from './NoteContent'
 import ScoresList from './ScoresList'
 import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
+import LoadingSpinner from '../LoadingSpinner'
+import api from '../../lib/api-client'
+import { prettyId } from '../../lib/utils'
 
 export default function NoteEntity(props) {
   if (!props.note || !props.note.content) {
@@ -28,7 +32,9 @@ export default function NoteEntity(props) {
     editEdges,
     editEdgeTemplates,
   } = props.note
-  const { editInvitations, availableSignatures } = useContext(EdgeBrowserContext)
+  const { editInvitations, userInfo } = useContext(EdgeBrowserContext)
+  const [editInvitationSignatureMap, setEditInvitationSignatureMap] = useState(null) // signatures available
+  const [isLoading, setIsLoading] = useState(false)
   const title = content.title ? content.title : 'No Title'
 
   const metadata = props.note.metadata || {}
@@ -90,25 +96,32 @@ export default function NoteEntity(props) {
       .then(res => props.addEdgeToEntity(id, res))
   }
 
-  const getSignatures = (editInvitation) => {
-    if (editInvitation.signatures['values-regex']) {
-      const nonPaperSpecificGroup = editInvitation.signatureValues.filter(p => !/(Paper)[0-9]\d*/.test(p))[0]
+  const getSignatures = (editInvitation) => { // pick the correct signature from the several available signatures
+    // eslint-disable-next-line max-len
+    const availableSignatures = editInvitationSignatureMap.filter(p => p.invitation === editInvitation.id)?.[0]?.signature
+    if (editInvitation.signatures['values-regex'] && editInvitation.signatures['values-regex'].includes('{head.number}')) {
+      const nonPaperSpecificGroup = availableSignatures.filter(p => !/(Paper)[0-9]\d*/.test(p))[0]
       if (nonPaperSpecificGroup) return [nonPaperSpecificGroup]
-      return [editInvitation?.signatureValues?.filter(q => q.includes(`Paper${number}`))?.[0]]
+      return [availableSignatures?.filter(q => q.includes(`Paper${number}`))?.[0]]
     }
-    return editInvitation.signatureValues // can be either non values-regex or ac+don't know paper number
+    return availableSignatures
   }
 
   const getInterpolatedValue = (value) => { // readers/nonreaders/writers
-    if (value.resolveAtEntity) {
-      return value.value
-        .split('|')
-        .filter(p => p.includes('{head.number}') || p.includes('Paper.*'))
-        .map(q => q
-          .replace('{head.number}', number)
-          .replace('Paper.*', `Paper${number}`))
+    if (typeof value === 'string') {
+      if (props.columnType === 'head') return value.replace('{head.number}', number).replace('{tail}', props.parentInfo.id)
+      // tail
+      return value.replace('{head.number}', props.parentInfo.number).replace('{tail}', id)
     }
-    return value.map(p => p.replace('{head.number}', number).replace('Paper.*', `Paper${number}`))
+    if (Array.isArray(value)) {
+      return value.map((v) => {
+        let finalV = v
+        if (props.columnType === 'head') finalV = finalV.replace('{head.number}', number).replace('{tail}', props.parentInfo.id)
+        if (props.columnType === 'tail') finalV = finalV.replace('{head.number}', props.parentInfo.number).replace('{tail}', id)
+        return finalV
+      })
+    }
+    return value
   }
 
   const handleHover = (target) => {
@@ -181,6 +194,40 @@ export default function NoteEntity(props) {
     return editEdgeToggle()
   }
 
+  const getInterpolatedSignatures = (editInvitationSignatures, editInvitationId) => { // interpolate signature(still a regex) so that api return less results
+    if (!editInvitationSignatures) {
+      promptError(`signature of ${prettyId(editInvitationId)} should not be empty`)
+      return null
+    }
+    if (editInvitationSignatures.values) return editInvitationSignatures.values
+    if (editInvitationSignatures['values-regex']?.startsWith('~.*')) return [userInfo.userTildId]
+    if (editInvitationSignatures['values-regex']) {
+      const interpolatedSignature = editInvitationSignatures['values-regex'].replace('{head.number}', props.columnType === 'head' ? number : props.parentInfo.number)
+      return api.get('/groups', { regex: interpolatedSignature, signatory: userInfo.userId }, { accessToken: userInfo.accessToken })
+    }
+    return editInvitationSignatures
+  }
+
+  useEffect(() => {
+    const constructEditEdgeTemplates = async () => {
+      // eslint-disable-next-line max-len
+      const editInvitationsP = editInvitations.map(editInvitation => getInterpolatedSignatures(editInvitation.signatures, editInvitation.id))
+      Promise.all(editInvitationsP).then((results) => {
+        // eslint-disable-next-line arrow-body-style
+        setEditInvitationSignatureMap(results.map((result, index) => {
+          return {
+            invitation: editInvitations[index].id,
+            signature: result.groups ? result.groups.map(group => (group.id)) : result,
+          }
+        }))
+        setIsLoading(false)
+      })
+    }
+    setIsLoading(true)
+    constructEditEdgeTemplates()
+  }, [])
+
+  if (isLoading) return <LoadingSpinner />
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <li className={`entry entry-note ${extraClasses.join(' ')}`} onClick={handleClick} onMouseEnter={e => handleHover(e.currentTarget)}>

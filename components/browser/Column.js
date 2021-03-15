@@ -27,7 +27,6 @@ export default function Column(props) {
     editInvitations,
     browseInvitations,
     hideInvitation,
-    availableSignatures,
   } = useContext(EdgeBrowserContext)
   const parent = parentId ? altGlobalEntityMap[parentId] : null
   const otherType = type === 'head' ? 'tail' : 'head'
@@ -50,35 +49,6 @@ export default function Column(props) {
     nonreaders: edge.nonreaders || [],
   })
 
-  const getInterpolatedValue = (value, entityId) => { // readers/nonreaders/writers
-    if (typeof value === 'string' && type === 'tail') return value.replace('{head.number}', parent.number)
-    if (Array.isArray(value)) {
-      return value.map((v) => {
-        let finalV = v
-        if (v.includes('{tail}')) {
-          finalV = finalV.replace('{tail}', `${type === 'tail' ? entityId : parentId}`)
-        }
-        if (v.includes('{head.number}') && type === 'tail') { // it's the same for only tail(profile) column
-          if (parentColumnEntityType === 'Note') finalV = finalV.replace('{head.number}', parent.number)
-        }
-        return finalV
-      })
-    }
-    if (type === 'tail' && value.value?.includes('Paper.*')) {
-      if (parentColumnEntityType === 'Note') return [value.value.replace('Paper.*', `Paper${parent.number}`)]
-    }
-    return value // to be resolved at entity
-  }
-
-  const getSignatures = (editInvitation) => {
-    if (editInvitation.signatures['values-regex']) {
-      const nonPaperSpecificGroup = editInvitation.signatureValues.filter(p => !/(Paper)[0-9]\d*/.test(p))[0]
-      if (nonPaperSpecificGroup) return [nonPaperSpecificGroup]
-      if (type === 'tail' && parentColumnEntityType === 'Note') return [editInvitation.signatureValues.filter(p => p.includes(`Paper${parent.number}`))[0]]
-    }
-    return editInvitation.signatureValues // can be either non values-regex or ac+don't know paper number
-  }
-
   const buildNewEditEdge = (editInvitation, entityId, weight = 0) => {
     if (!editInvitation) return null
 
@@ -89,10 +59,10 @@ export default function Column(props) {
       [otherType]: parentId,
       label: editInvitation.query.label,
       weight,
-      readers: getInterpolatedValue(editInvitation.readers, entityId),
-      writers: getInterpolatedValue(editInvitation.writers, entityId),
-      signatures: getSignatures(editInvitation),
-      nonreaders: getInterpolatedValue(editInvitation.nonreaders, entityId),
+      readers: editInvitation.readers, // reader/writer/nonreader/signature are completed in entity
+      writers: editInvitation.writers,
+      signatures: editInvitation.signatures,
+      nonreaders: editInvitation.nonreaders,
     }
   }
 
@@ -436,8 +406,8 @@ export default function Column(props) {
     const elem = e.target
 
     if (elem.scrollHeight > elem.clientHeight
-        && elem.scrollTop > elem.scrollHeight - 840
-        && numItemsToRender < filteredItems.length) {
+      && elem.scrollTop > elem.scrollHeight - 840
+      && numItemsToRender < filteredItems.length) {
       setNumItemsToRender(numItemsToRender + 100)
     }
   }
@@ -686,7 +656,7 @@ export default function Column(props) {
             canTraverse={!props.finalColumn}
             showHiddenItems={false}
             columnType={type} // head/tail
-            parentInfo={{ entityType: parentColumnEntityType, id: parentId }} // profile/note
+            parentInfo={{ entityType: parentColumnEntityType, id: parentId, number: parent?.number }} // profile/note
           />
         )}
       </div>
