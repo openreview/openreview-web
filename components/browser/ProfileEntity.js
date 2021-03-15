@@ -120,7 +120,7 @@ export default function ProfileEntity(props) {
   }
 
   const handleHover = (target) => { // show if has only 1 edit edge
-    if (editEdges?.length === 1) $(target).tooltip({ title: `Edited by ${editEdges[0].signatures?.join(',')}`, trigger: 'hover' })
+    if (editEdges?.length === 1) $(target).tooltip({ title: `Edited by ${prettyId(editEdges[0].signatures[0])}`, trigger: 'hover' })
   }
 
   const renderEditEdgeWidget = ({ editEdge, editInvitation }) => {
