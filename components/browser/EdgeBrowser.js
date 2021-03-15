@@ -296,7 +296,7 @@ export default class EdgeBrowser extends React.Component {
               addNewColumn={this.addNewColumn(i)}
               loading={this.state.loading}
               finalColumn={i + 1 === this.maxColumns}
-              parentColumnType={this.state.columns[i - 1]?.entityType} // to decide whether number can be used
+              parentColumnEntityType={this.state.columns[i - 1]?.entityType} // to decide whether number can be used
             />
           ))}
           <div className="column column-spacer" tabIndex="-1" />

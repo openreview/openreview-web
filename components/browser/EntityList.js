@@ -31,6 +31,8 @@ export default function EntityList(props) {
             isSelected={isSelected}
             setSelectedItemId={props.setSelectedItemId}
             canTraverse={props.canTraverse}
+            columnType={props.columnType}
+            parentInfo={props.parentInfo}
           />
         )
 
@@ -61,6 +63,8 @@ export default function EntityList(props) {
             isSelected={isSelected}
             setSelectedItemId={props.setSelectedItemId}
             canTraverse={props.canTraverse}
+            columnType={props.columnType}
+            parentInfo={props.parentInfo}
           />
         )
 

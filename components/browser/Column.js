@@ -20,7 +20,7 @@ export default function Column(props) {
     globalEntityMap,
     altGlobalEntityMap,
     startInvitation,
-    parentColumnType,
+    parentColumnEntityType,
   } = props
   const {
     traverseInvitation,
@@ -59,13 +59,13 @@ export default function Column(props) {
           finalV = finalV.replace('{tail}', `${type === 'tail' ? entityId : parentId}`)
         }
         if (v.includes('{head.number}') && type === 'tail') { // it's the same for only tail(profile) column
-          if (parentColumnType === 'Note') finalV = finalV.replace('{head.number}', parent.number)
+          if (parentColumnEntityType === 'Note') finalV = finalV.replace('{head.number}', parent.number)
         }
         return finalV
       })
     }
     if (type === 'tail' && value.value?.includes('Paper.*')) {
-      if (parentColumnType === 'Note') return [value.value.replace('Paper.*', `Paper${parent.number}`)]
+      if (parentColumnEntityType === 'Note') return [value.value.replace('Paper.*', `Paper${parent.number}`)]
     }
     return value // to be resolved at entity
   }
@@ -74,7 +74,7 @@ export default function Column(props) {
     if (editInvitation.signatures['values-regex']) {
       const nonPaperSpecificGroup = editInvitation.signatureValues.filter(p => !/(Paper)[0-9]\d*/.test(p))[0]
       if (nonPaperSpecificGroup) return [nonPaperSpecificGroup]
-      if (type === 'tail' && parentColumnType === 'Note') return [editInvitation.signatureValues.filter(p => p.includes(`Paper${parent.number}`))[0]]
+      if (type === 'tail' && parentColumnEntityType === 'Note') return [editInvitation.signatureValues.filter(p => p.includes(`Paper${parent.number}`))[0]]
     }
     return editInvitation.signatureValues // can be either non values-regex or ac+don't know paper number
   }
@@ -685,6 +685,8 @@ export default function Column(props) {
             setSelectedItemId={setSelectedItemId}
             canTraverse={!props.finalColumn}
             showHiddenItems={false}
+            columnType={type} // head/tail
+            parentInfo={{ entityType: parentColumnEntityType, id: parentId }} // profile/note
           />
         )}
       </div>
