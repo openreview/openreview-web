@@ -312,7 +312,6 @@ export default function Column(props) {
             return
           }
 
-          const hideEdge = ['Paper Assignment', 'Conflict', 'Assignment'].includes(startInvitation.name)
           const colItems = []
           const existingItems = new Set()
           startEdges.forEach((sEdge) => {
@@ -329,7 +328,7 @@ export default function Column(props) {
 
             colItems.push({
               ...globalEntityMap[headOrTailId],
-              browseEdges: hideEdge ? [] : [formatEdge(sEdge)],
+              browseEdges: [],
               metadata: {
                 isAssigned: false,
               },
