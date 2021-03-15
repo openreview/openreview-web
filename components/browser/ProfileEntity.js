@@ -50,7 +50,13 @@ export default function ProfileEntity(props) {
     $('div.tooltip').hide()
     // Delete existing edge
     // TODO: allow ProfileItems to be head objects
-    Webfield.post('/edges', { tail: id, ddate: Date.now(), ...editEdge })
+    const signatureInTemplate = editEdgeTemplates?.filter(p => p?.invitation === editEdge.invitation)?.[0]?.signatures
+    Webfield.post('/edges', {
+      tail: id,
+      ddate: Date.now(),
+      ...editEdge,
+      signatures: signatureInTemplate,
+    })
       .then(res => props.removeEdgeFromEntity(id, res))
   }
 

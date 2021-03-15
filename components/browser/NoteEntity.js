@@ -57,7 +57,13 @@ export default function NoteEntity(props) {
     $('div.tooltip').hide()
     // Delete existing edge
     // TODO: allow ProfileItems to be head objects
-    Webfield.post('/edges', { tail: id, ddate: Date.now(), ...editEdge })
+    const editInvitation = editInvitations.filter(p => p.id === editEdge.invitation)?.[0]
+    Webfield.post('/edges', {
+      tail: id,
+      ddate: Date.now(),
+      ...editEdge,
+      signatures: getSignatures(editInvitation),
+    })
       .then(res => props.removeEdgeFromEntity(id, res))
   }
 
@@ -77,13 +83,20 @@ export default function NoteEntity(props) {
         readers: getInterpolatedValue(editEdgeTemplate.readers),
         nonreaders: getInterpolatedValue(editEdgeTemplate.nonreaders),
         writers: getInterpolatedValue(editEdgeTemplate.writers),
-        signatures: editInvitation.signatures['values-regex']?.includes('{head.number}')
-          ? [editInvitation?.signatureValues?.filter(q => q.includes(`Paper${number}`))?.[0]]
-          : editEdgeTemplate.signatures,
+        signatures: getSignatures(editInvitation),
       },
       ...updatedEdgeFields,
     })
       .then(res => props.addEdgeToEntity(id, res))
+  }
+
+  const getSignatures = (editInvitation) => {
+    if (editInvitation.signatures['values-regex']) {
+      const nonPaperSpecificGroup = editInvitation.signatureValues.filter(p => !/(Paper)[0-9]\d*/.test(p))[0]
+      if (nonPaperSpecificGroup) return [nonPaperSpecificGroup]
+      return [editInvitation?.signatureValues?.filter(q => q.includes(`Paper${number}`))?.[0]]
+    }
+    return editInvitation.signatureValues // can be either non values-regex or ac+don't know paper number
   }
 
   const getInterpolatedValue = (value) => { // readers/nonreaders/writers
