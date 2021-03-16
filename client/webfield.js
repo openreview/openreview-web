@@ -2376,6 +2376,12 @@ module.exports = (function() {
         return result;
       }, { multiReply: null });
 
+      if (formData.duedate && formData.expdate && formData.expdate <= formData.duedate) {
+        promptError('Expiration date must be after due date.')
+        $submitButton.removeClass('disabled');
+        return false;
+      }
+
       updateInvitation(formData)
         .then(function(response) {
           invitation = response;
