@@ -131,7 +131,7 @@ export default function ProfileEntity(props) {
         addEdge={addEdge}
         removeEdge={() => removeEdge(editEdge)}
         type={type} // label or weight
-        editEdgeTemplate={editEdgeTemplates.find(p => p.invitation === editInvitation.id)} // required for adding new one
+        editEdgeTemplate={editEdgeTemplates?.find(p => p?.invitation === editInvitation.id)} // required for adding new one
       />
     )
     const editEdgeToggle = () => (
@@ -142,7 +142,7 @@ export default function ProfileEntity(props) {
         removeEdge={() => removeEdge(editEdge)}
         // eslint-disable-next-line max-len
         canAddEdge={editEdges?.filter(p => p?.invitation === editInvitation.id).length === 0 || editInvitation.multiReply} // no editedge or invitation allow multiple edges
-        editEdgeTemplate={editEdgeTemplates.find(p => p.invitation === editInvitation.id)} // required for adding new one
+        editEdgeTemplate={editEdgeTemplates?.find(p => p?.invitation === editInvitation.id)} // required for adding new one
       />
     )
     const editEdgeTwoDropdowns = controlType => (
@@ -159,7 +159,7 @@ export default function ProfileEntity(props) {
         default=" "
         addEdge={addEdge}
         removeEdge={() => removeEdge(editEdge)}
-        editEdgeTemplate={editEdgeTemplates.find(p => p.invitation === editInvitation.id)} // required for adding new one
+        editEdgeTemplate={editEdgeTemplates?.find(p => p?.invitation === editInvitation.id)} // required for adding new one
       />
     )
 
@@ -190,7 +190,7 @@ export default function ProfileEntity(props) {
       return null
     }
     if (editInvitationSignatures.values) return editInvitationSignatures.values
-    if (editInvitationSignatures['values-regex']?.startsWith('~.*')) return [userInfo.userTildId]
+    if (editInvitationSignatures['values-regex']?.startsWith('~.*')) return [userInfo.userTildeId]
     if (editInvitationSignatures['values-regex']) {
       const interpolatedSignature = editInvitationSignatures['values-regex'].replace('{head.number}', props.parentInfo.number)
       return api.get('/groups', { regex: interpolatedSignature, signatory: userInfo.userId }, { accessToken: userInfo.accessToken })

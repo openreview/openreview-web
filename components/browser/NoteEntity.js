@@ -195,7 +195,7 @@ export default function NoteEntity(props) {
       return null
     }
     if (editInvitationSignatures.values) return editInvitationSignatures.values
-    if (editInvitationSignatures['values-regex']?.startsWith('~.*')) return [userInfo.userTildId]
+    if (editInvitationSignatures['values-regex']?.startsWith('~.*')) return [userInfo.userTildeId]
     if (editInvitationSignatures['values-regex']) {
       const interpolatedSignature = editInvitationSignatures['values-regex'].replace('{head.number}', props.columnType === 'head' ? number : props.parentInfo.number)
       return api.get('/groups', { regex: interpolatedSignature, signatory: userInfo.userId }, { accessToken: userInfo.accessToken })
