@@ -86,9 +86,9 @@ export default function NoteEntity(props) {
       ddate: null,
       ...existingEdge ?? {
         ...editEdgeTemplate,
-        readers: getInterpolatedValue(editEdgeTemplate.readers),
-        nonreaders: getInterpolatedValue(editEdgeTemplate.nonreaders),
-        writers: getInterpolatedValue(editEdgeTemplate.writers),
+        readers: getInterpolatedValues(editInvitation.readers),
+        nonreaders: getInterpolatedValues(editInvitation.nonreaders),
+        writers: getInterpolatedValues(editInvitation.writers),
         signatures: getSignatures(editInvitation),
       },
       ...updatedEdgeFields,
@@ -107,12 +107,7 @@ export default function NoteEntity(props) {
     return availableSignatures
   }
 
-  const getInterpolatedValue = (value) => { // readers/nonreaders/writers
-    if (typeof value === 'string') {
-      if (props.columnType === 'head') return value.replace('{head.number}', number).replace('{tail}', props.parentInfo.id)
-      // tail
-      return value.replace('{head.number}', props.parentInfo.number).replace('{tail}', id)
-    }
+  const getInterpolatedValues = (value) => { // readers/nonreaders/writers
     if (Array.isArray(value)) {
       return value.map((v) => {
         let finalV = v
