@@ -18,9 +18,8 @@ export default function EditEdgeToggle({ addEdge, removeEdge, existingEdge, canA
 
   if (!existingEdge && !canAddEdge) return null
   const getLabel = () => {
-    const weight = existingEdge?.weight ? `, ${existingEdge.weight}` : ''
-    const label = editEdgeTemplate.label ? editEdgeTemplate.label : ''
-    return `${editEdgeTemplate.name}: ${label}${weight}`
+    if (editEdgeTemplate.label) return `${editEdgeTemplate.name}: ${editEdgeTemplate.label}${existingEdge?.weight ? `,${existingEdge.weight}` : ''}`
+    return `${editEdgeTemplate.name}: ${existingEdge?.weight ?? ''}`
   }
 
   return (
