@@ -5,7 +5,7 @@
 /* globals $: false */
 /* globals promptError: false */
 
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext } from 'react'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
@@ -13,7 +13,6 @@ import NoteAuthors from './NoteAuthors'
 import NoteContent from './NoteContent'
 import ScoresList from './ScoresList'
 import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
-import LoadingSpinner from '../LoadingSpinner'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
@@ -32,9 +31,8 @@ export default function NoteEntity(props) {
     editEdges,
     editEdgeTemplates,
   } = props.note
-  const { editInvitations, userInfo } = useContext(EdgeBrowserContext)
-  const [editInvitationSignatureMap, setEditInvitationSignatureMap] = useState(null) // signatures available
-  const [isLoading, setIsLoading] = useState(false)
+  const { editInvitations, userInfo, availableSignaturesInvitationMap } = useContext(EdgeBrowserContext)
+
   const title = content.title ? content.title : 'No Title'
 
   const metadata = props.note.metadata || {}
@@ -58,54 +56,82 @@ export default function NoteEntity(props) {
     props.addNewColumn(id)
   }
 
-  const removeEdge = (editEdge) => {
+  const removeEdge = async (editEdge) => {
     // remove toolip otherwise it stays
     $('div.tooltip').hide()
     // Delete existing edge
     // TODO: allow ProfileItems to be head objects
     const editInvitation = editInvitations.filter(p => p.id === editEdge.invitation)?.[0]
-    Webfield.post('/edges', {
-      tail: id,
-      ddate: Date.now(),
-      ...editEdge,
-      signatures: getSignatures(editInvitation),
-    })
-      .then(res => props.removeEdgeFromEntity(id, res))
+    const signatures = getSignatures(editInvitation)
+    if (!signatures || signatures.length === 0) {
+      promptError('You don\'t have permission to edit this edge')
+      return
+    }
+    try {
+      const result = await api.post('/edges', {
+        tail: id,
+        ddate: Date.now(),
+        ...editEdge,
+        signatures,
+      },
+      { accessToken: userInfo.accessToken })
+      props.removeEdgeFromEntity(id, result)
+    } catch (error) {
+      promptError(error.message)
+    }
   }
 
   // eslint-disable-next-line object-curly-newline
-  const addEdge = ({ e, existingEdge, editEdgeTemplate, updatedEdgeFields = {} }) => {
+  const addEdge = async ({ e, existingEdge, editEdgeTemplate, updatedEdgeFields = {} }) => {
     if (e) {
       e.preventDefault()
       e.stopPropagation()
     }
     // Create new edge
     const editInvitation = editInvitations.filter(p => p.id === editEdgeTemplate.invitation)?.[0]
-    Webfield.post('/edges', {
-      tail: id,
-      ddate: null,
-      ...existingEdge ?? {
-        ...editEdgeTemplate,
-        readers: getInterpolatedValues(editInvitation.readers),
-        nonreaders: getInterpolatedValues(editInvitation.nonreaders),
-        writers: getInterpolatedValues(editInvitation.writers),
-        signatures: getSignatures(editInvitation),
+    const signatures = getSignatures(editInvitation)
+    if (!signatures || signatures.length === 0) {
+      promptError('You don\'t have permission to edit this edge')
+      return
+    }
+    try {
+      const result = await api.post('/edges', {
+        tail: id,
+        ddate: null,
+        ...existingEdge ?? {
+          ...editEdgeTemplate,
+          readers: getInterpolatedValues(editInvitation.readers),
+          nonreaders: getInterpolatedValues(editInvitation.nonreaders),
+          writers: getInterpolatedValues(editInvitation.writers),
+          signatures,
+        },
+        ...updatedEdgeFields,
       },
-      ...updatedEdgeFields,
-    })
-      .then(res => props.addEdgeToEntity(id, res))
+      { accessToken: userInfo.accessToken })
+      props.addEdgeToEntity(id, result)
+    } catch (error) {
+      promptError(error.message)
+    }
   }
 
-  const getSignatures = (editInvitation) => { // pick the correct signature from the several available signatures
-    // eslint-disable-next-line max-len
-    const availableSignatures = editInvitationSignatureMap.filter(p => p.invitation === editInvitation.id)?.[0]?.signature
-    if (editInvitation.signatures['values-regex'] && editInvitation.signatures['values-regex'].includes('{head.number}')) {
-      const nonPaperSpecificGroup = availableSignatures.filter(p => !/(Paper)[0-9]\d*/.test(p))[0]
+  const getSignatures = (editInvitation) => {
+    if (!editInvitation.signatures) {
+      promptError(`signature of ${prettyId(editInvitation.signatures)} should not be empty`)
+      return null
+    }
+    if (editInvitation.signatures.values) return editInvitation.signatures.values
+    if (editInvitation.signatures['values-regex']?.startsWith('~.*')) return [userInfo.userTildeId]
+    if (editInvitation.signatures['values-regex']) {
+      // eslint-disable-next-line max-len
+      const invitationMapItem = availableSignaturesInvitationMap.filter(p => p.invitation === editInvitation.id)?.[0]
+      if (invitationMapItem?.signature) return [invitationMapItem.signature] // default value
+      const availableSignatures = invitationMapItem?.signatures
+      const nonPaperSpecificGroup = availableSignatures?.filter(p => !/(Paper)[0-9]\d*/.test(p))?.[0]
       if (nonPaperSpecificGroup) return [nonPaperSpecificGroup]
       const paperSpecificGroup = availableSignatures?.filter(q => q.includes(`Paper${number}`))?.[0]
       return paperSpecificGroup ? [paperSpecificGroup] : []
     }
-    return availableSignatures
+    return editInvitation.signatures
   }
 
   const getInterpolatedValues = (value) => { // readers/nonreaders/writers
@@ -190,40 +216,6 @@ export default function NoteEntity(props) {
     return editEdgeToggle()
   }
 
-  const getInterpolatedSignatures = (editInvitationSignatures, editInvitationId) => { // interpolate signature(still a regex) so that api return less results
-    if (!editInvitationSignatures) {
-      promptError(`signature of ${prettyId(editInvitationId)} should not be empty`)
-      return null
-    }
-    if (editInvitationSignatures.values) return editInvitationSignatures.values
-    if (editInvitationSignatures['values-regex']?.startsWith('~.*')) return [userInfo.userTildeId]
-    if (editInvitationSignatures['values-regex']) {
-      const interpolatedSignature = editInvitationSignatures['values-regex'].replace('{head.number}', props.columnType === 'head' ? number : props.parentInfo.number)
-      return api.get('/groups', { regex: interpolatedSignature, signatory: userInfo.userId }, { accessToken: userInfo.accessToken })
-    }
-    return editInvitationSignatures
-  }
-
-  useEffect(() => {
-    const constructEditEdgeTemplates = async () => {
-      // eslint-disable-next-line max-len
-      const editInvitationsP = editInvitations.map(editInvitation => getInterpolatedSignatures(editInvitation.signatures, editInvitation.id))
-      Promise.all(editInvitationsP).then((results) => {
-        // eslint-disable-next-line arrow-body-style
-        setEditInvitationSignatureMap(results.map((result, index) => {
-          return {
-            invitation: editInvitations[index].id,
-            signature: result.groups ? result.groups.map(group => (group.id)) : result,
-          }
-        }))
-        setIsLoading(false)
-      })
-    }
-    setIsLoading(true)
-    constructEditEdgeTemplates()
-  }, [])
-
-  if (isLoading) return <LoadingSpinner />
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <li className={`entry entry-note ${extraClasses.join(' ')}`} onClick={handleClick} onMouseEnter={e => handleHover(e.currentTarget)}>

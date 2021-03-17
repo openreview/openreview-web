@@ -55,16 +55,19 @@ export default class EdgeBrowser extends React.Component {
     this.userId = props.userInfo.userId
     this.accessToken = props.userInfo.accessToken
     this.userTildeId = props.userInfo.tildeId
+
+    this.availableSignaturesInvitationMap = []
   }
 
   componentDidMount() {
+    this.lookupSignatures()
     // Create gloabl head and tail maps by querying all possible head and tail objects
     // create global signature list
     Promise.all([
       this.buildEntityMapFromInvitation('head'),
       this.buildEntityMapFromInvitation('tail'),
     ])
-      .then(([headMap, tailMap, signatureLookupResult]) => {
+      .then(([headMap, tailMap]) => {
         this.setState({
           headMap,
           tailMap,
@@ -235,6 +238,40 @@ export default class EdgeBrowser extends React.Component {
     })
   }
 
+  async lookupSignatures() {
+    const editInvitationSignaturesMap = []
+    this.editInvitations.forEach(async (editInvitation) => {
+      // this case is handled here to reduce num of calls to /groups,other cases handled at entity
+      if (editInvitation.signatures['values-regex'] && !editInvitation.signatures['values-regex']?.startsWith('~.*')) {
+        if (editInvitation.signatures.default) {
+          try {
+            const defaultLookupResult = await api.get('/groups', { regex: editInvitation.default, signatory: this.userId }, { accessToken: this.accessToken })
+            if (defaultLookupResult.groups.length === 1) {
+              editInvitationSignaturesMap.push({
+                invitation: editInvitation.id,
+                signature: editInvitation.signatures.default, // singular
+              })
+              return
+            }
+          } catch (error) {
+            promptError(error.message)
+          }
+        }
+        const interpolatedSignature = editInvitation.signatures['values-regex'].replace('{head.number}', '.*')
+        try {
+          const interpolatedLookupResult = await api.get('/groups', { regex: interpolatedSignature, signatory: this.userId }, { accessToken: this.accessToken })
+          editInvitationSignaturesMap.push({
+            invitation: editInvitation.id,
+            signatures: interpolatedLookupResult.groups.map(group => group.id),
+          })
+        } catch (error) {
+          promptError(error.message)
+        }
+      }
+    })
+    this.availableSignaturesInvitationMap = editInvitationSignaturesMap
+  }
+
   render() {
     const invitations = {
       traverseInvitation: this.traverseInvitation,
@@ -246,6 +283,7 @@ export default class EdgeBrowser extends React.Component {
         userTildeId: this.userTildeId,
         accessToken: this.accessToken,
       },
+      availableSignaturesInvitationMap: this.availableSignaturesInvitationMap,
     }
 
     return (
