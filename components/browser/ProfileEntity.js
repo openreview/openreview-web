@@ -97,7 +97,8 @@ export default function ProfileEntity(props) {
     if (editInvitation.signatures['values-regex'] && editInvitation.signatures['values-regex'].includes('{head.number}')) {
       const nonPaperSpecificGroup = availableSignatures.filter(p => !/(Paper)[0-9]\d*/.test(p))[0]
       if (nonPaperSpecificGroup) return [nonPaperSpecificGroup]
-      return [availableSignatures?.filter(q => q.includes(`Paper${props.parentInfo.number}`))?.[0]]
+      const paperSpecificGroup = availableSignatures?.filter(q => q.includes(`Paper${props.parentInfo.number}`))?.[0]
+      return paperSpecificGroup ? [paperSpecificGroup] : []
     }
     return availableSignatures
   }
