@@ -32,6 +32,11 @@ export default function Column(props) {
   const otherType = type === 'head' ? 'tail' : 'head'
   const colBodyEl = useRef(null)
 
+  // State Vars
+  const [selectedItemId, setSelectedItemId] = useState(null)
+  const [items, setItems] = useState(null)
+  const [shouldUpdateItems, setShouldUpdateItems] = useState(true)
+
   // Helpers
   const formatEdge = edge => ({
     id: edge.id,
@@ -178,9 +183,6 @@ export default function Column(props) {
     return `Search all ${pluralizeString(entityName).toLowerCase()}...`
   }
 
-  // State Vars
-  const [selectedItemId, setSelectedItemId] = useState(null)
-
   // Adds either a new browse edge or an edit edge to an item
   const updateColumnItems = (fieldName, colItems, isHidden = false) => (edge) => {
     const headOrTailId = edge[type]
@@ -239,9 +241,12 @@ export default function Column(props) {
     colItems.push(itemToAddFormatted)
   }
 
-  const [items, setItems] = useState(null)
   useEffect(() => {
     if (props.loading) return
+    if (!shouldUpdateItems) {
+      setShouldUpdateItems(true)
+      return
+    }
 
     // If no parent id is provided, display the full list of entities. Used for
     // the first column when no start invitation is provided
@@ -354,6 +359,11 @@ export default function Column(props) {
             },
           })
         })
+
+        if (altGlobalEntityMap[parentId].traverseEdgesCount !== traverseEdges.length) {
+          props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', traverseEdges.length) // other user has updated edge
+          setShouldUpdateItems(false) // avoid infinite update
+        }
 
         // Add all browse edges to items
         browseEdgeGroups.forEach((browseEdges, i) => {
