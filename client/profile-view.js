@@ -1022,11 +1022,27 @@ module.exports = function(profile, params, submitF, cancelF) {
     var allValid = true;
     var oneCompleted = false;
 
+    const domainSpecificValidationMap = {
+      'semanticScholar': {
+        name: 'Semantic Scholar',
+        pattern: 'https://www.semanticscholar.org'
+      },
+      'gscholar': {
+        name: 'Google Scholar',
+        pattern: 'https://scholar.google.com'
+      }
+    }
+
     _.forEach(personalLinks, function(value, key) {
       if (value) {
         oneCompleted = true;
         if (!urlRegex.test(value)) {
           promptError(value + ' is not a valid URL');
+          $table.find('#' + key + '_url').addClass('invalid_value');
+          allValid = false;
+        }
+        if (domainSpecificValidationMap[key] && !value.startsWith(domainSpecificValidationMap[key].pattern)) {
+          promptError(value + ` is not a valid ${domainSpecificValidationMap[key].name} URL`);
           $table.find('#' + key + '_url').addClass('invalid_value');
           allValid = false;
         }
