@@ -1105,8 +1105,7 @@ module.exports = (function() {
   };
 
   var mkComposerContentInput = function(fieldName, fieldDescription, fieldValue, params) {
-
-    let contentInputResult = null;
+    var contentInputResult = null;
 
     var mkCharCouterWidget = function($input, minChars, maxChars) {
       var $widget = $('<div>', {class: 'char-counter hint'}).append(
@@ -1219,30 +1218,25 @@ module.exports = (function() {
 
     } else if (_.has(fieldDescription, 'values-regex')) {
       if (params && params.groups) {
-        var groups = params.groups;
-        var groupIds = _.map(groups, function(g) {
+        var groupIds = _.map(params.groups, function(g) {
           return g.id;
         });
-        return mkDropdownAdder(
+        contentInputResult = mkDropdownAdder(
           fieldName, fieldDescription.description, groupIds,
           fieldValue, { hoverText: false, refreshData: true, required: fieldDescription.required }
         );
+      } else {
+        $input = $('<input>', {
+          type: 'text',
+          class: 'form-control note_content_value',
+          name: fieldName,
+          value: fieldValue
+        });
+        if (!_.get(fieldDescription, 'disableAutosave', false)) {
+          $input.addClass('autosave-enabled');
+        }
+        contentInputResult = valueInput($input, fieldName, fieldDescription);
       }
-
-      $input = $('<input>', {
-        type: 'text',
-        class: 'form-control note_content_value',
-        name: fieldName,
-        value: fieldValue
-      });
-      if (!_.get(fieldDescription, 'disableAutosave', false)) {
-        $input.addClass('autosave-enabled');
-      }
-
-      if (fieldDescription.hidden) {
-        return valueInput($input, fieldName, fieldDescription).hide();
-      }
-      contentInputResult = valueInput($input, fieldName, fieldDescription);
 
     } else if (_.has(fieldDescription, 'value-dropdown')) {
       contentInputResult = mkDropdownList(
@@ -1335,10 +1329,11 @@ module.exports = (function() {
         name: fieldName,
         text: fieldValue && JSON.stringify(fieldValue, undefined, 4)
       }), fieldName, fieldDescription);
+
     } else if (_.has(fieldDescription, 'value-file')) {
       contentInputResult = mkAttachmentSection(fieldName, fieldDescription, fieldValue);
     }
-    if (fieldDescription.hidden === true) return contentInputResult.hide();
+
     return contentInputResult;
   };
 
@@ -1408,11 +1403,12 @@ module.exports = (function() {
   };
 
   var mkComposerInput = function(fieldName, fieldDescription, fieldValue, params) {
-    if (fieldName === 'pdf' && fieldDescription['value-regex']) {
-      return mkPdfSection(fieldDescription, fieldValue);
-    }
+    var contentInputResult;
 
-    if (fieldName === 'authorids' && (
+    if (fieldName === 'pdf' && fieldDescription['value-regex']) {
+      contentInputResult = mkPdfSection(fieldDescription, fieldValue);
+
+    } else if (fieldName === 'authorids' && (
       (_.has(fieldDescription, 'values-regex') && fieldDescription['values-regex'].indexOf('~.*') !== -1) ||
       _.has(fieldDescription, 'values')
     )) {
@@ -1429,7 +1425,7 @@ module.exports = (function() {
       var invitationRegex = fieldDescription['values-regex'];
       // Enable allowUserDefined if the values-regex has '~.*|'
       // Don't enable adding or removing authors if invitation uses 'values' instead of values-regex
-      const result = valueInput(
+      contentInputResult = valueInput(
         mkSearchProfile(authors, authorids, {
           allowUserDefined: invitationRegex && invitationRegex.indexOf('~.*|') !== -1,
           allowAddRemove: !!invitationRegex
@@ -1437,11 +1433,15 @@ module.exports = (function() {
         'authors',
         fieldDescription
       );
-      if (fieldDescription.hidden === true) return result.hide();
-      return result;
+
+    } else {
+      contentInputResult = mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
     }
 
-    return mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
+    if (fieldDescription.hidden === true) {
+      return contentInputResult.hide();
+    }
+    return contentInputResult;
   };
 
   var mkItem = function(text, f) {
