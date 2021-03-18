@@ -308,6 +308,7 @@ function SubmitForm({ user, contentField, postNote }) {
       await postNote({ [contentField]: message }, signature)
       form.reset()
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.log(error)
     }
   }

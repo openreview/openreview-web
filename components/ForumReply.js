@@ -1,4 +1,7 @@
+/* globals promptMessage: false */
+
 import { useContext } from 'react'
+import copy from 'copy-to-clipboard'
 import NoteContent from './NoteContent'
 import ForumReplyContext from './ForumReplyContext'
 import {
@@ -61,7 +64,7 @@ export default function ForumReply({ note, replies }) {
   )
 }
 
-function ReplyTitle({ note, collapsed, setInvitationFilter }) {
+function ReplyTitle({ note, collapsed }) {
   const {
     id, invitation, content, signatures,
   } = note
@@ -92,6 +95,8 @@ function ReplyTitle({ note, collapsed, setInvitationFilter }) {
           ) : (
             <span>{buildNoteTitle(invitation, signatures)}</span>
           )}
+
+          <CopyLinkButton noteId={id} />
         </h4>
       </div>
     )
@@ -105,6 +110,8 @@ function ReplyTitle({ note, collapsed, setInvitationFilter }) {
         ) : (
           <span>{buildNoteTitle(invitation, signatures)}</span>
         )}
+
+        <CopyLinkButton noteId={id} />
       </h4>
       <div className="subheading">
         <span
@@ -130,6 +137,23 @@ function ReplyTitle({ note, collapsed, setInvitationFilter }) {
         </span>
       </div>
     </div>
+  )
+}
+
+function CopyLinkButton({ noteId }) {
+  const { forumId } = useContext(ForumReplyContext)
+
+  const copyNoteUrl = (e) => {
+    if (!window.location) return
+
+    copy(`${window.location.origin}${window.location.pathname}?id=${forumId}&noteId=${noteId}`)
+    promptMessage('Reply URL copied to clipboard', { scrollToTop: false })
+  }
+
+  return (
+    <button type="button" className="btn btn-xs permalink-btn" onClick={copyNoteUrl}>
+      <Icon name="link" tooltip="Copy reply URL" />
+    </button>
   )
 }
 

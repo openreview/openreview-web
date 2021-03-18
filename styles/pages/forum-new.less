@@ -89,6 +89,7 @@ main.forum {
 
   .tooltip .tooltip-inner {
     max-width: none;
+    width: max-content;
   }
 
   .meta_row {
@@ -223,6 +224,17 @@ main.forum {
     & > div.controls {
       margin-bottom: 1.25rem;
     }
+    .note:hover {
+      background-color: rgba(0, 0, 0, .04);
+      box-shadow: 0 0 1px 4px rgba(0, 0, 0, .04);
+
+      .note-content-container.collapsed .gradient-overlay {
+        background-color: #f5f3f0;
+      }
+      & > div > h4 .permalink-btn {
+        opacity: 1;
+      }
+    }
   }
 
   .note-replies {
@@ -260,6 +272,20 @@ main.forum {
         .signatures {
           color: @subtleGray;
           font-weight: normal;
+        }
+      }
+      .btn-xs {
+        margin-top: -2px;
+        margin-left: 0.5rem;
+        padding: 0 .5rem;
+        background: transparent;
+        border: 2px solid transparent;
+        opacity: 0;
+        &:focus {
+          box-shadow: none;
+        }
+        span {
+          color: @mediumBlue;
         }
       }
     }
@@ -326,15 +352,25 @@ main.forum {
     }
   }
 
-  .controls {
+  .filter-controls {
+    background: #f7f6f4;
     padding: .5rem;
-    background: rgba(239, 239, 239, .5);
-    border: 1px solid #e5e5e5;
-    margin-top: .875rem;
+    border: 1px solid #eee;
+
+    & > div {
+      display: flex;
+      justify-content: space-between;
+    }
 
     .form-group {
       margin-right: .625rem;
 
+      &:last-child {
+        margin-right: 0;
+      }
+      &.expand {
+        flex-grow: 1;
+      }
       label {
         padding-right: .25rem;
       }
@@ -349,24 +385,28 @@ main.forum {
       input.form-control {
         padding-top: .125rem;
       }
+    }
 
-      .replies-filter {
-        width: 360px;
+    .replies-filter {
+      width: 100%;
+      max-height: 32px;
+
+      .dropdown-select__control {
+        background-color: #fff;
         max-height: 32px;
-
-        .dropdown-select__control {
-          background-color: #fff;
-          max-height: 32px;
-        }
-        .dropdown-select__value-container {
-          max-height: 28px;
-          overflow: scroll;
-        }
+      }
+      .dropdown-select__value-container {
+        max-height: 28px;
+        overflow: scroll;
       }
     }
 
     .btn-group {
-      margin-right: .5rem;
+      margin-right: .625rem;
+
+      &:last-child {
+        margin-right: 0;
+      }
       button {
         min-width: 2.5rem;
       }
@@ -400,34 +440,28 @@ main.forum {
     .form-control {
       background-color: #fff;
     }
-    .form-control[disabled] {
-      background-color: #eee;
-    }
 
     .form-row {
-      display: block;
       margin: 0;
       margin-top: .5rem;
     }
+
+    .filter-count {
+      line-height: 32px;
+    }
   }
 
-  .filters {
-    margin-top: 1rem;
-    padding: .5rem;
-    background: rgba(239, 239, 239, .5);
-    border: 1px solid #e5e5e5;
+  .filter-tabs {
+    margin-bottom: -1px;
 
-    .form-horizontal .control-label {
-      text-align: left;
+    & > li > a {
+      padding-top: .375rem;
+      padding-bottom: .375rem;
+      border-bottom-color: #eee;
     }
-    form .form-group:last-child {
-      margin-bottom: 0;
-    }
-    .form-control {
-      background-color: #fff;
-    }
-    .form-control[disabled] {
-      background-color: #eee;
+    & > li.active > a {
+      background-color: #f7f6f4;
+      border-color: #eee #eee #f7f6f4;
     }
   }
 }

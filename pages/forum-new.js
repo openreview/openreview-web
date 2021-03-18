@@ -5,7 +5,6 @@ import Head from 'next/head'
 import Link from 'next/link'
 import Router, { useRouter } from 'next/router'
 import truncate from 'lodash/truncate'
-import intersection from 'lodash/intersection'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ForumReply from '../components/ForumReply'
 import NoteAuthors from '../components/NoteAuthors'
@@ -19,7 +18,7 @@ import useQuery from '../hooks/useQuery'
 import api from '../lib/api-client'
 import { auth } from '../lib/auth'
 import { prettyId, forumDate, getConferenceName } from '../lib/utils'
-import { parseFilterQuery } from '../lib/forum-utils'
+import { parseFilterQuery, replaceFilterWildcards } from '../lib/forum-utils'
 import { buildNoteSearchText } from '../lib/edge-utils'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
@@ -101,6 +100,7 @@ const Forum = ({ forumNote, appContext }) => {
   const [selectedFilters, setSelectedFilters] = useState({
     invitations: null, signatures: null, keywords: null, readers: null, excludedReaders: null,
   })
+  const [currentUrl, setCurrentUrl] = useState('')
   const router = useRouter()
   const query = useQuery()
 
@@ -244,7 +244,7 @@ const Forum = ({ forumNote, appContext }) => {
         readers: null,
         excludedReaders: null,
         keywords: null,
-        ...parseFilterQuery(tab.filter, tab.keywords),
+        ...parseFilterQuery(replaceFilterWildcards(tab.filter, forumNote), tab.keywords),
       })
       if (tab.layout) {
         setLayout(tab.layout)
@@ -315,14 +315,23 @@ const Forum = ({ forumNote, appContext }) => {
     if (!replyNoteMap || !orderedReplies || !displayOptionsMap) return
 
     const newDisplayOptions = {}
+    const checkGroupMatch = (selectedGroups, replyGroup) => selectedGroups.some((sig) => {
+      if (sig.includes('.*')) {
+        return (new RegExp(sig)).test(replyGroup)
+      }
+      return sig === replyGroup
+    })
+    const checkReadersMatch = (selectedReaders, replyReaders) => (
+      replyReaders.some(reader => checkGroupMatch(selectedReaders, reader))
+    )
+
     Object.values(replyNoteMap).forEach((note) => {
       const isVisible = (
         (!selectedFilters.invitations || selectedFilters.invitations.includes(note.invitation))
-        && (!selectedFilters.signatures || selectedFilters.signatures.includes(note.signatures[0]))
+        && (!selectedFilters.signatures || checkGroupMatch(selectedFilters.signatures, note.signatures[0]))
         && (!selectedFilters.keywords || note.searchText.includes(selectedFilters.keywords[0]))
-        && (!selectedFilters.readers || intersection(note.readers, selectedFilters.readers).length > 0)
-        && (!selectedFilters.excludedReaders
-          || intersection(note.readers, selectedFilters.excludedReaders).length === 0)
+        && (!selectedFilters.readers || checkReadersMatch(selectedFilters.readers, note.readers))
+        && (!selectedFilters.excludedReaders || !checkReadersMatch(selectedFilters.excludedReaders, note.readers))
       )
       const currentOptions = displayOptionsMap[note.id]
       newDisplayOptions[note.id] = {
@@ -368,8 +377,10 @@ const Forum = ({ forumNote, appContext }) => {
     if (query.sort) {
       setSort(query.sort)
     }
-    if (query.layout) {
-      setLayout(query.layout)
+
+    const layoutCode = parseInt(query.layout, 10)
+    if (layoutCode) {
+      setLayout(layoutCode)
     }
   }, [query])
 
@@ -437,26 +448,25 @@ const Forum = ({ forumNote, appContext }) => {
         <ForumReplyCount />
       </div>
 
-      {(replyForumViews && replyNoteMap) ? (
-        <div className="row">
-          <div className="col-xs-12">
-            <ul className="nav nav-tabs">
+      {(!replyForumViews || !replyNoteMap) && (
+        <hr />
+      )}
+
+      <div className="row">
+        <div className="col-xs-12">
+          {replyForumViews && replyNoteMap && (
+            <ul className="nav nav-tabs filter-tabs">
               {replyForumViews.map(view => (
                 <li key={view.id} role="presentation" className={window.location.hash.slice(1) === view.id ? 'active' : ''}>
                   <Link href={`?id=${id}#${view.id}`} shallow><a>{view.label}</a></Link>
                 </li>
               ))}
             </ul>
-          </div>
-        </div>
-      ) : (
-        <hr />
-      )}
+          )}
 
-      <div className="row">
-        <div className="col-xs-12">
           {filterOptions && (
             <FilterForm
+              forumId={id}
               selectedFilters={selectedFilters}
               setSelectedFilters={setSelectedFilters}
               filterOptions={filterOptions}
@@ -476,7 +486,7 @@ const Forum = ({ forumNote, appContext }) => {
         {/* eslint-disable-next-line object-curly-newline */}
         <ForumReplyContext.Provider
           value={{
-            displayOptionsMap, setCollapsed, setHidden, setContentExpanded,
+            forumId: id, displayOptionsMap, setCollapsed, setHidden, setContentExpanded,
           }}
         >
           <div id="note-children" className="col-md-9">
