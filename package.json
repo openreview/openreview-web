@@ -12,7 +12,6 @@
     "templates": "handlebars client/templates/ -n 'window.Handlebars.templates' -f client/templates.js -e 'hbs'"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^1.5.0",
     "@zeit/next-less": "github:zbialecki/next-less",
     "bootstrap": "^3.4.1",
     "copy-to-clipboard": "^3.3.1",
@@ -33,7 +32,6 @@
     "query-string": "^5.1.1",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
-    "react-redux": "^7.2.2",
     "react-select": "^4.1.0",
     "swr": "^0.3.11",
     "universal-cookie": "^4.0.4"
