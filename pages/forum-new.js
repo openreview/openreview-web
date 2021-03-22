@@ -146,6 +146,7 @@ const Forum = ({ forumNote, appContext }) => {
         id: note.id,
         invitation: note.invitation,
         cdate: note.cdate || note.tcdate,
+        mdate: note.mdate || note.tmdate,
         content: note.content,
         signatures: note.signatures,
         readers: note.readers.sort(),

@@ -123,7 +123,7 @@ function ReplyTitle({ note, collapsed }) {
         </span>
         <span className="created-date" data-toggle="tooltip" data-placement="top" title="Date created">
           <Icon name="calendar" />
-          {forumDate(note.cdate, note.tcdate, note.mdate)}
+          {forumDate(note.cdate, null, note.mdate, null)}
         </span>
         <span className="readers" data-toggle="tooltip" data-placement="top" title="Visible to">
           <Icon name="eye-open" />
