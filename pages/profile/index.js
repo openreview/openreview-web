@@ -452,7 +452,7 @@ Profile.getInitialProps = async (ctx) => {
   }
 
   return {
-    profile: formatProfileData(profile),
+    profile: formatProfileData(profile, true),
     publicProfile: Object.keys(profileQuery).length > 0,
   }
 }
