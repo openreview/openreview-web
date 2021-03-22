@@ -287,8 +287,9 @@ const Forum = ({ forumNote, appContext }) => {
         id: noteId,
         replies: [],
       }))
-    } else if (layout === 1) {
+    } else if (layout === 1 || layout === 2) {
       // Threaded view
+      // TODO: Nested view
       const getAllReplies = (noteId) => {
         if (!parentMap[noteId]) return []
         return parentMap[noteId].reduce((replies, childId) => replies.concat(childId, getAllReplies(childId)), [])
@@ -298,8 +299,6 @@ const Forum = ({ forumNote, appContext }) => {
         id: noteId,
         replies: getAllReplies(noteId).sort(leastRecentComp),
       }))
-    } else if (layout === 2) {
-      // TODO: Nested view
     }
     setOrderedReplies(orderedNotes)
 
