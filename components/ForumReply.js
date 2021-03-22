@@ -7,6 +7,7 @@ import ForumReplyContext from './ForumReplyContext'
 import {
   prettyId, prettyInvitationId, buildNoteTitle, forumDate,
 } from '../lib/utils'
+import { getInvitationColors } from '../lib/forum-utils'
 import Icon from './Icon'
 
 export default function ForumReply({ note, replies }) {
@@ -68,13 +69,6 @@ function ReplyTitle({ note, collapsed }) {
   const {
     id, invitation, content, signatures,
   } = note
-  const styleMap = {
-    'Official Comment': { backgroundColor: '#bbf', color: '#2c3a4a' },
-    Decision: { backgroundColor: '#bbf', color: '#2c3a4a' },
-    'Meta Review': { backgroundColor: '#fbf', color: '#2c3a4a' },
-    'Public Comment': { backgroundColor: '#bfb', color: '#2c3a4a' },
-    'Official Review': { backgroundColor: '#fbb', color: '#2c3a4a' },
-  }
 
   if (collapsed) {
     return (
@@ -119,7 +113,7 @@ function ReplyTitle({ note, collapsed }) {
           data-toggle="tooltip"
           data-placement="top"
           title="Reply type"
-          style={styleMap[prettyInvitationId(invitation)]}
+          style={getInvitationColors(prettyInvitationId(invitation))}
         >
           {prettyInvitationId(invitation, true)}
         </span>
