@@ -70,10 +70,10 @@ export default function Column(props) {
     }
   }
 
-  const buildQuery = (invitationId, invQueryObj) => {
+  const buildQuery = (invitationId, invQueryObj, shouldSort = true) => {
     const apiQuery = {
       invitation: invitationId,
-      sort: 'weight:desc',
+      sort: shouldSort ? 'weight:desc' : undefined,
     }
     if (parentId) {
       apiQuery[otherType] = parentId
@@ -276,7 +276,7 @@ export default function Column(props) {
         return
       }
 
-      Webfield.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query))
+      Webfield.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false))
         .then((startEdges) => {
           if (!startEdges) {
             setItems([])
@@ -286,6 +286,8 @@ export default function Column(props) {
           const hideEdge = ['Paper Assignment', 'Conflict'].includes(startInvitation.name)
           const colItems = []
           const existingItems = new Set()
+          // eslint-disable-next-line no-param-reassign
+          startEdges = _.orderBy(startEdges, p => p.weight ?? 0, ['desc'])
           startEdges.forEach((sEdge) => {
             const headOrTailId = sEdge[type]
             if (!globalEntityMap[headOrTailId]) {
@@ -322,7 +324,7 @@ export default function Column(props) {
       hideInvitation.id, hideInvitation.query,
     )).then(response => response.edges) : Promise.resolve([])
     const browseEdgesP = browseInvitations.map(inv => Webfield.getAll('/edges', buildQuery(
-      inv.id, inv.query,
+      inv.id, inv.query, false,
     )))
 
     // Load all edges related to parent and build lists of assigned items and
@@ -368,8 +370,10 @@ export default function Column(props) {
               ['weight'],
               ['desc'],
             )
+          } else { // no sorting on backend as extra index is required to avoid duplicated results
+            // eslint-disable-next-line no-param-reassign
+            browseEdges = _.orderBy(browseEdges, p => p.weight ?? 0, ['desc'])
           }
-
           browseEdges.forEach(updateColumnItems('browseEdges', colItems))
         })
 
