@@ -240,12 +240,12 @@ export default class EdgeBrowser extends React.Component {
 
   async lookupSignatures() {
     const editInvitationSignaturesMap = []
-    this.editInvitations.forEach(async (editInvitation) => {
+    this.editInvitations?.forEach(async (editInvitation) => {
       // this case is handled here to reduce num of calls to /groups,other cases handled at entity
       if (editInvitation.signatures['values-regex'] && !editInvitation.signatures['values-regex']?.startsWith('~.*')) {
         if (editInvitation.signatures.default) {
           try {
-            const defaultLookupResult = await api.get('/groups', { regex: editInvitation.default, signatory: this.userId }, { accessToken: this.accessToken })
+            const defaultLookupResult = await api.get('/groups', { regex: editInvitation.signatures.default, signatory: this.userId }, { accessToken: this.accessToken })
             if (defaultLookupResult.groups.length === 1) {
               editInvitationSignaturesMap.push({
                 invitation: editInvitation.id,
@@ -257,7 +257,7 @@ export default class EdgeBrowser extends React.Component {
             promptError(error.message)
           }
         }
-        const interpolatedSignature = editInvitation.signatures['values-regex'].replace('{head.number}', '.*')
+        const interpolatedSignature = editInvitation.signatures['values-regex'].replaceAll('{head.number}', '.*')
         try {
           const interpolatedLookupResult = await api.get('/groups', { regex: interpolatedSignature, signatory: this.userId }, { accessToken: this.accessToken })
           editInvitationSignaturesMap.push({
