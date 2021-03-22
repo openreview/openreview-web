@@ -32,10 +32,10 @@ const NavUserLinks = () => {
 
   return (
     <ul className="nav navbar-nav navbar-right">
-      <li className="hidden-sm hidden-md">
+      <li className="hidden-sm">
         <Link href="/activity"><a>Activity</a></Link>
       </li>
-      <li className="hidden-sm hidden-md">
+      <li className="hidden-sm">
         <Link href="/tasks"><a>Tasks</a></Link>
       </li>
       <li id="user-menu" className="dropdown">
@@ -56,10 +56,10 @@ const NavUserLinks = () => {
           <li>
             <Link href="/profile"><a>Profile</a></Link>
           </li>
-          <li className="visible-sm-block visible-md-block">
+          <li className="visible-sm-block">
             <Link href="/activity"><a>Activity</a></Link>
           </li>
-          <li className="visible-sm-block visible-md-block">
+          <li className="visible-sm-block">
             <Link href="/tasks"><a>Tasks</a></Link>
           </li>
           <li role="separator" className="divider hidden-xs" />
