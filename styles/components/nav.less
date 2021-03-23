@@ -41,7 +41,7 @@ nav.navbar {
   #user-menu .dropdown-toggle {
     display: block;
     text-overflow: ellipsis;
-    max-width: 280px;
+    max-width: 360px;
     white-space: nowrap;
     overflow: hidden;
 
@@ -74,13 +74,17 @@ nav.navbar {
 
     input {
       background-color: #ddd;
-      width: 350px;
+      width: 400px;
       height: 30px;
       border: 1px solid #ccc;
       border-radius: 0;
       padding-top: 4px;
       padding-bottom: 4px;
       transition: background-color 0.5s linear, box-shadow .4s .2s ease;
+
+      @media @desktop-only {
+        width: 300px;
+      }
 
       @media @tablet-only {
         width: 225px;
