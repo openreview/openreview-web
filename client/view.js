@@ -2746,7 +2746,7 @@ module.exports = (function() {
     var errors = [];
     var content = _.reduce(invitation.reply.content, function(ret, contentObj, k) {
       // Let the widget handle it :D and extract the data when we encouter authorids
-      if (contentObj.hidden) {
+      if (contentObj.hidden && k === 'authors') {
         return ret;
       }
       var $inputVal = $contentMap[k].find('.note_content_value[name="' + k + '"]');
