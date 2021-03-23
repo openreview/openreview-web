@@ -333,6 +333,19 @@ export default function Column(props) {
       .then(([traverseEdges, editEdges, hideEdges, ...browseEdgeGroups]) => {
         const colItems = []
 
+        // sory by weight (in API) would fail when traverse edges has label instead of weight
+        // and traverse is the default sort so must sort.
+        const traverseLabels = traverseInvitation.label?.['value-radio']
+        if (traverseLabels) {
+          const traverseLabelMap = _.fromPairs(_.zip(traverseLabels, _.range(traverseLabels.length, 0, -1)))
+          // eslint-disable-next-line no-param-reassign
+          traverseEdges = _.orderBy(
+            traverseEdges.map(e => ({ ...e, weight: traverseLabelMap[e.label] || 0 })),
+            ['weight'],
+            ['desc'],
+          )
+        }
+
         traverseEdges.forEach((tEdge) => {
           const headOrTailId = tEdge[type]
           if (!globalEntityMap[headOrTailId]) {
@@ -359,20 +372,13 @@ export default function Column(props) {
             return
           }
 
-          // Special case for bid edges: since they are not sorted on the backend,
-          // add weights according to labels and sort them here before displaying.
-          if (browseInvitations[i].name === 'Bid') {
-            const bidLabels = browseInvitations[i].label['value-radio'] || []
+          // add weights according to labels if invitation has no weight
+          // an example is bid invitation
+          const bidLabels = browseInvitations[i].label?.['value-radio']
+          if (bidLabels) {
             const bidLabelMap = _.fromPairs(_.zip(bidLabels, _.range(bidLabels.length, 0, -1)))
             // eslint-disable-next-line no-param-reassign
-            browseEdges = _.orderBy(
-              browseEdges.map(e => ({ ...e, weight: bidLabelMap[e.label] || 0 })),
-              ['weight'],
-              ['desc'],
-            )
-          } else { // no sorting on backend as extra index is required to avoid duplicated results
-            // eslint-disable-next-line no-param-reassign
-            browseEdges = _.orderBy(browseEdges, p => p.weight ?? 0, ['desc'])
+            browseEdges = browseEdges.map(e => ({ ...e, weight: bidLabelMap[e.label] || 0 }))
           }
           browseEdges.forEach(updateColumnItems('browseEdges', colItems))
         })
