@@ -100,7 +100,6 @@ const Forum = ({ forumNote, appContext }) => {
   const [selectedFilters, setSelectedFilters] = useState({
     invitations: null, signatures: null, keywords: null, readers: null, excludedReaders: null,
   })
-  const [currentUrl, setCurrentUrl] = useState('')
   const router = useRouter()
   const query = useQuery()
 
@@ -138,6 +137,7 @@ const Forum = ({ forumNote, appContext }) => {
     const invitationIds = new Set()
     const signatureGroupIds = new Set()
     const readerGroupIds = new Set()
+    const numberWildcard = /(Reviewer|Area_Chair)(\d+)/g
     notes.forEach((note) => {
       // Don't include forum note
       if (note.id === note.forum) return
@@ -161,7 +161,7 @@ const Forum = ({ forumNote, appContext }) => {
       parentIdMap[parentId].push(note.id)
 
       // Populate filter options
-      invitationIds.add(note.invitation)
+      invitationIds.add(note.invitation.replace(numberWildcard, '$1.*'))
       signatureGroupIds.add(note.signatures[0])
       note.readers.forEach(rId => readerGroupIds.add(rId))
     })
