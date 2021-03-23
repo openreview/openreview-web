@@ -1029,7 +1029,7 @@ module.exports = function(profile, params, submitF, cancelF) {
       },
       'gscholar': {
         name: 'Google Scholar',
-        pattern: 'https://scholar.google.com'
+        pattern: 'https://scholar.google' // can be .com/.co.uk/.hk...
       }
     }
 
