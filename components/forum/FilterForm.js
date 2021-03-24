@@ -1,7 +1,6 @@
 /* globals promptMessage: false */
 
 import { useState } from 'react'
-import groupBy from 'lodash/groupBy'
 import { stringify } from 'query-string'
 import copy from 'copy-to-clipboard'
 import Icon from '../Icon'

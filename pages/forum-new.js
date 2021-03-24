@@ -118,7 +118,7 @@ const Forum = ({ forumNote, appContext }) => {
   const conferenceName = getConferenceName(content._bibtex)
 
   const numRepliesHidden = displayOptionsMap
-    ? Object.values(displayOptionsMap).reduce((count, options) => count + (options.hidden ? 1 : 0), 0)
+    ? Object.values(displayOptionsMap).reduce((count, opt) => count + ((opt.hidden || opt.collapsed) ? 1 : 0), 0)
     : 0
 
   const loadReplies = async () => {
