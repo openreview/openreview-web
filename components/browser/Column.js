@@ -481,7 +481,8 @@ export default function Column(props) {
         if (item.searchText.match(searchRegex)) {
           matchingItems.push({
             ...item,
-            editEdge: buildNewEditEdge(item.id),
+            editEdgeTemplates: editInvitations.map(editInvitation => (buildNewEditEdge(editInvitation, item.id))),
+            editEdges: [],
             browseEdges: [],
             metadata: {
               isAssigned: false,
@@ -542,9 +543,11 @@ export default function Column(props) {
       ])
     } else {
       // Added from search
+      const editInvitation = editInvitations.filter(p => p.id === newEdge.invitation)?.[0]
       const newItem = {
         ...globalEntityMap[id],
-        editEdges: [buildNewEditEdge(id)],
+        editEdges: [buildNewEditEdge(editInvitation, id)],
+        editEdgeTemplates: editInvitations.map(p => (buildNewEditEdge(editInvitation, id))),
         browseEdges: [],
         metadata: {
           isAssigned: true,
@@ -583,7 +586,7 @@ export default function Column(props) {
 
     const itemToAdd = {
       ...items[entityIndex],
-      editEdge: removedEdge,
+      editEdges: items[entityIndex].editEdges.filter(p => p.id !== removedEdge.id),
       metadata: {
         ...items[entityIndex].metadata,
         isAssigned: isRemovingTraverseEdge ? false : items[entityIndex].metadata.isAssigned,
