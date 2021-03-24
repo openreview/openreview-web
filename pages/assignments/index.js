@@ -165,7 +165,7 @@ const Assignments = ({ appContext }) => {
 
   const appendEditorToModal = (editor) => {
     $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append(editor)
-    view.hideNoteEditorFields('#note-editor-modal', [
+    view.hideNoteEditorFields('#note-editor-modal', [ // To remove when all invitations have the following set to hidden true
       'config_invitation', 'assignment_invitation', 'error_message', 'status',
     ])
   }
