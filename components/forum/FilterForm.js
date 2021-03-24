@@ -17,28 +17,26 @@ export default function FilterForm({
   const [collapse, setCollapse] = useState(1)
 
   // Options for multiselect dropdown
-  const dropdownFilterOptions = [
-    {
-      label: 'Reply Type',
-      options: filterOptions.invitations.map(invitationId => ({
-        value: invitationId,
-        label: prettyInvitationId(invitationId),
-        type: 'invitation',
-      })),
-    },
-    {
-      label: 'Author',
-      options: filterOptions.signatures.map(groupId => ({
-        value: groupId,
-        label: prettyId(groupId, true),
-        type: 'signature',
-      })),
-    },
-  ]
-  const selectedInvitationOptions = dropdownFilterOptions[0].options.filter(invOption => (
+  const invDropdownFilterOptions = filterOptions.invitations.map(invitationId => ({
+    value: invitationId,
+    label: prettyInvitationId(invitationId),
+    type: 'invitation',
+  }))
+  const sigDropdownFilterOptions = filterOptions.signatures.map(groupId => ({
+    value: groupId,
+    label: prettyId(groupId, true),
+    type: 'signature',
+  }))
+  const readersToggleOptions = filterOptions.readers.map(groupId => ({
+    value: groupId,
+    label: prettyId(groupId, true),
+  }))
+
+  // Selected options
+  const selectedInvitationOptions = invDropdownFilterOptions.filter(invOption => (
     selectedFilters.invitations?.includes(invOption.value)
   ))
-  const selectedSginatureOptions = dropdownFilterOptions[1].options.filter(sigOption => (
+  const selectedSginatureOptions = sigDropdownFilterOptions.filter(sigOption => (
     selectedFilters.signatures?.some((selectedSig) => {
       if (selectedSig.includes('.*')) {
         return (new RegExp(selectedSig)).test(sigOption.value)
@@ -46,10 +44,6 @@ export default function FilterForm({
       return selectedSig === sigOption.value
     })
   ))
-  const readersToggleOptions = filterOptions.readers.map(groupId => ({
-    value: groupId,
-    label: prettyId(groupId, true),
-  }))
 
   const updateFilters = (modifiedFilters) => {
     setSelectedFilters({
@@ -77,22 +71,40 @@ export default function FilterForm({
     <form className="form-inline filter-controls">
       <div>
         <div className="form-group expand">
-          {/* TODO: https://codesandbox.io/s/v638kx67w7 */}
+          {/* For more customization examples see: https://codesandbox.io/s/v638kx67w7 */}
           <Dropdown
-            name="filters"
+            name="filter-invitations"
             className="replies-filter"
-            options={dropdownFilterOptions}
-            value={[...selectedInvitationOptions, ...selectedSginatureOptions]}
+            options={invDropdownFilterOptions}
+            value={selectedInvitationOptions}
             isDisabled={!filterOptions}
             onChange={(selectedOptions) => {
-              const groupedOptions = groupBy(selectedOptions, 'type')
               updateFilters({
-                invitations: groupedOptions.invitation?.map(option => option.value) ?? null,
-                signatures: groupedOptions.signature?.map(option => option.value) ?? null,
+                invitations: selectedOptions.length === 0 ? null : selectedOptions.map(option => option.value),
               })
             }}
-            placeholder="Filter..."
-            instanceId="replies-filter"
+            placeholder="Filter by reply type..."
+            instanceId="invitations-filter"
+            height={32}
+            isMulti
+            isSearchable
+          />
+        </div>
+
+        <div className="form-group">
+          <Dropdown
+            name="filter-signatures"
+            className="replies-filter"
+            options={sigDropdownFilterOptions}
+            value={selectedSginatureOptions}
+            isDisabled={!filterOptions}
+            onChange={(selectedOptions) => {
+              updateFilters({
+                signatures: selectedOptions.length === 0 ? null : selectedOptions.map(option => option.value),
+              })
+            }}
+            placeholder="Filter by author..."
+            instanceId="signatures-filter"
             height={32}
             isMulti
             isSearchable

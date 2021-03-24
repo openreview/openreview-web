@@ -29,7 +29,7 @@ export default function ForumReply({ note, replies }) {
         <NoteContentCollapsible
           id={note.id}
           content={note.content}
-          invitation={note.details?.originalInvitation || note.details?.invitation}
+          invitation={note.details?.invitation}
           collapsed={!contentExpanded}
         />
       )}
@@ -52,7 +52,7 @@ export default function ForumReply({ note, replies }) {
                   <NoteContentCollapsible
                     id={childNote.id}
                     content={childNote.content}
-                    invitation={childNote.details?.originalInvitation || childNote.details?.invitation}
+                    invitation={childNote.details?.invitation}
                     collapsed={!options.contentExpanded}
                   />
                 )}

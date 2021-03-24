@@ -151,6 +151,9 @@ const Forum = ({ forumNote, appContext }) => {
         signatures: note.signatures,
         readers: note.readers.sort(),
         searchText: buildNoteSearchText(note),
+        details: {
+          invitation: note.details.originalInvitation || note.details.invitation,
+        },
       }
       displayOptions[note.id] = { collapsed: false, contentExpanded: false, hidden: false }
 
@@ -315,23 +318,29 @@ const Forum = ({ forumNote, appContext }) => {
     if (!replyNoteMap || !orderedReplies || !displayOptionsMap) return
 
     const newDisplayOptions = {}
-    const checkGroupMatch = (selectedGroups, replyGroup) => selectedGroups.some((sig) => {
-      if (sig.includes('.*')) {
-        return (new RegExp(sig)).test(replyGroup)
+    const checkGroupMatch = (groupId, replyGroup) => {
+      if (groupId.includes('.*')) {
+        return (new RegExp(groupId)).test(replyGroup)
       }
-      return sig === replyGroup
-    })
+      return groupId === replyGroup
+    }
+    const checkSignaturesMatch = (selectedSignatures, replySignature) => (
+      selectedSignatures.some(sig => checkGroupMatch(sig, replySignature))
+    )
     const checkReadersMatch = (selectedReaders, replyReaders) => (
-      replyReaders.some(reader => checkGroupMatch(selectedReaders, reader))
+      selectedReaders.every(reader => replyReaders.some(replyReader => checkGroupMatch(reader, replyReader)))
+    )
+    const checkExReadersMatch = (selectedReaders, replyReaders) => (
+      selectedReaders.some(reader => replyReaders.some(replyReader => checkGroupMatch(reader, replyReader)))
     )
 
     Object.values(replyNoteMap).forEach((note) => {
       const isVisible = (
         (!selectedFilters.invitations || selectedFilters.invitations.includes(note.invitation))
-        && (!selectedFilters.signatures || checkGroupMatch(selectedFilters.signatures, note.signatures[0]))
+        && (!selectedFilters.signatures || checkSignaturesMatch(selectedFilters.signatures, note.signatures[0]))
         && (!selectedFilters.keywords || note.searchText.includes(selectedFilters.keywords[0]))
         && (!selectedFilters.readers || checkReadersMatch(selectedFilters.readers, note.readers))
-        && (!selectedFilters.excludedReaders || !checkReadersMatch(selectedFilters.excludedReaders, note.readers))
+        && (!selectedFilters.excludedReaders || !checkExReadersMatch(selectedFilters.excludedReaders, note.readers))
       )
       const currentOptions = displayOptionsMap[note.id]
       newDisplayOptions[note.id] = {

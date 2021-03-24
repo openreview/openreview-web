@@ -11,7 +11,7 @@ function NoteContent({
 }) {
   const contentKeys = Object.keys(content)
   const contentOrder = invitation
-    ? union(orderReplyFields(invitation.reply?.content || {}, invitation.id), contentKeys)
+    ? union(orderReplyFields(invitation.reply.content || {}, invitation.id), contentKeys)
     : contentKeys
 
   const omittedFields = [
@@ -27,6 +27,8 @@ function NoteContent({
         const fieldValue = prettyContentValue(content[fieldName])
         if (!fieldValue) return null
 
+        const invitationField = invitation?.reply.content[fieldName] ?? {}
+
         return (
           <li key={fieldName}>
             <NoteContentField name={fieldName} />
@@ -36,7 +38,7 @@ function NoteContent({
                 <DownloadLink noteId={id} fieldName={fieldName} fieldValue={fieldValue} isReference={isReference} />
               </span>
             ) : (
-              <NoteContentValue content={fieldValue} enableMarkdown={false} />
+              <NoteContentValue content={fieldValue} enableMarkdown={invitationField.markdown} />
             )}
           </li>
         )
@@ -55,7 +57,7 @@ function NoteContentField({ name }) {
 }
 
 function NoteContentValue({ content = '', enableMarkdown }) {
-  const [sanitizedHtml, setSanitizedHtml] = useState('')
+  const [sanitizedHtml, setSanitizedHtml] = useState(null)
 
   useEffect(() => {
     if (enableMarkdown) {
@@ -63,7 +65,7 @@ function NoteContentValue({ content = '', enableMarkdown }) {
     }
   }, [])
 
-  return enableMarkdown ? (
+  return (enableMarkdown && sanitizedHtml) ? (
     // eslint-disable-next-line react/no-danger
     <div className="note-content-value markdown-rendered" dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
   ) : (

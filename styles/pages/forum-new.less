@@ -370,6 +370,9 @@ main.forum {
       }
       &.expand {
         flex-grow: 1;
+        .replies-filter {
+          width: 100%;
+        }
       }
       label {
         padding-right: .25rem;
@@ -388,7 +391,7 @@ main.forum {
     }
 
     .replies-filter {
-      width: 100%;
+      width: 220px;
       max-height: 32px;
 
       .dropdown-select__control {
