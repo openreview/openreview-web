@@ -15,6 +15,7 @@ import ScoresList from './ScoresList'
 import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
+import UserContext from '../UserContext'
 
 export default function NoteEntity(props) {
   if (!props.note || !props.note.content) {
@@ -31,7 +32,8 @@ export default function NoteEntity(props) {
     editEdges,
     editEdgeTemplates,
   } = props.note
-  const { editInvitations, userInfo, availableSignaturesInvitationMap } = useContext(EdgeBrowserContext)
+  const { editInvitations, availableSignaturesInvitationMap } = useContext(EdgeBrowserContext)
+  const { user, accessToken } = useContext(UserContext)
 
   const title = content.title ? content.title : 'No Title'
 
@@ -74,7 +76,7 @@ export default function NoteEntity(props) {
         ...editEdge,
         signatures,
       },
-      { accessToken: userInfo.accessToken })
+      { accessToken })
       props.removeEdgeFromEntity(id, result)
     } catch (error) {
       promptError(error.message)
@@ -107,7 +109,7 @@ export default function NoteEntity(props) {
         },
         ...updatedEdgeFields,
       },
-      { accessToken: userInfo.accessToken })
+      { accessToken })
       props.addEdgeToEntity(id, result)
     } catch (error) {
       promptError(error.message)
@@ -120,7 +122,7 @@ export default function NoteEntity(props) {
       return null
     }
     if (editInvitation.signatures.values) return editInvitation.signatures.values
-    if (editInvitation.signatures['values-regex']?.startsWith('~.*')) return [userInfo.userTildeId]
+    if (editInvitation.signatures['values-regex']?.startsWith('~.*')) return [user?.profile?.id]
     if (editInvitation.signatures['values-regex']) {
       // eslint-disable-next-line max-len
       const invitationMapItem = availableSignaturesInvitationMap.filter(p => p.invitation === editInvitation.id)?.[0]
@@ -138,8 +140,11 @@ export default function NoteEntity(props) {
     if (Array.isArray(value)) {
       return value.map((v) => {
         let finalV = v
-        if (props.columnType === 'head') finalV = finalV.replace('{head.number}', number).replace('{tail}', props.parentInfo.id)
-        if (props.columnType === 'tail') finalV = finalV.replace('{head.number}', props.parentInfo.number).replace('{tail}', id)
+        if (props.columnType === 'head') {
+          finalV = finalV.replaceAll('{head.number}', number).replaceAll('{tail}', props.parentInfo.id)
+        } else if (props.columnType === 'tail') {
+          finalV = finalV.replaceAll('{head.number}', props.parentInfo.number).replaceAll('{tail}', id)
+        }
         return finalV
       })
     }
@@ -169,7 +174,6 @@ export default function NoteEntity(props) {
     const editEdgeToggle = () => (
       <EditEdgeToggle
         existingEdge={editEdge}
-        // isAssigned={metadata.isAssigned}
         addEdge={addEdge}
         removeEdge={() => removeEdge(editEdge)}
         // eslint-disable-next-line max-len

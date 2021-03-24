@@ -8,6 +8,7 @@
 import React, { useContext } from 'react'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
+import UserContext from '../UserContext'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
@@ -26,7 +27,8 @@ export default function ProfileEntity(props) {
     editEdges,
     editEdgeTemplates,
   } = props.profile
-  const { editInvitations, userInfo, availableSignaturesInvitationMap } = useContext(EdgeBrowserContext)
+  const { editInvitations, availableSignaturesInvitationMap } = useContext(EdgeBrowserContext)
+  const { user, accessToken } = useContext(UserContext)
 
   const metadata = props.profile.metadata || {}
   const extraClasses = []
@@ -66,7 +68,7 @@ export default function ProfileEntity(props) {
         ddate: Date.now(),
         ...editEdge,
         signatures,
-      }, { accessToken: userInfo.accessToken })
+      }, { accessToken })
       props.removeEdgeFromEntity(id, result)
     } catch (error) {
       promptError(error.message)
@@ -99,7 +101,7 @@ export default function ProfileEntity(props) {
           signatures,
         },
         ...updatedEdgeFields,
-      }, { accessToken: userInfo.accessToken })
+      }, { accessToken })
       props.addEdgeToEntity(id, result)
     } catch (error) {
       promptError(error.message)
@@ -112,7 +114,7 @@ export default function ProfileEntity(props) {
       return null
     }
     if (editInvitation.signatures.values) return editInvitation.signatures.values
-    if (editInvitation.signatures['values-regex']?.startsWith('~.*')) return [userInfo.userTildeId]
+    if (editInvitation.signatures['values-regex']?.startsWith('~.*')) return [user?.profile?.id]
     if (editInvitation.signatures['values-regex']) {
       // eslint-disable-next-line max-len
       const invitationMapItem = availableSignaturesInvitationMap.filter(p => p.invitation === editInvitation.id)?.[0]
@@ -130,8 +132,11 @@ export default function ProfileEntity(props) {
     if (Array.isArray(value)) {
       return value.map((v) => {
         let finalV = v
-        if (props.columnType === 'head') finalV = finalV.replace('{tail}', props.parentInfo.id)
-        if (props.columnType === 'tail') finalV = finalV.replace('{head.number}', props.parentInfo.number).replace('{tail}', id)
+        if (props.columnType === 'head') {
+          finalV = finalV.replaceAll('{tail}', props.parentInfo.id)
+        } else if (props.columnType === 'tail') {
+          finalV = finalV.replaceAll('{head.number}', props.parentInfo.number).replaceAll('{tail}', id)
+        }
         return finalV
       })
     }
@@ -161,7 +166,6 @@ export default function ProfileEntity(props) {
     const editEdgeToggle = () => (
       <EditEdgeToggle
         existingEdge={editEdge}
-        // isAssigned={metadata.isAssigned}
         addEdge={addEdge}
         removeEdge={() => removeEdge(editEdge)}
         // eslint-disable-next-line max-len

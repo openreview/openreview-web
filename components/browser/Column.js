@@ -318,9 +318,6 @@ export default function Column(props) {
     const traverseEdgesP = Webfield.get('/edges', buildQuery(
       traverseInvitation.id, traverseInvitation.query,
     )).then(response => response.edges)
-    // const editEdgesP = editInvitation ? Webfield.get('/edges', buildQuery(
-    //   editInvitation.id, editInvitation.query,
-    // )).then(response => response.edges) : Promise.resolve([])
     const editEdgesP = editInvitations?.map(inv => Webfield.getAll('/edges', buildQuery(
       inv.id, inv.query,
     ))) ?? []
@@ -395,12 +392,11 @@ export default function Column(props) {
         // Add each editInvitation as a template so that new invitation can be added
         if (editInvitations?.length) {
           colItems.forEach((item) => {
-            // if (item.editEdges?.length > 0) return
-
             const hasAggregateScoreEdge = item.browseEdges.length && item.browseEdges[0].name === 'Aggregate_Score'
             const edgeWeight = hasAggregateScoreEdge ? item.browseEdges[0].weight : 0
-            // eslint-disable-next-line no-param-reassign,max-len
-            item.editEdgeTemplates = editInvitations.map(editInvitation => buildNewEditEdge(editInvitation, item.id, edgeWeight))
+            // eslint-disable-next-line no-param-reassign
+            item.editEdgeTemplates = editInvitations.map(editInvitation => (
+              buildNewEditEdge(editInvitation, item.id, edgeWeight)))
           })
         }
 
@@ -523,11 +519,15 @@ export default function Column(props) {
         ...items[entityIndex],
         editEdges: modifiedExistingEdge
           ? [...items[entityIndex].editEdges.filter(p => p.id !== newEdge.id), newEdge]
-            // eslint-disable-next-line max-len
-            .sort((a, b) => (editInvitations.map(p => p.id).indexOf(a.invitation) - editInvitations.map(p => p.id).indexOf(b.invitation)))
+            .sort((a, b) => (
+              editInvitations.map(p => p.id)
+                .indexOf(a.invitation) - editInvitations.map(p => p.id).indexOf(b.invitation)
+            ))
           : [...items[entityIndex].editEdges, newEdge]
-            // eslint-disable-next-line max-len
-            .sort((a, b) => (editInvitations.map(p => p.id).indexOf(a.invitation) - editInvitations.map(p => p.id).indexOf(b.invitation))),
+            .sort((a, b) => (
+              editInvitations.map(p => p.id)
+                .indexOf(a.invitation) - editInvitations.map(p => p.id).indexOf(b.invitation)
+            )),
         metadata: {
           ...items[entityIndex].metadata,
           isAssigned: isAddingTraverseEdge ? true : items[entityIndex].metadata.isAssigned,

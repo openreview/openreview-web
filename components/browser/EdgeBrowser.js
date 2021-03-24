@@ -54,7 +54,6 @@ export default class EdgeBrowser extends React.Component {
 
     this.userId = props.userInfo.userId
     this.accessToken = props.userInfo.accessToken
-    this.userTildeId = props.userInfo.tildeId
 
     this.availableSignaturesInvitationMap = []
   }
@@ -278,11 +277,6 @@ export default class EdgeBrowser extends React.Component {
       editInvitations: this.editInvitations,
       browseInvitations: this.browseInvitations,
       hideInvitation: this.hideInvitation,
-      userInfo: {
-        userId: this.userId,
-        userTildeId: this.userTildeId,
-        accessToken: this.accessToken,
-      },
       availableSignaturesInvitationMap: this.availableSignaturesInvitationMap,
     }
 
