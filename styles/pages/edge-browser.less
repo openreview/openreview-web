@@ -47,6 +47,9 @@ main.edge-browser {
 
   .entry-list {
     margin-bottom: 0;
+    .tooltip-inner{
+      word-break: break-word;
+    }
   }
 
   .entry {
@@ -67,7 +70,6 @@ main.edge-browser {
       .reviewer-heading,
       .note-heading {
         float: left;
-        width: ~"calc(100% - 60px)";
       }
     }
     &.divider {
@@ -89,10 +91,6 @@ main.edge-browser {
       }
     }
     .edit-controls {
-      float: right;
-      text-align: right;
-      width: 55px;
-
       &.full-width {
         float: none;
         width: 100%;
@@ -131,6 +129,25 @@ main.edge-browser {
           display: inline-block;
           min-width: 15px;
         }
+        span.two-dropdowns-edge-label{
+          display: inline-block;
+          align-items: bottom;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          width: 80px;
+        }
+        span.two-dropdowns-edge-weight{
+          display: inline-block;
+          align-items: center;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          width: 20px;
+        }
+        .flex-button{
+          align-items: center;
+          min-height: 20px;
+          display: flex;
+        }
         span.caret {
           margin-left: .25rem;
         }
@@ -148,6 +165,15 @@ main.edge-browser {
         padding-left: .5rem;
         padding-right: .5rem;
       }
+      .edit-edge-toggle-description{
+          display: inline-block;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
+      }
+      .edit-edge-toggle-btn{
+        vertical-align: super;
+      }
     }
     .scores-list, .action-links {
       float: left;
@@ -160,6 +186,10 @@ main.edge-browser {
       ul li {
         font-weight: bold;
       }
+    }
+    .d-flex{
+      display: flex;
+      align-items: baseline;
     }
   }
 
@@ -457,6 +487,8 @@ main.edge-browser {
     border-bottom: 1px solid #ccc;
     padding: .5rem;
     position: relative;
+    display: flex;
+    flex-direction: column;
 
     &.selected {
       background-color: aliceblue;

@@ -20,16 +20,22 @@ export default function Column(props) {
     globalEntityMap,
     altGlobalEntityMap,
     startInvitation,
+    parentColumnEntityType,
   } = props
   const {
     traverseInvitation,
-    editInvitation,
+    editInvitations,
     browseInvitations,
     hideInvitation,
   } = useContext(EdgeBrowserContext)
   const parent = parentId ? altGlobalEntityMap[parentId] : null
   const otherType = type === 'head' ? 'tail' : 'head'
   const colBodyEl = useRef(null)
+
+  // State Vars
+  const [selectedItemId, setSelectedItemId] = useState(null)
+  const [items, setItems] = useState(null)
+  const [shouldUpdateItems, setShouldUpdateItems] = useState(true)
 
   // Helpers
   const formatEdge = edge => ({
@@ -45,17 +51,11 @@ export default function Column(props) {
     writers: edge.writers || [],
     readers: edge.readers || [],
     signatures: edge.signatures || [],
+    nonreaders: edge.nonreaders || [],
   })
 
-  const buildNewEditEdge = (entityId, weight = 0) => {
+  const buildNewEditEdge = (editInvitation, entityId, weight = 0) => {
     if (!editInvitation) return null
-
-    const finalReaders = editInvitation.readers.map((reader) => {
-      if (reader === '{tail}') {
-        return type === 'tail' ? entityId : parentId
-      }
-      return reader
-    })
 
     return {
       invitation: editInvitation.id,
@@ -64,9 +64,10 @@ export default function Column(props) {
       [otherType]: parentId,
       label: editInvitation.query.label,
       weight,
-      readers: finalReaders,
+      readers: editInvitation.readers, // reader/writer/nonreader/signature are completed in entity
       writers: editInvitation.writers,
       signatures: editInvitation.signatures,
+      nonreaders: editInvitation.nonreaders,
     }
   }
 
@@ -154,16 +155,19 @@ export default function Column(props) {
   }
 
   const getColumnDescription = () => {
-    if (!parentId || !editInvitation || !editInvitation[type].description) {
+    if (!parentId || !editInvitations?.length) {
       return null
     }
 
-    return (
-      <p className="description">
-        <Icon name="info-sign" />
-        {editInvitation[type].description}
-      </p>
-    )
+    return editInvitations.map((editInvitation) => {
+      if (!editInvitation[type].description) return null
+      return (
+        <p className="description" key={editInvitation.id}>
+          <Icon name="info-sign" />
+          {`${editInvitation.name} - ${editInvitation[type].description}`}
+        </p>
+      )
+    })
   }
 
   const getSearchPlaceholder = () => {
@@ -178,9 +182,6 @@ export default function Column(props) {
     }
     return `Search all ${pluralizeString(entityName).toLowerCase()}...`
   }
-
-  // State Vars
-  const [selectedItemId, setSelectedItemId] = useState(null)
 
   // Adds either a new browse edge or an edit edge to an item
   const updateColumnItems = (fieldName, colItems, isHidden = false) => (edge) => {
@@ -222,7 +223,7 @@ export default function Column(props) {
       : _.get(props.metadataMap, [parentId, headOrTailId], {})
     const itemToAddFormatted = {
       ...itemToAdd,
-      editEdge: null,
+      editEdges: [],
       browseEdges: [],
       metadata: {
         ...columnMetadata,
@@ -240,9 +241,12 @@ export default function Column(props) {
     colItems.push(itemToAddFormatted)
   }
 
-  const [items, setItems] = useState(null)
   useEffect(() => {
     if (props.loading) return
+    if (!shouldUpdateItems) {
+      setShouldUpdateItems(true)
+      return
+    }
 
     // If no parent id is provided, display the full list of entities. Used for
     // the first column when no start invitation is provided
@@ -283,7 +287,6 @@ export default function Column(props) {
             return
           }
 
-          const hideEdge = ['Paper Assignment', 'Conflict'].includes(startInvitation.name)
           const colItems = []
           const existingItems = new Set()
           startEdges.forEach((sEdge) => {
@@ -300,7 +303,7 @@ export default function Column(props) {
 
             colItems.push({
               ...globalEntityMap[headOrTailId],
-              browseEdges: hideEdge ? [] : [formatEdge(sEdge)],
+              browseEdges: [],
               metadata: {
                 isAssigned: false,
               },
@@ -315,9 +318,9 @@ export default function Column(props) {
     const traverseEdgesP = Webfield.get('/edges', buildQuery(
       traverseInvitation.id, traverseInvitation.query,
     )).then(response => response.edges)
-    const editEdgesP = editInvitation ? Webfield.get('/edges', buildQuery(
-      editInvitation.id, editInvitation.query,
-    )).then(response => response.edges) : Promise.resolve([])
+    const editEdgesP = editInvitations?.map(inv => Webfield.getAll('/edges', buildQuery(
+      inv.id, inv.query,
+    ))) ?? []
     const hideEdgesP = hideInvitation ? Webfield.get('/edges', buildQuery(
       hideInvitation.id, hideInvitation.query,
     )).then(response => response.edges) : Promise.resolve([])
@@ -327,8 +330,10 @@ export default function Column(props) {
 
     // Load all edges related to parent and build lists of assigned items and
     // alternate items, adding edges to each cell
-    Promise.all([traverseEdgesP, editEdgesP, hideEdgesP, ...browseEdgesP])
-      .then(([traverseEdges, editEdges, hideEdges, ...browseEdgeGroups]) => {
+    Promise.all([traverseEdgesP, hideEdgesP, ...editEdgesP, ...browseEdgesP])
+      .then(([traverseEdges, hideEdges, ...browseEditEdgeGroups]) => {
+        const editEdgeGroups = browseEditEdgeGroups.slice(0, editEdgesP.length)
+        const browseEdgeGroups = browseEditEdgeGroups.slice(editEdgesP.length)
         const colItems = []
 
         traverseEdges.forEach((tEdge) => {
@@ -344,12 +349,18 @@ export default function Column(props) {
           colItems.push({
             ...globalEntityMap[headOrTailId],
             browseEdges: [],
+            editEdges: [],
             metadata: {
               ...columnMetadata,
               isAssigned: true,
             },
           })
         })
+
+        if (altGlobalEntityMap[parentId].traverseEdgesCount !== traverseEdges.length) {
+          props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', traverseEdges.length) // other user has updated edge
+          setShouldUpdateItems(false) // avoid infinite update
+        }
 
         // Add all browse edges to items
         browseEdgeGroups.forEach((browseEdges, i) => {
@@ -376,17 +387,16 @@ export default function Column(props) {
         hideEdges.forEach(updateColumnItems('browseEdges', colItems, true))
 
         // Add existing edit edges to items
-        editEdges.forEach(updateColumnItems('editEdge', colItems))
+        editEdgeGroups.forEach(editEdge => editEdge.forEach(updateColumnItems('editEdges', colItems)))
 
-        // Finally, make sure all have edit edges and create them if they do not
-        if (editInvitation) {
+        // Add each editInvitation as a template so that new invitation can be added
+        if (editInvitations?.length) {
           colItems.forEach((item) => {
-            if (!_.isEmpty(item.editEdge)) return
-
             const hasAggregateScoreEdge = item.browseEdges.length && item.browseEdges[0].name === 'Aggregate_Score'
             const edgeWeight = hasAggregateScoreEdge ? item.browseEdges[0].weight : 0
             // eslint-disable-next-line no-param-reassign
-            item.editEdge = buildNewEditEdge(item.id, edgeWeight)
+            item.editEdgeTemplates = editInvitations.map(editInvitation => (
+              buildNewEditEdge(editInvitation, item.id, edgeWeight)))
           })
         }
 
@@ -402,8 +412,8 @@ export default function Column(props) {
     const elem = e.target
 
     if (elem.scrollHeight > elem.clientHeight
-        && elem.scrollTop > elem.scrollHeight - 840
-        && numItemsToRender < filteredItems.length) {
+      && elem.scrollTop > elem.scrollHeight - 840
+      && numItemsToRender < filteredItems.length) {
       setNumItemsToRender(numItemsToRender + 100)
     }
   }
@@ -471,7 +481,8 @@ export default function Column(props) {
         if (item.searchText.match(searchRegex)) {
           matchingItems.push({
             ...item,
-            editEdge: buildNewEditEdge(item.id),
+            editEdgeTemplates: editInvitations.map(editInvitation => (buildNewEditEdge(editInvitation, item.id))),
+            editEdges: [],
             browseEdges: [],
             metadata: {
               isAssigned: false,
@@ -490,26 +501,37 @@ export default function Column(props) {
     colBodyEl.current.scrollTop = 0
   }, [search, columnSort])
 
+  const sortEditEdges = (editEdges) => {
+    const editInvitationIds = editInvitations.map(p => p.id)
+    editEdges.sort((a, b) => editInvitationIds.indexOf(a.invitation) - editInvitationIds.indexOf(b.invitation))
+    return editEdges
+  }
+
   // Event Handlers
   const addEdgeToEntity = (id, newEdge) => {
     const entityIndex = _.findIndex(items, ['id', id])
     let modifiedExistingEdge = false
 
+    const isAddingTraverseEdge = newEdge.invitation === traverseInvitation.id // controls the green background
+    const shouldUserBeAssigned = isAddingTraverseEdge ? true : items[entityIndex].metadata.isUserAssigned // set to existing value if not adding traverse edge
+
     if (entityIndex > -1) {
       // Added (or modified) from existing list
-      const editEdgeId = items[entityIndex].editEdge.id
-      if (editEdgeId && editEdgeId === newEdge.id) {
+      const existingEditEdges = items[entityIndex].editEdges.filter(p => p.id === newEdge.id)
+      if (existingEditEdges.length) {
         modifiedExistingEdge = true
       }
 
       const itemToAdd = {
         ...items[entityIndex],
-        editEdge: newEdge,
+        editEdges: modifiedExistingEdge
+          ? sortEditEdges([...items[entityIndex].editEdges.filter(p => p.id !== newEdge.id), newEdge])
+          : sortEditEdges([...items[entityIndex].editEdges, newEdge]),
         metadata: {
           ...items[entityIndex].metadata,
-          isAssigned: true,
-          isUserAssigned: true,
-          isUserUnassigned: false,
+          isAssigned: isAddingTraverseEdge ? true : items[entityIndex].metadata.isAssigned,
+          isUserAssigned: shouldUserBeAssigned,
+          isUserUnassigned: !shouldUserBeAssigned,
         },
       }
       setItems([
@@ -519,9 +541,11 @@ export default function Column(props) {
       ])
     } else {
       // Added from search
+      const editInvitation = editInvitations.filter(p => p.id === newEdge.invitation)?.[0]
       const newItem = {
         ...globalEntityMap[id],
-        editEdge: buildNewEditEdge(id),
+        editEdges: [buildNewEditEdge(editInvitation, id)],
+        editEdgeTemplates: editInvitations.map(p => (buildNewEditEdge(editInvitation, id))),
         browseEdges: [],
         metadata: {
           isAssigned: true,
@@ -533,9 +557,11 @@ export default function Column(props) {
     }
 
     if (type === 'head') {
-      props.updateMetadataMap(id, parentId, { isUserAssigned: true, isUserUnassigned: false })
+      // eslint-disable-next-line max-len
+      props.updateMetadataMap(id, parentId, { isUserAssigned: shouldUserBeAssigned, isUserUnassigned: !shouldUserBeAssigned })
     } else {
-      props.updateMetadataMap(parentId, id, { isUserAssigned: true, isUserUnassigned: false })
+      // eslint-disable-next-line max-len
+      props.updateMetadataMap(parentId, id, { isUserAssigned: shouldUserBeAssigned, isUserUnassigned: !shouldUserBeAssigned })
     }
 
     // Update global head and tail maps
@@ -553,14 +579,17 @@ export default function Column(props) {
       return
     }
 
+    const isRemovingTraverseEdge = removedEdge.invitation === traverseInvitation.id // controls the green background
+    const shouldUserRemainAssigned = isRemovingTraverseEdge ? false : items[entityIndex].metadata.isUserAssigned // set to existing value if not deleting traverse edge
+
     const itemToAdd = {
       ...items[entityIndex],
-      editEdge: removedEdge,
+      editEdges: items[entityIndex].editEdges.filter(p => p.id !== removedEdge.id),
       metadata: {
         ...items[entityIndex].metadata,
-        isAssigned: false,
-        isUserAssigned: false,
-        isUserUnassigned: true,
+        isAssigned: isRemovingTraverseEdge ? false : items[entityIndex].metadata.isAssigned,
+        isUserAssigned: shouldUserRemainAssigned,
+        isUserUnassigned: !shouldUserRemainAssigned,
       },
     }
     setItems([
@@ -637,6 +666,8 @@ export default function Column(props) {
             setSelectedItemId={setSelectedItemId}
             canTraverse={!props.finalColumn}
             showHiddenItems={false}
+            columnType={type} // head/tail
+            parentInfo={{ entityType: parentColumnEntityType, id: parentId, number: parent?.number }} // profile/note
           />
         )}
       </div>
