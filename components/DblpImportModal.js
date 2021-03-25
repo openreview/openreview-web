@@ -49,10 +49,11 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
     if (isPersistentUrl) setDblpUrl(dblpPersistentUrl)
 
     try {
-      const allDblpPublications = await getDblpPublicationsFromXmlUrl(`${url.trim()}.xml`, profileId)
+      const { notes: allDblpPublications, possibleNames } = await getDblpPublicationsFromXmlUrl(`${url.trim()}.xml`, profileId)
       if (!allDblpPublications.some(p => profileNames.some(name => p.note.content.dblp.includes(name)))) {
         throw new Error('Please ensure that the DBLP URL provided is yours and the name used in your DBLP papers is listed in your profile.'
-          + 'If your DBLP name is missing from your profile you can add the name above, save your profile, and then try importing again.')
+          + 'If your DBLP name is missing from your profile you can add the name above, save your profile, and then try importing again.'
+          + `Possible name used in DBLP papers: ${possibleNames.join(', ')}`)
       }
       setPublications(allDblpPublications)
       setMessage(`${allDblpPublications.length} publications fetched.`)
@@ -85,6 +86,7 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
     } catch (error) {
       if (error instanceof URIError || error instanceof TypeError) {
         // failed at getDblpPublicationsFromXmlUrl
+        console.log(error)
         setMessage('')
         setShowPersistentUrlInput(true)
       } else {
