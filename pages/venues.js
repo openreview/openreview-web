@@ -93,7 +93,7 @@ Venues.getInitialProps = async (ctx) => {
     }
     return { venues, pagination }
 
-  // Post mighration delete the entire else clause
+  // Post migration delete the entire else clause
   // eslint-disable-next-line no-else-return
   } else {
     const apiRes = await api.get('/groups', { id: 'host' })

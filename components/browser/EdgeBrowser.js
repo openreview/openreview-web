@@ -1,12 +1,15 @@
 /* globals Webfield: false */
 /* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/no-access-state-in-setstate */
+/* globals promptError: false */
 
 import React from 'react'
 import _ from 'lodash'
 import Column from './Column'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import { formatEntityContent, buildSearchText } from '../../lib/edge-utils'
+import api from '../../lib/api-client'
+import { prettyId } from '../../lib/utils'
 
 export default class EdgeBrowser extends React.Component {
   constructor(props) {
@@ -14,7 +17,7 @@ export default class EdgeBrowser extends React.Component {
 
     this.startInvitation = props.startInvitation
     this.traverseInvitation = props.traverseInvitations[0]
-    this.editInvitation = props.editInvitations.length ? props.editInvitations[0] : null
+    this.editInvitations = props.editInvitations.length ? props.editInvitations : null
     this.browseInvitations = props.browseInvitations
     this.hideInvitation = props.hideInvitations.length ? props.hideInvitations[0] : null
     this.maxColumns = props.maxColumns
@@ -48,10 +51,17 @@ export default class EdgeBrowser extends React.Component {
     this.exploreInterfaceRef = React.createRef()
     this.updateGlobalEntityMap = this.updateGlobalEntityMap.bind(this)
     this.updateMetadataMap = this.updateMetadataMap.bind(this)
+
+    this.userId = props.userInfo.userId
+    this.accessToken = props.userInfo.accessToken
+
+    this.availableSignaturesInvitationMap = []
   }
 
   componentDidMount() {
+    this.lookupSignatures()
     // Create gloabl head and tail maps by querying all possible head and tail objects
+    // create global signature list
     Promise.all([
       this.buildEntityMapFromInvitation('head'),
       this.buildEntityMapFromInvitation('tail'),
@@ -227,12 +237,47 @@ export default class EdgeBrowser extends React.Component {
     })
   }
 
+  async lookupSignatures() {
+    const editInvitationSignaturesMap = []
+    this.editInvitations?.forEach(async (editInvitation) => {
+      // this case is handled here to reduce num of calls to /groups,other cases handled at entity
+      if (editInvitation.signatures['values-regex'] && !editInvitation.signatures['values-regex']?.startsWith('~.*')) {
+        if (editInvitation.signatures.default) {
+          try {
+            const defaultLookupResult = await api.get('/groups', { regex: editInvitation.signatures.default, signatory: this.userId }, { accessToken: this.accessToken })
+            if (defaultLookupResult.groups.length === 1) {
+              editInvitationSignaturesMap.push({
+                invitation: editInvitation.id,
+                signature: editInvitation.signatures.default, // singular
+              })
+              return
+            }
+          } catch (error) {
+            promptError(error.message)
+          }
+        }
+        const interpolatedSignature = editInvitation.signatures['values-regex'].replaceAll('{head.number}', '.*')
+        try {
+          const interpolatedLookupResult = await api.get('/groups', { regex: interpolatedSignature, signatory: this.userId }, { accessToken: this.accessToken })
+          editInvitationSignaturesMap.push({
+            invitation: editInvitation.id,
+            signatures: interpolatedLookupResult.groups.map(group => group.id),
+          })
+        } catch (error) {
+          promptError(error.message)
+        }
+      }
+    })
+    this.availableSignaturesInvitationMap = editInvitationSignaturesMap
+  }
+
   render() {
     const invitations = {
       traverseInvitation: this.traverseInvitation,
-      editInvitation: this.editInvitation,
+      editInvitations: this.editInvitations,
       browseInvitations: this.browseInvitations,
       hideInvitation: this.hideInvitation,
+      availableSignaturesInvitationMap: this.availableSignaturesInvitationMap,
     }
 
     return (
@@ -254,6 +299,7 @@ export default class EdgeBrowser extends React.Component {
               addNewColumn={this.addNewColumn(i)}
               loading={this.state.loading}
               finalColumn={i + 1 === this.maxColumns}
+              parentColumnEntityType={this.state.columns[i - 1]?.entityType} // to decide whether number can be used
             />
           ))}
           <div className="column column-spacer" tabIndex="-1" />
