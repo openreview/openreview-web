@@ -143,10 +143,17 @@ export default function FilterForm({
               <Icon name="align-left" tooltip="Threaded discussion" />
               <span className="sr-only">Threaded</span>
             </button>
-            <button type="button" className={`btn btn-default ${layout === 2 ? 'active' : ''}`} onClick={(e) => { setLayout(2) }}>
+            {/* TODO: enable button when nested layout is implemented */}
+            {/*
+            <button
+              type="button"
+              className={`btn btn-default ${layout === 2 ? 'active' : ''}`}
+              onClick={(e) => { setLayout(2) }}
+            >
               <Icon name="indent-left" tooltip="Nested discussion" />
               <span className="sr-only">Nested</span>
             </button>
+            */}
           </div>
 
           <div className="btn-group btn-group-sm" role="group" aria-label="collapse level">
@@ -176,7 +183,9 @@ export default function FilterForm({
       <div className="form-row">
         <div className="form-group">
           {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-          <label className="control-label icon-label" data-toggle="tooltip" data-placement="top" title="Visible to"><Icon name="eye-open" /></label>
+          <label className="control-label icon-label">
+            <Icon name="eye-open" tooltip="Visible to" />
+          </label>
           <ToggleButtonGroup
             name="readers-filter"
             className="readers-filter"
