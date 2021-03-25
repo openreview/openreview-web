@@ -71,10 +71,10 @@ export default function Column(props) {
     }
   }
 
-  const buildQuery = (invitationId, invQueryObj) => {
+  const buildQuery = (invitationId, invQueryObj, shouldSort = true) => {
     const apiQuery = {
       invitation: invitationId,
-      sort: 'weight:desc',
+      sort: shouldSort ? 'weight:desc' : undefined,
     }
     if (parentId) {
       apiQuery[otherType] = parentId
@@ -280,7 +280,7 @@ export default function Column(props) {
         return
       }
 
-      Webfield.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query))
+      Webfield.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false))
         .then((startEdges) => {
           if (!startEdges) {
             setItems([])
@@ -289,6 +289,8 @@ export default function Column(props) {
 
           const colItems = []
           const existingItems = new Set()
+          // eslint-disable-next-line no-param-reassign
+          startEdges = _.orderBy(startEdges, p => p.weight ?? 0, ['desc'])
           startEdges.forEach((sEdge) => {
             const headOrTailId = sEdge[type]
             if (!globalEntityMap[headOrTailId]) {
@@ -325,7 +327,7 @@ export default function Column(props) {
       hideInvitation.id, hideInvitation.query,
     )).then(response => response.edges) : Promise.resolve([])
     const browseEdgesP = browseInvitations.map(inv => Webfield.getAll('/edges', buildQuery(
-      inv.id, inv.query,
+      inv.id, inv.query, false,
     )))
 
     // Load all edges related to parent and build lists of assigned items and
@@ -335,6 +337,19 @@ export default function Column(props) {
         const editEdgeGroups = browseEditEdgeGroups.slice(0, editEdgesP.length)
         const browseEdgeGroups = browseEditEdgeGroups.slice(editEdgesP.length)
         const colItems = []
+
+        // sory by weight (in API) would fail when traverse edges has label instead of weight
+        // and traverse is the default sort so must sort.
+        const traverseLabels = traverseInvitation.label?.['value-radio']
+        if (traverseLabels) {
+          const traverseLabelMap = _.fromPairs(_.zip(traverseLabels, _.range(traverseLabels.length, 0, -1)))
+          // eslint-disable-next-line no-param-reassign
+          traverseEdges = _.orderBy(
+            traverseEdges.map(e => ({ ...e, weight: traverseLabelMap[e.label] || 0 })),
+            ['weight'],
+            ['desc'],
+          )
+        }
 
         traverseEdges.forEach((tEdge) => {
           const headOrTailId = tEdge[type]
@@ -368,19 +383,14 @@ export default function Column(props) {
             return
           }
 
-          // Special case for bid edges: since they are not sorted on the backend,
-          // add weights according to labels and sort them here before displaying.
-          if (browseInvitations[i].name === 'Bid') {
-            const bidLabels = browseInvitations[i].label['value-radio'] || []
+          // add weights according to labels if invitation has no weight
+          // an example is bid invitation
+          const bidLabels = browseInvitations[i].label?.['value-radio']
+          if (bidLabels) {
             const bidLabelMap = _.fromPairs(_.zip(bidLabels, _.range(bidLabels.length, 0, -1)))
             // eslint-disable-next-line no-param-reassign
-            browseEdges = _.orderBy(
-              browseEdges.map(e => ({ ...e, weight: bidLabelMap[e.label] || 0 })),
-              ['weight'],
-              ['desc'],
-            )
+            browseEdges = browseEdges.map(e => ({ ...e, weight: bidLabelMap[e.label] || 0 }))
           }
-
           browseEdges.forEach(updateColumnItems('browseEdges', colItems))
         })
 
