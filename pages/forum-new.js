@@ -1,10 +1,12 @@
 /* globals $: false */
+/* globals typesetMathJax: false */
 
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import Router, { useRouter } from 'next/router'
 import truncate from 'lodash/truncate'
+import isEmpty from 'lodash/isEmpty'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ForumReply from '../components/ForumReply'
 import NoteAuthors from '../components/NoteAuthors'
@@ -142,6 +144,16 @@ const Forum = ({ forumNote, appContext }) => {
       // Don't include forum note
       if (note.id === note.forum) return
 
+      // note.details.invitation can sometimes contain an empty object
+      let replyInvitation
+      if (!isEmpty(note.details.originalInvitation)) {
+        replyInvitation = note.details.originalInvitation
+      } else if (!isEmpty(note.details.invitation)) {
+        replyInvitation = note.details.invitation
+      } else {
+        replyInvitation = null
+      }
+
       replyMap[note.id] = {
         id: note.id,
         invitation: note.invitation,
@@ -152,7 +164,7 @@ const Forum = ({ forumNote, appContext }) => {
         readers: note.readers.sort(),
         searchText: buildNoteSearchText(note),
         details: {
-          invitation: note.details.originalInvitation || note.details.invitation,
+          invitation: replyInvitation,
         },
       }
       displayOptions[note.id] = { collapsed: false, contentExpanded: false, hidden: false }
@@ -307,7 +319,6 @@ const Forum = ({ forumNote, appContext }) => {
     setOrderedReplies(orderedNotes)
 
     setTimeout(() => {
-      // eslint-disable-next-line no-undef
       typesetMathJax()
       $('[data-toggle="tooltip"]').tooltip()
     }, 200)
@@ -359,6 +370,11 @@ const Forum = ({ forumNote, appContext }) => {
       }
     })
     setDisplayOptionsMap(newDisplayOptions)
+
+    setTimeout(() => {
+      typesetMathJax()
+      $('[data-toggle="tooltip"]').tooltip()
+    }, 200)
   }, [replyNoteMap, orderedReplies, selectedFilters])
 
   useEffect(() => {
@@ -492,7 +508,6 @@ const Forum = ({ forumNote, appContext }) => {
       </div>
 
       <div className="row">
-        {/* eslint-disable-next-line object-curly-newline */}
         <ForumReplyContext.Provider
           value={{
             forumId: id, displayOptionsMap, setCollapsed, setHidden, setContentExpanded,
