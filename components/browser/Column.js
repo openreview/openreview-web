@@ -501,6 +501,12 @@ export default function Column(props) {
     colBodyEl.current.scrollTop = 0
   }, [search, columnSort])
 
+  const sortEditEdges = (editEdges) => {
+    const editInvitationIds = editInvitations.map(p => p.id)
+    editEdges.sort((a, b) => editInvitationIds.indexOf(a.invitation) - editInvitationIds.indexOf(b.invitation))
+    return editEdges
+  }
+
   // Event Handlers
   const addEdgeToEntity = (id, newEdge) => {
     const entityIndex = _.findIndex(items, ['id', id])
@@ -519,16 +525,8 @@ export default function Column(props) {
       const itemToAdd = {
         ...items[entityIndex],
         editEdges: modifiedExistingEdge
-          ? [...items[entityIndex].editEdges.filter(p => p.id !== newEdge.id), newEdge]
-            .sort((a, b) => (
-              editInvitations.map(p => p.id)
-                .indexOf(a.invitation) - editInvitations.map(p => p.id).indexOf(b.invitation)
-            ))
-          : [...items[entityIndex].editEdges, newEdge]
-            .sort((a, b) => (
-              editInvitations.map(p => p.id)
-                .indexOf(a.invitation) - editInvitations.map(p => p.id).indexOf(b.invitation)
-            )),
+          ? sortEditEdges([...items[entityIndex].editEdges.filter(p => p.id !== newEdge.id), newEdge])
+          : sortEditEdges([...items[entityIndex].editEdges, newEdge]),
         metadata: {
           ...items[entityIndex].metadata,
           isAssigned: isAddingTraverseEdge ? true : items[entityIndex].metadata.isAssigned,
