@@ -1,4 +1,5 @@
 /* globals $: false */
+/* globals typesetMathJax: false */
 
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
@@ -318,7 +319,6 @@ const Forum = ({ forumNote, appContext }) => {
     setOrderedReplies(orderedNotes)
 
     setTimeout(() => {
-      // eslint-disable-next-line no-undef
       typesetMathJax()
       $('[data-toggle="tooltip"]').tooltip()
     }, 200)
@@ -370,6 +370,11 @@ const Forum = ({ forumNote, appContext }) => {
       }
     })
     setDisplayOptionsMap(newDisplayOptions)
+
+    setTimeout(() => {
+      typesetMathJax()
+      $('[data-toggle="tooltip"]').tooltip()
+    }, 200)
   }, [replyNoteMap, orderedReplies, selectedFilters])
 
   useEffect(() => {
@@ -503,7 +508,6 @@ const Forum = ({ forumNote, appContext }) => {
       </div>
 
       <div className="row">
-        {/* eslint-disable-next-line object-curly-newline */}
         <ForumReplyContext.Provider
           value={{
             forumId: id, displayOptionsMap, setCollapsed, setHidden, setContentExpanded,
