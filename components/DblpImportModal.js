@@ -86,7 +86,6 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
     } catch (error) {
       if (error instanceof URIError || error instanceof TypeError) {
         // failed at getDblpPublicationsFromXmlUrl
-        console.log(error)
         setMessage('')
         setShowPersistentUrlInput(true)
       } else {
