@@ -512,8 +512,10 @@ export default function Column(props) {
     const entityIndex = _.findIndex(items, ['id', id])
     let modifiedExistingEdge = false
 
-    const isAddingTraverseEdge = newEdge.invitation === traverseInvitation.id // controls the green background
-    const shouldUserBeAssigned = isAddingTraverseEdge ? true : items[entityIndex].metadata.isUserAssigned // set to existing value if not adding traverse edge
+    // controls the green background
+    const isAddingTraverseEdge = newEdge.invitation === traverseInvitation.id
+    // set to existing value if not adding traverse edge
+    const shouldUserBeAssigned = isAddingTraverseEdge ? true : items[entityIndex].metadata.isUserAssigned
 
     if (entityIndex > -1) {
       // Added (or modified) from existing list
@@ -579,8 +581,10 @@ export default function Column(props) {
       return
     }
 
-    const isRemovingTraverseEdge = removedEdge.invitation === traverseInvitation.id // controls the green background
-    const shouldUserRemainAssigned = isRemovingTraverseEdge ? false : items[entityIndex].metadata.isUserAssigned // set to existing value if not deleting traverse edge
+    // controls the green background
+    const isRemovingTraverseEdge = removedEdge.invitation === traverseInvitation.id
+    // set to existing value if not deleting traverse edge
+    const shouldUserRemainAssigned = isRemovingTraverseEdge ? false : items[entityIndex].metadata.isUserAssigned
 
     const itemToAdd = {
       ...items[entityIndex],
