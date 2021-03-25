@@ -160,7 +160,7 @@ export default function ProfileEntity(props) {
         addEdge={addEdge}
         removeEdge={() => removeEdge(editEdge)}
         type={type} // label or weight
-        editEdgeTemplate={editEdgeTemplates?.find(p => p?.invitation === editInvitation.id)} // required for adding new one
+        editEdgeTemplate={editEdgeTemplates?.find(p => p?.invitation === editInvitation.id)} // required for adding new
       />
     )
     const editEdgeToggle = () => (
@@ -170,7 +170,7 @@ export default function ProfileEntity(props) {
         removeEdge={() => removeEdge(editEdge)}
         // eslint-disable-next-line max-len
         canAddEdge={editEdges?.filter(p => p?.invitation === editInvitation.id).length === 0 || editInvitation.multiReply} // no editedge or invitation allow multiple edges
-        editEdgeTemplate={editEdgeTemplates?.find(p => p?.invitation === editInvitation.id)} // required for adding new one
+        editEdgeTemplate={editEdgeTemplates?.find(p => p?.invitation === editInvitation.id)} // required for adding new
       />
     )
     const editEdgeTwoDropdowns = controlType => (
@@ -187,7 +187,7 @@ export default function ProfileEntity(props) {
         default=" "
         addEdge={addEdge}
         removeEdge={() => removeEdge(editEdge)}
-        editEdgeTemplate={editEdgeTemplates?.find(p => p?.invitation === editInvitation.id)} // required for adding new one
+        editEdgeTemplate={editEdgeTemplates?.find(p => p?.invitation === editInvitation.id)} // required for adding new
       />
     )
 
