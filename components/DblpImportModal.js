@@ -50,7 +50,13 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
 
     try {
       const { notes: allDblpPublications, possibleNames } = await getDblpPublicationsFromXmlUrl(`${url.trim()}.xml`, profileId)
-      if (!allDblpPublications.some(p => profileNames.some(name => p.note.content.dblp.includes(name)))) {
+      if (!allDblpPublications.some(
+        p => profileNames.some(
+          // eslint-disable-next-line comma-dangle
+          name => p.note.content.dblp.toLowerCase().includes(name.toLowerCase())
+        // eslint-disable-next-line comma-dangle
+        )
+      )) {
         throw new Error('Please ensure that the DBLP URL provided is yours and the name used in your DBLP papers is listed in your profile.'
           + 'If your DBLP name is missing from your profile you can add the name above, save your profile, and then try importing again.'
           + `Possible name used in DBLP papers: ${possibleNames.join(', ')}`)
