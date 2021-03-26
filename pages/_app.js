@@ -6,7 +6,7 @@ import Router from 'next/router'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
 import {
-  auth, setAuthCookie, removeAuthCookie, cookieExpiration,
+  auth, getTokenPayload, setAuthCookie, removeAuthCookie, cookieExpiration,
 } from '../lib/auth'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
@@ -33,6 +33,7 @@ export default class OpenReviewApp extends App {
     this.logoutTimer = null
 
     this.loginUser = this.loginUser.bind(this)
+    this.loginUserWithToken = this.loginUserWithToken.bind(this)
     this.logoutUser = this.logoutUser.bind(this)
     this.updateUserName = this.updateUserName.bind(this)
     this.setBannerHidden = this.setBannerHidden.bind(this)
@@ -50,10 +51,27 @@ export default class OpenReviewApp extends App {
     window.Webfield.setToken(userAccessToken)
     window.controller.setToken(userAccessToken)
 
-    const timeToExpiration = cookieExpiration * 1000 - 1000
+    const timeToExpiration = cookieExpiration - 1000
     this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
 
     Router.push(redirectPath)
+  }
+
+  loginUserWithToken(userAccessToken, setCookie = true) {
+    const { user: authenticatedUser, exp: tokenExpiration } = getTokenPayload(userAccessToken)
+    if (!authenticatedUser) return
+
+    this.setState({ user: authenticatedUser, accessToken: userAccessToken, logoutRedirect: false })
+
+    if (!setCookie) return
+    setAuthCookie(userAccessToken)
+
+    // Need pass new accessToken to Webfield and controller so legacy ajax functions work
+    window.Webfield.setToken(userAccessToken)
+    window.controller.setToken(userAccessToken)
+
+    const timeToExpiration = tokenExpiration * 1000 - Date.now() - 1000
+    this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
   }
 
   logoutUser(redirectPath = '/') {
@@ -129,7 +147,7 @@ export default class OpenReviewApp extends App {
     this.shouldResetLayout = true
 
     // Close mobile nav menu if open
-    if (document.getElementById('navbar').attributes['aria-expanded']?.value === 'true') {
+    if (document.getElementById('navbar')?.attributes['aria-expanded']?.value === 'true') {
       document.querySelector('nav.navbar button.navbar-toggle').click()
     }
   }
@@ -253,6 +271,7 @@ export default class OpenReviewApp extends App {
       userLoading: this.state.userLoading,
       accessToken: this.state.accessToken,
       loginUser: this.loginUser,
+      loginUserWithToken: this.loginUserWithToken,
       logoutUser: this.logoutUser,
       logoutRedirect: this.state.logoutRedirect,
       updateUserName: this.updateUserName,
@@ -262,6 +281,10 @@ export default class OpenReviewApp extends App {
       setBannerHidden: this.setBannerHidden,
       setBannerContent: this.setBannerContent,
       setLayoutOptions: this.setLayoutOptions,
+    }
+
+    if (Component.bodyClass === 'embed') {
+      return <Component {...pageProps} appContext={appContext} userContext={userContext} />
     }
 
     return (

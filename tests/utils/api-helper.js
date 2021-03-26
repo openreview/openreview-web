@@ -281,7 +281,7 @@ export async function createEmptyProfile(first, last, tildeId, superUserToken) {
     readers: ['openreview.net', tildeId],
     signatures: [tildeId],
     content: {
-      dblp: 'dummy dblp url',
+      dblp: 'https://dblp.org/dummy',
       names: [
         {
           first,

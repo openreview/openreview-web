@@ -16,7 +16,7 @@ export default function Dropdown(props) {
     spacing: {
       baseUnit: 2,
       menuGutter: 4,
-      controlHeight: 34,
+      controlHeight: props.height || 34,
     },
   })
 

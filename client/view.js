@@ -1105,6 +1105,7 @@ module.exports = (function() {
   };
 
   var mkComposerContentInput = function(fieldName, fieldDescription, fieldValue, params) {
+    var contentInputResult = null;
 
     var mkCharCouterWidget = function($input, minChars, maxChars) {
       var $widget = $('<div>', {class: 'char-counter hint'}).append(
@@ -1153,7 +1154,7 @@ module.exports = (function() {
 
     var $input;
     if (_.has(fieldDescription, 'value')) {
-      return valueInput($('<input>', {
+      contentInputResult = valueInput($('<input>', {
         type: 'text',
         class: 'form-control note_content_value',
         name: fieldName,
@@ -1162,14 +1163,10 @@ module.exports = (function() {
       }), fieldName, fieldDescription);
 
     } else if (_.has(fieldDescription, 'values')) {
-      var $inputGroup = mkDropdownAdder(
+      contentInputResult = mkDropdownAdder(
         fieldName, fieldDescription.description, fieldDescription.values,
         fieldValue, { hoverText: true, refreshData: false, required: fieldDescription.required }
       );
-      if (fieldDescription.hidden) {
-        return $inputGroup.hide();
-      }
-      return $inputGroup;
 
     } else if (_.has(fieldDescription, 'value-regex')) {
       var $inputGroup;
@@ -1217,37 +1214,32 @@ module.exports = (function() {
       if (!_.get(fieldDescription, 'disableAutosave', false)) {
         $input.addClass('autosave-enabled');
       }
-      return $inputGroup;
+      contentInputResult = $inputGroup;
 
     } else if (_.has(fieldDescription, 'values-regex')) {
       if (params && params.groups) {
-        var groups = params.groups;
-        var groupIds = _.map(groups, function(g) {
+        var groupIds = _.map(params.groups, function(g) {
           return g.id;
         });
-        return mkDropdownAdder(
+        contentInputResult = mkDropdownAdder(
           fieldName, fieldDescription.description, groupIds,
           fieldValue, { hoverText: false, refreshData: true, required: fieldDescription.required }
         );
+      } else {
+        $input = $('<input>', {
+          type: 'text',
+          class: 'form-control note_content_value',
+          name: fieldName,
+          value: fieldValue
+        });
+        if (!_.get(fieldDescription, 'disableAutosave', false)) {
+          $input.addClass('autosave-enabled');
+        }
+        contentInputResult = valueInput($input, fieldName, fieldDescription);
       }
-
-      $input = $('<input>', {
-        type: 'text',
-        class: 'form-control note_content_value',
-        name: fieldName,
-        value: fieldValue
-      });
-      if (!_.get(fieldDescription, 'disableAutosave', false)) {
-        $input.addClass('autosave-enabled');
-      }
-
-      if (fieldDescription.hidden) {
-        return valueInput($input, fieldName, fieldDescription).hide();
-      }
-      return valueInput($input, fieldName, fieldDescription);
 
     } else if (_.has(fieldDescription, 'value-dropdown')) {
-      return mkDropdownList(
+      contentInputResult = mkDropdownList(
         fieldName, fieldDescription.description, fieldValue,
         fieldDescription['value-dropdown'], fieldDescription.required
       );
@@ -1277,13 +1269,13 @@ module.exports = (function() {
         }
       });
 
-      return mkDropdownList(
+      contentInputResult = mkDropdownList(
         fieldName, fieldDescription.description, formattedFieldValue,
         formattedValues, fieldDescription.required
       );
 
     } else if (_.has(fieldDescription, 'values-dropdown')) {
-      return mkDropdownAdder(
+      contentInputResult = mkDropdownAdder(
         fieldName, fieldDescription.description, fieldDescription['values-dropdown'],
         fieldValue, { hoverText: false, refreshData: true, required: fieldDescription.required, alwaysHaveValues: fieldDescription.default }
       );
@@ -1305,7 +1297,7 @@ module.exports = (function() {
           );
         })
       );
-      return valueInput($input, fieldName, fieldDescription);
+      contentInputResult = valueInput($input, fieldName, fieldDescription);
 
     } else if (_.has(fieldDescription, 'value-checkbox') || _.has(fieldDescription, 'values-checkbox')) {
       var options = _.has(fieldDescription, 'value-checkbox') ?
@@ -1321,10 +1313,10 @@ module.exports = (function() {
           '<input type="checkbox" name="' + fieldName + '" value="' + option + '" ' + checked + ' ' + disabled + '> ' + (params.prettyId ? prettyId(option) : option) +
           '</label>';
       });
-      return valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
+      contentInputResult = valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
 
     } else if (_.has(fieldDescription, 'value-copied') || _.has(fieldDescription, 'values-copied')) {
-      return valueInput($('<input>', {
+      contentInputResult = valueInput($('<input>', {
         type: 'hidden',
         class: 'note_content_value',
         name: fieldName,
@@ -1332,14 +1324,17 @@ module.exports = (function() {
       }), fieldName, fieldDescription).css('display', 'none');
 
     } else if (_.has(fieldDescription, 'value-dict')) {
-      return valueInput($('<textarea>', {
+      contentInputResult = valueInput($('<textarea>', {
         class: 'note_content_value form-control',
         name: fieldName,
         text: fieldValue && JSON.stringify(fieldValue, undefined, 4)
       }), fieldName, fieldDescription);
+
     } else if (_.has(fieldDescription, 'value-file')) {
-      return mkAttachmentSection(fieldName, fieldDescription, fieldValue);
+      contentInputResult = mkAttachmentSection(fieldName, fieldDescription, fieldValue);
     }
+
+    return contentInputResult;
   };
 
   var mkDropdownList = function(fieldName, fieldDescription, fieldValue, values, required) {
@@ -1408,11 +1403,12 @@ module.exports = (function() {
   };
 
   var mkComposerInput = function(fieldName, fieldDescription, fieldValue, params) {
-    if (fieldName === 'pdf' && fieldDescription['value-regex']) {
-      return mkPdfSection(fieldDescription, fieldValue);
-    }
+    var contentInputResult;
 
-    if (fieldName === 'authorids' && (
+    if (fieldName === 'pdf' && fieldDescription['value-regex']) {
+      contentInputResult = mkPdfSection(fieldDescription, fieldValue);
+
+    } else if (fieldName === 'authorids' && (
       (_.has(fieldDescription, 'values-regex') && fieldDescription['values-regex'].indexOf('~.*') !== -1) ||
       _.has(fieldDescription, 'values')
     )) {
@@ -1429,7 +1425,7 @@ module.exports = (function() {
       var invitationRegex = fieldDescription['values-regex'];
       // Enable allowUserDefined if the values-regex has '~.*|'
       // Don't enable adding or removing authors if invitation uses 'values' instead of values-regex
-      return valueInput(
+      contentInputResult = valueInput(
         mkSearchProfile(authors, authorids, {
           allowUserDefined: invitationRegex && invitationRegex.indexOf('~.*|') !== -1,
           allowAddRemove: !!invitationRegex
@@ -1437,9 +1433,15 @@ module.exports = (function() {
         'authors',
         fieldDescription
       );
+
+    } else {
+      contentInputResult = mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
     }
 
-    return mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
+    if (fieldDescription.hidden === true) {
+      return contentInputResult.hide();
+    }
+    return contentInputResult;
   };
 
   var mkItem = function(text, f) {
@@ -2744,7 +2746,7 @@ module.exports = (function() {
     var errors = [];
     var content = _.reduce(invitation.reply.content, function(ret, contentObj, k) {
       // Let the widget handle it :D and extract the data when we encouter authorids
-      if (contentObj.hidden) {
+      if (contentObj.hidden && k === 'authors') {
         return ret;
       }
       var $inputVal = $contentMap[k].find('.note_content_value[name="' + k + '"]');
