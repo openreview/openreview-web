@@ -70,16 +70,14 @@ module.exports = (function() {
           return;
         }
 
-        if (errorResponse) {
-          if (errorResponse.errors && errorResponse.errors.length) {
-            errorText = errorResponse.errors[0];
-          } else if (errorResponse.message) {
-            errorText = errorResponse.message;
-          }
+        if (errorResponse && errorResponse.message) {
+          errorText = errorResponse.message;
         }
 
-        var notSignatoryError = errorText.type === 'notSignatory' && errorText.path === 'signatures' && _.startsWith(errorText.user, 'guest_');
-        var forbiddenError = errorText.type === 'forbidden' && _.startsWith(errorText.user, 'guest_');
+        var errorName = errorResponse.name;
+        var errorDetails = errorResponse.details;
+        var notSignatoryError = errorName === 'NotSignatoryError' && _.startsWith(errorDetails.user, 'guest_');
+        var forbiddenError = errorName === 'ForbiddenError' && _.startsWith(errorDetails.user, 'guest_');
 
         if (errorText === 'User does not exist') {
           location.reload(true);

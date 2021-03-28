@@ -241,7 +241,7 @@ Forum.getInitialProps = async (ctx) => {
     }
     return { forumNote: note, query: ctx.query }
   } catch (error) {
-    if (error.name === 'forbidden') {
+    if (error.name === 'ForbiddenError') {
       const redirect = await shouldRedirect(ctx.query.id)
       if (redirect) {
         return redirectForum(redirect.id)

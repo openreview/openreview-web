@@ -167,8 +167,10 @@ module.exports = (function() {
     console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2));
 
     var errorText = getErrorFromJqXhr(jqXhr, textStatus);
-    var notSignatoryError = errorText.type === 'notSignatory' && errorText.path === 'signatures' && _.startsWith(errorText.user, 'guest_');
-    var forbiddenError = errorText.type === 'forbidden' && _.startsWith(errorText.user, 'guest_');
+    var errorName = jqXhr.responseJSON.name;
+    var errorDetails = jqXhr.responseJSON.details;
+    var notSignatoryError = errorName === 'NotSignatoryError' && _.startsWith(errorDetails.user, 'guest_');
+    var forbiddenError = errorName === 'ForbiddenError' && _.startsWith(errorDetails.user, 'guest_');
 
     if (errorText === 'User does not exist') {
       location.reload(true);
@@ -176,6 +178,14 @@ module.exports = (function() {
       location.href = '/login?redirect=' + encodeURIComponent(
         location.pathname + location.search + location.hash
       );
+    } else if (errorName === 'AlreadyConfirmedError') {
+      promptError({
+        type: 'alreadyConfirmed',
+        path: errorDetails.alternate,
+        value: errorDetails.otherProfile,
+        value2: errorDetails.thisProfile,
+        user: errorDetails.user
+      });
     } else {
       promptError(errorText);
     }
@@ -189,16 +199,11 @@ module.exports = (function() {
     if (textStatus === 'timeout') {
       // If the request timed out, display a special message and don't call
       // the onError callback to prevent it from chaining or not displaying the mesage.
-      errorText = 'OpenReview is currently under heavy load. Please try again soon.';
-      return errorText;
+      return 'OpenReview is currently under heavy load. Please try again soon.';
     }
 
-    if (errorResponse) {
-      if (errorResponse.errors && errorResponse.errors.length) {
-        errorText = errorResponse.errors[0];
-      } else if (errorResponse.message) {
-        errorText = errorResponse.message;
-      }
+    if (errorResponse && errorResponse.message) {
+      errorText = errorResponse.message;
     }
     return errorText;
   };

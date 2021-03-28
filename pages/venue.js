@@ -144,7 +144,7 @@ Venue.getInitialProps = async (ctx) => {
     }
     return { venueSeries, venuesGroupedByYear }
   } catch (error) {
-    if (error.name === 'forbidden') {
+    if (error.name === 'ForbiddenError') {
       if (!token) {
         if (ctx.req) {
           ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
