@@ -291,10 +291,6 @@ which will be displayed as:
     id: 'question-release-reviews-reviewers',
     a: 'On the request form for your venue, click on the ‘Review Stage’ button. Reviews can be released to all reviewers, to a paper\'s assigned reviewers, or to a paper\'s assigned reviewers who have already submitted their review.',
   }, {
-    q: 'How do I get email addresses of accepted/all papers authors?',
-    id: 'question-getting-author-emails',
-    a: 'Please refer to the section on obtaining data in the documentation for our [Python API](https://openreview-py.readthedocs.io/en/latest/)',
-  }, {
     q: 'How can I manually assign reviewers/ACs to papers?',
     id: 'question-manually-assign-reviewers',
     a: `**Reviewers:** If you did not specify you wanted to use the OpenReview matcher to assign reviewers to papers, you will be able to manually assign them using the PC console.
@@ -312,7 +308,7 @@ conference=openreview.helpers.get_conference(client, request_form_id)
 conference.set_assignment(number=paper_number, user=[email_address], is_area_chair=True)
 \`\`\`
 - You will need to use your own OpenReview credentials to initialize the Client object.
-- **request_form_id** refers to the forum id of the venue request for your venue, (e.g.,[https://openreview.net/forum?id=**r1lf10zpw4**]())
+- **request_form_id** refers to the forum id of the venue request for your venue, (e.g., [https://openreview.net/forum?id=**r1lf10zpw4**]())
 - **paper_number** is the number of the paper you want to assign an area chair to (you can find this in the 'Paper Status' tab of the PC console)
 - **[email_address]** is an array containing the email address or OpenReview profile ID (e.g., ~Alan_Turing1) of the user you want to assign
 
@@ -392,6 +388,24 @@ Note that assigning an area chair using python does not send an email to that us
     q: 'How do I contact the authors of the accepted papers only?',
     id: 'question-contact-authors-accepted',
     a: 'Under the ‘Overview’ tab of the PC console for your venue, you will find a ‘Venue Roles’ section. Click on the ‘Accepted’ link next to ‘Authors’ to be taken to the respective group. On this page, you have the option to email members of the group.',
+  }, {
+    q: 'How do I extract email addresses of accepted papers?',
+    id: 'question-emails-accepted-papers',
+    a: `All papers contain the IDs of authors in the authorids field. These IDs can be either email addresses or OpenReview profile IDs. The following code will allow you to extract all email addresses of accepted papers:
+
+  \`\`\`
+  accepted_papers = client.get_notes(invitation='ICLR.cc/2021/Conference/-/Blind_Submission', content={'venueid': 'ICLR.cc/2021/Conference'})
+  for paper in accepted_papers:
+    for author in paper.content['authorids']:
+      if '@' in author:
+          print(author)
+      else:
+          profile=client.search_profiles(ids=[author])[0]
+          print(profile.content.get('preferredEmail', profile.content['emails'][0]))
+  \`\`\`
+
+  where the **invitation** is the paper submission invitation for your venue (*venueid + /-/Submission* if single-blind, and *venue_id + /-/Blind_Submission* if double-blind).
+  You can find the venueid in the request form for your venue.`,
   }, {
     q: 'Can an author withdraw a rejected paper?',
     id: 'question-withdraw-paper',
