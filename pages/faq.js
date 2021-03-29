@@ -143,6 +143,11 @@ For more details on the difference between OpenReview's TeX support and other sy
 
   If your profile contains a confirmed email or a name that does not belong to you, please contact the OpenReview team by emailing info@openreview.net.`,
   }, {
+    q: 'How do I enter institution data to my profile?',
+    id: 'question-institution-relations',
+    a: `You must enter at least one position under 'Education & Career History' for your profile to be saved. You can choose one position from the dropdown, which includes the most commonly used ones. If none of the posiions in the dropdown reflect the position you are entering, you can type your own. Next, please enter a valid institution name (e.g., University of Massachusettss, Amherst) and domain (e.g., umass.edu) from the dropdown or type in if not present. You can leave the 'End' field empty if you are currently in that position, or you can enter when you are expected to leave that position.
+    `,
+  }, {
     q: 'How do I import my papers from DBLP?',
     id: 'question-dblp-import',
     a: `**To add existing DBLP publications to your OpenReview profile**:
