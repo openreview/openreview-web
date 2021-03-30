@@ -15,6 +15,8 @@ export default function EditEdgeTwoDropdowns(props) {
   const isWeightRequired = props.editInvitation.weight?.required
 
   const enableAddEdge = (!isLabelRequired || label) && (!isWeightRequired || weight)
+  const showTrashButton = props.existingEdge?.writers?.length !== 0 // true for adding new editedge
+
   const addEdge = (e) => {
     // add new edge or save existing edge
     e.stopPropagation()
@@ -93,9 +95,14 @@ export default function EditEdgeTwoDropdowns(props) {
           <a href="#" className="ml-1" onClick={addEdge}>
             <span className="glyphicon glyphicon-floppy-disk" />
           </a>
-          <a href="#" className="ml-1" onClick={(e) => { e.stopPropagation(); props.removeEdge() }}>
-            <span className="glyphicon glyphicon-trash" />
-          </a>
+          {
+            showTrashButton
+            && (
+              <a href="#" className="ml-1" onClick={(e) => { e.stopPropagation(); props.removeEdge() }}>
+                <span className="glyphicon glyphicon-trash" />
+              </a>
+            )
+          }
         </>
       ) : enableAddEdge && (
         <a href="#" className="ml-1" onClick={addEdge}>

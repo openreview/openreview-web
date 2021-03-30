@@ -12,15 +12,17 @@ import EntityList from './EntityList'
 import {
   prettyId, prettyInvitationId, pluralizeString,
 } from '../../lib/utils'
+import EditEdgeInviteEmail from './EditEdgeInviteEmail'
 
 export default function Column(props) {
   const {
-    type,
+    type, // head/tail
     parentId,
     globalEntityMap,
     altGlobalEntityMap,
     startInvitation,
     parentColumnEntityType,
+    entityType, // Note/Profile
   } = props
   const {
     traverseInvitation,
@@ -31,6 +33,19 @@ export default function Column(props) {
   const parent = parentId ? altGlobalEntityMap[parentId] : null
   const otherType = type === 'head' ? 'tail' : 'head'
   const colBodyEl = useRef(null)
+  const [shouldReload, setShouldReload] = useState(false)
+
+  const sortOptions = [{ key: traverseInvitation.id, value: 'default', text: prettyInvitationId(traverseInvitation.id) }]
+  const editAndBrowserInvitations = [...editInvitations ?? [], ...browseInvitations ?? []]
+  editAndBrowserInvitations.forEach((p) => {
+    if (!sortOptions.map(q => q.key).includes(p.id)) {
+      sortOptions.push({
+        key: p.id,
+        value: p.id,
+        text: prettyInvitationId(p.id),
+      })
+    }
+  })
 
   // State Vars
   const [selectedItemId, setSelectedItemId] = useState(null)
@@ -208,16 +223,37 @@ export default function Column(props) {
       return
     }
 
-    const itemToAdd = globalEntityMap[headOrTailId]
+    let itemToAdd = globalEntityMap[headOrTailId]
     if (!itemToAdd) {
       // This mainly occurs when an affinity edge references a withdrawn paper
       // and isn't usually a problem. Missing profile IDs sometimes occur if
       // profiles get merged and the edges are not updated.
       // eslint-disable-next-line no-console
       console.warn(`${headOrTailId} not found in global entity map. From ${edgeFormatted.name}`)
-      return
-    }
 
+      if (fieldName === 'editEdges' && entityType === 'Profile') {
+        const editInvitation = editInvitations.filter(p => p.id === edge.invitation)?.[0]
+        if (editInvitation[type]?.query?.['value-regex']) {
+          // if (true) {
+          itemToAdd = {
+            id: headOrTailId,
+            content: {
+              name: { first: headOrTailId, middle: '', last: '' },
+              email: headOrTailId,
+              title: 'Unknown',
+              expertise: [],
+              isDummyProfile: true,
+            },
+            searchText: headOrTailId,
+            traverseEdgesCount: 0,
+          }
+        } else {
+          return
+        }
+      } else {
+        return
+      }
+    }
     const columnMetadata = type === 'head'
       ? _.get(props.metadataMap, [headOrTailId, parentId], {})
       : _.get(props.metadataMap, [parentId, headOrTailId], {})
@@ -412,7 +448,7 @@ export default function Column(props) {
 
         setItems(colItems)
       })
-  }, [props.loading, globalEntityMap])
+  }, [props.loading, globalEntityMap, shouldReload])
 
   const [filteredItems, setFilteredItems] = useState([])
   const [itemsHeading, setItemsHeading] = useState(null)
@@ -434,13 +470,34 @@ export default function Column(props) {
   // item does not have the specified edge it should go at the bottom of the
   // list below all items that have that edge.
   const sortItems = (colItems) => {
+    // the columnsort invitation may come from traverse/edit/browser invitations
     if (columnSort === 'default') {
       return colItems
     }
 
+    const sortInvitation = [...editInvitations, ...browseInvitations].filter(p => p.id === columnSort)?.[0]
+    const sortLabels = sortInvitation.label?.['value-radio']
+
+    if (sortLabels) { // has no weight; construct label map then sort
+      const sortLabelMap = _.fromPairs(_.zip(sortLabels, _.range(sortLabels.length, 0, -1)))
+      // eslint-disable-next-line no-param-reassign
+      return _.orderBy(
+        [...colItems].map(
+          p => (
+            {
+              ...p,
+              weight: sortLabelMap[
+                [...p.browseEdges, ...p.editEdges].filter(q => q.invitation === columnSort)?.[0]?.label] || 0,
+            }),
+        ),
+        ['weight'],
+        ['desc'],
+      )
+    }
+
     return [...colItems].sort((itemA, itemB) => {
-      const edgeA = _.find(itemA.browseEdges, ['invitation', columnSort])
-      const edgeB = _.find(itemB.browseEdges, ['invitation', columnSort])
+      const edgeA = _.find([...itemA.browseEdges, ...itemA.editEdges], ['invitation', columnSort])
+      const edgeB = _.find([...itemB.browseEdges, ...itemB.editEdges], ['invitation', columnSort])
 
       if (!edgeA && !edgeB) return 0
       if (!edgeA && edgeB) return 1
@@ -479,7 +536,7 @@ export default function Column(props) {
     const searchRegex = new RegExp(preModifier + escapedTerm + postModifier, 'm')
 
     // Search existing items
-    const matchingItems = items.filter(item => item.searchText.match(searchRegex))
+    const matchingItems = items.filter(item => item.searchText?.match(searchRegex))
 
     // Search all other items that don't share edges with the parent entity
     if (parentId) {
@@ -650,14 +707,13 @@ export default function Column(props) {
               {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
               <label>Order By:</label>
               <select className="form-control input-sm" onChange={e => setColumnSort(e.target.value)}>
-                <option key={traverseInvitation.id} value="default">
-                  default
-                </option>
-                {browseInvitations.map(inv => (
-                  <option key={inv.id} value={inv.id}>
-                    {prettyInvitationId(inv.id)}
-                  </option>
-                ))}
+                {
+                  sortOptions.map(p => (
+                    <option key={p.key} value={p.value}>
+                      {p.text}
+                    </option>
+                  ))
+                }
               </select>
             </div>
           )}
@@ -668,21 +724,32 @@ export default function Column(props) {
         {items === null ? (
           <LoadingSpinner />
         ) : (
-          <EntityList
-            type={props.entityType}
-            heading={itemsHeading}
-            items={filteredItems}
-            numItemsToRender={numItemsToRender}
-            selectedItemId={selectedItemId}
-            addNewColumn={props.addNewColumn}
-            addEdgeToEntity={addEdgeToEntity}
-            removeEdgeFromEntity={removeEdgeFromEntity}
-            setSelectedItemId={setSelectedItemId}
-            canTraverse={!props.finalColumn}
-            showHiddenItems={false}
-            columnType={type} // head/tail
-            parentInfo={{ entityType: parentColumnEntityType, id: parentId, number: parent?.number }} // profile/note
-          />
+          <>
+            <EntityList
+              type={props.entityType}
+              heading={itemsHeading}
+              items={filteredItems}
+              numItemsToRender={numItemsToRender}
+              selectedItemId={selectedItemId}
+              addNewColumn={props.addNewColumn}
+              addEdgeToEntity={addEdgeToEntity}
+              removeEdgeFromEntity={removeEdgeFromEntity}
+              setSelectedItemId={setSelectedItemId}
+              canTraverse={!props.finalColumn}
+              showHiddenItems={false}
+              columnType={type} // head/tail
+              parentInfo={{ entityType: parentColumnEntityType, id: parentId, number: parent?.number }} // profile/note
+              reloadWithoutUpdate={() => setShouldReload(!shouldReload)}
+            />
+            <EditEdgeInviteEmail
+              type={type}
+              otherType={otherType}
+              entityType={entityType}
+              parentId={parentId}
+              parentNumber={parent?.number}
+              reloadWithoutUpdate={() => setShouldReload(!shouldReload)}
+            />
+          </>
         )}
       </div>
     </div>

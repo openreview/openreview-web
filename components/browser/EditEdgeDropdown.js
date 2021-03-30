@@ -3,6 +3,7 @@
 
 export default function EditEdgeDropdown(props) {
   const defaultOption = props.default ? props.default : props.options[0]
+  const showTrashButton = props.existingEdge?.writers?.length !== 0
 
   if (!props.existingEdge && !props.canAddEdge) return null
   return (
@@ -41,7 +42,7 @@ export default function EditEdgeDropdown(props) {
           ))}
         </ul>
       </div>
-      {props.existingEdge && (
+      {props.existingEdge && showTrashButton && (
         <a href="#" className="edit-edge-remove" onClick={(e) => { e.stopPropagation(); props.removeEdge() }}>
           <span className="glyphicon glyphicon-trash" />
         </a>

@@ -16,6 +16,7 @@ import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import UserContext from '../UserContext'
+import { getInterpolatedValues, getSignatures } from '../../lib/edge-utils'
 
 export default function NoteEntity(props) {
   if (!props.note || !props.note.content) {
@@ -64,17 +65,11 @@ export default function NoteEntity(props) {
     // Delete existing edge
     // TODO: allow ProfileItems to be head objects
     const editInvitation = editInvitations.filter(p => p.id === editEdge.invitation)?.[0]
-    const signatures = getSignatures(editInvitation)
-    if (!signatures || signatures.length === 0) {
-      promptError('You don\'t have permission to edit this edge')
-      return
-    }
     try {
       const result = await api.post('/edges', {
         tail: id,
         ddate: Date.now(),
         ...editEdge,
-        signatures,
       },
       { accessToken })
       props.removeEdgeFromEntity(id, result)
@@ -91,7 +86,7 @@ export default function NoteEntity(props) {
     }
     // Create new edge
     const editInvitation = editInvitations.filter(p => p.id === editEdgeTemplate.invitation)?.[0]
-    const signatures = getSignatures(editInvitation)
+    const signatures = getSignatures(editInvitation, availableSignaturesInvitationMap, number, user)
     if (!signatures || signatures.length === 0) {
       promptError('You don\'t have permission to edit this edge')
       return
@@ -102,9 +97,9 @@ export default function NoteEntity(props) {
         ddate: null,
         ...existingEdge ?? {
           ...editEdgeTemplate,
-          readers: getInterpolatedValues(editInvitation.readers),
-          nonreaders: getInterpolatedValues(editInvitation.nonreaders),
-          writers: getInterpolatedValues(editInvitation.writers),
+          readers: getValues(editInvitation.readers),
+          nonreaders: getValues(editInvitation.nonreaders),
+          writers: getValues(editInvitation.writers),
           signatures,
         },
         ...updatedEdgeFields,
@@ -116,40 +111,16 @@ export default function NoteEntity(props) {
     }
   }
 
-  const getSignatures = (editInvitation) => {
-    if (!editInvitation.signatures) {
-      promptError(`signature of ${prettyId(editInvitation.signatures)} should not be empty`)
-      return null
-    }
-    if (editInvitation.signatures.values) return editInvitation.signatures.values
-    if (editInvitation.signatures['values-regex']?.startsWith('~.*')) return [user?.profile?.id]
-    if (editInvitation.signatures['values-regex']) {
-      // eslint-disable-next-line max-len
-      const invitationMapItem = availableSignaturesInvitationMap.filter(p => p.invitation === editInvitation.id)?.[0]
-      if (invitationMapItem?.signature) return [invitationMapItem.signature] // default value
-      const availableSignatures = invitationMapItem?.signatures
-      const nonPaperSpecificGroup = availableSignatures?.filter(p => !/(Paper)[0-9]\d*/.test(p))?.[0]
-      if (nonPaperSpecificGroup) return [nonPaperSpecificGroup]
-      const paperSpecificGroup = availableSignatures?.filter(q => q.includes(`Paper${number}`))?.[0]
-      return paperSpecificGroup ? [paperSpecificGroup] : []
-    }
-    return editInvitation.signatures
-  }
-
-  const getInterpolatedValues = (value) => { // readers/nonreaders/writers
-    if (Array.isArray(value)) {
-      return value.map((v) => {
-        let finalV = v
-        if (props.columnType === 'head') {
-          finalV = finalV.replaceAll('{head.number}', number).replaceAll('{tail}', props.parentInfo.id)
-        } else if (props.columnType === 'tail') {
-          finalV = finalV.replaceAll('{head.number}', props.parentInfo.number).replaceAll('{tail}', id)
-        }
-        return finalV
-      })
-    }
-    return value
-  }
+  // readers/nonreaders/writers
+  const getValues = value => getInterpolatedValues({
+    value,
+    columnType: props.columnType,
+    shouldReplaceHeadNumber: true,
+    paperNumber: number,
+    parentPaperNumber: props.parentInfo.number,
+    id,
+    parentId: props.parentInfo.id,
+  })
 
   const handleHover = (target) => {
     if (editEdges?.length === 1) $(target).tooltip({ title: `Edited by ${prettyId(editEdges[0].signatures[0])}`, trigger: 'hover' })
