@@ -1,3 +1,4 @@
+/* globals promptError: false */
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import uniq from 'lodash/uniq'
@@ -93,7 +94,8 @@ const Browse = ({ appContext }) => {
 
           const readers = buildInvitationReplyArr(fullInvitation, 'readers', user.profile.id)
           const writers = buildInvitationReplyArr(fullInvitation, 'writers', user.profile.id) || readers
-          const signatures = buildInvitationReplyArr(fullInvitation, 'signatures', user.profile.id)
+          const signatures = fullInvitation.reply?.signatures
+          const nonreaders = buildInvitationReplyArr(fullInvitation, 'nonreaders', user.profile.id)
           Object.assign(invObj, {
             head: fullInvitation.reply.content.head,
             tail: fullInvitation.reply.content.tail,
@@ -102,6 +104,7 @@ const Browse = ({ appContext }) => {
             readers,
             writers,
             signatures,
+            nonreaders,
           })
         })
         if (!allValid) {
@@ -158,6 +161,7 @@ const Browse = ({ appContext }) => {
           browseInvitations={invitations.browseInvitations}
           hideInvitations={invitations.hideInvitations}
           maxColumns={maxColumns}
+          userInfo={{ userId: user?.id, accessToken }}
         />
       ) : (
         <LoadingSpinner />
