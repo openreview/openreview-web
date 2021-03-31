@@ -1,7 +1,9 @@
 import Icon from '../Icon'
 
 // eslint-disable-next-line object-curly-newline
-export default function EditEdgeToggle({ addEdge, removeEdge, existingEdge, canAddEdge, editEdgeTemplate }) {
+export default function EditEdgeToggle({
+  addEdge, removeEdge, existingEdge, canAddEdge, editEdgeTemplate, isInviteInvitation,
+}) {
   const showTrashButton = existingEdge?.writers?.length !== 0 // true for adding new editedge
 
   const addOrRemoveEdge = (e) => {
@@ -18,12 +20,22 @@ export default function EditEdgeToggle({ addEdge, removeEdge, existingEdge, canA
     }
   }
 
-  if (!existingEdge && !canAddEdge) return null
   const getLabel = () => {
     if (existingEdge?.label) return `${existingEdge.name}: ${existingEdge.label}${existingEdge?.weight ? `,${existingEdge.weight}` : ''}`
     if (editEdgeTemplate.label) return `${editEdgeTemplate.name}: ${editEdgeTemplate.label}${existingEdge?.weight ? `,${existingEdge.weight}` : ''}`
     return `${editEdgeTemplate.name}: ${existingEdge?.weight ?? ''}`
   }
+
+  const getTooltip = () => {
+    if (isInviteInvitation) {
+      if (existingEdge) return 'Cancel Invite'
+      return 'Invite Reviewer'
+    }
+    if (existingEdge) return 'Delete Reviewer Assignment'
+    return 'Assign Reviewer'
+  }
+
+  if (!existingEdge && !canAddEdge) return null
 
   return (
     <div className="edit-controls d-flex">
@@ -38,7 +50,7 @@ export default function EditEdgeToggle({ addEdge, removeEdge, existingEdge, canA
             autoComplete="off"
             data-tooltip="tooltip"
             data-placement="top"
-            title={existingEdge ? 'Delete Reviewer Assignment' : 'Assign Reviewer'}
+            title={getTooltip()}
           >
             <Icon name={existingEdge ? 'trash' : 'thumbs-up'} />
           </button>

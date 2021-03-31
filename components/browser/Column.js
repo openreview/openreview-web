@@ -238,7 +238,7 @@ export default function Column(props) {
           itemToAdd = {
             id: headOrTailId,
             content: {
-              name: { first: headOrTailId, middle: '', last: '' },
+              name: { first: prettyId(headOrTailId), middle: '', last: '' },
               email: headOrTailId,
               title: 'Unknown',
               expertise: [],
@@ -408,7 +408,7 @@ export default function Column(props) {
           })
         })
 
-        if (altGlobalEntityMap[parentId].traverseEdgesCount !== traverseEdges.length) {
+        if (altGlobalEntityMap[parentId]?.traverseEdgesCount !== traverseEdges.length) {
           props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', traverseEdges.length) // other user has updated edge
           setShouldUpdateItems(false) // avoid infinite update
         }

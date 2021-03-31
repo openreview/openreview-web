@@ -159,6 +159,7 @@ export default function ProfileEntity(props) {
         // eslint-disable-next-line max-len
         canAddEdge={editEdges?.filter(p => p?.invitation === editInvitation.id).length === 0 || editInvitation.multiReply} // no editedge or invitation allow multiple edges
         editEdgeTemplate={editEdgeTemplates?.find(p => p?.invitation === editInvitation.id)} // required for adding new
+        isInviteInvitation={isInviteInvitation}
       />
     )
     const editEdgeTwoDropdowns = controlType => (
@@ -205,7 +206,7 @@ export default function ProfileEntity(props) {
     <li className={`entry entry-reviewer d-flex ${extraClasses.join(' ')}`} onClick={handleClick} onMouseEnter={e => handleHover(e.currentTarget)}>
       <div className="reviewer-heading">
         <h3>
-          <a href={`/profile?id=${id}`} title={`Profile for ${id}`} target="_blank" rel="noreferrer">
+          <a href={`/profile?${id.startsWith('~') ? 'id' : 'email'}=${id}`} title={`Profile for ${id}`} target="_blank" rel="noreferrer">
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
             {content.name.first} {content.name.middle} {content.name.last}
           </a>
