@@ -299,18 +299,18 @@ which will be displayed as:
    - To assign reviewers from the reviewer pool, you can choose a reviewer from the dropdown. Here, you can also search reviewers in the reviewer pool by name or email. After finding the reviewer you want to assign, click on the 'Assign' button.
    - To assign reviewers from outside the reviewer pool, you should type the reviewer's email or OpenReview profile ID (e.g., ~Alan_Turing1) in the textbox and then click on the 'Assign' button. A reviewer does not need to have an OpenReview profile in order to be assigned to a paper.
 
-Note that assigning a reviewer to a paper through the PC console sends that reviewer an email notifying them about their new assignment.
+Note that assigning a reviewer to a paper through the PC console automatically adds that reviewer to the reviewers pool and sends them an email notifying them about their new assignment.
 
-**Area Chairs:** You can manually assign ACs using python: (You can check out the docs for our Python API [here](https://openreview-py.readthedocs.io/en/latest/))
+**Area Chairs:** Unfortunately, assigning ACs is not available through the PC console, but manual AC assignments can be made through the Python library: (You can check out the docs for our Python API [here](https://openreview-py.readthedocs.io/en/latest/))
 \`\`\`
 client = openreview.Client(baseurl = 'https://api.openreview.net', username = '', password = '')
 conference=openreview.helpers.get_conference(client, request_form_id)
-conference.set_assignment(number=paper_number, user=[email_address], is_area_chair=True)
+conference.set_assignment(number=paper_number, user=user_id, is_area_chair=True)
 \`\`\`
 - You will need to use your own OpenReview credentials to initialize the Client object.
-- **request_form_id** refers to the forum id of the venue request for your venue, (e.g., [https://openreview.net/forum?id=**r1lf10zpw4**]())
-- **paper_number** is the number of the paper you want to assign an area chair to (you can find this in the 'Paper Status' tab of the PC console)
-- **[email_address]** is an array containing the email address or OpenReview profile ID (e.g., ~Alan_Turing1) of the user you want to assign
+- **request_form_id** (string) refers to the forum id of the venue request for your venue, (e.g., [https://openreview.net/forum?id=**r1lf10zpw4**]())
+- **paper_number** (int) is the number of the paper you want to assign an area chair to (you can find this in the 'Paper Status' tab of the PC console)
+- **user_id** (string) is the email address or OpenReview profile ID (e.g., ~Alan_Turing1) of the user you want to assign
 
 Note that assigning an area chair using python does not send an email to that user. For more information on how to contact area chairs, [click here.](/faq#question-contact-venue-roles)`,
   }, {
@@ -394,7 +394,7 @@ Note that assigning an area chair using python does not send an email to that us
     a: `All papers contain the IDs of authors in the authorids field. These IDs can be either email addresses or OpenReview profile IDs. The following code will allow you to extract all email addresses of accepted papers:
 
   \`\`\`
-  accepted_papers = client.get_notes(invitation='ICLR.cc/2021/Conference/-/Blind_Submission', content={'venueid': 'ICLR.cc/2021/Conference'})
+  accepted_papers = client.get_notes(content={'venueid': 'ICLR.cc/2021/Conference'})
   for paper in accepted_papers:
     for author in paper.content['authorids']:
       if '@' in author:
@@ -404,8 +404,9 @@ Note that assigning an area chair using python does not send an email to that us
           print(profile.content.get('preferredEmail', profile.content['emails'][0]))
   \`\`\`
 
-  where the **invitation** is the paper submission invitation for your venue (*venueid + /-/Submission* if single-blind, and *venue_id + /-/Blind_Submission* if double-blind).
-  You can find the venueid in the request form for your venue.`,
+  You can find the venueid in the request form for your venue.
+
+  Note that you must first set the 'Post Decision Stage', as the **venueid** value is added to accepted papers once this stage has been called.`,
   }, {
     q: 'Can an author withdraw a rejected paper?',
     id: 'question-withdraw-paper',
