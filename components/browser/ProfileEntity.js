@@ -93,6 +93,7 @@ export default function ProfileEntity(props) {
         ddate: null,
         ...existingEdge ?? {
           ...editEdgeTemplate,
+          label: isInviteInvitation ? editInvitation.label?.default : editEdgeTemplate.label,
           readers: getValues(editInvitation.readers),
           nonreaders: getValues(editInvitation.nonreaders),
           writers: getValues(editInvitation.writers),
@@ -123,6 +124,11 @@ export default function ProfileEntity(props) {
   }
 
   const renderEditEdgeWidget = ({ editEdge, editInvitation }) => {
+    const isAssigned = (metadata.isAssigned || metadata.isUserAssigned)
+    const isInviteInvitation = editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
+
+    if (isAssigned && isInviteInvitation) return null // can't be invited/uninvited when assigned already
+    // TODO, return null if inviteinvitation in reviewer assignment stage
     const editEdgeDropdown = (type, controlType) => (
       <EditEdgeDropdown
         existingEdge={editEdge}
