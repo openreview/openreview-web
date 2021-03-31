@@ -242,7 +242,7 @@ export default function Column(props) {
               email: headOrTailId,
               title: 'Unknown',
               expertise: [],
-              isDummyProfile: true,
+              isInvitedProfile: true,
             },
             searchText: headOrTailId,
             traverseEdgesCount: 0,
