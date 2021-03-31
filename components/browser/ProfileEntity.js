@@ -58,12 +58,18 @@ export default function ProfileEntity(props) {
     // Delete existing edge
     // TODO: allow ProfileItems to be head objects
     const editInvitation = editInvitations.filter(p => p.id === editEdge.invitation)?.[0]
+    const signatures = getSignatures(editInvitation)
+    if (!signatures || signatures.length === 0) {
+      promptError('You don\'t have permission to edit this edge')
+      return
+    }
     const isInviteInvitation = editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
     try {
       const result = await api.post('/edges', {
         tail: id,
         ddate: Date.now(),
         ...editEdge,
+        signatures,
       }, { accessToken })
       // eslint-disable-next-line no-unused-expressions
       isInviteInvitation ? props.reloadWithoutUpdate() : props.removeEdgeFromEntity(id, result)
