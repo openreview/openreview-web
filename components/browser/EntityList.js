@@ -12,7 +12,7 @@ export default function EntityList(props) {
   const { traverseInvitation } = useContext(EdgeBrowserContext)
   const traverseLabel = pluralizeString(traverseInvitation.name.split(' ').pop())
 
-  const renderEntity = (entity) => {
+  const renderEntity = (entity, index) => {
     if ((entity.metadata && entity.metadata.isHidden) && !props.showHiddenItems) {
       return null
     }
@@ -22,7 +22,7 @@ export default function EntityList(props) {
       case 'Note':
         return (
           <NoteEntity
-            key={entity.id}
+            key={`${entity.id}-${index}`}
             note={entity}
             traverseLabel={traverseLabel}
             addNewColumn={props.addNewColumn}
@@ -31,13 +31,15 @@ export default function EntityList(props) {
             isSelected={isSelected}
             setSelectedItemId={props.setSelectedItemId}
             canTraverse={props.canTraverse}
+            columnType={props.columnType}
+            parentInfo={props.parentInfo}
           />
         )
 
       case 'Group':
         return (
           <GroupEntity
-            key={entity.id}
+            key={`${entity.id}-${index}`}
             group={entity}
             traverseLabel={traverseLabel}
             addNewColumn={props.addNewColumn}
@@ -52,7 +54,7 @@ export default function EntityList(props) {
       case 'Profile':
         return (
           <ProfileEntity
-            key={entity.id}
+            key={`${entity.id}-${index}`}
             profile={entity}
             traverseLabel={traverseLabel}
             addNewColumn={props.addNewColumn}
@@ -61,13 +63,15 @@ export default function EntityList(props) {
             isSelected={isSelected}
             setSelectedItemId={props.setSelectedItemId}
             canTraverse={props.canTraverse}
+            columnType={props.columnType}
+            parentInfo={props.parentInfo}
           />
         )
 
       case 'Tag':
         return (
           <TagEntity
-            key={entity.id}
+            key={`${entity.id}-${index}`}
             tag={entity}
             traverseLabel={traverseLabel}
             addNewColumn={props.addNewColumn}
