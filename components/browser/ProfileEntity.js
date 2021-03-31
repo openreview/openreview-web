@@ -58,7 +58,7 @@ export default function ProfileEntity(props) {
     // Delete existing edge
     // TODO: allow ProfileItems to be head objects
     const editInvitation = editInvitations.filter(p => p.id === editEdge.invitation)?.[0]
-    const signatures = getSignatures(editInvitation)
+    const signatures = getSignatures(editInvitation, availableSignaturesInvitationMap, props.parentInfo.number, user)
     if (!signatures || signatures.length === 0) {
       promptError('You don\'t have permission to edit this edge')
       return
