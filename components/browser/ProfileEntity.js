@@ -88,6 +88,7 @@ export default function ProfileEntity(props) {
     // Create new edge
     const editInvitation = editInvitations.filter(p => p.id === editEdgeTemplate.invitation)?.[0]
     const isInviteInvitation = editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
+    const maxLoadInvitationHead = editInvitation.head?.query?.id
     const signatures = getSignatures(editInvitation, availableSignaturesInvitationMap, props.parentInfo.number, user)
     if (!signatures || signatures.length === 0) {
       promptError('You don\'t have permission to edit this edge')
@@ -99,6 +100,7 @@ export default function ProfileEntity(props) {
         ddate: null,
         ...existingEdge ?? {
           ...editEdgeTemplate,
+          head: maxLoadInvitationHead ?? editEdgeTemplate.head,
           label: isInviteInvitation ? editInvitation.label?.default : editEdgeTemplate.label,
           readers: getValues(editInvitation.readers),
           nonreaders: getValues(editInvitation.nonreaders),

@@ -93,6 +93,7 @@ export default function NoteEntity(props) {
     // Create new edge
     const editInvitation = editInvitations.filter(p => p.id === editEdgeTemplate.invitation)?.[0]
     const signatures = getSignatures(editInvitation, availableSignaturesInvitationMap, number, user)
+    const maxLoadInvitationHead = editInvitation.head?.query?.id
     if (!signatures || signatures.length === 0) {
       promptError('You don\'t have permission to edit this edge')
       return
@@ -103,6 +104,7 @@ export default function NoteEntity(props) {
         ddate: null,
         ...existingEdge ?? {
           ...editEdgeTemplate,
+          head: maxLoadInvitationHead ?? editEdgeTemplate.head,
           readers: getValues(editInvitation.readers),
           nonreaders: getValues(editInvitation.nonreaders),
           writers: getValues(editInvitation.writers),
@@ -133,6 +135,10 @@ export default function NoteEntity(props) {
   }
 
   const renderEditEdgeWidget = ({ editEdge, editInvitation }) => {
+    const parentColumnType = props.columnType === 'head' ? 'tail' : 'head'
+    const isInviteInvitation = editInvitation[parentColumnType]?.query?.['value-regex'] === '~.*|.+@.+'
+    if (isInviteInvitation) return null
+
     const editEdgeDropdown = (type, controlType) => (
       <EditEdgeDropdown
         existingEdge={editEdge}
