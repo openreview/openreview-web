@@ -279,6 +279,38 @@ export default function Column(props) {
     colItems.push(itemToAddFormatted)
   }
 
+  // populate necessary info for items
+  const appendEdgesInfo = ({
+    item, traverseEdges, hideEdges, browseEdgeGroups, editEdgeGroups,
+  }) => {
+    const metadata = {}
+    if (traverseEdges.some(p => p[type] === item.id)) {
+      metadata.isAssigned = true
+    }
+    if (hideEdges.some(p => p[type] === item.id)) {
+      metadata.isHidden = true
+    }
+    if ([...traverseEdges, ...hideEdges, ...browseEdgeGroups.flat(), ...editEdgeGroups.flat()]
+      .some((p) => {
+        const edgeFormatted = formatEdge(p)
+        return edgeFormatted.name === 'Conflict' && edgeFormatted.weight === -1
+      })) {
+      metadata.hasConflict = true
+    }
+    const browseEdges = browseEdgeGroups.flat().filter(p => p[type] === item.id).map(q => formatEdge(q))
+
+    const hasAggregateScoreEdge = browseEdges.length && browseEdges[0].name === 'Aggregate_Score'
+    const edgeWeight = hasAggregateScoreEdge ? browseEdges[0].weight : 0
+    const editEdgeTemplates = editInvitations?.map(p => buildNewEditEdge(p, item.id, edgeWeight))
+    return {
+      ...item,
+      metadata,
+      browseEdges,
+      editEdges: editEdgeGroups.flat().filter(p => p[type] === item.id).map(p => formatEdge(p)),
+      editEdgeTemplates,
+    }
+  }
+
   useEffect(() => {
     if (props.loading) return
     if (!shouldUpdateItems) {
@@ -376,6 +408,19 @@ export default function Column(props) {
         const browseEdgeGroups = browseEditEdgeGroups.slice(editEdgesP.length)
         const colItems = []
 
+        // if clicked on invite invitation profile entity
+        // dispay full list of notes with meta/browseEdges/editEdges/editEdgeTemplates
+        if (parentColumnEntityType === 'Profile' && !altGlobalEntityMap[parentId]) {
+          setItems(Object.values(globalEntityMap).map(p => appendEdgesInfo({
+            item: p,
+            traverseEdges,
+            hideEdges,
+            browseEdgeGroups,
+            editEdgeGroups,
+          })))
+          return
+        }
+
         // sory by weight (in API) would fail when traverse edges has label instead of weight
         // and traverse is the default sort so must sort.
         const traverseLabels = traverseInvitation.label?.['value-radio']
@@ -391,16 +436,39 @@ export default function Column(props) {
 
         traverseEdges.forEach((tEdge) => {
           const headOrTailId = tEdge[type]
-          if (!globalEntityMap[headOrTailId]) {
-            // eslint-disable-next-line no-console
-            console.warn(`${headOrTailId} not found in global entity map`)
-            return
+          let itemToAdd = globalEntityMap[headOrTailId]
+          if (!itemToAdd) {
+            if (entityType === 'Profile') {
+              const hasInviteInvitation = editInvitations.some(p => p[type]?.query?.['value-regex'])
+              if (hasInviteInvitation) {
+                itemToAdd = {
+                  id: headOrTailId,
+                  content: {
+                    name: { first: prettyId(headOrTailId), middle: '', last: '' },
+                    email: headOrTailId,
+                    title: 'Unknown',
+                    expertise: [],
+                    isInvitedProfile: true,
+                  },
+                  searchText: headOrTailId,
+                  traverseEdgesCount: traverseEdges.filter(p => p[type] === headOrTailId).length,
+                }
+              } else {
+                // eslint-disable-next-line no-console
+                console.warn(`${headOrTailId} not found in global entity map`)
+                return
+              }
+            } else {
+              // eslint-disable-next-line no-console
+              console.warn(`${headOrTailId} not found in global entity map`)
+              return
+            }
           }
           const columnMetadata = type === 'head'
             ? _.get(props.metadataMap, [headOrTailId, parentId], {})
             : _.get(props.metadataMap, [parentId, headOrTailId], {})
           colItems.push({
-            ...globalEntityMap[headOrTailId],
+            ...itemToAdd,
             browseEdges: [],
             editEdges: [],
             metadata: {

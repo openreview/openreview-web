@@ -144,8 +144,10 @@ export default function NoteEntity(props) {
 
   const renderEditEdgeWidget = ({ editEdge, editInvitation }) => {
     const parentColumnType = props.columnType === 'head' ? 'tail' : 'head'
+    const isAssigned = (metadata.isAssigned || metadata.isUserAssigned)
     const isInviteInvitation = editInvitation[parentColumnType]?.query?.['value-regex'] === '~.*|.+@.+'
-    if (isInviteInvitation) return null
+    if (isAssigned && isInviteInvitation) return null
+    // if (isInviteInvitation) return null
 
     const editEdgeDropdown = (type, controlType) => (
       <EditEdgeDropdown

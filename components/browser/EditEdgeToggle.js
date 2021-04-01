@@ -22,8 +22,8 @@ export default function EditEdgeToggle({
 
   const getLabel = () => {
     if (existingEdge?.label) return `${existingEdge.name}: ${existingEdge.label}${existingEdge?.weight ? `,${existingEdge.weight}` : ''}`
-    if (editEdgeTemplate.label) return `${editEdgeTemplate.name}: ${editEdgeTemplate.label}${existingEdge?.weight ? `,${existingEdge.weight}` : ''}`
-    return `${editEdgeTemplate.name}: ${existingEdge?.weight ?? ''}`
+    if (editEdgeTemplate?.label) return `${editEdgeTemplate.name}: ${editEdgeTemplate.label}${existingEdge?.weight ? `,${existingEdge.weight}` : ''}`
+    return `${editEdgeTemplate?.name}: ${existingEdge?.weight ?? ''}`
   }
 
   const getTooltip = () => {

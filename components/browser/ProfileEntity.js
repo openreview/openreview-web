@@ -142,10 +142,16 @@ export default function ProfileEntity(props) {
   const renderEditEdgeWidget = ({ editEdge, editInvitation }) => {
     const isAssigned = (metadata.isAssigned || metadata.isUserAssigned)
     const isInviteInvitation = editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
+    const isReviewerAssignmentStage = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
 
+    // disable when traverseEdgeCount>=custmom max paper in 1st stage
+
+    // reviewer assignmet stage(1st stage) don't show invite assignment
+    // except for invited (has editEdge)
+    if (isReviewerAssignmentStage && isInviteInvitation && !editEdge) return null
     if (isAssigned && isInviteInvitation) return null // can't be invited/uninvited when assigned already
     if (content?.isInvitedProfile && !isInviteInvitation) return null // invited profile only show invite invitation
-    // TODO, return null if inviteinvitation in reviewer assignment stage
+
     const editEdgeDropdown = (type, controlType) => (
       <EditEdgeDropdown
         existingEdge={editEdge}
