@@ -3,6 +3,7 @@
 @lockGreen: #dff0d8;
 @vetoRed: #f2dede;
 @hoverColor: #f5f5f5;
+@conflictAssignedColor:#c7e1e9;
 
 main.edge-browser {
 
@@ -65,6 +66,9 @@ main.edge-browser {
     }
     &.is-assigned {
       background-color: @lockGreen;
+    }
+    &.has-conflict.is-assigned{
+      background-color: @conflictAssignedColor;
     }
     &.is-editable {
       .reviewer-heading,

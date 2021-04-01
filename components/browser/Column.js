@@ -67,6 +67,8 @@ export default function Column(props) {
     readers: edge.readers || [],
     signatures: edge.signatures || [],
     nonreaders: edge.nonreaders || [],
+    creationDate: edge.tcdate,
+    modificationDate: edge.tmdate,
   })
 
   const buildNewEditEdge = (editInvitation, entityId, weight = 0) => {

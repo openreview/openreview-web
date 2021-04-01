@@ -6,6 +6,7 @@
 /* globals promptError: false */
 
 import React, { useContext } from 'react'
+import moment from 'moment'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
@@ -131,7 +132,14 @@ export default function NoteEntity(props) {
   })
 
   const handleHover = (target) => {
-    if (editEdges?.length === 1) $(target).tooltip({ title: `Edited by ${prettyId(editEdges[0].signatures[0])}`, trigger: 'hover' })
+    if (editEdges?.length === 1) {
+      $(target).tooltip({
+        title: `Edited by ${prettyId(editEdges[0].signatures[0])}
+        on ${moment(editEdges[0].modificationDate).format('LLL')},
+        edge is created on ${moment(editEdges[0].creationDate).format('LLL')}`,
+        trigger: 'hover',
+      })
+    }
   }
 
   const renderEditEdgeWidget = ({ editEdge, editInvitation }) => {
