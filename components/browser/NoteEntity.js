@@ -34,7 +34,7 @@ export default function NoteEntity(props) {
     editEdges,
     editEdgeTemplates,
   } = props.note
-  const { editInvitations, availableSignaturesInvitationMap } = useContext(EdgeBrowserContext)
+  const { editInvitations, availableSignaturesInvitationMap, traverseInvitation } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
 
   const title = content.title ? content.title : 'No Title'
@@ -57,7 +57,7 @@ export default function NoteEntity(props) {
 
     e.preventDefault()
     props.setSelectedItemId(id)
-    props.addNewColumn(id)
+    props.addNewColumn(id, content)
   }
 
   const removeEdge = async (editEdge) => {
@@ -67,6 +67,7 @@ export default function NoteEntity(props) {
     // TODO: allow ProfileItems to be head objects
     const editInvitation = editInvitations.filter(p => p.id === editEdge.invitation)?.[0]
     const signatures = getSignatures(editInvitation, availableSignaturesInvitationMap, number, user)
+    const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     if (!signatures || signatures.length === 0) {
       promptError('You don\'t have permission to edit this edge')
       return
@@ -79,7 +80,8 @@ export default function NoteEntity(props) {
         signatures,
       },
       { accessToken })
-      props.removeEdgeFromEntity(id, result)
+      // eslint-disable-next-line no-unused-expressions
+      isTraverseInvitation ? props.removeEdgeFromEntity(id, result) : props.reloadWithoutUpdate()
     } catch (error) {
       promptError(error.message)
     }
@@ -94,11 +96,13 @@ export default function NoteEntity(props) {
     // Create new edge
     const editInvitation = editInvitations.filter(p => p.id === editEdgeTemplate.invitation)?.[0]
     const signatures = getSignatures(editInvitation, availableSignaturesInvitationMap, number, user)
+    const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     const maxLoadInvitationHead = editInvitation.head?.query?.id
     if (!signatures || signatures.length === 0) {
       promptError('You don\'t have permission to edit this edge')
       return
     }
+
     try {
       const result = await api.post('/edges', {
         tail: id,
@@ -114,7 +118,8 @@ export default function NoteEntity(props) {
         ...updatedEdgeFields,
       },
       { accessToken })
-      props.addEdgeToEntity(id, result)
+      // eslint-disable-next-line no-unused-expressions
+      isTraverseInvitation ? props.addEdgeToEntity(id, result) : props.reloadWithoutUpdate()
     } catch (error) {
       promptError(error.message)
     }
@@ -146,8 +151,26 @@ export default function NoteEntity(props) {
     const parentColumnType = props.columnType === 'head' ? 'tail' : 'head'
     const isAssigned = (metadata.isAssigned || metadata.isUserAssigned)
     const isInviteInvitation = editInvitation[parentColumnType]?.query?.['value-regex'] === '~.*|.+@.+'
-    if (isAssigned && isInviteInvitation) return null
-    // if (isInviteInvitation) return null
+    const isReviewerAssignmentStage = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
+    const isProposedAssignmentInvitation = editInvitation.id.includes('Proposed_Assignment')
+    const isCustomLoadInviation = editInvitation.id.includes('Custom_Max_Papers')
+    const isParentInvited = props.parentInfo.content?.isInvitedProfile
+    // eslint-disable-next-line max-len
+    const parentExistingLoad = props.altGlobalEntityMap[props.parentInfo.id]?.traverseEdgesCount
+    const parentCustomLoad = props.parentInfo.customLoad
+    let shouldDisableControl = false
+
+    // invited profile show only invite edge
+    if (isParentInvited && !isInviteInvitation) return null
+    if (!isParentInvited && isInviteInvitation) return null
+    // head of custom load edge is reviewer group id and does not make sense for note
+    if (isCustomLoadInviation) return null
+
+    if (isReviewerAssignmentStage
+      && isProposedAssignmentInvitation
+      && parentCustomLoad
+      && parentCustomLoad <= parentExistingLoad
+      && !editEdge) shouldDisableControl = true
 
     const editEdgeDropdown = (type, controlType) => (
       <EditEdgeDropdown
@@ -172,6 +195,8 @@ export default function NoteEntity(props) {
         // eslint-disable-next-line max-len
         canAddEdge={editEdges?.filter(p => p?.invitation === editInvitation.id).length === 0 || editInvitation.multiReply} // no editedge or invitation allow multiple edges
         editEdgeTemplate={editEdgeTemplates?.find(p => p.invitation === editInvitation.id)} // required for adding new
+        shouldDisableControl={shouldDisableControl}
+        isInviteInvitation={isInviteInvitation}
       />
     )
     const editEdgeTwoDropdowns = controlType => (

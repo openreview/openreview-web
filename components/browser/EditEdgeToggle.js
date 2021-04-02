@@ -2,7 +2,7 @@ import Icon from '../Icon'
 
 // eslint-disable-next-line object-curly-newline
 export default function EditEdgeToggle({
-  addEdge, removeEdge, existingEdge, canAddEdge, editEdgeTemplate, isInviteInvitation,
+  addEdge, removeEdge, existingEdge, canAddEdge, editEdgeTemplate, isInviteInvitation, shouldDisableControl = false,
 }) {
   const showTrashButton = existingEdge?.writers?.length !== 0 // true for adding new editedge
 
@@ -15,7 +15,7 @@ export default function EditEdgeToggle({
         e,
         existingEdge,
         editEdgeTemplate,
-        updatedEdgeFields: { weight: 1 },
+        updatedEdgeFields: isInviteInvitation ? undefined : { weight: 1 }, // invite invitation weight remain as 0
       })
     }
   }
@@ -51,6 +51,7 @@ export default function EditEdgeToggle({
             data-tooltip="tooltip"
             data-placement="top"
             title={getTooltip()}
+            disabled={shouldDisableControl}
           >
             <Icon name={existingEdge ? 'trash' : 'thumbs-up'} />
           </button>

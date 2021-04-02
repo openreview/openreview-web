@@ -28,12 +28,16 @@ export default function ProfileEntity(props) {
     content,
     editEdges,
     editEdgeTemplates,
+    browseEdges,
+    traverseEdgesCount,
   } = props.profile
-  const { editInvitations, availableSignaturesInvitationMap } = useContext(EdgeBrowserContext)
+  const { editInvitations, availableSignaturesInvitationMap, traverseInvitation } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
 
   const metadata = props.profile.metadata || {}
   const extraClasses = []
+  const customLoad = [...browseEdges, ...editEdges].filter(p => p.invitation.includes('Custom_Max_Papers'))?.[0]?.weight
+
   if (metadata.isAssigned || metadata.isUserAssigned) extraClasses.push('is-assigned')
   if (metadata.hasConflict) extraClasses.push('has-conflict')
   if (metadata.isHidden) extraClasses.push('is-hidden')
@@ -50,7 +54,7 @@ export default function ProfileEntity(props) {
 
     e.preventDefault()
     props.setSelectedItemId(id)
-    props.addNewColumn(id)
+    props.addNewColumn(id, content, customLoad)
   }
 
   const removeEdge = async (editEdge) => {
@@ -64,7 +68,8 @@ export default function ProfileEntity(props) {
       promptError('You don\'t have permission to edit this edge')
       return
     }
-    const isInviteInvitation = editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
+    // const isInviteInvitation = editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
+    const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     try {
       const result = await api.post('/edges', {
         tail: id,
@@ -73,7 +78,9 @@ export default function ProfileEntity(props) {
         signatures,
       }, { accessToken })
       // eslint-disable-next-line no-unused-expressions
-      isInviteInvitation ? props.reloadWithoutUpdate() : props.removeEdgeFromEntity(id, result)
+      // isInviteInvitation ? props.reloadWithoutUpdate() : props.removeEdgeFromEntity(id, result)
+      // eslint-disable-next-line no-unused-expressions
+      isTraverseInvitation ? props.removeEdgeFromEntity(id, result) : props.reloadWithoutUpdate()
     } catch (error) {
       promptError(error.message)
     }
@@ -89,6 +96,7 @@ export default function ProfileEntity(props) {
     // Create new edge
     const editInvitation = editInvitations.filter(p => p.id === editEdgeTemplate.invitation)?.[0]
     const isInviteInvitation = editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
+    const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     const maxLoadInvitationHead = editInvitation.head?.query?.id
     const signatures = getSignatures(editInvitation, availableSignaturesInvitationMap, props.parentInfo.number, user)
     if (!signatures || signatures.length === 0) {
@@ -111,7 +119,8 @@ export default function ProfileEntity(props) {
         ...updatedEdgeFields,
       }, { accessToken })
       // eslint-disable-next-line no-unused-expressions
-      isInviteInvitation ? props.reloadWithoutUpdate() : props.addEdgeToEntity(id, result)
+      isTraverseInvitation ? props.addEdgeToEntity(id, result) : props.reloadWithoutUpdate()
+      // isInviteInvitation ? props.reloadWithoutUpdate() : props.addEdgeToEntity(id, result)
     } catch (error) {
       promptError(error.message)
     }
@@ -142,15 +151,32 @@ export default function ProfileEntity(props) {
   const renderEditEdgeWidget = ({ editEdge, editInvitation }) => {
     const isAssigned = (metadata.isAssigned || metadata.isUserAssigned)
     const isInviteInvitation = editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
+    const isProposedAssignmentInvitation = editInvitation.id.includes('Proposed_Assignment')
     const isReviewerAssignmentStage = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
+    const isEmergencyReviewerStage = editInvitations.some(p => p.id.includes('Assignment'))
+    let shouldDisableControl = false
 
-    // disable when traverseEdgeCount>=custmom max paper in 1st stage
+    // disable propose assignment when traverseEdgeCount>=custmom max paper in 1st stage
+    if (isReviewerAssignmentStage
+      && isProposedAssignmentInvitation
+      && customLoad
+      && customLoad <= traverseEdgesCount
+      && !editEdge) shouldDisableControl = true
 
     // reviewer assignmet stage(1st stage) don't show invite assignment
     // except for invited (has editEdge)
     if (isReviewerAssignmentStage && isInviteInvitation && !editEdge) return null
-    if (isAssigned && isInviteInvitation) return null // can't be invited/uninvited when assigned already
-    if (content?.isInvitedProfile && !isInviteInvitation) return null // invited profile only show invite invitation
+    // can't be invited/uninvited when assigned already(except invited profile to enable delete)
+    if (isAssigned && isInviteInvitation && !content?.isInvitedProfile) return null
+    if ( // invited profile show only proposed/invite assignment widget
+      content?.isInvitedProfile
+      && isReviewerAssignmentStage
+      && !(isInviteInvitation || isProposedAssignmentInvitation)) return null
+    if ( // invited profile show only invite widget
+      content?.isInvitedProfile
+      && isEmergencyReviewerStage
+      && !isInviteInvitation
+    ) return null
 
     const editEdgeDropdown = (type, controlType) => (
       <EditEdgeDropdown
@@ -176,6 +202,7 @@ export default function ProfileEntity(props) {
         canAddEdge={editEdges?.filter(p => p?.invitation === editInvitation.id).length === 0 || editInvitation.multiReply} // no editedge or invitation allow multiple edges
         editEdgeTemplate={editEdgeTemplates?.find(p => p?.invitation === editInvitation.id)} // required for adding new
         isInviteInvitation={isInviteInvitation}
+        shouldDisableControl={shouldDisableControl}
       />
     )
     const editEdgeTwoDropdowns = controlType => (

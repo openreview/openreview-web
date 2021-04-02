@@ -9,7 +9,6 @@ import Column from './Column'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import { formatEntityContent, buildSearchText } from '../../lib/edge-utils'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
 
 export default class EdgeBrowser extends React.Component {
   constructor(props) {
@@ -169,13 +168,12 @@ export default class EdgeBrowser extends React.Component {
             }
           })
         }
-
         return entityMap
       })
   }
 
   addNewColumn(index) {
-    return (parentId) => {
+    return (parentId, parentContent, parentCustomLoad) => {
       if (!parentId) {
         return
       }
@@ -198,6 +196,8 @@ export default class EdgeBrowser extends React.Component {
         type,
         entityType,
         parentId,
+        parentContent,
+        parentCustomLoad,
       }
 
       this.setState({
@@ -300,6 +300,9 @@ export default class EdgeBrowser extends React.Component {
               loading={this.state.loading}
               finalColumn={i + 1 === this.maxColumns}
               parentColumnEntityType={this.state.columns[i - 1]?.entityType} // to decide whether number can be used
+              parentContent={column.parentContent}
+              parentTraverseCount={column.parentTraverseCount}
+              parentCustomLoad={column.parentCustomLoad}
             />
           ))}
           <div className="column column-spacer" tabIndex="-1" />

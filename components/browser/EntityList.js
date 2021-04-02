@@ -33,6 +33,7 @@ export default function EntityList(props) {
             canTraverse={props.canTraverse}
             columnType={props.columnType}
             parentInfo={props.parentInfo}
+            altGlobalEntityMap={props.altGlobalEntityMap}
           />
         )
 
