@@ -154,6 +154,7 @@ export default function ProfileEntity(props) {
     const isProposedAssignmentInvitation = editInvitation.id.includes('Proposed_Assignment')
     const isReviewerAssignmentStage = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
     const isEmergencyReviewerStage = editInvitations.some(p => p.id.includes('Assignment'))
+    const isNotWritable = editEdge?.writable
     let shouldDisableControl = false
 
     // disable propose assignment when traverseEdgeCount>=custmom max paper in 1st stage
@@ -163,6 +164,8 @@ export default function ProfileEntity(props) {
       && customLoad <= traverseEdgesCount
       && !editEdge) shouldDisableControl = true
 
+    // edit is not allowed if not writable
+    if (editEdge && isNotWritable) shouldDisableControl = true
     // reviewer assignmet stage(1st stage) don't show invite assignment
     // except for invited (has editEdge)
     if (isReviewerAssignmentStage && isInviteInvitation && !editEdge) return null

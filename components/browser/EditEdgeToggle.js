@@ -4,8 +4,6 @@ import Icon from '../Icon'
 export default function EditEdgeToggle({
   addEdge, removeEdge, existingEdge, canAddEdge, editEdgeTemplate, isInviteInvitation, shouldDisableControl = false,
 }) {
-  const showTrashButton = existingEdge?.writers?.length !== 0 // true for adding new editedge
-
   const addOrRemoveEdge = (e) => {
     if (existingEdge) {
       e.stopPropagation()
@@ -40,23 +38,18 @@ export default function EditEdgeToggle({
   return (
     <div className="edit-controls d-flex">
       <label className="edit-edge-toggle-description">{getLabel()}</label>
-      {
-        showTrashButton
-        && (
-          <button
-            type="button"
-            className="btn btn-xs btn-default ml-1 edit-edge-toggle-btn"
-            onClick={addOrRemoveEdge}
-            autoComplete="off"
-            data-tooltip="tooltip"
-            data-placement="top"
-            title={getTooltip()}
-            disabled={shouldDisableControl}
-          >
-            <Icon name={existingEdge ? 'trash' : 'thumbs-up'} />
-          </button>
-        )
-      }
+      <button
+        type="button"
+        className="btn btn-xs btn-default ml-1 edit-edge-toggle-btn"
+        onClick={addOrRemoveEdge}
+        autoComplete="off"
+        data-tooltip="tooltip"
+        data-placement="top"
+        title={getTooltip()}
+        disabled={shouldDisableControl}
+      >
+        <Icon name={existingEdge ? 'trash' : 'thumbs-up'} extraClasses={shouldDisableControl ? 'span-disabled' : null} />
+      </button>
     </div>
   )
 }

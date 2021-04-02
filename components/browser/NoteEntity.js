@@ -158,6 +158,7 @@ export default function NoteEntity(props) {
     // eslint-disable-next-line max-len
     const parentExistingLoad = props.altGlobalEntityMap[props.parentInfo.id]?.traverseEdgesCount
     const parentCustomLoad = props.parentInfo.customLoad
+    const isNotWritable = editEdge?.writable
     let shouldDisableControl = false
 
     // invited profile show only invite edge
@@ -171,6 +172,9 @@ export default function NoteEntity(props) {
       && parentCustomLoad
       && parentCustomLoad <= parentExistingLoad
       && !editEdge) shouldDisableControl = true
+
+    // edit is not allowed if not writable
+    if (editEdge && isNotWritable) shouldDisableControl = true
 
     const editEdgeDropdown = (type, controlType) => (
       <EditEdgeDropdown

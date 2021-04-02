@@ -515,7 +515,7 @@ export default function Column(props) {
       traverseInvitation.id, traverseInvitation.query,
     )).then(response => response.edges)
     const editEdgesP = editInvitations?.map(inv => Webfield.getAll('/edges', buildQuery(
-      inv.id, inv.query,
+      inv.id, { ...inv.query, details: inv.query.details ? `${inv.query.details},writable` : 'writable' },
     ))) ?? []
     const hideEdgesP = hideInvitation ? Webfield.get('/edges', buildQuery(
       hideInvitation.id, hideInvitation.query,
