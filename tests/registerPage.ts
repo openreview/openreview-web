@@ -166,6 +166,7 @@ test('update profile', async (t) => {
     .typeText(Selector('#homepage_url'), 'http://homepage.do')
     .typeText(Selector('input').withAttribute('placeholder', 'Choose a position or type a new one'), 'MS student')
     .typeText(Selector('input').withAttribute('placeholder', 'Choose a domain or type a new one'), 'umass.edu')
+    .typeText(Selector('input').withAttribute('class', 'institution_name'), 'University of Massachusetts, Amherst')
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messagePanelSelector.exists).ok()
     .expect(messageSelector.innerText)
