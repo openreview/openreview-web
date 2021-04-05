@@ -194,7 +194,6 @@ export async function createUser({
       history: [history || defaultHistory],
       relations: [],
       expertise: [],
-      publicationIdsToUnlink: [],
     },
   }
   if (activate) {
