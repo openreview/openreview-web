@@ -14,7 +14,7 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
   const { user, accessToken } = useContext(UserContext)
 
   const emailsToInviteArray = emailsToInvite?.split(';')?.map(p => p.trim())?.filter(p => p)
-  const editInvitation = editInvitations.filter(p => p?.[type]?.query?.['value-regex'] === '~.*|.+@.+')?.[0]
+  const editInvitation = editInvitations?.filter(p => p?.[type]?.query?.['value-regex'] === '~.*|.+@.+')?.[0]
 
   const handleInviteBtnClick = async () => {
     emailsToInviteArray.forEach(async (email) => {
