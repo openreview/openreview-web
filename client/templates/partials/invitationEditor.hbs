@@ -22,6 +22,18 @@
   </form>
 </section>
 
+<section class="tabs">
+  <h4>Reply Forum Views</h4>
+
+  <form class="invitation-forum-views-form">
+    <textarea name="reply-forum-views" class="form-control" rows="10">{{replyForumViewsJson}}</textarea>
+    <div class="alert alert-danger" style="display: none;">
+      <strong>Error:</strong> Reply content is not valid JSON. Make sure all quotes and brackets match.
+    </div>
+    <button type="submit" class="btn btn-sm btn-primary">Save Invitation</button>
+  </form>
+</section>
+
 <section class="webfield">
   <h4>Invitation UI Code</h4>
 
