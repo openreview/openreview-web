@@ -2774,6 +2774,11 @@ module.exports = (function() {
           ret.authorids.push(authorid);
         });
         return ret;
+      } else if (contentObj.hasOwnProperty('value-dropdown')) {
+        var values = idsFromListAdder($contentMap[k], ret);
+        if (values && values.length) {
+          inputVal = values[0];
+        }
       } else if (contentObj.hasOwnProperty('values-regex')) {
         var inputArray = inputVal.split(',');
         inputVal = _.filter(
