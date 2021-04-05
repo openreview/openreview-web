@@ -2775,11 +2775,9 @@ module.exports = (function() {
         });
         return ret;
       } else if (contentObj.hasOwnProperty('value-dropdown')) {
-        if (!inputVal) {
-          var values = idsFromListAdder($contentMap[k], ret);
-          if (values && values.length) {
-            inputVal = values[0];
-          }
+        var values = idsFromListAdder($contentMap[k], ret);
+        if (values && values.length) {
+          inputVal = values[0];
         }
       } else if (contentObj.hasOwnProperty('values-regex')) {
         var inputArray = inputVal.split(',');
