@@ -77,6 +77,7 @@ export default function Column(props) {
     nonreaders: edge.nonreaders || [],
     creationDate: edge.tcdate,
     modificationDate: edge.tmdate,
+    writable: edge.details?.writable ?? false,
   })
 
   const buildNewEditEdge = (editInvitation, entityId, weight = 0) => {
@@ -606,6 +607,9 @@ export default function Column(props) {
           setShouldUpdateItems(false) // avoid infinite update
         }
 
+        // Add existing edit edges to items
+        editEdgeGroups.forEach(editEdge => editEdge.forEach(updateColumnItems('editEdges', colItems)))
+
         // Add all browse edges to items
         browseEdgeGroups.forEach((browseEdges, i) => {
           if (!browseEdges) {
@@ -624,9 +628,6 @@ export default function Column(props) {
         })
 
         hideEdges.forEach(updateColumnItems('browseEdges', colItems, true))
-
-        // Add existing edit edges to items
-        editEdgeGroups.forEach(editEdge => editEdge.forEach(updateColumnItems('editEdges', colItems)))
 
         // Add each editInvitation as a template so that new invitation can be added
         if (editInvitations?.length) {
@@ -817,6 +818,8 @@ export default function Column(props) {
               globalEntityMap={globalEntityMap}
               altGlobalEntityMap={altGlobalEntityMap}
               reloadWithoutUpdate={() => setShouldReload(!shouldReload)}
+              updateChildColumn={props.updateChildColumn}
+              columnIndex={props.index}
             />
             <EditEdgeInviteEmail
               type={type}

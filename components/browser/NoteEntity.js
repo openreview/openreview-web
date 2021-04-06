@@ -136,17 +136,6 @@ export default function NoteEntity(props) {
     parentId: props.parentInfo.id,
   })
 
-  const handleHover = (target) => {
-    if (editEdges?.length === 1) {
-      $(target).tooltip({
-        title: `Edited by ${prettyId(editEdges[0].signatures[0])}
-        on ${moment(editEdges[0].modificationDate).format('LLL')},
-        edge is created on ${moment(editEdges[0].creationDate).format('LLL')}`,
-        trigger: 'hover',
-      })
-    }
-  }
-
   const renderEditEdgeWidget = ({ editEdge, editInvitation }) => {
     const parentColumnType = props.columnType === 'head' ? 'tail' : 'head'
     const isAssigned = (metadata.isAssigned || metadata.isUserAssigned)
@@ -158,7 +147,7 @@ export default function NoteEntity(props) {
     // eslint-disable-next-line max-len
     const parentExistingLoad = props.altGlobalEntityMap[props.parentInfo.id]?.traverseEdgesCount
     const parentCustomLoad = props.parentInfo.customLoad
-    const isNotWritable = editEdge?.writable
+    const isNotWritable = editEdge?.writable === false
     let shouldDisableControl = false
 
     // invited profile show only invite edge
@@ -244,7 +233,7 @@ export default function NoteEntity(props) {
 
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-    <li className={`entry entry-note ${extraClasses.join(' ')}`} onClick={handleClick} onMouseEnter={e => handleHover(e.currentTarget)}>
+    <li className={`entry entry-note ${extraClasses.join(' ')}`} onClick={handleClick}>
       <div className="note-heading">
         <h3>
           <a href={`/forum?id=${forum}`} title="Open forum for this paper" target="_blank" rel="noreferrer">
@@ -267,7 +256,12 @@ export default function NoteEntity(props) {
       <div className="note-meta clearfix">
         { // existing editEdges
           // eslint-disable-next-line max-len,react/no-array-index-key
-          editEdges?.map((editEdge, index) => <React.Fragment key={index}>{renderEditEdgeWidget({ editEdge, editInvitation: editInvitations.find(p => p.id === editEdge.invitation) })}</React.Fragment>)
+          editEdges?.map((editEdge, index) => (
+            <React.Fragment key={index}>
+              {/* eslint-disable-next-line max-len */}
+              {renderEditEdgeWidget({ editEdge, editInvitation: editInvitations.find(p => p.id === editEdge.invitation) })}
+            </React.Fragment>
+          ))
         }
         { // adding new editEdge
           // eslint-disable-next-line max-len,react/no-array-index-key

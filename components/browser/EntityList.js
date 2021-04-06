@@ -34,6 +34,7 @@ export default function EntityList(props) {
             columnType={props.columnType}
             parentInfo={props.parentInfo}
             altGlobalEntityMap={props.altGlobalEntityMap}
+            reloadWithoutUpdate={props.reloadWithoutUpdate}
           />
         )
 
@@ -67,6 +68,8 @@ export default function EntityList(props) {
             columnType={props.columnType}
             parentInfo={props.parentInfo}
             reloadWithoutUpdate={props.reloadWithoutUpdate}
+            updateChildColumn={props.updateChildColumn}
+            columnIndex={props.columnIndex}
           />
         )
 

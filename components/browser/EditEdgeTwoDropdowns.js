@@ -1,7 +1,9 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/destructuring-assignment */
+/* globals $: false */
 
 import { useState } from 'react'
+import { getTooltipTitle } from '../../lib/edge-utils'
 
 export default function EditEdgeTwoDropdowns(props) {
   const defaultOption = props.default ? props.default : props.options[0]
@@ -28,11 +30,21 @@ export default function EditEdgeTwoDropdowns(props) {
     })
   }
 
+  const handleHover = (target) => {
+    if (!props.existingEdge) return
+    const title = getTooltipTitle(props.existingEdge)
+    $(target).tooltip({
+      title,
+      trigger: 'hover',
+      container: 'body',
+    })
+  }
+
   if (!props.existingEdge && !props.canAddEdge) return null
   return (
     <div className="edit-controls full-width d-flex">
       <div className="d-flex">
-        <label>
+        <label onMouseEnter={e => handleHover(e.target)}>
           {props.editInvitation.name}
           :
         </label>

@@ -36,7 +36,10 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
         const result = await api.post('/edges', newEdgeJson, { accessToken })
         setEmailsToInvite('')
       } catch (error) {
-        promptError(error.message)
+        // this is temporary without changing global error handling
+        // only error.message is required after error is migrated
+        // eslint-disable-next-line no-unused-expressions
+        error.name === 'tooMany' ? promptError(error.details?.value) : promptError(error.message)
       }
     })
     // trigger column update

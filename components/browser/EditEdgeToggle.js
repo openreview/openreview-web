@@ -1,4 +1,6 @@
+/* globals $: false */
 import Icon from '../Icon'
+import { getTooltipTitle } from '../../lib/edge-utils'
 
 // eslint-disable-next-line object-curly-newline
 export default function EditEdgeToggle({
@@ -33,11 +35,21 @@ export default function EditEdgeToggle({
     return 'Assign Reviewer'
   }
 
+  const handleHover = (target) => {
+    if (!existingEdge) return
+    const title = getTooltipTitle(existingEdge)
+    $(target).tooltip({
+      title,
+      trigger: 'hover',
+      container: 'body',
+    })
+  }
+
   if (!existingEdge && !canAddEdge) return null
 
   return (
     <div className="edit-controls d-flex">
-      <label className="edit-edge-toggle-description">{getLabel()}</label>
+      <label className="edit-edge-toggle-description" onMouseEnter={e => handleHover(e.target)}>{getLabel()}</label>
       <button
         type="button"
         className="btn btn-xs btn-default ml-1 edit-edge-toggle-btn"

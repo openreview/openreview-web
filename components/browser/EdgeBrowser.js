@@ -50,6 +50,7 @@ export default class EdgeBrowser extends React.Component {
     this.exploreInterfaceRef = React.createRef()
     this.updateGlobalEntityMap = this.updateGlobalEntityMap.bind(this)
     this.updateMetadataMap = this.updateMetadataMap.bind(this)
+    this.updateChildColumn = this.updateChildColumn.bind(this)
 
     this.userId = props.userInfo.userId
     this.accessToken = props.userInfo.accessToken
@@ -237,6 +238,19 @@ export default class EdgeBrowser extends React.Component {
     })
   }
 
+  // update the parentCustomLoad of child column
+  // when custom load of a column is changed
+  // index is index of the column where the custom load of an entity is changed
+  updateChildColumn(index, customLoad) {
+    if (index + 1 >= this.state.columns.length) return
+    this.setState({
+      columns: [
+        ...this.state.columns.slice(0, index + 1),
+        { ...this.state.columns[index + 1], parentCustomLoad: customLoad },
+        ...this.state.columns.slice(index + 2, this.state.columns.length)],
+    })
+  }
+
   async lookupSignatures() {
     const editInvitationSignaturesMap = []
     this.editInvitations?.forEach(async (editInvitation) => {
@@ -303,6 +317,8 @@ export default class EdgeBrowser extends React.Component {
               parentContent={column.parentContent}
               parentTraverseCount={column.parentTraverseCount}
               parentCustomLoad={column.parentCustomLoad}
+              index={i}
+              updateChildColumn={this.updateChildColumn}
             />
           ))}
           <div className="column column-spacer" tabIndex="-1" />

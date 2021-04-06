@@ -6,10 +6,8 @@
 /* globals promptError: false */
 
 import React, { useContext } from 'react'
-import moment from 'moment'
 import api from '../../lib/api-client'
 import { getInterpolatedValues, getSignatures } from '../../lib/edge-utils'
-import { prettyId } from '../../lib/utils'
 import UserContext from '../UserContext'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
@@ -70,6 +68,7 @@ export default function ProfileEntity(props) {
     }
     // const isInviteInvitation = editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
+    const isCustomLoadInvitation = editInvitation.id.includes('Custom_Max_Papers')
     try {
       const result = await api.post('/edges', {
         tail: id,
@@ -77,10 +76,13 @@ export default function ProfileEntity(props) {
         ...editEdge,
         signatures,
       }, { accessToken })
-      // eslint-disable-next-line no-unused-expressions
-      // isInviteInvitation ? props.reloadWithoutUpdate() : props.removeEdgeFromEntity(id, result)
-      // eslint-disable-next-line no-unused-expressions
-      isTraverseInvitation ? props.removeEdgeFromEntity(id, result) : props.reloadWithoutUpdate()
+
+      if (isTraverseInvitation) {
+        props.removeEdgeFromEntity(id, result)
+      } else {
+        if (isCustomLoadInvitation) props.updateChildColumn(props.columnIndex, null)
+        props.reloadWithoutUpdate()
+      }
     } catch (error) {
       promptError(error.message)
     }
@@ -97,6 +99,7 @@ export default function ProfileEntity(props) {
     const editInvitation = editInvitations.filter(p => p.id === editEdgeTemplate.invitation)?.[0]
     const isInviteInvitation = editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
+    const isCustomLoadInvitation = editInvitation.id.includes('Custom_Max_Papers')
     const maxLoadInvitationHead = editInvitation.head?.query?.id
     const signatures = getSignatures(editInvitation, availableSignaturesInvitationMap, props.parentInfo.number, user)
     if (!signatures || signatures.length === 0) {
@@ -118,8 +121,12 @@ export default function ProfileEntity(props) {
         },
         ...updatedEdgeFields,
       }, { accessToken })
-      // eslint-disable-next-line no-unused-expressions
-      isTraverseInvitation ? props.addEdgeToEntity(id, result) : props.reloadWithoutUpdate()
+      if (isTraverseInvitation) {
+        props.addEdgeToEntity(id, result)
+      } else {
+        if (isCustomLoadInvitation) props.updateChildColumn(props.columnIndex, updatedEdgeFields?.weight)
+        props.reloadWithoutUpdate()
+      }
       // isInviteInvitation ? props.reloadWithoutUpdate() : props.addEdgeToEntity(id, result)
     } catch (error) {
       promptError(error.message)
@@ -137,24 +144,13 @@ export default function ProfileEntity(props) {
     parentId: props.parentInfo.id,
   })
 
-  const handleHover = (target) => { // show if has only 1 edit edge
-    if (editEdges?.length === 1) {
-      $(target).tooltip({
-        title: `Edited by ${prettyId(editEdges[0].signatures[0])}
-        on ${moment(editEdges[0].modificationDate).format('LLL')},
-        edge is created on ${moment(editEdges[0].creationDate).format('LLL')}`,
-        trigger: 'hover',
-      })
-    }
-  }
-
   const renderEditEdgeWidget = ({ editEdge, editInvitation }) => {
     const isAssigned = (metadata.isAssigned || metadata.isUserAssigned)
     const isInviteInvitation = editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
     const isProposedAssignmentInvitation = editInvitation.id.includes('Proposed_Assignment')
     const isReviewerAssignmentStage = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
-    const isEmergencyReviewerStage = editInvitations.some(p => p.id.includes('Assignment'))
-    const isNotWritable = editEdge?.writable
+    const isEmergencyReviewerStage = editInvitations.some(p => p.id.includes('/Assignment'))
+    const isNotWritable = editEdge?.writable === false
     let shouldDisableControl = false
 
     // disable propose assignment when traverseEdgeCount>=custmom max paper in 1st stage
@@ -249,7 +245,7 @@ export default function ProfileEntity(props) {
 
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-    <li className={`entry entry-reviewer d-flex ${extraClasses.join(' ')}`} onClick={handleClick} onMouseEnter={e => handleHover(e.currentTarget)}>
+    <li className={`entry entry-reviewer d-flex ${extraClasses.join(' ')}`} onClick={handleClick}>
       <div className="reviewer-heading">
         <h3>
           <a href={`/profile?${id.startsWith('~') ? 'id' : 'email'}=${id}`} title={`Profile for ${id}`} target="_blank" rel="noreferrer">
