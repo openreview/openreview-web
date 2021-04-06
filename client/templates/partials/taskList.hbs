@@ -15,7 +15,7 @@
       {{#if noteInvitation}}
         <h4>
           {{#if reply.replyto}}
-            <a href="/forum?id={{details.replytoNote.forum}}&noteId={{reply.replyto}}{{#unless completed}}&invitationId={{id}}{{/unless}}{{#if ../taskOptions.referrer}}&referrer={{../taskOptions.referrer}}{{/if}}">
+            <a href="/forum?id={{details.replytoNote.forum}}&noteId={{noteId}}{{#unless completed}}&invitationId={{id}}{{/unless}}{{#if ../taskOptions.referrer}}&referrer={{../taskOptions.referrer}}{{/if}}">
               {{prettyInvitationId id includePaperNum=true}}
             </a>
           {{else}}

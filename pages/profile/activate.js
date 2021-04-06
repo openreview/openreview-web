@@ -4,6 +4,7 @@
 import { useEffect, useState, useContext } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
+import omit from 'lodash/omit'
 import useQuery from '../../hooks/useQuery'
 import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -35,8 +36,13 @@ const ActivateProfile = ({ appContext }) => {
   }
 
   const saveProfile = async (newProfileData, done) => {
+    const dataToSubmit = {
+      ...newProfileData,
+      content: omit(newProfileData.content, ['publicationIdsToUnlink']),
+    }
+
     try {
-      const { user, token } = await api.put(`/activate/${activateToken}`, newProfileData)
+      const { user, token } = await api.put(`/activate/${activateToken}`, dataToSubmit)
       if (token) {
         promptMessage('Your OpenReview profile has been successfully created', { scrollToTop: false })
         loginUser(user, token)
