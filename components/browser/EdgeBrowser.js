@@ -51,6 +51,7 @@ export default class EdgeBrowser extends React.Component {
     this.updateGlobalEntityMap = this.updateGlobalEntityMap.bind(this)
     this.updateMetadataMap = this.updateMetadataMap.bind(this)
     this.updateChildColumn = this.updateChildColumn.bind(this)
+    this.reloadColumnEntities = this.reloadColumnEntities.bind(this)
 
     this.userId = props.userInfo.userId
     this.accessToken = props.userInfo.accessToken
@@ -199,6 +200,7 @@ export default class EdgeBrowser extends React.Component {
         parentId,
         parentContent,
         parentCustomLoad,
+        shouldReloadEntities: false,
       }
 
       this.setState({
@@ -241,14 +243,39 @@ export default class EdgeBrowser extends React.Component {
   // update the parentCustomLoad of child column
   // when custom load of a column is changed
   // index is index of the column where the custom load of an entity is changed
+  // also update if there's column with same parent
   updateChildColumn(index, customLoad) {
     if (index + 1 >= this.state.columns.length) return
-    this.setState({
-      columns: [
-        ...this.state.columns.slice(0, index + 1),
-        { ...this.state.columns[index + 1], parentCustomLoad: customLoad },
-        ...this.state.columns.slice(index + 2, this.state.columns.length)],
-    })
+    const parentIdOfColumn = this.state.columns[index].parentId
+    const resultColumns = []
+    resultColumns.push(this.state.columns[0])
+    for (let i = 1; i < this.state.columns.length; i += 1) {
+      const parentColumn = this.state.columns[i - 1]
+      const column = this.state.columns[i]
+      if (parentColumn.parentId === parentIdOfColumn) {
+        resultColumns.push({ ...column, parentCustomLoad: customLoad })
+      } else {
+        resultColumns.push({ ...column })
+      }
+    }
+    this.setState({ columns: resultColumns })
+  }
+
+  // set the shouldUpdate property of column at index
+  // and all other columns with same parent
+  // to trigger entites reload of those columns
+  reloadColumnEntities(index) {
+    const parentIdOfColumn = this.state.columns[index].parentId
+    const resultColumns = []
+    for (let i = 0; i < this.state.columns.length; i += 1) {
+      const column = this.state.columns[i]
+      if (column?.parentId === parentIdOfColumn) {
+        resultColumns.push({ ...column, shouldReloadEntities: !column.shouldReloadEntities })
+      } else {
+        resultColumns.push({ ...column })
+      }
+    }
+    this.setState({ columns: resultColumns })
   }
 
   async lookupSignatures() {
@@ -319,6 +346,8 @@ export default class EdgeBrowser extends React.Component {
               parentCustomLoad={column.parentCustomLoad}
               index={i}
               updateChildColumn={this.updateChildColumn}
+              shouldReloadEntities={column.shouldReloadEntities}
+              reloadColumnEntities={this.reloadColumnEntities}
             />
           ))}
           <div className="column column-spacer" tabIndex="-1" />

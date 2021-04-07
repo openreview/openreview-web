@@ -81,7 +81,7 @@ export default function ProfileEntity(props) {
         props.removeEdgeFromEntity(id, result)
       } else {
         if (isCustomLoadInvitation) props.updateChildColumn(props.columnIndex, null)
-        props.reloadWithoutUpdate()
+        props.reloadColumnEntities()
       }
     } catch (error) {
       promptError(error.message)
@@ -125,7 +125,7 @@ export default function ProfileEntity(props) {
         props.addEdgeToEntity(id, result)
       } else {
         if (isCustomLoadInvitation) props.updateChildColumn(props.columnIndex, updatedEdgeFields?.weight)
-        props.reloadWithoutUpdate()
+        props.reloadColumnEntities()
       }
       // isInviteInvitation ? props.reloadWithoutUpdate() : props.addEdgeToEntity(id, result)
     } catch (error) {

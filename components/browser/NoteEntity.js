@@ -81,7 +81,7 @@ export default function NoteEntity(props) {
       },
       { accessToken })
       // eslint-disable-next-line no-unused-expressions
-      isTraverseInvitation ? props.removeEdgeFromEntity(id, result) : props.reloadWithoutUpdate()
+      isTraverseInvitation ? props.removeEdgeFromEntity(id, result) : props.reloadColumnEntities()
     } catch (error) {
       promptError(error.message)
     }
@@ -119,7 +119,7 @@ export default function NoteEntity(props) {
       },
       { accessToken })
       // eslint-disable-next-line no-unused-expressions
-      isTraverseInvitation ? props.addEdgeToEntity(id, result) : props.reloadWithoutUpdate()
+      isTraverseInvitation ? props.addEdgeToEntity(id, result) : props.reloadColumnEntities()
     } catch (error) {
       promptError(error.message)
     }

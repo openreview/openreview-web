@@ -8,7 +8,7 @@ import UserContext from '../UserContext'
 import EdgeBrowserContext from './EdgeBrowserContext'
 
 // eslint-disable-next-line object-curly-newline
-const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumber, reloadWithoutUpdate }) => {
+const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumber, reloadColumnEntities }) => {
   const [emailsToInvite, setEmailsToInvite] = useState('')
   const { editInvitations, availableSignaturesInvitationMap } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
@@ -43,7 +43,7 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
       }
     })
     // trigger column update
-    reloadWithoutUpdate()
+    reloadColumnEntities()
   }
 
   // readers/nonreaders/writers

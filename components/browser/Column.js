@@ -26,6 +26,7 @@ export default function Column(props) {
     parentContent,
     parentTraverseCount,
     parentCustomLoad,
+    shouldReloadEntities, // something non traverse changed in another column with same parent
   } = props
   const {
     traverseInvitation,
@@ -36,7 +37,6 @@ export default function Column(props) {
   const parent = parentId ? altGlobalEntityMap[parentId] : null
   const otherType = type === 'head' ? 'tail' : 'head'
   const colBodyEl = useRef(null)
-  const [shouldReload, setShouldReload] = useState(false)
 
   const sortOptions = [{ key: traverseInvitation.id, value: 'default', text: prettyInvitationId(traverseInvitation.id) }]
   const editAndBrowserInvitations = [...editInvitations ?? [], ...browseInvitations ?? []]
@@ -638,7 +638,7 @@ export default function Column(props) {
 
         setItems(colItems)
       })
-  }, [props.loading, globalEntityMap, altGlobalEntityMap, shouldReload])
+  }, [props.loading, globalEntityMap, altGlobalEntityMap, shouldReloadEntities])
 
   // Event Handlers
   const addEdgeToEntity = (id, newEdge) => {
@@ -813,7 +813,7 @@ export default function Column(props) {
               }}
               globalEntityMap={globalEntityMap}
               altGlobalEntityMap={altGlobalEntityMap}
-              reloadWithoutUpdate={() => setShouldReload(!shouldReload)}
+              reloadColumnEntities={() => props.reloadColumnEntities(props.index)}
               updateChildColumn={props.updateChildColumn}
               columnIndex={props.index}
             />
@@ -825,7 +825,7 @@ export default function Column(props) {
               entityType={entityType}
               parentId={parentId}
               parentNumber={parent?.number}
-              reloadWithoutUpdate={() => setShouldReload(!shouldReload)}
+              reloadColumnEntities={() => props.reloadColumnEntities(props.index)}
             />
           </>
         )}
