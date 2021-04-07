@@ -60,6 +60,8 @@ export default function Column(props) {
   const [columnSort, setColumnSort] = useState('default')
   const [search, setSearch] = useState({ term: '' })
 
+  const showLoadMoreButton = numItemsToRender < filteredItems.length
+
   // Helpers
   const formatEdge = edge => ({
     id: edge.id,
@@ -320,14 +322,8 @@ export default function Column(props) {
     }
   }
 
-  const loadMoreItems = (e) => {
-    const elem = e.target
-
-    if (elem.scrollHeight > elem.clientHeight
-      && elem.scrollTop > elem.scrollHeight - 840
-      && numItemsToRender < filteredItems.length) {
-      setNumItemsToRender(numItemsToRender + 100)
-    }
+  const loadMoreItems = () => {
+    setNumItemsToRender(numItemsToRender + 100)
   }
 
   // Sorts item list by the weights of the edges specified by columnSort. If an
@@ -790,7 +786,7 @@ export default function Column(props) {
         </form>
       </div>
 
-      <div className="body" ref={colBodyEl} onScroll={loadMoreItems}>
+      <div className="body" ref={colBodyEl}>
         {items === null ? (
           <LoadingSpinner />
         ) : (
@@ -821,6 +817,8 @@ export default function Column(props) {
               updateChildColumn={props.updateChildColumn}
               columnIndex={props.index}
             />
+            {showLoadMoreButton
+                && <button type="button" className="btn btn-default btn-xs ml-2 mt-2 mb-2" onClick={() => loadMoreItems()}>{`Load More ${pluralizeString(entityType)}`}</button>}
             <EditEdgeInviteEmail
               type={type}
               otherType={otherType}
