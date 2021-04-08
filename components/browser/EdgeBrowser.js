@@ -175,7 +175,7 @@ export default class EdgeBrowser extends React.Component {
   }
 
   addNewColumn(index) {
-    return (parentId, parentContent, parentCustomLoad) => {
+    return (parentId, parentContent, parentCustomLoad, parentExistingLoad) => {
       if (!parentId) {
         return
       }
@@ -200,6 +200,7 @@ export default class EdgeBrowser extends React.Component {
         parentId,
         parentContent,
         parentCustomLoad,
+        parentExistingLoad,
         shouldReloadEntities: false,
       }
 
@@ -344,6 +345,7 @@ export default class EdgeBrowser extends React.Component {
               parentContent={column.parentContent}
               parentTraverseCount={column.parentTraverseCount}
               parentCustomLoad={column.parentCustomLoad}
+              parentExistingLoad={column.parentExistingLoad}
               index={i}
               updateChildColumn={this.updateChildColumn}
               shouldReloadEntities={column.shouldReloadEntities}

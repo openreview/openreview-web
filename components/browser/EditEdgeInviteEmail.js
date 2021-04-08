@@ -17,11 +17,10 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
   const editInvitation = editInvitations?.filter(p => p?.[type]?.query?.['value-regex'] === '~.*|.+@.+')?.[0]
 
   const handleInviteBtnClick = async () => {
-    emailsToInviteArray.forEach(async (email) => {
+    await Promise.all(emailsToInviteArray.map(async (email) => {
       // construct the template
       const newEdgeJson = {
         invitation: editInvitation.id,
-        name: editInvitation.id.split('/').pop().replace(/_/g, ' '),
         [type]: email,
         [otherType]: parentId,
         label: editInvitation.label?.default,
@@ -36,12 +35,9 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
         const result = await api.post('/edges', newEdgeJson, { accessToken })
         setEmailsToInvite('')
       } catch (error) {
-        // this is temporary without changing global error handling
-        // only error.message is required after error is migrated
-        // eslint-disable-next-line no-unused-expressions
-        error.name === 'tooMany' ? promptError(error.details?.value) : promptError(error.message)
+        promptError(error.message)
       }
-    })
+    }))
     // trigger column update
     reloadColumnEntities()
   }

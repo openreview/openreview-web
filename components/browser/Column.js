@@ -26,6 +26,7 @@ export default function Column(props) {
     parentContent,
     parentTraverseCount,
     parentCustomLoad,
+    parentExistingLoad,
     shouldReloadEntities, // something non traverse changed in another column with same parent
   } = props
   const {
@@ -810,6 +811,7 @@ export default function Column(props) {
                 number: parent?.number,
                 content: parentContent,
                 customLoad: parentCustomLoad,
+                existingLoad: parentExistingLoad,
               }}
               globalEntityMap={globalEntityMap}
               altGlobalEntityMap={altGlobalEntityMap}

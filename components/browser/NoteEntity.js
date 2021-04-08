@@ -78,6 +78,10 @@ export default function NoteEntity(props) {
         ddate: Date.now(),
         ...editEdge,
         signatures,
+        creationDate: undefined, // removed fields added for entity display
+        modificationDate: undefined,
+        name: undefined,
+        writable: undefined,
       },
       { accessToken })
       // eslint-disable-next-line no-unused-expressions
@@ -116,6 +120,10 @@ export default function NoteEntity(props) {
           signatures,
         },
         ...updatedEdgeFields,
+        creationDate: undefined, // removed fields added for entity display
+        modificationDate: undefined,
+        name: undefined,
+        writable: undefined,
       },
       { accessToken })
       // eslint-disable-next-line no-unused-expressions
@@ -144,8 +152,9 @@ export default function NoteEntity(props) {
     const isProposedAssignmentInvitation = editInvitation.id.includes('Proposed_Assignment')
     const isCustomLoadInviation = editInvitation.id.includes('Custom_Max_Papers')
     const isParentInvited = props.parentInfo.content?.isInvitedProfile
-    // eslint-disable-next-line max-len
+    // invited reviewers won't be in altGlobalEntityMap so check the props passed in
     const parentExistingLoad = props.altGlobalEntityMap[props.parentInfo.id]?.traverseEdgesCount
+      ?? props.parentInfo.existingLoad
     const parentCustomLoad = props.parentInfo.customLoad
     const isNotWritable = editEdge?.writable === false
     let shouldDisableControl = false
@@ -155,12 +164,18 @@ export default function NoteEntity(props) {
     if (!isParentInvited && isInviteInvitation) return null
     // head of custom load edge is reviewer group id and does not make sense for note
     if (isCustomLoadInviation) return null
-
     if (isReviewerAssignmentStage
-      && isProposedAssignmentInvitation
+      && (isProposedAssignmentInvitation || isInviteInvitation)
       && parentCustomLoad
       && parentCustomLoad <= parentExistingLoad
       && !editEdge) shouldDisableControl = true
+
+    // invited external reviewer and assigned should disabled invite assignment
+    if (
+      isParentInvited
+      && isAssigned
+      && isReviewerAssignmentStage
+      && isInviteInvitation) shouldDisableControl = true
 
     // edit is not allowed if not writable
     if (editEdge && isNotWritable) shouldDisableControl = true

@@ -52,7 +52,7 @@ export default function ProfileEntity(props) {
 
     e.preventDefault()
     props.setSelectedItemId(id)
-    props.addNewColumn(id, content, customLoad)
+    props.addNewColumn(id, content, customLoad, traverseEdgesCount)
   }
 
   const removeEdge = async (editEdge) => {
@@ -75,6 +75,10 @@ export default function ProfileEntity(props) {
         ddate: Date.now(),
         ...editEdge,
         signatures,
+        creationDate: undefined, // removed fields added for entity display
+        modificationDate: undefined,
+        name: undefined,
+        writable: undefined,
       }, { accessToken })
 
       if (isTraverseInvitation) {
@@ -120,6 +124,10 @@ export default function ProfileEntity(props) {
           signatures,
         },
         ...updatedEdgeFields,
+        creationDate: undefined, // removed fields added for entity display
+        modificationDate: undefined,
+        name: undefined,
+        writable: undefined,
       }, { accessToken })
       if (isTraverseInvitation) {
         props.addEdgeToEntity(id, result)
@@ -162,6 +170,12 @@ export default function ProfileEntity(props) {
 
     // edit is not allowed if not writable
     if (editEdge && isNotWritable) shouldDisableControl = true
+    // invited external reviewer and assigned should disabled invite assignment
+    if (
+      content?.isInvitedProfile
+      && isAssigned
+      && isReviewerAssignmentStage
+      && isInviteInvitation) shouldDisableControl = true
     // reviewer assignmet stage(1st stage) don't show invite assignment
     // except for invited (has editEdge)
     if (isReviewerAssignmentStage && isInviteInvitation && !editEdge) return null
@@ -169,8 +183,9 @@ export default function ProfileEntity(props) {
     if (isAssigned && isInviteInvitation && !content?.isInvitedProfile) return null
     if ( // invited profile show only proposed/invite assignment widget
       content?.isInvitedProfile
+      && !isAssigned
       && isReviewerAssignmentStage
-      && !(isInviteInvitation || isProposedAssignmentInvitation)) return null
+      && !isInviteInvitation) return null
     if ( // invited profile show only invite widget
       content?.isInvitedProfile
       && isEmergencyReviewerStage
