@@ -1893,36 +1893,50 @@ module.exports = (function() {
     };
 
     var showEmailProgress = function(jobId) {
+      var $progress = $container.find('section.messages .progress').show();
       var failures = 0;
       var loadProgress = function() {
         get('/logs/process', { id: jobId }).then(function(response) {
           if (!response.logs || !response.logs.length) {
-            $.Deferred().reject('Message progress could not be loaded');
+            return $.Deferred().reject('Email progress could not be loaded. See link below for more details.');
           }
           var status = response.logs[0];
 
-          if (!status || !status.progress || status.progress.length !== 2) {
-            $.Deferred().reject('Message progress could not be loaded');
+          if (status.status === 'error') {
+            return $.Deferred().reject('Error: ' + status.error.message);
           }
-          var sent = status.progress[0];
-          var total = status.progress[1];
-          var percentComplete = _.round((sent / total) * 100, 2);
+          if (!status.progress || !status.progress.groupsProcessed) {
+            return $.Deferred().reject('Email progress could not be loaded. See link below for more details.');
+          }
+          var queued = status.progress.groupsProcessed[0];
+          var totalQueued = status.progress.groupsProcessed[1];
+          var sent = status.progress.emailsProcessed ? status.progress.emailsProcessed[0] : 0;
+          var totalSent = status.progress.emailsProcessed ? status.progress.emailsProcessed[1] : 0;
+          var isQueuing = queued < totalQueued;
+          var percentComplete = _.round((isQueuing ? (queued / totalQueued) : (sent / totalSent)) * 100, 2);
 
-          var $progress = $container.find('section.messages .progress').show();
+          var statusText;
+          if (status.status === 'ok') {
+            statusText = 'All ' + totalSent + ' emails have been sent'
+          } else if (isQueuing) {
+            statusText = 'Queuing emails: ' + queued + ' / ' + totalQueued + ' complete'
+          } else {
+            statusText = 'Sending emails: ' + sent + ' / ' + totalSent + ' complete'
+          }
+
           $progress.find('.progress-bar')
-            .attr('aria-valuenow', sent)
-            .attr('aria-valuemax', total)
+            .attr('aria-valuenow', isQueuing ? queued : sent)
+            .attr('aria-valuemax', isQueuing ? totalQueued : totalSent)
             .css('width', percentComplete + '%')
             .find('span').text(percentComplete + '%');
           $container.find('section.messages .progress-status')
-            .text(sent === total ? 'All ' + total + ' emails have been sent' : 'Sending emails: ' + sent + ' / ' + total + ' sent');
+            .text(statusText);
 
-          if (sent === total) {
+          if (status.status === 'ok') {
             clearInterval(refreshTimer)
           }
         }).fail(function(err) {
-          $container.find('section.messages .progress').show();
-          $container.find('section.messages .progress-status').text('Email progress could not be loaded');
+          $container.find('section.messages .progress-status').text(err);
 
           failures += 1;
           if (failures > 5) {
@@ -1930,7 +1944,7 @@ module.exports = (function() {
           }
         });
       };
-      var refreshTimer = setInterval(loadProgress, 2000);
+      var refreshTimer = setInterval(loadProgress, 1000);
 
       $container.find('section.messages .progress-bar')
         .attr('aria-valuenow', 0).attr('aria-valuemax', 10).css('width', 0 + '%').find('span').text(0 + '%');
