@@ -72,18 +72,16 @@ export default function NoteEntity(props) {
       promptError('You don\'t have permission to edit this edge')
       return
     }
+    const {
+      creationDate, modificationDate, name, writable, ...body // removed fields added for entity display
+    } = {
+      tail: id,
+      ddate: Date.now(),
+      ...editEdge,
+      signatures,
+    }
     try {
-      const result = await api.post('/edges', {
-        tail: id,
-        ddate: Date.now(),
-        ...editEdge,
-        signatures,
-        creationDate: undefined, // removed fields added for entity display
-        modificationDate: undefined,
-        name: undefined,
-        writable: undefined,
-      },
-      { accessToken })
+      const result = await api.post('/edges', body, { accessToken })
       // eslint-disable-next-line no-unused-expressions
       isTraverseInvitation ? props.removeEdgeFromEntity(id, result) : props.reloadColumnEntities()
     } catch (error) {
@@ -106,26 +104,23 @@ export default function NoteEntity(props) {
       promptError('You don\'t have permission to edit this edge')
       return
     }
-
-    try {
-      const result = await api.post('/edges', {
-        tail: id,
-        ddate: null,
-        ...existingEdge ?? {
-          ...editEdgeTemplate,
-          head: maxLoadInvitationHead ?? editEdgeTemplate.head,
-          readers: getValues(editInvitation.readers),
-          nonreaders: getValues(editInvitation.nonreaders),
-          writers: getValues(editInvitation.writers),
-          signatures,
-        },
-        ...updatedEdgeFields,
-        creationDate: undefined, // removed fields added for entity display
-        modificationDate: undefined,
-        name: undefined,
-        writable: undefined,
+    const {
+      creationDate, modificationDate, name, writable, ...body // removed fields added for entity display
+    } = {
+      tail: id,
+      ddate: null,
+      ...existingEdge ?? {
+        ...editEdgeTemplate,
+        head: maxLoadInvitationHead ?? editEdgeTemplate.head,
+        readers: getValues(editInvitation.readers),
+        nonreaders: getValues(editInvitation.nonreaders),
+        writers: getValues(editInvitation.writers),
+        signatures,
       },
-      { accessToken })
+      ...updatedEdgeFields,
+    }
+    try {
+      const result = await api.post('/edges', body, { accessToken })
       // eslint-disable-next-line no-unused-expressions
       isTraverseInvitation ? props.addEdgeToEntity(id, result) : props.reloadColumnEntities()
     } catch (error) {

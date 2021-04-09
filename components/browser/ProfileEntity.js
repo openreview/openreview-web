@@ -69,17 +69,16 @@ export default function ProfileEntity(props) {
     // const isInviteInvitation = editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     const isCustomLoadInvitation = editInvitation.id.includes('Custom_Max_Papers')
+    const {
+      creationDate, modificationDate, name, writable, ...body // removed fields added for entity display
+    } = {
+      tail: id,
+      ddate: Date.now(),
+      ...editEdge,
+      signatures,
+    }
     try {
-      const result = await api.post('/edges', {
-        tail: id,
-        ddate: Date.now(),
-        ...editEdge,
-        signatures,
-        creationDate: undefined, // removed fields added for entity display
-        modificationDate: undefined,
-        name: undefined,
-        writable: undefined,
-      }, { accessToken })
+      const result = await api.post('/edges', body, { accessToken })
 
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
@@ -110,25 +109,24 @@ export default function ProfileEntity(props) {
       promptError('You don\'t have permission to edit this edge')
       return
     }
+    const {
+      creationDate, modificationDate, name, writable, ...body // removed fields added for entity display
+    } = {
+      tail: id,
+      ddate: null,
+      ...existingEdge ?? {
+        ...editEdgeTemplate,
+        head: maxLoadInvitationHead ?? editEdgeTemplate.head,
+        label: isInviteInvitation ? editInvitation.label?.default : editEdgeTemplate.label,
+        readers: getValues(editInvitation.readers),
+        nonreaders: getValues(editInvitation.nonreaders),
+        writers: getValues(editInvitation.writers),
+        signatures,
+      },
+      ...updatedEdgeFields,
+    }
     try {
-      const result = await api.post('/edges', {
-        tail: id,
-        ddate: null,
-        ...existingEdge ?? {
-          ...editEdgeTemplate,
-          head: maxLoadInvitationHead ?? editEdgeTemplate.head,
-          label: isInviteInvitation ? editInvitation.label?.default : editEdgeTemplate.label,
-          readers: getValues(editInvitation.readers),
-          nonreaders: getValues(editInvitation.nonreaders),
-          writers: getValues(editInvitation.writers),
-          signatures,
-        },
-        ...updatedEdgeFields,
-        creationDate: undefined, // removed fields added for entity display
-        modificationDate: undefined,
-        name: undefined,
-        writable: undefined,
-      }, { accessToken })
+      const result = await api.post('/edges', body, { accessToken })
       if (isTraverseInvitation) {
         props.addEdgeToEntity(id, result)
       } else {
