@@ -69,14 +69,16 @@ export default function NoteEntity(props) {
       promptError('You don\'t have permission to edit this edge')
       return
     }
+    const {
+      creationDate, modificationDate, name, writable, ...body // removed fields added for entity display
+    } = {
+      tail: id,
+      ddate: Date.now(),
+      ...editEdge,
+      signatures,
+    }
     try {
-      const result = await api.post('/edges', {
-        tail: id,
-        ddate: Date.now(),
-        ...editEdge,
-        signatures,
-      },
-      { accessToken })
+      const result = await api.post('/edges', body, { accessToken })
       props.removeEdgeFromEntity(id, result)
     } catch (error) {
       promptError(error.message)
@@ -96,20 +98,22 @@ export default function NoteEntity(props) {
       promptError('You don\'t have permission to edit this edge')
       return
     }
-    try {
-      const result = await api.post('/edges', {
-        tail: id,
-        ddate: null,
-        ...existingEdge ?? {
-          ...editEdgeTemplate,
-          readers: getInterpolatedValues(editInvitation.readers),
-          nonreaders: getInterpolatedValues(editInvitation.nonreaders),
-          writers: getInterpolatedValues(editInvitation.writers),
-          signatures,
-        },
-        ...updatedEdgeFields,
+    const {
+      creationDate, modificationDate, name, writable, ...body // removed fields added for entity display
+    } = {
+      tail: id,
+      ddate: null,
+      ...existingEdge ?? {
+        ...editEdgeTemplate,
+        readers: getInterpolatedValues(editInvitation.readers),
+        nonreaders: getInterpolatedValues(editInvitation.nonreaders),
+        writers: getInterpolatedValues(editInvitation.writers),
+        signatures,
       },
-      { accessToken })
+      ...updatedEdgeFields,
+    }
+    try {
+      const result = await api.post('/edges', body, { accessToken })
       props.addEdgeToEntity(id, result)
     } catch (error) {
       promptError(error.message)
