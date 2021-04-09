@@ -34,7 +34,7 @@ export default function ProfileEntity(props) {
 
   const metadata = props.profile.metadata || {}
   const extraClasses = []
-  const customLoad = [...browseEdges, ...editEdges].filter(p => p.invitation.includes('Custom_Max_Papers'))?.[0]?.weight
+  const customLoad = [...browseEdges || [], ...editEdges || []].filter(p => p.invitation.includes('Custom_Max_Papers'))?.[0]?.weight
 
   if (metadata.isAssigned || metadata.isUserAssigned) extraClasses.push('is-assigned')
   if (metadata.hasConflict) extraClasses.push('has-conflict')
