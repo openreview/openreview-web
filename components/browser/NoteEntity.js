@@ -75,6 +75,10 @@ export default function NoteEntity(props) {
         ddate: Date.now(),
         ...editEdge,
         signatures,
+        creationDate: undefined, // removed fields added for entity display
+        modificationDate: undefined,
+        name: undefined,
+        writable: undefined,
       },
       { accessToken })
       props.removeEdgeFromEntity(id, result)
@@ -108,6 +112,10 @@ export default function NoteEntity(props) {
           signatures,
         },
         ...updatedEdgeFields,
+        creationDate: undefined, // removed fields added for entity display
+        modificationDate: undefined,
+        name: undefined,
+        writable: undefined,
       },
       { accessToken })
       props.addEdgeToEntity(id, result)
