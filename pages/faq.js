@@ -35,18 +35,29 @@ function Faq({ generalQuestions, pcQuestions, appContext }) {
   useEffect(() => {
     if (!formattedGeneralQuestions || !formattedPCQuestions) return
 
-    // Scroll to and expand question referenced in URL
-    if (window.location.hash) {
-      const $titleLink = $(`.panel-title a[href="${window.location.hash}"]`).eq(0)
-      if ($titleLink.length) {
-        $titleLink.trigger('click')
+    const scrollToQuestion = (url = '') => {
+      const urlHash = url.substring(url.indexOf('#'))
+      if (!urlHash) return
 
-        setTimeout(() => {
-          const scrollPos = $titleLink.closest('.panel-default').offset().top - 55
-          $('html, body').animate({ scrollTop: scrollPos }, 400)
-        }, 200)
-      }
+      const $titleLink = $(`.panel-title a[href="${urlHash}"]`).eq(0)
+      if ($titleLink.length === 0) return
+
+      $titleLink.trigger('click')
+
+      const scrollPos = $titleLink.closest('.panel-default').offset().top - 55
+      $('html, body').animate({ scrollTop: scrollPos }, 400)
     }
+
+    // Scroll to and expand question referenced in URL when initially loading the page
+    setTimeout(() => {
+      scrollToQuestion(window.location.hash)
+    }, 200)
+
+    // Capture clicks on links to other FAQ questions
+    $('.faq-container a[href^="/faq#"]').on('click', (e) => {
+      e.preventDefault()
+      scrollToQuestion(e.target.getAttribute('href'))
+    })
   }, [formattedGeneralQuestions, formattedPCQuestions])
 
   return (

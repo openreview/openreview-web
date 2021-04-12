@@ -66,7 +66,6 @@ export default function ProfileEntity(props) {
       promptError('You don\'t have permission to edit this edge')
       return
     }
-    // const isInviteInvitation = editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     const isCustomLoadInvitation = editInvitation.id.includes('Custom_Max_Papers')
     const {
@@ -79,7 +78,6 @@ export default function ProfileEntity(props) {
     }
     try {
       const result = await api.post('/edges', body, { accessToken })
-
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
       } else {
@@ -133,7 +131,6 @@ export default function ProfileEntity(props) {
         if (isCustomLoadInvitation) props.updateChildColumn(props.columnIndex, updatedEdgeFields?.weight)
         props.reloadColumnEntities()
       }
-      // isInviteInvitation ? props.reloadWithoutUpdate() : props.addEdgeToEntity(id, result)
     } catch (error) {
       promptError(error.message)
     }
