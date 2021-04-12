@@ -35,18 +35,29 @@ function Faq({ generalQuestions, pcQuestions, appContext }) {
   useEffect(() => {
     if (!formattedGeneralQuestions || !formattedPCQuestions) return
 
-    // Scroll to and expand question referenced in URL
-    if (window.location.hash) {
-      const $titleLink = $(`.panel-title a[href="${window.location.hash}"]`).eq(0)
-      if ($titleLink.length) {
-        $titleLink.trigger('click')
+    const scrollToQuestion = (url = '') => {
+      const urlHash = url.substring(url.indexOf('#'))
+      if (!urlHash) return
 
-        setTimeout(() => {
-          const scrollPos = $titleLink.closest('.panel-default').offset().top - 55
-          $('html, body').animate({ scrollTop: scrollPos }, 400)
-        }, 200)
-      }
+      const $titleLink = $(`.panel-title a[href="${urlHash}"]`).eq(0)
+      if ($titleLink.length === 0) return
+
+      $titleLink.trigger('click')
+
+      const scrollPos = $titleLink.closest('.panel-default').offset().top - 55
+      $('html, body').animate({ scrollTop: scrollPos }, 400)
     }
+
+    // Scroll to and expand question referenced in URL when initially loading the page
+    setTimeout(() => {
+      scrollToQuestion(window.location.hash)
+    }, 200)
+
+    // Capture clicks on links to other FAQ questions
+    $('.faq-container a[href^="/faq#"]').on('click', (e) => {
+      e.preventDefault()
+      scrollToQuestion(e.target.getAttribute('href'))
+    })
   }, [formattedGeneralQuestions, formattedPCQuestions])
 
   return (
@@ -142,6 +153,11 @@ For more details on the difference between OpenReview's TeX support and other sy
     a: `To remove an email that has not been confirmed, go to your profile and click on ‘Edit Profile’. Confirmed emails cannot be removed from your profile, since these are used in conflict detection and paper coreference.
 
   If your profile contains a confirmed email or a name that does not belong to you, please contact the OpenReview team by emailing info@openreview.net.`,
+  }, {
+    q: 'How do I enter institution data to my profile?',
+    id: 'question-institution-relations',
+    a: `You must enter at least one position under 'Education & Career History' for your profile to be saved. You can choose one position from the dropdown, which includes the most commonly used ones. If none of the posiions in the dropdown reflect the position you are entering, you can type your own. Next, please enter a valid institution name (e.g., University of Massachusettss, Amherst) and domain (e.g., umass.edu) from the dropdown or type in if not present. You can leave the 'End' field empty if you are currently in that position, or you can enter when you are expected to leave that position.
+    `,
   }, {
     q: 'How do I import my papers from DBLP?',
     id: 'question-dblp-import',
@@ -286,13 +302,28 @@ which will be displayed as:
     id: 'question-release-reviews-reviewers',
     a: 'On the request form for your venue, click on the ‘Review Stage’ button. Reviews can be released to all reviewers, to a paper\'s assigned reviewers, or to a paper\'s assigned reviewers who have already submitted their review.',
   }, {
-    q: 'How do I get email addresses of accepted/all papers authors?',
-    id: 'question-getting-author-emails',
-    a: 'Please refer to the section on obtaining data in the documentation for our [Python API](https://openreview-py.readthedocs.io/en/latest/)',
-  }, {
-    q: 'How can I manually assign reviewers to papers?',
+    q: 'How can I manually assign reviewers/ACs to papers?',
     id: 'question-manually-assign-reviewers',
-    a: 'To manually assign reviewers to papers after the submission deadline has passed, you must first set the review stage by clicking on the ‘Review Stage’ button on the request form for your venue. You will then be able to assign reviewers to papers under the ‘Paper Status’ tab in the PC console.',
+    a: `**Reviewers:** If you did not specify you wanted to use the OpenReview matcher to assign reviewers to papers, you will be able to manually assign them using the PC console.
+  1. You must first set the review stage by clicking on the 'Review Stage' button on the request form for your venue.
+  2. Under the 'Paper Status' tab in the PC console, click on 'Show Reviewers' next to the paper you want to assign reviewers to.
+   - To assign reviewers from the reviewer pool, you can choose a reviewer from the dropdown. Here, you can also search reviewers in the reviewer pool by name or email. After finding the reviewer you want to assign, click on the 'Assign' button.
+   - To assign reviewers from outside the reviewer pool, you should type the reviewer's email or OpenReview profile ID (e.g., ~Alan_Turing1) in the textbox and then click on the 'Assign' button. A reviewer does not need to have an OpenReview profile in order to be assigned to a paper.
+
+Note that assigning a reviewer to a paper through the PC console automatically adds that reviewer to the reviewers pool and sends them an email notifying them about their new assignment.
+
+**Area Chairs:** Unfortunately, assigning ACs is not available through the PC console, but manual AC assignments can be made through the Python library: (You can check out the docs for our Python API [here](https://openreview-py.readthedocs.io/en/latest/))
+\`\`\`
+client = openreview.Client(baseurl = 'https://api.openreview.net', username = '', password = '')
+conference=openreview.helpers.get_conference(client, request_form_id)
+conference.set_assignment(number=paper_number, user=user_id, is_area_chair=True)
+\`\`\`
+- You will need to use your own OpenReview credentials to initialize the Client object.
+- **request_form_id** (string) refers to the forum id of the venue request for your venue, (e.g., [https://openreview.net/forum?id=**r1lf10zpw4**]())
+- **paper_number** (int) is the number of the paper you want to assign an area chair to (you can find this in the 'Paper Status' tab of the PC console)
+- **user_id** (string) is the email address or OpenReview profile ID (e.g., ~Alan_Turing1) of the user you want to assign
+
+Note that assigning an area chair using python does not send an email to that user. For more information on how to contact area chairs, [click here.](/faq#question-contact-venue-roles)`,
   }, {
     q: 'How can I automatically assign reviewers to papers based on their affinity and/or bids?',
     id: 'question-run-matcher',
@@ -368,6 +399,25 @@ which will be displayed as:
     q: 'How do I contact the authors of the accepted papers only?',
     id: 'question-contact-authors-accepted',
     a: 'Under the ‘Overview’ tab of the PC console for your venue, you will find a ‘Venue Roles’ section. Click on the ‘Accepted’ link next to ‘Authors’ to be taken to the respective group. On this page, you have the option to email members of the group.',
+  }, {
+    q: 'How do I extract email addresses of accepted papers?',
+    id: 'question-emails-accepted-papers',
+    a: `All papers contain the IDs of authors in the authorids field. These IDs can be either email addresses or OpenReview profile IDs. The following code will allow you to extract all email addresses of accepted papers:
+
+  \`\`\`
+  accepted_papers = client.get_notes(content={'venueid': 'ICLR.cc/2021/Conference'})
+  for paper in accepted_papers:
+    for author in paper.content['authorids']:
+      if '@' in author:
+          print(author)
+      else:
+          profile=client.search_profiles(ids=[author])[0]
+          print(profile.content.get('preferredEmail', profile.content['emails'][0]))
+  \`\`\`
+
+  You can find the venueid in the request form for your venue.
+
+  Note that you must first set the 'Post Decision Stage', as the **venueid** value is added to accepted papers once this stage has been called.`,
   }, {
     q: 'Can an author withdraw a rejected paper?',
     id: 'question-withdraw-paper',
