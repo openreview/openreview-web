@@ -1,3 +1,7 @@
+/* globals DOMPurify: false */
+/* globals marked: false */
+
+import { useState, useEffect } from 'react'
 import union from 'lodash/union'
 import { prettyField, prettyContentValue, orderReplyFields } from '../lib/utils'
 import Icon from './Icon'
@@ -7,7 +11,7 @@ function NoteContent({
 }) {
   const contentKeys = Object.keys(content)
   const contentOrder = invitation
-    ? union(orderReplyFields(invitation.reply?.content || {}, invitation.id), contentKeys)
+    ? union(orderReplyFields(invitation.reply.content || {}, invitation.id), contentKeys)
     : contentKeys
 
   const omittedFields = [
@@ -23,17 +27,19 @@ function NoteContent({
         const fieldValue = prettyContentValue(content[fieldName])
         if (!fieldValue) return null
 
+        const invitationField = invitation?.reply.content[fieldName] ?? {}
+
         return (
           <li key={fieldName}>
             <NoteContentField name={fieldName} />
             {' '}
-            <span className="note-content-value">
-              {fieldValue.startsWith('/attachment/') ? (
+            {fieldValue.startsWith('/attachment/') ? (
+              <span className="note-content-value">
                 <DownloadLink noteId={id} fieldName={fieldName} fieldValue={fieldValue} isReference={isReference} />
-              ) : (
-                fieldValue
-              )}
-            </span>
+              </span>
+            ) : (
+              <NoteContentValue content={fieldValue} enableMarkdown={invitationField.markdown} />
+            )}
           </li>
         )
       })}
@@ -47,6 +53,25 @@ function NoteContentField({ name }) {
       {prettyField(name)}
       :
     </strong>
+  )
+}
+
+function NoteContentValue({ content = '', enableMarkdown }) {
+  const [sanitizedHtml, setSanitizedHtml] = useState(null)
+
+  useEffect(() => {
+    if (enableMarkdown) {
+      setSanitizedHtml(DOMPurify.sanitize(marked(content)))
+    }
+  }, [])
+
+  return (enableMarkdown && sanitizedHtml) ? (
+    // eslint-disable-next-line react/no-danger
+    <div className="note-content-value markdown-rendered" dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+  ) : (
+    <span className="note-content-value">
+      {content}
+    </span>
   )
 }
 

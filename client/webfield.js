@@ -2264,6 +2264,7 @@ module.exports = (function() {
       invitation: invitation,
       parentGroupId: parentGroupId,
       replyJson: JSON.stringify(invitation.reply, undefined, 4),
+      replyForumViewsJson: JSON.stringify(invitation.replyForumViews || [], undefined, 4),
       options: {
         showProcessEditor: options.showProcessEditor
       }
@@ -2418,25 +2419,28 @@ module.exports = (function() {
       $('.group-info-table').show();
     });
 
-    $container.on('submit', '.invitation-reply-form', function() {
+    $container.on('submit', '.invitation-reply-form, .invitation-forum-views-form', function() {
       var rawStr = $(this).find('textarea').val();
       var compactStr = rawStr.split('\n').map(function(line) { return line.trim(); }).join('');
 
       $(this).find('.alert-danger').hide();
 
-      var replyObj;
+      var parsedObj;
       try {
-        replyObj = JSON.parse(compactStr);
+        parsedObj = JSON.parse(compactStr);
       } catch (error) {
         $(this).find('.alert-danger').show();
         return false;
       }
 
-      updateInvitation({ reply: replyObj })
+      var updateObj = $(this).hasClass('invitation-reply-form')
+        ? { reply: parsedObj }
+        : { replyForumViews : parsedObj };
+      updateInvitation(updateObj)
         .then(function(response) {
           invitation = response;
           updateModifiedDate();
-          showAlert('Reply settings for ' + view.prettyId(invitation.id) + ' updated');
+          showAlert('Settings for ' + view.prettyId(invitation.id) + ' updated');
         });
 
       return false;

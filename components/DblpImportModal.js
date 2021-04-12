@@ -15,12 +15,14 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
   const [dblpUrl, setDblpUrl] = useState('')
   const [dblpPersistentUrl, setDblpPersistentUrl] = useState('')
   const [message, setMessage] = useState('')
-  const [showPersistentUrlInput, setShowPersistentUrlInput] = useState(false) // show persistent url input and button if dblp url in profile is not working
-  const [publications, setPublications] = useState([]) // publications to display in modal body
+  // show persistent url input and button if dblp url in profile is not working
+  const [showPersistentUrlInput, setShowPersistentUrlInput] = useState(false)
+  const [publications, setPublications] = useState([])
   const [selectedPublications, setSelectedPublications] = useState([])
   const [isSavingPublications, setIsSavingPublications] = useState(false)
   const [isFetchingPublications, setIsFetchingPublications] = useState(false)
-  const publicationsInOpenReview = useRef([]) // user's existing publications in openreview (for filtering and constructing publication link)
+  // user's existing publications in openreview (for filtering and constructing publication link)
+  const publicationsInOpenReview = useRef([])
   const publicationsImportedByOtherProfiles = useRef([])
   const modalEl = useRef(null)
   const { accessToken } = useContext(UserContext)
@@ -47,10 +49,13 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
     if (isPersistentUrl) setDblpUrl(dblpPersistentUrl)
 
     try {
-      const allDblpPublications = await getDblpPublicationsFromXmlUrl(`${url.trim()}.xml`, profileId)
-      if (!allDblpPublications.some(p => profileNames.some(name => p.note.content.dblp.includes(name)))) {
+      const { notes: allDblpPublications, possibleNames } = await getDblpPublicationsFromXmlUrl(`${url.trim()}.xml`, profileId)
+      if (!allDblpPublications.some(pub => profileNames.some(name => (
+        pub.note.content.dblp.toLowerCase().includes(name.toLowerCase())
+      )))) {
         throw new Error('Please ensure that the DBLP URL provided is yours and the name used in your DBLP papers is listed in your profile.'
-          + 'If your DBLP name is missing from your profile you can add the name above, save your profile, and then try importing again.')
+          + 'If your DBLP name is missing from your profile you can add the name above, save your profile, and then try importing again.'
+          + `Possible name used in DBLP papers: ${possibleNames.join(', ')}`)
       }
       setPublications(allDblpPublications)
       setMessage(`${allDblpPublications.length} publications fetched.`)
