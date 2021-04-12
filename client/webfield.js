@@ -1917,11 +1917,12 @@ module.exports = (function() {
 
           var statusText;
           if (status.status === 'ok') {
-            statusText = 'All ' + totalSent + ' emails have been sent'
+            statusText = '<strong>All ' + totalSent + ' emails have been sent</strong>' +
+              '<br><br><em>Note: The number of emails sent may not exactly match the number of users you selected if multiple IDs belonging to the same user were included.</em>'
           } else if (isQueuing) {
-            statusText = 'Queuing emails: ' + queued + ' / ' + totalQueued + ' complete'
+            statusText = '<strong>Queuing emails:</strong> ' + queued + ' / ' + totalQueued + ' complete'
           } else {
-            statusText = 'Sending emails: ' + sent + ' / ' + totalSent + ' complete'
+            statusText = '<strong>Sending emails:</strong> ' + sent + ' / ' + totalSent + ' complete'
           }
 
           $progress.find('.progress-bar')
@@ -1930,7 +1931,7 @@ module.exports = (function() {
             .css('width', percentComplete + '%')
             .find('span').text(percentComplete + '%');
           $container.find('section.messages .progress-status')
-            .text(statusText);
+            .html(statusText);
 
           if (status.status === 'ok') {
             clearInterval(refreshTimer)
