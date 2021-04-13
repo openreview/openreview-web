@@ -595,7 +595,7 @@ var generateEdgeBrowserRedirect = function(id, configNote, navigateToPage) {
     var referrerText = view.prettyId(configNote.title) + ' Statistics';
     var typeParam = type === 'reviewer' ? 'type:tail' : 'type:head';
     var assignmentLabel = encodeURIComponent(configNote.title)
-    var editInvitation = (assignmentConfigNote.status == 'Deployed' && assignmentConfigNote.deployed_assignment_invitation) ? assignmentConfigNote.deployed_assignment_invitation : (configNote.assignment_invitation + ',label:' + assignmentLabel)
+    var editInvitation = (configNote.status == 'Deployed' && configNote.deployed_assignment_invitation) ? configNote.deployed_assignment_invitation : (configNote.assignment_invitation + ',label:' + assignmentLabel)
 
     navigateToPage('/edges/browse' +
       '?start=staticList,' + typeParam + ',storageKey:' + key +
