@@ -22,7 +22,7 @@ test('send incomplete feedback as a guest user', async (t) => {
     .click(feedbackLink)
     .expect(feedbackModal.exists).ok()
     .click(sendButton)
-    .expect(alertPanel.innerText).eql(' Error: Missing required fields')
+    .expect(alertPanel.innerText).eql(' Error: The field from is empty or missing')
 })
 
 test('send feedback as a guest user', async (t) => {
