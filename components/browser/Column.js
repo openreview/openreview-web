@@ -200,7 +200,7 @@ export default function Column(props) {
     })
   }
 
-  const getSearchPlaceholder = () => {
+  const getPlaceholderText = (isLoadMoreButton = false) => {
     let entityName = props.entityType
     if (props.entityType === 'Note') {
       entityName = prettyInvitationId(traverseInvitation[type].query.invitation)
@@ -210,6 +210,7 @@ export default function Column(props) {
     if (startInvitation) {
       entityName = prettyInvitationId(startInvitation.id)
     }
+    if (isLoadMoreButton) return pluralizeString(entityName).toLowerCase()
     return `Search all ${pluralizeString(entityName).toLowerCase()}...`
   }
 
@@ -376,6 +377,17 @@ export default function Column(props) {
     return editEdges
   }
 
+  // column created by clicking invited reviewer is just globalentitymap
+  // need to show entities with traverse invitation first
+  const sortItemsByTraverseEdge = (colItems) => {
+    if (!colItems?.some(p => p?.metadata?.isAssigned)) return colItems // no traverse edge
+    return colItems.sort((a, b) => {
+      if (b?.metadata?.isAssigned && !a?.metadata?.isAssigned) return 1
+      if (a?.metadata?.isAssigned && !b?.metadata?.isAssigned) return -1
+      return 0
+    })
+  }
+
   useEffect(() => {
     if (!items || !items.length) {
       return
@@ -532,13 +544,14 @@ export default function Column(props) {
         // if clicked on invite invitation profile entity
         // dispay full list of notes with meta/browseEdges/editEdges/editEdgeTemplates
         if (parentColumnEntityType === 'Profile' && !altGlobalEntityMap[parentId]) {
-          setItems(Object.values(globalEntityMap).map(p => appendEdgesInfo({
+          const allItems = Object.values(globalEntityMap).map(p => appendEdgesInfo({
             item: p,
             traverseEdges,
             hideEdges,
             browseEdgeGroups,
             editEdgeGroups,
-          })))
+          }))
+          setItems(sortItemsByTraverseEdge(allItems))
           return
         }
 
@@ -561,7 +574,8 @@ export default function Column(props) {
           if (!itemToAdd) {
             if (entityType === 'Profile') {
               const hasInviteInvitation = editInvitations.some(p => p[type]?.query?.['value-regex'])
-              if (hasInviteInvitation) {
+              const hasProposedAssignmentInvitation = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
+              if (hasInviteInvitation || hasProposedAssignmentInvitation) {
                 itemToAdd = {
                   id: headOrTailId,
                   content: {
@@ -763,7 +777,7 @@ export default function Column(props) {
             <input
               type="text"
               className="form-control input-sm"
-              placeholder={getSearchPlaceholder()}
+              placeholder={getPlaceholderText()}
               value={search.term}
               onChange={e => setSearch({ term: e.target.value })}
             />
@@ -820,7 +834,7 @@ export default function Column(props) {
               columnIndex={props.index}
             />
             {showLoadMoreButton
-                && <button type="button" className="btn btn-default btn-xs ml-2 mt-2 mb-2" onClick={() => loadMoreItems()}>{`Load More ${pluralizeString(entityType)}`}</button>}
+                && <button type="button" className="btn btn-default btn-xs ml-2 mt-2 mb-2" onClick={() => loadMoreItems()}>{`Load More ${getPlaceholderText(true)}`}</button>}
             <EditEdgeInviteEmail
               type={type}
               otherType={otherType}

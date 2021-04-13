@@ -154,8 +154,8 @@ export default function NoteEntity(props) {
     const isNotWritable = editEdge?.writable === false
     let shouldDisableControl = false
 
-    // invited profile show only invite edge
-    if (isParentInvited && !isInviteInvitation) return null
+    // invited profile show only invite edge and proposed assignment edge
+    if (isParentInvited && !(isInviteInvitation || isProposedAssignmentInvitation)) return null
     if (!isParentInvited && isInviteInvitation) return null
     // head of custom load edge is reviewer group id and does not make sense for note
     if (isCustomLoadInviation) return null

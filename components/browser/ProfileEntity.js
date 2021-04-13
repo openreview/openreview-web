@@ -151,6 +151,7 @@ export default function ProfileEntity(props) {
     const isAssigned = (metadata.isAssigned || metadata.isUserAssigned)
     const isInviteInvitation = editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
     const isProposedAssignmentInvitation = editInvitation.id.includes('Proposed_Assignment')
+    const isCustomLoadInvitation = editInvitation.id.includes('Custom_Max_Papers')
     const isReviewerAssignmentStage = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
     const isEmergencyReviewerStage = editInvitations.some(p => p.id.includes('/Assignment'))
     const isNotWritable = editEdge?.writable === false
@@ -176,6 +177,8 @@ export default function ProfileEntity(props) {
     if (isReviewerAssignmentStage && isInviteInvitation && !editEdge) return null
     // can't be invited/uninvited when assigned already(except invited profile to enable delete)
     if (isAssigned && isInviteInvitation && !content?.isInvitedProfile) return null
+    // invited reviewer with assigned edge,don't show custom load edge
+    if (isAssigned && content?.isInvitedProfile && isCustomLoadInvitation) return null
     if ( // invited profile show only proposed/invite assignment widget
       content?.isInvitedProfile
       && !isAssigned

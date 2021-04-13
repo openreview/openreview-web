@@ -1,4 +1,5 @@
 /* globals $: false */
+import { useState } from 'react'
 import Icon from '../Icon'
 import { getTooltipTitle } from '../../lib/edge-utils'
 
@@ -6,7 +7,10 @@ import { getTooltipTitle } from '../../lib/edge-utils'
 export default function EditEdgeToggle({
   addEdge, removeEdge, existingEdge, canAddEdge, editEdgeTemplate, isInviteInvitation, shouldDisableControl = false,
 }) {
+  const [loading, setLoading] = useState(false)
+
   const addOrRemoveEdge = (e) => {
+    setLoading(true)
     if (existingEdge) {
       e.stopPropagation()
       removeEdge()
@@ -58,9 +62,9 @@ export default function EditEdgeToggle({
         data-tooltip="tooltip"
         data-placement="top"
         title={getTooltip()}
-        disabled={shouldDisableControl}
+        disabled={shouldDisableControl || loading}
       >
-        <Icon name={existingEdge ? 'trash' : 'thumbs-up'} extraClasses={shouldDisableControl ? 'span-disabled' : null} />
+        <Icon name={existingEdge ? 'trash' : 'thumbs-up'} extraClasses={shouldDisableControl || loading ? 'span-disabled' : null} />
       </button>
     </div>
   )
