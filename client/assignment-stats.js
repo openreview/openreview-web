@@ -15,11 +15,10 @@ var useEdges = true;
 var edgeBrowserRedirect;
 
 var loadFromNotes = function(assignmentConfigNote) {
-  var query = (assignmentConfigNote.status == 'Deployed' && assignmentConfigNote.deployed_assignment_invitation) ? { invitation: assignmentConfigNote.deployed_assignment_invitation } : {
+  return Webfield.getAll('/notes', {
     invitation: assignmentConfigNote.assignment_invitation,
     'content.title': assignmentConfigNote.title
-  }
-  return Webfield.getAll('/notes', query).then(function(notes) {
+  }).then(function(notes) {
     var assignmentMap = _.flatMap(notes, function(note) {
       return _.map(note.content.assignedGroups, function(group) {
         var otherScores = _.fromPairs(_.map(group.scores, function(v, k) {
@@ -61,7 +60,7 @@ var loadFromEdges = function(assignmentConfigNote) {
 
   var query = (assignmentConfigNote.status == 'Deployed' && assignmentConfigNote.deployed_assignment_invitation) ? { invitation: assignmentConfigNote.deployed_assignment_invitation } : {
     invitation: assignmentConfigNote.assignment_invitation,
-    'content.title': assignmentConfigNote.title
+    label: assignmentConfigNote.title
   }
 
   var assignmentsP = Webfield.getAll('/edges', _.assign(query, {
