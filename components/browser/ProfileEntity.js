@@ -156,22 +156,32 @@ export default function ProfileEntity(props) {
     const isEmergencyReviewerStage = editInvitations.some(p => p.id.includes('/Assignment'))
     const isNotWritable = editEdge?.writable === false
     let shouldDisableControl = false
+    let disableControlReason = null
 
     // disable propose assignment when traverseEdgeCount>=custmom max paper in 1st stage
     if (isReviewerAssignmentStage
       && isProposedAssignmentInvitation
       && customLoad
       && customLoad <= traverseEdgesCount
-      && !editEdge) shouldDisableControl = true
+      && !editEdge) {
+      shouldDisableControl = true
+      disableControlReason = 'Custom load has reached.'
+    }
 
     // edit is not allowed if not writable
-    if (editEdge && isNotWritable) shouldDisableControl = true
+    if (editEdge && isNotWritable) {
+      shouldDisableControl = true
+      disableControlReason = 'You are not allowed to edit this edge.'
+    }
     // invited external reviewer and assigned should disabled invite assignment
     if (
       content?.isInvitedProfile
       && isAssigned
       && isReviewerAssignmentStage
-      && isInviteInvitation) shouldDisableControl = true
+      && isInviteInvitation) {
+      shouldDisableControl = true
+      disableControlReason = 'The Reviewer has been invited.'
+    }
     // reviewer assignmet stage(1st stage) don't show invite assignment
     // except for invited (has editEdge)
     if (isReviewerAssignmentStage && isInviteInvitation && !editEdge) return null
@@ -215,6 +225,7 @@ export default function ProfileEntity(props) {
         editEdgeTemplate={editEdgeTemplates?.find(p => p?.invitation === editInvitation.id)} // required for adding new
         isInviteInvitation={isInviteInvitation}
         shouldDisableControl={shouldDisableControl}
+        disableControlReason={disableControlReason}
       />
     )
     const editEdgeTwoDropdowns = controlType => (

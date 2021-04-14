@@ -153,6 +153,7 @@ export default function NoteEntity(props) {
     const parentCustomLoad = props.parentInfo.customLoad
     const isNotWritable = editEdge?.writable === false
     let shouldDisableControl = false
+    let disableControlReason = null
 
     // invited profile show only invite edge and proposed assignment edge
     if (isParentInvited && !(isInviteInvitation || isProposedAssignmentInvitation)) return null
@@ -163,17 +164,26 @@ export default function NoteEntity(props) {
       && (isProposedAssignmentInvitation || isInviteInvitation)
       && parentCustomLoad
       && parentCustomLoad <= parentExistingLoad
-      && !editEdge) shouldDisableControl = true
+      && !editEdge) {
+      shouldDisableControl = true
+      disableControlReason = 'Custom load has reached.'
+    }
 
     // invited external reviewer and assigned should disabled invite assignment
     if (
       isParentInvited
       && isAssigned
       && isReviewerAssignmentStage
-      && isInviteInvitation) shouldDisableControl = true
+      && isInviteInvitation) {
+      shouldDisableControl = true
+      disableControlReason = 'The Reviewer has been invited.'
+    }
 
     // edit is not allowed if not writable
-    if (editEdge && isNotWritable) shouldDisableControl = true
+    if (editEdge && isNotWritable) {
+      shouldDisableControl = true
+      disableControlReason = 'You are not allowed to edit this edge.'
+    }
 
     const editEdgeDropdown = (type, controlType) => (
       <EditEdgeDropdown
@@ -199,6 +209,7 @@ export default function NoteEntity(props) {
         canAddEdge={editEdges?.filter(p => p?.invitation === editInvitation.id).length === 0 || editInvitation.multiReply} // no editedge or invitation allow multiple edges
         editEdgeTemplate={editEdgeTemplates?.find(p => p.invitation === editInvitation.id)} // required for adding new
         shouldDisableControl={shouldDisableControl}
+        disableControlReason={disableControlReason}
         isInviteInvitation={isInviteInvitation}
       />
     )

@@ -5,11 +5,22 @@ import { getTooltipTitle } from '../../lib/edge-utils'
 
 // eslint-disable-next-line object-curly-newline
 export default function EditEdgeToggle({
-  addEdge, removeEdge, existingEdge, canAddEdge, editEdgeTemplate, isInviteInvitation, shouldDisableControl = false,
+  addEdge,
+  removeEdge,
+  existingEdge,
+  canAddEdge,
+  editEdgeTemplate,
+  isInviteInvitation,
+  shouldDisableControl = false,
+  disableControlReason,
 }) {
   const [loading, setLoading] = useState(false)
 
   const addOrRemoveEdge = (e) => {
+    if (shouldDisableControl) {
+      e.stopPropagation()
+      return
+    }
     setLoading(true)
     if (existingEdge) {
       e.stopPropagation()
@@ -39,7 +50,7 @@ export default function EditEdgeToggle({
     return 'Assign Reviewer'
   }
 
-  const handleHover = (target) => {
+  const handleLabelHover = (target) => {
     if (!existingEdge) return
     const title = getTooltipTitle(existingEdge)
     $(target).tooltip({
@@ -53,16 +64,13 @@ export default function EditEdgeToggle({
 
   return (
     <div className="edit-controls d-flex">
-      <label className="edit-edge-toggle-description" onMouseEnter={e => handleHover(e.target)}>{getLabel()}</label>
+      <label className="edit-edge-toggle-description" onMouseEnter={e => handleLabelHover(e.target)}>{getLabel()}</label>
       <button
         type="button"
-        className="btn btn-xs btn-default ml-1 edit-edge-toggle-btn"
+        className={`btn btn-xs btn-default ml-1 edit-edge-toggle-btn ${(shouldDisableControl || loading) ? 'disable' : ''}`}
+        title={shouldDisableControl ? disableControlReason : getLabel()}
         onClick={addOrRemoveEdge}
         autoComplete="off"
-        data-tooltip="tooltip"
-        data-placement="top"
-        title={getTooltip()}
-        disabled={shouldDisableControl || loading}
       >
         <Icon name={existingEdge ? 'trash' : 'thumbs-up'} extraClasses={shouldDisableControl || loading ? 'span-disabled' : null} />
       </button>
