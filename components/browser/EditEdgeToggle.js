@@ -3,7 +3,6 @@ import { useState } from 'react'
 import Icon from '../Icon'
 import { getTooltipTitle } from '../../lib/edge-utils'
 
-// eslint-disable-next-line object-curly-newline
 export default function EditEdgeToggle({
   addEdge,
   removeEdge,

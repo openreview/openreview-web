@@ -15,12 +15,12 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
   const { editInvitations, availableSignaturesInvitationMap } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
 
-  const emailsToInviteArray = emailsToInvite?.split(';')?.map(p => p.trim())?.filter(p => p)
+  const emailsToInviteArray = emailsToInvite.split(';').map(p => p.trim()).filter(p => p)
   const editInvitation = editInvitations?.filter(p => p?.[type]?.query?.['value-regex'] === '~.*|.+@.+')?.[0]
 
   const handleInviteBtnClick = async () => {
     setLoading(true)
-    await Promise.all(emailsToInviteArray.map(async (email) => {
+    await Promise.all(emailsToInviteArray?.map(async (email) => {
       // construct the template
       const newEdgeJson = {
         invitation: editInvitation.id,

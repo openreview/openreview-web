@@ -303,11 +303,11 @@ export default function Column(props) {
     if (hideEdges.some(p => p[type] === item.id)) {
       metadata.isHidden = true
     }
-    if ([...traverseEdges, ...hideEdges, ...browseEdgeGroups.flat(), ...editEdgeGroups.flat()]
-      .some((p) => {
-        const edgeFormatted = formatEdge(p)
-        return edgeFormatted.name === 'Conflict' && edgeFormatted.weight === -1
-      })) {
+    const allEdges = [...traverseEdges, ...hideEdges, ...browseEdgeGroups.flat(), ...editEdgeGroups.flat()]
+    if (allEdges.some((p) => {
+      const edgeFormatted = formatEdge(p)
+      return edgeFormatted.name === 'Conflict' && edgeFormatted.weight === -1
+    })) {
       metadata.hasConflict = true
     }
     const browseEdges = browseEdgeGroups.flat().filter(p => p[type] === item.id).map(q => formatEdge(q))
@@ -349,7 +349,7 @@ export default function Column(props) {
             {
               ...p,
               weight: sortLabelMap[
-                [...p.browseEdges, ...p.editEdges].filter(q => q.invitation === columnSort)?.[0]?.label] || 0,
+                [...p.browseEdges, ...p.editEdges].find(q => q.invitation === columnSort).label] || 0,
             }),
         ),
         ['weight'],

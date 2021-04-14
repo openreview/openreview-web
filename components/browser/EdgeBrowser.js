@@ -256,7 +256,7 @@ export default class EdgeBrowser extends React.Component {
       if (parentColumn.parentId === parentIdOfColumn) {
         resultColumns.push({ ...column, parentCustomLoad: customLoad })
       } else {
-        resultColumns.push({ ...column })
+        resultColumns.push(column)
       }
     }
     this.setState({ columns: resultColumns })
@@ -273,7 +273,7 @@ export default class EdgeBrowser extends React.Component {
       if (column?.parentId === parentIdOfColumn) {
         resultColumns.push({ ...column, shouldReloadEntities: !column.shouldReloadEntities })
       } else {
-        resultColumns.push({ ...column })
+        resultColumns.push(column)
       }
     }
     this.setState({ columns: resultColumns })

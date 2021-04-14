@@ -82,8 +82,11 @@ export default function NoteEntity(props) {
     }
     try {
       const result = await api.post('/edges', body, { accessToken })
-      // eslint-disable-next-line no-unused-expressions
-      isTraverseInvitation ? props.removeEdgeFromEntity(id, result) : props.reloadColumnEntities()
+      if (isTraverseInvitation) {
+        props.removeEdgeFromEntity(id, result)
+      } else {
+        props.reloadColumnEntities()
+      }
     } catch (error) {
       promptError(error.message)
     }
@@ -121,8 +124,11 @@ export default function NoteEntity(props) {
     }
     try {
       const result = await api.post('/edges', body, { accessToken })
-      // eslint-disable-next-line no-unused-expressions
-      isTraverseInvitation ? props.addEdgeToEntity(id, result) : props.reloadColumnEntities()
+      if (isTraverseInvitation) {
+        props.addEdgeToEntity(id, result)
+      } else {
+        props.reloadColumnEntities()
+      }
     } catch (error) {
       promptError(error.message)
     }
