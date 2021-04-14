@@ -390,7 +390,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
 
           <ProfileSection name="publications" title="Recent Publications">
             <RecentPublications
-              profileId={profile.id}
+              profileId={profile.preferredId}
               publications={publications}
               count={count}
               loading={!publications}
