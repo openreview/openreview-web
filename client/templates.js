@@ -2975,7 +2975,7 @@ templates['partials/noteBasic'] = template({"1":function(container,depth0,helper
 
   return ((stack1 = (lookupProperty(helpers,"canUnlink")||(depth0 && lookupProperty(depth0,"canUnlink"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"invitation") : depth0),{"name":"canUnlink","hash":{},"fn":container.program(24, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":22,"column":4},"end":{"line":24,"column":18}}})) != null ? stack1 : "");
 },"24":function(container,depth0,helpers,partials,data) {
-    return "      <span class=\"unlink-publication glyphicon glyphicon-minus-sign\"></span>\n";
+    return "      <span class=\"unlink-publication glyphicon glyphicon-minus-sign\" role=\"button\" aria-label=\"unlink this publication from your profile\" tabindex=\"0\"></span>\n";
 },"26":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
