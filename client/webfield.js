@@ -1608,6 +1608,7 @@ module.exports = (function() {
       removedMembers: removedMembers,
       options: { showAddForm: options.showAddForm }
     }));
+    $container.off();
 
     renderMembersTable(group.members, removedMembers);
     loadChildGroups(groupId);
@@ -2196,7 +2197,7 @@ module.exports = (function() {
   };
 
   var renderGroupListItem = function(group) {
-    var groupUrl = '/group?id=' + group.id;
+    var groupUrl = '/group/edit?id=' + group.id;
     if (group.id.indexOf('~') === 0) {
       groupUrl = '/profile?id=' + group.id;
     } else if (group.id.indexOf('@') !== -1) {
@@ -2205,7 +2206,7 @@ module.exports = (function() {
 
     return [
       '<li data-id="' + group.id + '">',
-        '<a href="' + groupUrl + '&mode=edit">' + view.prettyId(group.id) + '</a>',
+        '<a href="' + groupUrl + '">' + view.prettyId(group.id) + '</a>',
       '</li>'
     ].join('\n');
   };
@@ -2327,6 +2328,7 @@ module.exports = (function() {
         showProcessEditor: options.showProcessEditor
       }
     }));
+    $container.off();
 
     loadChildInvitations(invitation.id);
     setupDatePickers();

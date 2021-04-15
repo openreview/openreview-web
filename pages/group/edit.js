@@ -1,6 +1,6 @@
 /* globals Webfield: false */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Head from 'next/head'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import WebfieldContainer from '../../components/WebfieldContainer'
@@ -17,6 +17,7 @@ export default function GroupEdit({ appContext }) {
   const { accessToken, userLoading } = useLoginRedirect()
   const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
+  const containerRef = useRef(null)
   const query = useQuery()
   const { setBannerHidden, clientJsLoading } = appContext
 
@@ -51,10 +52,10 @@ export default function GroupEdit({ appContext }) {
   }, [userLoading, query])
 
   useEffect(() => {
-    if (!group || clientJsLoading) return
+    if (!group || !containerRef || clientJsLoading) return
 
     Webfield.editModeBanner(group.id, 'edit')
-    Webfield.ui.groupEditor({ ...group, web: null }, { container: '#notes' })
+    Webfield.ui.groupEditor({ ...group, web: null }, { container: containerRef.current })
 
     // eslint-disable-next-line consistent-return
     return () => {
@@ -63,7 +64,7 @@ export default function GroupEdit({ appContext }) {
         document.getElementById('flash-message-container').style.display = 'none'
       }
     }
-  }, [clientJsLoading, group])
+  }, [clientJsLoading, containerRef, group])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
 
@@ -82,7 +83,7 @@ export default function GroupEdit({ appContext }) {
           <h1>{prettyId(query?.id)}</h1>
         </div>
 
-        <div id="notes" />
+        <div id="notes" ref={containerRef} />
       </WebfieldContainer>
     </>
   )
