@@ -1492,7 +1492,7 @@ module.exports = (function() {
 
       // Move cursor to end of the search input
       var $input = $section.find('.group-members-form .add-member-input');
-      $input.focus();
+      $input.trigger('focus');
       var pos = searchTerm.length;
       if ($input[0].setSelectionRange) {
         $input[0].setSelectionRange(pos, pos);
@@ -1532,8 +1532,6 @@ module.exports = (function() {
           return false;
         });
       }
-
-      $section.append('<a href="/messages?parentGroup=' + group.id + '" target="_blank" rel="nofollow">View Messages sent to this group</a>')
     };
 
     var getOffsetFromPageNum = function(limit, membersCount, pageNum) {
@@ -1610,6 +1608,7 @@ module.exports = (function() {
       removedMembers: removedMembers,
       options: { showAddForm: options.showAddForm }
     }));
+    $container.off();
 
     renderMembersTable(group.members, removedMembers);
     loadChildGroups(groupId);
@@ -1842,17 +1841,20 @@ module.exports = (function() {
         groups: groupIds,
         subject: subject,
         message: message,
-        parentGroup: groupId
+        parentGroup: groupId,
+        useJob: true
       }, { handleErrors: false })
         .then(function(response) {
           $('#message-group-members-modal').modal('hide');
 
-          var messagedIds = getMessagedIds(response.groups);
-          showAlert('Email sent to ' + messagedIds.length + ' group member' + (messagedIds.length === 1 ? '' : 's'));
+          var scrollPos = $container.find('section.messages').offset().top - 51 - 12;
+          $('html, body').animate({scrollTop: scrollPos}, 400);
+
+          showEmailProgress(response.jobId)
 
           // Save the timestamp in the local storage (used in PC console)
-          for (var i = 0; i < messagedIds.length; i++) {
-            localStorage.setItem(groupId + '|' + messagedIds[i], Date.now());
+          for (var i = 0; i < groupIds.length; i++) {
+            localStorage.setItem(groupId + '|' + groupIds[i], Date.now());
           }
         })
         .fail(function(jqXhr, textStatus) {
@@ -1889,6 +1891,68 @@ module.exports = (function() {
       }
 
       return messagedIds;
+    };
+
+    var showEmailProgress = function(jobId) {
+      var $progress = $container.find('section.messages .progress').show();
+      var failures = 0;
+      var loadProgress = function() {
+        get('/logs/process', { id: jobId }).then(function(response) {
+          if (!response.logs || !response.logs.length) {
+            return $.Deferred().reject('Email progress could not be loaded. See link below for more details.');
+          }
+          var status = response.logs[0];
+
+          if (status.status === 'error') {
+            return $.Deferred().reject('Error: ' + status.error.message);
+          }
+          if (!status.progress || !status.progress.groupsProcessed) {
+            return $.Deferred().reject('Email progress could not be loaded. See link below for more details.');
+          }
+          var queued = status.progress.groupsProcessed[0];
+          var totalQueued = status.progress.groupsProcessed[1];
+          var sent = status.progress.emailsProcessed ? status.progress.emailsProcessed[0] : 0;
+          var totalSent = status.progress.emailsProcessed ? status.progress.emailsProcessed[1] : 0;
+          var isQueuing = queued < totalQueued;
+          var percentComplete = _.round((isQueuing ? (queued / totalQueued) : (sent / totalSent)) * 100, 2);
+
+          var statusText;
+          if (status.status === 'ok') {
+            statusText = '<strong>All ' + totalSent + ' emails have been sent</strong>' +
+              '<br><br><em>Note: The number of emails sent may not exactly match the number of users you selected if multiple IDs belonging to the same user were included.</em>'
+          } else if (isQueuing) {
+            statusText = '<strong>Queuing emails:</strong> ' + queued + ' / ' + totalQueued + ' complete'
+          } else {
+            statusText = '<strong>Sending emails:</strong> ' + sent + ' / ' + totalSent + ' complete'
+          }
+
+          $progress.find('.progress-bar')
+            .attr('aria-valuenow', isQueuing ? queued : sent)
+            .attr('aria-valuemax', isQueuing ? totalQueued : totalSent)
+            .css('width', percentComplete + '%')
+            .find('span').text(percentComplete + '%');
+          $container.find('section.messages .progress-status')
+            .html(statusText);
+
+          if (status.status === 'ok') {
+            clearInterval(refreshTimer)
+          }
+        }).fail(function(err) {
+          $container.find('section.messages .progress-status').text(err);
+
+          failures += 1;
+          if (failures > 5) {
+            clearInterval(refreshTimer);
+          }
+        });
+      };
+      var refreshTimer = setInterval(loadProgress, 1000);
+
+      $container.find('section.messages .progress-bar')
+        .attr('aria-valuenow', 0).attr('aria-valuemax', 10).css('width', 0 + '%').find('span').text(0 + '%');
+      $container.find('section.messages .progress-status')
+        .text('');
+      loadProgress();
     };
 
     $container.on('change', 'tbody input[type="checkbox"]', function() {
@@ -2133,7 +2197,7 @@ module.exports = (function() {
   };
 
   var renderGroupListItem = function(group) {
-    var groupUrl = '/group?id=' + group.id;
+    var groupUrl = '/group/edit?id=' + group.id;
     if (group.id.indexOf('~') === 0) {
       groupUrl = '/profile?id=' + group.id;
     } else if (group.id.indexOf('@') !== -1) {
@@ -2142,7 +2206,7 @@ module.exports = (function() {
 
     return [
       '<li data-id="' + group.id + '">',
-        '<a href="' + groupUrl + '&mode=edit">' + view.prettyId(group.id) + '</a>',
+        '<a href="' + groupUrl + '">' + view.prettyId(group.id) + '</a>',
       '</li>'
     ].join('\n');
   };
@@ -2264,6 +2328,7 @@ module.exports = (function() {
         showProcessEditor: options.showProcessEditor
       }
     }));
+    $container.off();
 
     loadChildInvitations(invitation.id);
     setupDatePickers();
@@ -2872,9 +2937,14 @@ module.exports = (function() {
   var editModeBanner = function(groupOrInvitationId, mode) {
     mode = mode || 'default';
     var otherMode = mode === 'default' ? 'edit' : 'default';
-    var pageType = window.location.pathname.substr(1).toLowerCase();
+    var pageType = window.location.pathname.toLowerCase().indexOf('group') !== -1 ? 'group' : 'invitation';
     var buttonText = mode === 'default' ? 'Edit' : 'View';
-    var buttonUrl = window.location.pathname + '?id=' + groupOrInvitationId + '&mode=' + otherMode;
+    var buttonUrl;
+    if (pageType === 'group') {
+      buttonUrl = (mode === 'default' ? '/group/edit' : '/group') + '?id=' + groupOrInvitationId;
+    } else {
+      buttonUrl = window.location.pathname + '?id=' + groupOrInvitationId + '&mode=' + otherMode;
+    }
     var messageHtml = '<span class="important_message profile-flash-message">' +
       'Currently showing ' + pageType + ' in ' + mode + ' mode &nbsp;' +
       '<a href="' + buttonUrl + '" class="btn btn-xs btn-primary toggle-profile-mode">' +

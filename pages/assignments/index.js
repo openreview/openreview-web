@@ -52,9 +52,10 @@ const ActionLink = ({
 
 const AssignmentRow = ({
   note, configInvitation, handleEditConfiguration, handleViewConfiguration, handleCloneConfiguration,
-  handleRunMatcher, handleDeployMatcher, referrer,
+  handleRunMatcher, handleDeployMatcher, referrer, shouldRemoveDeployLink,
 }) => {
   const edgeBrowserUrl = getEdgeBrowserUrl(note.content)
+  const edgeEditUrl = getEdgeBrowserUrl(note.content, { editable: true })
   const { status, error_message: errorMessage } = note.content
 
   return (
@@ -108,13 +109,19 @@ const AssignmentRow = ({
         {['Initialized', 'Error', 'No Solution'].includes(status) && (
           <ActionLink label="Run Matcher" iconName="cog" onClick={() => handleRunMatcher(note.id)} />
         )}
-        {['Complete', 'Deploying', 'Deployed', 'Deployment Error'].includes(status) && (
+        {['Complete', 'Deploying', 'Deployment Error'].includes(status) && (
           <>
             <ActionLink label="Browse Assignments" iconName="eye-open" href={edgeBrowserUrl} disabled={!edgeBrowserUrl} />
             <ActionLink label="View Statistics" iconName="stats" href={`/assignments/stats?id=${note.id}&referrer=${referrer}`} />
           </>
         )}
-        {['Complete', 'Deployed', 'Deployment Error'].includes(status) && (
+        {['Deployed'].includes(status) && (
+          <>
+            <ActionLink label="Edit Assignments " iconName="random" href={edgeEditUrl} disabled={!edgeEditUrl} />
+            <ActionLink label="View Statistics" iconName="stats" href={`/assignments/stats?id=${note.id}&referrer=${referrer}`} />
+          </>
+        )}
+        {['Complete', 'Deployment Error'].includes(status) && !shouldRemoveDeployLink && (
           <ActionLink label="Deploy Assignment" iconName="share" onClick={() => handleDeployMatcher(note.id)} />
         )}
       </td>
@@ -130,6 +137,8 @@ const Assignments = ({ appContext }) => {
   const [viewModalContent, setViewModalContent] = useState(null)
   const query = useQuery()
   const { setBannerContent } = appContext
+
+  const shouldRemoveDeployLink = assignmentNotes?.some(p => p?.content?.status === 'Deployed')
 
   // API functions
   const getAssignmentNotes = async () => {
@@ -370,6 +379,7 @@ const Assignments = ({ appContext }) => {
                   handleRunMatcher={handleRunMatcher}
                   handleDeployMatcher={handleDeployMatcher}
                   referrer={encodeURIComponent(`[all assignments for ${prettyId(query?.group)}](/assignments?group=${query?.group})`)}
+                  shouldRemoveDeployLink={shouldRemoveDeployLink}
                 />
               ))}
             </Table>

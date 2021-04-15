@@ -39,7 +39,7 @@ const Browse = ({ appContext }) => {
   useEffect(() => {
     if (userLoading || !query) return
 
-    if (!query.traverse || !query.browse) {
+    if (!query.traverse) {
       setError(notFoundError)
       return
     }

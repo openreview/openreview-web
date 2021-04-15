@@ -222,7 +222,7 @@ main.group, main.invitation {
 
   // Edit and Info Mode
   section {
-    &.general, &.members, &.children, &.invitations,
+    &.general, &.members, &.children, &.invitations, &.messages,
     &.subinvitations, &.webfield, &.process, &.reply, &.tabs, &.notes {
       margin-bottom: 1.75rem;
       h4 {
@@ -417,6 +417,18 @@ main.group, main.invitation {
       width: 100%;
       max-width: 800px;
       margin-bottom: .5rem;
+    }
+  }
+
+  section.messages {
+    h4 {
+      margin-bottom: 1.25rem;
+    }
+    .progress {
+      margin-bottom: 1rem;
+    }
+    .progress-bar {
+      background-color: @mediumBlue;
     }
   }
 
