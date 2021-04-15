@@ -214,6 +214,15 @@ You can click on the minus icon to remove a publication from your profile. If yo
 You must click the "**Save Profile Changes**" button at the bottom of the page so that selected publications are removed from your profile.
 `,
   }, {
+    q: 'How do I add a publication manually?',
+    id: 'question-upload-manually',
+    a: `If you have a DBLP profile, you can import publications associated with that profile. Please refer to the question above for detailed instructions.
+
+Alternatively you can upload a publication to OpenReview from a pdf file or a URL.
+You need to login to your profile, go to https://openreview.net/group?id=OpenReview.net/Archive and follow the instructions on the page.
+
+Please **read the instructions** before you add publications manually.`,
+  }, {
     q: 'Where can I find the Semantic Scholar URL?',
     id: 'question-semantic-scholar',
     a: `To locate your Semantic Scholar URL, go to https://semanticscholar.org and search for the name you publish by.
