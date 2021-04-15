@@ -3,7 +3,7 @@
 <ul class="list-unstyled list-paginated">
   {{#each sortedList}}
     <li data-id="{{id}}">
-      <a href="{{groupUrl id}}&mode=edit" class="push-link">{{prettyId id}}</a>
+      <a href="{{groupUrl id true}}">{{prettyId id}}</a>
     </li>
   {{else}}
     <li><p class="empty-message">No {{toLowerCase title}}</p></li>
