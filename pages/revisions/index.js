@@ -132,8 +132,10 @@ const RevisionsList = ({
             <label>
               <input
                 type="checkbox"
-                checked={selectedIndexes && selectedIndexes.includes(index)}
+                checked={(selectedIndexes && selectedIndexes.includes(index)) || false}
                 onChange={e => toggleSelected(index, e.target.checked)}
+                disabled={!reference.content.pdf}
+                title={!reference.content.pdf ? 'this revision does not contain a pdf document' : undefined}
               />
             </label>
           </div>
