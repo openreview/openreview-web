@@ -2540,9 +2540,12 @@ module.exports = (function() {
         if ($section.hasClass('webfield')) {
           editorType = 'webfield';
           codeToEdit = response.invitations[0].web;
-        } else {
+        } else if ($section.hasClass('process')) {
           editorType = 'process';
           codeToEdit = response.invitations[0].process;
+        } else if ($section.hasClass('preprocess')){
+          editorType = 'preprocess';
+          codeToEdit = response.invitations[0].preprocess;
         }
 
         $.ajax({
@@ -2588,9 +2591,12 @@ module.exports = (function() {
       if ($section.hasClass('webfield')) {
         editorType = 'webfield';
         fieldName = 'web';
-      } else {
+      } else if ($section.hasClass('process')) {
         editorType = 'process';
         fieldName = 'process';
+      } else if ($section.hasClass('preprocess')) {
+        editorType = 'preprocess';
+        fieldName = 'preprocess';
       }
 
       var newCode = editors[editorType].getSession().getValue().trim();
