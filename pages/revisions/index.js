@@ -89,7 +89,6 @@ const RevisionsList = ({
       withModificationDate: true,
       withDateTime: true,
       withBibtexLink: false,
-      showInvitation: true,
       user,
       onEditRequested: (inv, options) => {
         const noteToShow = options.original ? note.details.original : note
