@@ -216,12 +216,8 @@ You must click the "**Save Profile Changes**" button at the bottom of the page s
   }, {
     q: 'How do I add a publication manually?',
     id: 'question-upload-manually',
-    a: `If you have a DBLP profile, you can import publications associated with that profile. Please refer to the question above for detailed instructions.
-
-Alternatively you can upload a publication to OpenReview from a pdf file or a URL.
-You need to login to your profile, go to https://openreview.net/group?id=OpenReview.net/Archive and follow the instructions on the page.
-
-Please **read the instructions** before you add publications manually.`,
+    a: `If one or more publications are not present in your DBLP homepage, you can use our direct upload page to manually upload your missing publications.
+    Please go to the following link https://openreview.net/group?id=OpenReview.net/Archive and follow the instructions listed in the page.`,
   }, {
     q: 'Where can I find the Semantic Scholar URL?',
     id: 'question-semantic-scholar',
