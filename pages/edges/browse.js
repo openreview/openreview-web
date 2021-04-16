@@ -124,7 +124,7 @@ const Browse = ({ appContext }) => {
         if (typeof apiError === 'object' && apiError.type) {
           if (apiError.type === 'Not Found') {
             setError(notFoundError)
-          } else if (error.type === 'forbidden') {
+          } else if (apiError.type === 'forbidden' || apiError.type === 'ForbiddenError') {
             setError(forbiddenError)
           }
         } else if (typeof apiError === 'string' && apiError.startsWith('Invitation Not Found')) {
