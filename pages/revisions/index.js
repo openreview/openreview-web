@@ -134,8 +134,6 @@ const RevisionsList = ({
                 type="checkbox"
                 checked={(selectedIndexes && selectedIndexes.includes(index)) || false}
                 onChange={e => toggleSelected(index, e.target.checked)}
-                disabled={!reference.content.pdf}
-                title={!reference.content.pdf ? 'this revision does not contain a pdf document' : undefined}
               />
             </label>
           </div>
@@ -174,7 +172,8 @@ const Revisions = ({ appContext }) => {
     // element represents the older revision, which should go on the left
     const leftId = revisions[selectedIndexes[1]][0].id
     const rightId = revisions[selectedIndexes[0]][0].id
-    router.push(`/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}`)
+    const hasPdf = revisions[selectedIndexes[0]][0].content.pdf && revisions[selectedIndexes[1]][0].content.pdf
+    router.push(`/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${hasPdf ? '&pdf=true' : ''}`)
   }
 
   useEffect(() => {
