@@ -33,6 +33,8 @@ export default function EntityList(props) {
             canTraverse={props.canTraverse}
             columnType={props.columnType}
             parentInfo={props.parentInfo}
+            altGlobalEntityMap={props.altGlobalEntityMap}
+            reloadColumnEntities={props.reloadColumnEntities}
           />
         )
 
@@ -65,6 +67,9 @@ export default function EntityList(props) {
             canTraverse={props.canTraverse}
             columnType={props.columnType}
             parentInfo={props.parentInfo}
+            reloadColumnEntities={props.reloadColumnEntities}
+            updateChildColumn={props.updateChildColumn}
+            columnIndex={props.columnIndex}
           />
         )
 

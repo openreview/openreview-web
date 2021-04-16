@@ -1,8 +1,26 @@
+/* globals $: false */
+import { useState } from 'react'
 import Icon from '../Icon'
+import { getTooltipTitle } from '../../lib/edge-utils'
 
-// eslint-disable-next-line object-curly-newline
-export default function EditEdgeToggle({ addEdge, removeEdge, existingEdge, canAddEdge, editEdgeTemplate }) {
+export default function EditEdgeToggle({
+  addEdge,
+  removeEdge,
+  existingEdge,
+  canAddEdge,
+  editEdgeTemplate,
+  isInviteInvitation,
+  shouldDisableControl = false,
+  disableControlReason,
+}) {
+  const [loading, setLoading] = useState(false)
+
   const addOrRemoveEdge = (e) => {
+    if (shouldDisableControl) {
+      e.stopPropagation()
+      return
+    }
+    setLoading(true)
     if (existingEdge) {
       e.stopPropagation()
       removeEdge()
@@ -11,30 +29,49 @@ export default function EditEdgeToggle({ addEdge, removeEdge, existingEdge, canA
         e,
         existingEdge,
         editEdgeTemplate,
-        updatedEdgeFields: { weight: 1 },
+        updatedEdgeFields: isInviteInvitation ? undefined : { weight: 1 }, // invite invitation weight remain as 0
       })
     }
   }
 
-  if (!existingEdge && !canAddEdge) return null
   const getLabel = () => {
-    if (editEdgeTemplate.label) return `${editEdgeTemplate.name}: ${editEdgeTemplate.label}${existingEdge?.weight ? `,${existingEdge.weight}` : ''}`
-    return `${editEdgeTemplate.name}: ${existingEdge?.weight ?? ''}`
+    if (existingEdge?.label) return `${existingEdge.name}: ${existingEdge.label}${existingEdge?.weight ? `,${existingEdge.weight}` : ''}`
+    if (editEdgeTemplate?.label) return `${editEdgeTemplate.name}: ${editEdgeTemplate.label}${existingEdge?.weight ? `,${existingEdge.weight}` : ''}`
+    return `${editEdgeTemplate?.name}: ${existingEdge?.weight ?? ''}`
   }
+
+  const getTooltip = () => {
+    if (isInviteInvitation) {
+      if (existingEdge) return 'Cancel Invite'
+      return 'Invite Reviewer'
+    }
+    if (existingEdge) return 'Delete Reviewer Assignment'
+    return 'Assign Reviewer'
+  }
+
+  const handleLabelHover = (target) => {
+    if (!existingEdge) return
+    const title = getTooltipTitle(existingEdge)
+    $(target).tooltip({
+      title,
+      trigger: 'hover',
+      container: 'body',
+    })
+  }
+
+  if (!existingEdge && !canAddEdge) return null
 
   return (
     <div className="edit-controls d-flex">
-      <label className="edit-edge-toggle-description">{getLabel()}</label>
+      <label className="edit-edge-toggle-description" onMouseEnter={e => handleLabelHover(e.target)}>{getLabel()}</label>
       <button
         type="button"
-        className="btn btn-xs btn-default ml-1 edit-edge-toggle-btn"
+        className={`btn btn-xs btn-default ml-1 edit-edge-toggle-btn ${(shouldDisableControl || loading) ? 'disable' : ''}`}
+        title={shouldDisableControl ? disableControlReason : getLabel()}
         onClick={addOrRemoveEdge}
         autoComplete="off"
-        data-tooltip="tooltip"
-        data-placement="top"
-        title={existingEdge ? 'Delete Reviewer Assignment' : 'Assign Reviewer'}
       >
-        <Icon name={existingEdge ? 'trash' : 'thumbs-up'} />
+        <Icon name={existingEdge ? 'trash' : 'thumbs-up'} extraClasses={shouldDisableControl || loading ? 'span-disabled' : null} />
       </button>
     </div>
   )

@@ -231,6 +231,9 @@ const Profile = ({ profile, publicProfile, appContext }) => {
   const profileQuery = useQuery()
   const { setBannerHidden, setBannerContent } = appContext
 
+  const uniqueNames = profile.names.filter(name => !name.duplicate)
+  const sortedNames = [...uniqueNames.filter(p => p.preferred), ...uniqueNames.filter(p => !p.preferred)]
+
   const loadPublications = async () => {
     let apiRes
     try {
@@ -300,9 +303,11 @@ const Profile = ({ profile, publicProfile, appContext }) => {
             actionLink="Suggest Name"
           >
             <div className="list-compact">
-              {profile.names.filter(name => !name.duplicate)
-                .map(name => <ProfileName key={name.username || (name.first + name.last)} name={name} />)
-                .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+              {
+                sortedNames
+                  .map(name => <ProfileName key={name.username || (name.first + name.last)} name={name} />)
+                  .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)
+              }
             </div>
           </ProfileSection>
 
@@ -390,7 +395,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
 
           <ProfileSection name="publications" title="Recent Publications">
             <RecentPublications
-              profileId={profile.id}
+              profileId={profile.preferredId}
               publications={publications}
               count={count}
               loading={!publications}

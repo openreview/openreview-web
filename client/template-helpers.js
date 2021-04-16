@@ -645,16 +645,16 @@ Handlebars.registerHelper('forumReadersIcon', function(readersArr) {
   return new Handlebars.SafeString(readersHtml);
 });
 
-var urlFromGroupId = function(groupId) {
+var urlFromGroupId = function(groupId, editMode) {
   var commonGroups = ['everyone', '(anonymous)', '(guest)'];
   if (!groupId || commonGroups.indexOf(groupId) !== -1) {
     return '';
   } else if (groupId.indexOf('~') === 0) {
-    return '/profile?id=' + groupId;
+    return '/profile?id=' + groupId + (editMode ? '&mode=edit' : '');
   } else if (groupId.indexOf('@') !== -1) {
-    return '/profile?email=' + groupId;
+    return '/profile?email=' + groupId + (editMode ? '&mode=edit' : '');
   }
-  return '/group?id=' + groupId;
+  return '/group' + (editMode ? '/edit' : '') + '?id=' + groupId;
 };
 
 Handlebars.registerHelper('groupUrl', urlFromGroupId);
@@ -948,7 +948,6 @@ Handlebars.registerPartial('groupInfoTable', Handlebars.templates['partials/grou
 Handlebars.registerPartial('invitationInfoTable', Handlebars.templates['partials/invitationInfoTable']);
 Handlebars.registerPartial('configurationNotes', Handlebars.templates['partials/configurationNotes']);
 
-Handlebars.registerPartial('userMenu', Handlebars.templates['partials/userMenu']);
 Handlebars.registerPartial('spinner', Handlebars.templates.spinner);
 
 Handlebars.registerPartial('profileExpertise', Handlebars.templates['partials/merge/profileExpertise']);
