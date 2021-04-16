@@ -168,7 +168,7 @@ module.exports = (function() {
 
     var errorText = getErrorFromJqXhr(jqXhr, textStatus);
     var notSignatoryError = errorText.type === 'notSignatory' && errorText.path === 'signatures' && _.startsWith(errorText.user, 'guest_');
-    var forbiddenError = errorText.type === 'forbidden' && _.startsWith(errorText.user, 'guest_');
+    var forbiddenError = (errorText.type === 'forbidden' || errorText.type === 'ForbiddenError') && _.startsWith(errorText.user, 'guest_');
 
     if (errorText === 'User does not exist') {
       location.reload(true);
@@ -2540,9 +2540,12 @@ module.exports = (function() {
         if ($section.hasClass('webfield')) {
           editorType = 'webfield';
           codeToEdit = response.invitations[0].web;
-        } else {
+        } else if ($section.hasClass('process')) {
           editorType = 'process';
           codeToEdit = response.invitations[0].process;
+        } else if ($section.hasClass('preprocess')){
+          editorType = 'preprocess';
+          codeToEdit = response.invitations[0].preprocess;
         }
 
         $.ajax({
@@ -2588,9 +2591,12 @@ module.exports = (function() {
       if ($section.hasClass('webfield')) {
         editorType = 'webfield';
         fieldName = 'web';
-      } else {
+      } else if ($section.hasClass('process')) {
         editorType = 'process';
         fieldName = 'process';
+      } else if ($section.hasClass('preprocess')) {
+        editorType = 'preprocess';
+        fieldName = 'preprocess';
       }
 
       var newCode = editors[editorType].getSession().getValue().trim();
