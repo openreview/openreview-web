@@ -168,7 +168,7 @@ module.exports = (function() {
 
     var errorText = getErrorFromJqXhr(jqXhr, textStatus);
     var notSignatoryError = errorText.type === 'notSignatory' && errorText.path === 'signatures' && _.startsWith(errorText.user, 'guest_');
-    var forbiddenError = errorText.type === 'forbidden' && _.startsWith(errorText.user, 'guest_');
+    var forbiddenError = (errorText.type === 'forbidden' || errorText.type === 'ForbiddenError') && _.startsWith(errorText.user, 'guest_');
 
     if (errorText === 'User does not exist') {
       location.reload(true);
