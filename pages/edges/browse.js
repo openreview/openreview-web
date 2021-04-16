@@ -121,10 +121,10 @@ const Browse = ({ appContext }) => {
         })
       })
       .catch((apiError) => {
-        if (typeof apiError === 'object' && apiError.type) {
-          if (apiError.type === 'Not Found') {
+        if (typeof apiError === 'object' && apiError.name) {
+          if (apiError.name === 'Not Found' || apiError.name === 'NotFoundError') {
             setError(notFoundError)
-          } else if (apiError.type === 'forbidden' || apiError.type === 'ForbiddenError') {
+          } else if (apiError.name === 'forbidden' || apiError.name === 'ForbiddenError') {
             setError(forbiddenError)
           }
         } else if (typeof apiError === 'string' && apiError.startsWith('Invitation Not Found')) {
