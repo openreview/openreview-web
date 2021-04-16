@@ -223,7 +223,7 @@ main.group, main.invitation {
   // Edit and Info Mode
   section {
     &.general, &.members, &.children, &.invitations, &.messages,
-    &.subinvitations, &.webfield, &.process, &.reply, &.tabs, &.notes {
+    &.subinvitations, &.webfield, &.process, &.preprocess, &.reply, &.tabs, &.notes {
       margin-bottom: 1.75rem;
       h4 {
         margin-bottom: 1rem;
@@ -391,7 +391,7 @@ main.group, main.invitation {
     border: 1px solid #eee;
   }
 
-  section.webfield, section.process {
+  section.webfield, section.process, section.preprocess {
     .alert {
       margin-top: 1rem;
       margin-bottom: .5rem;
