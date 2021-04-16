@@ -2130,7 +2130,7 @@ module.exports = (function() {
     var $dateItem = (!notePastDue || details.writable) ?
       $('<span>', {class: 'date item'}).text(formattedDate) :
       null;
-    var $invItem = $('<span>', {class: 'item'}).text(note.content.venue || prettyId(note.invitation));
+    var $invItem = $('<span>', {class: 'item'}).text(options.showInvitation ? prettyId(note.invitation) : note.content.venue || prettyId(note.invitation));
     var $readersItem = _.has(note, 'readers') ?
       $('<span>', {class: 'item'}).html('Readers: ' + prettyReadersList(note.readers)) :
       null;
