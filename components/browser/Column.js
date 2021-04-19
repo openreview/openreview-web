@@ -12,15 +12,22 @@ import EntityList from './EntityList'
 import {
   prettyId, prettyInvitationId, pluralizeString,
 } from '../../lib/utils'
+import EditEdgeInviteEmail from './EditEdgeInviteEmail'
 
 export default function Column(props) {
   const {
-    type,
+    type, // head/tail
     parentId,
     globalEntityMap,
     altGlobalEntityMap,
     startInvitation,
     parentColumnEntityType,
+    entityType, // Note/Profile
+    parentContent,
+    parentTraverseCount,
+    parentCustomLoad,
+    parentExistingLoad,
+    shouldReloadEntities, // something non traverse changed in another column with same parent
   } = props
   const {
     traverseInvitation,
@@ -32,10 +39,29 @@ export default function Column(props) {
   const otherType = type === 'head' ? 'tail' : 'head'
   const colBodyEl = useRef(null)
 
+  const sortOptions = [{ key: traverseInvitation.id, value: 'default', text: prettyInvitationId(traverseInvitation.id) }]
+  const editAndBrowserInvitations = [...editInvitations ?? [], ...browseInvitations ?? []]
+  editAndBrowserInvitations.forEach((p) => {
+    if (!sortOptions.map(q => q.key).includes(p.id)) {
+      sortOptions.push({
+        key: p.id,
+        value: p.id,
+        text: prettyInvitationId(p.id),
+      })
+    }
+  })
+
   // State Vars
   const [selectedItemId, setSelectedItemId] = useState(null)
   const [items, setItems] = useState(null)
   const [shouldUpdateItems, setShouldUpdateItems] = useState(true)
+  const [filteredItems, setFilteredItems] = useState([])
+  const [itemsHeading, setItemsHeading] = useState(null)
+  const [numItemsToRender, setNumItemsToRender] = useState(100)
+  const [columnSort, setColumnSort] = useState('default')
+  const [search, setSearch] = useState({ term: '' })
+
+  const showLoadMoreButton = numItemsToRender < filteredItems.length
 
   // Helpers
   const formatEdge = edge => ({
@@ -52,17 +78,21 @@ export default function Column(props) {
     readers: edge.readers || [],
     signatures: edge.signatures || [],
     nonreaders: edge.nonreaders || [],
+    creationDate: edge.tcdate,
+    modificationDate: edge.tmdate,
+    writable: edge.details?.writable ?? false,
   })
 
   const buildNewEditEdge = (editInvitation, entityId, weight = 0) => {
     if (!editInvitation) return null
+    const isInviteInvitation = editInvitation[otherType]?.query?.['value-regex'] === '~.*|.+@.+'
 
     return {
       invitation: editInvitation.id,
       name: editInvitation.id.split('/').pop().replace(/_/g, ' '),
       [type]: entityId,
       [otherType]: parentId,
-      label: editInvitation.query.label,
+      label: isInviteInvitation ? editInvitation.label?.default : editInvitation.query.label,
       weight,
       readers: editInvitation.readers, // reader/writer/nonreader/signature are completed in entity
       writers: editInvitation.writers,
@@ -170,7 +200,7 @@ export default function Column(props) {
     })
   }
 
-  const getSearchPlaceholder = () => {
+  const getPlaceholderText = (isLoadMoreButton = false) => {
     let entityName = props.entityType
     if (props.entityType === 'Note') {
       entityName = prettyInvitationId(traverseInvitation[type].query.invitation)
@@ -180,6 +210,7 @@ export default function Column(props) {
     if (startInvitation) {
       entityName = prettyInvitationId(startInvitation.id)
     }
+    if (isLoadMoreButton) return pluralizeString(entityName).toLowerCase()
     return `Search all ${pluralizeString(entityName).toLowerCase()}...`
   }
 
@@ -208,16 +239,36 @@ export default function Column(props) {
       return
     }
 
-    const itemToAdd = globalEntityMap[headOrTailId]
+    let itemToAdd = globalEntityMap[headOrTailId]
     if (!itemToAdd) {
       // This mainly occurs when an affinity edge references a withdrawn paper
       // and isn't usually a problem. Missing profile IDs sometimes occur if
       // profiles get merged and the edges are not updated.
       // eslint-disable-next-line no-console
       console.warn(`${headOrTailId} not found in global entity map. From ${edgeFormatted.name}`)
-      return
-    }
 
+      if (fieldName === 'editEdges' && entityType === 'Profile') {
+        const editInvitation = editInvitations.filter(p => p.id === edge.invitation)?.[0]
+        if (editInvitation[type]?.query?.['value-regex']) {
+          itemToAdd = {
+            id: headOrTailId,
+            content: {
+              name: { first: prettyId(headOrTailId), middle: '', last: '' },
+              email: headOrTailId,
+              title: 'Unknown',
+              expertise: [],
+              isInvitedProfile: true,
+            },
+            searchText: headOrTailId,
+            traverseEdgesCount: 0,
+          }
+        } else {
+          return
+        }
+      } else {
+        return
+      }
+    }
     const columnMetadata = type === 'head'
       ? _.get(props.metadataMap, [headOrTailId, parentId], {})
       : _.get(props.metadataMap, [parentId, headOrTailId], {})
@@ -240,6 +291,159 @@ export default function Column(props) {
 
     colItems.push(itemToAddFormatted)
   }
+
+  // populate necessary info for items
+  const appendEdgesInfo = ({
+    item, traverseEdges, hideEdges, browseEdgeGroups, editEdgeGroups,
+  }) => {
+    const metadata = {}
+    if (traverseEdges.some(p => p[type] === item.id)) {
+      metadata.isAssigned = true
+    }
+    if (hideEdges.some(p => p[type] === item.id)) {
+      metadata.isHidden = true
+    }
+    const allEdges = [...traverseEdges, ...hideEdges, ...browseEdgeGroups.flat(), ...editEdgeGroups.flat()]
+    if (allEdges.some((p) => {
+      const edgeFormatted = formatEdge(p)
+      return edgeFormatted.name === 'Conflict' && edgeFormatted.weight === -1
+    })) {
+      metadata.hasConflict = true
+    }
+    const browseEdges = browseEdgeGroups.flat().filter(p => p[type] === item.id).map(q => formatEdge(q))
+
+    const hasAggregateScoreEdge = browseEdges.length && browseEdges[0].name === 'Aggregate_Score'
+    const edgeWeight = hasAggregateScoreEdge ? browseEdges[0].weight : 0
+    const editEdgeTemplates = editInvitations?.map(p => buildNewEditEdge(p, item.id, edgeWeight))
+    return {
+      ...item,
+      metadata,
+      browseEdges,
+      editEdges: editEdgeGroups.flat().filter(p => p[type] === item.id).map(p => formatEdge(p)),
+      editEdgeTemplates,
+    }
+  }
+
+  const loadMoreItems = () => {
+    setNumItemsToRender(numItemsToRender + 100)
+  }
+
+  // Sorts item list by the weights of the edges specified by columnSort. If an
+  // item does not have the specified edge it should go at the bottom of the
+  // list below all items that have that edge.
+  const sortItems = (colItems) => {
+    // the columnsort invitation may come from traverse/edit/browser invitations
+    if (columnSort === 'default') {
+      return colItems
+    }
+
+    const sortInvitation = [...editInvitations, ...browseInvitations].filter(p => p.id === columnSort)?.[0]
+    const sortLabels = sortInvitation.label?.['value-radio']
+
+    if (sortLabels) { // has no weight; construct label map then sort
+      const sortLabelMap = _.fromPairs(_.zip(sortLabels, _.range(sortLabels.length, 0, -1)))
+      // eslint-disable-next-line no-param-reassign
+      return _.orderBy(
+        [...colItems].map(
+          p => (
+            {
+              ...p,
+              weight: sortLabelMap[
+                [...p.browseEdges, ...p.editEdges].find(q => q.invitation === columnSort).label] || 0,
+            }),
+        ),
+        ['weight'],
+        ['desc'],
+      )
+    }
+
+    return [...colItems].sort((itemA, itemB) => {
+      const edgeA = _.find([...itemA.browseEdges, ...itemA.editEdges], ['invitation', columnSort])
+      const edgeB = _.find([...itemB.browseEdges, ...itemB.editEdges], ['invitation', columnSort])
+
+      if (!edgeA && !edgeB) return 0
+      if (!edgeA && edgeB) return 1
+      if (edgeA && !edgeB) return -1
+
+      const weightA = edgeA.weight || 0
+      const weightB = edgeB.weight || 0
+      return weightB - weightA
+    })
+  }
+
+  const sortEditEdges = (editEdges) => {
+    const editInvitationIds = editInvitations.map(p => p.id)
+    editEdges.sort((a, b) => editInvitationIds.indexOf(a.invitation) - editInvitationIds.indexOf(b.invitation))
+    return editEdges
+  }
+
+  // column created by clicking invited reviewer is just globalentitymap
+  // need to show entities with traverse invitation first
+  const sortItemsByTraverseEdge = (colItems) => {
+    if (!colItems?.some(p => p?.metadata?.isAssigned)) return colItems // no traverse edge
+    return colItems.sort((a, b) => {
+      if (b?.metadata?.isAssigned && !a?.metadata?.isAssigned) return 1
+      if (a?.metadata?.isAssigned && !b?.metadata?.isAssigned) return -1
+      return 0
+    })
+  }
+
+  useEffect(() => {
+    if (!items || !items.length) {
+      return
+    }
+    // Reset column to show original items and no search heading
+    if (!search.term) {
+      setFilteredItems(sortItems(items))
+      setItemsHeading(null)
+      return
+    }
+    if (search.term.length < 2) {
+      return
+    }
+
+    // Build search regex. \b represents a word boundary, so matches in the
+    // middle of a word don't count. Includes special case for searching by
+    // paper number so only the exact paper is matched.
+    const escapedTerm = _.escapeRegExp(search.term.toLowerCase())
+    let [preModifier, postModifier] = ['\\b', '']
+    if (escapedTerm.startsWith('#')) {
+      [preModifier, postModifier] = ['^', '\\b']
+    }
+    const searchRegex = new RegExp(preModifier + escapedTerm + postModifier, 'm')
+
+    // Search existing items
+    const matchingItems = items.filter(item => item.searchText?.match(searchRegex))
+
+    // Search all other items that don't share edges with the parent entity
+    if (parentId) {
+      const searchedIds = items.map(item => item.id)
+
+      Object.values(globalEntityMap).forEach((item) => {
+        if (searchedIds.includes(item.id)) return
+
+        if (item.searchText.match(searchRegex)) {
+          matchingItems.push({
+            ...item,
+            editEdgeTemplates: editInvitations.map(editInvitation => (buildNewEditEdge(editInvitation, item.id))),
+            editEdges: [],
+            browseEdges: [],
+            metadata: {
+              isAssigned: false,
+            },
+          })
+        }
+      })
+    }
+
+    setFilteredItems(sortItems(matchingItems))
+    setItemsHeading('Search Results')
+  }, [items, search, columnSort])
+
+  useEffect(() => {
+    setNumItemsToRender(100)
+    colBodyEl.current.scrollTop = 0
+  }, [search, columnSort])
 
   useEffect(() => {
     if (props.loading) return
@@ -321,7 +525,7 @@ export default function Column(props) {
       traverseInvitation.id, traverseInvitation.query,
     )).then(response => response.edges)
     const editEdgesP = editInvitations?.map(inv => Webfield.getAll('/edges', buildQuery(
-      inv.id, inv.query,
+      inv.id, { ...inv.query, details: inv.query.details ? `${inv.query.details},writable` : 'writable' },
     ))) ?? []
     const hideEdgesP = hideInvitation ? Webfield.get('/edges', buildQuery(
       hideInvitation.id, hideInvitation.query,
@@ -337,6 +541,19 @@ export default function Column(props) {
         const editEdgeGroups = browseEditEdgeGroups.slice(0, editEdgesP.length)
         const browseEdgeGroups = browseEditEdgeGroups.slice(editEdgesP.length)
         const colItems = []
+        // if clicked on invite invitation profile entity
+        // dispay full list of notes with meta/browseEdges/editEdges/editEdgeTemplates
+        if (parentColumnEntityType === 'Profile' && !altGlobalEntityMap[parentId]) {
+          const allItems = Object.values(globalEntityMap).map(p => appendEdgesInfo({
+            item: p,
+            traverseEdges,
+            hideEdges,
+            browseEdgeGroups,
+            editEdgeGroups,
+          }))
+          setItems(sortItemsByTraverseEdge(allItems))
+          return
+        }
 
         // sory by weight (in API) would fail when traverse edges has label instead of weight
         // and traverse is the default sort so must sort.
@@ -353,16 +570,40 @@ export default function Column(props) {
 
         traverseEdges.forEach((tEdge) => {
           const headOrTailId = tEdge[type]
-          if (!globalEntityMap[headOrTailId]) {
-            // eslint-disable-next-line no-console
-            console.warn(`${headOrTailId} not found in global entity map`)
-            return
+          let itemToAdd = globalEntityMap[headOrTailId]
+          if (!itemToAdd) {
+            if (entityType === 'Profile') {
+              const hasInviteInvitation = editInvitations.some(p => p[type]?.query?.['value-regex'])
+              const hasProposedAssignmentInvitation = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
+              if (hasInviteInvitation || hasProposedAssignmentInvitation) {
+                itemToAdd = {
+                  id: headOrTailId,
+                  content: {
+                    name: { first: prettyId(headOrTailId), middle: '', last: '' },
+                    email: headOrTailId,
+                    title: 'Unknown',
+                    expertise: [],
+                    isInvitedProfile: true,
+                  },
+                  searchText: headOrTailId,
+                  traverseEdgesCount: traverseEdges.filter(p => p[type] === headOrTailId).length,
+                }
+              } else {
+                // eslint-disable-next-line no-console
+                console.warn(`${headOrTailId} not found in global entity map`)
+                return
+              }
+            } else {
+              // eslint-disable-next-line no-console
+              console.warn(`${headOrTailId} not found in global entity map`)
+              return
+            }
           }
           const columnMetadata = type === 'head'
             ? _.get(props.metadataMap, [headOrTailId, parentId], {})
             : _.get(props.metadataMap, [parentId, headOrTailId], {})
           colItems.push({
-            ...globalEntityMap[headOrTailId],
+            ...itemToAdd,
             browseEdges: [],
             editEdges: [],
             metadata: {
@@ -372,10 +613,13 @@ export default function Column(props) {
           })
         })
 
-        if (altGlobalEntityMap[parentId].traverseEdgesCount !== traverseEdges.length) {
+        if (altGlobalEntityMap[parentId]?.traverseEdgesCount !== traverseEdges.length) {
           props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', traverseEdges.length) // other user has updated edge
           setShouldUpdateItems(false) // avoid infinite update
         }
+
+        // Add existing edit edges to items
+        editEdgeGroups.forEach(editEdge => editEdge.forEach(updateColumnItems('editEdges', colItems)))
 
         // Add all browse edges to items
         browseEdgeGroups.forEach((browseEdges, i) => {
@@ -396,9 +640,6 @@ export default function Column(props) {
 
         hideEdges.forEach(updateColumnItems('browseEdges', colItems, true))
 
-        // Add existing edit edges to items
-        editEdgeGroups.forEach(editEdge => editEdge.forEach(updateColumnItems('editEdges', colItems)))
-
         // Add each editInvitation as a template so that new invitation can be added
         if (editInvitations?.length) {
           colItems.forEach((item) => {
@@ -412,110 +653,7 @@ export default function Column(props) {
 
         setItems(colItems)
       })
-  }, [props.loading, globalEntityMap])
-
-  const [filteredItems, setFilteredItems] = useState([])
-  const [itemsHeading, setItemsHeading] = useState(null)
-
-  const [numItemsToRender, setNumItemsToRender] = useState(100)
-  const loadMoreItems = (e) => {
-    const elem = e.target
-
-    if (elem.scrollHeight > elem.clientHeight
-      && elem.scrollTop > elem.scrollHeight - 840
-      && numItemsToRender < filteredItems.length) {
-      setNumItemsToRender(numItemsToRender + 100)
-    }
-  }
-
-  const [columnSort, setColumnSort] = useState('default')
-
-  // Sorts item list by the weights of the edges specified by columnSort. If an
-  // item does not have the specified edge it should go at the bottom of the
-  // list below all items that have that edge.
-  const sortItems = (colItems) => {
-    if (columnSort === 'default') {
-      return colItems
-    }
-
-    return [...colItems].sort((itemA, itemB) => {
-      const edgeA = _.find(itemA.browseEdges, ['invitation', columnSort])
-      const edgeB = _.find(itemB.browseEdges, ['invitation', columnSort])
-
-      if (!edgeA && !edgeB) return 0
-      if (!edgeA && edgeB) return 1
-      if (edgeA && !edgeB) return -1
-
-      const weightA = edgeA.weight || 0
-      const weightB = edgeB.weight || 0
-      return weightB - weightA
-    })
-  }
-
-  const [search, setSearch] = useState({ term: '' })
-
-  useEffect(() => {
-    if (!items || !items.length) {
-      return
-    }
-    // Reset column to show original items and no search heading
-    if (!search.term) {
-      setFilteredItems(sortItems(items))
-      setItemsHeading(null)
-      return
-    }
-    if (search.term.length < 2) {
-      return
-    }
-
-    // Build search regex. \b represents a word boundary, so matches in the
-    // middle of a word don't count. Includes special case for searching by
-    // paper number so only the exact paper is matched.
-    const escapedTerm = _.escapeRegExp(search.term.toLowerCase())
-    let [preModifier, postModifier] = ['\\b', '']
-    if (escapedTerm.startsWith('#')) {
-      [preModifier, postModifier] = ['^', '\\b']
-    }
-    const searchRegex = new RegExp(preModifier + escapedTerm + postModifier, 'm')
-
-    // Search existing items
-    const matchingItems = items.filter(item => item.searchText.match(searchRegex))
-
-    // Search all other items that don't share edges with the parent entity
-    if (parentId) {
-      const searchedIds = items.map(item => item.id)
-
-      Object.values(globalEntityMap).forEach((item) => {
-        if (searchedIds.includes(item.id)) return
-
-        if (item.searchText.match(searchRegex)) {
-          matchingItems.push({
-            ...item,
-            editEdgeTemplates: editInvitations.map(editInvitation => (buildNewEditEdge(editInvitation, item.id))),
-            editEdges: [],
-            browseEdges: [],
-            metadata: {
-              isAssigned: false,
-            },
-          })
-        }
-      })
-    }
-
-    setFilteredItems(sortItems(matchingItems))
-    setItemsHeading('Search Results')
-  }, [items, search, columnSort])
-
-  useEffect(() => {
-    setNumItemsToRender(100)
-    colBodyEl.current.scrollTop = 0
-  }, [search, columnSort])
-
-  const sortEditEdges = (editEdges) => {
-    const editInvitationIds = editInvitations.map(p => p.id)
-    editEdges.sort((a, b) => editInvitationIds.indexOf(a.invitation) - editInvitationIds.indexOf(b.invitation))
-    return editEdges
-  }
+  }, [props.loading, globalEntityMap, altGlobalEntityMap, shouldReloadEntities])
 
   // Event Handlers
   const addEdgeToEntity = (id, newEdge) => {
@@ -578,10 +716,10 @@ export default function Column(props) {
 
     // Update global head and tail maps
     const incr = modifiedExistingEdge ? 0 : 1
-    const newCount1 = altGlobalEntityMap[parentId].traverseEdgesCount + incr
+    const newCount1 = altGlobalEntityMap[parentId]?.traverseEdgesCount + incr
     props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', newCount1)
 
-    const newCount2 = globalEntityMap[id].traverseEdgesCount + incr
+    const newCount2 = globalEntityMap[id]?.traverseEdgesCount + incr
     props.updateGlobalEntityMap(type, id, 'traverseEdgesCount', newCount2)
   }
 
@@ -619,10 +757,10 @@ export default function Column(props) {
     }
 
     // Update global head and tail maps
-    const newCount1 = altGlobalEntityMap[parentId].traverseEdgesCount - 1
+    const newCount1 = altGlobalEntityMap[parentId]?.traverseEdgesCount - 1
     props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', newCount1)
 
-    const newCount2 = globalEntityMap[id].traverseEdgesCount - 1
+    const newCount2 = globalEntityMap[id]?.traverseEdgesCount - 1
     props.updateGlobalEntityMap(type, id, 'traverseEdgesCount', newCount2)
   }
 
@@ -639,7 +777,7 @@ export default function Column(props) {
             <input
               type="text"
               className="form-control input-sm"
-              placeholder={getSearchPlaceholder()}
+              placeholder={getPlaceholderText()}
               value={search.term}
               onChange={e => setSearch({ term: e.target.value })}
             />
@@ -650,39 +788,62 @@ export default function Column(props) {
               {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
               <label>Order By:</label>
               <select className="form-control input-sm" onChange={e => setColumnSort(e.target.value)}>
-                <option key={traverseInvitation.id} value="default">
-                  default
-                </option>
-                {browseInvitations.map(inv => (
-                  <option key={inv.id} value={inv.id}>
-                    {prettyInvitationId(inv.id)}
-                  </option>
-                ))}
+                {
+                  sortOptions.map(p => (
+                    <option key={p.key} value={p.value}>
+                      {p.text}
+                    </option>
+                  ))
+                }
               </select>
             </div>
           )}
         </form>
       </div>
 
-      <div className="body" ref={colBodyEl} onScroll={loadMoreItems}>
+      <div className="body" ref={colBodyEl}>
         {items === null ? (
           <LoadingSpinner />
         ) : (
-          <EntityList
-            type={props.entityType}
-            heading={itemsHeading}
-            items={filteredItems}
-            numItemsToRender={numItemsToRender}
-            selectedItemId={selectedItemId}
-            addNewColumn={props.addNewColumn}
-            addEdgeToEntity={addEdgeToEntity}
-            removeEdgeFromEntity={removeEdgeFromEntity}
-            setSelectedItemId={setSelectedItemId}
-            canTraverse={!props.finalColumn}
-            showHiddenItems={false}
-            columnType={type} // head/tail
-            parentInfo={{ entityType: parentColumnEntityType, id: parentId, number: parent?.number }} // profile/note
-          />
+          <>
+            <EntityList
+              type={props.entityType}
+              heading={itemsHeading}
+              items={filteredItems}
+              numItemsToRender={numItemsToRender}
+              selectedItemId={selectedItemId}
+              addNewColumn={props.addNewColumn}
+              addEdgeToEntity={addEdgeToEntity}
+              removeEdgeFromEntity={removeEdgeFromEntity}
+              setSelectedItemId={setSelectedItemId}
+              canTraverse={!props.finalColumn}
+              showHiddenItems={false}
+              columnType={type} // head/tail
+              parentInfo={{
+                entityType: parentColumnEntityType,
+                id: parentId,
+                number: parent?.number,
+                content: parentContent,
+                customLoad: parentCustomLoad,
+                existingLoad: parentExistingLoad,
+              }}
+              globalEntityMap={globalEntityMap}
+              altGlobalEntityMap={altGlobalEntityMap}
+              reloadColumnEntities={() => props.reloadColumnEntities(props.index)}
+              updateChildColumn={props.updateChildColumn}
+              columnIndex={props.index}
+            />
+            {showLoadMoreButton
+                && <button type="button" className="btn btn-default btn-xs ml-2 mt-2 mb-2" onClick={() => loadMoreItems()}>{`Load More ${getPlaceholderText(true)}`}</button>}
+            <EditEdgeInviteEmail
+              type={type}
+              otherType={otherType}
+              entityType={entityType}
+              parentId={parentId}
+              parentNumber={parent?.number}
+              reloadColumnEntities={() => props.reloadColumnEntities(props.index)}
+            />
+          </>
         )}
       </div>
     </div>

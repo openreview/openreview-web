@@ -2553,6 +2553,10 @@ module.exports = (function() {
       return '';
     }
 
+    if (fieldName === 'pdf') {
+      return 'PDF';
+    }
+
     var words = fieldName.replace(/_/g, ' ').split(' ').map(function(word) {
       return word.charAt(0).toUpperCase() + word.substring(1);
     });

@@ -11,7 +11,7 @@
     <ul class="list-unstyled">
       {{#each group.members}}
         <li data-id="{{this}}">
-          <a href="{{groupUrl this}}" class="push-link" target="_blank">{{this}}</a>
+          <a href="{{groupUrl this}}" target="_blank">{{this}}</a>
         </li>
       {{else}}
         <li><p class="empty-message">No members to display</p></li>
