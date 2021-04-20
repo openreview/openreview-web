@@ -8,34 +8,50 @@ import LoadingSpinner from './LoadingSpinner'
 import UserContext from './UserContext'
 
 export default function NoteEditorForm({
-  invitation, forumId, parentId, onNoteCreated, onNoteCancelled, onLoad, onValidate, onError,
+  invitation, forumId, replyToId, onNoteCreated, onNoteCancelled, onLoad, onValidate, onError,
 }) {
   const [loading, setLoading] = useState(true)
   const containerRef = useRef(null)
   const user = useContext(UserContext)
 
   useEffect(() => {
-    if (typeof view === 'undefined') return
+    if (!user || !containerRef || typeof view === 'undefined') return
 
-    view.mkNewNoteEditor(invitation, forumId, parentId, user, {
-      onNoteCreated,
-      onNoteCancelled,
+    view.mkNewNoteEditor(invitation, forumId, replyToId, user, {
+      onNoteCreated: () => {
+        if (typeof onLoad === 'function') {
+          onNoteCreated()
+        }
+      },
+      onNoteCancelled: () => {
+        if (typeof onLoad === 'function') {
+          onNoteCancelled()
+        }
+      },
       onCompleted: ($editor) => {
         setLoading(false)
         $(containerRef.current).append($editor)
 
-        onLoad()
+        if (typeof onLoad === 'function') {
+          onLoad()
+        }
       },
       onValidate,
-      onError,
+      onError: () => {
+        setLoading(false)
+        if (typeof onError === 'function') {
+          onError()
+        }
+      },
     })
-  }, [])
+  }, [invitation, forumId, replyToId, user, containerRef])
 
   return (
-    <div ref={containerRef}>
+    <div className="note-editor-container">
       {loading && (
         <LoadingSpinner inline />
       )}
+      <div ref={containerRef} />
     </div>
   )
 }

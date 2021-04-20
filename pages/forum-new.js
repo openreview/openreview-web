@@ -12,6 +12,7 @@ import ForumReply from '../components/ForumReply'
 import NoteAuthors from '../components/NoteAuthors'
 import Icon from '../components/Icon'
 import NoteContent from '../components/NoteContent'
+import NoteEditorForm from '../components/NoteEditorForm'
 import withError from '../components/withError'
 import FilterForm from '../components/forum/FilterForm'
 import ForumReplyContext from '../components/ForumReplyContext'
@@ -19,7 +20,9 @@ import useUser from '../hooks/useUser'
 import useQuery from '../hooks/useQuery'
 import api from '../lib/api-client'
 import { auth } from '../lib/auth'
-import { prettyId, forumDate, getConferenceName } from '../lib/utils'
+import {
+  prettyId, prettyInvitationId, forumDate, getConferenceName,
+} from '../lib/utils'
 import { parseFilterQuery, replaceFilterWildcards } from '../lib/forum-utils'
 import { buildNoteSearchText } from '../lib/edge-utils'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
@@ -102,10 +105,12 @@ const Forum = ({ forumNote, appContext }) => {
   const [selectedFilters, setSelectedFilters] = useState({
     invitations: null, signatures: null, keywords: null, readers: null, excludedReaders: null,
   })
+  const [commonInvitations, setCommonInvitations] = useState(null)
+  const [activeInvitation, setActiveInvitation] = useState(null)
   const router = useRouter()
   const query = useQuery()
 
-  const { setBannerContent } = appContext
+  const { setBannerContent, clientJsLoading } = appContext
   const { id, content, details } = forumNote
   const { replyForumViews } = details.invitation
 
@@ -189,6 +194,22 @@ const Forum = ({ forumNote, appContext }) => {
       signatures: Array.from(signatureGroupIds),
       readers: Array.from(readerGroupIds),
     })
+  }
+
+  const loadInvitations = async () => {
+    const { invitations } = await api.get('/invitations', {
+      replyForum: id, details: 'repliedNotes',
+    }, { accessToken })
+
+    if (invitations?.length > 0) {
+      const sharedInvitations = invitations.filter((invitation) => {
+        const invReply = invitation.reply
+        return !invReply.replyto && !invReply.referent && !invReply.referentInvitation && !invReply.invitation
+      })
+      setCommonInvitations(sharedInvitations)
+    } else {
+      setCommonInvitations([])
+    }
   }
 
   const setCollapseLevel = (level) => {
@@ -285,6 +306,7 @@ const Forum = ({ forumNote, appContext }) => {
     if (userLoading) return
 
     loadReplies()
+    loadInvitations()
   }, [userLoading, accessToken])
 
   // Update forum layout
@@ -471,6 +493,25 @@ const Forum = ({ forumNote, appContext }) => {
         />
 
         <ForumReplyCount />
+      </div>
+
+      <div className="reply-actions">
+        <div className="reply-actions-buttons clearfix">
+          {commonInvitations && commonInvitations.map(invitation => (
+            <button
+              key={invitation.id}
+              type="button"
+              className="btn btn-xs"
+              onClick={() => { setActiveInvitation(activeInvitation ? null : invitation) }}
+            >
+              {prettyInvitationId(invitation.id)}
+            </button>
+          ))}
+        </div>
+
+        {activeInvitation && (
+          <NoteEditorForm forumId={id} invitation={activeInvitation} />
+        )}
       </div>
 
       {(!replyForumViews || !replyNoteMap) && (
