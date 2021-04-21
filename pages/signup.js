@@ -236,8 +236,8 @@ const ExistingProfileForm = ({
     buttonLabel = isActive ? 'Reset Password' : 'Send Activation Link'
     usernameLabel = 'for'
   } else {
-    buttonLabel = 'Sign Up'
-    usernameLabel = 'as'
+    buttonLabel = 'Claim Profile'
+    usernameLabel = 'for'
   }
 
   const handleSubmit = (e) => {
