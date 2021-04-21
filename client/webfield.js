@@ -587,6 +587,7 @@ module.exports = (function() {
         invitation: null,
         subjectAreas: null,
         subjectAreaDropdown: 'advanced',
+        placeholder: 'Search by paper title and metadata',
         onResults: function() {},
         onReset: function() {}
       },
