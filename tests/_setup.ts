@@ -15,7 +15,7 @@ const waitForJobs = (noteId, superUserToken) => new Promise((resolve, reject) =>
         .reduce((count, job: any) => count + job.waiting + job.active + job.delayed, 0)
       if (queueCount === 0) {
         clearInterval(interval)
-        resolve()
+        resolve(null)
       }
     } catch (err) {
       clearInterval(interval)

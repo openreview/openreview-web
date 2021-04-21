@@ -78,7 +78,11 @@ const CompareRevisions = ({ appContext }) => {
     }
 
     setBanner()
-    loadComparison()
+    if (query.pdf) {
+      loadComparison()
+    } else {
+      loadReferences()
+    }
   }, [userLoading, query, accessToken])
 
   useEffect(() => {
