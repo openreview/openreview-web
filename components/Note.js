@@ -14,6 +14,7 @@ const Note = ({ note, invitation, options }) => (
       content={note.content}
       signatures={note.signatures}
       options={options}
+      readers={note.readers}
     />
 
     {(note.forumContent && note.id !== note.forum) && (
