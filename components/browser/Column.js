@@ -247,7 +247,7 @@ export default function Column(props) {
       // and isn't usually a problem. Missing profile IDs sometimes occur if
       // profiles get merged and the edges are not updated.
       // eslint-disable-next-line no-console
-      // console.warn(`${headOrTailId} not found in global entity map. From ${edgeFormatted.name}`)
+      console.warn(`${headOrTailId} not found in global entity map. From ${edgeFormatted.name}`)
 
       if (fieldName === 'editEdges' && entityType === 'Profile') {
         const editInvitation = editInvitations.filter(p => p.id === edge.invitation)?.[0]
