@@ -2544,9 +2544,9 @@ templates['partials/invitationInfoTable'] = template({"1":function(container,dep
   return "<dl class=\"dl-horizontal group-info-table\">\n"
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"super") : stack1),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":2,"column":2},"end":{"line":5,"column":9}}})) != null ? stack1 : "")
     + "\n  <dt>Parent Group:</dt>\n  <dd><a href=\""
-    + alias3((lookupProperty(helpers,"groupUrl")||(depth0 && lookupProperty(depth0,"groupUrl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"parentGroupId") : depth0),{"name":"groupUrl","hash":{},"data":data,"loc":{"start":{"line":8,"column":15},"end":{"line":8,"column":41}}}))
-    + "&mode=edit\">"
-    + alias3((lookupProperty(helpers,"prettyId")||(depth0 && lookupProperty(depth0,"prettyId"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"parentGroupId") : depth0),{"name":"prettyId","hash":{},"data":data,"loc":{"start":{"line":8,"column":53},"end":{"line":8,"column":79}}}))
+    + alias3((lookupProperty(helpers,"groupUrl")||(depth0 && lookupProperty(depth0,"groupUrl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"parentGroupId") : depth0),true,{"name":"groupUrl","hash":{},"data":data,"loc":{"start":{"line":8,"column":15},"end":{"line":8,"column":46}}}))
+    + "\">"
+    + alias3((lookupProperty(helpers,"prettyId")||(depth0 && lookupProperty(depth0,"prettyId"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"parentGroupId") : depth0),{"name":"prettyId","hash":{},"data":data,"loc":{"start":{"line":8,"column":48},"end":{"line":8,"column":74}}}))
     + "</a></dd>\n\n  <dt>Readers:</dt>\n  <dd>"
     + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"readers") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":11,"column":6},"end":{"line":11,"column":40}}}))
     + "</dd>\n\n"
