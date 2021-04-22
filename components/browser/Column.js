@@ -59,9 +59,11 @@ export default function Column(props) {
   const [itemsHeading, setItemsHeading] = useState(null)
   const [numItemsToRender, setNumItemsToRender] = useState(100)
   const [columnSort, setColumnSort] = useState('default')
+  const [hideQuotaReached, setHideQuotaReached] = useState(false)
   const [search, setSearch] = useState({ term: '' })
 
   const showLoadMoreButton = numItemsToRender < filteredItems.length
+  const showHideQuotaReachedCheckbox = entityType === 'Profile' && browseInvitations.some(p => p.id.includes('Custom_Max_Papers'))
 
   // Helpers
   const formatEdge = edge => ({
@@ -245,7 +247,7 @@ export default function Column(props) {
       // and isn't usually a problem. Missing profile IDs sometimes occur if
       // profiles get merged and the edges are not updated.
       // eslint-disable-next-line no-console
-      console.warn(`${headOrTailId} not found in global entity map. From ${edgeFormatted.name}`)
+      // console.warn(`${headOrTailId} not found in global entity map. From ${edgeFormatted.name}`)
 
       if (fieldName === 'editEdges' && entityType === 'Profile') {
         const editInvitation = editInvitations.filter(p => p.id === edge.invitation)?.[0]
@@ -349,7 +351,7 @@ export default function Column(props) {
             {
               ...p,
               weight: sortLabelMap[
-                [...p.browseEdges, ...p.editEdges].find(q => q.invitation === columnSort).label] || 0,
+                [...p.browseEdges, ...p.editEdges].find(q => q.invitation === columnSort)?.label] || 0,
             }),
         ),
         ['weight'],
@@ -388,13 +390,22 @@ export default function Column(props) {
     })
   }
 
+  const filterQuotaReachedItems = (colItems) => {
+    if (!hideQuotaReached) return colItems
+    return colItems.filter((p) => {
+      const customLoad = p.browseEdges?.find(q => q?.invitation?.includes('Custom_Max_Papers'))?.weight
+      if (customLoad === undefined) return true
+      return p.traverseEdgesCount < customLoad
+    })
+  }
+
   useEffect(() => {
     if (!items || !items.length) {
       return
     }
     // Reset column to show original items and no search heading
     if (!search.term) {
-      setFilteredItems(sortItems(items))
+      setFilteredItems(sortItems(filterQuotaReachedItems(items)))
       setItemsHeading(null)
       return
     }
@@ -436,14 +447,14 @@ export default function Column(props) {
       })
     }
 
-    setFilteredItems(sortItems(matchingItems))
+    setFilteredItems(sortItems(filterQuotaReachedItems(matchingItems)))
     setItemsHeading('Search Results')
-  }, [items, search, columnSort])
+  }, [items, search, columnSort, hideQuotaReached])
 
   useEffect(() => {
     setNumItemsToRender(100)
     colBodyEl.current.scrollTop = 0
-  }, [search, columnSort])
+  }, [search, columnSort, hideQuotaReached])
 
   useEffect(() => {
     if (props.loading) return
@@ -787,15 +798,29 @@ export default function Column(props) {
             <div className="sort-container form-group">
               {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
               <label>Order By:</label>
-              <select className="form-control input-sm" onChange={e => setColumnSort(e.target.value)}>
-                {
-                  sortOptions.map(p => (
-                    <option key={p.key} value={p.value}>
-                      {p.text}
-                    </option>
-                  ))
-                }
-              </select>
+              <div className="dropdown form-control">
+                <button className="orderby-button" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  {`${sortOptions.find(p => p.value === columnSort)?.text}${hideQuotaReached ? ' (hiding quota reached)' : ''}`}
+                  <span className="caret" />
+                </button>
+                <ul className="dropdown-menu">
+                  {
+                    sortOptions.map(p => (
+                      // eslint-disable-next-line max-len
+                      // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions,jsx-a11y/anchor-is-valid
+                      <li key={p.key} value={p.value} onClick={() => setColumnSort(p.value)}><a href="#">{p.text}</a></li>
+                    ))
+                  }
+                  {/* eslint-disable-next-line max-len */}
+                  {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions,jsx-a11y/anchor-is-valid */}
+                  {showHideQuotaReachedCheckbox && (
+                    <li className="hide-quota-li">
+                      <input type="checkbox" checked={hideQuotaReached} onChange={(e) => { setHideQuotaReached(e.target.checked) }} />
+                      hide quota reached reviewers
+                    </li>
+                  )}
+                </ul>
+              </div>
             </div>
           )}
         </form>
