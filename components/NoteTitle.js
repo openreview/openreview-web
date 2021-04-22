@@ -3,14 +3,11 @@ import { buildNoteTitle } from '../lib/utils'
 import Icon from './Icon'
 
 const NoteTitle = ({
-  id, forum, invitation, content, signatures, options, readers,
+  id, forum, invitation, content, signatures, options, privatelyRevealed,
 }) => (
   <h4>
     <Link href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}`}>
-      <>
-        <a>{content.title || buildNoteTitle(invitation, signatures)}</a>
-        {options.recentPublications && !readers.includes('everyone') && <Icon name="eye-close" extraClasses="note-visible-icon" tooltip="Privately revealed to you" />}
-      </>
+      <a className={`${privatelyRevealed ? 'link-light' : undefined}`}>{content.title || buildNoteTitle(invitation, signatures)}</a>
     </Link>
 
     {options.pdfLink && content.pdf && (
