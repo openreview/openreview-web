@@ -650,9 +650,9 @@ var urlFromGroupId = function(groupId, editMode) {
   if (!groupId || commonGroups.indexOf(groupId) !== -1) {
     return '';
   } else if (groupId.indexOf('~') === 0) {
-    return '/profile?id=' + groupId + (editMode ? '&mode=edit' : '');
+    return '/profile?id=' + groupId;
   } else if (groupId.indexOf('@') !== -1) {
-    return '/profile?email=' + groupId + (editMode ? '&mode=edit' : '');
+    return '/profile?email=' + groupId;
   }
   return '/group' + (editMode ? '/edit' : '') + '?id=' + groupId;
 };
