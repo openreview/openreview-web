@@ -3,11 +3,11 @@ import { buildNoteTitle } from '../lib/utils'
 import Icon from './Icon'
 
 const NoteTitle = ({
-  id, forum, invitation, content, signatures, options, privatelyRevealed,
+  id, forum, invitation, content, signatures, options,
 }) => (
   <h4>
     <Link href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}`}>
-      <a className={`${privatelyRevealed ? 'link-light' : undefined}`}>{content.title || buildNoteTitle(invitation, signatures)}</a>
+      <a>{content.title || buildNoteTitle(invitation, signatures)}</a>
     </Link>
 
     {options.pdfLink && content.pdf && (
