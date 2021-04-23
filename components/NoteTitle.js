@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { buildNoteTitle } from '../lib/utils'
-import Icon from './Icon'
 
 const NoteTitle = ({
   id, forum, invitation, content, signatures, options,
