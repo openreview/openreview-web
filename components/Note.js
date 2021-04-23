@@ -6,10 +6,10 @@ import Icon from './Icon'
 import { prettyId, forumDate, inflect } from '../lib/utils'
 
 const Note = ({ note, invitation, options }) => {
-  const showPrivateIcon = options.recentPublications && !note.readers.includes('everyone')
+  const privatelyRevealed = options.showPrivateIcon && !note.readers.includes('everyone')
 
   return (
-    <div className={`note ${showPrivateIcon ? 'note-private' : ''}`}>
+    <div className={`note ${privatelyRevealed ? 'note-private' : ''}`}>
       <NoteTitle
         id={note.id}
         forum={note.forum}
@@ -41,7 +41,7 @@ const Note = ({ note, invitation, options }) => {
         <li>{forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year)}</li>
         <li>
           {note.content.venue ? note.content.venue : prettyId(note.invitation)}
-          {showPrivateIcon && <Icon name="eye-close" extraClasses="note-visible-icon" tooltip="Privately revealed to you" />}
+          {privatelyRevealed && <Icon name="eye-close" extraClasses="note-visible-icon" tooltip="Privately revealed to you" />}
         </li>
         {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
         <li className="readers">Readers: <NoteReaders readers={note.readers} /></li>

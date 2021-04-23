@@ -149,7 +149,7 @@ const RecentPublications = ({
     pdfLink: false,
     htmlLink: false,
     showContents: false,
-    recentPublications: true,
+    showPrivateIcon: true,
   }
   const numPublicationsToShow = 10
 
