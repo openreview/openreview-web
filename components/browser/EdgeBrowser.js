@@ -79,7 +79,7 @@ export default class EdgeBrowser extends React.Component {
   buildEntityMapFromInvitation(headOrTail) {
     // Get all head or tail objects referenced by the traverse parameter invitation
     const invReplyObj = this.traverseInvitation[headOrTail]
-    const requestParams = invReplyObj.query || {}
+    const requestParams = { ...invReplyObj?.query } // avoid polluting invReplyObj which is used for compare
     if (invReplyObj.type === 'Note') {
       // TODO: move these params to the invitation so it's not hardcoded
       requestParams.details = 'original'
@@ -97,7 +97,10 @@ export default class EdgeBrowser extends React.Component {
     // invitation. Note: currently startInvitation has to have the same head
     // and tail types as traverseInvitation
     let startResultsP
-    if (this.startInvitation && !_.isEqual(this.startInvitation[headOrTail], invReplyObj)) {
+    if (this.startInvitation && !_.isEqual(
+      (({ type, query }) => ({ type, query }))(this.startInvitation[headOrTail]), // required=true can fail equal
+      (({ type, query }) => ({ type, query }))(invReplyObj),
+    )) {
       const startInv = this.startInvitation[headOrTail]
       const startRequestParams = startInv.query || {}
       if (startInv.type === 'Note') {
