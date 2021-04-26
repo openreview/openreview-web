@@ -755,6 +755,7 @@ export default function Column(props) {
     props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', newCount1)
 
     const newCount2 = globalEntityMap[id]?.traverseEdgesCount + incr
+    setShouldUpdateItems(false) // update of altGlobalEntityMap has already triggered useEffect call
     props.updateGlobalEntityMap(type, id, 'traverseEdgesCount', newCount2)
   }
 
@@ -796,6 +797,7 @@ export default function Column(props) {
     props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', newCount1)
 
     const newCount2 = globalEntityMap[id]?.traverseEdgesCount - 1
+    setShouldUpdateItems(false) // update of altGlobalEntityMap has already triggered useEffect call
     props.updateGlobalEntityMap(type, id, 'traverseEdgesCount', newCount2)
   }
 
