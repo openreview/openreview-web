@@ -40,7 +40,7 @@ export default function Column(props) {
   const colBodyEl = useRef(null)
 
   const sortOptions = [{ key: traverseInvitation.id, value: 'default', text: prettyInvitationId(traverseInvitation.id) }]
-  const editAndBrowserInvitations = [...editInvitations ?? [], ...browseInvitations ?? []]
+  const editAndBrowserInvitations = [...editInvitations, ...browseInvitations]
   editAndBrowserInvitations.forEach((p) => {
     if (!sortOptions.map(q => q.key).includes(p.id)) {
       sortOptions.push({
@@ -185,7 +185,7 @@ export default function Column(props) {
   }
 
   const getColumnDescription = () => {
-    if (!parentId || !editInvitations?.length) {
+    if (!parentId || !editInvitations.length) {
       return null
     }
 
@@ -248,7 +248,7 @@ export default function Column(props) {
       console.warn(`${headOrTailId} not found in global entity map. From ${edgeFormatted.name}`)
 
       if (fieldName === 'editEdges' && entityType === 'Profile') {
-        const editInvitation = editInvitations?.filter(p => p.id === edge.invitation)?.[0]
+        const editInvitation = editInvitations.filter(p => p.id === edge.invitation)?.[0]
         if (editInvitation[type]?.query?.['value-regex']) {
           itemToAdd = {
             id: headOrTailId,
@@ -314,7 +314,7 @@ export default function Column(props) {
 
     const hasAggregateScoreEdge = browseEdges.length && browseEdges[0].name === 'Aggregate_Score'
     const edgeWeight = hasAggregateScoreEdge ? browseEdges[0].weight : 0
-    const editEdgeTemplates = editInvitations?.map(p => buildNewEditEdge(p, item.id, edgeWeight))
+    const editEdgeTemplates = editInvitations.map(p => buildNewEditEdge(p, item.id, edgeWeight))
     return {
       ...item,
       metadata,
@@ -337,7 +337,7 @@ export default function Column(props) {
       return colItems
     }
 
-    const sortInvitation = [...editInvitations ?? [], ...browseInvitations ?? []].filter(p => p.id === columnSort)?.[0]
+    const sortInvitation = [...editInvitations, ...browseInvitations].filter(p => p.id === columnSort)?.[0]
     const sortLabels = sortInvitation.label?.['value-radio']
 
     if (sortLabels) { // has no weight; construct label map then sort
@@ -372,7 +372,7 @@ export default function Column(props) {
   }
 
   const sortEditEdges = (editEdges) => {
-    const editInvitationIds = editInvitations?.map(p => p.id) ?? []
+    const editInvitationIds = editInvitations.map(p => p.id)
     editEdges.sort((a, b) => editInvitationIds.indexOf(a.invitation) - editInvitationIds.indexOf(b.invitation))
     return editEdges
   }
@@ -426,7 +426,7 @@ export default function Column(props) {
           matchingItems.push({
             ...item,
             // eslint-disable-next-line max-len
-            editEdgeTemplates: editInvitations?.map(editInvitation => (buildNewEditEdge(editInvitation, item.id))) ?? [],
+            editEdgeTemplates: editInvitations.map(editInvitation => (buildNewEditEdge(editInvitation, item.id))),
             editEdges: [],
             browseEdges: [],
             metadata: {
@@ -525,13 +525,13 @@ export default function Column(props) {
     const traverseEdgesP = Webfield.get('/edges', buildQuery(
       traverseInvitation.id, traverseInvitation.query,
     )).then(response => response.edges)
-    const editEdgesP = editInvitations?.map(inv => Webfield.getAll('/edges', buildQuery(
+    const editEdgesP = editInvitations.map(inv => Webfield.getAll('/edges', buildQuery(
       inv.id, { ...inv.query, details: inv.query.details ? `${inv.query.details},writable` : 'writable' },
-    ))) ?? []
+    )))
     const hideEdgesP = hideInvitation ? Webfield.get('/edges', buildQuery(
       hideInvitation.id, hideInvitation.query,
     )).then(response => response.edges) : Promise.resolve([])
-    const browseEdgesP = browseInvitations?.map(inv => Webfield.getAll('/edges', buildQuery(
+    const browseEdgesP = browseInvitations.map(inv => Webfield.getAll('/edges', buildQuery(
       inv.id, inv.query, false,
     )))
 
@@ -574,8 +574,8 @@ export default function Column(props) {
           let itemToAdd = globalEntityMap[headOrTailId]
           if (!itemToAdd) {
             if (entityType === 'Profile') {
-              const hasInviteInvitation = editInvitations?.some(p => p[type]?.query?.['value-regex'])
-              const hasProposedAssignmentInvitation = editInvitations?.some(p => p.id.includes('Proposed_Assignment'))
+              const hasInviteInvitation = editInvitations.some(p => p[type]?.query?.['value-regex'])
+              const hasProposedAssignmentInvitation = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
               if (hasInviteInvitation || hasProposedAssignmentInvitation) {
                 itemToAdd = {
                   id: headOrTailId,
@@ -630,7 +630,7 @@ export default function Column(props) {
 
           // add weights according to labels if invitation has no weight
           // an example is bid invitation
-          const bidLabels = browseInvitations[i].label?.['value-radio']
+          const bidLabels = browseInvitations[i]?.label?.['value-radio']
           if (bidLabels) {
             const bidLabelMap = _.fromPairs(_.zip(bidLabels, _.range(bidLabels.length, 0, -1)))
             // eslint-disable-next-line no-param-reassign
@@ -642,7 +642,7 @@ export default function Column(props) {
         hideEdges.forEach(updateColumnItems('browseEdges', colItems, true))
 
         // Add each editInvitation as a template so that new invitation can be added
-        if (editInvitations?.length) {
+        if (editInvitations.length) {
           colItems.forEach((item) => {
             const hasAggregateScoreEdge = item.browseEdges.length && item.browseEdges[0].name === 'Aggregate_Score'
             const edgeWeight = hasAggregateScoreEdge ? item.browseEdges[0].weight : 0
@@ -692,7 +692,7 @@ export default function Column(props) {
       ])
     } else {
       // Added from search
-      const editInvitation = editInvitations?.filter(p => p.id === newEdge.invitation)?.[0]
+      const editInvitation = editInvitations.filter(p => p.id === newEdge.invitation)[0]
       const newItem = {
         ...globalEntityMap[id],
         editEdges: [buildNewEditEdge(editInvitation, id)],
