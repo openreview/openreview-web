@@ -663,7 +663,7 @@ export default function Column(props) {
 
         // add weights according to labels if invitation has no weight
         // an example is bid invitation
-        const bidLabels = browseInvitations[i].label?.['value-radio']
+        const bidLabels = browseInvitations[i]?.label?.['value-radio']
         if (bidLabels) {
           const bidLabelMap = _.fromPairs(_.zip(bidLabels, _.range(bidLabels.length, 0, -1)))
           // eslint-disable-next-line no-param-reassign
@@ -675,7 +675,7 @@ export default function Column(props) {
       hideEdges.forEach(updateColumnItems('browseEdges', colItems, true))
 
       // Add each editInvitation as a template so that new invitation can be added
-      if (editInvitations?.length) {
+      if (editInvitations.length) {
         colItems.forEach((item) => {
           const hasAggregateScoreEdge = item.browseEdges.length && item.browseEdges[0].name === 'Aggregate_Score'
           const edgeWeight = hasAggregateScoreEdge ? item.browseEdges[0].weight : 0
