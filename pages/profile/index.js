@@ -149,6 +149,7 @@ const RecentPublications = ({
     pdfLink: false,
     htmlLink: false,
     showContents: false,
+    showPrivateIcon: true,
   }
   const numPublicationsToShow = 10
 
@@ -249,6 +250,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
       setPublications(apiRes.notes)
       setCount(apiRes.count)
     }
+    $('[data-toggle="tooltip"]').tooltip()
   }
 
   useEffect(() => {
@@ -270,8 +272,6 @@ const Profile = ({ profile, publicProfile, appContext }) => {
     }
 
     loadPublications()
-
-    $('[data-toggle="tooltip"]').tooltip()
   }, [profile, profileQuery, user, userLoading, accessToken])
 
   useEffect(() => {
