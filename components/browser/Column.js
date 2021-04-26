@@ -40,7 +40,7 @@ export default function Column(props) {
   const colBodyEl = useRef(null)
 
   const sortOptions = [{ key: traverseInvitation.id, value: 'default', text: prettyInvitationId(traverseInvitation.id) }]
-  const editAndBrowserInvitations = [...editInvitations ?? [], ...browseInvitations ?? []]
+  const editAndBrowserInvitations = [...editInvitations, ...browseInvitations]
   editAndBrowserInvitations.forEach((p) => {
     if (!sortOptions.map(q => q.key).includes(p.id)) {
       sortOptions.push({
@@ -185,7 +185,7 @@ export default function Column(props) {
   }
 
   const getColumnDescription = () => {
-    if (!parentId || !editInvitations?.length) {
+    if (!parentId || !editInvitations.length) {
       return null
     }
 
@@ -314,7 +314,7 @@ export default function Column(props) {
 
     const hasAggregateScoreEdge = browseEdges.length && browseEdges[0].name === 'Aggregate_Score'
     const edgeWeight = hasAggregateScoreEdge ? browseEdges[0].weight : 0
-    const editEdgeTemplates = editInvitations?.map(p => buildNewEditEdge(p, item.id, edgeWeight))
+    const editEdgeTemplates = editInvitations.map(p => buildNewEditEdge(p, item.id, edgeWeight))
     return {
       ...item,
       metadata,
@@ -459,6 +459,7 @@ export default function Column(props) {
         if (item.searchText.match(searchRegex)) {
           matchingItems.push({
             ...item,
+            // eslint-disable-next-line max-len
             editEdgeTemplates: editInvitations.map(editInvitation => (buildNewEditEdge(editInvitation, item.id))),
             editEdges: [],
             browseEdges: [],
@@ -725,7 +726,7 @@ export default function Column(props) {
       ])
     } else {
       // Added from search
-      const editInvitation = editInvitations.filter(p => p.id === newEdge.invitation)?.[0]
+      const editInvitation = editInvitations.filter(p => p.id === newEdge.invitation)[0]
       const newItem = {
         ...globalEntityMap[id],
         editEdges: [buildNewEditEdge(editInvitation, id)],
