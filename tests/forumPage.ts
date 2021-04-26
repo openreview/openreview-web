@@ -95,8 +95,8 @@ test('get a forbidden error for a guest user', async (t) => {
 
 test('get a deleted forum and return an ok only for writers of the note', async (t) => {
   const { superUserToken } = t.fixtureCtx
-  const notes = await getNotes({ invitation: 'AnotherTestVenue/2020/Conference/-/Submission', trash: true }, superUserToken)
-  const forum = notes[1].id
+  const notes = await getNotes({ invitation: 'AnotherTestVenue/2020/Conference/-/Submission', trash: true, sort: 'number:desc' }, superUserToken)
+  const forum = notes[0].id
   await t
     .useRole(authorRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
