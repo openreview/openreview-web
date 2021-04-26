@@ -795,33 +795,35 @@ export default function Column(props) {
             <span className="glyphicon glyphicon-search form-control-feedback" aria-hidden="true" />
           </div>
           {parentId && (
-            <div className="sort-container form-group">
-              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-              <label>Order By:</label>
-              <div className="dropdown form-control">
-                <button className="orderby-button" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  {`${sortOptions.find(p => p.value === columnSort)?.text}${hideQuotaReached ? ' (hiding quota reached)' : ''}`}
-                  <span className="caret" />
-                </button>
-                <ul className="dropdown-menu">
+            <>
+              <div className="sort-container form-group">
+                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                <label>Order By:</label>
+                <select className="form-control input-sm" onChange={e => setColumnSort(e.target.value)}>
                   {
                     sortOptions.map(p => (
-                      // eslint-disable-next-line max-len
-                      // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions,jsx-a11y/anchor-is-valid
-                      <li key={p.key} value={p.value} onClick={() => setColumnSort(p.value)}><a href="#">{p.text}</a></li>
+                      <option key={p.key} value={p.value}>
+                        {p.text}
+                      </option>
                     ))
                   }
-                  {/* eslint-disable-next-line max-len */}
-                  {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions,jsx-a11y/anchor-is-valid */}
-                  {showHideQuotaReachedCheckbox && (
-                    <li className="hide-quota-li">
-                      <input type="checkbox" checked={hideQuotaReached} onChange={(e) => { setHideQuotaReached(e.target.checked) }} />
-                      hide quota reached reviewers
-                    </li>
-                  )}
-                </ul>
+                </select>
               </div>
-            </div>
+              {showHideQuotaReachedCheckbox && (
+                <>
+                  <input type="checkbox" checked={hideQuotaReached} onChange={(e) => { setHideQuotaReached(e.target.checked) }} />
+                  <span className="hide-quota">
+                    Show only
+                    {' '}
+                    {prettyId(traverseInvitation[type].query.group, true).toLowerCase()}
+                    {' '}
+                    with less than max
+                    {' '}
+                    {pluralizeString(traverseInvitation.name, true).toLowerCase()}
+                  </span>
+                </>
+              )}
+            </>
           )}
         </form>
       </div>
