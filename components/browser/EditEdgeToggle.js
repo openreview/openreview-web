@@ -61,18 +61,37 @@ export default function EditEdgeToggle({
 
   if (!existingEdge && !canAddEdge) return null
 
-  return (
-    <div className="edit-controls d-flex">
-      <label className="edit-edge-toggle-description" onMouseEnter={e => handleLabelHover(e.target)}>{getLabel()}</label>
-      <button
-        type="button"
-        className={`btn btn-xs btn-default ml-1 edit-edge-toggle-btn ${(shouldDisableControl || loading) ? 'disable' : ''}`}
-        title={shouldDisableControl ? disableControlReason : getLabel()}
-        onClick={addOrRemoveEdge}
-        autoComplete="off"
-      >
-        <Icon name={existingEdge ? 'trash' : 'thumbs-up'} extraClasses={shouldDisableControl || loading ? 'span-disabled' : null} />
-      </button>
-    </div>
-  )
+  return (() => {
+    if (existingEdge) {
+      return (
+        <div className="edit-controls d-flex">
+          <label className="edit-edge-toggle-description" onMouseEnter={e => handleLabelHover(e.target)}>{getLabel()}</label>
+          <button
+            type="button"
+            className={`btn btn-xs btn-default ml-1 edit-edge-toggle-btn ${(shouldDisableControl || loading) ? 'disable' : ''}`}
+            title={shouldDisableControl ? disableControlReason : getLabel()}
+            onClick={addOrRemoveEdge}
+            autoComplete="off"
+          >
+            <Icon name="trash" extraClasses={shouldDisableControl || loading ? 'span-disabled' : null} />
+          </button>
+        </div>
+      )
+    }
+
+    return (
+      <div className="edit-controls d-flex">
+        <button
+          type="button"
+          className={`btn btn-xs btn-default edit-edge-toggle-btn ${(shouldDisableControl || loading) ? 'disable' : ''}`}
+          title={shouldDisableControl ? disableControlReason : undefined}
+          onClick={addOrRemoveEdge}
+        >
+          {getLabel()}
+          {' '}
+          <Icon name="thumbs-up" extraClasses={shouldDisableControl || loading ? 'span-disabled' : null} />
+        </button>
+      </div>
+    )
+  })()
 }
