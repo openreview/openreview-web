@@ -811,18 +811,18 @@ export default function Column(props) {
                 </select>
               </div>
               {showHideQuotaReachedCheckbox && (
-                <>
-                  <input type="checkbox" checked={hideQuotaReached} onChange={(e) => { setHideQuotaReached(e.target.checked) }} />
-                  <span className="hide-quota">
-                    Show only
+                <div className="d-flex">
+                  <input id="hide-quota-checkbox" type="checkbox" checked={hideQuotaReached} onChange={(e) => { setHideQuotaReached(e.target.checked) }} />
+                  <label className="hide-quota" htmlFor="hide-quota-checkbox">
+                    Only show
                     {' '}
                     {prettyId(traverseInvitation[type].query.group, true).toLowerCase()}
                     {' '}
-                    with less than max
+                    with fewer than the max
                     {' '}
                     {pluralizeString(traverseInvitation.name, true).toLowerCase()}
-                  </span>
-                </>
+                  </label>
+                </div>
               )}
             </>
           )}
