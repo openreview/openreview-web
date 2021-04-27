@@ -6,28 +6,13 @@ import NoteEntity from './NoteEntity'
 import GroupEntity from './GroupEntity'
 import ProfileEntity from './ProfileEntity'
 import TagEntity from './TagEntity'
+import { pluralizeString } from '../../lib/utils'
 
 export default function EntityList(props) {
   const { traverseInvitation } = useContext(EdgeBrowserContext)
+  const traverseLabel = pluralizeString(traverseInvitation.name.split(' ').pop())
 
-  let traverseLabel = 'Edges'
-  if (traverseInvitation.name === 'Paper Assignment') {
-    if (props.type === 'Note') {
-      traverseLabel = 'Assigned Reviewers'
-    } else if (props.type === 'Profile') {
-      traverseLabel = 'Assigned Papers'
-    }
-  } else if (traverseInvitation.name === 'Paper Similarity') {
-    traverseLabel = 'Similar Papers'
-  } else if (traverseInvitation.name === 'Recommendation') {
-    if (props.type === 'Note') {
-      traverseLabel = 'Recommended Reviewers'
-    } else if (props.type === 'Profile') {
-      traverseLabel = 'Number of Recommendations'
-    }
-  }
-
-  const renderEntity = (entity) => {
+  const renderEntity = (entity, index) => {
     if ((entity.metadata && entity.metadata.isHidden) && !props.showHiddenItems) {
       return null
     }
@@ -37,7 +22,7 @@ export default function EntityList(props) {
       case 'Note':
         return (
           <NoteEntity
-            key={entity.id}
+            key={`${entity.id}-${index}`}
             note={entity}
             traverseLabel={traverseLabel}
             addNewColumn={props.addNewColumn}
@@ -46,13 +31,17 @@ export default function EntityList(props) {
             isSelected={isSelected}
             setSelectedItemId={props.setSelectedItemId}
             canTraverse={props.canTraverse}
+            columnType={props.columnType}
+            parentInfo={props.parentInfo}
+            altGlobalEntityMap={props.altGlobalEntityMap}
+            reloadColumnEntities={props.reloadColumnEntities}
           />
         )
 
       case 'Group':
         return (
           <GroupEntity
-            key={entity.id}
+            key={`${entity.id}-${index}`}
             group={entity}
             traverseLabel={traverseLabel}
             addNewColumn={props.addNewColumn}
@@ -67,7 +56,7 @@ export default function EntityList(props) {
       case 'Profile':
         return (
           <ProfileEntity
-            key={entity.id}
+            key={`${entity.id}-${index}`}
             profile={entity}
             traverseLabel={traverseLabel}
             addNewColumn={props.addNewColumn}
@@ -76,13 +65,18 @@ export default function EntityList(props) {
             isSelected={isSelected}
             setSelectedItemId={props.setSelectedItemId}
             canTraverse={props.canTraverse}
+            columnType={props.columnType}
+            parentInfo={props.parentInfo}
+            reloadColumnEntities={props.reloadColumnEntities}
+            updateChildColumn={props.updateChildColumn}
+            columnIndex={props.columnIndex}
           />
         )
 
       case 'Tag':
         return (
           <TagEntity
-            key={entity.id}
+            key={`${entity.id}-${index}`}
             tag={entity}
             traverseLabel={traverseLabel}
             addNewColumn={props.addNewColumn}

@@ -36,6 +36,7 @@ test('task should change when note is deleted and restored', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
     .click(Selector('a.show-tasks'))
     .click(Selector('a').withText('Paper1 Official Review')) // go to forum page
+    .maximizeWindow()
     .click(Selector('#note_children').find('button.trash_button'))
     .click(Selector('a').withText('Tasks'))
     .expect(Selector('a.show-tasks').innerText).eql('Show 1 pending task')

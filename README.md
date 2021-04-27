@@ -68,7 +68,7 @@ env var and start the Next.js server:
 
 ```bash
 SUPER_USER=openreview.net npm run build
-npm run start
+SUPER_USER=openreview.net npm run start
 ```
 
 Finally, run the tests:

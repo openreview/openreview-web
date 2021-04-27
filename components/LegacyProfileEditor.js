@@ -35,6 +35,7 @@ export default function LegacyProfileEditor({
         prefixedPositions: dropdownOptions.prefixedPositions || [],
         prefixedRelations: dropdownOptions.prefixedRelations || [],
         institutions: dropdownOptions.institutions || [],
+        prefixedRelationReaders: dropdownOptions.relationReaders || [],
         submitButtonText,
         hideCancelButton,
         hideDblpButton,

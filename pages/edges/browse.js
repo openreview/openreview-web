@@ -1,3 +1,4 @@
+/* globals promptError: false */
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import uniq from 'lodash/uniq'
@@ -38,7 +39,7 @@ const Browse = ({ appContext }) => {
   useEffect(() => {
     if (userLoading || !query) return
 
-    if (!query.traverse || !query.browse) {
+    if (!query.traverse) {
       setError(notFoundError)
       return
     }
@@ -93,7 +94,8 @@ const Browse = ({ appContext }) => {
 
           const readers = buildInvitationReplyArr(fullInvitation, 'readers', user.profile.id)
           const writers = buildInvitationReplyArr(fullInvitation, 'writers', user.profile.id) || readers
-          const signatures = buildInvitationReplyArr(fullInvitation, 'signatures', user.profile.id)
+          const signatures = fullInvitation.reply?.signatures
+          const nonreaders = buildInvitationReplyArr(fullInvitation, 'nonreaders', user.profile.id)
           Object.assign(invObj, {
             head: fullInvitation.reply.content.head,
             tail: fullInvitation.reply.content.tail,
@@ -102,6 +104,7 @@ const Browse = ({ appContext }) => {
             readers,
             writers,
             signatures,
+            nonreaders,
           })
         })
         if (!allValid) {
@@ -118,10 +121,10 @@ const Browse = ({ appContext }) => {
         })
       })
       .catch((apiError) => {
-        if (typeof apiError === 'object' && apiError.type) {
-          if (apiError.type === 'Not Found') {
+        if (typeof apiError === 'object' && apiError.name) {
+          if (apiError.name === 'Not Found' || apiError.name === 'NotFoundError') {
             setError(notFoundError)
-          } else if (error.type === 'forbidden') {
+          } else if (apiError.name === 'forbidden' || apiError.name === 'ForbiddenError') {
             setError(forbiddenError)
           }
         } else if (typeof apiError === 'string' && apiError.startsWith('Invitation Not Found')) {
@@ -158,6 +161,7 @@ const Browse = ({ appContext }) => {
           browseInvitations={invitations.browseInvitations}
           hideInvitations={invitations.hideInvitations}
           maxColumns={maxColumns}
+          userInfo={{ userId: user?.id, accessToken }}
         />
       ) : (
         <LoadingSpinner />

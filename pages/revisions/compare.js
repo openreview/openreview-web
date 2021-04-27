@@ -78,7 +78,11 @@ const CompareRevisions = ({ appContext }) => {
     }
 
     setBanner()
-    loadComparison()
+    if (query.pdf) {
+      loadComparison()
+    } else {
+      loadReferences()
+    }
   }, [userLoading, query, accessToken])
 
   useEffect(() => {
@@ -110,49 +114,47 @@ const CompareRevisions = ({ appContext }) => {
 
       {references ? (
         <div className="comparison-viewer-container">
-          {contentDiff && (
-            <div className="table-responsive">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th style={{ width: '50%' }}>
-                      Last Modified
-                      {' '}
-                      {formatTimestamp(references[0].mdate) || formatTimestamp(references[0].tmdate)}
-                    </th>
-                    <th style={{ width: '50%' }}>
-                      Last Modified
-                      {' '}
-                      {formatTimestamp(references[1].mdate) || formatTimestamp(references[1].tmdate)}
-                    </th>
-                  </tr>
-                </thead>
+          <div className="table-responsive">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th style={{ width: '50%' }}>
+                    Last Modified
+                    {' '}
+                    {formatTimestamp(references[0].mdate) || formatTimestamp(references[0].tmdate)}
+                  </th>
+                  <th style={{ width: '50%' }}>
+                    Last Modified
+                    {' '}
+                    {formatTimestamp(references[1].mdate) || formatTimestamp(references[1].tmdate)}
+                  </th>
+                </tr>
+              </thead>
 
-                <tbody>
-                  {Object.entries(contentDiff).map(([fieldName, fieldValue]) => (
-                    <tr key={fieldName}>
-                      <td>
-                        {fieldValue.left && (
-                          <>
-                            {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-                            <strong>{prettyField(fieldName)}:</strong> {prettyContentValue(fieldValue.left)}
-                          </>
-                        )}
-                      </td>
-                      <td>
-                        {fieldValue.right && (
-                          <>
-                            {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-                            <strong>{prettyField(fieldName)}:</strong> {prettyContentValue(fieldValue.right)}
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+              <tbody>
+                {contentDiff && Object.entries(contentDiff).map(([fieldName, fieldValue]) => (
+                  <tr key={fieldName}>
+                    <td>
+                      {fieldValue.left && (
+                        <>
+                          {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+                          <strong>{prettyField(fieldName)}:</strong> {prettyContentValue(fieldValue.left)}
+                        </>
+                      )}
+                    </td>
+                    <td>
+                      {fieldValue.right && (
+                        <>
+                          {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+                          <strong>{prettyField(fieldName)}:</strong> {prettyContentValue(fieldValue.right)}
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           {draftableUrl && (
             <iframe title="Draftable PDF Comparison" src={draftableUrl} allowFullScreen />

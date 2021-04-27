@@ -144,7 +144,7 @@ const Forum = ({ forumNote, query, appContext }) => {
               <meta key={author} name="citation_author" content={author} />
             ))}
             */}
-            {/* temporary hack to get google scholar to work, revert to above code when next.js unique issue is solved */}
+            {/* temporary hack to get google scholar to work, revert to above when next.js unique issue is solved */}
             <meta name="citation_authors" content={authors.join('; ')} />
             <meta name="citation_publication_date" content={creationDate} />
             <meta name="citation_online_date" content={modificationDate} />
@@ -241,7 +241,7 @@ Forum.getInitialProps = async (ctx) => {
     }
     return { forumNote: note, query: ctx.query }
   } catch (error) {
-    if (error.name === 'forbidden') {
+    if (error.name === 'forbidden' || error.name === 'ForbiddenError') {
       const redirect = await shouldRedirect(ctx.query.id)
       if (redirect) {
         return redirectForum(redirect.id)

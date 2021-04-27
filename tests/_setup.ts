@@ -15,7 +15,7 @@ const waitForJobs = (noteId, superUserToken) => new Promise((resolve, reject) =>
         .reduce((count, job: any) => count + job.waiting + job.active + job.delayed, 0)
       if (queueCount === 0) {
         clearInterval(interval)
-        resolve()
+        resolve(null)
       }
     } catch (err) {
       clearInterval(interval)
@@ -139,11 +139,11 @@ test('setup TestVenue', async (t) => {
     content: { force: 'Yes' },
     forum: requestForumId,
     invitation: `openreview.net/Support/-/Request${number}/Post_Submission`,
-    readers: ['openreview.net/Support'],
+    readers: ['TestVenue/2020/Conference/Program_Chairs', 'openreview.net/Support'],
     referent: requestForumId,
     replyto: requestForumId,
     signatures: ['openreview.net/Support'],
-    writers: ['openreview.net/Support'],
+    writers: [],
   }
 
   const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
@@ -157,7 +157,7 @@ test('setup TestVenue', async (t) => {
       review_deadline: reviewDeadlineString,
       make_reviews_public: 'Yes, reviews should be revealed publicly when they are posted',
       release_reviews_to_authors: 'Yes, reviews should be revealed when they are posted to the paper\'s authors',
-      release_reviews_to_reviewers: 'Yes, reviews should be immediately revealed to the all paper\'s reviewers',
+      release_reviews_to_reviewers: 'Reviews should be immediately revealed to the paper\'s reviewers',
       email_program_chairs_about_reviews: 'No, do not email program chairs about received reviews',
     },
     forum: requestForumId,
@@ -166,7 +166,7 @@ test('setup TestVenue', async (t) => {
     referent: requestForumId,
     replyto: requestForumId,
     signatures: ['openreview.net/Support'],
-    writers: ['openreview.net/Support'],
+    writers: [],
   }
 
   const { id: reviewStageId } = await createNote(reviewStageJson, superUserToken)
@@ -261,11 +261,11 @@ test('setup AnotherTestVenue', async (t) => {
     content: { force: 'Yes' },
     forum: requestForumId,
     invitation: `openreview.net/Support/-/Request${number}/Post_Submission`,
-    readers: ['openreview.net/Support'],
+    readers: ['AnotherTestVenue/2020/Conference/Program_Chairs', 'openreview.net/Support'],
     referent: requestForumId,
     replyto: requestForumId,
     signatures: ['openreview.net/Support'],
-    writers: ['openreview.net/Support'],
+    writers: [],
   }
 
   const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
@@ -360,11 +360,11 @@ test('setup ICLR', async (t) => {
     content: { force: 'Yes' },
     forum: requestForumId,
     invitation: `openreview.net/Support/-/Request${number}/Post_Submission`,
-    readers: ['openreview.net/Support'],
+    readers: ['ICLR.cc/2021/Conference/Program_Chairs', 'openreview.net/Support'],
     referent: requestForumId,
     replyto: requestForumId,
     signatures: ['openreview.net/Support'],
-    writers: ['openreview.net/Support'],
+    writers: [],
   }
 
   const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
@@ -379,7 +379,7 @@ test('setup ICLR', async (t) => {
     referent: requestForumId,
     replyto: requestForumId,
     signatures: ['~Super_User1'],
-    writers: ['~Super_User1'],
+    writers: [],
   }
 
   const { id: bidStageId } = await createNote(bidStageJson, superUserToken)

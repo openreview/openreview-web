@@ -2,15 +2,15 @@ import { useEffect } from 'react'
 import omit from 'lodash/omit'
 import Head from 'next/head'
 import Router from 'next/router'
-import LoadingSpinner from '../components/LoadingSpinner'
-import WebfieldContainer from '../components/WebfieldContainer'
-import withError from '../components/withError'
-import api from '../lib/api-client'
-import { auth } from '../lib/auth'
-import { prettyId } from '../lib/utils'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import WebfieldContainer from '../../components/WebfieldContainer'
+import withError from '../../components/withError'
+import api from '../../lib/api-client'
+import { auth } from '../../lib/auth'
+import { prettyId } from '../../lib/utils'
 
 // Page Styles
-import '../styles/pages/group.less'
+import '../../styles/pages/group.less'
 
 const Group = ({ groupId, webfieldCode, appContext }) => {
   const { setBannerHidden, clientJsLoading } = appContext
@@ -60,10 +60,19 @@ Group.getInitialProps = async (ctx) => {
     return { statusCode: 400, message: 'Group ID is required' }
   }
 
+  // TODO: remove this redirect when all group editor links have been changed
+  if (ctx.query.mode === 'edit') {
+    const redirectUrl = `/group/edit?id=${ctx.query.id}`
+    if (ctx.req) {
+      ctx.res.writeHead(302, { Location: redirectUrl }).end()
+    } else {
+      Router.replace(redirectUrl)
+    }
+  }
+
   const generateWebfieldCode = (group, user, mode) => {
     const groupTitle = prettyId(group.id)
     const isGroupWritable = group.details?.writable
-    const editModeEnabled = mode === 'edit'
     const infoModeEnabled = mode === 'info'
     const showModeBanner = isGroupWritable || infoModeEnabled
 
@@ -71,13 +80,6 @@ Group.getInitialProps = async (ctx) => {
 Webfield.ui.setup($('#group-container'), '${group.id}');
 Webfield.ui.header('${prettyId(group.id)}')
   .append('<p><em>Nothing to display</em></p>');`
-
-    const editorCode = isGroupWritable && editModeEnabled && `
-Webfield.ui.setup('#group-container', group.id);
-Webfield.ui.header('${groupTitle}');
-Webfield.ui.groupEditor(group, {
-  container: '#notes'
-});`
 
     const infoCode = (infoModeEnabled || !group.web) && `
 Webfield.ui.setup('#group-container', group.id);
@@ -104,7 +106,7 @@ $(function() {
   $('#group-container').empty();
   ${showModeBanner ? 'Webfield.editModeBanner(group.id, args.mode);' : ''}
 
-  ${editorCode || infoCode || webfieldCode}
+  ${infoCode || webfieldCode}
 });
 //# sourceURL=webfieldCode.js`
   }
@@ -131,7 +133,7 @@ $(function() {
       query: ctx.query,
     }
   } catch (error) {
-    if (error.name === 'forbidden') {
+    if (error.name === 'forbidden' || error.name === 'ForbiddenError') {
       if (!token) {
         if (ctx.req) {
           ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()

@@ -35,18 +35,29 @@ function Faq({ generalQuestions, pcQuestions, appContext }) {
   useEffect(() => {
     if (!formattedGeneralQuestions || !formattedPCQuestions) return
 
-    // Scroll to and expand question referenced in URL
-    if (window.location.hash) {
-      const $titleLink = $(`.panel-title a[href="${window.location.hash}"]`).eq(0)
-      if ($titleLink.length) {
-        $titleLink.trigger('click')
+    const scrollToQuestion = (url = '') => {
+      const urlHash = url.substring(url.indexOf('#'))
+      if (!urlHash) return
 
-        setTimeout(() => {
-          const scrollPos = $titleLink.closest('.panel-default').offset().top - 55
-          $('html, body').animate({ scrollTop: scrollPos }, 400)
-        }, 200)
-      }
+      const $titleLink = $(`.panel-title a[href="${urlHash}"]`).eq(0)
+      if ($titleLink.length === 0) return
+
+      $titleLink.trigger('click')
+
+      const scrollPos = $titleLink.closest('.panel-default').offset().top - 55
+      $('html, body').animate({ scrollTop: scrollPos }, 400)
     }
+
+    // Scroll to and expand question referenced in URL when initially loading the page
+    setTimeout(() => {
+      scrollToQuestion(window.location.hash)
+    }, 200)
+
+    // Capture clicks on links to other FAQ questions
+    $('.faq-container a[href^="/faq#"]').on('click', (e) => {
+      e.preventDefault()
+      scrollToQuestion(e.target.getAttribute('href'))
+    })
   }, [formattedGeneralQuestions, formattedPCQuestions])
 
   return (
@@ -143,17 +154,88 @@ For more details on the difference between OpenReview's TeX support and other sy
 
   If your profile contains a confirmed email or a name that does not belong to you, please contact the OpenReview team by emailing info@openreview.net.`,
   }, {
+    q: 'How do I enter institution data to my profile?',
+    id: 'question-institution-relations',
+    a: `You must enter at least one position under 'Education & Career History' for your profile to be saved. You can choose one position from the dropdown, which includes the most commonly used ones. If none of the posiions in the dropdown reflect the position you are entering, you can type your own. Next, please enter a valid institution name (e.g., University of Massachusettss, Amherst) and domain (e.g., umass.edu) from the dropdown or type in if not present. You can leave the 'End' field empty if you are currently in that position, or you can enter when you are expected to leave that position.
+    `,
+  }, {
     q: 'How do I import my papers from DBLP?',
     id: 'question-dblp-import',
-    a: `To import DBLP publications, you need to get the "Persistent DBLP URL" from your DBLP homepage.
+    a: `**To add existing DBLP publications to your OpenReview profile**:
+
+  1. **Login to OpenReview**<br/>
+  You can click on the "Login" on the right of navigation menu to login to OpenReview.
+
+
+  2. **Go to edit mode of your profile page**<br/>
+  Click on your name on the right of navigation menu and click on "Profile" link in the dropdown displayed.
+  <img src="/images/faq-dblp-profile.png" alt="go to profile page" class="img-answer"/><br/>
+
+  When you are directed to the profile page, click on the "Edit Profile" button in the ribbon displayed under the navigation bar.
+  <img src="/images/faq-dblp-edit-profile.png" alt="go to edit mode" class="img-answer"/><br/>
+
+
+  3. **Add DBLP URL**<br/>
+  Look for "DBLP URL" text input under "Personal Links" section and enter the "Persistent DBLP URL".
+  <img src="/images/faq-dblp-input.png" alt="dblp url input" class="img-answer"/><br/>
+
+  You can get the "Persistent DBLP URL" from your DBLP homepage.
 
   To do so, hover over the <img src="/images/share_alt.svg" alt="share" class="share" /> icon to the right of your name in DBLP page heading and copy the persistent URL from the hover menu.
+  <img src="/images/faq-dblp.png" alt="dblp website" class="img-answer"/><br/>
 
-  ![Comment](/images/faq-dblp.png)
+  You can then go to your OpenReview profile page, click "Edit Profile", paste your persistent DBLP URL to the corresponding input.
 
-  You can then go to your OpenReview profile page, click 'Edit Profile', paste your persistent DBLP URL to the corresponding input, and then click the 'Add DBLP Papers to Profile' button to start importing DBLP papers.
 
-  If you get an error that says 'please ensure the provided DBLP URL is yours,' it may be because none of the names in your OpenReview profile match any of the author names in the DBLP papers. You can add a matching name to your OpenReview profile, save your profile and try importing again.`,
+  4. **Click "Add DBLP Papers to Profile" button**<br/>
+  Valid DBLP URL will enable the "Add DBLP Papers to Profile" button. Click the button and your DBLP publications will be listed in a modal window.
+
+
+  5. **Select the papers to upload**<br/>
+  Use the checkbox in front of each paper to select the papers which you would like to import to your OpenReview profile.
+
+
+  6. **Click "Add to Your Profile" button**<br/>
+  Click the "Add to Your Profile" button at the bottom of the modal window to import selected papers.
+  <img src="/images/faq-dblp-import.png" alt="import papers" class="img-answer"/><br/>
+
+If you get an error that says "please ensure the provided DBLP URL is yours", please ensure that name (or one of the names) in your OpenReview profile **matches exactly** with the name used in DBLP publications.
+You can add a matching name to your OpenReview profile by clicking the plus icon in "Names" section of the profile edit page, saving your profile by clicking the "Save Profile Changes" button at the bottom of profile edit page and try importing again.
+
+**To remove publications which are imported from DBLP from your profile**:
+
+Go to the edit mode of your profile page. Scroll to the bottom of the page and look for "Publications" section. All publications associated with your profile will be listed here but those imported from DBLP
+will have a minus icon displayed after the title.
+
+<img src="/images/faq-dblp-remove.png" alt="remove a paper" class="img-answer"/><br/>
+
+You can click on the minus icon to remove a publication from your profile. If you accidently clicked the remove (minus) icon and do not intend to remove the publication from your profile, you can click the icon again to reverse your operation.
+
+You must click the "**Save Profile Changes**" button at the bottom of the page so that selected publications are removed from your profile.
+`,
+  }, {
+    q: 'How do I add a publication manually?',
+    id: 'question-upload-manually',
+    a: `If one or more publications are not present in your DBLP homepage, you can use our direct upload page to manually upload your missing publications.
+    Please go to the [OpenReview.net Archive page](/group?id=OpenReview.net/Archive) and follow the instructions listed on the page.`,
+  }, {
+    q: 'Where can I find the Semantic Scholar URL?',
+    id: 'question-semantic-scholar',
+    a: `To locate your Semantic Scholar URL, go to https://semanticscholar.org and search for the name you publish by.
+
+If Semantic Scholar has your data, an author tile with your name will appear under the search bar. If your name is not immediately one of the top tiles, click the "Show All Authors" link to expand the tile section. Click on the author tile.
+
+<img src="/images/faq-semantic-search.png" alt="semantic scholar search result" class="img-answer"/><br/>
+
+Once you have identified your author page with the associated papers, **The URL in the browser address bar is the Semantic Scholar URL that you can use in OpenReview profile edit page**.
+
+If you would like to edit your Semantic Scholar author page or add additional metadata (e.g. affiliation data) you may use the "Claim Author Page" button located under your name at the top left of your Semantic Scholar author page.
+
+<img src="/images/faq-semantic-claim.png" alt="semantic scholar search result"/><br/>
+
+After you have claimed your page and the claim has been approved you will receive an email from Semantic Scholar with instructions to edit and update your author page.
+You will have the option to edit or add metadata, remove papers or add additional papers to your claimed Semantic Scholar author page (in case there are multiple author pages with your name).
+    `,
   }, {
     q: 'I couldn\'t find the answer to my question on this page. Where can I get more help?',
     id: 'question-more-help',
@@ -169,6 +251,27 @@ For general inquiries, you can contact the OpenReview team by emailing [info@ope
 - Follow the link that was sent to your email when the request was posted.
 - Go to the venue request page [here](https://openreview.net/group?id=OpenReview.net/Support) and click on your submitted request.
 - Under the ‘Overview’ tab in the PC console, click on ‘Full Venue Configuration’.`,
+  }, {
+    q: 'How can I override the information displayed on my venue\'s homepage?',
+    id: 'question-homepage-override',
+    a: `On the request form for your venue, click on the ‘Revision’ button and modify the Homepage Override field, which expects a valid JSON.
+
+The instruction field of the JSON accepts HTML, allowing the formatting of the instructions section to be fully customized. All HTML should be validated to ensure that it will not break the layout of the page: https://validator.w3.org/#validate_by_input
+
+Example:
+\`\`\`
+{
+  "title": "tinyML 2021",
+  "subtitle": "First International Research Symposium on Tiny Machine Learning (tinyML)",
+  "location": "Burlingame, CA",
+  "deadline": "Submission Deadline: November 30, 2020 11:59pm AOE",
+  "website": "https://tinyml.org/home/index.html",
+  "instructions": "<h1>Important Dates</h1><li>Submission Deadline: November <strike>23</strike> 30, 2020 11:59pm AOE <b>(extended)</b></li><li>Author Notification: Jan 15th, 2021</li><li>Camera Ready: Feb 15th, 2021</li></br><h1>Submission Format</h1><li>Page limit is 6 to 8 pages, including references and any appendix material</li><li>Submissions must be blind for the double-blind review process</li><li>For paper formatting, please use the <a href=\\"https://www.acm.org/publications/proceedings-template\\">ACM SIGCONF template</a>.</li></br>"
+}
+\`\`\`
+which will be displayed as:
+
+![homepage](/images/faq-homepage-override.png)`,
   }, {
     q: 'How can I recruit reviewers for my venue?',
     id: 'question-recruitment',
@@ -188,6 +291,14 @@ For general inquiries, you can contact the OpenReview team by emailing [info@ope
 
   For more information on supported field types, [click here.](/faq#question-field-type-supported)`,
   }, {
+    q: 'How do I make submissions available before the submission deadline?',
+    id: 'question-post-submission-button',
+    a: `On the request form for your venue, click on the ‘Post Submission’ button to make submissions available according to the settings selected in the fields ‘Author and Reviewer Anonymity’ and ‘Open Reviewing Policy’ of the venue request.
+  This means that:
+  - If submissions are double blind, blind copies of submissions will be created (make sure to select Force=True). You can also choose which fields are kept hidden (author names are automatically hidden).
+  - If submissions should be public, then they will be released to everyone.
+  - If submissions are private, then they will be released to the committee groups (senior area chairs, area chairs  and reviewers).`,
+  }, {
     q: 'How do I make reviews visible to authors?',
     id: 'question-release-reviews-authors',
     a: 'On the request form for your venue, click on the ‘Review Stage’ button. Select Yes under Release Reviews to Authors and then submit. This will immediately release any existing reviews to authors and make subsequent posted reviews readily available to authors.',
@@ -196,17 +307,35 @@ For general inquiries, you can contact the OpenReview team by emailing [info@ope
     id: 'question-release-reviews-reviewers',
     a: 'On the request form for your venue, click on the ‘Review Stage’ button. Reviews can be released to all reviewers, to a paper\'s assigned reviewers, or to a paper\'s assigned reviewers who have already submitted their review.',
   }, {
-    q: 'How do I get email addresses of accepted/all papers authors?',
-    id: 'question-getting-author-emails',
-    a: 'Please refer to the section on obtaining data in the documentation for our [Python API](https://openreview-py.readthedocs.io/en/latest/)',
-  }, {
-    q: 'How can I manually assign reviewers to papers?',
+    q: 'How can I manually assign reviewers/ACs to papers?',
     id: 'question-manually-assign-reviewers',
-    a: 'To manually assign reviewers to papers after the submission deadline has passed, you must first set the review stage by clicking on the ‘Review Stage’ button on the request form for your venue. You will then be able to assign reviewers to papers under the ‘Paper Status’ tab in the PC console.',
+    a: `**Reviewers:** If you did not specify you wanted to use the OpenReview matcher to assign reviewers to papers, you will be able to manually assign them using the PC console.
+  1. You must first set the review stage by clicking on the 'Review Stage' button on the request form for your venue.
+  2. Under the 'Paper Status' tab in the PC console, click on 'Show Reviewers' next to the paper you want to assign reviewers to.
+   - To assign reviewers from the reviewer pool, you can choose a reviewer from the dropdown. Here, you can also search reviewers in the reviewer pool by name or email. After finding the reviewer you want to assign, click on the 'Assign' button.
+   - To assign reviewers from outside the reviewer pool, you should type the reviewer's email or OpenReview profile ID (e.g., ~Alan_Turing1) in the textbox and then click on the 'Assign' button. A reviewer does not need to have an OpenReview profile in order to be assigned to a paper.
+
+Note that assigning a reviewer to a paper through the PC console automatically adds that reviewer to the reviewers pool and sends them an email notifying them about their new assignment.
+
+**Area Chairs:** Unfortunately, assigning ACs is not available through the PC console, but manual AC assignments can be made through the Python library: (You can check out the docs for our Python API [here](https://openreview-py.readthedocs.io/en/latest/))
+\`\`\`
+client = openreview.Client(baseurl = 'https://api.openreview.net', username = '', password = '')
+conference=openreview.helpers.get_conference(client, request_form_id)
+conference.set_assignment(number=paper_number, user=user_id, is_area_chair=True)
+\`\`\`
+- You will need to use your own OpenReview credentials to initialize the Client object.
+- **request_form_id** (string) refers to the forum id of the venue request for your venue, (e.g., [https://openreview.net/forum?id=**r1lf10zpw4**]())
+- **paper_number** (int) is the number of the paper you want to assign an area chair to (you can find this in the 'Paper Status' tab of the PC console)
+- **user_id** (string) is the email address or OpenReview profile ID (e.g., ~Alan_Turing1) of the user you want to assign
+
+Note that assigning an area chair using python does not send an email to that user. For more information on how to contact area chairs, [click here.](/faq#question-contact-venue-roles)`,
   }, {
     q: 'How can I automatically assign reviewers to papers based on their affinity and/or bids?',
     id: 'question-run-matcher',
-    a: 'To automatically assign reviewers to papers after the submission deadline has passed, you must first set the review stage by clicking on the ‘Review Stage’ button on the request form for your venue. You will then be able to run the matcher by clicking on ‘Reviewers Paper Assignment’ under the ‘Overview’ tab in the PC console.',
+    a: `To automatically assign reviewers to papers after the submission deadline has passed, you must first set the review stage by clicking on the ‘Review Stage’ button on the request form for your venue. You will then be able to run the matcher by clicking on ‘Reviewers Paper Assignment’ under the ‘Overview’ tab in the PC console.
+
+  Once you are satisfied with the paper assignment, click on the 'Deploy' button next to the configuration you would like to deploy. Note that deploying an assignment does not send an email to reviewers about their new assignments.
+  For more information on how to contact reviewers, [click here.](/faq#question-contact-venue-roles)`,
   }, {
     q: 'How can I enable comments on papers?',
     id: 'question-enable-comments',
@@ -259,9 +388,41 @@ For general inquiries, you can contact the OpenReview team by emailing [info@ope
     id: 'question-release-author-names',
     a: 'Once decisions have been posted, you will see a ‘Post Decision Stage’ button on the request form for your venue. Click on this button to choose between revealing identities of authors of all papers or only accepted papers to the public.',
   }, {
+    q: 'How do I modify the homepage layout to show decision tabs?',
+    id: 'question-homepage-layout',
+    a: `Once decisions have been posted, you will see a ‘Post Decision Stage’ button on the request form for your venue. Once you click on this button, you will be able to specify the name of each tab you want to include in the homepage in the form of a dictionary.
+
+  Note that each key must be a valid decision option. For example, a venue with the decision options Accept (Oral), Accept (Spotlight), Accept (Poster) and Reject could choose to hide the rejected papers tab as follows:
+  \`\`\`
+  {
+    "Accept (Oral)": "Accepted Oral submissions",
+    "Accept (Spotlight)": "Accepted Spotlight submissions",
+    "Accept (Poster)": "Accepted Poster submissions"
+  }
+  \`\`\``,
+  }, {
     q: 'How do I contact the authors of the accepted papers only?',
     id: 'question-contact-authors-accepted',
     a: 'Under the ‘Overview’ tab of the PC console for your venue, you will find a ‘Venue Roles’ section. Click on the ‘Accepted’ link next to ‘Authors’ to be taken to the respective group. On this page, you have the option to email members of the group.',
+  }, {
+    q: 'How do I extract email addresses of accepted papers?',
+    id: 'question-emails-accepted-papers',
+    a: `All papers contain the IDs of authors in the authorids field. These IDs can be either email addresses or OpenReview profile IDs. The following code will allow you to extract all email addresses of accepted papers:
+
+  \`\`\`
+  accepted_papers = client.get_notes(content={'venueid': 'ICLR.cc/2021/Conference'})
+  for paper in accepted_papers:
+    for author in paper.content['authorids']:
+      if '@' in author:
+          print(author)
+      else:
+          profile=client.search_profiles(ids=[author])[0]
+          print(profile.content.get('preferredEmail', profile.content['emails'][0]))
+  \`\`\`
+
+  You can find the venueid in the request form for your venue.
+
+  Note that you must first set the 'Post Decision Stage', as the **venueid** value is added to accepted papers once this stage has been called.`,
   }, {
     q: 'Can an author withdraw a rejected paper?',
     id: 'question-withdraw-paper',
@@ -298,7 +459,7 @@ You can have different types of fields:
 - **value-regex**, **values-regex**: string or array of strings; the value entered by the user should pass the regex validation.
 
     \`\`\`
-    "comment": {
+    "title": {
       "order": 0,
       "value-regex": ".{1,500}",
       "description": "Brief summary of your comment.",
@@ -415,30 +576,31 @@ You can have different types of fields:
       "authors": {
           "description": "Comma separated list of author names.",
           "order": 2,
-          "values-regex": "[^;,\\n]+(,[^,\\n]+)*",
-          "required": true
+          "values-regex": "[^;,\\\\n]+(,[^,\\\\n]+)*",
+          "required": true,
+          "hidden" true
       },
       "authorids": {
-          "description": "Comma separated list of author email addresses, lowercased, in the same order as above. For authors with existing OpenReview accounts, please make sure that the provided email address(es) match those listed in the author's profile.",
+          "description": "Search author profile by first, middle and last name or email address. If the profile is not found, you can add the author by completing first, middle, and last names as well as author email address.",
           "order": 3,
-          "values-regex": "([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})",
+          "values-regex": "~.*|([a-z0-9_\\\\-\\\\.]{1,}@[a-z0-9_\\\\-\\\\.]{2,}\\\\.[a-z]{2,},){0,}([a-z0-9_\\\\-\\\\.]{1,}@[a-z0-9_\\\\-\\\\.]{2,}\\\\.[a-z]{2,})",
           "required": true
       },
       "keywords": {
           "description": "Comma separated list of keywords.",
           "order": 6,
-          "values-regex": "(^$)|[^;,\\n]+(,[^,\\n]+)*"
+          "values-regex": "(^$)|[^;,\\\\n]+(,[^,\\\\n]+)*"
       },
       "TL;DR": {
           "description": "\\"Too Long; Didn't Read\\": a short sentence describing your paper",
           "order": 7,
-          "value-regex": "[^\\n]{0,250}",
+          "value-regex": "[^\\\\n]{0,250}",
           "required": false
       },
       "abstract": {
           "description": "Abstract of paper. Add TeX formulas using the following formats: $In-line Formula$ or $$Block Formula$$",
           "order": 8,
-          "value-regex": "[\\S\\s]{1,5000}",
+          "value-regex": "[\\\\S\\\\s]{1,5000}",
           "required": true
       },
       "pdf": {
@@ -448,7 +610,7 @@ You can have different types of fields:
               "fileTypes": [
                   "pdf"
               ],
-              "size": 50000000
+              "size": 50
           },
           "required": true
       }
@@ -471,7 +633,7 @@ You can have different types of fields:
       },
       "review": {
           "order": 2,
-          "value-regex": "[\\S\\s]{1,200000}",
+          "value-regex": "[\\\\S\\\\s]{1,200000}",
           "description": "Please provide an evaluation of the quality, clarity, originality and significance of this work, including a list of its pros and cons (max 200000 characters). Add formatting using Markdown and formulas using LaTeX. For more information see https://openreview.net/faq",
           "required": true,
           "markdown": true
@@ -516,7 +678,7 @@ You can have different types of fields:
     {
       "metareview": {
           "order": 1,
-          "value-regex": "[\\S\\s]{1,5000}",
+          "value-regex": "[\\\\S\\\\s]{1,5000}",
           "description": "Please provide an evaluation of the quality, clarity, originality and significance of this work, including a list of its pros and cons. Your comment or reply (max 5000 characters). Add formatting using Markdown and formulas using LaTeX. For more information see https://openreview.net/faq",
           "required": true,
           "markdown": true
@@ -560,7 +722,7 @@ You can have different types of fields:
       },
       "comment": {
           "order": 1,
-          "value-regex": "[\\S\\s]{1,5000}",
+          "value-regex": "[\\\\S\\\\s]{1,5000}",
           "description": "Your comment or reply (max 5000 characters). Add formatting using Markdown and formulas using LaTeX. For more information see https://openreview.net/faq",
           "required": true,
           "markdown": true
@@ -594,7 +756,7 @@ You can have different types of fields:
       "comment": {
           "order": 3,
           "required": false,
-          "value-regex": "[\\S\\s]{0,5000}",
+          "value-regex": "[\\\\S\\\\s]{0,5000}",
           "description": ""
       }
     }

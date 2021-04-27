@@ -5,6 +5,7 @@ import {
   useState, useEffect, useCallback, useContext, createContext,
 } from 'react'
 import Head from 'next/head'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 import debounce from 'lodash/debounce'
 import UserContext from '../components/UserContext'
@@ -44,7 +45,8 @@ const SignupForm = ({ setSignupConfirmation }) => {
       if (profiles) {
         setExistingProfiles(profiles.map(profile => ({
           id: profile.id,
-          emails: profile.content?.emailsConfirmed || [],
+          emails: profile.content?.emails || [],
+          emailsConfirmed: profile.content?.emailsConfirmed || [],
           active: profile.active,
           password: profile.password,
         })))
@@ -180,12 +182,16 @@ const SignupForm = ({ setSignupConfirmation }) => {
       <LoadingContext.Provider value={loading}>
         {existingProfiles.map((profile) => {
           let formComponents
-          if (profile.emails.length > 0) {
-            formComponents = profile.emails.map(confirmedEmail => (
+          const allEmails = profile.active
+            ? profile.emailsConfirmed
+            : Array.from(new Set([...profile.emailsConfirmed, ...profile.emails]))
+
+          if (allEmails.length > 0) {
+            formComponents = allEmails.map(email => (
               <ExistingProfileForm
-                key={confirmedEmail}
+                key={email}
                 id={profile.id}
-                obfuscatedEmail={confirmedEmail}
+                obfuscatedEmail={email}
                 hasPassword={profile.password}
                 isActive={profile.active}
                 registerUser={registerUser}
@@ -200,7 +206,6 @@ const SignupForm = ({ setSignupConfirmation }) => {
           }
           return formComponents.concat(<hr key={`${profile.id}-spacer`} className="spacer" />)
         })}
-
         <NewProfileForm id={newUsername} registerUser={registerUser} />
       </LoadingContext.Provider>
 
@@ -231,8 +236,8 @@ const ExistingProfileForm = ({
     buttonLabel = isActive ? 'Reset Password' : 'Send Activation Link'
     usernameLabel = 'for'
   } else {
-    buttonLabel = 'Sign Up'
-    usernameLabel = 'as'
+    buttonLabel = 'Claim Profile'
+    usernameLabel = 'for'
   }
 
   const handleSubmit = (e) => {
@@ -265,7 +270,11 @@ const ExistingProfileForm = ({
         {!passwordVisible && (
           <button type="submit" className="btn">{buttonLabel}</button>
         )}
-        <span className="new-username hint">{`${usernameLabel} ${id}`}</span>
+        <span className="new-username hint">
+          {usernameLabel}
+          {' '}
+          <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+        </span>
       </div>
       {passwordVisible && (
         <div className="password-row">
@@ -354,7 +363,11 @@ const ClaimProfileForm = ({ id, registerUser }) => {
         {!passwordVisible && (
           <button type="submit" className="btn" disabled={!isValidEmail(email)}>Claim Profile</button>
         )}
-        <span className="new-username hint">{`for ${id}`}</span>
+        <span className="new-username hint">
+          for
+          {' '}
+          <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+        </span>
       </div>
 
       {passwordVisible && (

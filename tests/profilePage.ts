@@ -59,10 +59,10 @@ test('user open own profile', async (t) => {
     // make some changes and save
     // add a name
     .click(nameSectionPlusIconSelector)
-    .typeText(editFirstNameInputSelector, '111')
-    .expect(errorMessageSelector.innerText).eql('Name is not allowed to contain digits')
+    .typeText(editFirstNameInputSelector, '111', { paste: true })
+    .expect(errorMessageSelector.innerText).eql('The first name 111 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed')
     .typeText(editFirstNameInputSelector, '`', { replace: true })
-    .expect(errorMessageSelector.innerText).eql('Name contains invalid characters: ~`_')
+    .expect(errorMessageSelector.innerText).eql('The first name ` is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed')
     .click(Selector('button.remove_button').filterVisible())
     // add a email
     .click(emailSectionPlusIconSelector)
@@ -131,7 +131,7 @@ test('import paper from dblp', async (t) => {
     .click(Selector('#dblp-import-modal').find('tr').withAttribute('class', undefined).nth(1).find('input'))
     .expect(dblpImportModalSelectCount.innerText).eql('2 publications selected')
     .click(dblpImportModalAddToProfileBtn)
-    // .expect(Selector('#dblp-import-modal').find('.modal-body').find('p').innerText).contains('2 publications were successfully imported.') // will fail till #87 is fixed
+    .expect(Selector('#dblp-import-modal').find('.modal-body').find('p').innerText).contains('2 publications were successfully imported.')
     .click(Selector('#dblp-import-modal').find('span').withExactText('×'))
     .expect(Selector('ul.submissions-list').find('.glyphicon-minus-sign').count).eql(2) // imported 2 papers are removable/unlinkable
 })
@@ -153,8 +153,7 @@ test('unlink paper', async (t) => {
 })
 
 test('check import history', async (t) => {
-  const { api, superUserToken } = t.fixtureCtx
-  // let result = await api.get(`/notes/search?content=authors&term=${userB.tildeId}&cache=false}`, {}, { accessToken: superUserToken })
+  const { superUserToken } = t.fixtureCtx
   const notes = await getNotes({ 'content.authorids': `${userB.tildeId}` }, superUserToken)
   // should have only 1 note
   await t.expect(notes.length).eql(1)
@@ -283,4 +282,12 @@ test('#160 allow user to overwrite last/middle/first name to be lowercase', asyn
     .expect(Selector('span').withText('first').exists).ok()
     .expect(Selector('span').withText('middle').exists).ok()
     .expect(Selector('span').withText('last').exists).ok()
+})
+test('fail before 2099', async (t) => {
+  await t.useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .typeText(Selector('#history_table').find('input.end'), `${new Date().getFullYear() + 10}`, { replace: true }) // to fail in 2090, update validation regex
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText).eql('Your profile information has been successfully updated')
+    .wait(5000)
 })

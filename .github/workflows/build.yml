@@ -8,6 +8,8 @@ on:
     branches: [ master ]
   push:
     branches: [ master ]
+  repository_dispatch:
+    types: [ openreview-api-updated ]
 
 jobs:
   build:
@@ -118,7 +120,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     steps:
     - name: Install Google Cloud
-      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      uses: google-github-actions/setup-gcloud@master
       with:
         version: 'latest'
         project_id: ${{ secrets.GCP_PROJECT_ID }}

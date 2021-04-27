@@ -30,7 +30,7 @@ const MessageRow = ({ message }) => (
             Parent:
             {' '}
             <a
-              href={`/group?id=${encodeURIComponent(message.referrer)}&mode=edit`}
+              href={`/group/edit?id=${encodeURIComponent(message.referrer)}`}
               className="profile-link"
               target="_blank"
               rel="noreferrer"

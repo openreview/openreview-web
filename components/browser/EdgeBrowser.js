@@ -1,12 +1,14 @@
 /* globals Webfield: false */
 /* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/no-access-state-in-setstate */
+/* globals promptError: false */
 
 import React from 'react'
 import _ from 'lodash'
 import Column from './Column'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import { formatEntityContent, buildSearchText } from '../../lib/edge-utils'
+import api from '../../lib/api-client'
 
 export default class EdgeBrowser extends React.Component {
   constructor(props) {
@@ -14,9 +16,9 @@ export default class EdgeBrowser extends React.Component {
 
     this.startInvitation = props.startInvitation
     this.traverseInvitation = props.traverseInvitations[0]
-    this.editInvitation = props.editInvitations.length ? props.editInvitations[0] : null
+    this.editInvitations = props.editInvitations
     this.browseInvitations = props.browseInvitations
-    this.hideInvitation = props.hideInvitations.length ? props.hideInvitations[0] : null
+    this.hideInvitation = props.hideInvitations[0]
     this.maxColumns = props.maxColumns
 
     let initialColumn
@@ -48,10 +50,19 @@ export default class EdgeBrowser extends React.Component {
     this.exploreInterfaceRef = React.createRef()
     this.updateGlobalEntityMap = this.updateGlobalEntityMap.bind(this)
     this.updateMetadataMap = this.updateMetadataMap.bind(this)
+    this.updateChildColumn = this.updateChildColumn.bind(this)
+    this.reloadColumnEntities = this.reloadColumnEntities.bind(this)
+
+    this.userId = props.userInfo.userId
+    this.accessToken = props.userInfo.accessToken
+
+    this.availableSignaturesInvitationMap = []
   }
 
   componentDidMount() {
+    this.lookupSignatures()
     // Create gloabl head and tail maps by querying all possible head and tail objects
+    // create global signature list
     Promise.all([
       this.buildEntityMapFromInvitation('head'),
       this.buildEntityMapFromInvitation('tail'),
@@ -159,13 +170,12 @@ export default class EdgeBrowser extends React.Component {
             }
           })
         }
-
         return entityMap
       })
   }
 
   addNewColumn(index) {
-    return (parentId) => {
+    return (parentId, parentContent, parentCustomLoad, parentExistingLoad) => {
       if (!parentId) {
         return
       }
@@ -188,6 +198,10 @@ export default class EdgeBrowser extends React.Component {
         type,
         entityType,
         parentId,
+        parentContent,
+        parentCustomLoad,
+        parentExistingLoad,
+        shouldReloadEntities: false,
       }
 
       this.setState({
@@ -227,12 +241,85 @@ export default class EdgeBrowser extends React.Component {
     })
   }
 
+  // update the parentCustomLoad of child column
+  // when custom load of a column is changed
+  // index is index of the column where the custom load of an entity is changed
+  // also update if there's column with same parent
+  updateChildColumn(index, customLoad) {
+    if (index + 1 >= this.state.columns.length) return
+    const parentIdOfColumn = this.state.columns[index].parentId
+    const resultColumns = []
+    resultColumns.push(this.state.columns[0])
+    for (let i = 1; i < this.state.columns.length; i += 1) {
+      const parentColumn = this.state.columns[i - 1]
+      const column = this.state.columns[i]
+      if (parentColumn.parentId === parentIdOfColumn) {
+        resultColumns.push({ ...column, parentCustomLoad: customLoad })
+      } else {
+        resultColumns.push(column)
+      }
+    }
+    this.setState({ columns: resultColumns })
+  }
+
+  // set the shouldUpdate property of column at index
+  // and all other columns with same parent
+  // to trigger entites reload of those columns
+  reloadColumnEntities(index) {
+    const parentIdOfColumn = this.state.columns[index].parentId
+    const resultColumns = []
+    for (let i = 0; i < this.state.columns.length; i += 1) {
+      const column = this.state.columns[i]
+      if (column?.parentId === parentIdOfColumn) {
+        resultColumns.push({ ...column, shouldReloadEntities: !column.shouldReloadEntities })
+      } else {
+        resultColumns.push(column)
+      }
+    }
+    this.setState({ columns: resultColumns })
+  }
+
+  async lookupSignatures() {
+    const editInvitationSignaturesMap = []
+    this.editInvitations?.forEach(async (editInvitation) => {
+      // this case is handled here to reduce num of calls to /groups,other cases handled at entity
+      if (editInvitation.signatures['values-regex'] && !editInvitation.signatures['values-regex']?.startsWith('~.*')) {
+        if (editInvitation.signatures.default) {
+          try {
+            const defaultLookupResult = await api.get('/groups', { regex: editInvitation.signatures.default, signatory: this.userId }, { accessToken: this.accessToken })
+            if (defaultLookupResult.groups.length === 1) {
+              editInvitationSignaturesMap.push({
+                invitation: editInvitation.id,
+                signature: editInvitation.signatures.default, // singular
+              })
+              return
+            }
+          } catch (error) {
+            promptError(error.message)
+          }
+        }
+        const interpolatedSignature = editInvitation.signatures['values-regex'].replaceAll('{head.number}', '.*')
+        try {
+          const interpolatedLookupResult = await api.get('/groups', { regex: interpolatedSignature, signatory: this.userId }, { accessToken: this.accessToken })
+          editInvitationSignaturesMap.push({
+            invitation: editInvitation.id,
+            signatures: interpolatedLookupResult.groups.map(group => group.id),
+          })
+        } catch (error) {
+          promptError(error.message)
+        }
+      }
+    })
+    this.availableSignaturesInvitationMap = editInvitationSignaturesMap
+  }
+
   render() {
     const invitations = {
       traverseInvitation: this.traverseInvitation,
-      editInvitation: this.editInvitation,
+      editInvitations: this.editInvitations,
       browseInvitations: this.browseInvitations,
       hideInvitation: this.hideInvitation,
+      availableSignaturesInvitationMap: this.availableSignaturesInvitationMap,
     }
 
     return (
@@ -240,7 +327,8 @@ export default class EdgeBrowser extends React.Component {
         <div className={`row explore-interface expand-columns-${this.maxColumns}`} ref={this.exploreInterfaceRef}>
           {this.state.columns.map((column, i) => (
             <Column
-              key={`${column.parentId || 'start-col'}`}
+              // eslint-disable-next-line react/no-array-index-key
+              key={`${column.parentId || 'start-col'}-${i}`}
               type={column.type}
               entityType={column.entityType}
               parentId={column.parentId}
@@ -253,6 +341,15 @@ export default class EdgeBrowser extends React.Component {
               addNewColumn={this.addNewColumn(i)}
               loading={this.state.loading}
               finalColumn={i + 1 === this.maxColumns}
+              parentColumnEntityType={this.state.columns[i - 1]?.entityType} // to decide whether number can be used
+              parentContent={column.parentContent}
+              parentTraverseCount={column.parentTraverseCount}
+              parentCustomLoad={column.parentCustomLoad}
+              parentExistingLoad={column.parentExistingLoad}
+              index={i}
+              updateChildColumn={this.updateChildColumn}
+              shouldReloadEntities={column.shouldReloadEntities}
+              reloadColumnEntities={this.reloadColumnEntities}
             />
           ))}
           <div className="column column-spacer" tabIndex="-1" />

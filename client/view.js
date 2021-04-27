@@ -505,7 +505,7 @@ module.exports = (function() {
       });
 
       if (selected) { //add musthavevalues
-        _.forEach(alwaysHaveValues, function (alwaysHaveValue) {
+        _.forEachRight(alwaysHaveValues, function (alwaysHaveValue) {
           if (selectedValues.find(function (selectedValue) { //alwayshavevalue is already selected
             return selectedValue.id === alwaysHaveValue.id;
           })) {
@@ -1105,6 +1105,7 @@ module.exports = (function() {
   };
 
   var mkComposerContentInput = function(fieldName, fieldDescription, fieldValue, params) {
+    var contentInputResult = null;
 
     var mkCharCouterWidget = function($input, minChars, maxChars) {
       var $widget = $('<div>', {class: 'char-counter hint'}).append(
@@ -1153,7 +1154,7 @@ module.exports = (function() {
 
     var $input;
     if (_.has(fieldDescription, 'value')) {
-      return valueInput($('<input>', {
+      contentInputResult = valueInput($('<input>', {
         type: 'text',
         class: 'form-control note_content_value',
         name: fieldName,
@@ -1162,14 +1163,10 @@ module.exports = (function() {
       }), fieldName, fieldDescription);
 
     } else if (_.has(fieldDescription, 'values')) {
-      var $inputGroup = mkDropdownAdder(
+      contentInputResult = mkDropdownAdder(
         fieldName, fieldDescription.description, fieldDescription.values,
         fieldValue, { hoverText: true, refreshData: false, required: fieldDescription.required }
       );
-      if (fieldDescription.hidden) {
-        return $inputGroup.hide();
-      }
-      return $inputGroup;
 
     } else if (_.has(fieldDescription, 'value-regex')) {
       var $inputGroup;
@@ -1217,37 +1214,32 @@ module.exports = (function() {
       if (!_.get(fieldDescription, 'disableAutosave', false)) {
         $input.addClass('autosave-enabled');
       }
-      return $inputGroup;
+      contentInputResult = $inputGroup;
 
     } else if (_.has(fieldDescription, 'values-regex')) {
       if (params && params.groups) {
-        var groups = params.groups;
-        var groupIds = _.map(groups, function(g) {
+        var groupIds = _.map(params.groups, function(g) {
           return g.id;
         });
-        return mkDropdownAdder(
+        contentInputResult = mkDropdownAdder(
           fieldName, fieldDescription.description, groupIds,
           fieldValue, { hoverText: false, refreshData: true, required: fieldDescription.required }
         );
+      } else {
+        $input = $('<input>', {
+          type: 'text',
+          class: 'form-control note_content_value',
+          name: fieldName,
+          value: fieldValue
+        });
+        if (!_.get(fieldDescription, 'disableAutosave', false)) {
+          $input.addClass('autosave-enabled');
+        }
+        contentInputResult = valueInput($input, fieldName, fieldDescription);
       }
-
-      $input = $('<input>', {
-        type: 'text',
-        class: 'form-control note_content_value',
-        name: fieldName,
-        value: fieldValue
-      });
-      if (!_.get(fieldDescription, 'disableAutosave', false)) {
-        $input.addClass('autosave-enabled');
-      }
-
-      if (fieldDescription.hidden) {
-        return valueInput($input, fieldName, fieldDescription).hide();
-      }
-      return valueInput($input, fieldName, fieldDescription);
 
     } else if (_.has(fieldDescription, 'value-dropdown')) {
-      return mkDropdownList(
+      contentInputResult = mkDropdownList(
         fieldName, fieldDescription.description, fieldValue,
         fieldDescription['value-dropdown'], fieldDescription.required
       );
@@ -1277,13 +1269,13 @@ module.exports = (function() {
         }
       });
 
-      return mkDropdownList(
+      contentInputResult = mkDropdownList(
         fieldName, fieldDescription.description, formattedFieldValue,
         formattedValues, fieldDescription.required
       );
 
     } else if (_.has(fieldDescription, 'values-dropdown')) {
-      return mkDropdownAdder(
+      contentInputResult = mkDropdownAdder(
         fieldName, fieldDescription.description, fieldDescription['values-dropdown'],
         fieldValue, { hoverText: false, refreshData: true, required: fieldDescription.required, alwaysHaveValues: fieldDescription.default }
       );
@@ -1305,7 +1297,7 @@ module.exports = (function() {
           );
         })
       );
-      return valueInput($input, fieldName, fieldDescription);
+      contentInputResult = valueInput($input, fieldName, fieldDescription);
 
     } else if (_.has(fieldDescription, 'value-checkbox') || _.has(fieldDescription, 'values-checkbox')) {
       var options = _.has(fieldDescription, 'value-checkbox') ?
@@ -1321,10 +1313,10 @@ module.exports = (function() {
           '<input type="checkbox" name="' + fieldName + '" value="' + option + '" ' + checked + ' ' + disabled + '> ' + (params.prettyId ? prettyId(option) : option) +
           '</label>';
       });
-      return valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
+      contentInputResult = valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
 
     } else if (_.has(fieldDescription, 'value-copied') || _.has(fieldDescription, 'values-copied')) {
-      return valueInput($('<input>', {
+      contentInputResult = valueInput($('<input>', {
         type: 'hidden',
         class: 'note_content_value',
         name: fieldName,
@@ -1332,14 +1324,17 @@ module.exports = (function() {
       }), fieldName, fieldDescription).css('display', 'none');
 
     } else if (_.has(fieldDescription, 'value-dict')) {
-      return valueInput($('<textarea>', {
+      contentInputResult = valueInput($('<textarea>', {
         class: 'note_content_value form-control',
         name: fieldName,
         text: fieldValue && JSON.stringify(fieldValue, undefined, 4)
       }), fieldName, fieldDescription);
+
     } else if (_.has(fieldDescription, 'value-file')) {
-      return mkAttachmentSection(fieldName, fieldDescription, fieldValue);
+      contentInputResult = mkAttachmentSection(fieldName, fieldDescription, fieldValue);
     }
+
+    return contentInputResult;
   };
 
   var mkDropdownList = function(fieldName, fieldDescription, fieldValue, values, required) {
@@ -1408,11 +1403,12 @@ module.exports = (function() {
   };
 
   var mkComposerInput = function(fieldName, fieldDescription, fieldValue, params) {
-    if (fieldName === 'pdf' && fieldDescription['value-regex']) {
-      return mkPdfSection(fieldDescription, fieldValue);
-    }
+    var contentInputResult;
 
-    if (fieldName === 'authorids' && (
+    if (fieldName === 'pdf' && fieldDescription['value-regex']) {
+      contentInputResult = mkPdfSection(fieldDescription, fieldValue);
+
+    } else if (fieldName === 'authorids' && (
       (_.has(fieldDescription, 'values-regex') && fieldDescription['values-regex'].indexOf('~.*') !== -1) ||
       _.has(fieldDescription, 'values')
     )) {
@@ -1429,7 +1425,7 @@ module.exports = (function() {
       var invitationRegex = fieldDescription['values-regex'];
       // Enable allowUserDefined if the values-regex has '~.*|'
       // Don't enable adding or removing authors if invitation uses 'values' instead of values-regex
-      return valueInput(
+      contentInputResult = valueInput(
         mkSearchProfile(authors, authorids, {
           allowUserDefined: invitationRegex && invitationRegex.indexOf('~.*|') !== -1,
           allowAddRemove: !!invitationRegex
@@ -1437,9 +1433,15 @@ module.exports = (function() {
         'authors',
         fieldDescription
       );
+
+    } else {
+      contentInputResult = mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
     }
 
-    return mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
+    if (fieldDescription.hidden === true) {
+      return contentInputResult.hide();
+    }
+    return contentInputResult;
   };
 
   var mkItem = function(text, f) {
@@ -1715,8 +1717,9 @@ module.exports = (function() {
     var urlRegex = /(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*[^.,()"'\s])?/ig;
     var profileRegex = /\B~[^\d\s]+\_[^\d\s]+[0-9]+/ig;
 
-    var intermediate = value.replace(urlRegex, function(match) {
-      return '<a href="' + match + '" target="_blank" rel="nofollow">' + match + '</a>';
+    var intermediate = value.replace(urlRegex, function (match) {
+      var url = match.startsWith('https://openreview.net') ? match.replace('https://openreview.net', '') : match
+      return `<a href="${url}" target="_blank" rel="nofollow">${url}</a>`;
     });
 
     return intermediate.replace(profileRegex, function(match) {
@@ -1896,6 +1899,7 @@ module.exports = (function() {
         // First set content as text to escape HTML, then autolink escaped HTML
         $elem.text(valueString);
         $elem.html(autolinkHtml($elem.html()));
+
       }
 
       $contents.push($('<div>', {class: 'note_contents'}).append(
@@ -2048,7 +2052,7 @@ module.exports = (function() {
     var $editButton = null;
     var $actionButtons = null;
     if ($('#content').hasClass('forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
-      var canEdit = (details.original && details.writable && details.originalWritable) || (!details.original && details.writable);
+      var canEdit = (details.original && details.originalWritable) || (!details.originalWritable && details.writable);
 
       if (canEdit && params.onTrashedOrRestored) {
         var buttonContent = notePastDue ? 'Restore' : '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>';
@@ -2126,7 +2130,7 @@ module.exports = (function() {
     var $dateItem = (!notePastDue || details.writable) ?
       $('<span>', {class: 'date item'}).text(formattedDate) :
       null;
-    var $invItem = $('<span>', {class: 'item'}).text(note.content.venue || prettyId(note.invitation));
+    var $invItem = $('<span>', {class: 'item'}).text(options.isReference ? prettyId(note.invitation) : note.content.venue || prettyId(note.invitation));
     var $readersItem = _.has(note, 'readers') ?
       $('<span>', {class: 'item'}).html('Readers: ' + prettyReadersList(note.readers)) :
       null;
@@ -2549,6 +2553,10 @@ module.exports = (function() {
       return '';
     }
 
+    if (fieldName === 'pdf') {
+      return 'PDF';
+    }
+
     var words = fieldName.replace(/_/g, ' ').split(' ').map(function(word) {
       return word.charAt(0).toUpperCase() + word.substring(1);
     });
@@ -2653,7 +2661,7 @@ module.exports = (function() {
         });
       }
 
-      if (typeof value === 'object' && !_.isUndefined(content)) {
+      if (typeof value === 'object' && !_.isNil(content)) {
         replaceCopiedValues(content[key], value, original);
       }
     });
@@ -2742,7 +2750,7 @@ module.exports = (function() {
     var errors = [];
     var content = _.reduce(invitation.reply.content, function(ret, contentObj, k) {
       // Let the widget handle it :D and extract the data when we encouter authorids
-      if (contentObj.hidden) {
+      if (contentObj.hidden && k === 'authors') {
         return ret;
       }
       var $inputVal = $contentMap[k].find('.note_content_value[name="' + k + '"]');
@@ -2770,6 +2778,11 @@ module.exports = (function() {
           ret.authorids.push(authorid);
         });
         return ret;
+      } else if (contentObj.hasOwnProperty('value-dropdown')) {
+        var values = idsFromListAdder($contentMap[k], ret);
+        if (values && values.length) {
+          inputVal = values[0];
+        }
       } else if (contentObj.hasOwnProperty('values-regex')) {
         var inputArray = inputVal.split(',');
         inputVal = _.filter(
@@ -2875,7 +2888,7 @@ module.exports = (function() {
       var signatureId = signatures[0];
 
       //Where the signature is an AnonReviewer and it is not selected in the readers value
-      var index = signatureId.indexOf('AnonReviewer');
+      var index = Math.max(signatureId.indexOf('AnonReviewer'), signatureId.indexOf('Reviewer_'));
       if (index >= 0) {
         var reviewersSubmittedId = signatureId.slice(0, index).concat('Reviewers/Submitted');
         var reviewersId = signatureId.slice(0, index).concat('Reviewers');
@@ -2890,9 +2903,9 @@ module.exports = (function() {
           }
         }
       } else {
-        var acIndex = signatureId.indexOf('Area_Chair1');
+        var acIndex = Math.max(signatureId.indexOf('Area_Chair1'), signatureId.indexOf('Area_Chair_'));
         if (acIndex >= 0) {
-          signatureId = signatureId.replace('Area_Chair1', 'Area_Chairs');
+          signatureId = signatureId.slice(0, acIndex).concat('Area_Chairs');
         }
 
         if (_.includes(invitationValues, signatureId)) {
@@ -3165,10 +3178,10 @@ module.exports = (function() {
 
             //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
             var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
-            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer'); });
+            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_');  });
             if (hasReviewers && !hasAnonReviewers) {
               fieldDescription['values-dropdown'].forEach(function(value) {
-                if (value.includes('AnonReviewer')) {
+                if (value.includes('AnonReviewer') || value.includes('Reviewer_')) {
                   replyValues.push(value);
                 }
               });
@@ -3225,10 +3238,10 @@ module.exports = (function() {
 
             //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
             var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
-            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer'); });
+            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_'); });
             if (hasReviewers && !hasAnonReviewers) {
               fieldDescription['values-checkbox'].forEach(function(value) {
-                if (value.includes('AnonReviewer')) {
+                if (value.includes('AnonReviewer') || v.includes('/Reviewer_')) {
                   replyValues.push(value);
                 }
               });

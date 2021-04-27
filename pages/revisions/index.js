@@ -88,6 +88,7 @@ const RevisionsList = ({
       isReference: true,
       withModificationDate: true,
       withDateTime: true,
+      withBibtexLink: false,
       user,
       onEditRequested: (inv, options) => {
         const noteToShow = options.original ? note.details.original : note
@@ -132,7 +133,7 @@ const RevisionsList = ({
             <label>
               <input
                 type="checkbox"
-                checked={selectedIndexes && selectedIndexes.includes(index)}
+                checked={(selectedIndexes && selectedIndexes.includes(index)) || false}
                 onChange={e => toggleSelected(index, e.target.checked)}
               />
             </label>
@@ -172,7 +173,8 @@ const Revisions = ({ appContext }) => {
     // element represents the older revision, which should go on the left
     const leftId = revisions[selectedIndexes[1]][0].id
     const rightId = revisions[selectedIndexes[0]][0].id
-    router.push(`/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}`)
+    const hasPdf = revisions[selectedIndexes[0]][0].content.pdf && revisions[selectedIndexes[1]][0].content.pdf
+    router.push(`/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${hasPdf ? '&pdf=true' : ''}`)
   }
 
   useEffect(() => {

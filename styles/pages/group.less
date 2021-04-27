@@ -222,8 +222,8 @@ main.group, main.invitation {
 
   // Edit and Info Mode
   section {
-    &.general, &.members, &.children, &.invitations,
-    &.subinvitations, &.webfield, &.process, &.reply, &.notes {
+    &.general, &.members, &.children, &.invitations, &.messages,
+    &.subinvitations, &.webfield, &.process, &.preprocess, &.reply, &.tabs, &.notes {
       margin-bottom: 1.75rem;
       h4 {
         margin-bottom: 1rem;
@@ -384,14 +384,14 @@ main.group, main.invitation {
     margin-top: .75rem;
   }
 
-  #webfield-editor, #process-editor {
+  #webfield-editor, #process-editor, #preprocess-editor {
     width: 100%;
     height: 600px;
     margin-bottom: 1rem;
     border: 1px solid #eee;
   }
 
-  section.webfield, section.process {
+  section.webfield, section.process, section.preprocess {
     .alert {
       margin-top: 1rem;
       margin-bottom: .5rem;
@@ -412,11 +412,23 @@ main.group, main.invitation {
     }
   }
 
-  section.reply {
+  section.reply, section.tabs {
     textarea, .alert {
       width: 100%;
       max-width: 800px;
       margin-bottom: .5rem;
+    }
+  }
+
+  section.messages {
+    h4 {
+      margin-bottom: 1.25rem;
+    }
+    .progress {
+      margin-bottom: 1rem;
+    }
+    .progress-bar {
+      background-color: @mediumBlue;
     }
   }
 

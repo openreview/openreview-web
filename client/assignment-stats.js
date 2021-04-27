@@ -39,23 +39,34 @@ var loadFromNotes = function(assignmentConfigNote) {
 
 var loadFromEdges = function(assignmentConfigNote) {
   var paperInvitationElements = assignmentConfigNote.paper_invitation.split('&');
-  var getNotesArgs = {invitation: paperInvitationElements[0]};
-  paperInvitationElements.slice(1).forEach(function(filter) {
-    var filterElements = filter.split('=');
-    getNotesArgs[filterElements[0]] = filterElements[1];
-  });
-  var papersP = Webfield.getAll('/notes', getNotesArgs);
+  var papersP;
+  if (paperInvitationElements[0].includes('/-/')) {
+    var getNotesArgs = {invitation: paperInvitationElements[0]};
+    paperInvitationElements.slice(1).forEach(function(filter) {
+      var filterElements = filter.split('=');
+      getNotesArgs[filterElements[0]] = filterElements[1];
+    });
+    papersP = Webfield.getAll('/notes', getNotesArgs);
+  } else {
+    papersP = Webfield.get('/groups', {id: paperInvitationElements[0]})
+    .then(function(result) {
+      return _.get(result, 'groups[0].members', []).map(function(member) { return { id: member }; });
+    });
+  }
   var usersP = Webfield.get('/groups', {id: assignmentConfigNote.match_group})
   .then(function(result) {
     return _.get(result, 'groups[0].members');
   });
 
-  var assignmentsP = Webfield.getAll('/edges', {
+  var query = (assignmentConfigNote.status == 'Deployed' && assignmentConfigNote.deployed_assignment_invitation) ? { invitation: assignmentConfigNote.deployed_assignment_invitation } : {
     invitation: assignmentConfigNote.assignment_invitation,
-    label: assignmentConfigNote.title,
+    label: assignmentConfigNote.title
+  }
+
+  var assignmentsP = Webfield.getAll('/edges', _.assign(query, {
     groupBy: 'head',
     select: 'tail,weight'
-  }, 'groupedEdges');
+  }), 'groupedEdges');
 
   var bidInvitation = '';
   var recommendationInvitation = '';
@@ -582,12 +593,13 @@ var generateEdgeBrowserRedirect = function(id, configNote, navigateToPage) {
     var browseInvitations = Object.keys(configNote.scores_specification);
     var referrerText = view.prettyId(configNote.title) + ' Statistics';
     var typeParam = type === 'reviewer' ? 'type:tail' : 'type:head';
-    const assignmentLabel = encodeURIComponent(configNote.title)
+    var assignmentLabel = encodeURIComponent(configNote.title)
+    var editInvitation = (configNote.status == 'Deployed' && configNote.deployed_assignment_invitation) ? configNote.deployed_assignment_invitation : (configNote.assignment_invitation + ',label:' + assignmentLabel)
 
     navigateToPage('/edges/browse' +
       '?start=staticList,' + typeParam + ',storageKey:' + key +
-      '&traverse=' + configNote.assignment_invitation + ',label:' + assignmentLabel +
-      '&edit=' + configNote.assignment_invitation + ',label:' + assignmentLabel +
+      '&traverse=' + editInvitation +
+      '&edit=' + editInvitation +
       '&browse=' + configNote.aggregate_score_invitation + ',label:' + assignmentLabel +
       ';' + browseInvitations.join(';') +
       ';' + configNote.conflicts_invitation +

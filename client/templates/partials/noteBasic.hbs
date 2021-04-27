@@ -1,6 +1,6 @@
 {{!-- Basic note. Used when displaying lists of paper submissions --}}
 <h4>
-  <a href="/forum?id={{forum}}{{#isnt id forum}}&noteId={{id}}{{/isnt}}{{#if options.referrer}}&referrer={{options.referrer}}{{/if}}" {{#if options.openInNewTab}}target="_blank"{{/if}}>
+  <a href="/{{#if options.path}}{{options.path}}{{else}}forum{{/if}}?id={{forum}}{{#isnt id forum}}&noteId={{id}}{{/isnt}}{{#if options.referrer}}&referrer={{options.referrer}}{{/if}}" {{#if options.openInNewTab}}target="_blank"{{/if}}>
     {{#if content.title}}
       {{content.title}}
     {{else}}
@@ -20,7 +20,7 @@
   {{!-- unlink dblp publication button in profile page --}}
   {{#if options.showUnlinkPublicationButton}}
     {{#canUnlink invitation}}
-      <span class="unlink-publication glyphicon glyphicon-minus-sign"></span>
+      <span class="unlink-publication glyphicon glyphicon-minus-sign" role="button" aria-label="unlink this publication from your profile" tabindex="0"></span>
     {{/canUnlink}}
   {{/if}}
 </h4>

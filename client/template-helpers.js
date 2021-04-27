@@ -81,7 +81,7 @@ Handlebars.registerHelper('prettyInvitationId', function(invitationId, options) 
   }
 
   var entityStr = '';
-  var entities = ['Reviewers', 'Authors', 'Area_Chairs', 'Program_Chairs', 'Emergency_Reviewers'];
+  var entities = ['Reviewers', 'Authors', 'Area_Chairs', 'Program_Chairs', 'Emergency_Reviewers', 'Senior_Area_Chairs'];
   var groupSpecifier = invitationId.split('/-/')[0].split('/').pop();
   if (_.includes(entities, groupSpecifier)) {
     entityStr = groupSpecifier.replace(/_/g, ' ').slice(0, -1) + ' ';
@@ -340,11 +340,16 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
 
     var invitationField = (invitation && invitation.reply.content[fieldName]) || {};
 
+    var urlRegex = /^(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*)?$/i;
+
     // Build download links or render markdown if enabled
     if (valueString.indexOf('/attachment/') === 0) {
       valueString = view.mkDownloadLink(noteObj.id, fieldName, valueString);
     } else if (invitationField.markdown) {
       valueString = DOMPurify.sanitize(marked(valueString));
+    } else if (urlRegex.test(valueString)) {
+      var url = valueString.startsWith('https://openreview.net') ? valueString.replace('https://openreview.net', '') : valueString
+      valueString = `<a href="${url}" target="_blank" rel="nofollow noreferrer">${url}</a>`;
     } else {
       valueString = Handlebars.Utils.escapeExpression(valueString);
     }
@@ -366,7 +371,7 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
     html = '<div class="note-contents-collapse">' + contentHtml + '</div>';
   } else {
     // Need a random id to prevent collisions if there are 2 of the same note displayed
-    var collapseId = noteObj.id + '-details-' + Math.floor(Math.random() * 1000);
+    var collapseId = noteObj.id.replace('~', '') + '-details-' + Math.floor(Math.random() * 1000);
     html = '<a href="#' + collapseId + '" class="note-contents-toggle" role="button" data-toggle="collapse" aria-expanded="false">Show details</a>' +
       '<div class="collapse" id="' + collapseId + '">' +
         '<div class="note-contents-collapse">' + contentHtml + '</div>' +
@@ -640,7 +645,7 @@ Handlebars.registerHelper('forumReadersIcon', function(readersArr) {
   return new Handlebars.SafeString(readersHtml);
 });
 
-var urlFromGroupId = function(groupId) {
+var urlFromGroupId = function(groupId, editMode) {
   var commonGroups = ['everyone', '(anonymous)', '(guest)'];
   if (!groupId || commonGroups.indexOf(groupId) !== -1) {
     return '';
@@ -649,7 +654,7 @@ var urlFromGroupId = function(groupId) {
   } else if (groupId.indexOf('@') !== -1) {
     return '/profile?email=' + groupId;
   }
-  return '/group?id=' + groupId;
+  return '/group' + (editMode ? '/edit' : '') + '?id=' + groupId;
 };
 
 Handlebars.registerHelper('groupUrl', urlFromGroupId);
@@ -943,7 +948,6 @@ Handlebars.registerPartial('groupInfoTable', Handlebars.templates['partials/grou
 Handlebars.registerPartial('invitationInfoTable', Handlebars.templates['partials/invitationInfoTable']);
 Handlebars.registerPartial('configurationNotes', Handlebars.templates['partials/configurationNotes']);
 
-Handlebars.registerPartial('userMenu', Handlebars.templates['partials/userMenu']);
 Handlebars.registerPartial('spinner', Handlebars.templates.spinner);
 
 Handlebars.registerPartial('profileExpertise', Handlebars.templates['partials/merge/profileExpertise']);
