@@ -796,35 +796,32 @@ export default function Column(props) {
             <span className="glyphicon glyphicon-search form-control-feedback" aria-hidden="true" />
           </div>
           {parentId && (
-            <>
-              <div className="sort-container form-group">
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                <label>Order By:</label>
-                <select className="form-control input-sm" onChange={e => setColumnSort(e.target.value)}>
-                  {
-                    sortOptions.map(p => (
-                      <option key={p.key} value={p.value}>
-                        {p.text}
-                      </option>
-                    ))
-                  }
-                </select>
-              </div>
-              {showHideQuotaReachedCheckbox && (
-                <div className="d-flex">
-                  <input id={`hide-quota-checkbox${props.index}`} type="checkbox" checked={hideQuotaReached} onChange={(e) => { setHideQuotaReached(e.target.checked) }} />
-                  <label className="hide-quota" htmlFor={`hide-quota-checkbox${props.index}`}>
-                    Only show
-                    {' '}
-                    {prettyId(traverseInvitation[type].query.group, true).toLowerCase()}
-                    {' '}
-                    with fewer than the max
-                    {' '}
-                    {pluralizeString(traverseInvitation.name, true).toLowerCase()}
-                  </label>
-                </div>
-              )}
-            </>
+            <div className="sort-container form-group">
+              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+              <label>Order By:</label>
+              <select className="form-control input-sm" onChange={e => setColumnSort(e.target.value)}>
+                {sortOptions.map(p => (
+                  <option key={p.key} value={p.value}>
+                    {p.text}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          {parentId && showHideQuotaReachedCheckbox && (
+            <div className="checkbox">
+              <label>
+                <input type="checkbox" checked={hideQuotaReached} onChange={(e) => { setHideQuotaReached(e.target.checked) }} />
+                {' '}
+                Only show
+                {' '}
+                {prettyId(traverseInvitation[type].query.group, true).toLowerCase()}
+                {' '}
+                with fewer than max
+                {' '}
+                {pluralizeString(traverseInvitation.name, true).toLowerCase()}
+              </label>
+            </div>
           )}
         </form>
       </div>
