@@ -3040,23 +3040,23 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
+        clearAutosaveData(autosaveStorageKeys);
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
         } else {
           $noteEditor.remove();
         }
-        clearAutosaveData(autosaveStorageKeys);
       });
 
       var saveNote = function(note) {
         // apply any 'value-copied' fields
         note = getCopiedValues(note, invitation.reply);
         controller.post('/notes', note, function(result) {
+          clearAutosaveData(autosaveStorageKeys);
+          $noteEditor.remove();
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
           }
-          $noteEditor.remove();
-          clearAutosaveData(autosaveStorageKeys);
         }, function(jqXhr, errorText) {
           promptError(errorText);
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();

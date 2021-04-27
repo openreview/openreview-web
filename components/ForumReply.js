@@ -16,7 +16,7 @@ export default function ForumReply({ note, replies }) {
   const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
 
   return (
-    <div className="note" style={(hidden && allRepliesHidden) ? { display: 'none' } : {}}>
+    <div className="note" style={(hidden && allRepliesHidden) ? { display: 'none' } : {}} data-id={note.id}>
       <button type="button" className="btn btn-link collapse-link" onClick={e => setCollapsed(note.id, !collapsed)}>
         [
         {collapsed ? '+' : '–'}

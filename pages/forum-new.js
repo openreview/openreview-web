@@ -1,12 +1,12 @@
 /* globals $: false */
 /* globals typesetMathJax: false */
+/* globals promptError: false */
 
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import Router, { useRouter } from 'next/router'
 import truncate from 'lodash/truncate'
-import isEmpty from 'lodash/isEmpty'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ForumReply from '../components/ForumReply'
 import NoteAuthors from '../components/NoteAuthors'
@@ -23,8 +23,7 @@ import { auth } from '../lib/auth'
 import {
   prettyId, prettyInvitationId, forumDate, getConferenceName,
 } from '../lib/utils'
-import { parseFilterQuery, replaceFilterWildcards } from '../lib/forum-utils'
-import { buildNoteSearchText } from '../lib/edge-utils'
+import { formatNote, parseFilterQuery, replaceFilterWildcards } from '../lib/forum-utils'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 // Page Styles
@@ -84,6 +83,30 @@ const ForumMeta = ({ note }) => (
       <span className="item readers" data-toggle="tooltip" data-placement="top" title={`Visible to ${note.readers.join(', ')}`}>
         <Icon name="eye-open" />
         {note.readers.map(reader => prettyId(reader, true)).join(', ')}
+      </span>
+    )}
+
+    {/* eslint-disable-next-line no-underscore-dangle */}
+    {note.content._bibtex && (
+      <span className="item">
+        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+        <a
+          href="#"
+          data-target="#bibtex-modal"
+          data-toggle="modal"
+          // eslint-disable-next-line no-underscore-dangle
+          data-bibtex={encodeURIComponent(note.content._bibtex)}
+        >
+          Show Bibtex
+        </a>
+      </span>
+    )}
+
+    {note.details.revisions && (
+      <span className="item">
+        <Link href={`/revisions?id=${note.id}`}>
+          <a>Show Revisions</a>
+        </Link>
       </span>
     )}
   </div>
@@ -149,29 +172,7 @@ const Forum = ({ forumNote, appContext }) => {
       // Don't include forum note
       if (note.id === note.forum) return
 
-      // note.details.invitation can sometimes contain an empty object
-      let replyInvitation
-      if (!isEmpty(note.details.originalInvitation)) {
-        replyInvitation = note.details.originalInvitation
-      } else if (!isEmpty(note.details.invitation)) {
-        replyInvitation = note.details.invitation
-      } else {
-        replyInvitation = null
-      }
-
-      replyMap[note.id] = {
-        id: note.id,
-        invitation: note.invitation,
-        cdate: note.cdate || note.tcdate,
-        mdate: note.mdate || note.tmdate,
-        content: note.content,
-        signatures: note.signatures,
-        readers: note.readers.sort(),
-        searchText: buildNoteSearchText(note),
-        details: {
-          invitation: replyInvitation,
-        },
-      }
+      replyMap[note.id] = formatNote(note)
       displayOptions[note.id] = { collapsed: false, contentExpanded: false, hidden: false }
 
       const parentId = note.replyto || id
@@ -502,16 +503,42 @@ const Forum = ({ forumNote, appContext }) => {
               key={invitation.id}
               type="button"
               className="btn btn-xs"
-              onClick={() => { setActiveInvitation(activeInvitation ? null : invitation) }}
+              onClick={() => {
+                if (activeInvitation && activeInvitation.id !== invitation.id) {
+                  promptError(
+                    'You currently have another editor pane open on this page. Please submit your changes or click Cancel before continuing',
+                    { scrollToTop: false },
+                  )
+                } else {
+                  setActiveInvitation(activeInvitation ? null : invitation)
+                }
+              }}
             >
               {prettyInvitationId(invitation.id)}
             </button>
           ))}
         </div>
 
-        {activeInvitation && (
-          <NoteEditorForm forumId={id} invitation={activeInvitation} />
-        )}
+        <NoteEditorForm
+          forumId={id}
+          invitation={activeInvitation}
+          onNoteCreated={(note) => {
+            setActiveInvitation(null)
+            setReplyNoteMap({ ...replyNoteMap, [note.id]: formatNote(note, activeInvitation) })
+            setDisplayOptionsMap({
+              ...displayOptionsMap,
+              [note.id]: { collapsed: false, contentExpanded: false, hidden: false },
+            })
+            setParentMap({
+              ...parentMap,
+              [id]: [...parentMap[id], note.id],
+            })
+            // TODO: figure out better scroll method
+            document.getElementById('note-children').scrollIntoView({ behavior: 'smooth' })
+          }}
+          onNoteCancelled={() => { setActiveInvitation(null) }}
+          onError={() => { setActiveInvitation(null) }}
+        />
       </div>
 
       {(!replyForumViews || !replyNoteMap) && (
@@ -651,7 +678,7 @@ Forum.getInitialProps = async (ctx) => {
 
   try {
     const result = await api.get('/notes', {
-      id: ctx.query.id, trash: true, details: 'original,invitation,replyCount,writable',
+      id: ctx.query.id, trash: true, details: 'original,invitation,revisions,replyCount,writable',
     }, { accessToken: token })
     const note = result.notes[0]
 
