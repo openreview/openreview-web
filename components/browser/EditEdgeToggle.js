@@ -64,7 +64,7 @@ export default function EditEdgeToggle({
   return (() => {
     if (existingEdge) {
       return (
-        <div className="edit-controls d-flex">
+        <div className="edit-controls d-flex mt-1">
           <label className="edit-edge-toggle-description" onMouseEnter={e => handleLabelHover(e.target)}>{getLabel()}</label>
           <button
             type="button"
@@ -80,7 +80,7 @@ export default function EditEdgeToggle({
     }
 
     return (
-      <div className="edit-controls d-flex">
+      <div className="edit-controls d-flex mt-1">
         <button
           type="button"
           className={`btn btn-xs btn-default edit-edge-toggle-btn ${(shouldDisableControl || loading) ? 'disable' : ''}`}

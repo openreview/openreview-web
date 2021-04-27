@@ -2,7 +2,7 @@
 /* globals promptError: false */
 import { useContext, useState } from 'react'
 import api from '../../lib/api-client'
-import { getInterpolatedValues, getSignatures } from '../../lib/edge-utils'
+import { getInterpolatedValues, getSignatures, transformName } from '../../lib/edge-utils'
 import { isValidEmail, prettyInvitationId } from '../../lib/utils'
 import LoadingSpinner from '../LoadingSpinner'
 import UserContext from '../UserContext'
@@ -70,10 +70,10 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
     <div className="">
       <form className="form-inline widget-invite-assignment">
         {/* <label htmlFor="email-invite">Email/Profile: </label> */}
-        <input type="email" id="email-invite" value={emailsToInvite} onChange={e => setEmailsToInvite(e.target.value)} placeholder={editInvitation[type].description} />
+        <input type="email" id="email-invite" value={emailsToInvite} onChange={e => setEmailsToInvite(e.target.value)} placeholder={editInvitation[type].description} title={editInvitation[type].description} />
         <button type="button" className="btn btn-default btn-xs" onClick={handleInviteBtnClick} disabled={shouldDisableSubmitBtn()}>
           {loading && <LoadingSpinner inline text="" extraClass="spinner-small" />}
-          {prettyInvitationId(editInvitation.id)}
+          {transformName(prettyInvitationId(editInvitation.id), true)}
         </button>
       </form>
     </div>
