@@ -39,10 +39,16 @@ export default function EditEdgeToggle({
     return `${existingEdge?.name}${existingEdge?.weight ? ` : ${existingEdge.weight}` : ''}`
   }
 
+  const getNewEdgeButtonText = () => {
+    if (editEdgeTemplate?.label === 'Assign') return 'Assign'
+    return `${editEdgeTemplate?.name}`
+  }
+
   const getNewEdgeLabel = () => {
-    if (editEdgeTemplate?.label === 'Assign' || editEdgeTemplate?.name === 'Assign') return 'Assign'
-    if (editEdgeTemplate?.label) return `${editEdgeTemplate.name}: ${editEdgeTemplate.label}${editEdgeTemplate?.weight ? `,${editEdgeTemplate.weight}` : ''}`
-    return `${editEdgeTemplate?.name}${editEdgeTemplate?.weight ? ` : ${editEdgeTemplate.weight}` : ''}`
+    if (editEdgeTemplate?.label) {
+      return `${editEdgeTemplate.label}${editEdgeTemplate?.weight ? `,${editEdgeTemplate.weight}` : ''}`
+    }
+    return null
   }
 
   const handleLabelHover = (target) => {
@@ -77,13 +83,14 @@ export default function EditEdgeToggle({
 
     return (
       <div className="edit-controls d-flex mt-1">
+        {getNewEdgeLabel() && <label className="edit-edge-toggle-description">{getNewEdgeLabel()}</label>}
         <button
           type="button"
           className={`btn btn-xs btn-default edit-edge-toggle-btn ${(shouldDisableControl || loading) ? 'disable' : ''}`}
           title={shouldDisableControl ? disableControlReason : undefined}
           onClick={addOrRemoveEdge}
         >
-          {getNewEdgeLabel()}
+          {getNewEdgeButtonText()}
         </button>
       </div>
     )
