@@ -422,6 +422,15 @@ export default function Column(props) {
     }
   }
 
+  const filterQuotaReachedItems = (colItems) => {
+    if (!hideQuotaReached) return colItems
+    return colItems.filter((p) => {
+      const customLoad = p.browseEdges?.find(q => q?.invitation?.includes('Custom_Max_Papers'))?.weight
+      if (customLoad === undefined) return true
+      return p.traverseEdgesCount < customLoad
+    })
+  }
+
   useEffect(() => {
     if (!items || !items.length) {
       return
