@@ -59,9 +59,11 @@ export default function Column(props) {
   const [itemsHeading, setItemsHeading] = useState(null)
   const [numItemsToRender, setNumItemsToRender] = useState(100)
   const [columnSort, setColumnSort] = useState('default')
+  const [hideQuotaReached, setHideQuotaReached] = useState(false)
   const [search, setSearch] = useState({ term: '' })
 
   const showLoadMoreButton = numItemsToRender < filteredItems.length
+  const showHideQuotaReachedCheckbox = entityType === 'Profile' && browseInvitations.some(p => p.id.includes('Custom_Max_Papers'))
 
   // Helpers
   const formatEdge = edge => ({
@@ -349,7 +351,7 @@ export default function Column(props) {
             {
               ...p,
               weight: sortLabelMap[
-                [...p.browseEdges, ...p.editEdges].find(q => q.invitation === columnSort).label] || 0,
+                [...p.browseEdges, ...p.editEdges].find(q => q.invitation === columnSort)?.label] || 0,
             }),
         ),
         ['weight'],
@@ -388,13 +390,22 @@ export default function Column(props) {
     })
   }
 
+  const filterQuotaReachedItems = (colItems) => {
+    if (!hideQuotaReached) return colItems
+    return colItems.filter((p) => {
+      const customLoad = p.browseEdges?.find(q => q?.invitation?.includes('Custom_Max_Papers'))?.weight
+      if (customLoad === undefined) return true
+      return p.traverseEdgesCount < customLoad
+    })
+  }
+
   useEffect(() => {
     if (!items || !items.length) {
       return
     }
     // Reset column to show original items and no search heading
     if (!search.term) {
-      setFilteredItems(sortItems(items))
+      setFilteredItems(sortItems(filterQuotaReachedItems(items)))
       setItemsHeading(null)
       return
     }
@@ -437,14 +448,14 @@ export default function Column(props) {
       })
     }
 
-    setFilteredItems(sortItems(matchingItems))
+    setFilteredItems(sortItems(filterQuotaReachedItems(matchingItems)))
     setItemsHeading('Search Results')
-  }, [items, search, columnSort])
+  }, [items, search, columnSort, hideQuotaReached])
 
   useEffect(() => {
     setNumItemsToRender(100)
     colBodyEl.current.scrollTop = 0
-  }, [search, columnSort])
+  }, [search, columnSort, hideQuotaReached])
 
   useEffect(() => {
     if (props.loading) return
@@ -789,14 +800,27 @@ export default function Column(props) {
               {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
               <label>Order By:</label>
               <select className="form-control input-sm" onChange={e => setColumnSort(e.target.value)}>
-                {
-                  sortOptions.map(p => (
-                    <option key={p.key} value={p.value}>
-                      {p.text}
-                    </option>
-                  ))
-                }
+                {sortOptions.map(p => (
+                  <option key={p.key} value={p.value}>
+                    {p.text}
+                  </option>
+                ))}
               </select>
+            </div>
+          )}
+          {parentId && showHideQuotaReachedCheckbox && (
+            <div className="checkbox">
+              <label>
+                <input type="checkbox" checked={hideQuotaReached} onChange={(e) => { setHideQuotaReached(e.target.checked) }} />
+                {' '}
+                Only show
+                {' '}
+                {prettyId(traverseInvitation[type].query.group, true).toLowerCase()}
+                {' '}
+                with fewer than max
+                {' '}
+                {pluralizeString(traverseInvitation.name, true).toLowerCase()}
+              </label>
             </div>
           )}
         </form>
