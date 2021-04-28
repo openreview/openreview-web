@@ -13,6 +13,7 @@ import {
   prettyId, prettyInvitationId, pluralizeString,
 } from '../../lib/utils'
 import EditEdgeInviteEmail from './EditEdgeInviteEmail'
+import { transformName } from '../../lib/edge-utils'
 
 export default function Column(props) {
   const {
@@ -39,14 +40,14 @@ export default function Column(props) {
   const otherType = type === 'head' ? 'tail' : 'head'
   const colBodyEl = useRef(null)
 
-  const sortOptions = [{ key: traverseInvitation.id, value: 'default', text: prettyInvitationId(traverseInvitation.id) }]
+  const sortOptions = [{ key: traverseInvitation.id, value: 'default', text: transformName(prettyInvitationId(traverseInvitation.id)) }]
   const editAndBrowserInvitations = [...editInvitations, ...browseInvitations]
   editAndBrowserInvitations.forEach((p) => {
     if (!sortOptions.map(q => q.key).includes(p.id)) {
       sortOptions.push({
         key: p.id,
         value: p.id,
-        text: prettyInvitationId(p.id),
+        text: transformName(prettyInvitationId(p.id)),
       })
     }
   })
@@ -69,7 +70,7 @@ export default function Column(props) {
   const formatEdge = edge => ({
     id: edge.id,
     invitation: edge.invitation,
-    name: edge.invitation.split('/').pop().replace(/_/g, ' '),
+    name: transformName(edge.invitation.split('/').pop().replace(/_/g, ' ')),
     head: edge.head,
     tail: edge.tail,
     label: edge.label,
@@ -91,7 +92,7 @@ export default function Column(props) {
 
     return {
       invitation: editInvitation.id,
-      name: editInvitation.id.split('/').pop().replace(/_/g, ' '),
+      name: transformName(editInvitation.id.split('/').pop().replace(/_/g, ' '), true),
       [type]: entityId,
       [otherType]: parentId,
       label: isInviteInvitation ? editInvitation.label?.default : editInvitation.query.label,
@@ -155,12 +156,10 @@ export default function Column(props) {
     }
 
     const invitationName = startInvitation ? startInvitation.name : traverseInvitation.name
-    let invitationNamePlural = pluralizeString(invitationName)
-    if (invitationName === 'Paper Assignment') {
-      invitationNamePlural = 'Assignments'
-    } else if (invitationName === 'staticList') {
-      invitationNamePlural = 'Items'
-    }
+    const transformedInvitationName = transformName(invitationName, false, true)
+    const invitationNamePlural = invitationName === transformedInvitationName
+      ? pluralizeString(invitationName) // not a special name
+      : transformedInvitationName // special name
 
     // Notes
     if (parent && parent.forum && parent.content) {
