@@ -63,36 +63,34 @@ export default function EditEdgeToggle({
 
   if (!existingEdge && !canAddEdge) return null
 
-  return (() => {
-    if (existingEdge) {
-      return (
-        <div className="edit-controls d-flex mt-1">
-          <label className="edit-edge-toggle-description" onMouseEnter={e => handleLabelHover(e.target)}>{getExistingEdgeLabel()}</label>
-          <button
-            type="button"
-            className={`btn btn-xs btn-default ml-1 edit-edge-toggle-btn ${(shouldDisableControl || loading) ? 'disable' : ''}`}
-            title={shouldDisableControl ? disableControlReason : getExistingEdgeLabel()}
-            onClick={addOrRemoveEdge}
-            autoComplete="off"
-          >
-            <Icon name="trash" extraClasses={shouldDisableControl || loading ? 'span-disabled' : null} />
-          </button>
-        </div>
-      )
-    }
-
+  if (existingEdge) {
     return (
       <div className="edit-controls d-flex mt-1">
-        {getNewEdgeLabel() && <label className="edit-edge-toggle-description">{getNewEdgeLabel()}</label>}
+        <label className="edit-edge-toggle-description" onMouseEnter={e => handleLabelHover(e.target)}>{getExistingEdgeLabel()}</label>
         <button
           type="button"
-          className={`btn btn-xs btn-default edit-edge-toggle-btn ${(shouldDisableControl || loading) ? 'disable' : ''}`}
-          title={shouldDisableControl ? disableControlReason : undefined}
+          className={`btn btn-xs btn-default ml-1 edit-edge-toggle-btn ${(shouldDisableControl || loading) ? 'disable' : ''}`}
+          title={shouldDisableControl ? disableControlReason : getExistingEdgeLabel()}
           onClick={addOrRemoveEdge}
+          autoComplete="off"
         >
-          {getNewEdgeButtonText()}
+          <Icon name="trash" extraClasses={shouldDisableControl || loading ? 'span-disabled' : null} />
         </button>
       </div>
     )
-  })()
+  }
+
+  return (
+    <div className="edit-controls d-flex mt-1">
+      {getNewEdgeLabel() && <label className="edit-edge-toggle-description">{getNewEdgeLabel()}</label>}
+      <button
+        type="button"
+        className={`btn btn-xs btn-default edit-edge-toggle-btn ${(shouldDisableControl || loading) ? 'disable' : ''}`}
+        title={shouldDisableControl ? disableControlReason : undefined}
+        onClick={addOrRemoveEdge}
+      >
+        {getNewEdgeButtonText()}
+      </button>
+    </div>
+  )
 }
