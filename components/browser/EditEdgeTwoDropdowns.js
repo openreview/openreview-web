@@ -42,7 +42,7 @@ export default function EditEdgeTwoDropdowns(props) {
 
   if (!props.existingEdge && !props.canAddEdge) return null
   return (
-    <div className="edit-controls full-width d-flex">
+    <div className="edit-controls full-width d-flex mt-1">
       <div className="d-flex">
         <label onMouseEnter={e => handleHover(e.target)}>
           {props.editInvitation.name}
