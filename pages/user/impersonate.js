@@ -4,7 +4,6 @@ import { useContext, useState } from 'react'
 import Head from 'next/head'
 import Icon from '../../components/Icon'
 import ErrorAlert from '../../components/ErrorAlert'
-import withAdminAuth from '../../components/withAdminAuth'
 import api from '../../lib/api-client'
 import UserContext from '../../components/UserContext'
 
@@ -13,9 +12,9 @@ const Impersonate = ({ accessToken }) => {
   const [error, setError] = useState(null)
   const { loginUser } = useContext(UserContext)
 
-  const impersonateByEmail = async (email) => {
+  const impersonate = async (groupId) => {
     try {
-      const { user, token } = await api.get('/impersonate', { groupId: email }, { accessToken })
+      const { user, token } = await api.get('/impersonate', { groupId }, { accessToken })
       loginUser(user, token, '/profile')
     } catch (apiError) {
       setError(apiError)
@@ -26,25 +25,10 @@ const Impersonate = ({ accessToken }) => {
     e.preventDefault()
     setError(null)
 
-    let email
-    if (userId.startsWith('~')) {
-      try {
-        const { profiles } = await api.get('/profiles', { id: userId }, { accessToken })
-        email = profiles[0]?.content?.emails[0]
-        if (!email) {
-          setError({ message: `Email not found for username ${userId}` })
-        }
-      } catch (apiError) {
-        setError(apiError)
-      }
-    } else if (userId.includes('@')) {
-      email = userId
+    if (userId.startsWith('~') || userId.includes('@')) {
+      impersonate(userId)
     } else {
       setError({ message: 'Please enter a valid username or email' })
-    }
-
-    if (email) {
-      impersonateByEmail(email)
     }
   }
 
@@ -87,4 +71,4 @@ const Impersonate = ({ accessToken }) => {
   )
 }
 
-export default withAdminAuth(Impersonate)
+export default Impersonate
