@@ -530,6 +530,150 @@ module.exports = (function() {
     return $container.fadeIn().promise();
   };
 
+  // search filtering related functions
+  // extract invidividual filter string and relation(AND,OR) from search filter string
+  const stringToOperands = (filterString, filterOperators) => {
+    const operands = [];
+    const operators = [];
+    const filterStringArray = filterString.split(" ");
+    let middleOfOperand = false;
+    let currentOperand = null;
+    for (let i = 0; i < filterStringArray.length; i++) {
+      let element = filterStringArray[i];
+      if (["AND", "OR"].includes(element)) {
+        if (!middleOfOperand) { // operand finished
+          operators.push(element)
+          if (currentOperand) operands.push(currentOperand)
+          currentOperand = null
+        } else {
+          currentOperand = `${currentOperand}${element} `
+        }
+        continue
+      }
+      if (!middleOfOperand) {
+        if ((element.split('"').length - 1) % 2 === 1) { // multi part operand
+          currentOperand = `${element} `
+          middleOfOperand = true
+          continue
+        } else {
+          currentOperand = `${element} `
+        }
+      }
+      if (middleOfOperand) {
+        if ((element.split('"').length - 1) % 2 === 1) { // end of multi part operand
+          currentOperand = `${currentOperand}${element}`
+          middleOfOperand = false
+          operands.push(currentOperand)
+          currentOperand = null
+        } else {
+          currentOperand = `${currentOperand}${element} `
+        }
+      }
+      if (filterStringArray.length - i === 1) operands.push(currentOperand)
+    }
+    if (!operands.every(p => filterOperators.some(q => p.includes(q)))) {
+      console.log(`search query ${filterString} can't be parsed.`)
+      return {
+        operands:[],
+        operators:[]
+      }
+    }
+    return {
+      operands,
+      operators
+    }
+  }
+
+  // extract property to search, the expected value and how the value should be compared
+  // like =,>,< from string of filtering criteria
+  const operandToPropertyValue = (operandPram, filterOperators) => {
+    const operand = operandPram.trim()
+    const filterOperator = filterOperators.find(p => operand.includes(p))
+    const [property, value] = operand.split(filterOperator)
+    return {
+      property, value: value.replaceAll('"', ''), filterOperator
+    }
+  }
+
+  const evaluateOperator = (operator, propertyValue, targetValue) => {
+    if (!propertyValue || !targetValue) return false
+    if(!(typeof(propertyValue)==='number' && typeof(targetValue)==='number')){
+      propertyValue=propertyValue.toString().toLowerCase()
+      targetValue=targetValue.toString().toLowerCase()
+    }
+    switch (operator) {
+      case '=': return propertyValue === targetValue
+      case '>': return propertyValue > targetValue
+      case '<': return propertyValue < targetValue
+      case '>=': return propertyValue >= targetValue
+      case '<=': return propertyValue <= targetValue
+      case '!=': return propertyValue !==targetValue
+      default:
+        return true
+    }
+  }
+
+  // filter a collection by 1 filter criteria
+  const filterOneOperand = (collections, operand, filterOperators, propertiesAllowed) => {
+    if (!operand || operand.trim().length === 0) return null
+    const { property, value, filterOperator } = operandToPropertyValue(operand, filterOperators)
+    if (!propertiesAllowed[property]) return collections
+    const propertyPath = propertiesAllowed[property].length === 0
+      ? [property] // not a nested property
+      : propertiesAllowed[property].map(p => p.split('.')) // has dot or match multiple properties
+
+    const convertedValue = Number(value) || value
+    return collections.filter(p => {
+      if (propertyPath.length === 1) {
+        return evaluateOperator(filterOperator, propertyPath[0].reduce((r, s) => r?.[s], p), convertedValue)
+      }
+      return propertyPath.map(q => q.reduce((r, s) => r?.[s], p))
+        .some(t => evaluateOperator(filterOperator, t, convertedValue))
+    })
+  }
+
+  // combind two collections by operator AND(intersection) or OR(unique union)
+  const combineResults = (collection1, collection2, operator, uniqueIdentifier) => {
+    if (!collection1) {
+      if (!collection2) {
+        return []
+      }
+      return collection2
+    }
+    if (!collection2) return collection1
+    const propertyPath = uniqueIdentifier.includes('.') ? uniqueIdentifier.split('.') : [uniqueIdentifier]
+    switch (operator) {
+      case 'OR':
+        return [...new Set([...collection1, ...collection2])]
+      case 'AND':
+        const collection2UniqueIdentifiers = collection2.map(p => propertyPath.reduce((r, s) => r?.[s], p))
+        return collection1.filter(p => collection2UniqueIdentifiers.includes(propertyPath.reduce((r, s) => r?.[s], p)))
+      default:
+        return []
+    }
+  }
+
+  const filterCollections = (collections, filterString, filterOperators, propertiesAllowed, uniqueIdentifier) => {
+    const { operands, operators } = stringToOperands(filterString, filterOperators)
+    if (operands.length !== operators.length + 1) {
+      console.log('something wrong with operands or operators')
+      console.log({
+        operands, operators
+      })
+      return collections
+    }
+    let filterResult = []
+    for (let i = 0; i < (operators.length === 0 ? 1 : operators.length); i++) {
+      const operand1 = operands[i]
+      const operand2 = operands[i + 1]
+      const operator = operators[i]
+      operand1FilterResult = i === 0 ? filterOneOperand(collections, operand1, filterOperators, propertiesAllowed) : filterResult
+      operand2FilterResult = filterOneOperand(collections, operand2, filterOperators, propertiesAllowed)
+      filterResult = combineResults(operand1FilterResult, operand2FilterResult, operator, uniqueIdentifier)
+    }
+    return filterResult
+  }
+
   // Deprecated
   var invitationForm = function(invitationData, user, options) {
     var defaults = {
@@ -3008,6 +3152,7 @@ module.exports = (function() {
     setupAutoLoading: setupAutoLoading,
     disableAutoLoading: disableAutoLoading,
     editModeBanner: editModeBanner,
+    filterCollections: filterCollections,
 
     api: {
       getSubmissionInvitation: getSubmissionInvitation,
