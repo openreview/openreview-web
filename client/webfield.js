@@ -598,7 +598,7 @@ module.exports = (function() {
   const evaluateOperator = (operator, propertyValue, targetValue) => {
     // propertyValue can be number/array/string/obj
     if (!propertyValue || !targetValue) return false
-    if (typeof(propertyValue)==='object'){ // reviewers are objects
+    if (typeof(propertyValue)==='object' && !Array.isArray(propertyValue)){ // reviewers are objects
       propertyValue = Object.values(propertyValue).map(p=>p.name.toString().toLowerCase())
       targetValue = targetValue.toString().toLowerCase()
     }
@@ -661,6 +661,7 @@ module.exports = (function() {
   }
 
   const filterCollections = (collections, filterString, filterOperators, propertiesAllowed, uniqueIdentifier) => {
+    console.log(collections[0])
     const { operands, operators } = stringToOperands(filterString, filterOperators)
     if (operands.length !== operators.length + 1) {
       console.log('something wrong with operands or operators')
