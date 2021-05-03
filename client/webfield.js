@@ -569,7 +569,7 @@ module.exports = (function() {
           currentOperand = `${currentOperand}${element} `
         }
       }
-      if (filterStringArray.length - i === 1) operands.push(currentOperand)
+      if (filterStringArray.length - i === 1 && currentOperand) operands.push(currentOperand)
     }
     if (!operands.every(p => filterOperators.some(q => p.includes(q)))) {
       console.log(`search query ${filterString} can't be parsed.`)
@@ -596,18 +596,25 @@ module.exports = (function() {
   }
 
   const evaluateOperator = (operator, propertyValue, targetValue) => {
+    // propertyValue can be number/array/string/obj
     if (!propertyValue || !targetValue) return false
-    if(!(typeof(propertyValue)==='number' && typeof(targetValue)==='number')){
-      propertyValue=propertyValue.toString().toLowerCase()
-      targetValue=targetValue.toString().toLowerCase()
+    if (typeof(propertyValue)==='object'){ // reviewers are objects
+      propertyValue = Object.values(propertyValue).map(p=>p.name.toString().toLowerCase())
+      targetValue = targetValue.toString().toLowerCase()
+    }
+    if (!(typeof (propertyValue) === 'number' && typeof (targetValue) === 'number') && !Array.isArray(propertyValue)) {
+      propertyValue = propertyValue.toString().toLowerCase()
+      targetValue = targetValue.toString().toLowerCase()
     }
     switch (operator) {
-      case '=': return propertyValue === targetValue
+      case '=':
+        if (Array.isArray(propertyValue)) return propertyValue.includes(targetValue)
+        return propertyValue === targetValue
       case '>': return propertyValue > targetValue
       case '<': return propertyValue < targetValue
       case '>=': return propertyValue >= targetValue
       case '<=': return propertyValue <= targetValue
-      case '!=': return propertyValue !==targetValue
+      case '!=': return propertyValue !== targetValue
       default:
         return true
     }
