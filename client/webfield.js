@@ -667,7 +667,7 @@ module.exports = (function() {
       console.log({
         operands, operators
       })
-      return collections
+      return { filteredRows: collections, queryIsInvalid: true }
     }
     let filterResult = []
     for (let i = 0; i < (operators.length === 0 ? 1 : operators.length); i++) {
@@ -678,7 +678,7 @@ module.exports = (function() {
       operand2FilterResult = filterOneOperand(collections, operand2, filterOperators, propertiesAllowed)
       filterResult = combineResults(operand1FilterResult, operand2FilterResult, operator, uniqueIdentifier)
     }
-    return filterResult
+    return { filteredRows:filterResult }
   }
 
   // Deprecated
