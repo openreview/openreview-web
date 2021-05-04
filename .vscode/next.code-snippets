@@ -31,13 +31,12 @@
     "scope": "javascript,typescript",
     "prefix": "orcomp",
     "body": [
-      "function ${1:${TM_FILENAME_BASE}}(props) {$2",
+      "export default function ${1:${TM_FILENAME_BASE}}(props) {$2",
       "\treturn (",
       "\t\t<div>\n",
       "\t\t</div>",
       "\t)",
       "}\n",
-      "export default ${1:${TM_FILENAME_BASE}}\n",
     ],
     "description": "Creates a stateless page component as a named function without PropTypes"
   },

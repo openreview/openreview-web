@@ -10,14 +10,47 @@ import LoadingSpinner from './LoadingSpinner'
 import UserContext from './UserContext'
 
 export default function NoteEditorForm({
-  invitation, forumId, replyToId, onNoteCreated, onNoteCancelled, onLoad, onValidate, onError,
+  invitation, note, forumId, replyToId,
+  onNoteCreated, onNoteCancelled, onLoad, onValidate, onError,
 }) {
   const [loading, setLoading] = useState(true)
   const containerRef = useRef(null)
   const { user } = useContext(UserContext)
 
+  const handleEditor = ($editor) => {
+    setLoading(false)
+
+    if (!$editor && typeof onError === 'function') {
+      onError()
+      return
+    }
+
+    $(containerRef.current).append($editor)
+
+    if (typeof onLoad === 'function') {
+      onLoad()
+    }
+  }
+
+  const handleError = (errors) => {
+    setLoading(false)
+
+    const err = errors?.[0]
+    if (err === 'You do not have permission to create a note' || !user) {
+      promptLogin(user)
+    } else if (err) {
+      promptError(err)
+    } else {
+      promptError('An unknown error occurred. Please refresh the page and try again.')
+    }
+
+    if (typeof onError === 'function') {
+      onError()
+    }
+  }
+
   useEffect(() => {
-    if (!invitation || !forumId || typeof view === 'undefined') return
+    if (!invitation || (!note && !forumId) || typeof view === 'undefined') return
 
     if (!user) {
       promptLogin()
@@ -25,39 +58,24 @@ export default function NoteEditorForm({
 
     setLoading(true)
 
-    view.mkNewNoteEditor(invitation, forumId, replyToId, user, {
-      onNoteCreated,
-      onNoteCancelled,
-      onValidate,
-      onCompleted: ($editor) => {
-        setLoading(false)
-        $(containerRef.current).append($editor)
-
-        if (typeof onLoad === 'function') {
-          onLoad()
-        }
-      },
-      onError: (errors) => {
-        setLoading(false)
-
-        const err = errors?.[0]
-        if (!err) {
-          promptError('An unknown error occurred. Please refresh the page and try again.')
-          return
-        }
-
-        if (!user || err === 'You do not have permission to create a note') {
-          promptLogin(user)
-        } else {
-          promptError(err)
-        }
-
-        if (typeof onError === 'function') {
-          onError()
-        }
-      },
-    })
-  }, [invitation, forumId, replyToId, user, containerRef])
+    if (note) {
+      view.mkNoteEditor(note, invitation, user, {
+        onNoteCreated,
+        onNoteCancelled,
+        onValidate,
+        onCompleted: handleEditor,
+        onError: handleError,
+      })
+    } else {
+      view.mkNewNoteEditor(invitation, forumId, replyToId, user, {
+        onNoteCreated,
+        onNoteCancelled,
+        onValidate,
+        onCompleted: handleEditor,
+        onError: handleError,
+      })
+    }
+  }, [invitation, forumId, replyToId, containerRef])
 
   if (!invitation || !user) return null
 

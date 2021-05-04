@@ -4,117 +4,29 @@
 
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
-import Link from 'next/link'
 import Router, { useRouter } from 'next/router'
 import truncate from 'lodash/truncate'
-import LoadingSpinner from '../components/LoadingSpinner'
-import ForumReply from '../components/ForumReply'
-import NoteAuthors from '../components/NoteAuthors'
-import Icon from '../components/Icon'
-import NoteContent from '../components/NoteContent'
+import has from 'lodash/has'
+import isEmpty from 'lodash/isEmpty'
+import union from 'lodash/union'
+import ForumNote from '../components/forum/ForumNote'
 import NoteEditorForm from '../components/NoteEditorForm'
-import withError from '../components/withError'
 import FilterForm from '../components/forum/FilterForm'
+import FilterTabs from '../components/forum/FilterTabs'
+import ForumReply from '../components/ForumReply'
+import LoadingSpinner from '../components/LoadingSpinner'
 import ForumReplyContext from '../components/ForumReplyContext'
+import withError from '../components/withError'
 import useUser from '../hooks/useUser'
 import useQuery from '../hooks/useQuery'
 import api from '../lib/api-client'
 import { auth } from '../lib/auth'
-import {
-  prettyId, prettyInvitationId, forumDate, getConferenceName,
-} from '../lib/utils'
+import { prettyInvitationId, getConferenceName } from '../lib/utils'
 import { formatNote, parseFilterQuery, replaceFilterWildcards } from '../lib/forum-utils'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 // Page Styles
 import '../styles/pages/forum-new.less'
-
-const ForumTitle = ({
-  id, title, pdf, html,
-}) => (
-  <div className="title_pdf_row">
-    <h2 className="note_content_title citation_title">
-      {title}
-
-      {pdf && (
-        // eslint-disable-next-line react/jsx-no-target-blank
-        <a className="note_content_pdf citation_pdf_url" href={`/pdf?id=${id}`} title="Download PDF" target="_blank">
-          <img src="/images/pdf_icon_blue.svg" alt="Download PDF" />
-        </a>
-      )}
-      {html && (
-        <a className="note_content_pdf html-link" href={html} title="Open Website" target="_blank" rel="noopener noreferrer">
-          <img src="/images/html_icon_blue.svg" alt="Open Website" />
-        </a>
-      )}
-    </h2>
-  </div>
-)
-
-const ForumAuthors = ({
-  authors, authorIds, signatures, original,
-}) => (
-  <div className="meta_row">
-
-    <h3 className="signatures author">
-      <NoteAuthors
-        authors={authors}
-        authorIds={authorIds}
-        signatures={signatures}
-        original={original}
-      />
-    </h3>
-  </div>
-)
-
-const ForumMeta = ({ note }) => (
-  <div className="meta_row">
-    <span className="date item">
-      <Icon name="calendar" />
-      {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year)}
-    </span>
-
-    <span className="item">
-      <Icon name="folder-open" />
-      {note.content.venue || prettyId(note.invitation)}
-    </span>
-
-    {note.readers && (
-      <span className="item readers" data-toggle="tooltip" data-placement="top" title={`Visible to ${note.readers.join(', ')}`}>
-        <Icon name="eye-open" />
-        {note.readers.map(reader => prettyId(reader, true)).join(', ')}
-      </span>
-    )}
-
-    {/* eslint-disable-next-line no-underscore-dangle */}
-    {note.content._bibtex && (
-      <span className="item">
-        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-        <a
-          href="#"
-          data-target="#bibtex-modal"
-          data-toggle="modal"
-          // eslint-disable-next-line no-underscore-dangle
-          data-bibtex={encodeURIComponent(note.content._bibtex)}
-        >
-          Show Bibtex
-        </a>
-      </span>
-    )}
-
-    {note.details.revisions && (
-      <span className="item">
-        <Link href={`/revisions?id=${note.id}`}>
-          <a>Show Revisions</a>
-        </Link>
-      </span>
-    )}
-  </div>
-)
-
-const ForumReplyCount = () => (
-  <div className="reply-container" />
-)
 
 const Forum = ({ forumNote, appContext }) => {
   const { userLoading, accessToken } = useUser()
@@ -128,7 +40,7 @@ const Forum = ({ forumNote, appContext }) => {
   const [selectedFilters, setSelectedFilters] = useState({
     invitations: null, signatures: null, keywords: null, readers: null, excludedReaders: null,
   })
-  const [commonInvitations, setCommonInvitations] = useState(null)
+  const [forumInvitations, setForumInvitations] = useState(null)
   const [activeInvitation, setActiveInvitation] = useState(null)
   const router = useRouter()
   const query = useQuery()
@@ -136,6 +48,7 @@ const Forum = ({ forumNote, appContext }) => {
   const { setBannerContent, clientJsLoading } = appContext
   const { id, content, details } = forumNote
   const { replyForumViews } = details.invitation
+  const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
 
   const truncatedTitle = truncate(content.title, { length: 70, separator: /,? +/ })
   const truncatedAbstract = truncate(content['TL;DR'] || content.abstract, { length: 200, separator: /,? +/ })
@@ -151,15 +64,52 @@ const Forum = ({ forumNote, appContext }) => {
     ? Object.values(displayOptionsMap).reduce((count, opt) => count + ((opt.hidden || opt.collapsed) ? 1 : 0), 0)
     : 0
 
-  const loadReplies = async () => {
-    const { notes } = await api.get('/notes', {
-      forum: id, details: 'writable,revisions,original,overwriting,invitation,tags',
-    }, { accessToken })
+  // API helper functions
+  const getInvitationsByReplyForum = (forumId, includeTags) => {
+    if (!forumId) return Promise.resolve([])
 
-    if (!notes || notes.length === 0) {
-      setReplyNoteMap({})
-      return
-    }
+    const extraParams = includeTags ? { tags: true } : { details: 'repliedNotes' }
+    return api.get('/invitations', { replyForum: forumId, ...extraParams }, { accessToken })
+      .then(({ invitations }) => (invitations?.length > 0 ? invitations : []))
+  }
+
+  const getNotesByForumId = (forumId) => {
+    if (!forumId) return Promise.resolve([])
+
+    return api.get('/notes', {
+      forum: forumId,
+      details: 'writable,revisions,original,overwriting,invitation,tags',
+    }, { accessToken })
+      .then(({ notes }) => (notes?.length > 0 ? notes : []))
+  }
+
+  const loadNotesAndInvitations = async () => {
+    const [notes, invitations, originalInvitations, tagInvitations] = await Promise.all([
+      getNotesByForumId(id),
+      getInvitationsByReplyForum(id),
+      getInvitationsByReplyForum(details.original?.id),
+      getInvitationsByReplyForum(id, true),
+    ])
+
+    const commonInvitations = invitations.filter((invitation) => {
+      const invReply = invitation.reply
+      return !invReply.replyto && !invReply.referent && !invReply.referentInvitation && !invReply.invitation
+    })
+    const referenceInvitations = invitations.filter((invitation) => {
+      // Check if invitation is replying to this note
+      const isInvitationRelated = invitation.reply.referent === id
+        || invitation.reply.referentInvitation === forumNote.invitation
+      // Check if invitation does not have multiReply OR invitation has the
+      // field multiReply but it is not false OR invitation has the field multireply
+      // which is set to false but there have not been any replies yet
+      const isMultireplyApplicable = invitation.multiReply === undefined
+        || invitation.multiReply !== false
+        || isEmpty(invitation.details?.repliedNotes)
+      return isInvitationRelated && isMultireplyApplicable
+    })
+    setForumInvitations({
+      commonInvitations, referenceInvitations, originalInvitations, tagInvitations,
+    })
 
     const replyMap = {}
     const displayOptions = {}
@@ -172,7 +122,41 @@ const Forum = ({ forumNote, appContext }) => {
       // Don't include forum note
       if (note.id === note.forum) return
 
-      replyMap[note.id] = formatNote(note)
+      const noteInvitations = invitations.filter((invitation) => {
+        // Check if invitation is replying to this note
+        const isInvitationRelated = invitation.reply.replyto === note.id
+          || invitation.reply.invitation === note.invitation
+        // Check if invitation does not have multiReply OR invitation has the field
+        // multiReply but it is not set to false OR invitation has the field multireply
+        // which is set to false but there have not been any replies yet
+        const isMultireplyApplicable = !has(invitation, 'multiReply')
+          || (invitation.multiReply !== false)
+          || !has(invitation, 'details.repliedNotes[0]')
+        return isInvitationRelated && isMultireplyApplicable
+      })
+
+      const refInvitations = invitations.filter((invitation) => {
+        // Check if invitation is replying to this note
+        const isInvitationRelated = invitation.reply.referent === note.id
+          || invitation.reply.referentInvitation === note.invitation
+        // Check if invitation does not have multiReply OR invitation has the field
+        // multiReply but it is not set to false OR invitation has the field multireply
+        // which is set to false but there have not been any replies yet
+        const isMultireplyApplicable = !has(invitation, 'multiReply')
+          || (invitation.multiReply !== false)
+          || !has(invitation, 'details.repliedNotes[0]')
+        return isInvitationRelated && isMultireplyApplicable
+      })
+
+      const noteCommonInvitations = commonInvitations.filter(invitation => (
+        has(invitation.reply, 'invitation')
+          ? invitation.reply.invitation === note.invitation
+          : note.id === invitation.reply.forum
+      ))
+
+      const replyInvitations = union(noteCommonInvitations, noteInvitations)
+
+      replyMap[note.id] = formatNote(note, null, replyInvitations, refInvitations)
       displayOptions[note.id] = { collapsed: false, contentExpanded: false, hidden: false }
 
       const parentId = note.replyto || id
@@ -197,22 +181,7 @@ const Forum = ({ forumNote, appContext }) => {
     })
   }
 
-  const loadInvitations = async () => {
-    const { invitations } = await api.get('/invitations', {
-      replyForum: id, details: 'repliedNotes',
-    }, { accessToken })
-
-    if (invitations?.length > 0) {
-      const sharedInvitations = invitations.filter((invitation) => {
-        const invReply = invitation.reply
-        return !invReply.replyto && !invReply.referent && !invReply.referentInvitation && !invReply.invitation
-      })
-      setCommonInvitations(sharedInvitations)
-    } else {
-      setCommonInvitations([])
-    }
-  }
-
+  // Display helper functions
   const setCollapseLevel = (level) => {
     const newDisplayOptions = {}
     Object.keys(displayOptionsMap).forEach((noteId) => {
@@ -253,6 +222,43 @@ const Forum = ({ forumNote, appContext }) => {
         hidden: newContentExpanded,
       },
     })
+  }
+
+  const scrollToElement = (selector) => {
+    const el = document.getElementById(selector)
+    if (!el) return
+
+    const navBarHeight = 63
+    const y = el.getBoundingClientRect().top + window.pageYOffset - navBarHeight
+
+    // TODO: provide alternate scroll for IE11
+    window.scrollTo({ top: y, behavior: 'smooth' })
+  }
+
+  const openNoteEditor = (invitation) => {
+    if (activeInvitation && activeInvitation.id !== invitation.id) {
+      promptError(
+        'There is currently another editor pane open on the page. Please submit your changes or click Cancel before continuing',
+        { scrollToTop: false },
+      )
+    } else {
+      setActiveInvitation(activeInvitation ? null : invitation)
+    }
+  }
+
+  const addTopLevelReply = (note) => {
+    setActiveInvitation(null)
+    setReplyNoteMap({ ...replyNoteMap, [note.id]: formatNote(note, activeInvitation) })
+    setDisplayOptionsMap({
+      ...displayOptionsMap,
+      [note.id]: { collapsed: false, contentExpanded: false, hidden: false },
+    })
+    setParentMap({
+      ...parentMap,
+      [id]: [...parentMap[id], note.id],
+    })
+
+    scrollToElement('#forum-replies')
   }
 
   // Set banner link
@@ -304,11 +310,10 @@ const Forum = ({ forumNote, appContext }) => {
 
   // Load forum replies
   useEffect(() => {
-    if (userLoading) return
+    if (userLoading || clientJsLoading) return
 
-    loadReplies()
-    loadInvitations()
-  }, [userLoading, accessToken])
+    loadNotesAndInvitations()
+  }, [userLoading])
 
   // Update forum layout
   useEffect(() => {
@@ -400,6 +405,7 @@ const Forum = ({ forumNote, appContext }) => {
     }, 200)
   }, [replyNoteMap, orderedReplies, selectedFilters])
 
+  // Update sort order
   useEffect(() => {
     if (!replyNoteMap || !orderedReplies || !sort) return
 
@@ -470,91 +476,17 @@ const Forum = ({ forumNote, appContext }) => {
         )}
       </Head>
 
-      <div className="note">
-        <ForumTitle
-          id={id}
-          title={content.title}
-          pdf={content.pdf}
-          html={content.html || content.ee}
-        />
+      <ForumNote
+        note={forumNote}
+        referenceInvitations={forumInvitations?.referenceInvitations}
+        originalInvitations={forumInvitations?.originalInvitations}
+        tagInvitations={forumInvitations?.tagInvitations}
+      />
 
-        <ForumAuthors
-          authors={content.authors}
-          authorIds={content.authorids}
-          signatures={forumNote.signatures}
-          original={details.original}
-        />
-
-        <ForumMeta note={forumNote} />
-
-        <NoteContent
-          id={id}
-          content={content}
-          invitation={details.originalInvitation || details.invitation}
-        />
-
-        <ForumReplyCount />
-      </div>
-
-      <div className="reply-actions">
-        <div className="reply-actions-buttons clearfix">
-          {commonInvitations && commonInvitations.map(invitation => (
-            <button
-              key={invitation.id}
-              type="button"
-              className="btn btn-xs"
-              onClick={() => {
-                if (activeInvitation && activeInvitation.id !== invitation.id) {
-                  promptError(
-                    'You currently have another editor pane open on this page. Please submit your changes or click Cancel before continuing',
-                    { scrollToTop: false },
-                  )
-                } else {
-                  setActiveInvitation(activeInvitation ? null : invitation)
-                }
-              }}
-            >
-              {prettyInvitationId(invitation.id)}
-            </button>
-          ))}
-        </div>
-
-        <NoteEditorForm
-          forumId={id}
-          invitation={activeInvitation}
-          onNoteCreated={(note) => {
-            setActiveInvitation(null)
-            setReplyNoteMap({ ...replyNoteMap, [note.id]: formatNote(note, activeInvitation) })
-            setDisplayOptionsMap({
-              ...displayOptionsMap,
-              [note.id]: { collapsed: false, contentExpanded: false, hidden: false },
-            })
-            setParentMap({
-              ...parentMap,
-              [id]: [...parentMap[id], note.id],
-            })
-            // TODO: figure out better scroll method
-            document.getElementById('note-children').scrollIntoView({ behavior: 'smooth' })
-          }}
-          onNoteCancelled={() => { setActiveInvitation(null) }}
-          onError={() => { setActiveInvitation(null) }}
-        />
-      </div>
-
-      {(!replyForumViews || !replyNoteMap) && (
-        <hr />
-      )}
-
-      <div className="row">
-        <div className="col-xs-12">
-          {replyForumViews && replyNoteMap && (
-            <ul className="nav nav-tabs filter-tabs">
-              {replyForumViews.map(view => (
-                <li key={view.id} role="presentation" className={window.location.hash.slice(1) === view.id ? 'active' : ''}>
-                  <Link href={`?id=${id}#${view.id}`} shallow><a>{view.label}</a></Link>
-                </li>
-              ))}
-            </ul>
+      {repliesLoaded && (
+        <div className="filters-container mt-3">
+          {replyForumViews && (
+            <FilterTabs forumViews={replyForumViews} />
           )}
 
           {filterOptions && (
@@ -573,78 +505,63 @@ const Forum = ({ forumNote, appContext }) => {
             />
           )}
         </div>
-      </div>
+      )}
 
-      <div className="row">
-        <ForumReplyContext.Provider
-          value={{
-            forumId: id, displayOptionsMap, setCollapsed, setHidden, setContentExpanded,
-          }}
-        >
-          <div id="note-children" className="col-md-9">
-            {(replyNoteMap && displayOptionsMap && orderedReplies) ? orderedReplies.map(reply => (
-              <ForumReply
-                key={reply.id}
-                note={replyNoteMap[reply.id]}
-                replies={reply.replies.map(childId => replyNoteMap[childId])}
-              />
-            )) : (
-              <LoadingSpinner inline />
-            )}
+      {forumInvitations && (
+        <div className="invitations-container mt-3">
+          <div className="invitation-buttons">
+            <span className="hint">Add:</span>
+            {forumInvitations.commonInvitations.map(invitation => (
+              <button
+                key={invitation.id}
+                type="button"
+                className={`btn btn-xs ${activeInvitation?.id === invitation.id ? 'active' : ''}`}
+                onClick={() => openNoteEditor(invitation)}
+              >
+                {prettyInvitationId(invitation.id)}
+              </button>
+            ))}
           </div>
 
-          <div className="col-md-3">
-            {/*
-            <aside className="filters">
-              <form className="form-horizontal">
-                <div className="form-group">
-                  <label htmlFor="keyword-input" className="col-sm-3 control-label">Sort:</label>
-                  <div className="col-sm-9">
-                    <select className="form-control">
-                      <option>Most Recent</option>
-                      <option>Most Tagged</option>
-                    </select>
-                  </div>
-                </div>
+          <NoteEditorForm
+            forumId={id}
+            invitation={activeInvitation}
+            onNoteCreated={addTopLevelReply}
+            onNoteCancelled={() => { setActiveInvitation(null) }}
+            onError={() => { setActiveInvitation(null) }}
+          />
 
-                <div className="form-group">
-                  <label htmlFor="keyword-input" className="col-sm-3 control-label">Type:</label>
-                  <div className="col-sm-9">
-                    <select className="form-control">
-                      <option>All</option>
-                    </select>
-                  </div>
-                </div>
+          <hr />
+        </div>
+      )}
 
-                <div className="form-group">
-                  <label htmlFor="keyword-input" className="col-sm-3 control-label">Author:</label>
-                  <div className="col-sm-9">
-                    <select className="form-control">
-                      <option>All</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="keyword-input" className="col-sm-3 control-label">Tag:</label>
-                  <div className="col-sm-9">
-                    <select className="form-control" disabled>
-                      <option> </option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="keyword-input" className="col-sm-3 control-label">Search:</label>
-                  <div className="col-sm-9">
-                    <input type="text" className="form-control" id="keyword-input" placeholder="Keywords" />
-                  </div>
-                </div>
-              </form>
-            </aside>
-            */}
+      <div className="row mt-3">
+        <div className="col-md-10">
+          <div id="forum-replies">
+            <ForumReplyContext.Provider
+              value={{
+                forumId: id, displayOptionsMap, setCollapsed, setContentExpanded,
+              }}
+            >
+              {repliesLoaded ? orderedReplies.map(reply => (
+                <ForumReply
+                  key={reply.id}
+                  note={replyNoteMap[reply.id]}
+                  replies={reply.replies.map(childId => replyNoteMap[childId])}
+                  commonInvitations={forumInvitations?.commonInvitations}
+                  activeInvitation={activeInvitation}
+                  setActiveInvitation={setActiveInvitation}
+                />
+              )) : (
+                <LoadingSpinner inline />
+              )}
+            </ForumReplyContext.Provider>
           </div>
-        </ForumReplyContext.Provider>
+        </div>
+
+        <div className="col-md-2">
+          {/* <FilterFormVertical /> */}
+        </div>
       </div>
     </div>
   )
@@ -655,16 +572,15 @@ Forum.getInitialProps = async (ctx) => {
     return { statusCode: 400, message: 'Forum ID is required' }
   }
 
-  const { user, token } = auth(ctx)
+  const { token } = auth(ctx)
+
   const shouldRedirect = async (noteId) => {
-    // if it is the original of a blind submission, do redirection
-    const blindNotesResult = await api.get('/notes', { original: noteId }, { accessToken: token })
+    // Check if user is accessing the original of a blind submission and if so return blind note
+    const { notes } = await api.get('/notes', { original: noteId }, { accessToken: token })
 
-    // if no blind submission found return the current forum
-    if (blindNotesResult.notes?.length) {
-      return blindNotesResult.notes[0]
+    if (notes?.length > 0) {
+      return notes[0]
     }
-
     return false
   }
   const redirectForum = (forumId) => {
@@ -677,13 +593,14 @@ Forum.getInitialProps = async (ctx) => {
   }
 
   try {
-    const result = await api.get('/notes', {
-      id: ctx.query.id, trash: true, details: 'original,invitation,revisions,replyCount,writable',
+    const { notes } = await api.get('/notes', {
+      id: ctx.query.id, trash: true, details: 'original,invitation,revisions,replyCount,writable,tags',
     }, { accessToken: token })
-    const note = result.notes[0]
+
+    const note = notes?.length > 0 ? notes[0] : null
 
     // Only super user can see deleted forums
-    if (note.ddate && !note.details.writable) {
+    if (!note || (note.ddate && !note.details.writable)) {
       return { statusCode: 404, message: 'Not Found' }
     }
 

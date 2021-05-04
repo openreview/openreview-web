@@ -1,8 +1,9 @@
 /* globals promptMessage: false */
 
-import { useContext } from 'react'
+import { useContext, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import NoteContent from './NoteContent'
+import NoteEditorForm from './NoteEditorForm'
 import ForumReplyContext from './ForumReplyContext'
 import {
   prettyId, prettyInvitationId, buildNoteTitle, forumDate,
@@ -11,9 +12,11 @@ import { getInvitationColors } from '../lib/forum-utils'
 import Icon from './Icon'
 
 export default function ForumReply({ note, replies }) {
-  const { displayOptionsMap, setCollapsed } = useContext(ForumReplyContext)
+  const [activeInvitation, setActiveInvitation] = useState(null)
+  const { forumId, displayOptionsMap, setCollapsed } = useContext(ForumReplyContext)
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
   const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
+  const showInvitationButtons = note.replyInvitations?.length > 0 || note.referenceInvitations?.length > 0
 
   return (
     <div className="note" style={(hidden && allRepliesHidden) ? { display: 'none' } : {}} data-id={note.id}>
@@ -32,6 +35,43 @@ export default function ForumReply({ note, replies }) {
           invitation={note.details?.invitation}
           collapsed={!contentExpanded}
         />
+      )}
+
+      {showInvitationButtons && (
+        <div className="invitations-container mt-2">
+          <div className="invitation-buttons">
+            <span className="hint">Add:</span>
+            {note.replyInvitations?.map(invitation => (
+              <button
+                key={invitation.id}
+                type="button"
+                className={`btn btn-xs ${activeInvitation?.id === invitation.id ? 'active' : ''}`}
+                onClick={() => setActiveInvitation(invitation)}
+              >
+                {prettyInvitationId(invitation.id)}
+              </button>
+            ))}
+            {note.replyInvitations?.map(invitation => (
+              <button
+                key={invitation.id}
+                type="button"
+                className={`btn btn-xs ${activeInvitation?.id === invitation.id ? 'active' : ''}`}
+                onClick={() => setActiveInvitation(invitation)}
+              >
+                {prettyInvitationId(invitation.id)}
+              </button>
+            ))}
+          </div>
+
+          <NoteEditorForm
+            forumId={forumId}
+            invitation={activeInvitation}
+            replyToId={note.id}
+            onNoteCreated={() => {}}
+            onNoteCancelled={() => { setActiveInvitation(null) }}
+            onError={() => { setActiveInvitation(null) }}
+          />
+        </div>
       )}
 
       {(!collapsed || !allRepliesHidden) && replies?.length > 0 && (
