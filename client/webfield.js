@@ -107,8 +107,8 @@ module.exports = (function() {
     }).then(jqSuccessCallback, errorCallback);
   };
 
-  var getAll = function(url, queryObj, resultsKey) {
-    queryObj = queryObj || {};
+  var getAll = function(url, queryObjParam, resultsKey) {
+    const queryObj = {...queryObjParam};
     queryObj.limit = Math.min(queryObj.limit || 1000, 1000);
     var offset = queryObj.offset || 0;
 
