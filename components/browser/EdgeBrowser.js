@@ -97,11 +97,10 @@ export default class EdgeBrowser extends React.Component {
     // invitation. Note: currently startInvitation has to have the same head
     // and tail types as traverseInvitation
     let startResultsP
-    if (this.startInvitation && !_.isEqual(
-      (({ type, query }) => ({ type, query }))(this.startInvitation[headOrTail]), // required=true can fail equal
-      (({ type, query }) => ({ type, query }))(invReplyObj),
+    const startInv = this.startInvitation[headOrTail]
+    if (this.startInvitation && (
+      startInv.type !== invReplyObj.type || !_.isEqual(startInv.query, invReplyObj.query)
     )) {
-      const startInv = this.startInvitation[headOrTail]
       const startRequestParams = startInv.query || {}
       if (startInv.type === 'Note') {
         startRequestParams.details = 'original'
