@@ -591,7 +591,7 @@ module.exports = (function() {
     const filterOperator = filterOperators.find(p => operand.includes(p))
     const [property, value] = operand.split(filterOperator)
     return {
-      property, value: value.replaceAll('"', ''), filterOperator
+      property, value: value.replace(/"/g, ''), filterOperator
     }
   }
 
