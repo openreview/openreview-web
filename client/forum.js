@@ -154,10 +154,17 @@ module.exports = function(forumId, noteId, invitationId, user) {
         });
 
         var noteCommonInvitations = _.filter(commonInvitations, function(invitation) {
+          // if selfReplyOnly restrict only to the note that responds to the same invitation
+          var isReplyInvitation = !invitation.reply.selfReplyOnly ||
+            (invitation.reply.selfReplyOnly && invitation.id === note.invitation);
+
+          // Check invitation enabled by invitation
+          if (_.has(invitation.reply, 'invitation')) {
+            return (invitation.reply.invitation === note.invitation) || isReplyInvitation;
+          }
+
           // Check invitation enabled by forum
-          return _.has(invitation.reply, 'invitation')
-            ? invitation.reply.invitation === note.invitation
-            : note.id === invitation.reply.forum;
+          return (note.id === invitation.reply.forum) || isReplyInvitation;
         });
 
         var replyInvitations = _.union(noteCommonInvitations, noteInvitations);

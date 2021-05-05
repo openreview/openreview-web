@@ -148,11 +148,14 @@ const Forum = ({ forumNote, appContext }) => {
         return isInvitationRelated && isMultireplyApplicable
       })
 
-      const noteCommonInvitations = commonInvitations.filter(invitation => (
-        has(invitation.reply, 'invitation')
+      const noteCommonInvitations = commonInvitations.filter((invitation) => {
+        const isReplyInvitation = invitation.id === note.invitation
+        // Check invitation enabled by invitation
+        const invitationEnabled = has(invitation.reply, 'invitation')
           ? invitation.reply.invitation === note.invitation
-          : note.id === invitation.reply.forum
-      ))
+          : invitation.reply.forum === note.id
+        return isReplyInvitation || invitationEnabled
+      })
 
       const replyInvitations = union(noteCommonInvitations, noteInvitations)
 
