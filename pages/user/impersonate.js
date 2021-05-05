@@ -15,7 +15,7 @@ const Impersonate = ({ accessToken }) => {
 
   const impersonate = async (groupId) => {
     try {
-      const { user, token } = await api.get('/impersonate', { groupId }, { accessToken })
+      const { user, token } = await api.post('/impersonate', { groupId }, { accessToken })
       loginUser(user, token, '/profile')
     } catch (apiError) {
       setError(apiError)
