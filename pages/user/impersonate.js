@@ -4,6 +4,7 @@ import { useContext, useState } from 'react'
 import Head from 'next/head'
 import Icon from '../../components/Icon'
 import ErrorAlert from '../../components/ErrorAlert'
+import withAdminAuth from '../../components/withAdminAuth'
 import api from '../../lib/api-client'
 import UserContext from '../../components/UserContext'
 
@@ -71,4 +72,4 @@ const Impersonate = ({ accessToken }) => {
   )
 }
 
-export default Impersonate
+export default withAdminAuth(Impersonate)

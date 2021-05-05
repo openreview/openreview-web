@@ -47,7 +47,7 @@ const NavUserLinks = () => {
           aria-expanded="false"
         >
           {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-          <span>{user.profile.first} {user.profile.middle} {user.profile.last}</span>
+          <span>{user.profile.first} {user.profile.middle} {user.profile.last}  {user.impersonator && '(Impersonated)'}</span>
           {' '}
           <span className="caret" />
         </a>
