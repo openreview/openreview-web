@@ -7,7 +7,7 @@ const waitForJobs = (noteId, superUserToken) => new Promise((resolve, reject) =>
   const interval = setInterval(async () => {
     try {
       const statuses = await getJobsStatus(superUserToken)
-      if (statuses.pyEntityQueueStatus.failed > 0) {
+      if (Object.values(statuses).some((p: any) => p.failed > 0)) {
         clearInterval(interval)
         reject(new Error('Process function failed'))
       }
