@@ -1804,6 +1804,14 @@ module.exports = (function() {
       });
       $(document.body).append(modalHtml);
 
+      $('#message-group-members-modal textarea[name="message"]').one('keyup',()=>{
+        $('#message-group-members-modal textarea[name="message"]').before($('<p>', {
+          class:'small',
+          text: `*Template variables available: {{firstname}} and {{fullname}}
+
+{{firstname}}/{{fullname}} is replaced by first/full name of the preferred name of the profile if exists otherwise it is replaced by the email address`
+        }).css('white-space', 'pre-wrap'))
+      })
       $('#message-group-members-modal .btn-primary').on('click', function() {
         $('#message-group-members-modal form').submit();
       });
