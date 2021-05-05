@@ -11,7 +11,7 @@ import UserContext from './UserContext'
 
 export default function NoteEditorForm({
   invitation, note, forumId, replyToId,
-  onNoteCreated, onNoteCancelled, onLoad, onValidate, onError,
+  onNoteCreated, onNoteEdited, onNoteCancelled, onLoad, onValidate, onError,
 }) {
   const [loading, setLoading] = useState(true)
   const containerRef = useRef(null)
@@ -60,7 +60,7 @@ export default function NoteEditorForm({
 
     if (note) {
       view.mkNoteEditor(note, invitation, user, {
-        onNoteCreated,
+        onNoteEdited,
         onNoteCancelled,
         onValidate,
         onCompleted: handleEditor,

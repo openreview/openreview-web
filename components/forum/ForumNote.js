@@ -61,9 +61,8 @@ function ForumNote({
         <NoteEditorForm
           note={activeNote}
           invitation={activeInvitation}
-          onNoteCreated={() => {}}
+          onNoteEdited={() => { setActiveInvitation(null); window.location.reload() }}
           onNoteCancelled={() => { setActiveInvitation(null) }}
-          onError={() => { setActiveInvitation(null) }}
         />
 
         <hr />
