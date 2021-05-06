@@ -24,6 +24,7 @@
 
           <div class="form-group">
             <label for="message">Email Body</label>
+            <p class="hint">Hint: You can personalize emails using template variables. The text \{{firstname}} and \{{fullname}} will automatically be replaced with the recipient's first or full name if they have an OpenReview profile. If a profile isn't found their email address will be used instead.</p>
             <textarea name="message" class="form-control feedback-input" rows="6" placeholder="Message" required>{{defaultBody}}</textarea>
           </div>
         </form>
