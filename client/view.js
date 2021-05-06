@@ -2115,6 +2115,11 @@ module.exports = (function() {
         '<span class="private-author-label">(privately revealed to you)</span>'
       );
     }
+    if (note.readers.length == 1 && note.readers[0].indexOf('~') === 0 && note.readers[0] == note.signatures[0]) {
+      $contentAuthors.append(
+        '<span class="private-author-label">(visible only to you)</span>'
+      );
+    }
 
     var $revisionsLink = (params.withRevisionsLink && details.revisions) ?
       $('<a>', { class: 'note_content_pdf item', href: '/revisions?id=' + note.id, text: 'Show Revisions' }) :
