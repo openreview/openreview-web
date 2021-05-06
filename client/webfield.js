@@ -1607,7 +1607,7 @@ module.exports = (function() {
       groupParent: groupParent,
       groupMembersCount: membersCount,
       removedMembers: removedMembers,
-      options: { showAddForm: options.showAddForm }
+      isSuperUser: options.isSuperUser
     }));
     $container.off();
 
@@ -1631,7 +1631,11 @@ module.exports = (function() {
       $submitButton.addClass('disabled');
 
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
-        result[field.name] = _.compact(field.value.split(',').map(_.trim));
+        if (field.name === 'anonids') {
+          result[field.name] = field.value === '' ? null : field.value === 'True';
+        } else {
+          result[field.name] = _.compact(field.value.split(',').map(_.trim));
+        }
         return result;
       }, {});
 
@@ -1649,7 +1653,8 @@ module.exports = (function() {
             Handlebars.templates['partials/groupInfoTable']({
               group: group,
               groupParent: groupParent,
-              editable: true
+              editable: true,
+              isSuperUser: options.isSuperUser
             })
           );
           showAlert('Settings for ' + view.prettyId(groupId) + ' updated');

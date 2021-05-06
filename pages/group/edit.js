@@ -10,12 +10,13 @@ import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
+import { isSuperUser } from '../../lib/auth'
 
 // Page Styles
 import '../../styles/pages/group.less'
 
 export default function GroupEdit({ appContext }) {
-  const { accessToken, userLoading } = useLoginRedirect()
+  const { accessToken, userLoading, user } = useLoginRedirect()
   const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
   const containerRef = useRef(null)
@@ -59,7 +60,10 @@ export default function GroupEdit({ appContext }) {
     if (!group || !containerRef || clientJsLoading) return
 
     Webfield.editModeBanner(group.id, 'edit')
-    Webfield.ui.groupEditor({ ...group, web: null }, { container: containerRef.current })
+    Webfield.ui.groupEditor({ ...group, web: null }, {
+      container: containerRef.current,
+      isSuperUser: isSuperUser(user),
+    })
 
     // eslint-disable-next-line consistent-return
     return () => {
