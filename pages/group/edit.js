@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import WebfieldContainer from '../../components/WebfieldContainer'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -18,6 +19,8 @@ export default function GroupEdit({ appContext }) {
   const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
   const containerRef = useRef(null)
+
+  const router = useRouter()
   const query = useQuery()
   const { setBannerHidden, clientJsLoading } = appContext
 
@@ -28,7 +31,8 @@ export default function GroupEdit({ appContext }) {
         if (groups[0].details?.writable) {
           setGroup(groups[0])
         } else {
-          setError({ statusCode: 403, message: 'You don\'t have permission to read this group' })
+          // User is a reader, not a writer of the group, so redirect to info mode
+          router.replace(`/group?id=${id}&mode=info`)
         }
       } else {
         setError({ statusCode: 404, message: 'Group not found' })
