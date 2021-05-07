@@ -108,12 +108,12 @@ test('import paper from dblp', async (t) => {
     .click(persistentUrlInput) // to make sure input get focus
     .typeText(persistentUrlInput, testPersistentUrl)
     .click(showPapersButton)
-    .expect(Selector('#dblp-import-modal').find('div.modal-body').innerText).contains('Please ensure that the DBLP URL provided is yours and the name used in your DBLP papers is listed in your profile.')
+    .expect(Selector('#dblp-import-modal').find('div.modal-body>p').nth(0).innerText).contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.')
     .click(dblpImportModalCancelButton)
     // put persistent url of other people in page
     .typeText(Selector('input#dblp_url'), testPersistentUrl, { replace: true })
     .click(addDBLPPaperToProfileButton)
-    .expect(Selector('#dblp-import-modal').find('div.modal-body').innerText).contains('Please ensure that the DBLP URL provided is yours and the name used in your DBLP papers is listed in your profile.')
+    .expect(Selector('#dblp-import-modal').find('div.modal-body>p').nth(0).innerText).contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.')
     .click(dblpImportModalCancelButton)
     // add name to skip validation error
     .click(nameSectionPlusIconSelector)

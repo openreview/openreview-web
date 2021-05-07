@@ -11,14 +11,12 @@ import {
 import UserContext from './UserContext'
 import { inflect } from '../lib/utils'
 
-const errorMessage = (message, dblpNames, profileNames) => {
-  if (!dblpNames?.length) {
-    return <p>{message}</p>
-  }
+const ErrorMessage = ({ message, dblpNames, profileNames }) => {
+  if (!dblpNames?.length) return <p>{message}</p>
   return (
-    <div>
+    <>
       <p>
-        Your OpenReview Profile must contain the
+        Your OpenReview profile must contain the
         {' '}
         <strong>EXACT</strong>
         {' '}
@@ -44,7 +42,7 @@ const errorMessage = (message, dblpNames, profileNames) => {
           </ul>
         </>
       )}
-    </div>
+    </>
   )
 }
 
@@ -214,7 +212,13 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
           </div>
 
           <div className={`modal-body ${isSavingPublications ? 'disable-scroll' : ''}`}>
-            {message && errorMessage(message, dblpNames.current, profileNames)}
+            {message && (
+              <ErrorMessage
+                message={message}
+                dblpNames={dblpNames.current}
+                profileNames={profileNames}
+              />
+            )}
 
             {showPersistentUrlInput && (
               <form>
