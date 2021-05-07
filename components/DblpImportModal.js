@@ -18,11 +18,11 @@ const errorMessage = (message, dblpNames, profileNames) => {
   return (
     <div>
       <p>
-        Name in your OpenReview Profile must be
+        Your OpenReview Profile must contain the
         {' '}
         <strong>EXACT</strong>
         {' '}
-        match with names in DBLP papers.
+        name used in your DBLP papers.
       </p>
       {dblpNames.length >= 0 && (
         <>
@@ -36,7 +36,7 @@ const errorMessage = (message, dblpNames, profileNames) => {
       )}
       {profileNames.length >= 0 && (
         <>
-          <p>Names in your current profile are listed below:</p>
+          <p>Your current names are listed below:</p>
           <ul>
             {
               profileNames.map(name => <li key={name}>{name}</li>)
