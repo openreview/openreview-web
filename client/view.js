@@ -476,6 +476,10 @@ module.exports = (function() {
     }
 
     var dropdownOptions = _.map(values, function(value) {
+      if (value.id && value.description) {
+        return value;
+      }
+
       return {
         id: value,
         description: prettyId(value)
@@ -483,6 +487,10 @@ module.exports = (function() {
     });
 
     var alwaysHaveValues = _.map(params.alwaysHaveValues, function (value) {
+      if (value.id && value.description) {
+        return value;
+      }
+
       return {
         id: value,
         description: prettyId(value),
@@ -1355,16 +1363,21 @@ module.exports = (function() {
       );
     }
 
-    if (values.length === 1) {
-      $input.append(mkHoverItem(prettyId(values[0]),values[0]).addClass('list_adder_list'));
+    var dropdownOptions = _.map(values, function(value) {
+      if (value.id && value.description) {
+        return value;
+      }
+      return {
+        id: value,
+        description: prettyId(value)
+      };
+    });
+
+
+    if (dropdownOptions.length === 1) {
+      $input.append(mkHoverItem(dropdownOptions[0].description, dropdownOptions[0].id).addClass('list_adder_list'));
 
     } else {
-      var dropdownOptions = _.map(values, function(value) {
-        return {
-          id: value,
-          description: prettyId(value)
-        };
-      });
 
       var selectedValue = _.find(dropdownOptions, ['id', fieldValue]);
 
@@ -3297,7 +3310,12 @@ module.exports = (function() {
             return $.Deferred().reject('no_results');
           }
 
-          var groupIds = _.map(result.groups, 'id');
+          var groupIds = _.map(result.groups, function(group) {
+            return {
+              id: group.id,
+              description: prettyId(group.id) + (group.members.length == 1 ? (' (' + prettyId(group.members[0]) + ')') : '')
+            }
+          });
           $signatures = mkDropdownList(
             'signatures', fieldDescription.description, currentVal, groupIds, true
           );
