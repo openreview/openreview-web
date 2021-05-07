@@ -3216,7 +3216,7 @@ module.exports = (function() {
               var group = groupsById[value];
               var extraDescription = '';
               if (group && group.members.length) {
-                extraDescription = '(' + prettyId(group.members[0]) + ')'
+                extraDescription = ' (' + prettyId(group.members[0]) + ')'
               }
               return { id: value, description: prettyId(value) + extraDescription }
             });
