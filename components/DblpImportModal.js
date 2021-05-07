@@ -11,6 +11,45 @@ import {
 import UserContext from './UserContext'
 import { inflect } from '../lib/utils'
 
+const errorMessage = (message, dblpNames, profileNames) => {
+  if (!dblpNames?.length) {
+    return <p>{message}</p>
+  }
+  return (
+    <div>
+      <p>
+        Name in your OpenReview Profile must be
+        {' '}
+        <strong>EXACT</strong>
+        {' '}
+        match with names in DBLP papers.
+      </p>
+      {dblpNames.length >= 0 && (
+        <>
+          <p>Should any of the following names be added to your profile?</p>
+          <ul>
+            {
+              dblpNames.map(name => <li key={name}><strong>{name}</strong></li>)
+            }
+          </ul>
+        </>
+      )}
+      {profileNames.length >= 0 && (
+        <>
+          <p>
+            Names in your current profile are listed below:
+          </p>
+          <ul>
+            {
+              profileNames.map(name => <li key={name}>{name}</li>)
+            }
+          </ul>
+        </>
+      )}
+    </div>
+  )
+}
+
 export default function DblpImportModal({ profileId, profileNames, email }) {
   const [dblpUrl, setDblpUrl] = useState('')
   const [dblpPersistentUrl, setDblpPersistentUrl] = useState('')
@@ -25,6 +64,7 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
   const publicationsInOpenReview = useRef([])
   const publicationsImportedByOtherProfiles = useRef([])
   const modalEl = useRef(null)
+  const dblpNames = useRef(null)
   const { accessToken } = useContext(UserContext)
 
   const getExistingFromDblpPubs = (allDblpPubs) => {
@@ -46,6 +86,7 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
     setMessage('Fetching publications from DBLP...')
     setIsFetchingPublications(true)
     setPublications([])
+    dblpNames.current = null
     if (isPersistentUrl) setDblpUrl(dblpPersistentUrl)
 
     try {
@@ -53,9 +94,11 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
       if (!allDblpPublications.some(pub => profileNames.some(name => (
         pub.note.content.dblp.toLowerCase().includes(name.toLowerCase())
       )))) {
-        throw new Error('Please ensure that the DBLP URL provided is yours and the name used in your DBLP papers is listed in your profile.'
-          + 'If your DBLP name is missing from your profile you can add the name above, save your profile, and then try importing again.'
-          + `Possible name used in DBLP papers: ${possibleNames.join(', ')}`)
+        dblpNames.current = possibleNames
+        setMessage('notMatchError')
+        setShowPersistentUrlInput(false)
+        setIsFetchingPublications(false)
+        return
       }
       setPublications(allDblpPublications)
       setMessage(`${allDblpPublications.length} publications fetched.`)
@@ -173,9 +216,7 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
           </div>
 
           <div className={`modal-body ${isSavingPublications ? 'disable-scroll' : ''}`}>
-            {message && (
-              <p>{message}</p>
-            )}
+            {message && errorMessage(message, dblpNames.current, profileNames)}
 
             {showPersistentUrlInput && (
               <form>
