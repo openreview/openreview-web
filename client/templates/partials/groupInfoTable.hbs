@@ -3,7 +3,7 @@
   <dd><a href="{{groupUrl groupParent true}}">{{prettyId groupParent}}</a></dd>
   {{#if group.invitation}}
     <dt>Invitation:</dt>
-    <dd>{{group.invitation}}</dd>
+    <dd><a href="/invitation?id={{group.invitation}}&mode=edit">{{group.invitation}}</a></dd>
   {{/if}}
 
   <dt>Readers:</dt>
@@ -23,23 +23,9 @@
   <dt>Signature:</dt>
   <dd>{{groupIdList group.signatures}}</dd>
 
-  <dt>Created:</dt>
-  <dd>{{formattedDate group.cdate group.tcdate}}</dd>
-
-  <dt>Last Modified:</dt>
-  <dd>{{formattedDate group.mdate group.tmdate}}</dd>
-
-  <dt>AnonymousId:</dt>
-  <dd>
-    {{#if group.anonids}}
-      True
-    {{else}}
-      {{#is group.anonids false}}
-        False
-      {{/is}}
-    {{/if}}
-  </dd>
   {{#if group.anonids}}
+    <dt>AnonymousId:</dt>
+    <dd>True</dd>
     {{#if group.secret}}
       <dt>Secret:</dt>
       <dd>{{group.secret}}</dd>
@@ -47,6 +33,12 @@
     <dt title="deanonymizers">Deanonymizers:</dt>
     <dd>{{groupIdList group.deanonymizers}}</dd>
   {{/if}}
+
+  <dt>Created:</dt>
+  <dd>{{formattedDate group.cdate group.tcdate}}</dd>
+
+  <dt>Last Modified:</dt>
+  <dd>{{formattedDate group.mdate group.tmdate}}</dd>
 </dl>
 
 {{#if editable}}

@@ -1457,7 +1457,8 @@ module.exports = (function() {
   var groupEditor = function(group, options) {
     var defaults = {
       container: '#notes',
-      showAddForm: true
+      showAddForm: true,
+      isSuperUser: false
     };
     options = _.defaults(options, defaults);
 
