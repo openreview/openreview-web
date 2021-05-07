@@ -36,9 +36,7 @@ const errorMessage = (message, dblpNames, profileNames) => {
       )}
       {profileNames.length >= 0 && (
         <>
-          <p>
-            Names in your current profile are listed below:
-          </p>
+          <p>Names in your current profile are listed below:</p>
           <ul>
             {
               profileNames.map(name => <li key={name}>{name}</li>)
