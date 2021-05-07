@@ -3174,7 +3174,7 @@ module.exports = (function() {
       });
     } else if (_.has(fieldDescription, 'values-dropdown')) {
       var values = fieldDescription['values-dropdown'];
-      var extraGroupsP = $.Deferred().resolve();
+      var extraGroupsP = $.Deferred().resolve([]);
       var regexIndex = _.findIndex(values, function(g) { return g.indexOf('.*') >=0; });
       if (regexIndex >= 0) {
         var regex = values[regexIndex];
@@ -3186,10 +3186,11 @@ module.exports = (function() {
           } else {
             fieldDescription['values-dropdown'].splice(regexIndex, 1);
           }
+          return result.groups;
         });
       }
       extraGroupsP
-        .then(function() {
+        .then(function(groups) {
           setParentReaders(replyto, fieldDescription, 'values-dropdown', function (newFieldDescription) {
             //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
             var replyValues = _.intersection(newFieldDescription['values-dropdown'], fieldDescription['values-dropdown']);
@@ -3209,6 +3210,16 @@ module.exports = (function() {
             if (_.difference(newFieldDescription.default, newFieldDescription['values-dropdown']).length !== 0) { //invitation default is not in list of possible values
               done(undefined, 'Default reader is not in the list of readers');
             }
+            // Make the descriptions for anonids
+            var groupsById = _.keyBy(groups, 'id');
+            newFieldDescription['values-dropdown'] = newFieldDescription['values-dropdown'].map(function(value) {
+              var group = groupsById[value];
+              var extraDescription = '';
+              if (group && group.members.length) {
+                extraDescription = '(' + prettyId(group.members[0]) + ')'
+              }
+              return { id: value, description: prettyId(value) + extraDescription }
+            });
             var $readers = mkComposerInput('readers', newFieldDescription, fieldValue);
             $readers.find('.small_heading').prepend(requiredText);
             done($readers);
