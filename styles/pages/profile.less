@@ -166,10 +166,10 @@ main.profile {
 
   section.history {
     .table-row {
-      div:nth-child(1) {
+      div:nth-child(1):not(.tooltip-arrow) {
         width: @nameColWidth;
       }
-      div:nth-child(2) {
+      div:nth-child(2):not(.tooltip):not(.tooltip-inner) {
         width: calc(~'100%' - (@nameColWidth + @dateColWidth + @badgeColWidth));
       }
       div:nth-child(3) {
