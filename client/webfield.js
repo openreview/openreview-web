@@ -1471,7 +1471,19 @@ module.exports = (function() {
     var editor;
 
     // Helper functions
-    var renderMembersTable = function(groupMembers, removedMembers, startPage) {
+    var renderMembersTable = async function(groupMembers, removedMembers, startPage) {
+      let memberAnonIdMap = new Map()
+      if (group.anonids && options.isSuperUser) {
+        const anonGroupRegex = groupId.endsWith('s') ? `${groupId.slice(0, -1)}_` : `${groupId}_`
+        const result = await get(`/groups?regex=${anonGroupRegex}`)
+        groupMembers.forEach(m => {
+          const anonId = result.groups.find(p => p?.members == m)?.id
+          memberAnonIdMap.set(m, {
+            id: anonId,
+            prettyId: anonId ? view.prettyId(anonId) : null
+          })
+        })
+      }
       var limit = 15;
       var membersCount = groupMembers ? groupMembers.length : 0;
       var removedCount = removedMembers ? removedMembers.length : 0;
@@ -1488,6 +1500,7 @@ module.exports = (function() {
           selectedMembers: selectedMembers,
           searchTerm: searchTerm,
           addButtonEnabled: addButtonEnabled,
+          memberAnonIdMap: memberAnonIdMap,
           options: { showAddForm: options.showAddForm }
         }
       ));
@@ -1661,6 +1674,8 @@ module.exports = (function() {
           showAlert('Settings for ' + view.prettyId(groupId) + ' updated');
         }).always(function() {
           $submitButton.removeClass('disabled');
+          //may need to show/remove annon id
+          if(options.isSuperUser) renderMembersTable(group.members, removedMembers);
         });
       });
 
