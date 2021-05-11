@@ -151,6 +151,6 @@ ForumPage.getInitialProps = async (ctx) => {
   }
 }
 
-ForumPage.bodyClass = 'forum'
+ForumPage.bodyClass = 'legacy-forum'
 
 export default withError(ForumPage)

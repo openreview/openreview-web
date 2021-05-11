@@ -56,7 +56,22 @@ export default function Forum({ forumNote, clientJsLoading }) {
 
     const extraParams = includeTags ? { tags: true } : { details: 'repliedNotes' }
     return api.get('/invitations', { replyForum: forumId, ...extraParams }, { accessToken })
-      .then(({ invitations }) => (invitations?.length > 0 ? invitations : []))
+      .then(({ invitations }) => {
+        if (!invitations?.length) return []
+
+        return invitations.map((inv) => {
+          // Check if invitation does not have multiReply prop OR invitation is set to multiReply
+          // but it is not false OR there have not been any replies to the invitation yet
+          const repliesAvailable = !has(inv, 'multiReply')
+            || inv.multiReply !== false
+            || isEmpty(inv.details?.repliedNotes)
+          return {
+            ...inv,
+            process: null,
+            details: { repliesAvailable },
+          }
+        })
+      })
   }
 
   const getNotesByForumId = (forumId) => {
@@ -77,26 +92,24 @@ export default function Forum({ forumNote, clientJsLoading }) {
       getInvitationsByReplyForum(id, true),
     ])
 
+    // Process invitations
     const commonInvitations = invitations.filter((invitation) => {
       const invReply = invitation.reply
       return !invReply.replyto && !invReply.referent && !invReply.referentInvitation && !invReply.invitation
     })
+
     const referenceInvitations = invitations.filter((invitation) => {
       // Check if invitation is replying to this note
       const isInvitationRelated = invitation.reply.referent === id
         || invitation.reply.referentInvitation === forumNote.invitation
-      // Check if invitation does not have multiReply OR invitation has the
-      // field multiReply but it is not false OR invitation has the field multireply
-      // which is set to false but there have not been any replies yet
-      const isMultireplyApplicable = invitation.multiReply === undefined
-        || invitation.multiReply !== false
-        || isEmpty(invitation.details?.repliedNotes)
-      return isInvitationRelated && isMultireplyApplicable
+      return isInvitationRelated && invitation.details.repliesAvailable
     })
+
     setForumInvitations({
       commonInvitations, referenceInvitations, originalInvitations, tagInvitations,
     })
 
+    // Process notes
     const replyMap = {}
     const displayOptions = {}
     const parentIdMap = {}
@@ -112,38 +125,17 @@ export default function Forum({ forumNote, clientJsLoading }) {
         // Check if invitation is replying to this note
         const isInvitationRelated = invitation.reply.replyto === note.id
           || invitation.reply.invitation === note.invitation
-        // Check if invitation does not have multiReply OR invitation has the field
-        // multiReply but it is not set to false OR invitation has the field multireply
-        // which is set to false but there have not been any replies yet
-        const isMultireplyApplicable = !has(invitation, 'multiReply')
-          || (invitation.multiReply !== false)
-          || !has(invitation, 'details.repliedNotes[0]')
-        return isInvitationRelated && isMultireplyApplicable
+        return isInvitationRelated && invitation.details.repliesAvailable
       })
+
+      const replyInvitations = union(commonInvitations, noteInvitations)
 
       const refInvitations = invitations.filter((invitation) => {
         // Check if invitation is replying to this note
         const isInvitationRelated = invitation.reply.referent === note.id
           || invitation.reply.referentInvitation === note.invitation
-        // Check if invitation does not have multiReply OR invitation has the field
-        // multiReply but it is not set to false OR invitation has the field multireply
-        // which is set to false but there have not been any replies yet
-        const isMultireplyApplicable = !has(invitation, 'multiReply')
-          || (invitation.multiReply !== false)
-          || !has(invitation, 'details.repliedNotes[0]')
-        return isInvitationRelated && isMultireplyApplicable
+        return isInvitationRelated && invitation.details.repliesAvailable
       })
-
-      const noteCommonInvitations = commonInvitations.filter((invitation) => {
-        const isReplyInvitation = invitation.id === note.invitation
-        // Check invitation enabled by invitation
-        const invitationEnabled = has(invitation.reply, 'invitation')
-          ? invitation.reply.invitation === note.invitation
-          : invitation.reply.forum === note.id
-        return isReplyInvitation || invitationEnabled
-      })
-
-      const replyInvitations = union(noteCommonInvitations, noteInvitations)
 
       replyMap[note.id] = formatNote(note, null, replyInvitations, refInvitations)
       displayOptions[note.id] = { collapsed: false, contentExpanded: false, hidden: false }
@@ -448,7 +440,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
         </div>
       )}
 
-      {forumInvitations && (
+      {forumInvitations?.commonInvitations.length > 0 && (
         <div className="invitations-container mt-3">
           <div className="invitation-buttons">
             <span className="hint">Add:</span>
@@ -477,7 +469,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
       )}
 
       <div className="row mt-3">
-        <div className="col-md-10">
+        <div className="col-xs-12">
           <div id="forum-replies">
             <ForumReplyContext.Provider
               value={{
@@ -500,9 +492,11 @@ export default function Forum({ forumNote, clientJsLoading }) {
           </div>
         </div>
 
+        {/*
         <div className="col-md-2">
-          {/* <FilterFormVertical /> */}
+          <FilterFormVertical />
         </div>
+        */}
       </div>
     </div>
   )

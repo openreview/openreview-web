@@ -19,7 +19,7 @@ function ForumNote({
 
   const pastDue = note.ddate && note.ddate < Date.now()
   const canEdit = (details.original && details.originalWritable) || (!details.originalWritable && details.writable)
-  const showInvitationButtons = referenceInvitations?.length > 0 || originalInvitations?.length > 0 || canEdit
+  const showInvitationButtons = referenceInvitations?.length > 0 || originalInvitations?.length > 0
   // eslint-disable-next-line no-underscore-dangle
   const texDisabled = !!content._disableTexRendering
 
@@ -93,9 +93,12 @@ function ForumNote({
         invitation={details.originalInvitation || details.invitation}
       />
 
-      {showInvitationButtons && (
+      {(showInvitationButtons || canEdit) && (
         <div className="revision-invitations-container mb-4">
           <div className="invitation-buttons">
+            {showInvitationButtons && (
+              <span className="hint">Add:</span>
+            )}
             {originalInvitations?.map((invitation) => {
               let buttonText = prettyInvitationId(invitation.id)
               let options = { original: true }

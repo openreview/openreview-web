@@ -1,6 +1,7 @@
 /* globals promptMessage: false */
 
 import { useContext, useState } from 'react'
+import Link from 'next/link'
 import copy from 'copy-to-clipboard'
 import NoteContent from '../NoteContent'
 import NoteEditorForm from '../NoteEditorForm'
@@ -14,139 +15,123 @@ import Icon from '../Icon'
 export default function ForumReply({ note, replies }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
   const { forumId, displayOptionsMap, setCollapsed } = useContext(ForumReplyContext)
+
+  const {
+    id, invitation, content, signatures, details, ddate,
+  } = note
+  const pastDue = ddate && ddate < Date.now()
+  const canEdit = (details.original && details.originalWritable) || (!details.originalWritable && details.writable)
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
   const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
   const showInvitationButtons = note.replyInvitations?.length > 0 || note.referenceInvitations?.length > 0
 
-  return (
-    <div className="note" style={(hidden && allRepliesHidden) ? { display: 'none' } : {}} data-id={note.id}>
-      <button type="button" className="btn btn-link collapse-link" onClick={e => setCollapsed(note.id, !collapsed)}>
-        [
-        {collapsed ? '+' : '–'}
-        ]
-      </button>
-
-      <ReplyTitle note={note} collapsed={collapsed} />
-
-      {!collapsed && (
-        <NoteContentCollapsible
-          id={note.id}
-          content={note.content}
-          invitation={note.details?.invitation}
-          collapsed={!contentExpanded}
-        />
-      )}
-
-      {showInvitationButtons && (
-        <div className="invitations-container mt-2">
-          <div className="invitation-buttons">
-            <span className="hint">Add:</span>
-            {note.replyInvitations?.map(invitation => (
-              <button
-                key={invitation.id}
-                type="button"
-                className={`btn btn-xs ${activeInvitation?.id === invitation.id ? 'active' : ''}`}
-                onClick={() => setActiveInvitation(invitation)}
-              >
-                {prettyInvitationId(invitation.id)}
-              </button>
-            ))}
-            {note.replyInvitations?.map(invitation => (
-              <button
-                key={invitation.id}
-                type="button"
-                className={`btn btn-xs ${activeInvitation?.id === invitation.id ? 'active' : ''}`}
-                onClick={() => setActiveInvitation(invitation)}
-              >
-                {prettyInvitationId(invitation.id)}
-              </button>
-            ))}
-          </div>
-
-          <NoteEditorForm
-            forumId={forumId}
-            invitation={activeInvitation}
-            replyToId={note.id}
-            onNoteCreated={() => {}}
-            onNoteCancelled={() => { setActiveInvitation(null) }}
-            onError={() => { setActiveInvitation(null) }}
-          />
-        </div>
-      )}
-
-      {(!collapsed || !allRepliesHidden) && replies?.length > 0 && (
-        <div className="note-replies">
-          {replies.map((childNote) => {
-            const options = displayOptionsMap[childNote.id]
-            return (
-              <div key={childNote.id} className="note" style={options.hidden ? { display: 'none' } : {}}>
-                <button type="button" className="btn btn-link collapse-link" onClick={e => setCollapsed(childNote.id, !options.collapsed)}>
-                  [
-                  {options.collapsed ? '+' : '–'}
-                  ]
-                </button>
-
-                <ReplyTitle note={childNote} collapsed={options.collapsed} />
-
-                {!options.collapsed && (
-                  <NoteContentCollapsible
-                    id={childNote.id}
-                    content={childNote.content}
-                    invitation={childNote.details?.invitation}
-                    collapsed={!options.contentExpanded}
-                  />
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ReplyTitle({ note, collapsed }) {
-  const {
-    id, invitation, content, signatures,
-  } = note
+  const openNoteEditor = (inv) => {
+    setActiveInvitation(inv)
+  }
 
   if (collapsed) {
+    // Collapsed reply
     return (
-      <div>
-        <h4 className="minimal-title">
-          {content.title ? (
-            <>
-              <strong>{content.title}</strong>
-              {' '}
-              &bull;
-              {' '}
-              <span className="signatures">
-                by
+      <ReplyContainer
+        id={note.id}
+        hidden={hidden && allRepliesHidden}
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+      >
+        <div className="heading">
+          <h4 className="minimal-title">
+            {content.title ? (
+              <>
+                <strong>{content.title}</strong>
                 {' '}
-                {signatures.map(signature => prettyId(signature, true)).join(', ')}
-              </span>
-            </>
-          ) : (
-            <span>{buildNoteTitle(invitation, signatures)}</span>
-          )}
+                &bull;
+                {' '}
+                <span className="signatures">
+                  by
+                  {' '}
+                  {signatures.map(signature => prettyId(signature, true)).join(', ')}
+                </span>
+              </>
+            ) : (
+              <span>{buildNoteTitle(invitation, signatures)}</span>
+            )}
+          </h4>
 
           <CopyLinkButton noteId={id} />
-        </h4>
-      </div>
+        </div>
+
+        {!allRepliesHidden && (
+          <NoteReplies replies={replies} />
+        )}
+      </ReplyContainer>
     )
   }
 
+  // Expanded Reply
   return (
-    <div>
-      <h4>
-        {content.title ? (
-          <strong>{content.title}</strong>
-        ) : (
-          <span>{buildNoteTitle(invitation, signatures)}</span>
-        )}
+    <ReplyContainer
+      id={note.id}
+      hidden={hidden && allRepliesHidden}
+      collapsed={collapsed}
+      setCollapsed={setCollapsed}
+    >
+      <div className="heading">
+        <h4>
+          {content.title ? (
+            <strong>{content.title}</strong>
+          ) : (
+            <span>{buildNoteTitle(invitation, signatures)}</span>
+          )}
+        </h4>
 
         <CopyLinkButton noteId={id} />
-      </h4>
+
+        {note.referenceInvitations?.map(inv => (
+          <button
+            key={inv.id}
+            type="button"
+            className={`btn btn-xs ${activeInvitation?.id === inv.id ? 'active' : ''}`}
+            onClick={() => setActiveInvitation(inv)}
+          >
+            {prettyInvitationId(inv.id)}
+          </button>
+        ))}
+
+        {canEdit && !pastDue && (
+          <>
+            <button
+              type="button"
+              className="btn btn-xs"
+              onClick={() => {
+                const editInvitation = note.details.originalWritable
+                  ? note.details.originalInvitation
+                  : note.details.invitation
+                const options = note.details.originalWritable ? { original: true } : {}
+                openNoteEditor(editInvitation, options)
+              }}
+            >
+              <Icon name="edit" />
+            </button>
+            <button
+              type="button"
+              className="btn btn-xs"
+              onClick={() => {}}
+            >
+              <Icon name="trash" />
+            </button>
+          </>
+        )}
+        {canEdit && pastDue && (
+          <button
+            type="button"
+            className="btn btn-xs"
+            onClick={() => {}}
+          >
+            Restore
+          </button>
+        )}
+      </div>
+
       <div className="subheading">
         <span
           className="invitation highlight"
@@ -169,7 +154,68 @@ function ReplyTitle({ note, collapsed }) {
           <Icon name="eye-open" />
           {note.readers.map(reader => prettyId(reader, true)).join(', ')}
         </span>
+        {note.details.revisions && (
+          <span>
+            <Link href={`/revisions?id=${note.id}`}>
+              <a>Show Revisions</a>
+            </Link>
+          </span>
+        )}
       </div>
+
+      <NoteContentCollapsible
+        id={note.id}
+        content={note.content}
+        invitation={note.details?.invitation}
+        collapsed={!contentExpanded}
+      />
+
+      {showInvitationButtons && (
+        <div className="invitations-container mt-2">
+          <div className="invitation-buttons">
+            <span className="hint">Add:</span>
+            {note.replyInvitations?.map(inv => (
+              <button
+                key={inv.id}
+                type="button"
+                className={`btn btn-xs ${activeInvitation?.id === inv.id ? 'active' : ''}`}
+                onClick={() => setActiveInvitation(inv)}
+              >
+                {prettyInvitationId(inv.id)}
+              </button>
+            ))}
+          </div>
+
+          <NoteEditorForm
+            forumId={forumId}
+            invitation={activeInvitation}
+            replyToId={note.id}
+            onNoteCreated={() => { window.location.reload() }}
+            onNoteCancelled={() => { setActiveInvitation(null) }}
+            onError={() => { setActiveInvitation(null) }}
+          />
+        </div>
+      )}
+
+      {!allRepliesHidden && (
+        <NoteReplies replies={replies} />
+      )}
+    </ReplyContainer>
+  )
+}
+
+function ReplyContainer({
+  id, hidden, collapsed, setCollapsed, children,
+}) {
+  return (
+    <div className="note" style={hidden ? { display: 'none' } : {}} data-id={id}>
+      <button type="button" className="btn btn-link collapse-link" onClick={e => setCollapsed(id, !collapsed)}>
+        [
+        {collapsed ? '+' : '–'}
+        ]
+      </button>
+
+      {children}
     </div>
   )
 }
@@ -205,11 +251,28 @@ function NoteContentCollapsible({
         id={id}
         content={content}
         invitation={invitation}
+        include={['pdf', 'html']}
       />
       <div className="gradient-overlay">
         {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
         <a href="#" onClick={e => e.preventDefault()}>Show more</a>
       </div>
+    </div>
+  )
+}
+
+function NoteReplies({ replies }) {
+  if (!replies?.length) return null
+
+  return (
+    <div className="note-replies">
+      {replies.map(childNote => (
+        <ForumReply
+          key={childNote.id}
+          note={childNote}
+          replies={[]}
+        />
+      ))}
     </div>
   )
 }
