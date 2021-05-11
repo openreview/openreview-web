@@ -97,7 +97,6 @@ const Relation = ({ relationships, highlightValue }) => (
   </table>
 )
 
-// eslint-disable-next-line no-shadow
 const Expertise = ({ expertises, highlightValue }) => (
   <table>
     <tbody>

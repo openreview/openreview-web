@@ -1,93 +1,17 @@
-import { useEffect, useContext } from 'react'
+import { useEffect } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
 import truncate from 'lodash/truncate'
-import UserContext from '../components/UserContext'
-import LoadingSpinner from '../components/LoadingSpinner'
-import NoteAuthors from '../components/NoteAuthors'
-import NoteReaders from '../components/NoteReaders'
-import NoteContent from '../components/NoteContent'
+import LegacyForum from '../components/forum/LegacyForum'
 import withError from '../components/withError'
 import api from '../lib/api-client'
-import { auth, isSuperUser } from '../lib/auth'
-import {
-  prettyId, inflect, forumDate, getConferenceName,
-} from '../lib/utils'
+import { auth } from '../lib/auth'
+import { getConferenceName } from '../lib/utils'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
-// Page Styles
-import '../styles/pages/forum.less'
-
-const ForumTitle = ({
-  id, title, pdf, html,
-}) => (
-  <div className="title_pdf_row">
-    <h2 className="note_content_title citation_title">
-      {title}
-
-      {pdf && (
-        // eslint-disable-next-line react/jsx-no-target-blank
-        <a className="note_content_pdf citation_pdf_url" href={`/pdf?id=${id}`} title="Download PDF" target="_blank">
-          <img src="/images/pdf_icon_blue.svg" alt="Download PDF" />
-        </a>
-      )}
-      {html && (
-        <a className="note_content_pdf html-link" href={html} title="Open Website" target="_blank" rel="noopener noreferrer">
-          <img src="/images/html_icon_blue.svg" alt="Open Website" />
-        </a>
-      )}
-    </h2>
-  </div>
-)
-
-const ForumAuthors = ({
-  authors, authorIds, signatures, original,
-}) => (
-  <div className="meta_row">
-
-    <h3 className="signatures author">
-      <NoteAuthors
-        authors={authors}
-        authorIds={authorIds}
-        signatures={signatures}
-        original={original}
-      />
-    </h3>
-  </div>
-)
-
-const ForumMeta = ({ note }) => (
-  <div className="meta_row">
-    <span className="date item">
-      {forumDate(note.cdate, note.tcdatem, note.mdate, note.tmdate, note.content.year)}
-    </span>
-
-    {note.content.venue ? (
-      <span className="item">{note.content.venue}</span>
-    ) : (
-      <span className="item">{prettyId(note.invitation)}</span>
-    )}
-
-    {note.readers && (
-      <span className="item">
-        Readers:
-        {' '}
-        <NoteReaders readers={note.readers} />
-      </span>
-    )}
-  </div>
-)
-
-const ForumReplyCount = ({ count }) => (
-  <div className="reply_row clearfix">
-    <div className="item" id="reply_count">{inflect(count, 'Reply', 'Replies', true)}</div>
-  </div>
-)
-
-const Forum = ({ forumNote, query, appContext }) => {
-  const { user, userLoading } = useContext(UserContext)
+const ForumPage = ({ forumNote, query, appContext }) => {
   const { clientJsLoading, setBannerContent } = appContext
-  const { id, content, details } = forumNote
+  const { id, content } = forumNote
 
   const truncatedTitle = truncate(content.title, { length: 70, separator: /,? +/ })
   const truncatedAbstract = truncate(content['TL;DR'] || content.abstract, { length: 200, separator: /,? +/ })
@@ -111,17 +35,8 @@ const Forum = ({ forumNote, query, appContext }) => {
     }
   }, [forumNote, query])
 
-  // Load and execute legacy forum code
-  useEffect(() => {
-    if (clientJsLoading || userLoading) return
-
-    // eslint-disable-next-line global-require
-    const runForum = require('../client/forum')
-    runForum(id, query.noteId, query.invitationId, user)
-  }, [clientJsLoading, user, JSON.stringify(authors), userLoading]) // authors is reset when clientJsLoading turns false
-
   return (
-    <div className="forum-container">
+    <>
       <Head>
         <title key="title">{`${content.title || 'Forum'} | OpenReview`}</title>
         <meta name="description" content={content['TL;DR'] || content.abstract || ''} />
@@ -158,47 +73,22 @@ const Forum = ({ forumNote, query, appContext }) => {
         )}
       </Head>
 
-      <div className="note">
-        <ForumTitle
-          id={id}
-          title={content.title}
-          pdf={content.pdf}
-          html={content.html || content.ee}
-        />
-
-        <ForumAuthors
-          authors={content.authors}
-          authorIds={content.authorids}
-          signatures={forumNote.signatures}
-          original={details.original}
-        />
-
-        <ForumMeta note={forumNote} />
-
-        <NoteContent
-          id={id}
-          content={content}
-          invitation={details.originalInvitation || details.invitation}
-        />
-
-        <ForumReplyCount count={details.replyCount} />
-      </div>
-
-      <hr />
-
-      <div id="note_children">
-        <LoadingSpinner />
-      </div>
-    </div>
+      <LegacyForum
+        forumNote={forumNote}
+        selectedNoteId={query.noteId}
+        selectedInvitationId={query.invitationId}
+        clientJsLoading={clientJsLoading}
+      />
+    </>
   )
 }
 
-Forum.getInitialProps = async (ctx) => {
+ForumPage.getInitialProps = async (ctx) => {
   if (!ctx.query.id) {
     return { statusCode: 400, message: 'Forum ID is required' }
   }
 
-  const { user, token } = auth(ctx)
+  const { token } = auth(ctx)
   const shouldRedirect = async (noteId) => {
     // if it is the original of a blind submission, do redirection
     const blindNotesResult = await api.get('/notes', { original: noteId }, { accessToken: token })
@@ -261,6 +151,6 @@ Forum.getInitialProps = async (ctx) => {
   }
 }
 
-Forum.bodyClass = 'forum'
+ForumPage.bodyClass = 'forum'
 
-export default withError(Forum)
+export default withError(ForumPage)

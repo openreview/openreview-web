@@ -2,14 +2,14 @@
 
 import { useContext, useState } from 'react'
 import copy from 'copy-to-clipboard'
-import NoteContent from './NoteContent'
-import NoteEditorForm from './NoteEditorForm'
+import NoteContent from '../NoteContent'
+import NoteEditorForm from '../NoteEditorForm'
 import ForumReplyContext from './ForumReplyContext'
 import {
   prettyId, prettyInvitationId, buildNoteTitle, forumDate,
-} from '../lib/utils'
-import { getInvitationColors } from '../lib/forum-utils'
-import Icon from './Icon'
+} from '../../lib/utils'
+import { getInvitationColors } from '../../lib/forum-utils'
+import Icon from '../Icon'
 
 export default function ForumReply({ note, replies }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
