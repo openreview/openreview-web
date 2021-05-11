@@ -531,6 +531,113 @@ module.exports = (function() {
   };
 
   // search filtering related functions
+  class TreeNode {
+    constructor(value, left, right) {
+      this.value = value
+      this.left = left
+      this.right = right
+    }
+  }
+  // parse search query to a tree
+  const queryToTree = (queryParam) => {
+    let currentOperand = null
+    let middleOfOperand = false
+    let stuffInBrackets = ''
+    let query = queryParam.trim()
+    const tokens = [...query]
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i];
+      if (t === 'A') {
+        if (`A${tokens[i + 1]}${tokens[i + 2]}` === 'AND') {
+          if (middleOfOperand) {
+            currentOperand += 'AND'
+            i = i + 2
+            continue
+          } else {
+            if (stuffInBrackets.length) {
+              return new TreeNode('AND', queryToTree(stuffInBrackets), queryToTree(query.slice(i + 3)))
+            } else {
+              return new TreeNode('AND', currentOperand, queryToTree(query.slice(i + 3)))
+            }
+          }
+        } else {
+          currentOperand ? currentOperand += t : currentOperand = t
+        }
+      }
+      if (t === 'O') {
+        if (`O${tokens[i + 1]}` === 'OR') {
+          if (middleOfOperand) {
+            currentOperand += 'OR'
+            i = i + 1
+            continue
+          } else {
+            if (stuffInBrackets.length) {
+              return new TreeNode('OR', queryToTree(stuffInBrackets), queryToTree(query.slice(i + 2)))
+            } else {
+              return new TreeNode('OR', currentOperand, queryToTree(query.slice(i + 2)))
+            }
+          }
+        } else {
+          currentOperand ? currentOperand += t : currentOperand = t
+        }
+      }
+      else if (t === '(') {
+        if (middleOfOperand) {
+          currentOperand += t
+        } else {
+          const lengthToRightBracket = getRightBracketIndex(query.slice(i + 1))
+          stuffInBrackets = query.slice(i + 1, i + lengthToRightBracket + 1)
+          i = i + lengthToRightBracket + 1
+          if (i === query.length - 1) return queryToTree(query.slice(1, -1))//no more expression
+          continue
+        }
+      }
+      else if (t === '"' || t==="'") {
+        middleOfOperand = !middleOfOperand
+      } else {
+        currentOperand ? currentOperand += t : currentOperand = t
+      }
+    }
+    return currentOperand
+  }
+
+  //find index of match right bracket
+  const getRightBracketIndex = (remainingQuery) => {
+    let bracketLevel = 0
+    let middleOfOperand = false
+    const tokens = [...remainingQuery]
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i];
+      if (t === ')') {
+        if (bracketLevel === 0) {
+          return i
+        } else {
+          bracketLevel -= 1
+        }
+      }
+      if (t === '(') {
+        if (!middleOfOperand) {
+          bracketLevel += 1
+        }
+      }
+      if (t === '"') {
+        middleOfOperand = !middleOfOperand
+      }
+    }
+  }
+
+  const filterTreeNode = (collections, treeNode, filterOperators, propertiesAllowed, uniqueIdentifier) => {
+    if (treeNode instanceof TreeNode) {
+      return combineResults(
+        filterTreeNode(collections, treeNode.left, filterOperators, propertiesAllowed, uniqueIdentifier),
+        filterTreeNode(collections, treeNode.right, filterOperators, propertiesAllowed, uniqueIdentifier),
+        treeNode.value, uniqueIdentifier
+      )
+    }
+    // single expression
+    return filterOneOperand(collections, treeNode, filterOperators, propertiesAllowed)
+  }
+
   // extract invidividual filter string and relation(AND,OR) from search filter string
   const stringToOperands = (filterString, filterOperators) => {
     const operands = [];
@@ -589,14 +696,16 @@ module.exports = (function() {
   const operandToPropertyValue = (operandPram, filterOperators) => {
     const operand = operandPram.trim()
     const filterOperator = filterOperators.find(p => operand.includes(p))
+    if (!filterOperator) throw new Error('operator is invalid')
     const [property, value] = operand.split(filterOperator)
     return {
-      property, value: value.replace(/"/g, ''), filterOperator
+      property:property.trim(), value: value.replace(/"/g, '').trim(), filterOperator
     }
   }
 
   const evaluateOperator = (operator, propertyValue, targetValue) => {
     // propertyValue can be number/array/string/obj
+    let isString = false
     if (!propertyValue || !targetValue) return false
     if (typeof(propertyValue)==='object' && !Array.isArray(propertyValue)){ // reviewers are objects
       propertyValue = Object.values(propertyValue).map(p=>p.name.toString().toLowerCase())
@@ -605,11 +714,12 @@ module.exports = (function() {
     if (!(typeof (propertyValue) === 'number' && typeof (targetValue) === 'number') && !Array.isArray(propertyValue)) {
       propertyValue = propertyValue.toString().toLowerCase()
       targetValue = targetValue.toString().toLowerCase()
+      isString = true
     }
     switch (operator) {
       case '=':
         if (Array.isArray(propertyValue)) return propertyValue.includes(targetValue)
-        return propertyValue === targetValue
+        return isString ? propertyValue.includes(targetValue) : propertyValue === targetValue
       case '>': return propertyValue > targetValue
       case '<': return propertyValue < targetValue
       case '>=': return propertyValue >= targetValue
@@ -661,24 +771,13 @@ module.exports = (function() {
   }
 
   const filterCollections = (collections, filterString, filterOperators, propertiesAllowed, uniqueIdentifier) => {
-    const { operands, operators } = stringToOperands(filterString, filterOperators)
-    if (operands.length !== operators.length + 1) {
-      console.log('something wrong with operands or operators')
-      console.log({
-        operands, operators
-      })
+    try {
+      const syntaxTree = queryToTree(filterString)
+      const filterResult = filterTreeNode(collections, syntaxTree, filterOperators, propertiesAllowed, uniqueIdentifier)
+      return { filteredRows: filterResult }
+    } catch (error) {
       return { filteredRows: collections, queryIsInvalid: true }
     }
-    let filterResult = []
-    for (let i = 0; i < (operators.length === 0 ? 1 : operators.length); i++) {
-      const operand1 = operands[i]
-      const operand2 = operands[i + 1]
-      const operator = operators[i]
-      operand1FilterResult = i === 0 ? filterOneOperand(collections, operand1, filterOperators, propertiesAllowed) : filterResult
-      operand2FilterResult = filterOneOperand(collections, operand2, filterOperators, propertiesAllowed)
-      filterResult = combineResults(operand1FilterResult, operand2FilterResult, operator, uniqueIdentifier)
-    }
-    return { filteredRows:filterResult }
   }
 
   // Deprecated
