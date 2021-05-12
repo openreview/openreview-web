@@ -85,5 +85,6 @@ const GroupInfo = ({ appContext }) => {
     </>
   )
 }
+GroupInfo.bodyClass = 'group'
 
 export default GroupInfo
