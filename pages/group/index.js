@@ -60,9 +60,8 @@ Group.getInitialProps = async (ctx) => {
     return { statusCode: 400, message: 'Group ID is required' }
   }
 
-  // TODO: remove this redirect when all group editor links have been changed
-  if (ctx.query.mode === 'edit') {
-    const redirectUrl = `/group/edit?id=${ctx.query.id}`
+  const redirectToEditOrInfoMode = (mode) => {
+    const redirectUrl = `/group/${mode}?id=${ctx.query.id}`
     if (ctx.req) {
       ctx.res.writeHead(302, { Location: redirectUrl }).end()
     } else {
@@ -70,23 +69,16 @@ Group.getInitialProps = async (ctx) => {
     }
   }
 
-  const generateWebfieldCode = (group, user, mode) => {
-    const groupTitle = prettyId(group.id)
-    const isGroupWritable = group.details?.writable
-    const infoModeEnabled = mode === 'info'
-    const showModeBanner = isGroupWritable || infoModeEnabled
+  // TODO: remove this redirect when all group editor links have been changed
+  if (ctx.query.mode === 'edit' || ctx.query.mode === 'info') {
+    redirectToEditOrInfoMode(ctx.query.mode)
+  }
 
+  const generateWebfieldCode = (group, user) => {
     const webfieldCode = group.web || `
 Webfield.ui.setup($('#group-container'), '${group.id}');
 Webfield.ui.header('${prettyId(group.id)}')
   .append('<p><em>Nothing to display</em></p>');`
-
-    const infoCode = (infoModeEnabled || !group.web) && `
-Webfield.ui.setup('#group-container', group.id);
-Webfield.ui.header('${groupTitle}');
-Webfield.ui.groupInfo(group, {
-  container: '#notes'
-});`
 
     const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
     const groupObjSlim = omit(group, ['web'])
@@ -104,9 +96,8 @@ $(function() {
   };
 
   $('#group-container').empty();
-  ${showModeBanner ? 'Webfield.editModeBanner(group.id, args.mode);' : ''}
 
-  ${infoCode || webfieldCode}
+  ${webfieldCode}
 });
 //# sourceURL=webfieldCode.js`
   }
@@ -119,6 +110,9 @@ $(function() {
       return { statusCode: 404, message: 'Group not found' }
     }
 
+    if (!group.web) {
+      redirectToEditOrInfoMode('info')
+    }
     // Old HTML webfields are no longer supported
     if (group.web?.includes('<script type="text/javascript">')) {
       return {
