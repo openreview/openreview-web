@@ -96,6 +96,7 @@ $(function() {
   };
 
   $('#group-container').empty();
+  ${group.details?.writable ? 'Webfield.editModeBanner(group.id, args.mode);' : ''}
 
   ${webfieldCode}
 });
