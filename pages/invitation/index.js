@@ -5,15 +5,15 @@ import omit from 'lodash/omit'
 import without from 'lodash/without'
 import Head from 'next/head'
 import Router from 'next/router'
-import LoadingSpinner from '../components/LoadingSpinner'
-import WebfieldContainer from '../components/WebfieldContainer'
-import withError from '../components/withError'
-import api from '../lib/api-client'
-import { auth, isSuperUser } from '../lib/auth'
-import { prettyId } from '../lib/utils'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import WebfieldContainer from '../../components/WebfieldContainer'
+import withError from '../../components/withError'
+import api from '../../lib/api-client'
+import { auth, isSuperUser } from '../../lib/auth'
+import { prettyId } from '../../lib/utils'
 
 // Page Styles
-import '../styles/pages/invitation.less'
+import '../../styles/pages/invitation.less'
 
 const Invitation = ({ invitationId, webfieldCode, appContext }) => {
   const { setBannerHidden, clientJsLoading } = appContext
@@ -28,7 +28,7 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
 
     window.moment = require('moment')
     require('moment-timezone')
-    window.datetimepicker = require('../client/bootstrap-datetimepicker-4.17.47.min')
+    window.datetimepicker = require('../../client/bootstrap-datetimepicker-4.17.47.min')
 
     const script = document.createElement('script')
     script.innerHTML = webfieldCode
