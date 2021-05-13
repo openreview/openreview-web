@@ -2947,11 +2947,7 @@ module.exports = (function() {
     var pageType = window.location.pathname.toLowerCase().indexOf('group') !== -1 ? 'group' : 'invitation';
     var buttonText = mode === 'default' ? 'Edit' : 'View';
     var buttonUrl;
-    if (pageType === 'group') {
-      buttonUrl = (mode === 'default' ? '/group/edit' : '/group') + '?id=' + groupOrInvitationId;
-    } else {
-      buttonUrl = window.location.pathname + '?id=' + groupOrInvitationId + '&mode=' + otherMode;
-    }
+    buttonUrl = (mode === 'default' ? `/${pageType}/edit` : `/${pageType}`) + '?id=' + groupOrInvitationId;
     var messageHtml = '<span class="important_message profile-flash-message">' +
       'Currently showing ' + pageType + ' in ' + mode + ' mode &nbsp;' +
       '<a href="' + buttonUrl + '" class="btn btn-xs btn-primary toggle-profile-mode">' +
