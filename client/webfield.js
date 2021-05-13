@@ -562,6 +562,7 @@ module.exports = (function() {
           }
         } else {
           currentOperand ? currentOperand += t : currentOperand = t
+          continue
         }
       }
       if (t === 'O') {
@@ -579,6 +580,7 @@ module.exports = (function() {
           }
         } else {
           currentOperand ? currentOperand += t : currentOperand = t
+          continue
         }
       }
       else if (t === '(') {
@@ -771,6 +773,7 @@ module.exports = (function() {
   }
 
   const filterCollections = (collections, filterString, filterOperators, propertiesAllowed, uniqueIdentifier) => {
+    console.log(collections[0])
     try {
       const syntaxTree = queryToTree(filterString)
       const filterResult = filterTreeNode(collections, syntaxTree, filterOperators, propertiesAllowed, uniqueIdentifier)
