@@ -416,32 +416,8 @@ export default function Forum({ forumNote, clientJsLoading }) {
         tagInvitations={forumInvitations?.tagInvitations}
       />
 
-      {repliesLoaded && (
-        <div className="filters-container mt-3">
-          {replyForumViews && (
-            <FilterTabs forumViews={replyForumViews} />
-          )}
-
-          {filterOptions && (
-            <FilterForm
-              forumId={id}
-              selectedFilters={selectedFilters}
-              setSelectedFilters={setSelectedFilters}
-              filterOptions={filterOptions}
-              sort={sort}
-              setSort={setSort}
-              layout={layout}
-              setLayout={setLayout}
-              setCollapseLevel={setCollapseLevel}
-              numReplies={details.replyCount}
-              numRepliesHidden={numRepliesHidden}
-            />
-          )}
-        </div>
-      )}
-
       {forumInvitations?.commonInvitations.length > 0 && (
-        <div className="invitations-container mt-3">
+        <div className="invitations-container">
           <div className="invitation-buttons">
             <span className="hint">Add:</span>
             {forumInvitations.commonInvitations.map(invitation => (
@@ -465,6 +441,30 @@ export default function Forum({ forumNote, clientJsLoading }) {
           />
 
           <hr />
+        </div>
+      )}
+
+      {repliesLoaded && (
+        <div className="filters-container mt-3">
+          {replyForumViews && (
+            <FilterTabs forumViews={replyForumViews} />
+          )}
+
+          {filterOptions && (
+            <FilterForm
+              forumId={id}
+              selectedFilters={selectedFilters}
+              setSelectedFilters={setSelectedFilters}
+              filterOptions={filterOptions}
+              sort={sort}
+              setSort={setSort}
+              layout={layout}
+              setLayout={setLayout}
+              setCollapseLevel={setCollapseLevel}
+              numReplies={details.replyCount}
+              numRepliesHidden={numRepliesHidden}
+            />
+          )}
         </div>
       )}
 

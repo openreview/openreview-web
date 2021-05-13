@@ -85,90 +85,84 @@ function ForumNote({
         </h3>
       </div>
 
-      <ForumMeta note={note} />
+      <div className="clearfix mb-1">
+        <ForumMeta note={note} />
+
+        <div className="invitation-buttons">
+          {showInvitationButtons && (
+            <span className="hint">Add:</span>
+          )}
+          {originalInvitations?.map((invitation) => {
+            let buttonText = prettyInvitationId(invitation.id)
+            let options = { original: true }
+            if (buttonText === 'Revision' && invitation.multiReply === false && invitation.details.repliedNotes?.length) {
+              buttonText = 'Edit Revision'
+              options = { revision: true }
+            }
+            return (
+              <button
+                key={invitation.id}
+                type="button"
+                className="btn btn-xs"
+                onClick={() => openNoteEditor(invitation, options)}
+              >
+                {buttonText}
+              </button>
+            )
+          })}
+
+          {referenceInvitations?.map(invitation => (
+            <button
+              key={invitation.id}
+              type="button"
+              className="btn btn-xs"
+              onClick={() => openNoteEditor(invitation)}
+            >
+              {prettyInvitationId(invitation.id)}
+            </button>
+          ))}
+
+          {canEdit && !pastDue && (
+            <>
+              <button
+                type="button"
+                className="btn btn-xs"
+                onClick={() => {
+                  const invitation = note.details.originalWritable
+                    ? note.details.originalInvitation
+                    : note.details.invitation
+                  const options = note.details.originalWritable ? { original: true } : {}
+                  openNoteEditor(invitation, options)
+                }}
+              >
+                <Icon name="edit" />
+              </button>
+              <button
+                type="button"
+                className="btn btn-xs"
+                onClick={() => {}}
+              >
+                <Icon name="trash" />
+              </button>
+            </>
+          )}
+          {canEdit && pastDue && (
+            <button
+              type="button"
+              className="btn btn-xs"
+              onClick={() => {}}
+            >
+              Restore
+            </button>
+          )}
+        </div>
+      </div>
 
       <NoteContent
         id={id}
         content={content}
         invitation={details.originalInvitation || details.invitation}
       />
-
-      {(showInvitationButtons || canEdit) && (
-        <div className="revision-invitations-container mb-4">
-          <div className="invitation-buttons">
-            {showInvitationButtons && (
-              <span className="hint">Add:</span>
-            )}
-            {originalInvitations?.map((invitation) => {
-              let buttonText = prettyInvitationId(invitation.id)
-              let options = { original: true }
-              if (buttonText === 'Revision' && invitation.multiReply === false && invitation.details.repliedNotes?.length) {
-                buttonText = 'Edit Revision'
-                options = { revision: true }
-              }
-              return (
-                <button
-                  key={invitation.id}
-                  type="button"
-                  className="btn btn-xs"
-                  onClick={() => openNoteEditor(invitation, options)}
-                >
-                  {buttonText}
-                </button>
-              )
-            })}
-
-            {referenceInvitations?.map(invitation => (
-              <button
-                key={invitation.id}
-                type="button"
-                className="btn btn-xs"
-                onClick={() => openNoteEditor(invitation)}
-              >
-                {prettyInvitationId(invitation.id)}
-              </button>
-            ))}
-
-            {canEdit && !pastDue && (
-              <>
-                <button
-                  type="button"
-                  className="btn btn-xs"
-                  onClick={() => {
-                    const invitation = note.details.originalWritable
-                      ? note.details.originalInvitation
-                      : note.details.invitation
-                    const options = note.details.originalWritable ? { original: true } : {}
-                    openNoteEditor(invitation, options)
-                  }}
-                >
-                  <Icon name="edit" />
-                  {' '}
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-xs"
-                  onClick={() => {}}
-                >
-                  <Icon name="trash" />
-                  {' '}
-                  Delete
-                </button>
-              </>
-            )}
-            {canEdit && pastDue && (
-              <button
-                type="button"
-                className="btn btn-xs"
-                onClick={() => {}}
-              >
-                Restore
-              </button>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -203,7 +197,7 @@ function ForumTitle({
 
 function ForumMeta({ note }) {
   return (
-    <div className="forum-meta mb-2">
+    <div className="forum-meta">
       <span className="date item">
         <Icon name="calendar" />
         {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year)}
@@ -221,6 +215,14 @@ function ForumMeta({ note }) {
         </span>
       )}
 
+      {note.details.revisions && (
+        <span className="item">
+          <Link href={`/revisions?id=${note.id}`}>
+            <a>Revisions</a>
+          </Link>
+        </span>
+      )}
+
       {/* eslint-disable-next-line no-underscore-dangle */}
       {note.content._bibtex && (
         <span className="item">
@@ -232,16 +234,8 @@ function ForumMeta({ note }) {
             // eslint-disable-next-line no-underscore-dangle
             data-bibtex={encodeURIComponent(note.content._bibtex)}
           >
-            Show Bibtex
+            Show BibTeX
           </a>
-        </span>
-      )}
-
-      {note.details.revisions && (
-        <span className="item">
-          <Link href={`/revisions?id=${note.id}`}>
-            <a>Show Revisions</a>
-          </Link>
         </span>
       )}
     </div>

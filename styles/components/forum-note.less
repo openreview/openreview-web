@@ -43,10 +43,13 @@
   }
 
   .forum-meta {
+    float: left;
+    margin-top: .125rem;
+    margin-bottom: .125rem;
     .item {
       font-size: .75rem;
       color: @subtleGray;
-      padding-right: 1.25rem;
+      padding-right: 1rem;
       margin: 0;
     }
     .glyphicon {
@@ -59,6 +62,20 @@
       margin-right: .875rem;
       line-height: normal;
       color: @subtleGray;
+    }
+  }
+
+  .invitation-buttons {
+    float: right;
+    text-align: right;
+    > span {
+      line-height: 26px;
+    }
+    button {
+      margin-left: .375rem;
+      .glyphicon {
+        padding-right: 2px;
+      }
     }
   }
 
@@ -96,18 +113,7 @@
 
   .revision-invitations-container {
     margin-top: .375rem;
-    .invitation-buttons {
-      text-align: right;
-      > span {
-        line-height: 26px;
-      }
-      button {
-        margin-left: .375rem;
-        .glyphicon {
-          padding-right: 2px;
-        }
-      }
-    }
+
   }
 
 }
