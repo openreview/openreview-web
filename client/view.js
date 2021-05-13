@@ -3321,14 +3321,20 @@ module.exports = (function() {
             return $.Deferred().reject('no_results');
           }
 
-          var groupIds = _.map(result.groups, function(group) {
-            return {
-              id: group.id,
-              description: prettyId(group.id) + (group.members.length == 1 ? (' (' + prettyId(group.members[0]) + ')') : '')
+          var uniquePrettyIds = {};
+          var dropdownListOptions = [];
+          _.forEach(result.groups, function(group) {
+            var prettyGroupId = prettyId(group.id);
+            if (!(prettyGroupId in uniquePrettyIds)) {
+              dropdownListOptions.push({
+                id: group.id,
+                description: prettyGroupId + ((!group.id.startsWith('~') && group.members.length == 1) ? (' (' + prettyId(group.members[0]) + ')') : '')
+              });
+              uniquePrettyIds[prettyGroupId] = group.id;
             }
           });
           $signatures = mkDropdownList(
-            'signatures', fieldDescription.description, currentVal, groupIds, true
+            'signatures', fieldDescription.description, currentVal, dropdownListOptions, true
           );
           return $signatures;
         }, function(jqXhr, error) {
