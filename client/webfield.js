@@ -640,59 +640,6 @@ module.exports = (function() {
     return filterOneOperand(collections, treeNode, filterOperators, propertiesAllowed)
   }
 
-  // extract invidividual filter string and relation(AND,OR) from search filter string
-  const stringToOperands = (filterString, filterOperators) => {
-    const operands = [];
-    const operators = [];
-    const filterStringArray = filterString.split(" ");
-    let middleOfOperand = false;
-    let currentOperand = null;
-    for (let i = 0; i < filterStringArray.length; i++) {
-      let element = filterStringArray[i];
-      if (["AND", "OR"].includes(element)) {
-        if (!middleOfOperand) { // operand finished
-          operators.push(element)
-          if (currentOperand) operands.push(currentOperand)
-          currentOperand = null
-        } else {
-          currentOperand = `${currentOperand}${element} `
-        }
-        continue
-      }
-      if (!middleOfOperand) {
-        if ((element.split('"').length - 1) % 2 === 1) { // multi part operand
-          currentOperand = `${element} `
-          middleOfOperand = true
-          continue
-        } else {
-          currentOperand = `${element} `
-        }
-      }
-      if (middleOfOperand) {
-        if ((element.split('"').length - 1) % 2 === 1) { // end of multi part operand
-          currentOperand = `${currentOperand}${element}`
-          middleOfOperand = false
-          operands.push(currentOperand)
-          currentOperand = null
-        } else {
-          currentOperand = `${currentOperand}${element} `
-        }
-      }
-      if (filterStringArray.length - i === 1 && currentOperand) operands.push(currentOperand)
-    }
-    if (!operands.every(p => filterOperators.some(q => p.includes(q)))) {
-      console.log(`search query ${filterString} can't be parsed.`)
-      return {
-        operands:[],
-        operators:[]
-      }
-    }
-    return {
-      operands,
-      operators
-    }
-  }
-
   // extract property to search, the expected value and how the value should be compared
   // like =,>,< from string of filtering criteria
   const operandToPropertyValue = (operandPram, filterOperators) => {
@@ -709,8 +656,8 @@ module.exports = (function() {
     // propertyValue can be number/array/string/obj
     let isString = false
     if (!propertyValue || !targetValue) return false
-    if (typeof(propertyValue)==='object' && !Array.isArray(propertyValue)){ // reviewers are objects
-      propertyValue = Object.values(propertyValue).map(p=>p.name.toString().toLowerCase())
+    if (typeof (propertyValue) === 'object' && !Array.isArray(propertyValue)) { // reviewers are objects
+      propertyValue = Object.values(propertyValue).map(p => p.name.toString().toLowerCase())
       targetValue = targetValue.toString().toLowerCase()
     }
     if (!(typeof (propertyValue) === 'number' && typeof (targetValue) === 'number') && !Array.isArray(propertyValue)) {
@@ -718,17 +665,26 @@ module.exports = (function() {
       targetValue = targetValue.toString().toLowerCase()
       isString = true
     }
+    const allowGreaterLessComparison = typeof propertyValue === 'string' && typeof targetValue === 'string'
     switch (operator) {
       case '=':
-        if (Array.isArray(propertyValue)) return propertyValue.includes(targetValue)
+        if (Array.isArray(propertyValue)) return propertyValue.some(p => p.toString().toLowerCase().includes(targetValue.toString().toLowerCase()))
         return isString ? propertyValue.includes(targetValue) : propertyValue === targetValue
-      case '>': return propertyValue > targetValue
-      case '<': return propertyValue < targetValue
-      case '>=': return propertyValue >= targetValue
-      case '<=': return propertyValue <= targetValue
+      case '>':
+        if (allowGreaterLessComparison) return propertyValue > targetValue
+        throw new Error('operator is invalid')
+      case '<':
+        if (allowGreaterLessComparison) return propertyValue < targetValue
+        throw new Error('operator is invalid')
+      case '>=':
+        if (allowGreaterLessComparison) return propertyValue >= targetValue
+        throw new Error('operator is invalid')
+      case '<=':
+        if (allowGreaterLessComparison) return propertyValue <= targetValue
+        throw new Error('operator is invalid')
       case '!=': return propertyValue !== targetValue
       default:
-        return true
+        throw new Error('operator is invalid')
     }
   }
 
@@ -736,7 +692,7 @@ module.exports = (function() {
   const filterOneOperand = (collections, operand, filterOperators, propertiesAllowed) => {
     if (!operand || operand.trim().length === 0) return null
     const { property, value, filterOperator } = operandToPropertyValue(operand, filterOperators)
-    if (!propertiesAllowed[property]) return collections
+    if (!propertiesAllowed[property]) throw new Error('property is invalid')
     const propertyPath = propertiesAllowed[property].length === 0
       ? [property] // not a nested property
       : propertiesAllowed[property].map(p => p.split('.')) // has dot or match multiple properties
@@ -773,7 +729,6 @@ module.exports = (function() {
   }
 
   const filterCollections = (collections, filterString, filterOperators, propertiesAllowed, uniqueIdentifier) => {
-    console.log(collections[0])
     try {
       const syntaxTree = queryToTree(filterString)
       const filterResult = filterTreeNode(collections, syntaxTree, filterOperators, propertiesAllowed, uniqueIdentifier)
