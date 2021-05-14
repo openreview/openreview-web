@@ -3328,7 +3328,7 @@ module.exports = (function() {
             if (!(prettyGroupId in uniquePrettyIds)) {
               dropdownListOptions.push({
                 id: group.id,
-                description: prettyGroupId + ((!group.id.startsWith('~') && group.members.length == 1) ? (' (' + prettyId(group.members[0]) + ')') : '')
+                description: prettyGroupId + ((!group.id.startsWith('~') && group.members && group.members.length == 1) ? (' (' + prettyId(group.members[0]) + ')') : '')
               });
               uniquePrettyIds[prettyGroupId] = group.id;
             }
