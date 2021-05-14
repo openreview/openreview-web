@@ -10,7 +10,7 @@ import LoadingSpinner from './LoadingSpinner'
 import UserContext from './UserContext'
 
 export default function NoteEditorForm({
-  invitation, note, forumId, replyToId,
+  invitation, note, forumId, replyToId, loadingIndicator,
   onNoteCreated, onNoteEdited, onNoteCancelled, onLoad, onValidate, onError,
 }) {
   const [loading, setLoading] = useState(true)
@@ -82,8 +82,9 @@ export default function NoteEditorForm({
   return (
     <div className="note-editor-container">
       {loading && (
-        <LoadingSpinner inline />
+        typeof loadingIndicator === 'object' ? loadingIndicator : <LoadingSpinner inline />
       )}
+
       <div ref={containerRef} />
     </div>
   )

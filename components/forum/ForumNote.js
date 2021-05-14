@@ -53,6 +53,13 @@ function ForumNote({
     }
     setActiveNote(noteToEdit ?? note)
     setActiveInvitation(activeInvitation ? null : invitation)
+    window.scrollTo(0, 0)
+  }
+
+  const closeNoteEditor = () => {
+    setActiveInvitation(null)
+    setActiveNote(null)
+    window.scrollTo(0, 0)
   }
 
   if (activeInvitation) {
@@ -62,10 +69,8 @@ function ForumNote({
           note={activeNote}
           invitation={activeInvitation}
           onNoteEdited={() => { setActiveInvitation(null); window.location.reload() }}
-          onNoteCancelled={() => { setActiveInvitation(null) }}
+          onNoteCancelled={closeNoteEditor}
         />
-
-        <hr />
       </div>
     )
   }
@@ -217,6 +222,7 @@ function ForumMeta({ note }) {
 
       {note.details.revisions && (
         <span className="item">
+          <Icon name="duplicate" />
           <Link href={`/revisions?id=${note.id}`}>
             <a>Revisions</a>
           </Link>
