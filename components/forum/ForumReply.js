@@ -12,8 +12,9 @@ import {
 import { getInvitationColors } from '../../lib/forum-utils'
 import Icon from '../Icon'
 
-export default function ForumReply({ note, replies }) {
+export default function ForumReply({ note, replies, updateNote }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
+  const [activeEditInvitation, setActiveEditInvitation] = useState(null)
   const { forumId, displayOptionsMap, setCollapsed } = useContext(ForumReplyContext)
 
   const {
@@ -24,10 +25,6 @@ export default function ForumReply({ note, replies }) {
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
   const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
   const showInvitationButtons = note.replyInvitations?.length > 0 || note.referenceInvitations?.length > 0
-
-  const openNoteEditor = (inv) => {
-    setActiveInvitation(inv)
-  }
 
   if (collapsed) {
     // Collapsed reply
@@ -61,7 +58,43 @@ export default function ForumReply({ note, replies }) {
         </div>
 
         {!allRepliesHidden && (
-          <NoteReplies replies={replies} />
+          <NoteReplies replies={replies} updateNote={updateNote} />
+        )}
+      </ReplyContainer>
+    )
+  }
+
+  if (activeEditInvitation) {
+    return (
+      <ReplyContainer
+        id={note.id}
+        hidden={hidden && allRepliesHidden}
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+      >
+        <NoteEditorForm
+          note={note.details.originalWritable ? note.details.original : note}
+          invitation={activeEditInvitation}
+          onNoteEdited={(newNote) => {
+            setActiveEditInvitation(null)
+            updateNote({
+              ...note,
+              content: {
+                ...note.content,
+                ...newNote.content,
+              },
+            })
+          }}
+          onNoteCancelled={() => {
+            setActiveEditInvitation(null)
+          }}
+        />
+
+        {!allRepliesHidden && (
+          <>
+            <hr />
+            <NoteReplies replies={replies} updateNote={updateNote} />
+          </>
         )}
       </ReplyContainer>
     )
@@ -90,8 +123,8 @@ export default function ForumReply({ note, replies }) {
           <button
             key={inv.id}
             type="button"
-            className={`btn btn-xs ${activeInvitation?.id === inv.id ? 'active' : ''}`}
-            onClick={() => setActiveInvitation(inv)}
+            className={`btn btn-xs ${activeEditInvitation?.id === inv.id ? 'active' : ''}`}
+            onClick={() => setActiveEditInvitation(inv)}
           >
             {prettyInvitationId(inv.id)}
           </button>
@@ -106,8 +139,7 @@ export default function ForumReply({ note, replies }) {
                 const editInvitation = note.details.originalWritable
                   ? note.details.originalInvitation
                   : note.details.invitation
-                const options = note.details.originalWritable ? { original: true } : {}
-                openNoteEditor(editInvitation, options)
+                setActiveEditInvitation(editInvitation)
               }}
             >
               <Icon name="edit" />
@@ -190,7 +222,10 @@ export default function ForumReply({ note, replies }) {
             forumId={forumId}
             invitation={activeInvitation}
             replyToId={note.id}
-            onNoteCreated={() => { window.location.reload() }}
+            onNoteCreated={(newNote) => {
+              setActiveEditInvitation(null)
+              updateNote(newNote, note.id)
+            }}
             onNoteCancelled={() => { setActiveInvitation(null) }}
             onError={() => { setActiveInvitation(null) }}
           />
@@ -198,7 +233,7 @@ export default function ForumReply({ note, replies }) {
       )}
 
       {!allRepliesHidden && (
-        <NoteReplies replies={replies} />
+        <NoteReplies replies={replies} updateNote={updateNote} />
       )}
     </ReplyContainer>
   )
@@ -261,7 +296,7 @@ function NoteContentCollapsible({
   )
 }
 
-function NoteReplies({ replies }) {
+function NoteReplies({ replies, updateNote }) {
   if (!replies?.length) return null
 
   return (
@@ -271,6 +306,7 @@ function NoteReplies({ replies }) {
           key={childNote.id}
           note={childNote}
           replies={[]}
+          updateNote={updateNote}
         />
       ))}
     </div>

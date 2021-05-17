@@ -231,6 +231,29 @@ export default function Forum({ forumNote, clientJsLoading }) {
     }
   }
 
+  const updateReplyNote = (newNote, parentId) => {
+    const noteId = newNote.id
+    const currentNote = replyNoteMap[noteId] ?? {}
+    setReplyNoteMap({
+      ...replyNoteMap,
+      [noteId]: formatNote({
+        ...currentNote,
+        ...newNote,
+      }),
+    })
+
+    if (isEmpty(currentNote)) {
+      setDisplayOptionsMap({
+        ...displayOptionsMap,
+        [noteId]: { collapsed: false, contentExpanded: false, hidden: false },
+      })
+      setParentMap({
+        ...parentMap,
+        [parentId]: parentMap[parentId] ? [...parentMap[parentId], noteId] : [noteId],
+      })
+    }
+  }
+
   const addTopLevelReply = (note) => {
     setActiveInvitation(null)
     setReplyNoteMap({ ...replyNoteMap, [note.id]: formatNote(note, activeInvitation) })
@@ -486,9 +509,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
                   key={reply.id}
                   note={replyNoteMap[reply.id]}
                   replies={reply.replies.map(childId => replyNoteMap[childId])}
-                  commonInvitations={forumInvitations?.commonInvitations}
-                  activeInvitation={activeInvitation}
-                  setActiveInvitation={setActiveInvitation}
+                  updateNote={updateReplyNote}
                 />
               )) : (
                 <LoadingSpinner inline />
