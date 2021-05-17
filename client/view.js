@@ -1422,7 +1422,7 @@ module.exports = (function() {
       contentInputResult = mkPdfSection(fieldDescription, fieldValue);
 
     } else if (fieldName === 'authorids' && (
-      (_.has(fieldDescription, 'values-regex') && fieldDescription['values-regex'].indexOf('~.*') !== -1) ||
+      (_.has(fieldDescription, 'values-regex') && isTildeIdAllowed(fieldDescription['values-regex'])) ||
       _.has(fieldDescription, 'values')
     )) {
       var authors;
@@ -1440,7 +1440,7 @@ module.exports = (function() {
       // Don't enable adding or removing authors if invitation uses 'values' instead of values-regex
       contentInputResult = valueInput(
         mkSearchProfile(authors, authorids, {
-          allowUserDefined: invitationRegex && invitationRegex.indexOf('~.*|') !== -1,
+          allowUserDefined: invitationRegex && invitationRegex.includes('|'),
           allowAddRemove: !!invitationRegex
         }),
         'authors',
@@ -2697,6 +2697,10 @@ module.exports = (function() {
     return first && last && (first.length + last.length > 2);
   };
 
+  var isTildeIdAllowed = function(regex) {
+    return regex.indexOf('~.*') !== -1 || regex.indexOf('^~\\S+$') !== -1;
+  };
+
   var validate = function(invitation, content, readersWidget) {
     var errorList = [];
     var replyContent = invitation.reply.content;
@@ -2778,7 +2782,7 @@ module.exports = (function() {
         inputVal = idsFromListAdder($contentMap[k], ret);
 
       } else if (k === 'authorids' && (
-        (contentObj['values-regex'] && contentObj['values-regex'].indexOf('~.*') !== -1) || contentObj['values']
+        (contentObj['values-regex'] && isTildeIdAllowed(contentObj['values-regex'])) || contentObj['values']
       )) {
         ret.authorids = [];
         ret.authors = [];
