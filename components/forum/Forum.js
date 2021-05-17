@@ -27,6 +27,7 @@ import '../../styles/components/forum.less'
 
 export default function Forum({ forumNote, clientJsLoading }) {
   const { userLoading, accessToken } = useUser()
+  const [parentNote, setParentNote] = useState(forumNote)
   const [replyNoteMap, setReplyNoteMap] = useState(null)
   const [parentMap, setParentMap] = useState(null)
   const [displayOptionsMap, setDisplayOptionsMap] = useState(null)
@@ -42,8 +43,8 @@ export default function Forum({ forumNote, clientJsLoading }) {
   const router = useRouter()
   const query = useQuery()
 
-  const { id, details } = forumNote
-  const { replyForumViews } = details.invitation
+  const { id, details } = parentNote
+  const replyForumViews = details.invitation?.replyForumViews
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
 
   const numRepliesHidden = displayOptionsMap
@@ -101,7 +102,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
     const referenceInvitations = invitations.filter((invitation) => {
       // Check if invitation is replying to this note
       const isInvitationRelated = invitation.reply.referent === id
-        || invitation.reply.referentInvitation === forumNote.invitation
+        || invitation.reply.referentInvitation === parentNote.invitation
       return isInvitationRelated && invitation.details.repliesAvailable
     })
 
@@ -119,7 +120,10 @@ export default function Forum({ forumNote, clientJsLoading }) {
     const numberWildcard = /(Reviewer|Area_Chair)(\d+)/g
     notes.forEach((note) => {
       // Don't include forum note
-      if (note.id === note.forum) return
+      if (note.id === note.forum) {
+        setParentNote({ ...note, details: { ...parentNote.details, ...note.details } })
+        return
+      }
 
       const noteInvitations = invitations.filter((invitation) => {
         // Check if invitation is replying to this note
@@ -257,7 +261,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
         readers: null,
         excludedReaders: null,
         keywords: null,
-        ...parseFilterQuery(replaceFilterWildcards(tab.filter, forumNote), tab.keywords),
+        ...parseFilterQuery(replaceFilterWildcards(tab.filter, parentNote), tab.keywords),
       })
       if (tab.layout) {
         setLayout(tab.layout)
@@ -410,7 +414,8 @@ export default function Forum({ forumNote, clientJsLoading }) {
   return (
     <div className="forum-container">
       <ForumNote
-        note={forumNote}
+        note={parentNote}
+        updateNote={setParentNote}
         referenceInvitations={forumInvitations?.referenceInvitations}
         originalInvitations={forumInvitations?.originalInvitations}
         tagInvitations={forumInvitations?.tagInvitations}

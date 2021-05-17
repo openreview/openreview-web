@@ -116,7 +116,7 @@ ForumPage.getInitialProps = async (ctx) => {
 
   try {
     const { notes } = await api.get('/notes', {
-      id: ctx.query.id, trash: true, details: 'original,invitation,revisions,replyCount,writable,tags',
+      id: ctx.query.id, trash: true, details: 'original,replyCount,writable',
     }, { accessToken: token })
 
     const note = notes?.length > 0 ? notes[0] : null

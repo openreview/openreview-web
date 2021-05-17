@@ -2041,7 +2041,7 @@ module.exports = (function() {
 
     // Link to comment button
     var $linkButton = null;
-    if (forumId !== note.id && $('#content').hasClass('forum')) {
+    if (forumId !== note.id && $('#content').hasClass('legacy-forum')) {
       var commentUrl = location.origin + '/forum?id=' + forumId + '&noteId=' + note.id;
       $linkButton = $('<button class="btn btn-xs btn-default permalink-button" title="Link to this comment" data-permalink-url="' + commentUrl + '">' +
         '<span class="glyphicon glyphicon-link" aria-hidden="true"></span></button>');
@@ -2051,7 +2051,7 @@ module.exports = (function() {
     var $trashButton = null;
     var $editButton = null;
     var $actionButtons = null;
-    if ($('#content').hasClass('forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
+    if ($('#content').hasClass('legacy-forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
       var canEdit = (details.original && details.originalWritable) || (!details.originalWritable && details.writable);
 
       if (canEdit && params.onTrashedOrRestored) {

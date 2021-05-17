@@ -11,7 +11,7 @@ import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
 import '../../styles/components/forum-note.less'
 
 function ForumNote({
-  note, referenceInvitations, originalInvitations, tagInvitations,
+  note, updateNote, referenceInvitations, originalInvitations, tagInvitations,
 }) {
   const {
     id, content, details, signatures,
@@ -68,7 +68,10 @@ function ForumNote({
         <NoteEditorForm
           note={activeNote}
           invitation={activeInvitation}
-          onNoteEdited={() => { setActiveInvitation(null); window.location.reload() }}
+          onNoteEdited={(newNote) => {
+            updateNote({ ...note, content: { ...note.content, ...newNote.content } })
+            closeNoteEditor()
+          }}
           onNoteCancelled={closeNoteEditor}
         />
       </div>
@@ -76,7 +79,7 @@ function ForumNote({
   }
 
   return (
-    <div className={`forum-note ${pastDue ? 'trashed' : ''} ${texDisabled ? 'disable-tex-rendering' : ''}`}>
+    <div className={`forum-note ${pastDue ? 'trashed' : ''} ${texDisabled ? 'disable-tex-rendering' : ''} ${canEdit ? 'editable' : ''}`}>
       <ForumTitle
         id={id}
         title={content.title}
