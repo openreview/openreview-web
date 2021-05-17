@@ -476,6 +476,10 @@ module.exports = (function() {
     }
 
     var dropdownOptions = _.map(values, function(value) {
+      if (value.id && value.description) {
+        return value;
+      }
+
       return {
         id: value,
         description: prettyId(value)
@@ -483,6 +487,10 @@ module.exports = (function() {
     });
 
     var alwaysHaveValues = _.map(params.alwaysHaveValues, function (value) {
+      if (value.id && value.description) {
+        return value;
+      }
+
       return {
         id: value,
         description: prettyId(value),
@@ -1355,16 +1363,21 @@ module.exports = (function() {
       );
     }
 
-    if (values.length === 1) {
-      $input.append(mkHoverItem(prettyId(values[0]),values[0]).addClass('list_adder_list'));
+    var dropdownOptions = _.map(values, function(value) {
+      if (value.id && value.description) {
+        return value;
+      }
+      return {
+        id: value,
+        description: prettyId(value)
+      };
+    });
+
+
+    if (dropdownOptions.length === 1) {
+      $input.append(mkHoverItem(dropdownOptions[0].description, dropdownOptions[0].id).addClass('list_adder_list'));
 
     } else {
-      var dropdownOptions = _.map(values, function(value) {
-        return {
-          id: value,
-          description: prettyId(value)
-        };
-      });
 
       var selectedValue = _.find(dropdownOptions, ['id', fieldValue]);
 
@@ -1409,7 +1422,7 @@ module.exports = (function() {
       contentInputResult = mkPdfSection(fieldDescription, fieldValue);
 
     } else if (fieldName === 'authorids' && (
-      (_.has(fieldDescription, 'values-regex') && fieldDescription['values-regex'].indexOf('~.*') !== -1) ||
+      (_.has(fieldDescription, 'values-regex') && isTildeIdAllowed(fieldDescription['values-regex'])) ||
       _.has(fieldDescription, 'values')
     )) {
       var authors;
@@ -1427,7 +1440,7 @@ module.exports = (function() {
       // Don't enable adding or removing authors if invitation uses 'values' instead of values-regex
       contentInputResult = valueInput(
         mkSearchProfile(authors, authorids, {
-          allowUserDefined: invitationRegex && invitationRegex.indexOf('~.*|') !== -1,
+          allowUserDefined: invitationRegex && invitationRegex.includes('|'),
           allowAddRemove: !!invitationRegex
         }),
         'authors',
@@ -2115,6 +2128,11 @@ module.exports = (function() {
         '<span class="private-author-label">(privately revealed to you)</span>'
       );
     }
+    if (note.readers.length == 1 && note.readers[0].indexOf('~') === 0 && note.readers[0] == note.signatures[0]) {
+      $contentAuthors.append(
+        '<span class="private-author-label">(visible only to you)</span>'
+      );
+    }
 
     var $revisionsLink = (params.withRevisionsLink && details.revisions) ?
       $('<a>', { class: 'note_content_pdf item', href: '/revisions?id=' + note.id, text: 'Show Revisions' }) :
@@ -2679,6 +2697,10 @@ module.exports = (function() {
     return first && last && (first.length + last.length > 2);
   };
 
+  var isTildeIdAllowed = function(regex) {
+    return regex.indexOf('~.*') !== -1 || regex.indexOf('^~\\S+$') !== -1;
+  };
+
   var validate = function(invitation, content, readersWidget) {
     var errorList = [];
     var replyContent = invitation.reply.content;
@@ -2760,7 +2782,7 @@ module.exports = (function() {
         inputVal = idsFromListAdder($contentMap[k], ret);
 
       } else if (k === 'authorids' && (
-        (contentObj['values-regex'] && contentObj['values-regex'].indexOf('~.*') !== -1) || contentObj['values']
+        (contentObj['values-regex'] && isTildeIdAllowed(contentObj['values-regex'])) || contentObj['values']
       )) {
         ret.authorids = [];
         ret.authors = [];
@@ -3156,7 +3178,7 @@ module.exports = (function() {
       });
     } else if (_.has(fieldDescription, 'values-dropdown')) {
       var values = fieldDescription['values-dropdown'];
-      var extraGroupsP = $.Deferred().resolve();
+      var extraGroupsP = $.Deferred().resolve([]);
       var regexIndex = _.findIndex(values, function(g) { return g.indexOf('.*') >=0; });
       if (regexIndex >= 0) {
         var regex = values[regexIndex];
@@ -3168,10 +3190,11 @@ module.exports = (function() {
           } else {
             fieldDescription['values-dropdown'].splice(regexIndex, 1);
           }
+          return result.groups;
         });
       }
       extraGroupsP
-        .then(function() {
+        .then(function(groups) {
           setParentReaders(replyto, fieldDescription, 'values-dropdown', function (newFieldDescription) {
             //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
             var replyValues = _.intersection(newFieldDescription['values-dropdown'], fieldDescription['values-dropdown']);
@@ -3191,6 +3214,16 @@ module.exports = (function() {
             if (_.difference(newFieldDescription.default, newFieldDescription['values-dropdown']).length !== 0) { //invitation default is not in list of possible values
               done(undefined, 'Default reader is not in the list of readers');
             }
+            // Make the descriptions for anonids
+            var groupsById = _.keyBy(groups, 'id');
+            newFieldDescription['values-dropdown'] = newFieldDescription['values-dropdown'].map(function(value) {
+              var group = groupsById[value];
+              var extraDescription = '';
+              if (group && group.members.length) {
+                extraDescription = ' (' + prettyId(group.members[0]) + ')'
+              }
+              return { id: value, description: prettyId(value) + extraDescription }
+            });
             var $readers = mkComposerInput('readers', newFieldDescription, fieldValue);
             $readers.find('.small_heading').prepend(requiredText);
             done($readers);
@@ -3292,9 +3325,20 @@ module.exports = (function() {
             return $.Deferred().reject('no_results');
           }
 
-          var groupIds = _.map(result.groups, 'id');
+          var uniquePrettyIds = {};
+          var dropdownListOptions = [];
+          _.forEach(result.groups, function(group) {
+            var prettyGroupId = prettyId(group.id);
+            if (!(prettyGroupId in uniquePrettyIds)) {
+              dropdownListOptions.push({
+                id: group.id,
+                description: prettyGroupId + ((!group.id.startsWith('~') && group.members && group.members.length == 1) ? (' (' + prettyId(group.members[0]) + ')') : '')
+              });
+              uniquePrettyIds[prettyGroupId] = group.id;
+            }
+          });
           $signatures = mkDropdownList(
-            'signatures', fieldDescription.description, currentVal, groupIds, true
+            'signatures', fieldDescription.description, currentVal, dropdownListOptions, true
           );
           return $signatures;
         }, function(jqXhr, error) {

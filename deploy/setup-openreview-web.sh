@@ -5,7 +5,7 @@ apt-get update
 # Install Node version manager
 sudo -u openreview bash -c 'cd ~/ && wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash'
 # Install current Node version used in OpenReview
-sudo -u openreview bash -c 'cd ~/ && export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && nvm install 14.11.0'
+sudo -u openreview bash -c 'cd ~/ && export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && nvm install 14.16.1'
 # Install PM2
 sudo -u openreview bash -c 'cd ~/ && export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && npm install -g pm2'
 # Create folder to store deploy script
