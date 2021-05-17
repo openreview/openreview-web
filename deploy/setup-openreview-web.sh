@@ -23,6 +23,9 @@ sudo -u openreview bash -c 'sudo apt-get -y update && sudo apt-get install -y go
 sudo -u openreview bash -c 'gsutil cp gs://openreview-files/conf/deploy-web.sh /home/openreview/bin/'
 # Deploy
 sudo -u openreview bash -c 'cd ~/ && export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && bash /home/openreview/bin/deploy-web.sh'
+# This step is necessary for PM2 to work with Nextjs
+sudo -u openreview bash -c 'cd ~/ && pm2 kill'
+sudo -u openreview bash -c 'cd ~/deploy/openreview-web/current && export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && pm2 start ecosystem.json --env production'
 # Create and start openreview service
 sudo -u openreview bash -c 'gsutil cp gs://openreview-files/conf/openreview-web.service /home/openreview/bin/'
 sudo -u openreview bash -c 'sudo cp /home/openreview/bin/openreview-web.service /lib/systemd/system'
