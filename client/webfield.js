@@ -665,7 +665,7 @@ module.exports = (function() {
       targetValue = targetValue.toString().toLowerCase()
       isString = true
     }
-    const allowGreaterLessComparison = typeof propertyValue === 'string' && typeof targetValue === 'string'
+    const allowGreaterLessComparison = !(typeof propertyValue === 'string' && typeof targetValue === 'string')
     switch (operator) {
       case '=':
         if (Array.isArray(propertyValue)) return propertyValue.some(p => p.toString().toLowerCase().includes(targetValue.toString().toLowerCase()))
