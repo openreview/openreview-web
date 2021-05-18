@@ -9,6 +9,7 @@ import api from '../lib/api-client'
 export default function FeedbackModal() {
   const defaultText = 'Enter your feedback below and we\'ll get back to you as soon as possible.'
   const [text, setText] = useState(defaultText)
+  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const formRef = useRef(null)
   const { accessToken } = useContext(UserContext)
@@ -20,15 +21,19 @@ export default function FeedbackModal() {
   }
 
   const sendFeedback = async (bodyData) => {
+    setSubmitting(true)
+
     try {
-      const result = await api.put('/feedback', bodyData, { accessToken })
+      await api.put('/feedback', bodyData, { accessToken })
       setError(null)
       setText('Your feedback has been submitted. Thank you.')
       setTimeout(() => {
         $('#feedback-modal').modal('hide')
+        setSubmitting(false)
       }, 2500)
     } catch (apiError) {
       setError({ message: apiError.message })
+      setSubmitting(false)
     }
   }
 
@@ -48,6 +53,7 @@ export default function FeedbackModal() {
       title="Send Feedback"
       primaryButtonText="Send"
       onPrimaryButtonClick={submitForm}
+      primaryButtonDisabled={submitting}
       onClose={resetForm}
     >
       <p>{text}</p>
