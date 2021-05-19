@@ -780,7 +780,7 @@ module.exports = (function() {
           return '<span class="' + className + '">' + match + '</span>';
         };
       };
-      return $('<a>', { href: '/profile?id=' + tildeId, target: '_blank' }).append(
+      return $('<a>', { href: '/profile?id=' + tildeId, target: '_blank', "data-tildeid":tildeId }).append(
         tildeId
           .replace(/[^~_0-9]+/g, setClass('black'))
           .replace(/[~_0-9]+/g, setClass('light-gray'))
@@ -2787,7 +2787,8 @@ module.exports = (function() {
         ret.authorids = [];
         ret.authors = [];
         $contentMap.authorids.find('.author-row').each(function() {
-          var authorid = $(this).find('.author-fullname').text();
+          var authoridStored = $(this).find('.author-fullname>a').data('tildeid')
+          var authorid = authoridStored ?? $(this).find('.author-fullname').text() // text() may add extra space
           // If it does the field .author-fullname does not start with a tilde
           // it means that the name was user defined and should be placed in the authors field
           // Also the authorid would be the email
