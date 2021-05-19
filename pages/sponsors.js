@@ -83,7 +83,11 @@ export default function Sponsors({ sponsors }) {
               <Sponsor name={sponsor.name} image={sponsor.image} size={2} />
             ))}
           </div>
-
+        </div>
+      </div>
+      <div className="row">
+        <div className="col-xs-12 col-md-10 col-md-offset-1">
+          <a href="https://donorbox.org/openreview">Donate</a>
         </div>
       </div>
     </div>
