@@ -309,12 +309,30 @@ const ExistingProfileForm = ({
 
 const ClaimProfileForm = ({ id, registerUser }) => {
   const [email, setEmail] = useState('')
+  const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
+  const [emailVisible, setEmailVisible] = useState(false)
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [recentPublications, setRecentPublications] = useState(null)
 
+  const validateFullName = () => {
+    // Compare the first and last words of the id and full name entered by the user
+    const idWords = id.toLowerCase().slice(1, -1).split('_')
+    const nameWords = fullName.toLowerCase().split(' ')
+    return `${nameWords[0]} ${nameWords.pop()}` === `${idWords[0]} ${idWords.pop()}`
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
+
+    if (!emailVisible) {
+      if (!validateFullName()) {
+        promptError('Your name must match the name of the profile you are claiming', { scrollToTop: false })
+        return
+      }
+      setEmailVisible(true)
+      return
+    }
 
     if (!passwordVisible) {
       setPasswordVisible(true)
@@ -353,15 +371,15 @@ const ClaimProfileForm = ({ id, registerUser }) => {
 
       <div>
         <input
-          type="email"
+          type="text"
           className="form-control"
-          placeholder="Your email address"
-          value={email}
+          placeholder="Your full name"
+          value={fullName}
           maxLength={254}
-          onChange={e => setEmail(e.target.value)}
+          onChange={e => setFullName(e.target.value)}
         />
-        {!passwordVisible && (
-          <button type="submit" className="btn" disabled={!isValidEmail(email)}>Claim Profile</button>
+        {!emailVisible && (
+          <button type="submit" className="btn" disabled={!fullName}>Claim Profile</button>
         )}
         <span className="new-username hint">
           for
@@ -369,6 +387,22 @@ const ClaimProfileForm = ({ id, registerUser }) => {
           <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
         </span>
       </div>
+
+      {emailVisible && (
+        <div className="pt-2">
+          <input
+            type="email"
+            className="form-control"
+            placeholder="Your email address"
+            value={email}
+            maxLength={254}
+            onChange={e => setEmail(e.target.value)}
+          />
+          {!passwordVisible && (
+            <button type="submit" className="btn" disabled={!isValidEmail(email)}>Claim Profile</button>
+          )}
+        </div>
+      )}
 
       {passwordVisible && (
         <div className="password-row">
