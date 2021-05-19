@@ -19,6 +19,14 @@ sudo -u openreview bash -c 'echo "deb [signed-by=/usr/share/keyrings/cloud.googl
 sudo -u openreview bash -c 'sudo apt-get install -y apt-transport-https ca-certificates gnupg'
 sudo -u openreview bash -c 'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -'
 sudo -u openreview bash -c 'sudo apt-get -y update && sudo apt-get install -y google-cloud-sdk'
+# Install Gcloud logger
+sudo -u openreview bash -c 'cd ~/ && curl -sSO https://dl.google.com/cloudagents/add-logging-agent-repo.sh'
+sudo -u openreview bash -c 'cd ~/ && sudo bash add-logging-agent-repo.sh'
+sudo -u openreview bash -c 'cd ~/ && sudo apt-get -y update'
+sudo -u openreview bash -c 'cd ~/ && sudo apt-get install google-fluentd'
+sudo -u openreview bash -c 'cd ~/ && sudo apt-get install -y google-fluentd-catch-all-config-structured'
+sudo -u openreview bash -c 'cd ~/ && sudo service google-fluentd start'
+sudo -u openreview bash -c 'cd ~/ && sudo rm add-logging-agent-repo.sh'
 # Retrieve deploy and conf files
 sudo -u openreview bash -c 'gsutil cp gs://openreview-files/conf/deploy-web.sh /home/openreview/bin/'
 # Deploy
