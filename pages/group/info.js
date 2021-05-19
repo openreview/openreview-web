@@ -1,10 +1,8 @@
 /* globals Webfield: false */
 
-import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 import ErrorDisplay from '../../components/ErrorDisplay'
-import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -13,13 +11,13 @@ import { prettyId } from '../../lib/utils'
 
 // Page Styles
 import '../../styles/pages/group.less'
+import useUser from '../../hooks/useUser'
 
 const GroupInfo = ({ appContext }) => {
-  const { accessToken, userLoading } = useLoginRedirect()
+  const { accessToken, userLoading } = useUser()
   const [error, setError] = useState(null)
   const [group, setGroup] = useState(null)
   const query = useQuery()
-  const router = useRouter()
   const { setBannerHidden, clientJsLoading } = appContext
   const containerRef = useRef(null)
 
@@ -40,7 +38,7 @@ const GroupInfo = ({ appContext }) => {
     if (!group || !containerRef || clientJsLoading) return
 
     Webfield.editModeBanner(group.id, 'info')
-    Webfield.ui.groupInfo({ ...group }, { container: containerRef.current })
+    Webfield.ui.groupInfo(group, { container: containerRef.current })
 
     // eslint-disable-next-line consistent-return
     return () => {

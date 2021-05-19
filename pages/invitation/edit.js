@@ -60,9 +60,9 @@ const InvitationEdit = ({ appContext }) => {
 
   useEffect(() => {
     if (!invitation || !containerRef || clientJsLoading) return
-    if (!window.moment) window.moment = require('moment')
-    if (typeof moment().tz === 'undefined') require('moment-timezone')
-    if (!window.datetimepicker) window.datetimepicker = require('../../client/bootstrap-datetimepicker-4.17.47.min')
+    window.moment = require('moment')
+    require('moment-timezone')
+    window.datetimepicker = require('../../client/bootstrap-datetimepicker-4.17.47.min')
 
     Webfield.editModeBanner(invitation.id, 'edit')
     Webfield.ui.invitationEditor(invitation, { container: containerRef.current, showProcessEditor: isSuperUser(user) })

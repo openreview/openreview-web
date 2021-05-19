@@ -81,7 +81,7 @@ Webfield.ui.header('${prettyId(group.id)}')
   .append('<p><em>Nothing to display</em></p>');`
 
     const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
-    const groupObjSlim = omit(group, ['web'])
+    const groupObjSlim = { id: group.id }
     return `// Webfield Code for ${groupObjSlim.id}
 window.user = ${JSON.stringify(userOrGuest)};
 $(function() {

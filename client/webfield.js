@@ -2943,11 +2943,9 @@ module.exports = (function() {
 
   var editModeBanner = function(groupOrInvitationId, mode) {
     mode = mode || 'default';
-    var otherMode = mode === 'default' ? 'edit' : 'default';
     var pageType = window.location.pathname.toLowerCase().indexOf('group') !== -1 ? 'group' : 'invitation';
     var buttonText = mode === 'default' ? 'Edit' : 'View';
-    var buttonUrl;
-    buttonUrl = (mode === 'default' ? `/${pageType}/edit` : `/${pageType}`) + '?id=' + groupOrInvitationId;
+    var buttonUrl = (mode === 'default' ? `/${pageType}/edit` : `/${pageType}`) + '?id=' + groupOrInvitationId;
     var messageHtml = '<span class="important_message profile-flash-message">' +
       'Currently showing ' + pageType + ' in ' + mode + ' mode &nbsp;' +
       '<a href="' + buttonUrl + '" class="btn btn-xs btn-primary toggle-profile-mode">' +

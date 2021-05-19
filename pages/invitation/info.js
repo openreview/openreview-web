@@ -1,20 +1,18 @@
 /* globals Webfield: false */
 
 import Head from 'next/head'
-import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import WebfieldContainer from '../../components/WebfieldContainer'
-import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
 const InvitationInfo = ({ appContext }) => {
   const query = useQuery()
-  const router = useRouter()
-  const { user, accessToken, userLoading } = useLoginRedirect()
+  const { accessToken, userLoading } = useUser()
   const { setBannerHidden, clientJsLoading } = appContext
 
   const [error, setError] = useState(null)
