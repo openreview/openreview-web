@@ -34,19 +34,21 @@ export default function EditEdgeToggle({
     }
   }
 
-  const getLabel = () => {
+  const getExistingEdgeLabel = () => {
     if (existingEdge?.label) return `${existingEdge.name}: ${existingEdge.label}${existingEdge?.weight ? `,${existingEdge.weight}` : ''}`
-    if (editEdgeTemplate?.label) return `${editEdgeTemplate.name}: ${editEdgeTemplate.label}${existingEdge?.weight ? `,${existingEdge.weight}` : ''}`
-    return `${editEdgeTemplate?.name}: ${existingEdge?.weight ?? ''}`
+    return `${existingEdge?.name}${existingEdge?.weight ? ` : ${existingEdge.weight}` : ''}`
   }
 
-  const getTooltip = () => {
-    if (isInviteInvitation) {
-      if (existingEdge) return 'Cancel Invite'
-      return 'Invite Reviewer'
+  const getNewEdgeButtonText = () => {
+    if (editEdgeTemplate?.label === 'Assign') return 'Assign'
+    return `${editEdgeTemplate?.name}`
+  }
+
+  const getNewEdgeLabel = () => {
+    if (editEdgeTemplate?.label) {
+      return `${editEdgeTemplate.label}${editEdgeTemplate?.weight ? `,${editEdgeTemplate.weight}` : ''}`
     }
-    if (existingEdge) return 'Delete Reviewer Assignment'
-    return 'Assign Reviewer'
+    return null
   }
 
   const handleLabelHover = (target) => {
@@ -61,17 +63,33 @@ export default function EditEdgeToggle({
 
   if (!existingEdge && !canAddEdge) return null
 
+  if (existingEdge) {
+    return (
+      <div className="edit-controls d-flex mt-1">
+        <label className="edit-edge-toggle-description" onMouseEnter={e => handleLabelHover(e.target)}>{getExistingEdgeLabel()}</label>
+        <button
+          type="button"
+          className={`btn btn-xs btn-default ml-1 edit-edge-toggle-btn ${(shouldDisableControl || loading) ? 'disable' : ''}`}
+          title={shouldDisableControl ? disableControlReason : getExistingEdgeLabel()}
+          onClick={addOrRemoveEdge}
+          autoComplete="off"
+        >
+          <Icon name="trash" extraClasses={shouldDisableControl || loading ? 'span-disabled' : null} />
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div className="edit-controls d-flex">
-      <label className="edit-edge-toggle-description" onMouseEnter={e => handleLabelHover(e.target)}>{getLabel()}</label>
+    <div className="edit-controls d-flex mt-1">
+      {getNewEdgeLabel() && <label className="edit-edge-toggle-description">{getNewEdgeLabel()}</label>}
       <button
         type="button"
-        className={`btn btn-xs btn-default ml-1 edit-edge-toggle-btn ${(shouldDisableControl || loading) ? 'disable' : ''}`}
-        title={shouldDisableControl ? disableControlReason : getLabel()}
+        className={`btn btn-xs btn-default edit-edge-toggle-btn ${(shouldDisableControl || loading) ? 'disable' : ''}`}
+        title={shouldDisableControl ? disableControlReason : undefined}
         onClick={addOrRemoveEdge}
-        autoComplete="off"
       >
-        <Icon name={existingEdge ? 'trash' : 'thumbs-up'} extraClasses={shouldDisableControl || loading ? 'span-disabled' : null} />
+        {getNewEdgeButtonText()}
       </button>
     </div>
   )

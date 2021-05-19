@@ -75,6 +75,17 @@ templates['committeeSummary'] = template({"1":function(container,depth0,helpers,
   return "        (<a href=\""
     + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"edgeBrowserRecsUrl") || (depth0 != null ? lookupProperty(depth0,"edgeBrowserRecsUrl") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"edgeBrowserRecsUrl","hash":{},"data":data,"loc":{"start":{"line":21,"column":18},"end":{"line":21,"column":40}}}) : helper)))
     + "\" class=\"show-reviewer-bids\" target=\"_blank\">view all</a>)\n";
+},"11":function(container,depth0,helpers,partials,data) {
+    var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "      Reviewer Assignments:\n      (<a href=\""
+    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"edgeBrowserAssignmentUrl") || (depth0 != null ? lookupProperty(depth0,"edgeBrowserAssignmentUrl") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"edgeBrowserAssignmentUrl","hash":{},"data":data,"loc":{"start":{"line":27,"column":16},"end":{"line":27,"column":44}}}) : helper)))
+    + "\" class=\"show-reviewer-assignments\" target=\"_blank\">view all</a>)\n";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -91,6 +102,8 @@ templates['committeeSummary'] = template({"1":function(container,depth0,helpers,
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"showBids") : depth0),{"name":"if","hash":{},"fn":container.program(5, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":10,"column":4},"end":{"line":16,"column":11}}})) != null ? stack1 : "")
     + "\n"
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"showRecommendations") : depth0),{"name":"if","hash":{},"fn":container.program(8, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":18,"column":4},"end":{"line":23,"column":11}}})) != null ? stack1 : "")
+    + "\n"
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"edgeBrowserAssignmentUrl") : depth0),{"name":"if","hash":{},"fn":container.program(11, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":25,"column":4},"end":{"line":28,"column":11}}})) != null ? stack1 : "")
     + "  </p>\n</div>\n";
 },"useData":true});
 templates['genericModal'] = template({"1":function(container,depth0,helpers,partials,data) {
@@ -234,8 +247,8 @@ templates['messageGroupMembersModal'] = template({"compiler":[8,">= 4.3.0"],"mai
     + alias4((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"recipientNames") : depth0),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":16,"column":10},"end":{"line":16,"column":33}}}))
     + "\n        </div>\n\n        <form id=\"message-group-members-form\" method=\"POST\">\n          <div class=\"form-group\">\n            <label for=\"subject\">Email Subject</label>\n            <input type=\"text\" name=\"subject\" class=\"form-control\" placeholder=\"Subject\" value=\""
     + alias4(((helper = (helper = lookupProperty(helpers,"defaultSubject") || (depth0 != null ? lookupProperty(depth0,"defaultSubject") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"defaultSubject","hash":{},"data":data,"loc":{"start":{"line":22,"column":96},"end":{"line":22,"column":114}}}) : helper)))
-    + "\" required>\n          </div>\n\n          <div class=\"form-group\">\n            <label for=\"message\">Email Body</label>\n            <textarea name=\"message\" class=\"form-control feedback-input\" rows=\"6\" placeholder=\"Message\" required>"
-    + alias4(((helper = (helper = lookupProperty(helpers,"defaultBody") || (depth0 != null ? lookupProperty(depth0,"defaultBody") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"defaultBody","hash":{},"data":data,"loc":{"start":{"line":27,"column":113},"end":{"line":27,"column":128}}}) : helper)))
+    + "\" required>\n          </div>\n\n          <div class=\"form-group\">\n            <label for=\"message\">Email Body</label>\n            <p class=\"hint\">Hint: You can personalize emails using template variables. The text {{firstname}} and {{fullname}} will automatically be replaced with the recipient's first or full name if they have an OpenReview profile. If a profile isn't found their email address will be used instead.</p>\n            <textarea name=\"message\" class=\"form-control feedback-input\" rows=\"6\" placeholder=\"Message\" required>"
+    + alias4(((helper = (helper = lookupProperty(helpers,"defaultBody") || (depth0 != null ? lookupProperty(depth0,"defaultBody") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"defaultBody","hash":{},"data":data,"loc":{"start":{"line":28,"column":113},"end":{"line":28,"column":128}}}) : helper)))
     + "</textarea>\n          </div>\n        </form>\n      </div>\n\n      <div class=\"modal-footer\">\n        <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Cancel</button>\n        <button type=\"button\" class=\"btn btn-primary\">Send Messages</button>\n      </div>\n    </div>\n  </div>\n</div>\n";
 },"useData":true});
 templates['messageReviewersModal'] = template({"1":function(container,depth0,helpers,partials,data) {
