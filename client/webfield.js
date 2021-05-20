@@ -2216,7 +2216,7 @@ module.exports = (function() {
     var id = invitation.id;
     return [
       '<li data-id="' + id + '">',
-        '<a href="/invitation?id=' + id + '&mode=edit">' + view.prettyId(id) + '</a>',
+        '<a href="/invitation/edit?id=' + id + '">' + view.prettyId(id) + '</a>',
       '</li>'
     ].join('\n');
   };
