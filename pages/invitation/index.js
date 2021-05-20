@@ -5,15 +5,15 @@ import omit from 'lodash/omit'
 import without from 'lodash/without'
 import Head from 'next/head'
 import Router from 'next/router'
-import LoadingSpinner from '../components/LoadingSpinner'
-import WebfieldContainer from '../components/WebfieldContainer'
-import withError from '../components/withError'
-import api from '../lib/api-client'
-import { auth, isSuperUser } from '../lib/auth'
-import { prettyId } from '../lib/utils'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import WebfieldContainer from '../../components/WebfieldContainer'
+import withError from '../../components/withError'
+import api from '../../lib/api-client'
+import { auth, isSuperUser } from '../../lib/auth'
+import { prettyId } from '../../lib/utils'
 
 // Page Styles
-import '../styles/pages/invitation.less'
+import '../../styles/pages/invitation.less'
 
 const Invitation = ({ invitationId, webfieldCode, appContext }) => {
   const { setBannerHidden, clientJsLoading } = appContext
@@ -28,7 +28,7 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
 
     window.moment = require('moment')
     require('moment-timezone')
-    window.datetimepicker = require('../client/bootstrap-datetimepicker-4.17.47.min')
+    window.datetimepicker = require('../../client/bootstrap-datetimepicker-4.17.47.min')
 
     const script = document.createElement('script')
     script.innerHTML = webfieldCode
@@ -68,33 +68,29 @@ Invitation.getInitialProps = async (ctx) => {
     return { statusCode: 400, message: 'Invitation ID is required' }
   }
 
+  const redirectToEditOrInfoMode = (mode) => {
+    const redirectUrl = `/invitation/${mode}?id=${ctx.query.id}`
+    if (ctx.req) {
+      ctx.res.writeHead(302, { Location: redirectUrl }).end()
+    } else {
+      Router.replace(redirectUrl)
+    }
+  }
+
+  if (ctx.query.mode === 'edit' || ctx.query.mode === 'info') {
+    redirectToEditOrInfoMode(ctx.query.mode)
+  }
+
   const generateWebfieldCode = (invitation, user, mode) => {
     const invitationTitle = prettyId(invitation.id)
-    const invitationObjSlim = omit(invitation, 'web', 'process', 'details')
+    const invitationObjSlim = omit(invitation, 'web', 'process', 'details', 'preprocess')
     const isInvitationWritable = invitation.details && invitation.details.writable
-    const editModeEnabled = mode === 'edit'
-    const infoModeEnabled = mode === 'info'
-    const showModeBanner = isInvitationWritable || infoModeEnabled
+    const showModeBanner = isInvitationWritable
 
     const webfieldCode = invitation.web || `
 Webfield.ui.setup($('#invitation-container'), '${invitation.id}');
 Webfield.ui.header('${prettyId(invitation.id)}')
   .append('<p><em>Nothing to display</em></p>');`
-
-    const editorCode = isInvitationWritable && editModeEnabled && `
-Webfield.ui.setup('#invitation-container', invitation.id);
-Webfield.ui.header('${invitationTitle}');
-Webfield.ui.invitationEditor(invitation, {
-  container: '#notes',
-  showProcessEditor: ${isSuperUser(user) ? 'true' : 'false'}
-});`
-
-    const infoCode = (infoModeEnabled || !invitation.web) && `
-Webfield.ui.setup('#invitation-container', invitation.id);
-Webfield.ui.header('${invitationTitle}');
-Webfield.ui.invitationInfo(invitation, {
-  container: '#notes'
-});`
 
     const noteParams = without(Object.keys(ctx.query), 'id', 'mode', 'referrer')
     const noteEditorCode = noteParams.length && `
@@ -169,7 +165,7 @@ $(function() {
   $('#invitation-container').empty();
   ${showModeBanner ? 'Webfield.editModeBanner(invitation.id, args.mode);' : ''}
 
-  ${editorCode || infoCode || noteEditorCode || webfieldCode}
+  ${noteEditorCode || webfieldCode}
 });
 //# sourceURL=webfieldCode.js`
   }
