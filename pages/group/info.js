@@ -25,7 +25,7 @@ const GroupInfo = ({ appContext }) => {
     try {
       const { groups } = await api.get('/groups', { id }, { accessToken })
       if (groups?.length > 0) {
-        setGroup(groups[0])
+        setGroup({ ...groups[0], web: null })
       } else {
         setError({ statusCode: 404, message: 'Group not found' })
       }

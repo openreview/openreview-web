@@ -23,7 +23,7 @@ const InvitationInfo = ({ appContext }) => {
     try {
       const { invitations } = await api.get('/invitations', { id: invitationId }, { accessToken })
       if (invitations?.length > 0) {
-        setInvitation(invitations[0])
+        setInvitation({ ...invitations[0], web: null })
       } else {
         setError({ statusCode: 404, message: 'Group not found' })
       }

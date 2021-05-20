@@ -29,7 +29,7 @@ export default function GroupEdit({ appContext }) {
       const { groups } = await api.get('/groups', { id }, { accessToken })
       if (groups?.length > 0) {
         if (groups[0].details?.writable) {
-          setGroup(groups[0])
+          setGroup({ ...groups[0], web: null })
         } else {
           // User is a reader, not a writer of the group, so redirect to info mode
           router.replace(`/group/info?id=${id}`)
@@ -59,7 +59,7 @@ export default function GroupEdit({ appContext }) {
     if (!group || !containerRef || clientJsLoading) return
 
     Webfield.editModeBanner(group.id, 'edit')
-    Webfield.ui.groupEditor({ ...group, web: null }, { container: containerRef.current })
+    Webfield.ui.groupEditor(group, { container: containerRef.current })
 
     // eslint-disable-next-line consistent-return
     return () => {

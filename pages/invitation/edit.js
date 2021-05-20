@@ -32,7 +32,7 @@ const InvitationEdit = ({ appContext }) => {
       const { invitations } = await api.get('/invitations', { id: invitationId }, { accessToken })
       if (invitations?.length > 0) {
         if (invitations[0].details?.writable) {
-          setInvitation(invitations[0])
+          setInvitation({ ...invitations[0], web: null })
         } else {
           // User is a reader, not a writer of the group, so redirect to info mode
           router.replace(`/invitation/info?id=${invitationId}`)
