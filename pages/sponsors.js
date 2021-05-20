@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import Link from 'next/link'
 
 // Page Styles
 import '../styles/pages/sponsors.less'
@@ -21,7 +22,7 @@ export default function Sponsors({ sponsors }) {
       <div className="row">
         <div className="col-xs-12 col-md-10 col-md-offset-1">
           <h1>OpenReview Sponsors</h1>
-          <h5>We gratefully acknowledge the support of the OpenReview sponsors:</h5>
+          <h5>We gratefully acknowledge the support of all our sponsors:</h5>
         </div>
       </div>
 
@@ -31,63 +32,66 @@ export default function Sponsors({ sponsors }) {
           <h2>Gold</h2>
           <div className="row">
             {sponsors.gold.map(sponsor => (
-              <Sponsor name={sponsor.name} image={sponsor.image} size={5} />
+              <Sponsor key={sponsor.name} name={sponsor.name} image={sponsor.image} size={6} />
             ))}
           </div>
 
           <h2>Silver</h2>
           <div className="row">
             {sponsors.silver.map(sponsor => (
-              <Sponsor name={sponsor.name} image={sponsor.image} size={4} />
+              <Sponsor key={sponsor.name} name={sponsor.name} image={sponsor.image} size={4} />
             ))}
           </div>
 
           <h2>Bronze</h2>
           <div className="row">
             {sponsors.bronze.map(sponsor => (
-              <Sponsor name={sponsor.name} image={sponsor.image} size={3} />
+              <Sponsor key={sponsor.name} name={sponsor.name} image={sponsor.image} size={3} />
             ))}
           </div>
 
           <h2>Benefactors</h2>
           <div className="row">
             {sponsors.benefactors.map(sponsor => (
-              <Sponsor name={sponsor.name} image={sponsor.image} size={3} />
+              <Sponsor key={sponsor.name} name={sponsor.name} image={sponsor.image} size={3} />
             ))}
           </div>
 
           <h2>Large Patrons</h2>
           <div className="row">
             {sponsors.large_patrons.map(sponsor => (
-              <Sponsor name={sponsor.name} image={sponsor.image} size={2} />
+              <Sponsor key={sponsor.name} name={sponsor.name} image={sponsor.image} size={2} />
             ))}
           </div>
 
           <h2>Small Patrons</h2>
           <div className="row">
             {sponsors.small_patrons.map(sponsor => (
-              <Sponsor name={sponsor.name} image={sponsor.image} size={2} />
+              <Sponsor key={sponsor.name} name={sponsor.name} image={sponsor.image} size={2} />
             ))}
           </div>
 
           <h2>Supporters</h2>
           <div className="row">
             {sponsors.supporters.map(sponsor => (
-              <Sponsor name={sponsor.name} image={sponsor.image} size={2} />
+              <Sponsor key={sponsor.name} name={sponsor.name} image={sponsor.image} size={2} />
             ))}
           </div>
 
           <h2>Friends</h2>
           <div className="row">
             {sponsors.friends.map(sponsor => (
-              <Sponsor name={sponsor.name} image={sponsor.image} size={2} />
+              <Sponsor key={sponsor.name} name={sponsor.name} image={sponsor.image} size={2} />
             ))}
           </div>
         </div>
       </div>
-      <div className="row">
-        <div className="col-xs-12 col-md-10 col-md-offset-1">
-          <a href="https://donorbox.org/openreview">Donate</a>
+
+      <div className="row mt-2 mb-4">
+        <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
+          <Link href="/donate">
+            <a className="btn btn-lg btn-primary">Donate to OpenReview</a>
+          </Link>
         </div>
       </div>
     </div>
