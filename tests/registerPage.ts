@@ -70,6 +70,7 @@ test('enter valid name invalid email and change to valid email and register', as
     .expect(passwordInputSelector.exists).ok()
     .typeText(passwordInputSelector, '1234')
     .click(signupButtonSelector)
+    .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(Selector('h1').withText('Thank You for Signing Up').exists)
     .ok()
     .expect(Selector('span').withAttribute('class', 'email').innerText)
