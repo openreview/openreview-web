@@ -18,7 +18,7 @@ export default function Sponsors({ sponsors }) {
       </Head>
 
       <div className="row">
-        <div className="col-xs-12 col-md-10 col-md-offset-1 mb-3">
+        <div className="col-xs-12 col-md-10 col-md-offset-1 mb-3 text-center">
           <h1>OpenReview Sponsors</h1>
           <h5>We gratefully acknowledge the support of all our sponsors:</h5>
         </div>
