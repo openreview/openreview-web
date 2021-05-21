@@ -102,7 +102,7 @@ export async function getStaticProps() {
       sponsors: {
         gold: [
           { name: 'Facebook', image: 'facebook.png' },
-          { name: 'UMass IESL', image: 'umass_iesl.png' },
+          { name: 'UMass IESL', image: 'umass_iesl2.png' },
         ],
         silver: [
           { name: 'Amazon', image: 'amazon.png' },
@@ -121,7 +121,7 @@ export async function getStaticProps() {
         large_patrons: [
           { name: 'MILA', image: 'mila.png' },
           { name: 'ICML', image: 'icml.png' },
-          { name: 'CVF', image: 'cvf.jpg' },
+          { name: 'CVF', image: 'cvf.png' },
         ],
         small_patrons: [
           { name: 'MIDL', image: 'midl.png' },
