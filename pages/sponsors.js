@@ -116,6 +116,7 @@ export async function getStaticProps() {
         ],
         benefactors: [
           { name: 'NeurIPS', image: 'neurips.png' },
+          { name: 'ICLR', image: 'iclr.png' },
           { name: 'CDS', image: 'cds.png' },
         ],
         large_patrons: [
