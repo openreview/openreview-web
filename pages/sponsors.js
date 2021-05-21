@@ -18,7 +18,7 @@ export default function Sponsors({ sponsors }) {
       </Head>
 
       <div className="row">
-        <div className="col-xs-12 col-md-10 col-md-offset-1 mb-3">
+        <div className="col-xs-12 col-md-10 col-md-offset-1 mb-3 text-center">
           <h1>OpenReview Sponsors</h1>
           <h5>We gratefully acknowledge the support of all our sponsors:</h5>
         </div>
@@ -102,7 +102,7 @@ export async function getStaticProps() {
       sponsors: {
         gold: [
           { name: 'Facebook', image: 'facebook.png' },
-          { name: 'UMass IESL', image: 'umass_iesl.png' },
+          { name: 'UMass IESL', image: 'umass_iesl2.png' },
         ],
         silver: [
           { name: 'Amazon', image: 'amazon.png' },
@@ -116,12 +116,13 @@ export async function getStaticProps() {
         ],
         benefactors: [
           { name: 'NeurIPS', image: 'neurips.png' },
+          { name: 'ICLR', image: 'iclr.png' },
           { name: 'CDS', image: 'cds.png' },
         ],
         large_patrons: [
           { name: 'MILA', image: 'mila.png' },
           { name: 'ICML', image: 'icml.png' },
-          { name: 'CVF', image: 'cvf.jpg' },
+          { name: 'CVF', image: 'cvf.png' },
         ],
         small_patrons: [
           { name: 'MIDL', image: 'midl.png' },
