@@ -10,6 +10,7 @@ import { useRouter } from 'next/router'
 import debounce from 'lodash/debounce'
 import UserContext from '../components/UserContext'
 import NoteList from '../components/NoteList'
+import BasicModal from '../components/BasicModal'
 import api from '../lib/api-client'
 import { isValidEmail } from '../lib/utils'
 
@@ -23,6 +24,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
   const [middleName, setMiddleName] = useState('')
   const [lastName, setLastName] = useState('')
   const [newUsername, setNewUsername] = useState('')
+  const [nameConfirmed, setNameConfirmed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [existingProfiles, setExistingProfiles] = useState([])
 
@@ -206,7 +208,8 @@ const SignupForm = ({ setSignupConfirmation }) => {
           }
           return formComponents.concat(<hr key={`${profile.id}-spacer`} className="spacer" />)
         })}
-        <NewProfileForm id={newUsername} registerUser={registerUser} />
+
+        <NewProfileForm id={newUsername} registerUser={registerUser} nameConfirmed={nameConfirmed} />
       </LoadingContext.Provider>
 
       {existingProfiles.length > 0 && (
@@ -219,6 +222,15 @@ const SignupForm = ({ setSignupConfirmation }) => {
           and we will assist you in merging your profiles.
         </p>
       )}
+
+      <ConfirmNameModal
+        name={`${firstName} ${middleName} ${lastName}`}
+        id={newUsername}
+        onConfirm={() => {
+          $('#confirm-name-modal').modal('hide')
+          setNameConfirmed(true)
+        }}
+      />
     </div>
   )
 }
@@ -309,12 +321,30 @@ const ExistingProfileForm = ({
 
 const ClaimProfileForm = ({ id, registerUser }) => {
   const [email, setEmail] = useState('')
+  const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
+  const [emailVisible, setEmailVisible] = useState(false)
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [recentPublications, setRecentPublications] = useState(null)
 
+  const validateFullName = () => {
+    // Compare the first and last words of the id and full name entered by the user
+    const idWords = id.toLowerCase().slice(1, -1).split('_')
+    const nameWords = fullName.toLowerCase().split(' ')
+    return `${nameWords[0]} ${nameWords.pop()}` === `${idWords[0]} ${idWords.pop()}`
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
+
+    if (!emailVisible) {
+      if (!validateFullName()) {
+        promptError('Your name must match the name of the profile you are claiming', { scrollToTop: false })
+        return
+      }
+      setEmailVisible(true)
+      return
+    }
 
     if (!passwordVisible) {
       setPasswordVisible(true)
@@ -353,15 +383,15 @@ const ClaimProfileForm = ({ id, registerUser }) => {
 
       <div>
         <input
-          type="email"
+          type="text"
           className="form-control"
-          placeholder="Your email address"
-          value={email}
+          placeholder="Your full name"
+          value={fullName}
           maxLength={254}
-          onChange={e => setEmail(e.target.value)}
+          onChange={e => setFullName(e.target.value)}
         />
-        {!passwordVisible && (
-          <button type="submit" className="btn" disabled={!isValidEmail(email)}>Claim Profile</button>
+        {!emailVisible && (
+          <button type="submit" className="btn" disabled={!fullName}>Claim Profile</button>
         )}
         <span className="new-username hint">
           for
@@ -369,6 +399,22 @@ const ClaimProfileForm = ({ id, registerUser }) => {
           <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
         </span>
       </div>
+
+      {emailVisible && (
+        <div className="pt-2">
+          <input
+            type="email"
+            className="form-control"
+            placeholder="Your email address"
+            value={email}
+            maxLength={254}
+            onChange={e => setEmail(e.target.value)}
+          />
+          {!passwordVisible && (
+            <button type="submit" className="btn" disabled={!isValidEmail(email)}>Claim Profile</button>
+          )}
+        </div>
+      )}
 
       {passwordVisible && (
         <div className="password-row">
@@ -388,7 +434,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
   )
 }
 
-const NewProfileForm = ({ id, registerUser }) => {
+const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
@@ -401,7 +447,7 @@ const NewProfileForm = ({ id, registerUser }) => {
       return
     }
 
-    registerUser('new', email, password)
+    $('#confirm-name-modal').modal('show')
   }
 
   useEffect(() => {
@@ -409,6 +455,12 @@ const NewProfileForm = ({ id, registerUser }) => {
       setPasswordVisible(false)
     }
   }, [id, email, passwordVisible])
+
+  useEffect(() => {
+    if (nameConfirmed) {
+      registerUser('new', email, password)
+    }
+  }, [nameConfirmed])
 
   return (
     <form className="form-inline" onSubmit={handleSubmit}>
@@ -465,6 +517,24 @@ const SubmitButton = ({ disabled, children }) => {
     </button>
   )
 }
+
+const ConfirmNameModal = ({ name, id, onConfirm }) => (
+  <BasicModal
+    id="confirm-name-modal"
+    title="Confirm Full Name"
+    primaryButtonText="Register"
+    onPrimaryButtonClick={onConfirm}
+  >
+    <p className="mb-3">You are registering with the name:</p>
+    <h3 className="mt-0 mb-3">{name}</h3>
+    <p className="mb-3">
+      {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+      Your public profile ID will be <strong>{id}</strong>.
+      If you need to change this name in the future you will have to contact OpenReview support.
+      Are you sure you want to register with this name?
+    </p>
+  </BasicModal>
+)
 
 const ConfirmationMessage = ({ registrationType, registeredEmail }) => {
   if (registrationType === 'reset') {
