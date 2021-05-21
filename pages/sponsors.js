@@ -70,14 +70,14 @@ export default function Sponsors({ sponsors }) {
           </div>
 
           <h2>Supporters</h2>
-          <div className="width-2 height-2">
+          <div className="width-1 height-1">
             {sponsors.supporters.map(sponsor => (
               <Sponsor key={sponsor.name} name={sponsor.name} image={sponsor.image} />
             ))}
           </div>
 
           <h2>Friends</h2>
-          <div className="width-2 height-2">
+          <div className="width-1 height-1">
             {sponsors.friends.map(sponsor => (
               <Sponsor key={sponsor.name} name={sponsor.name} image={sponsor.image} />
             ))}
