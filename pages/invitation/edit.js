@@ -1,39 +1,41 @@
+/* eslint-disable global-require */
 /* globals Webfield: false */
+/* globals moment: false */
 
-import { useEffect, useState, useRef } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import { useEffect, useRef, useState } from 'react'
 import ErrorDisplay from '../../components/ErrorDisplay'
-import WebfieldContainer from '../../components/WebfieldContainer'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import WebfieldContainer from '../../components/WebfieldContainer'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
 import { isSuperUser } from '../../lib/auth'
+import { prettyId } from '../../lib/utils'
 
 // Page Styles
-import '../../styles/pages/group.less'
+import '../../styles/pages/invitation.less'
 
-export default function GroupEdit({ appContext }) {
-  const { accessToken, userLoading, user } = useLoginRedirect()
-  const [group, setGroup] = useState(null)
-  const [error, setError] = useState(null)
-  const containerRef = useRef(null)
-
-  const router = useRouter()
+const InvitationEdit = ({ appContext }) => {
   const query = useQuery()
+  const router = useRouter()
+  const { user, accessToken, userLoading } = useLoginRedirect()
   const { setBannerHidden, clientJsLoading } = appContext
 
-  const loadGroup = async (id) => {
+  const [error, setError] = useState(null)
+  const [invitation, setInvitation] = useState(null)
+  const containerRef = useRef(null)
+
+  const loadInvitation = async (invitationId) => {
     try {
-      const { groups } = await api.get('/groups', { id }, { accessToken })
-      if (groups?.length > 0) {
-        if (groups[0].details?.writable) {
-          setGroup({ ...groups[0], web: null })
+      const { invitations } = await api.get('/invitations', { id: invitationId }, { accessToken })
+      if (invitations?.length > 0) {
+        if (invitations[0].details?.writable) {
+          setInvitation({ ...invitations[0], web: null })
         } else {
           // User is a reader, not a writer of the group, so redirect to info mode
-          router.replace(`/group/info?id=${id}`)
+          router.replace(`/invitation/info?id=${invitationId}`)
         }
       } else {
         setError({ statusCode: 404, message: 'Group not found' })
@@ -53,17 +55,17 @@ export default function GroupEdit({ appContext }) {
       return
     }
 
-    loadGroup(query.id)
+    loadInvitation(query.id)
   }, [userLoading, query])
 
   useEffect(() => {
-    if (!group || !containerRef || clientJsLoading) return
+    if (!invitation || !containerRef || clientJsLoading) return
+    window.moment = require('moment')
+    require('moment-timezone')
+    window.datetimepicker = require('../../client/bootstrap-datetimepicker-4.17.47.min')
 
-    Webfield.editModeBanner(group.id, 'edit')
-    Webfield.ui.groupEditor(group, {
-      container: containerRef.current,
-      isSuperUser: isSuperUser(user),
-    })
+    Webfield.editModeBanner(invitation.id, 'edit')
+    Webfield.ui.invitationEditor(invitation, { container: containerRef.current, showProcessEditor: isSuperUser(user) })
 
     // eslint-disable-next-line consistent-return
     return () => {
@@ -72,21 +74,21 @@ export default function GroupEdit({ appContext }) {
         document.getElementById('flash-message-container').style.display = 'none'
       }
     }
-  }, [clientJsLoading, containerRef, group])
+  }, [clientJsLoading, containerRef, invitation])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
 
   return (
     <>
       <Head>
-        <title key="title">{`Edit ${group ? prettyId(group.id) : 'Group'} | OpenReview`}</title>
+        <title key="title">{`Edit ${invitation ? prettyId(invitation.id) : 'Invitation'} | OpenReview`}</title>
       </Head>
 
-      {(clientJsLoading || !group) && (
+      {(clientJsLoading || !invitation) && (
         <LoadingSpinner />
       )}
 
-      <WebfieldContainer id="group-container">
+      <WebfieldContainer id="invitation-container">
         <div id="header">
           <h1>{prettyId(query?.id)}</h1>
         </div>
@@ -97,4 +99,6 @@ export default function GroupEdit({ appContext }) {
   )
 }
 
-GroupEdit.bodyClass = 'group'
+InvitationEdit.bodyClass = 'invitation'
+
+export default InvitationEdit

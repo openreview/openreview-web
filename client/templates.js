@@ -75,6 +75,17 @@ templates['committeeSummary'] = template({"1":function(container,depth0,helpers,
   return "        (<a href=\""
     + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"edgeBrowserRecsUrl") || (depth0 != null ? lookupProperty(depth0,"edgeBrowserRecsUrl") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"edgeBrowserRecsUrl","hash":{},"data":data,"loc":{"start":{"line":21,"column":18},"end":{"line":21,"column":40}}}) : helper)))
     + "\" class=\"show-reviewer-bids\" target=\"_blank\">view all</a>)\n";
+},"11":function(container,depth0,helpers,partials,data) {
+    var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "      Reviewer Assignments:\n      <a href=\""
+    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"edgeBrowserAssignmentUrl") || (depth0 != null ? lookupProperty(depth0,"edgeBrowserAssignmentUrl") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"edgeBrowserAssignmentUrl","hash":{},"data":data,"loc":{"start":{"line":27,"column":15},"end":{"line":27,"column":43}}}) : helper)))
+    + "\" class=\"show-reviewer-assignments\" target=\"_blank\">View all</a>\n";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -91,6 +102,8 @@ templates['committeeSummary'] = template({"1":function(container,depth0,helpers,
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"showBids") : depth0),{"name":"if","hash":{},"fn":container.program(5, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":10,"column":4},"end":{"line":16,"column":11}}})) != null ? stack1 : "")
     + "\n"
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"showRecommendations") : depth0),{"name":"if","hash":{},"fn":container.program(8, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":18,"column":4},"end":{"line":23,"column":11}}})) != null ? stack1 : "")
+    + "\n"
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"edgeBrowserAssignmentUrl") : depth0),{"name":"if","hash":{},"fn":container.program(11, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":25,"column":4},"end":{"line":28,"column":11}}})) != null ? stack1 : "")
     + "  </p>\n</div>\n";
 },"useData":true});
 templates['genericModal'] = template({"1":function(container,depth0,helpers,partials,data) {
@@ -2504,10 +2517,10 @@ templates['partials/invitationInfoTable'] = template({"1":function(container,dep
         return undefined
     };
 
-  return "    <dt>Super Invitation:</dt>\n    <dd><a href=\"/invitation?id="
+  return "    <dt>Super Invitation:</dt>\n    <dd><a href=\"/invitation/edit?id="
     + alias1(container.lambda(((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"super") : stack1), depth0))
-    + "&mode=edit\">"
-    + alias1((lookupProperty(helpers,"prettyId")||(depth0 && lookupProperty(depth0,"prettyId"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"super") : stack1),{"name":"prettyId","hash":{},"data":data,"loc":{"start":{"line":4,"column":64},"end":{"line":4,"column":93}}}))
+    + "\">"
+    + alias1((lookupProperty(helpers,"prettyId")||(depth0 && lookupProperty(depth0,"prettyId"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"super") : stack1),{"name":"prettyId","hash":{},"data":data,"loc":{"start":{"line":4,"column":59},"end":{"line":4,"column":88}}}))
     + "</a></dd>\n";
 },"3":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -3535,10 +3548,10 @@ templates['partials/paginatedInvitationList'] = template({"1":function(container
 
   return "    <li data-id=\""
     + alias4(((helper = (helper = lookupProperty(helpers,"id") || (depth0 != null ? lookupProperty(depth0,"id") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"id","hash":{},"data":data,"loc":{"start":{"line":5,"column":17},"end":{"line":5,"column":23}}}) : helper)))
-    + "\">\n      <a href=\"/invitation?id="
-    + alias4(((helper = (helper = lookupProperty(helpers,"id") || (depth0 != null ? lookupProperty(depth0,"id") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"id","hash":{},"data":data,"loc":{"start":{"line":6,"column":30},"end":{"line":6,"column":36}}}) : helper)))
-    + "&mode=edit\">"
-    + alias4((lookupProperty(helpers,"prettyId")||(depth0 && lookupProperty(depth0,"prettyId"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"id") : depth0),{"name":"prettyId","hash":{},"data":data,"loc":{"start":{"line":6,"column":48},"end":{"line":6,"column":63}}}))
+    + "\">\n      <a href=\"/invitation/edit?id="
+    + alias4(((helper = (helper = lookupProperty(helpers,"id") || (depth0 != null ? lookupProperty(depth0,"id") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"id","hash":{},"data":data,"loc":{"start":{"line":6,"column":35},"end":{"line":6,"column":41}}}) : helper)))
+    + "\">"
+    + alias4((lookupProperty(helpers,"prettyId")||(depth0 && lookupProperty(depth0,"prettyId"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"id") : depth0),{"name":"prettyId","hash":{},"data":data,"loc":{"start":{"line":6,"column":43},"end":{"line":6,"column":58}}}))
     + "</a>\n    </li>\n";
 },"3":function(container,depth0,helpers,partials,data) {
     var lookupProperty = container.lookupProperty || function(parent, propertyName) {

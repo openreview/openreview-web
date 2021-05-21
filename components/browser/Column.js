@@ -852,9 +852,7 @@ export default function Column(props) {
                 {' '}
                 {prettyId(traverseInvitation[type].query.group, true).toLowerCase()}
                 {' '}
-                with fewer than max
-                {' '}
-                {pluralizeString(traverseInvitation.name, true).toLowerCase()}
+                with fewer than max assigned papers.
               </label>
             </div>
           )}

@@ -5,7 +5,7 @@ apt-get update
 # Install Node version manager
 sudo -u openreview bash -c 'cd ~/ && wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash'
 # Install current Node version used in OpenReview
-sudo -u openreview bash -c 'cd ~/ && export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && nvm install 14.11.0'
+sudo -u openreview bash -c 'cd ~/ && export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && nvm install 14.16.1'
 # Install PM2
 sudo -u openreview bash -c 'cd ~/ && export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && npm install -g pm2'
 # Create folder to store deploy script
@@ -19,10 +19,21 @@ sudo -u openreview bash -c 'echo "deb [signed-by=/usr/share/keyrings/cloud.googl
 sudo -u openreview bash -c 'sudo apt-get install -y apt-transport-https ca-certificates gnupg'
 sudo -u openreview bash -c 'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -'
 sudo -u openreview bash -c 'sudo apt-get -y update && sudo apt-get install -y google-cloud-sdk'
+# Install Gcloud logger
+sudo -u openreview bash -c 'cd ~/ && curl -sSO https://dl.google.com/cloudagents/add-logging-agent-repo.sh'
+sudo -u openreview bash -c 'cd ~/ && sudo bash add-logging-agent-repo.sh'
+sudo -u openreview bash -c 'cd ~/ && sudo apt-get -y update'
+sudo -u openreview bash -c 'cd ~/ && sudo apt-get install google-fluentd'
+sudo -u openreview bash -c 'cd ~/ && sudo apt-get install -y google-fluentd-catch-all-config-structured'
+sudo -u openreview bash -c 'cd ~/ && sudo service google-fluentd start'
+sudo -u openreview bash -c 'cd ~/ && sudo rm add-logging-agent-repo.sh'
 # Retrieve deploy and conf files
 sudo -u openreview bash -c 'gsutil cp gs://openreview-files/conf/deploy-web.sh /home/openreview/bin/'
 # Deploy
 sudo -u openreview bash -c 'cd ~/ && export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && bash /home/openreview/bin/deploy-web.sh'
+# This step is necessary for PM2 to work with Nextjs
+sudo -u openreview bash -c 'cd ~/ && pm2 kill'
+sudo -u openreview bash -c 'cd ~/deploy/openreview-web/current && export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && pm2 start ecosystem.json --env production'
 # Create and start openreview service
 sudo -u openreview bash -c 'gsutil cp gs://openreview-files/conf/openreview-web.service /home/openreview/bin/'
 sudo -u openreview bash -c 'sudo cp /home/openreview/bin/openreview-web.service /lib/systemd/system'
