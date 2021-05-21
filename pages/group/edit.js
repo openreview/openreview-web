@@ -60,7 +60,7 @@ export default function GroupEdit({ appContext }) {
     if (!group || !containerRef || clientJsLoading) return
 
     Webfield.editModeBanner(group.id, 'edit')
-    Webfield.ui.groupEditor({ ...group, web: null }, {
+    Webfield.ui.groupEditor(group, {
       container: containerRef.current,
       isSuperUser: isSuperUser(user),
     })
