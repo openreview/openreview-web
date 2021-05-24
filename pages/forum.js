@@ -224,7 +224,7 @@ Forum.getInitialProps = async (ctx) => {
       id: ctx.query.id, trash: true, details: 'original,invitation,replyCount,writable',
     }, { accessToken: token })
 
-    // Can not see the note but there is not error thrown from the API and an empty array is returned
+    // Can not see the note but there is no error thrown from the API and an empty array is returned instead
     if (!result.notes.length) {
       const redirect = await shouldRedirect(ctx.query.id)
       if (redirect) {
