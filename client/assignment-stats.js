@@ -173,7 +173,7 @@ var loadFromEdges = function(assignmentConfigNote) {
       }
     });
 
-    return [assignmentMap, unassignedPapersList, unassignedUsersList];
+    return [assignmentMap, unassignedPapersList, unassignedUsersList, assignmentConfigNote];
 
   });
 };
@@ -189,6 +189,7 @@ var computeStats = function(matchLists) {
   var matchList = matchLists[0];
   var papersWithoutAssignments = matchLists[1];
   var usersWithoutAssignments = matchLists[2];
+  var assignmentConfigNote = matchLists[3];
 
   var allScoresList = _.map(matchList, function(match) { return { num: match.score, data: match.paperId }; });
   var allScoresDataList = _.map(allScoresList, 'num');
@@ -307,6 +308,11 @@ var computeStats = function(matchLists) {
 
   return _.assign(
     {
+      'solver-status': {
+        tag: Scalar,
+        data: assignmentConfigNote.randomized_fraction_of_opt ? (Math.round(assignmentConfigNote.randomized_fraction_of_opt * 100) / 100) : '-',
+        title: 'Solver: ' + assignmentConfigNote.solver
+      },
       'paper-count': {
         tag: Scalar,
         data: (_.keys(paperMap).length + papersWithoutAssignments.length) + ' / ' + _.keys(paperMap).length,
