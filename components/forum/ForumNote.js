@@ -10,11 +10,9 @@ import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
 
 import '../../styles/components/forum-note.less'
 
-function ForumNote({
-  note, updateNote, referenceInvitations, originalInvitations, tagInvitations,
-}) {
+function ForumNote({ note, updateNote }) {
   const {
-    id, content, details, signatures,
+    id, content, details, signatures, referenceInvitations, originalInvitations, tagInvitations,
   } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()

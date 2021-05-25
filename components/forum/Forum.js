@@ -38,7 +38,6 @@ export default function Forum({ forumNote, clientJsLoading }) {
   const [selectedFilters, setSelectedFilters] = useState({
     invitations: null, signatures: null, keywords: null, readers: null, excludedReaders: null,
   })
-  const [forumInvitations, setForumInvitations] = useState(null)
   const [activeInvitation, setActiveInvitation] = useState(null)
   const router = useRouter()
   const query = useQuery()
@@ -93,21 +92,10 @@ export default function Forum({ forumNote, clientJsLoading }) {
       getInvitationsByReplyForum(id, true),
     ])
 
-    // Process invitations
+    // Find invitations that apply to all notes
     const commonInvitations = invitations.filter((invitation) => {
       const invReply = invitation.reply
       return !invReply.replyto && !invReply.referent && !invReply.referentInvitation && !invReply.invitation
-    })
-
-    const referenceInvitations = invitations.filter((invitation) => {
-      // Check if invitation is replying to this note
-      const isInvitationRelated = invitation.reply.referent === id
-        || invitation.reply.referentInvitation === parentNote.invitation
-      return isInvitationRelated && invitation.details.repliesAvailable
-    })
-
-    setForumInvitations({
-      commonInvitations, referenceInvitations, originalInvitations, tagInvitations,
     })
 
     // Process notes
@@ -119,12 +107,6 @@ export default function Forum({ forumNote, clientJsLoading }) {
     const readerGroupIds = new Set()
     const numberWildcard = /(Reviewer|Area_Chair)(\d+)/g
     notes.forEach((note) => {
-      // Don't include forum note
-      if (note.id === note.forum) {
-        setParentNote({ ...note, details: { ...parentNote.details, ...note.details } })
-        return
-      }
-
       const noteInvitations = invitations.filter((invitation) => {
         // Check if invitation is replying to this note
         const isInvitationRelated = invitation.reply.replyto === note.id
@@ -134,14 +116,27 @@ export default function Forum({ forumNote, clientJsLoading }) {
 
       const replyInvitations = union(commonInvitations, noteInvitations)
 
-      const refInvitations = invitations.filter((invitation) => {
+      const referenceInvitations = invitations.filter((invitation) => {
         // Check if invitation is replying to this note
         const isInvitationRelated = invitation.reply.referent === note.id
           || invitation.reply.referentInvitation === note.invitation
         return isInvitationRelated && invitation.details.repliesAvailable
       })
 
-      replyMap[note.id] = formatNote(note, null, replyInvitations, refInvitations)
+      // Don't include forum note in replyMap
+      if (note.id === note.forum) {
+        setParentNote({
+          ...note,
+          details: { ...parentNote.details, ...note.details },
+          replyInvitations,
+          referenceInvitations,
+          originalInvitations,
+          tagInvitations,
+        })
+        return
+      }
+
+      replyMap[note.id] = formatNote(note, null, replyInvitations, referenceInvitations)
       displayOptions[note.id] = { collapsed: false, contentExpanded: false, hidden: false }
 
       const parentId = note.replyto || id
@@ -231,7 +226,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
     }
   }
 
-  const updateReplyNote = (newNote, parentId) => {
+  const updateReplyNote = (newNote, parentId, replyInvitations) => {
     const noteId = newNote.id
     const currentNote = replyNoteMap[noteId] ?? {}
     setReplyNoteMap({
@@ -239,7 +234,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
       [noteId]: formatNote({
         ...currentNote,
         ...newNote,
-      }),
+      }, replyInvitations),
     })
 
     if (isEmpty(currentNote)) {
@@ -439,16 +434,13 @@ export default function Forum({ forumNote, clientJsLoading }) {
       <ForumNote
         note={parentNote}
         updateNote={setParentNote}
-        referenceInvitations={forumInvitations?.referenceInvitations}
-        originalInvitations={forumInvitations?.originalInvitations}
-        tagInvitations={forumInvitations?.tagInvitations}
       />
 
-      {forumInvitations?.commonInvitations.length > 0 && (
+      {parentNote.replyInvitations?.length > 0 && (
         <div className="invitations-container">
           <div className="invitation-buttons">
             <span className="hint">Add:</span>
-            {forumInvitations.commonInvitations.map(invitation => (
+            {parentNote.replyInvitations.map(invitation => (
               <button
                 key={invitation.id}
                 type="button"

@@ -24,7 +24,7 @@ export default function ForumReply({ note, replies, updateNote }) {
   const canEdit = (details.original && details.originalWritable) || (!details.originalWritable && details.writable)
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
   const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
-  const showInvitationButtons = note.replyInvitations?.length > 0 || note.referenceInvitations?.length > 0
+  const showInvitationButtons = note.commonInvitations?.length > 0 || note.referenceInvitations?.length > 0
 
   if (collapsed) {
     // Collapsed reply
@@ -206,7 +206,7 @@ export default function ForumReply({ note, replies, updateNote }) {
         <div className="invitations-container mt-2">
           <div className="invitation-buttons">
             <span className="hint">Add:</span>
-            {note.replyInvitations?.map(inv => (
+            {[...note.replyInvitations, ...note.commonInvitations].map(inv => (
               <button
                 key={inv.id}
                 type="button"
@@ -224,7 +224,7 @@ export default function ForumReply({ note, replies, updateNote }) {
             replyToId={note.id}
             onNoteCreated={(newNote) => {
               setActiveEditInvitation(null)
-              updateNote(newNote, note.id)
+              updateNote(newNote, note.id, note.commonInvitations)
             }}
             onNoteCancelled={() => { setActiveInvitation(null) }}
             onError={() => { setActiveInvitation(null) }}
