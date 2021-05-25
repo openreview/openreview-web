@@ -223,6 +223,15 @@ Forum.getInitialProps = async (ctx) => {
     const result = await api.get('/notes', {
       id: ctx.query.id, trash: true, details: 'original,invitation,replyCount,writable',
     }, { accessToken: token })
+
+    // Can not see the note but there is no error thrown from the API and an empty array is returned instead
+    if (!result.notes.length) {
+      const redirect = await shouldRedirect(ctx.query.id)
+      if (redirect) {
+        return redirectForum(redirect.id)
+      }
+      return { statusCode: 404, message: 'Not Found' }
+    }
     const note = result.notes[0]
 
     // Only super user can see deleted forums
