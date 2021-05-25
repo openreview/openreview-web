@@ -838,7 +838,7 @@ module.exports = (function() {
             if (_.startsWith(authorids[i], '~') && _.find(profile.content.names, ['username', authorids[i]])) {
               return true;
             }
-            return _.find(profile.content.emails, function(email) { return email === authorids[i]; });
+            return profile.email === authorids[i];
           });
 
           if (profile) {
