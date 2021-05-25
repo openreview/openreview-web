@@ -810,19 +810,38 @@ module.exports = (function() {
 
     // If authors and authorids are passed, we prepopulate the table
     if (authors && authorids) {
-      controller.post('/profiles/search', {
-        ids: authorids
-      }).then(function(response) {
-        var profiles = response.profiles;
+      var tildeIds = [];
+      var emailIds = [];
+      for (var i = 0; i < authorids.length; i++) {
+        if (_.startsWith(authorids[i], '~')) {
+          tildeIds.push(authorids[i])
+        } else if (_.includes(authorids[i], '@')) {
+          emailIds.push(authorids[i])
+        }
+      }
+
+      var tildeProfilesP = controller.post('/profiles/search', { ids: tildeIds });
+      var emailProfilesP = controller.post('/profiles/search', { emails: emailIds });
+
+      $.when(tildeProfilesP, emailProfilesP).then(function(tildeRes, emailRes) {
+        var profiles = _.concat(tildeRes.profiles, emailRes.profiles);
         for (var i = 0; i < authors.length; i++) {
           var $spanFullname;
           var $spanEmails;
-          var title;
-          if (_.startsWith(authorids[i], '~')) {
-            // eslint-disable-next-line no-loop-func
-            var profile = _.find(profiles, function(profile) {
-              return profile.id === authorids[i] || _.find(profile.content.names, ['username', authorids[i]]);
-            });
+          var title = '';
+
+          // eslint-disable-next-line no-loop-func
+          var profile = _.find(profiles, function(profile) {
+            if (profile.id === authorids[i]) {
+              return true;
+            }
+            if (_.startsWith(authorids[i], '~') && _.find(profile.content.names, ['username', authorids[i]])) {
+              return true;
+            }
+            return profile.email === authorids[i];
+          });
+
+          if (profile) {
             $spanFullname = options.allowAddRemove
               ? getPreferredName(profile)
               : getPreferredName(null, authorids[i]);
