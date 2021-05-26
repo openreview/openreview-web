@@ -12,7 +12,7 @@ import UserContext from '../components/UserContext'
 import NoteList from '../components/NoteList'
 import BasicModal from '../components/BasicModal'
 import api from '../lib/api-client'
-import { isValidEmail } from '../lib/utils'
+import { isValidEmail, isValidPassword } from '../lib/utils'
 
 // Page Styles
 import '../styles/pages/signup.less'
@@ -240,6 +240,7 @@ const ExistingProfileForm = ({
 }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
 
   let buttonLabel
@@ -289,7 +290,7 @@ const ExistingProfileForm = ({
         </span>
       </div>
       {passwordVisible && (
-        <div className="password-row">
+        <div className="email-row">
           <input
             type="email"
             className="form-control"
@@ -303,17 +304,34 @@ const ExistingProfileForm = ({
         </div>
       )}
       {passwordVisible && !hasPassword && (
-        <div className="password-row">
-          <input
-            type="password"
-            className="form-control"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-          <SubmitButton disabled={!isValidEmail(email) || !password}>{buttonLabel}</SubmitButton>
-        </div>
+        <>
+          <div className="password-row">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="New Password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Confirm New Password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div className="claim-button-row">
+            <SubmitButton
+              disabled={!isValidEmail(email) || !isValidPassword(password, confirmPassword)}
+            >
+              {buttonLabel}
+            </SubmitButton>
+          </div>
+        </>
       )}
     </form>
   )
@@ -323,6 +341,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
   const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [emailVisible, setEmailVisible] = useState(false)
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [recentPublications, setRecentPublications] = useState(null)
@@ -417,18 +436,31 @@ const ClaimProfileForm = ({ id, registerUser }) => {
       )}
 
       {passwordVisible && (
-        <div className="password-row">
-          <input
-            type="password"
-            className="form-control"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            autoComplete="new-password"
-            required
-          />
-          <SubmitButton disabled={!password}>Claim Profile</SubmitButton>
-        </div>
+        <>
+          <div className="password-row">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="New Password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Confirm New Password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+          </div>
+          <div className="claim-button-row">
+            <SubmitButton disabled={!isValidPassword(password, confirmPassword)}>Claim Profile</SubmitButton>
+          </div>
+        </>
       )}
     </form>
   )
