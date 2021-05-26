@@ -20,8 +20,8 @@ const GroupInfo = ({ appContext }) => {
   const [group, setGroup] = useState(null)
   const query = useQuery()
   const router = useRouter()
-  const { setBannerHidden, clientJsLoading } = appContext
   const containerRef = useRef(null)
+  const { setBannerHidden, clientJsLoading } = appContext
 
   const loadGroup = async (id) => {
     try {
