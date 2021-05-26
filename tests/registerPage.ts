@@ -122,12 +122,12 @@ test('Send Activation Link', async (t) => {
     .expect(newTildeId.substring(2)).notEql(existingTildeId.substring(3)) // new sign up shoud have different tildeid
     .expect(sendActivationLinkButtonSelector.exists).ok() // existing acct so should find associated email
     .click(sendActivationLinkButtonSelector)
-    .typeText(Selector('.password-row').find('input'), `${inactiveUser.email}abc`) // type wrong email should not trigger email sending
+    .typeText(Selector('.email-row').find('input'), `${inactiveUser.email}abc`) // type wrong email should not trigger email sending
     .click(sendActivationLinkButtonSelector)
   await t
-    .selectText(Selector('.password-row').find('input'))
+    .selectText(Selector('.email-row').find('input'))
     .pressKey('delete')
-    .typeText(Selector('.password-row').find('input'), inactiveUser.email)
+    .typeText(Selector('.email-row').find('input'), inactiveUser.email)
     .click(sendActivationLinkButtonSelector)
     .expect(Selector('h1').withText('Thank You for Signing Up').exists).ok()
     .expect(Selector('span').withAttribute('class', 'email').innerText).eql(inactiveUser.email)
