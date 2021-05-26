@@ -1,48 +1,39 @@
 /* globals Webfield: false */
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
-import WebfieldContainer from '../../components/WebfieldContainer'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import useLoginRedirect from '../../hooks/useLoginRedirect'
+import WebfieldContainer from '../../components/WebfieldContainer'
 import useQuery from '../../hooks/useQuery'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
-// Page Styles
-import '../../styles/pages/group.less'
-
-export default function GroupEdit({ appContext }) {
-  const { accessToken, userLoading } = useLoginRedirect()
-  const [group, setGroup] = useState(null)
+const InvitationInfo = ({ appContext }) => {
+  const { accessToken, userLoading } = useUser()
   const [error, setError] = useState(null)
-  const containerRef = useRef(null)
-
-  const router = useRouter()
+  const [invitation, setInvitation] = useState(null)
   const query = useQuery()
+  const router = useRouter()
+  const containerRef = useRef(null)
   const { setBannerHidden, clientJsLoading } = appContext
 
-  const loadGroup = async (id) => {
+  const loadInvitation = async (invitationId) => {
     try {
-      const { groups } = await api.get('/groups', { id }, { accessToken })
-      if (groups?.length > 0) {
-        if (groups[0].details?.writable) {
-          setGroup({ ...groups[0], web: null })
-        } else {
-          // User is a reader, not a writer of the group, so redirect to info mode
-          router.replace(`/group/info?id=${id}`)
-        }
+      const { invitations } = await api.get('/invitations', { id: invitationId }, { accessToken })
+      if (invitations?.length > 0) {
+        setInvitation({ ...invitations[0], web: null })
       } else {
-        setError({ statusCode: 404, message: 'Group not found' })
+        setError({ statusCode: 404, message: 'Invitation not found' })
       }
     } catch (apiError) {
       if (apiError.name === 'forbidden' || apiError.name === 'ForbiddenError') {
         if (!accessToken) {
           router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
         } else {
-          setError({ statusCode: 403, message: 'You don\'t have permission to read this group' })
+          setError({ statusCode: 403, message: 'You don\'t have permission to read this invitation' })
         }
         return
       }
@@ -60,14 +51,18 @@ export default function GroupEdit({ appContext }) {
       return
     }
 
-    loadGroup(query.id)
+    loadInvitation(query.id)
   }, [userLoading, query])
 
   useEffect(() => {
-    if (!group || !containerRef || clientJsLoading) return
+    if (!invitation || !containerRef || clientJsLoading) return
 
-    Webfield.editModeBanner(group.id, 'edit')
-    Webfield.ui.groupEditor(group, { container: containerRef.current })
+    if (invitation.details?.writable) {
+      Webfield.editModeBanner(invitation.id, 'default')
+    } else if (invitation.web) {
+      Webfield.editModeBanner(invitation.id, 'info')
+    }
+    Webfield.ui.invitationInfo(invitation, { container: containerRef.current })
 
     // eslint-disable-next-line consistent-return
     return () => {
@@ -76,17 +71,16 @@ export default function GroupEdit({ appContext }) {
         document.getElementById('flash-message-container').style.display = 'none'
       }
     }
-  }, [clientJsLoading, containerRef, group])
+  }, [clientJsLoading, containerRef, invitation])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
-
   return (
     <>
       <Head>
-        <title key="title">{`Edit ${group ? prettyId(group.id) : 'Group'} | OpenReview`}</title>
+        <title key="title">{`${invitation ? prettyId(invitation.id) : 'Invitation Info'} | OpenReview`}</title>
       </Head>
 
-      {(clientJsLoading || !group) && (
+      {(clientJsLoading || !invitation) && (
         <LoadingSpinner />
       )}
 
@@ -101,4 +95,6 @@ export default function GroupEdit({ appContext }) {
   )
 }
 
-GroupEdit.bodyClass = 'group'
+InvitationInfo.bodyClass = 'invitation'
+
+export default InvitationInfo
