@@ -2428,6 +2428,8 @@ module.exports = (function() {
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
         if (field.name === 'multiReply') {
           result[field.name] = field.value === '' ? null : field.value === 'True';
+        } else if (field.name === 'hideOriginalRevisions') {
+          result[field.name] = field.value === '' ? null : field.value === 'True';
         } else if (field.name === 'taskCompletionCount') {
           result[field.name] = field.value ? parseInt(field.value, 10) : null;
         } else if (field.name === 'duedate' || field.name === 'expdate' || field.name === 'cdate') {
@@ -2441,7 +2443,7 @@ module.exports = (function() {
           result[field.name] = _.compact(field.value.split(',').map(_.trim));
         }
         return result;
-      }, { multiReply: null });
+      }, { multiReply: null, hideOriginalRevisions: null });
 
       updateInvitation(formData)
         .then(function(response) {

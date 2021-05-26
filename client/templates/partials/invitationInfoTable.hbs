@@ -37,6 +37,9 @@
   <dt>Completed After:</dt>
   <dd>{{invitation.taskCompletionCount}}</dd>
 
+  <dt>Hide original revisions:</dt>
+  <dd>{{#if invitation.hideOriginalRevisions}}True{{else}}{{#is invitation.hideOriginalRevisions false}}False{{/is}}{{/if}}</dd>
+
   <dt>Signature:</dt>
   <dd>{{groupIdList invitation.signatures}}</dd>
 
@@ -129,6 +132,17 @@
       <label for="taskCompletionCount" class="col-xs-2 control-label">Completed After:</label>
       <div class="col-xs-10">
         <input type="number" class="form-control input-sm" name="taskCompletionCount" value="{{join invitation.taskCompletionCount}}">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="hideOriginalRevisions" class="col-xs-2 control-label">Hide Original Revisions:</label>
+      <div class="col-xs-10">
+        <select name="hideOriginalRevisions" class="form-control input-sm">
+          <option></option>
+          <option {{#is invitation.hideOriginalRevisions true}}selected{{/is}}>True</option>
+          <option {{#is invitation.hideOriginalRevisions false}}selected{{/is}}>False</option>
+        </select>
       </div>
     </div>
 
