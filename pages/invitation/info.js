@@ -1,7 +1,8 @@
 /* globals Webfield: false */
 
-import Head from 'next/head'
 import { useEffect, useRef, useState } from 'react'
+import Head from 'next/head'
+import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import WebfieldContainer from '../../components/WebfieldContainer'
@@ -11,13 +12,13 @@ import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
 const InvitationInfo = ({ appContext }) => {
-  const query = useQuery()
   const { accessToken, userLoading } = useUser()
-  const { setBannerHidden, clientJsLoading } = appContext
-
   const [error, setError] = useState(null)
   const [invitation, setInvitation] = useState(null)
+  const query = useQuery()
+  const router = useRouter()
   const containerRef = useRef(null)
+  const { setBannerHidden, clientJsLoading } = appContext
 
   const loadInvitation = async (invitationId) => {
     try {
@@ -25,9 +26,17 @@ const InvitationInfo = ({ appContext }) => {
       if (invitations?.length > 0) {
         setInvitation({ ...invitations[0], web: null })
       } else {
-        setError({ statusCode: 404, message: 'Group not found' })
+        setError({ statusCode: 404, message: 'Invitation not found' })
       }
     } catch (apiError) {
+      if (apiError.name === 'forbidden' || apiError.name === 'ForbiddenError') {
+        if (!accessToken) {
+          router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
+        } else {
+          setError({ statusCode: 403, message: 'You don\'t have permission to read this invitation' })
+        }
+        return
+      }
       setError({ statusCode: apiError.status, message: apiError.message })
     }
   }
@@ -48,7 +57,11 @@ const InvitationInfo = ({ appContext }) => {
   useEffect(() => {
     if (!invitation || !containerRef || clientJsLoading) return
 
-    Webfield.editModeBanner(invitation.id, 'info')
+    if (invitation.details?.writable) {
+      Webfield.editModeBanner(invitation.id, 'default')
+    } else if (invitation.web) {
+      Webfield.editModeBanner(invitation.id, 'info')
+    }
     Webfield.ui.invitationInfo(invitation, { container: containerRef.current })
 
     // eslint-disable-next-line consistent-return
