@@ -9,8 +9,8 @@ export default function Donate() {
 
       <div className="row">
         <div className="col-xs-12 col-md-8 col-md-offset-2 text-center">
-          <h1>Donate to OpenReview</h1>
-          <p>All donations go directly to the continued maintenance of the platform.</p>
+          <h1>Donate to the OpenReview nonprofit</h1>
+          <p>All donations directly support OpenReview development, maintenance, and services.</p>
 
           <div>
             <iframe

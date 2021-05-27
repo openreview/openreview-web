@@ -39,6 +39,14 @@ export default function GroupEdit({ appContext }) {
         setError({ statusCode: 404, message: 'Group not found' })
       }
     } catch (apiError) {
+      if (apiError.name === 'forbidden' || apiError.name === 'ForbiddenError') {
+        if (!accessToken) {
+          router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
+        } else {
+          setError({ statusCode: 403, message: 'You don\'t have permission to read this group' })
+        }
+        return
+      }
       setError({ statusCode: apiError.status, message: apiError.message })
     }
   }
