@@ -2102,7 +2102,7 @@ templates['partials/groupEditor'] = template({"1":function(container,depth0,help
     };
 
   return "("
-    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"groupMembersCount") || (depth0 != null ? lookupProperty(depth0,"groupMembersCount") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"groupMembersCount","hash":{},"data":data,"loc":{"start":{"line":8,"column":46},"end":{"line":8,"column":67}}}) : helper)))
+    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"groupMembersCount") || (depth0 != null ? lookupProperty(depth0,"groupMembersCount") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"groupMembersCount","hash":{},"data":data,"loc":{"start":{"line":7,"column":46},"end":{"line":7,"column":67}}}) : helper)))
     + ")";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -2112,10 +2112,10 @@ templates['partials/groupEditor'] = template({"1":function(container,depth0,help
         return undefined
     };
 
-  return "<section class=\"general\">\n  <h4>General Info</h4>\n\n"
-    + ((stack1 = container.invokePartial(lookupProperty(partials,"groupInfoTable"),depth0,{"name":"groupInfoTable","hash":{"editable":true},"data":data,"indent":"  ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
+  return "<section class=\"general\">\n  <h4>General Info</h4>\n"
+    + ((stack1 = container.invokePartial(lookupProperty(partials,"groupInfoTable"),depth0,{"name":"groupInfoTable","hash":{"isSuperUser":(depth0 != null ? lookupProperty(depth0,"isSuperUser") : depth0),"editable":true},"data":data,"indent":"  ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
     + "</section>\n\n<section class=\"members\">\n  <h4>Group Members "
-    + ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"groupMembersCount") : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":8,"column":20},"end":{"line":8,"column":75}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"groupMembersCount") : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":7,"column":20},"end":{"line":7,"column":75}}})) != null ? stack1 : "")
     + "</h4>\n\n"
     + ((stack1 = container.invokePartial(lookupProperty(partials,"spinner"),depth0,{"name":"spinner","hash":{"extraClasses":"spinner-inline"},"data":data,"indent":"  ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
     + "</section>\n\n<section class=\"messages\">\n  <h4>Group Messages</h4>\n\n  <div class=\"progress\" style=\"display: none;\">\n    <div class=\"progress-bar\" role=\"progressbar\" aria-valuenow=\"0\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 0%;\">\n      <span class=\"sr-only\"></span>\n    </div>\n  </div>\n  <p class=\"progress-status\"></p>\n\n  <a href=\"/messages?parentGroup="
@@ -2179,6 +2179,19 @@ templates['partials/groupInfo'] = template({"1":function(container,depth0,helper
     + "</section>\n";
 },"usePartial":true,"useData":true});
 templates['partials/groupInfoTable'] = template({"1":function(container,depth0,helpers,partials,data) {
+    var stack1, alias1=container.lambda, alias2=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "    <dt>Invitation:</dt>\n    <dd><a href=\"/invitation?id="
+    + alias2(alias1(((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"invitation") : stack1), depth0))
+    + "&mode=edit\">"
+    + alias2(alias1(((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"invitation") : stack1), depth0))
+    + "</a></dd>\n";
+},"3":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -2187,9 +2200,33 @@ templates['partials/groupInfoTable'] = template({"1":function(container,depth0,h
     };
 
   return "    <dt>Non-readers:</dt>\n    <dd>"
-    + container.escapeExpression((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"nonreaders") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":10,"column":8},"end":{"line":10,"column":40}}}))
+    + container.escapeExpression((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"nonreaders") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":14,"column":8},"end":{"line":14,"column":40}}}))
     + "</dd>\n";
-},"3":function(container,depth0,helpers,partials,data) {
+},"5":function(container,depth0,helpers,partials,data) {
+    var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "    <dt>AnonymousId:</dt>\n    <dd>True</dd>\n"
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"secret") : stack1),{"name":"if","hash":{},"fn":container.program(6, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":29,"column":4},"end":{"line":32,"column":11}}})) != null ? stack1 : "")
+    + "    <dt title=\"deanonymizers\">Deanonymizers:</dt>\n    <dd>"
+    + container.escapeExpression((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||container.hooks.helperMissing).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"deanonymizers") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":34,"column":8},"end":{"line":34,"column":43}}}))
+    + "</dd>\n";
+},"6":function(container,depth0,helpers,partials,data) {
+    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "      <dt>Secret:</dt>\n      <dd>"
+    + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"secret") : stack1), depth0))
+    + "</dd>\n";
+},"8":function(container,depth0,helpers,partials,data) {
     var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -2198,16 +2235,35 @@ templates['partials/groupInfoTable'] = template({"1":function(container,depth0,h
     };
 
   return "  <button type=\"button\" class=\"btn btn-sm btn-primary edit-group-info\">Edit General Info</button>\n\n  <form class=\"group-info-form form-horizontal\" style=\"display: none;\">\n    <div class=\"form-group\">\n      <label for=\"readers\" class=\"col-xs-2 control-label\">Readers:</label>\n      <div class=\"col-xs-10\">\n        <input type=\"text\" class=\"form-control input-sm\" name=\"readers\" value=\""
-    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"readers") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":36,"column":79},"end":{"line":36,"column":101}}}))
+    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"readers") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":51,"column":79},"end":{"line":51,"column":101}}}))
     + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"nonreaders\" class=\"col-xs-2 control-label\">Non-readers:</label>\n      <div class=\"col-xs-10\">\n        <input type=\"text\" class=\"form-control input-sm\" name=\"nonreaders\" value=\""
-    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"nonreaders") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":43,"column":82},"end":{"line":43,"column":107}}}))
+    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"nonreaders") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":58,"column":82},"end":{"line":58,"column":107}}}))
     + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"writers\" class=\"col-xs-2 control-label\">Writers:</label>\n      <div class=\"col-xs-10\">\n        <input type=\"text\" class=\"form-control input-sm\" name=\"writers\" value=\""
-    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"writers") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":50,"column":79},"end":{"line":50,"column":101}}}))
+    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"writers") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":65,"column":79},"end":{"line":65,"column":101}}}))
     + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"signatories\" class=\"col-xs-2 control-label\">Signatories:</label>\n      <div class=\"col-xs-10\">\n        <input type=\"text\" class=\"form-control input-sm\" name=\"signatories\" value=\""
-    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"signatories") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":57,"column":83},"end":{"line":57,"column":109}}}))
+    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"signatories") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":72,"column":83},"end":{"line":72,"column":109}}}))
     + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"signatures\" class=\"col-xs-2 control-label\">Signature:</label>\n      <div class=\"col-xs-10\">\n        <input type=\"text\" class=\"form-control input-sm\" name=\"signatures\" value=\""
-    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"signatures") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":64,"column":82},"end":{"line":64,"column":107}}}))
-    + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <div class=\"col-xs-2\">&nbsp;</div>\n      <div class=\"col-xs-10\">\n        <button type=\"submit\" class=\"btn btn-sm btn-primary\">Save Group</button>\n        <button type=\"button\" class=\"btn btn-sm btn-default cancel-edit-group\">Cancel</button>\n      </div>\n    </div>\n  </form>\n";
+    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"signatures") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":79,"column":82},"end":{"line":79,"column":107}}}))
+    + "\">\n      </div>\n    </div>\n\n"
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"isSuperUser") : depth0),{"name":"if","hash":{},"fn":container.program(9, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":83,"column":4},"end":{"line":101,"column":11}}})) != null ? stack1 : "")
+    + "\n    <div class=\"form-group\">\n      <div class=\"col-xs-2\">&nbsp;</div>\n      <div class=\"col-xs-10\">\n        <button type=\"submit\" class=\"btn btn-sm btn-primary\">Save Group</button>\n        <button type=\"button\" class=\"btn btn-sm btn-default cancel-edit-group\">Cancel</button>\n      </div>\n    </div>\n  </form>\n";
+},"9":function(container,depth0,helpers,partials,data) {
+    var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "      <div class=\"form-group\">\n        <label for=\"anonids\" class=\"col-xs-2 control-label\">AnonymousId:</label>\n        <div class=\"col-xs-10\">\n          <select name=\"anonids\" class=\"form-control input-sm\">\n            <option></option>\n            <option "
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"anonids") : stack1),true,{"name":"is","hash":{},"fn":container.program(10, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":89,"column":20},"end":{"line":89,"column":61}}})) != null ? stack1 : "")
+    + ">True</option>\n            <option "
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"anonids") : stack1),false,{"name":"is","hash":{},"fn":container.program(10, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":90,"column":20},"end":{"line":90,"column":67}}})) != null ? stack1 : "")
+    + ">False</option>\n          </select>\n        </div>\n      </div>\n\n      <div class=\"form-group\">\n        <label for=\"deanonymizers\" class=\"col-xs-2 control-label\">Deanonymizers:</label>\n        <div class=\"col-xs-10\">\n          <input type=\"text\" class=\"form-control input-sm\" name=\"deanonymizers\" value=\""
+    + container.escapeExpression((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"deanonymizers") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":98,"column":87},"end":{"line":98,"column":115}}}))
+    + "\">\n        </div>\n      </div>\n";
+},"10":function(container,depth0,helpers,partials,data) {
+    return "selected";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -2220,22 +2276,26 @@ templates['partials/groupInfoTable'] = template({"1":function(container,depth0,h
     + alias3((lookupProperty(helpers,"groupUrl")||(depth0 && lookupProperty(depth0,"groupUrl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"groupParent") : depth0),true,{"name":"groupUrl","hash":{},"data":data,"loc":{"start":{"line":3,"column":15},"end":{"line":3,"column":44}}}))
     + "\">"
     + alias3((lookupProperty(helpers,"prettyId")||(depth0 && lookupProperty(depth0,"prettyId"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"groupParent") : depth0),{"name":"prettyId","hash":{},"data":data,"loc":{"start":{"line":3,"column":46},"end":{"line":3,"column":70}}}))
-    + "</a></dd>\n\n  <dt>Readers:</dt>\n  <dd>"
-    + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"readers") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":6,"column":6},"end":{"line":6,"column":35}}}))
+    + "</a></dd>\n"
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"invitation") : stack1),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":4,"column":2},"end":{"line":7,"column":9}}})) != null ? stack1 : "")
+    + "\n  <dt>Readers:</dt>\n  <dd>"
+    + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"readers") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":10,"column":6},"end":{"line":10,"column":35}}}))
     + "</dd>\n\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"nonreaders") : stack1),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":8,"column":2},"end":{"line":11,"column":9}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"nonreaders") : stack1),{"name":"if","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":12,"column":2},"end":{"line":15,"column":9}}})) != null ? stack1 : "")
     + "\n  <dt>Writers:</dt>\n  <dd>"
-    + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"writers") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":14,"column":6},"end":{"line":14,"column":35}}}))
+    + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"writers") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":18,"column":6},"end":{"line":18,"column":35}}}))
     + "</dd>\n\n  <dt>Signatories:</dt>\n  <dd>"
-    + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"signatories") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":17,"column":6},"end":{"line":17,"column":39}}}))
+    + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"signatories") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":21,"column":6},"end":{"line":21,"column":39}}}))
     + "</dd>\n\n  <dt>Signature:</dt>\n  <dd>"
-    + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"signatures") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":20,"column":6},"end":{"line":20,"column":38}}}))
-    + "</dd>\n\n  <dt>Created:</dt>\n  <dd>"
-    + alias3((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"cdate") : stack1),((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"tcdate") : stack1),{"name":"formattedDate","hash":{},"data":data,"loc":{"start":{"line":23,"column":6},"end":{"line":23,"column":48}}}))
+    + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"signatures") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":24,"column":6},"end":{"line":24,"column":38}}}))
+    + "</dd>\n\n"
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"anonids") : stack1),{"name":"if","hash":{},"fn":container.program(5, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":26,"column":2},"end":{"line":35,"column":9}}})) != null ? stack1 : "")
+    + "\n  <dt>Created:</dt>\n  <dd>"
+    + alias3((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"cdate") : stack1),((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"tcdate") : stack1),{"name":"formattedDate","hash":{},"data":data,"loc":{"start":{"line":38,"column":6},"end":{"line":38,"column":48}}}))
     + "</dd>\n\n  <dt>Last Modified:</dt>\n  <dd>"
-    + alias3((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"mdate") : stack1),((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"tmdate") : stack1),{"name":"formattedDate","hash":{},"data":data,"loc":{"start":{"line":26,"column":6},"end":{"line":26,"column":48}}}))
+    + alias3((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"mdate") : stack1),((stack1 = (depth0 != null ? lookupProperty(depth0,"group") : depth0)) != null ? lookupProperty(stack1,"tmdate") : stack1),{"name":"formattedDate","hash":{},"data":data,"loc":{"start":{"line":41,"column":6},"end":{"line":41,"column":48}}}))
     + "</dd>\n</dl>\n\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"editable") : depth0),{"name":"if","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":29,"column":0},"end":{"line":76,"column":7}}})) != null ? stack1 : "");
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"editable") : depth0),{"name":"if","hash":{},"fn":container.program(8, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":44,"column":0},"end":{"line":111,"column":7}}})) != null ? stack1 : "");
 },"useData":true});
 templates['partials/groupMembersTable'] = template({"1":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -2253,14 +2313,17 @@ templates['partials/groupMembersTable'] = template({"1":function(container,depth
 },"2":function(container,depth0,helpers,partials,data) {
     return "disabled";
 },"4":function(container,depth0,helpers,partials,data,blockParams,depths) {
-    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+    var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
         }
         return undefined
     };
 
-  return ((stack1 = (lookupProperty(helpers,"gt")||(depth0 && lookupProperty(depth0,"gt"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),(data && lookupProperty(data,"index")),(depths[1] != null ? lookupProperty(depths[1],"removedMembersIndex") : depths[1]),{"name":"gt","hash":{},"fn":container.program(5, data, 0, blockParams, depths),"inverse":container.program(7, data, 0, blockParams, depths),"data":data,"loc":{"start":{"line":40,"column":6},"end":{"line":48,"column":13}}})) != null ? stack1 : "");
+  return "    "
+    + container.escapeExpression((lookupProperty(helpers,"getAnonId")||(depth0 && lookupProperty(depth0,"getAnonId"))||alias2).call(alias1,"anonIdObj",depth0,(depths[1] != null ? lookupProperty(depths[1],"memberAnonIdMap") : depths[1]),{"name":"getAnonId","hash":{},"data":data,"loc":{"start":{"line":40,"column":4},"end":{"line":40,"column":53}}}))
+    + "\n"
+    + ((stack1 = (lookupProperty(helpers,"gt")||(depth0 && lookupProperty(depth0,"gt"))||alias2).call(alias1,(data && lookupProperty(data,"index")),(depths[1] != null ? lookupProperty(depths[1],"removedMembersIndex") : depths[1]),{"name":"gt","hash":{},"fn":container.program(5, data, 0, blockParams, depths),"inverse":container.program(7, data, 0, blockParams, depths),"data":data,"loc":{"start":{"line":41,"column":6},"end":{"line":49,"column":13}}})) != null ? stack1 : "");
 },"5":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -2269,7 +2332,7 @@ templates['partials/groupMembersTable'] = template({"1":function(container,depth
         return undefined
     };
 
-  return ((stack1 = container.invokePartial(lookupProperty(partials,"groupMembersTableRow"),depth0,{"name":"groupMembersTableRow","hash":{"removed":true,"memberId":depth0},"data":data,"indent":"        ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "");
+  return ((stack1 = container.invokePartial(lookupProperty(partials,"groupMembersTableRow"),depth0,{"name":"groupMembersTableRow","hash":{"anonIdObj":((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"anonIdObj")),"removed":true,"memberId":depth0},"data":data,"indent":"        ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "");
 },"7":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -2278,7 +2341,7 @@ templates['partials/groupMembersTable'] = template({"1":function(container,depth
         return undefined
     };
 
-  return ((stack1 = (lookupProperty(helpers,"inArray")||(depth0 && lookupProperty(depth0,"inArray"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),(depths[1] != null ? lookupProperty(depths[1],"selectedMembers") : depths[1]),depth0,{"name":"inArray","hash":{},"fn":container.program(8, data, 0, blockParams, depths),"inverse":container.program(10, data, 0, blockParams, depths),"data":data,"loc":{"start":{"line":43,"column":8},"end":{"line":47,"column":20}}})) != null ? stack1 : "");
+  return ((stack1 = (lookupProperty(helpers,"inArray")||(depth0 && lookupProperty(depth0,"inArray"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),(depths[1] != null ? lookupProperty(depths[1],"selectedMembers") : depths[1]),depth0,{"name":"inArray","hash":{},"fn":container.program(8, data, 0, blockParams, depths),"inverse":container.program(10, data, 0, blockParams, depths),"data":data,"loc":{"start":{"line":44,"column":8},"end":{"line":48,"column":20}}})) != null ? stack1 : "");
 },"8":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -2287,7 +2350,7 @@ templates['partials/groupMembersTable'] = template({"1":function(container,depth
         return undefined
     };
 
-  return ((stack1 = container.invokePartial(lookupProperty(partials,"groupMembersTableRow"),depth0,{"name":"groupMembersTableRow","hash":{"selected":true,"memberId":depth0},"data":data,"indent":"          ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "");
+  return ((stack1 = container.invokePartial(lookupProperty(partials,"groupMembersTableRow"),depth0,{"name":"groupMembersTableRow","hash":{"anonIdObj":((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"anonIdObj")),"selected":true,"memberId":depth0},"data":data,"indent":"          ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "");
 },"10":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -2296,7 +2359,7 @@ templates['partials/groupMembersTable'] = template({"1":function(container,depth
         return undefined
     };
 
-  return ((stack1 = container.invokePartial(lookupProperty(partials,"groupMembersTableRow"),depth0,{"name":"groupMembersTableRow","hash":{"memberId":depth0},"data":data,"indent":"          ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "");
+  return ((stack1 = container.invokePartial(lookupProperty(partials,"groupMembersTableRow"),depth0,{"name":"groupMembersTableRow","hash":{"anonIdObj":((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"anonIdObj")),"memberId":depth0},"data":data,"indent":"          ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "");
 },"12":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -2306,7 +2369,7 @@ templates['partials/groupMembersTable'] = template({"1":function(container,depth
     };
 
   return "      <tr>\n        <td></td>\n        <td colspan=\"2\">\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"searchTerm") : depth0),{"name":"if","hash":{},"fn":container.program(13, data, 0),"inverse":container.program(15, data, 0),"data":data,"loc":{"start":{"line":53,"column":10},"end":{"line":57,"column":17}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"searchTerm") : depth0),{"name":"if","hash":{},"fn":container.program(13, data, 0),"inverse":container.program(15, data, 0),"data":data,"loc":{"start":{"line":54,"column":10},"end":{"line":58,"column":17}}})) != null ? stack1 : "")
     + "        </td>\n      </tr>\n";
 },"13":function(container,depth0,helpers,partials,data) {
     var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -2317,7 +2380,7 @@ templates['partials/groupMembersTable'] = template({"1":function(container,depth
     };
 
   return "            <p class=\"empty-message\">No members matching the search \""
-    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"searchTerm") || (depth0 != null ? lookupProperty(depth0,"searchTerm") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"searchTerm","hash":{},"data":data,"loc":{"start":{"line":54,"column":69},"end":{"line":54,"column":83}}}) : helper)))
+    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"searchTerm") || (depth0 != null ? lookupProperty(depth0,"searchTerm") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"searchTerm","hash":{},"data":data,"loc":{"start":{"line":55,"column":69},"end":{"line":55,"column":83}}}) : helper)))
     + "\" found. Click Add to Group above to add a new member.</p>\n";
 },"15":function(container,depth0,helpers,partials,data) {
     return "            <p class=\"empty-message\">No members to display</p>\n";
@@ -2331,7 +2394,7 @@ templates['partials/groupMembersTable'] = template({"1":function(container,depth
 
   return ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"options") : depth0)) != null ? lookupProperty(stack1,"showAddForm") : stack1),{"name":"if","hash":{},"fn":container.program(1, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":1,"column":0},"end":{"line":27,"column":7}}})) != null ? stack1 : "")
     + "\n<table class=\"table table-hover group-members-table\">\n  <thead>\n    <tr>\n      <th style=\"width: 40px\"></th>\n      <th></th>\n      <th style=\"width: 220px\"></th>\n    </tr>\n  </thead>\n\n  <tbody>\n"
-    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"groupMembers") : depth0),{"name":"each","hash":{},"fn":container.program(4, data, 0, blockParams, depths),"inverse":container.program(12, data, 0, blockParams, depths),"data":data,"loc":{"start":{"line":39,"column":4},"end":{"line":60,"column":13}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"groupMembers") : depth0),{"name":"each","hash":{},"fn":container.program(4, data, 0, blockParams, depths),"inverse":container.program(12, data, 0, blockParams, depths),"data":data,"loc":{"start":{"line":39,"column":4},"end":{"line":61,"column":13}}})) != null ? stack1 : "")
     + "  </tbody>\n\n  <tfoot>\n    <tr>\n      <td colspan=\"3\"></td>\n    </tr>\n  </tfoot>\n</table>\n";
 },"usePartial":true,"useData":true,"useDepths":true});
 templates['partials/groupMembersTableRow'] = template({"1":function(container,depth0,helpers,partials,data) {
@@ -2354,7 +2417,7 @@ templates['partials/groupMembersTableRow'] = template({"1":function(container,de
     + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"memberId") || (depth0 != null ? lookupProperty(depth0,"memberId") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"memberId","hash":{},"data":data,"loc":{"start":{"line":8,"column":12},"end":{"line":8,"column":24}}}) : helper)))
     + "</span> <em>(Deleted)</em>\n";
 },"11":function(container,depth0,helpers,partials,data) {
-    var helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+    var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
         }
@@ -2365,10 +2428,24 @@ templates['partials/groupMembersTableRow'] = template({"1":function(container,de
     + alias3((lookupProperty(helpers,"groupUrl")||(depth0 && lookupProperty(depth0,"groupUrl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"memberId") : depth0),{"name":"groupUrl","hash":{},"data":data,"loc":{"start":{"line":10,"column":15},"end":{"line":10,"column":36}}}))
     + "\" target=\"_blank\">"
     + alias3(((helper = (helper = lookupProperty(helpers,"memberId") || (depth0 != null ? lookupProperty(depth0,"memberId") : depth0)) != null ? helper : alias2),(typeof helper === "function" ? helper.call(alias1,{"name":"memberId","hash":{},"data":data,"loc":{"start":{"line":10,"column":54},"end":{"line":10,"column":66}}}) : helper)))
+    + "</a>\n"
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"anonIdObj") : depth0)) != null ? lookupProperty(stack1,"id") : stack1),{"name":"if","hash":{},"fn":container.program(12, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":11,"column":6},"end":{"line":13,"column":13}}})) != null ? stack1 : "");
+},"12":function(container,depth0,helpers,partials,data) {
+    var stack1, alias1=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "       | <a href=\""
+    + alias1((lookupProperty(helpers,"groupUrl")||(depth0 && lookupProperty(depth0,"groupUrl"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"anonIdObj") : depth0)) != null ? lookupProperty(stack1,"id") : stack1),{"name":"groupUrl","hash":{},"data":data,"loc":{"start":{"line":12,"column":18},"end":{"line":12,"column":43}}}))
+    + "\" target=\"_blank\">"
+    + alias1(container.lambda(((stack1 = (depth0 != null ? lookupProperty(depth0,"anonIdObj") : depth0)) != null ? lookupProperty(stack1,"prettyId") : stack1), depth0))
     + "</a>\n";
-},"13":function(container,depth0,helpers,partials,data) {
+},"14":function(container,depth0,helpers,partials,data) {
     return "      <button class=\"btn btn-xs undo-remove-member\"><span class=\"glyphicon glyphicon-repeat\"></span> Undo</button>\n";
-},"15":function(container,depth0,helpers,partials,data) {
+},"16":function(container,depth0,helpers,partials,data) {
     return "      <button class=\"btn btn-xs message-member\"><span class=\"glyphicon glyphicon-envelope\"></span> Message</button>\n      <button class=\"btn btn-xs remove-member\"><span class=\"glyphicon glyphicon-remove\"></span>  Remove</button>\n";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -2389,9 +2466,9 @@ templates['partials/groupMembersTableRow'] = template({"1":function(container,de
     + " "
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"selected") : depth0),{"name":"if","hash":{},"fn":container.program(7, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":3,"column":58},"end":{"line":3,"column":88}}})) != null ? stack1 : "")
     + ">\n  </td>\n\n  <td>\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"removed") : depth0),{"name":"if","hash":{},"fn":container.program(9, data, 0),"inverse":container.program(11, data, 0),"data":data,"loc":{"start":{"line":7,"column":4},"end":{"line":11,"column":11}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"removed") : depth0),{"name":"if","hash":{},"fn":container.program(9, data, 0),"inverse":container.program(11, data, 0),"data":data,"loc":{"start":{"line":7,"column":4},"end":{"line":14,"column":11}}})) != null ? stack1 : "")
     + "  </td>\n\n  <td class=\"action-links\">\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"removed") : depth0),{"name":"if","hash":{},"fn":container.program(13, data, 0),"inverse":container.program(15, data, 0),"data":data,"loc":{"start":{"line":15,"column":4},"end":{"line":20,"column":11}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"removed") : depth0),{"name":"if","hash":{},"fn":container.program(14, data, 0),"inverse":container.program(16, data, 0),"data":data,"loc":{"start":{"line":18,"column":4},"end":{"line":23,"column":11}}})) != null ? stack1 : "")
     + "  </td>\n</tr>\n";
 },"useData":true});
 templates['partials/invitationEditor'] = template({"1":function(container,depth0,helpers,partials,data) {

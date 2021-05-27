@@ -930,6 +930,13 @@ Handlebars.registerHelper('canUnlink', function(value, options) {
   return options.inverse(this);
 });
 
+Handlebars.registerHelper('getAnonId', function(varName,memberId,memberAnonIdMap,options){
+  if(!options.data.root){
+    options.data.root={}
+  }
+  options.data.root[varName]=memberAnonIdMap.get(memberId)
+})
+
 // Register Handlebars partials
 Handlebars.registerPartial('noteContent', Handlebars.templates['partials/noteContent']);
 
