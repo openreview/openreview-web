@@ -54,11 +54,11 @@ const About = () => (
           <li>
             <strong>Open Source:</strong>
             {' '}
-            We are committed to open source. Look for our public repo on
+            We are committed to open source. Many parts of OpenReview are already in the
             {' '}
-            <a href="https://github.com/openreview" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="https://github.com/openreview" target="_blank" rel="noopener noreferrer">OpenReview organization on GitHub.</a>
             {' '}
-            soon.
+            Some further releases are pending a professional security review of the codebase.
           </li>
         </ul>
 
@@ -75,7 +75,19 @@ const About = () => (
           .
         </p>
 
-        <p>We gratefully acknowledge the support of the OpenReview sponsors:  Google, Facebook, NSF, the University of Massachusetts Amherst Center for Data Science, and Center for Intelligent Information Retrieval, as well as the Google Cloud Platform for donating the computing and networking services on which OpenReview.net runs.</p>
+        <p>
+          OpenReview is a long-term project to advance science through improved peer review, with legal nonprofit status through
+          {' '}
+          <a href="https://codeforscience.org/" target="_blank" rel="noopener noreferrer">
+            Code for Science & Society
+          </a>
+          . We gratefully acknowledge the support of the great diversity of
+          {' '}
+          <a href="/sponsors" target="_blank" rel="noopener noreferrer">
+            OpenReview Sponsors
+          </a>
+          ––scientific peer review is sacrosanct, and should never be owned by any one sponsor.
+        </p>
       </div>
     </div>
   </div>
