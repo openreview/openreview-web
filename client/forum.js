@@ -571,12 +571,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       return;
     }
 
-    // Make map of parent id -> child notes and sort in reverse chronological order
-    var replytoIdToChildren = _.groupBy(_.sortBy(noteRecs, function(rec) {
-      return -1 * rec.note.tcdate;
-    }), 'note.replyto');
-    sm.update('replytoIdMap', replytoIdToChildren);
-
+    // Set search bar params
     var conf = rootRec.note.content.venueid ?
       rootRec.note.content.venueid :
       rootRec.note.invitation.split('/-/')[0];
@@ -585,29 +580,41 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $('#search_input').attr('placeholder','Search ' + view.prettyId(conf));
     $('#search_content').val('all');
 
+    // Make map of parent id -> child notes and sort in reverse chronological order
+    var replytoIdToChildren = _.groupBy(_.sortBy(noteRecs, function(rec) {
+      return -1 * rec.note.tcdate;
+    }), 'note.replyto');
+    sm.update('replytoIdMap', replytoIdToChildren);
+
     // Render forum page
-    var $root = mkPanel(rootRec, $childrenAnchor);
-    $root.removeClass('panel');
+    var $root = mkPanel(rootRec, $childrenAnchor).removeClass('panel');
 
-    if (_.has(rootRec.note, 'details.replyCount')) {
-      var replyCount = rootRec.note.details.replyCount;
+    $forumViewsTabs = null;
+    var replyForumViews = _.get(rootRec.note, 'details.invitation.replyForumViews', null);
+    if (replyForumViews) {
+      $forumViewsTabs = getForumViewTabs(replyForumViews);
+    }
+
+    var replyCount = _.get(rootRec.note, 'details.replyCount', 0)
+    var $forumFiltersRow = null;
+    if (replyCount) {
       var replyCountText = replyCount === 1 ? '1 Reply' : replyCount + ' Replies';
-      $root.find('div.reply_row').eq(0).prepend('<div class="item" id="reply_count">' + replyCountText + '</div>');
+      var $replyCount = $('<div class="pull-right" id="reply_count">' + replyCountText + '</div>');
+      var $forumFilters = getForumFilters().addClass('pull-left');
+      $forumFiltersRow = $('<div class="filter-row">').append($forumFilters, $replyCount);
     }
 
-    var $forumFilters = null;
-    if (_.has(rootRec.note, 'details.replyCount') && rootRec.note.details.replyCount !== 0) {
-      $forumFilters = getForumFilters();
-    }
-
-    $content.removeClass('pre-rendered');
-    $content.empty().append($root, '<hr class="small">', $forumFilters, $childrenAnchor);
-    $childrenAnchor.empty().append(
-      mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
+    $content.removeClass('pre-rendered').empty().append(
+      $root,
+      $forumViewsTabs,
+      '<hr class="small">',
+      $forumFiltersRow,
+      $childrenAnchor.empty().append(
+        mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
+      )
     );
 
     typesetMathJax();
-
     $content.trigger('forumRendered');
   };
 
@@ -864,7 +871,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     sortFilters(readersFilters, [allAfter('author'), allAfter('reviewer'), allAfter('chair'), allBefore('anonymous')]);
     var readersMultiSelector = createMultiSelector(readersFilters, 'readers');
 
-    return $('<div class="filter-row">').append(
+    return $('<div class="filter-container">').append(
       '<span>Show </span>',
       invitationMultiSelector,
       '<span> from </span>',
@@ -872,6 +879,13 @@ module.exports = function(forumId, noteId, invitationId, user) {
       '<span> visible to </span>',
       readersMultiSelector
     );
+  };
+
+  // Build the filter tabs from forum views array
+  var getForumViewTabs = function(replyForumViews) {
+    if (_.isEmpty(replyForumViews)) return null;
+
+    return $('<ul>');
   };
 
   onTokenChange();

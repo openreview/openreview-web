@@ -85,6 +85,7 @@ main.forum {
   }
 
   .filter-row {
+    .clearfix;
     margin: 1rem 0;
 
     span {
@@ -259,17 +260,17 @@ main.forum {
       margin-right: 0;
     }
 
-    #reply_count {
-      float: left;
-      font-size: .875rem;
-      color: @darkBlue;
-      font-weight: bold;
-      padding-top: .125rem;
-    }
-
     @media @phone-only {
       margin-top: .5rem;
     }
+  }
+
+  #reply_count {
+    text-align: right;
+    font-size: .875rem;
+    color: @darkBlue;
+    font-weight: bold;
+    line-height: 34px;
   }
 
   hr {
@@ -278,7 +279,7 @@ main.forum {
 
   // Comments, reviews, replies, etc.
   #note_children {
-    margin-top: 1.25rem;
+    margin-top: 1rem;
 
     > div {
       background: rgba(0, 0, 0, 0.04);
