@@ -437,6 +437,25 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     $content.on('click', '.select-all-checkbox', applySelectAllFilters);
 
+    // Filter tabs
+    $(window).on('hashchange', function(e) {
+      $('.filter-tabs li').removeClass('active');
+
+      var tab = $('.filter-tabs').find('a[href="' + location.hash + '"]').parent();
+      if (!tab.length) return;
+
+      tab.addClass('active');
+      var filter = tab.data('filter');
+
+      var parentNote = _.find(sm.get('noteRecs'), ['note.id', forumId]);
+      // setFilters({
+      //   invitations: null,
+      //   signatures: null,
+      //   readers: null,
+      //   ...parseFilterQuery(replaceFilterWildcards(filter, parentNote)),
+      // });
+    });
+
     $('[data-toggle="tooltip"]').tooltip();
   };
 
@@ -592,7 +611,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $forumViewsTabs = null;
     var replyForumViews = _.get(rootRec.note, 'details.invitation.replyForumViews', null);
     if (replyForumViews) {
-      $forumViewsTabs = getForumViewTabs(replyForumViews);
+      $forumViewsTabs = getForumViewTabs(rootRec.note.id, replyForumViews);
     }
 
     var replyCount = _.get(rootRec.note, 'details.replyCount', 0)
@@ -606,8 +625,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     $content.removeClass('pre-rendered').empty().append(
       $root,
-      $forumViewsTabs,
-      '<hr class="small">',
+      $forumViewsTabs || '<hr class="small">',
       $forumFiltersRow,
       $childrenAnchor.empty().append(
         mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
@@ -882,10 +900,20 @@ module.exports = function(forumId, noteId, invitationId, user) {
   };
 
   // Build the filter tabs from forum views array
-  var getForumViewTabs = function(replyForumViews) {
+  var getForumViewTabs = function(forumId, replyForumViews) {
     if (_.isEmpty(replyForumViews)) return null;
 
-    return $('<ul>');
+    var currentHash = window.location.hash.slice(1) || 'all';
+
+    return $('<ul class="nav nav-tabs filter-tabs mt-1">').append(
+      replyForumViews.map(function(view) {
+        return $(
+          '<li role="presentation" ' + (view.id === currentHash ? 'class="active"' : '') + '>' +
+            `<a href="#${view.id}">${view.label}</a>` +
+          '</li>'
+        ).data('filter', view.filter);
+      })
+    );
   };
 
   onTokenChange();
