@@ -618,8 +618,14 @@ module.exports = function(forumId, noteId, invitationId, user) {
         textFilter: view.prettyId(filter)
       };
     });
+    var buttonText = 'all';
+    if (id === 'signatures') {
+      buttonText = 'everybody';
+    } else if (id === 'readers') {
+      buttonText = 'all readers';
+    }
     var multiselector = Handlebars.templates['partials/multiselectorDropdown']({
-      buttonText: id === 'signatures' ? 'everybody' : 'all',
+      buttonText: buttonText,
       id: id,
       htmlFilters: htmlFilters
     });
@@ -638,20 +644,28 @@ module.exports = function(forumId, noteId, invitationId, user) {
     });
   };
 
+  // Gets readers groups in a note as an array.
+  var getReadersFilters = function(note) {
+    return note.readers.map(function(reader) {
+      return view.prettyId(reader, true).split(' ').join('_');
+    });
+  };
+
   // A Filter can be: Meta_Review, Official_Comment, Reviewer1, etc.
   // This function maps a Filter to its corresponding array of Notes.
   var createFiltersToNotes = function(notes, getFilters) {
     var filtersToNotes = {};
-    notes.forEach(function(note) {
+    for (var i = 0; i < notes.length; i += 1) {
+      var note = notes[i];
       var filters = getFilters(note);
-      filters.forEach(function(filter) {
-        if (filtersToNotes[filter]) {
-          filtersToNotes[filter].push(note);
+      for (var j = 0; j < filters.length; j++) {
+        if (filtersToNotes[filters[j]]) {
+          filtersToNotes[filters[j]].push(note);
         } else {
-          filtersToNotes[filter] = [note];
+          filtersToNotes[filters[j]] = [note];
         }
-      });
-    });
+      }
+    }
     return filtersToNotes;
   };
 
@@ -732,9 +746,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
     });
     var maxWordsToDisplay = 3; // Max amount of words to display on the button
     if (type === 'invitations' && checked.length === 0) return 'nothing';
-    if (type === 'signatures' && checked.length === 0) return 'nobody';
+    if ((type === 'signatures' || type === 'readers') && checked.length === 0) return 'nobody';
     if (type === 'invitations' && checkboxes.unchecked.length === 0) return 'all';
     if (type === 'signatures' && checkboxes.unchecked.length === 0) return 'everybody';
+    if (type === 'readers' && checkboxes.unchecked.length === 0) return 'all readers';
     if (checked.length === 1) return checked[0];
     if (checked.length === 2) return checked[0] + ' and ' + checked[1];
     var buttonText = '';
@@ -756,11 +771,15 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $('#invitations').text(getButtonText(invitationCheckboxes, 'invitations'));
     var signatureCheckboxes = classifyCheckboxes($('.signatures-multiselector-checkbox'));
     $('#signatures').text(getButtonText(signatureCheckboxes, 'signatures'));
+    var readersCheckboxes = classifyCheckboxes($('.readers-multiselector-checkbox'));
+    $('#readers').text(getButtonText(readersCheckboxes, 'readers'));
     $('#invitations').next().find('input.select-all-checkbox').prop('checked', invitationCheckboxes.unchecked.length === 0);
     $('#signatures').next().find('input.select-all-checkbox').prop('checked', signatureCheckboxes.unchecked.length === 0);
-    var signatureUnion = getUnion(sm.get('signatureToNotes'), signatureCheckboxes.checked);
+    $('#readers').next().find('input.select-all-checkbox').prop('checked', readersCheckboxes.unchecked.length === 0);
     var invitationUnion = getUnion(sm.get('invitationToNotes'), invitationCheckboxes.checked);
-    var intersection = _.intersectionBy(signatureUnion, invitationUnion, 'id');
+    var signatureUnion = getUnion(sm.get('signatureToNotes'), signatureCheckboxes.checked);
+    var readerUnion = getUnion(sm.get('readerToNotes'), readersCheckboxes.checked);
+    var intersection = _.intersectionBy(signatureUnion, invitationUnion, readerUnion, 'id');
     var notesToExpand = getNotesToExpand(intersection, sm.get('noteIdToNote'));
     var notesToCollapse = _.difference(sm.get('forumReplies'), notesToExpand);
     filterNotes(notesToExpand, notesToCollapse);
@@ -831,15 +850,28 @@ module.exports = function(forumId, noteId, invitationId, user) {
     sm.update('noteIdToNote', _.keyBy(forumReplies, 'id'));
     sm.update('signatureToNotes', createFiltersToNotes(forumReplies, getSignatureFilters));
     sm.update('invitationToNotes', createFiltersToNotes(forumReplies, getInvitationFilters));
-    var $filtersContainer = $('<div class=filter-row></div>');
+    sm.update('readerToNotes', createFiltersToNotes(forumReplies, getReadersFilters));
+
     var invitationFilters = _.keys(sm.get('invitationToNotes'));
     sortFilters(invitationFilters, [allAfter('decision'), allAfter('review'), allAfter('comment')]);
     var invitationMultiSelector = createMultiSelector(invitationFilters, 'invitations');
+
     var signatureFilters = _.keys(sm.get('signatureToNotes'));
     sortFilters(signatureFilters, [allAfter('author'), allAfter('reviewer'), allAfter('chair'), allBefore('anonymous')]);
     var signatureMultiSelector = createMultiSelector(signatureFilters, 'signatures');
-    $filtersContainer.append('<span>Show </span>', invitationMultiSelector, '<span> from </span>', signatureMultiSelector);
-    return $filtersContainer;
+
+    var readersFilters = _.keys(sm.get('readerToNotes'));
+    sortFilters(readersFilters, [allAfter('author'), allAfter('reviewer'), allAfter('chair'), allBefore('anonymous')]);
+    var readersMultiSelector = createMultiSelector(readersFilters, 'readers');
+
+    return $('<div class="filter-row">').append(
+      '<span>Show </span>',
+      invitationMultiSelector,
+      '<span> from </span>',
+      signatureMultiSelector,
+      '<span> visible to </span>',
+      readersMultiSelector
+    );
   };
 
   onTokenChange();
