@@ -86,7 +86,7 @@ const About = () => (
           <a href="/sponsors" target="_blank" rel="noopener noreferrer">
             OpenReview Sponsors
           </a>
-          ––scientific peer review is sacrosanct, and should never be owned by any one sponsor.
+          ––scientific peer review is sacrosanct, and should not be owned by any one sponsor.
         </p>
       </div>
     </div>

@@ -67,7 +67,11 @@ const Footer = () => (
         <div className="row">
           <div className="col-sm-10 col-sm-offset-1">
             <p className="text-center">
-              OpenReview is a long-term project to advance science through improved peer review,
+              <a href="/about" target="_blank" rel="noopener noreferrer">
+                OpenReview
+              </a>
+              {' '}
+              is a long-term project to advance science through improved peer review,
               with legal nonprofit status through
               {' '}
               <a href="https://codeforscience.org/" target="_blank" rel="noopener noreferrer">
