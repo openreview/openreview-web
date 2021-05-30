@@ -438,23 +438,24 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $content.on('click', '.select-all-checkbox', applySelectAllFilters);
 
     // Filter tabs
-    $(window).on('hashchange', function(e) {
+    $(window).on('hashchange', function(e, initialUpdate) {
       $('.filter-tabs li').removeClass('active');
 
-      var tab = $('.filter-tabs').find('a[href="' + location.hash + '"]').parent();
+      var hash = location.hash || '#all'
+      var tab = $('.filter-tabs').find('a[href="' + hash + '"]').parent();
       if (!tab.length) return;
 
       tab.addClass('active');
       var filter = tab.data('filter');
-
-      var parentNote = _.find(sm.get('noteRecs'), ['note.id', forumId]);
-      // setFilters({
-      //   invitations: null,
-      //   signatures: null,
-      //   readers: null,
-      //   ...parseFilterQuery(replaceFilterWildcards(filter, parentNote)),
-      // });
+      var parentNote = _.find(sm.get('noteRecs'), ['note.id', forumId]).note;
+      var newFilterObj = parseFilterQuery(replaceFilterWildcards(filter, parentNote));
+      setFilters(Object.assign({
+        invitations: null, signatures: null, readers: null, excludedReaders: null,
+      }, newFilterObj));
+      applyFilter();
     });
+
+    $(window).trigger('hashchange', true)
 
     $('[data-toggle="tooltip"]').tooltip();
   };
@@ -611,7 +612,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $forumViewsTabs = null;
     var replyForumViews = _.get(rootRec.note, 'details.invitation.replyForumViews', null);
     if (replyForumViews) {
-      $forumViewsTabs = getForumViewTabs(rootRec.note.id, replyForumViews);
+      $forumViewsTabs = getForumViewTabs(replyForumViews);
     }
 
     var replyCount = _.get(rootRec.note, 'details.replyCount', 0)
@@ -659,20 +660,20 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   // Gets invitation groups in a note. There is always going to be just one Invitation per note.
   var getInvitationFilters = function(note) {
-    return [view.prettyId(note.invitation, true).split(' ').join('_')];
+    return [view.prettyId(note.invitation, true).replace(/ /g, '_')];
   };
 
   // Gets signature groups in a note as an array.
   var getSignatureFilters = function(note) {
     return note.signatures.map(function(signature) {
-      return view.prettyId(signature, true).split(' ').join('_');
+      return view.prettyId(signature, true).replace(/ /g, '_');
     });
   };
 
   // Gets readers groups in a note as an array.
   var getReadersFilters = function(note) {
     return note.readers.map(function(reader) {
-      return view.prettyId(reader, true).split(' ').join('_');
+      return view.prettyId(reader, true).replace(/ /g, '_');
     });
   };
 
@@ -818,6 +819,23 @@ module.exports = function(forumId, noteId, invitationId, user) {
     applyFilter(event);
   };
 
+  var setFilters = function(filtersObj) {
+    Object.keys(filtersObj).forEach(function(filterName) {
+      $dropdown = $('#' + filterName).next();
+      if (!$dropdown.length) return;
+
+      if (filtersObj[filterName]) {
+        $dropdown.find('li input[type="checkbox"]').each(function() {
+          var val = $(this).attr('value');
+          $(this).prop('checked', filtersObj[filterName].includes(val));
+        });
+      } else {
+        // No filters selected, check all boxes
+        $dropdown.find('li input[type="checkbox"]').prop('checked', true);
+      }
+    });
+  };
+
   // Uses an array of compare functions to determine what comes first: a or b.
   var sortCriteria = function(a, b, compareFuncs) {
     var criteria;
@@ -890,31 +908,57 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var readersMultiSelector = createMultiSelector(readersFilters, 'readers');
 
     return $('<div class="filter-container">').append(
-      '<span>Show </span>',
+      '<span>Reply Type:</span>',
       invitationMultiSelector,
-      '<span> from </span>',
+      '<span>Author:</span>',
       signatureMultiSelector,
-      '<span> visible to </span>',
+      '<span>Readers:</span>',
       readersMultiSelector
     );
   };
 
   // Build the filter tabs from forum views array
-  var getForumViewTabs = function(forumId, replyForumViews) {
+  var getForumViewTabs = function(replyForumViews) {
     if (_.isEmpty(replyForumViews)) return null;
 
-    var currentHash = window.location.hash.slice(1) || 'all';
-
-    return $('<ul class="nav nav-tabs filter-tabs mt-1">').append(
+    return $('<ul class="nav nav-tabs filter-tabs">').append(
       replyForumViews.map(function(view) {
         return $(
-          '<li role="presentation" ' + (view.id === currentHash ? 'class="active"' : '') + '>' +
-            `<a href="#${view.id}">${view.label}</a>` +
-          '</li>'
+          '<li role="presentation"><a href="#' + view.id + '">' + view.label + '</a></li>'
         ).data('filter', view.filter);
       })
     );
   };
+
+  // Convert filter query string into object representing all the active filters
+  // Copied from lib/forum-utils.js
+  var parseFilterQuery = function(filterQuery, searchQuery) {
+    var filterObj = (filterQuery || '').split(' ').reduce(function(map, token) {
+      var [field, val] = token.split(':');
+      if (val) {
+        var mapKey = field.startsWith('-')
+          ? 'excluded' + field.slice(1, 2).toUpperCase() + field.slice(2)
+          : field;
+        // eslint-disable-next-line no-param-reassign
+        map[mapKey] = val.split(',').map(function(id) {
+          return view.prettyId(id, true).replace(/ /g, '_');
+        });
+      }
+      return map;
+    }, {});
+
+    if (searchQuery) {
+      filterObj.keywords = [searchQuery.toLowerCase()];
+    }
+
+    return filterObj;
+  }
+
+  // Convert filter query string into object representing all the active filters
+  // Copied from lib/forum-utils.js
+  var replaceFilterWildcards = function(filterQuery, replyNote) {
+    return filterQuery.replace(/\${note\.([\w.]+)}/g, (match, field) => _.get(replyNote, field, ''));
+  }
 
   onTokenChange();
 };
