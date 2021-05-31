@@ -637,7 +637,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $content.trigger('forumRendered');
   };
 
-  var createMultiSelector = function(filters, id) {
+  var createMultiSelector = function(filters, id, defaultUnchecked) {
     var htmlFilters = filters.map(function(filter) {
       return {
         valueFilter: filter,
@@ -653,7 +653,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var multiselector = Handlebars.templates['partials/multiselectorDropdown']({
       buttonText: buttonText,
       id: id,
-      htmlFilters: htmlFilters
+      htmlFilters: htmlFilters,
+      defaultUnchecked: defaultUnchecked,
     });
     return multiselector;
   };
@@ -730,7 +731,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         var comment = $('#note_' + note.id).parent();
         // If want to collapse and it's collapsed, do nothing. If want to expand and it's expanded, do nothing. Otherwise click to collapse or expand.
         if (comment.hasClass('collapsed') !== collapse) {
-          $('#note_' + note.id).prev().click();
+          $('#note_' + note.id).prev().trigger('click');
         }
       };
     };
@@ -770,12 +771,12 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var checked = checkboxes.checked.map(function(checkbox) {
       return checkbox.split('_').join(' ');
     });
-    var maxWordsToDisplay = 3; // Max amount of words to display on the button
+    var maxWordsToDisplay = 2; // Max amount of words to display on the button
     if (type === 'invitations' && checked.length === 0) return 'nothing';
-    if ((type === 'signatures' || type === 'readers') && checked.length === 0) return 'nobody';
+    if ((type === 'signatures' || type === 'readers' || type === 'excluded-readers') && checked.length === 0) return 'nobody';
     if (type === 'invitations' && checkboxes.unchecked.length === 0) return 'all';
     if (type === 'signatures' && checkboxes.unchecked.length === 0) return 'everybody';
-    if (type === 'readers' && checkboxes.unchecked.length === 0) return 'all readers';
+    if ((type === 'readers' || type === 'excluded-readers') && checkboxes.unchecked.length === 0) return 'all readers';
     if (checked.length === 1) return checked[0];
     if (checked.length === 2) return checked[0] + ' and ' + checked[1];
     var buttonText = '';
@@ -793,19 +794,27 @@ module.exports = function(forumId, noteId, invitationId, user) {
   // Action taken every time a value in the filters is chosen
   var applyFilter = function(event) {
     if (event) event.stopPropagation();
+
     var invitationCheckboxes = classifyCheckboxes($('.invitations-multiselector-checkbox'));
     $('#invitations').text(getButtonText(invitationCheckboxes, 'invitations'));
     var signatureCheckboxes = classifyCheckboxes($('.signatures-multiselector-checkbox'));
     $('#signatures').text(getButtonText(signatureCheckboxes, 'signatures'));
     var readersCheckboxes = classifyCheckboxes($('.readers-multiselector-checkbox'));
     $('#readers').text(getButtonText(readersCheckboxes, 'readers'));
+    var excludedReadersCheckboxes = classifyCheckboxes($('.excluded-readers-multiselector-checkbox'));
+    $('#excluded-readers').text(getButtonText(excludedReadersCheckboxes, 'excluded-readers'));
+
     $('#invitations').next().find('input.select-all-checkbox').prop('checked', invitationCheckboxes.unchecked.length === 0);
     $('#signatures').next().find('input.select-all-checkbox').prop('checked', signatureCheckboxes.unchecked.length === 0);
     $('#readers').next().find('input.select-all-checkbox').prop('checked', readersCheckboxes.unchecked.length === 0);
+    $('#excluded-readers').next().find('input.select-all-checkbox').prop('checked', excludedReadersCheckboxes.unchecked.length === 0);
+
     var invitationUnion = getUnion(sm.get('invitationToNotes'), invitationCheckboxes.checked);
     var signatureUnion = getUnion(sm.get('signatureToNotes'), signatureCheckboxes.checked);
     var readerUnion = getUnion(sm.get('readerToNotes'), readersCheckboxes.checked);
-    var intersection = _.intersectionBy(signatureUnion, invitationUnion, readerUnion, 'id');
+    var excludedReaderUnion = _.difference(sm.get('forumReplies'), getUnion(sm.get('readerToNotes'), excludedReadersCheckboxes.checked));
+
+    var intersection = _.intersectionBy(signatureUnion, invitationUnion, readerUnion, excludedReaderUnion, 'id');
     var notesToExpand = getNotesToExpand(intersection, sm.get('noteIdToNote'));
     var notesToCollapse = _.difference(sm.get('forumReplies'), notesToExpand);
     filterNotes(notesToExpand, notesToCollapse);
@@ -907,13 +916,17 @@ module.exports = function(forumId, noteId, invitationId, user) {
     sortFilters(readersFilters, [allAfter('author'), allAfter('reviewer'), allAfter('chair'), allBefore('anonymous')]);
     var readersMultiSelector = createMultiSelector(readersFilters, 'readers');
 
+    var excludedReadersMultiSelector = createMultiSelector(readersFilters, 'excluded-readers', true);
+
     return $('<div class="filter-container">').append(
       '<span>Reply Type:</span>',
       invitationMultiSelector,
       '<span>Author:</span>',
       signatureMultiSelector,
-      '<span>Readers:</span>',
-      readersMultiSelector
+      '<span>Visible To:</span>',
+      readersMultiSelector,
+      '<span>Hidden From:</span>',
+      excludedReadersMultiSelector
     );
   };
 
