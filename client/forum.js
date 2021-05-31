@@ -450,7 +450,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       var parentNote = _.find(sm.get('noteRecs'), ['note.id', forumId]).note;
       var newFilterObj = parseFilterQuery(replaceFilterWildcards(filter, parentNote));
       setFilters(Object.assign({
-        invitations: null, signatures: null, readers: null, excludedReaders: null,
+        invitations: null, signatures: null, readers: null, 'excluded-readers': null,
       }, newFilterObj));
       applyFilter();
     });
@@ -649,6 +649,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
       buttonText = 'everybody';
     } else if (id === 'readers') {
       buttonText = 'all readers';
+    } else if (id === 'excluded-readers') {
+      buttonText = 'nobody';
     }
     var multiselector = Handlebars.templates['partials/multiselectorDropdown']({
       buttonText: buttonText,
@@ -740,7 +742,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     notesToExpand.forEach(shouldCollapse(false));
   };
 
-  // Takes in a 'dictionary' that maps Invitatiions/Signatures to Notes and an array that contains all the filters (key values) to map the Invitations/Signatures to their corresponding Note.
+  // Takes an object that maps Invitatiions/Signatures to Notes and an array that contains all the filters (key values) to map the Invitations/Signatures to their corresponding Note.
   // This function returns a union of Notes resulting from all the filters mapping to their corresponding Notes.
   var getUnion = function(filterToNotes, filters) {
     return filters.reduce(function(notes, filter) {
@@ -812,7 +814,12 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var invitationUnion = getUnion(sm.get('invitationToNotes'), invitationCheckboxes.checked);
     var signatureUnion = getUnion(sm.get('signatureToNotes'), signatureCheckboxes.checked);
     var readerUnion = getUnion(sm.get('readerToNotes'), readersCheckboxes.checked);
-    var excludedReaderUnion = _.difference(sm.get('forumReplies'), getUnion(sm.get('readerToNotes'), excludedReadersCheckboxes.checked));
+    var excludedReaderUnion = sm.get('forumReplies').filter(function(note) {
+      var noteReaders = note.readers.map(function(groupId) {
+        return view.prettyId(groupId, true).replace(/ /g, '_');
+      });
+      return _.intersection(noteReaders, excludedReadersCheckboxes.checked).length === 0;
+    });
 
     var intersection = _.intersectionBy(signatureUnion, invitationUnion, readerUnion, excludedReaderUnion, 'id');
     var notesToExpand = getNotesToExpand(intersection, sm.get('noteIdToNote'));
@@ -840,7 +847,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         });
       } else {
         // No filters selected, check all boxes
-        $dropdown.find('li input[type="checkbox"]').prop('checked', true);
+        $dropdown.find('li input[type="checkbox"]').prop('checked', filterName !== 'excluded-readers');
       }
     });
   };
@@ -950,7 +957,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       var [field, val] = token.split(':');
       if (val) {
         var mapKey = field.startsWith('-')
-          ? 'excluded' + field.slice(1, 2).toUpperCase() + field.slice(2)
+          ? 'excluded-' + field.slice(1)
           : field;
         // eslint-disable-next-line no-param-reassign
         map[mapKey] = val.split(',').map(function(id) {
