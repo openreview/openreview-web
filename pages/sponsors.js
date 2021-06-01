@@ -62,6 +62,13 @@ export default function Sponsors({ sponsors }) {
             ))}
           </div>
 
+          <h2>Medium Patrons</h2>
+          <div className="width-2 height-2">
+            {sponsors.medium_patrons.map(sponsor => (
+              <Sponsor key={sponsor.name} name={sponsor.name} image={sponsor.image} />
+            ))}
+          </div>
+
           <h2>Small Patrons</h2>
           <div className="width-2 height-2">
             {sponsors.small_patrons.map(sponsor => (
@@ -115,17 +122,20 @@ export async function getStaticProps() {
           { name: 'DeepMind', image: 'deepmind.png' },
         ],
         benefactors: [
-          { name: 'NeurIPS', image: 'neurips.png' },
-          { name: 'ICLR', image: 'iclr.png' },
           { name: 'CDS', image: 'cds.png' },
         ],
         large_patrons: [
+          { name: 'NeurIPS', image: 'neurips.png' },
+          { name: 'ICLR', image: 'iclr.png' },
+        ],
+        medium_patrons: [
           { name: 'MILA', image: 'mila.png' },
           { name: 'ICML', image: 'icml.png' },
           { name: 'CVF', image: 'cvf.png' },
         ],
         small_patrons: [
           { name: 'MIDL', image: 'midl.png' },
+          { name: 'AKBC', image: 'akbc.png' },
         ],
         supporters: [
           { name: 'AIR', image: 'air.png' },
