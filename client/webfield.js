@@ -1457,7 +1457,8 @@ module.exports = (function() {
   var groupEditor = function(group, options) {
     var defaults = {
       container: '#notes',
-      showAddForm: true
+      showAddForm: true,
+      isSuperUser: false
     };
     options = _.defaults(options, defaults);
 
@@ -1470,7 +1471,19 @@ module.exports = (function() {
     var editor;
 
     // Helper functions
-    var renderMembersTable = function(groupMembers, removedMembers, startPage) {
+    var renderMembersTable = async function(groupMembers, removedMembers, startPage) {
+      let memberAnonIdMap = new Map()
+      if (group.anonids && options.isSuperUser) {
+        const anonGroupRegex = groupId.endsWith('s') ? `${groupId.slice(0, -1)}_` : `${groupId}_`
+        const result = await get(`/groups?regex=${anonGroupRegex}`)
+        groupMembers.forEach(m => {
+          const anonId = result.groups.find(p => p?.members == m)?.id
+          memberAnonIdMap.set(m, {
+            id: anonId,
+            prettyId: anonId ? view.prettyId(anonId) : null
+          })
+        })
+      }
       var limit = 15;
       var membersCount = groupMembers ? groupMembers.length : 0;
       var removedCount = removedMembers ? removedMembers.length : 0;
@@ -1487,6 +1500,7 @@ module.exports = (function() {
           selectedMembers: selectedMembers,
           searchTerm: searchTerm,
           addButtonEnabled: addButtonEnabled,
+          memberAnonIdMap: memberAnonIdMap,
           options: { showAddForm: options.showAddForm }
         }
       ));
@@ -1607,7 +1621,7 @@ module.exports = (function() {
       groupParent: groupParent,
       groupMembersCount: membersCount,
       removedMembers: removedMembers,
-      options: { showAddForm: options.showAddForm }
+      isSuperUser: options.isSuperUser
     }));
     $container.off();
 
@@ -1631,7 +1645,11 @@ module.exports = (function() {
       $submitButton.addClass('disabled');
 
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
-        result[field.name] = _.compact(field.value.split(',').map(_.trim));
+        if (field.name === 'anonids') {
+          result[field.name] = field.value === '' ? null : field.value === 'True';
+        } else {
+          result[field.name] = _.compact(field.value.split(',').map(_.trim));
+        }
         return result;
       }, {});
 
@@ -1649,12 +1667,15 @@ module.exports = (function() {
             Handlebars.templates['partials/groupInfoTable']({
               group: group,
               groupParent: groupParent,
-              editable: true
+              editable: true,
+              isSuperUser: options.isSuperUser
             })
           );
           showAlert('Settings for ' + view.prettyId(groupId) + ' updated');
         }).always(function() {
           $submitButton.removeClass('disabled');
+          //may need to show/remove annon id
+          if(options.isSuperUser) renderMembersTable(group.members, removedMembers);
         });
       });
 
@@ -2428,6 +2449,8 @@ module.exports = (function() {
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
         if (field.name === 'multiReply') {
           result[field.name] = field.value === '' ? null : field.value === 'True';
+        } else if (field.name === 'hideOriginalRevisions') {
+          result[field.name] = field.value === '' ? null : field.value === 'True';
         } else if (field.name === 'taskCompletionCount') {
           result[field.name] = field.value ? parseInt(field.value, 10) : null;
         } else if (field.name === 'duedate' || field.name === 'expdate' || field.name === 'cdate') {
@@ -2441,7 +2464,7 @@ module.exports = (function() {
           result[field.name] = _.compact(field.value.split(',').map(_.trim));
         }
         return result;
-      }, { multiReply: null });
+      }, { multiReply: null, hideOriginalRevisions: null });
 
       updateInvitation(formData)
         .then(function(response) {
