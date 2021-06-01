@@ -587,6 +587,7 @@ module.exports = (function() {
         invitation: null,
         subjectAreas: null,
         subjectAreaDropdown: 'advanced',
+        pageSize: 1000,
         placeholder: 'Search by paper title and metadata',
         onResults: function() {},
         onReset: function() {}
@@ -681,7 +682,7 @@ module.exports = (function() {
             if (term) {
               filterNotes(notes, {
                 term: term,
-                pageSize: 1000,
+                pageSize: options.search.pageSize,
                 invitation: options.search.invitation,
                 onResults: options.search.onResults,
                 localSearch: options.search.localSearch
@@ -707,7 +708,7 @@ module.exports = (function() {
             } else {
               filterNotes(notes, {
                 term: term,
-                pageSize: 1000,
+                pageSize: options.search.pageSize,
                 subject: selectedSubject,
                 invitation: options.search.invitation,
                 onResults: options.search.onResults,
@@ -740,7 +741,7 @@ module.exports = (function() {
 
             filterNotes(notes, {
               term: term,
-              pageSize: 1000,
+              pageSize: options.search.pageSize,
               subject: selectedSubject,
               invitation: options.search.invitation,
               onResults: options.search.onResults,
@@ -751,47 +752,48 @@ module.exports = (function() {
       }
 
       // Set up handler for basic text search
-      var searchFormHandler = function() {
-        var $formElem = $(this).closest('form.notes-search-form');
-        var term = $formElem.find('.search-content input').val().trim().toLowerCase();
+      var searchFormHandler = function(minLength) {
+        return function() {
+          var $formElem = $(this).closest('form.notes-search-form');
+          var term = $formElem.find('.search-content input').val().trim().toLowerCase();
 
-        var $subjectDropdown;
-        var selectedSubject = '';
-        if (options.search.subjectAreaDropdown === 'advanced') {
-          $subjectDropdown = $formElem.find('.subject-area-dropdown input');
-        } else {
-          $subjectDropdown = $formElem.find('.subject-area-dropdown');
+          var $subjectDropdown;
+          var selectedSubject = '';
+          if (options.search.subjectAreaDropdown === 'advanced') {
+            $subjectDropdown = $formElem.find('.subject-area-dropdown input');
+          } else {
+            $subjectDropdown = $formElem.find('.subject-area-dropdown');
+          }
+          if ($subjectDropdown.length) {
+            selectedSubject = $subjectDropdown.val().trim();
+          }
+          var filterSubjects = selectedSubject && selectedSubject !== 'All';
+
+          if (!term && !filterSubjects) {
+            options.search.onReset();
+          } else if (term.length >= minLength || (!term && filterSubjects)) {
+            $formElem.append(Handlebars.templates.spinner({ extraClasses: 'spinner-mini' }));
+
+            // Use a timeout so the loading indicator will show
+            setTimeout(function() {
+              var extraParams = filterSubjects ? {subject: selectedSubject} : {};
+              filterNotes(notes, _.assign({
+                term: term,
+                pageSize: options.search.pageSize,
+                invitation: options.search.invitation,
+                onResults: options.search.onResults,
+                localSearch: options.search.localSearch
+              }, extraParams));
+              $formElem.find('.spinner-container').remove();
+            }, 50);
+          }
+
+          return false;
         }
-        if ($subjectDropdown.length) {
-          selectedSubject = $subjectDropdown.val().trim();
-        }
-        var filterSubjects = selectedSubject && selectedSubject !== 'All';
-
-        if (!term && !filterSubjects) {
-          options.search.onReset();
-        } else if (term.length > 2 || (!term && filterSubjects)) {
-          $formElem.append(Handlebars.templates.spinner({ extraClasses: 'spinner-mini' }));
-
-          // Use a timeout so the loading indicator will show
-          setTimeout(function() {
-            var extraParams = filterSubjects ? {subject: selectedSubject} : {};
-            filterNotes(notes, _.assign({
-              term: term,
-              pageSize: 1000,
-              invitation: options.search.invitation,
-              onResults: options.search.onResults,
-              localSearch: options.search.localSearch
-            }, extraParams));
-            $formElem.find('.spinner-container').remove();
-          }, 50);
-        }
-
-
-        return false;
       };
 
-      $container.on('submit', 'form.notes-search-form', searchFormHandler);
-      $container.on('keyup', 'form.notes-search-form .search-content input', _.debounce(searchFormHandler, 400));
+      $container.on('submit', 'form.notes-search-form', searchFormHandler(2));
+      $container.on('keyup', 'form.notes-search-form .search-content input', _.debounce(searchFormHandler(3), 400));
 
       // Set up sorting handler
       if (!_.isEmpty(options.search.sort)) {
