@@ -51,8 +51,8 @@ export default function LegacyProfileEditor({
         renderPublicationEditor(profile.id)
       })
     }
-    $('.dropdown_content').focusout(() => {
-      $('.dropdown_content').css('display', 'none')
+    $('.dropdown_content').focusout((e) => {
+      if (e.target.nextSibling === null) $('.dropdown_content').css('display', 'none')
     })
   }, [profile, dropdownOptions])
 
