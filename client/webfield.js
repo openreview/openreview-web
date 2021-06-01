@@ -769,7 +769,7 @@ module.exports = (function() {
 
         if (!term && !filterSubjects) {
           options.search.onReset();
-        } else if (term.length > 2 || (!term && filterSubjects)) {
+        } else if (term.length > 1 || (!term && filterSubjects)) {
           $formElem.append(Handlebars.templates.spinner({ extraClasses: 'spinner-mini' }));
 
           // Use a timeout so the loading indicator will show
