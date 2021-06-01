@@ -1,3 +1,5 @@
+/* globals typesetMathJax: false */
+
 import { useState, useEffect, useContext } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -153,6 +155,7 @@ const Search = ({ appContext }) => {
   }
   return (
     <div>
+      {searchResults.notes?.length && typesetMathJax()}
       <Head>
         <title key="title">Search | OpenReview</title>
       </Head>
