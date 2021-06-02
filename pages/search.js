@@ -147,6 +147,10 @@ const Search = ({ appContext }) => {
     loadSearchResults()
   }, [userLoading, query])
 
+  useEffect(() => {
+    if (searchResults.notes?.length) typesetMathJax()
+  }, [searchResults])
+
   if (error) {
     return <ErrorAlert error={error} />
   }
@@ -155,7 +159,6 @@ const Search = ({ appContext }) => {
   }
   return (
     <div>
-      {searchResults.notes?.length && typesetMathJax()}
       <Head>
         <title key="title">Search | OpenReview</title>
       </Head>
