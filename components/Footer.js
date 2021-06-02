@@ -67,16 +67,22 @@ const Footer = () => (
         <div className="row">
           <div className="col-sm-10 col-sm-offset-1">
             <p className="text-center">
-              OpenReview is created by the
-              {' '}
-              <a href="http://www.iesl.cs.umass.edu/" target="_blank" rel="noopener noreferrer">
-                Information Extraction and Synthesis Laboratory
+              <a href="/about" target="_blank" rel="noopener noreferrer">
+                OpenReview
               </a>
-              , College of Information and Computer Science, University of Massachusetts Amherst.
-              We gratefully acknowledge the support of the OpenReview sponsors:  Google,  Facebook,
-              NSF, the University of Massachusetts Amherst Center for Data Science, and Center for
-              Intelligent Information Retrieval, as well as the Google Cloud Platform for donating
-              the computing and networking services on which OpenReview.net runs.
+              {' '}
+              is a long-term project to advance science through improved peer review,
+              with legal nonprofit status through
+              {' '}
+              <a href="https://codeforscience.org/" target="_blank" rel="noopener noreferrer">
+                Code for Science & Society
+              </a>
+              . We gratefully acknowledge the support of the
+              {' '}
+              <a href="/sponsors" target="_blank" rel="noopener noreferrer">
+                OpenReview Sponsors
+              </a>
+              .
             </p>
           </div>
         </div>

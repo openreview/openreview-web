@@ -2,24 +2,26 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
-import useQuery from '../../hooks/useQuery'
-import api from '../../lib/api-client'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import WebfieldContainer from '../../components/WebfieldContainer'
+import useQuery from '../../hooks/useQuery'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
 // Page Styles
 import '../../styles/pages/group.less'
-import useUser from '../../hooks/useUser'
 
 const GroupInfo = ({ appContext }) => {
   const { accessToken, userLoading } = useUser()
   const [error, setError] = useState(null)
   const [group, setGroup] = useState(null)
   const query = useQuery()
-  const { setBannerHidden, clientJsLoading } = appContext
+  const router = useRouter()
   const containerRef = useRef(null)
+  const { setBannerHidden, clientJsLoading } = appContext
 
   const loadGroup = async (id) => {
     try {
@@ -30,6 +32,14 @@ const GroupInfo = ({ appContext }) => {
         setError({ statusCode: 404, message: 'Group not found' })
       }
     } catch (apiError) {
+      if (apiError.name === 'forbidden' || apiError.name === 'ForbiddenError') {
+        if (!accessToken) {
+          router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
+        } else {
+          setError({ statusCode: 403, message: 'You don\'t have permission to read this group' })
+        }
+        return
+      }
       setError({ statusCode: apiError.status, message: apiError.message })
     }
   }
@@ -37,7 +47,11 @@ const GroupInfo = ({ appContext }) => {
   useEffect(() => {
     if (!group || !containerRef || clientJsLoading) return
 
-    Webfield.editModeBanner(group.id, 'info')
+    if (group.details?.writable) {
+      Webfield.editModeBanner(group.id, 'default')
+    } else if (group.web) {
+      Webfield.editModeBanner(group.id, 'info')
+    }
     Webfield.ui.groupInfo(group, { container: containerRef.current })
 
     // eslint-disable-next-line consistent-return

@@ -795,6 +795,7 @@ module.exports = (function() {
         invitation: null,
         subjectAreas: null,
         subjectAreaDropdown: 'advanced',
+        pageSize: 1000,
         placeholder: 'Search by paper title and metadata',
         onResults: function() {},
         onReset: function() {}
@@ -889,7 +890,7 @@ module.exports = (function() {
             if (term) {
               filterNotes(notes, {
                 term: term,
-                pageSize: 1000,
+                pageSize: options.search.pageSize,
                 invitation: options.search.invitation,
                 onResults: options.search.onResults,
                 localSearch: options.search.localSearch
@@ -915,7 +916,7 @@ module.exports = (function() {
             } else {
               filterNotes(notes, {
                 term: term,
-                pageSize: 1000,
+                pageSize: options.search.pageSize,
                 subject: selectedSubject,
                 invitation: options.search.invitation,
                 onResults: options.search.onResults,
@@ -948,7 +949,7 @@ module.exports = (function() {
 
             filterNotes(notes, {
               term: term,
-              pageSize: 1000,
+              pageSize: options.search.pageSize,
               subject: selectedSubject,
               invitation: options.search.invitation,
               onResults: options.search.onResults,
@@ -959,47 +960,48 @@ module.exports = (function() {
       }
 
       // Set up handler for basic text search
-      var searchFormHandler = function() {
-        var $formElem = $(this).closest('form.notes-search-form');
-        var term = $formElem.find('.search-content input').val().trim().toLowerCase();
+      var searchFormHandler = function(minLength) {
+        return function() {
+          var $formElem = $(this).closest('form.notes-search-form');
+          var term = $formElem.find('.search-content input').val().trim().toLowerCase();
 
-        var $subjectDropdown;
-        var selectedSubject = '';
-        if (options.search.subjectAreaDropdown === 'advanced') {
-          $subjectDropdown = $formElem.find('.subject-area-dropdown input');
-        } else {
-          $subjectDropdown = $formElem.find('.subject-area-dropdown');
+          var $subjectDropdown;
+          var selectedSubject = '';
+          if (options.search.subjectAreaDropdown === 'advanced') {
+            $subjectDropdown = $formElem.find('.subject-area-dropdown input');
+          } else {
+            $subjectDropdown = $formElem.find('.subject-area-dropdown');
+          }
+          if ($subjectDropdown.length) {
+            selectedSubject = $subjectDropdown.val().trim();
+          }
+          var filterSubjects = selectedSubject && selectedSubject !== 'All';
+
+          if (!term && !filterSubjects) {
+            options.search.onReset();
+          } else if (term.length >= minLength || (!term && filterSubjects)) {
+            $formElem.append(Handlebars.templates.spinner({ extraClasses: 'spinner-mini' }));
+
+            // Use a timeout so the loading indicator will show
+            setTimeout(function() {
+              var extraParams = filterSubjects ? {subject: selectedSubject} : {};
+              filterNotes(notes, _.assign({
+                term: term,
+                pageSize: options.search.pageSize,
+                invitation: options.search.invitation,
+                onResults: options.search.onResults,
+                localSearch: options.search.localSearch
+              }, extraParams));
+              $formElem.find('.spinner-container').remove();
+            }, 50);
+          }
+
+          return false;
         }
-        if ($subjectDropdown.length) {
-          selectedSubject = $subjectDropdown.val().trim();
-        }
-        var filterSubjects = selectedSubject && selectedSubject !== 'All';
-
-        if (!term && !filterSubjects) {
-          options.search.onReset();
-        } else if (term.length > 2 || (!term && filterSubjects)) {
-          $formElem.append(Handlebars.templates.spinner({ extraClasses: 'spinner-mini' }));
-
-          // Use a timeout so the loading indicator will show
-          setTimeout(function() {
-            var extraParams = filterSubjects ? {subject: selectedSubject} : {};
-            filterNotes(notes, _.assign({
-              term: term,
-              pageSize: 1000,
-              invitation: options.search.invitation,
-              onResults: options.search.onResults,
-              localSearch: options.search.localSearch
-            }, extraParams));
-            $formElem.find('.spinner-container').remove();
-          }, 50);
-        }
-
-
-        return false;
       };
 
-      $container.on('submit', 'form.notes-search-form', searchFormHandler);
-      $container.on('keyup', 'form.notes-search-form .search-content input', _.debounce(searchFormHandler, 400));
+      $container.on('submit', 'form.notes-search-form', searchFormHandler(2));
+      $container.on('keyup', 'form.notes-search-form .search-content input', _.debounce(searchFormHandler(3), 400));
 
       // Set up sorting handler
       if (!_.isEmpty(options.search.sort)) {
@@ -1665,7 +1667,8 @@ module.exports = (function() {
   var groupEditor = function(group, options) {
     var defaults = {
       container: '#notes',
-      showAddForm: true
+      showAddForm: true,
+      isSuperUser: false
     };
     options = _.defaults(options, defaults);
 
@@ -1678,7 +1681,19 @@ module.exports = (function() {
     var editor;
 
     // Helper functions
-    var renderMembersTable = function(groupMembers, removedMembers, startPage) {
+    var renderMembersTable = async function(groupMembers, removedMembers, startPage) {
+      let memberAnonIdMap = new Map()
+      if (group.anonids && options.isSuperUser) {
+        const anonGroupRegex = groupId.endsWith('s') ? `${groupId.slice(0, -1)}_` : `${groupId}_`
+        const result = await get(`/groups?regex=${anonGroupRegex}`)
+        groupMembers.forEach(m => {
+          const anonId = result.groups.find(p => p?.members == m)?.id
+          memberAnonIdMap.set(m, {
+            id: anonId,
+            prettyId: anonId ? view.prettyId(anonId) : null
+          })
+        })
+      }
       var limit = 15;
       var membersCount = groupMembers ? groupMembers.length : 0;
       var removedCount = removedMembers ? removedMembers.length : 0;
@@ -1695,6 +1710,7 @@ module.exports = (function() {
           selectedMembers: selectedMembers,
           searchTerm: searchTerm,
           addButtonEnabled: addButtonEnabled,
+          memberAnonIdMap: memberAnonIdMap,
           options: { showAddForm: options.showAddForm }
         }
       ));
@@ -1815,7 +1831,7 @@ module.exports = (function() {
       groupParent: groupParent,
       groupMembersCount: membersCount,
       removedMembers: removedMembers,
-      options: { showAddForm: options.showAddForm }
+      isSuperUser: options.isSuperUser
     }));
     $container.off();
 
@@ -1839,7 +1855,11 @@ module.exports = (function() {
       $submitButton.addClass('disabled');
 
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
-        result[field.name] = _.compact(field.value.split(',').map(_.trim));
+        if (field.name === 'anonids') {
+          result[field.name] = field.value === '' ? null : field.value === 'True';
+        } else {
+          result[field.name] = _.compact(field.value.split(',').map(_.trim));
+        }
         return result;
       }, {});
 
@@ -1857,12 +1877,15 @@ module.exports = (function() {
             Handlebars.templates['partials/groupInfoTable']({
               group: group,
               groupParent: groupParent,
-              editable: true
+              editable: true,
+              isSuperUser: options.isSuperUser
             })
           );
           showAlert('Settings for ' + view.prettyId(groupId) + ' updated');
         }).always(function() {
           $submitButton.removeClass('disabled');
+          //may need to show/remove annon id
+          if(options.isSuperUser) renderMembersTable(group.members, removedMembers);
         });
       });
 
@@ -2636,6 +2659,8 @@ module.exports = (function() {
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
         if (field.name === 'multiReply') {
           result[field.name] = field.value === '' ? null : field.value === 'True';
+        } else if (field.name === 'hideOriginalRevisions') {
+          result[field.name] = field.value === '' ? null : field.value === 'True';
         } else if (field.name === 'taskCompletionCount') {
           result[field.name] = field.value ? parseInt(field.value, 10) : null;
         } else if (field.name === 'duedate' || field.name === 'expdate' || field.name === 'cdate') {
@@ -2649,7 +2674,7 @@ module.exports = (function() {
           result[field.name] = _.compact(field.value.split(',').map(_.trim));
         }
         return result;
-      }, { multiReply: null });
+      }, { multiReply: null, hideOriginalRevisions: null });
 
       updateInvitation(formData)
         .then(function(response) {
