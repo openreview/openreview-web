@@ -51,9 +51,6 @@ export default function LegacyProfileEditor({
         renderPublicationEditor(profile.id)
       })
     }
-    $('.dropdown_content').focusout((e) => {
-      if (e.target.nextSibling === null && e.relatedTarget.nextSibling === null) $('.dropdown_content').css('display', 'none')
-    })
   }, [profile, dropdownOptions])
 
   return <div ref={containerEl} />
