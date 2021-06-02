@@ -52,7 +52,7 @@ export default function LegacyProfileEditor({
       })
     }
     $('.dropdown_content').focusout((e) => {
-      if (e.target.nextSibling === null) $('.dropdown_content').css('display', 'none')
+      if (e.target.nextSibling === null && e.relatedTarget.nextSibling === null) $('.dropdown_content').css('display', 'none')
     })
   }, [profile, dropdownOptions])
 
