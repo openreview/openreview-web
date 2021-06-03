@@ -148,7 +148,7 @@ const Search = ({ appContext }) => {
   }, [userLoading, query])
 
   useEffect(() => {
-    if (searchResults.notes?.length) typesetMathJax()
+    if (searchResults?.notes?.length) typesetMathJax()
   }, [searchResults])
 
   if (error) {
