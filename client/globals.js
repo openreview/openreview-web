@@ -179,6 +179,12 @@ $(document).on('click', function(event) {
   }
 });
 
+$('#content').on('focusout', '.dropdown_content', (e) => {
+  if (e.target.nextSibling === null && e.relatedTarget.nextSibling === null) {
+    $('.dropdown .dropdown_content').hide();
+  }
+});
+
 // Show/hide details link
 $('#content').on('show.bs.collapse', function(e) {
   var $div = $(e.target);

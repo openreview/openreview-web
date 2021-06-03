@@ -3046,7 +3046,15 @@ module.exports = (function() {
         }
 
         var onError = function(e) {
-          var errorMsg = e.responseJSON && e.responseJSON.message || 'There was an error uploading the file';
+          var errorMsg;
+          if (e.responseJSON && e.responseJSON.message) {
+            errorMsg = e.responseJSON.message;
+          } else if (e.readyState === 0) {
+            errorMsg = 'There is an error with the network and the file could not be uploaded'
+          } else {
+            errorMsg = 'There was an error uploading the file';
+          }
+
           if (params.onError) {
             params.onError([errorMsg]);
           } else if (e.responseJSON && e.responseJSON.errors) {
@@ -3469,7 +3477,15 @@ module.exports = (function() {
         }
 
         var onError = function(e) {
-          var errorMsg = (e.responseJSON && e.responseJSON.message) || 'There was an error uploading the file';
+          var errorMsg;
+          if (e.responseJSON && e.responseJSON.message) {
+            errorMsg = e.responseJSON.message;
+          } else if (e.readyState === 0) {
+            errorMsg = 'There is an error with the network and the file could not be uploaded'
+          } else {
+            errorMsg = 'There was an error uploading the file';
+          }
+
           if (params.onError) {
             params.onError([errorMsg]);
           } else if (e.responseJSON && e.responseJSON.errors) {
