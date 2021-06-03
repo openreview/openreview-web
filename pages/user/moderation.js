@@ -47,6 +47,28 @@ const UserModerationQueue = ({
   const [showRejectionModal, setShowRejectionModal] = useState(false)
   const [profileIdToReject, setProfileIdToReject] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
+  const defaultSearchParam = {
+    first: '',
+    middle: '',
+    last: '',
+    id: '',
+  }
+
+  const updateSearchParam = (state, action) => {
+    switch (action.type) {
+      case 'first':
+        return { ...state, first: action.payload??null}
+      case 'middle':
+        return { ...state, middle: action.payload ?? null }
+      case 'last':
+        return { ...state, last: action.payload ?? null }
+      case 'id':
+        return { ...state, id: action.payload ?? null }
+      default:
+        return state
+    }
+  }
+  const [searchParams, dispatch] = useReducer(updateSearchParam, defaultSearchParam)
 
   const getProfiles = async () => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
@@ -58,6 +80,7 @@ const UserModerationQueue = ({
         limit: pageSize,
         offset: (pageNumber - 1) * pageSize,
         withBlocked: onlyModeration ? undefined : true,
+        ...Object.fromEntries(Object.entries(searchParams).filter(p => p[1])),
       }, { accessToken })
       setTotalCount(result.count ?? 0)
       setProfiles(result.profiles ?? [])
@@ -99,11 +122,25 @@ const UserModerationQueue = ({
     getProfiles()
   }, [pageNumber, shouldReload])
 
+  useEffect(() => {
+    if (!Object.values(searchParams).some(p => p)) getProfiles()
+  }, [searchParams])
+
   return (
     <div className="profiles-list">
       {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
       <h4>{title} ({totalCount})</h4>
 
+      {!onlyModeration
+        && (
+          <div className="search-container">
+            <input placeholder="First name" onChange={(e) => { dispatch({ type: 'first', payload: e.target.value }) }} />
+            <input placeholder="Middle name" onChange={(e) => { dispatch({ type: 'middle', payload: e.target.value }) }} />
+            <input placeholder="Last name" onChange={(e) => { dispatch({ type: 'last', payload: e.target.value }) }} />
+            <input placeholder="tilde id" onChange={(e) => { dispatch({ type: 'id', payload: e.target.value }) }} />
+            <button type="button" className="btn btn-xs" onClick={() => getProfiles()}>Search</button>
+          </div>
+        )}
       {profiles ? (
         <ul className="list-unstyled list-paginated">
           {profiles.map((profile) => {
@@ -164,7 +201,7 @@ const UserModerationQueue = ({
             )
           })}
           {profiles.length === 0 && (
-            <li><p className="empty-message">No profiles pending moderation.</p></li>
+            <li><p className="empty-message">{`${onlyModeration ? 'No profiles pending moderation.' : 'No matching profile found'}`}</p></li>
           )}
         </ul>
       ) : (
