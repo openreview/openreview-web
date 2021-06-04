@@ -1,6 +1,10 @@
 <dl class="dl-horizontal group-info-table">
   <dt>Parent Group:</dt>
   <dd><a href="{{groupUrl groupParent true}}">{{prettyId groupParent}}</a></dd>
+  {{#if group.invitation}}
+    <dt>Invitation:</dt>
+    <dd><a href="/invitation?id={{group.invitation}}&mode=edit">{{group.invitation}}</a></dd>
+  {{/if}}
 
   <dt>Readers:</dt>
   <dd>{{groupIdList group.readers}}</dd>
@@ -18,6 +22,17 @@
 
   <dt>Signature:</dt>
   <dd>{{groupIdList group.signatures}}</dd>
+
+  {{#if group.anonids}}
+    <dt>AnonymousId:</dt>
+    <dd>True</dd>
+    {{#if group.secret}}
+      <dt>Secret:</dt>
+      <dd>{{group.secret}}</dd>
+    {{/if}}
+    <dt title="deanonymizers">Deanonymizers:</dt>
+    <dd>{{groupIdList group.deanonymizers}}</dd>
+  {{/if}}
 
   <dt>Created:</dt>
   <dd>{{formattedDate group.cdate group.tcdate}}</dd>
@@ -64,6 +79,26 @@
         <input type="text" class="form-control input-sm" name="signatures" value="{{join group.signatures}}">
       </div>
     </div>
+
+    {{#if isSuperUser}}
+      <div class="form-group">
+        <label for="anonids" class="col-xs-2 control-label">AnonymousId:</label>
+        <div class="col-xs-10">
+          <select name="anonids" class="form-control input-sm">
+            <option></option>
+            <option {{#is group.anonids true}}selected{{/is}}>True</option>
+            <option {{#is invitation.anonids false}}selected{{/is}}>False</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="deanonymizers" class="col-xs-2 control-label">Deanonymizers:</label>
+        <div class="col-xs-10">
+          <input type="text" class="form-control input-sm" name="deanonymizers" value="{{join group.deanonymizers}}">
+        </div>
+      </div>
+    {{/if}}
 
     <div class="form-group">
       <div class="col-xs-2">&nbsp;</div>

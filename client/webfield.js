@@ -530,6 +530,214 @@ module.exports = (function() {
     return $container.fadeIn().promise();
   };
 
+  // search filtering related functions
+  class TreeNode {
+    constructor(value, left, right) {
+      this.value = value
+      this.left = left
+      this.right = right
+    }
+  }
+  // parse search query to a tree
+  const queryToTree = (queryParam) => {
+    let currentOperand = null
+    let middleOfOperand = false
+    let stuffInBrackets = ''
+    let query = queryParam.trim()
+    const tokens = [...query]
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i];
+      if (t === 'A') {
+        if (`A${tokens[i + 1]}${tokens[i + 2]}` === 'AND') {
+          if (middleOfOperand) {
+            currentOperand += 'AND'
+            i = i + 2
+            continue
+          } else {
+            if (stuffInBrackets.length) {
+              return new TreeNode('AND', queryToTree(stuffInBrackets), queryToTree(query.slice(i + 3)))
+            } else {
+              return new TreeNode('AND', currentOperand, queryToTree(query.slice(i + 3)))
+            }
+          }
+        } else {
+          currentOperand ? currentOperand += t : currentOperand = t
+          continue
+        }
+      }
+      if (t === 'O') {
+        if (`O${tokens[i + 1]}` === 'OR') {
+          if (middleOfOperand) {
+            currentOperand += 'OR'
+            i = i + 1
+            continue
+          } else {
+            if (stuffInBrackets.length) {
+              return new TreeNode('OR', queryToTree(stuffInBrackets), queryToTree(query.slice(i + 2)))
+            } else {
+              return new TreeNode('OR', currentOperand, queryToTree(query.slice(i + 2)))
+            }
+          }
+        } else {
+          currentOperand ? currentOperand += t : currentOperand = t
+          continue
+        }
+      }
+      else if (t === '(') {
+        if (middleOfOperand) {
+          currentOperand += t
+        } else {
+          const lengthToRightBracket = getRightBracketIndex(query.slice(i + 1))
+          stuffInBrackets = query.slice(i + 1, i + lengthToRightBracket + 1)
+          i = i + lengthToRightBracket + 1
+          if (i === query.length - 1) return queryToTree(query.slice(1, -1))//no more expression
+          continue
+        }
+      }
+      else if (t === '"' || t==="'") {
+        middleOfOperand = !middleOfOperand
+      } else {
+        currentOperand ? currentOperand += t : currentOperand = t
+      }
+    }
+    return currentOperand
+  }
+
+  //find index of match right bracket
+  const getRightBracketIndex = (remainingQuery) => {
+    let bracketLevel = 0
+    let middleOfOperand = false
+    const tokens = [...remainingQuery]
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i];
+      if (t === ')') {
+        if (bracketLevel === 0) {
+          return i
+        } else {
+          bracketLevel -= 1
+        }
+      }
+      if (t === '(') {
+        if (!middleOfOperand) {
+          bracketLevel += 1
+        }
+      }
+      if (t === '"') {
+        middleOfOperand = !middleOfOperand
+      }
+    }
+  }
+
+  const filterTreeNode = (collections, treeNode, filterOperators, propertiesAllowed, uniqueIdentifier) => {
+    if (treeNode instanceof TreeNode) {
+      return combineResults(
+        filterTreeNode(collections, treeNode.left, filterOperators, propertiesAllowed, uniqueIdentifier),
+        filterTreeNode(collections, treeNode.right, filterOperators, propertiesAllowed, uniqueIdentifier),
+        treeNode.value, uniqueIdentifier
+      )
+    }
+    // single expression
+    return filterOneOperand(collections, treeNode, filterOperators, propertiesAllowed)
+  }
+
+  // extract property to search, the expected value and how the value should be compared
+  // like =,>,< from string of filtering criteria
+  const operandToPropertyValue = (operandPram, filterOperators) => {
+    const operand = operandPram.trim()
+    const filterOperator = filterOperators.find(p => operand.includes(p))
+    if (!filterOperator) throw new Error('operator is invalid')
+    const [property, value] = operand.split(filterOperator)
+    return {
+      property:property.trim(), value: value.replace(/"/g, '').trim(), filterOperator
+    }
+  }
+
+  const evaluateOperator = (operator, propertyValue, targetValue) => {
+    // propertyValue can be number/array/string/obj
+    let isString = false
+    if (!propertyValue || !targetValue) return false
+    if (typeof (propertyValue) === 'object' && !Array.isArray(propertyValue)) { // reviewers are objects
+      propertyValue = Object.values(propertyValue).map(p => p.name.toString().toLowerCase())
+      targetValue = targetValue.toString().toLowerCase()
+    }
+    if (!(typeof (propertyValue) === 'number' && typeof (targetValue) === 'number') && !Array.isArray(propertyValue)) {
+      propertyValue = propertyValue.toString().toLowerCase()
+      targetValue = targetValue.toString().toLowerCase()
+      isString = true
+    }
+    const allowGreaterLessComparison = !(typeof propertyValue === 'string' && typeof targetValue === 'string')
+    switch (operator) {
+      case '=':
+        if (Array.isArray(propertyValue)) return propertyValue.some(p => p.toString().toLowerCase().includes(targetValue.toString().toLowerCase()))
+        return isString ? propertyValue.includes(targetValue) : propertyValue === targetValue
+      case '>':
+        if (allowGreaterLessComparison) return propertyValue > targetValue
+        throw new Error('operator is invalid')
+      case '<':
+        if (allowGreaterLessComparison) return propertyValue < targetValue
+        throw new Error('operator is invalid')
+      case '>=':
+        if (allowGreaterLessComparison) return propertyValue >= targetValue
+        throw new Error('operator is invalid')
+      case '<=':
+        if (allowGreaterLessComparison) return propertyValue <= targetValue
+        throw new Error('operator is invalid')
+      case '!=': return propertyValue !== targetValue
+      default:
+        throw new Error('operator is invalid')
+    }
+  }
+
+  // filter a collection by 1 filter criteria
+  const filterOneOperand = (collections, operand, filterOperators, propertiesAllowed) => {
+    if (!operand || operand.trim().length === 0) return null
+    const { property, value, filterOperator } = operandToPropertyValue(operand, filterOperators)
+    if (!propertiesAllowed[property]) throw new Error('property is invalid')
+    const propertyPath = propertiesAllowed[property].length === 0
+      ? [property] // not a nested property
+      : propertiesAllowed[property].map(p => p.split('.')) // has dot or match multiple properties
+
+    const convertedValue = Number(value) || value
+    return collections.filter(p => {
+      if (propertyPath.length === 1) {
+        return evaluateOperator(filterOperator, propertyPath[0].reduce((r, s) => r?.[s], p), convertedValue)
+      }
+      return propertyPath.map(q => q.reduce((r, s) => r?.[s], p))
+        .some(t => evaluateOperator(filterOperator, t, convertedValue))
+    })
+  }
+
+  // combind two collections by operator AND(intersection) or OR(unique union)
+  const combineResults = (collection1, collection2, operator, uniqueIdentifier) => {
+    if (!collection1) {
+      if (!collection2) {
+        return []
+      }
+      return collection2
+    }
+    if (!collection2) return collection1
+    const propertyPath = uniqueIdentifier.includes('.') ? uniqueIdentifier.split('.') : [uniqueIdentifier]
+    switch (operator) {
+      case 'OR':
+        return [...new Set([...collection1, ...collection2])]
+      case 'AND':
+        const collection2UniqueIdentifiers = collection2.map(p => propertyPath.reduce((r, s) => r?.[s], p))
+        return collection1.filter(p => collection2UniqueIdentifiers.includes(propertyPath.reduce((r, s) => r?.[s], p)))
+      default:
+        return []
+    }
+  }
+
+  const filterCollections = (collections, filterString, filterOperators, propertiesAllowed, uniqueIdentifier) => {
+    try {
+      const syntaxTree = queryToTree(filterString)
+      const filterResult = filterTreeNode(collections, syntaxTree, filterOperators, propertiesAllowed, uniqueIdentifier)
+      return { filteredRows: filterResult }
+    } catch (error) {
+      return { filteredRows: collections, queryIsInvalid: true }
+    }
+  }
+
   // Deprecated
   var invitationForm = function(invitationData, user, options) {
     var defaults = {
@@ -587,6 +795,7 @@ module.exports = (function() {
         invitation: null,
         subjectAreas: null,
         subjectAreaDropdown: 'advanced',
+        pageSize: 1000,
         placeholder: 'Search by paper title and metadata',
         onResults: function() {},
         onReset: function() {}
@@ -681,7 +890,7 @@ module.exports = (function() {
             if (term) {
               filterNotes(notes, {
                 term: term,
-                pageSize: 1000,
+                pageSize: options.search.pageSize,
                 invitation: options.search.invitation,
                 onResults: options.search.onResults,
                 localSearch: options.search.localSearch
@@ -707,7 +916,7 @@ module.exports = (function() {
             } else {
               filterNotes(notes, {
                 term: term,
-                pageSize: 1000,
+                pageSize: options.search.pageSize,
                 subject: selectedSubject,
                 invitation: options.search.invitation,
                 onResults: options.search.onResults,
@@ -740,7 +949,7 @@ module.exports = (function() {
 
             filterNotes(notes, {
               term: term,
-              pageSize: 1000,
+              pageSize: options.search.pageSize,
               subject: selectedSubject,
               invitation: options.search.invitation,
               onResults: options.search.onResults,
@@ -751,47 +960,48 @@ module.exports = (function() {
       }
 
       // Set up handler for basic text search
-      var searchFormHandler = function() {
-        var $formElem = $(this).closest('form.notes-search-form');
-        var term = $formElem.find('.search-content input').val().trim().toLowerCase();
+      var searchFormHandler = function(minLength) {
+        return function() {
+          var $formElem = $(this).closest('form.notes-search-form');
+          var term = $formElem.find('.search-content input').val().trim().toLowerCase();
 
-        var $subjectDropdown;
-        var selectedSubject = '';
-        if (options.search.subjectAreaDropdown === 'advanced') {
-          $subjectDropdown = $formElem.find('.subject-area-dropdown input');
-        } else {
-          $subjectDropdown = $formElem.find('.subject-area-dropdown');
+          var $subjectDropdown;
+          var selectedSubject = '';
+          if (options.search.subjectAreaDropdown === 'advanced') {
+            $subjectDropdown = $formElem.find('.subject-area-dropdown input');
+          } else {
+            $subjectDropdown = $formElem.find('.subject-area-dropdown');
+          }
+          if ($subjectDropdown.length) {
+            selectedSubject = $subjectDropdown.val().trim();
+          }
+          var filterSubjects = selectedSubject && selectedSubject !== 'All';
+
+          if (!term && !filterSubjects) {
+            options.search.onReset();
+          } else if (term.length >= minLength || (!term && filterSubjects)) {
+            $formElem.append(Handlebars.templates.spinner({ extraClasses: 'spinner-mini' }));
+
+            // Use a timeout so the loading indicator will show
+            setTimeout(function() {
+              var extraParams = filterSubjects ? {subject: selectedSubject} : {};
+              filterNotes(notes, _.assign({
+                term: term,
+                pageSize: options.search.pageSize,
+                invitation: options.search.invitation,
+                onResults: options.search.onResults,
+                localSearch: options.search.localSearch
+              }, extraParams));
+              $formElem.find('.spinner-container').remove();
+            }, 50);
+          }
+
+          return false;
         }
-        if ($subjectDropdown.length) {
-          selectedSubject = $subjectDropdown.val().trim();
-        }
-        var filterSubjects = selectedSubject && selectedSubject !== 'All';
-
-        if (!term && !filterSubjects) {
-          options.search.onReset();
-        } else if (term.length > 2 || (!term && filterSubjects)) {
-          $formElem.append(Handlebars.templates.spinner({ extraClasses: 'spinner-mini' }));
-
-          // Use a timeout so the loading indicator will show
-          setTimeout(function() {
-            var extraParams = filterSubjects ? {subject: selectedSubject} : {};
-            filterNotes(notes, _.assign({
-              term: term,
-              pageSize: 1000,
-              invitation: options.search.invitation,
-              onResults: options.search.onResults,
-              localSearch: options.search.localSearch
-            }, extraParams));
-            $formElem.find('.spinner-container').remove();
-          }, 50);
-        }
-
-
-        return false;
       };
 
-      $container.on('submit', 'form.notes-search-form', searchFormHandler);
-      $container.on('keyup', 'form.notes-search-form .search-content input', _.debounce(searchFormHandler, 400));
+      $container.on('submit', 'form.notes-search-form', searchFormHandler(2));
+      $container.on('keyup', 'form.notes-search-form .search-content input', _.debounce(searchFormHandler(3), 400));
 
       // Set up sorting handler
       if (!_.isEmpty(options.search.sort)) {
@@ -1457,7 +1667,8 @@ module.exports = (function() {
   var groupEditor = function(group, options) {
     var defaults = {
       container: '#notes',
-      showAddForm: true
+      showAddForm: true,
+      isSuperUser: false
     };
     options = _.defaults(options, defaults);
 
@@ -1470,7 +1681,19 @@ module.exports = (function() {
     var editor;
 
     // Helper functions
-    var renderMembersTable = function(groupMembers, removedMembers, startPage) {
+    var renderMembersTable = async function(groupMembers, removedMembers, startPage) {
+      let memberAnonIdMap = new Map()
+      if (group.anonids && options.isSuperUser) {
+        const anonGroupRegex = groupId.endsWith('s') ? `${groupId.slice(0, -1)}_` : `${groupId}_`
+        const result = await get(`/groups?regex=${anonGroupRegex}`)
+        groupMembers.forEach(m => {
+          const anonId = result.groups.find(p => p?.members == m)?.id
+          memberAnonIdMap.set(m, {
+            id: anonId,
+            prettyId: anonId ? view.prettyId(anonId) : null
+          })
+        })
+      }
       var limit = 15;
       var membersCount = groupMembers ? groupMembers.length : 0;
       var removedCount = removedMembers ? removedMembers.length : 0;
@@ -1487,6 +1710,7 @@ module.exports = (function() {
           selectedMembers: selectedMembers,
           searchTerm: searchTerm,
           addButtonEnabled: addButtonEnabled,
+          memberAnonIdMap: memberAnonIdMap,
           options: { showAddForm: options.showAddForm }
         }
       ));
@@ -1607,7 +1831,7 @@ module.exports = (function() {
       groupParent: groupParent,
       groupMembersCount: membersCount,
       removedMembers: removedMembers,
-      options: { showAddForm: options.showAddForm }
+      isSuperUser: options.isSuperUser
     }));
     $container.off();
 
@@ -1631,7 +1855,11 @@ module.exports = (function() {
       $submitButton.addClass('disabled');
 
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
-        result[field.name] = _.compact(field.value.split(',').map(_.trim));
+        if (field.name === 'anonids') {
+          result[field.name] = field.value === '' ? null : field.value === 'True';
+        } else {
+          result[field.name] = _.compact(field.value.split(',').map(_.trim));
+        }
         return result;
       }, {});
 
@@ -1649,12 +1877,15 @@ module.exports = (function() {
             Handlebars.templates['partials/groupInfoTable']({
               group: group,
               groupParent: groupParent,
-              editable: true
+              editable: true,
+              isSuperUser: options.isSuperUser
             })
           );
           showAlert('Settings for ' + view.prettyId(groupId) + ' updated');
         }).always(function() {
           $submitButton.removeClass('disabled');
+          //may need to show/remove annon id
+          if(options.isSuperUser) renderMembersTable(group.members, removedMembers);
         });
       });
 
@@ -2428,6 +2659,8 @@ module.exports = (function() {
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
         if (field.name === 'multiReply') {
           result[field.name] = field.value === '' ? null : field.value === 'True';
+        } else if (field.name === 'hideOriginalRevisions') {
+          result[field.name] = field.value === '' ? null : field.value === 'True';
         } else if (field.name === 'taskCompletionCount') {
           result[field.name] = field.value ? parseInt(field.value, 10) : null;
         } else if (field.name === 'duedate' || field.name === 'expdate' || field.name === 'cdate') {
@@ -2441,7 +2674,7 @@ module.exports = (function() {
           result[field.name] = _.compact(field.value.split(',').map(_.trim));
         }
         return result;
-      }, { multiReply: null });
+      }, { multiReply: null, hideOriginalRevisions: null });
 
       updateInvitation(formData)
         .then(function(response) {
@@ -3002,6 +3235,7 @@ module.exports = (function() {
     setupAutoLoading: setupAutoLoading,
     disableAutoLoading: disableAutoLoading,
     editModeBanner: editModeBanner,
+    filterCollections: filterCollections,
 
     api: {
       getSubmissionInvitation: getSubmissionInvitation,
