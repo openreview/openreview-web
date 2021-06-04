@@ -142,7 +142,8 @@ const AutoCompleteInput = () => {
             const activeClass = hoverIndex === index ? 'ui-state-active' : ''
             return item ? (
               <li
-                key={item.value}
+                // eslint-disable-next-line react/no-array-index-key
+                key={`${item.value}${index}`}
                 className="menuItem ui-menu-item"
                 role="presentation"
                 onClick={() => itemClickHandler(item)}
