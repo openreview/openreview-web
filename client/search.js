@@ -102,7 +102,7 @@ var contentToString = function(stringOrArray) {
 };
 
 var getTitleObjects = function(docArray, searchTerm) {
-  var termRegex = new RegExp(searchTerm + '.*', 'i');
+  var termRegex = new RegExp(_.escapeRegExp(searchTerm) + '.*', 'i');
   return _.filter(_.map(docArray, function(docObj) {
     var contentObj = docObj.content;
     return {
