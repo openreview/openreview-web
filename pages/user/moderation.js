@@ -57,13 +57,13 @@ const UserModerationQueue = ({
   const updateSearchParam = (state, action) => {
     switch (action.type) {
       case 'first':
-        return { ...state, first: action.payload??null}
+        return { ...state, first: action.payload }
       case 'middle':
-        return { ...state, middle: action.payload ?? null }
+        return { ...state, middle: action.payload }
       case 'last':
-        return { ...state, last: action.payload ?? null }
+        return { ...state, last: action.payload }
       case 'id':
-        return { ...state, id: action.payload ?? null }
+        return { ...state, id: action.payload }
       default:
         return state
     }
