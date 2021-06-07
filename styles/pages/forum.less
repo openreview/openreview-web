@@ -86,13 +86,16 @@ main.forum {
 
   .filter-row {
     .clearfix;
-    margin: 1rem 0;
+    margin: 1rem 0 0 0;
 
     span {
       color: #555555;
     }
     .multiselector.dropdown {
-      margin: 0 .5rem 0 .25rem;
+      margin: 0 .5rem .5rem .25rem;
+    }
+    .filter-container {
+      width: calc(100% - ~'80px');
     }
   }
 
@@ -289,13 +292,16 @@ main.forum {
 
   // Comments, reviews, replies, etc.
   #note_children {
-    margin-top: 1rem;
+    margin-top: .5rem;
 
     > div {
       background: rgba(0, 0, 0, 0.04);
       padding: .5rem;
       padding-left: 1.5rem;
       margin-top: .75rem;
+    }
+    > div:first-child {
+      margin-top: 0;
     }
 
     .note.panel {
