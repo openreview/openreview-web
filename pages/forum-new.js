@@ -650,6 +650,6 @@ Forum.getInitialProps = async (ctx) => {
   }
 }
 
-Forum.bodyClass = 'forum'
+Forum.bodyClass = 'forum-new'
 
 export default withError(Forum)

@@ -277,7 +277,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
       user: user,
       tagInvitations: rec.tagInvitations,
       readOnlyTags: true,
-      originalInvitations: rec.originalInvitations
+      originalInvitations: rec.originalInvitations,
+      newLayout: forumId !== rec.note.id && sm.get('useNewLayout')
     });
     $note.attr('id', 'note_' + rec.note.id);
     return $note;
@@ -611,6 +612,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     $forumViewsTabs = null;
     var replyForumViews = _.get(rootRec.note, 'details.invitation.replyForumViews', null);
+    sm.update('useNewLayout', !!replyForumViews);
     if (replyForumViews) {
       $forumViewsTabs = getForumViewTabs(replyForumViews);
     }
