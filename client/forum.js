@@ -733,10 +733,16 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var shouldCollapse = function(collapse) {
       return function(note) {
         var comment = $('#note_' + note.id).parent();
-        // If want to collapse and it's collapsed, do nothing. If want to expand and it's expanded, do nothing. Otherwise click to collapse or expand.
+        // If want to collapse and it's collapsed, do nothing. If want to expand
+        // and it's expanded, do nothing. Otherwise click to collapse or expand.
         if (comment.hasClass('collapsed') !== collapse) {
           $('#note_' + note.id).prev().trigger('click');
         }
+        // if (collapse) {
+        //   comment.hide();
+        // } else {
+        //   comment.show();
+        // }
       };
     };
 

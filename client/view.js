@@ -3771,11 +3771,12 @@ module.exports = (function() {
   var getInvitationColors = function(prettyId) {
     const styleMap = {
       Comment: { backgroundColor: '#bfb', color: '#2c3a4a' },
-      'Official Comment': { backgroundColor: '#bbf', color: '#2c3a4a' },
       'Public Comment': { backgroundColor: '#bfb', color: '#2c3a4a' }, // Same as Comment
+      'Official Comment': { backgroundColor: '#bbf', color: '#2c3a4a' },
       Review: { backgroundColor: '#fbb', color: '#2c3a4a' },
-      'Meta Review': { backgroundColor: '#fbf', color: '#2c3a4a' },
       'Official Review': { backgroundColor: '#fbb', color: '#2c3a4a' }, // Same as Review
+      'Meta Review': { backgroundColor: '#fbf', color: '#2c3a4a' },
+      'Secondary Meta Review': { backgroundColor: '#fbf', color: '#2c3a4a' }, // Same as Meta Review
       Decision: { backgroundColor: '#bff', color: '#2c3a4a' },
     }
     if (styleMap[prettyId]) {
