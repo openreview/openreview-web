@@ -1,3 +1,5 @@
+/* globals typesetMathJax: false */
+
 import { useState, useEffect, useContext } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -144,6 +146,10 @@ const Search = ({ appContext }) => {
 
     loadSearchResults()
   }, [userLoading, query])
+
+  useEffect(() => {
+    if (searchResults?.notes?.length) typesetMathJax()
+  }, [searchResults])
 
   if (error) {
     return <ErrorAlert error={error} />
