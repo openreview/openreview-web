@@ -18,6 +18,8 @@ module.exports = withLess({
     FEEDBACK_EMAIL: 'info@openreview.net',
     ERROR_EMAIL: 'errors@openreview.net',
     GA_PROPERTY_ID: process.env.GA_PROPERTY_ID,
+    API_URL_V2: process.env.API_URL_V2,
+    ENABLE_V2_API: process.env.ENABLE_V2_API,
   },
   generateBuildId: () => nextBuildId({ dir: __dirname, describe: true }),
   poweredByHeader: false,

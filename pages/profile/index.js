@@ -7,13 +7,13 @@ import Router, { useRouter } from 'next/router'
 import pick from 'lodash/pick'
 import random from 'lodash/random'
 import UserContext from '../../components/UserContext'
-import NoteList from '../../components/NoteList'
+import NoteList, { NoteListV2 } from '../../components/NoteList'
 import Icon from '../../components/Icon'
 import withError from '../../components/withError'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
-import { prettyList } from '../../lib/utils'
+import { apiV2MergeNotes, prettyList } from '../../lib/utils'
 import { auth } from '../../lib/auth'
 import { editProfileLink } from '../../lib/banner-links'
 
@@ -159,10 +159,21 @@ const RecentPublications = ({
 
   return publications.length > 0 ? (
     <>
-      <NoteList
-        notes={publications.slice(0, numPublicationsToShow)}
-        displayOptions={displayOptions}
-      />
+      {
+        process.env.ENABLE_V2_API
+          ? (
+            <NoteListV2
+              notes={publications.slice(0, numPublicationsToShow)}
+              displayOptions={displayOptions}
+            />
+          )
+          : (
+            <NoteList
+              notes={publications.slice(0, numPublicationsToShow)}
+              displayOptions={displayOptions}
+            />
+          )
+      }
 
       {count > numPublicationsToShow && (
         <Link href={`/search?term=${profileId}&content=authors&group=all&source=forum&sort=cdate:desc`}>
@@ -238,15 +249,34 @@ const Profile = ({ profile, publicProfile, appContext }) => {
   const loadPublications = async () => {
     let apiRes
     try {
-      apiRes = await api.get('/notes', {
-        'content.authorids': profile.id,
-        sort: 'cdate:desc',
-        limit: 1000,
-      }, { token: accessToken })
+      if (process.env.ENABLE_V2_API) {
+        const v1NotesP = api.get('/notes', {
+          'content.authorids': profile.id,
+          sort: 'cdate:desc',
+          limit: 1000,
+        }, { token: accessToken })
+        const v2NotesP = await api.getv2('/notes', {
+          'content.authorids': profile.id,
+          sort: 'cdate:desc',
+          limit: 1000,
+        }, { token: accessToken })
+        const apiResArray = await Promise.all([v1NotesP, v2NotesP])
+        const notes = apiV2MergeNotes(apiResArray[0].notes, apiResArray[1].notes)
+        apiRes = {
+          notes,
+          count: notes.length,
+        }
+      } else {
+        apiRes = await api.get('/notes', {
+          'content.authorids': profile.id,
+          sort: 'cdate:desc',
+          limit: 1000,
+        }, { token: accessToken })
+      }
     } catch (error) {
       apiRes = error
     }
-    if (apiRes.notes) {
+    if (apiRes?.notes) {
       setPublications(apiRes.notes)
       setCount(apiRes.count)
     }
