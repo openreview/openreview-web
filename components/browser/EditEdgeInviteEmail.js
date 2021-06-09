@@ -37,7 +37,7 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
       try {
         const result = await api.post('/edges', newEdgeJson, { accessToken })
         setEmailsToInvite('')
-        promptMessage('Invitation is sent and waiting for response from external reviewer.')
+        promptMessage(`Invitation has been sent to ${email} and it's waiting for the response.`)
       } catch (error) {
         promptError(error.message)
       }
