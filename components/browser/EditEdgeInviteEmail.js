@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-/* globals promptError: false */
+/* globals promptError,promptMessage: false */
 import { useContext, useState } from 'react'
 import api from '../../lib/api-client'
 import { getInterpolatedValues, getSignatures } from '../../lib/edge-utils'
@@ -37,6 +37,7 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
       try {
         const result = await api.post('/edges', newEdgeJson, { accessToken })
         setEmailsToInvite('')
+        promptMessage('Invitation is sent and waiting for response from external reviewer.')
       } catch (error) {
         promptError(error.message)
       }
