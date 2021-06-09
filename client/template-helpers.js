@@ -299,6 +299,75 @@ Handlebars.registerHelper('noteAuthors', function(content, signatures, details) 
   return new Handlebars.SafeString(html);
 });
 
+Handlebars.registerHelper('noteAuthorsV2', function(content, signatures, details) {
+  var html = '';
+  var privateLabel = false;
+
+  if (details && details.original && !_.isEqual(details.original.content.authors?.value, content.authors?.value)) {
+    content = details.original.content;
+    privateLabel = true;
+  }
+
+  var authors = content?.authors?.value;
+  var authorids = content?.authorids?.value;
+
+  if (_.isArray(authors) && authors.length) {
+    if (_.isArray(authorids) && authorids.length) {
+      html = authors.map(function(author, i) {
+        var authorId;
+
+        author = Handlebars.Utils.escapeExpression(author);
+        authorId = Handlebars.Utils.escapeExpression(authorids[i]);
+        if (authorId && authorId.indexOf('~') === 0) {
+          return '<a href="/profile?id='+ encodeURIComponent(authorId) +
+            '" class="profile-link" data-toggle="tooltip" data-placement="top" title="'+ authorId +
+            '">'+ author +'</a>';
+        } else if (authorId && authorId.indexOf('@') !== -1) {
+          return '<a href="/profile?email='+ encodeURIComponent(authorId) +
+            '" class="profile-link" data-toggle="tooltip" data-placement="top" title="'+ authorId +
+            '">'+ author +'</a>';
+        } else if (authorId && authorId.indexOf('http') === 0) {
+          return '<a href="'+ authorId +
+            '" class="profile-link" data-toggle="tooltip" data-placement="top" title="'+ authorId +
+            '">'+ author +'</a>';
+        } else {
+          return author;
+        }
+      }).join(', ');
+
+    } else {
+      html = authors.map(function(author, i) {
+        return Handlebars.Utils.escapeExpression(author);
+      }).join(', ');
+    }
+  } else {
+    if ((_.isArray(signatures) && signatures.length)) {
+      html = signatures.map(function(authorId, i) {
+
+        var author = view.prettyId(authorId);
+        if (authorId && authorId.indexOf('~') === 0) {
+          return '<a href="/profile?id='+ encodeURIComponent(authorId) +
+            '" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="'+ authorId +
+            '">'+ author +'</a>';
+        } else if (authorId && authorId.indexOf('@') !== -1) {
+          return '<a href="/profile?email='+ encodeURIComponent(authorId) +
+            '" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="'+ authorId +
+            '">'+ author +'</a>';
+        } else {
+          return author;
+        }
+      }).join(', ');
+    }
+  }
+
+  if (privateLabel) {
+    html = html + ' <span class="private-author-label">(privately revealed to you)</span>';
+  }
+
+  return new Handlebars.SafeString(html);
+});
+
+// for V2, pass isV2API=true in options
 Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
   if (_.isEmpty(noteObj)) {
     return '';
@@ -332,8 +401,7 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
     if (omittedContentFields.includes(fieldName) || fieldName.startsWith('_')) {
       return;
     }
-
-    var valueString = view.prettyContentValue(noteObj.content[fieldName]);
+    var valueString = view.prettyContentValue(options.hash.isV2API ? noteObj.content[fieldName]?.value : noteObj.content[fieldName]);
     if (!valueString) {
       return;
     }
@@ -941,7 +1009,9 @@ Handlebars.registerHelper('getAnonId', function(varName,memberId,memberAnonIdMap
 Handlebars.registerPartial('noteContent', Handlebars.templates['partials/noteContent']);
 
 Handlebars.registerPartial('noteBasic', Handlebars.templates['partials/noteBasic']);
+Handlebars.registerPartial('noteBasicV2', Handlebars.templates['partials/noteBasicV2']);
 Handlebars.registerPartial('noteList', Handlebars.templates['partials/noteList']);
+Handlebars.registerPartial('noteListV2', Handlebars.templates['partials/noteListV2']);
 
 Handlebars.registerPartial('noteActivity', Handlebars.templates['partials/noteActivity']);
 Handlebars.registerPartial('activityList', Handlebars.templates['partials/activityList']);

@@ -18,6 +18,7 @@ import { viewProfileLink } from '../../lib/banner-links'
 
 // Page Styles
 import '../../styles/pages/profile-edit.less'
+import { apiV2MergeNotes } from '../../lib/utils'
 
 export default function ProfileEdit({ appContext }) {
   const { accessToken } = useLoginRedirect()
@@ -41,9 +42,24 @@ export default function ProfileEdit({ appContext }) {
   }
 
   const unlinkPublication = async (profileId, noteId) => {
-    const notes = await api.get('/notes', { id: noteId }, { accessToken })
-    const authorIds = get(notes, 'notes[0].content.authorids')
-    const invitation = get(notes, 'notes[0].invitation')
+    let note
+    let authorIds
+    let invitation
+
+    if (process.env.ENABLE_V2_API) {
+      const v1NoteP = api.get('/notes', { id: noteId }, { accessToken })
+      const v2NoteP = api.getV2('/notes', { id: noteId }, { accessToken })
+      const results = await Promise.all([v1NoteP, v2NoteP])
+      note = apiV2MergeNotes(results[0].notes, results[1].notes)[0]
+      authorIds = note?.content?.authorids?.value
+      invitation = note?.invitations?.[0]
+    } else {
+      const result = await api.get('/notes', { id: noteId }, { accessToken })
+      note = result.notes[0]
+      authorIds = note?.content?.authorids
+      // eslint-disable-next-line prefer-destructuring
+      invitation = note.invitation
+    }
     const invitationMap = {
       'dblp.org/-/record': 'dblp.org/-/author_coreference',
       'OpenReview.net/Archive/-/Imported_Record': 'OpenReview.net/Archive/-/Imported_Record_Revision',
@@ -59,7 +75,6 @@ export default function ProfileEdit({ appContext }) {
       ...profile.emails?.filter(p => p.confirmed).map(p => p.email),
       ...profile.names?.map(p => p.username).filter(p => p),
     ]
-
     const matchedIdx = authorIds.reduce((matchedIndex, authorId, index) => { // find all matched index of all author ids
       if (allAuthorIds.includes(authorId)) matchedIndex.push(index)
       return matchedIndex
@@ -68,7 +83,21 @@ export default function ProfileEdit({ appContext }) {
       throw new Error(`Multiple matches found in authors of paper ${noteId}.`)
     }
     authorIds[matchedIdx[0]] = null // the only match
-
+    if (note.version === 'v2') {
+      const updateAuthorIdsObject = {
+        id: noteId,
+        invitation: invitationMap[invitation],
+        signatures: [profileId],
+        readers: ['everyone'],
+        writers: [],
+        note: {
+          content: {
+            authorids: { value: authorIds },
+          },
+        },
+      }
+      return api.postV2('/notes/edits', updateAuthorIdsObject, { accessToken })
+    }
     const updateAuthorIdsObject = {
       id: null,
       referent: noteId,

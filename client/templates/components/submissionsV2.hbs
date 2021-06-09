@@ -1,0 +1,46 @@
+{{#if heading}}
+  <h3>{{heading}}</h3>
+  <hr>
+{{/if}}
+
+{{#if search.enabled}}
+  <form class="form-inline notes-search-form {{#if search.sort}}notes-search-form-compact{{/if}}" role="search">
+
+    <div class="form-group search-content has-feedback">
+      <input id="paper-search-input" type="text" class="form-control" placeholder="{{search.placeholder}}" autocomplete="off">
+      <span class="glyphicon glyphicon-search form-control-feedback" aria-hidden="true"></span>
+    </div>
+
+    {{#if search.subjectAreas}}
+      <div class="form-group subject-area">
+        <label for="subject-area-dropdown">Subject Area:</label>
+
+        {{#is search.subjectAreaDropdown 'basic'}}
+          <select class="subject-area-dropdown form-control">
+            <option value="" selected>All Subject Areas</option>
+            {{#each search.subjectAreas}}
+              <option value="{{this}}">{{this}}</option>
+            {{/each}}
+          </select>
+        {{/is}}
+      </div>
+    {{/if}}
+
+    {{#if search.sort}}
+      <div class="form-group sort-control">
+        <label for="sort-dropdown">Sort By:</label>
+        <select class="sort-dropdown form-control">
+          <option value="Default">Default</option>
+          {{#each search.sort}}
+            <option value="{{label}}" {{#if default}}selected{{/if}}>{{label}}</option>
+          {{/each}}
+        </select>
+      </div>
+    {{/if}}
+
+    {{!-- Add hidden submit button so pressing enter will trigger submit even in JS --}}
+    <input type="submit" style="display: none;">
+  </form>
+{{/if}}
+
+{{> noteListV2}}

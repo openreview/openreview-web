@@ -249,6 +249,8 @@ export default class OpenReviewApp extends App {
 
     // Set required constants
     window.OR_API_URL = process.env.API_URL
+    window.OR_API_URL_V2 = process.env.API_URL_V2
+    window.OR_ENABLE_V2_API = process.env.ENABLE_V2_API
     window.Webfield.setToken(token)
     window.controller.setToken(token)
 

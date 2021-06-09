@@ -4,6 +4,7 @@
  * - replaced all controller api calls with webfield versions
  * - added btn-default class to cancel button
  */
+import { apiV2MergeNotes } from '../lib/utils'
 module.exports = function(profile, params, submitF, cancelF) {
 
   var mkGenderRow = function(gender) {
@@ -902,19 +903,48 @@ module.exports = function(profile, params, submitF, cancelF) {
   };
 
   var publicationIdsToUnlink;
+  var publicationsForPublicationEditor;
 
-  var renderPublicationEditor = function(profileId) {
+  var renderPublicationEditor = async function(profileId) {
     // Publication Editor Section
     var publicationEditorPageSize = 20;
 
-    var loadPublicationsForPublicationEditor = function(offset) {
-      return Webfield.get('/notes', {
-        'content.authorids': profileId,
-        details: 'invitation,original',
-        sort: 'tmdate:desc',
-        offset: offset,
-        limit: publicationEditorPageSize
-      }, { cache: false });
+    var loadPublicationsForPublicationEditor = async function(offset) {
+      if (process.env.ENABLE_V2_API) {
+        if (publicationsForPublicationEditor?.length) {
+          // offset won't work with multiple api calls so take a slice of all publications
+          return {
+            notes: publicationsForPublicationEditor.slice(offset, offset + publicationEditorPageSize),
+            count: publicationsForPublicationEditor.length
+          }
+        }
+        var v1NotesP = Webfield.get('/notes', {
+          'content.authorids': profileId,
+          details: 'invitation,original',
+          sort: 'tmdate:desc',
+        }, { cache: false });
+        var v2NotesP = Webfield.getV2('/notes', {
+          'content.authorids': profileId,
+          details: 'invitation,original',
+          sort: 'tmdate:desc',
+        }, { cache: false })
+
+        const results = await Promise.all([v1NotesP, v2NotesP])
+        const notes = apiV2MergeNotes(results[0].notes, results[1].notes)
+        publicationsForPublicationEditor = notes
+        return {
+          notes,
+          count: notes.length
+        }
+      } else {
+        return await Webfield.get('/notes', {
+          'content.authorids': profileId,
+          details: 'invitation,original',
+          sort: 'tmdate:desc',
+          offset: offset,
+          limit: publicationEditorPageSize
+        }, { cache: false });
+      }
     };
 
     var publicationUnlinkHandler = function() {
@@ -952,22 +982,23 @@ module.exports = function(profile, params, submitF, cancelF) {
       );
     };
 
-    loadPublicationsForPublicationEditor(0).then(function(notesResponse) {
-      var notes = notesResponse.notes || [];
-      var noteCount = notesResponse.count;
-      if (!noteCount) {
-        $('#publication-editor-container').closest('section').hide();
-        return;
-      }
-      $('#publication-editor-container').closest('section').show();
+    var notesResponse = await loadPublicationsForPublicationEditor(0)
+    var notes = notesResponse.notes || [];
+    var noteCount = notesResponse.count;
+    if (!noteCount) {
+      $('#publication-editor-container').closest('section').hide();
+      return;
+    }
+    $('#publication-editor-container').closest('section').show();
 
-      var paperDisplayOptions = {
-        pdfLink: true,
-        showContents: true,
-        openInNewTab: true,
-        showUnlinkPublicationButton: true
-      };
-      Webfield.ui.submissionList(notes, {
+    var paperDisplayOptions = {
+      pdfLink: true,
+      showContents: true,
+      openInNewTab: true,
+      showUnlinkPublicationButton: true
+    };
+    if(process.env.ENABLE_V2_API){
+      Webfield.ui.submissionListV2(notes, {
         heading: null,
         container: '#publication-editor-container',
         search: { enabled: false },
@@ -976,13 +1007,12 @@ module.exports = function(profile, params, submitF, cancelF) {
         noteCount: noteCount,
         pageSize: publicationEditorPageSize,
         fadeIn: false,
-        onPageClick: function(offset) {
-          return loadPublicationsForPublicationEditor(offset).then(function(notesResponse) {
-            return notesResponse.notes;
-          });
+        onPageClick: async function (offset) {
+          var notesResponse = await loadPublicationsForPublicationEditor(offset);
+          return notesResponse.notes;
         },
-        onPageClickComplete: function() {
-          $('#publication-editor-container li.note').each(function() {
+        onPageClickComplete: function () {
+          $('#publication-editor-container li.note').each(function () {
             if (publicationIdsToUnlink.includes($(this).data('id'))) {
               $(this).addClass('unlinked-publication').find('.glyphicon.glyphicon-minus-sign').replaceWith(
                 $('<span>', { class: 'relink-publication glyphicon glyphicon-repeat mirror' })
@@ -993,10 +1023,37 @@ module.exports = function(profile, params, submitF, cancelF) {
           $('#publication-editor-container .unlink-publication').on('click', publicationUnlinkHandler);
         },
       });
+    } else {
+      Webfield.ui.submissionList(notes, {
+        heading: null,
+        container: '#publication-editor-container',
+        search: { enabled: false },
+        displayOptions: paperDisplayOptions,
+        autoLoad: false,
+        noteCount: noteCount,
+        pageSize: publicationEditorPageSize,
+        fadeIn: false,
+        onPageClick: async function (offset) {
+          var notesResponse = await loadPublicationsForPublicationEditor(offset);
+          return notesResponse.notes;
+        },
+        onPageClickComplete: function () {
+          $('#publication-editor-container li.note').each(function () {
+            if (publicationIdsToUnlink.includes($(this).data('id'))) {
+              $(this).addClass('unlinked-publication').find('.glyphicon.glyphicon-minus-sign').replaceWith(
+                $('<span>', { class: 'relink-publication glyphicon glyphicon-repeat mirror' })
+                  .on('click', publicationRelinkHandler)
+              );
+            }
+          });
+          $('#publication-editor-container .unlink-publication').on('click', publicationUnlinkHandler);
+        },
+      });
+    }
 
-      // add handler after initial load
-      $('#publication-editor-container .unlink-publication').on('click', publicationUnlinkHandler);
-    });
+
+    // add handler after initial load
+    $('#publication-editor-container .unlink-publication').on('click', publicationUnlinkHandler);
   };
 
   var validateContent = function(content) {

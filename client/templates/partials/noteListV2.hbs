@@ -1,0 +1,9 @@
+<ul class="list-unstyled submissions-list">
+  {{#each notes}}
+    <li class="note {{#if metadata.conflict}}has-conflict{{/if}}" data-id="{{id}}" data-number="{{number}}">
+      {{> noteBasicV2 options=../options}}
+    </li>
+  {{else}}
+    <li><p class="empty-message">{{options.emptyMessage}}</p></li>
+  {{/each}}
+</ul>

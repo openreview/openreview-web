@@ -255,7 +255,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
           sort: 'cdate:desc',
           limit: 1000,
         }, { token: accessToken })
-        const v2NotesP = await api.getv2('/notes', {
+        const v2NotesP = await api.getV2('/notes', {
           'content.authorids': profile.id,
           sort: 'cdate:desc',
           limit: 1000,
@@ -264,7 +264,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
         const notes = apiV2MergeNotes(apiResArray[0].notes, apiResArray[1].notes)
         apiRes = {
           notes,
-          count: notes.length,
+          count: apiResArray[0].count + apiResArray[1].count, // assume no duplicate
         }
       } else {
         apiRes = await api.get('/notes', {
