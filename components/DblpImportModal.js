@@ -104,6 +104,7 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
       const result = await getAllPapersImportedByOtherProfiles(allDblpPublications.map(p => ({
         authorIndex: p.authorIndex,
         title: p.formattedTitle,
+        authorCount: p.authorCount,
       })), profileId, accessToken)
       publicationsImportedByOtherProfiles.current = result.filter(p => p)
       const {
