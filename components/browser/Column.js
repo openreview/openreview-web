@@ -64,7 +64,7 @@ export default function Column(props) {
   const [search, setSearch] = useState({ term: '' })
 
   const showLoadMoreButton = numItemsToRender < filteredItems.length
-  const showHideQuotaReachedCheckbox = entityType === 'Profile' && browseInvitations.some(p => p.id.includes('Custom_Max_Papers'))
+  const showHideQuotaReachedCheckbox = entityType === 'Profile' && editAndBrowserInvitations.some(p => p.id.includes('Custom_Max_Papers'))
 
   // Helpers
   const formatEdge = edge => ({
@@ -426,7 +426,7 @@ export default function Column(props) {
   const filterQuotaReachedItems = (colItems) => {
     if (!hideQuotaReached) return colItems
     return colItems.filter((p) => {
-      const customLoad = p.browseEdges?.find(q => q?.invitation?.includes('Custom_Max_Papers'))?.weight
+      const customLoad = [...p.browseEdges, ...p.editEdges].find(q => q?.invitation?.includes('Custom_Max_Papers'))?.weight
       if (customLoad === undefined) return true
       return p.traverseEdgesCount < customLoad
     })
