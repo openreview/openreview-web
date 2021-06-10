@@ -10,39 +10,37 @@ import EdgeBrowserContext from './EdgeBrowserContext'
 
 // eslint-disable-next-line object-curly-newline
 const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumber, reloadColumnEntities }) => {
-  const [emailsToInvite, setEmailsToInvite] = useState('')
+  const [emailToInvite, setEmailToInvite] = useState('')
   const [loading, setLoading] = useState(false)
   const { editInvitations, availableSignaturesInvitationMap } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
 
-  const emailsToInviteArray = emailsToInvite.split(';').map(p => p.trim()).filter(p => p)
   const editInvitation = editInvitations?.filter(p => p?.[type]?.query?.['value-regex'] === '~.*|.+@.+')?.[0]
 
   const handleInviteBtnClick = async () => {
+    const email = emailToInvite.trim()
     setLoading(true)
-    await Promise.all(emailsToInviteArray?.map(async (email) => {
-      // construct the template
-      const newEdgeJson = {
-        invitation: editInvitation.id,
-        [type]: email,
-        [otherType]: parentId,
-        label: editInvitation.label?.default,
-        weight: 0,
-        readers: getValues(editInvitation.readers, email),
-        writers: getValues(editInvitation.writers, email),
-        signatures: getSignatures(editInvitation, availableSignaturesInvitationMap, parentNumber, user),
-        nonreaders: getValues(editInvitation.nonreaders, email),
-      }
-      // post
-      try {
-        const result = await api.post('/edges', newEdgeJson, { accessToken })
-        setEmailsToInvite('')
-        promptMessage(`Invitation has been sent to ${email} and it's waiting for the response.`)
-      } catch (error) {
-        promptError(error.message)
-      }
-      setLoading(false)
-    }))
+    // construct the template
+    const newEdgeJson = {
+      invitation: editInvitation.id,
+      [type]: email,
+      [otherType]: parentId,
+      label: editInvitation.label?.default,
+      weight: 0,
+      readers: getValues(editInvitation.readers, email),
+      writers: getValues(editInvitation.writers, email),
+      signatures: getSignatures(editInvitation, availableSignaturesInvitationMap, parentNumber, user),
+      nonreaders: getValues(editInvitation.nonreaders, email),
+    }
+    // post
+    try {
+      const result = await api.post('/edges', newEdgeJson, { accessToken })
+      setEmailToInvite('')
+      promptMessage(`Invitation has been sent to ${email} and it's waiting for the response.`)
+    } catch (error) {
+      promptError(error.message)
+    }
+    setLoading(false)
     // trigger column update
     reloadColumnEntities()
   }
@@ -59,11 +57,9 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
   })
 
   const shouldDisableSubmitBtn = () => {
-    if (!emailsToInviteArray.length || loading) return true
-    return emailsToInviteArray.some((p) => {
-      if (p.startsWith('~')) return false
-      return !isValidEmail(p)
-    })
+    if (loading) return true
+    if (emailToInvite.trim().startsWith('~')) return false
+    return !isValidEmail(emailToInvite.trim())
   }
 
   if (!editInvitation || entityType !== 'Profile') return null
@@ -71,7 +67,7 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
     <div className="">
       <form className="form-inline widget-invite-assignment">
         {/* <label htmlFor="email-invite">Email/Profile: </label> */}
-        <input type="email" id="email-invite" value={emailsToInvite} onChange={e => setEmailsToInvite(e.target.value)} placeholder={editInvitation[type].description} title={editInvitation[type].description} />
+        <input type="email" id="email-invite" value={emailToInvite} onChange={e => setEmailToInvite(e.target.value)} placeholder={editInvitation[type].description} title={editInvitation[type].description} />
         <button type="button" className="btn btn-default btn-xs" onClick={handleInviteBtnClick} disabled={shouldDisableSubmitBtn()}>
           {loading && <LoadingSpinner inline text="" extraClass="spinner-small" />}
           {prettyInvitationId(editInvitation.id)}
