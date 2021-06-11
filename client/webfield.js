@@ -1045,7 +1045,7 @@ module.exports = (function() {
         var $self = $(this);
         var $widget = $self.closest('.tag-widget');
         var $note = $self.closest('.note');
-        var newValue = options.displayOptions.edgeInvitations[0].reply.content.label['value-radio'][$self.index()]
+        var newValue = $self.data('value') || $self.text().trim();
         var tagId = $widget.data('id') || null;
         var isTagWidget = !$widget.hasClass('edge-widget');
         var returnVal;
