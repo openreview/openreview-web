@@ -167,7 +167,7 @@ export default class EdgeBrowser extends React.Component {
               content: {
                 name: { first: key, middle: '', last: '' },
                 email: key,
-                title: 'Unknown',
+                title: '',
                 expertise: [],
                 isDummyProfile: true,
               },
