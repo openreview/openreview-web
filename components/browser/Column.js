@@ -256,7 +256,7 @@ export default function Column(props) {
             content: {
               name: { first: prettyId(headOrTailId), middle: '', last: '' },
               email: headOrTailId,
-              title: 'Unknown',
+              title: '',
               expertise: [],
               isInvitedProfile: true,
             },
@@ -626,7 +626,7 @@ export default function Column(props) {
                 content: {
                   name: { first: prettyId(headOrTailId), middle: '', last: '' },
                   email: headOrTailId,
-                  title: 'Unknown',
+                  title: '',
                   expertise: [],
                   isInvitedProfile: true,
                 },
