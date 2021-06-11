@@ -34,7 +34,8 @@ export default function ProfileEntity(props) {
 
   const metadata = props.profile.metadata || {}
   const extraClasses = []
-  const customLoad = [...browseEdges || [], ...editEdges || []].filter(p => p.invitation.includes('Custom_Max_Papers'))[0]?.weight
+  const customLoad = [...browseEdges || [], ...editEdges || []].find(p => p.invitation.includes('Custom_Max_Papers'))?.weight
+  const isInviteAcceptedProfile = editEdges.find(p => p.invitation.includes('Invite_Assignment'))?.label === 'Accepted'
 
   if (metadata.isAssigned || metadata.isUserAssigned) extraClasses.push('is-assigned')
   if (metadata.hasConflict) extraClasses.push('has-conflict')
@@ -89,8 +90,9 @@ export default function ProfileEntity(props) {
     }
   }
 
-  // eslint-disable-next-line object-curly-newline
-  const addEdge = async ({ e, existingEdge, editEdgeTemplate, updatedEdgeFields = {} }) => {
+  const addEdge = async ({
+    e, existingEdge, editEdgeTemplate, updatedEdgeFields = {},
+  }) => {
     if (e) {
       e.preventDefault()
       e.stopPropagation()
@@ -155,50 +157,38 @@ export default function ProfileEntity(props) {
     const isReviewerAssignmentStage = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
     const isEmergencyReviewerStage = editInvitations.some(p => p.id.includes('/Assignment'))
     const isNotWritable = editEdge?.writable === false
-    let shouldDisableControl = false
+
     let disableControlReason = null
 
     // disable propose assignment when traverseEdgeCount>=custmom max paper in 1st stage
-    if (isReviewerAssignmentStage
-      && isProposedAssignmentInvitation
-      && customLoad
-      && customLoad <= traverseEdgesCount
-      && !editEdge) {
-      shouldDisableControl = true
-      disableControlReason = 'Custom load has reached.'
+    if (isReviewerAssignmentStage && isProposedAssignmentInvitation
+      && customLoad && customLoad <= traverseEdgesCount && !editEdge) {
+      disableControlReason = 'Custom load has been reached'
     }
-
     // edit is not allowed if not writable
     if (editEdge && isNotWritable) {
-      shouldDisableControl = true
-      disableControlReason = 'You are not allowed to edit this edge.'
+      disableControlReason = 'You are not allowed to edit this edge'
     }
     // invited external reviewer and assigned should disabled invite assignment
-    if (
-      content?.isInvitedProfile
-      && isAssigned
-      && isReviewerAssignmentStage
-      && isInviteInvitation) {
-      shouldDisableControl = true
-      disableControlReason = 'The Reviewer has been invited.'
+    if (content?.isInvitedProfile && isAssigned && isReviewerAssignmentStage && isInviteInvitation) {
+      disableControlReason = 'The reviewer has already been invited'
     }
-    // reviewer assignmet stage(1st stage) don't show invite assignment
-    // except for invited (has editEdge)
+
+    // reviewer assignmet stage (1st stage) don't show invite assignment except for invited (has editEdge)
     if (isReviewerAssignmentStage && isInviteInvitation && !editEdge) return null
+
     // can't be invited/uninvited when assigned already(except invited profile to enable delete)
     if (isAssigned && isInviteInvitation && !content?.isInvitedProfile) return null
+
     // invited reviewer with assigned edge,don't show custom load edge
     if (isAssigned && content?.isInvitedProfile && isCustomLoadInvitation) return null
-    if ( // invited profile show only proposed/invite assignment widget
-      content?.isInvitedProfile
-      && !isAssigned
-      && isReviewerAssignmentStage
-      && !isInviteInvitation) return null
-    if ( // invited profile show only invite widget
-      content?.isInvitedProfile
-      && isEmergencyReviewerStage
-      && !isInviteInvitation
-    ) return null
+
+    // invited profile show only proposed/invite assignment widget
+    if (content?.isInvitedProfile && !isInviteAcceptedProfile
+      && !isAssigned && isReviewerAssignmentStage && !isInviteInvitation) return null
+
+    // invited profile show only invite widget
+    if (content?.isInvitedProfile && isEmergencyReviewerStage && !isInviteInvitation) return null
 
     const editEdgeDropdown = (type, controlType) => (
       <EditEdgeDropdown
@@ -224,7 +214,7 @@ export default function ProfileEntity(props) {
         canAddEdge={editEdges?.filter(p => p?.invitation === editInvitation.id).length === 0 || editInvitation.multiReply} // no editedge or invitation allow multiple edges
         editEdgeTemplate={editEdgeTemplates?.find(p => p?.invitation === editInvitation.id)} // required for adding new
         isInviteInvitation={isInviteInvitation}
-        shouldDisableControl={shouldDisableControl}
+        shouldDisableControl={!!disableControlReason}
         disableControlReason={disableControlReason}
       />
     )
@@ -281,14 +271,23 @@ export default function ProfileEntity(props) {
         <p>{content.title}</p>
       </div>
 
-      { // existing editEdges
-        // eslint-disable-next-line max-len,react/no-array-index-key
-        editEdges?.map((editEdge, index) => <React.Fragment key={index}>{renderEditEdgeWidget({ editEdge, editInvitation: editInvitations.find(p => p.id === editEdge.invitation) })}</React.Fragment>)
-      }
-      { // adding new editEdge
-        // eslint-disable-next-line max-len,react/no-array-index-key
-        editInvitations?.map((editInvitation, index) => <React.Fragment key={index}>{renderEditEdgeWidget({ editInvitation })}</React.Fragment>)
-      }
+      {/* existing editEdges */}
+      {editEdges?.map((editEdge, index) => (
+        <React.Fragment key={index}>
+          {renderEditEdgeWidget({
+            editEdge,
+            editInvitation: editInvitations.find(p => p.id === editEdge.invitation),
+          })}
+        </React.Fragment>
+      ))}
+
+      {/* add new editEdge */}
+      {editInvitations?.map((editInvitation, index) => (
+        <React.Fragment key={index}>
+          {renderEditEdgeWidget({ editInvitation })}
+        </React.Fragment>
+      ))}
+
       <div>
         <ScoresList edges={props.profile.browseEdges} />
         <div className="action-links">
