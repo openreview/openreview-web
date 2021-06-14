@@ -43,6 +43,7 @@ const Footer = () => (
               <li><Link href="/about"><a>About OpenReview</a></Link></li>
               <li><Link href={`/group?id=${process.env.SUPER_USER}/Support`}><a>Hosting a Venue</a></Link></li>
               <li><Link href="/venues"><a>All Venues</a></Link></li>
+              <li><Link href="/sponsors"><a>Sponsors</a></Link></li>
               <li><a className="join-the-team" href="https://codeforscience.org/jobs?job=OpenReview-Developer" target="_blank" rel="noopener noreferrer"><strong>Join the Team</strong></a></li>
             </ul>
           </div>
