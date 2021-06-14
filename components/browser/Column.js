@@ -568,7 +568,7 @@ export default function Column(props) {
 
     const edgesPromiseMap = []
     addToEdgesPromiseMap(traverseInvitation, 'traverse', edgesPromiseMap, true, true) // traverse does not need to getWritable, this is for the case edit == traverse
-    editInvitations.forEach(editInvitation => addToEdgesPromiseMap(editInvitation, 'edit', edgesPromiseMap, false, false))
+    editInvitations.forEach(editInvitation => addToEdgesPromiseMap(editInvitation, 'edit', edgesPromiseMap, true, false))
     addToEdgesPromiseMap(hideInvitation, 'hide', edgesPromiseMap, false, true)
     browseInvitations.forEach(browseInvitation => addToEdgesPromiseMap(browseInvitation, 'browse', edgesPromiseMap, false, false))
 
