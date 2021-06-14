@@ -47,30 +47,8 @@ const UserModerationQueue = ({
   const [showRejectionModal, setShowRejectionModal] = useState(false)
   const [profileIdToReject, setProfileIdToReject] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
-  const defaultSearchParam = {
-    first: '',
-    middle: '',
-    last: '',
-    id: '',
-  }
 
-  const updateSearchParam = (state, action) => {
-    switch (action.type) {
-      case 'first':
-        return { ...state, first: action.payload }
-      case 'middle':
-        return { ...state, middle: action.payload }
-      case 'last':
-        return { ...state, last: action.payload }
-      case 'id':
-        return { ...state, id: action.payload }
-      default:
-        return state
-    }
-  }
-  const [searchParams, dispatch] = useReducer(updateSearchParam, defaultSearchParam)
-
-  const getProfiles = async () => {
+  const getProfiles = async (filters = {}) => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
 
     try {
@@ -80,13 +58,26 @@ const UserModerationQueue = ({
         limit: pageSize,
         offset: (pageNumber - 1) * pageSize,
         withBlocked: onlyModeration ? undefined : true,
-        ...Object.fromEntries(Object.entries(searchParams).filter(p => p[1])),
+        ...filters,
       }, { accessToken })
       setTotalCount(result.count ?? 0)
       setProfiles(result.profiles ?? [])
     } catch (error) {
       promptError(error.message)
     }
+  }
+
+  const filterProfiles = (e) => {
+    e.preventDefault()
+    const filters = [...e.target.elements].reduce((obj, elem) => {
+      if (elem.name && elem.value) {
+        // eslint-disable-next-line no-param-reassign
+        obj[elem.name] = elem.value
+      }
+      return obj
+    }, {})
+
+    getProfiles(filters)
   }
 
   const acceptUser = async (profileId) => {
@@ -122,25 +113,21 @@ const UserModerationQueue = ({
     getProfiles()
   }, [pageNumber, shouldReload])
 
-  useEffect(() => {
-    if (!Object.values(searchParams).some(p => p)) getProfiles()
-  }, [searchParams])
-
   return (
     <div className="profiles-list">
       {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
       <h4>{title} ({totalCount})</h4>
 
-      {!onlyModeration
-        && (
-          <div className="search-container">
-            <input placeholder="First name" onChange={(e) => { dispatch({ type: 'first', payload: e.target.value }) }} />
-            <input placeholder="Middle name" onChange={(e) => { dispatch({ type: 'middle', payload: e.target.value }) }} />
-            <input placeholder="Last name" onChange={(e) => { dispatch({ type: 'last', payload: e.target.value }) }} />
-            <input placeholder="tilde id" onChange={(e) => { dispatch({ type: 'id', payload: e.target.value }) }} />
-            <button type="button" className="btn btn-xs" onClick={() => getProfiles()}>Search</button>
-          </div>
-        )}
+      {!onlyModeration && (
+        <form className="filter-form well mt-3" onSubmit={filterProfiles}>
+          <input type="text" name="first" className="form-control input-sm" placeholder="First Name" />
+          <input type="text" name="middle" className="form-control input-sm" placeholder="Middle Name" />
+          <input type="text" name="last" className="form-control input-sm" placeholder="Last Name" />
+          <input type="text" name="username" className="form-control input-sm" placeholder="Username" />
+          <button type="submit" className="btn btn-xs">Search</button>
+        </form>
+      )}
+
       {profiles ? (
         <ul className="list-unstyled list-paginated">
           {profiles.map((profile) => {
