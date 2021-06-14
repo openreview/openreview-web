@@ -123,7 +123,7 @@ const UserModerationQueue = ({
           <input type="text" name="first" className="form-control input-sm" placeholder="First Name" />
           <input type="text" name="middle" className="form-control input-sm" placeholder="Middle Name" />
           <input type="text" name="last" className="form-control input-sm" placeholder="Last Name" />
-          <input type="text" name="username" className="form-control input-sm" placeholder="Username" />
+          <input type="text" name="id" className="form-control input-sm" placeholder="Username" />
           <button type="submit" className="btn btn-xs">Search</button>
         </form>
       )}
