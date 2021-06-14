@@ -11,6 +11,7 @@ export default function DblpPublicationTable({
   const pubsCouldImport = []
   dblpPublications.forEach((dblpPub, index) => {
     const titleMatch = orPub => orPub.title === dblpPub.formattedTitle
+      && orPub.authorCount === dblpPub.authorCount
     const existing = orPublications.find(titleMatch)
     const existingWithOtherProfile = orPublicationsImportedByOtherProfile.find(titleMatch)
     if (existing || existingWithOtherProfile) {
@@ -63,6 +64,7 @@ export default function DblpPublicationTable({
     <Table headings={headings}>
       {dblpPublications.map((publication, index) => {
         const titleMatch = orPub => orPub.title === publication.formattedTitle
+          && orPub.authorCount === publication.authorCount
         const existingPublication = orPublications.find(titleMatch)
         const existingPublicationOfOtherProfile = orPublicationsImportedByOtherProfile.find(titleMatch)
         // eslint-disable-next-line no-nested-ternary
