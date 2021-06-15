@@ -18,7 +18,8 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
   const editInvitation = editInvitations?.filter(p => p?.[type]?.query?.['value-regex'] === '~.*|.+@.+')?.[0]
 
   const handleInviteBtnClick = async () => {
-    const email = emailToInvite.trim()
+    let email = emailToInvite.trim()
+    if (!email.startsWith('~')) email = email.toLowerCase()
     setLoading(true)
     // construct the template
     const newEdgeJson = {
