@@ -43,12 +43,13 @@ const UserModerationQueue = ({
   accessToken, title, onlyModeration = true, pageSize = 15, reload, shouldReload,
 }) => {
   const [profiles, setProfiles] = useState(null)
+  const [totalCount, setTotalCount] = useState(0)
   const [pageNumber, setPageNumber] = useState(1)
+  const [filters, setFilters] = useState({})
   const [showRejectionModal, setShowRejectionModal] = useState(false)
   const [profileIdToReject, setProfileIdToReject] = useState(null)
-  const [totalCount, setTotalCount] = useState(0)
 
-  const getProfiles = async (filters = {}) => {
+  const getProfiles = async () => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
 
     try {
@@ -69,7 +70,7 @@ const UserModerationQueue = ({
 
   const filterProfiles = (e) => {
     e.preventDefault()
-    const filters = [...e.target.elements].reduce((obj, elem) => {
+    const newFilters = [...e.target.elements].reduce((obj, elem) => {
       if (elem.name && elem.value) {
         // eslint-disable-next-line no-param-reassign
         obj[elem.name] = elem.value
@@ -77,7 +78,8 @@ const UserModerationQueue = ({
       return obj
     }, {})
 
-    getProfiles(filters)
+    setPageNumber(1)
+    setFilters(newFilters)
   }
 
   const acceptUser = async (profileId) => {
@@ -111,7 +113,7 @@ const UserModerationQueue = ({
 
   useEffect(() => {
     getProfiles()
-  }, [pageNumber, shouldReload])
+  }, [pageNumber, filters, shouldReload])
 
   return (
     <div className="profiles-list">
