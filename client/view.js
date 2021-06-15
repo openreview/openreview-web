@@ -1910,7 +1910,7 @@ module.exports = (function() {
         return;
       }
 
-      var invitationField = invitation?.reply.content?.[fieldName] || {};
+      var invitationField = invitation?.reply?.content?.[fieldName] ?? {};
 
       // Build download links
       if (valueString.indexOf('/attachment/') === 0) {
