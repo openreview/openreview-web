@@ -269,7 +269,8 @@ export default function ProfileEntity(props) {
   const renderTraverseEdgeWidget = () => {
     // existing
     if (props.profile.traverseEdge) {
-      if (!props.profile.traverseEdge?.writable) return null
+      // eslint-disable-next-line max-len
+      if (!props.profile.traverseEdge?.writable || editInvitations.some(p => p.id === traverseInvitation.id)) return null
       return renderEditEdgeWidget({
         edge: props.profile.traverseEdge,
         invitation: traverseInvitation,
