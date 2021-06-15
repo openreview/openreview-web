@@ -655,7 +655,7 @@ module.exports = (function() {
   const evaluateOperator = (operator, propertyValue, targetValue) => {
     // propertyValue can be number/array/string/obj
     let isString = false
-    if (!propertyValue || !targetValue) return false
+    if (propertyValue === null || propertyValue === undefined || targetValue === null || targetValue === undefined) return false
     if (typeof (propertyValue) === 'object' && !Array.isArray(propertyValue)) { // reviewers are objects
       propertyValue = Object.values(propertyValue).map(p => p.name.toString().toLowerCase())
       targetValue = targetValue.toString().toLowerCase()
@@ -697,7 +697,7 @@ module.exports = (function() {
       ? [property] // not a nested property
       : propertiesAllowed[property].map(p => p.split('.')) // has dot or match multiple properties
 
-    const convertedValue = Number(value) || value
+    const convertedValue = isNaN(Number(value))?value:Number(value)
     return collections.filter(p => {
       if (propertyPath.length === 1) {
         return evaluateOperator(filterOperator, propertyPath[0].reduce((r, s) => r?.[s], p), convertedValue)
@@ -1045,7 +1045,7 @@ module.exports = (function() {
         var $self = $(this);
         var $widget = $self.closest('.tag-widget');
         var $note = $self.closest('.note');
-        var newValue = $self.text().trim();
+        var newValue = $self.data('value') || $self.text().trim();
         var tagId = $widget.data('id') || null;
         var isTagWidget = !$widget.hasClass('edge-widget');
         var returnVal;

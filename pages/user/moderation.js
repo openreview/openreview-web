@@ -48,7 +48,7 @@ const UserModerationQueue = ({
   const [profileIdToReject, setProfileIdToReject] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
 
-  const getProfiles = async () => {
+  const getProfiles = async (filters = {}) => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
 
     try {
@@ -58,12 +58,26 @@ const UserModerationQueue = ({
         limit: pageSize,
         offset: (pageNumber - 1) * pageSize,
         withBlocked: onlyModeration ? undefined : true,
+        ...filters,
       }, { accessToken })
       setTotalCount(result.count ?? 0)
       setProfiles(result.profiles ?? [])
     } catch (error) {
       promptError(error.message)
     }
+  }
+
+  const filterProfiles = (e) => {
+    e.preventDefault()
+    const filters = [...e.target.elements].reduce((obj, elem) => {
+      if (elem.name && elem.value) {
+        // eslint-disable-next-line no-param-reassign
+        obj[elem.name] = elem.value
+      }
+      return obj
+    }, {})
+
+    getProfiles(filters)
   }
 
   const acceptUser = async (profileId) => {
@@ -103,6 +117,16 @@ const UserModerationQueue = ({
     <div className="profiles-list">
       {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
       <h4>{title} ({totalCount})</h4>
+
+      {!onlyModeration && (
+        <form className="filter-form well mt-3" onSubmit={filterProfiles}>
+          <input type="text" name="first" className="form-control input-sm" placeholder="First Name" />
+          <input type="text" name="middle" className="form-control input-sm" placeholder="Middle Name" />
+          <input type="text" name="last" className="form-control input-sm" placeholder="Last Name" />
+          <input type="text" name="id" className="form-control input-sm" placeholder="Username" />
+          <button type="submit" className="btn btn-xs">Search</button>
+        </form>
+      )}
 
       {profiles ? (
         <ul className="list-unstyled list-paginated">
@@ -164,7 +188,7 @@ const UserModerationQueue = ({
             )
           })}
           {profiles.length === 0 && (
-            <li><p className="empty-message">No profiles pending moderation.</p></li>
+            <li><p className="empty-message">{`${onlyModeration ? 'No profiles pending moderation.' : 'No matching profile found'}`}</p></li>
           )}
         </ul>
       ) : (
