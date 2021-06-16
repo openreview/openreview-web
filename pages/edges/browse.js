@@ -52,21 +52,14 @@ const Browse = ({ appContext }) => {
       setBannerHidden(true)
     }
 
-    const startInvitations = parseEdgeList(query.start)
-    const traverseInvitations = parseEdgeList(query.traverse)
-    const editInvitations = parseEdgeList(query.edit)
-    const browseInvitations = parseEdgeList(query.browse)
-    const hideInvitations = parseEdgeList(query.hide)
-    const allInvitations = traverseInvitations.concat( // has the reference of other invitations
+    const startInvitations = parseEdgeList(query.start, 'start')
+    const traverseInvitations = parseEdgeList(query.traverse, 'traverse')
+    const editInvitations = parseEdgeList(query.edit, 'edit')
+    const browseInvitations = parseEdgeList(query.browse, 'browse')
+    const hideInvitations = parseEdgeList(query.hide, 'hide')
+    const allInvitations = traverseInvitations.concat(
       startInvitations, editInvitations, browseInvitations, hideInvitations,
     )
-    const allInvitationTypeIdMap = [
-      ...traverseInvitations.map(p => ({ type: 'traverse', id: p.id })),
-      ...startInvitations.map(p => ({ type: 'start', id: p.id })),
-      ...editInvitations.map(p => ({ type: 'edit', id: p.id })),
-      ...browseInvitations.map(p => ({ type: 'browse', id: p.id })),
-      ...hideInvitations.map(p => ({ type: 'hide', id: p.id })),
-    ]
 
     if (allInvitations.length === 0) {
       setError(invalidError)
@@ -77,7 +70,7 @@ const Browse = ({ appContext }) => {
     setTitleInvitation(traverseInvitations[0])
     setMaxColumns(Math.max(Number.parseInt(query.maxColumns, 10), -1) || -1)
 
-    const idsToLoad = uniq(allInvitationTypeIdMap.map(i => i.id)).filter(id => id !== 'staticList')
+    const idsToLoad = uniq(allInvitations.map(i => i.id)).filter(id => id !== 'staticList')
     api.get('/invitations', { ids: idsToLoad.join(','), expired: true, type: 'edges' }, { accessToken })
       .then((apiRes) => {
         if (!apiRes.invitations?.length) {
@@ -87,23 +80,24 @@ const Browse = ({ appContext }) => {
 
         let allValid = true
         const invalidInvitationIds = []
-        allInvitationTypeIdMap.forEach((invObj, index) => {
+        allInvitations.forEach((invObj, index) => {
           const fullInvitation = apiRes.invitations.find((inv) => {
-            const invId = invObj.id === 'staticList' ? allInvitationTypeIdMap[0].id : invObj.id
+            // For static lists, use the properties of the first traverse invitation
+            const invId = invObj.id === 'staticList' ? allInvitations[0].id : invObj.id
             return inv.id === invId
           })
           if (!fullInvitation) {
-            if (['edit', 'browse'].includes(invObj.type)) {
+            // Filter out invalid edit or browse invitations, but don't fail completely
+            if (invObj.category === 'edit' || invObj.category === 'browse') {
               // eslint-disable-next-line no-console
-              console.error(`${invObj.type} invitation ${invObj.id} does not exist`)
-              // remove invalid invitation
+              console.error(`${invObj.category} invitation ${invObj.id} does not exist or is expired`)
               invalidInvitationIds.push(invObj.id)
-              return
+            } else {
+              setError({
+                name: 'Not Found', message: `Could not load edge explorer. Invitation not found: ${invObj.id}`, statusCode: 404,
+              })
+              allValid = false
             }
-            setError({
-              name: 'Not Found', message: `Could not load edge explorer. Invitation not found: ${invObj.id}`, statusCode: 404,
-            })
-            allValid = false
             return
           }
 
