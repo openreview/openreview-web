@@ -57,7 +57,7 @@ const Browse = ({ appContext }) => {
     const editInvitations = parseEdgeList(query.edit)
     const browseInvitations = parseEdgeList(query.browse)
     const hideInvitations = parseEdgeList(query.hide)
-    const allInvitations = traverseInvitations.concat( //
+    const allInvitations = traverseInvitations.concat( // has the reference of other invitations
       startInvitations, editInvitations, browseInvitations, hideInvitations,
     )
     const allInvitationTypeIdMap = [
