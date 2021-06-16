@@ -80,7 +80,7 @@ const Browse = ({ appContext }) => {
 
         let allValid = true
         const invalidInvitationIds = []
-        allInvitations.forEach((invObj, index) => {
+        allInvitations.forEach((invObj) => {
           const fullInvitation = apiRes.invitations.find((inv) => {
             // For static lists, use the properties of the first traverse invitation
             const invId = invObj.id === 'staticList' ? allInvitations[0].id : invObj.id
@@ -105,7 +105,7 @@ const Browse = ({ appContext }) => {
           const writers = buildInvitationReplyArr(fullInvitation, 'writers', user.profile.id) || readers
           const signatures = fullInvitation.reply?.signatures
           const nonreaders = buildInvitationReplyArr(fullInvitation, 'nonreaders', user.profile.id)
-          Object.assign(allInvitations[index], {
+          Object.assign(invObj, {
             head: fullInvitation.reply.content.head,
             tail: fullInvitation.reply.content.tail,
             weight: fullInvitation.reply.content.weight,
