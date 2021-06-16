@@ -94,6 +94,11 @@ const UserModerationQueue = ({
     }
   }
 
+  const showRejectionModal = (profileId) => {
+    setProfileIdToReject(profileId)
+    $(`#${modalId}`).modal('show')
+  }
+
   const rejectUser = async (rejectionMessage) => {
     try {
       await api.post('/profile/moderate', {
@@ -125,12 +130,6 @@ const UserModerationQueue = ({
   useEffect(() => {
     getProfiles()
   }, [pageNumber, filters, shouldReload])
-
-  useEffect(() => {
-    if (profileIdToReject) {
-      $(`#${modalId}`).modal('show')
-    }
-  }, [profileIdToReject])
 
   return (
     <div className="profiles-list">
@@ -179,7 +178,7 @@ const UserModerationQueue = ({
                         Accept
                       </button>
                       {' '}
-                      <button type="button" className="btn btn-xs" onClick={() => setProfileIdToReject(profile.id)}>
+                      <button type="button" className="btn btn-xs" onClick={() => showRejectionModal(profile.id)}>
                         <Icon name="remove-circle" />
                         {' '}
                         Reject
@@ -225,15 +224,12 @@ const UserModerationQueue = ({
         id={modalId}
         profileIdToReject={profileIdToReject}
         rejectUser={rejectUser}
-        onClose={() => { setProfileIdToReject(null) }}
       />
     </div>
   )
 }
 
-const RejectionModal = ({
-  id, profileIdToReject, rejectUser, onClose,
-}) => {
+const RejectionModal = ({ id, profileIdToReject, rejectUser }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
 
   const instructionText = 'Please go back to the sign up page, enter the same name and email, click the Resend Activation button and complete the missing data.'
@@ -250,10 +246,7 @@ const RejectionModal = ({
       id={id}
       primaryButtonDisabled={!rejectionMessage}
       onPrimaryButtonClick={() => { rejectUser(rejectionMessage) }}
-      onClose={() => {
-        setRejectionMessage('')
-        onClose()
-      }}
+      onClose={() => { setRejectionMessage('') }}
     >
       <form onSubmit={(e) => { e.preventDefault() }}>
         <div className="form-group form-rejection">
