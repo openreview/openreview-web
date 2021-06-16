@@ -57,9 +57,17 @@ const Browse = ({ appContext }) => {
     const editInvitations = parseEdgeList(query.edit)
     const browseInvitations = parseEdgeList(query.browse)
     const hideInvitations = parseEdgeList(query.hide)
-    const allInvitations = traverseInvitations.concat(
+    const allInvitations = traverseInvitations.concat( //
       startInvitations, editInvitations, browseInvitations, hideInvitations,
     )
+    const allInvitationTypeIdMap = [
+      ...traverseInvitations.map(p => ({ type: 'traverse', id: p.id })),
+      ...startInvitations.map(p => ({ type: 'start', id: p.id })),
+      ...editInvitations.map(p => ({ type: 'edit', id: p.id })),
+      ...browseInvitations.map(p => ({ type: 'browse', id: p.id })),
+      ...hideInvitations.map(p => ({ type: 'hide', id: p.id })),
+    ]
+
     if (allInvitations.length === 0) {
       setError(invalidError)
       return
@@ -69,7 +77,7 @@ const Browse = ({ appContext }) => {
     setTitleInvitation(traverseInvitations[0])
     setMaxColumns(Math.max(Number.parseInt(query.maxColumns, 10), -1) || -1)
 
-    const idsToLoad = uniq(allInvitations.map(i => i.id)).filter(id => id !== 'staticList')
+    const idsToLoad = uniq(allInvitationTypeIdMap.map(i => i.id)).filter(id => id !== 'staticList')
     api.get('/invitations', { ids: idsToLoad.join(','), expired: true, type: 'edges' }, { accessToken })
       .then((apiRes) => {
         if (!apiRes.invitations?.length) {
@@ -78,13 +86,20 @@ const Browse = ({ appContext }) => {
         }
 
         let allValid = true
-        allInvitations.forEach((invObj) => {
+        const invalidInvitationIds = []
+        allInvitationTypeIdMap.forEach((invObj, index) => {
           const fullInvitation = apiRes.invitations.find((inv) => {
-            // For static lists, use the properties of the first traverse invitation
-            const invId = invObj.id === 'staticList' ? allInvitations[0].id : invObj.id
+            const invId = invObj.id === 'staticList' ? allInvitationTypeIdMap[0].id : invObj.id
             return inv.id === invId
           })
           if (!fullInvitation) {
+            if (['edit', 'browse'].includes(invObj.type)) {
+              // eslint-disable-next-line no-console
+              console.error(`${invObj.type} invitation ${invObj.id} does not exist`)
+              // remove invalid invitation
+              invalidInvitationIds.push(invObj.id)
+              return
+            }
             setError({
               name: 'Not Found', message: `Could not load edge explorer. Invitation not found: ${invObj.id}`, statusCode: 404,
             })
@@ -96,7 +111,7 @@ const Browse = ({ appContext }) => {
           const writers = buildInvitationReplyArr(fullInvitation, 'writers', user.profile.id) || readers
           const signatures = fullInvitation.reply?.signatures
           const nonreaders = buildInvitationReplyArr(fullInvitation, 'nonreaders', user.profile.id)
-          Object.assign(invObj, {
+          Object.assign(allInvitations[index], {
             head: fullInvitation.reply.content.head,
             tail: fullInvitation.reply.content.tail,
             weight: fullInvitation.reply.content.weight,
@@ -110,14 +125,13 @@ const Browse = ({ appContext }) => {
         if (!allValid) {
           return
         }
-
         setInvitations({
           startInvitation: startInvitations[0],
           traverseInvitations,
-          editInvitations,
-          browseInvitations,
+          editInvitations: editInvitations.filter(p => !invalidInvitationIds.includes(p.id)),
+          browseInvitations: browseInvitations.filter(p => !invalidInvitationIds.includes(p.id)),
           hideInvitations,
-          allInvitations,
+          allInvitations: allInvitations.filter(p => !invalidInvitationIds.includes(p.id)),
         })
       })
       .catch((apiError) => {
