@@ -1,3 +1,4 @@
+/* globals $: false */
 /* globals promptError: false */
 /* globals promptMessage: false */
 
@@ -10,6 +11,7 @@ import PaginationLinks from '../../components/PaginationLinks'
 import api from '../../lib/api-client'
 import { prettyId, formatDateTime } from '../../lib/utils'
 import Dropdown from '../../components/Dropdown'
+import BasicModal from '../../components/BasicModal'
 
 const Moderation = ({ appContext, accessToken }) => {
   const { setBannerHidden } = appContext
@@ -46,8 +48,8 @@ const UserModerationQueue = ({
   const [totalCount, setTotalCount] = useState(0)
   const [pageNumber, setPageNumber] = useState(1)
   const [filters, setFilters] = useState({})
-  const [showRejectionModal, setShowRejectionModal] = useState(false)
   const [profileIdToReject, setProfileIdToReject] = useState(null)
+  const modalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
 
   const getProfiles = async () => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
@@ -92,9 +94,18 @@ const UserModerationQueue = ({
     }
   }
 
-  const rejectUser = async (profileId) => {
-    setProfileIdToReject(profileId)
-    setShowRejectionModal(true)
+  const rejectUser = async (rejectionMessage) => {
+    try {
+      await api.post('/profile/moderate', {
+        id: profileIdToReject,
+        decision: 'reject',
+        reason: rejectionMessage,
+      }, { accessToken })
+      $(`#${modalId}`).modal('hide')
+      reload()
+    } catch (error) {
+      promptError(error.message)
+    }
   }
 
   const blockUnblockUser = async (profile) => {
@@ -114,6 +125,12 @@ const UserModerationQueue = ({
   useEffect(() => {
     getProfiles()
   }, [pageNumber, filters, shouldReload])
+
+  useEffect(() => {
+    if (profileIdToReject) {
+      $(`#${modalId}`).modal('show')
+    }
+  }, [profileIdToReject])
 
   return (
     <div className="profiles-list">
@@ -162,7 +179,7 @@ const UserModerationQueue = ({
                         Accept
                       </button>
                       {' '}
-                      <button type="button" className="btn btn-xs" onClick={() => rejectUser(profile.id)}>
+                      <button type="button" className="btn btn-xs" onClick={() => setProfileIdToReject(profile.id)}>
                         <Icon name="remove-circle" />
                         {' '}
                         Reject
@@ -205,20 +222,19 @@ const UserModerationQueue = ({
       />
 
       <RejectionModal
-        display={showRejectionModal}
-        setDisplay={setShowRejectionModal}
-        onModalClosed={reload}
-        payload={{ accessToken, profileIdToReject }}
+        id={modalId}
+        profileIdToReject={profileIdToReject}
+        rejectUser={rejectUser}
+        onClose={() => { setProfileIdToReject(null) }}
       />
     </div>
   )
 }
 
 const RejectionModal = ({
-  display, setDisplay, onModalClosed, payload,
+  id, profileIdToReject, rejectUser, onClose,
 }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
-  const [selectedRejectionReason, setSelectedRejectionReason] = useState(null)
 
   const instructionText = 'Please go back to the sign up page, enter the same name and email, click the Resend Activation button and complete the missing data.'
   const rejectionReasons = [
@@ -229,65 +245,39 @@ const RejectionModal = ({
     { value: 'invalidHistory', label: 'Missing Latest Career/Education history', rejectionText: `Latest Career/Education history is missing. The info is used for conflict of interest detection.\n\n${instructionText}` },
   ]
 
-  const cleanup = () => {
-    setDisplay(false)
-    setRejectionMessage('')
-    setSelectedRejectionReason(null)
-    if (typeof onModalClosed === 'function') {
-      onModalClosed()
-    }
-  }
-
-  const submitRejection = async () => {
-    try {
-      await api.post('/profile/moderate', {
-        id: payload.profileIdToReject,
-        decision: 'reject',
-        reason: rejectionMessage,
-      }, { accessToken: payload.accessToken })
-    } catch (error) {
-      promptError(error.message)
-    }
-    cleanup()
-  }
-
   return (
-    <>
-      <div className="modal" tabIndex={-1} role="dialog" style={{ display: `${display ? 'block' : 'none'}` }}>
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-body">
-              <form>
-                <div className="form-group form-rejection">
-                  {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-                  <label htmlFor="message">Reason for rejecting {prettyId(payload.profileIdToReject)}:</label>
-                  <Dropdown
-                    name="rejection-reason"
-                    instanceId="rejection-reason"
-                    placeholder="Choose a common reject reason..."
-                    options={rejectionReasons}
-                    value={selectedRejectionReason}
-                    onChange={(p) => { setRejectionMessage(p.rejectionText); setSelectedRejectionReason(p) }}
-                  />
-                  <textarea
-                    name="message"
-                    className="form-control mt-2"
-                    rows="5"
-                    value={rejectionMessage}
-                    onChange={e => setRejectionMessage(e.target.value)}
-                  />
-                </div>
-              </form>
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-default" data-dismiss="modal" onClick={cleanup}>Cancel</button>
-              <button type="button" className="btn btn-primary" onClick={submitRejection} disabled={!rejectionMessage}>Submit</button>
-            </div>
-          </div>
+    <BasicModal
+      id={id}
+      primaryButtonDisabled={!rejectionMessage}
+      onPrimaryButtonClick={() => { rejectUser(rejectionMessage) }}
+      onClose={() => {
+        setRejectionMessage('')
+        onClose()
+      }}
+    >
+      <form onSubmit={(e) => { e.preventDefault() }}>
+        <div className="form-group form-rejection">
+          <label htmlFor="message" className="mb-1">
+            {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+            Reason for rejecting {prettyId(profileIdToReject)}:
+          </label>
+          <Dropdown
+            name="rejection-reason"
+            instanceId="rejection-reason"
+            placeholder="Choose a common reject reason..."
+            options={rejectionReasons}
+            onChange={(p) => { setRejectionMessage(p.rejectionText) }}
+          />
+          <textarea
+            name="message"
+            className="form-control mt-2"
+            rows="5"
+            value={rejectionMessage}
+            onChange={(e) => { setRejectionMessage(e.target.value) }}
+          />
         </div>
-      </div>
-      <div className="modal-backdrop fade in" style={{ display: `${display ? 'block' : 'none'}` }} />
-    </>
+      </form>
+    </BasicModal>
   )
 }
 
