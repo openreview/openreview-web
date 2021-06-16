@@ -2,7 +2,9 @@
 /* globals promptError: false */
 /* globals promptMessage: false */
 
-import { useEffect, useState, useReducer } from 'react'
+import {
+  useEffect, useState, useReducer, useRef,
+} from 'react'
 import Head from 'next/head'
 import withAdminAuth from '../../components/withAdminAuth'
 import Icon from '../../components/Icon'
@@ -231,6 +233,7 @@ const UserModerationQueue = ({
 
 const RejectionModal = ({ id, profileIdToReject, rejectUser }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
+  const selectRef = useRef(null)
 
   const instructionText = 'Please go back to the sign up page, enter the same name and email, click the Resend Activation button and complete the missing data.'
   const rejectionReasons = [
@@ -246,7 +249,7 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser }) => {
       id={id}
       primaryButtonDisabled={!rejectionMessage}
       onPrimaryButtonClick={() => { rejectUser(rejectionMessage) }}
-      onClose={() => { setRejectionMessage('') }}
+      onClose={() => { selectRef.current.select.clearValue() }}
     >
       <form onSubmit={(e) => { e.preventDefault() }}>
         <div className="form-group form-rejection">
@@ -259,7 +262,9 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser }) => {
             instanceId="rejection-reason"
             placeholder="Choose a common reject reason..."
             options={rejectionReasons}
-            onChange={(p) => { setRejectionMessage(p.rejectionText) }}
+            onChange={(p) => { setRejectionMessage(p?.rejectionText || '') }}
+            selectRef={selectRef}
+            isClearable
           />
           <textarea
             name="message"
