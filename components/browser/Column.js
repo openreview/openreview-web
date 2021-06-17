@@ -449,12 +449,12 @@ export default function Column(props) {
     // Build search regex. \b represents a word boundary, so matches in the
     // middle of a word don't count. Includes special case for searching by
     // paper number so only the exact paper is matched.
-    const escapedTerm = _.escapeRegExp(search.term.toLowerCase())
+    const escapedTerm = _.escapeRegExp(search.term)
     let [preModifier, postModifier] = ['\\b', '']
     if (escapedTerm.startsWith('#')) {
       [preModifier, postModifier] = ['^', '\\b']
     }
-    const searchRegex = new RegExp(preModifier + escapedTerm + postModifier, 'm')
+    const searchRegex = new RegExp(preModifier + escapedTerm + postModifier, 'mi')
 
     // Search existing items
     const matchingItems = items.filter(item => item.searchText?.match(searchRegex))
