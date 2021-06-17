@@ -60,7 +60,6 @@ const Browse = ({ appContext }) => {
     const allInvitations = traverseInvitations.concat(
       startInvitations, editInvitations, browseInvitations, hideInvitations,
     )
-
     if (allInvitations.length === 0) {
       setError(invalidError)
       return
@@ -79,7 +78,6 @@ const Browse = ({ appContext }) => {
         }
 
         let allValid = true
-        const invalidInvitationIds = []
         allInvitations.forEach((invObj) => {
           const fullInvitation = apiRes.invitations.find((inv) => {
             // For static lists, use the properties of the first traverse invitation
@@ -91,7 +89,8 @@ const Browse = ({ appContext }) => {
             if (invObj.category === 'edit' || invObj.category === 'browse') {
               // eslint-disable-next-line no-console
               console.error(`${invObj.category} invitation ${invObj.id} does not exist or is expired`)
-              invalidInvitationIds.push(invObj.id)
+              // eslint-disable-next-line no-param-reassign
+              invObj.invalid = true
             } else {
               setError({
                 name: 'Not Found', message: `Could not load edge explorer. Invitation not found: ${invObj.id}`, statusCode: 404,
@@ -119,13 +118,14 @@ const Browse = ({ appContext }) => {
         if (!allValid) {
           return
         }
+
         setInvitations({
           startInvitation: startInvitations[0],
           traverseInvitations,
-          editInvitations: editInvitations.filter(p => !invalidInvitationIds.includes(p.id)),
-          browseInvitations: browseInvitations.filter(p => !invalidInvitationIds.includes(p.id)),
+          editInvitations: editInvitations.filter(inv => !inv.invalid),
+          browseInvitations: browseInvitations.filter(inv => !inv.invalid),
           hideInvitations,
-          allInvitations: allInvitations.filter(p => !invalidInvitationIds.includes(p.id)),
+          allInvitations: allInvitations.filter(inv => !inv.invalid),
         })
       })
       .catch((apiError) => {
