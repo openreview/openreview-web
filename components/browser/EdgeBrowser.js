@@ -304,7 +304,7 @@ export default class EdgeBrowser extends React.Component {
             promptError(error.message)
           }
         }
-        const interpolatedSignature = editInvitation.signatures['values-regex'].replace(/{head\.number}/g, '.*')
+        const interpolatedSignature = editInvitation.signatures['values-regex'].replace(/\{head\.number\}/g, '.*')
         try {
           const interpolatedLookupResult = await api.get('/groups', { regex: interpolatedSignature, signatory: this.userId }, { accessToken: this.accessToken })
           editInvitationSignaturesMap.push({
