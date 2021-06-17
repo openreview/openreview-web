@@ -442,7 +442,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $(window).on('hashchange', function(e, initialUpdate) {
       $('.filter-tabs li').removeClass('active');
 
-      var hash = location.hash || '#all'
+      var hash = location.hash;
+      var options = $('.filter-tabs > li > a').map(function() { return this.attributes.href.value; }).get()
+      if (!options.includes(hash)) hash = '#all';
+
       var tab = $('.filter-tabs').find('a[href="' + hash + '"]').parent();
       if (!tab.length) return;
 
