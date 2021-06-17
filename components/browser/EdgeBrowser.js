@@ -23,9 +23,13 @@ export default class EdgeBrowser extends React.Component {
 
     let initialColumn
     if (this.startInvitation) {
-      const initialColType = (this.startInvitation.query.head || this.startInvitation.query.type === 'tail')
-        ? 'tail'
-        : 'head'
+      let initialColType
+      if (this.startInvitation.query.type) {
+        initialColType = this.startInvitation.query.type
+      } else {
+        initialColType = this.startInvitation.query.head ? 'tail' : 'head'
+      }
+
       initialColumn = {
         type: initialColType,
         entityType: this.startInvitation[initialColType].type,
@@ -163,7 +167,7 @@ export default class EdgeBrowser extends React.Component {
               content: {
                 name: { first: key, middle: '', last: '' },
                 email: key,
-                title: 'Unknown',
+                title: '',
                 expertise: [],
                 isDummyProfile: true,
               },
@@ -300,7 +304,7 @@ export default class EdgeBrowser extends React.Component {
             promptError(error.message)
           }
         }
-        const interpolatedSignature = editInvitation.signatures['values-regex'].replaceAll('{head.number}', '.*')
+        const interpolatedSignature = editInvitation.signatures['values-regex'].replace(/{head\.number}/g, '.*')
         try {
           const interpolatedLookupResult = await api.get('/groups', { regex: interpolatedSignature, signatory: this.userId }, { accessToken: this.accessToken })
           editInvitationSignaturesMap.push({

@@ -64,7 +64,7 @@ export default function Column(props) {
   const [search, setSearch] = useState({ term: '' })
 
   const showLoadMoreButton = numItemsToRender < filteredItems.length
-  const showHideQuotaReachedCheckbox = entityType === 'Profile' && browseInvitations.some(p => p.id.includes('Custom_Max_Papers'))
+  const showHideQuotaReachedCheckbox = entityType === 'Profile' && editAndBrowserInvitations.some(p => p.id.includes('Custom_Max_Papers'))
 
   // Helpers
   const formatEdge = edge => ({
@@ -256,7 +256,7 @@ export default function Column(props) {
             content: {
               name: { first: prettyId(headOrTailId), middle: '', last: '' },
               email: headOrTailId,
-              title: 'Unknown',
+              title: '',
               expertise: [],
               isInvitedProfile: true,
             },
@@ -426,7 +426,7 @@ export default function Column(props) {
   const filterQuotaReachedItems = (colItems) => {
     if (!hideQuotaReached) return colItems
     return colItems.filter((p) => {
-      const customLoad = p.browseEdges?.find(q => q?.invitation?.includes('Custom_Max_Papers'))?.weight
+      const customLoad = [...p.browseEdges, ...p.editEdges].find(q => q?.invitation?.includes('Custom_Max_Papers'))?.weight
       if (customLoad === undefined) return true
       return p.traverseEdgesCount < customLoad
     })
@@ -449,12 +449,12 @@ export default function Column(props) {
     // Build search regex. \b represents a word boundary, so matches in the
     // middle of a word don't count. Includes special case for searching by
     // paper number so only the exact paper is matched.
-    const escapedTerm = _.escapeRegExp(search.term.toLowerCase())
+    const escapedTerm = _.escapeRegExp(search.term)
     let [preModifier, postModifier] = ['\\b', '']
     if (escapedTerm.startsWith('#')) {
       [preModifier, postModifier] = ['^', '\\b']
     }
-    const searchRegex = new RegExp(preModifier + escapedTerm + postModifier, 'm')
+    const searchRegex = new RegExp(preModifier + escapedTerm + postModifier, 'mi')
 
     // Search existing items
     const matchingItems = items.filter(item => item.searchText?.match(searchRegex))
@@ -568,7 +568,7 @@ export default function Column(props) {
 
     const edgesPromiseMap = []
     addToEdgesPromiseMap(traverseInvitation, 'traverse', edgesPromiseMap, true, true) // traverse does not need to getWritable, this is for the case edit == traverse
-    editInvitations.forEach(editInvitation => addToEdgesPromiseMap(editInvitation, 'edit', edgesPromiseMap, true, true))
+    editInvitations.forEach(editInvitation => addToEdgesPromiseMap(editInvitation, 'edit', edgesPromiseMap, true, false))
     addToEdgesPromiseMap(hideInvitation, 'hide', edgesPromiseMap, false, true)
     browseInvitations.forEach(browseInvitation => addToEdgesPromiseMap(browseInvitation, 'browse', edgesPromiseMap, false, false))
 
@@ -626,7 +626,7 @@ export default function Column(props) {
                 content: {
                   name: { first: prettyId(headOrTailId), middle: '', last: '' },
                   email: headOrTailId,
-                  title: 'Unknown',
+                  title: '',
                   expertise: [],
                   isInvitedProfile: true,
                 },

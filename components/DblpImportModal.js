@@ -103,6 +103,7 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
       publicationsInOpenReview.current = await getAllPapersByGroupId(profileId, accessToken)
       const result = await getAllPapersImportedByOtherProfiles(allDblpPublications.map(p => ({
         authorIndex: p.authorIndex,
+        authorCount: p.authorCount,
         title: p.formattedTitle,
         authorCount: p.authorCount,
       })), profileId, accessToken)
