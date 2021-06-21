@@ -3385,12 +3385,13 @@ module.exports = (function() {
 
           var uniquePrettyIds = {};
           var dropdownListOptions = [];
+          var singleOption = result.groups.length == 1;
           _.forEach(result.groups, function(group) {
             var prettyGroupId = prettyId(group.id);
             if (!(prettyGroupId in uniquePrettyIds)) {
               dropdownListOptions.push({
                 id: group.id,
-                description: prettyGroupId + ((!group.id.startsWith('~') && group.members && group.members.length == 1) ? (' (' + prettyId(group.members[0]) + ')') : '')
+                description: prettyGroupId + ((!singleOption && !group.id.startsWith('~') && group.members && group.members.length == 1) ? (' (' + prettyId(group.members[0]) + ')') : '')
               });
               uniquePrettyIds[prettyGroupId] = group.id;
             }
