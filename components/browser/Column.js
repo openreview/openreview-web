@@ -651,6 +651,7 @@ export default function Column(props) {
           ...itemToAdd,
           browseEdges: [],
           editEdges: [],
+          traverseEdge: formatEdge(tEdge),
           metadata: {
             ...columnMetadata,
             isAssigned: true,
@@ -693,6 +694,8 @@ export default function Column(props) {
           // eslint-disable-next-line no-param-reassign
           item.editEdgeTemplates = editInvitations.map(editInvitation => (
             buildNewEditEdge(editInvitation, item.id, edgeWeight)))
+          // eslint-disable-next-line no-param-reassign
+          item.traverseEdgeTemplate = buildNewEditEdge(traverseInvitation, item.id, 0)
         })
       }
 
