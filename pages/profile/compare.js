@@ -1,6 +1,6 @@
 /* globals promptError: false */
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Router from 'next/router'
 import Head from 'next/head'
 import isEmpty from 'lodash/isEmpty'
@@ -210,6 +210,8 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   const [withSignatureProfiles, setWithSignatureProfiles] = useState(null)
   const [highlightValues, setHighlightValues] = useState(null)
   const [fields, setFields] = useState([])
+  const [edgeCounts, setEdgeCounts] = useState(null)
+  const activeVenues = useRef(null)
   const { setBannerHidden } = appContext
 
   const getPublications = async (profileId) => {
@@ -396,6 +398,19 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     }
   }
 
+  const renderEdgeLink = (count, headTail, id) => {
+    if (count === 0) return `no ${headTail} edge`
+    return (
+      <>
+        <a href={`${process.env.API_URL}/edges?${headTail}=${id}`} target="_blank" rel="noreferrer">{count}</a>
+        {' '}
+        {headTail}
+        {' '}
+        edges
+      </>
+    )
+  }
+
   const mergeProfile = (from, to) => {
     const fromProfile = { id: basicProfiles[from].id, active: basicProfiles[from].active }
     const toProfile = { id: basicProfiles[to].id, active: basicProfiles[to].active }
@@ -418,9 +433,31 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     }
   }
 
+  const getEdges = async () => {
+    if (!basicProfiles.left?.id
+      || !basicProfiles.right?.id
+      || basicProfiles.left.id === basicProfiles.right.id) return
+    try {
+      const result = await api.get('/groups', { id: 'active_venues' }, { accessToken })
+      activeVenues.current = result.groups?.[0]?.members
+      const leftHeadP = api.get('/edges', { head: basicProfiles.left.id }, { accessToken })
+      const leftTailP = api.get('/edges', { tail: basicProfiles.left.id }, { accessToken })
+      const rightHeadP = api.get('/edges', { head: basicProfiles.right.id }, { accessToken })
+      const rightTailP = api.get('/edges', { tail: basicProfiles.right.id }, { accessToken })
+      const results = await Promise.all([leftHeadP, leftTailP, rightHeadP, rightTailP])
+      setEdgeCounts({
+        leftHead: results[0].edges.filter(p => activeVenues.current.some(q => p.invitation.includes(q))).length,
+        leftTail: results[1].edges.filter(p => activeVenues.current.some(q => p.invitation.includes(q))).length,
+        rightHead: results[2].edges.filter(p => activeVenues.current.some(q => p.invitation.includes(q))).length,
+        rightTail: results[3].edges.filter(p => activeVenues.current.some(q => p.invitation.includes(q))).length,
+      })
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
   useEffect(() => {
     setBannerHidden(true)
-
     Promise.all([getBasicProfile(left), getBasicProfile(right)])
       .then((profiles) => {
         setBasicProfiles({ left: profiles[0], right: profiles[1] })
@@ -434,6 +471,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       left: addSignatureToProfile(basicProfiles.left),
       right: addSignatureToProfile(basicProfiles.right),
     })
+    getEdges()
   }, [basicProfiles])
 
   useEffect(() => {
@@ -500,7 +538,6 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                 </th>
               </tr>
             </thead>
-
             <tbody>
               {fields.map(field => (
                 <tr key={field}>
@@ -515,6 +552,26 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                   </td>
                 </tr>
               ))}
+              {
+                edgeCounts
+                && (
+                  <tr>
+                    <td>
+                      <strong>Edges</strong>
+                    </td>
+                    <td colSpan="2">
+                      {renderEdgeLink(edgeCounts.leftHead, 'head', basicProfiles.left.id)}
+                      {', '}
+                      {renderEdgeLink(edgeCounts.leftTail, 'tail', basicProfiles.left.id)}
+                    </td>
+                    <td colSpan="2">
+                      {renderEdgeLink(edgeCounts.rightHead, 'head', basicProfiles.right.id)}
+                      {', '}
+                      {renderEdgeLink(edgeCounts.rightTail, 'tail', basicProfiles.right.id)}
+                    </td>
+                  </tr>
+                )
+              }
             </tbody>
           </table>
         ) : (
