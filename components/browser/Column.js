@@ -831,6 +831,7 @@ export default function Column(props) {
               placeholder={getPlaceholderText()}
               value={search.term}
               onChange={e => setSearch({ term: e.target.value })}
+              autoComplete="off"
             />
             <span className="glyphicon glyphicon-search form-control-feedback" aria-hidden="true" />
           </div>
