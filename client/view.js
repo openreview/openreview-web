@@ -3243,14 +3243,8 @@ module.exports = (function() {
               done(undefined, 'Default reader is not in the list of readers');
             }
             // Make the descriptions for anonids
-            var groupsById = _.keyBy(groups, 'id');
             newFieldDescription['values-dropdown'] = newFieldDescription['values-dropdown'].map(function(value) {
-              var group = groupsById[value];
-              var extraDescription = '';
-              if (group && group.members.length) {
-                extraDescription = ' (' + prettyId(group.members[0]) + ')'
-              }
-              return { id: value, description: prettyId(value) + extraDescription }
+              return { id: value, description: prettyId(value) }
             });
             var $readers = mkComposerInput('readers', newFieldDescription, fieldValue);
             $readers.find('.small_heading').prepend(requiredText);
