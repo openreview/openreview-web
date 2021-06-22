@@ -458,6 +458,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
 
   useEffect(() => {
     setBannerHidden(true)
+
     Promise.all([getBasicProfile(left), getBasicProfile(right)])
       .then((profiles) => {
         setBasicProfiles({ left: profiles[0], right: profiles[1] })
@@ -538,6 +539,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                 </th>
               </tr>
             </thead>
+
             <tbody>
               {fields.map(field => (
                 <tr key={field}>
