@@ -159,6 +159,7 @@ export default function ProfileEntity(props) {
     const isAssigned = (metadata.isAssigned || metadata.isUserAssigned)
     const isInviteInvitation = invitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
     const isProposedAssignmentInvitation = invitation.id.includes('Proposed_Assignment')
+    const isAssignmentInvitation = invitation.id.includes('/Assignment')
     const isCustomLoadInvitation = invitation.id.includes('Custom_Max_Papers')
     const isReviewerAssignmentStage = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
     const isEmergencyReviewerStage = editInvitations.some(p => p.id.includes('/Assignment'))
@@ -167,7 +168,11 @@ export default function ProfileEntity(props) {
     let disableControlReason = null
 
     // disable propose assignment when traverseEdgeCount>=custmom max paper in 1st stage
-    if (isReviewerAssignmentStage && isProposedAssignmentInvitation
+    if (
+      (
+        (isReviewerAssignmentStage && isProposedAssignmentInvitation)
+        || (isEmergencyReviewerStage && isAssignmentInvitation)
+      )
       && customLoad && customLoad <= traverseEdgesCount && !edge) {
       disableControlReason = 'Custom load has been reached'
     }

@@ -68,7 +68,7 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
     <div className="">
       <form className="form-inline widget-invite-assignment">
         {/* <label htmlFor="email-invite">Email/Profile: </label> */}
-        <input type="email" id="email-invite" value={emailToInvite} onChange={e => setEmailToInvite(e.target.value)} placeholder={editInvitation[type].description} title={editInvitation[type].description} />
+        <input type="email" id="email-invite" autoComplete="off" value={emailToInvite} onChange={e => setEmailToInvite(e.target.value)} placeholder={editInvitation[type].description} title={editInvitation[type].description} />
         <button type="button" className="btn btn-default btn-xs" onClick={handleInviteBtnClick} disabled={shouldDisableSubmitBtn()}>
           {loading && <LoadingSpinner inline text="" extraClass="spinner-small" />}
           {prettyInvitationId(editInvitation.id)}
