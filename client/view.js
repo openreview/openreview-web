@@ -3242,10 +3242,6 @@ module.exports = (function() {
             if (_.difference(newFieldDescription.default, newFieldDescription['values-dropdown']).length !== 0) { //invitation default is not in list of possible values
               done(undefined, 'Default reader is not in the list of readers');
             }
-            // Make the descriptions for anonids
-            newFieldDescription['values-dropdown'] = newFieldDescription['values-dropdown'].map(function(value) {
-              return { id: value, description: prettyId(value) }
-            });
             var $readers = mkComposerInput('readers', newFieldDescription, fieldValue);
             $readers.find('.small_heading').prepend(requiredText);
             done($readers);
