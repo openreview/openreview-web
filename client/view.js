@@ -2911,7 +2911,7 @@ module.exports = (function() {
 
     var invitationValues = [];
     if (_.has(invitation.reply.readers, 'values-dropdown')) {
-      invitationValues = invitation.reply.readers['values-dropdown'];
+      invitationValues = invitation.reply.readers['values-dropdown'].map(function(v) { return _.has(v, 'id') ? v.id : v; });
     } else if (_.has(invitation.reply.readers, 'value-dropdown-hierarchy')) {
       invitationValues = invitation.reply.readers['value-dropdown-hierarchy'];
     } else if (_.has(invitation.reply.readers, 'values-checkbox')) {
@@ -3242,16 +3242,6 @@ module.exports = (function() {
             if (_.difference(newFieldDescription.default, newFieldDescription['values-dropdown']).length !== 0) { //invitation default is not in list of possible values
               done(undefined, 'Default reader is not in the list of readers');
             }
-            // Make the descriptions for anonids
-            var groupsById = _.keyBy(groups, 'id');
-            newFieldDescription['values-dropdown'] = newFieldDescription['values-dropdown'].map(function(value) {
-              var group = groupsById[value];
-              var extraDescription = '';
-              if (group && group.members.length) {
-                extraDescription = ' (' + prettyId(group.members[0]) + ')'
-              }
-              return { id: value, description: prettyId(value) + extraDescription }
-            });
             var $readers = mkComposerInput('readers', newFieldDescription, fieldValue);
             $readers.find('.small_heading').prepend(requiredText);
             done($readers);
@@ -3355,12 +3345,13 @@ module.exports = (function() {
 
           var uniquePrettyIds = {};
           var dropdownListOptions = [];
+          var singleOption = result.groups.length == 1;
           _.forEach(result.groups, function(group) {
             var prettyGroupId = prettyId(group.id);
             if (!(prettyGroupId in uniquePrettyIds)) {
               dropdownListOptions.push({
                 id: group.id,
-                description: prettyGroupId + ((!group.id.startsWith('~') && group.members && group.members.length == 1) ? (' (' + prettyId(group.members[0]) + ')') : '')
+                description: prettyGroupId + ((!singleOption && !group.id.startsWith('~') && group.members && group.members.length == 1) ? (' (' + prettyId(group.members[0]) + ')') : '')
               });
               uniquePrettyIds[prettyGroupId] = group.id;
             }

@@ -7,9 +7,9 @@
     <p>
       <a href="{{editUrl}}" target="_blank">Edit {{invitationName}}</a>
     </p>
-  {{else}}
+  {{else}}{{#if invitationUrl}}
     <h4><a href="{{invitationUrl}}" target="_blank">Submit {{invitationName}}</a></h4>
-  {{/if}}
+  {{/if}}{{/if}}
 
   {{#if ratingUrl}}
   <strong>Reviewer Ratings{{#unless reviewerRatings}} <span>(Incomplete)</span>{{/unless}}:</strong>

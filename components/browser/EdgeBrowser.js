@@ -287,7 +287,9 @@ export default class EdgeBrowser extends React.Component {
 
   async lookupSignatures() {
     const editInvitationSignaturesMap = []
-    this.editInvitations?.forEach(async (editInvitation) => {
+    // traverseInvitation may be edited without being in edit param
+    const editTranerseInvitations = [...this.editInvitations, this.traverseInvitation]
+    editTranerseInvitations?.forEach(async (editInvitation) => {
       // this case is handled here to reduce num of calls to /groups,other cases handled at entity
       if (editInvitation.signatures['values-regex'] && !editInvitation.signatures['values-regex']?.startsWith('~.*')) {
         if (editInvitation.signatures.default) {
@@ -304,7 +306,7 @@ export default class EdgeBrowser extends React.Component {
             promptError(error.message)
           }
         }
-        const interpolatedSignature = editInvitation.signatures['values-regex'].replaceAll('{head.number}', '.*')
+        const interpolatedSignature = editInvitation.signatures['values-regex'].replace(/{head\.number}/g, '.*')
         try {
           const interpolatedLookupResult = await api.get('/groups', { regex: interpolatedSignature, signatory: this.userId }, { accessToken: this.accessToken })
           editInvitationSignaturesMap.push({
