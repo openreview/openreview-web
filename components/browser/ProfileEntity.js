@@ -283,7 +283,7 @@ export default function ProfileEntity(props) {
       })
     }
     // new only for external reviewer who has accepted
-    if (traverseInvitation.id.includes('/Assignment') && editEdges.some(
+    if (traverseInvitation.id.includes('/Assignment') && editEdges?.some(
       p => editInvitations.find(
         q => q.id === p.invitation,
       )?.[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+' // invite invitation
