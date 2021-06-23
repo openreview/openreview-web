@@ -1,16 +1,3 @@
-/**
- * Changes:
- * - delete replaceWithForum and pushForum
- * - change `var runForum =` to `module.exports =`
- * - replace `controller.addHandler('forum', { ... })` with `onTokenChange()`
- * - delete first 2 lines of onTokenChange (setting the user var)
- * - replace referrer argument with user
- * - delete all references to OpenBanner and setting document.title
- * - replace all controller api function with Webfield api functions
- * - remove preRendered var
- * - add `$root.removeClass('panel');` to line 574
- * - replace `#content` with `#content > .forum-container`
- */
 module.exports = function(forumId, noteId, invitationId, user) {
   if (!noteId) {
     noteId = forumId;
