@@ -2911,7 +2911,7 @@ module.exports = (function() {
 
     var invitationValues = [];
     if (_.has(invitation.reply.readers, 'values-dropdown')) {
-      invitationValues = invitation.reply.readers['values-dropdown'];
+      invitationValues = invitation.reply.readers['values-dropdown'].map(function(v) { return _.has(v, 'id') ? v.id : v; });
     } else if (_.has(invitation.reply.readers, 'value-dropdown-hierarchy')) {
       invitationValues = invitation.reply.readers['value-dropdown-hierarchy'];
     } else if (_.has(invitation.reply.readers, 'values-checkbox')) {
