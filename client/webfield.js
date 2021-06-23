@@ -658,8 +658,8 @@ module.exports = (function() {
     if (propertyValue === null || propertyValue === undefined || targetValue === null || targetValue === undefined) return false
     if (typeof (propertyValue) === 'object' && !Array.isArray(propertyValue)) { // reviewers are objects
       propertyValue = [
-        ...Object.values(propertyValue).map(p => p.name.toString().toLowerCase()),
-        ...Object.values(propertyValue).map(p => p.email.toString().toLowerCase())
+        ...Object.values(propertyValue).map(p => p.name),
+        ...Object.values(propertyValue).map(p => p.email)
       ]
       targetValue = targetValue.toString().toLowerCase()
     }
