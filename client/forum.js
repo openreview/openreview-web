@@ -695,24 +695,23 @@ module.exports = function(forumId, noteId, invitationId, user) {
   };
 
   // Returns Notes that are parents (replyto) of the intersection Notes. This is done so that the Note is expanded as well as its parents, otherwise, it would not be visible.
-  var getNotesToExpand = function(intersection, noteIdToNote) {
-    var notesToExpand = [];
+  var getTopLevelNotes = function(intersection, noteIdToNote) {
+    var topLevelNotes = [];
     intersection.forEach(function(note) {
-      notesToExpand.push(note);
-      addParents(note.replyto, notesToExpand, noteIdToNote);
+      addParents(note, topLevelNotes, noteIdToNote);
     });
-    return _.uniq(notesToExpand);
+    return _.uniq(topLevelNotes);
   };
 
-  var addParents = function(noteId, notesToExpand, noteIdToNote) {
-    // Convert note id to Note
-    var note = noteIdToNote[noteId];
-    // Do not include the Submission Note in any Group. noteIdToNote does not include the id of the submission. Therefore, note would be undefined.
-    if (note) {
-      notesToExpand.push(note);
-      // Recur to add all parent parents
-      addParents(note.replyto, notesToExpand, noteIdToNote);
+  var addParents = function(note, noteList, noteIdToNote) {
+    // noteIdToNote does not include the id of the forum note. Therefore, note would be undefined.
+    var parentNote = noteIdToNote[note.replyto];
+    if (!parentNote) {
+      noteList.push(note.id);
+      return
     }
+
+    addParents(parentNote, noteList, noteIdToNote);
   };
 
   // Gets all the Notes in the Forum except the Submission
@@ -723,7 +722,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
   };
 
   // Accepts notesToCollapse and notesToExpand which are arrays of Notes.
-  var filterNotes = function(notesToExpand, notesToCollapse) {
+  var filterNotes = function(notesToExpand, notesToCollapse, parentIdsToShow) {
     var shouldCollapse = function(collapse) {
       return function(note) {
         var $comment = $('#note_' + note.id).parent();
@@ -748,9 +747,17 @@ module.exports = function(forumId, noteId, invitationId, user) {
         }
       };
     };
-
     notesToCollapse.forEach(shouldCollapse(true));
     notesToExpand.forEach(shouldCollapse(false));
+
+    $('#note_children > .note_with_children > .note').each(function() {
+      var id = this.id.replace('note_', '');
+      if (parentIdsToShow.includes(id)) {
+         $(this).parent().show();
+      } else {
+        $(this).parent().hide();
+      }
+    });
   };
 
   // Takes an object that maps Invitatiions/Signatures to Notes and an array that contains all the filters (key values) to map the Invitations/Signatures to their corresponding Note.
@@ -832,10 +839,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
       return _.intersection(noteReaders, excludedReadersCheckboxes.checked).length === 0;
     });
 
-    var intersection = _.intersectionBy(signatureUnion, invitationUnion, readerUnion, excludedReaderUnion, 'id');
-    var notesToExpand = intersection; // getNotesToExpand(intersection, sm.get('noteIdToNote'));
+    var notesToExpand = _.intersectionBy(signatureUnion, invitationUnion, readerUnion, excludedReaderUnion, 'id');
     var notesToCollapse = _.difference(sm.get('forumReplies'), notesToExpand);
-    filterNotes(notesToExpand, notesToCollapse);
+    var parentIdsToShow = getTopLevelNotes(notesToExpand, sm.get('noteIdToNote'));
+    filterNotes(notesToExpand, notesToCollapse, parentIdsToShow);
   };
 
   var applySelectAllFilters = function(event) {
