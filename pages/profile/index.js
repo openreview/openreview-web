@@ -248,18 +248,15 @@ const Profile = ({ profile, publicProfile, appContext }) => {
 
   const loadPublications = async () => {
     let apiRes
+    const queryParam = {
+      'content.authorids': profile.id,
+      sort: 'cdate:desc',
+      limit: 1000,
+    }
     try {
       if (process.env.ENABLE_V2_API) {
-        const v1NotesP = api.get('/notes', {
-          'content.authorids': profile.id,
-          sort: 'cdate:desc',
-          limit: 1000,
-        }, { token: accessToken })
-        const v2NotesP = await api.getV2('/notes', {
-          'content.authorids': profile.id,
-          sort: 'cdate:desc',
-          limit: 1000,
-        }, { token: accessToken })
+        const v1NotesP = api.get('/notes', queryParam, { token: accessToken })
+        const v2NotesP = await api.getV2('/notes', queryParam, { token: accessToken })
         const apiResArray = await Promise.all([v1NotesP, v2NotesP])
         const notes = apiV2MergeNotes(apiResArray[0].notes, apiResArray[1].notes)
         apiRes = {
@@ -267,11 +264,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
           count: apiResArray[0].count + apiResArray[1].count, // assume no duplicate
         }
       } else {
-        apiRes = await api.get('/notes', {
-          'content.authorids': profile.id,
-          sort: 'cdate:desc',
-          limit: 1000,
-        }, { token: accessToken })
+        apiRes = await api.get('/notes', queryParam, { token: accessToken })
       }
     } catch (error) {
       apiRes = error

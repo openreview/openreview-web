@@ -11,6 +11,7 @@ import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 
 import '../styles/pages/activity.less'
+import { apiV2MergeNotes } from '../lib/utils'
 
 const Activity = ({ appContext }) => {
   const { user, accessToken } = useLoginRedirect()
@@ -20,14 +21,22 @@ const Activity = ({ appContext }) => {
   const { setBannerHidden, clientJsLoading } = appContext
 
   const loadActivityData = async () => {
+    const queryParam = {
+      tauthor: true,
+      trash: true,
+      details: 'forumContent,writable,invitation',
+      limit: 200,
+    }
+    let notes
     try {
-      const { notes } = await api.get('/notes', {
-        tauthor: true,
-        trash: true,
-        details: 'forumContent,writable,invitation',
-        limit: 200,
-      }, { accessToken })
-
+      if (process.env.ENABLE_V2_API) {
+        const v1NotesP = api.get('/notes', queryParam, { accessToken })
+        const v2NotesP = api.getV2('/notes', queryParam, { accessToken })
+        const results = await Promise.all([v1NotesP, v2NotesP])
+        notes = apiV2MergeNotes(results[0].notes, results[1].notes)
+      } else {
+        ({ notes } = await api.get('/notes', queryParam, { accessToken }))
+      }
       setActivityNotes(notes)
     } catch (apiError) {
       setError(apiError)
@@ -46,7 +55,8 @@ const Activity = ({ appContext }) => {
     if (clientJsLoading || !activityNotes) return
 
     $(activityRef.current).empty()
-    Webfield.ui.activityList(activityNotes, {
+    const activityList = process.env.ENABLE_V2_API ? Webfield.ui.activityListV2 : Webfield.ui.activityList
+    activityList(activityNotes, {
       container: activityRef.current,
       emptyMessage: 'No recent activity to display.',
       user: user.profile,

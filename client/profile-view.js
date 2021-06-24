@@ -910,6 +910,11 @@ module.exports = function(profile, params, submitF, cancelF) {
     var publicationEditorPageSize = 20;
 
     var loadPublicationsForPublicationEditor = async function(offset) {
+      var queryParam = {
+        'content.authorids': profileId,
+        details: 'invitation,original',
+        sort: 'tmdate:desc',
+      }
       if (process.env.ENABLE_V2_API) {
         if (publicationsForPublicationEditor?.length) {
           // offset won't work with multiple api calls so take a slice of all publications
@@ -918,11 +923,7 @@ module.exports = function(profile, params, submitF, cancelF) {
             count: publicationsForPublicationEditor.length
           }
         }
-        var v1NotesP = Webfield.get('/notes', {
-          'content.authorids': profileId,
-          details: 'invitation,original',
-          sort: 'tmdate:desc',
-        }, { cache: false });
+        var v1NotesP = Webfield.get('/notes', queryParam , { cache: false });
         var v2NotesP = Webfield.getV2('/notes', {
           'content.authorids': profileId,
           details: 'invitation,original',
@@ -938,9 +939,7 @@ module.exports = function(profile, params, submitF, cancelF) {
         }
       } else {
         return await Webfield.get('/notes', {
-          'content.authorids': profileId,
-          details: 'invitation,original',
-          sort: 'tmdate:desc',
+          ...queryParam,
           offset: offset,
           limit: publicationEditorPageSize
         }, { cache: false });

@@ -1008,12 +1008,15 @@ Handlebars.registerHelper('getAnonId', function(varName,memberId,memberAnonIdMap
 Handlebars.registerPartial('noteContent', Handlebars.templates['partials/noteContent']);
 
 Handlebars.registerPartial('noteBasic', Handlebars.templates['partials/noteBasic']);
-Handlebars.registerPartial('noteBasicV2', Handlebars.templates['partials/noteBasicV2']);
 Handlebars.registerPartial('noteList', Handlebars.templates['partials/noteList']);
+Handlebars.registerPartial('noteBasicV2', Handlebars.templates['partials/noteBasicV2']);
 Handlebars.registerPartial('noteListV2', Handlebars.templates['partials/noteListV2']);
 
 Handlebars.registerPartial('noteActivity', Handlebars.templates['partials/noteActivity']);
 Handlebars.registerPartial('activityList', Handlebars.templates['partials/activityList']);
+
+Handlebars.registerPartial('noteActivityV2', Handlebars.templates['partials/noteActivityV2']);
+Handlebars.registerPartial('activityListV2', Handlebars.templates['partials/activityListV2']);
 
 Handlebars.registerPartial('noteTask', Handlebars.templates['partials/noteTask']);
 Handlebars.registerPartial('taskList', Handlebars.templates['partials/taskList']);

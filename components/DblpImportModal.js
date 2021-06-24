@@ -105,7 +105,6 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
         authorIndex: p.authorIndex,
         authorCount: p.authorCount,
         title: p.formattedTitle,
-        authorCount: p.authorCount,
       })), profileId, accessToken)
       publicationsImportedByOtherProfiles.current = result.filter(p => p)
       const {
