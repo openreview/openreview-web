@@ -40,7 +40,7 @@ export default function ProfileEntity(props) {
 
   const metadata = props.profile.metadata || {}
   const extraClasses = []
-  const defaultWeight = [...editInvitations, ...browseInvitations].filter(p => p.id.includes('Custom_Max_Papers'))?.[0]?.defaultWeight
+  const defaultWeight = [...editInvitations, ...browseInvitations].find(p => p.id.includes('Custom_Max_Papers'))?.defaultWeight
   const customLoad = [...browseEdges || [], ...editEdges || []].find(p => p.invitation.includes('Custom_Max_Papers'))?.weight ?? defaultWeight
   const isInviteAcceptedProfile = editEdges?.find(p => p.invitation.includes('Invite_Assignment'))?.label === 'Accepted'
 
