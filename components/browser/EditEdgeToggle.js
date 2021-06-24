@@ -12,6 +12,8 @@ export default function EditEdgeToggle({
   isInviteInvitation,
   shouldDisableControl = false,
   disableControlReason,
+  isTraverseEdge,
+  traverseEdgeTemplate,
 }) {
   const [loading, setLoading] = useState(false)
 
@@ -28,8 +30,9 @@ export default function EditEdgeToggle({
       addEdge({
         e,
         existingEdge,
-        editEdgeTemplate,
+        editEdgeTemplate: isTraverseEdge ? traverseEdgeTemplate : editEdgeTemplate,
         updatedEdgeFields: isInviteInvitation ? undefined : { weight: 1 }, // invite invitation weight remain as 0
+        isTraverseEdge,
       })
     }
   }
@@ -41,6 +44,7 @@ export default function EditEdgeToggle({
 
   const getNewEdgeButtonText = () => {
     if (editEdgeTemplate?.label === 'Assign') return 'Assign'
+    if (isTraverseEdge && traverseEdgeTemplate) return traverseEdgeTemplate.name
     return `${editEdgeTemplate?.name}`
   }
 

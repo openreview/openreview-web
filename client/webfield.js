@@ -682,7 +682,10 @@ module.exports = (function() {
     let isString = false
     if (propertyValue === null || propertyValue === undefined || targetValue === null || targetValue === undefined) return false
     if (typeof (propertyValue) === 'object' && !Array.isArray(propertyValue)) { // reviewers are objects
-      propertyValue = Object.values(propertyValue).map(p => p.name.toString().toLowerCase())
+      propertyValue = [
+        ...Object.values(propertyValue).map(p => p.name),
+        ...Object.values(propertyValue).map(p => p.email)
+      ]
       targetValue = targetValue.toString().toLowerCase()
     }
     if (!(typeof (propertyValue) === 'number' && typeof (targetValue) === 'number') && !Array.isArray(propertyValue)) {
@@ -707,7 +710,9 @@ module.exports = (function() {
       case '<=':
         if (allowGreaterLessComparison) return propertyValue <= targetValue
         throw new Error('operator is invalid')
-      case '!=': return propertyValue !== targetValue
+      case '!=':
+        if (Array.isArray(propertyValue)) return !propertyValue.some(p => p.toString().toLowerCase().includes(targetValue.toString().toLowerCase()))
+        return propertyValue !== targetValue
       default:
         throw new Error('operator is invalid')
     }
