@@ -9,7 +9,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   // Data fetching functions
   var getProfilesP = function(notes) {
-
     var authorEmails = _.without(_.uniq(_.map(notes, function(n) { return n.tauthor; })), undefined);
     if (!authorEmails.length) {
       return $.Deferred().resolve(notes);
@@ -38,7 +37,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
         });
         return notes;
       });
-
   };
 
   var getNoteRecsP = function() {
@@ -723,6 +721,13 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var shouldCollapse = function(collapse) {
       return function(note) {
         var comment = $('#note_' + note.id).parent();
+
+        // If collapsing note with open editor, close editor
+        var openEditor = comment.find('.children .note_editor.panel');
+        if (collapse && openEditor.length) {
+          openEditor.remove()
+        }
+
         // If want to collapse and it's collapsed, do nothing. If want to expand
         // and it's expanded, do nothing. Otherwise click to collapse or expand.
         if (comment.hasClass('collapsed') !== collapse) {
