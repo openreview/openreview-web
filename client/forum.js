@@ -338,7 +338,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
       }
 
       childrenList.push($('<div>', {class: 'note_with_children ' + noteCssClass}).append(
-        '<a href="#" class="collapse-comment-tree" title="Collapse reply thread">[&ndash;]</a>',
+        '<a href="#" class="collapse-comment-tree collapse-link" title="Collapse reply thread">[&ndash;]</a>',
+        '<a href="#" class="collapse-comment-tree expand-link" title="Expand reply thread">[+]</a>',
         $note,
         $childrenContainer.append($replies),
         displayMoreLink
@@ -395,10 +396,15 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     // Collapse/expand comment thread
     $content.on('click', '.collapse-comment-tree', function() {
-      var $container = $(this).parent();
-      $container.toggleClass('collapsed');
+      var $parent = $(this).parent();
 
-      $(this).html($container.hasClass('collapsed') ? '[+]' : '[&ndash;]');
+      if ($parent.hasClass('collapsed') || $parent.hasClass('semi-collapsed')) {
+        $parent.removeClass('collapsed');
+        $parent.removeClass('semi-collapsed');
+      } else {
+        $parent.addClass('collapsed');
+        $parent.removeClass('semi-collapsed');
+      }
       return false;
     });
 
@@ -720,24 +726,26 @@ module.exports = function(forumId, noteId, invitationId, user) {
   var filterNotes = function(notesToExpand, notesToCollapse) {
     var shouldCollapse = function(collapse) {
       return function(note) {
-        var comment = $('#note_' + note.id).parent();
+        var $comment = $('#note_' + note.id).parent();
 
         // If collapsing note with open editor, close editor
-        var openEditor = comment.find('.children .note_editor.panel');
+        var openEditor = $comment.find('.children .note_editor.panel');
         if (collapse && openEditor.length) {
           openEditor.remove()
         }
 
         // If want to collapse and it's collapsed, do nothing. If want to expand
-        // and it's expanded, do nothing. Otherwise click to collapse or expand.
-        if (comment.hasClass('collapsed') !== collapse) {
-          $('#note_' + note.id).prev().trigger('click');
+        // and it's expanded, do nothing. Otherwise collapse or expand.
+        if ($comment.hasClass('collapsed') || $comment.hasClass('semi-collapsed')) {
+          $comment.removeClass('collapsed');
+          if (collapse) {
+            $comment.addClass('semi-collapsed');
+          } else {
+            $comment.removeClass('semi-collapsed');
+          }
+        } else if (collapse) {
+          $comment.addClass('semi-collapsed');
         }
-        // if (collapse) {
-        //   comment.hide();
-        // } else {
-        //   comment.show();
-        // }
       };
     };
 
@@ -825,7 +833,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     });
 
     var intersection = _.intersectionBy(signatureUnion, invitationUnion, readerUnion, excludedReaderUnion, 'id');
-    var notesToExpand = getNotesToExpand(intersection, sm.get('noteIdToNote'));
+    var notesToExpand = intersection; // getNotesToExpand(intersection, sm.get('noteIdToNote'));
     var notesToCollapse = _.difference(sm.get('forumReplies'), notesToExpand);
     filterNotes(notesToExpand, notesToCollapse);
   };

@@ -7,8 +7,6 @@ main.forum {
 
     .title_collapsed {
       display: none;
-      margin-top: 1px;
-      margin-bottom: .25rem;
     }
   }
 
@@ -334,35 +332,10 @@ main.forum {
       padding: 2rem 0;
     }
 
-    h2.note_content_title {
-      font-size: 1.125rem;
-      line-height: 1.125rem;
-      margin-top: 0;
-      margin-bottom: 0;
-
-      .btn-default {
-        margin-top: -4px;
-        margin-left: .5rem;
-        background: transparent;
-        border: 2px solid transparent;
-        opacity: 0;
-
-        &:hover {
-          background-color: @backgroundGray;
-          border-color: @subtleGray;
-        }
-      }
-    }
-
     .meta_row {
       .signatures, .author, .profile-link {
         font-size: .875rem;
       }
-    }
-
-    .collapsed h2.note_content_title {
-      line-height: 1rem;
-      font-size: 1rem;
     }
 
     div.note_contents {
@@ -427,22 +400,68 @@ main.forum {
       }
     }
 
-    &.collapsed {
-      height: 2.25rem;
-      overflow: hidden;
+    h2.note_content_title {
+      font-size: 1.125rem;
+      line-height: 1.125rem;
+      margin-top: 0;
+      margin-bottom: 0;
 
-      .note_content_title {
-        height: 1.25rem;
+      .btn-default {
+        margin-top: -4px;
+        margin-left: .5rem;
+        background: transparent;
+        border: 2px solid transparent;
+        opacity: 0;
+
+        &:hover {
+          background-color: @backgroundGray;
+          border-color: @subtleGray;
+        }
+      }
+    }
+
+    .collapse-comment-tree.expand-link {
+      display: none;
+    }
+
+    .title_collapsed {
+      display: none;
+
+      h2.note_content_title {
+        font-size: 1rem;
         width: 100%;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      .title_pdf_row {
+    }
+
+    &.collapsed, &.semi-collapsed {
+      > .collapse-comment-tree.collapse-link {
         display: none;
       }
-      .title_collapsed {
+      > .collapse-comment-tree.expand-link {
         display: block;
+      }
+      > .note {
+        > .title_collapsed {
+          display: block;
+        }
+        > .title_pdf_row,
+        > .note_contents,
+        > .clearfix,
+        > .meta_row {
+          display: none;
+        }
+      }
+    }
+    &.collapsed {
+      height: 2.25rem;
+      overflow: hidden;
+    }
+    &.semi-collapsed {
+      > .children {
+        margin-top: .5rem;
       }
     }
   }
