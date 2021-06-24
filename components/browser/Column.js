@@ -97,7 +97,7 @@ export default function Column(props) {
       [otherType]: parentId,
       label: isInviteInvitation ? editInvitation.label?.default : editInvitation.query.label,
       weight,
-      ...editInvitation.defaultWeight && { defaultWeight: editInvitation.defaultWeight },
+      defaultWeight: editInvitation.defaultWeight,
       readers: editInvitation.readers, // reader/writer/nonreader/signature are completed in entity
       writers: editInvitation.writers,
       signatures: editInvitation.signatures,
@@ -417,7 +417,7 @@ export default function Column(props) {
               }
               return invitation.query.details
             })(),
-            ...invitation.defaultWeight && { defaultWeight: invitation.defaultWeight },
+            defaultWeight: invitation.defaultWeight,
           },
           sort,
         )),
@@ -427,7 +427,7 @@ export default function Column(props) {
 
   const filterQuotaReachedItems = (colItems) => {
     if (!hideQuotaReached) return colItems
-    const defaultQuota = [...browseInvitations, ...editInvitations].filter(p => p.id.includes('Custom_Max_Papers'))?.[0]?.defaultWeight
+    const defaultQuota = [...browseInvitations, ...editInvitations].find(p => p.id.includes('Custom_Max_Papers'))?.defaultWeight
     return colItems.filter((p) => {
       const customLoad = [...p.browseEdges, ...p.editEdges].find(q => q?.invitation?.includes('Custom_Max_Papers'))?.weight ?? defaultQuota
       if (customLoad === undefined) return true

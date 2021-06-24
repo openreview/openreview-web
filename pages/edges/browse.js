@@ -108,8 +108,7 @@ const Browse = ({ appContext }) => {
             head: fullInvitation.reply.content.head,
             tail: fullInvitation.reply.content.tail,
             weight: fullInvitation.reply.content.weight,
-            // eslint-disable-next-line max-len
-            ...fullInvitation.reply.content.defaultWeight && { defaultWeight: fullInvitation.reply.content.defaultWeight },
+            defaultWeight: fullInvitation.reply.content.defaultWeight,
             label: fullInvitation.reply.content.label,
             readers,
             writers,
