@@ -46,6 +46,12 @@ const Tasks = ({ appContext }) => {
     })
   }
 
+  const concatInvitationsOfV1AndV2 = (invitationCollection1, invitaitonCollection2) => {
+    // TODO: just concat when collections are split
+    const ids = invitationCollection1.map(p => p.id)
+    return [...invitationCollection1, ...invitaitonCollection2.filter(p => !ids.includes(p.id))]
+  }
+
   useEffect(() => {
     if (!accessToken) return
 
@@ -54,18 +60,43 @@ const Tasks = ({ appContext }) => {
     const addPropertyToInvitations = propertyName => apiRes => (
       apiRes.invitations.map(inv => ({ ...inv, [propertyName]: true }))
     )
+    let invitationPromises = []
+    const commonParams = {
+      invitee: true,
+      duedate: true,
+      details: 'repliedTags',
+    }
+    const option = {
+      accessToken, cachePolicy: 'no-ie',
+    }
 
-    Promise.all([
-      api.get('/invitations', {
-        invitee: true, duedate: true, replyto: true, details: 'replytoNote,repliedNotes',
-      }, { accessToken, cachePolicy: 'no-ie' }).then(addPropertyToInvitations('noteInvitation')),
-      api.get('/invitations', {
-        invitee: true, duedate: true, type: 'tags', details: 'repliedTags',
-      }, { accessToken, cachePolicy: 'no-ie' }).then(addPropertyToInvitations('tagInvitation')),
-      api.get('/invitations', {
-        invitee: true, duedate: true, type: 'edges', details: 'repliedEdges',
-      }, { accessToken, cachePolicy: 'no-ie' }).then(addPropertyToInvitations('tagInvitation')),
-    ])
+    if (process.env.ENABLE_V2_API) {
+      invitationPromises = [
+        api.get('/invitations', { ...commonParams, replyto: true, details: 'replytoNote,repliedNotes' }, option).then(addPropertyToInvitations('noteInvitation')),
+        api.getV2AsV1('/invitations', { ...commonParams, replyto: true, details: 'replytoNote,repliedNotes' }, option).then(addPropertyToInvitations('noteInvitation')),
+        api.get('/invitations', { ...commonParams, type: 'tags' }, option).then(addPropertyToInvitations('tagInvitation')),
+        api.getV2AsV1('/invitations', { ...commonParams, type: 'tags' }, option).then(addPropertyToInvitations('tagInvitation')),
+        api.get('/invitations', { ...commonParams, type: 'edges' }, option).then(addPropertyToInvitations('tagInvitation')),
+        api.getV2AsV1('/invitations', { ...commonParams, type: 'edges' }, option).then(addPropertyToInvitations('tagInvitation')),
+      ]
+    } else {
+      invitationPromises = [
+        api.get('/invitations', { ...commonParams, replyto: true, details: 'replytoNote,repliedNotes' }, option).then(addPropertyToInvitations('noteInvitation')),
+        api.get('/invitations', { ...commonParams, type: 'tags' }, option).then(addPropertyToInvitations('tagInvitation')),
+        api.get('/invitations', { ...commonParams, type: 'edges' }, option).then(addPropertyToInvitations('tagInvitation')),
+      ]
+    }
+    Promise.all(invitationPromises)
+      .then((allInvitations) => {
+        if (process.env.ENABLE_V2_API) {
+          return [
+            concatInvitationsOfV1AndV2(allInvitations[0], allInvitations[1]),
+            concatInvitationsOfV1AndV2(allInvitations[2], allInvitations[3]),
+            concatInvitationsOfV1AndV2(allInvitations[4], allInvitations[5]),
+          ]
+        }
+        return allInvitations
+      })
       .then(allInvitations => setGroupedTasks(formatTasksData(allInvitations)))
       .catch(apiError => setError(apiError))
   }, [accessToken])
