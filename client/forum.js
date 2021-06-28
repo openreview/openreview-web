@@ -440,9 +440,11 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     // Filter tabs
     $(window).on('hashchange', function(e, initialUpdate) {
-      $('.filter-tabs li').removeClass('active');
+      $('.filter-tabs li').removeClass('active semi-active');
 
       var hash = location.hash;
+      if (!hash && !initialUpdate) return;
+
       var options = $('.filter-tabs > li > a').map(function() { return this.attributes.href.value; }).get()
       if (!options.includes(hash)) hash = '#all';
 
@@ -665,17 +667,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
     return multiselector;
   };
 
-  // Assumes there is always going to be just one invitation per note.
-  var getInvitationFilters = function(note) {
-    return [note.invitation];
-  };
-  var getSignatureFilters = function(note) {
-    return note.signatures;
-  };
-  var getReadersFilters = function(note) {
-    return note.readers;
-  };
-
   // A Filter can be: Meta_Review, Official_Comment, Reviewer1, etc.
   // This function maps a Filter to its corresponding array of Notes.
   var createFiltersToNotes = function(notes, getFilters, extraFilters) {
@@ -869,6 +860,20 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var notesToCollapse = _.difference(sm.get('forumReplies'), notesToExpand);
     var parentIdsToShow = getTopLevelNotes(notesToExpand, sm.get('noteIdToNote'));
     filterNotes(notesToExpand, notesToCollapse, parentIdsToShow);
+
+    // If filters are changed, deselect current tab and make it so clicking it resets the filters
+    if (event && sm.get('useNewLayout')) {
+      $('.filter-tabs li.active').removeClass('active').addClass('semi-active').one('click', function() {
+        $(this).removeClass('semi-active').addClass('active');
+
+        var filtersMap = sm.get('forumFiltersMap');
+        var newFilterObj = filtersMap[location.hash] || {};
+        setFilters(Object.assign({
+          invitations: null, signatures: null, readers: null, 'excluded-readers': null,
+        }, newFilterObj));
+        applyFilter();
+      });
+    }
   };
 
   var applySelectAllFilters = function(event) {
@@ -944,6 +949,17 @@ module.exports = function(forumId, noteId, invitationId, user) {
       // allAfter and before all the allBefore (e.g. Carlos Mondragon will come after Chairs but before Anonymous)
       return sortCriteria(lowerA, lowerB, compareFuncs);
     });
+  };
+
+  // Assumes there is always going to be just one invitation per note.
+  var getInvitationFilters = function(note) {
+    return [note.invitation];
+  };
+  var getSignatureFilters = function(note) {
+    return note.signatures;
+  };
+  var getReadersFilters = function(note) {
+    return note.readers;
   };
 
   // These creates the multiselectors and returns a jQuery object that contains them
