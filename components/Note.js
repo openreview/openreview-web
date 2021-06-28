@@ -88,8 +88,8 @@ export const NoteV2 = ({ note, invitation, options }) => {
 
       <div className="note-authors">
         <NoteAuthorsV2
-          authors={note.content.authors.value}
-          authorIds={note.content.authorids.value}
+          authors={note.content.authors?.value}
+          authorIds={note.content.authorids?.value}
           signatures={note.signatures}
           original={note.details?.original}
         />

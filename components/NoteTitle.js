@@ -37,7 +37,7 @@ export const NoteTitleV2 = ({
 }) => (
   <h4>
     <Link href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}`}>
-      <a>{content.title.value || buildNoteTitle(invitation, signatures)}</a>
+      <a>{content.title?.value || buildNoteTitle(invitation, signatures)}</a>
     </Link>
 
     {options.pdfLink && content.pdf && (

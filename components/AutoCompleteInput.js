@@ -9,6 +9,7 @@ import api from '../lib/api-client'
 import { getTitleObjects, getTokenObjects } from '../client/search'
 
 import '../styles/components/autocomplete-input.less'
+import { convertNotesToV2 } from '../lib/utils'
 
 const AutoCompleteInput = () => {
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
@@ -56,12 +57,19 @@ const AutoCompleteInput = () => {
 
   const searchByTerm = async (term) => {
     try {
-      const result = await api.get('/notes/search', {
+      let notes
+      const queryParam = {
         term, type: 'prefix', content: 'all', group: 'all', source: 'all', limit: 10,
-      })
+      }
+      if (process.env.ENABLE_V2_API) {
+        ({ notes } = await api.getV2('/notes/search', queryParam))
+      } else {
+        const result = await api.get('/notes/search', queryParam)
+        notes = convertNotesToV2(result.notes)
+      }
       if (cancelRequest) return
-      const tokenObjects = getTokenObjects(result.notes, term)
-      const titleObjects = getTitleObjects(result.notes, term)
+      const tokenObjects = getTokenObjects(notes, term)
+      const titleObjects = getTitleObjects(notes, term)
       if (tokenObjects.length && titleObjects.length) {
         setAutoCompleteItems([...tokenObjects, null, ...titleObjects]) // null maps to <hr/>
       } else {

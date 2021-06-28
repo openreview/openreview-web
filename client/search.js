@@ -62,7 +62,8 @@ var getTokenObjects = function(docArray, searchTerm) {
   var termRegex = new RegExp(searchTerm + '.*', 'i');
 
   var tokens = _.uniq(_.filter(_.flattenDeep(_.map(contentArray, function(contentObj) {
-    return _.without(_.map(contentObj, function(val) {
+    return _.without(_.map(contentObj, function(valObj) {
+      const val = valObj.value
       if (_.isArray(val)) {
         return val;
       } else if (typeof val === 'string') {
@@ -106,12 +107,12 @@ var getTitleObjects = function(docArray, searchTerm) {
   return _.filter(_.map(docArray, function(docObj) {
     var contentObj = docObj.content;
     return {
-      value: _.isEmpty(contentObj.title) ? '' : contentObj.title,
+      value: _.isEmpty(contentObj.title?.value) ? '' : contentObj.title.value,
       forum: _.has(docObj, 'forum') ? docObj.forum : '',
       id: docObj.id,
-      label: _.isEmpty(contentObj.title) ? '' : emphasize(contentObj.title, searchTerm),
-      subtitle: _.isEmpty(contentObj.authors) ? '' : emphasize(contentToString(contentObj.authors), searchTerm),
-      authors: _.isEmpty(contentObj.authors) ? '' : contentObj.authors,
+      label: _.isEmpty(contentObj.title?.value) ? '' : emphasize(contentObj.title.value, searchTerm),
+      subtitle: _.isEmpty(contentObj.authors?.value) ? '' : emphasize(contentToString(contentObj.authors.value), searchTerm),
+      authors: _.isEmpty(contentObj.authors?.value) ? '' : contentObj.authors.value,
       section: 'titles'
     };
   }), function(titleObj) {

@@ -9,7 +9,7 @@ import api from '../lib/api-client'
 import { inflect, prettyId } from '../lib/utils'
 import UserContext from '../components/UserContext'
 import Dropdown from '../components/Dropdown'
-import NoteList from '../components/NoteList'
+import NoteList, { NoteListV2 } from '../components/NoteList'
 import PaginationLinks from '../components/PaginationLinks'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorAlert from '../components/ErrorAlert'
@@ -112,17 +112,22 @@ const Search = ({ appContext }) => {
   }
 
   const loadSearchResults = async () => {
+    const queryParam = {
+      term: query.term,
+      type: 'terms',
+      content: query.content || 'all',
+      group: query.group || 'all',
+      source: query.source || 'all',
+      limit: pageSize,
+      offset: pageSize * (page - 1),
+    }
     try {
-      const searchRes = await api.get('/notes/search', {
-        term: query.term,
-        type: 'terms',
-        content: query.content || 'all',
-        group: query.group || 'all',
-        source: query.source || 'all',
-        limit: pageSize,
-        offset: pageSize * (page - 1),
-      }, { accessToken })
-
+      let searchRes
+      if (process.env.ENABLE_V2_API) {
+        searchRes = await api.getV2('/notes/search', queryParam, { accessToken })
+      } else {
+        searchRes = await api.get('/notes/search', queryParam, { accessToken })
+      }
       if (searchRes.notes) {
         setSearchResults(searchRes)
         setError(null)
@@ -175,7 +180,9 @@ const Search = ({ appContext }) => {
         </h3>
         <hr className="small" />
 
-        <NoteList notes={searchResults.notes} displayOptions={displayOptions} />
+        {process.env.ENABLE_V2_API
+          ? <NoteListV2 notes={searchResults.notes} displayOptions={displayOptions} />
+          : <NoteList notes={searchResults.notes} displayOptions={displayOptions} />}
 
         <PaginationLinks
           currentPage={page}
