@@ -678,16 +678,26 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   // A Filter can be: Meta_Review, Official_Comment, Reviewer1, etc.
   // This function maps a Filter to its corresponding array of Notes.
-  var createFiltersToNotes = function(notes, getFilters) {
+  var createFiltersToNotes = function(notes, getFilters, extraFilters) {
     var filtersToNotes = {};
     for (var i = 0; i < notes.length; i += 1) {
       var note = notes[i];
       var filters = getFilters(note);
-      for (var j = 0; j < filters.length; j++) {
+      for (var j = 0; j < filters.length; j += 1) {
         if (filtersToNotes[filters[j]]) {
           filtersToNotes[filters[j]].push(note);
         } else {
           filtersToNotes[filters[j]] = [note];
+        }
+      }
+    }
+
+    // Extra filters come from forum views and don't map to any notes
+    if (extraFilters?.length > 0) {
+      for (var k = 0; k < extraFilters.length; k += 1) {
+        var newFilter = extraFilters[k];
+        if (!filtersToNotes[newFilter]) {
+          filtersToNotes[newFilter] = [];
         }
       }
     }
@@ -938,12 +948,22 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   // These creates the multiselectors and returns a jQuery object that contains them
   var getForumFilters = function() {
+    // Make sure to also include any ids used by the view tabs in the dropdown
+    var forumFiltersMap = sm.get('forumFiltersMap');
+    var additionalFilters = {};
+    if (forumFiltersMap) {
+      additionalFilters = Object.values(forumFiltersMap).reduce(function(map, filters) {
+        return _.merge(map, filters);
+      }, {});
+      additionalFilters.readers = _.union(additionalFilters.readers, additionalFilters['excluded-readers']);
+    }
+
     var forumReplies = getForumReplies(sm.get('noteRecs'));
     sm.update('forumReplies', forumReplies);
     sm.update('noteIdToNote', _.keyBy(forumReplies, 'id'));
-    sm.update('signatureToNotes', createFiltersToNotes(forumReplies, getSignatureFilters));
-    sm.update('invitationToNotes', createFiltersToNotes(forumReplies, getInvitationFilters));
-    sm.update('readerToNotes', createFiltersToNotes(forumReplies, getReadersFilters));
+    sm.update('signatureToNotes', createFiltersToNotes(forumReplies, getSignatureFilters, additionalFilters.signatures));
+    sm.update('invitationToNotes', createFiltersToNotes(forumReplies, getInvitationFilters, additionalFilters.invitation));
+    sm.update('readerToNotes', createFiltersToNotes(forumReplies, getReadersFilters, additionalFilters.readers));
 
     var invitationFilters = _.keys(sm.get('invitationToNotes'));
     sortFilters(invitationFilters, [allAfter('decision'), allAfter('review'), allAfter('comment')]);
