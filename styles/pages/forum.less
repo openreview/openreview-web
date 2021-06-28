@@ -343,6 +343,9 @@ main.forum {
     }
 
     .note_editor.panel .note_content_title {
+      font-size: 1.125rem;
+      line-height: 1.125rem;
+      margin-top: 0;
       margin-bottom: .5rem;
     }
     .note_editor.panel hr {
@@ -354,6 +357,16 @@ main.forum {
       hr {
         margin-right: 0;
       }
+    }
+  }
+
+  #reply-empty-message {
+    p.empty-message {
+      color: @subtleGray;
+      font-style: italic;
+      text-align: center;
+      margin-top: 3rem;
+      margin-bottom: 1rem;
     }
   }
 
@@ -465,6 +478,9 @@ main.forum {
     &.semi-collapsed {
       > .children {
         display: block;
+      }
+      > .children:empty {
+        display: none;
       }
     }
   }

@@ -185,6 +185,15 @@ module.exports = function(forumId, noteId, invitationId, user) {
       onNoteCreated: function(newNote) {
         getNoteRecsP().then(function(noteRecs) {
           $content.one('forumRendered', function() {
+            // Change to the previously selected tab unless this would cause the new note would be hidden,
+            // in which case switch to the All tab
+            if (sm.get('useNewLayout')) {
+              if (location.hash !== '#all' && noteMatchesFilters(newNote, location.hash)) {
+                $(window).trigger('hashchange');
+              } else {
+                location.hash = '#all';
+              }
+            }
             scrollToNote(newNote.id);
           });
           sm.update('noteRecs', noteRecs);
@@ -441,16 +450,18 @@ module.exports = function(forumId, noteId, invitationId, user) {
       if (!tab.length) return;
 
       tab.addClass('active');
-      var filter = tab.data('filter');
-      var parentNote = _.find(sm.get('noteRecs'), ['note.id', forumId]).note;
-      var newFilterObj = parseFilterQuery(replaceFilterWildcards(filter, parentNote));
+
+      var filtersMap = sm.get('forumFiltersMap');
+      var newFilterObj = filtersMap[hash] || {};
       setFilters(Object.assign({
         invitations: null, signatures: null, readers: null, 'excluded-readers': null,
       }, newFilterObj));
       applyFilter();
     });
 
-    $(window).trigger('hashchange', true)
+    if (sm.get('useNewLayout')) {
+      $(window).trigger('hashchange', true);
+    }
 
     $('[data-toggle="tooltip"]').tooltip();
   };
@@ -604,12 +615,9 @@ module.exports = function(forumId, noteId, invitationId, user) {
     // Render forum page
     var $root = mkPanel(rootRec, $childrenAnchor).removeClass('panel');
 
-    $forumViewsTabs = null;
     var replyForumViews = _.get(rootRec.note, 'details.invitation.replyForumViews', null);
     sm.update('useNewLayout', !!replyForumViews);
-    if (replyForumViews) {
-      $forumViewsTabs = getForumViewTabs(replyForumViews);
-    }
+    var $forumViewsTabs = getForumViewTabs(replyForumViews, rootRec.note);
 
     var replyCount = _.get(rootRec.note, 'details.replyCount', 0)
     var $forumFiltersRow = null;
@@ -637,7 +645,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var htmlFilters = filters.map(function(filter) {
       return {
         valueFilter: filter,
-        textFilter: view.prettyId(filter)
+        textFilter: view.prettyId(filter, true)
       };
     });
     var buttonText = 'all';
@@ -657,23 +665,15 @@ module.exports = function(forumId, noteId, invitationId, user) {
     return multiselector;
   };
 
-  // Gets invitation groups in a note. There is always going to be just one Invitation per note.
+  // Assumes there is always going to be just one invitation per note.
   var getInvitationFilters = function(note) {
-    return [view.prettyId(note.invitation, true).replace(/ /g, '_')];
+    return [note.invitation];
   };
-
-  // Gets signature groups in a note as an array.
   var getSignatureFilters = function(note) {
-    return note.signatures.map(function(signature) {
-      return view.prettyId(signature, true).replace(/ /g, '_');
-    });
+    return note.signatures;
   };
-
-  // Gets readers groups in a note as an array.
   var getReadersFilters = function(note) {
-    return note.readers.map(function(reader) {
-      return view.prettyId(reader, true).replace(/ /g, '_');
-    });
+    return note.readers;
   };
 
   // A Filter can be: Meta_Review, Official_Comment, Reviewer1, etc.
@@ -758,6 +758,25 @@ module.exports = function(forumId, noteId, invitationId, user) {
         $(this).parent().hide();
       }
     });
+    if ($('#note_children > .note_with_children:visible').length > 0) {
+      $('#reply-empty-message').remove();
+    } else {
+      $('#note_children').after('<div id="reply-empty-message"><p class="empty-message">No replies to show</p></div>');
+    }
+  };
+
+  var noteMatchesFilters = function(note, hash) {
+    var filtersMap = sm.get('forumFiltersMap');
+    var filtersObj = filtersMap[hash];
+    if (!filtersObj) return false;
+
+    return Object.entries(filtersObj).every(([field, values]) => {
+      if (field === 'excluded-readers') {
+        return values.every(value => !note.readers.includes(value));
+      } else {
+        return values.every(value => note[field].includes(value));
+      }
+    });
   };
 
   // Takes an object that maps Invitatiions/Signatures to Notes and an array that contains all the filters (key values) to map the Invitations/Signatures to their corresponding Note.
@@ -788,8 +807,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
   // Decides what to write in the dropdown button depending on the selections made
   // This could be different, I haven't come up with a better way of displaying it
   var getButtonText = function(checkboxes, type) {
-    var checked = checkboxes.checked.map(function(checkbox) {
-      return checkbox.split('_').join(' ');
+    var checked = checkboxes.checked.map(function(value) {
+      return view.prettyId(value, true);
     });
     var maxWordsToDisplay = 2; // Max amount of words to display on the button
     if (type === 'invitations' && checked.length === 0) return 'nothing';
@@ -833,10 +852,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var signatureUnion = getUnion(sm.get('signatureToNotes'), signatureCheckboxes.checked);
     var readerUnion = getUnion(sm.get('readerToNotes'), readersCheckboxes.checked);
     var excludedReaderUnion = sm.get('forumReplies').filter(function(note) {
-      var noteReaders = note.readers.map(function(groupId) {
-        return view.prettyId(groupId, true).replace(/ /g, '_');
-      });
-      return _.intersection(noteReaders, excludedReadersCheckboxes.checked).length === 0;
+      return _.intersection(note.readers, excludedReadersCheckboxes.checked).length === 0;
     });
 
     var notesToExpand = _.intersectionBy(signatureUnion, invitationUnion, readerUnion, excludedReaderUnion, 'id');
@@ -956,14 +972,18 @@ module.exports = function(forumId, noteId, invitationId, user) {
   };
 
   // Build the filter tabs from forum views array
-  var getForumViewTabs = function(replyForumViews) {
+  var getForumViewTabs = function(replyForumViews, forumNote) {
     if (_.isEmpty(replyForumViews)) return null;
+
+    var filterMap = replyForumViews.reduce(function(map, view) {
+      map['#' + view.id] = parseFilterQuery(replaceFilterWildcards(view.filter, forumNote));
+      return map;
+    }, {});
+    sm.update('forumFiltersMap', filterMap);
 
     return $('<ul class="nav nav-tabs filter-tabs">').append(
       replyForumViews.map(function(view) {
-        return $(
-          '<li role="presentation"><a href="#' + view.id + '">' + view.label + '</a></li>'
-        ).data('filter', view.filter);
+        return $('<li role="presentation"><a href="#' + view.id + '">' + view.label + '</a></li>');
       })
     );
   };
@@ -977,10 +997,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         var mapKey = field.startsWith('-')
           ? 'excluded-' + field.slice(1)
           : field;
-        // eslint-disable-next-line no-param-reassign
-        map[mapKey] = val.split(',').map(function(id) {
-          return view.prettyId(id, true).replace(/ /g, '_');
-        });
+        map[mapKey] = val.split(',');
       }
       return map;
     }, {});
