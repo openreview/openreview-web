@@ -211,7 +211,6 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   const [highlightValues, setHighlightValues] = useState(null)
   const [fields, setFields] = useState([])
   const [edgeCounts, setEdgeCounts] = useState(null)
-  const activeVenues = useRef(null)
   const { setBannerHidden } = appContext
 
   const getPublications = async (profileId) => {
@@ -438,18 +437,16 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       || !basicProfiles.right?.id
       || basicProfiles.left.id === basicProfiles.right.id) return
     try {
-      const result = await api.get('/groups', { id: 'active_venues' }, { accessToken })
-      activeVenues.current = result.groups?.[0]?.members
       const leftHeadP = api.get('/edges', { head: basicProfiles.left.id }, { accessToken })
       const leftTailP = api.get('/edges', { tail: basicProfiles.left.id }, { accessToken })
       const rightHeadP = api.get('/edges', { head: basicProfiles.right.id }, { accessToken })
       const rightTailP = api.get('/edges', { tail: basicProfiles.right.id }, { accessToken })
       const results = await Promise.all([leftHeadP, leftTailP, rightHeadP, rightTailP])
       setEdgeCounts({
-        leftHead: results[0].edges.filter(p => activeVenues.current.some(q => p.invitation.includes(q))).length,
-        leftTail: results[1].edges.filter(p => activeVenues.current.some(q => p.invitation.includes(q))).length,
-        rightHead: results[2].edges.filter(p => activeVenues.current.some(q => p.invitation.includes(q))).length,
-        rightTail: results[3].edges.filter(p => activeVenues.current.some(q => p.invitation.includes(q))).length,
+        leftHead: results[0].count,
+        leftTail: results[1].count,
+        rightHead: results[2].count,
+        rightTail: results[3].count,
       })
     } catch (error) {
       promptError(error.message)
