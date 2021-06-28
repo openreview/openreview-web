@@ -236,6 +236,7 @@ export default function ProfileEntity(props) {
         disableControlReason={disableControlReason}
         isTraverseEdge={isTraverseEdge}
         traverseEdgeTemplate={traverseEdgeTemplate}
+        traverseEdgesCount={traverseEdgesCount}
       />
     )
     const editEdgeTwoDropdowns = controlType => (

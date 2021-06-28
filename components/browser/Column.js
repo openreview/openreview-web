@@ -39,6 +39,8 @@ export default function Column(props) {
   const parent = parentId ? altGlobalEntityMap[parentId] : null
   const otherType = type === 'head' ? 'tail' : 'head'
   const colBodyEl = useRef(null)
+  const entityMap = useRef({ globalEntityMap, altGlobalEntityMap })
+  const [entityMapChanged, setEntityMapChanged] = useState(false)
 
   const sortOptions = [{ key: traverseInvitation.id, value: 'default', text: transformName(prettyInvitationId(traverseInvitation.id)) }]
   const editAndBrowserInvitations = [...editInvitations, ...browseInvitations]
@@ -97,7 +99,7 @@ export default function Column(props) {
       [otherType]: parentId,
       label: isInviteInvitation ? editInvitation.label?.default : editInvitation.query.label,
       weight,
-      defaultWeight: editInvitation.defaultWeight,
+      defaultWeight: editInvitation.weight.default,
       readers: editInvitation.readers, // reader/writer/nonreader/signature are completed in entity
       writers: editInvitation.writers,
       signatures: editInvitation.signatures,
@@ -417,7 +419,6 @@ export default function Column(props) {
               }
               return invitation.query.details
             })(),
-            defaultWeight: invitation.defaultWeight,
           },
           sort,
         )),
@@ -435,65 +436,7 @@ export default function Column(props) {
     })
   }
 
-  useEffect(() => {
-    if (!items || !items.length) {
-      return
-    }
-    // Reset column to show original items and no search heading
-    if (!search.term) {
-      setFilteredItems(sortItems(filterQuotaReachedItems(items)))
-      setItemsHeading(null)
-      return
-    }
-    if (search.term.length < 2) {
-      return
-    }
-
-    // Build search regex. \b represents a word boundary, so matches in the
-    // middle of a word don't count. Includes special case for searching by
-    // paper number so only the exact paper is matched.
-    const escapedTerm = _.escapeRegExp(search.term)
-    let [preModifier, postModifier] = ['\\b', '']
-    if (escapedTerm.startsWith('#')) {
-      [preModifier, postModifier] = ['^', '\\b']
-    }
-    const searchRegex = new RegExp(preModifier + escapedTerm + postModifier, 'mi')
-
-    // Search existing items
-    const matchingItems = items.filter(item => item.searchText?.match(searchRegex))
-
-    // Search all other items that don't share edges with the parent entity
-    if (parentId) {
-      const searchedIds = items.map(item => item.id)
-
-      Object.values(globalEntityMap).forEach((item) => {
-        if (searchedIds.includes(item.id)) return
-
-        if (item.searchText.match(searchRegex)) {
-          matchingItems.push({
-            ...item,
-            // eslint-disable-next-line max-len
-            editEdgeTemplates: editInvitations.map(editInvitation => (buildNewEditEdge(editInvitation, item.id))),
-            editEdges: [],
-            browseEdges: [],
-            metadata: {
-              isAssigned: false,
-            },
-          })
-        }
-      })
-    }
-
-    setFilteredItems(sortItems(filterQuotaReachedItems(matchingItems)))
-    setItemsHeading('Search Results')
-  }, [items, search, columnSort, hideQuotaReached])
-
-  useEffect(() => {
-    setNumItemsToRender(100)
-    colBodyEl.current.scrollTop = 0
-  }, [search, columnSort, hideQuotaReached])
-
-  useEffect(() => {
+  const populateColumnItems = () => {
     if (props.loading) return
     if (!shouldUpdateItems) {
       setShouldUpdateItems(true)
@@ -704,7 +647,84 @@ export default function Column(props) {
 
       setItems(colItems)
     })
-  }, [props.loading, globalEntityMap, altGlobalEntityMap, shouldReloadEntities])
+  }
+
+  useEffect(() => {
+    if (!items || !items.length) {
+      return
+    }
+    // Reset column to show original items and no search heading
+    if (!search.term) {
+      setFilteredItems(sortItems(filterQuotaReachedItems(items)))
+      setItemsHeading(null)
+      return
+    }
+    if (search.term.length < 2) {
+      return
+    }
+
+    // Build search regex. \b represents a word boundary, so matches in the
+    // middle of a word don't count. Includes special case for searching by
+    // paper number so only the exact paper is matched.
+    const escapedTerm = _.escapeRegExp(search.term)
+    let [preModifier, postModifier] = ['\\b', '']
+    if (escapedTerm.startsWith('#')) {
+      [preModifier, postModifier] = ['^', '\\b']
+    }
+    const searchRegex = new RegExp(preModifier + escapedTerm + postModifier, 'mi')
+
+    // Search existing items
+    const matchingItems = items.filter(item => item.searchText?.match(searchRegex))
+
+    // Search all other items that don't share edges with the parent entity
+    if (parentId) {
+      const searchedIds = items.map(item => item.id)
+
+      Object.values(globalEntityMap).forEach((item) => {
+        if (searchedIds.includes(item.id)) return
+
+        if (item.searchText.match(searchRegex)) {
+          matchingItems.push({
+            ...item,
+            // eslint-disable-next-line max-len
+            editEdgeTemplates: editInvitations.map(editInvitation => (buildNewEditEdge(editInvitation, item.id))),
+            editEdges: [],
+            browseEdges: [],
+            metadata: {
+              isAssigned: false,
+            },
+          })
+        }
+      })
+    }
+
+    setFilteredItems(sortItems(filterQuotaReachedItems(matchingItems)))
+    setItemsHeading('Search Results')
+  }, [items, search, columnSort, hideQuotaReached])
+
+  useEffect(() => {
+    setNumItemsToRender(100)
+    colBodyEl.current.scrollTop = 0
+  }, [search, columnSort, hideQuotaReached])
+
+  useEffect(() => {
+    populateColumnItems()
+  }, [props.loading, entityMapChanged, shouldReloadEntities])
+
+  useEffect(() => {
+    if (entityMapChanged) {
+      populateColumnItems()
+    }
+    setEntityMapChanged(false)
+  }, [entityMapChanged])
+
+  useEffect(() => {
+    if (!_.isEqual(globalEntityMap, entityMap.current.globalEntityMap)
+      && !_.isEqual(altGlobalEntityMap, entityMap.current.altGlobalEntityMap)) {
+      entityMap.current = { globalEntityMap, altGlobalEntityMap }
+      setEntityMapChanged(true)
+    }
+  })
 
   // Event Handlers
   const addEdgeToEntity = (id, newEdge) => {
@@ -772,7 +792,6 @@ export default function Column(props) {
     props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', newCount1)
 
     const newCount2 = globalEntityMap[id]?.traverseEdgesCount + incr
-    setShouldUpdateItems(false) // update of altGlobalEntityMap has already triggered useEffect call
     props.updateGlobalEntityMap(type, id, 'traverseEdgesCount', newCount2)
   }
 
@@ -814,7 +833,6 @@ export default function Column(props) {
     props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', newCount1)
 
     const newCount2 = globalEntityMap[id]?.traverseEdgesCount - 1
-    setShouldUpdateItems(false) // update of altGlobalEntityMap has already triggered useEffect call
     props.updateGlobalEntityMap(type, id, 'traverseEdgesCount', newCount2)
   }
 
