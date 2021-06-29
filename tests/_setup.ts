@@ -313,6 +313,7 @@ test('setup ICLR', async (t) => {
       desk_rejected_submissions_author_anonymity: 'No, author identities of desk rejected submissions should not be revealed.',
       'How did you hear about us?': 'ML conferences',
       'Expected Submissions': '6000',
+      reviewer_identity: ['Program Chairs', 'Assigned Area Chair'],
     },
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
