@@ -996,14 +996,18 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var excludedReadersMultiSelector = createMultiSelector(readersFilters, 'excluded-readers', true);
 
     return $('<div class="filter-container">').append(
-      '<span>Reply Type:</span>',
-      invitationMultiSelector,
-      '<span>Author:</span>',
-      signatureMultiSelector,
-      '<span>Visible To:</span>',
-      readersMultiSelector,
-      '<span>Hidden From:</span>',
-      excludedReadersMultiSelector
+      $('<div>').append(
+        '<span>Reply Type:</span>', invitationMultiSelector
+      ),
+      $('<div>').append(
+        '<span>Author:</span>', signatureMultiSelector
+      ),
+      $('<div>').append(
+        '<span>Visible To:</span>', readersMultiSelector
+      ),
+      $('<div>').append(
+        '<span>Hidden From:</span>', excludedReadersMultiSelector
+      )
     );
   };
 
@@ -1019,7 +1023,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     return $('<ul class="nav nav-tabs filter-tabs">').append(
       replyForumViews.map(function(view) {
-        return $('<li role="presentation"><a href="#' + view.id + '">' + view.label + '</a></li>');
+        return $('<li role="presentation">').append($('<a href="#' + view.id + '">').text(view.label));
       })
     );
   };

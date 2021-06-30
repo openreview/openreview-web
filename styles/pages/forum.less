@@ -84,7 +84,7 @@ main.forum {
 
   .filter-row {
     .clearfix;
-    margin: 1rem 0 0 0;
+    margin: 1rem 0 -.25rem 0;
 
     span {
       color: #555555;
@@ -94,6 +94,10 @@ main.forum {
     }
     .filter-container {
       width: calc(100% - ~'80px');
+
+      > div {
+        display: inline-block;
+      }
     }
   }
 
@@ -298,16 +302,13 @@ main.forum {
 
   // Comments, reviews, replies, etc.
   #note_children {
-    margin-top: .5rem;
+    margin-top: .75rem;
 
     > div {
       background: rgba(0, 0, 0, 0.04);
       padding: .5rem;
       padding-left: 1.5rem;
       margin-top: .75rem;
-    }
-    > div:first-child {
-      margin-top: 0;
     }
 
     .note.panel {
