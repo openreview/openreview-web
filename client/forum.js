@@ -618,7 +618,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var $root = mkPanel(rootRec, $childrenAnchor).removeClass('panel');
 
     var replyForumViews = _.get(rootRec.note, 'details.invitation.replyForumViews', null);
-    sm.update('useNewLayout', !!replyForumViews);
+    sm.update('useNewLayout', !_.isEmpty(replyForumViews));
     var $forumViewsTabs = getForumViewTabs(replyForumViews, rootRec.note);
 
     var replyCount = _.get(rootRec.note, 'details.replyCount', 0)
