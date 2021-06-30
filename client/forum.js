@@ -768,7 +768,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   var noteMatchesFilters = function(note, hash) {
     var filtersMap = sm.get('forumFiltersMap');
-    var filtersObj = filtersMap[hash];
+    var filtersObj = filtersMap?.[hash];
     if (!filtersObj) return false;
 
     return Object.entries(filtersObj).every(([field, values]) => {
