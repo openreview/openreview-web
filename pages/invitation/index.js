@@ -159,8 +159,6 @@ $(function() {
   var args = ${JSON.stringify(ctx.query)};
   var invitation = ${JSON.stringify(invitationObjSlim)};
   var user = ${JSON.stringify(userOrGuest)};
-  var document = null;
-  var window = null;
 
   $('#invitation-container').empty();
   ${showModeBanner ? 'Webfield.editModeBanner(invitation.id, args.mode);' : ''}

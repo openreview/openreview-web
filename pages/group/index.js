@@ -87,8 +87,6 @@ window.user = ${JSON.stringify(userOrGuest)};
 $(function() {
   var args = ${JSON.stringify(ctx.query)};
   var group = ${JSON.stringify(groupObjSlim)};
-  var document = null;
-  var window = null;
   var model = {
     tokenPayload: function() {
       return { user: user }
