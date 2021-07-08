@@ -1,5 +1,9 @@
-<div class="tag-widget bid {{#unless tag.value}}incomplete{{/unless}} {{extraClasses}}"
-  data-type="bid" data-id="{{tag.id}}" data-invitation-id="{{tag.invitationId}}">
+<div
+  class="tag-widget bid {{#unless tag.value}}incomplete{{/unless}} {{extraClasses}}"
+  data-type="bid"
+  data-id="{{tag.id}}"
+  data-invitation-id="{{tag.invitationId}}"
+>
   <label>{{options.label}}:</label>
   <div class="btn-group">
     <button class="btn btn-default btn-xs btn-link dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -8,7 +12,9 @@
     </button>
     <ul class="dropdown-menu">
       {{#each tag.options}}
-        <li><a href="#">{{this}}</a></li>
+        <li>
+          <a href="#" data-value="{{this}}">{{this}}</a>
+        </li>
       {{/each}}
     </ul>
   </div>

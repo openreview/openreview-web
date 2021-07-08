@@ -37,13 +37,14 @@
 
   <tbody>
     {{#each groupMembers}}
+    {{getAnonId "anonIdObj" this ../memberAnonIdMap}}
       {{#gt @index ../removedMembersIndex}}
-        {{> groupMembersTableRow memberId=this removed=true}}
+        {{> groupMembersTableRow memberId=this removed=true anonIdObj=@root.anonIdObj}}
       {{else}}
         {{#inArray ../selectedMembers this}}
-          {{> groupMembersTableRow memberId=this selected=true}}
+          {{> groupMembersTableRow memberId=this selected=true anonIdObj=@root.anonIdObj}}
         {{else}}
-          {{> groupMembersTableRow memberId=this}}
+          {{> groupMembersTableRow memberId=this anonIdObj=@root.anonIdObj}}
         {{/inArray}}
       {{/gt}}
     {{else}}

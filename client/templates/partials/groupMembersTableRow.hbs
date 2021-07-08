@@ -8,6 +8,9 @@
       <span>{{memberId}}</span> <em>(Deleted)</em>
     {{else}}
       <a href="{{groupUrl memberId}}" target="_blank">{{memberId}}</a>
+      {{#if anonIdObj.id}}
+       | <a href="{{groupUrl anonIdObj.id}}" target="_blank">{{anonIdObj.prettyId}}</a>
+      {{/if}}
     {{/if}}
   </td>
 

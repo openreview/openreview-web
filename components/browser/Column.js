@@ -64,7 +64,7 @@ export default function Column(props) {
   const [search, setSearch] = useState({ term: '' })
 
   const showLoadMoreButton = numItemsToRender < filteredItems.length
-  const showHideQuotaReachedCheckbox = entityType === 'Profile' && browseInvitations.some(p => p.id.includes('Custom_Max_Papers'))
+  const showHideQuotaReachedCheckbox = entityType === 'Profile' && editAndBrowserInvitations.some(p => p.id.includes('Custom_Max_Papers'))
 
   // Helpers
   const formatEdge = edge => ({
@@ -256,7 +256,7 @@ export default function Column(props) {
             content: {
               name: { first: prettyId(headOrTailId), middle: '', last: '' },
               email: headOrTailId,
-              title: 'Unknown',
+              title: '',
               expertise: [],
               isInvitedProfile: true,
             },
@@ -426,7 +426,7 @@ export default function Column(props) {
   const filterQuotaReachedItems = (colItems) => {
     if (!hideQuotaReached) return colItems
     return colItems.filter((p) => {
-      const customLoad = p.browseEdges?.find(q => q?.invitation?.includes('Custom_Max_Papers'))?.weight
+      const customLoad = [...p.browseEdges, ...p.editEdges].find(q => q?.invitation?.includes('Custom_Max_Papers'))?.weight
       if (customLoad === undefined) return true
       return p.traverseEdgesCount < customLoad
     })
@@ -449,12 +449,12 @@ export default function Column(props) {
     // Build search regex. \b represents a word boundary, so matches in the
     // middle of a word don't count. Includes special case for searching by
     // paper number so only the exact paper is matched.
-    const escapedTerm = _.escapeRegExp(search.term.toLowerCase())
+    const escapedTerm = _.escapeRegExp(search.term)
     let [preModifier, postModifier] = ['\\b', '']
     if (escapedTerm.startsWith('#')) {
       [preModifier, postModifier] = ['^', '\\b']
     }
-    const searchRegex = new RegExp(preModifier + escapedTerm + postModifier, 'm')
+    const searchRegex = new RegExp(preModifier + escapedTerm + postModifier, 'mi')
 
     // Search existing items
     const matchingItems = items.filter(item => item.searchText?.match(searchRegex))
@@ -568,7 +568,7 @@ export default function Column(props) {
 
     const edgesPromiseMap = []
     addToEdgesPromiseMap(traverseInvitation, 'traverse', edgesPromiseMap, true, true) // traverse does not need to getWritable, this is for the case edit == traverse
-    editInvitations.forEach(editInvitation => addToEdgesPromiseMap(editInvitation, 'edit', edgesPromiseMap, true, true))
+    editInvitations.forEach(editInvitation => addToEdgesPromiseMap(editInvitation, 'edit', edgesPromiseMap, true, false))
     addToEdgesPromiseMap(hideInvitation, 'hide', edgesPromiseMap, false, true)
     browseInvitations.forEach(browseInvitation => addToEdgesPromiseMap(browseInvitation, 'browse', edgesPromiseMap, false, false))
 
@@ -626,7 +626,7 @@ export default function Column(props) {
                 content: {
                   name: { first: prettyId(headOrTailId), middle: '', last: '' },
                   email: headOrTailId,
-                  title: 'Unknown',
+                  title: '',
                   expertise: [],
                   isInvitedProfile: true,
                 },
@@ -651,6 +651,7 @@ export default function Column(props) {
           ...itemToAdd,
           browseEdges: [],
           editEdges: [],
+          traverseEdge: formatEdge(tEdge),
           metadata: {
             ...columnMetadata,
             isAssigned: true,
@@ -693,6 +694,8 @@ export default function Column(props) {
           // eslint-disable-next-line no-param-reassign
           item.editEdgeTemplates = editInvitations.map(editInvitation => (
             buildNewEditEdge(editInvitation, item.id, edgeWeight)))
+          // eslint-disable-next-line no-param-reassign
+          item.traverseEdgeTemplate = buildNewEditEdge(traverseInvitation, item.id, 0)
         })
       }
 
@@ -702,17 +705,18 @@ export default function Column(props) {
 
   // Event Handlers
   const addEdgeToEntity = (id, newEdge) => {
+    const formattedNewEdge = formatEdge(newEdge)
     const entityIndex = _.findIndex(items, ['id', id])
     let modifiedExistingEdge = false
 
     // controls the green background
-    const isAddingTraverseEdge = newEdge.invitation === traverseInvitation.id
+    const isAddingTraverseEdge = formattedNewEdge.invitation === traverseInvitation.id
     // set to existing value if not adding traverse edge
     const shouldUserBeAssigned = isAddingTraverseEdge ? true : items[entityIndex].metadata.isUserAssigned
 
     if (entityIndex > -1) {
       // Added (or modified) from existing list
-      const existingEditEdges = items[entityIndex].editEdges.filter(p => p.id === newEdge.id)
+      const existingEditEdges = items[entityIndex].editEdges.filter(p => p.id === formattedNewEdge.id)
       if (existingEditEdges.length) {
         modifiedExistingEdge = true
       }
@@ -720,8 +724,8 @@ export default function Column(props) {
       const itemToAdd = {
         ...items[entityIndex],
         editEdges: modifiedExistingEdge
-          ? sortEditEdges([...items[entityIndex].editEdges.filter(p => p.id !== newEdge.id), newEdge])
-          : sortEditEdges([...items[entityIndex].editEdges, newEdge]),
+          ? sortEditEdges([...items[entityIndex].editEdges.filter(p => p.id !== formattedNewEdge.id), formattedNewEdge])
+          : sortEditEdges([...items[entityIndex].editEdges, formattedNewEdge]),
         metadata: {
           ...items[entityIndex].metadata,
           isAssigned: isAddingTraverseEdge ? true : items[entityIndex].metadata.isAssigned,
@@ -736,7 +740,7 @@ export default function Column(props) {
       ])
     } else {
       // Added from search
-      const editInvitation = editInvitations.filter(p => p.id === newEdge.invitation)[0]
+      const editInvitation = editInvitations.filter(p => p.id === formattedNewEdge.invitation)[0]
       const newItem = {
         ...globalEntityMap[id],
         editEdges: [buildNewEditEdge(editInvitation, id)],
@@ -827,6 +831,7 @@ export default function Column(props) {
               placeholder={getPlaceholderText()}
               value={search.term}
               onChange={e => setSearch({ term: e.target.value })}
+              autoComplete="off"
             />
             <span className="glyphicon glyphicon-search form-control-feedback" aria-hidden="true" />
           </div>
