@@ -1,16 +1,5 @@
-/**
- * Changes:
- * - delete replaceWithForum and pushForum
- * - change `var runForum =` to `module.exports =`
- * - replace `controller.addHandler('forum', { ... })` with `onTokenChange()`
- * - delete first 2 lines of onTokenChange (setting the user var)
- * - replace referrer argument with user
- * - delete all references to OpenBanner and setting document.title
- * - replace all controller api function with Webfield api functions
- * - remove preRendered var
- * - add `$root.removeClass('panel');` to line 574
- * - replace `#content` with `#content > .forum-container`
- */
+// copy of \client\forum.js with changes made for v2
+// will only be invoked with v2 notes/invitations
 module.exports = function(forumId, noteId, invitationId, user) {
   if (!noteId) {
     noteId = forumId;
@@ -67,13 +56,12 @@ module.exports = function(forumId, noteId, invitationId, user) {
       invitationsP = $.Deferred().resolve([]);
 
     } else {
-      notesP = Webfield.get('/notes', {
+      notesP = Webfield.getV2('/notes', {
         forum: forumId,
         trash: true,
         details: 'replyCount,writable,revisions,original,overwriting,invitation,tags'
       }, { handleErrors: false })
         .then(function(result) {
-          console.log(result)
           if (!result.notes || !result.notes.length) {
             location.href = '/';
             return;
@@ -89,7 +77,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
           return getProfilesP(notes);
         }, onError);
 
-      invitationsP = Webfield.get('/invitations', {
+      invitationsP = Webfield.getV2('/invitations', {
         replyForum: forumId, details: 'repliedNotes'
       }, { handleErrors: false })
         .then(function(result) {
@@ -102,7 +90,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         return $.Deferred().resolve([]);
       }
 
-      return Webfield.get('/invitations', {
+      return Webfield.getV2('/invitations', {
         replyForum: forum, tags: true
       }, { handleErrors: false })
         .then(function(result) {
@@ -115,7 +103,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         return $.Deferred().resolve([]);
       }
 
-      return Webfield.get('/invitations', {
+      return Webfield.getV2('/invitations', {
         replyForum: original.id, details: 'repliedNotes'
       }, { handleErrors: false })
         .then(function(result) {
@@ -130,16 +118,16 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
       // a "common invitation" is one that applies to all notes in the forum.
       var commonInvitations = _.filter(invitations, function(invitation) {
-        return _.isEmpty(invitation.reply.replyto) &&
-          _.isEmpty(invitation.reply.referent) &&
-          _.isEmpty(invitation.reply.referentInvitation) &&
-          _.isEmpty(invitation.reply.invitation);
+        return _.isEmpty(invitation.edit?.note?.replyto?.value) &&
+          _.isEmpty(invitation?.edit?.note?.id?.value) &&
+          _.isEmpty(invitation?.edit?.note?.referentInvitation?.value) &&
+          _.isEmpty(invitation?.edit?.note?.invitation?.value);
       });
 
       var noteRecPs = _.map(notes, function(note) {
         var noteInvitations = _.filter(invitations, function(invitation) {
           // Check if invitation is replying to this note
-          var isInvitationRelated = (invitation.reply.replyto === note.id) || (invitation.reply.invitation === note.invitation);
+          var isInvitationRelated = (invitation.edit?.note?.replyto?.value === note.id) || (invitation?.edit?.note?.invitation?.value === note.invitations[0]);
           // Check if invitation does not have multiReply OR invitation has the field multiReply but it is not set to false OR invitation has the field multireply which is set to false but there have not been any replies yet
           var isMultireplyApplicable = (!_.has(invitation, 'multiReply') || (invitation.multiReply !== false) || !_.has(invitation, 'details.repliedNotes[0]'));
           return isInvitationRelated && isMultireplyApplicable;
@@ -147,7 +135,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
         var referenceInvitations = _.filter(invitations, function(invitation) {
           // Check if invitation is replying to this note
-          var isInvitationRelated = (invitation.reply.referent === note.id) || (invitation.reply.referentInvitation === note.invitation);
+          var isInvitationRelated = (invitation?.edit?.note?.id?.value === note.id) || (invitation?.edit?.note?.referentInvitation?.value === note.invitations[0]);
           // Check if invitation does not have multiReply OR invitation has the field multiReply but it is not set to false OR invitation has the field multireply which is set to false but there have not been any replies yet
           var isMultireplyApplicable = (!_.has(invitation, 'multiReply') || (invitation.multiReply !== false) || !_.has(invitation, 'details.repliedNotes[0]'));
           return isInvitationRelated && isMultireplyApplicable;
@@ -155,16 +143,16 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
         var noteCommonInvitations = _.filter(commonInvitations, function(invitation) {
           // if selfReplyOnly restrict only to the note that responds to the same invitation
-          var isReplyInvitation = !invitation.reply.selfReplyOnly ||
-            (invitation.reply.selfReplyOnly && invitation.id === note.invitation);
+          var isReplyInvitation = !invitation?.edit?.note?.selfReplyOnly?.value ||
+            (invitation?.edit?.note?.selfReplyOnly?.value && invitation.id === note.invitations[0]);
 
           // Check invitation enabled by invitation
-          if (_.has(invitation.reply, 'invitation')) {
-            return (invitation.reply.invitation === note.invitation) || isReplyInvitation;
+          if (_.has(invitation?.edit?.note, 'invitation')) {
+            return (invitation?.edit?.note?.invitation?.value === note.invitations[0]) || isReplyInvitation;
           }
 
           // Check invitation enabled by forum
-          return (note.id === invitation.reply.forum) || isReplyInvitation;
+          return (note.id === invitation?.edit?.note?.forum?.value) || isReplyInvitation;
         });
 
         var replyInvitations = _.union(noteCommonInvitations, noteInvitations);
@@ -196,7 +184,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   // Render functions
   var mkNewEditor = function(invitation, replyto, done) {
-    view.mkNewNoteEditor(invitation, forumId, replyto, user, {
+    view.mkNewNoteEditorV2(invitation, forumId, replyto, user, {
       onNoteCreated: function(newNote) {
         getNoteRecsP().then(function(noteRecs) {
           $content.one('forumRendered', function() {
@@ -228,7 +216,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
   };
 
   var mkPanel = function(rec, $anchor) {
-    var $note = view.mkNotePanel(rec.note, {
+    var $note = view.mkNotePanelV2(rec.note, {
       onEditRequested: function(invitation, options) {
         var noteToRender;
         if (options?.original) {
@@ -288,7 +276,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     var invitationP = invitation ?
       $.Deferred().resolve(invitation) :
-      Webfield.get('/invitations', { id: note.invitation }).then(function(result) {
+      Webfield.getV2('/invitations', { id: note.invitation }).then(function(result) {
         if (result.invitations && result.invitations.length) {
           return result.invitations[0];
         }
@@ -296,7 +284,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     return invitationP.then(function(invitation) {
 
-      view.mkNoteEditor(note, invitation, user, {
+      view.mkNoteEditorV2(note, invitation, user, {
         onNoteEdited: function(newNote) {
           getNoteRecsP().then(function(noteRecs) {
             $content.one('forumRendered', function() {
@@ -577,9 +565,9 @@ module.exports = function(forumId, noteId, invitationId, user) {
     }), 'note.replyto');
     sm.update('replytoIdMap', replytoIdToChildren);
 
-    var conf = rootRec.note.content.venueid ?
-      rootRec.note.content.venueid :
-      rootRec.note.invitation.split('/-/')[0];
+    var conf = rootRec.note.content.venueid?.value ?
+      rootRec.note.content.venueid.value :
+      rootRec.note.invitations[0].split('/-/')[0];
     $('#search_group').val(conf);
     $('#search_input').val('');
     $('#search_input').attr('placeholder','Search ' + view.prettyId(conf));

@@ -57,16 +57,11 @@ const AutoCompleteInput = () => {
 
   const searchByTerm = async (term) => {
     try {
-      let notes
       const queryParam = {
         term, type: 'prefix', content: 'all', group: 'all', source: 'all', limit: 10,
       }
-      if (process.env.ENABLE_V2_API) {
-        ({ notes } = await api.getV2('/notes/search', queryParam))
-      } else {
-        const result = await api.get('/notes/search', queryParam)
-        notes = convertNotesToV2(result.notes)
-      }
+      const result = await api.get('/notes/search', queryParam)
+      const notes = convertNotesToV2(result.notes)
       if (cancelRequest) return
       const tokenObjects = getTokenObjects(notes, term)
       const titleObjects = getTitleObjects(notes, term)

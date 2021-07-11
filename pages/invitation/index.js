@@ -82,6 +82,7 @@ Invitation.getInitialProps = async (ctx) => {
   }
 
   const generateWebfieldCode = (invitation, user, mode) => {
+    console.log(ctx.query)
     const invitationTitle = prettyId(invitation.id)
     const invitationObjSlim = omit(invitation, 'web', 'process', 'details', 'preprocess')
     const isInvitationWritable = invitation.details && invitation.details.writable
@@ -156,7 +157,7 @@ view.mkNoteEditor(
     return `// Webfield Code for ${invitation.id}
 window.user = ${JSON.stringify(userOrGuest)};
 $(function() {
-  var args = ${JSON.stringify(ctx.query)};
+  var args = ${invitation.edit ? JSON.stringify(Object.entries(ctx.query).reduce((acc, v) => { acc[v[0]] = { value: v[1] }; return acc }, {})) : JSON.stringify(ctx.query)};
   var invitation = ${JSON.stringify(invitationObjSlim)};
   var user = ${JSON.stringify(userOrGuest)};
   var document = null;
@@ -172,7 +173,15 @@ $(function() {
 
   const { user, token } = auth(ctx)
   try {
-    const { invitations } = await api.get('/invitations', { id: ctx.query.id }, { accessToken: token })
+    let invitations
+    if (process.env.ENABLE_V2_API) {
+      const invitationV1P = api.get('/invitations', { id: ctx.query.id }, { accessToken: token })
+      const invitationV2P = api.getV2('/invitations', { id: ctx.query.id }, { accessToken: token })
+      const results = await Promise.all([invitationV1P, invitationV2P])
+      invitations = results[1].invitations?.length ? results[1].invitations : results[0].invitations
+    } else {
+      ({ invitations } = await api.getV2('/invitations', { id: ctx.query.id }, { accessToken: token }))
+    }
     const invitation = invitations?.length > 0 ? invitations[0] : null
     if (!invitation) {
       return { statusCode: 404, message: 'Invitation not found' }

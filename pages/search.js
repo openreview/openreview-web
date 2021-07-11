@@ -122,12 +122,7 @@ const Search = ({ appContext }) => {
       offset: pageSize * (page - 1),
     }
     try {
-      let searchRes
-      if (process.env.ENABLE_V2_API) {
-        searchRes = await api.getV2('/notes/search', queryParam, { accessToken })
-      } else {
-        searchRes = await api.get('/notes/search', queryParam, { accessToken })
-      }
+      const searchRes = await api.get('/notes/search', queryParam, { accessToken })
       if (searchRes.notes) {
         setSearchResults(searchRes)
         setError(null)

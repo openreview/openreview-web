@@ -232,6 +232,28 @@ module.exports = (function() {
     token = newAccessToken;
   };
 
+  var sendFile = function(url, data, contentType) {
+    var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
+    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
+    var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
+    return $.ajax({
+      url: baseUrl + url,
+      type: 'put',
+      cache: false,
+      dataType: 'json',
+      processData: false,
+      contentType: contentType ? contentType : false,
+      data: data,
+      headers:  Object.assign(defaultHeaders, authHeaders),
+      xhrFields: {
+        withCredentials: true
+      }
+    }).fail(function(jqXhr, textStatus, errorThrown) {
+      console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus);
+      console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2));
+    });
+  };
+
   // API Functions
   var getSubmissionInvitation = function(invitationId, options) {
     var defaults = {
@@ -239,10 +261,16 @@ module.exports = (function() {
     options = _.assign(defaults, options);
 
     // Don't use the Webfield get function so the fail callback can be overridden
-    return get('/invitations', { id: invitationId }, { handleErrors: false })
-      .then(function(result) {
-        if (result.invitations.length) {
-          return result.invitations[0];
+    var invitationV1P = get('/invitations', { id: invitationId }, { handleErrors: false })
+    var invitationV2P = getV2('/invitations', { id: invitationId }, { handleErrors: false })
+    return Promise.allSettled([invitationV1P, invitationV2P])
+      .then(function(results) {
+        console.log(results)
+        if (results[1].value?.invitations?.length) {
+          return results[1].value.invitations[0];
+        }
+        if (results[0]?.value?.invitations?.length) {
+          return results[0].value.invitations[0];
         }
         return null;
       }, function() {
@@ -265,8 +293,11 @@ module.exports = (function() {
     options = _.omit(options, 'pageSize');
 
     var urlParams = _.assign({invitation: invitationId}, options);
-    return get('/notes', urlParams)
+    var notesV1P = get('/notes', urlParams);
+    var notesV2P = getV2('/notes', urlParams);
+    return Promise.allSettled([notesV1P, notesV2P])
       .then(function(result) {
+        console.log(result)
         if (options.includeCount) {
           return result;
         } else {
@@ -3875,7 +3906,7 @@ module.exports = (function() {
     disableAutoLoading: disableAutoLoading,
     editModeBanner: editModeBanner,
     filterCollections: filterCollections,
-
+    sendFile: sendFile,
     api: {
       getSubmissionInvitation: getSubmissionInvitation,
       getSubmissions: getSubmissions,

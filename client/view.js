@@ -288,7 +288,7 @@ module.exports = (function() {
       if (values.length) {
         update(filteredOptions(values, prefix));
       } else {
-        controller.get(tag.optionsUrl, {}, function(result) {
+        Webfield.get(tag.optionsUrl, {}, function(result) {
           var group = result.groups[0];
           values = _.map(group.members, function(member) {
             return { id: member, description: prettyId(member) };
@@ -820,8 +820,8 @@ module.exports = (function() {
         }
       }
 
-      var tildeProfilesP = controller.post('/profiles/search', { ids: tildeIds });
-      var emailProfilesP = controller.post('/profiles/search', { emails: emailIds });
+      var tildeProfilesP = Webfield.post('/profiles/search', { ids: tildeIds });
+      var emailProfilesP = Webfield.post('/profiles/search', { emails: emailIds });
 
       $.when(tildeProfilesP, emailProfilesP).then(function(tildeRes, emailRes) {
         var profiles = _.concat(tildeRes.profiles, emailRes.profiles);
@@ -979,20 +979,20 @@ module.exports = (function() {
       // If both the name and the email information are in the search, then we have to do two searches
       // Then we merge the responses by doing a union and prioritizing email results
       if (hasValidName && hasValidEmail) {
-        controller.get('/profiles/search', { term: email })
+        Webfield.get('/profiles/search', { term: email })
           .then(function(emailResponse) {
-            controller.get('/profiles/search', { first: firstName, last: lastName })
+            Webfield.get('/profiles/search', { first: firstName, last: lastName })
             .then(function(namesResponse) {
               handleResponses(namesResponse, emailResponse);
             });
           });
       } else if (hasValidEmail) {
-        controller.get('/profiles/search', { term: email })
+        Webfield.get('/profiles/search', { term: email })
           .then(function(emailResponse) {
             handleResponses(null, emailResponse);
           });
       } else if (hasValidName) {
-        controller.get('/profiles/search', { first: firstName, last: lastName })
+        Webfield.get('/profiles/search', { first: firstName, last: lastName })
           .then(function(namesResponse) {
             handleResponses(namesResponse, null);
           });
@@ -1774,7 +1774,6 @@ module.exports = (function() {
       titleHref = '/forum?id=' + note.forum + (note.forum !== note.id ? '&noteId=' + note.id : '');
     } else if (titleLink === 'JS') {
       $titleHTML.click(function() {
-        controller.removeAllButMain();
         pushForum(note.forum, note.id);
       });
     }
@@ -1789,6 +1788,16 @@ module.exports = (function() {
     }
     if (_.trim(note.content.verdict)) {
       return 'Verdict: ' + note.content.verdict;
+    }
+    return generatedTitleText;
+  };
+
+  var getTitleTextV2 = function(note, generatedTitleText) {
+    if (_.trim(note.content.title?.value)) {
+      return note.content.title.value;
+    }
+    if (_.trim(note.content.verdict?.value)) {
+      return 'Verdict: ' + note.content.verdict.value;
     }
     return generatedTitleText;
   };
@@ -1810,12 +1819,44 @@ module.exports = (function() {
     return $pdfLink;
   };
 
+  var mkPdfIconV2 = function(note, isReference) {
+    // PDF for title
+    var $pdfLink = null;
+    if (note.content.pdf?.value) {
+      var downloadURL = pdfUrlV2(note, isReference);
+      $pdfLink = $('<a>', {
+        class: 'note_content_pdf',
+        href: downloadURL,
+        title: 'Download PDF',
+        target: '_blank'
+      }).append(
+        '<img src="/images/pdf_icon_blue.svg">'
+      );
+    }
+    return $pdfLink;
+  };
+
   var mkHtmlIcon = function(note) {
     var $htmlLink = null;
     if (note.content.ee || note.content.html) {
       $htmlLink = $('<a>', {
         class: 'note_content_pdf html-link',
         href: note.content.ee || note.content.html,
+        title: 'Open Website',
+        target: '_blank'
+      }).append(
+        '<img src="/images/html_icon_blue.svg">'
+      );
+    }
+    return $htmlLink;
+  };
+
+  var mkHtmlIconV2 = function(note) {
+    var $htmlLink = null;
+    if (note.content.ee?.value || note.content.html?.value) {
+      $htmlLink = $('<a>', {
+        class: 'note_content_pdf html-link',
+        href: note.content.ee?.value || note.content.html?.value,
         title: 'Open Website',
         target: '_blank'
       }).append(
@@ -1856,6 +1897,52 @@ module.exports = (function() {
         }).join(', ');
       } else {
         authorText = note.content.authors.join(', ');
+      }
+
+    } else {
+      // Note with no authors, just signatures, such as a forum comment
+      authorText = note.signatures.map(function(signature) {
+        if (signature.indexOf('~') === 0) {
+          return '<a href="/profile?id='+ encodeURIComponent(signature) +'" class="profile-link">'+ prettyId(signature) +'</a>';
+        } else {
+          return prettyId(signature);
+        }
+      }).join(', ');
+    }
+    return authorText;
+  };
+
+  var getAuthorTextV2 = function(note) {
+    var notePastDue = note.ddate && note.ddate < Date.now();
+    var authorText;
+    if (notePastDue) {
+      // Note trashed
+      authorText = '[Deleted]';
+
+    } else if (_.isArray(note.content.authors?.value) && note.content.authors.value.length) {
+      // Probably a forum-level note (because it has authors)
+      if (_.isArray(note.content.authorids?.value) && note.content.authorids.value.length) {
+        authorText = note.content.authors?.values?.map(function(a, i) {
+          var aId = note.content.authorids.values[i];
+          if (!aId) {
+            return a;
+          }
+
+          if (aId.indexOf('~') === 0) {
+            return '<a href="/profile?id='+ encodeURIComponent(aId) +
+              '" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="'+ aId +'">'+ a +'</a>';
+          } else if (aId.indexOf('@') !== -1) {
+            return '<a href="/profile?email='+ encodeURIComponent(aId) +
+              '" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="'+ aId +'">'+ a +'</a>';
+          } else if (aId.indexOf('http') === 0) {
+            return '<a href="'+ aId +
+              '" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="'+ aId +'">'+ a +'</a>';
+          } else {
+            return a;
+          }
+        }).join(', ');
+      } else {
+        authorText = note.content.authors?.value?.join(', ');
       }
 
     } else {
@@ -1925,6 +2012,78 @@ module.exports = (function() {
 
       var $elem = $('<span>', {class: 'note_content_value'});
       if (invitationField.markdown) {
+        $elem[0].innerHTML = DOMPurify.sanitize(marked(valueString));
+        $elem.addClass('markdown-rendered');
+      } else {
+        // First set content as text to escape HTML, then autolink escaped HTML
+        $elem.text(valueString);
+        $elem.html(autolinkHtml($elem.html()));
+
+      }
+
+      $contents.push($('<div>', {class: 'note_contents'}).append(
+        $('<span>', {class: 'note_content_field'}).text(prettyField(fieldName) + ': '),
+        $elem
+      ));
+    });
+
+    return $contents;
+  };
+
+  var buildContentV2 = function(note, params, additionalOmittedFields) {
+    if (!params.withContent || (note.ddate && note.ddate < Date.now())) {
+      return;
+    }
+
+    // Get order of content fields from invitation. If no invitation is provided,
+    // use default ordering of content object.
+    var invitation;
+    if (note.details) {
+      if (!_.isEmpty(note.details.originalInvitation)) {
+        invitation = note.details.originalInvitation;
+      } else if (!_.isEmpty(note.details.invitation)) {
+        invitation = note.details.invitation;
+      }
+    } else if (!_.isEmpty(params.invitation)) {
+      invitation = params.invitation;
+    }
+
+    var contentKeys = Object.keys(note.content);
+    var contentOrder = invitation
+      ? _.union(order(invitation.edit?.note?.content, invitation.id), contentKeys)
+      : contentKeys;
+
+    var omittedContentFields = [
+      'title', 'authors', 'author_emails', 'authorids', 'pdf',
+      'verdict', 'paperhash', 'ee', 'html', 'year', 'venue', 'venueid'
+    ].concat(additionalOmittedFields || []);
+
+    var $contents = [];
+    contentOrder.forEach(function(fieldName) {
+      if (omittedContentFields.includes(fieldName) || fieldName.startsWith('_')) {
+        return;
+      }
+
+      var valueString = prettyContentValue(note.content[fieldName]?.value);
+      if (!valueString) {
+        return;
+      }
+
+      var invitationField = (invitation && invitation.edit?.note?.content?.[fieldName]) || {};
+
+      // Build download links
+      if (valueString.indexOf('/attachment/') === 0) {
+        $contents.push($('<div>', {class: 'note_contents'}).append(
+          $('<span>', {class: 'note_content_field'}).text(prettyField(fieldName) + ': '),
+          $('<span>', {class: 'note_content_value'}).html(
+            mkDownloadLink(note.id, fieldName, valueString, { isReference: params.isReference })
+          )
+        ));
+        return;
+      }
+
+      var $elem = $('<span>', {class: 'note_content_value'});
+      if (invitationField?.value?.markdown) {
         $elem[0].innerHTML = DOMPurify.sanitize(marked(valueString));
         $elem.addClass('markdown-rendered');
       } else {
@@ -2269,7 +2428,326 @@ module.exports = (function() {
           };
           body = getCopiedValues(body, tagInvitation.reply);
 
-          controller.post('/tags', body, function(result) {
+          Webfield.post('/tags', body, function(result) {
+            done(result);
+            if (params.onTagChanged) {
+              params.onTagChanged(result);
+            }
+          });
+        }
+      });
+    };
+
+    // Group tags by invitation id and signatures
+    var processedInvitations = [];
+    var invitationsWithoutTags = [];
+    var tagsWithInvitations = [];
+    var tagsWithoutInvitations = [];
+
+    // Process tags
+    var groupByInvitation = _.groupBy(details.tags, 'invitation');
+    _.forEach(groupByInvitation, function(tags) {
+      var invitationId = tags[0].invitation;
+      var tagInvitation = _.find(params.tagInvitations, ['id', invitationId]);
+
+      // Group tags by signature
+      var groupBySignature = _.groupBy(tags, 'signatures');
+      _.forEach(groupBySignature, function(signatureTags) {
+        if (tagInvitation && _.includes(signatureTags[0].signatures, params.user.profile.id)) {
+          tagsWithInvitations.push(buildTag(signatureTags, tagInvitation));
+          processedInvitations.push(tagInvitation);
+        } else {
+          // read-only tag, invitation is not available
+          tagsWithoutInvitations.push(buildTag(signatureTags, undefined));
+        }
+      });
+    });
+
+    // Process tag invitations that do not have tags
+    var pendingTagInvitations = _.difference(params.tagInvitations, processedInvitations);
+    _.forEach(pendingTagInvitations, function(tagInvitation) {
+      if (tagInvitation.reply.invitation || tagInvitation.reply.forum === note.id) {
+        invitationsWithoutTags.push(buildTag([], tagInvitation));
+      }
+    });
+
+    // Append tags to note
+    var tagWidgets = invitationsWithoutTags.concat(tagsWithInvitations, tagsWithoutInvitations);
+    var maxTagsToShow = 3;
+    if (tagWidgets.length <= maxTagsToShow) {
+      $note.append(tagWidgets);
+    } else {
+      $note.append(tagWidgets.slice(0, maxTagsToShow));
+      $note.append(
+        $('<div>', {id: note.id + '-tags', class: 'collapse note-tags-overflow'}).append(
+          tagWidgets.slice(maxTagsToShow)
+        ),
+        '<div><a href="#' + note.id + '-tags" class="note-tags-toggle" role="button" ' +
+          'data-toggle="collapse" aria-expanded="false">Show ' + (tagWidgets.length - maxTagsToShow) +
+          ' more...</a></div>'
+      );
+    }
+
+    // Append invitation buttons
+    var $replyRow = $('<div>', {class: 'reply_row clearfix'});
+    if (!_.isEmpty(params.replyInvitations) && !notePastDue) {
+      $replyRow.append(
+        '<span class="item hint">Add</span>',
+        _.map(params.replyInvitations, function(invitation) {
+          return $('<button class="btn btn-xs">').text(prettyInvitationId(invitation.id)).click(function() {
+            params.onNewNoteRequested(invitation);
+          });
+        })
+      );
+    }
+    $note.append($replyRow);
+
+    return $note;
+
+  };
+
+  var mkNotePanelV2 = function(note, options) {
+    var params = _.assign({
+      invitation: null,
+      onEditRequested: null,
+      replyInvitations: [],
+      referenceInvitations: [],
+      tagInvitations: [],
+      originalInvitations: [],
+      onNewNoteRequested: null,
+      titleLink: 'NONE', // NONE | HREF | JS
+      withContent: false,
+      withReplyCount: false,
+      withRevisionsLink: false,
+      withParentNote: false,
+      onTrashedOrRestored: null,
+      isReference: false,
+      user: {},
+      withModificationDate: false,
+      withDateTime: false,
+      withBibtexLink: true,
+      readOnlyTags: false
+    }, options);
+    var $note = $('<div>', {id: 'note_' + note.id, class: 'note panel'});
+    var forumId = note.forum;
+    var details = note.details || {};
+
+    var notePastDue = note.ddate && note.ddate < Date.now();
+    if (notePastDue) {
+      $note.addClass('trashed');
+    }
+
+    if (note.content._disableTexRendering?.value) {
+      $note.addClass('disable-tex-rendering');
+    }
+
+    var generatedTitleText = generateNoteTitle(note.invitations[0], note.signatures);
+    var titleText = getTitleTextV2(note, generatedTitleText);
+    var useGeneratedTitle = !_.trim(note.content.title?.value) && !_.trim(note.content.verdict?.value);
+    var $titleHTML = mkTitleComponent(note, params.titleLink, titleText);
+
+    var $pdfLink = mkPdfIconV2(note, params.isReference);
+    var $htmlLink = mkHtmlIconV2(note);
+
+    // Link to comment button
+    var $linkButton = null;
+    if (forumId !== note.id && $('#content').hasClass('forum')) {
+      var commentUrl = location.origin + '/forum?id=' + forumId + '&noteId=' + note.id;
+      $linkButton = $('<button class="btn btn-xs btn-default permalink-button" title="Link to this comment" data-permalink-url="' + commentUrl + '">' +
+        '<span class="glyphicon glyphicon-link" aria-hidden="true"></span></button>');
+    }
+
+    // Trash and Edit buttons
+    var $trashButton = null;
+    var $editButton = null;
+    var $actionButtons = null;
+    if ($('#content').hasClass('forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
+      var canEdit = (details.original && details.originalWritable) || (!details.originalWritable && details.writable);
+
+      if (canEdit && params.onTrashedOrRestored) {
+        var buttonContent = notePastDue ? 'Restore' : '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>';
+        $trashButton = $('<button id="trashbutton_' + note.id + '" class="btn btn-xs trash_button">' + buttonContent + '</button>');
+        $trashButton.click(function() {
+          var noteToDelete = details.originalWritable ? details.original : note;
+          deleteOrRestoreNote(noteToDelete, titleText, params.user, params.onTrashedOrRestored);
+        });
+      }
+
+      if (canEdit && params.onEditRequested && !notePastDue) {
+        $editButton = $('<button class="btn btn-xs edit_button"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></button>');
+        $editButton.click(function() {
+          var options = details.originalWritable ? { original: true } : {};
+          params.onEditRequested(null, options);
+        });
+      }
+
+      if ($editButton || $trashButton) {
+        $actionButtons = $('<div>', {class: 'meta_actions'}).append($editButton, $trashButton);
+        $titleHTML.addClass('pull-left');
+      }
+    }
+
+    // Collapsed display for forum
+    var $titleCollapsed = $('<div>', { class: 'title_collapsed' }).append(
+      $titleHTML.clone().removeClass('pull-left')
+    );
+    if (useGeneratedTitle) {
+      $titleCollapsed.find('.note_content_title').html('<span>' + generatedTitleText + '</span>');
+    } else {
+      $titleCollapsed.find('.note_content_title').prepend('<span>' + generatedTitleText + '</span> &bull; ');
+    }
+
+    var $titleAndPdf = $('<div>', {class: 'title_pdf_row clearfix'}).append(
+      // Need the spaces for now to match the spacing of the template code
+      $titleHTML.append(' ', $pdfLink, ' ', $htmlLink, $linkButton),
+      $actionButtons
+    );
+
+    var $parentNote = null;
+    if (params.withParentNote && note.forumContent && note.forum !== note.id) {
+      $parentNote = $('<div class="meta_row parent-title">').append(
+        '<span class="item glyphicon glyphicon-share-alt"></span>',
+        '<span class="item title">' + note.forumContent.title + '</span>'
+      );
+    }
+
+    var authorText = getAuthorTextV2(note);
+
+    var $contentSignatures = $('<span>', {class: 'signatures'}).html(authorText);
+    var $contentAuthors = $('<div>', {class: 'meta_row'}).append($contentSignatures);
+
+    var trueAuthorText = (note.tauthor && note.tauthor.indexOf('~') === 0) ?
+      '<a href="/profile?id='+ encodeURIComponent(note.tauthor) +'" class="profile-link">'+ prettyId(note.tauthor) +'</a>' :
+      prettyId(note.tauthor);
+    if (!note.content.authors?.value && trueAuthorText && trueAuthorText !== authorText) {
+      $contentAuthors.append(
+        '<span class="author no-margin">' + trueAuthorText + '</span>',
+        '<span class="private-author-label">(privately revealed to you)</span>'
+      );
+    }
+    if (note.readers.length == 1 && note.readers[0].indexOf('~') === 0 && note.readers[0] == note.signatures[0]) {
+      $contentAuthors.append(
+        '<span class="private-author-label">(visible only to you)</span>'
+      );
+    }
+
+    var $revisionsLink = (params.withRevisionsLink && details.revisions) ?
+      $('<a>', { class: 'note_content_pdf item', href: '/revisions?id=' + note.id, text: 'Show Revisions' }) :
+      null;
+
+    // Display modal showing full BibTeX reference. Click handler is definied in public/index.js
+    var $bibtexLink = (note.content._bibtex?.value && params.withBibtexLink) ?
+      $('<span class="item"><a href="#" data-target="#bibtex-modal" data-toggle="modal" data-bibtex="' + encodeURIComponent(note.content._bibtex.value) + '">Show Bibtex</a></span>') :
+      null;
+
+    var $metaEditRow = $('<div>', {class: 'meta_row'});
+    var formattedDate = forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year?.value);
+    var $dateItem = (!notePastDue || details.writable) ?
+      $('<span>', {class: 'date item'}).text(formattedDate) :
+      null;
+    var $invItem = $('<span>', {class: 'item'}).text(options.isReference ? prettyId(note.invitations[0]) : note.content.venue?.value || prettyId(note.invitations[0]));
+    var $readersItem = _.has(note, 'readers') ?
+      $('<span>', {class: 'item'}).html('Readers: ' + prettyReadersList(note.readers)) :
+      null;
+    var $replyCountLabel = (params.withReplyCount && details.replyCount) ?
+      $('<span>', {class: 'item'}).text(details.replyCount === 1 ? '1 Reply' : details.replyCount + ' Replies') :
+      null;
+    $metaEditRow.append(
+      $dateItem,
+      $invItem,
+      $readersItem,
+      $replyCountLabel,
+      $bibtexLink,
+      $revisionsLink
+    );
+
+    var $metaActionsRow = null;
+    var $modifiableOriginalButton = null;
+    if (!$editButton && params.onEditRequested && params.originalInvitations.length && !params.referenceInvitations) {
+      var modifiableOriginalTooltipText = 'Click here to access the original version of the paper. Changes to the original version will update the anonymous version used by viewers during the review process.';
+      $modifiableOriginalButton = $('<button class="btn btn-xs edit_button" data-toggle="tooltip" data-placement="top" title="' + modifiableOriginalTooltipText + '">Modifiable Original</button>');
+      $modifiableOriginalButton.click(function() {
+        pushForum(note.original);
+      });
+    }
+
+    var $originalInvitations = _.map(params.originalInvitations, function(invitation) {
+      var buttonText = prettyInvitationId(invitation.id);
+      var editorOptions = { original: true }
+      if (buttonText === 'Revision' && invitation.multiReply === false && invitation.details.repliedNotes?.length) {
+        buttonText = 'Edit Revision';
+        editorOptions = { revision: true }
+      }
+
+      return $('<button class="btn btn-xs edit_button">').text(buttonText).on('click', function() {
+        params.onEditRequested(invitation, editorOptions);
+      });
+    });
+
+    var $referenceInvitations = _.map(params.referenceInvitations, function(invitation) {
+      return $('<button class="btn btn-xs edit_button">').text(prettyInvitationId(invitation.id)).click(function() {
+        params.onEditRequested(invitation);
+      });
+    });
+    if ($originalInvitations || $referenceInvitations || $modifiableOriginalButton) {
+      $metaActionsRow = $('<div>', {class: 'meta_row meta_actions'}).append(
+        $originalInvitations,
+        $modifiableOriginalButton,
+        $referenceInvitations
+      );
+      $metaEditRow.addClass('pull-left');
+    }
+
+    $note.append(
+      $titleAndPdf,
+      $titleCollapsed,
+      $parentNote,
+      $contentAuthors,
+      $('<div class="clearfix">').append($metaEditRow, $metaActionsRow),
+      buildContentV2(note, params)
+    );
+
+    // Add info from origial note below content
+    if (details.original) {
+      $note.append(buildOriginalNote(note, details.original, params));
+    }
+
+    var buildTag = function(tags, tagInvitation) {
+      var buildRelations = function(relation) {
+        var description = tagInvitation.reply[relation];
+
+        if (_.has(description, 'values')) {
+          return description.values;
+        }
+
+        if (_.has(description, 'values-regex')) {
+          if (_.startsWith(description['value-regex'], '~.*')) {
+            return [params.user.profile.id];
+          }
+        }
+
+        // Default value: logged in user
+        return [params.user.profile.id];
+      };
+
+      return mkTagInput('tag', tagInvitation && tagInvitation.reply.content.tag, tags, {
+        forum: note.id,
+        placeholder: (tagInvitation && tagInvitation.reply.content.tag.description) || (tagInvitation && prettyId(tagInvitation.id)),
+        label: tagInvitation && prettyInvitationId(tagInvitation.id),
+        readOnly: params.readOnlyTags,
+        onChange: function(id, value, deleted, done) {
+          var body = {
+            id: id,
+            tag: value,
+            signatures: buildRelations('signatures'),
+            readers: buildRelations('readers'),
+            forum: note.id,
+            invitation: tagInvitation.id,
+            ddate: deleted ? Date.now() : null
+          };
+          body = getCopiedValues(body, tagInvitation.reply);
+
+          Webfield.post('/tags', body, function(result) {
             done(result);
             if (params.onTagChanged) {
               params.onTagChanged(result);
@@ -2369,6 +2847,11 @@ module.exports = (function() {
     return _.startsWith(note.content.pdf, '/pdf') ? (path + '?id=' + note.id) : note.content.pdf;
   };
 
+  var pdfUrlV2 = function(note, isReference) {
+    var path = isReference ? '/references/pdf' : '/pdf';
+    return _.startsWith(note.content.pdf?.value, '/pdf') ? (path + '?id=' + note.id) : note.content.pdf?.value;
+  };
+
   var deleteOrRestoreNote = function(note, noteTitle, user, onTrashedOrRestored) {
     var newNote = _.cloneDeep(note);
     var isDeleted = newNote.ddate && newNote.ddate < Date.now();
@@ -2376,7 +2859,7 @@ module.exports = (function() {
     if (isDeleted) {
       // Restore deleted note
       newNote.ddate = null;
-      return controller.post('/notes', newNote, null, function(jqXhr, error) {
+      return Webfield.post('/notes', newNote, null, function(jqXhr, error) {
         promptError(error, { scrollToTop: false });
       }, true).then(function(updatedNote) {
         onTrashedOrRestored(Object.assign(newNote, updatedNote));
@@ -2390,7 +2873,7 @@ module.exports = (function() {
       }
       newNote.signatures = newSignatures;
       newNote.ddate = Date.now();
-      controller.post('/notes', newNote, null, function(jqXhr, error) {
+      Webfield.post('/notes', newNote, null, function(jqXhr, error) {
         promptError(error, { scrollToTop: false });
       }, true).then(function(updatedNote) {
         onTrashedOrRestored(Object.assign(newNote, updatedNote));
@@ -2722,7 +3205,7 @@ module.exports = (function() {
 
   var validate = function(invitation, content, readersWidget) {
     var errorList = [];
-    var replyContent = invitation.reply.content;
+    var replyContent = invitation.edit ? invitation.edit.note.content : invitation.reply.content;
 
     Object.keys(replyContent).forEach(function(fieldName) {
       if (fieldName === 'pdf' && replyContent.pdf.required) {
@@ -2751,14 +3234,15 @@ module.exports = (function() {
       }
     });
 
-    if (invitation.reply.readers.hasOwnProperty('values-dropdown')) {
-      var inputValues = idsFromListAdder(readersWidget, invitation.reply.readers);
+    var readers = invitation.edit ? invitation.edit.note.readers : invitation.reply.readers;
+    if (readers.hasOwnProperty('values-dropdown')) {
+      var inputValues = idsFromListAdder(readersWidget, readers);
       if (!inputValues.length) {
         errorList.push('Readers can not be empty. You must select at least one reader');
       }
     }
 
-    if (invitation.reply.readers.hasOwnProperty('values-checkbox')) {
+    if (readers.hasOwnProperty('values-checkbox')) {
       var inputValues = [];
       readersWidget.find('.note_content_value input[type="checkbox"]').each(function(i) {
         if ($(this).prop('checked')) {
@@ -2789,8 +3273,10 @@ module.exports = (function() {
   var getContent = function(invitation, $contentMap) {
     var files = {};
     var errors = [];
-    var content = _.reduce(invitation.reply.content, function(ret, contentObj, k) {
+    var invitationContent = invitation.edit ? invitation.edit.note.content : invitation.reply.content
+    var content = _.reduce(invitationContent, function(ret, contentObjInInvitation, k) {
       // Let the widget handle it :D and extract the data when we encouter authorids
+      const contentObj = invitation.edit ? contentObjInInvitation.value : contentObjInInvitation
       if (contentObj.hidden && k === 'authors') {
         return ret;
       }
@@ -2894,12 +3380,13 @@ module.exports = (function() {
   };
 
   var getWriters = function(invitation, signatures, user) {
+    var writers = invitation.edit ? invitation.edit.note.writers : invitation.reply.writers
 
-    if (invitation.reply.writers && _.has(invitation.reply.writers, 'values')) {
-      return invitation.reply.writers.values;
+    if (writers && _.has(writers, 'values')) {
+      return writers.values;
     }
 
-    if (invitation.reply.writers && _.has(invitation.reply.writers, 'values-regex') && invitation.reply.writers['values-regex'] === '~.*') {
+    if (writers && _.has(writers, 'values-regex') && writers['values-regex'] === '~.*') {
       return [user.profile.id];
     }
 
@@ -2907,21 +3394,22 @@ module.exports = (function() {
   };
 
   var getReaders = function(widget, invitation, signatures) {
-    var inputValues = idsFromListAdder(widget, invitation.reply.readers);
+    var readers = invitation.edit ? invitation.edit.note.readers : invitation.reply.readers
+    var inputValues = idsFromListAdder(widget, readers);
 
     var invitationValues = [];
-    if (_.has(invitation.reply.readers, 'values-dropdown')) {
-      invitationValues = invitation.reply.readers['values-dropdown'].map(function(v) { return _.has(v, 'id') ? v.id : v; });
-    } else if (_.has(invitation.reply.readers, 'value-dropdown-hierarchy')) {
-      invitationValues = invitation.reply.readers['value-dropdown-hierarchy'];
-    } else if (_.has(invitation.reply.readers, 'values-checkbox')) {
+    if (_.has(readers, 'values-dropdown')) {
+      invitationValues = readers['values-dropdown'].map(function(v) { return _.has(v, 'id') ? v.id : v; });
+    } else if (_.has(readers, 'value-dropdown-hierarchy')) {
+      invitationValues = readers['value-dropdown-hierarchy'];
+    } else if (_.has(readers, 'values-checkbox')) {
       inputValues = [];
       widget.find('.note_content_value input[type="checkbox"]').each(function(i) {
         if ($(this).prop('checked')) {
           inputValues.push($(this).val());
         }
       });
-      invitationValues = invitation.reply.readers['values-checkbox'];
+      invitationValues = readers['values-checkbox'];
     }
 
     // Add signature if exists in the invitation readers list
@@ -2960,6 +3448,10 @@ module.exports = (function() {
   };
 
   var mkNewNoteEditor = function(invitation, forum, replyto, user, options) {
+    if(invitation.edit){
+      console.log('123')
+      return
+    }
 
     var params = _.assign({
       onNoteCreated: null,
@@ -3069,7 +3561,7 @@ module.exports = (function() {
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
           if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
-            return controller.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+            return Webfield.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
               note.content[fieldName] = result.url;
               return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, note.content.pdf);
             });
@@ -3078,7 +3570,7 @@ module.exports = (function() {
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return controller.sendFile('/attachment', data).then(function(result) {
+          return Webfield.sendFile('/attachment', data).then(function(result) {
             note.content[fieldName] = result.url;
             updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], note.content[fieldName]);
           });
@@ -3101,7 +3593,210 @@ module.exports = (function() {
       var saveNote = function(note) {
         // apply any 'value-copied' fields
         note = getCopiedValues(note, invitation.reply);
-        controller.post('/notes', note, function(result) {
+        Webfield.post('/notes', note, { handleError: false }).then(function(result) {
+          if (params.onNoteCreated) {
+            params.onNoteCreated(result);
+          }
+          $noteEditor.remove();
+          clearAutosaveData(autosaveStorageKeys);
+        }, function(jqXhr, errorText) {
+          promptError(errorText);
+          $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
+          $cancelButton.prop({ disabled: false });
+        });
+      };
+
+      var $noteEditor = $('<div>', { class: 'note_editor panel' }).append(
+        '<h2 class="note_content_title">New ' + prettyInvitationId(invitation.id) + '</h2>',
+        '<div class="required_field">* denotes a required field</div>',
+        '<hr class="small">',
+        _.values($contentMap),
+        readers,
+        signatures,
+        $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
+      );
+      $noteEditor.data('invitationId', invitation.id);
+
+      autolinkFieldDescriptions($noteEditor);
+      var autosaveStorageKeys = setupAutosaveHandlers($noteEditor, user, replyto + '|new', invitation.id);
+
+      if (params.onCompleted) {
+        params.onCompleted($noteEditor);
+      }
+    }
+
+    var parentId = forum === replyto ? null : replyto;
+    var handleError = function(error) {
+      if (params.onError) {
+        params.onError([error]);
+      } else {
+        promptError(error);
+      }
+    };
+
+    buildReaders(invitation.reply.readers, [], parentId, function (readers, error) {
+      if (error) {
+        return handleError(error);
+      }
+      buildSignatures(invitation.reply.signatures, invitation.reply.signatures.default || [], user).then(function (signatures) {
+        buildEditor(readers, signatures);
+      }).fail(function(error) {
+        error = error === 'no_results' ?
+          'You do not have permission to create a note' :
+          error;
+        handleError(error);
+      });
+    });
+  };
+
+  var mkNewNoteEditorV2 = function(invitation, forum, replyto, user, options) {
+    console.log(invitation)
+    if(invitation.edit){
+      console.log('123')
+      return
+    }
+
+    var params = _.assign({
+      onNoteCreated: null,
+      onCompleted: null,
+      onNoteCancelled: null,
+      onValidate: null,
+      onError: null
+    }, options);
+
+    if ($('.note_editor.panel').length) {
+      promptError('You currently have another editor pane open on this page. ' +
+        'Please submit your changes or click Cancel before continuing', { scrollToTop: false });
+      if (params.onCompleted) {
+        params.onCompleted(null);
+      }
+      return;
+    }
+
+    var contentOrder = order(invitation.reply.content, invitation.id);
+    var $contentMap = _.reduce(contentOrder, function(ret, k) {
+      ret[k] = mkComposerInput(k, invitation.reply.content[k], invitation.reply.content[k].default || '', { useDefaults: true, user: user });
+      return ret;
+    }, {});
+
+    function buildEditor(readers, signatures) {
+      var $submitButton = $('<button class="btn btn-sm">Submit</button>');
+      var $cancelButton = $('<button class="btn btn-sm">Cancel</button>');
+
+      $submitButton.click(function() {
+        if ($submitButton.prop('disabled')) {
+          return false;
+        }
+
+        $submitButton.prop({ disabled: true }).append([
+          '<div class="spinner-small">',
+            '<div class="rect1"></div><div class="rect2"></div>',
+            '<div class="rect3"></div><div class="rect4"></div>',
+          '</div>'
+        ].join('\n'));
+        $cancelButton.prop({ disabled: true });
+
+        var content = getContent(invitation, $contentMap);
+
+        var signatureInputValues = idsFromListAdder(signatures, invitation.reply.signatures);
+        var readerValues = getReaders(readers, invitation, signatureInputValues);
+        var nonReadersValues = null;
+        if (_.has(invitation, 'reply.nonreaders.values')) {
+          nonReadersValues = invitation.reply.nonreaders.values;
+        }
+        // TODO: Temporary ICLR hack
+        nonReadersValues = _.union(nonReadersValues, addNonreadersICLR(readerValues, invitation));
+        var writerValues = getWriters(invitation, signatureInputValues, user);
+
+        var errorList = content[2].concat(validate(invitation, content[0], readers));
+        if (params.onValidate) {
+          errorList = errorList.concat(params.onValidate(invitation, content[0]));
+        }
+        var files = content[1];
+
+        if (!_.isEmpty(errorList)) {
+          if (params.onError) {
+            params.onError(errorList);
+          } else {
+            promptError(errorList[0]);
+          }
+          $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
+          $cancelButton.prop({ disabled: false });
+          return;
+        }
+
+        var note = {
+          content: content[0],
+          readers: readerValues,
+          nonreaders: nonReadersValues,
+          signatures: signatureInputValues,
+          writers: writerValues,
+          invitation: invitation.id,
+          forum: forum || invitation.reply.forum,
+          replyto: replyto || invitation.reply.replyto
+        };
+
+        if (_.isEmpty(files)) {
+          return saveNote(note);
+        }
+
+        var onError = function(e) {
+          var errorMsg;
+          if (e.responseJSON && e.responseJSON.message) {
+            errorMsg = e.responseJSON.message;
+          } else if (e.readyState === 0) {
+            errorMsg = 'There is an error with the network and the file could not be uploaded'
+          } else {
+            errorMsg = 'There was an error uploading the file';
+          }
+
+          if (params.onError) {
+            params.onError([errorMsg]);
+          } else if (e.responseJSON && e.responseJSON.errors) {
+            promptError(e.responseJSON.errors[0]);
+          } else {
+            promptError(errorMsg);
+          }
+          $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
+          $cancelButton.prop({ disabled: false });
+        };
+
+        var fieldNames = _.keys(files);
+        var promises = fieldNames.map(function(fieldName) {
+          if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
+            return Webfield.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+              note.content[fieldName] = result.url;
+              return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, note.content.pdf);
+            });
+          }
+          var data = new FormData();
+          data.append('invitationId', invitation.id);
+          data.append('name', fieldName);
+          data.append('file', files[fieldName]);
+          return Webfield.sendFile('/attachment', data).then(function(result) {
+            note.content[fieldName] = result.url;
+            updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], note.content[fieldName]);
+          });
+        });
+
+        $.when.apply($, promises).then(function() {
+          saveNote(note);
+        }, onError);
+      });
+
+      $cancelButton.click(function() {
+        if (params.onNoteCancelled) {
+          params.onNoteCancelled();
+        } else {
+          $noteEditor.remove();
+        }
+        clearAutosaveData(autosaveStorageKeys);
+      });
+
+      var saveNote = function(note) {
+        // apply any 'value-copied' fields
+        note = getCopiedValues(note, invitation.reply);
+        Webfield.post('/notes', note, { handleError: false }).then(function(result) {
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
           }
@@ -3161,7 +3856,7 @@ module.exports = (function() {
     var requiredText = $('<span>', { text: '*', class: 'required_field' });
     var setParentReaders = function(parent, fieldDescription, fieldType, done) {
       if (parent) {
-        controller.get('/notes', { id: parent }, function(result) {
+        Webfield.get('/notes', { id: parent }).then(function(result) {
           var newFieldDescription = fieldDescription;
           if (result.notes.length) {
             var parentReaders = result.notes[0].readers;
@@ -3184,7 +3879,7 @@ module.exports = (function() {
     };
 
     if (_.has(fieldDescription, 'values-regex')) {
-      controller.get('/groups', { regex: fieldDescription['values-regex'] }, function(result) {
+      Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleError: false }).then(function(result) {
         if (_.isEmpty(result.groups)) {
           done(undefined, 'no_results');
         } else {
@@ -3210,7 +3905,7 @@ module.exports = (function() {
       var regexIndex = _.findIndex(values, function(g) { return g.indexOf('.*') >=0; });
       if (regexIndex >= 0) {
         var regex = values[regexIndex];
-        extraGroupsP = controller.get('/groups', { regex: regex })
+        extraGroupsP = Webfield.get('/groups', { regex: regex })
         .then(function(result) {
           if (result.groups && result.groups.length) {
             var groups = result.groups.map(function(g) { return g.id; });
@@ -3271,7 +3966,7 @@ module.exports = (function() {
       var index = _.findIndex(initialValues, function(g) { return g.indexOf('.*') >=0; });
       if (index >= 0) {
         var regexGroup = initialValues[index];
-        promise = controller.get('/groups', { regex: regexGroup })
+        promise = Webfield.get('/groups', { regex: regexGroup })
         .then(function(result) {
           if (result.groups && result.groups.length) {
             var groups = result.groups.map(function(g) { return g.id; });
@@ -3336,9 +4031,9 @@ module.exports = (function() {
           return $.Deferred().reject('no_results');
         }
 
-        return controller.get('/groups', {
+        return Webfield.get('/groups', {
           regex: fieldDescription['values-regex'], signatory: user.id
-        }, function(result) {
+        }, { handleError: false }).then(function(result) {
           if (_.isEmpty(result.groups)) {
             return $.Deferred().reject('no_results');
           }
@@ -3373,7 +4068,10 @@ module.exports = (function() {
   }
 
   var mkNoteEditor = function(note, invitation, user, options) {
-
+    if(invitation.edit){
+      mkNoteEditorV2(note, invitation, user, options)
+      return
+    }
     var params = _.assign({
       onNoteCreated: null,
       onCompleted: null,
@@ -3416,6 +4114,7 @@ module.exports = (function() {
         $cancelButton.prop('disabled', true);
 
         var content = getContent(invitation, $contentMap);
+        console.log(content)
 
         var signatureInputValues = idsFromListAdder(signatures, invitation.reply.signatures);
         var readerValues = getReaders(readers, invitation, signatureInputValues);
@@ -3491,7 +4190,7 @@ module.exports = (function() {
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
           if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
-            return controller.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+            return Webfield.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
               editNote.content[fieldName] = result.url;
               return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, editNote.content.pdf);
             });
@@ -3500,7 +4199,7 @@ module.exports = (function() {
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return controller.sendFile('/attachment' , data).then(function(result) {
+          return Webfield.sendFile('/attachment', data).then(function(result) {
             editNote.content[fieldName] = result.url;
             updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
           });
@@ -3523,7 +4222,7 @@ module.exports = (function() {
       var saveNote = function(note) {
         // apply any 'value-copied' fields
         note = getCopiedValues(note, invitation.reply);
-        controller.post('/notes', note, function(result) {
+        Webfield.post('/notes', note, { handleError: false }).then(function(result) {
           if (params.onNoteEdited) {
             params.onNoteEdited(result);
           }
@@ -3574,6 +4273,225 @@ module.exports = (function() {
         return handleError(error);
       }
       buildSignatures(invitation.reply.signatures, note.signatures, user).then(function(signatures) {
+        buildEditor(readers, signatures);
+      }).fail(function(error) {
+        error = error === 'no_results' ?
+          'You do not have permission to create a note' :
+          error;
+        handleError(error);
+      });
+    });
+
+  };
+
+  var mkNoteEditorV2 = function(note, invitation, user, options) {
+    var params = _.assign({
+      onNoteCreated: null,
+      onCompleted: null,
+      onNoteCancelled: null,
+      onValidate: null,
+      onError: null
+    }, options);
+
+    if ($('.note_editor.panel').length) {
+      promptError('You currently have another editor pane open on this page. ' +
+        'Please submit your changes or click Cancel before continuing', { scrollToTop: false });
+      if (params.onCompleted) {
+        params.onCompleted(null);
+      }
+      return false;
+    }
+
+    var contentOrder = order(invitation.edit.note.content, invitation.id);
+    var $contentMap = _.reduce(contentOrder, function(map, fieldName) {
+      var fieldContent = _.get(note, ['content', fieldName, 'value'], '');
+      map[fieldName] = mkComposerInput(fieldName, invitation.edit.note.content[fieldName].value, fieldContent, { note: note, useDefaults: true });
+      return map;
+    }, {});
+
+    function buildEditor(readers, signatures) {
+      var $submitButton = $('<button class="btn btn-sm">Submit</button>');
+      var $cancelButton = $('<button class="btn btn-sm">Cancel</button>');
+
+      $submitButton.click(function() {
+        if ($submitButton.prop('disabled')) {
+          return false;
+        }
+
+        $submitButton.prop('disabled', true).append([
+          '<div class="spinner-small">',
+            '<div class="rect1"></div><div class="rect2"></div>',
+            '<div class="rect3"></div><div class="rect4"></div>',
+          '</div>'
+        ].join('\n'));
+        $cancelButton.prop('disabled', true);
+
+        var content = getContent(invitation, $contentMap);
+
+        var signatureInputValues = idsFromListAdder(signatures, invitation.edit.signatures);
+        var readerValues = getReaders(readers, invitation, signatureInputValues);
+        var nonreaderValues = null;
+        if (_.has(invitation, 'reply.nonreaders.values')) {
+          nonreaderValues = invitation.reply.nonreaders.values;
+        }
+        var writerValues = getWriters(invitation, signatureInputValues, user);
+
+        var errorList = content[2].concat(validate(invitation, content[0], readers));
+        if (params.onValidate) {
+          errorList = errorList.concat(params.onValidate(invitation, content[0], note));
+        }
+
+        var files = content[1];
+
+        if (!_.isEmpty(errorList)) {
+          if (params.onError) {
+            params.onError(errorList);
+          } else {
+            promptError(errorList[0]);
+          }
+          $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
+          $cancelButton.prop({ disabled: false });
+          return;
+        }
+        var editNote = {
+          note :{
+            content:Object.entries(content[0]).reduce((acc, v) => { acc[v[0]] = { value: v[1] }; return acc }, {})
+          },
+          readers: readerValues,
+          nonreaders: nonreaderValues,
+          signatures: signatureInputValues,
+          writers: writerValues,
+          invitation: invitation.id
+        };
+
+        if (invitation.edit?.note?.forum?.value) {
+          editNote.forum = note.forum || invitation.edit?.note?.forum?.value
+        }
+        if (invitation.edit?.note?.forum?.replyto) {
+          editNote.replyto = note.replyto || invitation.edit?.note?.replyto?.value || invitation.edit?.note?.forum?.value
+        }
+
+        if (invitation.edit?.note?.id?.value || invitation.edit?.note?.reply?.referentInvitation) {
+          editNote.referent = invitation.edit?.note?.id?.value || note.id;
+          if (note.updateId) {
+            editNote.id = note.updateId;
+          }
+        } else {
+          editNote.id = note.id;
+        }
+
+        if (_.isEmpty(files)) {
+          return saveNote(editNote);
+          return;
+        }
+
+        var onError = function(e) {
+          var errorMsg;
+          if (e.responseJSON && e.responseJSON.message) {
+            errorMsg = e.responseJSON.message;
+          } else if (e.readyState === 0) {
+            errorMsg = 'There is an error with the network and the file could not be uploaded'
+          } else {
+            errorMsg = 'There was an error uploading the file';
+          }
+
+          if (params.onError) {
+            params.onError([errorMsg]);
+          } else if (e.responseJSON && e.responseJSON.errors) {
+            promptError(e.responseJSON.errors[0]);
+          } else {
+            promptError(errorMsg);
+          }
+          $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
+          $cancelButton.prop({ disabled: false });
+        };
+
+        var fieldNames = _.keys(files);
+        var promises = fieldNames.map(function(fieldName) {
+          if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
+            return Webfield.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+              editNote.content[fieldName] = result.url;
+              return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, editNote.content.pdf);
+            });
+          }
+          var data = new FormData();
+          data.append('invitationId', invitation.id);
+          data.append('name', fieldName);
+          data.append('file', files[fieldName]);
+          return Webfield.sendFile('/attachment', data).then(function(result) {
+            editNote.content[fieldName] = result.url;
+            updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
+          });
+        });
+
+        $.when.apply($, promises).then(function() {
+          saveNote(editNote);
+        }, onError);
+      });
+
+      $cancelButton.click(function() {
+        if (params.onNoteCancelled) {
+          params.onNoteCancelled();
+        } else {
+          $noteEditor.remove();
+        }
+        clearAutosaveData(autosaveStorageKeys);
+      });
+
+      var saveNote = function(note) {
+        // apply any 'value-copied' fields
+        note = getCopiedValues(note, invitation?.edit?.note?.content);
+        Webfield.postV2('/notes/edits', note, { handleError: false }).then(function(result) {
+          if (params.onNoteEdited) {
+            params.onNoteEdited(result);
+          }
+          $noteEditor.remove();
+          clearAutosaveData(autosaveStorageKeys);
+        }, function(jqXhr, errorText) {
+          if (params.onError) {
+            params.onError([errorText]);
+          } else {
+            promptError(errorText);
+          }
+          $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
+          $cancelButton.prop({ disabled: false });
+        });
+      };
+
+      // For reference invitations show that a new reference is being created
+      var editorAction = invitation.edit.note.id === note.id ? 'New' : 'Edit';
+      var $noteEditor = $('<div>', { class: 'note_editor existing panel' }).append(
+        '<h2 class="note_content_title">' + editorAction + ' ' + prettyInvitationId(invitation.id) + '</h2>',
+        '<div class="required_field">* denotes a required field</div>',
+        '<hr class="small">',
+        _.values($contentMap),
+        readers,
+        signatures,
+        $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
+      );
+      $noteEditor.data('invitationId', invitation.id);
+
+      autolinkFieldDescriptions($noteEditor);
+      var autosaveStorageKeys = setupAutosaveHandlers($noteEditor, user, note.id, invitation.id);
+
+      if (params.onCompleted) {
+        params.onCompleted($noteEditor);
+      }
+    }
+
+    var parentId = note.forum === note.replyto ? null : note.replyto;
+    var handleError = function(error) {
+      if (params.onError) {
+        params.onError([error]);
+      } else {
+        promptError(error);
+      }
+    };
+    buildReaders(invitation.edit.note.readers, note.readers, parentId, function(readers, error) {
+      if (error) {
+        return handleError(error);
+      }
+      buildSignatures(invitation.edit.signatures, note.signatures, user).then(function(signatures) {
         buildEditor(readers, signatures);
       }).fail(function(error) {
         error = error === 'no_results' ?
@@ -3792,7 +4710,9 @@ module.exports = (function() {
     mkComposerContentInput: mkComposerContentInput,
     mkNewNoteEditor: mkNewNoteEditor,
     mkNoteEditor: mkNoteEditor,
+    mkNoteEditorV2: mkNoteEditorV2,
     mkNotePanel: mkNotePanel,
+    mkNotePanelV2: mkNotePanelV2,
     mkSection: mkSection,
     mkBlockItem: mkBlockItem,
     mkItem: mkItem,

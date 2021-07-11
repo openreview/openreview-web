@@ -92,4 +92,10 @@ function DownloadLink({
   )
 }
 
+export const NoteContentV2 = ({
+  id, content, invitation, omit = [], isReference = false,
+}) => {
+  return 'todo'
+}
+
 export default NoteContent

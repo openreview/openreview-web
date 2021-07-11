@@ -49,7 +49,6 @@ export default class OpenReviewApp extends App {
 
     // Need pass new accessToken to Webfield and controller so legacy ajax functions work
     window.Webfield.setToken(userAccessToken)
-    window.controller.setToken(userAccessToken)
 
     const timeToExpiration = cookieExpiration - 1000
     this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
@@ -68,7 +67,6 @@ export default class OpenReviewApp extends App {
 
     // Need pass new accessToken to Webfield and controller so legacy ajax functions work
     window.Webfield.setToken(userAccessToken)
-    window.controller.setToken(userAccessToken)
 
     const timeToExpiration = tokenExpiration * 1000 - Date.now() - 1000
     this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
@@ -79,7 +77,6 @@ export default class OpenReviewApp extends App {
     removeAuthCookie()
 
     window.Webfield.setToken(null)
-    window.controller.setToken(null)
 
     clearTimeout(this.logoutTimer)
 
@@ -236,7 +233,6 @@ export default class OpenReviewApp extends App {
 
     // Load legacy JS code
     window.mkStateManager = require('../client/state-manager')
-    window.controller = require('../client/controller')
     window.view = require('../client/view')
     window.Webfield = require('../client/webfield')
     window.OpenBanner = this.getLegacyBannerObject()
@@ -252,7 +248,6 @@ export default class OpenReviewApp extends App {
     window.OR_API_URL_V2 = process.env.API_URL_V2
     window.OR_ENABLE_V2_API = process.env.ENABLE_V2_API
     window.Webfield.setToken(token)
-    window.controller.setToken(token)
 
     this.setState({ clientJsLoading: false })
 
