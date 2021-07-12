@@ -621,6 +621,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     sm.update('useNewLayout', !_.isEmpty(replyForumViews));
     var $forumViewsTabs = getForumViewTabs(replyForumViews, rootRec.note);
 
+    buildFiltersMaps(noteRecs);
     var replyCount = _.get(rootRec.note, 'details.replyCount', 0)
     var $forumFiltersRow = null;
     if (replyCount) {
@@ -759,9 +760,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
         $(this).parent().hide();
       }
     });
-    if ($('#note_children > .note_with_children:visible').length > 0) {
-      $('#reply-empty-message').remove();
-    } else {
+    $('#reply-empty-message').remove();
+    if ($('#note_children > .note_with_children:visible').length === 0) {
       $('#note_children').after('<div id="reply-empty-message"><p class="empty-message">No replies to show</p></div>');
     }
   };
@@ -849,15 +849,16 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $('#readers').next().find('input.select-all-checkbox').prop('checked', readersCheckboxes.unchecked.length === 0);
     $('#excluded-readers').next().find('input.select-all-checkbox').prop('checked', excludedReadersCheckboxes.unchecked.length === 0);
 
+    var forumReplies = getForumReplies(sm.get('noteRecs'));
     var invitationUnion = getUnion(sm.get('invitationToNotes'), invitationCheckboxes.checked);
     var signatureUnion = getUnion(sm.get('signatureToNotes'), signatureCheckboxes.checked);
     var readerUnion = getUnion(sm.get('readerToNotes'), readersCheckboxes.checked);
-    var excludedReaderUnion = sm.get('forumReplies').filter(function(note) {
+    var excludedReaderUnion = forumReplies.filter(function(note) {
       return _.intersection(note.readers, excludedReadersCheckboxes.checked).length === 0;
     });
 
     var notesToExpand = _.intersectionBy(signatureUnion, invitationUnion, readerUnion, excludedReaderUnion, 'id');
-    var notesToCollapse = _.difference(sm.get('forumReplies'), notesToExpand);
+    var notesToCollapse = _.difference(forumReplies, notesToExpand);
     var parentIdsToShow = getTopLevelNotes(notesToExpand, sm.get('noteIdToNote'));
     filterNotes(notesToExpand, notesToCollapse, parentIdsToShow);
 
@@ -962,8 +963,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     return note.readers;
   };
 
-  // These creates the multiselectors and returns a jQuery object that contains them
-  var getForumFilters = function() {
+  var buildFiltersMaps = function(noteRecs) {
     // Make sure to also include any ids used by the view tabs in the dropdown
     var forumFiltersMap = sm.get('forumFiltersMap');
     var additionalFilters = {};
@@ -974,13 +974,15 @@ module.exports = function(forumId, noteId, invitationId, user) {
       additionalFilters.readers = _.union(additionalFilters.readers, additionalFilters['excluded-readers']);
     }
 
-    var forumReplies = getForumReplies(sm.get('noteRecs'));
-    sm.update('forumReplies', forumReplies);
+    var forumReplies = getForumReplies(noteRecs);
     sm.update('noteIdToNote', _.keyBy(forumReplies, 'id'));
     sm.update('signatureToNotes', createFiltersToNotes(forumReplies, getSignatureFilters, additionalFilters.signatures));
     sm.update('invitationToNotes', createFiltersToNotes(forumReplies, getInvitationFilters, additionalFilters.invitation));
     sm.update('readerToNotes', createFiltersToNotes(forumReplies, getReadersFilters, additionalFilters.readers));
+  };
 
+  // These creates the multiselectors and returns a jQuery object that contains them
+  var getForumFilters = function() {
     var invitationFilters = _.keys(sm.get('invitationToNotes'));
     sortFilters(invitationFilters, [allAfter('decision'), allAfter('review'), allAfter('comment')]);
     var invitationMultiSelector = createMultiSelector(invitationFilters, 'invitations');
