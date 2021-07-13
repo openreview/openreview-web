@@ -84,6 +84,30 @@ module.exports = (function() {
     }).then(jqSuccessCallback, errorCallback);
   };
 
+  var postV2 = function(url, queryObj, options) {
+    var defaults = {
+      handleErrors: true,
+    };
+    options = _.defaults(options, defaults);
+    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
+    var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
+    var baseUrl = window.OR_API_URL_V2 ? window.OR_API_URL_V2 : '';
+    var errorCallback = options.handleErrors ? jqErrorCallback : null;
+
+    return $.ajax({
+      cache: false,
+      dataType: 'json',
+      type: 'post',
+      contentType: 'application/json; charset=UTF-8',
+      url: baseUrl + url,
+      data: JSON.stringify(queryObj),
+      headers: Object.assign(defaultHeaders, authHeaders),
+      xhrFields: {
+        withCredentials: true
+      }
+    }).then(jqSuccessCallback, errorCallback);
+  };
+
   var put = function(url, queryObj, options) {
     var defaults = {
       handleErrors: true,
@@ -265,7 +289,6 @@ module.exports = (function() {
     var invitationV2P = getV2('/invitations', { id: invitationId }, { handleErrors: false })
     return Promise.allSettled([invitationV1P, invitationV2P])
       .then(function(results) {
-        console.log(results)
         if (results[1].value?.invitations?.length) {
           return results[1].value.invitations[0];
         }
@@ -293,11 +316,32 @@ module.exports = (function() {
     options = _.omit(options, 'pageSize');
 
     var urlParams = _.assign({invitation: invitationId}, options);
-    var notesV1P = get('/notes', urlParams);
-    var notesV2P = getV2('/notes', urlParams);
-    return Promise.allSettled([notesV1P, notesV2P])
+    return get('/notes', urlParams)
       .then(function(result) {
-        console.log(result)
+        if (options.includeCount) {
+          return result;
+        } else {
+          return result.notes;
+        }
+      });
+  };
+
+  var getSubmissionsV2 = function(invitationId, options) {
+    // Any url param accepted by /notes can be passed in via the options object
+    var defaults = {
+      details: 'replyCount,invitation,tags',
+      pageSize: 100,
+      offset: 0,
+      includeCount: false
+    };
+    options = _.defaults(options, defaults);
+
+    options.limit = options.pageSize;
+    options = _.omit(options, 'pageSize');
+
+    var urlParams = _.assign({invitation: invitationId}, options);
+    return getV2('/notes', urlParams)
+      .then(function(result) {
         if (options.includeCount) {
           return result;
         } else {
@@ -3898,6 +3942,7 @@ module.exports = (function() {
     get: get,
     getV2: getV2,
     post: post,
+    postV2: postV2,
     put: put,
     delete: xhrDelete,
     getAll: getAll,
@@ -3910,6 +3955,7 @@ module.exports = (function() {
     api: {
       getSubmissionInvitation: getSubmissionInvitation,
       getSubmissions: getSubmissions,
+      getSubmissionsV2: getSubmissionsV2,
       getTagInvitations: getTagInvitations
     },
 

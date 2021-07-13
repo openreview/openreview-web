@@ -374,12 +374,12 @@ baseForum.getInitialProps = async (ctx) => {
     if (process.env.ENABLE_V2_API) {
       const notesV1P = api.get('/notes', queryParam, { accessToken: token })
       const notesV2P = api.getV2('/notes', queryParam, { accessToken: token })
-      const combinedResults = await Promise.all([notesV1P, notesV2P])
-      if (combinedResults[1].notes.length) {
-        result = combinedResults[1]
+      const combinedResults = await Promise.allSettled([notesV1P, notesV2P])
+      if (combinedResults[1].value.notes.length) {
+        result = combinedResults[1].value
         v2 = true
       } else {
-        result = combinedResults[0]
+        result = combinedResults[0].value
       }
     } else {
       result = await api.get('/notes', queryParam, { accessToken: token })

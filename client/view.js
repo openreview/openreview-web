@@ -1476,6 +1476,48 @@ module.exports = (function() {
     return contentInputResult;
   };
 
+  var mkComposerInputV2 = function(fieldName, fieldDescription, fieldValue, params) {
+    var contentInputResult;
+
+    if (fieldName === 'pdf' && fieldDescription['value-regex']) {
+      contentInputResult = mkPdfSection(fieldDescription, fieldValue);
+
+    } else if (fieldName === 'authorids' && (
+      (_.has(fieldDescription, 'values-regex') && isTildeIdAllowed(fieldDescription['values-regex'])) ||
+      _.has(fieldDescription, 'values')
+    )) {
+      var authors;
+      var authorids;
+      if (params && params.note) {
+        authors = params.note.content.authors?.value;
+        authorids = params.note.content.authorids?.value;
+      } else if (params && params.user) {
+        var userProfile = params.user.profile
+        authors = [userProfile.first + ' ' + userProfile.middle + ' ' + userProfile.last];
+        authorids = [userProfile.preferredId];
+      }
+      var invitationRegex = fieldDescription['values-regex'];
+      // Enable allowUserDefined if the values-regex has '~.*|'
+      // Don't enable adding or removing authors if invitation uses 'values' instead of values-regex
+      contentInputResult = valueInput(
+        mkSearchProfile(authors, authorids, {
+          allowUserDefined: invitationRegex && invitationRegex.includes('|'),
+          allowAddRemove: !!invitationRegex
+        }),
+        'authors',
+        fieldDescription
+      );
+
+    } else {
+      contentInputResult = mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
+    }
+
+    if (fieldDescription.hidden === true) {
+      return contentInputResult.hide();
+    }
+    return contentInputResult;
+  };
+
   var mkItem = function(text, f) {
     var $item = $('<div>', {class: 'item', text: text});
 
@@ -1922,8 +1964,8 @@ module.exports = (function() {
     } else if (_.isArray(note.content.authors?.value) && note.content.authors.value.length) {
       // Probably a forum-level note (because it has authors)
       if (_.isArray(note.content.authorids?.value) && note.content.authorids.value.length) {
-        authorText = note.content.authors?.values?.map(function(a, i) {
-          var aId = note.content.authorids.values[i];
+        authorText = note.content.authors?.value?.map(function(a, i) {
+          var aId = note.content.authorids.value[i];
           if (!aId) {
             return a;
           }
@@ -2998,7 +3040,7 @@ module.exports = (function() {
       return id;
 
     } else {
-      var tokens = id.split('/');
+      var tokens = id.replace('${note.number}','').split('/');
       if (onlyLast) {
         var sliceIndex = _.findIndex(tokens, function(token) {
           return token.match(/^[pP]aper\d+$/);
@@ -3394,7 +3436,7 @@ module.exports = (function() {
   };
 
   var getReaders = function(widget, invitation, signatures) {
-    var readers = invitation.edit ? invitation.edit.note.readers : invitation.reply.readers
+    var readers = invitation.edit ? invitation.edit.readers : invitation.reply.readers
     var inputValues = idsFromListAdder(widget, readers);
 
     var invitationValues = [];
@@ -3449,7 +3491,7 @@ module.exports = (function() {
 
   var mkNewNoteEditor = function(invitation, forum, replyto, user, options) {
     if(invitation.edit){
-      console.log('123')
+      mkNewNoteEditorV2(invitation, forum, replyto, user, options);
       return
     }
 
@@ -3650,12 +3692,6 @@ module.exports = (function() {
   };
 
   var mkNewNoteEditorV2 = function(invitation, forum, replyto, user, options) {
-    console.log(invitation)
-    if(invitation.edit){
-      console.log('123')
-      return
-    }
-
     var params = _.assign({
       onNoteCreated: null,
       onCompleted: null,
@@ -3673,9 +3709,9 @@ module.exports = (function() {
       return;
     }
 
-    var contentOrder = order(invitation.reply.content, invitation.id);
+    var contentOrder = order(invitation.edit?.note?.content, invitation.id);
     var $contentMap = _.reduce(contentOrder, function(ret, k) {
-      ret[k] = mkComposerInput(k, invitation.reply.content[k], invitation.reply.content[k].default || '', { useDefaults: true, user: user });
+      ret[k] = mkComposerInputV2(k, invitation.edit?.note?.content?.[k]?.value, invitation.edit?.note?.content?.[k]?.value?.default || '', { useDefaults: true, user: user });
       return ret;
     }, {});
 
@@ -3698,7 +3734,7 @@ module.exports = (function() {
 
         var content = getContent(invitation, $contentMap);
 
-        var signatureInputValues = idsFromListAdder(signatures, invitation.reply.signatures);
+        var signatureInputValues = idsFromListAdder(signatures, invitation.edit.signatures);
         var readerValues = getReaders(readers, invitation, signatureInputValues);
         var nonReadersValues = null;
         if (_.has(invitation, 'reply.nonreaders.values')) {
@@ -3726,14 +3762,16 @@ module.exports = (function() {
         }
 
         var note = {
-          content: content[0],
+          note: {
+            content: content[0],
+            forum: forum || invitation.edit?.note?.forum,
+            replyto: replyto || invitation.edit?.note?.replyto,
+          },
           readers: readerValues,
           nonreaders: nonReadersValues,
           signatures: signatureInputValues,
           writers: writerValues,
           invitation: invitation.id,
-          forum: forum || invitation.reply.forum,
-          replyto: replyto || invitation.reply.replyto
         };
 
         if (_.isEmpty(files)) {
@@ -3796,7 +3834,7 @@ module.exports = (function() {
       var saveNote = function(note) {
         // apply any 'value-copied' fields
         note = getCopiedValues(note, invitation.reply);
-        Webfield.post('/notes', note, { handleError: false }).then(function(result) {
+        Webfield.postV2('/notes/edits', note, { handleError: false }).then(function(result) {
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
           }
@@ -3837,11 +3875,11 @@ module.exports = (function() {
       }
     };
 
-    buildReaders(invitation.reply.readers, [], parentId, function (readers, error) {
+    buildReadersV2(invitation.edit.note.readers, [], parentId, function (readers, error) {
       if (error) {
         return handleError(error);
       }
-      buildSignatures(invitation.reply.signatures, invitation.reply.signatures.default || [], user).then(function (signatures) {
+      buildSignatures(invitation.edit?.signatures, invitation.edit?.signatures?.default || [], user).then(function (signatures) {
         buildEditor(readers, signatures);
       }).fail(function(error) {
         error = error === 'no_results' ?
@@ -4004,6 +4042,163 @@ module.exports = (function() {
         });
     } else {
       var $readers = mkComposerInput('readers', fieldDescription, fieldValue);
+      $readers.find('.small_heading').prepend(requiredText);
+      done($readers);
+    }
+  }
+
+  function buildReadersV2(fieldDescription, fieldValue, replyto, done) {
+    var requiredText = $('<span>', { text: '*', class: 'required_field' });
+    var setParentReaders = function(parent, fieldDescription, fieldType, done) {
+      if (parent) {
+        Webfield.getV2('/notes', { id: parent }).then(function(result) {
+          var newFieldDescription = fieldDescription;
+          if (result.notes.length) {
+            var parentReaders = result.notes[0].readers;
+            if (!_.includes(parentReaders, 'everyone')) {
+              newFieldDescription = {
+                description: fieldDescription.description,
+                default: fieldDescription.default
+              };
+              newFieldDescription[fieldType] = parentReaders;
+              if (!fieldValue.length) {
+                fieldValue = newFieldDescription[fieldType];
+              }
+            }
+          }
+          done(newFieldDescription);
+        });
+      } else {
+        done(fieldDescription);
+      }
+    };
+
+    if (_.has(fieldDescription, 'values-regex')) {
+      Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleError: false }).then(function(result) {
+        if (_.isEmpty(result.groups)) {
+          done(undefined, 'no_results');
+        } else {
+          var everyoneList = _.filter(result.groups, function(g) {
+            return g.id === 'everyone';
+          });
+          var restOfList = _.sortBy(_.filter(result.groups, function(g) {
+            return g.id !== 'everyone';
+          }), function(g) {
+            return g.id;
+          });
+
+          var $readers = mkComposerInputV2('readers', fieldDescription, fieldValue, { groups: everyoneList.concat(restOfList)});
+          $readers.find('.small_heading').prepend(requiredText);
+          done($readers);
+        }
+      }, function(error) {
+        done(undefined, error);
+      });
+    } else if (_.has(fieldDescription, 'values-dropdown')) {
+      var values = fieldDescription['values-dropdown'];
+      var extraGroupsP = $.Deferred().resolve([]);
+      var regexIndex = _.findIndex(values, function(g) { return g.indexOf('.*') >=0; });
+      if (regexIndex >= 0) {
+        var regex = values[regexIndex];
+        extraGroupsP = Webfield.get('/groups', { regex: regex })
+        .then(function(result) {
+          if (result.groups && result.groups.length) {
+            var groups = result.groups.map(function(g) { return g.id; });
+            fieldDescription['values-dropdown'] = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
+          } else {
+            fieldDescription['values-dropdown'].splice(regexIndex, 1);
+          }
+          return result.groups;
+        });
+      }
+      extraGroupsP
+        .then(function(groups) {
+          setParentReaders(replyto, fieldDescription, 'values-dropdown', function (newFieldDescription) {
+            //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
+            var replyValues = _.intersection(newFieldDescription['values-dropdown'], fieldDescription['values-dropdown']);
+
+            //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
+            var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
+            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_');  });
+            if (hasReviewers && !hasAnonReviewers) {
+              fieldDescription['values-dropdown'].forEach(function(value) {
+                if (value.includes('AnonReviewer') || value.includes('Reviewer_')) {
+                  replyValues.push(value);
+                }
+              });
+            }
+
+            newFieldDescription['values-dropdown'] = replyValues;
+            if (_.difference(newFieldDescription.default, newFieldDescription['values-dropdown']).length !== 0) { //invitation default is not in list of possible values
+              done(undefined, 'Default reader is not in the list of readers');
+            }
+            var $readers = mkComposerInputV2('readers', newFieldDescription, fieldValue);
+            $readers.find('.small_heading').prepend(requiredText);
+            done($readers);
+          });
+        });
+
+    } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
+      setParentReaders(replyto, fieldDescription, 'value-dropdown-hierarchy', function(newFieldDescription) {
+        var $readers = mkComposerInputV2('readers', newFieldDescription, fieldValue);
+        $readers.find('.small_heading').prepend(requiredText);
+        done($readers);
+      });
+    } else if (_.has(fieldDescription, 'values')) {
+      setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
+        if (_.isEqual(newFieldDescription.values, fieldDescription.values)
+          || fieldDescription.values.every(function (val) { return newFieldDescription.values.indexOf(val) !== -1; })) {
+          var $readers = mkComposerInputV2('readers', fieldDescription, fieldValue); //for values, readers must match with invitation instead of parent invitation
+          $readers.find('.small_heading').prepend(requiredText);
+          done($readers);
+        } else {
+          done(undefined, 'Can not create note, readers must match parent note');
+        }
+      });
+    } else if (_.has(fieldDescription, 'values-checkbox')) {
+      var initialValues = fieldDescription['values-checkbox'];
+      var promise = $.Deferred().resolve();
+      var index = _.findIndex(initialValues, function(g) { return g.indexOf('.*') >=0; });
+      if (index >= 0) {
+        var regexGroup = initialValues[index];
+        promise = Webfield.get('/groups', { regex: regexGroup })
+        .then(function(result) {
+          if (result.groups && result.groups.length) {
+            var groups = result.groups.map(function(g) { return g.id; });
+            fieldDescription['values-checkbox'] = initialValues.slice(0, index).concat(groups, initialValues.slice(index + 1));
+          } else {
+            fieldDescription['values-checkbox'].splice(index, 1);
+          }
+        });
+      }
+      promise
+        .then(function() {
+          setParentReaders(replyto, fieldDescription, 'values-checkbox', function (newFieldDescription) {
+            //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
+            var replyValues = _.intersection(newFieldDescription['values-checkbox'], fieldDescription['values-checkbox']);
+
+            //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
+            var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
+            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_'); });
+            if (hasReviewers && !hasAnonReviewers) {
+              fieldDescription['values-checkbox'].forEach(function(value) {
+                if (value.includes('AnonReviewer') || v.includes('/Reviewer_')) {
+                  replyValues.push(value);
+                }
+              });
+            }
+
+            newFieldDescription['values-checkbox'] = replyValues;
+            if (_.difference(newFieldDescription.default, newFieldDescription['values-checkbox']).length !== 0) { //invitation default is not in list of possible values
+              done(undefined, 'Default reader is not in the list of readers');
+            }
+            var $readers = mkComposerInputV2('readers', newFieldDescription, fieldValue.length ? fieldValue : newFieldDescription.default, { prettyId: true});
+            $readers.find('.small_heading').prepend(requiredText);
+            done($readers);
+          });
+        });
+    } else {
+      var $readers = mkComposerInputV2('readers', fieldDescription, fieldValue);
       $readers.find('.small_heading').prepend(requiredText);
       done($readers);
     }
@@ -4305,7 +4500,7 @@ module.exports = (function() {
     var contentOrder = order(invitation.edit.note.content, invitation.id);
     var $contentMap = _.reduce(contentOrder, function(map, fieldName) {
       var fieldContent = _.get(note, ['content', fieldName, 'value'], '');
-      map[fieldName] = mkComposerInput(fieldName, invitation.edit.note.content[fieldName].value, fieldContent, { note: note, useDefaults: true });
+      map[fieldName] = mkComposerInputV2(fieldName, invitation.edit.note.content[fieldName].value, fieldContent, { note: note, useDefaults: true });
       return map;
     }, {});
 
@@ -4331,7 +4526,7 @@ module.exports = (function() {
         var signatureInputValues = idsFromListAdder(signatures, invitation.edit.signatures);
         var readerValues = getReaders(readers, invitation, signatureInputValues);
         var nonreaderValues = null;
-        if (_.has(invitation, 'reply.nonreaders.values')) {
+        if (_.has(invitation, 'edit.nonreaders.values')) {
           nonreaderValues = invitation.reply.nonreaders.values;
         }
         var writerValues = getWriters(invitation, signatureInputValues, user);
@@ -4357,12 +4552,14 @@ module.exports = (function() {
           note :{
             content:Object.entries(content[0]).reduce((acc, v) => { acc[v[0]] = { value: v[1] }; return acc }, {})
           },
-          readers: readerValues,
+          readers: (invitation.edit.note?.readers?.values || invitation.edit.note?.readers?.value) ? undefined : readerValues,
           nonreaders: nonreaderValues,
           signatures: signatureInputValues,
-          writers: writerValues,
+          writers: (invitation.edit.note?.writers?.values || invitation.edit.note?.writers?.value) ? undefined : writerValues,
           invitation: invitation.id
         };
+
+        console.log(editNote);
 
         if (invitation.edit?.note?.forum?.value) {
           editNote.forum = note.forum || invitation.edit?.note?.forum?.value
@@ -4372,12 +4569,12 @@ module.exports = (function() {
         }
 
         if (invitation.edit?.note?.id?.value || invitation.edit?.note?.reply?.referentInvitation) {
-          editNote.referent = invitation.edit?.note?.id?.value || note.id;
+          editNote.note.referent = invitation.edit?.note?.id?.value || note.id;
           if (note.updateId) {
-            editNote.id = note.updateId;
+            editNote.note.id = note.updateId;
           }
         } else {
-          editNote.id = note.id;
+          editNote.note.id = note.id;
         }
 
         if (_.isEmpty(files)) {
@@ -4487,11 +4684,11 @@ module.exports = (function() {
         promptError(error);
       }
     };
-    buildReaders(invitation.edit.note.readers, note.readers, parentId, function(readers, error) {
+    buildReadersV2(invitation.edit.note.readers, note.readers, parentId, function(readers, error) {
       if (error) {
         return handleError(error);
       }
-      buildSignatures(invitation.edit.signatures, note.signatures, user).then(function(signatures) {
+      buildSignatures(invitation.edit?.signatures, note.signatures, user).then(function(signatures) {
         buildEditor(readers, signatures);
       }).fail(function(error) {
         error = error === 'no_results' ?
@@ -4709,6 +4906,7 @@ module.exports = (function() {
     mkComposerInput: mkComposerInput,
     mkComposerContentInput: mkComposerContentInput,
     mkNewNoteEditor: mkNewNoteEditor,
+    mkNewNoteEditorV2: mkNewNoteEditorV2,
     mkNoteEditor: mkNoteEditor,
     mkNoteEditorV2: mkNoteEditorV2,
     mkNotePanel: mkNotePanel,
