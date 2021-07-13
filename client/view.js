@@ -2611,7 +2611,7 @@ module.exports = (function() {
         $trashButton = $('<button id="trashbutton_' + note.id + '" class="btn btn-xs trash_button">' + buttonContent + '</button>');
         $trashButton.click(function() {
           var noteToDelete = details.originalWritable ? details.original : note;
-          deleteOrRestoreNote(noteToDelete, titleText, params.user, params.onTrashedOrRestored);
+          deleteOrRestoreNoteV2(noteToDelete, titleText, params.user, params.onTrashedOrRestored);
         });
       }
 
@@ -2945,6 +2945,68 @@ module.exports = (function() {
       });
   };
 
+  var deleteOrRestoreNoteV2 = function(note, noteTitle, user, onTrashedOrRestored) {
+    var newNote = {
+      note: {
+        id: note.id,
+        content:note.content,
+        readers: note.readers,
+        writers: note.writers,
+        nonreaders: note.nonreaders,
+        signatures: note.signatures,
+      },
+      invitation: note.invitation,
+      signatures: note.signatures,
+     };
+    var isDeleted = note.ddate && note.ddate < Date.now();
+
+    if (isDeleted) {
+      // Restore deleted note
+      newNote.note.ddate = null;
+      return Webfield.postV2('/notes/edits', newNote, null, function(jqXhr, error) {
+        promptError(error, { scrollToTop: false });
+      }, true).then(function(updatedNote) {
+        onTrashedOrRestored(Object.assign(newNote, updatedNote));
+      });
+    }
+
+    var postUpdatedNote = function($signaturesDropdown) {
+      var newSignatures = idsFromListAdder($signaturesDropdown, {});
+      if (!newSignatures || !newSignatures.length) {
+        newSignatures = [user.profile.id];
+      }
+      newNote.signatures = newSignatures;
+      newNote.note.ddate = Date.now();
+      Webfield.postV2('/notes/edits', newNote, null, function(jqXhr, error) {
+        promptError(error, { scrollToTop: false });
+      }, true).then(function(updatedNote) {
+        onTrashedOrRestored(Object.assign(newNote, updatedNote));
+      });
+    };
+
+    return loadSignaturesDropdownV2(note.invitation, note.signatures, user)
+      .then(function($signaturesDropdown) {
+        // If there's only 1 signature available don't show the modal
+        if (!$signaturesDropdown.find('div.dropdown').length) {
+          postUpdatedNote($signaturesDropdown);
+          return;
+        }
+
+        showConfirmDeleteModal({...newNote.note,signatures:note.signatures}, noteTitle, $signaturesDropdown);
+
+        $('#confirm-delete-modal .modal-footer .btn-primary').on('click', function() {
+          postUpdatedNote($signaturesDropdown);
+          $('#confirm-delete-modal').modal('hide');
+        });
+      })
+      .fail(function(error) {
+        var errorToDisplay = error === 'no_results' ?
+          'You do not have permission to delete this note' :
+          error;
+        promptError(errorToDisplay, { scrollToTop: false });
+      });
+  };
+
   var showConfirmDeleteModal = function(note, noteTitle, $signaturesDropdown) {
     $('#confirm-delete-modal').remove();
 
@@ -2976,6 +3038,18 @@ module.exports = (function() {
         }
 
         return buildSignatures(result.invitations[0].reply.signatures, noteSignatures, user);
+      });
+  };
+
+  var loadSignaturesDropdownV2 = function(invitationId, noteSignatures, user) {
+    return Webfield.getV2('/invitations', { id: invitationId })
+      .then(function(result) {
+        if (!result.invitations || !result.invitations.length) {
+          promptError('Could not load invitation ' + invitationId);
+          return $.Deferred().reject();
+        }
+
+        return buildSignatures(result.invitations[0].edit?.signatures, noteSignatures, user);
       });
   };
 
@@ -3737,7 +3811,7 @@ module.exports = (function() {
         var signatureInputValues = idsFromListAdder(signatures, invitation.edit.signatures);
         var readerValues = getReaders(readers, invitation, signatureInputValues);
         var nonReadersValues = null;
-        if (_.has(invitation, 'reply.nonreaders.values')) {
+        if (_.has(invitation, 'edit.nonreaders.values')) {
           nonReadersValues = invitation.reply.nonreaders.values;
         }
         // TODO: Temporary ICLR hack
@@ -3763,14 +3837,14 @@ module.exports = (function() {
 
         var note = {
           note: {
-            content: content[0],
+            content: Object.entries(content[0]).reduce((acc, v) => { acc[v[0]] = { value: v[1] }; return acc }, {}),
             forum: forum || invitation.edit?.note?.forum,
             replyto: replyto || invitation.edit?.note?.replyto,
           },
-          readers: readerValues,
+          readers: (invitation.edit.note?.readers?.values || invitation.edit.note?.readers?.value) ? undefined : readerValues,
           nonreaders: nonReadersValues,
           signatures: signatureInputValues,
-          writers: writerValues,
+          writers: (invitation.edit.note?.writers?.values || invitation.edit.note?.writers?.value) ? undefined : writerValues,
           invitation: invitation.id,
         };
 
@@ -4559,14 +4633,12 @@ module.exports = (function() {
           invitation: invitation.id
         };
 
-        console.log(editNote);
-
-        if (invitation.edit?.note?.forum?.value) {
-          editNote.forum = note.forum || invitation.edit?.note?.forum?.value
-        }
-        if (invitation.edit?.note?.forum?.replyto) {
-          editNote.replyto = note.replyto || invitation.edit?.note?.replyto?.value || invitation.edit?.note?.forum?.value
-        }
+        // if (invitation.edit?.note?.forum?.value) {
+        //   editNote.note.forum = note.forum || invitation.edit?.note?.forum?.value
+        // }
+        // if (invitation.edit?.note?.forum?.replyto) {
+        //   editNote.note.replyto = note.replyto || invitation.edit?.note?.replyto?.value || invitation.edit?.note?.forum?.value
+        // }
 
         if (invitation.edit?.note?.id?.value || invitation.edit?.note?.reply?.referentInvitation) {
           editNote.note.referent = invitation.edit?.note?.id?.value || note.id;
