@@ -8,7 +8,8 @@ const middleNameInputSelector = Selector('#middle-input')
 const lastNameInputSelector = Selector('#last-input')
 const emailAddressInputSelector = Selector('input').withAttribute('placeholder', 'Email address')
 const signupButtonSelector = Selector('button').withText('Sign Up')
-const passwordInputSelector = Selector('input').withAttribute('placeholder', 'Password')
+const newPasswordInputSelector = Selector('input').withAttribute('placeholder', 'New Password')
+const confirmPasswordInputSelector = Selector('input').withAttribute('placeholder', 'Confirm New Password')
 const sendActivationLinkButtonSelector = Selector('button').withText('Send Activation Link')
 const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
 const messageSelector = Selector('span').withAttribute('class', 'important_message')
@@ -27,17 +28,15 @@ test('create new profile', async (t) => {
     .typeText(lastNameInputSelector, 'Bok')
     .typeText(emailAddressInputSelector, 'melisa@test.com')
     .click(signupButtonSelector)
-    .expect(passwordInputSelector.exists)
-    .ok()
-    .typeText(passwordInputSelector, '1234')
+    .expect(newPasswordInputSelector.exists).ok()
+    .expect(confirmPasswordInputSelector.exists).ok()
+    .typeText(newPasswordInputSelector, '1234')
+    .typeText(confirmPasswordInputSelector, '1234')
     .click(signupButtonSelector)
-    .expect(Selector('.modal-title').withText('Confirm Full Name').exists)
-    .ok()
+    .expect(Selector('.modal-title').withText('Confirm Full Name').exists).ok()
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
-    .expect(Selector('h1').withText('Thank You for Signing Up').exists)
-    .ok()
-    .expect(Selector('span').withAttribute('class', 'email').innerText)
-    .eql('melisa@test.com')
+    .expect(Selector('h1').withText('Thank You for Signing Up').exists).ok()
+    .expect(Selector('span').withAttribute('class', 'email').innerText).eql('melisa@test.com')
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages({ to: 'melisa@test.com' }, superUserToken)
@@ -49,8 +48,7 @@ test('enter invalid name', async (t) => {
     .typeText(firstNameInputSelector, 'abc')
     .typeText(lastNameInputSelector, '1')
     .expect(Selector('.important_message').exists).ok()
-    .expect(Selector('.important_message').textContent)
-    .eql('The last name 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed')
+    .expect(Selector('.important_message').textContent).eql('The last name 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed')
 })
 
 test('enter valid name invalid email and change to valid email and register', async (t) => {
@@ -62,19 +60,18 @@ test('enter valid name invalid email and change to valid email and register', as
     .typeText(lastNameInputSelector, lastName) // must be new each test run
     .typeText(emailAddressInputSelector, `${email}@test.com`)
     .click(signupButtonSelector)
-    .expect(passwordInputSelector.exists)
-    .notOk() // password input should not show when email is invalid
+    .expect(newPasswordInputSelector.exists).notOk() // password input should not show when email is invalid
   await t
     .typeText(emailAddressInputSelector, email, { replace: true }) // enter a valid email
     .click(signupButtonSelector)
-    .expect(passwordInputSelector.exists).ok()
-    .typeText(passwordInputSelector, '1234')
+    .expect(newPasswordInputSelector.exists).ok()
+    .expect(confirmPasswordInputSelector.exists).ok()
+    .typeText(newPasswordInputSelector, '1234')
+    .typeText(confirmPasswordInputSelector, '1234')
     .click(signupButtonSelector)
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
-    .expect(Selector('h1').withText('Thank You for Signing Up').exists)
-    .ok()
-    .expect(Selector('span').withAttribute('class', 'email').innerText)
-    .eql(email)
+    .expect(Selector('h1').withText('Thank You for Signing Up').exists).ok()
+    .expect(Selector('span').withAttribute('class', 'email').innerText).eql(email)
 })
 
 fixture`Resend Activation link`
