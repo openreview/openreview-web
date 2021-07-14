@@ -8,14 +8,14 @@
     {{#unless hideSelectAll}}
       <li class="select-all-item">
         <label>
-          <input class="select-all-checkbox" type="checkbox" checked/> Select All
+          <input class="select-all-checkbox" type="checkbox" {{#unless defaultUnchecked}}checked{{/unless}}/> Select All
         </label>
       </li>
     {{/unless}}
     {{#each htmlFilters}}
       <li>
         <label>
-          <input class="{{../id}}-multiselector-checkbox" type="checkbox" value="{{valueFilter}}" checked/> {{textFilter}}
+          <input class="{{../id}}-multiselector-checkbox" type="checkbox" value="{{valueFilter}}" {{#unless ../defaultUnchecked}}checked{{/unless}}/> {{textFilter}}
         </label>
       </li>
     {{/each}}

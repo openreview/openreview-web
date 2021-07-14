@@ -1699,9 +1699,9 @@ module.exports = (function() {
     $fileSection.append(mkAttachmentSection(fieldName, fieldDescription, fieldValue).children());
   };
 
-  var prettyReadersList = function(readers) {
+  var prettyReadersList = function(readers, dontShowGlobe) {
     var readersHtml;
-    if (readers.indexOf('everyone') > -1) {
+    if (readers.indexOf('everyone') > -1 && !dontShowGlobe) {
       readersHtml = '<span class="readers-icon glyphicon glyphicon-globe"></span> Everyone';
     } else {
       var formattedReaders = [];
@@ -1910,7 +1910,7 @@ module.exports = (function() {
         return;
       }
 
-      var invitationField = (invitation && invitation.reply?.content?.[fieldName]) || {};
+      var invitationField = invitation?.reply?.content?.[fieldName] ?? {};
 
       // Build download links
       if (valueString.indexOf('/attachment/') === 0) {
@@ -2048,7 +2048,8 @@ module.exports = (function() {
       withModificationDate: false,
       withDateTime: false,
       withBibtexLink: true,
-      readOnlyTags: false
+      readOnlyTags: false,
+      newLayout: false,
     }, options);
     var $note = $('<div>', {id: 'note_' + note.id, class: 'note panel'});
     var forumId = note.forum;
@@ -2058,9 +2059,11 @@ module.exports = (function() {
     if (notePastDue) {
       $note.addClass('trashed');
     }
-
     if (note.content._disableTexRendering) {
       $note.addClass('disable-tex-rendering');
+    }
+    if (params.newLayout) {
+      $note.addClass('new-layout');
     }
 
     var generatedTitleText = generateNoteTitle(note.invitation, note.signatures);
@@ -2153,35 +2156,62 @@ module.exports = (function() {
       );
     }
 
+    // Meta Info Row
+    var $metaEditRow = $('<div>', {class: 'meta_row'});
+    var formattedDate = forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year);
+    var $replyCountLabel = (params.withReplyCount && details.replyCount) ?
+      $('<span>', {class: 'item'}).text(details.replyCount === 1 ? '1 Reply' : details.replyCount + ' Replies') :
+      null;
     var $revisionsLink = (params.withRevisionsLink && details.revisions) ?
       $('<a>', { class: 'note_content_pdf item', href: '/revisions?id=' + note.id, text: 'Show Revisions' }) :
       null;
-
     // Display modal showing full BibTeX reference. Click handler is definied in public/index.js
     var $bibtexLink = (note.content._bibtex && params.withBibtexLink) ?
       $('<span class="item"><a href="#" data-target="#bibtex-modal" data-toggle="modal" data-bibtex="' + encodeURIComponent(note.content._bibtex) + '">Show Bibtex</a></span>') :
       null;
 
-    var $metaEditRow = $('<div>', {class: 'meta_row'});
-    var formattedDate = forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year);
-    var $dateItem = (!notePastDue || details.writable) ?
-      $('<span>', {class: 'date item'}).text(formattedDate) :
-      null;
-    var $invItem = $('<span>', {class: 'item'}).text(options.isReference ? prettyId(note.invitation) : note.content.venue || prettyId(note.invitation));
-    var $readersItem = _.has(note, 'readers') ?
-      $('<span>', {class: 'item'}).html('Readers: ' + prettyReadersList(note.readers)) :
-      null;
-    var $replyCountLabel = (params.withReplyCount && details.replyCount) ?
-      $('<span>', {class: 'item'}).text(details.replyCount === 1 ? '1 Reply' : details.replyCount + ' Replies') :
-      null;
-    $metaEditRow.append(
-      $dateItem,
-      $invItem,
-      $readersItem,
-      $replyCountLabel,
-      $bibtexLink,
-      $revisionsLink
-    );
+    var $dateItem = null;
+    var $invItem = null;
+    var $readersItem = null;
+    var prettyInv = prettyInvitationId(note.invitation);
+    if (params.newLayout) {
+      $dateItem = !notePastDue ?
+        $('<span>', { class: 'date item', 'data-toggle': 'tooltip', 'data-placement': 'top', title: 'Date Created' }).text(formattedDate) :
+        null;
+      $invItem = $('<span>', { class: 'item highlight', 'data-toggle': 'tooltip', 'data-placement': 'top', title: 'Reply Type' })
+        .text(options.isReference ? prettyInv : note.content.venue || prettyInv)
+        .css(getInvitationColors(prettyInv));
+      $readersItem = $('<span>', { class: 'item' }).append(
+        '<span class="glyphicon glyphicon-eye-open" data-toggle="tooltip" data-placement="top" title="Reply Visibility" aria-hidden="true"></span>',
+        ' ',
+        prettyReadersList(note.readers, true)
+      );
+      $metaEditRow.append(
+        $invItem,
+        $dateItem,
+        $readersItem,
+        $replyCountLabel,
+        $bibtexLink,
+        $revisionsLink
+      );
+    } else {
+      $dateItem = (!notePastDue || details.writable) ?
+        $('<span>', {class: 'date item'}).text(formattedDate) :
+        null;
+      $invItem = $('<span>', {class: 'item'})
+        .text(options.isReference ? prettyId(note.invitation) : note.content.venue || prettyId(note.invitation));
+      $readersItem = _.has(note, 'readers') ?
+        $('<span>', {class: 'item'}).html('Readers: ' + prettyReadersList(note.readers)) :
+        null;
+      $metaEditRow.append(
+        $dateItem,
+        $invItem,
+        $readersItem,
+        $replyCountLabel,
+        $bibtexLink,
+        $revisionsLink
+      );
+    }
 
     var $metaActionsRow = null;
     var $modifiableOriginalButton = null;
@@ -3727,6 +3757,35 @@ module.exports = (function() {
     return $('<span>', {class: 'important_message'}).text(text);
   };
 
+  // Temporarily duplicated from forum-utils.js
+  // TODO: remove this function when new forum launches
+  var getInvitationColors = function(prettyId) {
+    const styleMap = {
+      Comment: { backgroundColor: '#bfb', color: '#2c3a4a' },
+      'Public Comment': { backgroundColor: '#bfb', color: '#2c3a4a' }, // Same as Comment
+      'Official Comment': { backgroundColor: '#bbf', color: '#2c3a4a' },
+      Review: { backgroundColor: '#fbb', color: '#2c3a4a' },
+      'Official Review': { backgroundColor: '#fbb', color: '#2c3a4a' }, // Same as Review
+      'Meta Review': { backgroundColor: '#fbf', color: '#2c3a4a' },
+      'Secondary Meta Review': { backgroundColor: '#fbf', color: '#2c3a4a' }, // Same as Meta Review
+      Decision: { backgroundColor: '#bff', color: '#2c3a4a' },
+    }
+    if (styleMap[prettyId]) {
+      return styleMap[prettyId]
+    }
+
+    let sum = 0
+    for (let i = 0; i < prettyId.length; i += 1) {
+      sum += prettyId.charCodeAt(i)
+    }
+
+    const additionalColors = [
+      '#8cf', '#8fc', '#8ff', '#8cc', '#fc8', '#f8c', '#cf8', '#c8f', '#cc8', '#ccf',
+    ]
+    const selectedColor = additionalColors[sum % additionalColors.length]
+    return { backgroundColor: selectedColor, color: '#2c3a4a' }
+  };
+
   var getNoteCreationDate = function(note) {
     // Priority order
     // note.cdate
@@ -3819,7 +3878,8 @@ module.exports = (function() {
     iMess: iMess,
     getCopiedValues : getCopiedValues,
     freeTextTagWidgetLabel: freeTextTagWidgetLabel,
-    setupMarked: setupMarked
+    setupMarked: setupMarked,
+    getInvitationColors: getInvitationColors
   };
 
 }());

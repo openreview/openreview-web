@@ -180,7 +180,7 @@ $(document).on('click', function(event) {
 });
 
 $('#content').on('focusout', '.dropdown_content', (e) => {
-  if (e.target.nextSibling === null && e.relatedTarget.nextSibling === null) {
+  if (e.target.nextSibling === null && !$(e.relatedTarget?.parentElement).hasClass('dropdown_content')) {
     $('.dropdown .dropdown_content').hide();
   }
 });
