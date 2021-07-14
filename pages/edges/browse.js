@@ -108,6 +108,7 @@ const Browse = ({ appContext }) => {
             head: fullInvitation.reply.content.head,
             tail: fullInvitation.reply.content.tail,
             weight: fullInvitation.reply.content.weight,
+            defaultWeight: fullInvitation.reply.content.weight?.default,
             label: fullInvitation.reply.content.label,
             readers,
             writers,
