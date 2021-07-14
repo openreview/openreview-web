@@ -2946,10 +2946,13 @@ module.exports = (function() {
   };
 
   var deleteOrRestoreNoteV2 = function(note, noteTitle, user, onTrashedOrRestored) {
+    var invitation = note.details.invitation;
     var newNote = {
       note: {
         id: note.id,
         content:note.content,
+        forum: note.forum,
+        replyto: note.replyto,
         readers: note.readers,
         writers: note.writers,
         nonreaders: note.nonreaders,
@@ -2957,16 +2960,17 @@ module.exports = (function() {
       },
       invitation: note.invitation,
       signatures: note.signatures,
+      readers: (invitation?.edit?.note?.readers?.values || invitation?.edit?.readers?.value) ? undefined : note.readers,
+      writers: (invitation?.edit?.note?.writers?.values || invitation?.edit?.writers?.value) ? undefined : note.writers,
      };
     var isDeleted = note.ddate && note.ddate < Date.now();
 
     if (isDeleted) {
       // Restore deleted note
       newNote.note.ddate = null;
-      return Webfield.postV2('/notes/edits', newNote, null, function(jqXhr, error) {
-        promptError(error, { scrollToTop: false });
-      }, true).then(function(updatedNote) {
-        onTrashedOrRestored(Object.assign(newNote, updatedNote));
+      return Webfield.postV2('/notes/edits', newNote, null).then(function() {
+        // the return of the post is edit without updatednote
+        onTrashedOrRestored();
       });
     }
 
@@ -2977,10 +2981,9 @@ module.exports = (function() {
       }
       newNote.signatures = newSignatures;
       newNote.note.ddate = Date.now();
-      Webfield.postV2('/notes/edits', newNote, null, function(jqXhr, error) {
-        promptError(error, { scrollToTop: false });
-      }, true).then(function(updatedNote) {
-        onTrashedOrRestored(Object.assign(newNote, updatedNote));
+      Webfield.postV2('/notes/edits', newNote, null).then(function() {
+        // the return of the post is edit without updatednote
+        onTrashedOrRestored();
       });
     };
 
@@ -4383,7 +4386,6 @@ module.exports = (function() {
         $cancelButton.prop('disabled', true);
 
         var content = getContent(invitation, $contentMap);
-        console.log(content)
 
         var signatureInputValues = idsFromListAdder(signatures, invitation.reply.signatures);
         var readerValues = getReaders(readers, invitation, signatureInputValues);
