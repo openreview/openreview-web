@@ -2532,7 +2532,7 @@ module.exports = (function() {
   var invitationInfo = function(invitation, options) {
     var defaults = {
       container: '#notes',
-      showAddForm: true
+      apiVersion: 1,
     };
     options = _.defaults(options, defaults);
 
@@ -2542,11 +2542,11 @@ module.exports = (function() {
     $container.empty().append(Handlebars.templates['partials/invitationInfo']({
       invitation: invitation,
       parentGroupId: parentGroupId,
-      replyJson: JSON.stringify(invitation.reply, undefined, 4),
+      replyJson: JSON.stringify(options.apiVersion === 2 ? invitation.edit : invitation.reply, undefined, 4),
       options: {}
     }));
 
-    loadChildInvitations(invitation.id);
+    loadChildInvitations(invitation.id, options.apiVersion);
   };
 
   var invitationEditor = function(invitation, options) {
