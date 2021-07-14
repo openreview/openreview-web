@@ -256,7 +256,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       },
       onTrashedOrRestored: function(newNote) {
         sm.update('noteRecs', _.map(sm.get('noteRecs'), function(oldRec) {
-          return oldRec.note.id === newNote.id ?
+          return oldRec.note.id === newNote.note.id ?
             Object.assign(oldRec, { note: newNote }) :
             oldRec;
         }));
