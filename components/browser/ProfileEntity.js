@@ -30,12 +30,18 @@ export default function ProfileEntity(props) {
     browseEdges,
     traverseEdgesCount,
   } = props.profile
-  const { editInvitations, availableSignaturesInvitationMap, traverseInvitation } = useContext(EdgeBrowserContext)
+  const {
+    editInvitations,
+    availableSignaturesInvitationMap,
+    traverseInvitation,
+    browseInvitations,
+  } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
 
   const metadata = props.profile.metadata || {}
   const extraClasses = []
-  const customLoad = [...browseEdges || [], ...editEdges || []].find(p => p.invitation.includes('Custom_Max_Papers'))?.weight
+  const defaultWeight = [...editInvitations, ...browseInvitations].find(p => p.id.includes('Custom_Max_Papers'))?.defaultWeight
+  const customLoad = [...browseEdges || [], ...editEdges || []].find(p => p.invitation.includes('Custom_Max_Papers'))?.weight ?? defaultWeight
   const isInviteAcceptedProfile = editEdges?.find(p => p.invitation.includes('Invite_Assignment'))?.label === 'Accepted'
 
   if (metadata.isAssigned || metadata.isUserAssigned) extraClasses.push('is-assigned')
@@ -122,6 +128,7 @@ export default function ProfileEntity(props) {
       ddate: null,
       ...existingEdge ?? {
         ...editEdgeTemplate,
+        defaultWeight: undefined,
         head: maxLoadInvitationHead ?? editEdgeTemplate.head,
         label: isInviteInvitation ? editInvitation.label?.default : editEdgeTemplate.label,
         readers: getValues(editInvitation.readers),
@@ -229,6 +236,7 @@ export default function ProfileEntity(props) {
         disableControlReason={disableControlReason}
         isTraverseEdge={isTraverseEdge}
         traverseEdgeTemplate={traverseEdgeTemplate}
+        traverseEdgesCount={traverseEdgesCount}
       />
     )
     const editEdgeTwoDropdowns = controlType => (

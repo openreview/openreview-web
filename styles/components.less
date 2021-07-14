@@ -738,6 +738,10 @@ table.table-minimal {
     white-space: pre-wrap;
     font-weight: 400;
   }
+  input[type="text"].form-control, textarea.form-control {
+    // There is an issue with Noto Sans and backticks, so use a different font for these fields
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  }
   textarea.note_content_value {
     height: 280px;
   }
@@ -1115,7 +1119,7 @@ table.table-minimal {
 
 // Multiselector
 .multiselector.dropdown {
-  margin: 0 0.25rem;
+  margin: 0 .25rem;
   display: inline-block;
 
   button {
@@ -1136,7 +1140,8 @@ table.table-minimal {
   input[type=checkbox] {
     width: 14px;
     height: 14px;
-    margin: 0px .5rem 0 0;
+    margin: 3px 8px 0 -20px;
+    position: absolute;
   }
 
   ul.dropdown-menu {
@@ -1171,6 +1176,7 @@ table.table-minimal {
       text-overflow: ellipsis;
       margin-bottom: 0;
       color: #555555;
+      padding-left: 20px;
     }
   }
 }
