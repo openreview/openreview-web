@@ -13,12 +13,13 @@ module.exports = (function() {
   var get = function(url, queryObj, options) {
     var defaults = {
       handleErrors: true,
+      version: 1,
       cache: true // Note: IE won't get updated when cache is enabled
     };
     options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
-    var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
+    var baseUrl = (options.version === 2 ? window.OR_API_V2_URL : window.OR_API_URL) || '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
     return $.ajax({
@@ -38,11 +39,12 @@ module.exports = (function() {
   var post = function(url, queryObj, options) {
     var defaults = {
       handleErrors: true,
+      version: 1,
     };
     options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
-    var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
+    var baseUrl = (options.version === 2 ? window.OR_API_V2_URL : window.OR_API_URL) || '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
     return $.ajax({
@@ -62,11 +64,12 @@ module.exports = (function() {
   var put = function(url, queryObj, options) {
     var defaults = {
       handleErrors: true,
+      version: 1,
     };
     options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
-    var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
+    var baseUrl = (options.version === 2 ? window.OR_API_V2_URL : window.OR_API_URL) || '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
     return $.ajax({
@@ -86,11 +89,12 @@ module.exports = (function() {
   var xhrDelete = function(url, queryObj, options) {
     var defaults = {
       handleErrors: true,
+      version: 1,
     };
     options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
-    var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
+    var baseUrl = (options.version === 2 ? window.OR_API_V2_URL : window.OR_API_URL) || '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
     return $.ajax({
@@ -2353,11 +2357,11 @@ module.exports = (function() {
     });
   };
 
-  var loadChildInvitations = function(invitationId) {
+  var loadChildInvitations = function(invitationId, apiVersion) {
     renderPaginatedList($('section.subinvitations'), {
       templateName: 'partials/paginatedInvitationList',
       loadItems: function(limit, offset) {
-        return get('/invitations', { super: invitationId, limit: limit, offset: offset })
+        return get('/invitations', { super: invitationId, limit: limit, offset: offset }, { version: apiVersion })
           .then(apiResponseHandler('invitations'));
       },
       renderItem: renderInvitationListItem
@@ -2548,15 +2552,16 @@ module.exports = (function() {
   var invitationEditor = function(invitation, options) {
     var defaults = {
       container: '#notes',
-      showProcessEditor: true,
+      showProcessEditor: false,
       apiVersion: 1,
     };
     options = _.defaults(options, defaults);
 
     var $container = $(options.container);
     var parentGroupId = invitation.id.split('/-/')[0];
-    var editors = { webfield: null, process: null };
-    var templateData = {
+    var editors = { webfield: null, process: null, preprocess: null };
+
+    $container.empty().append(Handlebars.templates['partials/invitationEditor']({
       invitation: invitation,
       parentGroupId: parentGroupId,
       replyJson: JSON.stringify(options.apiVersion === 2 ? invitation.edit : invitation.reply, undefined, 4),
@@ -2564,12 +2569,10 @@ module.exports = (function() {
       options: {
         showProcessEditor: options.showProcessEditor
       }
-    };
-
-    $container.empty().append(Handlebars.templates['partials/invitationEditor'](templateData));
+    }));
     $container.off();
 
-    loadChildInvitations(invitation.id);
+    loadChildInvitations(invitation.id, options.apiVersion);
     setupDatePickers();
 
     // Helpers

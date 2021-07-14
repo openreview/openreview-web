@@ -27,40 +27,53 @@ const InvitationEdit = ({ appContext }) => {
   const [invitation, setInvitation] = useState(null)
   const containerRef = useRef(null)
 
-  const loadInvitation = async (invitationId) => {
-    const setInvitationOrRedirect = (inv, apiVersion) => {
-      if (inv.details?.writable) {
-        setInvitation({
-          ...inv, web: null, process: null, preprocess: null, apiVersion,
-        })
-      } else {
-        // User is a reader, not a writer of the invitation, so redirect to info mode
-        router.replace(`/invitation/info?id=${invitationId}`)
-      }
-    }
-
+  const getInvitation = async (id, apiVersion) => {
     try {
-      const apiResV1 = await api.get('/invitations', { id: invitationId }, { accessToken })
-      if (apiResV1.invitations?.length > 0) {
-        setInvitationOrRedirect(apiResV1.invitations[0], 1)
-      } else {
-        const apiResV2 = await api.get('/invitations', { id: invitationId }, { accessToken, version: 2 })
-        if (apiResV2.invitations?.length > 0) {
-          setInvitationOrRedirect(apiResV2.invitations[0], 2)
-        } else {
-          setError({ statusCode: 404, message: 'Invitation not found' })
-        }
+      const { invitations } = await api.get('/invitations', { id }, { accessToken, version: apiVersion })
+      if (invitations?.length > 0) {
+        return invitations[0]
       }
     } catch (apiError) {
+      if (apiError.name === 'Not Found' || apiError.name === 'NotFoundError') {
+        return null
+      }
+
       if (apiError.name === 'forbidden' || apiError.name === 'ForbiddenError') {
         if (!accessToken) {
           router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
         } else {
           setError({ statusCode: 403, message: 'You don\'t have permission to read this invitation' })
         }
-        return
+      } else {
+        setError({ statusCode: apiError.status, message: apiError.message })
       }
-      setError({ statusCode: apiError.status, message: apiError.message })
+    }
+    return null
+  }
+
+  const setInvitationOrRedirect = (invitationObj, apiVersion) => {
+    if (invitationObj.details?.writable) {
+      setInvitation({
+        ...invitationObj, web: null, process: null, preprocess: null, apiVersion,
+      })
+    } else {
+      // User is a reader, not a writer of the invitation, so redirect to info mode
+      router.replace(`/invitation/info?id=${invitationObj.id}`)
+    }
+  }
+
+  // Try loading invitation from v1 API first and if not found load from v2
+  const loadInvitation = async (invitationId) => {
+    let invitationObj = await getInvitation(invitationId, 1)
+    if (invitationObj) {
+      setInvitationOrRedirect(invitationObj, 1)
+    } else {
+      invitationObj = await getInvitation(invitationId, 2)
+      if (invitationObj) {
+        setInvitationOrRedirect(invitationObj, 2)
+      } else {
+        setError({ statusCode: 404, message: 'Invitation not found' })
+      }
     }
   }
 
