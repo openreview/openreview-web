@@ -112,6 +112,7 @@ export default function NoteEntity(props) {
       ddate: null,
       ...existingEdge ?? {
         ...editEdgeTemplate,
+        defaultWeight: undefined,
         head: maxLoadInvitationHead ?? editEdgeTemplate.head,
         readers: getValues(editInvitation.readers),
         nonreaders: getValues(editInvitation.nonreaders),
