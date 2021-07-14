@@ -39,6 +39,8 @@ export default function Column(props) {
   const parent = parentId ? altGlobalEntityMap[parentId] : null
   const otherType = type === 'head' ? 'tail' : 'head'
   const colBodyEl = useRef(null)
+  const entityMap = useRef({ globalEntityMap, altGlobalEntityMap })
+  const [entityMapChanged, setEntityMapChanged] = useState(false)
 
   const sortOptions = [{ key: traverseInvitation.id, value: 'default', text: transformName(prettyInvitationId(traverseInvitation.id)) }]
   const editAndBrowserInvitations = [...editInvitations, ...browseInvitations]
@@ -64,7 +66,7 @@ export default function Column(props) {
   const [search, setSearch] = useState({ term: '' })
 
   const showLoadMoreButton = numItemsToRender < filteredItems.length
-  const showHideQuotaReachedCheckbox = entityType === 'Profile' && browseInvitations.some(p => p.id.includes('Custom_Max_Papers'))
+  const showHideQuotaReachedCheckbox = entityType === 'Profile' && editAndBrowserInvitations.some(p => p.id.includes('Custom_Max_Papers'))
 
   // Helpers
   const formatEdge = edge => ({
@@ -97,6 +99,7 @@ export default function Column(props) {
       [otherType]: parentId,
       label: isInviteInvitation ? editInvitation.label?.default : editInvitation.query.label,
       weight,
+      defaultWeight: editInvitation.weight.default,
       readers: editInvitation.readers, // reader/writer/nonreader/signature are completed in entity
       writers: editInvitation.writers,
       signatures: editInvitation.signatures,
@@ -256,7 +259,7 @@ export default function Column(props) {
             content: {
               name: { first: prettyId(headOrTailId), middle: '', last: '' },
               email: headOrTailId,
-              title: 'Unknown',
+              title: '',
               expertise: [],
               isInvitedProfile: true,
             },
@@ -425,72 +428,15 @@ export default function Column(props) {
 
   const filterQuotaReachedItems = (colItems) => {
     if (!hideQuotaReached) return colItems
+    const defaultQuota = [...browseInvitations, ...editInvitations].find(p => p.id.includes('Custom_Max_Papers'))?.defaultWeight
     return colItems.filter((p) => {
-      const customLoad = p.browseEdges?.find(q => q?.invitation?.includes('Custom_Max_Papers'))?.weight
+      const customLoad = [...p.browseEdges, ...p.editEdges].find(q => q?.invitation?.includes('Custom_Max_Papers'))?.weight ?? defaultQuota
       if (customLoad === undefined) return true
       return p.traverseEdgesCount < customLoad
     })
   }
 
-  useEffect(() => {
-    if (!items || !items.length) {
-      return
-    }
-    // Reset column to show original items and no search heading
-    if (!search.term) {
-      setFilteredItems(sortItems(filterQuotaReachedItems(items)))
-      setItemsHeading(null)
-      return
-    }
-    if (search.term.length < 2) {
-      return
-    }
-
-    // Build search regex. \b represents a word boundary, so matches in the
-    // middle of a word don't count. Includes special case for searching by
-    // paper number so only the exact paper is matched.
-    const escapedTerm = _.escapeRegExp(search.term.toLowerCase())
-    let [preModifier, postModifier] = ['\\b', '']
-    if (escapedTerm.startsWith('#')) {
-      [preModifier, postModifier] = ['^', '\\b']
-    }
-    const searchRegex = new RegExp(preModifier + escapedTerm + postModifier, 'm')
-
-    // Search existing items
-    const matchingItems = items.filter(item => item.searchText?.match(searchRegex))
-
-    // Search all other items that don't share edges with the parent entity
-    if (parentId) {
-      const searchedIds = items.map(item => item.id)
-
-      Object.values(globalEntityMap).forEach((item) => {
-        if (searchedIds.includes(item.id)) return
-
-        if (item.searchText.match(searchRegex)) {
-          matchingItems.push({
-            ...item,
-            // eslint-disable-next-line max-len
-            editEdgeTemplates: editInvitations.map(editInvitation => (buildNewEditEdge(editInvitation, item.id))),
-            editEdges: [],
-            browseEdges: [],
-            metadata: {
-              isAssigned: false,
-            },
-          })
-        }
-      })
-    }
-
-    setFilteredItems(sortItems(filterQuotaReachedItems(matchingItems)))
-    setItemsHeading('Search Results')
-  }, [items, search, columnSort, hideQuotaReached])
-
-  useEffect(() => {
-    setNumItemsToRender(100)
-    colBodyEl.current.scrollTop = 0
-  }, [search, columnSort, hideQuotaReached])
-
-  useEffect(() => {
+  const populateColumnItems = () => {
     if (props.loading) return
     if (!shouldUpdateItems) {
       setShouldUpdateItems(true)
@@ -568,7 +514,7 @@ export default function Column(props) {
 
     const edgesPromiseMap = []
     addToEdgesPromiseMap(traverseInvitation, 'traverse', edgesPromiseMap, true, true) // traverse does not need to getWritable, this is for the case edit == traverse
-    editInvitations.forEach(editInvitation => addToEdgesPromiseMap(editInvitation, 'edit', edgesPromiseMap, true, true))
+    editInvitations.forEach(editInvitation => addToEdgesPromiseMap(editInvitation, 'edit', edgesPromiseMap, true, false))
     addToEdgesPromiseMap(hideInvitation, 'hide', edgesPromiseMap, false, true)
     browseInvitations.forEach(browseInvitation => addToEdgesPromiseMap(browseInvitation, 'browse', edgesPromiseMap, false, false))
 
@@ -626,7 +572,7 @@ export default function Column(props) {
                 content: {
                   name: { first: prettyId(headOrTailId), middle: '', last: '' },
                   email: headOrTailId,
-                  title: 'Unknown',
+                  title: '',
                   expertise: [],
                   isInvitedProfile: true,
                 },
@@ -651,6 +597,7 @@ export default function Column(props) {
           ...itemToAdd,
           browseEdges: [],
           editEdges: [],
+          traverseEdge: formatEdge(tEdge),
           metadata: {
             ...columnMetadata,
             isAssigned: true,
@@ -693,26 +640,106 @@ export default function Column(props) {
           // eslint-disable-next-line no-param-reassign
           item.editEdgeTemplates = editInvitations.map(editInvitation => (
             buildNewEditEdge(editInvitation, item.id, edgeWeight)))
+          // eslint-disable-next-line no-param-reassign
+          item.traverseEdgeTemplate = buildNewEditEdge(traverseInvitation, item.id, 0)
         })
       }
 
       setItems(colItems)
     })
-  }, [props.loading, globalEntityMap, altGlobalEntityMap, shouldReloadEntities])
+  }
+
+  useEffect(() => {
+    if (!items || !items.length) {
+      return
+    }
+    // Reset column to show original items and no search heading
+    if (!search.term) {
+      setFilteredItems(sortItems(filterQuotaReachedItems(items)))
+      setItemsHeading(null)
+      return
+    }
+    if (search.term.length < 2) {
+      return
+    }
+
+    // Build search regex. \b represents a word boundary, so matches in the
+    // middle of a word don't count. Includes special case for searching by
+    // paper number so only the exact paper is matched.
+    const escapedTerm = _.escapeRegExp(search.term)
+    let [preModifier, postModifier] = ['\\b', '']
+    if (escapedTerm.startsWith('#')) {
+      [preModifier, postModifier] = ['^', '\\b']
+    }
+    const searchRegex = new RegExp(preModifier + escapedTerm + postModifier, 'mi')
+
+    // Search existing items
+    const matchingItems = items.filter(item => item.searchText?.match(searchRegex))
+
+    // Search all other items that don't share edges with the parent entity
+    if (parentId) {
+      const searchedIds = items.map(item => item.id)
+
+      Object.values(globalEntityMap).forEach((item) => {
+        if (searchedIds.includes(item.id)) return
+
+        if (item.searchText.match(searchRegex)) {
+          matchingItems.push({
+            ...item,
+            // eslint-disable-next-line max-len
+            editEdgeTemplates: editInvitations.map(editInvitation => (buildNewEditEdge(editInvitation, item.id))),
+            editEdges: [],
+            browseEdges: [],
+            metadata: {
+              isAssigned: false,
+            },
+          })
+        }
+      })
+    }
+
+    setFilteredItems(sortItems(filterQuotaReachedItems(matchingItems)))
+    setItemsHeading('Search Results')
+  }, [items, search, columnSort, hideQuotaReached])
+
+  useEffect(() => {
+    setNumItemsToRender(100)
+    colBodyEl.current.scrollTop = 0
+  }, [search, columnSort, hideQuotaReached])
+
+  useEffect(() => {
+    populateColumnItems()
+  }, [props.loading, entityMapChanged, shouldReloadEntities])
+
+  useEffect(() => {
+    if (entityMapChanged) {
+      populateColumnItems()
+    }
+    setEntityMapChanged(false)
+  }, [entityMapChanged])
+
+  useEffect(() => {
+    if (!_.isEqual(globalEntityMap, entityMap.current.globalEntityMap)
+      && !_.isEqual(altGlobalEntityMap, entityMap.current.altGlobalEntityMap)) {
+      entityMap.current = { globalEntityMap, altGlobalEntityMap }
+      setEntityMapChanged(true)
+    }
+  })
 
   // Event Handlers
   const addEdgeToEntity = (id, newEdge) => {
+    const formattedNewEdge = formatEdge(newEdge)
     const entityIndex = _.findIndex(items, ['id', id])
     let modifiedExistingEdge = false
 
     // controls the green background
-    const isAddingTraverseEdge = newEdge.invitation === traverseInvitation.id
+    const isAddingTraverseEdge = formattedNewEdge.invitation === traverseInvitation.id
     // set to existing value if not adding traverse edge
     const shouldUserBeAssigned = isAddingTraverseEdge ? true : items[entityIndex].metadata.isUserAssigned
 
     if (entityIndex > -1) {
       // Added (or modified) from existing list
-      const existingEditEdges = items[entityIndex].editEdges.filter(p => p.id === newEdge.id)
+      const existingEditEdges = items[entityIndex].editEdges.filter(p => p.id === formattedNewEdge.id)
       if (existingEditEdges.length) {
         modifiedExistingEdge = true
       }
@@ -720,8 +747,8 @@ export default function Column(props) {
       const itemToAdd = {
         ...items[entityIndex],
         editEdges: modifiedExistingEdge
-          ? sortEditEdges([...items[entityIndex].editEdges.filter(p => p.id !== newEdge.id), newEdge])
-          : sortEditEdges([...items[entityIndex].editEdges, newEdge]),
+          ? sortEditEdges([...items[entityIndex].editEdges.filter(p => p.id !== formattedNewEdge.id), formattedNewEdge])
+          : sortEditEdges([...items[entityIndex].editEdges, formattedNewEdge]),
         metadata: {
           ...items[entityIndex].metadata,
           isAssigned: isAddingTraverseEdge ? true : items[entityIndex].metadata.isAssigned,
@@ -736,7 +763,7 @@ export default function Column(props) {
       ])
     } else {
       // Added from search
-      const editInvitation = editInvitations.filter(p => p.id === newEdge.invitation)[0]
+      const editInvitation = editInvitations.filter(p => p.id === formattedNewEdge.invitation)[0]
       const newItem = {
         ...globalEntityMap[id],
         editEdges: [buildNewEditEdge(editInvitation, id)],
@@ -765,7 +792,6 @@ export default function Column(props) {
     props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', newCount1)
 
     const newCount2 = globalEntityMap[id]?.traverseEdgesCount + incr
-    setShouldUpdateItems(false) // update of altGlobalEntityMap has already triggered useEffect call
     props.updateGlobalEntityMap(type, id, 'traverseEdgesCount', newCount2)
   }
 
@@ -807,7 +833,6 @@ export default function Column(props) {
     props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', newCount1)
 
     const newCount2 = globalEntityMap[id]?.traverseEdgesCount - 1
-    setShouldUpdateItems(false) // update of altGlobalEntityMap has already triggered useEffect call
     props.updateGlobalEntityMap(type, id, 'traverseEdgesCount', newCount2)
   }
 
@@ -827,6 +852,7 @@ export default function Column(props) {
               placeholder={getPlaceholderText()}
               value={search.term}
               onChange={e => setSearch({ term: e.target.value })}
+              autoComplete="off"
             />
             <span className="glyphicon glyphicon-search form-control-feedback" aria-hidden="true" />
           </div>

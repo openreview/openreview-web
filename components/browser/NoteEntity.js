@@ -6,7 +6,6 @@
 /* globals promptError: false */
 
 import React, { useContext } from 'react'
-import moment from 'moment'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
@@ -15,7 +14,6 @@ import NoteContent from './NoteContent'
 import ScoresList from './ScoresList'
 import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
 import UserContext from '../UserContext'
 import { getInterpolatedValues, getSignatures } from '../../lib/edge-utils'
 
@@ -114,6 +112,7 @@ export default function NoteEntity(props) {
       ddate: null,
       ...existingEdge ?? {
         ...editEdgeTemplate,
+        defaultWeight: undefined,
         head: maxLoadInvitationHead ?? editEdgeTemplate.head,
         readers: getValues(editInvitation.readers),
         nonreaders: getValues(editInvitation.nonreaders),
@@ -150,7 +149,9 @@ export default function NoteEntity(props) {
     const isAssigned = (metadata.isAssigned || metadata.isUserAssigned)
     const isInviteInvitation = editInvitation[parentColumnType]?.query?.['value-regex'] === '~.*|.+@.+'
     const isReviewerAssignmentStage = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
+    const isEmergencyReviewerStage = editInvitations.some(p => p.id.includes('/Assignment'))
     const isProposedAssignmentInvitation = editInvitation.id.includes('Proposed_Assignment')
+    const isAssignmentInvitation = editInvitation.id.includes('/Assignment')
     const isCustomLoadInviation = editInvitation.id.includes('Custom_Max_Papers')
     const isParentInvited = props.parentInfo.content?.isInvitedProfile
     // invited reviewers won't be in altGlobalEntityMap so check the props passed in
@@ -166,8 +167,9 @@ export default function NoteEntity(props) {
     if (!isParentInvited && isInviteInvitation) return null
     // head of custom load edge is reviewer group id and does not make sense for note
     if (isCustomLoadInviation) return null
-    if (isReviewerAssignmentStage
-      && (isProposedAssignmentInvitation || isInviteInvitation)
+    if (
+      ((isReviewerAssignmentStage && (isProposedAssignmentInvitation || isInviteInvitation))
+        || (isEmergencyReviewerStage && (isAssignmentInvitation || isInviteInvitation)))
       && parentCustomLoad
       && parentCustomLoad <= parentExistingLoad
       && !editEdge) {

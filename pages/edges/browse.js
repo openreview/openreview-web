@@ -52,11 +52,11 @@ const Browse = ({ appContext }) => {
       setBannerHidden(true)
     }
 
-    const startInvitations = parseEdgeList(query.start)
-    const traverseInvitations = parseEdgeList(query.traverse)
-    const editInvitations = parseEdgeList(query.edit)
-    const browseInvitations = parseEdgeList(query.browse)
-    const hideInvitations = parseEdgeList(query.hide)
+    const startInvitations = parseEdgeList(query.start, 'start')
+    const traverseInvitations = parseEdgeList(query.traverse, 'traverse')
+    const editInvitations = parseEdgeList(query.edit, 'edit')
+    const browseInvitations = parseEdgeList(query.browse, 'browse')
+    const hideInvitations = parseEdgeList(query.hide, 'hide')
     const allInvitations = traverseInvitations.concat(
       startInvitations, editInvitations, browseInvitations, hideInvitations,
     )
@@ -85,10 +85,18 @@ const Browse = ({ appContext }) => {
             return inv.id === invId
           })
           if (!fullInvitation) {
-            setError({
-              name: 'Not Found', message: `Could not load edge explorer. Invitation not found: ${invObj.id}`, statusCode: 404,
-            })
-            allValid = false
+            // Filter out invalid edit or browse invitations, but don't fail completely
+            if (invObj.category === 'edit' || invObj.category === 'browse') {
+              // eslint-disable-next-line no-console
+              console.error(`${invObj.category} invitation ${invObj.id} does not exist or is expired`)
+              // eslint-disable-next-line no-param-reassign
+              invObj.invalid = true
+            } else {
+              setError({
+                name: 'Not Found', message: `Could not load edge explorer. Invitation not found: ${invObj.id}`, statusCode: 404,
+              })
+              allValid = false
+            }
             return
           }
 
@@ -100,6 +108,7 @@ const Browse = ({ appContext }) => {
             head: fullInvitation.reply.content.head,
             tail: fullInvitation.reply.content.tail,
             weight: fullInvitation.reply.content.weight,
+            defaultWeight: fullInvitation.reply.content.weight?.default,
             label: fullInvitation.reply.content.label,
             readers,
             writers,
@@ -114,10 +123,10 @@ const Browse = ({ appContext }) => {
         setInvitations({
           startInvitation: startInvitations[0],
           traverseInvitations,
-          editInvitations,
-          browseInvitations,
+          editInvitations: editInvitations.filter(inv => !inv.invalid),
+          browseInvitations: browseInvitations.filter(inv => !inv.invalid),
           hideInvitations,
-          allInvitations,
+          allInvitations: allInvitations.filter(inv => !inv.invalid),
         })
       })
       .catch((apiError) => {

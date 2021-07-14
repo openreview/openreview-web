@@ -1,5 +1,5 @@
 /* globals $: false */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Icon from '../Icon'
 import { getTooltipTitle } from '../../lib/edge-utils'
 
@@ -12,6 +12,9 @@ export default function EditEdgeToggle({
   isInviteInvitation,
   shouldDisableControl = false,
   disableControlReason,
+  isTraverseEdge,
+  traverseEdgeTemplate,
+  traverseEdgesCount,
 }) {
   const [loading, setLoading] = useState(false)
 
@@ -28,8 +31,9 @@ export default function EditEdgeToggle({
       addEdge({
         e,
         existingEdge,
-        editEdgeTemplate,
+        editEdgeTemplate: isTraverseEdge ? traverseEdgeTemplate : editEdgeTemplate,
         updatedEdgeFields: isInviteInvitation ? undefined : { weight: 1 }, // invite invitation weight remain as 0
+        isTraverseEdge,
       })
     }
   }
@@ -41,6 +45,7 @@ export default function EditEdgeToggle({
 
   const getNewEdgeButtonText = () => {
     if (editEdgeTemplate?.label === 'Assign') return 'Assign'
+    if (isTraverseEdge && traverseEdgeTemplate) return traverseEdgeTemplate.name
     return `${editEdgeTemplate?.name}`
   }
 
@@ -60,6 +65,10 @@ export default function EditEdgeToggle({
       container: 'body',
     })
   }
+
+  useEffect(() => {
+    setLoading(false) // loading stays true when traverse is removed
+  }, [traverseEdgesCount])
 
   if (!existingEdge && !canAddEdge) return null
 
