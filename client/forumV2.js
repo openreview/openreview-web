@@ -120,6 +120,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       var commonInvitations = _.filter(invitations, function(invitation) {
         return _.isEmpty(invitation.edit?.note?.replyto?.value) &&
           _.isEmpty(invitation?.edit?.note?.id?.value) &&
+          _.isEmpty(invitation?.edit?.note?.id?.["value-invitation"]) &&
           _.isEmpty(invitation?.edit?.note?.referentInvitation?.value) &&
           _.isEmpty(invitation?.edit?.note?.invitation?.value);
       });

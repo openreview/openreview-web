@@ -177,10 +177,11 @@ $(function() {
     if (process.env.ENABLE_V2_API) {
       const invitationV1P = api.get('/invitations', { id: ctx.query.id }, { accessToken: token })
       const invitationV2P = api.getV2('/invitations', { id: ctx.query.id }, { accessToken: token })
-      const results = await Promise.all([invitationV1P, invitationV2P])
-      invitations = results[1].invitations?.length ? results[1].invitations : results[0].invitations
+      const results = await Promise.allSettled([invitationV1P, invitationV2P])
+      // eslint-disable-next-line max-len
+      invitations = results[1].value?.invitations?.length ? results[1].value.invitations : results[0]?.value?.invitations
     } else {
-      ({ invitations } = await api.getV2('/invitations', { id: ctx.query.id }, { accessToken: token }))
+      ({ invitations } = await api.get('/invitations', { id: ctx.query.id }, { accessToken: token }))
     }
     const invitation = invitations?.length > 0 ? invitations[0] : null
     if (!invitation) {
