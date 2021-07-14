@@ -2548,30 +2548,25 @@ module.exports = (function() {
   var invitationEditor = function(invitation, options) {
     var defaults = {
       container: '#notes',
-      showProcessEditor: true
+      showProcessEditor: true,
+      apiVersion: 1,
     };
     options = _.defaults(options, defaults);
 
     var $container = $(options.container);
     var parentGroupId = invitation.id.split('/-/')[0];
     var editors = { webfield: null, process: null };
-    var editorHtml;
     var templateData = {
       invitation: invitation,
       parentGroupId: parentGroupId,
-      replyJson: JSON.stringify(invitation.reply, undefined, 4),
+      replyJson: JSON.stringify(options.apiVersion === 2 ? invitation.edit : invitation.reply, undefined, 4),
       replyForumViewsJson: JSON.stringify(invitation.replyForumViews || [], undefined, 4),
       options: {
         showProcessEditor: options.showProcessEditor
       }
     };
-    if (options.apiVersion === 2) {
-      editorHtml = Handlebars.templates['partials/invitationEditor-v2'](templateData);
-    } else {
-      editorHtml = Handlebars.templates['partials/invitationEditor'](templateData);
-    }
 
-    $container.empty().append(editorHtml);
+    $container.empty().append(Handlebars.templates['partials/invitationEditor'](templateData));
     $container.off();
 
     loadChildInvitations(invitation.id);
@@ -2608,6 +2603,7 @@ module.exports = (function() {
     }
 
     function updateInvitation(modifiedFields) {
+      // TODO: support v2 API
       return get('/invitations', { id: invitation.id })
         .then(function(response) {
           if (!response.invitations || !response.invitations.length) {

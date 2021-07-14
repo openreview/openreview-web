@@ -40,14 +40,22 @@
   <dt>Hide revisions:</dt>
   <dd>{{#if invitation.hideOriginalRevisions}}True{{else}}{{#is invitation.hideOriginalRevisions false}}False{{/is}}{{/if}}</dd>
 
+  {{#if invitation.bulk}}
+    <dt>Bulk:</dt>
+    <dd>{{invitation.bulk}}</dd>
+  {{/if}}
+
   <dt>Signature:</dt>
   <dd>{{groupIdList invitation.signatures}}</dd>
 
-  <dt>Created:</dt>
+  <dt>Creation Date:</dt>
   <dd>{{formattedDate invitation.tcdate default="None"}}</dd>
 
   <dt>Activation Date:</dt>
   <dd>{{formattedDate invitation.cdate invitation.tcdate default="None"}}</dd>
+
+  <dt>Modification Date:</dt>
+  <dd>{{formattedDate invitation.mdate invitation.tmdate default="None"}}</dd>
 
   <dt>Due Date:</dt>
   <dd>{{formattedDate invitation.duedate default="None"}}</dd>

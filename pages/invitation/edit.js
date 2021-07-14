@@ -30,7 +30,9 @@ const InvitationEdit = ({ appContext }) => {
   const loadInvitation = async (invitationId) => {
     const setInvitationOrRedirect = (inv, apiVersion) => {
       if (inv.details?.writable) {
-        setInvitation({ ...inv, web: null, apiVersion })
+        setInvitation({
+          ...inv, web: null, process: null, preprocess: null, apiVersion,
+        })
       } else {
         // User is a reader, not a writer of the invitation, so redirect to info mode
         router.replace(`/invitation/info?id=${invitationId}`)
@@ -86,6 +88,7 @@ const InvitationEdit = ({ appContext }) => {
     Webfield.ui.invitationEditor(invitation, {
       container: containerRef.current,
       showProcessEditor: isSuperUser(user),
+      apiVersion: invitation.apiVersion,
     })
 
     // eslint-disable-next-line consistent-return
