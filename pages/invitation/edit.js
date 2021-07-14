@@ -28,17 +28,26 @@ const InvitationEdit = ({ appContext }) => {
   const containerRef = useRef(null)
 
   const loadInvitation = async (invitationId) => {
-    try {
-      const { invitations } = await api.get('/invitations', { id: invitationId }, { accessToken })
-      if (invitations?.length > 0) {
-        if (invitations[0].details?.writable) {
-          setInvitation({ ...invitations[0], web: null })
-        } else {
-          // User is a reader, not a writer of the group, so redirect to info mode
-          router.replace(`/invitation/info?id=${invitationId}`)
-        }
+    const setInvitationOrRedirect = (inv, apiVersion) => {
+      if (inv.details?.writable) {
+        setInvitation({ ...inv, web: null, apiVersion })
       } else {
-        setError({ statusCode: 404, message: 'Group not found' })
+        // User is a reader, not a writer of the invitation, so redirect to info mode
+        router.replace(`/invitation/info?id=${invitationId}`)
+      }
+    }
+
+    try {
+      const apiResV1 = await api.get('/invitations', { id: invitationId }, { accessToken })
+      if (apiResV1.invitations?.length > 0) {
+        setInvitationOrRedirect(apiResV1.invitations[0], 1)
+      } else {
+        const apiResV2 = await api.get('/invitations', { id: invitationId }, { accessToken, version: 2 })
+        if (apiResV2.invitations?.length > 0) {
+          setInvitationOrRedirect(apiResV2.invitations[0], 2)
+        } else {
+          setError({ statusCode: 404, message: 'Invitation not found' })
+        }
       }
     } catch (apiError) {
       if (apiError.name === 'forbidden' || apiError.name === 'ForbiddenError') {
@@ -68,12 +77,16 @@ const InvitationEdit = ({ appContext }) => {
 
   useEffect(() => {
     if (!invitation || !containerRef || clientJsLoading) return
+
     window.moment = require('moment')
     require('moment-timezone')
     window.datetimepicker = require('../../client/bootstrap-datetimepicker-4.17.47.min')
 
     Webfield.editModeBanner(invitation.id, 'edit')
-    Webfield.ui.invitationEditor(invitation, { container: containerRef.current, showProcessEditor: isSuperUser(user) })
+    Webfield.ui.invitationEditor(invitation, {
+      container: containerRef.current,
+      showProcessEditor: isSuperUser(user),
+    })
 
     // eslint-disable-next-line consistent-return
     return () => {

@@ -2555,8 +2555,8 @@ module.exports = (function() {
     var $container = $(options.container);
     var parentGroupId = invitation.id.split('/-/')[0];
     var editors = { webfield: null, process: null };
-
-    $container.empty().append(Handlebars.templates['partials/invitationEditor']({
+    var editorHtml;
+    var templateData = {
       invitation: invitation,
       parentGroupId: parentGroupId,
       replyJson: JSON.stringify(invitation.reply, undefined, 4),
@@ -2564,7 +2564,14 @@ module.exports = (function() {
       options: {
         showProcessEditor: options.showProcessEditor
       }
-    }));
+    };
+    if (options.apiVersion === 2) {
+      editorHtml = Handlebars.templates['partials/invitationEditor-v2'](templateData);
+    } else {
+      editorHtml = Handlebars.templates['partials/invitationEditor'](templateData);
+    }
+
+    $container.empty().append(editorHtml);
     $container.off();
 
     loadChildInvitations(invitation.id);
