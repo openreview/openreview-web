@@ -100,6 +100,7 @@ const InvitationEdit = ({ appContext }) => {
     Webfield.editModeBanner(invitation.id, 'edit')
     Webfield.ui.invitationEditor(invitation, {
       container: containerRef.current,
+      userId: user.profile.id,
       showProcessEditor: isSuperUser(user),
       apiVersion: invitation.apiVersion,
     })

@@ -2567,7 +2567,8 @@ module.exports = (function() {
       replyJson: JSON.stringify(options.apiVersion === 2 ? invitation.edit : invitation.reply, undefined, 4),
       replyForumViewsJson: JSON.stringify(invitation.replyForumViews || [], undefined, 4),
       options: {
-        showProcessEditor: options.showProcessEditor
+        showProcessEditor: options.showProcessEditor,
+        apiVersion: options.apiVersion,
       }
     }));
     $container.off();
@@ -2606,15 +2607,27 @@ module.exports = (function() {
     }
 
     function updateInvitation(modifiedFields) {
-      // TODO: support v2 API
-      return get('/invitations', { id: invitation.id })
+      return get('/invitations', { id: invitation.id }, { version: options.apiVersion })
         .then(function(response) {
           if (!response.invitations || !response.invitations.length) {
             return $.Deferred().reject();
           }
 
-          var updatedInvitationObj = _.assign(response.invitations[0], modifiedFields);
-          return post('/invitations', updatedInvitationObj);
+          var updatedInvitationObj = Object.assign(response.invitations[0], modifiedFields);
+          var updateReq;
+          if (options.apiVersion === 2) {
+            updateReq = post('/invitations/edits', {
+              readers: [options.userId],
+              writers: [options.userId],
+              signatures: [options.userId],
+              invitation: updatedInvitationObj,
+            }, { version: 2 }).then(function(response) {
+              return response.invitation;
+            });
+          } else {
+            updateReq = post('/invitations', updatedInvitationObj);
+          }
+          return updateReq;
         });
     }
 
@@ -2667,10 +2680,9 @@ module.exports = (function() {
       }
       $submitButton.addClass('disabled');
 
+      var defaults = options.apiVersion === 2 ? { bulk: null } : { multiReply: null, hideOriginalRevisions: null };
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
-        if (field.name === 'multiReply') {
-          result[field.name] = field.value === '' ? null : field.value === 'True';
-        } else if (field.name === 'hideOriginalRevisions') {
+        if (field.name === 'multiReply' || field.name === 'hideOriginalRevisions' || field.name === 'bulk') {
           result[field.name] = field.value === '' ? null : field.value === 'True';
         } else if (field.name === 'taskCompletionCount') {
           result[field.name] = field.value ? parseInt(field.value, 10) : null;
@@ -2685,7 +2697,7 @@ module.exports = (function() {
           result[field.name] = _.compact(field.value.split(',').map(_.trim));
         }
         return result;
-      }, { multiReply: null, hideOriginalRevisions: null });
+      }, defaults);
 
       updateInvitation(formData)
         .then(function(response) {
@@ -2738,9 +2750,15 @@ module.exports = (function() {
         return false;
       }
 
-      var updateObj = $(this).hasClass('invitation-reply-form')
-        ? { reply: parsedObj }
-        : { replyForumViews : parsedObj };
+      var updateObj;
+      if ($(this).hasClass('invitation-reply-form')) {
+        updateObj = options.apiVersion === 2
+          ? { edit: parsedObj }
+          : { reply: parsedObj };
+      } else {
+        updateObj = { replyForumViews : parsedObj };
+      }
+
       updateInvitation(updateObj)
         .then(function(response) {
           invitation = response;
@@ -2774,7 +2792,7 @@ module.exports = (function() {
         );
       };
 
-      get('/invitations', { id: invitation.id }).then(function(response) {
+      get('/invitations', { id: invitation.id }, { version: options.apiVersion }).then(function(response) {
         if (!response.invitations || !response.invitations.length) {
           showError('Could not load invitation code. Please refresh the page and try again.');
           return;
@@ -2793,6 +2811,8 @@ module.exports = (function() {
           codeToEdit = response.invitations[0].preprocess;
         }
 
+        var syntaxMode = _.startsWith(codeToEdit, 'def process(') ? 'ace/mode/python' : 'ace/mode/javascript';
+
         $.ajax({
           url: 'https://cdn.jsdelivr.net/npm/ace-builds@1.4.12/src-min/ace.js',
           dataType: 'script',
@@ -2802,7 +2822,7 @@ module.exports = (function() {
           editors[editorType].setTheme('ace/theme/chrome');
           editors[editorType].setOption('tabSize', 2);
           editors[editorType].setOption('showPrintMargin', false);
-          editors[editorType].session.setMode('ace/mode/javascript');
+          editors[editorType].session.setMode(syntaxMode);
           editors[editorType].session.setUseWrapMode(true);
           editors[editorType].session.setUseSoftTabs(true);
           editors[editorType].session.setValue(codeToEdit ? codeToEdit : '');  // setValue doesn't accept null

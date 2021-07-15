@@ -40,10 +40,10 @@
   <dt>Hide revisions:</dt>
   <dd>{{#if invitation.hideOriginalRevisions}}True{{else}}{{#is invitation.hideOriginalRevisions false}}False{{/is}}{{/if}}</dd>
 
-  {{#if invitation.bulk}}
+  {{#is apiVersion 2}}
     <dt>Bulk:</dt>
-    <dd>{{invitation.bulk}}</dd>
-  {{/if}}
+    <dd>{{#if invitation.bulk}}True{{else}}{{#is invitation.bulk false}}False{{/is}}{{/if}}</dd>
+  {{/is}}
 
   <dt>Signature:</dt>
   <dd>{{groupIdList invitation.signatures}}</dd>
@@ -136,6 +136,19 @@
       </div>
     </div>
 
+    {{#is apiVersion 2}}
+      <div class="form-group">
+        <label for="bulk" class="col-xs-2 control-label">Bulk:</label>
+        <div class="col-xs-10">
+          <select name="bulk" class="form-control input-sm">
+            <option></option>
+            <option {{#is invitation.bulk true}}selected{{/is}}>True</option>
+            <option {{#is invitation.bulk false}}selected{{/is}}>False</option>
+          </select>
+        </div>
+      </div>
+    {{/is}}
+
     <div class="form-group">
       <label for="taskCompletionCount" class="col-xs-2 control-label">Completed After:</label>
       <div class="col-xs-10">
@@ -143,16 +156,18 @@
       </div>
     </div>
 
-    <div class="form-group">
-      <label for="hideOriginalRevisions" class="col-xs-2 control-label">Hide Revisions:</label>
-      <div class="col-xs-10">
-        <select name="hideOriginalRevisions" class="form-control input-sm">
-          <option></option>
-          <option {{#is invitation.hideOriginalRevisions true}}selected{{/is}}>True</option>
-          <option {{#is invitation.hideOriginalRevisions false}}selected{{/is}}>False</option>
-        </select>
+    {{#is apiVersion 1}}
+      <div class="form-group">
+        <label for="hideOriginalRevisions" class="col-xs-2 control-label">Hide Revisions:</label>
+        <div class="col-xs-10">
+          <select name="hideOriginalRevisions" class="form-control input-sm">
+            <option></option>
+            <option {{#is invitation.hideOriginalRevisions true}}selected{{/is}}>True</option>
+            <option {{#is invitation.hideOriginalRevisions false}}selected{{/is}}>False</option>
+          </select>
+        </div>
       </div>
-    </div>
+    {{/is}}
 
     <div class="form-group">
       <label for="cdate" class="col-xs-2 control-label">Activation Date:</label>
