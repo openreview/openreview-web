@@ -3,14 +3,16 @@
 import { useContext, useState } from 'react'
 import Head from 'next/head'
 import Icon from '../../components/Icon'
+import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorAlert from '../../components/ErrorAlert'
-import withAdminAuth from '../../components/withAdminAuth'
-import api from '../../lib/api-client'
 import UserContext from '../../components/UserContext'
+import useLoginRedirect from '../../hooks/useLoginRedirect'
+import api from '../../lib/api-client'
 
 const Impersonate = ({ accessToken }) => {
   const [userId, setUserId] = useState('')
   const [error, setError] = useState(null)
+  const { userLoading } = useLoginRedirect()
   const { loginUser } = useContext(UserContext)
 
   const impersonate = async (groupId) => {
@@ -31,6 +33,10 @@ const Impersonate = ({ accessToken }) => {
     } else {
       setError({ message: 'Please enter a valid username or email' })
     }
+  }
+
+  if (userLoading) {
+    return <LoadingSpinner />
   }
 
   return (
@@ -72,4 +78,4 @@ const Impersonate = ({ accessToken }) => {
   )
 }
 
-export default withAdminAuth(Impersonate)
+export default Impersonate

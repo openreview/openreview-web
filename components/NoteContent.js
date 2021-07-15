@@ -13,7 +13,7 @@ function NoteContent({
 }) {
   const contentKeys = Object.keys(content)
   const contentOrder = invitation
-    ? union(orderReplyFields(invitation.reply.content || {}, invitation.id), contentKeys)
+    ? union(orderReplyFields(invitation?.reply?.content || {}, invitation.id), contentKeys)
     : contentKeys
 
   const omittedFields = [
@@ -29,7 +29,7 @@ function NoteContent({
         const fieldValue = prettyContentValue(content[fieldName])
         if (!fieldValue) return null
 
-        const invitationField = invitation?.reply.content[fieldName] ?? {}
+        const invitationField = invitation?.reply?.content?.[fieldName] ?? {}
 
         return (
           <li key={fieldName}>
