@@ -1470,7 +1470,7 @@ module.exports = (function() {
       contentInputResult = mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
     }
 
-    if (fieldDescription.hidden === true) {
+    if (fieldDescription && fieldDescription.hidden === true) {
       return contentInputResult.hide();
     }
     return contentInputResult;
@@ -3188,6 +3188,11 @@ module.exports = (function() {
   };
 
   function buildReaders(fieldDescription, fieldValue, replyto, done) {
+    if (!fieldDescription) {
+      done(undefined, 'Invitation is missing readers');
+      return;
+    }
+
     var requiredText = $('<span>', { text: '*', class: 'required_field' });
     var setParentReaders = function(parent, fieldDescription, fieldType, done) {
       if (parent) {
