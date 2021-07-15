@@ -2947,19 +2947,12 @@ module.exports = (function() {
 
   var deleteOrRestoreNoteV2 = function(note, noteTitle, user, onTrashedOrRestored) {
     var invitation = note.details.invitation;
-    var newNote = {
+    var newNote = { // only pass in required field
       note: {
         id: note.id,
-        content:note.content,
-        forum: note.forum,
-        replyto: note.replyto,
-        readers: note.readers,
-        writers: note.writers,
-        nonreaders: note.nonreaders,
-        signatures: note.signatures,
       },
       invitation: note.invitation,
-      signatures: note.signatures,
+      signatures: [user.profile.id],
       readers: (invitation?.edit?.note?.readers?.values || invitation?.edit?.readers?.value) ? undefined : note.readers,
       writers: (invitation?.edit?.note?.writers?.values || invitation?.edit?.writers?.value) ? undefined : note.writers,
      };
