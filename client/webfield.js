@@ -1880,7 +1880,7 @@ module.exports = (function() {
     }
 
     if (options.displayOptions.showActionButtons) {
-      _registerActionButtonHandlers(
+      _registerActionButtonHandlersV2(
         $container, notes, Handlebars.templates['partials/noteBasic'], options
       );
     }
@@ -2097,7 +2097,7 @@ module.exports = (function() {
     }));
 
     if (options.showActionButtons) {
-      _registerActionButtonHandlers(
+      _registerActionButtonHandlersV2(
         $container, notes, Handlebars.templates['partials/noteActivityV2'], options
       );
     }
@@ -2225,6 +2225,132 @@ module.exports = (function() {
           noteTemplateFn(Object.assign({}, newNote, { details: details, options: options }))
         );
         return _.isFunction(options.onNoteRestored) ? options.onNoteRestored(newNote) : true;
+      });
+    });
+  };
+
+  var _registerActionButtonHandlersV2 = function($container, notes, noteTemplateFn, options) {
+    var user = _.isEmpty(options.user) ?
+      window.user :
+      { id: options.user.id, profile: options.user };
+
+    // Edit button handler
+    $container.on('click', '.note-action-edit', function(e) {
+      var $note = $(this).closest('.note');
+      var noteId = $note.data('id');
+      var existingNote = _.find(notes, ['id', noteId]);
+      if (!existingNote) {
+        return;
+      }
+      var details = existingNote.details;
+      existingNote = _.omit(existingNote, ['details']);
+
+      return getV2('/invitations', { id: existingNote.invitation }).then(function(result) {
+        var invitationObj = _.get(result, 'invitations[0]', {});
+
+        $('#note-editor-modal').remove();
+        $('body').append(Handlebars.templates.genericModal({
+          id: 'note-editor-modal',
+          extraClasses: 'modal-lg',
+          showHeader: false,
+          showFooter: false
+        }));
+        $('#note-editor-modal').modal('show');
+
+        view.mkNoteEditorV2(existingNote, invitationObj, user, {
+          onNoteEdited: function(result) {
+            $('#note-editor-modal').modal('hide');
+            existingNote.content = result.note?.content;
+            existingNote.tmdate = Date.now();
+            details.isUpdated = true;
+            $note.html(
+              noteTemplateFn(Object.assign({}, existingNote, { details: details, options: options }))
+            );
+            promptMessage('Note updated successfully');
+
+            // update notes object so that subsequent update has latest value
+            // result (from POST) can have more properties so can't just assign to note (from GET)
+            var indexOfUpdatedNote = _.findIndex(notes, ['id', result.note?.id]);
+            Object.keys(notes[indexOfUpdatedNote]).forEach(function(key) {
+              if (key !== 'details') {
+                notes[indexOfUpdatedNote][key] = result.note?.[key];
+              }
+            });
+            notes[indexOfUpdatedNote].details.isUpdated = true;
+
+            MathJax.typesetPromise();
+            return _.isFunction(options.onNoteEdited) ? options.onNoteEdited(existingNote) : true;
+          },
+          onError: function(errors) {
+            $('#note-editor-modal .modal-body .alert-danger').remove();
+
+            $('#note-editor-modal .modal-body').prepend(
+              '<div class="alert alert-danger"><strong>Error:</strong> </div>'
+            );
+            var errorText = 'Could not save note';
+            if (errors && errors.length) {
+              errorText = translateErrorMessage(errors[0]);
+            }
+            $('#note-editor-modal .modal-body .alert-danger').append(errorText);
+            $('#note-editor-modal').animate({ scrollTop: 0 }, 400);
+          },
+          onNoteCancelled: function() {
+            $('#note-editor-modal').modal('hide');
+          },
+          onCompleted: function($editor) {
+            if (!$editor) return;
+            $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append(
+              '<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+                '<span aria-hidden="true">&times;</span>' +
+              '</button>',
+              $editor
+            );
+          }
+        });
+      });
+    });
+
+    // Trash button handler
+    $container.on('click', '.note-action-trash', function(e) {
+      var $note = $(this).closest('.note');
+      var noteId = $note.data('id');
+      var noteTitle = $note.find('h4 > a').eq(0).text();
+      var existingNote = _.find(notes, ['id', noteId]);
+      if (!existingNote) {
+        return;
+      }
+
+      view.deleteOrRestoreNoteV2(existingNote, noteTitle, user, function(newNote) {
+        $note.addClass('trashed').html(
+          noteTemplateFn({ ...newNote, details: { ...newNote.details, isDeleted: true }, options: options })
+        );
+        return _.isFunction(options.onNoteTrashed) ? options.onNoteTrashed(newNote) : true;
+      });
+    });
+
+    // Restore button handler
+    $container.on('click', '.note-action-restore', function(e) {
+      var $note = $(this).closest('.note');
+      var noteId = $note.data('id');
+      var noteTitle = $note.find('h4 > a').eq(0).text().replace('[Deleted]', '');
+      var existingNote = _.find(notes, ['id', noteId]);
+      if (!existingNote) {
+        return;
+      }
+
+      // postV2('/notes/edits', existingNote).then(function(newNote) {
+      //   details.isDeleted = false;
+      //   $note.removeClass('trashed').html(
+      //     noteTemplateFn(Object.assign({}, newNote, { details: details, options: options }))
+      //   );
+      //   return _.isFunction(options.onNoteRestored) ? options.onNoteRestored(newNote) : true;
+      // });
+
+      view.deleteOrRestoreNoteV2(existingNote, noteTitle, user, function(newNote) {
+        $note.removeClass('trashed').html(
+          noteTemplateFn({ ...newNote, details: { ...newNote.details,isDeleted: false }, options: options })
+        );
+        return _.isFunction(options.onNoteTrashed) ? options.onNoteTrashed(newNote) : true;
       });
     });
   };

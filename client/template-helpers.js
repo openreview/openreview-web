@@ -388,7 +388,7 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
 
   var contentKeys = Object.keys(noteObj.content);
   var contentOrder = invitation
-    ? _.union(order(invitation.reply.content, invitation.id), contentKeys)
+    ? _.union(order(options.hash.isV2API ? invitation.edit.note?.content : invitation.reply.content, invitation.id), contentKeys)
     : contentKeys;
 
   var omittedContentFields = [

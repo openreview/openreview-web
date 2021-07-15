@@ -256,7 +256,11 @@ module.exports = function(forumId, noteId, invitationId, user) {
         });
       },
       onTrashedOrRestored: function(newNote) {
-        onTokenChange();
+        sm.update('noteRecs', _.map(sm.get('noteRecs'), function(oldRec) {
+          return oldRec.note.id === newNote.id ?
+            Object.assign(oldRec, { note: newNote }) :
+            oldRec;
+        }));
       },
       userId: user && user.id,
       user: user,

@@ -2963,7 +2963,9 @@ module.exports = (function() {
       newNote.note.ddate = null;
       return Webfield.postV2('/notes/edits', newNote, null).then(function() {
         // the return of the post is edit without updatednote
-        onTrashedOrRestored();
+        Webfield.getV2('/notes', { id: note.id }).then(function(result) {
+          onTrashedOrRestored({...result.notes[0],details:note.details});
+        });
       });
     }
 
@@ -2976,7 +2978,10 @@ module.exports = (function() {
       newNote.note.ddate = Date.now();
       Webfield.postV2('/notes/edits', newNote, null).then(function() {
         // the return of the post is edit without updatednote
-        onTrashedOrRestored();
+        // so get the updated note again
+        Webfield.getV2('/notes', { id: note.id, trash: true }).then(function (result) {
+          onTrashedOrRestored({...result.notes[0],details:note.details});
+        });
       });
     };
 
@@ -4987,6 +4992,7 @@ module.exports = (function() {
     mkDownloadLink: mkDownloadLink,
     hideNoteEditorFields: hideNoteEditorFields,
     deleteOrRestoreNote: deleteOrRestoreNote,
+    deleteOrRestoreNoteV2: deleteOrRestoreNoteV2,
     isValidEmail: isValidEmail,
     formatProfileContent: formatProfileContent,
     prettyId: prettyId,
