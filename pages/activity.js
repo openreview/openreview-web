@@ -31,9 +31,10 @@ const Activity = ({ appContext }) => {
     try {
       if (process.env.ENABLE_V2_API) {
         const v1NotesP = api.get('/notes', queryParam, { accessToken })
-        const v2NotesP = api.getV2('/notes', queryParam, { accessToken })
+        const v2NotesP = api.getV2('/notes/edits', queryParam, { accessToken })
         const results = await Promise.all([v1NotesP, v2NotesP])
-        notes = apiV2MergeNotes(results[0].notes, results[1].notes)
+        // eslint-disable-next-line max-len
+        notes = apiV2MergeNotes(results[0].notes, results[1].edits.map(p => ({ ...p.note, invitations: p.invitations })))
       } else {
         ({ notes } = await api.get('/notes', queryParam, { accessToken }))
       }
@@ -60,7 +61,7 @@ const Activity = ({ appContext }) => {
       container: activityRef.current,
       emptyMessage: 'No recent activity to display.',
       user: user.profile,
-      showActionButtons: true,
+      showActionButtons: false,
     })
 
     $('[data-toggle="tooltip"]').tooltip()
