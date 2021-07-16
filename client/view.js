@@ -3286,7 +3286,8 @@ module.exports = (function() {
       });
     } else if (_.has(fieldDescription, 'values')) {
       setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
-        if (_.isEqual(newFieldDescription.values, fieldDescription.values)|| fieldDescription.values.every(function (val) {
+        var equalReaders = _.isEqual(newFieldDescription.values, fieldDescription.values);
+        if (equalReaders || fieldDescription.values.every(function (val) {
           if (val.includes('/Reviewer_')) {
             var hasReviewers = _.find(newFieldDescription.values, function(v) { return v.includes('/Reviewers')});
             return hasReviewers;
