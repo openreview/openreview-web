@@ -842,7 +842,7 @@ module.exports = function(profile, params, submitF, cancelF) {
     return [
       $('<section>').append(
         '<h4>Names</h4>',
-        '<p class="instructions">How do you usually write your name as author of a paper? Also add any other names you have authored papers under.</p>',
+        '<p class="instructions">Enter your full name (first, middle, last). Also add any other names you have used in the past when authoring papers.</p>',
         $namesTable,
         $addNameRow
       ),
@@ -855,10 +855,12 @@ module.exports = function(profile, params, submitF, cancelF) {
 
       $('<section>').append(
         '<h4>Emails</h4>',
-        '<p class="instructions">Enter email addresses associated with all of your current ' +
-          'and historical institutional affiliations, as well as all your previous publications, ' +
-          'and the Toronto Paper Matching System. This information is crucial for deduplicating ' +
-          'users, and ensuring you see your reviewing assignments.</p>',
+        '<p class="instructions">Enter all email addresses associated with your current and historical institutional ' +
+          'affiliations, your previous publications, and any other related systems, such as ' +
+          'TPMS, CMT, and ArXiv. <strong>Email addresses associated with your old affiliations ' +
+          '(including previous employers) should not be deleted.</strong> This information is crucial for ' +
+          'deduplicating users and ensuring that you see your reviewing assignments. ' +
+          'OpenReview will only send messages to the address marked as “Preferred”.</p>',
         $emailsTable,
         $addInfoRow
       ),
@@ -871,7 +873,7 @@ module.exports = function(profile, params, submitF, cancelF) {
 
       $('<section>').append(
         '<h4>Education &amp; Career History</h4>',
-        '<p class="instructions">Enter your education and career history. The institution domain is used for conflict of interest detection and institution ranking. For ongoing positions, leave the end field blank.</p>',
+        '<p class="instructions">Enter your education and career history. The institution domain is used for conflict of interest detection, author deduplication, analysis of career path history, and tallies of institutional diversity. For ongoing positions, leave the End field blank.</p>',
         $historyTable,
         $addHistoryRow
       ),
@@ -895,7 +897,7 @@ module.exports = function(profile, params, submitF, cancelF) {
 
       params.hidePublicationEditor ? null : $('<section>').append(
         '<h4>Publications</h4>',
-        '<p class="instructions">Below is a list of all publications on OpenReview that include you as an author. You can remove any publication you are not an author of by clicking the minus button next to the title.</p>',
+        '<p class="instructions">Below is a list of all publications on OpenReview that include you as an author. Some papers imported from DBLP or other sources have a minus sign next to the title; click this to remove any publications of which you are not actually an author.</p>',
         $('<div>', { id: 'publication-editor-container' })
       ),
     ];

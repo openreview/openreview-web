@@ -2696,9 +2696,20 @@ templates['partials/invitationInfoTable'] = template({"1":function(container,dep
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"editable") : depth0),{"name":"if","hash":{},"fn":container.program(18, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":67,"column":0},"end":{"line":200,"column":7}}})) != null ? stack1 : "");
 },"useData":true});
 templates['partials/multiselectorDropdown'] = template({"1":function(container,depth0,helpers,partials,data) {
-    return "      <li class=\"select-all-item\">\n        <label>\n          <input class=\"select-all-checkbox\" type=\"checkbox\" checked/> Select All\n        </label>\n      </li>\n";
-},"3":function(container,depth0,helpers,partials,data,blockParams,depths) {
-    var helper, alias1=container.escapeExpression, alias2=depth0 != null ? depth0 : (container.nullContext || {}), alias3=container.hooks.helperMissing, alias4="function", lookupProperty = container.lookupProperty || function(parent, propertyName) {
+    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "      <li class=\"select-all-item\">\n        <label>\n          <input class=\"select-all-checkbox\" type=\"checkbox\" "
+    + ((stack1 = lookupProperty(helpers,"unless").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"defaultUnchecked") : depth0),{"name":"unless","hash":{},"fn":container.program(2, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":11,"column":61},"end":{"line":11,"column":107}}})) != null ? stack1 : "")
+    + "/> Select All\n        </label>\n      </li>\n";
+},"2":function(container,depth0,helpers,partials,data) {
+    return "checked";
+},"4":function(container,depth0,helpers,partials,data,blockParams,depths) {
+    var stack1, helper, alias1=container.escapeExpression, alias2=depth0 != null ? depth0 : (container.nullContext || {}), alias3=container.hooks.helperMissing, alias4="function", lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
         }
@@ -2709,8 +2720,10 @@ templates['partials/multiselectorDropdown'] = template({"1":function(container,d
     + alias1(container.lambda((depths[1] != null ? lookupProperty(depths[1],"id") : depths[1]), depth0))
     + "-multiselector-checkbox\" type=\"checkbox\" value=\""
     + alias1(((helper = (helper = lookupProperty(helpers,"valueFilter") || (depth0 != null ? lookupProperty(depth0,"valueFilter") : depth0)) != null ? helper : alias3),(typeof helper === alias4 ? helper.call(alias2,{"name":"valueFilter","hash":{},"data":data,"loc":{"start":{"line":18,"column":81},"end":{"line":18,"column":96}}}) : helper)))
-    + "\" checked/> "
-    + alias1(((helper = (helper = lookupProperty(helpers,"textFilter") || (depth0 != null ? lookupProperty(depth0,"textFilter") : depth0)) != null ? helper : alias3),(typeof helper === alias4 ? helper.call(alias2,{"name":"textFilter","hash":{},"data":data,"loc":{"start":{"line":18,"column":108},"end":{"line":18,"column":122}}}) : helper)))
+    + "\" "
+    + ((stack1 = lookupProperty(helpers,"unless").call(alias2,(depths[1] != null ? lookupProperty(depths[1],"defaultUnchecked") : depths[1]),{"name":"unless","hash":{},"fn":container.program(2, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":18,"column":98},"end":{"line":18,"column":147}}})) != null ? stack1 : "")
+    + "/> "
+    + alias1(((helper = (helper = lookupProperty(helpers,"textFilter") || (depth0 != null ? lookupProperty(depth0,"textFilter") : depth0)) != null ? helper : alias3),(typeof helper === alias4 ? helper.call(alias2,{"name":"textFilter","hash":{},"data":data,"loc":{"start":{"line":18,"column":150},"end":{"line":18,"column":164}}}) : helper)))
     + "\n        </label>\n      </li>\n";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -2728,7 +2741,7 @@ templates['partials/multiselectorDropdown'] = template({"1":function(container,d
     + alias4(((helper = (helper = lookupProperty(helpers,"id") || (depth0 != null ? lookupProperty(depth0,"id") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"id","hash":{},"data":data,"loc":{"start":{"line":7,"column":71},"end":{"line":7,"column":77}}}) : helper)))
     + "\">\n"
     + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(depth0 != null ? lookupProperty(depth0,"hideSelectAll") : depth0),{"name":"unless","hash":{},"fn":container.program(1, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":8,"column":4},"end":{"line":14,"column":15}}})) != null ? stack1 : "")
-    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"htmlFilters") : depth0),{"name":"each","hash":{},"fn":container.program(3, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":15,"column":4},"end":{"line":21,"column":13}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"htmlFilters") : depth0),{"name":"each","hash":{},"fn":container.program(4, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":15,"column":4},"end":{"line":21,"column":13}}})) != null ? stack1 : "")
     + "  </ul>\n</div>\n";
 },"useData":true,"useDepths":true});
 templates['partials/noteActivity'] = template({"1":function(container,depth0,helpers,partials,data) {

@@ -302,18 +302,16 @@ const ExistingProfileForm = ({
             onChange={e => setEmail(e.target.value)}
             autoComplete="email"
           />
-          {
-            hasPassword && (
-              <>
-                <SubmitButton disabled={!isValidEmail(email)}>{buttonLabel}</SubmitButton>
-                <span className="new-username hint">
-                  {usernameLabel}
-                  {' '}
-                  <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
-                </span>
-              </>
-            )
-          }
+          {hasPassword && (
+            <>
+              <SubmitButton disabled={!isValidEmail(email)}>{buttonLabel}</SubmitButton>
+              <span className="new-username hint">
+                {usernameLabel}
+                {' '}
+                <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+              </span>
+            </>
+          )}
         </div>
       )}
       {passwordVisible && !hasPassword && (
@@ -322,7 +320,7 @@ const ExistingProfileForm = ({
             <input
               type="password"
               className="form-control"
-              placeholder="New Password"
+              placeholder="New password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               autoComplete="new-password"
@@ -333,7 +331,7 @@ const ExistingProfileForm = ({
             <input
               type="password"
               className="form-control"
-              placeholder="Confirm New Password"
+              placeholder="Confirm new password"
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
               required
@@ -468,7 +466,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
             <input
               type="password"
               className="form-control"
-              placeholder="New Password"
+              placeholder="New password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               autoComplete="new-password"
@@ -479,7 +477,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
             <input
               type="password"
               className="form-control"
-              placeholder="Confirm New Password"
+              placeholder="Confirm new password"
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
               autoComplete="new-password"
@@ -552,7 +550,7 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
             <input
               type="password"
               className="form-control"
-              placeholder="New Password"
+              placeholder="New password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               autoComplete="new-password"
@@ -563,7 +561,7 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
             <input
               type="password"
               className="form-control"
-              placeholder="Confirm New Password"
+              placeholder="Confirm new password"
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
               autoComplete="new-password"
