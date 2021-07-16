@@ -279,21 +279,39 @@ module.exports = (function() {
   };
 
   // API Functions
+  // var getSubmissionInvitation = function(invitationId, options) {
+  //   var defaults = {
+  //   };
+  //   options = _.assign(defaults, options);
+
+  //   // Don't use the Webfield get function so the fail callback can be overridden
+  //   var invitationV1P = get('/invitations', { id: invitationId }, { handleErrors: false })
+  //   var invitationV2P = getV2('/invitations', { id: invitationId }, { handleErrors: false })
+  //   return Promise.allSettled([invitationV1P, invitationV2P])
+  //     .then(function(results) {
+  //       if (results[1].value?.invitations?.length) {
+  //         return results[1].value.invitations[0];
+  //       }
+  //       if (results[0]?.value?.invitations?.length) {
+  //         return results[0].value.invitations[0];
+  //       }
+  //       return null;
+  //     }, function() {
+  //       // In case of error return null, but continue the promise chain
+  //       return $.Deferred().resolve(null);
+  //     });
+  // };
+
   var getSubmissionInvitation = function(invitationId, options) {
     var defaults = {
     };
     options = _.assign(defaults, options);
 
     // Don't use the Webfield get function so the fail callback can be overridden
-    var invitationV1P = get('/invitations', { id: invitationId }, { handleErrors: false })
-    var invitationV2P = getV2('/invitations', { id: invitationId }, { handleErrors: false })
-    return Promise.allSettled([invitationV1P, invitationV2P])
-      .then(function(results) {
-        if (results[1].value?.invitations?.length) {
-          return results[1].value.invitations[0];
-        }
-        if (results[0]?.value?.invitations?.length) {
-          return results[0].value.invitations[0];
+    return get('/invitations', { id: invitationId }, { handleErrors: false })
+      .then(function(result) {
+        if (result.invitations.length) {
+          return result.invitations[0];
         }
         return null;
       }, function() {
