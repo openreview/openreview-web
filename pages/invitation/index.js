@@ -82,7 +82,6 @@ Invitation.getInitialProps = async (ctx) => {
   }
 
   const generateWebfieldCode = (invitation, user, mode) => {
-    console.log(ctx.query)
     const invitationTitle = prettyId(invitation.id)
     const invitationObjSlim = omit(invitation, 'web', 'process', 'details', 'preprocess')
     const isInvitationWritable = invitation.details && invitation.details.writable

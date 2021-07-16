@@ -4497,11 +4497,11 @@ module.exports = (function() {
           }
           $noteEditor.remove();
           clearAutosaveData(autosaveStorageKeys);
-        }, function(jqXhr, errorText) {
+        }, function(error) {
           if (params.onError) {
-            params.onError([errorText]);
+            params.onError(error);
           } else {
-            promptError(errorText);
+            promptError(error);
           }
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
           $cancelButton.prop({ disabled: false });
@@ -4716,11 +4716,11 @@ module.exports = (function() {
           }
           $noteEditor.remove();
           clearAutosaveData(autosaveStorageKeys);
-        }, function(jqXhr, errorText) {
+        }, function(error) {
           if (params.onError) {
-            params.onError([errorText]);
+            params.onError(error);
           } else {
-            promptError(errorText);
+            promptError(error);
           }
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
           $cancelButton.prop({ disabled: false });
