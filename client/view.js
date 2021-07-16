@@ -3286,14 +3286,14 @@ module.exports = (function() {
       });
     } else if (_.has(fieldDescription, 'values')) {
       setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
-        var equalReaders = _.isEqual(newFieldDescription.values, fieldDescription.values);
-        if (equalReaders || fieldDescription.values.every(function (val) {
+        var subsetReaders = fieldDescription.values.every(function (val) {
           if (val.includes('/Reviewer_')) {
             var hasReviewers = _.find(newFieldDescription.values, function(v) { return v.includes('/Reviewers')});
             return hasReviewers;
           }
           return newFieldDescription.values.indexOf(val) !== -1;
-          })) {
+          })
+        if (_.isEqual(newFieldDescription.values, fieldDescription.values) || subsetReaders) {
           var $readers = mkComposerInput('readers', fieldDescription, fieldValue); //for values, readers must match with invitation instead of parent invitation
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
