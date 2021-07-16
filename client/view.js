@@ -4499,7 +4499,7 @@ module.exports = (function() {
           clearAutosaveData(autosaveStorageKeys);
         }, function(error) {
           if (params.onError) {
-            params.onError(error);
+            params.onError([error]);
           } else {
             promptError(error);
           }
@@ -4718,7 +4718,7 @@ module.exports = (function() {
           clearAutosaveData(autosaveStorageKeys);
         }, function(error) {
           if (params.onError) {
-            params.onError(error);
+            params.onError([error]);
           } else {
             promptError(error);
           }
