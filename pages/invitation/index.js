@@ -175,11 +175,19 @@ $(function() {
   try {
     let invitations
     if (process.env.ENABLE_V2_API) {
-      const invitationV1P = api.get('/invitations', { id: ctx.query.id }, { accessToken: token })
-      const invitationV2P = api.getV2('/invitations', { id: ctx.query.id }, { accessToken: token })
-      const results = await Promise.allSettled([invitationV1P, invitationV2P])
-      // eslint-disable-next-line max-len
-      invitations = results[1].value?.invitations?.length ? results[1].value.invitations : results[0]?.value?.invitations
+      try {
+        const v1Result = await api.get('/invitations', { id: ctx.query.id }, { accessToken: token })
+        // eslint-disable-next-line prefer-destructuring
+        invitations = v1Result.invitations
+      } catch (error) {
+        if (error.status === 404) {
+          const v2Result = await api.getV2('/invitations', { id: ctx.query.id }, { accessToken: token })
+          // eslint-disable-next-line prefer-destructuring
+          invitations = v2Result.invitations
+        } else {
+          throw error
+        }
+      }
     } else {
       ({ invitations } = await api.get('/invitations', { id: ctx.query.id }, { accessToken: token }))
     }
