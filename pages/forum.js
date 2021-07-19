@@ -341,16 +341,22 @@ baseForum.getInitialProps = async (ctx) => {
     let blindNotesResult
 
     if (process.env.ENABLE_V2_API) {
-      const blindNotesV1P = api.get('/notes', { original: noteId }, { accessToken: token })
-      const blindNotesV2P = api.getV2('/notes', { original: noteId }, { accessToken: token })
-      const results = await Promise.all([blindNotesV1P, blindNotesV2P])
-      blindNotesResult = results[1].notes.length ? results[1] : results[0]
+      // get notes by original won't return 404 so can only check notes.length
+      const v1Result = await api.get('/notes', { original: noteId }, { accessToken: token })
+      if (v1Result.notes.length) {
+        blindNotesResult = v1Result
+      } else {
+        const v2Result = await api.getV2('/notes', { original: noteId }, { accessToken: token })
+        if (v2Result.notes.length) {
+          blindNotesResult = v2Result
+        }
+      }
     } else {
       blindNotesResult = await api.get('/notes', { original: noteId }, { accessToken: token })
     }
 
     // if no blind submission found return the current forum
-    if (blindNotesResult.notes?.length) {
+    if (blindNotesResult?.notes?.length) {
       return blindNotesResult.notes[0]
     }
 
@@ -372,21 +378,24 @@ baseForum.getInitialProps = async (ctx) => {
       id: ctx.query.id, trash: true, details: 'original,invitation,replyCount,writable',
     }
     if (process.env.ENABLE_V2_API) {
-      const notesV1P = api.get('/notes', queryParam, { accessToken: token })
-      const notesV2P = api.getV2('/notes', queryParam, { accessToken: token })
-      const combinedResults = await Promise.allSettled([notesV1P, notesV2P])
-      if (combinedResults[1].value?.notes.length) {
-        result = combinedResults[1].value
-        v2 = true
-      } else {
-        result = combinedResults[0].value
+      try {
+        const v1Result = await api.get('/notes', queryParam, { accessToken: token }) // most notes are v1 so check v1 first
+        result = v1Result
+      } catch (error) {
+        if (error.status === 404) {
+          const v2Result = await api.getV2('/notes', queryParam, { accessToken: token }) // not found in v1, try v2
+          result = v2Result
+          v2 = true
+        } else {
+          throw error
+        }
       }
     } else {
       result = await api.get('/notes', queryParam, { accessToken: token })
     }
 
     // Can not see the note but there is no error thrown from the API and an empty array is returned instead
-    if (!result.notes.length) {
+    if (!result?.notes?.length) {
       const redirect = await shouldRedirect(ctx.query.id)
       if (redirect) {
         return redirectForum(redirect.id)
