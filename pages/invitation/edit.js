@@ -28,6 +28,8 @@ const InvitationEdit = ({ appContext }) => {
   const containerRef = useRef(null)
 
   const getInvitation = async (id, apiVersion) => {
+    if (apiVersion === 2 && !process.env.API_V2_URL) return null
+
     try {
       const { invitations } = await api.get('/invitations', { id }, { accessToken, version: apiVersion })
       if (invitations?.length > 0) {
