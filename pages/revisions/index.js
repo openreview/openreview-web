@@ -6,7 +6,9 @@
 /* globals promptError: false */
 /* globals promptMessage: false */
 
-import { useEffect, useContext, useState, useRef } from 'react'
+import {
+  useEffect, useContext, useState, useRef,
+} from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import useQuery from '../../hooks/useQuery'
@@ -111,7 +113,7 @@ const RevisionsList = ({
       readers: edit.readers,
       writers: edit.writers,
     }
-    console.log(edit)
+
     return view.mkNotePanelV2(note, {
       invitation: revisionInvitation,
       withContent: true,
