@@ -25,14 +25,35 @@ const InvitationInfo = ({ appContext }) => {
 
     try {
       const { invitations } = await api.get('/invitations', { id }, { accessToken, version: apiVersion })
-      if (invitations?.length > 0) {
-        return invitations[0]
-      }
+      return invitations?.length > 0 ? invitations[0] : null
     } catch (apiError) {
       if (apiError.name === 'Not Found' || apiError.name === 'NotFoundError') {
         return null
       }
+      throw apiError
+    }
+  }
 
+  // Try loading invitation from v1 API first and if not found load from v2
+  const loadInvitation = async (invitationId) => {
+    let invitationObj
+    try {
+      invitationObj = await getInvitation(invitationId, 1)
+      if (invitationObj) {
+        setInvitation({
+          ...invitationObj, web: null, process: null, preprocess: null, apiVersion: 1,
+        })
+      } else {
+        invitationObj = await getInvitation(invitationId, 2)
+        if (invitationObj) {
+          setInvitation({
+            ...invitationObj, web: null, process: null, preprocess: null, apiVersion: 2,
+          })
+        } else {
+          setError({ statusCode: 404, message: 'Invitation not found' })
+        }
+      }
+    } catch (apiError) {
       if (apiError.name === 'forbidden' || apiError.name === 'ForbiddenError') {
         if (!accessToken) {
           router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
@@ -41,26 +62,6 @@ const InvitationInfo = ({ appContext }) => {
         }
       } else {
         setError({ statusCode: apiError.status, message: apiError.message })
-      }
-    }
-    return null
-  }
-
-  // Try loading invitation from v1 API first and if not found load from v2
-  const loadInvitation = async (invitationId) => {
-    let invitationObj = await getInvitation(invitationId, 1)
-    if (invitationObj) {
-      setInvitation({
-        ...invitationObj, web: null, process: null, preprocess: null, apiVersion: 1,
-      })
-    } else {
-      invitationObj = await getInvitation(invitationId, 2)
-      if (invitationObj) {
-        setInvitation({
-          ...invitationObj, web: null, process: null, preprocess: null, apiVersion: 2,
-        })
-      } else {
-        setError({ statusCode: 404, message: 'Invitation not found' })
       }
     }
   }
