@@ -88,7 +88,7 @@ const NamesSection = ({ profileNames }) => {
   return (
     <section>
       <h4>Names</h4>
-      <p className="instructions">How do you usually write your name as author of a paper? Also add any other names you have authored papers under.</p>
+      <p className="instructions">Enter your full name (first, middle, last). Also add any other names you have used in the past when authoring papers.</p>
       <table className="info_table" id="names_table">
         <tbody>
           <tr border="0">
