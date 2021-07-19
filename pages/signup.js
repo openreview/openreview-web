@@ -12,7 +12,7 @@ import UserContext from '../components/UserContext'
 import NoteList from '../components/NoteList'
 import BasicModal from '../components/BasicModal'
 import api from '../lib/api-client'
-import { isValidEmail } from '../lib/utils'
+import { isValidEmail, isValidPassword } from '../lib/utils'
 
 // Page Styles
 import '../styles/pages/signup.less'
@@ -240,6 +240,7 @@ const ExistingProfileForm = ({
 }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
 
   let buttonLabel
@@ -280,16 +281,18 @@ const ExistingProfileForm = ({
           readOnly
         />
         {!passwordVisible && (
-          <button type="submit" className="btn">{buttonLabel}</button>
+          <>
+            <button type="submit" className="btn">{buttonLabel}</button>
+            <span className="new-username hint">
+              {usernameLabel}
+              {' '}
+              <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+            </span>
+          </>
         )}
-        <span className="new-username hint">
-          {usernameLabel}
-          {' '}
-          <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
-        </span>
       </div>
       {passwordVisible && (
-        <div className="password-row">
+        <div className="email-row">
           <input
             type="email"
             className="form-control"
@@ -299,21 +302,52 @@ const ExistingProfileForm = ({
             onChange={e => setEmail(e.target.value)}
             autoComplete="email"
           />
-          {hasPassword && <SubmitButton disabled={!isValidEmail(email)}>{buttonLabel}</SubmitButton>}
+          {hasPassword && (
+            <>
+              <SubmitButton disabled={!isValidEmail(email)}>{buttonLabel}</SubmitButton>
+              <span className="new-username hint">
+                {usernameLabel}
+                {' '}
+                <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+              </span>
+            </>
+          )}
         </div>
       )}
       {passwordVisible && !hasPassword && (
-        <div className="password-row">
-          <input
-            type="password"
-            className="form-control"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-          <SubmitButton disabled={!isValidEmail(email) || !password}>{buttonLabel}</SubmitButton>
-        </div>
+        <>
+          <div className="password-row">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="New password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+          </div>
+          <div className="claim-button-row">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Confirm new password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              required
+            />
+            <SubmitButton
+              disabled={!isValidEmail(email) || !isValidPassword(password, confirmPassword)}
+            >
+              {buttonLabel}
+            </SubmitButton>
+            <span className="new-username hint">
+              {usernameLabel}
+              {' '}
+              <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+            </span>
+          </div>
+        </>
       )}
     </form>
   )
@@ -323,6 +357,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
   const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [emailVisible, setEmailVisible] = useState(false)
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [recentPublications, setRecentPublications] = useState(null)
@@ -391,13 +426,15 @@ const ClaimProfileForm = ({ id, registerUser }) => {
           onChange={e => setFullName(e.target.value)}
         />
         {!emailVisible && (
-          <button type="submit" className="btn" disabled={!fullName}>Claim Profile</button>
+          <>
+            <button type="submit" className="btn" disabled={!fullName}>Claim Profile</button>
+            <span className="new-username hint">
+              for
+              {' '}
+              <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+            </span>
+          </>
         )}
-        <span className="new-username hint">
-          for
-          {' '}
-          <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
-        </span>
       </div>
 
       {emailVisible && (
@@ -411,24 +448,49 @@ const ClaimProfileForm = ({ id, registerUser }) => {
             onChange={e => setEmail(e.target.value)}
           />
           {!passwordVisible && (
-            <button type="submit" className="btn" disabled={!isValidEmail(email)}>Claim Profile</button>
+            <>
+              <button type="submit" className="btn" disabled={!isValidEmail(email)}>Claim Profile</button>
+              <span className="new-username hint">
+                for
+                {' '}
+                <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+              </span>
+            </>
           )}
         </div>
       )}
 
       {passwordVisible && (
-        <div className="password-row">
-          <input
-            type="password"
-            className="form-control"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            autoComplete="new-password"
-            required
-          />
-          <SubmitButton disabled={!password}>Claim Profile</SubmitButton>
-        </div>
+        <>
+          <div className="password-row">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="New password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+          </div>
+          <div className="claim-button-row">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Confirm new password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+            <SubmitButton disabled={!isValidPassword(password, confirmPassword)}>Claim Profile</SubmitButton>
+            <span className="new-username hint">
+              for
+              {' '}
+              <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+            </span>
+          </div>
+        </>
       )}
     </form>
   )
@@ -437,6 +499,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
 const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
 
   const handleSubmit = (e) => {
@@ -477,23 +540,37 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
         {!passwordVisible && (
           <button type="submit" className="btn" disabled={!id || !isValidEmail(email)}>Sign Up</button>
         )}
-        {id && (
+        {!passwordVisible && id && (
           <span className="new-username hint">{`as ${id}`}</span>
         )}
       </div>
       {passwordVisible && (
-        <div className="password-row">
-          <input
-            type="password"
-            className="form-control"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            autoComplete="new-password"
-            required
-          />
-          <SubmitButton disabled={!password}>Sign Up</SubmitButton>
-        </div>
+        <>
+          <div className="password-row">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="New password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+          </div>
+          <div className="claim-button-row">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Confirm new password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+            <SubmitButton disabled={!isValidPassword(password, confirmPassword)}>Sign Up</SubmitButton>
+            {id && <span className="new-username hint">{`as ${id}`}</span>}
+          </div>
+        </>
       )}
     </form>
   )
