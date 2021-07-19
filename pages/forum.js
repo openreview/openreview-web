@@ -338,25 +338,10 @@ baseForum.getInitialProps = async (ctx) => {
   const { user, token } = auth(ctx)
   const shouldRedirect = async (noteId) => {
     // if it is the original of a blind submission, do redirection
-    let blindNotesResult
-
-    if (process.env.ENABLE_V2_API) {
-      // get notes by original won't return 404 so can only check notes.length
-      const v1Result = await api.get('/notes', { original: noteId }, { accessToken: token })
-      if (v1Result.notes.length) {
-        blindNotesResult = v1Result
-      } else {
-        const v2Result = await api.getV2('/notes', { original: noteId }, { accessToken: token })
-        if (v2Result.notes.length) {
-          blindNotesResult = v2Result
-        }
-      }
-    } else {
-      blindNotesResult = await api.get('/notes', { original: noteId }, { accessToken: token })
-    }
+    const blindNotesResult = await api.get('/notes', { original: noteId }, { accessToken: token })
 
     // if no blind submission found return the current forum
-    if (blindNotesResult?.notes?.length) {
+    if (blindNotesResult.notes?.length) {
       return blindNotesResult.notes[0]
     }
 
@@ -395,7 +380,7 @@ baseForum.getInitialProps = async (ctx) => {
     }
 
     // Can not see the note but there is no error thrown from the API and an empty array is returned instead
-    if (!result?.notes?.length) {
+    if (!result?.notes?.length && !v2) { // v2 has no original so no redirection
       const redirect = await shouldRedirect(ctx.query.id)
       if (redirect) {
         return redirectForum(redirect.id)
@@ -414,10 +399,13 @@ baseForum.getInitialProps = async (ctx) => {
       return { forumNote: note, query: ctx.query, isVersion2Note: v2 }
     }
 
-    const redirect = await shouldRedirect(note.id)
-    if (redirect) {
-      return redirectForum(redirect.id)
+    if (!v2) {
+      const redirect = await shouldRedirect(note.id)
+      if (redirect) {
+        return redirectForum(redirect.id)
+      }
     }
+
     return { forumNote: note, query: ctx.query, isVersion2Note: v2 }
   } catch (error) {
     if (error.name === 'forbidden' || error.name === 'ForbiddenError') {

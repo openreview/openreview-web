@@ -6,7 +6,7 @@
 /* globals promptError: false */
 /* globals promptMessage: false */
 
-import { useEffect, useContext, useState } from 'react'
+import { useEffect, useContext, useState, useRef } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import useQuery from '../../hooks/useQuery'
@@ -102,12 +102,49 @@ const RevisionsList = ({
     }).removeClass('panel')
   }
 
+  const buildNotePanelV2 = (edit, revisionInvitation) => {
+    const note = {
+      ...edit.note,
+      writable: edit.details.writable,
+      invitations: edit.invitations,
+      signatures: edit.signatures,
+      readers: edit.readers,
+      writers: edit.writers,
+    }
+    console.log(edit)
+    return view.mkNotePanelV2(note, {
+      invitation: revisionInvitation,
+      withContent: true,
+      withReplyCount: false,
+      withRevisionsLink: false,
+      isReference: true,
+      withModificationDate: true,
+      withDateTime: true,
+      withBibtexLink: false,
+      user,
+      onEditRequested: (inv, options) => {
+        const noteToShow = options.original ? note.details.original : note
+        const editorOptions = options.original ? { fullNote: note } : {}
+        showEditorModal(noteToShow, revisionInvitation, editorOptions)
+      },
+      onTrashedOrRestored: () => {
+        $(`#note_${note.id}`).closest('.row').remove()
+        promptMessage('Revision deleted')
+      },
+    }).removeClass('panel')
+  }
+
   useEffect(() => {
     if (!revisions) return
 
     $('.references-list .note-container').each(function appendNotePanel(index) {
       const [reference, invitation] = revisions[index]
-      $(this).append(buildNotePanel(reference, invitation))
+      if (reference.note) {
+        // this is an edit
+        $(this).append(buildNotePanelV2(reference, invitation))
+      } else {
+        $(this).append(buildNotePanel(reference, invitation))
+      }
     })
 
     // eslint-disable-next-line consistent-return
@@ -157,6 +194,7 @@ const Revisions = ({ appContext }) => {
   const { user, accessToken, userLoading } = useContext(UserContext)
   const router = useRouter()
   const query = useQuery()
+  const isV2Note = useRef(false)
   const { setBannerContent, setBannerHidden } = appContext
 
   const enterSelectMode = () => {
@@ -177,6 +215,17 @@ const Revisions = ({ appContext }) => {
     router.push(`/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${hasPdf ? '&pdf=true' : ''}`)
   }
 
+  const compareRevisionsV2 = () => {
+    // selectedIndexes is always stored in ascending order, so the first element
+    // in the array represents the index of the most recent revision and the second
+    // element represents the older revision, which should go on the left
+    const leftEditId = revisions[selectedIndexes[1]][0].id
+    const rightEditId = revisions[selectedIndexes[0]][0].id
+    // eslint-disable-next-line max-len
+    const hasPdf = revisions[selectedIndexes[0]][0].note.content.pdf?.value && revisions[selectedIndexes[1]][0].note.content.pdf?.value
+    router.push(`/revisions/compare?id=${parentNoteId}&left=${leftEditId}&right=${rightEditId}${hasPdf ? '&pdf=true' : ''}${isV2Note.current ? '&v2=true' : ''}`)
+  }
+
   useEffect(() => {
     if (userLoading || !query) return
 
@@ -189,11 +238,29 @@ const Revisions = ({ appContext }) => {
 
     const setBanner = async () => {
       try {
-        const { notes } = await api.get('/notes', { id: noteId }, { accessToken })
-        if (notes?.length > 0) {
-          setBannerContent(forumLink(notes[0]))
-        } else {
-          setBannerHidden(true)
+        try {
+          const { notes: v1Notes } = await api.get('/notes', { id: noteId }, { accessToken })
+          if (v1Notes.length > 0) {
+            setBannerContent(forumLink(v1Notes[0]))
+            // eslint-disable-next-line no-use-before-define
+            loadRevisions()
+          } else {
+            setBannerHidden(true)
+          }
+        } catch (v1ApiRrror) {
+          if (v1ApiRrror.status === 404) {
+            const { notes: v2Notes } = await api.getV2('/notes', { id: noteId }, { accessToken })
+            if (v2Notes.length > 0) {
+              setBannerContent(forumLink(v2Notes[0], true))
+              isV2Note.current = true
+              // eslint-disable-next-line no-use-before-define
+              loadRevisionsV2()
+            } else {
+              setBannerHidden(true)
+            }
+          } else {
+            throw v1ApiRrror
+          }
         }
       } catch (apiError) {
         setBannerHidden(true)
@@ -235,7 +302,35 @@ const Revisions = ({ appContext }) => {
         setError(apiError)
       }
     }
-    loadRevisions()
+    const loadRevisionsV2 = async () => {
+      let apiRes
+      try {
+        apiRes = await api.getV2('/notes/edits', {
+          'note.id': noteId, trash: true, details: 'writable',
+        }, { accessToken })
+      } catch (apiError) {
+        setError(apiError)
+        return
+      }
+
+      const edits = apiRes.edits || []
+      const invitationIds = Array.from(new Set(edits.map(edit => edit.invitations)))
+
+      try {
+        const { invitations } = await api.getV2('/invitations', { ids: invitationIds.flatMap(p => p), expired: true })
+
+        if (invitations?.length > 0) {
+          setRevisions(edits.map((edit) => {
+            const editInvitation = invitations.find(invitation => edit.invitations.includes(invitation.id))
+            return [edit, editInvitation]
+          }))
+        } else {
+          setRevisions([])
+        }
+      } catch (apiError) {
+        setError(apiError)
+      }
+    }
   }, [userLoading, query, accessToken])
 
   return (
@@ -253,7 +348,7 @@ const Revisions = ({ appContext }) => {
                 type="button"
                 className="btn btn-primary"
                 disabled={selectedIndexes.length !== 2}
-                onClick={compareRevisions}
+                onClick={isV2Note.current ? compareRevisionsV2 : compareRevisions}
               >
                 View Differences
               </button>

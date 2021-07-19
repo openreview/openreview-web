@@ -10,7 +10,7 @@ import ErrorDisplay from '../../components/ErrorDisplay'
 import api from '../../lib/api-client'
 import { forumLink } from '../../lib/banner-links'
 import {
-  prettyField, prettyContentValue, formatTimestamp, noteContentDiff,
+  prettyField, prettyContentValue, formatTimestamp, noteContentDiff, noteContentDiffV2
 } from '../../lib/utils'
 
 import '../../styles/pages/revisions-compare.less'
@@ -26,9 +26,14 @@ const CompareRevisions = ({ appContext }) => {
 
   const setBanner = async () => {
     try {
-      const { notes } = await api.get('/notes', { id: query.id }, { accessToken })
+      let notes
+      if (query.v2) {
+        ({ notes } = await api.getV2('/notes', { id: query.id }, { accessToken }))
+      } else {
+        ({ notes } = await api.get('/notes', { id: query.id }, { accessToken }))
+      }
       if (notes?.length > 0) {
-        setBannerContent(forumLink(notes[0]))
+        setBannerContent(forumLink(notes[0], query.v2))
       } else {
         setBannerHidden(true)
       }
@@ -39,15 +44,31 @@ const CompareRevisions = ({ appContext }) => {
 
   const loadReferences = async () => {
     try {
-      const apiRes = await api.get('/references', {
-        referent: query.id, original: true, trash: true,
-      }, { accessToken })
+      const apiRes = await api.get('/references', { referent: query.id, original: true, trash: true }, { accessToken })
 
       if (apiRes.references?.length > 1) {
         const leftNote = apiRes.references.find(reference => reference.id === query.left)
         const rightNote = apiRes.references.find(reference => reference.id === query.right)
         if (leftNote && rightNote) {
           setReferences([leftNote, rightNote])
+          return
+        }
+      }
+      setError({ statusCode: 404, message: 'Reference not found' })
+    } catch (apiError) {
+      setError(apiError)
+    }
+  }
+
+  const loadReferencesV2 = async () => {
+    try {
+      const apiRes = await api.getV2('/notes/edits', { 'note.id': query.id, trash: true }, { accessToken })
+
+      if (apiRes.edits?.length > 1) {
+        const leftEdit = apiRes.edits.find(edit => edit.id === query.left)
+        const rightEdit = apiRes.edits.find(edit => edit.id === query.right)
+        if (leftEdit && rightEdit) {
+          setReferences([leftEdit, rightEdit])
           return
         }
       }
@@ -65,7 +86,8 @@ const CompareRevisions = ({ appContext }) => {
       setReferences([leftNote, rightNote])
       setDraftableUrl(viewerUrl)
     } catch (apiError) {
-      loadReferences()
+      // eslint-disable-next-line no-unused-expressions
+      query.v2 ? loadReferencesV2() : loadReferences()
     }
   }
 
@@ -81,14 +103,15 @@ const CompareRevisions = ({ appContext }) => {
     if (query.pdf) {
       loadComparison()
     } else {
-      loadReferences()
+      // eslint-disable-next-line no-unused-expressions
+      query.v2 ? loadReferencesV2() : loadReferences()
     }
   }, [userLoading, query, accessToken])
 
   useEffect(() => {
     if (!references) return
-
-    const diff = noteContentDiff(references[0], references[1])
+    const diffFunc = query.v2 ? noteContentDiffV2 : noteContentDiff
+    const diff = diffFunc(references[0], references[1])
     if (Object.keys(diff).length > 0) {
       setContentDiff(diff)
     }
