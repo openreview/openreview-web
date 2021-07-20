@@ -3199,12 +3199,14 @@ module.exports = (function() {
   };
 
   var loadRelatedInvitations = function(groupId) {
+    const isV2Group = groupId.startsWith('.')
     renderPaginatedList($('section.invitations'), {
       templateName: 'partials/paginatedInvitationList',
       loadItems: function(limit, offset) {
-        return get('/invitations?regex=' + groupId + '/-/.*', {
+        const invitationQueryParam = {
           expired: true, type: 'all', limit: limit, offset: offset
-        })
+        }
+        return (isV2Group ? getV2('/invitations?regex=' + groupId + '/-/.*', invitationQueryParam) : get('/invitations?regex=' + groupId + '/-/.*', invitationQueryParam))
           .then(apiResponseHandler('invitations'));
       },
       renderItem: renderInvitationListItem
