@@ -34,7 +34,7 @@ const Activity = ({ appContext }) => {
         const v2NotesP = api.getV2('/notes/edits', queryParam, { accessToken })
         const results = await Promise.all([v1NotesP, v2NotesP])
         // eslint-disable-next-line max-len
-        notes = apiV2MergeNotes(results[0].notes, results[1].edits.map(p => ({ ...p.note, invitations: p.invitations })))
+        notes = apiV2MergeNotes(results[0].notes, results[1].edits.map(p => ({ ...p.note, invitations: p.invitations })), 'tmdate')
       } else {
         ({ notes } = await api.get('/notes', queryParam, { accessToken }))
       }
