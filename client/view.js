@@ -3813,7 +3813,7 @@ module.exports = (function() {
         var readerValues = getReaders(readers, invitation, signatureInputValues);
         var nonReadersValues = null;
         if (_.has(invitation, 'edit.nonreaders.values')) {
-          nonReadersValues = invitation.reply.nonreaders.values;
+          nonReadersValues = invitation.edit.nonreaders.values;
         }
         // TODO: Temporary ICLR hack
         nonReadersValues = _.union(nonReadersValues, addNonreadersICLR(readerValues, invitation));
@@ -3908,7 +3908,7 @@ module.exports = (function() {
 
       var saveNote = function(note) {
         // apply any 'value-copied' fields
-        note = getCopiedValues(note, invitation.reply);
+        note = getCopiedValues(note, invitation?.edit?.note?.content);
         Webfield.postV2('/notes/edits', note, { handleError: false }).then(function(result) {
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
@@ -4601,7 +4601,7 @@ module.exports = (function() {
         var readerValues = getReaders(readers, invitation, signatureInputValues);
         var nonreaderValues = null;
         if (_.has(invitation, 'edit.nonreaders.values')) {
-          nonreaderValues = invitation.reply.nonreaders.values;
+          nonreaderValues = invitation.edit.nonreaders.values;
         }
         var writerValues = getWriters(invitation, signatureInputValues, user);
 

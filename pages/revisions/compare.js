@@ -91,6 +91,19 @@ const CompareRevisions = ({ appContext }) => {
     }
   }
 
+  const loadComparisonV2 = async () => {
+    try {
+      const { leftNote, rightNote, viewerUrl } = await api.getV2('/pdf/compare', {
+        noteId: query.id, leftId: query.left, rightId: query.right,
+      }, { accessToken })
+      setReferences([leftNote, rightNote])
+      setDraftableUrl(viewerUrl)
+    } catch (apiError) {
+      // eslint-disable-next-line no-unused-expressions
+      query.v2 ? loadReferencesV2() : loadReferences()
+    }
+  }
+
   useEffect(() => {
     if (userLoading || !query) return
 
@@ -101,7 +114,8 @@ const CompareRevisions = ({ appContext }) => {
 
     setBanner()
     if (query.pdf) {
-      loadComparison()
+      // eslint-disable-next-line no-unused-expressions
+      query.v2 ? loadComparisonV2() : loadComparison()
     } else {
       // eslint-disable-next-line no-unused-expressions
       query.v2 ? loadReferencesV2() : loadReferences()
