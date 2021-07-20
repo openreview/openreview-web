@@ -278,6 +278,28 @@ module.exports = (function() {
     });
   };
 
+  var sendFileV2 = function(url, data, contentType) {
+    var baseUrl = window.OR_API_URL_V2 ? window.OR_API_URL_V2 : '';
+    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
+    var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
+    return $.ajax({
+      url: baseUrl + url,
+      type: 'put',
+      cache: false,
+      dataType: 'json',
+      processData: false,
+      contentType: contentType ? contentType : false,
+      data: data,
+      headers:  Object.assign(defaultHeaders, authHeaders),
+      xhrFields: {
+        withCredentials: true
+      }
+    }).fail(function(jqXhr, textStatus, errorThrown) {
+      console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus);
+      console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2));
+    });
+  };
+
   // API Functions
   var getSubmissionInvitation = function(invitationId, options) {
     var defaults = {
@@ -4091,6 +4113,7 @@ module.exports = (function() {
     editModeBanner: editModeBanner,
     filterCollections: filterCollections,
     sendFile: sendFile,
+    sendFileV2: sendFileV2,
     api: {
       getSubmissionInvitation: getSubmissionInvitation,
       getSubmissionInvitationV2: getSubmissionInvitationV2,

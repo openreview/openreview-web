@@ -3836,7 +3836,7 @@ module.exports = (function() {
           return;
         }
 
-        var note = {
+        var newNoteEdit = {
           note: {
             content: Object.entries(content[0]).reduce((acc, v) => { acc[v[0]] = { value: v[1] }; return acc }, {}),
             forum: forum || invitation.edit?.note?.forum,
@@ -3850,7 +3850,7 @@ module.exports = (function() {
         };
 
         if (_.isEmpty(files)) {
-          return saveNote(note);
+          return saveNote(newNoteEdit);
         }
 
         var onError = function(e) {
@@ -3876,24 +3876,24 @@ module.exports = (function() {
 
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
-          if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
-            return Webfield.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
-              note.content[fieldName] = result.url;
-              return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, note.content.pdf);
+          if (fieldName === 'pdf' && invitation.edit.note?.content?.pdf?.value?.['value-regex']) {
+            return Webfield.sendFileV2('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+              newNoteEdit.note.content[fieldName].value = result.url;
+              return updatePdfSection($contentMap.pdf, invitation.edit.note?.content?.pdf?.value, newNoteEdit.note.content.pdf.value);
             });
           }
           var data = new FormData();
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return Webfield.sendFile('/attachment', data).then(function(result) {
-            note.content[fieldName] = result.url;
-            updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], note.content[fieldName]);
+          return Webfield.sendFileV2('/attachment', data).then(function(result) {
+            newNoteEdit.note.content[fieldName].value = result.url;
+            updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, newNoteEdit.note.content[fieldName].value);
           });
         });
 
         $.when.apply($, promises).then(function() {
-          saveNote(note);
+          saveNote(newNoteEdit);
         }, onError);
       });
 
@@ -4677,19 +4677,19 @@ module.exports = (function() {
 
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
-          if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
-            return Webfield.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
-              editNote.content[fieldName] = result.url;
-              return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, editNote.content.pdf);
+          if (fieldName === 'pdf' && invitation.edit.note?.content?.pdf?.value?.['value-regex']) {
+            return Webfield.sendFileV2('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+              editNote.note.content[fieldName].value = result.url;
+              return updatePdfSection($contentMap.pdf, invitation.edit.note?.content?.pdf?.value, editNote.note.content.pdf.value);
             });
           }
           var data = new FormData();
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return Webfield.sendFile('/attachment', data).then(function(result) {
-            editNote.content[fieldName] = result.url;
-            updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
+          return Webfield.sendFileV2('/attachment', data).then(function(result) {
+            editNote.note.content[fieldName].value = result.url;
+            updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, editNote.note.content[fieldName].value);
           });
         });
 
