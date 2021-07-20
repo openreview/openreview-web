@@ -977,7 +977,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     var forumReplies = getForumReplies(noteRecs);
     sm.update('noteIdToNote', _.keyBy(forumReplies, 'id'));
     sm.update('signatureToNotes', createFiltersToNotes(forumReplies, getSignatureFilters, additionalFilters.signatures));
-    sm.update('invitationToNotes', createFiltersToNotes(forumReplies, getInvitationFilters, additionalFilters.invitation));
+    sm.update('invitationToNotes', createFiltersToNotes(forumReplies, getInvitationFilters, additionalFilters.invitations));
     sm.update('readerToNotes', createFiltersToNotes(forumReplies, getReadersFilters, additionalFilters.readers));
   };
 
