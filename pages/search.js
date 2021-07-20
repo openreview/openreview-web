@@ -175,9 +175,7 @@ const Search = ({ appContext }) => {
         </h3>
         <hr className="small" />
 
-        {process.env.ENABLE_V2_API
-          ? <NoteListV2 notes={searchResults.notes} displayOptions={displayOptions} />
-          : <NoteList notes={searchResults.notes} displayOptions={displayOptions} />}
+        <NoteList notes={searchResults.notes} displayOptions={displayOptions} />
 
         <PaginationLinks
           currentPage={page}
