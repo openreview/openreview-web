@@ -98,23 +98,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
         }, onError);
     };
 
-    var originalInvitationsP = function(original) {
-      if (!original) {
-        return $.Deferred().resolve([]);
-      }
-
-      return Webfield.getV2('/invitations', {
-        replyForum: original.id, details: 'repliedNotes'
-      }, { handleErrors: false })
-        .then(function(result) {
-          if (!result.invitations || !result.invitations.length) {
-            return [];
-          }
-          return result.invitations;
-        }, onError);
-    };
-
     var noteRecsP = $.when(notesP, invitationsP).then(function(notes, invitations) {
+      console.log('notes', notes);
 
       // a "common invitation" is one that applies to all notes in the forum.
       var commonInvitations = _.filter(invitations, function(invitation) {
@@ -136,7 +121,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
         var referenceInvitations = _.filter(invitations, function(invitation) {
           // Check if invitation is replying to this note
-          var isInvitationRelated = (invitation?.edit?.note?.id?.value === note.id) || (invitation?.edit?.note?.referentInvitation?.value === note.invitations[0]);
+          var isInvitationRelated = (
+            invitation?.edit?.note?.id?.value === note.id)
+            || (invitation?.edit?.note?.referentInvitation?.value === note.invitations[0])
+            || (invitation?.edit?.note?.id?.["value-invitation"] === note.invitations[0]);
           // Check if invitation does not have multiReply OR invitation has the field multiReply but it is not set to false OR invitation has the field multireply which is set to false but there have not been any replies yet
           var isMultireplyApplicable = (!_.has(invitation, 'multiReply') || (invitation.multiReply !== false) || !_.has(invitation, 'details.repliedNotes[0]'));
           return isInvitationRelated && isMultireplyApplicable;
@@ -161,15 +149,13 @@ module.exports = function(forumId, noteId, invitationId, user) {
         var noteForumId = note.id === forumId ? forumId : undefined;
         return $.when(
           tagInvitationsP(noteForumId),  // get tag invitations only for forum
-          originalInvitationsP(note.details.original)
         )
         .then(function(tagInvitations, originalInvitations) {
           return {
             note: note,
             replyInvitations: replyInvitations,
             referenceInvitations: referenceInvitations,
-            tagInvitations: tagInvitations,
-            originalInvitations: originalInvitations
+            tagInvitations: tagInvitations
           };
         });
       });

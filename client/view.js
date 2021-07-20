@@ -2555,7 +2555,6 @@ module.exports = (function() {
       replyInvitations: [],
       referenceInvitations: [],
       tagInvitations: [],
-      originalInvitations: [],
       onNewNoteRequested: null,
       titleLink: 'NONE', // NONE | HREF | JS
       withContent: false,
@@ -2705,35 +2704,14 @@ module.exports = (function() {
 
     var $metaActionsRow = null;
     var $modifiableOriginalButton = null;
-    if (!$editButton && params.onEditRequested && params.originalInvitations.length && !params.referenceInvitations) {
-      var modifiableOriginalTooltipText = 'Click here to access the original version of the paper. Changes to the original version will update the anonymous version used by viewers during the review process.';
-      $modifiableOriginalButton = $('<button class="btn btn-xs edit_button" data-toggle="tooltip" data-placement="top" title="' + modifiableOriginalTooltipText + '">Modifiable Original</button>');
-      $modifiableOriginalButton.click(function() {
-        pushForum(note.original);
-      });
-    }
-
-    var $originalInvitations = _.map(params.originalInvitations, function(invitation) {
-      var buttonText = prettyInvitationId(invitation.id);
-      var editorOptions = { original: true }
-      if (buttonText === 'Revision' && invitation.multiReply === false && invitation.details.repliedNotes?.length) {
-        buttonText = 'Edit Revision';
-        editorOptions = { revision: true }
-      }
-
-      return $('<button class="btn btn-xs edit_button">').text(buttonText).on('click', function() {
-        params.onEditRequested(invitation, editorOptions);
-      });
-    });
 
     var $referenceInvitations = _.map(params.referenceInvitations, function(invitation) {
       return $('<button class="btn btn-xs edit_button">').text(prettyInvitationId(invitation.id)).click(function() {
         params.onEditRequested(invitation);
       });
     });
-    if ($originalInvitations || $referenceInvitations || $modifiableOriginalButton) {
+    if ($referenceInvitations || $modifiableOriginalButton) {
       $metaActionsRow = $('<div>', {class: 'meta_row meta_actions'}).append(
-        $originalInvitations,
         $modifiableOriginalButton,
         $referenceInvitations
       );
@@ -3497,10 +3475,10 @@ module.exports = (function() {
   };
 
   var getWriters = function(invitation, signatures, user) {
-    var writers = invitation.edit ? invitation.edit.note.writers : invitation.reply.writers
+    var writers = invitation.edit ? invitation.edit.writers : invitation.reply.writers
 
     if (writers && _.has(writers, 'values')) {
-      return writers.values;
+      return invitation.edit ? undefined : writers.values;
     }
 
     if (writers && _.has(writers, 'values-regex') && writers['values-regex'] === '~.*') {
