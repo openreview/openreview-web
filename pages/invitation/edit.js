@@ -20,52 +20,28 @@ import '../../styles/pages/invitation.less'
 const InvitationEdit = ({ appContext }) => {
   const query = useQuery()
   const router = useRouter()
-  const { user, accessToken, userLoading } = useLoginRedirect()
+  const { user, accessToken } = useLoginRedirect()
   const { setBannerHidden, clientJsLoading } = appContext
 
   const [error, setError] = useState(null)
   const [invitation, setInvitation] = useState(null)
   const containerRef = useRef(null)
 
-  const getInvitation = async (id, apiVersion) => {
-    if (apiVersion === 2 && !process.env.API_V2_URL) return null
-
-    try {
-      const { invitations } = await api.get('/invitations', { id }, { accessToken, version: apiVersion })
-      return invitations?.length > 0 ? invitations[0] : null
-    } catch (apiError) {
-      if (apiError.name === 'Not Found' || apiError.name === 'NotFoundError') {
-        return null
-      }
-      throw apiError
-    }
-  }
-
-  const setInvitationOrRedirect = (invitationObj, apiVersion) => {
-    if (invitationObj.details?.writable) {
-      setInvitation({
-        ...invitationObj, web: null, process: null, preprocess: null, apiVersion,
-      })
-    } else {
-      // User is a reader, not a writer of the invitation, so redirect to info mode
-      router.replace(`/invitation/info?id=${invitationObj.id}`)
-    }
-  }
-
   // Try loading invitation from v1 API first and if not found load from v2
   const loadInvitation = async (invitationId) => {
-    let invitationObj
     try {
-      invitationObj = await getInvitation(invitationId, 1)
+      const invitationObj = await api.getInvitationById(invitationId, accessToken)
       if (invitationObj) {
-        setInvitationOrRedirect(invitationObj, 1)
-      } else {
-        invitationObj = await getInvitation(invitationId, 2)
-        if (invitationObj) {
-          setInvitationOrRedirect(invitationObj, 2)
+        if (invitationObj.details?.writable) {
+          setInvitation({
+            ...invitationObj, web: null, process: null, preprocess: null,
+          })
         } else {
-          setError({ statusCode: 404, message: 'Invitation not found' })
+          // User is a reader, not a writer of the invitation, so redirect to info mode
+          router.replace(`/invitation/info?id=${invitationObj.id}`)
         }
+      } else {
+        setError({ statusCode: 404, message: 'Invitation not found' })
       }
     } catch (apiError) {
       if (apiError.name === 'forbidden' || apiError.name === 'ForbiddenError') {
@@ -77,7 +53,7 @@ const InvitationEdit = ({ appContext }) => {
   }
 
   useEffect(() => {
-    if (userLoading || !query) return
+    if (!user || !query) return
 
     setBannerHidden(true)
 
@@ -87,7 +63,7 @@ const InvitationEdit = ({ appContext }) => {
     }
 
     loadInvitation(query.id)
-  }, [userLoading, query])
+  }, [user, query])
 
   useEffect(() => {
     if (!invitation || !containerRef || clientJsLoading) return

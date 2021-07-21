@@ -173,29 +173,16 @@ $(function() {
 //# sourceURL=webfieldCode.js`
   }
 
-  const getInvitation = async (id, apiVersion) => {
-    if (apiVersion === 2 && !process.env.API_V2_URL) return null
-
-    try {
-      const { invitations } = await api.get('/invitations', { id }, { accessToken, version: apiVersion })
-      return invitations?.length > 0 ? invitations[0] : null
-    } catch (apiError) {
-      if (apiError.name === 'Not Found' || apiError.name === 'NotFoundError') {
-        return null
-      }
-      throw apiError
-    }
-  }
-
-  let invitation
   try {
-    invitation = await getInvitation(ctx.query.id, 1)
-    if (!invitation) {
-      invitation = await getInvitation(ctx.query.id, 2)
-      if (!invitation) {
-        return { statusCode: 404, message: 'Invitation not found' }
+    const invitation = await api.getInvitationById(ctx.query.id, accessToken)
+    if (invitation) {
+      return {
+        invitationId: invitation.id,
+        webfieldCode: generateWebfieldCode(invitation),
+        query: ctx.query,
       }
     }
+    return { statusCode: 404, message: 'Invitation not found' }
   } catch (error) {
     if (error.name === 'forbidden' || error.name === 'ForbiddenError') {
       if (!accessToken) {
@@ -209,12 +196,6 @@ $(function() {
       return { statusCode: 403, message: 'You don\'t have permission to read this invitation' }
     }
     return { statusCode: error.status || 500, message: error.message }
-  }
-
-  return {
-    invitationId: invitation.id,
-    webfieldCode: generateWebfieldCode(invitation),
-    query: ctx.query,
   }
 }
 
