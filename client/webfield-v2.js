@@ -23,8 +23,8 @@ module.exports = (function() {
       cache: true // Note: IE won't get updated when cache is enabled
     };
     options = _.defaults(options, defaults);
-    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
+    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' };
+    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {};
     var baseUrl = (options.version === 2 ? window.OR_API_V2_URL : window.OR_API_URL) || '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
@@ -48,8 +48,8 @@ module.exports = (function() {
       version: 2,
     };
     options = _.defaults(options, defaults);
-    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
+    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' };
+    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {};
     var baseUrl = (options.version === 2 ? window.OR_API_V2_URL : window.OR_API_URL) || '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
@@ -73,8 +73,8 @@ module.exports = (function() {
       version: 2,
     };
     options = _.defaults(options, defaults);
-    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
+    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' };
+    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {};
     var baseUrl = (options.version === 2 ? window.OR_API_V2_URL : window.OR_API_URL) || '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
@@ -98,8 +98,8 @@ module.exports = (function() {
       version: 2,
     };
     options = _.defaults(options, defaults);
-    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
+    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' };
+    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {};
     var baseUrl = (options.version === 2 ? window.OR_API_V2_URL : window.OR_API_URL) || '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
@@ -159,8 +159,10 @@ module.exports = (function() {
           var remainingRequests = offsetList.map(function(n) {
             return get(url, Object.assign({}, queryObj, { offset: n }));
           });
+          // eslint-disable-next-line prefer-spread
           return $.when.apply($, remainingRequests)
             .then(function() {
+              // eslint-disable-next-line prefer-rest-params
               var rest = _.compact(_.flatMap(arguments, resultsKey));
               return initialResults.concat(rest);
             });

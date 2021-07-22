@@ -1,10 +1,16 @@
-/**
- * Changes:
- * - replaced first line with module.exports
- * - enabled CORS for ajax functions
- * - replaced all controller api calls with webfield versions
- * - add local token var and a new setToken method
- */
+/* globals _: false */
+/* globals $: false */
+/* globals Handlebars: false */
+/* globals moment: false */
+/* globals MathJax: false */
+/* globals Webfield: false */
+/* globals view: false */
+/* globals promptError: false */
+/* globals promptLogin: false */
+/* globals promptMessage: false */
+/* globals translateErrorMessage: false */
+/* globals typesetMathJax: false */
+
 module.exports = (function() {
   // Save authentication token as a private var
   var token;
@@ -13,13 +19,12 @@ module.exports = (function() {
   var get = function(url, queryObj, options) {
     var defaults = {
       handleErrors: true,
-      version: 1,
       cache: true // Note: IE won't get updated when cache is enabled
     };
     options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
-    var baseUrl = (options.version === 2 ? window.OR_API_V2_URL : window.OR_API_URL) || '';
+    var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
     return $.ajax({
@@ -39,12 +44,11 @@ module.exports = (function() {
   var post = function(url, queryObj, options) {
     var defaults = {
       handleErrors: true,
-      version: 1,
     };
     options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
-    var baseUrl = (options.version === 2 ? window.OR_API_V2_URL : window.OR_API_URL) || '';
+    var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
     return $.ajax({
@@ -64,12 +68,11 @@ module.exports = (function() {
   var put = function(url, queryObj, options) {
     var defaults = {
       handleErrors: true,
-      version: 1,
     };
     options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
-    var baseUrl = (options.version === 2 ? window.OR_API_V2_URL : window.OR_API_URL) || '';
+    var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
     return $.ajax({
@@ -89,12 +92,11 @@ module.exports = (function() {
   var xhrDelete = function(url, queryObj, options) {
     var defaults = {
       handleErrors: true,
-      version: 1,
     };
     options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
-    var baseUrl = (options.version === 2 ? window.OR_API_V2_URL : window.OR_API_URL) || '';
+    var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
     return $.ajax({
@@ -2357,11 +2359,11 @@ module.exports = (function() {
     });
   };
 
-  var loadChildInvitations = function(invitationId, apiVersion) {
+  var loadChildInvitations = function(invitationId) {
     renderPaginatedList($('section.subinvitations'), {
       templateName: 'partials/paginatedInvitationList',
       loadItems: function(limit, offset) {
-        return get('/invitations', { super: invitationId, limit: limit, offset: offset }, { version: apiVersion })
+        return get('/invitations', { super: invitationId, limit: limit, offset: offset })
           .then(apiResponseHandler('invitations'));
       },
       renderItem: renderInvitationListItem
@@ -2532,7 +2534,7 @@ module.exports = (function() {
   var invitationInfo = function(invitation, options) {
     var defaults = {
       container: '#notes',
-      apiVersion: 1,
+      showAddForm: true
     };
     options = _.defaults(options, defaults);
 
@@ -2542,38 +2544,36 @@ module.exports = (function() {
     $container.empty().append(Handlebars.templates['partials/invitationInfo']({
       invitation: invitation,
       parentGroupId: parentGroupId,
-      replyJson: JSON.stringify(options.apiVersion === 2 ? invitation.edit : invitation.reply, undefined, 4),
+      replyJson: JSON.stringify(invitation.reply, undefined, 4),
       options: {}
     }));
 
-    loadChildInvitations(invitation.id, options.apiVersion);
+    loadChildInvitations(invitation.id);
   };
 
   var invitationEditor = function(invitation, options) {
     var defaults = {
       container: '#notes',
-      showProcessEditor: false,
-      apiVersion: 1,
+      showProcessEditor: true
     };
     options = _.defaults(options, defaults);
 
     var $container = $(options.container);
     var parentGroupId = invitation.id.split('/-/')[0];
-    var editors = { webfield: null, process: null, preprocess: null };
+    var editors = { webfield: null, process: null };
 
     $container.empty().append(Handlebars.templates['partials/invitationEditor']({
       invitation: invitation,
       parentGroupId: parentGroupId,
-      replyJson: JSON.stringify(options.apiVersion === 2 ? invitation.edit : invitation.reply, undefined, 4),
+      replyJson: JSON.stringify(invitation.reply, undefined, 4),
       replyForumViewsJson: JSON.stringify(invitation.replyForumViews || [], undefined, 4),
       options: {
-        showProcessEditor: options.showProcessEditor,
-        apiVersion: options.apiVersion,
+        showProcessEditor: options.showProcessEditor
       }
     }));
     $container.off();
 
-    loadChildInvitations(invitation.id, options.apiVersion);
+    loadChildInvitations(invitation.id);
     setupDatePickers();
 
     // Helpers
@@ -2607,27 +2607,14 @@ module.exports = (function() {
     }
 
     function updateInvitation(modifiedFields) {
-      return get('/invitations', { id: invitation.id }, { version: options.apiVersion })
+      return get('/invitations', { id: invitation.id })
         .then(function(response) {
           if (!response.invitations || !response.invitations.length) {
             return $.Deferred().reject();
           }
 
-          var updatedInvitationObj = Object.assign(response.invitations[0], modifiedFields);
-          var updateReq;
-          if (options.apiVersion === 2) {
-            updateReq = post('/invitations/edits', {
-              readers: [options.userId],
-              writers: [options.userId],
-              signatures: [options.userId],
-              invitation: updatedInvitationObj,
-            }, { version: 2 }).then(function(response) {
-              return response.invitation;
-            });
-          } else {
-            updateReq = post('/invitations', updatedInvitationObj);
-          }
-          return updateReq;
+          var updatedInvitationObj = _.assign(response.invitations[0], modifiedFields);
+          return post('/invitations', updatedInvitationObj);
         });
     }
 
@@ -2680,9 +2667,10 @@ module.exports = (function() {
       }
       $submitButton.addClass('disabled');
 
-      var defaults = options.apiVersion === 2 ? { bulk: null } : { multiReply: null, hideOriginalRevisions: null };
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
-        if (field.name === 'multiReply' || field.name === 'hideOriginalRevisions' || field.name === 'bulk') {
+        if (field.name === 'multiReply') {
+          result[field.name] = field.value === '' ? null : field.value === 'True';
+        } else if (field.name === 'hideOriginalRevisions') {
           result[field.name] = field.value === '' ? null : field.value === 'True';
         } else if (field.name === 'taskCompletionCount') {
           result[field.name] = field.value ? parseInt(field.value, 10) : null;
@@ -2697,7 +2685,7 @@ module.exports = (function() {
           result[field.name] = _.compact(field.value.split(',').map(_.trim));
         }
         return result;
-      }, defaults);
+      }, { multiReply: null, hideOriginalRevisions: null });
 
       updateInvitation(formData)
         .then(function(response) {
@@ -2750,15 +2738,9 @@ module.exports = (function() {
         return false;
       }
 
-      var updateObj;
-      if ($(this).hasClass('invitation-reply-form')) {
-        updateObj = options.apiVersion === 2
-          ? { edit: parsedObj }
-          : { reply: parsedObj };
-      } else {
-        updateObj = { replyForumViews : parsedObj };
-      }
-
+      var updateObj = $(this).hasClass('invitation-reply-form')
+        ? { reply: parsedObj }
+        : { replyForumViews: parsedObj };
       updateInvitation(updateObj)
         .then(function(response) {
           invitation = response;
@@ -2792,7 +2774,7 @@ module.exports = (function() {
         );
       };
 
-      get('/invitations', { id: invitation.id }, { version: options.apiVersion }).then(function(response) {
+      get('/invitations', { id: invitation.id }).then(function(response) {
         if (!response.invitations || !response.invitations.length) {
           showError('Could not load invitation code. Please refresh the page and try again.');
           return;
@@ -2806,12 +2788,10 @@ module.exports = (function() {
         } else if ($section.hasClass('process')) {
           editorType = 'process';
           codeToEdit = response.invitations[0].process;
-        } else if ($section.hasClass('preprocess')){
+        } else if ($section.hasClass('preprocess')) {
           editorType = 'preprocess';
           codeToEdit = response.invitations[0].preprocess;
         }
-
-        var syntaxMode = _.startsWith(codeToEdit, 'def process(') ? 'ace/mode/python' : 'ace/mode/javascript';
 
         $.ajax({
           url: 'https://cdn.jsdelivr.net/npm/ace-builds@1.4.12/src-min/ace.js',
@@ -2822,7 +2802,7 @@ module.exports = (function() {
           editors[editorType].setTheme('ace/theme/chrome');
           editors[editorType].setOption('tabSize', 2);
           editors[editorType].setOption('showPrintMargin', false);
-          editors[editorType].session.setMode(syntaxMode);
+          editors[editorType].session.setMode('ace/mode/javascript');
           editors[editorType].session.setUseWrapMode(true);
           editors[editorType].session.setUseSoftTabs(true);
           editors[editorType].session.setValue(codeToEdit ? codeToEdit : '');  // setValue doesn't accept null
@@ -3298,4 +3278,4 @@ module.exports = (function() {
       done: done
     }
   };
-})();
+}());
