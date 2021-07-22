@@ -2567,7 +2567,8 @@ module.exports = (function() {
       withModificationDate: false,
       withDateTime: false,
       withBibtexLink: true,
-      readOnlyTags: false
+      readOnlyTags: false,
+      isEdit: false,
     }, options);
     var $note = $('<div>', {id: 'note_' + note.id, class: 'note panel'});
     var forumId = note.forum;
@@ -2603,22 +2604,20 @@ module.exports = (function() {
     var $editButton = null;
     var $actionButtons = null;
     if ($('#content').hasClass('forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
-      var canEdit = (details.original && details.originalWritable) || (!details.originalWritable && details.writable);
+      var canEdit = details.writable;
 
       if (canEdit && params.onTrashedOrRestored) {
         var buttonContent = notePastDue ? 'Restore' : '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>';
         $trashButton = $('<button id="trashbutton_' + note.id + '" class="btn btn-xs trash_button">' + buttonContent + '</button>');
         $trashButton.click(function() {
-          var noteToDelete = details.originalWritable ? details.original : note;
-          deleteOrRestoreNoteV2(noteToDelete, titleText, params.user, params.onTrashedOrRestored);
+          deleteOrRestoreNoteV2(note, titleText, params.user, params.onTrashedOrRestored, params.isEdit);
         });
       }
 
       if (canEdit && params.onEditRequested && !notePastDue) {
         $editButton = $('<button class="btn btn-xs edit_button"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></button>');
         $editButton.click(function() {
-          var options = details.originalWritable ? { original: true } : {};
-          params.onEditRequested(null, options);
+          params.onEditRequested();
         });
       }
 
@@ -2923,22 +2922,33 @@ module.exports = (function() {
       });
   };
 
-  var deleteOrRestoreNoteV2 = function(note, noteTitle, user, onTrashedOrRestored) {
-    var invitation = note.details.invitation;
-    var newNote = { // only pass in required field
+  var deleteOrRestoreNoteV2 = function(note, noteTitle, user, onTrashedOrRestored, isEdit) {
+    var invitation = isEdit ? note.invitations[0] : note.details.invitation;
+    var newNote = isEdit ? {
+      ...note,
+      // id: note.id, // this is the edit id
+      // note: note.note, // without this
+      invitation: note.invitations[0],
+      // readers: note.readers,
+      // writers: note.writers,
+      signatures: [user.profile.id],
+      content: undefined,
+      invitations: undefined,
+      details: undefined,
+    } : { // only pass in required field
       note: {
         id: note.id,
       },
       invitation: note.invitation,
       signatures: [user.profile.id],
-      readers: (invitation?.edit?.note?.readers?.values || invitation?.edit?.readers?.value) ? undefined : note.readers,
-      writers: (invitation?.edit?.note?.writers?.values || invitation?.edit?.writers?.value) ? undefined : note.writers,
-     };
+      readers: (invitation?.edit?.readers?.values || invitation?.edit?.readers?.value) ? undefined : note.readers,
+      writers: (invitation?.edit?.writers?.values || invitation?.edit?.writers?.value) ? undefined : note.writers,
+    };
     var isDeleted = note.ddate && note.ddate < Date.now();
 
     if (isDeleted) {
       // Restore deleted note
-      newNote.note.ddate = null;
+      isEdit ? newNote.ddate = null : newNote.note.ddate = null;
       return Webfield.postV2('/notes/edits', newNote, null).then(function() {
         // the return of the post is edit without updatednote
         Webfield.getV2('/notes', { id: note.id }).then(function(result) {
@@ -2953,17 +2963,21 @@ module.exports = (function() {
         newSignatures = [user.profile.id];
       }
       newNote.signatures = newSignatures;
-      newNote.note.ddate = Date.now();
-      Webfield.postV2('/notes/edits', newNote, null).then(function() {
-        // the return of the post is edit without updatednote
-        // so get the updated note again
-        Webfield.getV2('/notes', { id: note.id, trash: true }).then(function (result) {
-          onTrashedOrRestored({...result.notes[0],details:note.details});
-        });
+      isEdit ? newNote.ddate = Date.now() : newNote.note.ddate = Date.now();
+      Webfield.postV2('/notes/edits', newNote, null).then(function (edit) {
+        if (isEdit) {
+          onTrashedOrRestored(edit);
+        } else {
+          // the return of the post is edit without updatednote
+          // so get the updated note again
+          Webfield.getV2('/notes', { id: note.id, trash: true }).then(function (result) {
+            onTrashedOrRestored({ ...result.notes[0], details: note.details });
+          });
+        }
       });
     };
 
-    return loadSignaturesDropdownV2(note.invitation, note.signatures, user)
+    return loadSignaturesDropdownV2(isEdit ? note.invitations[0] : note.invitation, note.signatures, user)
       .then(function($signaturesDropdown) {
         // If there's only 1 signature available don't show the modal
         if (!$signaturesDropdown.find('div.dropdown').length) {
@@ -3789,12 +3803,11 @@ module.exports = (function() {
 
         var signatureInputValues = idsFromListAdder(signatures, invitation.edit.signatures);
         var readerValues = getReaders(readers, invitation, signatureInputValues);
-        var nonReadersValues = null;
+        var nonReadersValues = undefined;
         if (_.has(invitation, 'edit.nonreaders.values')) {
           nonReadersValues = invitation.edit.nonreaders.values;
         }
-        // TODO: Temporary ICLR hack
-        nonReadersValues = _.union(nonReadersValues, addNonreadersICLR(readerValues, invitation));
+
         var writerValues = getWriters(invitation, signatureInputValues, user);
 
         var errorList = content[2].concat(validate(invitation, content[0], readers));
@@ -4737,7 +4750,7 @@ module.exports = (function() {
         promptError(error);
       }
     };
-    buildReadersV2(invitation.edit.note.readers, note.readers, parentId, function(readers, error) {
+    buildReadersV2(invitation.edit.readers, note.readers, parentId, function(readers, error) {
       if (error) {
         return handleError(error);
       }
