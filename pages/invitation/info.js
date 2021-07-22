@@ -1,4 +1,5 @@
 /* globals Webfield: false */
+/* globals Webfield2: false */
 
 import { useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
@@ -65,9 +66,13 @@ const InvitationInfo = ({ appContext }) => {
     } else if (invitation.web) {
       Webfield.editModeBanner(invitation.id, 'info')
     }
-    Webfield.ui.invitationInfo(invitation, {
+
+    const webfieldInfoFn = invitation.apiVersion === 2
+      ? Webfield2.ui.invitationInfo
+      : Webfield.ui.invitationInfo
+
+    webfieldInfoFn(invitation, {
       container: containerRef.current,
-      apiVersion: invitation.apiVersion,
     })
 
     // eslint-disable-next-line consistent-return

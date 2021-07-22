@@ -1,5 +1,6 @@
 /* eslint-disable global-require */
 /* globals Webfield: false */
+/* globals Webfield2: false */
 /* globals moment: false */
 
 import Head from 'next/head'
@@ -73,11 +74,15 @@ const InvitationEdit = ({ appContext }) => {
     window.datetimepicker = require('../../client/bootstrap-datetimepicker-4.17.47.min')
 
     Webfield.editModeBanner(invitation.id, 'edit')
-    Webfield.ui.invitationEditor(invitation, {
+
+    const webfieldEditorFn = invitation.apiVersion === 2
+      ? Webfield2.ui.invitationEditor
+      : Webfield.ui.invitationEditor
+
+    webfieldEditorFn(invitation, {
       container: containerRef.current,
       userId: user.profile.id,
       showProcessEditor: isSuperUser(user),
-      apiVersion: invitation.apiVersion,
     })
 
     // eslint-disable-next-line consistent-return
