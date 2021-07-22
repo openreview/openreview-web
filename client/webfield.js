@@ -2095,7 +2095,7 @@ module.exports = (function() {
       if (note.details.userIsSignatory) {
         note.details.formattedSignature = 'You';
       } else {
-        var prettySig = view.prettyId(note.signatures[0]);
+        var prettySig = view.prettyId(note.signatures?.[0]);
         if (prettySig === '(anonymous)' || prettySig === '(guest)') {
           prettySig = 'Anonymous';
         } else if (prettySig === 'Super User') {

@@ -21,8 +21,14 @@ const Activity = ({ appContext }) => {
   const { setBannerHidden, clientJsLoading } = appContext
 
   const loadActivityData = async () => {
-    const queryParam = {
+    const queryParamV1 = {
       tauthor: true,
+      trash: true,
+      details: 'forumContent,writable,invitation',
+      limit: 200,
+    }
+    const queryParamV2 = {
+      signature: user.profile.id,
       trash: true,
       details: 'forumContent,writable,invitation',
       limit: 200,
@@ -30,13 +36,13 @@ const Activity = ({ appContext }) => {
     let notes
     try {
       if (process.env.ENABLE_V2_API) {
-        const v1NotesP = api.get('/notes', queryParam, { accessToken })
-        const v2NotesP = api.getV2('/notes/edits', queryParam, { accessToken })
+        const v1NotesP = api.get('/notes', queryParamV1, { accessToken })
+        const v2NotesP = api.getV2('/notes', queryParamV2, { accessToken })
         const results = await Promise.all([v1NotesP, v2NotesP])
         // eslint-disable-next-line max-len
-        notes = apiV2MergeNotes(results[0].notes, results[1].edits.map(p => ({ ...p.note, invitations: p.invitations })), 'tmdate')
+        notes = apiV2MergeNotes(results[0].notes, results[1].notes, 'tmdate')
       } else {
-        ({ notes } = await api.get('/notes', queryParam, { accessToken }))
+        ({ notes } = await api.get('/notes', queryParamV1, { accessToken }))
       }
       setActivityNotes(notes)
     } catch (apiError) {

@@ -19,6 +19,7 @@ import api from '../../lib/api-client'
 import { forumLink } from '../../lib/banner-links'
 
 import '../../styles/pages/revisions.less'
+import view from '../../client/view'
 
 const RevisionsList = ({
   revisions, user, selectedIndexes, setSelectedIndexes,
@@ -47,7 +48,8 @@ const RevisionsList = ({
     // the API doesn't create a new reference
     note.updateId = note.id
 
-    view.mkNoteEditor(note, invitation, user, {
+    const mkEditorFunc = editorOptions.isEdit ? view.mkNoteEditorV2 : view.mkNoteEditor
+    mkEditorFunc(note, invitation, user, {
       onNoteEdited: (newNote) => {
         $('#note-editor-modal').modal('hide')
         promptMessage('Note updated successfully')
@@ -104,17 +106,14 @@ const RevisionsList = ({
     }).removeClass('panel')
   }
 
-  const buildNotePanelV2 = (edit, revisionInvitation) => {
-    const note = {
-      ...edit.note,
-      writable: edit.details.writable,
-      invitations: edit.invitations,
-      signatures: edit.signatures,
-      readers: edit.readers,
-      writers: edit.writers,
+  // eslint-disable-next-line arrow-body-style
+  const buildEditPanelV2 = (reference, revisionInvitation) => {
+    const edit = {
+      ...reference,
+      content: reference.note.content, // to avoid changing note.cotent to note.note.content in view.mkNotePanelV2
     }
-
-    return view.mkNotePanelV2(note, {
+    return view.mkNotePanelV2(edit, {
+      isEdit: true,
       invitation: revisionInvitation,
       withContent: true,
       withReplyCount: false,
@@ -124,13 +123,12 @@ const RevisionsList = ({
       withDateTime: true,
       withBibtexLink: false,
       user,
-      onEditRequested: (inv, options) => {
-        const noteToShow = options.original ? note.details.original : note
-        const editorOptions = options.original ? { fullNote: note } : {}
-        showEditorModal(noteToShow, revisionInvitation, editorOptions)
+      onEditRequested: () => {
+        const editorOptions = { isEdit: true }
+        showEditorModal(edit, revisionInvitation, editorOptions)
       },
       onTrashedOrRestored: () => {
-        $(`#note_${note.id}`).closest('.row').remove()
+        $(`#note_${edit.id}`).closest('.row').remove()
         promptMessage('Revision deleted')
       },
     }).removeClass('panel')
@@ -143,7 +141,7 @@ const RevisionsList = ({
       const [reference, invitation] = revisions[index]
       if (reference.note) {
         // this is an edit
-        $(this).append(buildNotePanelV2(reference, invitation))
+        $(this).append(buildEditPanelV2(reference, invitation))
       } else {
         $(this).append(buildNotePanel(reference, invitation))
       }
@@ -308,7 +306,7 @@ const Revisions = ({ appContext }) => {
       let apiRes
       try {
         apiRes = await api.getV2('/notes/edits', {
-          'note.id': noteId, trash: true, details: 'writable',
+          'note.id': noteId, details: 'writable',
         }, { accessToken })
       } catch (apiError) {
         setError(apiError)

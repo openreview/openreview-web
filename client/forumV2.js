@@ -99,8 +99,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
     };
 
     var noteRecsP = $.when(notesP, invitationsP).then(function(notes, invitations) {
-      console.log('notes', notes);
-
       // a "common invitation" is one that applies to all notes in the forum.
       var commonInvitations = _.filter(invitations, function(invitation) {
         return _.isEmpty(invitation.edit?.note?.replyto?.value) &&
