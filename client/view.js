@@ -3287,11 +3287,12 @@ module.exports = (function() {
     } else if (_.has(fieldDescription, 'values')) {
       setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
         var subsetReaders = fieldDescription.values.every(function (val) {
-          if (val.includes('/Reviewer_')) {
+          var found = newFieldDescription.values.indexOf(val) !== -1;
+          if (!found && val.includes('/Reviewer_')) {
             var hasReviewers = _.find(newFieldDescription.values, function(v) { return v.includes('/Reviewers')});
             return hasReviewers;
           }
-          return newFieldDescription.values.indexOf(val) !== -1;
+          return found;
           })
         if (_.isEqual(newFieldDescription.values, fieldDescription.values) || subsetReaders) {
           var $readers = mkComposerInput('readers', fieldDescription, fieldValue); //for values, readers must match with invitation instead of parent invitation
