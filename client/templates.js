@@ -2511,7 +2511,7 @@ templates['partials/invitationInfo'] = template({"compiler":[8,">= 4.3.0"],"main
     };
 
   return "<section class=\"general info-mode\">\n  <h4>General Info</h4>\n\n"
-    + ((stack1 = container.invokePartial(lookupProperty(partials,"invitationInfoTable"),depth0,{"name":"invitationInfoTable","hash":{"editable":false},"data":data,"indent":"  ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
+    + ((stack1 = container.invokePartial(lookupProperty(partials,"invitationInfoTable"),depth0,{"name":"invitationInfoTable","hash":{"apiVersion":((stack1 = (depth0 != null ? lookupProperty(depth0,"options") : depth0)) != null ? lookupProperty(stack1,"apiVersion") : stack1),"editable":false},"data":data,"indent":"  ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
     + "</section>\n\n<section class=\"subinvitations info-mode\">\n  <h4>Child Invitations</h4>\n\n"
     + ((stack1 = container.invokePartial(lookupProperty(partials,"spinner"),depth0,{"name":"spinner","hash":{"extraClasses":"spinner-inline info-mode"},"data":data,"indent":"  ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
     + "</section>\n\n<section class=\"reply info-mode\">\n  <h4>Reply Parameters</h4>\n\n  <form class=\"invitation-reply-form\">\n    <textarea name=\"reply\" class=\"form-control\" cols=\"100\" rows=\"10\" disabled>"
