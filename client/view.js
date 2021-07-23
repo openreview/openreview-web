@@ -5081,11 +5081,14 @@ module.exports = (function() {
             content: Object.entries(content[0]).reduce((acc, v) => { acc[v[0]] = { value: v[1] }; return acc }, {})
           },
           readers: (invitation.edit.note?.readers?.values || invitation.edit.note?.readers?.value) ? undefined : readerValues,
-          nonreaders: nonreaderValues,
           signatures: signatureInputValues,
           writers: (invitation.edit.note?.writers?.values || invitation.edit.note?.writers?.value) ? undefined : writerValues,
           invitation: invitation.id
         };
+
+        if (nonreaderValues) {
+          editNote.nonReadersValues = nonreaderValues
+        }
 
         // if (invitation.edit?.note?.forum?.value) {
         //   editNote.note.forum = note.forum || invitation.edit?.note?.forum?.value
