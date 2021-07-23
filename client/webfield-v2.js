@@ -1134,11 +1134,12 @@ module.exports = (function() {
     }
 
     function updateInvitation(modifiedFields) {
+      var baseFields = _.pick(invitation, ['id', 'signatures']);
       return post('/invitations/edits', {
         readers: [options.userId],
         writers: [options.userId],
         signatures: [options.userId],
-        invitation: modifiedFields,
+        invitation: { ...baseFields, ...modifiedFields },
       }, { version: 2 }).then(function(response) {
         return response.invitation;
       });
