@@ -1198,8 +1198,6 @@ module.exports = (function() {
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
         if (field.name === 'multiReply' || field.name === 'hideOriginalRevisions' || field.name === 'bulk') {
           result[field.name] = field.value === '' ? null : field.value === 'True';
-        } else if (field.name === 'taskCompletionCount') {
-          result[field.name] = field.value ? parseInt(field.value, 10) : null;
         } else if (field.name === 'duedate' || field.name === 'expdate' || field.name === 'cdate') {
           result[field.name] = field.value ? parseInt(field.value, 10) : null;
         } else if (field.name === 'super') {

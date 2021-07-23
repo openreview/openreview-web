@@ -2545,7 +2545,7 @@ module.exports = (function() {
       invitation: invitation,
       parentGroupId: parentGroupId,
       replyJson: JSON.stringify(invitation.reply, undefined, 4),
-      options: {}
+      options: { apiVersion: 1 }
     }));
 
     loadChildInvitations(invitation.id);
@@ -2568,7 +2568,8 @@ module.exports = (function() {
       replyJson: JSON.stringify(invitation.reply, undefined, 4),
       replyForumViewsJson: JSON.stringify(invitation.replyForumViews || [], undefined, 4),
       options: {
-        showProcessEditor: options.showProcessEditor
+        showProcessEditor: options.showProcessEditor,
+        apiVersion: 1,
       }
     }));
     $container.off();
