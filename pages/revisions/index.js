@@ -73,6 +73,7 @@ const RevisionsList = ({
       onCompleted: (editor) => {
         $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append(editor)
       },
+      isEdit: editorOptions.isEdit,
     })
   }
 

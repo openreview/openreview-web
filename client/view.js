@@ -1060,6 +1060,26 @@ module.exports = (function() {
     return $row;
   };
 
+  var valueInputV2 = function(contentInput, fieldName, fieldDescription) {
+    var $smallHeading = $('<div>', { text: prettyField(fieldName), class: 'small_heading' });
+    if (!fieldDescription.value.optional) {
+      $smallHeading.prepend('<span class="required_field">*</span>');
+    }
+
+    var $description;
+    if (fieldDescription.presentation?.scroll) {
+      $description = $('<textarea class="form-control scroll-box" readonly>').text(fieldDescription.description);
+    } else {
+      $description = $('<div class="hint disable-tex-rendering">').text(fieldDescription.description);
+    }
+
+    var $row = $('<div>', { class: 'row' }).append(
+      $smallHeading, $description, contentInput
+    );
+
+    return $row;
+  };
+
   var markdownInput = function($contentInput, fieldName, fieldDescription) {
     var $smallHeading = $('<div>', { text: prettyField(fieldName), class: 'small_heading' });
     if (fieldDescription.required) {
@@ -1068,6 +1088,77 @@ module.exports = (function() {
 
     var $description;
     if (fieldDescription.scroll) {
+      $description = $('<textarea class="form-control scroll-box" readonly>').text(fieldDescription.description);
+    } else {
+      $description = $('<div class="hint disable-tex-rendering">').text(fieldDescription.description);
+    }
+
+    // Display a warning when "\\" is detected in a MathJax block ($...$ or $$ ... $$)
+    // All double backslashes need to be escaped or Markdown will convert it to "\"
+    $contentInput.on('input', function() {
+      var $warning = $(this).closest('.row').find('.content-warning');
+      if ($(this).val().match(/\$[\s\S]*\\\\[\s\S]*\$/)) {
+        if ($warning.length === 0) {
+          $(this).closest('.row').find('.char-counter').append(
+            '<div class="pull-right content-warning danger">' +
+              '<strong>IMPORTANT: All uses of "\\\\" in LaTeX formulas should be replaced with "\\\\\\\\"</strong>' +
+              '<br><span>Learn more about adding LaTeX formulas to Markdown content here: ' +
+              '<a href="/faq#question-tex-differences" target="_blank">FAQ</a></span>' +
+            '</div>'
+          );
+        }
+      } else {
+        $warning.remove();
+      }
+    });
+
+    var uniqueId = Math.floor(Math.random() * 1000);
+    var $markDownWithPreviewTabs = $(
+      '<ul class="nav nav-tabs markdown-preview-tabs" role="tablist">' +
+        '<li class="active" role="presentation">' +
+          '<a href="#markdown-panel-' + uniqueId + '" data-toggle="tab" role="tab">Write</a>' +
+        '</li>' +
+        '<li role="presentation">' +
+          '<a id="markdown-preview-tab-' + uniqueId + '" href="#markdown-preview-panel-' + uniqueId + '" data-toggle="tab" role="tab">Preview</a>' +
+        '</li>' +
+      '</ul>' +
+      '<div class="tab-content">' +
+        '<div class="markdown-panel tab-pane fade in active" id="markdown-panel-' + uniqueId + '" role="tabpanel"></div>' +
+        '<div class="markdown-preview-panel tab-pane fade " id="markdown-preview-panel-' + uniqueId + '" role="tabpanel"></div>' +
+      '</div>'
+    );
+    $markDownWithPreviewTabs.find('#markdown-panel-' + uniqueId).append($contentInput);
+
+    var $row = $('<div>', { class: 'row' }).append(
+      $smallHeading, $description, $markDownWithPreviewTabs
+    );
+
+    $('#markdown-preview-tab-' + uniqueId, $row).on('shown.bs.tab', function (e) {
+      var id = $(e.relatedTarget).attr('href');
+      var newTabId = $(e.target).attr('href');
+      var markdownContent = $(id).children().eq(0).val();
+      if (markdownContent) {
+        $(newTabId)[0].innerHTML = '<div class="note_content_value markdown-rendered">' +
+          DOMPurify.sanitize(marked(markdownContent)) + '</div>';
+        setTimeout(function() {
+          MathJax.typesetPromise();
+        }, 100);
+      } else {
+        $(newTabId).text('Nothing to preview');
+      }
+    });
+
+    return $row;
+  };
+
+  var markdownInputV2 = function($contentInput, fieldName, fieldDescription) {
+    var $smallHeading = $('<div>', { text: prettyField(fieldName), class: 'small_heading' });
+    if (!fieldDescription.value.optional) {
+      $smallHeading.prepend('<span class="required_field">*</span>');
+    }
+
+    var $description;
+    if (fieldDescription.presentation?.scroll) {
       $description = $('<textarea class="form-control scroll-box" readonly>').text(fieldDescription.description);
     } else {
       $description = $('<div class="hint disable-tex-rendering">').text(fieldDescription.description);
@@ -1364,6 +1455,259 @@ module.exports = (function() {
     return contentInputResult;
   };
 
+  /* Schema of Field Description in Invitation
+  fieldDescritption = {
+    value: {
+      value/value-regex etc.,
+      optional,
+    },
+    presentation: {
+      markdown,
+      default, // type: array,string
+      hidden,
+      scroll,
+      hideCharCounter,
+
+    },
+    order,
+    description,
+    disableAutosave, // remove
+  }
+  */
+
+  var mkComposerContentInputV2 = function(fieldName, fieldDescription, fieldValue, params) {
+    var contentInputResult = null;
+
+    var mkCharCouterWidget = function($input, minChars, maxChars) {
+      var $widget = $('<div>', {class: 'char-counter hint'}).append(
+        '<div class="pull-left" style="display:none;">Additional characters required: <span class="min-count">' + minChars + '</span></div>',
+        '<div class="pull-left" style="display:none;">Characters remaining: <span class="max-count">' + maxChars + '</span></div>'
+      );
+      var $minCount = $widget.find('.min-count');
+      var $maxCount = $widget.find('.max-count');
+      var $divs = $widget.children();
+
+      $input.on('input', _.throttle(function() {
+        // Remove extra white spaces at the beginning, at the end and in between words.
+        var charsUsed = $input.val().trim().length;
+        var charsRequired = minChars - charsUsed;
+        var charsRemaining = maxChars - charsUsed;
+        $minCount.text(charsRequired);
+        $maxCount.text(charsRemaining);
+
+        $widget.removeClass('warning danger');
+        if (charsRemaining < 1) {
+          $widget.addClass('danger');
+        } else if (charsRemaining < 150) {
+          $widget.addClass('warning');
+        }
+
+        if (charsRequired > 0) {
+          $divs.eq(0).show();
+          $divs.eq(1).hide();
+        } else {
+          $divs.eq(0).hide();
+          if (maxChars) {
+            $divs.eq(1).show();
+          } else {
+            $divs.eq(1).hide();
+          }
+        }
+      }, 100));
+
+      return $widget;
+    };
+
+    var fieldDefault = (params && params.useDefaults) ?
+      _.get(fieldDescription.presentation, 'default', '') :
+      '';
+    fieldValue = fieldValue || fieldDefault;  // These will always be mutually exclusive
+
+    var $input;
+    if (_.has(fieldDescription.value, 'value')) {
+      contentInputResult = valueInputV2($('<input>', {
+        type: 'text',
+        class: 'form-control note_content_value',
+        name: fieldName,
+        value: fieldDescription.value.value,
+        readonly: true
+      }), fieldName, fieldDescription);
+
+    } else if (_.has(fieldDescription.value, 'values')) {
+      contentInputResult = mkDropdownAdder(
+        fieldName, fieldDescription.description, fieldDescription.value.values,
+        fieldValue, { hoverText: true, refreshData: false, required: !fieldDescription.value.optional }
+      );
+
+    } else if (_.has(fieldDescription.value, 'value-regex')) {
+      var $inputGroup;
+      // Create a new regex that doesn't include min and max length
+      var regexStr = fieldDescription.value['value-regex'];
+      var re = new RegExp('^' + regexStr.replace(/\{\d+,\d+\}$/, '') + '$');
+      var newlineMatch = '\n'.match(re);
+      if (newlineMatch && newlineMatch.length) {
+        $input = $('<textarea>', {
+          class: 'note_content_value form-control',
+          name: fieldName,
+          text: fieldValue
+        });
+
+        if (fieldDescription.presentation?.markdown) {
+          $inputGroup = markdownInputV2($input, fieldName, fieldDescription);
+        } else {
+          $inputGroup = valueInputV2($input, fieldName, fieldDescription);
+        }
+
+        if (!_.get(fieldDescription.presentation, 'hideCharCounter', false)) {
+          var lenMatches = _.get(fieldDescription.value, 'value-regex', '').match(/\{(\d+),(\d+)\}$/);
+          if (lenMatches) {
+            var minLen = parseInt(lenMatches[1], 10);
+            var maxLen = parseInt(lenMatches[2], 10);
+            minLen = (isNaN(minLen) || minLen < 0) ? 0 : minLen;
+            maxLen = (isNaN(maxLen) || maxLen < minLen) ? 0 : maxLen;
+            if (minLen || maxLen) {
+              $inputGroup.append(mkCharCouterWidget($input, minLen, maxLen));
+              if (fieldValue) {
+                $input.trigger('keyup');
+              }
+            }
+          }
+        }
+      } else {
+        $input = $('<input>', {
+          type: 'text',
+          class: 'form-control note_content_value',
+          name: fieldName,
+          value: fieldValue
+        });
+        $inputGroup = valueInputV2($input, fieldName, fieldDescription); //input will probably be omitted field when rendered
+      }
+      // if (!_.get(fieldDescription, 'disableAutosave', false)) {
+      //   $input.addClass('autosave-enabled');
+      // }
+      contentInputResult = $inputGroup;
+
+    } else if (_.has(fieldDescription.value, 'values-regex')) {
+      if (params && params.groups) {
+        var groupIds = _.map(params.groups, function(g) {
+          return g.id;
+        });
+        contentInputResult = mkDropdownAdder(
+          fieldName, fieldDescription.description, groupIds,
+          fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.optional }
+        );
+      } else {
+        $input = $('<input>', {
+          type: 'text',
+          class: 'form-control note_content_value',
+          name: fieldName,
+          value: fieldValue
+        });
+        // if (!_.get(fieldDescription, 'disableAutosave', false)) {
+        //   $input.addClass('autosave-enabled');
+        // }
+        contentInputResult = valueInputV2($input, fieldName, fieldDescription);
+      }
+
+    } else if (_.has(fieldDescription.value, 'value-dropdown')) {
+      contentInputResult = mkDropdownList(
+        fieldName, fieldDescription.description, fieldValue,
+        fieldDescription.value['value-dropdown'], !fieldDescription.value.optional
+      );
+    // looks like value-dropdown-hierarchy is gone in v2
+    // } else if (_.has(fieldDescription.value, 'value-dropdown-hierarchy')) {
+    //   var values = fieldDescription['value-dropdown-hierarchy'];
+    //   var formattedValues = [];
+    //   var formattedFieldValue = fieldValue && fieldValue.length && fieldValue[0];
+    //   values.forEach(function(value, index) {
+    //     var formattedValue = '';
+
+    //     if (value === 'everyone') {
+    //       formattedValue = value;
+    //     } else if ( index === (values.length - 1)) {
+    //       formattedValue = value.split('/').slice(-2).join(' ');
+    //     } else {
+    //       if (_.endsWith(value, 'Authors')) {
+    //         formattedValue = value.split('/').slice(-2).join(' ') + ' Only';
+    //         formattedValues.push(formattedValue);
+    //       }
+    //       formattedValue = value.split('/').slice(-2).join(' ') + ' and Higher';
+    //     }
+
+    //     formattedValues.push(formattedValue);
+    //     if (value === formattedFieldValue) {
+    //       formattedFieldValue = formattedValue;
+    //     }
+    //   });
+
+    //   contentInputResult = mkDropdownList(
+    //     fieldName, fieldDescription.description, formattedFieldValue,
+    //     formattedValues, fieldDescription.required
+    //   );
+
+    } else if (_.has(fieldDescription.value, 'values-dropdown')) {
+      contentInputResult = mkDropdownAdder(
+        fieldName, fieldDescription.description, fieldDescription.value['values-dropdown'],
+        fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.optional, alwaysHaveValues: fieldDescription.presentation?.default }
+      );
+
+    } else if (_.has(fieldDescription.value, 'value-radio')) {
+      $input = $('<div>', { class: 'note_content_value value-radio-container' }).append(
+        _.map(fieldDescription.value['value-radio'], function(v) {
+          return $('<div>', { class: 'radio' }).append(
+            $('<label>').append(
+              $('<input>', {
+                type: 'radio',
+                name: fieldName,
+                id: _.kebabCase(fieldName) + '-' + _.kebabCase(v),
+                value: v,
+                checked: fieldValue === v,
+              }),
+              v
+            )
+          );
+        })
+      );
+      contentInputResult = valueInputV2($input, fieldName, fieldDescription);
+
+    } else if (_.has(fieldDescription.value, 'value-checkbox') || _.has(fieldDescription.value, 'values-checkbox')) {
+      var options = _.has(fieldDescription.value, 'value-checkbox') ?
+        [fieldDescription.value['value-checkbox']] :
+        fieldDescription.value['values-checkbox'];
+      var checkedValues = _.isArray(fieldValue) ? fieldValue : [fieldValue];
+      var requiredValues = fieldDescription.presentation?.default;
+
+      var checkboxes = _.map(options, function(option) {
+        var checked = _.includes(checkedValues, option) ? 'checked' : '';
+        var disabled = _.includes(requiredValues, option) ? 'disabled' : '';
+        return '<label class="checkbox-inline">' +
+          '<input type="checkbox" name="' + fieldName + '" value="' + option + '" ' + checked + ' ' + disabled + '> ' + (params.prettyId ? prettyId(option) : option) +
+          '</label>';
+      });
+      contentInputResult = valueInputV2('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
+
+    } else if (_.has(fieldDescription.value, 'value-copied') || _.has(fieldDescription.value, 'values-copied')) {
+      contentInputResult = valueInputV2($('<input>', {
+        type: 'hidden',
+        class: 'note_content_value',
+        name: fieldName,
+        value: fieldDescription.value['value-copied'] || fieldDescription.value['values-copied']
+      }), fieldName, fieldDescription).css('display', 'none');
+
+    } else if (_.has(fieldDescription.value, 'value-dict')) {
+      contentInputResult = valueInputV2($('<textarea>', {
+        class: 'note_content_value form-control',
+        name: fieldName,
+        text: fieldValue && JSON.stringify(fieldValue, undefined, 4)
+      }), fieldName, fieldDescription);
+
+    } else if (_.has(fieldDescription.value, 'value-file')) {
+      contentInputResult = mkAttachmentSectionV2(fieldName, fieldDescription, fieldValue);
+    }
+
+    return contentInputResult;
+  };
+
   var mkDropdownList = function(fieldName, fieldDescription, fieldValue, values, required) {
 
     var $input = $('<div>', {class: 'row'});
@@ -1479,12 +1823,12 @@ module.exports = (function() {
   var mkComposerInputV2 = function(fieldName, fieldDescription, fieldValue, params) {
     var contentInputResult;
 
-    if (fieldName === 'pdf' && fieldDescription['value-regex']) {
-      contentInputResult = mkPdfSection(fieldDescription, fieldValue);
+    if (fieldName === 'pdf' && fieldDescription.value['value-regex']) {
+      contentInputResult = mkPdfSectionV2(fieldDescription, fieldValue);
 
     } else if (fieldName === 'authorids' && (
-      (_.has(fieldDescription, 'values-regex') && isTildeIdAllowed(fieldDescription['values-regex'])) ||
-      _.has(fieldDescription, 'values')
+      (_.has(fieldDescription.value, 'values-regex') && isTildeIdAllowed(fieldDescription.value['values-regex'])) ||
+      _.has(fieldDescription.value, 'values')
     )) {
       var authors;
       var authorids;
@@ -1496,10 +1840,10 @@ module.exports = (function() {
         authors = [userProfile.first + ' ' + userProfile.middle + ' ' + userProfile.last];
         authorids = [userProfile.preferredId];
       }
-      var invitationRegex = fieldDescription['values-regex'];
+      var invitationRegex = fieldDescription.value?.['values-regex'];
       // Enable allowUserDefined if the values-regex has '~.*|'
       // Don't enable adding or removing authors if invitation uses 'values' instead of values-regex
-      contentInputResult = valueInput(
+      contentInputResult = valueInputV2(
         mkSearchProfile(authors, authorids, {
           allowUserDefined: invitationRegex && invitationRegex.includes('|'),
           allowAddRemove: !!invitationRegex
@@ -1509,10 +1853,10 @@ module.exports = (function() {
       );
 
     } else {
-      contentInputResult = mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
+      contentInputResult = mkComposerContentInputV2(fieldName, fieldDescription, fieldValue, params);
     }
 
-    if (fieldDescription.hidden === true) {
+    if (fieldDescription.presentation?.hidden === true) {
       return contentInputResult.hide();
     }
     return contentInputResult;
@@ -1659,7 +2003,61 @@ module.exports = (function() {
     );
   };
 
+  var mkFileRowV2 = function($widgets, fieldName, fieldDescription, fieldValue) {
+    var smallHeading = $('<div>', {text: prettyField(fieldName), class: 'small_heading'});
+    if (!fieldDescription.value.optional) {
+      var requiredText = $('<span>', {text: '*', class: 'required_field'});
+      smallHeading.prepend(requiredText);
+    }
+
+    var $noteContentVal = $('<input>', {class: 'note_content_value', name: fieldName, value: fieldValue, style: 'display: none;'})
+
+    var $fieldValue = fieldValue
+      ? $('<span class="item hint existing-filename">(' + fieldValue + ')</span>')
+      : null;
+
+    return $('<div>', {class: 'row'}).append(
+      smallHeading,
+      $('<div>', {text: fieldDescription.description, class: 'hint'}),
+      $noteContentVal,
+      $widgets,
+      $fieldValue
+    );
+  };
+
   var mkPdfSection = function(fieldDescription, fieldValue) {
+    var order = fieldDescription.order;
+    var regexStr = fieldDescription['value-regex'];
+    var invitationFileTransfer = fileTransferByInvitation(regexStr);
+
+    if (invitationFileTransfer === 'upload') {
+      return mkFileRow(mkFileInput('pdf', 'file', order, regexStr), 'pdf', fieldDescription, fieldValue);
+
+    } else if (invitationFileTransfer === 'url') {
+      return mkFileRow(mkFileInput('pdf', 'text', order, regexStr), 'pdf', fieldDescription, fieldValue);
+
+    } else if (invitationFileTransfer === 'either') {
+      var $span = $('<div>', {class: 'item', style: 'width: 80%'});
+      var timestamp = Date.now();
+      var $radioItem = $('<div>', {class: 'item'}).append(
+        $('<div>').append(
+          $('<input>', {class: 'upload', type: 'radio', name: 'pdf_' + timestamp}).click(function() {
+            $span.html(mkFileInput('pdf', 'file', order, regexStr));
+          }),
+          $('<span>', {class: 'item', text: 'Upload PDF file'})
+        ),
+        $('<div>').append(
+          $('<input>', {class: 'url', type: 'radio', name: 'pdf_' + timestamp}).click(function() {
+            $span.html(mkFileInput('pdf', 'text', order, regexStr));
+          }),
+          $('<span>', {class: 'item', text: 'Enter URL'})
+        )
+      );
+      return mkFileRow([$radioItem, $span], 'pdf', fieldDescription, fieldValue);
+    }
+  };
+
+  var mkPdfSectionV2 = function(fieldDescription, fieldValue) {
     var order = fieldDescription.order;
     var regexStr = fieldDescription['value-regex'];
     var invitationFileTransfer = fileTransferByInvitation(regexStr);
@@ -1733,6 +2131,46 @@ module.exports = (function() {
         )
       );
       return mkFileRow([$radioItem, $span], fieldName, fieldDescription, fieldValue);
+    }
+  };
+
+  var mkAttachmentSectionV2 = function(fieldName, fieldDescription, fieldValue) {
+    var order = fieldDescription.order;
+    var regexStr = fieldDescription.value['value-file'].regex;
+    var mimeType = fieldDescription.value['value-file'].mimetype;
+    var size = fieldDescription.value['value-file'].size;
+
+    var invitationFileTransfer = 'url';
+    if (regexStr && (mimeType || size)) {
+      invitationFileTransfer = 'either';
+    } else if (!regexStr) {
+      invitationFileTransfer = 'upload';
+    }
+
+    if (invitationFileTransfer === 'upload') {
+      return mkFileRowV2(mkFileInput(fieldName, 'file', order, regexStr), fieldName, fieldDescription, fieldValue);
+
+    } else if (invitationFileTransfer === 'url') {
+      return mkFileRowV2(mkFileInput(fieldName, 'text', order, regexStr), fieldName, fieldDescription, fieldValue);
+
+    } else if (invitationFileTransfer === 'either') {
+      var $span = $('<div>', {class: 'item', style: 'width: 80%'});
+      var timestamp = Date.now();
+      var $radioItem = $('<div>', {class: 'item'}).append(
+        $('<div>').append(
+          $('<input>', {class: 'upload', type: 'radio', name: fieldName + '_' + timestamp}).click(function() {
+            $span.html(mkFileInput(fieldName, 'file', order, regexStr));
+          }),
+          $('<span>', {class: 'item', text: 'Upload file'})
+        ),
+        $('<div>').append(
+          $('<input>', {class: 'url', type: 'radio', name: fieldName + '_' + timestamp}).click(function() {
+            $span.html(mkFileInput(fieldName, 'text', order, regexStr));
+          }),
+          $('<span>', {class: 'item', text: 'Enter URL'})
+        )
+      );
+      return mkFileRowV2([$radioItem, $span], fieldName, fieldDescription, fieldValue);
     }
   };
 
@@ -2764,7 +3202,7 @@ module.exports = (function() {
             invitation: tagInvitation.id,
             ddate: deleted ? Date.now() : null
           };
-          body = getCopiedValues(body, tagInvitation.reply);
+          // body = getCopiedValues(body, tagInvitation.reply);
 
           Webfield.post('/tags', body, function(result) {
             done(result);
@@ -3778,7 +4216,7 @@ module.exports = (function() {
 
     var contentOrder = order(invitation.edit?.note?.content, invitation.id);
     var $contentMap = _.reduce(contentOrder, function(ret, k) {
-      ret[k] = mkComposerInputV2(k, invitation.edit?.note?.content?.[k]?.value, invitation.edit?.note?.content?.[k]?.value?.default || '', { useDefaults: true, user: user });
+      ret[k] = mkComposerInputV2(k, invitation.edit?.note?.content?.[k], invitation.edit?.note?.content?.[k]?.presentation?.default || '', { useDefaults: true, user: user});
       return ret;
     }, {});
 
@@ -3899,7 +4337,7 @@ module.exports = (function() {
 
       var saveNote = function(note) {
         // apply any 'value-copied' fields
-        note = getCopiedValues(note, invitation?.edit?.note?.content);
+        // note = getCopiedValues(note, invitation?.edit?.note?.content); // no more value-copied
         Webfield.postV2('/notes/edits', note, { handleError: false }).then(function(result) {
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
@@ -4118,15 +4556,16 @@ module.exports = (function() {
     var setParentReaders = function(parent, fieldDescription, fieldType, done) {
       if (parent) {
         Webfield.getV2('/notes', { id: parent }).then(function(result) {
-          var newFieldDescription = fieldDescription;
+          var newFieldDescription = { value: fieldDescription };
           if (result.notes.length) {
             var parentReaders = result.notes[0].readers;
             if (!_.includes(parentReaders, 'everyone')) {
               newFieldDescription = {
+                value:{},
                 description: fieldDescription.description,
-                default: fieldDescription.default
+                presentation: { default: fieldDescription.default }
               };
-              newFieldDescription[fieldType] = parentReaders;
+              newFieldDescription.value[fieldType] = parentReaders;
               if (!fieldValue.length) {
                 fieldValue = newFieldDescription[fieldType];
               }
@@ -4135,7 +4574,7 @@ module.exports = (function() {
           done(newFieldDescription);
         });
       } else {
-        done(fieldDescription);
+        done({ value: fieldDescription });
       }
     };
 
@@ -4204,17 +4643,17 @@ module.exports = (function() {
           });
         });
 
-    } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
-      setParentReaders(replyto, fieldDescription, 'value-dropdown-hierarchy', function(newFieldDescription) {
-        var $readers = mkComposerInputV2('readers', newFieldDescription, fieldValue);
-        $readers.find('.small_heading').prepend(requiredText);
-        done($readers);
-      });
+    // } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
+    //   setParentReaders(replyto, fieldDescription, 'value-dropdown-hierarchy', function(newFieldDescription) {
+    //     var $readers = mkComposerInputV2('readers', newFieldDescription, fieldValue);
+    //     $readers.find('.small_heading').prepend(requiredText);
+    //     done($readers);
+    //   });
     } else if (_.has(fieldDescription, 'values')) {
       setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
-        if (_.isEqual(newFieldDescription.values, fieldDescription.values)
-          || fieldDescription.values.every(function (val) { return newFieldDescription.values.indexOf(val) !== -1; })) {
-          var $readers = mkComposerInputV2('readers', fieldDescription, fieldValue); //for values, readers must match with invitation instead of parent invitation
+        if (_.isEqual(newFieldDescription.value.values, fieldDescription.values)
+          || fieldDescription.values.every(function (val) { return newFieldDescription.value.values.indexOf(val) !== -1; })) {
+          var $readers = mkComposerInputV2('readers', newFieldDescription, fieldValue); //for values, readers must match with invitation instead of parent invitation
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
         } else {
@@ -4241,7 +4680,7 @@ module.exports = (function() {
         .then(function() {
           setParentReaders(replyto, fieldDescription, 'values-checkbox', function (newFieldDescription) {
             //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
-            var replyValues = _.intersection(newFieldDescription['values-checkbox'], fieldDescription['values-checkbox']);
+            var replyValues = _.intersection(newFieldDescription.value['values-checkbox'], fieldDescription['values-checkbox']);
 
             //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
             var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
@@ -4254,17 +4693,17 @@ module.exports = (function() {
               });
             }
 
-            newFieldDescription['values-checkbox'] = replyValues;
-            if (_.difference(newFieldDescription.default, newFieldDescription['values-checkbox']).length !== 0) { //invitation default is not in list of possible values
+            newFieldDescription.value['values-checkbox'] = replyValues;
+            if (_.difference(newFieldDescription.presentation?.default, newFieldDescription.value['values-checkbox']).length !== 0) { //invitation default is not in list of possible values
               done(undefined, 'Default reader is not in the list of readers');
             }
-            var $readers = mkComposerInputV2('readers', newFieldDescription, fieldValue.length ? fieldValue : newFieldDescription.default, { prettyId: true});
+            var $readers = mkComposerInputV2('readers', newFieldDescription, fieldValue.length ? fieldValue : newFieldDescription.presentation?.default, { prettyId: true});
             $readers.find('.small_heading').prepend(requiredText);
             done($readers);
           });
         });
     } else {
-      var $readers = mkComposerInputV2('readers', fieldDescription, fieldValue);
+      var $readers = mkComposerInputV2('readers', { value: fieldDescription }, fieldValue);
       $readers.find('.small_heading').prepend(requiredText);
       done($readers);
     }
@@ -4550,7 +4989,8 @@ module.exports = (function() {
       onCompleted: null,
       onNoteCancelled: null,
       onValidate: null,
-      onError: null
+      onError: null,
+      isEdit: false,
     }, options);
 
     if ($('.note_editor.panel').length) {
@@ -4565,7 +5005,7 @@ module.exports = (function() {
     var contentOrder = order(invitation.edit.note.content, invitation.id);
     var $contentMap = _.reduce(contentOrder, function(map, fieldName) {
       var fieldContent = _.get(note, ['content', fieldName, 'value'], '');
-      map[fieldName] = mkComposerInputV2(fieldName, invitation.edit.note.content[fieldName].value, fieldContent, { note: note, useDefaults: true });
+      map[fieldName] = mkComposerInputV2(fieldName, invitation.edit.note.content[fieldName], fieldContent, { note: note, useDefaults: true });
       return map;
     }, {});
 
@@ -4613,9 +5053,32 @@ module.exports = (function() {
           $cancelButton.prop({ disabled: false });
           return;
         }
-        var editNote = {
-          note :{
-            content:Object.entries(content[0]).reduce((acc, v) => { acc[v[0]] = { value: v[1] }; return acc }, {})
+        var editNote = params.isEdit ? {
+          // editing an edit is updating the edit itself
+          ...note,
+          cdate:undefined,
+          tcdate: undefined,
+          tmdate: undefined,
+          content: undefined,
+          details: undefined,
+          updateId: undefined,
+          tauthor: undefined,
+          invitations: undefined,
+          invitation: note.invitations[0],
+          note:{
+            ...note.note,
+            content:Object.entries(content[0]).reduce((acc, v) => { acc[v[0]] = { value: v[1] }; return acc }, {}),
+            cdate:undefined,
+            tcdate:undefined,
+            tddate:undefined,
+            tmdate: undefined,
+            details: undefined,
+            tauthor: undefined,
+          }
+        } : {
+          // editing a note is posting a new edit
+          note: {
+            content: Object.entries(content[0]).reduce((acc, v) => { acc[v[0]] = { value: v[1] }; return acc }, {})
           },
           readers: (invitation.edit.note?.readers?.values || invitation.edit.note?.readers?.value) ? undefined : readerValues,
           nonreaders: nonreaderValues,
@@ -4631,13 +5094,15 @@ module.exports = (function() {
         //   editNote.note.replyto = note.replyto || invitation.edit?.note?.replyto?.value || invitation.edit?.note?.forum?.value
         // }
 
-        if (invitation.edit?.note?.id?.value || invitation.edit?.note?.reply?.referentInvitation) {
-          editNote.note.referent = invitation.edit?.note?.id?.value || note.id;
-          if (note.updateId) {
-            editNote.note.id = note.updateId;
+        if (!params.isEdit) {
+          if (invitation.edit?.note?.id?.value || invitation.edit?.note?.reply?.referentInvitation) {
+            editNote.note.referent = invitation.edit?.note?.id?.value || note.id;
+            if (note.updateId) {
+              editNote.note.id = note.updateId;
+            }
+          } else {
+            editNote.note.id = note.id;
           }
-        } else {
-          editNote.note.id = note.id;
         }
 
         if (_.isEmpty(files)) {
@@ -4700,7 +5165,7 @@ module.exports = (function() {
 
       var saveNote = function(note) {
         // apply any 'value-copied' fields
-        note = getCopiedValues(note, invitation?.edit?.note?.content);
+        // note = getCopiedValues(note, invitation?.edit?.note?.content);
         Webfield.postV2('/notes/edits', note, { handleError: false }).then(function(result) {
           if (params.onNoteEdited) {
             params.onNoteEdited(result);
