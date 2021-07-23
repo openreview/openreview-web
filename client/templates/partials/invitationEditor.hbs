@@ -5,7 +5,7 @@
 </section>
 
 <section class="reply">
-  <h4>Reply Parameters</h4>
+  <h4>{{#is options.apiVersion 2}}Edit{{else}}Reply Parameters{{/is}}</h4>
 
   <form class="invitation-reply-form">
     <textarea name="reply" class="form-control" rows="10">{{replyJson}}</textarea>

@@ -1,8 +1,10 @@
 <dl class="dl-horizontal group-info-table">
-  {{#if invitation.super}}
-    <dt>Super Invitation:</dt>
-    <dd><a href="/invitation/edit?id={{invitation.super}}">{{prettyId invitation.super}}</a></dd>
-  {{/if}}
+  {{#isnt apiVersion 2}}
+    {{#if invitation.super}}
+      <dt>Super Invitation:</dt>
+      <dd><a href="/invitation/edit?id={{invitation.super}}">{{prettyId invitation.super}}</a></dd>
+    {{/if}}
+  {{/isnt}}
 
   <dt>Parent Group:</dt>
   <dd><a href="{{groupUrl parentGroupId true}}">{{prettyId parentGroupId}}</a></dd>
@@ -26,10 +28,12 @@
     <dd>{{groupIdList invitation.noninvitees}}</dd>
   {{/if}}
 
-  {{#if invitation.final}}
-    <dt>Final Fields:</dt>
-    <dd>{{join invitation.final}}</dd>
-  {{/if}}
+  {{#isnt apiVersion 2}}
+    {{#if invitation.final}}
+      <dt>Final Fields:</dt>
+      <dd>{{join invitation.final}}</dd>
+    {{/if}}
+  {{/isnt}}
 
   <dt>Multi-Reply:</dt>
   <dd>{{#if invitation.multiReply}}True{{else}}{{#is invitation.multiReply false}}False{{/is}}{{/if}}</dd>
@@ -76,12 +80,14 @@
   <button type="button" class="btn btn-sm btn-primary edit-group-info">Edit General Info</button>
 
   <form class="group-info-form form-horizontal" style="display: none;">
-    <div class="form-group">
-      <label for="super" class="col-xs-2 control-label">Super Invitation:</label>
-      <div class="col-xs-10">
-        <input type="text" class="form-control input-sm" name="super" value="{{invitation.super}}">
+    {{#isnt apiVersion 2}}
+      <div class="form-group">
+        <label for="super" class="col-xs-2 control-label">Super Invitation:</label>
+        <div class="col-xs-10">
+          <input type="text" class="form-control input-sm" name="super" value="{{invitation.super}}">
+        </div>
       </div>
-    </div>
+    {{/isnt}}
 
     <div class="form-group">
       <label for="readers" class="col-xs-2 control-label">Readers:</label>
@@ -118,12 +124,14 @@
       </div>
     </div>
 
-    <div class="form-group">
-      <label for="final" class="col-xs-2 control-label">Final Fields:</label>
-      <div class="col-xs-10">
-        <input type="text" class="form-control input-sm" name="final" value="{{join invitation.final}}">
+    {{#isnt apiVersion 2}}
+      <div class="form-group">
+        <label for="final" class="col-xs-2 control-label">Final Fields:</label>
+        <div class="col-xs-10">
+          <input type="text" class="form-control input-sm" name="final" value="{{join invitation.final}}">
+        </div>
       </div>
-    </div>
+    {{/isnt}}
 
     <div class="form-group">
       <label for="multiReply" class="col-xs-2 control-label">Multi-Reply:</label>
