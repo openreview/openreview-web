@@ -1134,22 +1134,14 @@ module.exports = (function() {
     }
 
     function updateInvitation(modifiedFields) {
-      return get('/invitations', { id: invitation.id })
-        .then(function(response) {
-          if (!response.invitations || !response.invitations.length) {
-            return $.Deferred().reject();
-          }
-
-          var updatedInvitationObj = Object.assign(response.invitations[0], modifiedFields);
-          return post('/invitations/edits', {
-            readers: [options.userId],
-            writers: [options.userId],
-            signatures: [options.userId],
-            invitation: updatedInvitationObj,
-          }, { version: 2 }).then(function(response) {
-            return response.invitation;
-          });
-        });
+      return post('/invitations/edits', {
+        readers: [options.userId],
+        writers: [options.userId],
+        signatures: [options.userId],
+        invitation: modifiedFields,
+      }, { version: 2 }).then(function(response) {
+        return response.invitation;
+      });
     }
 
     function updateModifiedDate() {
