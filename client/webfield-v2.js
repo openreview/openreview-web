@@ -1264,7 +1264,19 @@ module.exports = (function() {
 
       var updateObj;
       if ($(this).hasClass('invitation-reply-form')) {
-        updateObj = { edit: parsedObj };
+        // Have to set the fields of the content object to null, so if a user is removing
+        // or renaming a field it will be deleted.
+        var defaultContent = invitation.edit.note.content;
+        Object.keys(defaultContent).forEach(function(key) {
+          defaultContent[key] = null;
+        });
+        updateObj = {
+          edit: _.merge({
+            note: {
+              signatures: null, readers: null, writers: null, content: defaultContent
+            }
+          }, parsedObj),
+        };
       } else {
         updateObj = { replyForumViews: parsedObj };
       }
