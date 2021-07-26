@@ -1,5 +1,5 @@
 /* globals $: false */
-/* globals Webfield: false */
+/* globals Webfield, Webfield2: false */
 /* globals typesetMathJax: false */
 
 import { useState, useEffect, useRef } from 'react'
@@ -62,7 +62,7 @@ const Activity = ({ appContext }) => {
     if (clientJsLoading || !activityNotes) return
 
     $(activityRef.current).empty()
-    const activityList = process.env.ENABLE_V2_API ? Webfield.ui.activityListV2 : Webfield.ui.activityList
+    const activityList = process.env.ENABLE_V2_API ? Webfield2.ui.activityListV2 : Webfield.ui.activityList
     activityList(activityNotes, {
       container: activityRef.current,
       emptyMessage: 'No recent activity to display.',

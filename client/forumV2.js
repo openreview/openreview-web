@@ -56,7 +56,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       invitationsP = $.Deferred().resolve([]);
 
     } else {
-      notesP = Webfield.getV2('/notes', {
+      notesP = Webfield2.getV2('/notes', {
         forum: forumId,
         trash: true,
         details: 'replyCount,writable,revisions,original,overwriting,invitation,tags'
@@ -77,7 +77,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
           return getProfilesP(notes);
         }, onError);
 
-      invitationsP = Webfield.getV2('/invitations', {
+      invitationsP = Webfield2.getV2('/invitations', {
         replyForum: forumId, details: 'repliedNotes'
       }, { handleErrors: false })
         .then(function(result) {
@@ -90,7 +90,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         return $.Deferred().resolve([]);
       }
 
-      return Webfield.getV2('/invitations', {
+      return Webfield2.getV2('/invitations', {
         replyForum: forum, tags: true
       }, { handleErrors: false })
         .then(function(result) {
@@ -261,7 +261,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     var invitationP = invitation ?
       $.Deferred().resolve(invitation) :
-      Webfield.getV2('/invitations', { id: note.invitation }).then(function(result) {
+      Webfield2.getV2('/invitations', { id: note.invitation }).then(function(result) {
         if (result.invitations && result.invitations.length) {
           return result.invitations[0];
         }

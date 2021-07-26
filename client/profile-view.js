@@ -924,7 +924,7 @@ module.exports = function(profile, params, submitF, cancelF) {
           }
         }
         var v1NotesP = Webfield.get('/notes', queryParam , { cache: false });
-        var v2NotesP = Webfield.getV2('/notes', {
+        var v2NotesP = Webfield2.getV2('/notes', {
           'content.authorids': profileId,
           details: 'invitation,original',
           sort: 'tmdate:desc',
@@ -997,7 +997,7 @@ module.exports = function(profile, params, submitF, cancelF) {
       showUnlinkPublicationButton: true
     };
     if(process.env.ENABLE_V2_API){
-      Webfield.ui.submissionListV2(notes, {
+      Webfield2.ui.submissionListV2(notes, {
         heading: null,
         container: '#publication-editor-container',
         search: { enabled: false },

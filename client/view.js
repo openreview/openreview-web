@@ -3387,9 +3387,9 @@ module.exports = (function() {
     if (isDeleted) {
       // Restore deleted note
       isEdit ? newNote.ddate = null : newNote.note.ddate = null;
-      return Webfield.postV2('/notes/edits', newNote, null).then(function() {
+      return Webfield2.postV2('/notes/edits', newNote, null).then(function() {
         // the return of the post is edit without updatednote
-        Webfield.getV2('/notes', { id: note.id }).then(function(result) {
+        Webfield2.getV2('/notes', { id: note.id }).then(function(result) {
           onTrashedOrRestored({...result.notes[0],details:note.details});
         });
       });
@@ -3402,13 +3402,13 @@ module.exports = (function() {
       }
       newNote.signatures = newSignatures;
       isEdit ? newNote.ddate = Date.now() : newNote.note.ddate = Date.now();
-      Webfield.postV2('/notes/edits', newNote, null).then(function (edit) {
+      Webfield2.postV2('/notes/edits', newNote, null).then(function (edit) {
         if (isEdit) {
           onTrashedOrRestored(edit);
         } else {
           // the return of the post is edit without updatednote
           // so get the updated note again
-          Webfield.getV2('/notes', { id: note.id, trash: true }).then(function (result) {
+          Webfield2.getV2('/notes', { id: note.id, trash: true }).then(function (result) {
             onTrashedOrRestored({ ...result.notes[0], details: note.details });
           });
         }
@@ -3473,7 +3473,7 @@ module.exports = (function() {
   };
 
   var loadSignaturesDropdownV2 = function(invitationId, noteSignatures, user) {
-    return Webfield.getV2('/invitations', { id: invitationId })
+    return Webfield2.getV2('/invitations', { id: invitationId })
       .then(function(result) {
         if (!result.invitations || !result.invitations.length) {
           promptError('Could not load invitation ' + invitationId);
@@ -4306,7 +4306,7 @@ module.exports = (function() {
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
           if (fieldName === 'pdf' && invitation.edit.note?.content?.pdf?.value?.['value-regex']) {
-            return Webfield.sendFileV2('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+            return Webfield2.sendFileV2('/pdf', files[fieldName], 'application/pdf').then(function(result) {
               newNoteEdit.note.content[fieldName].value = result.url;
               return updatePdfSection($contentMap.pdf, invitation.edit.note?.content?.pdf?.value, newNoteEdit.note.content.pdf.value);
             });
@@ -4315,7 +4315,7 @@ module.exports = (function() {
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return Webfield.sendFileV2('/attachment', data).then(function(result) {
+          return Webfield2.sendFileV2('/attachment', data).then(function(result) {
             newNoteEdit.note.content[fieldName].value = result.url;
             updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, newNoteEdit.note.content[fieldName].value);
           });
@@ -4339,7 +4339,7 @@ module.exports = (function() {
         const editToPost = constructEdit({ noteObj: note, invitationObj: invitation });
         // apply any 'value-copied' fields
         // note = getCopiedValues(note, invitation?.edit?.note?.content); // no more value-copied
-        Webfield.postV2('/notes/edits', editToPost, { handleError: false }).then(function(result) {
+        Webfield2.postV2('/notes/edits', editToPost, { handleError: false }).then(function(result) {
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
           }
@@ -4556,7 +4556,7 @@ module.exports = (function() {
     var requiredText = $('<span>', { text: '*', class: 'required_field' });
     var setParentReaders = function(parent, fieldDescription, fieldType, done) {
       if (parent) {
-        Webfield.getV2('/notes', { id: parent }).then(function(result) {
+        Webfield2.getV2('/notes', { id: parent }).then(function(result) {
           var newFieldDescription = { value: fieldDescription };
           if (result.notes.length) {
             var parentReaders = result.notes[0].readers;
@@ -5138,7 +5138,7 @@ module.exports = (function() {
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
           if (fieldName === 'pdf' && invitation.edit.note?.content?.pdf?.value?.['value-regex']) {
-            return Webfield.sendFileV2('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+            return Webfield2.sendFileV2('/pdf', files[fieldName], 'application/pdf').then(function(result) {
               editNote.note.content[fieldName].value = result.url;
               return updatePdfSection($contentMap.pdf, invitation.edit.note?.content?.pdf?.value, editNote.note.content.pdf.value);
             });
@@ -5147,7 +5147,7 @@ module.exports = (function() {
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return Webfield.sendFileV2('/attachment', data).then(function(result) {
+          return Webfield2.sendFileV2('/attachment', data).then(function(result) {
             editNote.note.content[fieldName].value = result.url;
             updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, editNote.note.content[fieldName].value);
           });
@@ -5171,9 +5171,9 @@ module.exports = (function() {
         const editToPost = constructEdit({ noteObj: note, invitationObj: invitation });
         // apply any 'value-copied' fields
         // note = getCopiedValues(note, invitation?.edit?.note?.content);
-        Webfield.postV2('/notes/edits', editToPost, { handleError: false }).then(function() {
+        Webfield2.postV2('/notes/edits', editToPost, { handleError: false }).then(function() {
           if (params.onNoteEdited) {
-            Webfield.getV2('/notes', { id: note.id }).then(function (result) {
+            Webfield2.getV2('/notes', { id: note.id }).then(function (result) {
               params.onNoteEdited(result);
             })
           }
