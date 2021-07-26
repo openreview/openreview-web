@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 /* globals $: false */
-/* globals view: false */
+/* globals view,view2: false */
 /* globals Handlebars: false */
 /* globals promptLogin: false */
 /* globals promptError: false */
@@ -48,7 +48,7 @@ const RevisionsList = ({
     // the API doesn't create a new reference
     note.updateId = note.id
 
-    const mkEditorFunc = editorOptions.isEdit ? view.mkNoteEditorV2 : view.mkNoteEditor
+    const mkEditorFunc = editorOptions.isEdit ? view2.mkNoteEditorV2 : view.mkNoteEditor
     mkEditorFunc(note, invitation, user, {
       onNoteEdited: (newNote) => {
         $('#note-editor-modal').modal('hide')
@@ -111,9 +111,9 @@ const RevisionsList = ({
   const buildEditPanelV2 = (reference, revisionInvitation) => {
     const edit = {
       ...reference,
-      content: reference.note.content, // to avoid changing note.cotent to note.note.content in view.mkNotePanelV2
+      content: reference.note.content, // to avoid changing note.cotent to note.note.content in view2.mkNotePanelV2
     }
-    return view.mkNotePanelV2(edit, {
+    return view2.mkNotePanelV2(edit, {
       isEdit: true,
       invitation: revisionInvitation,
       withContent: true,

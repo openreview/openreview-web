@@ -169,7 +169,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   // Render functions
   var mkNewEditor = function(invitation, replyto, done) {
-    view.mkNewNoteEditorV2(invitation, forumId, replyto, user, {
+    view2.mkNewNoteEditorV2(invitation, forumId, replyto, user, {
       onNoteCreated: function(newNote) {
         getNoteRecsP().then(function(noteRecs) {
           $content.one('forumRendered', function() {
@@ -201,7 +201,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
   };
 
   var mkPanel = function(rec, $anchor) {
-    var $note = view.mkNotePanelV2(rec.note, {
+    var $note = view2.mkNotePanelV2(rec.note, {
       onEditRequested: function(invitation, options) {
         var noteToRender;
         if (options?.original) {
@@ -269,7 +269,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     return invitationP.then(function(invitation) {
 
-      view.mkNoteEditorV2(note, invitation, user, {
+      view2.mkNoteEditorV2(note, invitation, user, {
         onNoteEdited: function(newNote) {
           getNoteRecsP().then(function(noteRecs) {
             $content.one('forumRendered', function() {

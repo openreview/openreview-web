@@ -758,7 +758,7 @@ module.exports = (function() {
         }));
         $('#note-editor-modal').modal('show');
 
-        view.mkNoteEditorV2(existingNote, invitationObj, user, {
+        view2.mkNoteEditorV2(existingNote, invitationObj, user, {
           onNoteEdited: function(result) {
             $('#note-editor-modal').modal('hide');
             existingNote.content = result.note?.content;
@@ -821,7 +821,7 @@ module.exports = (function() {
         return;
       }
 
-      view.deleteOrRestoreNoteV2(existingNote, noteTitle, user, function(newNote) {
+      view2.deleteOrRestoreNoteV2(existingNote, noteTitle, user, function(newNote) {
         $note.addClass('trashed').html(
           noteTemplateFn({ ...newNote, details: { ...newNote.details, isDeleted: true }, options: options })
         );
@@ -847,7 +847,7 @@ module.exports = (function() {
       //   return _.isFunction(options.onNoteRestored) ? options.onNoteRestored(newNote) : true;
       // });
 
-      view.deleteOrRestoreNoteV2(existingNote, noteTitle, user, function(newNote) {
+      view2.deleteOrRestoreNoteV2(existingNote, noteTitle, user, function(newNote) {
         $note.removeClass('trashed').html(
           noteTemplateFn({ ...newNote, details: { ...newNote.details,isDeleted: false }, options: options })
         );

@@ -4,7 +4,7 @@
  * - Replace all $('body') --> $('#content')
  * - Replace all { overlay: true } --> { scrollToTop: false }
  */
-module.exports = (function() {
+ module.exports = (function() {
 
   var mkDropdown = function(placeholder, readonly, selectedValue, onOptionsChanged, onSelectedChanged, extraClasses) {
     extraClasses = extraClasses || '';
@@ -288,7 +288,7 @@ module.exports = (function() {
       if (values.length) {
         update(filteredOptions(values, prefix));
       } else {
-        Webfield.get(tag.optionsUrl, {}, function(result) {
+        controller.get(tag.optionsUrl, {}, function(result) {
           var group = result.groups[0];
           values = _.map(group.members, function(member) {
             return { id: member, description: prettyId(member) };
@@ -820,8 +820,8 @@ module.exports = (function() {
         }
       }
 
-      var tildeProfilesP = Webfield.post('/profiles/search', { ids: tildeIds });
-      var emailProfilesP = Webfield.post('/profiles/search', { emails: emailIds });
+      var tildeProfilesP = controller.post('/profiles/search', { ids: tildeIds });
+      var emailProfilesP = controller.post('/profiles/search', { emails: emailIds });
 
       $.when(tildeProfilesP, emailProfilesP).then(function(tildeRes, emailRes) {
         var profiles = _.concat(tildeRes.profiles, emailRes.profiles);
@@ -979,20 +979,20 @@ module.exports = (function() {
       // If both the name and the email information are in the search, then we have to do two searches
       // Then we merge the responses by doing a union and prioritizing email results
       if (hasValidName && hasValidEmail) {
-        Webfield.get('/profiles/search', { term: email })
+        controller.get('/profiles/search', { term: email })
           .then(function(emailResponse) {
-            Webfield.get('/profiles/search', { first: firstName, last: lastName })
+            controller.get('/profiles/search', { first: firstName, last: lastName })
             .then(function(namesResponse) {
               handleResponses(namesResponse, emailResponse);
             });
           });
       } else if (hasValidEmail) {
-        Webfield.get('/profiles/search', { term: email })
+        controller.get('/profiles/search', { term: email })
           .then(function(emailResponse) {
             handleResponses(null, emailResponse);
           });
       } else if (hasValidName) {
-        Webfield.get('/profiles/search', { first: firstName, last: lastName })
+        controller.get('/profiles/search', { first: firstName, last: lastName })
           .then(function(namesResponse) {
             handleResponses(namesResponse, null);
           });
@@ -1699,9 +1699,9 @@ module.exports = (function() {
     $fileSection.append(mkAttachmentSection(fieldName, fieldDescription, fieldValue).children());
   };
 
-  var prettyReadersList = function(readers) {
+  var prettyReadersList = function(readers, dontShowGlobe) {
     var readersHtml;
-    if (readers.indexOf('everyone') > -1) {
+    if (readers.indexOf('everyone') > -1 && !dontShowGlobe) {
       readersHtml = '<span class="readers-icon glyphicon glyphicon-globe"></span> Everyone';
     } else {
       var formattedReaders = [];
@@ -1774,6 +1774,7 @@ module.exports = (function() {
       titleHref = '/forum?id=' + note.forum + (note.forum !== note.id ? '&noteId=' + note.id : '');
     } else if (titleLink === 'JS') {
       $titleHTML.click(function() {
+        controller.removeAllButMain();
         pushForum(note.forum, note.id);
       });
     }
@@ -1909,7 +1910,7 @@ module.exports = (function() {
         return;
       }
 
-      var invitationField = (invitation && invitation.reply?.content?.[fieldName]) || {};
+      var invitationField = invitation?.reply?.content?.[fieldName] ?? {};
 
       // Build download links
       if (valueString.indexOf('/attachment/') === 0) {
@@ -2047,7 +2048,8 @@ module.exports = (function() {
       withModificationDate: false,
       withDateTime: false,
       withBibtexLink: true,
-      readOnlyTags: false
+      readOnlyTags: false,
+      newLayout: false,
     }, options);
     var $note = $('<div>', {id: 'note_' + note.id, class: 'note panel'});
     var forumId = note.forum;
@@ -2057,9 +2059,11 @@ module.exports = (function() {
     if (notePastDue) {
       $note.addClass('trashed');
     }
-
     if (note.content._disableTexRendering) {
       $note.addClass('disable-tex-rendering');
+    }
+    if (params.newLayout) {
+      $note.addClass('new-layout');
     }
 
     var generatedTitleText = generateNoteTitle(note.invitation, note.signatures);
@@ -2152,35 +2156,62 @@ module.exports = (function() {
       );
     }
 
+    // Meta Info Row
+    var $metaEditRow = $('<div>', {class: 'meta_row'});
+    var formattedDate = forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year);
+    var $replyCountLabel = (params.withReplyCount && details.replyCount) ?
+      $('<span>', {class: 'item'}).text(details.replyCount === 1 ? '1 Reply' : details.replyCount + ' Replies') :
+      null;
     var $revisionsLink = (params.withRevisionsLink && details.revisions) ?
       $('<a>', { class: 'note_content_pdf item', href: '/revisions?id=' + note.id, text: 'Show Revisions' }) :
       null;
-
     // Display modal showing full BibTeX reference. Click handler is definied in public/index.js
     var $bibtexLink = (note.content._bibtex && params.withBibtexLink) ?
       $('<span class="item"><a href="#" data-target="#bibtex-modal" data-toggle="modal" data-bibtex="' + encodeURIComponent(note.content._bibtex) + '">Show Bibtex</a></span>') :
       null;
 
-    var $metaEditRow = $('<div>', {class: 'meta_row'});
-    var formattedDate = forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year);
-    var $dateItem = (!notePastDue || details.writable) ?
-      $('<span>', {class: 'date item'}).text(formattedDate) :
-      null;
-    var $invItem = $('<span>', {class: 'item'}).text(options.isReference ? prettyId(note.invitation) : note.content.venue || prettyId(note.invitation));
-    var $readersItem = _.has(note, 'readers') ?
-      $('<span>', {class: 'item'}).html('Readers: ' + prettyReadersList(note.readers)) :
-      null;
-    var $replyCountLabel = (params.withReplyCount && details.replyCount) ?
-      $('<span>', {class: 'item'}).text(details.replyCount === 1 ? '1 Reply' : details.replyCount + ' Replies') :
-      null;
-    $metaEditRow.append(
-      $dateItem,
-      $invItem,
-      $readersItem,
-      $replyCountLabel,
-      $bibtexLink,
-      $revisionsLink
-    );
+    var $dateItem = null;
+    var $invItem = null;
+    var $readersItem = null;
+    var prettyInv = prettyInvitationId(note.invitation);
+    if (params.newLayout) {
+      $dateItem = !notePastDue ?
+        $('<span>', { class: 'date item', 'data-toggle': 'tooltip', 'data-placement': 'top', title: 'Date Created' }).text(formattedDate) :
+        null;
+      $invItem = $('<span>', { class: 'item highlight', 'data-toggle': 'tooltip', 'data-placement': 'top', title: 'Reply Type' })
+        .text(options.isReference ? prettyInv : note.content.venue || prettyInv)
+        .css(getInvitationColors(prettyInv));
+      $readersItem = $('<span>', { class: 'item' }).append(
+        '<span class="glyphicon glyphicon-eye-open" data-toggle="tooltip" data-placement="top" title="Reply Visibility" aria-hidden="true"></span>',
+        ' ',
+        prettyReadersList(note.readers, true)
+      );
+      $metaEditRow.append(
+        $invItem,
+        $dateItem,
+        $readersItem,
+        $replyCountLabel,
+        $bibtexLink,
+        $revisionsLink
+      );
+    } else {
+      $dateItem = (!notePastDue || details.writable) ?
+        $('<span>', {class: 'date item'}).text(formattedDate) :
+        null;
+      $invItem = $('<span>', {class: 'item'})
+        .text(options.isReference ? prettyId(note.invitation) : note.content.venue || prettyId(note.invitation));
+      $readersItem = _.has(note, 'readers') ?
+        $('<span>', {class: 'item'}).html('Readers: ' + prettyReadersList(note.readers)) :
+        null;
+      $metaEditRow.append(
+        $dateItem,
+        $invItem,
+        $readersItem,
+        $replyCountLabel,
+        $bibtexLink,
+        $revisionsLink
+      );
+    }
 
     var $metaActionsRow = null;
     var $modifiableOriginalButton = null;
@@ -2268,7 +2299,7 @@ module.exports = (function() {
           };
           body = getCopiedValues(body, tagInvitation.reply);
 
-          Webfield.post('/tags', body, function(result) {
+          controller.post('/tags', body, function(result) {
             done(result);
             if (params.onTagChanged) {
               params.onTagChanged(result);
@@ -2375,7 +2406,7 @@ module.exports = (function() {
     if (isDeleted) {
       // Restore deleted note
       newNote.ddate = null;
-      return Webfield.post('/notes', newNote, null, function(jqXhr, error) {
+      return controller.post('/notes', newNote, null, function(jqXhr, error) {
         promptError(error, { scrollToTop: false });
       }, true).then(function(updatedNote) {
         onTrashedOrRestored(Object.assign(newNote, updatedNote));
@@ -2389,7 +2420,7 @@ module.exports = (function() {
       }
       newNote.signatures = newSignatures;
       newNote.ddate = Date.now();
-      Webfield.post('/notes', newNote, null, function(jqXhr, error) {
+      controller.post('/notes', newNote, null, function(jqXhr, error) {
         promptError(error, { scrollToTop: false });
       }, true).then(function(updatedNote) {
         onTrashedOrRestored(Object.assign(newNote, updatedNote));
@@ -2514,7 +2545,7 @@ module.exports = (function() {
       return id;
 
     } else {
-      var tokens = id.replace('${note.number}','').split('/');
+      var tokens = id.split('/');
       if (onlyLast) {
         var sliceIndex = _.findIndex(tokens, function(token) {
           return token.match(/^[pP]aper\d+$/);
@@ -2721,7 +2752,7 @@ module.exports = (function() {
 
   var validate = function(invitation, content, readersWidget) {
     var errorList = [];
-    var replyContent = invitation.edit ? invitation.edit.note.content : invitation.reply.content;
+    var replyContent = invitation.reply.content;
 
     Object.keys(replyContent).forEach(function(fieldName) {
       if (fieldName === 'pdf' && replyContent.pdf.required) {
@@ -2750,15 +2781,14 @@ module.exports = (function() {
       }
     });
 
-    var readers = invitation.edit ? invitation.edit.note.readers : invitation.reply.readers;
-    if (readers.hasOwnProperty('values-dropdown')) {
-      var inputValues = idsFromListAdder(readersWidget, readers);
+    if (invitation.reply.readers.hasOwnProperty('values-dropdown')) {
+      var inputValues = idsFromListAdder(readersWidget, invitation.reply.readers);
       if (!inputValues.length) {
         errorList.push('Readers can not be empty. You must select at least one reader');
       }
     }
 
-    if (readers.hasOwnProperty('values-checkbox')) {
+    if (invitation.reply.readers.hasOwnProperty('values-checkbox')) {
       var inputValues = [];
       readersWidget.find('.note_content_value input[type="checkbox"]').each(function(i) {
         if ($(this).prop('checked')) {
@@ -2789,10 +2819,8 @@ module.exports = (function() {
   var getContent = function(invitation, $contentMap) {
     var files = {};
     var errors = [];
-    var invitationContent = invitation.edit ? invitation.edit.note.content : invitation.reply.content
-    var content = _.reduce(invitationContent, function(ret, contentObjInInvitation, k) {
+    var content = _.reduce(invitation.reply.content, function(ret, contentObj, k) {
       // Let the widget handle it :D and extract the data when we encouter authorids
-      const contentObj = invitation.edit ? contentObjInInvitation.value : contentObjInInvitation
       if (contentObj.hidden && k === 'authors') {
         return ret;
       }
@@ -2896,13 +2924,12 @@ module.exports = (function() {
   };
 
   var getWriters = function(invitation, signatures, user) {
-    var writers = invitation.edit ? invitation.edit.writers : invitation.reply.writers
 
-    if (writers && _.has(writers, 'values')) {
-      return invitation.edit ? undefined : writers.values;
+    if (invitation.reply.writers && _.has(invitation.reply.writers, 'values')) {
+      return invitation.reply.writers.values;
     }
 
-    if (writers && _.has(writers, 'values-regex') && writers['values-regex'] === '~.*') {
+    if (invitation.reply.writers && _.has(invitation.reply.writers, 'values-regex') && invitation.reply.writers['values-regex'] === '~.*') {
       return [user.profile.id];
     }
 
@@ -2910,22 +2937,21 @@ module.exports = (function() {
   };
 
   var getReaders = function(widget, invitation, signatures) {
-    var readers = invitation.edit ? invitation.edit.readers : invitation.reply.readers
-    var inputValues = idsFromListAdder(widget, readers);
+    var inputValues = idsFromListAdder(widget, invitation.reply.readers);
 
     var invitationValues = [];
-    if (_.has(readers, 'values-dropdown')) {
-      invitationValues = readers['values-dropdown'].map(function(v) { return _.has(v, 'id') ? v.id : v; });
-    } else if (_.has(readers, 'value-dropdown-hierarchy')) {
-      invitationValues = readers['value-dropdown-hierarchy'];
-    } else if (_.has(readers, 'values-checkbox')) {
+    if (_.has(invitation.reply.readers, 'values-dropdown')) {
+      invitationValues = invitation.reply.readers['values-dropdown'].map(function(v) { return _.has(v, 'id') ? v.id : v; });
+    } else if (_.has(invitation.reply.readers, 'value-dropdown-hierarchy')) {
+      invitationValues = invitation.reply.readers['value-dropdown-hierarchy'];
+    } else if (_.has(invitation.reply.readers, 'values-checkbox')) {
       inputValues = [];
       widget.find('.note_content_value input[type="checkbox"]').each(function(i) {
         if ($(this).prop('checked')) {
           inputValues.push($(this).val());
         }
       });
-      invitationValues = readers['values-checkbox'];
+      invitationValues = invitation.reply.readers['values-checkbox'];
     }
 
     // Add signature if exists in the invitation readers list
@@ -2964,10 +2990,6 @@ module.exports = (function() {
   };
 
   var mkNewNoteEditor = function(invitation, forum, replyto, user, options) {
-    if(invitation.edit){
-      view2.mkNewNoteEditorV2(invitation, forum, replyto, user, options);
-      return
-    }
 
     var params = _.assign({
       onNoteCreated: null,
@@ -3077,7 +3099,7 @@ module.exports = (function() {
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
           if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
-            return Webfield.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+            return controller.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
               note.content[fieldName] = result.url;
               return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, note.content.pdf);
             });
@@ -3086,7 +3108,7 @@ module.exports = (function() {
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return Webfield.sendFile('/attachment', data).then(function(result) {
+          return controller.sendFile('/attachment', data).then(function(result) {
             note.content[fieldName] = result.url;
             updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], note.content[fieldName]);
           });
@@ -3109,7 +3131,7 @@ module.exports = (function() {
       var saveNote = function(note) {
         // apply any 'value-copied' fields
         note = getCopiedValues(note, invitation.reply);
-        Webfield.post('/notes', note, { handleError: false }).then(function(result) {
+        controller.post('/notes', note, function(result) {
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
           }
@@ -3169,7 +3191,7 @@ module.exports = (function() {
     var requiredText = $('<span>', { text: '*', class: 'required_field' });
     var setParentReaders = function(parent, fieldDescription, fieldType, done) {
       if (parent) {
-        Webfield.get('/notes', { id: parent }).then(function(result) {
+        controller.get('/notes', { id: parent }, function(result) {
           var newFieldDescription = fieldDescription;
           if (result.notes.length) {
             var parentReaders = result.notes[0].readers;
@@ -3192,7 +3214,7 @@ module.exports = (function() {
     };
 
     if (_.has(fieldDescription, 'values-regex')) {
-      Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleError: false }).then(function(result) {
+      controller.get('/groups', { regex: fieldDescription['values-regex'] }, function(result) {
         if (_.isEmpty(result.groups)) {
           done(undefined, 'no_results');
         } else {
@@ -3218,7 +3240,7 @@ module.exports = (function() {
       var regexIndex = _.findIndex(values, function(g) { return g.indexOf('.*') >=0; });
       if (regexIndex >= 0) {
         var regex = values[regexIndex];
-        extraGroupsP = Webfield.get('/groups', { regex: regex })
+        extraGroupsP = controller.get('/groups', { regex: regex })
         .then(function(result) {
           if (result.groups && result.groups.length) {
             var groups = result.groups.map(function(g) { return g.id; });
@@ -3264,8 +3286,15 @@ module.exports = (function() {
       });
     } else if (_.has(fieldDescription, 'values')) {
       setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
-        if (_.isEqual(newFieldDescription.values, fieldDescription.values)
-          || fieldDescription.values.every(function (val) { return newFieldDescription.values.indexOf(val) !== -1; })) {
+        var subsetReaders = fieldDescription.values.every(function (val) {
+          var found = newFieldDescription.values.indexOf(val) !== -1;
+          if (!found && val.includes('/Reviewer_')) {
+            var hasReviewers = _.find(newFieldDescription.values, function(v) { return v.includes('/Reviewers')});
+            return hasReviewers;
+          }
+          return found;
+          })
+        if (_.isEqual(newFieldDescription.values, fieldDescription.values) || subsetReaders) {
           var $readers = mkComposerInput('readers', fieldDescription, fieldValue); //for values, readers must match with invitation instead of parent invitation
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
@@ -3279,7 +3308,7 @@ module.exports = (function() {
       var index = _.findIndex(initialValues, function(g) { return g.indexOf('.*') >=0; });
       if (index >= 0) {
         var regexGroup = initialValues[index];
-        promise = Webfield.get('/groups', { regex: regexGroup })
+        promise = controller.get('/groups', { regex: regexGroup })
         .then(function(result) {
           if (result.groups && result.groups.length) {
             var groups = result.groups.map(function(g) { return g.id; });
@@ -3344,9 +3373,9 @@ module.exports = (function() {
           return $.Deferred().reject('no_results');
         }
 
-        return Webfield.get('/groups', {
+        return controller.get('/groups', {
           regex: fieldDescription['values-regex'], signatory: user.id
-        }, { handleError: false }).then(function(result) {
+        }, function(result) {
           if (_.isEmpty(result.groups)) {
             return $.Deferred().reject('no_results');
           }
@@ -3381,10 +3410,7 @@ module.exports = (function() {
   }
 
   var mkNoteEditor = function(note, invitation, user, options) {
-    if(invitation.edit){
-      view2.mkNoteEditorV2(note, invitation, user, options)
-      return
-    }
+
     var params = _.assign({
       onNoteCreated: null,
       onCompleted: null,
@@ -3502,7 +3528,7 @@ module.exports = (function() {
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
           if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
-            return Webfield.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+            return controller.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
               editNote.content[fieldName] = result.url;
               return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, editNote.content.pdf);
             });
@@ -3511,7 +3537,7 @@ module.exports = (function() {
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return Webfield.sendFile('/attachment', data).then(function(result) {
+          return controller.sendFile('/attachment' , data).then(function(result) {
             editNote.content[fieldName] = result.url;
             updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
           });
@@ -3534,17 +3560,17 @@ module.exports = (function() {
       var saveNote = function(note) {
         // apply any 'value-copied' fields
         note = getCopiedValues(note, invitation.reply);
-        Webfield.post('/notes', note, { handleError: false }).then(function(result) {
+        controller.post('/notes', note, function(result) {
           if (params.onNoteEdited) {
             params.onNoteEdited(result);
           }
           $noteEditor.remove();
           clearAutosaveData(autosaveStorageKeys);
-        }, function(error) {
+        }, function(jqXhr, errorText) {
           if (params.onError) {
-            params.onError([error]);
+            params.onError([errorText]);
           } else {
-            promptError(error);
+            promptError(errorText);
           }
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
           $cancelButton.prop({ disabled: false });
@@ -3738,6 +3764,35 @@ module.exports = (function() {
     return $('<span>', {class: 'important_message'}).text(text);
   };
 
+  // Temporarily duplicated from forum-utils.js
+  // TODO: remove this function when new forum launches
+  var getInvitationColors = function(prettyId) {
+    const styleMap = {
+      Comment: { backgroundColor: '#bfb', color: '#2c3a4a' },
+      'Public Comment': { backgroundColor: '#bfb', color: '#2c3a4a' }, // Same as Comment
+      'Official Comment': { backgroundColor: '#bbf', color: '#2c3a4a' },
+      Review: { backgroundColor: '#fbb', color: '#2c3a4a' },
+      'Official Review': { backgroundColor: '#fbb', color: '#2c3a4a' }, // Same as Review
+      'Meta Review': { backgroundColor: '#fbf', color: '#2c3a4a' },
+      'Secondary Meta Review': { backgroundColor: '#fbf', color: '#2c3a4a' }, // Same as Meta Review
+      Decision: { backgroundColor: '#bff', color: '#2c3a4a' },
+    }
+    if (styleMap[prettyId]) {
+      return styleMap[prettyId]
+    }
+
+    let sum = 0
+    for (let i = 0; i < prettyId.length; i += 1) {
+      sum += prettyId.charCodeAt(i)
+    }
+
+    const additionalColors = [
+      '#8cf', '#8fc', '#8ff', '#8cc', '#fc8', '#f8c', '#cf8', '#c8f', '#cc8', '#ccf',
+    ]
+    const selectedColor = additionalColors[sum % additionalColors.length]
+    return { backgroundColor: selectedColor, color: '#2c3a4a' }
+  };
+
   var getNoteCreationDate = function(note) {
     // Priority order
     // note.cdate
@@ -3831,24 +3886,7 @@ module.exports = (function() {
     getCopiedValues : getCopiedValues,
     freeTextTagWidgetLabel: freeTextTagWidgetLabel,
     setupMarked: setupMarked,
-    mkDropdownAdder: mkDropdownAdder,
-    idsFromListAdder: idsFromListAdder,
-    mkSearchProfile: mkSearchProfile,
-    mkDropdownList: mkDropdownList,
-    fileTransferByInvitation: fileTransferByInvitation,
-    mkFileInput: mkFileInput,
-    updatePdfSection: updatePdfSection,
-    autolinkFieldDescriptions: autolinkFieldDescriptions,
-    mkTitleComponent: mkTitleComponent,
-    showConfirmDeleteModal: showConfirmDeleteModal,
-    isTildeIdAllowed: isTildeIdAllowed,
-    validate: validate,
-    getContent: getContent,
-    getWriters: getWriters,
-    getReaders: getReaders,
-    buildSignatures: buildSignatures,
-    setupAutosaveHandlers: setupAutosaveHandlers,
-    clearAutosaveData: clearAutosaveData,
+    getInvitationColors: getInvitationColors
   };
 
 }());
