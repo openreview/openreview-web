@@ -264,7 +264,7 @@ const ForumV2 = ({ forumNote, query, appContext }) => {
 
         {/* For more information on required meta tags for Google Scholar see: */}
         {/* https://scholar.google.com/intl/en/scholar/inclusion.html#indexing */}
-        {forumNote.invitation.startsWith(`${process.env.SUPER_USER}`) ? (
+        {forumNote.invitations[0].startsWith(`${process.env.SUPER_USER}`) ? (
           <meta name="robots" content="noindex" />
         ) : (
           <>
