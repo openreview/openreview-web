@@ -1134,22 +1134,15 @@ module.exports = (function() {
     }
 
     function updateInvitation(modifiedFields) {
-      return get('/invitations', { id: invitation.id })
-        .then(function(response) {
-          if (!response.invitations || !response.invitations.length) {
-            return $.Deferred().reject();
-          }
-
-          var updatedInvitationObj = Object.assign(response.invitations[0], modifiedFields);
-          return post('/invitations/edits', {
-            readers: [options.userId],
-            writers: [options.userId],
-            signatures: [options.userId],
-            invitation: updatedInvitationObj,
-          }, { version: 2 }).then(function(response) {
-            return response.invitation;
-          });
-        });
+      var baseFields = _.pick(invitation, ['id', 'signatures']);
+      return post('/invitations/edits', {
+        readers: [options.userId],
+        writers: [options.userId],
+        signatures: [options.userId],
+        invitation: { ...baseFields, ...modifiedFields },
+      }, { version: 2 }).then(function(response) {
+        return response.invitation;
+      });
     }
 
     function updateModifiedDate() {
@@ -1205,8 +1198,6 @@ module.exports = (function() {
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
         if (field.name === 'multiReply' || field.name === 'hideOriginalRevisions' || field.name === 'bulk') {
           result[field.name] = field.value === '' ? null : field.value === 'True';
-        } else if (field.name === 'taskCompletionCount') {
-          result[field.name] = field.value ? parseInt(field.value, 10) : null;
         } else if (field.name === 'duedate' || field.name === 'expdate' || field.name === 'cdate') {
           result[field.name] = field.value ? parseInt(field.value, 10) : null;
         } else if (field.name === 'super') {
@@ -1273,7 +1264,19 @@ module.exports = (function() {
 
       var updateObj;
       if ($(this).hasClass('invitation-reply-form')) {
-        updateObj = { edit: parsedObj };
+        // Have to set the fields of the content object to null, so if a user is removing
+        // or renaming a field it will be deleted.
+        var defaultContent = { ...invitation.edit.note.content };
+        Object.keys(defaultContent).forEach(function(key) {
+          defaultContent[key] = null;
+        });
+        updateObj = {
+          edit: _.merge({
+            note: {
+              signatures: null, readers: null, writers: null, content: defaultContent
+            }
+          }, parsedObj),
+        };
       } else {
         updateObj = { replyForumViews: parsedObj };
       }

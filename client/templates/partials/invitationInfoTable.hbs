@@ -1,8 +1,10 @@
 <dl class="dl-horizontal group-info-table">
-  {{#if invitation.super}}
-    <dt>Super Invitation:</dt>
-    <dd><a href="/invitation/edit?id={{invitation.super}}">{{prettyId invitation.super}}</a></dd>
-  {{/if}}
+  {{#is apiVersion 1}}
+    {{#if invitation.super}}
+      <dt>Super Invitation:</dt>
+      <dd><a href="/invitation/edit?id={{invitation.super}}">{{prettyId invitation.super}}</a></dd>
+    {{/if}}
+  {{/is}}
 
   <dt>Parent Group:</dt>
   <dd><a href="{{groupUrl parentGroupId true}}">{{prettyId parentGroupId}}</a></dd>
@@ -26,16 +28,20 @@
     <dd>{{groupIdList invitation.noninvitees}}</dd>
   {{/if}}
 
-  {{#if invitation.final}}
-    <dt>Final Fields:</dt>
-    <dd>{{join invitation.final}}</dd>
-  {{/if}}
+  {{#is apiVersion 1}}
+    {{#if invitation.final}}
+      <dt>Final Fields:</dt>
+      <dd>{{join invitation.final}}</dd>
+    {{/if}}
+  {{/is}}
 
   <dt>Multi-Reply:</dt>
   <dd>{{#if invitation.multiReply}}True{{else}}{{#is invitation.multiReply false}}False{{/is}}{{/if}}</dd>
 
-  <dt>Completed After:</dt>
-  <dd>{{invitation.taskCompletionCount}}</dd>
+  {{#is apiVersion 1}}
+    <dt>Completed After:</dt>
+    <dd>{{invitation.taskCompletionCount}}</dd>
+  {{/is}}
 
   <dt>Hide revisions:</dt>
   <dd>{{#if invitation.hideOriginalRevisions}}True{{else}}{{#is invitation.hideOriginalRevisions false}}False{{/is}}{{/if}}</dd>
@@ -54,7 +60,7 @@
   <dt>Activation Date:</dt>
   <dd>{{formattedDate invitation.cdate invitation.tcdate default="None"}}</dd>
 
-  <dt>Modification Date:</dt>
+  <dt>Modified Date:</dt>
   <dd>{{formattedDate invitation.mdate invitation.tmdate default="None"}}</dd>
 
   <dt>Due Date:</dt>
@@ -76,12 +82,14 @@
   <button type="button" class="btn btn-sm btn-primary edit-group-info">Edit General Info</button>
 
   <form class="group-info-form form-horizontal" style="display: none;">
-    <div class="form-group">
-      <label for="super" class="col-xs-2 control-label">Super Invitation:</label>
-      <div class="col-xs-10">
-        <input type="text" class="form-control input-sm" name="super" value="{{invitation.super}}">
+    {{#is apiVersion 1}}
+      <div class="form-group">
+        <label for="super" class="col-xs-2 control-label">Super Invitation:</label>
+        <div class="col-xs-10">
+          <input type="text" class="form-control input-sm" name="super" value="{{invitation.super}}">
+        </div>
       </div>
-    </div>
+    {{/is}}
 
     <div class="form-group">
       <label for="readers" class="col-xs-2 control-label">Readers:</label>
@@ -118,12 +126,14 @@
       </div>
     </div>
 
-    <div class="form-group">
-      <label for="final" class="col-xs-2 control-label">Final Fields:</label>
-      <div class="col-xs-10">
-        <input type="text" class="form-control input-sm" name="final" value="{{join invitation.final}}">
+    {{#is apiVersion 1}}
+      <div class="form-group">
+        <label for="final" class="col-xs-2 control-label">Final Fields:</label>
+        <div class="col-xs-10">
+          <input type="text" class="form-control input-sm" name="final" value="{{join invitation.final}}">
+        </div>
       </div>
-    </div>
+    {{/is}}
 
     <div class="form-group">
       <label for="multiReply" class="col-xs-2 control-label">Multi-Reply:</label>
@@ -149,14 +159,14 @@
       </div>
     {{/is}}
 
-    <div class="form-group">
-      <label for="taskCompletionCount" class="col-xs-2 control-label">Completed After:</label>
-      <div class="col-xs-10">
-        <input type="number" class="form-control input-sm" name="taskCompletionCount" value="{{join invitation.taskCompletionCount}}">
-      </div>
-    </div>
-
     {{#is apiVersion 1}}
+      <div class="form-group">
+        <label for="taskCompletionCount" class="col-xs-2 control-label">Completed After:</label>
+        <div class="col-xs-10">
+          <input type="number" class="form-control input-sm" name="taskCompletionCount" value="{{join invitation.taskCompletionCount}}">
+        </div>
+      </div>
+
       <div class="form-group">
         <label for="hideOriginalRevisions" class="col-xs-2 control-label">Hide Revisions:</label>
         <div class="col-xs-10">
