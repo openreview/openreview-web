@@ -238,7 +238,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
   const loadPublications = async () => {
     let apiRes
     try {
-      apiRes = await api.get('/notes', {
+      apiRes = await api.getCombined('/notes', {
         'content.authorids': profile.id,
         sort: 'cdate:desc',
         limit: 1000,
