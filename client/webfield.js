@@ -43,7 +43,7 @@ module.exports = (function() {
     options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
-    var baseUrl = window.OR_API_URL_V2 ? window.OR_API_URL_V2 : '';
+    var baseUrl = window.OR_API_V2_URL ? window.OR_API_V2_URL : '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
     return $.ajax({
@@ -91,7 +91,7 @@ module.exports = (function() {
     options = _.defaults(options, defaults);
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
-    var baseUrl = window.OR_API_URL_V2 ? window.OR_API_URL_V2 : '';
+    var baseUrl = window.OR_API_V2_URL ? window.OR_API_V2_URL : '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
     return $.ajax({
@@ -279,7 +279,7 @@ module.exports = (function() {
   };
 
   var sendFileV2 = function(url, data, contentType) {
-    var baseUrl = window.OR_API_URL_V2 ? window.OR_API_URL_V2 : '';
+    var baseUrl = window.OR_API_V2_URL ? window.OR_API_V2_URL : '';
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
     return $.ajax({
