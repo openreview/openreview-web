@@ -4336,9 +4336,10 @@ module.exports = (function() {
       });
 
       var saveNote = function(note) {
+        const editToPost = constructEdit({ noteObj: note, invitationObj: invitation });
         // apply any 'value-copied' fields
         // note = getCopiedValues(note, invitation?.edit?.note?.content); // no more value-copied
-        Webfield.postV2('/notes/edits', note, { handleError: false }).then(function(result) {
+        Webfield.postV2('/notes/edits', editToPost, { handleError: false }).then(function(result) {
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
           }
@@ -5167,11 +5168,14 @@ module.exports = (function() {
       });
 
       var saveNote = function(note) {
+        const editToPost = constructEdit({ noteObj: note, invitationObj: invitation });
         // apply any 'value-copied' fields
         // note = getCopiedValues(note, invitation?.edit?.note?.content);
-        Webfield.postV2('/notes/edits', note, { handleError: false }).then(function(result) {
+        Webfield.postV2('/notes/edits', editToPost, { handleError: false }).then(function() {
           if (params.onNoteEdited) {
-            params.onNoteEdited(result);
+            Webfield.getV2('/notes', { id: note.id }).then(function (result) {
+              params.onNoteEdited(result);
+            })
           }
           $noteEditor.remove();
           clearAutosaveData(autosaveStorageKeys);
@@ -5426,6 +5430,47 @@ module.exports = (function() {
       renderer: renderer,
     });
   };
+
+  const constructEdit = ({ noteObj, editObj, invitationObj }) => {
+    if (!invitationObj.edit) return undefined;
+    const result = {}
+    const note = {}
+    const content = {}
+    const { note: noteFields, ...otherFields } = invitationObj.edit
+    // fields other than note
+    Object.entries(otherFields).forEach(([field, value]) => {
+      if (value.value || value.values) return
+      result[field] = noteObj?.[field] // now use note reader/writer/signature for edit reader/writer/signature
+    })
+    const { content: contentFields, ...otherNoteFields } = noteFields
+    // note fields other than content
+    Object.entries(otherNoteFields).forEach(([otherNoteField, value]) => {
+      if (value.value || value.values) return
+      note[otherNoteField] = noteObj?.note?.[otherNoteField]
+    })
+    // content fields
+    Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
+      if (valueObj = contentFieldValue.value) {
+        if (valueObj.value || valueObj.values) {
+          return
+        } else {
+          content[contentFieldName] = noteObj?.note?.content?.[contentFieldName]
+        }
+      }
+      if (readerObj = contentFieldValue.readers) {
+        if (readerObj.value || readerObj.values) {
+          return
+        } else {
+          // dont't know what todo with this because noteobj has only value no readers
+        }
+      }
+    })
+
+    result.invitation = invitationObj.id
+    if (Object.keys(content).length) note.content = content
+    if (Object.keys(note).length) result.note = note
+    return result
+  }
 
   return {
     mkDropdown: mkDropdown,
