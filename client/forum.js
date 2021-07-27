@@ -379,25 +379,12 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     // Show nested comment thread
     $content.on('click', '.view-more-replies', function() {
-      var replytoIdToChildren = sm.get('replytoIdMap');
       var noteId = $(this).data('noteId');
-      var noteReplytoId = $(this).data('noteReplytoId');
-      var noteTitle = $(this).closest('.note_with_children').find('.note_content_title a').eq(0).text();
+      var parentNote = _.find(sm.get('noteRecs'), ['note.id', noteId]);
       var scrollPos = $childrenAnchor.offset().top - 51 - 12;
 
       $('html, body').animate({scrollTop: scrollPos}, 400, function() {
-        $childrenAnchor.fadeOut('fast', function() {
-          $childrenAnchor.empty().append(
-            '<div class="view-all-replies-container">' +
-              '<span>Showing only replies to "' + noteTitle + '"</span>' +
-              '<button class="btn btn-default btn-xs view-all-replies">Show all replies</a>' +
-            '</div>',
-            mkReplyNotes(replytoIdToChildren, _.filter(replytoIdToChildren[noteReplytoId], ['note.id', noteId]), 1)
-          );
-          MathJax.typesetPromise();
-          applyFilter();
-          $childrenAnchor.fadeIn('fast');
-        });
+        showNestedReplies(parentNote);
       });
 
       return false;
@@ -421,14 +408,12 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $content.on('click', '.view-all-replies', function() {
       var replytoIdToChildren = sm.get('replytoIdMap');
 
-      $childrenAnchor.fadeOut('fast', function() {
-        $childrenAnchor.empty().append(
-          mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
-        );
-        MathJax.typesetPromise();
-        applyFilter();
-        $childrenAnchor.fadeIn('fast');
-      });
+      $content.children('.filter-row').show();
+      $childrenAnchor.empty().append(
+        mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
+      );
+      MathJax.typesetPromise();
+      applyFilter();
 
       return false;
     });
@@ -514,24 +499,15 @@ module.exports = function(forumId, noteId, invitationId, user) {
       doAnimation();
 
     } else {
-      // Note may be deeply nested, so render just its parent and siblings
+      // Note may be deeply nested, so check if the note exists then render just its parent and siblings
       var noteRecs = sm.get('noteRecs');
       var noteRec = _.find(noteRecs, ['note.id', noteId]);
       if (noteRec) {
-        var replytoIdToChildren = sm.get('replytoIdMap');
         var parentNote = _.find(noteRecs, ['note.id', noteRec.note.replyto]);
-        if (parentNote) {
-          $childrenAnchor.empty().append(
-            '<div class="view-all-replies-container">' +
-              '<span>Showing only replies to "' + parentNote.note.content.title + '"</span>' +
-              '<button class="btn btn-default btn-xs view-all-replies">Show all replies</a>' +
-            '</div>',
-            mkReplyNotes(replytoIdToChildren, [parentNote], 1)
-          );
-          MathJax.typesetPromise();
-          if ($(scrollToElem).length) {
-            doAnimation();
-          }
+        showNestedReplies(parentNote);
+
+        if ($(scrollToElem).length) {
+          doAnimation();
         }
       } else {
         animationDone.resolve(null);
@@ -555,6 +531,20 @@ module.exports = function(forumId, noteId, invitationId, user) {
     return count;
   };
 
+  var showNestedReplies = function(parentNote) {
+    if (!parentNote) return;
+
+    $content.children('.filter-row').hide();
+    $childrenAnchor.empty().append(
+      '<div class="view-all-replies-container">' +
+        '<span>Showing only replies to "' + parentNote.note.content.title + '"</span>' +
+        '<button class="btn btn-default btn-xs view-all-replies">Show all replies</a>' +
+      '</div>',
+      mkReplyNotes(sm.get('replytoIdMap'), [parentNote], 1)
+    );
+
+    MathJax.typesetPromise();
+  };
 
   // State handler functions
   var onTokenChange = function() {
