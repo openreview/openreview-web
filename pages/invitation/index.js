@@ -68,6 +68,7 @@ Invitation.getInitialProps = async (ctx) => {
     return { statusCode: 400, message: 'Invitation ID is required' }
   }
 
+  // TODO: remove this when migration away from mode param is complete
   const redirectToEditOrInfoMode = (mode) => {
     const redirectUrl = `/invitation/${mode}?id=${ctx.query.id}`
     if (ctx.req) {
@@ -81,7 +82,9 @@ Invitation.getInitialProps = async (ctx) => {
     redirectToEditOrInfoMode(ctx.query.mode)
   }
 
-  const generateWebfieldCode = (invitation, user, mode) => {
+  const { user, token: accessToken } = auth(ctx)
+
+  const generateWebfieldCode = (invitation) => {
     const invitationTitle = prettyId(invitation.id)
     const invitationObjSlim = omit(invitation, 'web', 'process', 'details', 'preprocess')
     const isInvitationWritable = invitation.details && invitation.details.writable
@@ -170,22 +173,19 @@ $(function() {
 //# sourceURL=webfieldCode.js`
   }
 
-  const { user, token } = auth(ctx)
   try {
-    const { invitations } = await api.get('/invitations', { id: ctx.query.id }, { accessToken: token })
-    const invitation = invitations?.length > 0 ? invitations[0] : null
-    if (!invitation) {
-      return { statusCode: 404, message: 'Invitation not found' }
+    const invitation = await api.getInvitationById(ctx.query.id, accessToken)
+    if (invitation) {
+      return {
+        invitationId: invitation.id,
+        webfieldCode: generateWebfieldCode(invitation),
+        query: ctx.query,
+      }
     }
-
-    return {
-      invitationId: invitation.id,
-      webfieldCode: generateWebfieldCode(invitation, user, ctx.query.mode),
-      query: ctx.query,
-    }
+    return { statusCode: 404, message: 'Invitation not found' }
   } catch (error) {
     if (error.name === 'forbidden' || error.name === 'ForbiddenError') {
-      if (!token) {
+      if (!accessToken) {
         if (ctx.req) {
           ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
         } else {
