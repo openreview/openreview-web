@@ -164,7 +164,8 @@ export default function NoteEntity(props) {
 
     // invited profile show only invite edge and proposed assignment edge
     if (isParentInvited && !(isInviteInvitation || isProposedAssignmentInvitation)) return null
-    if (!isParentInvited && isInviteInvitation) return null
+    // show existing invite edge for normal reviewers
+    if (!isParentInvited && isInviteInvitation && !editEdge) return null
     // head of custom load edge is reviewer group id and does not make sense for note
     if (isCustomLoadInviation) return null
     if (
