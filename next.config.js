@@ -11,6 +11,7 @@ module.exports = withLess({
     IS_STAGING: process.env.NODE_ENV === 'staging',
     NEXT_PORT: process.env.NEXT_PORT,
     API_URL: process.env.API_URL,
+    API_V2_URL: process.env.API_V2_URL,
     SECURE_ACTIVATION: false,
     USER_MODERATION: false,
     USE_DBLP_VENUES: process.env.USE_DBLP_VENUES === 'true',

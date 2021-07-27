@@ -2481,6 +2481,10 @@ templates['partials/groupMembersTableRow'] = template({"1":function(container,de
     + "  </td>\n</tr>\n";
 },"useData":true});
 templates['partials/invitationEditor'] = template({"1":function(container,depth0,helpers,partials,data) {
+    return "Edit";
+},"3":function(container,depth0,helpers,partials,data) {
+    return "Reply Parameters";
+},"5":function(container,depth0,helpers,partials,data) {
     return "  <section class=\"process\">\n    <h4>Process Function Code</h4>\n\n    <button class=\"btn btn-primary load-editor-btn\">Show Code Editor</button>\n\n    <div class=\"webfield-editor-container\" style=\"display: none;\">\n      <div id=\"process-editor\"></div>\n\n      <button class=\"btn btn-primary save-btn\">Update Code</button>\n      <button class=\"btn btn-default cancel-btn\">Cancel</button>\n    </div>\n  </section>\n\n  <section class=\"preprocess\">\n    <h4>PreProcess Function Code</h4>\n\n    <button class=\"btn btn-primary load-editor-btn\">Show Code Editor</button>\n\n    <div class=\"webfield-editor-container\" style=\"display: none;\">\n      <div id=\"preprocess-editor\"></div>\n\n      <button class=\"btn btn-primary save-btn\">Update Code</button>\n      <button class=\"btn btn-default cancel-btn\">Cancel</button>\n    </div>\n  </section>\n";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -2491,13 +2495,15 @@ templates['partials/invitationEditor'] = template({"1":function(container,depth0
     };
 
   return "<section class=\"general\">\n  <h4>General Info</h4>\n\n"
-    + ((stack1 = container.invokePartial(lookupProperty(partials,"invitationInfoTable"),depth0,{"name":"invitationInfoTable","hash":{"editable":true},"data":data,"indent":"  ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
-    + "</section>\n\n<section class=\"reply\">\n  <h4>Reply Parameters</h4>\n\n  <form class=\"invitation-reply-form\">\n    <textarea name=\"reply\" class=\"form-control\" rows=\"10\">"
+    + ((stack1 = container.invokePartial(lookupProperty(partials,"invitationInfoTable"),depth0,{"name":"invitationInfoTable","hash":{"apiVersion":((stack1 = (depth0 != null ? lookupProperty(depth0,"options") : depth0)) != null ? lookupProperty(stack1,"apiVersion") : stack1),"editable":true},"data":data,"indent":"  ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
+    + "</section>\n\n<section class=\"reply\">\n  <h4>"
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"options") : depth0)) != null ? lookupProperty(stack1,"apiVersion") : stack1),2,{"name":"is","hash":{},"fn":container.program(1, data, 0),"inverse":container.program(3, data, 0),"data":data,"loc":{"start":{"line":8,"column":6},"end":{"line":8,"column":69}}})) != null ? stack1 : "")
+    + "</h4>\n\n  <form class=\"invitation-reply-form\">\n    <textarea name=\"reply\" class=\"form-control\" rows=\"10\">"
     + alias4(((helper = (helper = lookupProperty(helpers,"replyJson") || (depth0 != null ? lookupProperty(depth0,"replyJson") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"replyJson","hash":{},"data":data,"loc":{"start":{"line":11,"column":58},"end":{"line":11,"column":71}}}) : helper)))
     + "</textarea>\n    <div class=\"alert alert-danger\" style=\"display: none;\">\n      <strong>Error:</strong> Reply content is not valid JSON. Make sure all quotes and brackets match.\n    </div>\n    <button type=\"submit\" class=\"btn btn-sm btn-primary\">Save Invitation</button>\n  </form>\n</section>\n\n<section class=\"tabs\">\n  <h4>Reply Forum Views</h4>\n\n  <form class=\"invitation-forum-views-form\">\n    <textarea name=\"reply-forum-views\" class=\"form-control\" rows=\"10\">"
     + alias4(((helper = (helper = lookupProperty(helpers,"replyForumViewsJson") || (depth0 != null ? lookupProperty(depth0,"replyForumViewsJson") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"replyForumViewsJson","hash":{},"data":data,"loc":{"start":{"line":23,"column":70},"end":{"line":23,"column":93}}}) : helper)))
     + "</textarea>\n    <div class=\"alert alert-danger\" style=\"display: none;\">\n      <strong>Error:</strong> Reply content is not valid JSON. Make sure all quotes and brackets match.\n    </div>\n    <button type=\"submit\" class=\"btn btn-sm btn-primary\">Save Invitation</button>\n  </form>\n</section>\n\n<section class=\"webfield\">\n  <h4>Invitation UI Code</h4>\n\n  <button class=\"btn btn-primary load-editor-btn\">Show Code Editor</button>\n\n  <div class=\"webfield-editor-container\" style=\"display: none;\">\n    <div id=\"webfield-editor\"></div>\n\n    <button class=\"btn btn-primary save-btn\">Update Code</button>\n    <button class=\"btn btn-default cancel-btn\">Cancel</button>\n  </div>\n</section>\n\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"options") : depth0)) != null ? lookupProperty(stack1,"showProcessEditor") : stack1),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":44,"column":0},"end":{"line":70,"column":7}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"options") : depth0)) != null ? lookupProperty(stack1,"showProcessEditor") : stack1),{"name":"if","hash":{},"fn":container.program(5, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":44,"column":0},"end":{"line":70,"column":7}}})) != null ? stack1 : "")
     + "\n<section class=\"subinvitations\">\n  <h4>Child Invitations</h4>\n\n"
     + ((stack1 = container.invokePartial(lookupProperty(partials,"spinner"),depth0,{"name":"spinner","hash":{"extraClasses":"spinner-inline"},"data":data,"indent":"  ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
     + "</section>\n";
@@ -2511,7 +2517,7 @@ templates['partials/invitationInfo'] = template({"compiler":[8,">= 4.3.0"],"main
     };
 
   return "<section class=\"general info-mode\">\n  <h4>General Info</h4>\n\n"
-    + ((stack1 = container.invokePartial(lookupProperty(partials,"invitationInfoTable"),depth0,{"name":"invitationInfoTable","hash":{"editable":false},"data":data,"indent":"  ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
+    + ((stack1 = container.invokePartial(lookupProperty(partials,"invitationInfoTable"),depth0,{"name":"invitationInfoTable","hash":{"apiVersion":((stack1 = (depth0 != null ? lookupProperty(depth0,"options") : depth0)) != null ? lookupProperty(stack1,"apiVersion") : stack1),"editable":false},"data":data,"indent":"  ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
     + "</section>\n\n<section class=\"subinvitations info-mode\">\n  <h4>Child Invitations</h4>\n\n"
     + ((stack1 = container.invokePartial(lookupProperty(partials,"spinner"),depth0,{"name":"spinner","hash":{"extraClasses":"spinner-inline info-mode"},"data":data,"indent":"  ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
     + "</section>\n\n<section class=\"reply info-mode\">\n  <h4>Reply Parameters</h4>\n\n  <form class=\"invitation-reply-form\">\n    <textarea name=\"reply\" class=\"form-control\" cols=\"100\" rows=\"10\" disabled>"
@@ -2519,6 +2525,15 @@ templates['partials/invitationInfo'] = template({"compiler":[8,">= 4.3.0"],"main
     + "</textarea>\n  </form>\n</section>\n\n";
 },"usePartial":true,"useData":true});
 templates['partials/invitationInfoTable'] = template({"1":function(container,depth0,helpers,partials,data) {
+    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"super") : stack1),{"name":"if","hash":{},"fn":container.program(2, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":3,"column":4},"end":{"line":6,"column":11}}})) != null ? stack1 : "");
+},"2":function(container,depth0,helpers,partials,data) {
     var stack1, alias1=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -2526,12 +2541,12 @@ templates['partials/invitationInfoTable'] = template({"1":function(container,dep
         return undefined
     };
 
-  return "    <dt>Super Invitation:</dt>\n    <dd><a href=\"/invitation/edit?id="
+  return "      <dt>Super Invitation:</dt>\n      <dd><a href=\"/invitation/edit?id="
     + alias1(container.lambda(((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"super") : stack1), depth0))
     + "\">"
-    + alias1((lookupProperty(helpers,"prettyId")||(depth0 && lookupProperty(depth0,"prettyId"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"super") : stack1),{"name":"prettyId","hash":{},"data":data,"loc":{"start":{"line":4,"column":59},"end":{"line":4,"column":88}}}))
+    + alias1((lookupProperty(helpers,"prettyId")||(depth0 && lookupProperty(depth0,"prettyId"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"super") : stack1),{"name":"prettyId","hash":{},"data":data,"loc":{"start":{"line":5,"column":61},"end":{"line":5,"column":90}}}))
     + "</a></dd>\n";
-},"3":function(container,depth0,helpers,partials,data) {
+},"4":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -2540,9 +2555,9 @@ templates['partials/invitationInfoTable'] = template({"1":function(container,dep
     };
 
   return "    <dt>Non-readers:</dt>\n    <dd>"
-    + container.escapeExpression((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"nonreaders") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":15,"column":8},"end":{"line":15,"column":45}}}))
+    + container.escapeExpression((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"nonreaders") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":17,"column":8},"end":{"line":17,"column":45}}}))
     + "</dd>\n";
-},"5":function(container,depth0,helpers,partials,data) {
+},"6":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -2551,9 +2566,9 @@ templates['partials/invitationInfoTable'] = template({"1":function(container,dep
     };
 
   return "    <dt>Non-Invitees:</dt>\n    <dd>"
-    + container.escapeExpression((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"noninvitees") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":26,"column":8},"end":{"line":26,"column":46}}}))
+    + container.escapeExpression((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"noninvitees") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":28,"column":8},"end":{"line":28,"column":46}}}))
     + "</dd>\n";
-},"7":function(container,depth0,helpers,partials,data) {
+},"8":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -2561,12 +2576,21 @@ templates['partials/invitationInfoTable'] = template({"1":function(container,dep
         return undefined
     };
 
-  return "    <dt>Final Fields:</dt>\n    <dd>"
-    + container.escapeExpression((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"final") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":31,"column":8},"end":{"line":31,"column":33}}}))
-    + "</dd>\n";
+  return ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"final") : stack1),{"name":"if","hash":{},"fn":container.program(9, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":32,"column":4},"end":{"line":35,"column":11}}})) != null ? stack1 : "");
 },"9":function(container,depth0,helpers,partials,data) {
-    return "True";
+    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "      <dt>Final Fields:</dt>\n      <dd>"
+    + container.escapeExpression((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"final") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":34,"column":10},"end":{"line":34,"column":35}}}))
+    + "</dd>\n";
 },"11":function(container,depth0,helpers,partials,data) {
+    return "True";
+},"13":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -2574,18 +2598,9 @@ templates['partials/invitationInfoTable'] = template({"1":function(container,dep
         return undefined
     };
 
-  return ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"multiReply") : stack1),false,{"name":"is","hash":{},"fn":container.program(12, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":35,"column":47},"end":{"line":35,"column":94}}})) != null ? stack1 : "");
-},"12":function(container,depth0,helpers,partials,data) {
-    return "False";
+  return ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"multiReply") : stack1),false,{"name":"is","hash":{},"fn":container.program(14, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":39,"column":47},"end":{"line":39,"column":94}}})) != null ? stack1 : "");
 },"14":function(container,depth0,helpers,partials,data) {
-    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
-        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
-          return parent[propertyName];
-        }
-        return undefined
-    };
-
-  return ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"hideOriginalRevisions") : stack1),false,{"name":"is","hash":{},"fn":container.program(12, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":41,"column":58},"end":{"line":41,"column":116}}})) != null ? stack1 : "");
+    return "False";
 },"16":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -2594,58 +2609,146 @@ templates['partials/invitationInfoTable'] = template({"1":function(container,dep
         return undefined
     };
 
-  return "    <dt>Deleted:</dt>\n    <dd>"
-    + container.escapeExpression((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"ddate") : stack1),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"tddate") : stack1),{"name":"formattedDate","hash":{},"data":data,"loc":{"start":{"line":60,"column":8},"end":{"line":60,"column":60}}}))
+  return "    <dt>Completed After:</dt>\n    <dd>"
+    + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"taskCompletionCount") : stack1), depth0))
     + "</dd>\n";
 },"18":function(container,depth0,helpers,partials,data) {
-    var stack1, alias1=container.lambda, alias2=container.escapeExpression, alias3=depth0 != null ? depth0 : (container.nullContext || {}), alias4=container.hooks.helperMissing, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
         }
         return undefined
     };
 
-  return "  <button type=\"button\" class=\"btn btn-sm btn-primary edit-group-info\">Edit General Info</button>\n\n  <form class=\"group-info-form form-horizontal\" style=\"display: none;\">\n    <div class=\"form-group\">\n      <label for=\"super\" class=\"col-xs-2 control-label\">Super Invitation:</label>\n      <div class=\"col-xs-10\">\n        <input type=\"text\" class=\"form-control input-sm\" name=\"super\" value=\""
-    + alias2(alias1(((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"super") : stack1), depth0))
-    + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"readers\" class=\"col-xs-2 control-label\">Readers:</label>\n      <div class=\"col-xs-10\">\n        <input type=\"text\" class=\"form-control input-sm\" name=\"readers\" value=\""
-    + alias2((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias4).call(alias3,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"readers") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":81,"column":79},"end":{"line":81,"column":106}}}))
+  return ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"hideOriginalRevisions") : stack1),false,{"name":"is","hash":{},"fn":container.program(14, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":47,"column":58},"end":{"line":47,"column":116}}})) != null ? stack1 : "");
+},"20":function(container,depth0,helpers,partials,data) {
+    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "    <dt>Bulk:</dt>\n    <dd>"
+    + ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"bulk") : stack1),{"name":"if","hash":{},"fn":container.program(11, data, 0),"inverse":container.program(21, data, 0),"data":data,"loc":{"start":{"line":51,"column":8},"end":{"line":51,"column":91}}})) != null ? stack1 : "")
+    + "</dd>\n";
+},"21":function(container,depth0,helpers,partials,data) {
+    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"bulk") : stack1),false,{"name":"is","hash":{},"fn":container.program(14, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":51,"column":43},"end":{"line":51,"column":84}}})) != null ? stack1 : "");
+},"23":function(container,depth0,helpers,partials,data) {
+    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "    <dt>Deleted:</dt>\n    <dd>"
+    + container.escapeExpression((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"ddate") : stack1),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"tddate") : stack1),{"name":"formattedDate","hash":{},"data":data,"loc":{"start":{"line":74,"column":8},"end":{"line":74,"column":60}}}))
+    + "</dd>\n";
+},"25":function(container,depth0,helpers,partials,data) {
+    var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3=container.escapeExpression, alias4=container.lambda, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "  <button type=\"button\" class=\"btn btn-sm btn-primary edit-group-info\">Edit General Info</button>\n\n  <form class=\"group-info-form form-horizontal\" style=\"display: none;\">\n"
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"apiVersion") : depth0),1,{"name":"is","hash":{},"fn":container.program(26, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":85,"column":4},"end":{"line":92,"column":11}}})) != null ? stack1 : "")
+    + "\n    <div class=\"form-group\">\n      <label for=\"readers\" class=\"col-xs-2 control-label\">Readers:</label>\n      <div class=\"col-xs-10\">\n        <input type=\"text\" class=\"form-control input-sm\" name=\"readers\" value=\""
+    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"readers") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":97,"column":79},"end":{"line":97,"column":106}}}))
     + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"nonreaders\" class=\"col-xs-2 control-label\">Non-readers:</label>\n      <div class=\"col-xs-10\">\n        <input type=\"text\" class=\"form-control input-sm\" name=\"nonreaders\" value=\""
-    + alias2((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias4).call(alias3,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"nonreaders") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":88,"column":82},"end":{"line":88,"column":112}}}))
+    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"nonreaders") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":104,"column":82},"end":{"line":104,"column":112}}}))
     + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"writers\" class=\"col-xs-2 control-label\">Writers:</label>\n      <div class=\"col-xs-10\">\n        <input type=\"text\" class=\"form-control input-sm\" name=\"writers\" value=\""
-    + alias2((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias4).call(alias3,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"writers") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":95,"column":79},"end":{"line":95,"column":106}}}))
+    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"writers") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":111,"column":79},"end":{"line":111,"column":106}}}))
     + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"readers\" class=\"col-xs-2 control-label\">Invitees:</label>\n      <div class=\"col-xs-10\">\n        <input type=\"text\" class=\"form-control input-sm\" name=\"invitees\" value=\""
-    + alias2((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias4).call(alias3,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"invitees") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":102,"column":80},"end":{"line":102,"column":108}}}))
+    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"invitees") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":118,"column":80},"end":{"line":118,"column":108}}}))
     + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"noninvitees\" class=\"col-xs-2 control-label\">Non-Invitees:</label>\n      <div class=\"col-xs-10\">\n        <input type=\"text\" class=\"form-control input-sm\" name=\"noninvitees\" value=\""
-    + alias2((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias4).call(alias3,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"noninvitees") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":109,"column":83},"end":{"line":109,"column":114}}}))
-    + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"final\" class=\"col-xs-2 control-label\">Final Fields:</label>\n      <div class=\"col-xs-10\">\n        <input type=\"text\" class=\"form-control input-sm\" name=\"final\" value=\""
-    + alias2((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias4).call(alias3,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"final") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":116,"column":77},"end":{"line":116,"column":102}}}))
-    + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"multiReply\" class=\"col-xs-2 control-label\">Multi-Reply:</label>\n      <div class=\"col-xs-10\">\n        <select name=\"multiReply\" class=\"form-control input-sm\">\n          <option></option>\n          <option "
-    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias4).call(alias3,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"multiReply") : stack1),true,{"name":"is","hash":{},"fn":container.program(19, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":125,"column":18},"end":{"line":125,"column":67}}})) != null ? stack1 : "")
+    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"noninvitees") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":125,"column":83},"end":{"line":125,"column":114}}}))
+    + "\">\n      </div>\n    </div>\n\n"
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"apiVersion") : depth0),1,{"name":"is","hash":{},"fn":container.program(28, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":129,"column":4},"end":{"line":136,"column":11}}})) != null ? stack1 : "")
+    + "\n    <div class=\"form-group\">\n      <label for=\"multiReply\" class=\"col-xs-2 control-label\">Multi-Reply:</label>\n      <div class=\"col-xs-10\">\n        <select name=\"multiReply\" class=\"form-control input-sm\">\n          <option></option>\n          <option "
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"multiReply") : stack1),true,{"name":"is","hash":{},"fn":container.program(30, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":143,"column":18},"end":{"line":143,"column":67}}})) != null ? stack1 : "")
     + ">True</option>\n          <option "
-    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias4).call(alias3,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"multiReply") : stack1),false,{"name":"is","hash":{},"fn":container.program(19, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":126,"column":18},"end":{"line":126,"column":68}}})) != null ? stack1 : "")
-    + ">False</option>\n        </select>\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"taskCompletionCount\" class=\"col-xs-2 control-label\">Completed After:</label>\n      <div class=\"col-xs-10\">\n        <input type=\"number\" class=\"form-control input-sm\" name=\"taskCompletionCount\" value=\""
-    + alias2((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias4).call(alias3,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"taskCompletionCount") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":134,"column":93},"end":{"line":134,"column":132}}}))
-    + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"hideOriginalRevisions\" class=\"col-xs-2 control-label\">Hide Revisions:</label>\n      <div class=\"col-xs-10\">\n        <select name=\"hideOriginalRevisions\" class=\"form-control input-sm\">\n          <option></option>\n          <option "
-    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias4).call(alias3,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"hideOriginalRevisions") : stack1),true,{"name":"is","hash":{},"fn":container.program(19, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":143,"column":18},"end":{"line":143,"column":78}}})) != null ? stack1 : "")
-    + ">True</option>\n          <option "
-    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias4).call(alias3,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"hideOriginalRevisions") : stack1),false,{"name":"is","hash":{},"fn":container.program(19, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":144,"column":18},"end":{"line":144,"column":79}}})) != null ? stack1 : "")
-    + ">False</option>\n        </select>\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"cdate\" class=\"col-xs-2 control-label\">Activation Date:</label>\n      <div class=\"col-xs-10\">\n        <div class=\"has-feedback date\">\n          <input type=\"text\" class=\"form-control input-sm datetimepicker\">\n          <span class=\"glyphicon glyphicon-calendar\"></span>\n          "
-    + alias2((lookupProperty(helpers,"timezoneDropdown")||(depth0 && lookupProperty(depth0,"timezoneDropdown"))||alias4).call(alias3,{"name":"timezoneDropdown","hash":{"class":"input-sm timezone"},"data":data,"loc":{"start":{"line":155,"column":10},"end":{"line":155,"column":56}}}))
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"multiReply") : stack1),false,{"name":"is","hash":{},"fn":container.program(30, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":144,"column":18},"end":{"line":144,"column":68}}})) != null ? stack1 : "")
+    + ">False</option>\n        </select>\n      </div>\n    </div>\n\n"
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"apiVersion") : depth0),2,{"name":"is","hash":{},"fn":container.program(32, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":149,"column":4},"end":{"line":160,"column":11}}})) != null ? stack1 : "")
+    + "\n"
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"apiVersion") : depth0),1,{"name":"is","hash":{},"fn":container.program(34, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":162,"column":4},"end":{"line":180,"column":11}}})) != null ? stack1 : "")
+    + "\n    <div class=\"form-group\">\n      <label for=\"cdate\" class=\"col-xs-2 control-label\">Activation Date:</label>\n      <div class=\"col-xs-10\">\n        <div class=\"has-feedback date\">\n          <input type=\"text\" class=\"form-control input-sm datetimepicker\">\n          <span class=\"glyphicon glyphicon-calendar\"></span>\n          "
+    + alias3((lookupProperty(helpers,"timezoneDropdown")||(depth0 && lookupProperty(depth0,"timezoneDropdown"))||alias2).call(alias1,{"name":"timezoneDropdown","hash":{"class":"input-sm timezone"},"data":data,"loc":{"start":{"line":188,"column":10},"end":{"line":188,"column":56}}}))
     + "\n        </div>\n        <input type=\"hidden\" class=\"form-control input-sm\" name=\"cdate\" value=\""
-    + alias2(alias1(((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"cdate") : stack1), depth0))
+    + alias3(alias4(((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"cdate") : stack1), depth0))
     + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"duedate\" class=\"col-xs-2 control-label\">Due Date:</label>\n      <div class=\"col-xs-10\">\n        <div class=\"has-feedback date\">\n          <input type=\"text\" class=\"form-control input-sm datetimepicker\">\n          <span class=\"glyphicon glyphicon-calendar\"></span>\n          "
-    + alias2((lookupProperty(helpers,"timezoneDropdown")||(depth0 && lookupProperty(depth0,"timezoneDropdown"))||alias4).call(alias3,{"name":"timezoneDropdown","hash":{"class":"input-sm timezone"},"data":data,"loc":{"start":{"line":167,"column":10},"end":{"line":167,"column":56}}}))
+    + alias3((lookupProperty(helpers,"timezoneDropdown")||(depth0 && lookupProperty(depth0,"timezoneDropdown"))||alias2).call(alias1,{"name":"timezoneDropdown","hash":{"class":"input-sm timezone"},"data":data,"loc":{"start":{"line":200,"column":10},"end":{"line":200,"column":56}}}))
     + "\n        </div>\n        <input type=\"hidden\" class=\"form-control input-sm\" name=\"duedate\" value=\""
-    + alias2(alias1(((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"duedate") : stack1), depth0))
+    + alias3(alias4(((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"duedate") : stack1), depth0))
     + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"expdate\" class=\"col-xs-2 control-label\">Expiration Date:</label>\n      <div class=\"col-xs-10\">\n        <div class=\"has-feedback date\">\n          <input type=\"text\" class=\"form-control input-sm datetimepicker\">\n          <span class=\"glyphicon glyphicon-calendar\"></span>\n          "
-    + alias2((lookupProperty(helpers,"timezoneDropdown")||(depth0 && lookupProperty(depth0,"timezoneDropdown"))||alias4).call(alias3,{"name":"timezoneDropdown","hash":{"class":"input-sm timezone"},"data":data,"loc":{"start":{"line":179,"column":10},"end":{"line":179,"column":56}}}))
+    + alias3((lookupProperty(helpers,"timezoneDropdown")||(depth0 && lookupProperty(depth0,"timezoneDropdown"))||alias2).call(alias1,{"name":"timezoneDropdown","hash":{"class":"input-sm timezone"},"data":data,"loc":{"start":{"line":212,"column":10},"end":{"line":212,"column":56}}}))
     + "\n        </div>\n        <input type=\"hidden\" class=\"form-control input-sm\" name=\"expdate\" value=\""
-    + alias2((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias4).call(alias3,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"expdate") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":181,"column":81},"end":{"line":181,"column":108}}}))
+    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"expdate") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":214,"column":81},"end":{"line":214,"column":108}}}))
     + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <label for=\"signatures\" class=\"col-xs-2 control-label\">Signature:</label>\n      <div class=\"col-xs-10\">\n        <input type=\"text\" class=\"form-control input-sm\" name=\"signatures\" value=\""
-    + alias2((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias4).call(alias3,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"signatures") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":188,"column":82},"end":{"line":188,"column":112}}}))
+    + alias3((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"signatures") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":221,"column":82},"end":{"line":221,"column":112}}}))
     + "\">\n      </div>\n    </div>\n\n    <div class=\"form-group\">\n      <div class=\"col-xs-2\">&nbsp;</div>\n      <div class=\"col-xs-10\">\n        <button type=\"submit\" class=\"btn btn-sm btn-primary\">Save Invitation</button>\n        <button type=\"button\" class=\"btn btn-sm btn-default cancel-edit-group\">Cancel</button>\n      </div>\n    </div>\n  </form>\n";
-},"19":function(container,depth0,helpers,partials,data) {
+},"26":function(container,depth0,helpers,partials,data) {
+    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "      <div class=\"form-group\">\n        <label for=\"super\" class=\"col-xs-2 control-label\">Super Invitation:</label>\n        <div class=\"col-xs-10\">\n          <input type=\"text\" class=\"form-control input-sm\" name=\"super\" value=\""
+    + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"super") : stack1), depth0))
+    + "\">\n        </div>\n      </div>\n";
+},"28":function(container,depth0,helpers,partials,data) {
+    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "      <div class=\"form-group\">\n        <label for=\"final\" class=\"col-xs-2 control-label\">Final Fields:</label>\n        <div class=\"col-xs-10\">\n          <input type=\"text\" class=\"form-control input-sm\" name=\"final\" value=\""
+    + container.escapeExpression((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"final") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":133,"column":79},"end":{"line":133,"column":104}}}))
+    + "\">\n        </div>\n      </div>\n";
+},"30":function(container,depth0,helpers,partials,data) {
     return "selected";
+},"32":function(container,depth0,helpers,partials,data) {
+    var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "      <div class=\"form-group\">\n        <label for=\"bulk\" class=\"col-xs-2 control-label\">Bulk:</label>\n        <div class=\"col-xs-10\">\n          <select name=\"bulk\" class=\"form-control input-sm\">\n            <option></option>\n            <option "
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"bulk") : stack1),true,{"name":"is","hash":{},"fn":container.program(30, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":155,"column":20},"end":{"line":155,"column":63}}})) != null ? stack1 : "")
+    + ">True</option>\n            <option "
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"bulk") : stack1),false,{"name":"is","hash":{},"fn":container.program(30, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":156,"column":20},"end":{"line":156,"column":64}}})) != null ? stack1 : "")
+    + ">False</option>\n          </select>\n        </div>\n      </div>\n";
+},"34":function(container,depth0,helpers,partials,data) {
+    var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "      <div class=\"form-group\">\n        <label for=\"taskCompletionCount\" class=\"col-xs-2 control-label\">Completed After:</label>\n        <div class=\"col-xs-10\">\n          <input type=\"number\" class=\"form-control input-sm\" name=\"taskCompletionCount\" value=\""
+    + container.escapeExpression((lookupProperty(helpers,"join")||(depth0 && lookupProperty(depth0,"join"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"taskCompletionCount") : stack1),{"name":"join","hash":{},"data":data,"loc":{"start":{"line":166,"column":95},"end":{"line":166,"column":134}}}))
+    + "\">\n        </div>\n      </div>\n\n      <div class=\"form-group\">\n        <label for=\"hideOriginalRevisions\" class=\"col-xs-2 control-label\">Hide Revisions:</label>\n        <div class=\"col-xs-10\">\n          <select name=\"hideOriginalRevisions\" class=\"form-control input-sm\">\n            <option></option>\n            <option "
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"hideOriginalRevisions") : stack1),true,{"name":"is","hash":{},"fn":container.program(30, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":175,"column":20},"end":{"line":175,"column":80}}})) != null ? stack1 : "")
+    + ">True</option>\n            <option "
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"hideOriginalRevisions") : stack1),false,{"name":"is","hash":{},"fn":container.program(30, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":176,"column":20},"end":{"line":176,"column":81}}})) != null ? stack1 : "")
+    + ">False</option>\n          </select>\n        </div>\n      </div>\n";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -2655,45 +2758,49 @@ templates['partials/invitationInfoTable'] = template({"1":function(container,dep
     };
 
   return "<dl class=\"dl-horizontal group-info-table\">\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"super") : stack1),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":2,"column":2},"end":{"line":5,"column":9}}})) != null ? stack1 : "")
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"apiVersion") : depth0),1,{"name":"is","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":2,"column":2},"end":{"line":7,"column":9}}})) != null ? stack1 : "")
     + "\n  <dt>Parent Group:</dt>\n  <dd><a href=\""
-    + alias3((lookupProperty(helpers,"groupUrl")||(depth0 && lookupProperty(depth0,"groupUrl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"parentGroupId") : depth0),true,{"name":"groupUrl","hash":{},"data":data,"loc":{"start":{"line":8,"column":15},"end":{"line":8,"column":46}}}))
+    + alias3((lookupProperty(helpers,"groupUrl")||(depth0 && lookupProperty(depth0,"groupUrl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"parentGroupId") : depth0),true,{"name":"groupUrl","hash":{},"data":data,"loc":{"start":{"line":10,"column":15},"end":{"line":10,"column":46}}}))
     + "\">"
-    + alias3((lookupProperty(helpers,"prettyId")||(depth0 && lookupProperty(depth0,"prettyId"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"parentGroupId") : depth0),{"name":"prettyId","hash":{},"data":data,"loc":{"start":{"line":8,"column":48},"end":{"line":8,"column":74}}}))
+    + alias3((lookupProperty(helpers,"prettyId")||(depth0 && lookupProperty(depth0,"prettyId"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"parentGroupId") : depth0),{"name":"prettyId","hash":{},"data":data,"loc":{"start":{"line":10,"column":48},"end":{"line":10,"column":74}}}))
     + "</a></dd>\n\n  <dt>Readers:</dt>\n  <dd>"
-    + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"readers") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":11,"column":6},"end":{"line":11,"column":40}}}))
+    + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"readers") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":13,"column":6},"end":{"line":13,"column":40}}}))
     + "</dd>\n\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"nonreaders") : stack1),{"name":"if","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":13,"column":2},"end":{"line":16,"column":9}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"nonreaders") : stack1),{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":15,"column":2},"end":{"line":18,"column":9}}})) != null ? stack1 : "")
     + "\n  <dt>Writers:</dt>\n  <dd>"
-    + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"writers") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":19,"column":6},"end":{"line":19,"column":40}}}))
+    + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"writers") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":21,"column":6},"end":{"line":21,"column":40}}}))
     + "</dd>\n\n  <dt>Invitees:</dt>\n  <dd>"
-    + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"invitees") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":22,"column":6},"end":{"line":22,"column":41}}}))
+    + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"invitees") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":24,"column":6},"end":{"line":24,"column":41}}}))
     + "</dd>\n\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"noninvitees") : stack1),{"name":"if","hash":{},"fn":container.program(5, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":24,"column":2},"end":{"line":27,"column":9}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"noninvitees") : stack1),{"name":"if","hash":{},"fn":container.program(6, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":26,"column":2},"end":{"line":29,"column":9}}})) != null ? stack1 : "")
     + "\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"final") : stack1),{"name":"if","hash":{},"fn":container.program(7, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":29,"column":2},"end":{"line":32,"column":9}}})) != null ? stack1 : "")
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"apiVersion") : depth0),1,{"name":"is","hash":{},"fn":container.program(8, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":31,"column":2},"end":{"line":36,"column":9}}})) != null ? stack1 : "")
     + "\n  <dt>Multi-Reply:</dt>\n  <dd>"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"multiReply") : stack1),{"name":"if","hash":{},"fn":container.program(9, data, 0),"inverse":container.program(11, data, 0),"data":data,"loc":{"start":{"line":35,"column":6},"end":{"line":35,"column":101}}})) != null ? stack1 : "")
-    + "</dd>\n\n  <dt>Completed After:</dt>\n  <dd>"
-    + alias3(container.lambda(((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"taskCompletionCount") : stack1), depth0))
-    + "</dd>\n\n  <dt>Hide revisions:</dt>\n  <dd>"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"hideOriginalRevisions") : stack1),{"name":"if","hash":{},"fn":container.program(9, data, 0),"inverse":container.program(14, data, 0),"data":data,"loc":{"start":{"line":41,"column":6},"end":{"line":41,"column":123}}})) != null ? stack1 : "")
-    + "</dd>\n\n  <dt>Signature:</dt>\n  <dd>"
-    + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"signatures") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":44,"column":6},"end":{"line":44,"column":43}}}))
-    + "</dd>\n\n  <dt>Created:</dt>\n  <dd>"
-    + alias3((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"tcdate") : stack1),{"name":"formattedDate","hash":{"default":"None"},"data":data,"loc":{"start":{"line":47,"column":6},"end":{"line":47,"column":56}}}))
-    + "</dd>\n\n  <dt>Activation Date:</dt>\n  <dd>"
-    + alias3((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"cdate") : stack1),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"tcdate") : stack1),{"name":"formattedDate","hash":{"default":"None"},"data":data,"loc":{"start":{"line":50,"column":6},"end":{"line":50,"column":73}}}))
-    + "</dd>\n\n  <dt>Due Date:</dt>\n  <dd>"
-    + alias3((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"duedate") : stack1),{"name":"formattedDate","hash":{"default":"None"},"data":data,"loc":{"start":{"line":53,"column":6},"end":{"line":53,"column":57}}}))
-    + "</dd>\n\n  <dt>Expiration Date:</dt>\n  <dd>"
-    + alias3((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"expdate") : stack1),{"name":"formattedDate","hash":{"default":"None"},"data":data,"loc":{"start":{"line":56,"column":6},"end":{"line":56,"column":57}}}))
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"multiReply") : stack1),{"name":"if","hash":{},"fn":container.program(11, data, 0),"inverse":container.program(13, data, 0),"data":data,"loc":{"start":{"line":39,"column":6},"end":{"line":39,"column":101}}})) != null ? stack1 : "")
     + "</dd>\n\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"ddate") : depth0),{"name":"if","hash":{},"fn":container.program(16, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":58,"column":2},"end":{"line":61,"column":9}}})) != null ? stack1 : "")
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"apiVersion") : depth0),1,{"name":"is","hash":{},"fn":container.program(16, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":41,"column":2},"end":{"line":44,"column":9}}})) != null ? stack1 : "")
+    + "\n  <dt>Hide revisions:</dt>\n  <dd>"
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"hideOriginalRevisions") : stack1),{"name":"if","hash":{},"fn":container.program(11, data, 0),"inverse":container.program(18, data, 0),"data":data,"loc":{"start":{"line":47,"column":6},"end":{"line":47,"column":123}}})) != null ? stack1 : "")
+    + "</dd>\n\n"
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"apiVersion") : depth0),2,{"name":"is","hash":{},"fn":container.program(20, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":49,"column":2},"end":{"line":52,"column":9}}})) != null ? stack1 : "")
+    + "\n  <dt>Signature:</dt>\n  <dd>"
+    + alias3((lookupProperty(helpers,"groupIdList")||(depth0 && lookupProperty(depth0,"groupIdList"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"signatures") : stack1),{"name":"groupIdList","hash":{},"data":data,"loc":{"start":{"line":55,"column":6},"end":{"line":55,"column":43}}}))
+    + "</dd>\n\n  <dt>Creation Date:</dt>\n  <dd>"
+    + alias3((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"tcdate") : stack1),{"name":"formattedDate","hash":{"default":"None"},"data":data,"loc":{"start":{"line":58,"column":6},"end":{"line":58,"column":56}}}))
+    + "</dd>\n\n  <dt>Activation Date:</dt>\n  <dd>"
+    + alias3((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"cdate") : stack1),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"tcdate") : stack1),{"name":"formattedDate","hash":{"default":"None"},"data":data,"loc":{"start":{"line":61,"column":6},"end":{"line":61,"column":73}}}))
+    + "</dd>\n\n  <dt>Modified Date:</dt>\n  <dd>"
+    + alias3((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"mdate") : stack1),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"tmdate") : stack1),{"name":"formattedDate","hash":{"default":"None"},"data":data,"loc":{"start":{"line":64,"column":6},"end":{"line":64,"column":73}}}))
+    + "</dd>\n\n  <dt>Due Date:</dt>\n  <dd>"
+    + alias3((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"duedate") : stack1),{"name":"formattedDate","hash":{"default":"None"},"data":data,"loc":{"start":{"line":67,"column":6},"end":{"line":67,"column":57}}}))
+    + "</dd>\n\n  <dt>Expiration Date:</dt>\n  <dd>"
+    + alias3((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"expdate") : stack1),{"name":"formattedDate","hash":{"default":"None"},"data":data,"loc":{"start":{"line":70,"column":6},"end":{"line":70,"column":57}}}))
+    + "</dd>\n\n"
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"ddate") : depth0),{"name":"if","hash":{},"fn":container.program(23, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":72,"column":2},"end":{"line":75,"column":9}}})) != null ? stack1 : "")
     + "\n  <dt>Last Modified:</dt>\n  <dd class=\"mdate\">"
-    + alias3((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"mdate") : stack1),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"tmdate") : stack1),{"name":"formattedDate","hash":{},"data":data,"loc":{"start":{"line":64,"column":20},"end":{"line":64,"column":72}}}))
+    + alias3((lookupProperty(helpers,"formattedDate")||(depth0 && lookupProperty(depth0,"formattedDate"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"mdate") : stack1),((stack1 = (depth0 != null ? lookupProperty(depth0,"invitation") : depth0)) != null ? lookupProperty(stack1,"tmdate") : stack1),{"name":"formattedDate","hash":{},"data":data,"loc":{"start":{"line":78,"column":20},"end":{"line":78,"column":72}}}))
     + "</dd>\n</dl>\n\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"editable") : depth0),{"name":"if","hash":{},"fn":container.program(18, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":67,"column":0},"end":{"line":200,"column":7}}})) != null ? stack1 : "");
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"editable") : depth0),{"name":"if","hash":{},"fn":container.program(25, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":81,"column":0},"end":{"line":233,"column":7}}})) != null ? stack1 : "");
 },"useData":true});
 templates['partials/multiselectorDropdown'] = template({"1":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {

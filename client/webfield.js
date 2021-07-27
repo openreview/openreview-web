@@ -1,10 +1,16 @@
-/**
- * Changes:
- * - replaced first line with module.exports
- * - enabled CORS for ajax functions
- * - replaced all controller api calls with webfield versions
- * - add local token var and a new setToken method
- */
+/* globals _: false */
+/* globals $: false */
+/* globals Handlebars: false */
+/* globals moment: false */
+/* globals MathJax: false */
+/* globals Webfield: false */
+/* globals view: false */
+/* globals promptError: false */
+/* globals promptLogin: false */
+/* globals promptMessage: false */
+/* globals translateErrorMessage: false */
+/* globals typesetMathJax: false */
+
 module.exports = (function() {
   // Save authentication token as a private var
   var token;
@@ -2539,7 +2545,7 @@ module.exports = (function() {
       invitation: invitation,
       parentGroupId: parentGroupId,
       replyJson: JSON.stringify(invitation.reply, undefined, 4),
-      options: {}
+      options: { apiVersion: 1 }
     }));
 
     loadChildInvitations(invitation.id);
@@ -2562,7 +2568,8 @@ module.exports = (function() {
       replyJson: JSON.stringify(invitation.reply, undefined, 4),
       replyForumViewsJson: JSON.stringify(invitation.replyForumViews || [], undefined, 4),
       options: {
-        showProcessEditor: options.showProcessEditor
+        showProcessEditor: options.showProcessEditor,
+        apiVersion: 1,
       }
     }));
     $container.off();
@@ -2734,7 +2741,7 @@ module.exports = (function() {
 
       var updateObj = $(this).hasClass('invitation-reply-form')
         ? { reply: parsedObj }
-        : { replyForumViews : parsedObj };
+        : { replyForumViews: parsedObj };
       updateInvitation(updateObj)
         .then(function(response) {
           invitation = response;
@@ -2782,7 +2789,7 @@ module.exports = (function() {
         } else if ($section.hasClass('process')) {
           editorType = 'process';
           codeToEdit = response.invitations[0].process;
-        } else if ($section.hasClass('preprocess')){
+        } else if ($section.hasClass('preprocess')) {
           editorType = 'preprocess';
           codeToEdit = response.invitations[0].preprocess;
         }
@@ -3272,4 +3279,4 @@ module.exports = (function() {
       done: done
     }
   };
-})();
+}());

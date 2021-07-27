@@ -1,4 +1,5 @@
 /* globals Webfield: false */
+/* globals Webfield2: false */
 
 import { useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
@@ -20,11 +21,14 @@ const InvitationInfo = ({ appContext }) => {
   const containerRef = useRef(null)
   const { setBannerHidden, clientJsLoading } = appContext
 
+  // Try loading invitation from v1 API first and if not found load from v2
   const loadInvitation = async (invitationId) => {
     try {
-      const { invitations } = await api.get('/invitations', { id: invitationId }, { accessToken })
-      if (invitations?.length > 0) {
-        setInvitation({ ...invitations[0], web: null })
+      const invitationObj = await api.getInvitationById(invitationId, accessToken)
+      if (invitationObj) {
+        setInvitation({
+          ...invitationObj, web: null, process: null, preprocess: null,
+        })
       } else {
         setError({ statusCode: 404, message: 'Invitation not found' })
       }
@@ -35,9 +39,9 @@ const InvitationInfo = ({ appContext }) => {
         } else {
           setError({ statusCode: 403, message: 'You don\'t have permission to read this invitation' })
         }
-        return
+      } else {
+        setError({ statusCode: apiError.status, message: apiError.message })
       }
-      setError({ statusCode: apiError.status, message: apiError.message })
     }
   }
 
@@ -62,7 +66,14 @@ const InvitationInfo = ({ appContext }) => {
     } else if (invitation.web) {
       Webfield.editModeBanner(invitation.id, 'info')
     }
-    Webfield.ui.invitationInfo(invitation, { container: containerRef.current })
+
+    const webfieldInfoFn = invitation.apiVersion === 2
+      ? Webfield2.ui.invitationInfo
+      : Webfield.ui.invitationInfo
+
+    webfieldInfoFn(invitation, {
+      container: containerRef.current,
+    })
 
     // eslint-disable-next-line consistent-return
     return () => {
