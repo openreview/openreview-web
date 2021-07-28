@@ -46,6 +46,6 @@
     "eslint-plugin-react": "^7.22.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "node-fetch": "^2.6.1",
-    "testcafe": "^1.11.0"
+    "testcafe": "^1.15.1"
   }
 }
