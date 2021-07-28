@@ -101,6 +101,7 @@ module.exports = (function() {
     value: {
       value/value-regex etc.,
       optional,
+      nullable,
     },
     presentation: {
       markdown,
@@ -650,8 +651,10 @@ module.exports = (function() {
     var params = _.assign({
       invitation: null,
       onEditRequested: null,
+      deleteOnlyInvitation: null,
+      editInvitations:[],
       replyInvitations: [],
-      referenceInvitations: [],
+      // referenceInvitations: [],
       tagInvitations: [],
       onNewNoteRequested: null,
       titleLink: 'NONE', // NONE | HREF | JS
@@ -699,12 +702,11 @@ module.exports = (function() {
 
     // Trash and Edit buttons
     var $trashButton = null;
-    var $editButton = null;
+    // var $editButton = null;
     var $actionButtons = null;
     if ($('#content').hasClass('forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
       var canEdit = details.writable;
-
-      if (canEdit && params.onTrashedOrRestored) {
+      if (canEdit && params.onTrashedOrRestored && params.deleteOnlyInvitation) {
         var buttonContent = notePastDue ? 'Restore' : '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>';
         $trashButton = $('<button id="trashbutton_' + note.id + '" class="btn btn-xs trash_button">' + buttonContent + '</button>');
         $trashButton.click(function() {
@@ -712,15 +714,15 @@ module.exports = (function() {
         });
       }
 
-      if (canEdit && params.onEditRequested && !notePastDue) {
-        $editButton = $('<button class="btn btn-xs edit_button"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></button>');
-        $editButton.click(function() {
-          params.onEditRequested();
-        });
-      }
+      // if (canEdit && params.onEditRequested && !notePastDue) {
+      //   $editButton = $('<button class="btn btn-xs edit_button"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></button>');
+      //   $editButton.click(function() {
+      //     params.onEditRequested();
+      //   });
+      // }
 
-      if ($editButton || $trashButton) {
-        $actionButtons = $('<div>', {class: 'meta_actions'}).append($editButton, $trashButton);
+      if ($trashButton) {
+        $actionButtons = $('<div>', {class: 'meta_actions'}).append($trashButton);
         $titleHTML.addClass('pull-left');
       }
     }
@@ -800,17 +802,16 @@ module.exports = (function() {
     );
 
     var $metaActionsRow = null;
-    var $modifiableOriginalButton = null;
+    // var $modifiableOriginalButton = null;
 
-    var $referenceInvitations = _.map(params.referenceInvitations, function(invitation) {
-      return $('<button class="btn btn-xs edit_button">').text(view.prettyInvitationId(invitation.id)).click(function() {
+    var $editInvitations = _.map(params.editInvitations, function(invitation) {
+      return $('<button class="btn btn-xs edit_button referenceinvitation">').text(view.prettyInvitationId(invitation.id)).click(function() {
         params.onEditRequested(invitation);
       });
     });
-    if ($referenceInvitations || $modifiableOriginalButton) {
+    if ($editInvitations) {
       $metaActionsRow = $('<div>', {class: 'meta_row meta_actions'}).append(
-        $modifiableOriginalButton,
-        $referenceInvitations
+        $editInvitations
       );
       $metaEditRow.addClass('pull-left');
     }
@@ -1089,7 +1090,7 @@ module.exports = (function() {
 
         var writerValues = view.getWriters(invitation, signatureInputValues, user);
 
-        var errorList = content[2].concat(view.validate(invitation, content[0], readers));
+        var errorList = content[2].concat(validateV2(invitation, content[0], readers));
         if (params.onValidate) {
           errorList = errorList.concat(params.onValidate(invitation, content[0]));
         }
@@ -1108,14 +1109,14 @@ module.exports = (function() {
 
         var newNoteEdit = {
           note: {
-            content: Object.entries(content[0]).reduce((acc, v) => { acc[v[0]] = { value: v[1] }; return acc }, {}),
+            content: content[0],
             forum: forum || invitation.edit?.note?.forum,
             replyto: replyto || invitation.edit?.note?.replyto,
           },
-          readers: (invitation.edit.note?.readers?.values || invitation.edit.note?.readers?.value) ? undefined : readerValues,
+          readers: readerValues, // invitation value is checked in constructEdit fn
           nonreaders: nonReadersValues,
           signatures: signatureInputValues,
-          writers: (invitation.edit.note?.writers?.values || invitation.edit.note?.writers?.value) ? undefined : writerValues,
+          writers: writerValues,
           invitation: invitation.id,
         };
 
@@ -1439,15 +1440,15 @@ module.exports = (function() {
 
         var content = view.getContent(invitation, $contentMap);
 
-        var signatureInputValues = view.idsFromListAdder(signatures, invitation.edit.signatures);
-        var readerValues = view.getReaders(readers, invitation, signatureInputValues);
-        var nonreaderValues = null;
-        if (_.has(invitation, 'edit.nonreaders.values')) {
-          nonreaderValues = invitation.edit.nonreaders.values;
-        }
-        var writerValues = view.getWriters(invitation, signatureInputValues, user);
+        // var signatureInputValues = view.idsFromListAdder(signatures, invitation.edit.signatures);
+        // var readerValues = view.getReaders(readers, invitation, signatureInputValues);
+        // var nonreaderValues = null;
+        // if (_.has(invitation, 'edit.nonreaders.values')) {
+        //   nonreaderValues = invitation.edit.nonreaders.values;
+        // }
+        // var writerValues = view.getWriters(invitation, signatureInputValues, user);
 
-        var errorList = content[2].concat(view.validate(invitation, content[0], readers));
+        var errorList = content[2].concat(validateV2(invitation, content[0], readers));
         if (params.onValidate) {
           errorList = errorList.concat(params.onValidate(invitation, content[0], note));
         }
@@ -1464,42 +1465,42 @@ module.exports = (function() {
           $cancelButton.prop({ disabled: false });
           return;
         }
-        var editNote = params.isEdit ? {
-          // editing an edit is updating the edit itself
-          ...note,
-          cdate:undefined,
-          tcdate: undefined,
-          tmdate: undefined,
-          content: undefined,
-          details: undefined,
-          updateId: undefined,
-          tauthor: undefined,
-          invitations: undefined,
-          invitation: note.invitations[0],
-          note:{
-            ...note.note,
-            content:Object.entries(content[0]).reduce((acc, v) => { acc[v[0]] = { value: v[1] }; return acc }, {}),
-            cdate:undefined,
-            tcdate:undefined,
-            tddate:undefined,
-            tmdate: undefined,
-            details: undefined,
-            tauthor: undefined,
-          }
-        } : {
-          // editing a note is posting a new edit
-          note: {
-            content: Object.entries(content[0]).reduce((acc, v) => { acc[v[0]] = { value: v[1] }; return acc }, {})
-          },
-          readers: (invitation.edit.note?.readers?.values || invitation.edit.note?.readers?.value) ? undefined : readerValues,
-          signatures: signatureInputValues,
-          writers: (invitation.edit.note?.writers?.values || invitation.edit.note?.writers?.value) ? undefined : writerValues,
-          invitation: invitation.id
-        };
+        // var editNote = params.isEdit ? {
+        //   // editing an edit is updating the edit itself
+        //   ...note,
+        //   cdate:undefined,
+        //   tcdate: undefined,
+        //   tmdate: undefined,
+        //   content: undefined,
+        //   details: undefined,
+        //   updateId: undefined,
+        //   tauthor: undefined,
+        //   invitations: undefined,
+        //   invitation: note.invitations[0],
+        //   note:{
+        //     ...note.note,
+        //     content:Object.entries(content[0]).reduce((acc, v) => { acc[v[0]] = { value: v[1] }; return acc }, {}),
+        //     cdate:undefined,
+        //     tcdate:undefined,
+        //     tddate:undefined,
+        //     tmdate: undefined,
+        //     details: undefined,
+        //     tauthor: undefined,
+        //   }
+        // } : {
+        //   // editing a note is posting a new edit
+        //   note: {
+        //     content: Object.entries(content[0]).reduce((acc, v) => { acc[v[0]] = { value: v[1] }; return acc }, {})
+        //   },
+        //   readers: (invitation.edit.note?.readers?.values || invitation.edit.note?.readers?.value) ? undefined : readerValues,
+        //   signatures: signatureInputValues,
+        //   writers: (invitation.edit.note?.writers?.values || invitation.edit.note?.writers?.value) ? undefined : writerValues,
+        //   invitation: invitation.id
+        // };
 
-        if (nonreaderValues) {
-          editNote.nonReadersValues = nonreaderValues
-        }
+        // if (nonreaderValues) {
+        //   editNote.nonReadersValues = nonreaderValues
+        // }
 
         // if (invitation.edit?.note?.forum?.value) {
         //   editNote.note.forum = note.forum || invitation.edit?.note?.forum?.value
@@ -1508,17 +1509,22 @@ module.exports = (function() {
         //   editNote.note.replyto = note.replyto || invitation.edit?.note?.replyto?.value || invitation.edit?.note?.forum?.value
         // }
 
-        if (!params.isEdit) {
-          if (invitation.edit?.note?.id?.value || invitation.edit?.note?.reply?.referentInvitation) {
-            editNote.note.referent = invitation.edit?.note?.id?.value || note.id;
-            if (note.updateId) {
-              editNote.note.id = note.updateId;
-            }
-          } else {
-            editNote.note.id = note.id;
+        // if (!params.isEdit) {
+        //   if (invitation.edit?.note?.id?.value || invitation.edit?.note?.reply?.referentInvitation) {
+        //     editNote.note.referent = invitation.edit?.note?.id?.value || note.id;
+        //     if (note.updateId) {
+        //       editNote.note.id = note.updateId;
+        //     }
+        //   } else {
+        //     editNote.note.id = note.id;
+        //   }
+        // }
+
+        var editNote={
+          note: {
+            content: content[0]
           }
         }
-
         if (_.isEmpty(files)) {
           return saveNote(editNote);
           return;
@@ -1711,7 +1717,7 @@ module.exports = (function() {
     // note fields other than content
     Object.entries(otherNoteFields).forEach(([otherNoteField, value]) => {
       if (value.value || value.values) return
-      note[otherNoteField] = noteObj?.note?.[otherNoteField]
+      note[otherNoteField] = noteObj?.[otherNoteField]
     })
     // content fields
     Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
@@ -1719,7 +1725,7 @@ module.exports = (function() {
         if (valueObj.value || valueObj.values) {
           return
         } else {
-          content[contentFieldName] = noteObj?.note?.content?.[contentFieldName]
+          content[contentFieldName] = { value: noteObj?.note?.content?.[contentFieldName] }
         }
       }
       if (readerObj = contentFieldValue.readers) {
@@ -1736,6 +1742,59 @@ module.exports = (function() {
     if (Object.keys(note).length) result.note = note
     return result
   }
+
+  var validateV2 = function(invitation, content, readersWidget) {
+    var errorList = [];
+    var invitationEditContent = invitation.edit?.note?.content;
+
+    Object.keys(invitationEditContent).forEach(function(fieldName) {
+      if (fieldName === 'pdf' && !invitationEditContent.pdf.value?.optional) {
+        if (content.pdf?.value && !_.endsWith(content.pdf.value, '.pdf') && !_.startsWith(content.pdf.value, '/pdf') && !_.startsWith(content.pdf.value, 'http')) {
+          errorList.push('Uploaded file must have .pdf extension');
+        }
+
+        if (!content.pdf && invitationEditContent.pdf?.value?.['value-regex']) {
+          if (invitationEditContent.pdf?.value?.['value-regex'] === 'upload') {
+            errorList.push('You must provide a PDF (file upload)');
+          } else if (invitationEditContent.pdf?.value?.['value-regex'].includes('upload')) {
+            errorList.push('You must provide a PDF (either by URL or file upload)');
+          } else {
+            errorList.push('You must provide a PDF (URL)');
+          }
+        }
+      }
+
+      if (!invitationEditContent[fieldName].value?.optional && _.isEmpty(content[fieldName])) {
+        errorList.push('Field missing: ' + prettyField(fieldName));
+      }
+
+      // authors search has pending results to be added
+      if (fieldName === 'authorids' && $('div.search-results>div.author-row').length) {
+        errorList.push('You have additional authors to be added to authors list');
+      }
+    });
+
+    if (invitation.edit?.note?.readers?.hasOwnProperty('values-dropdown')) {
+      var inputValues = view.idsFromListAdder(readersWidget, invitation.edit.note.readers);
+      if (!inputValues.length) {
+        errorList.push('Readers can not be empty. You must select at least one reader');
+      }
+    }
+
+    if (invitation.edit?.note?.readers?.hasOwnProperty('values-checkbox')) {
+      var inputValues = [];
+      readersWidget.find('.note_content_value input[type="checkbox"]').each(function(i) {
+        if ($(this).prop('checked')) {
+          inputValues.push($(this).val());
+        }
+      });
+      if (!inputValues.length) {
+        errorList.push('Readers can not be empty. You must select at least one reader');
+      }
+    }
+
+    return errorList;
+  };
 
   return {
     mkNewNoteEditorV2: mkNewNoteEditorV2,

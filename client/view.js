@@ -2721,7 +2721,7 @@ module.exports = (function() {
 
   var validate = function(invitation, content, readersWidget) {
     var errorList = [];
-    var replyContent = invitation.edit ? invitation.edit.note.content : invitation.reply.content;
+    var replyContent = invitation.reply.content;
 
     Object.keys(replyContent).forEach(function(fieldName) {
       if (fieldName === 'pdf' && replyContent.pdf.required) {
@@ -2750,15 +2750,14 @@ module.exports = (function() {
       }
     });
 
-    var readers = invitation.edit ? invitation.edit.note.readers : invitation.reply.readers;
-    if (readers.hasOwnProperty('values-dropdown')) {
-      var inputValues = idsFromListAdder(readersWidget, readers);
+    if (invitation.reply.readers.hasOwnProperty('values-dropdown')) {
+      var inputValues = idsFromListAdder(readersWidget, invitation.reply.readers);
       if (!inputValues.length) {
         errorList.push('Readers can not be empty. You must select at least one reader');
       }
     }
 
-    if (readers.hasOwnProperty('values-checkbox')) {
+    if (invitation.reply.readers.hasOwnProperty('values-checkbox')) {
       var inputValues = [];
       readersWidget.find('.note_content_value input[type="checkbox"]').each(function(i) {
         if ($(this).prop('checked')) {

@@ -99,61 +99,35 @@ module.exports = function(forumId, noteId, invitationId, user) {
     };
 
     var noteRecsP = $.when(notesP, invitationsP).then(function(notes, invitations) {
-      // a "common invitation" is one that applies to all notes in the forum.
-      var commonInvitations = _.filter(invitations, function(invitation) {
-        return _.isEmpty(invitation.edit?.note?.replyto?.value) &&
-          _.isEmpty(invitation?.edit?.note?.id?.value) &&
-          _.isEmpty(invitation?.edit?.note?.id?.["value-invitation"]) &&
-          _.isEmpty(invitation?.edit?.note?.referentInvitation?.value) &&
-          _.isEmpty(invitation?.edit?.note?.invitation?.value);
-      });
-
       var noteRecPs = _.map(notes, function(note) {
-        var noteInvitations = _.filter(invitations, function(invitation) {
-          // Check if invitation is replying to this note
-          var isInvitationRelated = (invitation.edit?.note?.replyto?.value === note.id) || (invitation?.edit?.note?.invitation?.value === note.invitations[0]);
-          // Check if invitation does not have multiReply OR invitation has the field multiReply but it is not set to false OR invitation has the field multireply which is set to false but there have not been any replies yet
-          var isMultireplyApplicable = (!_.has(invitation, 'multiReply') || (invitation.multiReply !== false) || !_.has(invitation, 'details.repliedNotes[0]'));
-          return isInvitationRelated && isMultireplyApplicable;
-        });
+        // pure delete invitation without content
+        var deleteOnlyInvitation = invitations.filter(p => p.edit?.note?.id?.value === note.id || note.invitations.includes(p.edit?.note?.id?.["value-invitation"]))
+          .find(p => p.edit?.note?.ddate && !p.edit?.note?.content)
 
-        var referenceInvitations = _.filter(invitations, function(invitation) {
-          // Check if invitation is replying to this note
-          var isInvitationRelated = (
-            invitation?.edit?.note?.id?.value === note.id)
-            || (invitation?.edit?.note?.referentInvitation?.value === note.invitations[0])
-            || (invitation?.edit?.note?.id?.["value-invitation"] === note.invitations[0]);
-          // Check if invitation does not have multiReply OR invitation has the field multiReply but it is not set to false OR invitation has the field multireply which is set to false but there have not been any replies yet
-          var isMultireplyApplicable = (!_.has(invitation, 'multiReply') || (invitation.multiReply !== false) || !_.has(invitation, 'details.repliedNotes[0]'));
-          return isInvitationRelated && isMultireplyApplicable;
-        });
+        var editInvitations = invitations.filter(p => p.edit?.note?.id?.value === note.id || note.invitations.includes(p.edit?.note?.id?.["value-invitation"]))
+          .filter(p => p.id !== deleteOnlyInvitation?.id)
 
-        var noteCommonInvitations = _.filter(commonInvitations, function(invitation) {
-          // if selfReplyOnly restrict only to the note that responds to the same invitation
-          var isReplyInvitation = !invitation?.edit?.note?.selfReplyOnly?.value ||
-            (invitation?.edit?.note?.selfReplyOnly?.value && invitation.id === note.invitations[0]);
-
-          // Check invitation enabled by invitation
-          if (_.has(invitation?.edit?.note, 'invitation')) {
-            return (invitation?.edit?.note?.invitation?.value === note.invitations[0]) || isReplyInvitation;
+        var replyInvitations = invitations.filter(p => {
+          const replyToValue = p.edit?.note?.replyto?.value
+          if (replyToValue) {
+            if (replyToValue === note.id) return true
+            return false
           }
-
-          // Check invitation enabled by forum
-          return (note.id === invitation?.edit?.note?.forum?.value) || isReplyInvitation;
-        });
-
-        var replyInvitations = _.union(noteCommonInvitations, noteInvitations);
+          if (p.edit?.note?.id) return false
+          return true
+        })
 
         var noteForumId = note.id === forumId ? forumId : undefined;
         return $.when(
           tagInvitationsP(noteForumId),  // get tag invitations only for forum
         )
-        .then(function(tagInvitations, originalInvitations) {
+        .then(function(tagInvitations) {
           return {
-            note: note,
-            replyInvitations: replyInvitations,
-            referenceInvitations: referenceInvitations,
-            tagInvitations: tagInvitations
+            note,
+            deleteOnlyInvitation,
+            editInvitations,
+            replyInvitations,
+            tagInvitations,
           };
         });
       });
@@ -202,18 +176,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   var mkPanel = function(rec, $anchor) {
     var $note = view2.mkNotePanelV2(rec.note, {
-      onEditRequested: function(invitation, options) {
-        var noteToRender;
-        if (options?.original) {
-          noteToRender = rec.note.details?.original;
-        } else if (options?.revision) {
-          noteToRender = invitation.details?.repliedNotes?.[0]
-          if (noteToRender) {
-            // Include both the referent and the note id so the API doesn't create a new reference
-            noteToRender.updateId = noteToRender.id
-          }
-        }
-        mkEditor(rec, noteToRender || rec.note, invitation, $anchor, function(editor) {
+      onEditRequested: function(editInvitation) {
+        mkEditor(rec, rec.note, editInvitation, $anchor, function(editor) {
           if (editor) {
             $note.replaceWith(editor);
           }
@@ -222,8 +186,9 @@ module.exports = function(forumId, noteId, invitationId, user) {
       withContent: true,
       withRevisionsLink: true,
       withModificationDate: true,
+      deleteOnlyInvitation: rec.deleteOnlyInvitation,
+      editInvitations: rec.editInvitations,
       replyInvitations: rec.replyInvitations,
-      referenceInvitations: rec.referenceInvitations,
       onNewNoteRequested: function(invitation) {
         var isLoading = $anchor.children('.spinner-container').length;
         var $existingEditor = $anchor.children('.note_editor');
@@ -256,37 +221,24 @@ module.exports = function(forumId, noteId, invitationId, user) {
     return $note;
   };
 
-  var mkEditor = function(forumData, note, invitation, $anchor, done) {
-    var $editor = null;
-
-    var invitationP = invitation ?
-      $.Deferred().resolve(invitation) :
-      Webfield2.getV2('/invitations', { id: note.invitation }).then(function(result) {
-        if (result.invitations && result.invitations.length) {
-          return result.invitations[0];
-        }
-      });
-
-    return invitationP.then(function(invitation) {
-
-      view2.mkNoteEditorV2(note, invitation, user, {
-        onNoteEdited: function(newNote) {
-          getNoteRecsP().then(function(noteRecs) {
-            $content.one('forumRendered', function() {
-              scrollToNote(newNote.id);
-            });
-            sm.update('noteRecs', noteRecs);
+  var mkEditor = function (forumData, note, editInvitation, $anchor, done) {
+    view2.mkNoteEditorV2(note, editInvitation, user, {
+      onNoteEdited: function (newNote) {
+        getNoteRecsP().then(function (noteRecs) {
+          $content.one('forumRendered', function () {
+            scrollToNote(newNote.id);
           });
-        },
-        onNoteCancelled: function() {
-          $editor.replaceWith(mkPanel(forumData, $anchor));
-          MathJax.typesetPromise();
-        },
-        onCompleted: function(editor) {
-          $editor = editor;
-          done(editor);
-        }
-      });
+          sm.update('noteRecs', noteRecs);
+        });
+      },
+      onNoteCancelled: function () {
+        $editor.replaceWith(mkPanel(forumData, $anchor));
+        MathJax.typesetPromise();
+      },
+      onCompleted: function (editor) {
+        $editor = editor;
+        done(editor);
+      }
     });
   };
 
