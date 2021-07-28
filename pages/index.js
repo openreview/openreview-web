@@ -51,12 +51,12 @@ const Home = () => {
     const formatInvitationResults = apiRes => uniqBy(
       (apiRes.invitations || []).map(inv => ({ groupId: inv.id.split('/-/')[0], dueDate: inv.duedate })),
       'groupId',
-    )
+    ).sort((a, b) => a.dueDate - b.dueDate)
 
     try {
       const [activeVenues, openVenues, allVenues] = await Promise.all([
         api.get('/groups', { id: 'active_venues' }).then(formatGroupResults),
-        api.get('/invitations', { invitee: '~', pastdue: false }).then(formatInvitationResults),
+        api.getCombined('/invitations', { invitee: '~', pastdue: false }).then(formatInvitationResults),
         api.get('/groups', { id: 'host' }).then(formatGroupResults),
       ])
       setVenues({
