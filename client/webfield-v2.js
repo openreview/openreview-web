@@ -20,7 +20,7 @@ module.exports = (function() {
       type: 'get',
       contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
       url: baseUrl + url,
-      data: { ...queryObj, version: 2 },
+      data: queryObj,
       headers: Object.assign(defaultHeaders, authHeaders),
       xhrFields: {
         withCredentials: true
@@ -50,6 +50,57 @@ module.exports = (function() {
         withCredentials: true
       }
     }).then(Webfield.jqSuccessCallback, errorCallback);
+  };
+
+  var getAll = function(url, queryObjParam, resultsKey) {
+    const queryObj = {...queryObjParam};
+    queryObj.limit = Math.min(queryObj.limit || 1000, 1000);
+    var offset = queryObj.offset || 0;
+
+    if (!resultsKey) {
+      if (url.indexOf('notes') !== -1) {
+        resultsKey = 'notes';
+      } else if (url.indexOf('groups') !== -1) {
+        resultsKey = 'groups';
+      } else if (url.indexOf('profiles') !== -1) {
+        resultsKey = 'profiles';
+      } else if (url.indexOf('invitations') !== -1) {
+        resultsKey = 'invitations';
+      } else if (url.indexOf('tags') !== -1) {
+        resultsKey = 'tags';
+      } else if (url.indexOf('edges') !== -1) {
+        resultsKey = 'edges';
+      } else {
+        return $.Deferred().reject('Unknown API endpoint');
+      }
+    }
+
+    return getV2(url, Object.assign({}, queryObj, { offset: offset }))
+      .then(function(results) {
+        if (!results || !results[resultsKey]) {
+          return [];
+        }
+
+        var initialResults = results[resultsKey];
+        var totalCount = results.count || initialResults.length;
+        if (!totalCount) {
+          return [];
+        }
+
+        if (totalCount - initialResults.length <= 0) {
+          return initialResults;
+        } else {
+          var offsetList = _.range(offset + queryObj.limit, totalCount, queryObj.limit);
+          var remainingRequests = offsetList.map(function(n) {
+            return get(url, Object.assign({}, queryObj, { offset: n }));
+          });
+          return $.when.apply($, remainingRequests)
+            .then(function() {
+              var rest = _.compact(_.flatMap(arguments, resultsKey));
+              return initialResults.concat(rest);
+            });
+        }
+      });
   };
 
   var setToken = function(newAccessToken) {
@@ -856,6 +907,136 @@ module.exports = (function() {
     });
   };
 
+  // Util functions
+  var getPaperGroups = function(venueId, roleName, options) {
+
+    var query = {
+      regex: venueId + '/Paper.*',
+      select: 'id,members'
+    }
+    if (options && options.assigned) {
+      query.member = user.id
+    }
+    return getAll('/groups', query)
+    .then(function(groups) {
+      var paperGroups = [];
+      var anonPaperGroups = [];
+      groups.forEach(function(group) {
+        if (group.id.endsWith('/' + roleName)) {
+          paperGroups.push(group);
+        } else if (_.includes(group.id, '/' + roleName.slice(0, -1) + '_')) {
+          anonPaperGroups.push(group);
+        }
+      });
+      return {
+        paperGroups: paperGroups,
+        anonPaperGroups: anonPaperGroups
+      }
+    })
+  }
+
+  var getSubmissions = function(invitationId, options) {
+    var noteNumbers = options.numbers;
+    if (noteNumbers.length) {
+      var noteNumbersStr = noteNumbers.join(',');
+
+      return getAll('/notes', {
+        invitation: invitationId,
+        number: noteNumbersStr,
+        select: 'id,number,forum,content,details,invitations',
+        details: 'directReplies',
+        sort: 'number:asc'
+      });
+
+    } else {
+      blindedNotesP = $.Deferred().resolve([]);
+    }
+  }
+
+  var getAssignedInvitations = function(venueId, roleName) {
+
+    var invitationsP = getAll('/invitations', {
+      regex: venueId + '/.*',
+      invitee: true,
+      duedate: true,
+      replyto: true,
+      type: 'notes',
+      details: 'replytoNote,repliedNotes',
+      version: '1' //TODO: remove when the task view supports V2
+    });
+
+    var edgeInvitationsP = getAll('/invitations', {
+      regex: venueId + '/.*',
+      invitee: true,
+      duedate: true,
+      type: 'edges',
+      details: 'repliedEdges',
+      version: '1' //TODO: remove when the task view supports V2
+    });
+
+    var tagInvitationsP = getAll('/invitations', {
+      regex: venueId + '/.*',
+      invitee: true,
+      duedate: true,
+      type: 'tags',
+      details: 'repliedTags',
+      version: '1' //TODO: remove when the task view supports V2
+    });
+
+    var filterInvitee = function(inv) {
+      return _.some(inv.invitees, function(invitee) { return invitee.indexOf(roleName) !== -1; });
+    };
+
+    return $.when(
+      invitationsP,
+      edgeInvitationsP,
+      tagInvitationsP
+    ).then(function(noteInvitations, edgeInvitations, tagInvitations) {
+      var invitations = noteInvitations.concat(edgeInvitations).concat(tagInvitations);
+      return _.filter(invitations, filterInvitee);
+    });
+  };
+
+  var getNumberfromGroup = function(groupId, name) {
+    var tokens = groupId.split('/');
+    var paper = _.find(tokens, function(token) {
+      return _.startsWith(token, name);
+    });
+
+    if (paper) {
+      return paper.replace(name, '');
+    } else {
+      return null;
+    }
+  };
+
+  var getPaperNumbersfromGroups = function(groups) {
+    return _.uniq(_.map(groups, function(group) {
+      return parseInt(getNumberfromGroup(group.id, 'Paper'));
+    }));
+  };
+
+  var renderTable = function(container, headings, templates, rows) {
+    var rowsHtml = rows.map(function(row) {
+      return Object.values(row).map(function(cell, i) {
+        return templates[i](cell);
+      });
+    });
+
+    var tableHtml = Handlebars.templates['components/table']({
+      headings: headings,
+      rows: rowsHtml,
+      extraClasses: 'ac-console-table'
+    });
+
+    if (rows.length) {
+      $(container).empty().append('');
+    }
+
+    $('.table-container', container).remove();
+    $(container).empty().append(tableHtml);
+  }
+
   return {
     getV2: getV2,
     postV2: postV2,
@@ -865,10 +1046,17 @@ module.exports = (function() {
       getSubmissionInvitationV2: getSubmissionInvitationV2,
       getSubmissionsV2: getSubmissionsV2,
     },
-
     ui: {
       submissionListV2: submissionListV2,
       activityListV2: activityListV2,
+      renderTable: renderTable
+    },
+    utils: {
+      getPaperGroups: getPaperGroups,
+      getSubmissions: getSubmissions,
+      getAssignedInvitations: getAssignedInvitations,
+      getPaperNumbersfromGroups: getPaperNumbersfromGroups,
+      getNumberfromGroup: getNumberfromGroup
     }
   };
 })();
