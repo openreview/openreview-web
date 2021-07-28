@@ -98,6 +98,8 @@ export default function NoteEntity(props) {
     }
     // Create new edge
     const editInvitation = editInvitations.filter(p => p.id === editEdgeTemplate.invitation)?.[0]
+    const otherColumnType = props.columnType === 'head' ? 'tail' : 'head'
+    const isInviteInvitation = editInvitation[otherColumnType]?.query?.['value-regex'] === '~.*|.+@.+'
     const signatures = getSignatures(editInvitation, availableSignaturesInvitationMap, number, user)
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     const maxLoadInvitationHead = editInvitation.head?.query?.id
@@ -113,6 +115,7 @@ export default function NoteEntity(props) {
       ...existingEdge ?? {
         ...editEdgeTemplate,
         defaultWeight: undefined,
+        label: isInviteInvitation ? editInvitation.label?.default : editEdgeTemplate.label,
         head: maxLoadInvitationHead ?? editEdgeTemplate.head,
         readers: getValues(editInvitation.readers),
         nonreaders: getValues(editInvitation.nonreaders),
