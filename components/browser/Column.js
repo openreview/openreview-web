@@ -97,7 +97,7 @@ export default function Column(props) {
       name: transformName(editInvitation.id.split('/').pop().replace(/_/g, ' '), true),
       [type]: entityId,
       [otherType]: parentId,
-      label: isInviteInvitation ? editInvitation.label?.default : editInvitation.query.label,
+      label: editInvitation.query.label,
       weight,
       defaultWeight: editInvitation.weight.default,
       readers: editInvitation.readers, // reader/writer/nonreader/signature are completed in entity
