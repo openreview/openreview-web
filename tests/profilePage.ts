@@ -82,7 +82,7 @@ test('user open own profile', async (t) => {
     // personal links
     .expect(Selector('#show-dblp-import-modal').getAttribute('disabled')).eql('disabled')
     .typeText(Selector('#dblp_url'), 'test')
-    .expect(Selector('#show-dblp-import-modal').getAttribute('disabled')).eql(undefined) // button is enabled
+    .expect(Selector('#show-dblp-import-modal').getAttribute('disabled')).eql(null) // button is enabled
     // save
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText).eql('test is not a valid URL')
