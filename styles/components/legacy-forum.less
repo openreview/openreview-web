@@ -1,9 +1,13 @@
 @import "../utils/constants";
 @import "../utils/mixins";
 
-main.forum {
+main.legacy-forum {
   .note {
+    background: transparent;
+    border: none;
+    box-shadow: none;
     padding-bottom: .75rem;
+    margin-bottom: 0;
 
     .title_collapsed {
       display: none;
@@ -49,14 +53,16 @@ main.forum {
     font-weight: bold;
   }
   .view-all-replies-container {
-    // background: transparent;
-    // padding: 0;
-    // margin-bottom: 1.125rem;
+    text-align: center;
+    padding-top: .75rem;
+    padding-bottom: .75rem;
 
     > span {
+      display: inline-block;
+      margin-top: 1px;
       font-style: italic;
       color: @subtleGray;
-      padding-right: .5rem;
+      padding-right: .75rem;
     }
   }
 
@@ -497,6 +503,9 @@ main.forum {
   .note_editor.panel {
     margin-bottom: .5rem;
     border-radius: 0;
+  }
+  .forum-container > .note_editor.panel {
+    margin-bottom: 2rem;
   }
 }
 

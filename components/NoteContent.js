@@ -6,8 +6,10 @@ import union from 'lodash/union'
 import { prettyField, prettyContentValue, orderReplyFields } from '../lib/utils'
 import Icon from './Icon'
 
+import '../styles/components/note-content.less'
+
 function NoteContent({
-  id, content, invitation, omit = [], isReference = false,
+  id, content, invitation, omit = [], include = [], isReference = false,
 }) {
   const contentKeys = Object.keys(content)
   const contentOrder = invitation
@@ -17,7 +19,7 @@ function NoteContent({
   const omittedFields = [
     'title', 'authors', 'author_emails', 'authorids', 'pdf',
     'verdict', 'paperhash', 'ee', 'html', 'year', 'venue', 'venueid',
-  ].concat(omit)
+  ].concat(omit).filter(field => !include.includes(field))
 
   return (
     <ul className="list-unstyled note-content">

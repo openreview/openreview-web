@@ -1470,7 +1470,7 @@ module.exports = (function() {
       contentInputResult = mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
     }
 
-    if (fieldDescription.hidden === true) {
+    if (fieldDescription && fieldDescription.hidden === true) {
       return contentInputResult.hide();
     }
     return contentInputResult;
@@ -2076,7 +2076,7 @@ module.exports = (function() {
 
     // Link to comment button
     var $linkButton = null;
-    if (forumId !== note.id && $('#content').hasClass('forum')) {
+    if (forumId !== note.id && $('#content').hasClass('legacy-forum')) {
       var commentUrl = location.origin + '/forum?id=' + forumId + '&noteId=' + note.id;
       $linkButton = $('<button class="btn btn-xs btn-default permalink-button" title="Link to this comment" data-permalink-url="' + commentUrl + '">' +
         '<span class="glyphicon glyphicon-link" aria-hidden="true"></span></button>');
@@ -2086,7 +2086,7 @@ module.exports = (function() {
     var $trashButton = null;
     var $editButton = null;
     var $actionButtons = null;
-    if ($('#content').hasClass('forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
+    if ($('#content').hasClass('legacy-forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
       var canEdit = (details.original && details.originalWritable) || (!details.originalWritable && details.writable);
 
       if (canEdit && params.onTrashedOrRestored) {
@@ -3120,23 +3120,23 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
+        clearAutosaveData(autosaveStorageKeys);
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
         } else {
           $noteEditor.remove();
         }
-        clearAutosaveData(autosaveStorageKeys);
       });
 
       var saveNote = function(note) {
         // apply any 'value-copied' fields
         note = getCopiedValues(note, invitation.reply);
         controller.post('/notes', note, function(result) {
+          clearAutosaveData(autosaveStorageKeys);
+          $noteEditor.remove();
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
           }
-          $noteEditor.remove();
-          clearAutosaveData(autosaveStorageKeys);
         }, function(jqXhr, errorText) {
           promptError(errorText);
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
@@ -3188,6 +3188,11 @@ module.exports = (function() {
   };
 
   function buildReaders(fieldDescription, fieldValue, replyto, done) {
+    if (!fieldDescription) {
+      done(undefined, 'Invitation is missing readers');
+      return;
+    }
+
     var requiredText = $('<span>', { text: '*', class: 'required_field' });
     var setParentReaders = function(parent, fieldDescription, fieldType, done) {
       if (parent) {
