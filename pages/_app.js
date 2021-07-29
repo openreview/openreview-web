@@ -70,7 +70,6 @@ export default class OpenReviewApp extends App {
     window.Webfield.setToken(userAccessToken)
     window.Webfield2.setToken(userAccessToken)
 
-
     const timeToExpiration = tokenExpiration * 1000 - Date.now() - 1000
     this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
   }
@@ -81,7 +80,6 @@ export default class OpenReviewApp extends App {
 
     window.Webfield.setToken(null)
     window.Webfield2.setToken(null)
-
 
     clearTimeout(this.logoutTimer)
 
