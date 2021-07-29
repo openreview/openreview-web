@@ -1115,12 +1115,9 @@ module.exports = (function() {
       var searchResults = function(searchText, isQueryMode) {
         $(container + ' #form-sort').val('Paper_Number');
 
-        // Currently only searching on note number and note title
+        // Currently only searching on note title if exists
         var filterFunc = function(row) {
-          return (
-            (row.number.number + '').indexOf(searchText) === 0 ||
-            row.note.content.title.toLowerCase().indexOf(searchText) !== -1
-          );
+          return (row.submission && row.submission.content.title.toLowerCase().indexOf(searchText) !== -1) || (row.submissionNumber && row.submissionNumber.number) == searchText;
         };
 
         if (searchText) {
