@@ -1108,6 +1108,76 @@ module.exports = (function() {
         return false;
       });
     }
+
+    if (options.searchProperties) {
+
+      var filterOperators = ['!=','>=','<=','>','<','=']; // sequence matters
+      var searchResults = function(searchText, isQueryMode) {
+        $(container + ' #form-sort').val('Paper_Number');
+
+        // Currently only searching on note number and note title
+        var filterFunc = function(row) {
+          return (
+            (row.number.number + '').indexOf(searchText) === 0 ||
+            row.note.content.title.toLowerCase().indexOf(searchText) !== -1
+          );
+        };
+
+        if (searchText) {
+          if (isQueryMode) {
+            var filterResult = Webfield.filterCollections(rows, searchText.slice(1), filterOperators, options.searchProperties, 'note.id')
+            filteredRows = filterResult.filteredRows;
+            queryIsInvalid = filterResult.queryIsInvalid;
+            if(queryIsInvalid) $(container + ' .form-search').addClass('invalid-value')
+          } else {
+            filteredRows = _.filter(rows, filterFunc)
+          }
+        } else {
+          filteredRows = rows;
+        }
+        render(filteredRows);
+      };
+
+      $(container + ' .form-search').on('keyup', function (e) {
+        var searchText = $(container + ' .form-search').val().trim();
+        var searchLabel = $(container + ' .form-search').prevAll('strong:first').text();
+        $(container + ' .form-search').removeClass('invalid-value');
+
+        if (searchText.startsWith('+')) {
+          // filter query mode
+          if (searchLabel === 'Search:') {
+            $(container + ' .form-search').prevAll('strong:first').text('Query:');
+            $(container + ' .form-search').prevAll('strong:first').after($('<span/>', {
+              class: 'glyphicon glyphicon-info-sign'
+            }).hover(function (e) {
+              $(e.target).tooltip({
+                title: "<strong class='tooltip-title'>Query Mode Help</strong>\n<p>In Query mode, you can enter an expression and hit ENTER to search.<br/> The expression consists of property of a paper and a value you would like to search.</p><p>e.g. +number=5 will return the paper 5</p><p>Expressions may also be combined with AND/OR.<br>e.g. +number=5 OR number=6 OR number=7 will return paper 5,6 and 7.<br>If the value has multiple words, it should be enclosed in double quotes.<br>e.g. +title=\"some title to search\"</p><p>Braces can be used to organize expressions.<br>e.g. +number=1 OR ((number=5 AND number=7) OR number=8) will return paper 1 and 8.</p><p>Operators available:".concat(filterOperators.join(', '), "</p><p>Properties available:").concat(Object.keys(options.searchProperties).join(', '), "</p>"),
+                html: true,
+                placement: 'bottom'
+              });
+            }));
+          }
+
+          if (e.key === 'Enter') {
+            searchResults(searchText, true);
+          }
+        } else {
+          if (searchLabel !== 'Search:') {
+            $(container + ' .form-search').prev().remove(); // remove info icon
+
+            $(container + ' .form-search').prev().text('Search:');
+          }
+
+          _.debounce(function () {
+            searchResults(searchText.toLowerCase(),false);
+          }, 300)();
+        }
+      });
+
+      $(container + ' form.search-form').on('submit', function() {
+        return false;
+      });
+    }
     render(rows);
 
   }
