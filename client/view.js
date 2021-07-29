@@ -288,7 +288,7 @@ module.exports = (function() {
       if (values.length) {
         update(filteredOptions(values, prefix));
       } else {
-        controller.get(tag.optionsUrl, {}, function(result) {
+        Webfield.get(tag.optionsUrl, {}).then(function(result) {
           var group = result.groups[0];
           values = _.map(group.members, function(member) {
             return { id: member, description: prettyId(member) };
@@ -820,8 +820,8 @@ module.exports = (function() {
         }
       }
 
-      var tildeProfilesP = controller.post('/profiles/search', { ids: tildeIds });
-      var emailProfilesP = controller.post('/profiles/search', { emails: emailIds });
+      var tildeProfilesP = Webfield.post('/profiles/search', { ids: tildeIds });
+      var emailProfilesP = Webfield.post('/profiles/search', { emails: emailIds });
 
       $.when(tildeProfilesP, emailProfilesP).then(function(tildeRes, emailRes) {
         var profiles = _.concat(tildeRes.profiles, emailRes.profiles);
@@ -979,20 +979,20 @@ module.exports = (function() {
       // If both the name and the email information are in the search, then we have to do two searches
       // Then we merge the responses by doing a union and prioritizing email results
       if (hasValidName && hasValidEmail) {
-        controller.get('/profiles/search', { term: email })
+        Webfield.get('/profiles/search', { term: email })
           .then(function(emailResponse) {
-            controller.get('/profiles/search', { first: firstName, last: lastName })
+            Webfield.get('/profiles/search', { first: firstName, last: lastName })
             .then(function(namesResponse) {
               handleResponses(namesResponse, emailResponse);
             });
           });
       } else if (hasValidEmail) {
-        controller.get('/profiles/search', { term: email })
+        Webfield.get('/profiles/search', { term: email })
           .then(function(emailResponse) {
             handleResponses(null, emailResponse);
           });
       } else if (hasValidName) {
-        controller.get('/profiles/search', { first: firstName, last: lastName })
+        Webfield.get('/profiles/search', { first: firstName, last: lastName })
           .then(function(namesResponse) {
             handleResponses(namesResponse, null);
           });
@@ -1774,7 +1774,6 @@ module.exports = (function() {
       titleHref = '/forum?id=' + note.forum + (note.forum !== note.id ? '&noteId=' + note.id : '');
     } else if (titleLink === 'JS') {
       $titleHTML.click(function() {
-        controller.removeAllButMain();
         pushForum(note.forum, note.id);
       });
     }
@@ -2299,7 +2298,7 @@ module.exports = (function() {
           };
           body = getCopiedValues(body, tagInvitation.reply);
 
-          controller.post('/tags', body, function(result) {
+          Webfield.post('/tags', body).then(function(result) {
             done(result);
             if (params.onTagChanged) {
               params.onTagChanged(result);
@@ -2406,10 +2405,11 @@ module.exports = (function() {
     if (isDeleted) {
       // Restore deleted note
       newNote.ddate = null;
-      return controller.post('/notes', newNote, null, function(jqXhr, error) {
-        promptError(error, { scrollToTop: false });
-      }, true).then(function(updatedNote) {
+      return Webfield.post('/notes', newNote, { handleErrors: false }).then(function(updatedNote) {
         onTrashedOrRestored(Object.assign(newNote, updatedNote));
+      }, function(jqXhr, textStatus) {
+        var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+        promptError(errorText, { scrollToTop: false });
       });
     }
 
@@ -2420,10 +2420,11 @@ module.exports = (function() {
       }
       newNote.signatures = newSignatures;
       newNote.ddate = Date.now();
-      controller.post('/notes', newNote, null, function(jqXhr, error) {
-        promptError(error, { scrollToTop: false });
-      }, true).then(function(updatedNote) {
+      Webfield.post('/notes', newNote, { handleErrors: false }).then(function(updatedNote) {
         onTrashedOrRestored(Object.assign(newNote, updatedNote));
+      }, function(jqXhr, textStatus) {
+        var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+        promptError(errorText, { scrollToTop: false });
       });
     };
 
@@ -3099,7 +3100,7 @@ module.exports = (function() {
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
           if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
-            return controller.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+            return Webfield.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
               note.content[fieldName] = result.url;
               return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, note.content.pdf);
             });
@@ -3108,7 +3109,7 @@ module.exports = (function() {
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return controller.sendFile('/attachment', data).then(function(result) {
+          return Webfield.sendFile('/attachment', data).then(function(result) {
             note.content[fieldName] = result.url;
             updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], note.content[fieldName]);
           });
@@ -3131,14 +3132,19 @@ module.exports = (function() {
       var saveNote = function(note) {
         // apply any 'value-copied' fields
         note = getCopiedValues(note, invitation.reply);
-        controller.post('/notes', note, function(result) {
+        Webfield.post('/notes', note, { handleErrors: false }).then(function (result) {
           clearAutosaveData(autosaveStorageKeys);
           $noteEditor.remove();
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
           }
-        }, function(jqXhr, errorText) {
-          promptError(errorText);
+        }, function(jqXhr, textStatus) {
+          var errorText = getErrorFromJqXhr(jqXhr, textStatus);
+          if (params.onError) {
+            params.onError([errorText]);
+          } else {
+            promptError(errorText);
+          }
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
           $cancelButton.prop({ disabled: false });
         });
@@ -3196,7 +3202,7 @@ module.exports = (function() {
     var requiredText = $('<span>', { text: '*', class: 'required_field' });
     var setParentReaders = function(parent, fieldDescription, fieldType, done) {
       if (parent) {
-        controller.get('/notes', { id: parent }, function(result) {
+        Webfield.get('/notes', { id: parent }).then(function (result) {
           var newFieldDescription = fieldDescription;
           if (result.notes.length) {
             var parentReaders = result.notes[0].readers;
@@ -3219,7 +3225,8 @@ module.exports = (function() {
     };
 
     if (_.has(fieldDescription, 'values-regex')) {
-      controller.get('/groups', { regex: fieldDescription['values-regex'] }, function(result) {
+      Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
+      .then(function(result) {
         if (_.isEmpty(result.groups)) {
           done(undefined, 'no_results');
         } else {
@@ -3236,8 +3243,9 @@ module.exports = (function() {
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
         }
-      }, function(error) {
-        done(undefined, error);
+      }, function(jqXhr, textStatus) {
+        var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+        done(undefined, errorText);
       });
     } else if (_.has(fieldDescription, 'values-dropdown')) {
       var values = fieldDescription['values-dropdown'];
@@ -3245,7 +3253,7 @@ module.exports = (function() {
       var regexIndex = _.findIndex(values, function(g) { return g.indexOf('.*') >=0; });
       if (regexIndex >= 0) {
         var regex = values[regexIndex];
-        extraGroupsP = controller.get('/groups', { regex: regex })
+        extraGroupsP = Webfield.get('/groups', { regex: regex })
         .then(function(result) {
           if (result.groups && result.groups.length) {
             var groups = result.groups.map(function(g) { return g.id; });
@@ -3313,7 +3321,7 @@ module.exports = (function() {
       var index = _.findIndex(initialValues, function(g) { return g.indexOf('.*') >=0; });
       if (index >= 0) {
         var regexGroup = initialValues[index];
-        promise = controller.get('/groups', { regex: regexGroup })
+        promise = Webfield.get('/groups', { regex: regexGroup })
         .then(function(result) {
           if (result.groups && result.groups.length) {
             var groups = result.groups.map(function(g) { return g.id; });
@@ -3378,9 +3386,9 @@ module.exports = (function() {
           return $.Deferred().reject('no_results');
         }
 
-        return controller.get('/groups', {
+        return Webfield.get('/groups', {
           regex: fieldDescription['values-regex'], signatory: user.id
-        }, function(result) {
+        }, { handleErrors: false }).then(function(result) {
           if (_.isEmpty(result.groups)) {
             return $.Deferred().reject('no_results');
           }
@@ -3402,8 +3410,8 @@ module.exports = (function() {
             'signatures', fieldDescription.description, currentVal, dropdownListOptions, true
           );
           return $signatures;
-        }, function(jqXhr, error) {
-          return error;
+        }, function(jqXhr, textStatus) {
+          return getErrorFromJqXhr(jqXhr, textStatus);
         });
       }
 
@@ -3533,7 +3541,7 @@ module.exports = (function() {
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
           if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
-            return controller.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+            return Webfield.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
               editNote.content[fieldName] = result.url;
               return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, editNote.content.pdf);
             });
@@ -3542,7 +3550,7 @@ module.exports = (function() {
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return controller.sendFile('/attachment' , data).then(function(result) {
+          return Webfield.sendFile('/attachment' , data).then(function(result) {
             editNote.content[fieldName] = result.url;
             updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
           });
@@ -3565,13 +3573,14 @@ module.exports = (function() {
       var saveNote = function(note) {
         // apply any 'value-copied' fields
         note = getCopiedValues(note, invitation.reply);
-        controller.post('/notes', note, function(result) {
+        Webfield.post('/notes', note, { handleErrors: false }).then(function (result) {
           if (params.onNoteEdited) {
             params.onNoteEdited(result);
           }
           $noteEditor.remove();
           clearAutosaveData(autosaveStorageKeys);
-        }, function(jqXhr, errorText) {
+        }, function(jqXhr, textStatus) {
+          var errorText = getErrorFromJqXhr(jqXhr, textStatus);
           if (params.onError) {
             params.onError([errorText]);
           } else {
