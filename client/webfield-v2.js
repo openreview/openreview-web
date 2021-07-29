@@ -908,10 +908,16 @@ module.exports = (function() {
   };
 
   // Util functions
-  var getPaperGroups = function(venueId, roleName, options) {
+  var getGroupsByNumber = function(venueId, roleName, options) {
+    var defaults = {
+      numberToken: 'Paper',
+    };
+    options = _.defaults(options, defaults);
 
+    var anonRoleName = roleName.slice(0, -1) + '_';
+    var numberToken = options.numberToken;
     var query = {
-      regex: venueId + '/Paper.*',
+      regex: venueId + '/' + numberToken + '.*',
       select: 'id,members'
     }
     if (options && options.assigned) {
@@ -924,14 +930,26 @@ module.exports = (function() {
       groups.forEach(function(group) {
         if (group.id.endsWith('/' + roleName)) {
           paperGroups.push(group);
-        } else if (_.includes(group.id, '/' + roleName.slice(0, -1) + '_')) {
+        } else if (_.includes(group.id, '/' + anonRoleName)) {
           anonPaperGroups.push(group);
         }
       });
-      return {
-        paperGroups: paperGroups,
-        anonPaperGroups: anonPaperGroups
-      }
+      var groupsByNumber = {};
+      paperGroups.forEach(function(group) {
+        var number = getNumberfromGroup(group.id, numberToken);
+        var memberGroups = [];
+        group.members.forEach(function(member) {
+          var anonGroup = anonPaperGroups.find(function(anonGroup) {
+            return anonGroup.id.startsWith(venueId + '/' + numberToken + number) && anonGroup.members[0] == member;
+          })
+          memberGroups.push({
+            id: member,
+            anonId: anonGroup && getNumberfromGroup(anonGroup.id, anonRoleName)
+          })
+        });
+        groupsByNumber[number] = memberGroups;
+      })
+      return groupsByNumber;
     })
   }
 
@@ -1052,7 +1070,7 @@ module.exports = (function() {
       renderTable: renderTable
     },
     utils: {
-      getPaperGroups: getPaperGroups,
+      getGroupsByNumber: getGroupsByNumber,
       getSubmissions: getSubmissions,
       getAssignedInvitations: getAssignedInvitations,
       getPaperNumbersfromGroups: getPaperNumbersfromGroups,
