@@ -47,10 +47,9 @@ export default class OpenReviewApp extends App {
     this.setState({ user: authenticatedUser, accessToken: userAccessToken, logoutRedirect: false })
     setAuthCookie(userAccessToken)
 
-    // Need pass new accessToken to Webfield and controller so legacy ajax functions work
+    // Need pass new accessToken to Webfield so legacy ajax functions work
     window.Webfield.setToken(userAccessToken)
     window.Webfield2.setToken(userAccessToken)
-    window.controller.setToken(userAccessToken)
 
     const timeToExpiration = cookieExpiration - 1000
     this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
@@ -67,10 +66,10 @@ export default class OpenReviewApp extends App {
     if (!setCookie) return
     setAuthCookie(userAccessToken)
 
-    // Need pass new accessToken to Webfield and controller so legacy ajax functions work
+    // Need pass new accessToken to Webfield so legacy ajax functions work
     window.Webfield.setToken(userAccessToken)
     window.Webfield2.setToken(userAccessToken)
-    window.controller.setToken(userAccessToken)
+
 
     const timeToExpiration = tokenExpiration * 1000 - Date.now() - 1000
     this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
@@ -82,7 +81,7 @@ export default class OpenReviewApp extends App {
 
     window.Webfield.setToken(null)
     window.Webfield2.setToken(null)
-    window.controller.setToken(null)
+
 
     clearTimeout(this.logoutTimer)
 
@@ -239,7 +238,6 @@ export default class OpenReviewApp extends App {
 
     // Load legacy JS code
     window.mkStateManager = require('../client/state-manager')
-    window.controller = require('../client/controller')
     window.view = require('../client/view')
     window.Webfield = require('../client/webfield')
     window.Webfield2 = require('../client/webfield-v2')
@@ -256,7 +254,6 @@ export default class OpenReviewApp extends App {
     window.OR_API_V2_URL = process.env.API_V2_URL
     window.Webfield.setToken(token)
     window.Webfield2.setToken(token)
-    window.controller.setToken(token)
 
     this.setState({ clientJsLoading: false })
 

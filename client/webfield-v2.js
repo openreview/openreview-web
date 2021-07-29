@@ -219,6 +219,28 @@ module.exports = (function() {
     token = newAccessToken;
   };
 
+  var sendFile = function(url, data, contentType) {
+    var baseUrl = window.OR_API_V2_URL ? window.OR_API_V2_URL : '';
+    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
+    var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
+    return $.ajax({
+      url: baseUrl + url,
+      type: 'put',
+      cache: false,
+      dataType: 'json',
+      processData: false,
+      contentType: contentType ? contentType : false,
+      data: data,
+      headers:  Object.assign(defaultHeaders, authHeaders),
+      xhrFields: {
+        withCredentials: true
+      }
+    }).fail(function(jqXhr, textStatus, errorThrown) {
+      console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus);
+      console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2));
+    });
+  };
+
   var groupInfo = function(group, options) {
     var defaults = {
       container: '#notes',
@@ -1426,6 +1448,7 @@ module.exports = (function() {
     delete: xhrDelete,
     getAll: getAll,
     setToken: setToken,
+    sendFile: sendFile,
     // Aliases
     setupAutoLoading: Webfield.setupAutoLoading,
     disableAutoLoading: Webfield.disableAutoLoading,
