@@ -1179,6 +1179,23 @@ module.exports = (function() {
 
   }
 
+  var renderTasks = function(container, invitations, options) {
+    var defaults = {
+      emptyMessage: 'No outstanding tasks for this venue'
+    };
+    options = _.defaults(options, defaults);
+
+    var tasksOptions = {
+      container: container,
+      emptyMessage: options.emptyMessage,
+      referrer: options.referrer
+    }
+    $(tasksOptions.container).empty();
+
+    Webfield.ui.newTaskList(invitations, [], tasksOptions);
+    $('.tabs-container a[href="#' + container + '"]').parent().show();
+  }
+
   return {
     getV2: getV2,
     postV2: postV2,
@@ -1191,7 +1208,8 @@ module.exports = (function() {
     ui: {
       submissionListV2: submissionListV2,
       activityListV2: activityListV2,
-      renderTable: renderTable
+      renderTable: renderTable,
+      renderTasks: renderTasks,
     },
     utils: {
       getGroupsByNumber: getGroupsByNumber,
