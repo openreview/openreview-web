@@ -35,7 +35,7 @@ const Activity = ({ appContext }) => {
     let notes
     try {
       if(process.env.API_V2_URL) {
-        ({ notes } = await api.getCombined('/notes', { queryParamV1, queryParamV2, sort: 'tmate:desc' }, { accessToken, useV2NoteFormat:true }))
+        ({ notes } = await api.getCombined('/notes', { queryParamV1, queryParamV2, sort: 'tmdate:desc' }, { accessToken, useV2NoteFormat: true }))
       } else {
         ({ notes } = await api.get('/notes', queryParamV1, { accessToken }))
       }
