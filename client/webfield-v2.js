@@ -1034,25 +1034,82 @@ module.exports = (function() {
     }));
   };
 
-  var renderTable = function(container, headings, templates, rows) {
-    var rowsHtml = rows.map(function(row) {
-      return Object.values(row).map(function(cell, i) {
-        return templates[i](cell);
+  var renderTable = function(container, headings, templates, rows, options) {
+    var defaults = {
+    };
+    options = _.defaults(options, defaults);
+
+    var render = function(rows) {
+      var rowsHtml = rows.map(function(row) {
+        return Object.values(row).map(function(cell, i) {
+          return templates[i](cell);
+        });
       });
-    });
 
-    var tableHtml = Handlebars.templates['components/table']({
-      headings: headings,
-      rows: rowsHtml,
-      extraClasses: 'ac-console-table'
-    });
+      var tableHtml = Handlebars.templates['components/table']({
+        headings: headings,
+        rows: rowsHtml,
+        extraClasses: 'ac-console-table'
+      });
 
-    if (rows.length) {
-      $(container).empty().append('');
+      $('.table-container', container).remove();
+      $(container).append(tableHtml);
     }
 
-    $('.table-container', container).remove();
-    $(container).empty().append(tableHtml);
+    if (options.sortOptions) {
+      var order = 'desc';
+      var sortOptionHtml = Object.keys(options.sortOptions).map(function(option) {
+        return '<option value="' + option + '">' + option.replace(/_/g, ' ') + '</option>';
+      }).join('\n');
+
+      //#region sortBarHtml
+      var sortBarHtml = '<form class="form-inline search-form clearfix" role="search">' +
+        // Don't show this for now
+        // '<div id="div-msg-reviewers" class="btn-group" role="group">' +
+        //   '<button id="message-reviewers-btn" type="button" class="btn btn-icon dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Select papers to message corresponding reviewers" disabled="disabled">' +
+        //     '<span class="glyphicon glyphicon-envelope"></span> &nbsp;Message ' +
+        //     '<span class="caret"></span>' +
+        //   '</button>' +
+        //   '<ul class="dropdown-menu" aria-labelledby="grp-msg-reviewers-btn">' +
+        //     '<li><a id="msg-all-reviewers">All Reviewers of selected papers</a></li>' +
+        //     '<li><a id="msg-submitted-reviewers">Reviewers of selected papers with submitted reviews</a></li>' +
+        //     '<li><a id="msg-unsubmitted-reviewers">Reviewers of selected papers with unsubmitted reviews</a></li>' +
+        //   '</ul>' +
+        // '</div>' +
+        // '<div class="btn-group"><button class="btn btn-export-data" type="button">Export</button></div>' +
+        '<div class="pull-right">' +
+          '<strong style="vertical-align: middle;">Search:</strong>' +
+          '<input type="text" class="form-search form-control" class="form-control" placeholder="Enter search term or type + to start a query and press enter" style="width:440px; margin-right: 1.5rem; line-height: 34px;">' +
+          '<strong>Sort By:</strong> ' +
+          '<select id="form-sort" class="form-control" style="width: 250px; line-height: 1rem;">' + sortOptionHtml + '</select>' +
+          '<button id="form-order" class="btn btn-icon" type="button"><span class="glyphicon glyphicon-sort"></span></button>' +
+        '</div>' +
+      '</form>';
+      //#endregion
+
+      if (rows.length) {
+        $(container).empty().append(sortBarHtml);
+      }
+
+      // Need to add event handlers for these controls inside this function so they have access to row
+      // data
+      var sortResults = function(newOption, switchOrder) {
+        if (switchOrder) {
+          order = order === 'asc' ? 'desc' : 'asc';
+        }
+        render(_.orderBy(rows, options.sortOptions[newOption], order), container);
+      }
+
+      $('#form-sort').on('change', function(e) {
+        sortResults($(e.target).val(), false);
+      });
+      $('#form-order').on('click', function(e) {
+        sortResults($(this).prev().val(), true);
+        return false;
+      });
+    }
+    render(rows);
+
   }
 
   return {

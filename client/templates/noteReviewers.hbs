@@ -52,6 +52,10 @@
   </div>
 
   <div>
+    {{#each stats as |values name|}}
+      <br>
+      <strong>Average {{name}}:</strong> {{values.avg}} (Min: {{values.min}}, Max: {{values.max}})
+    {{/each}}
     {{#isnt averageRating undefined}}
       <br>
       <strong>Average Rating:</strong> {{averageRating}} (Min: {{minRating}}, Max: {{maxRating}})
