@@ -1,5 +1,5 @@
 /* globals $: false */
-/* globals Webfield: false */
+/* globals Webfield, Webfield2: false */
 /* globals typesetMathJax: false */
 
 import { useState, useEffect, useRef } from 'react'
@@ -34,7 +34,7 @@ const Activity = ({ appContext }) => {
     }
     let notes
     try {
-      if(process.env.API_V2_URL) {
+      if (process.env.API_V2_URL) {
         ({ notes } = await api.getCombined('/notes', { queryParamV1, queryParamV2, sort: 'tmdate:desc' }, { accessToken, useV2NoteFormat: true }))
       } else {
         ({ notes } = await api.get('/notes', queryParamV1, { accessToken }))
