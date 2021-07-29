@@ -1449,6 +1449,7 @@ module.exports = (function() {
     getAll: getAll,
     setToken: setToken,
     sendFile: sendFile,
+    getErrorFromJqXhr: getErrorFromJqXhr,
     // Aliases
     setupAutoLoading: Webfield.setupAutoLoading,
     disableAutoLoading: Webfield.disableAutoLoading,

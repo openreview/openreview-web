@@ -3267,6 +3267,7 @@ module.exports = (function() {
     getAll: getAll,
     setToken: setToken,
     sendFile: sendFile,
+    getErrorFromJqXhr: getErrorFromJqXhr,
     setupAutoLoading: setupAutoLoading,
     disableAutoLoading: disableAutoLoading,
     editModeBanner: editModeBanner,

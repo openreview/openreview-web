@@ -2405,10 +2405,11 @@ module.exports = (function() {
     if (isDeleted) {
       // Restore deleted note
       newNote.ddate = null;
-      return Webfield.post('/notes', newNote).then(function(updatedNote) {
+      return Webfield.post('/notes', newNote, { handleErrors: false }).then(function(updatedNote) {
         onTrashedOrRestored(Object.assign(newNote, updatedNote));
-      }, function (error) {
-        promptError(error, { scrollToTop: false });
+      }, function(jqXhr, textStatus) {
+        var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+        promptError(errorText, { scrollToTop: false });
       });
     }
 
@@ -2419,10 +2420,11 @@ module.exports = (function() {
       }
       newNote.signatures = newSignatures;
       newNote.ddate = Date.now();
-      Webfield.post('/notes', newNote).then(function(updatedNote) {
+      Webfield.post('/notes', newNote, { handleErrors: false }).then(function(updatedNote) {
         onTrashedOrRestored(Object.assign(newNote, updatedNote));
-      }, function (error) {
-        promptError(error, { scrollToTop: false });
+      }, function(jqXhr, textStatus) {
+        var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+        promptError(errorText, { scrollToTop: false });
       });
     };
 
@@ -3130,17 +3132,18 @@ module.exports = (function() {
       var saveNote = function(note) {
         // apply any 'value-copied' fields
         note = getCopiedValues(note, invitation.reply);
-        Webfield.post('/notes', note).then(function (result) {
+        Webfield.post('/notes', note, { handleErrors: false }).then(function (result) {
           clearAutosaveData(autosaveStorageKeys);
           $noteEditor.remove();
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
           }
-        }, function (error) {
+        }, function(jqXhr, textStatus) {
+          var errorText = getErrorFromJqXhr(jqXhr, textStatus);
           if (params.onError) {
-            params.onError([error]);
+            params.onError([errorText]);
           } else {
-            promptError(error);
+            promptError(errorText);
           }
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
           $cancelButton.prop({ disabled: false });
@@ -3222,7 +3225,8 @@ module.exports = (function() {
     };
 
     if (_.has(fieldDescription, 'values-regex')) {
-      Webfield.get('/groups', { regex: fieldDescription['values-regex'] }).then(function(result) {
+      Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
+      .then(function(result) {
         if (_.isEmpty(result.groups)) {
           done(undefined, 'no_results');
         } else {
@@ -3239,8 +3243,9 @@ module.exports = (function() {
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
         }
-      }, function(error) {
-        done(undefined, error);
+      }, function(jqXhr, textStatus) {
+        var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+        done(undefined, errorText);
       });
     } else if (_.has(fieldDescription, 'values-dropdown')) {
       var values = fieldDescription['values-dropdown'];
@@ -3383,7 +3388,7 @@ module.exports = (function() {
 
         return Webfield.get('/groups', {
           regex: fieldDescription['values-regex'], signatory: user.id
-        }).then(function(result) {
+        }, { handleErrors: false }).then(function(result) {
           if (_.isEmpty(result.groups)) {
             return $.Deferred().reject('no_results');
           }
@@ -3405,8 +3410,8 @@ module.exports = (function() {
             'signatures', fieldDescription.description, currentVal, dropdownListOptions, true
           );
           return $signatures;
-        }, function(error) {
-          return error
+        }, function(jqXhr, textStatus) {
+          return getErrorFromJqXhr(jqXhr, textStatus);
         });
       }
 
@@ -3568,17 +3573,18 @@ module.exports = (function() {
       var saveNote = function(note) {
         // apply any 'value-copied' fields
         note = getCopiedValues(note, invitation.reply);
-        Webfield.post('/notes', note).then(function (result) {
+        Webfield.post('/notes', note, { handleErrors: false }).then(function (result) {
           if (params.onNoteEdited) {
             params.onNoteEdited(result);
           }
           $noteEditor.remove();
           clearAutosaveData(autosaveStorageKeys);
-        }, function(error) {
+        }, function(jqXhr, textStatus) {
+          var errorText = getErrorFromJqXhr(jqXhr, textStatus);
           if (params.onError) {
-            params.onError([error]);
+            params.onError([errorText]);
           } else {
-            promptError(error);
+            promptError(errorText);
           }
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
           $cancelButton.prop({ disabled: false });
