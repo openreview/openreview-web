@@ -59,7 +59,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
       }, { handleErrors: false })
         .then(function(result) {
           if (!result.notes || !result.notes.length) {
-            controller.removeHandler('forum');
             location.href = '/';
             return;
           }
