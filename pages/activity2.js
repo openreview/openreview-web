@@ -1,5 +1,5 @@
 /* globals $: false */
-/* globals Webfield: false */
+/* globals Webfield, Webfield2: false */
 /* globals typesetMathJax: false */
 
 import { useState, useEffect, useRef } from 'react'
@@ -11,6 +11,7 @@ import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 
 import '../styles/pages/activity.less'
+import { apiV2MergeNotes } from '../lib/utils'
 
 const Activity = ({ appContext }) => {
   const { user, accessToken } = useLoginRedirect()
@@ -34,12 +35,15 @@ const Activity = ({ appContext }) => {
     }
     let notes
     try {
-      if(process.env.API_V2_URL) {
-        ({ notes } = await api.getCombined('/notes', { queryParamV1, queryParamV2, sort: 'tmate:desc' }, { accessToken, useV2NoteFormat:true }))
+      if (process.env.ENABLE_V2_API) {
+        const v1NotesP = api.get('/notes', queryParamV1, { accessToken })
+        const v2NotesP = api.getV2('/notes', queryParamV2, { accessToken })
+        const results = await Promise.all([v1NotesP, v2NotesP])
+        // eslint-disable-next-line max-len
+        notes = apiV2MergeNotes(results[0].notes, results[1].notes, 'tmdate')
       } else {
         ({ notes } = await api.get('/notes', queryParamV1, { accessToken }))
       }
-
       setActivityNotes(notes)
     } catch (apiError) {
       setError(apiError)
@@ -58,7 +62,7 @@ const Activity = ({ appContext }) => {
     if (clientJsLoading || !activityNotes) return
 
     $(activityRef.current).empty()
-    const activityList = process.env.API_V2_URL ? Webfield2.ui.activityList : Webfield.ui.activityList
+    const activityList = process.env.ENABLE_V2_API ? Webfield2.ui.activityListV2 : Webfield.ui.activityList
     activityList(activityNotes, {
       container: activityRef.current,
       emptyMessage: 'No recent activity to display.',

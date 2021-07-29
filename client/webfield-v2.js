@@ -1419,6 +1419,78 @@ module.exports = (function() {
     });
   };
 
+  // ui functions
+  var activityList = function (notes, options) {
+    var activityDefaults = {
+      container: '.activity-container > div',
+      showGroup: true,
+      showTags: false,
+      showActionButtons: false,
+      onNoteEdited: null,
+      onNoteTrashed: null,
+      onNoteRestored: null,
+      emptyMessage: 'No recent activity.',
+      user: null
+    };
+    options = _.defaults(options, activityDefaults, Webfield.defaultDisplayOptions);
+
+    // Format notes data
+    notes = notes || [];
+    notes.forEach(function (note) {
+      if (!note.details) {
+        note.details = {};
+      }
+
+      var noteAuthors = note.tauthor ? [note.tauthor] : note.signatures;
+      note.details.userIsSignatory = options.user && _.intersection(noteAuthors, options.user.emails).length;
+      if (note.details.userIsSignatory) {
+        note.details.formattedSignature = 'You';
+      } else {
+        var prettySig = view.prettyId(note.signatures?.[0]);
+        if (prettySig === '(anonymous)' || prettySig === '(guest)') {
+          prettySig = 'Anonymous';
+        } else if (prettySig === 'Super User') {
+          prettySig = 'An Administrator';
+        }
+        note.details.formattedSignature = prettySig;
+      }
+
+      note.details.isForum = note.forum === note.id;
+
+      var invitationArr = note.invitations[0].split('/-/');
+      note.details.group = invitationArr[0];
+
+      var invitationLower = invitationArr[1].toLowerCase();
+      note.details.isSubmission = invitationLower.indexOf('submission') !== -1;
+      note.details.isReview = invitationLower.indexOf('review') !== -1;
+      note.details.isComment = invitationLower.indexOf('comment') !== -1;
+      note.details.isDecision = invitationLower.indexOf('decision') !== -1;
+      note.details.isAssignment = invitationLower.indexOf('assignment') !== -1;
+
+      note.details.isDeleted = note.ddate && note.ddate < Date.now();
+      note.details.isUpdated = note.tmdate > note.tcdate;
+    });
+
+    // Filter out any notes that should not be displayed
+    notes = notes.filter(function (note) {
+      return !note.isAssignment;
+    });
+
+    var $container = $(options.container).eq(0);
+    $container.append(Handlebars.templates['partials/activityListV2']({
+      notes: notes,
+      activityOptions: options
+    }));
+
+    if (options.showActionButtons) {
+      _registerActionButtonHandlersV2(
+        $container, notes, Handlebars.templates['partials/noteActivityV2'], options
+      );
+    }
+
+    typesetMathJax();
+  };
+
   return {
     get: get,
     post: post,
@@ -1444,6 +1516,7 @@ module.exports = (function() {
       groupEditor: groupEditor,
       invitationInfo: invitationInfo,
       invitationEditor: invitationEditor,
+      activityList: activityList,
       // Aliases
       setup: Webfield.ui.setup,
       header: Webfield.ui.basicHeader,
@@ -1454,7 +1527,6 @@ module.exports = (function() {
       submissionList: Webfield.ui.submissionList,
       taskList: Webfield.ui.taskList,
       newTaskList: Webfield.ui.newTaskList,
-      activityList: Webfield.ui.activityList,
       tabPanel: Webfield.ui.tabPanel,
       searchResults: Webfield.ui.searchResults,
       userModerationQueue: Webfield.ui.userModerationQueue,
