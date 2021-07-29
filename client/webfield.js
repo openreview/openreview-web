@@ -3272,10 +3272,8 @@ module.exports = (function() {
     disableAutoLoading: disableAutoLoading,
     editModeBanner: editModeBanner,
     filterCollections: filterCollections,
-    // sendFile: sendFile,
     jqSuccessCallback: jqSuccessCallback,
     jqErrorCallback: jqErrorCallback,
-    getErrorFromJqXhr: getErrorFromJqXhr,
     filterNotes: filterNotes,
     defaultDisplayOptions: defaultDisplayOptions,
     api: {
