@@ -26,7 +26,7 @@
 
     {{#if details.isForum}}
       <div class="note-authors">
-        {{noteAuthorsV2 readers content signatures}}
+        {{noteAuthorsV2 readers content signatures details}}
       </div>
     {{else}}
       <div class="parent-title">
@@ -44,7 +44,7 @@
 {{#if details.isForum}}
 
   {{#if options.showContents}}
-    {{noteContentCollapsible this isV2API=true}}
+    {{noteContentCollapsible this}}
   {{/if}}
 
   {{#if options.showTags}}
@@ -54,7 +54,7 @@
 {{else}}
 
   {{#if options.showContents}}
-    {{noteContentCollapsible this noCollapse="true" isV2API=true}}
+    {{noteContentCollapsible this noCollapse="true"}}
   {{/if}}
 
 {{/if}}

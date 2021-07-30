@@ -366,7 +366,6 @@ Handlebars.registerHelper('noteAuthorsV2', function (readers, content, signature
   return new Handlebars.SafeString(html);
 });
 
-// for V2, pass isV2API=true in options
 Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
   if (_.isEmpty(noteObj)) {
     return '';
@@ -388,9 +387,9 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
   var contentKeys = Object.keys(noteObj.content);
   var contentOrder = [];
   if (noteObj.version) {
-    contentOrder = Object.entries(noteObj.details.presentation ?? {}).sort((a, b) => a?.[1]?.order - b?.[1]?.order).map(p => p?.[0])
+    contentOrder = noteObj.details.presentation ? Object.entries(noteObj.details.presentation).sort((a, b) => a?.[1]?.order - b?.[1]?.order).map(p => p?.[0]) : contentKeys
   } else {
-    invitation
+    contentOrder = invitation
       ? _.union(order(invitation.reply.content, invitation.id), contentKeys)
       : contentKeys;
   }
@@ -406,7 +405,7 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
       return;
     }
 
-    var valueString = view.prettyContentValue(options.hash.isV2API ? noteObj.content[fieldName]?.value : noteObj.content[fieldName]);
+    var valueString = view.prettyContentValue(noteObj.version ? noteObj.content[fieldName]?.value : noteObj.content[fieldName]);
     if (!valueString) {
       return;
     }
