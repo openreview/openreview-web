@@ -3139,7 +3139,7 @@ module.exports = (function() {
             params.onNoteCreated(result);
           }
         }, function(jqXhr, textStatus) {
-          var errorText = getErrorFromJqXhr(jqXhr, textStatus);
+          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
           if (params.onError) {
             params.onError([errorText]);
           } else {
@@ -3411,7 +3411,7 @@ module.exports = (function() {
           );
           return $signatures;
         }, function(jqXhr, textStatus) {
-          return getErrorFromJqXhr(jqXhr, textStatus);
+          return Webfield.getErrorFromJqXhr(jqXhr, textStatus);
         });
       }
 
@@ -3580,7 +3580,7 @@ module.exports = (function() {
           $noteEditor.remove();
           clearAutosaveData(autosaveStorageKeys);
         }, function(jqXhr, textStatus) {
-          var errorText = getErrorFromJqXhr(jqXhr, textStatus);
+          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
           if (params.onError) {
             params.onError([errorText]);
           } else {
