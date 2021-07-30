@@ -1274,6 +1274,21 @@ module.exports = (function() {
     $('.tabs-container a[href="#' + container + '"]').parent().show();
   }
 
+  var renderTabPanel = function(container, titles, options) {
+    var loadingMessage = '<p class="empty-message">Loading...</p>';
+    var tabsList = [];
+    titles.forEach(function(title) {
+      tabsList.push({
+        heading: title,
+        id: title.replace(/\s/g, '-').toLowerCase(),
+        content: loadingMessage
+      })
+    })
+    tabsList[0].active = true;
+    tabsList[0].extraClasses = 'horizontal-scroll'; //do we need this?
+    Webfield.ui.tabPanel(tabsList, { container: container });
+  }
+
   return {
     getV2: getV2,
     postV2: postV2,
@@ -1288,6 +1303,7 @@ module.exports = (function() {
       activityListV2: activityListV2,
       renderTable: renderTable,
       renderTasks: renderTasks,
+      renderTabPanel: renderTabPanel,
     },
     utils: {
       getGroupsByNumber: getGroupsByNumber,
