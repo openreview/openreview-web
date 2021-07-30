@@ -58,7 +58,7 @@ const Home = () => {
         api.get('/groups', { id: 'active_venues' }).then(formatGroupResults),
         api.getCombined({
           path: '/invitations',
-          data1: { invitee: '~', pastdue: false }
+          data1: { invitee: '~', pastdue: false },
         }).then(formatInvitationResults),
         api.get('/groups', { id: 'host' }).then(formatGroupResults),
       ])

@@ -392,7 +392,7 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
     contentOrder = Object.entries(noteObj.details.presentation ?? {}).sort((a, b) => a?.[1]?.order - b?.[1]?.order).map(p => p?.[0])
   } else {
     invitation
-      ? _.union(order(options.hash.isV2API && invitation.edit ? invitation.edit.note?.content : invitation.reply.content, invitation.id), contentKeys)
+      ? _.union(order(invitation.reply.content, invitation.id), contentKeys)
       : contentKeys;
   }
 
@@ -412,13 +412,14 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
       return;
     }
     var invitationField = invitation?.reply?.content?.[fieldName] ?? {};
+    var renderMarkdown = noteObj.version ? noteObj.details.presentation?.[fieldName]?.markdown : invitationField.markdown
 
     var urlRegex = /^(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*)?$/i;
 
     // Build download links or render markdown if enabled
     if (valueString.indexOf('/attachment/') === 0) {
       valueString = view.mkDownloadLink(noteObj.id, fieldName, valueString);
-    } else if (invitationField.markdown) {
+    } else if (renderMarkdown) {
       valueString = DOMPurify.sanitize(marked(valueString));
     } else if (urlRegex.test(valueString)) {
       var url = valueString.startsWith('https://openreview.net') ? valueString.replace('https://openreview.net', '') : valueString
@@ -430,7 +431,7 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
     contents.push({
       fieldName: fieldName,
       fieldValue: new Handlebars.SafeString(valueString),
-      markdownRendered: invitationField.markdown
+      markdownRendered: renderMarkdown
     });
   });
   if (!contents.length) {
