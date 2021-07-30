@@ -1034,8 +1034,11 @@ module.exports = (function() {
     }));
   };
 
-  var renderTable = function(container, headings, templates, rows, options) {
+  var renderTable = function(container, rows, options) {
     var defaults = {
+      renders:[],
+      headings: [],
+      extraClasses: 'ac-console-table',
       reminderOptions: {
         container: 'a.send-reminder-link',
         defaultSubject: 'Reminder',
@@ -1044,17 +1047,26 @@ module.exports = (function() {
     };
     options = _.defaults(options, defaults);
 
+    var defaultRender = function(row) {
+      var propertiesHtml = '';
+      Object.keys(row).forEach(function(key) {
+        propertiesHtml = propertiesHtml + '<tr><td><strong>' + key + '</strong></td><td>' + row[key] + '</td></tr>';
+      })
+      return '<div><table class="table table-condensed table-minimal"><tbody>' + propertiesHtml + '</tbody></table></div>';
+    }
+
     var render = function(rows) {
       var rowsHtml = rows.map(function(row) {
         return Object.values(row).map(function(cell, i) {
-          return templates[i](cell);
+          var fn = options.renders[i] || defaultRender;
+          return fn(cell);
         });
       });
 
       var tableHtml = Handlebars.templates['components/table']({
-        headings: headings,
+        headings: options.headings,
         rows: rowsHtml,
-        extraClasses: 'ac-console-table'
+        extraClasses: options.extraClasses
       });
 
       $('.table-container', container).remove();
@@ -1175,10 +1187,10 @@ module.exports = (function() {
         render(_.orderBy(rows, options.sortOptions[newOption], order), container);
       }
 
-      $('#form-sort').on('change', function(e) {
+      $(container).on('change', '#form-sort', function(e) {
         sortResults($(e.target).val(), false);
       });
-      $('#form-order').on('click', function(e) {
+      $(container).on('click', '#form-order', function(e) {
         sortResults($(this).prev().val(), true);
         return false;
       });
