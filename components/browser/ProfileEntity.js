@@ -321,6 +321,7 @@ export default function ProfileEntity(props) {
 
       {/* existing editEdges */}
       {editEdges?.map((editEdge, index) => (
+        // eslint-disable-next-line react/no-array-index-key
         <React.Fragment key={index}>
           {renderEditEdgeWidget({
             edge: editEdge,
@@ -333,6 +334,7 @@ export default function ProfileEntity(props) {
 
       {/* add new editEdge */}
       {editInvitations?.map((editInvitation, index) => (
+        // eslint-disable-next-line react/no-array-index-key
         <React.Fragment key={index}>
           {renderEditEdgeWidget({ invitation: editInvitation })}
         </React.Fragment>

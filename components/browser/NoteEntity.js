@@ -287,19 +287,24 @@ export default function NoteEntity(props) {
       <NoteContent id={id} content={content} collapse />
 
       <div className="note-meta clearfix">
-        { // existing editEdges
-          // eslint-disable-next-line max-len,react/no-array-index-key
-          editEdges?.map((editEdge, index) => (
-            <React.Fragment key={index}>
-              {/* eslint-disable-next-line max-len */}
-              {renderEditEdgeWidget({ editEdge, editInvitation: editInvitations.find(p => p.id === editEdge.invitation) })}
-            </React.Fragment>
-          ))
-        }
-        { // adding new editEdge
-          // eslint-disable-next-line max-len,react/no-array-index-key
-          editInvitations?.map((editInvitation, index) => <React.Fragment key={index}>{renderEditEdgeWidget({ editInvitation })}</React.Fragment>)
-        }
+        {/* existing editEdges */}
+        {editEdges?.map((editEdge, index) => (
+          // eslint-disable-next-line react/no-array-index-key
+          <React.Fragment key={index}>
+            {renderEditEdgeWidget({
+              editEdge,
+              editInvitation: editInvitations.find(p => p.id === editEdge.invitation),
+            })}
+          </React.Fragment>
+        ))}
+
+        {/* add new editEdge */}
+        {editInvitations?.map((editInvitation, index) => (
+          // eslint-disable-next-line react/no-array-index-key
+          <React.Fragment key={index}>
+            {renderEditEdgeWidget({ editInvitation })}
+          </React.Fragment>
+        ))}
 
         <ScoresList edges={props.note.browseEdges} />
 
