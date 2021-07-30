@@ -954,21 +954,24 @@ module.exports = (function() {
   }
 
   var getSubmissions = function(invitationId, options) {
+    var defaults = {
+      numbers: [],
+    };
+    options = _.defaults(options, defaults);
     var noteNumbers = options.numbers;
-    if (noteNumbers.length) {
-      var noteNumbersStr = noteNumbers.join(',');
-
-      return getAll('/notes', {
-        invitation: invitationId,
-        number: noteNumbersStr,
-        select: 'id,number,forum,content,details,invitations',
-        details: 'directReplies',
-        sort: 'number:asc'
-      });
-
-    } else {
-      blindedNotesP = $.Deferred().resolve([]);
+    var noteNumbersStr = noteNumbers.join(',');
+    var query = {
+      invitation: invitationId,
+      select: 'id,number,forum,content,details,invitations',
+      details: 'directReplies',
+      sort: 'number:asc'
     }
+    if (noteNumbersStr) {
+      query.number = noteNumbersStr;
+    }
+
+    return getAll('/notes', query);
+
   }
 
   var getAssignedInvitations = function(venueId, roleName) {
@@ -1038,12 +1041,13 @@ module.exports = (function() {
     var defaults = {
       renders:[],
       headings: rows.length ? Object.keys(rows[0]) : [],
-      extraClasses: 'ac-console-table',
+      extraClasses: '',
       reminderOptions: {
         container: 'a.send-reminder-link',
         defaultSubject: 'Reminder',
         defaultBody: 'This is a reminder to please submit your review. \n\n Thank you,\n'
-      }
+      },
+      postRenderTable: function() {},
     };
     options = _.defaults(options, defaults);
 
@@ -1055,7 +1059,7 @@ module.exports = (function() {
       return '<div><table class="table table-condensed table-minimal"><tbody>' + propertiesHtml + '</tbody></table></div>';
     }
 
-    var render = function(rows) {
+    var render = function(rows, postRenderTable) {
       var rowsHtml = rows.map(function(row) {
         return Object.values(row).map(function(cell, i) {
           var fn = options.renders[i] || defaultRender;
@@ -1071,6 +1075,8 @@ module.exports = (function() {
 
       $('.table-container', container).remove();
       $(container).append(tableHtml);
+
+      postRenderTable();
     }
 
     var registerHelpers = function() {
@@ -1184,7 +1190,7 @@ module.exports = (function() {
         if (switchOrder) {
           order = order === 'asc' ? 'desc' : 'asc';
         }
-        render(_.orderBy(rows, options.sortOptions[newOption], order), container);
+        render(_.orderBy(rows, options.sortOptions[newOption], order), options.postRenderTable);
       }
 
       $(container).on('change', '#form-sort', function(e) {
@@ -1219,7 +1225,7 @@ module.exports = (function() {
         } else {
           filteredRows = rows;
         }
-        render(filteredRows);
+        render(filteredRows, options.postRenderTable);
       };
 
       $(container + ' .form-search').on('keyup', function (e) {
@@ -1262,7 +1268,7 @@ module.exports = (function() {
         return false;
       });
     }
-    render(rows);
+    render(rows, options.postRenderTable);
     registerHelpers();
 
 
