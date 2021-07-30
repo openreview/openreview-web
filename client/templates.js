@@ -3247,7 +3247,7 @@ templates['partials/noteActivityV2'] = template({"1":function(container,depth0,h
     };
 
   return "      <div class=\"note-authors\">\n        "
-    + container.escapeExpression((lookupProperty(helpers,"noteAuthorsV2")||(depth0 && lookupProperty(depth0,"noteAuthorsV2"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"content") : depth0),(depth0 != null ? lookupProperty(depth0,"signatures") : depth0),(depth0 != null ? lookupProperty(depth0,"details") : depth0),{"name":"noteAuthorsV2","hash":{},"data":data,"loc":{"start":{"line":29,"column":8},"end":{"line":29,"column":52}}}))
+    + container.escapeExpression((lookupProperty(helpers,"noteAuthorsV2")||(depth0 && lookupProperty(depth0,"noteAuthorsV2"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"readers") : depth0),(depth0 != null ? lookupProperty(depth0,"content") : depth0),(depth0 != null ? lookupProperty(depth0,"signatures") : depth0),{"name":"noteAuthorsV2","hash":{},"data":data,"loc":{"start":{"line":29,"column":8},"end":{"line":29,"column":52}}}))
     + "\n      </div>\n";
 },"23":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {

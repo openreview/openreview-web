@@ -299,12 +299,11 @@ Handlebars.registerHelper('noteAuthors', function(content, signatures, details) 
   return new Handlebars.SafeString(html);
 });
 
-Handlebars.registerHelper('noteAuthorsV2', function(content, signatures, details) {
+Handlebars.registerHelper('noteAuthorsV2', function (readers, content, signatures) {
   var html = '';
   var privateLabel = false;
 
-  if (details && details.original && !_.isEqual(details.original.content.authors?.value, content.authors?.value)) {
-    content = details.original.content;
+  if (!_.isEqual(readers?.sort(), content?.authors?.readers?.sort())) { // note reader and author are not the same
     privateLabel = true;
   }
 
