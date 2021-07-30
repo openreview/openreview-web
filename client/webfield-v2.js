@@ -1479,7 +1479,7 @@ module.exports = (function() {
 
       note.details.isForum = note.forum === note.id;
 
-      var invitationArr = note.invitations[0].split('/-/');
+      var invitationArr = note.version ? note.invitations[0].split('/-/') : note.invitation.split('/-/');
       note.details.group = invitationArr[0];
 
       var invitationLower = invitationArr[1].toLowerCase();
@@ -1505,8 +1505,8 @@ module.exports = (function() {
     }));
 
     if (options.showActionButtons) {
-      _registerActionButtonHandlersV2(
-        $container, notes, Handlebars.templates['partials/noteActivityV2'], options
+      Webfield._registerActionButtonHandlers(
+        $container, notes, Handlebars.templates['partials/noteActivity'], options
       );
     }
 

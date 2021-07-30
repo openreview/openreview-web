@@ -39,20 +39,6 @@
       </div>
     {{/if}}
   </div>
-
-  <div class="activity-actions">
-    {{#if options.showActionButtons}}{{#if details.writable}}
-      {{#unless details.isDeleted}}
-        <button class="btn btn-xs note-action-edit"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></button>
-      {{/unless}}
-      {{#unless details.isDeleted}}
-        <button class="btn btn-xs note-action-trash"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
-      {{/unless}}
-      {{#if details.isDeleted}}
-        <button class="btn btn-xs note-action-restore">Restore</button>
-      {{/if}}
-    {{/if}}{{/if}}
-  </div>
 </div>
 
 {{#if details.isForum}}

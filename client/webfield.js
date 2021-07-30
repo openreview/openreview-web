@@ -3276,6 +3276,7 @@ module.exports = (function() {
     jqErrorCallback: jqErrorCallback,
     filterNotes: filterNotes,
     defaultDisplayOptions: defaultDisplayOptions,
+    _registerActionButtonHandlers: _registerActionButtonHandlers,
     api: {
       getSubmissionInvitation: getSubmissionInvitation,
       getSubmissions: getSubmissions,
