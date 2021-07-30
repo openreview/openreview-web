@@ -1036,6 +1036,11 @@ module.exports = (function() {
 
   var renderTable = function(container, headings, templates, rows, options) {
     var defaults = {
+      reminderOptions: {
+        container: 'a.send-reminder-link',
+        defaultSubject: 'Reminder',
+        defaultBody: 'This is a reminder to please submit your review. \n\n Thank you,\n'
+      }
     };
     options = _.defaults(options, defaults);
 
@@ -1054,6 +1059,76 @@ module.exports = (function() {
 
       $('.table-container', container).remove();
       $(container).append(tableHtml);
+    }
+
+    var registerHelpers = function() {
+      $(container).on('change', '#select-all-papers', function(e) {
+        var $superCheckBox = $(this);
+        var $allPaperCheckBoxes = $('input.select-note-reviewers');
+        var $msgReviewerButton = $('#message-reviewers-btn');
+        if ($superCheckBox[0].checked === true) {
+          $allPaperCheckBoxes.prop('checked', true);
+          $msgReviewerButton.attr('disabled', false);
+        } else {
+          $allPaperCheckBoxes.prop('checked', false);
+          $msgReviewerButton.attr('disabled', true);
+        }
+      });
+
+      $(container).on('click', options.reminderOptions.container, function(e) {
+        var $link = $(this);
+        var userId = $link.data('userId');
+        var forumUrl = $link.data('forumUrl');
+
+        var sendReviewerReminderEmails = function(e) {
+          var postData = {
+            groups: [userId],
+            forumUrl: forumUrl,
+            subject: $('#message-reviewers-modal input[name="subject"]').val().trim(),
+            message: $('#message-reviewers-modal textarea[name="message"]').val().trim(),
+          };
+
+          $('#message-reviewers-modal').modal('hide');
+          promptMessage('A reminder email has been sent to ' + view.prettyId(userId), { overlay: true });
+          postReviewerEmails(postData);
+          $link.after(' (Last sent: ' + (new Date()).toLocaleDateString() + ')');
+
+          return false;
+        };
+
+        var modalHtml = Handlebars.templates.messageReviewersModalFewerOptions({
+          singleRecipient: true,
+          reviewerId: userId,
+          forumUrl: forumUrl,
+          defaultSubject: options.reminderOptions.defaultSubject,
+          defaultBody: options.reminderOptions.defaultBody,
+        });
+        $('#message-reviewers-modal').remove();
+        $('body').append(modalHtml);
+
+        $('#message-reviewers-modal .btn-primary').on('click', sendReviewerReminderEmails);
+        $('#message-reviewers-modal form').on('submit', sendReviewerReminderEmails);
+
+        $('#message-reviewers-modal').modal();
+        return false;
+      });
+
+      var postReviewerEmails = function(postData) {
+        postData.message = postData.message.replace(
+          '{{submit_review_link}}',
+          postData.forumUrl
+        );
+
+        return Webfield.post('/messages', _.pick(postData, ['groups', 'subject', 'message']))
+          .then(function(response) {
+            // Save the timestamp in the local storage
+            for (var i = 0; i < postData.groups.length; i++) {
+              var userId = postData.groups[i];
+              localStorage.setItem(postData.forumUrl + '|' + userId, Date.now());
+            }
+          });
+      };
+
     }
 
     if (options.sortOptions) {
@@ -1176,6 +1251,9 @@ module.exports = (function() {
       });
     }
     render(rows);
+    registerHelpers();
+
+
 
   }
 
