@@ -1440,7 +1440,7 @@ module.exports = (function() {
 
         var content = view.getContent(invitation, $contentMap);
 
-        // var signatureInputValues = view.idsFromListAdder(signatures, invitation.edit.signatures);
+        var signatureInputValues = view.idsFromListAdder(signatures, invitation.edit.signatures);
         // var readerValues = view.getReaders(readers, invitation, signatureInputValues);
         // var nonreaderValues = null;
         // if (_.has(invitation, 'edit.nonreaders.values')) {
@@ -1523,7 +1523,8 @@ module.exports = (function() {
         var editNote={
           note: {
             content: content[0]
-          }
+          },
+          signatures: signatureInputValues
         }
         if (_.isEmpty(files)) {
           return saveNote(editNote);
@@ -1738,6 +1739,7 @@ module.exports = (function() {
     })
 
     result.invitation = invitationObj.id
+    result.signatures = noteObj.signatures
     if (Object.keys(content).length) note.content = content
     if (Object.keys(note).length) result.note = note
     return result
