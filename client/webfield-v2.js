@@ -1338,6 +1338,8 @@ module.exports = (function() {
       renderTable: renderTable,
       renderTasks: renderTasks,
       renderTabPanel: renderTabPanel,
+      errorMessage: Webfield.ui.errorMessage,
+      done: Webfield.ui.done
     },
     utils: {
       getGroupsByNumber: getGroupsByNumber,
