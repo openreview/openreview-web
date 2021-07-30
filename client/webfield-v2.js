@@ -1037,7 +1037,7 @@ module.exports = (function() {
   var renderTable = function(container, rows, options) {
     var defaults = {
       renders:[],
-      headings: [],
+      headings: rows.length ? Object.keys(rows[0]) : [],
       extraClasses: 'ac-console-table',
       reminderOptions: {
         container: 'a.send-reminder-link',
