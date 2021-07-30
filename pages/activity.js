@@ -29,7 +29,7 @@ const Activity = ({ appContext }) => {
     const queryParamV2 = {
       signature: user.profile.id,
       trash: true,
-      details: 'forumContent,writable,invitation',
+      details: 'forumContent,writable,invitation,presentation',
       limit: 200,
     }
     let notes

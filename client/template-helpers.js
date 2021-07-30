@@ -387,9 +387,14 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
   }
 
   var contentKeys = Object.keys(noteObj.content);
-  var contentOrder = invitation
-    ? _.union(order(options.hash.isV2API && invitation.edit ? invitation.edit.note?.content : invitation.reply.content, invitation.id), contentKeys)
-    : contentKeys;
+  var contentOrder = [];
+  if (noteObj.version) {
+    contentOrder = Object.entries(noteObj.details.presentation ?? {}).sort((a, b) => a?.[1]?.order - b?.[1]?.order).map(p => p?.[0])
+  } else {
+    invitation
+      ? _.union(order(options.hash.isV2API && invitation.edit ? invitation.edit.note?.content : invitation.reply.content, invitation.id), contentKeys)
+      : contentKeys;
+  }
 
   var omittedContentFields = [
     'title', 'authors', 'author_emails', 'authorids', 'pdf',
