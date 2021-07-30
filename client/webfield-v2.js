@@ -1301,6 +1301,27 @@ module.exports = (function() {
     Webfield.ui.tabPanel(tabsList, { container: container });
   }
 
+  var setup = function(container, venueId, options) {
+    var defaults = {
+      title: venueId,
+      instructions: 'Instructions here',
+      tabs: [],
+      referrer: null
+    };
+    options = _.defaults(options, defaults);
+
+    if (options.referrer) {
+      OpenBanner.referrerLink(options.referrer);
+    } else {
+      OpenBanner.venueHomepageLink(venueId);
+    }
+    Webfield.ui.setup(container, venueId);
+    Webfield.ui.header(options.title, options.instructions);
+    if (options.tabs.length) {
+      renderTabPanel('#notes', options.tabs);
+    }
+  }
+
   return {
     getV2: getV2,
     postV2: postV2,
@@ -1311,6 +1332,7 @@ module.exports = (function() {
       getSubmissionsV2: getSubmissionsV2,
     },
     ui: {
+      setup: setup,
       submissionListV2: submissionListV2,
       activityListV2: activityListV2,
       renderTable: renderTable,
