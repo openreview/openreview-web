@@ -237,12 +237,17 @@ const Profile = ({ profile, publicProfile, appContext }) => {
 
   const loadPublications = async () => {
     let apiRes
+    const queryParam = {
+      'content.authorids': profile.id,
+      sort: 'cdate:desc',
+      limit: 1000,
+    }
     try {
-      apiRes = await api.get('/notes', { // TODO: use getCombined
-        'content.authorids': profile.id,
-        sort: 'cdate:desc',
-        limit: 1000,
-      }, { token: accessToken })
+      if (process.env.API_V2_URL) {
+        apiRes = await api.getCombined({ path: '/notes', data1: queryParam, options: { accessToken, sort: 'cdate:desc' } })
+      } else {
+        apiRes = await api.get('/notes', queryParam, { token: accessToken })
+      }
     } catch (error) {
       apiRes = error
     }
