@@ -303,7 +303,7 @@ Handlebars.registerHelper('noteAuthorsV2', function (readers, content, signature
   var html = '';
   var privateLabel = false;
 
-  if (!_.isEqual(readers?.sort(), content?.authors?.readers?.sort())) { // note reader and author are not the same
+  if (!_.isEqual(readers?.sort(), content?.authorids?.readers?.sort())) { // note reader and author are not the same
     privateLabel = true;
   }
 
