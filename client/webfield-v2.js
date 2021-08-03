@@ -1499,7 +1499,7 @@ module.exports = (function() {
     });
 
     var $container = $(options.container).eq(0);
-    $container.append(Handlebars.templates['partials/activityListV2']({
+    $container.append(Handlebars.templates['partials/activityList']({
       notes: notes,
       activityOptions: options
     }));

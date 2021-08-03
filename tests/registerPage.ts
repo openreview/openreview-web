@@ -52,8 +52,8 @@ test('enter invalid name', async (t) => {
 })
 
 test('enter valid name invalid email and change to valid email and register', async (t) => {
-  const firstName = 'testFirstNameaac' // must be new each test run
-  const lastName = 'testLastNameaac' // must be new each test run
+  const firstName = 'FirstNameaac' // must be new each test run
+  const lastName = 'LastNameaac' // must be new each test run
   const email = 'testemailaac@test.com' // must be new each test run
   await t
     .typeText(firstNameInputSelector, firstName) // must be new each test run
