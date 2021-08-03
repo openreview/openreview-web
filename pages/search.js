@@ -175,7 +175,13 @@ const Search = ({ appContext }) => {
         </h3>
         <hr className="small" />
 
-        <NoteList notes={searchResults.notes} displayOptions={displayOptions} />
+        <NoteList
+          notes={process.env.API_V2_URL
+            // eslint-disable-next-line no-return-assign,no-param-reassign
+            ? searchResults.notes.forEach(p => p.version = 2)
+            : searchResults.notes}
+          displayOptions={displayOptions}
+        />
 
         <PaginationLinks
           currentPage={page}

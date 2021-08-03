@@ -60,8 +60,11 @@ const AutoCompleteInput = () => {
         term, type: 'prefix', content: 'all', group: 'all', source: 'all', limit: 10,
       }, { ...(process.env.API_V2_URL && { version: 2 }) })
       if (cancelRequest) return
-      const tokenObjects = getTokenObjects(result.notes, term)
-      const titleObjects = getTitleObjects(result.notes, term)
+      let { notes } = result
+      // eslint-disable-next-line no-return-assign,no-param-reassign
+      if (process.env.API_V2_URL) notes = notes.forEach(p => p.version = 2)
+      const tokenObjects = getTokenObjects(notes, term)
+      const titleObjects = getTitleObjects(notes, term)
       if (tokenObjects.length && titleObjects.length) {
         setAutoCompleteItems([...tokenObjects, null, ...titleObjects]) // null maps to <hr/>
       } else {
