@@ -30,7 +30,7 @@ fixture`Setup data`
     await setupProfileViewEdit(ctx.superUserToken)
     await setupRegister(ctx.superUserToken)
     await createUser({
-      first: 'Test',
+      first: 'SomeFirstName',
       last: 'User',
       email: 'test@mail.com',
       password: '1234',
@@ -38,7 +38,7 @@ fixture`Setup data`
     })
     await createUser({
       first: 'John',
-      last: 'Test',
+      last: 'SomeLastName',
       email: 'john@mail.com',
       password: '1234',
       history: undefined,

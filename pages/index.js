@@ -56,10 +56,7 @@ const Home = () => {
     try {
       const [activeVenues, openVenues, allVenues] = await Promise.all([
         api.get('/groups', { id: 'active_venues' }).then(formatGroupResults),
-        api.getCombined({
-          path: '/invitations',
-          data1: { invitee: '~', pastdue: false },
-        }).then(formatInvitationResults),
+        api.getCombined('/invitations', { invitee: '~', pastdue: false }).then(formatInvitationResults),
         api.get('/groups', { id: 'host' }).then(formatGroupResults),
       ])
       setVenues({
