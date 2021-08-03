@@ -1011,7 +1011,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
       return map;
     }, {});
     sm.update('forumFiltersMap', filterMap);
-    console.log(filterMap);
 
     return $('<ul class="nav nav-tabs filter-tabs">').append(
       replyForumViews.map(function(view) {
