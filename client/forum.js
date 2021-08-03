@@ -1011,6 +1011,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       return map;
     }, {});
     sm.update('forumFiltersMap', filterMap);
+    console.log(filterMap);
 
     return $('<ul class="nav nav-tabs filter-tabs">').append(
       replyForumViews.map(function(view) {
@@ -1028,7 +1029,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         var mapKey = field.startsWith('-')
           ? 'excluded-' + field.slice(1)
           : field;
-        map[mapKey] = val.split(',');
+        map[mapKey] = val.split(',').filter(Boolean);
       }
       return map;
     }, {});
