@@ -243,11 +243,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
       limit: 1000,
     }
     try {
-      if (process.env.API_V2_URL) {
-        apiRes = await api.getCombined({ path: '/notes', data1: queryParam, options: { accessToken, sort: 'cdate:desc' } })
-      } else {
-        apiRes = await api.get('/notes', queryParam, { token: accessToken })
-      }
+      apiRes = await api.getCombined('/notes', queryParam, queryParam, { accessToken })
     } catch (error) {
       apiRes = error
     }

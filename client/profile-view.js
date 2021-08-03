@@ -896,8 +896,8 @@ module.exports = function(profile, params, submitF, cancelF) {
       ),
 
       params.hidePublicationEditor ? null : $('<section>').append(
-        '<h4>Publications</h4>',
-        '<p class="instructions">Below is a list of all publications on OpenReview that include you as an author. Some papers imported from DBLP or other sources have a minus sign next to the title; click this to remove any publications of which you are not actually an author.</p>',
+        '<h4>Imported Publications</h4>',
+        '<p class="instructions">Below is a list of publications on OpenReview that is imported from DBLP or other sources and include you as an author. Click the minus sign next to the title to remove any publications of which you are not actually an author.</p>',
         $('<div>', { id: 'publication-editor-container' })
       ),
     ];
@@ -915,7 +915,8 @@ module.exports = function(profile, params, submitF, cancelF) {
         details: 'invitation,original',
         sort: 'tmdate:desc',
         offset: offset,
-        limit: publicationEditorPageSize
+        limit: publicationEditorPageSize,
+        invitation: 'dblp.org/-/record|OpenReview.net/Archive/-/Imported_Record|OpenReview.net/Archive/-/Direct_Upload.*' //TODO: change to use invitations param
       }, { cache: false });
     };
 
