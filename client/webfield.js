@@ -293,7 +293,8 @@ module.exports = (function() {
       source: 'forum',
       group: groupId,
       limit: options.pageSize,
-      offset: options.offset
+      offset: options.offset,
+      version: 1
     };
 
     if (options.invitation) {

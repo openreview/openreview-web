@@ -121,7 +121,7 @@ const Search = ({ appContext }) => {
         source: query.source || 'all',
         limit: pageSize,
         offset: pageSize * (page - 1),
-      }, { accessToken })
+      }, { accessToken, ...(process.env.API_V2_URL && { version: 2 }) })
 
       if (searchRes.notes) {
         setSearchResults(searchRes)
