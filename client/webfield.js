@@ -1391,7 +1391,7 @@ module.exports = (function() {
 
       note.details.isForum = note.forum === note.id;
 
-      var invitationArr = note.invitation.split('/-/');
+      var invitationArr = note.version ? note.invitations[0].split('/-/') : note.invitation.split('/-/');
       note.details.group = invitationArr[0];
 
       var invitationLower = invitationArr[1].toLowerCase();
@@ -3272,11 +3272,6 @@ module.exports = (function() {
     disableAutoLoading: disableAutoLoading,
     editModeBanner: editModeBanner,
     filterCollections: filterCollections,
-    jqSuccessCallback: jqSuccessCallback,
-    jqErrorCallback: jqErrorCallback,
-    filterNotes: filterNotes,
-    defaultDisplayOptions: defaultDisplayOptions,
-    _registerActionButtonHandlers: _registerActionButtonHandlers,
     api: {
       getSubmissionInvitation: getSubmissionInvitation,
       getSubmissions: getSubmissions,
