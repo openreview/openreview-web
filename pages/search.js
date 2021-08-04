@@ -1,6 +1,8 @@
 /* globals typesetMathJax: false */
 
-import { useState, useEffect, useContext } from 'react'
+import {
+  useState, useEffect, useContext, useRef,
+} from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import truncate from 'lodash/truncate'
@@ -98,9 +100,11 @@ const FilterForm = ({ searchQuery }) => {
 
 const Search = ({ appContext }) => {
   const query = useQuery()
+  const [allSearchResults, setAllSearchResults] = useState(null)
   const [searchResults, setSearchResults] = useState(null)
   const [error, setError] = useState(null)
   const { accessToken, userLoading } = useContext(UserContext)
+  const currentQuery = useRef(null)
   const { setBannerHidden } = appContext
   const page = parseInt(query?.page, 10) || 1
   const pageSize = 25
@@ -119,12 +123,18 @@ const Search = ({ appContext }) => {
         content: query.content || 'all',
         group: query.group || 'all',
         source: query.source || 'all',
-        limit: pageSize,
-        offset: pageSize * (page - 1),
+        limit: 1000,
       }, null, { accessToken, resultsKey: 'notes' })
 
       if (searchRes.notes) {
-        setSearchResults(searchRes)
+        setAllSearchResults({
+          notes: searchRes.notes.slice(0, 1000),
+          count: searchRes.count > 1000 ? 1000 : searchRes.count,
+        })
+        setSearchResults({
+          notes: searchRes.notes.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize),
+          count: searchRes.count > 1000 ? 1000 : searchRes.count,
+        })
         setError(null)
       } else {
         setError({ message: 'An unknown error occurred. Please try again later.' })
@@ -143,8 +153,22 @@ const Search = ({ appContext }) => {
       setError({ message: 'Missing search term or query' })
       return
     }
-
-    loadSearchResults()
+    const queryDiff = Object.keys({ ...query, ...currentQuery.current })
+      .filter(p => query[p] !== currentQuery.current?.[p])
+    if (queryDiff.length === 0) {
+      currentQuery.current = query
+      return
+    }
+    if (queryDiff.length === 1 && queryDiff[0] === 'page' && allSearchResults.notes?.length) {
+      // if only page param is changed, load results from local state
+      setSearchResults({
+        notes: allSearchResults.notes?.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize),
+        count: allSearchResults?.count,
+      })
+    } else {
+      loadSearchResults()
+    }
+    currentQuery.current = query
   }, [userLoading, query])
 
   useEffect(() => {
