@@ -768,7 +768,6 @@ module.exports = (function() {
       const filterResult = filterTreeNode(collections, syntaxTree, filterOperators, propertiesAllowed, uniqueIdentifier)
       return { filteredRows: filterResult }
     } catch (error) {
-      console.log(error)
       return { filteredRows: collections, queryIsInvalid: true }
     }
   }
