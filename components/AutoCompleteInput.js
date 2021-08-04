@@ -58,7 +58,7 @@ const AutoCompleteInput = () => {
     try {
       const result = await api.getCombined('/notes/search', {
         term, type: 'prefix', content: 'all', group: 'all', source: 'all', limit: 10,
-      }, { resultsKey: 'notes' })
+      }, null, { resultsKey: 'notes' })
       if (cancelRequest) return
       const { notes } = result
       const tokenObjects = getTokenObjects(notes, term)
