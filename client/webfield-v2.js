@@ -1469,7 +1469,6 @@ module.exports = (function() {
       invitationInfo: invitationInfo,
       invitationEditor: invitationEditor,
       // Aliases
-      activityList: Webfield.ui.activityList,
       setup: Webfield.ui.setup,
       header: Webfield.ui.basicHeader,
       venueHeader: Webfield.ui.venueHeader,
@@ -1479,6 +1478,7 @@ module.exports = (function() {
       submissionList: Webfield.ui.submissionList,
       taskList: Webfield.ui.taskList,
       newTaskList: Webfield.ui.newTaskList,
+      activityList: Webfield.ui.activityList,
       tabPanel: Webfield.ui.tabPanel,
       searchResults: Webfield.ui.searchResults,
       userModerationQueue: Webfield.ui.userModerationQueue,
