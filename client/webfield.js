@@ -294,7 +294,6 @@ module.exports = (function() {
       group: groupId,
       limit: options.pageSize,
       offset: options.offset,
-      version: 1
     };
 
     if (options.invitation) {

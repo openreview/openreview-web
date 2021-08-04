@@ -56,13 +56,11 @@ const AutoCompleteInput = () => {
 
   const searchByTerm = async (term) => {
     try {
-      const result = await api.get('/notes/search', {
+      const result = await api.getCombined('/notes/search', {
         term, type: 'prefix', content: 'all', group: 'all', source: 'all', limit: 10,
-      }, { ...(process.env.API_V2_URL && { version: 2 }) })
+      }, { resultsKey: 'notes' })
       if (cancelRequest) return
-      let { notes } = result
-      // eslint-disable-next-line no-return-assign,no-param-reassign
-      if (process.env.API_V2_URL) notes = notes.forEach(p => p.version = 2)
+      const { notes } = result
       const tokenObjects = getTokenObjects(notes, term)
       const titleObjects = getTitleObjects(notes, term)
       if (tokenObjects.length && titleObjects.length) {

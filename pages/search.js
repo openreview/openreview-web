@@ -113,7 +113,7 @@ const Search = ({ appContext }) => {
 
   const loadSearchResults = async () => {
     try {
-      const searchRes = await api.get('/notes/search', {
+      const searchRes = await api.getCombined('/notes/search', {
         term: query.term,
         type: 'terms',
         content: query.content || 'all',
@@ -121,7 +121,7 @@ const Search = ({ appContext }) => {
         source: query.source || 'all',
         limit: pageSize,
         offset: pageSize * (page - 1),
-      }, { accessToken, ...(process.env.API_V2_URL && { version: 2 }) })
+      }, null, { accessToken, resultsKey: 'notes' })
 
       if (searchRes.notes) {
         setSearchResults(searchRes)
@@ -176,10 +176,7 @@ const Search = ({ appContext }) => {
         <hr className="small" />
 
         <NoteList
-          notes={process.env.API_V2_URL
-            // eslint-disable-next-line no-return-assign,no-param-reassign
-            ? searchResults.notes.forEach(p => p.version = 2)
-            : searchResults.notes}
+          notes={searchResults.notes}
           displayOptions={displayOptions}
         />
 
