@@ -684,6 +684,7 @@ module.exports = (function() {
     // propertyValue can be number/array/string/obj
     let isString = false
     if (propertyValue === null || propertyValue === undefined || targetValue === null || targetValue === undefined) return false
+    if (typeof (targetValue) === 'number' && propertyValue === 'N/A') propertyValue = 0
     if (typeof (propertyValue) === 'object' && !Array.isArray(propertyValue)) { // reviewers are objects
       propertyValue = [
         ...Object.values(propertyValue).map(p => p.name),
@@ -767,6 +768,7 @@ module.exports = (function() {
       const filterResult = filterTreeNode(collections, syntaxTree, filterOperators, propertiesAllowed, uniqueIdentifier)
       return { filteredRows: filterResult }
     } catch (error) {
+      console.log(error)
       return { filteredRows: collections, queryIsInvalid: true }
     }
   }
