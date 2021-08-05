@@ -2,7 +2,6 @@ import uniqBy from 'lodash/uniqBy'
 import isEqual from 'lodash/isEqual'
 import zip from 'lodash/zip'
 import Link from 'next/link'
-import _ from 'lodash'
 import { prettyId } from '../lib/utils'
 
 const NoteAuthors = ({
@@ -72,7 +71,7 @@ export const NoteAuthorsV2 = ({
   authors, authorIds, signatures, noteReaders,
 }) => {
   let showPrivateLabel = false
-  if (!_.isEqual(noteReaders?.sort(), authorIds?.readers?.sort())) {
+  if (!isEqual(noteReaders?.sort(), authorIds?.readers?.sort())) {
     showPrivateLabel = true
   }
 

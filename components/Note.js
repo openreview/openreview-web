@@ -63,7 +63,7 @@ const Note = ({ note, invitation, options }) => {
   )
 }
 
-export const NoteV2 = ({ note, invitation, options }) => {
+export const NoteV2 = ({ note, options }) => {
   const privatelyRevealed = options.showPrivateIcon && !note.readers.includes('everyone')
 
   return (
@@ -112,7 +112,6 @@ export const NoteV2 = ({ note, invitation, options }) => {
         <NoteContentV2
           id={note.id}
           content={note.content}
-          invitation={invitation}
           omit={options.omitFields}
           isReference={options.isReference}
           presentation={note.details?.presentation}

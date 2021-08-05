@@ -95,7 +95,7 @@ function DownloadLink({
 }
 
 export const NoteContentV2 = ({
-  id, content, invitation, omit = [], include = [], isReference = false, presentation,
+  id, content, omit = [], include = [], isReference = false, presentation,
 }) => {
   const contentKeys = Object.keys(content)
   const contentOrder = presentation
