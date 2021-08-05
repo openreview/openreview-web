@@ -684,6 +684,7 @@ module.exports = (function() {
     // propertyValue can be number/array/string/obj
     let isString = false
     if (propertyValue === null || propertyValue === undefined || targetValue === null || targetValue === undefined) return false
+    if (typeof (targetValue) === 'number' && propertyValue === 'N/A') propertyValue = 0
     if (typeof (propertyValue) === 'object' && !Array.isArray(propertyValue)) { // reviewers are objects
       propertyValue = [
         ...Object.values(propertyValue).map(p => p.name),
@@ -1391,7 +1392,7 @@ module.exports = (function() {
 
       note.details.isForum = note.forum === note.id;
 
-      var invitationArr = note.invitation.split('/-/');
+      var invitationArr = note.version ? note.invitations[0].split('/-/') : note.invitation.split('/-/');
       note.details.group = invitationArr[0];
 
       var invitationLower = invitationArr[1].toLowerCase();
@@ -3272,11 +3273,6 @@ module.exports = (function() {
     disableAutoLoading: disableAutoLoading,
     editModeBanner: editModeBanner,
     filterCollections: filterCollections,
-    jqSuccessCallback: jqSuccessCallback,
-    jqErrorCallback: jqErrorCallback,
-    filterNotes: filterNotes,
-    defaultDisplayOptions: defaultDisplayOptions,
-    _registerActionButtonHandlers: _registerActionButtonHandlers,
     api: {
       getSubmissionInvitation: getSubmissionInvitation,
       getSubmissions: getSubmissions,

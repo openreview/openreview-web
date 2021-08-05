@@ -53,8 +53,7 @@ const Activity = ({ appContext }) => {
     if (clientJsLoading || !activityNotes) return
 
     $(activityRef.current).empty()
-    const activityList = process.env.API_V2_URL ? Webfield2.ui.activityList : Webfield.ui.activityList
-    activityList(activityNotes, {
+    Webfield.ui.activityList(activityNotes, {
       container: activityRef.current,
       emptyMessage: 'No recent activity to display.',
       user: user.profile,
