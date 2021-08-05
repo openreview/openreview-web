@@ -63,7 +63,7 @@ var getTokenObjects = function(docArray, searchTerm) {
 
   var tokens = _.uniq(_.filter(_.flattenDeep(_.map(contentArray, function(contentObj) {
     return _.without(_.map(contentObj.content, function(val) {
-      if (contentObj.version) val = val?.value
+      if (contentObj.version === 2) val = val?.value
       if (_.isArray(val)) {
         return val;
       } else if (typeof val === 'string') {
@@ -106,8 +106,8 @@ var getTitleObjects = function(docArray, searchTerm) {
   var termRegex = new RegExp(_.escapeRegExp(searchTerm) + '.*', 'i');
   return _.filter(_.map(docArray, function(docObj) {
     var contentObj = docObj.content;
-    var title = docObj.version ? contentObj.title?.value : contentObj.title;
-    var authors = docObj.version ? contentObj.authors?.value : contentObj.authors;
+    var title = docObj.version === 2 ? contentObj.title?.value : contentObj.title;
+    var authors = docObj.version === 2 ? contentObj.authors?.value : contentObj.authors;
     return {
       value: _.isEmpty(title) ? '' : title,
       forum: _.has(docObj, 'forum') ? docObj.forum : '',

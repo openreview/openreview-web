@@ -5,7 +5,7 @@ const NoteList = ({ notes, displayOptions }) => (
     {notes.map(note => (
       <li key={note.id}>
         {
-          note.version
+          note.version === 2
             ? <NoteV2 note={note} options={displayOptions} />
             : <Note note={note} options={displayOptions} />
         }

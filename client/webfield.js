@@ -1392,7 +1392,7 @@ module.exports = (function() {
 
       note.details.isForum = note.forum === note.id;
 
-      var invitationArr = note.version ? note.invitations[0].split('/-/') : note.invitation.split('/-/');
+      var invitationArr = note.version === 2 ? note.invitations[0].split('/-/') : note.invitation.split('/-/');
       note.details.group = invitationArr[0];
 
       var invitationLower = invitationArr[1].toLowerCase();
