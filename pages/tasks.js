@@ -63,7 +63,7 @@ const Tasks = ({ appContext }) => {
     const invitationPromises = [
       api.getCombined('/invitations', { ...commonQueryParam, replyto: true, details: 'replytoNote,repliedNotes' }, null, commonOption).then(addPropertyToInvitations('noteInvitation')),
       api.getCombined('/invitations', { ...commonQueryParam, type: 'tags' }, null, commonOption).then(addPropertyToInvitations('tagInvitation')),
-      api.getCombined('/invitations', { ...commonQueryParam, type: 'edges', details: 'repliedEdges' }, isNull, commonOption).then(addPropertyToInvitations('tagInvitation')),
+      api.getCombined('/invitations', { ...commonQueryParam, type: 'edges', details: 'repliedEdges' }, null, commonOption).then(addPropertyToInvitations('tagInvitation')),
     ]
 
     Promise.all(invitationPromises)
