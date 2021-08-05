@@ -2,6 +2,7 @@ import uniqBy from 'lodash/uniqBy'
 import isEqual from 'lodash/isEqual'
 import zip from 'lodash/zip'
 import Link from 'next/link'
+import _ from 'lodash'
 import { prettyId } from '../lib/utils'
 
 const NoteAuthors = ({
@@ -68,25 +69,16 @@ const NoteAuthors = ({
 }
 
 export const NoteAuthorsV2 = ({
-  authors, authorIds, signatures, original,
+  authors, authorIds, signatures, noteReaders,
 }) => {
-  // Use original note authors if available
-  let displayAuthors
-  let displayAuthorIds
-  let showPrivateLabel
-  if (original?.content?.authors?.value && !isEqual(authors, original.content.authors.value)) {
-    displayAuthors = original.content.authors.value
-    displayAuthorIds = original.content.authorIds.value || []
+  let showPrivateLabel = false
+  if (!_.isEqual(noteReaders?.sort(), authorIds?.readers?.sort())) {
     showPrivateLabel = true
-  } else {
-    displayAuthors = authors
-    displayAuthorIds = authorIds || []
-    showPrivateLabel = false
   }
 
   let authorsList
-  if (displayAuthors?.length > 0) {
-    authorsList = zip(displayAuthors, displayAuthorIds)
+  if (authors?.value?.length > 0) {
+    authorsList = zip(authors?.value, authorIds?.value || [])
   } else if (signatures?.length > 0) {
     authorsList = signatures.map(id => ([prettyId(id), id]))
   } else {

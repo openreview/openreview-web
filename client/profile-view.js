@@ -897,7 +897,7 @@ module.exports = function(profile, params, submitF, cancelF) {
 
       params.hidePublicationEditor ? null : $('<section>').append(
         '<h4>Imported Publications</h4>',
-        '<p class="instructions">Below is a list of publications on OpenReview that is imported from DBLP or other sources and include you as an author. Click the minus sign next to the title to remove any publications of which you are not actually an author.</p>',
+        '<p class="instructions">Below is a list of publications imported from DBLP and other sources that include you as an author. To remove any publications of which you are not actually an author of, click the minus sign next to the title.</p>',
         $('<div>', { id: 'publication-editor-container' })
       ),
     ];

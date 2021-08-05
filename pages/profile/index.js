@@ -243,7 +243,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
       limit: 1000,
     }
     try {
-      apiRes = await api.getCombined('/notes', queryParam, queryParam, { accessToken })
+      apiRes = await api.getCombined('/notes', queryParam, null, { accessToken })
     } catch (error) {
       apiRes = error
     }

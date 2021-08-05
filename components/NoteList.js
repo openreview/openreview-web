@@ -5,7 +5,9 @@ const NoteList = ({ notes, displayOptions }) => (
     {notes.map(note => (
       <li key={note.id}>
         {
-          note.version ? <NoteV2 note={note} options={displayOptions} /> : <Note note={note} options={displayOptions} />
+          note.version
+            ? <NoteV2 note={note} options={displayOptions} />
+            : <Note note={note} options={displayOptions} />
         }
       </li>
     ))}

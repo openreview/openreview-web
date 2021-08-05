@@ -1,7 +1,7 @@
 import NoteTitle, { NoteTitleV2 } from './NoteTitle'
 import NoteAuthors, { NoteAuthorsV2 } from './NoteAuthors'
 import NoteReaders from './NoteReaders'
-import NoteContent from './NoteContent'
+import NoteContent, { NoteContentV2 } from './NoteContent'
 import Icon from './Icon'
 import { prettyId, forumDate, inflect } from '../lib/utils'
 
@@ -71,7 +71,7 @@ export const NoteV2 = ({ note, invitation, options }) => {
       <NoteTitleV2
         id={note.id}
         forum={note.forum}
-        invitation={note.invitation}
+        invitation={note.invitations[0]}
         content={note.content}
         signatures={note.signatures}
         options={options}
@@ -88,10 +88,10 @@ export const NoteV2 = ({ note, invitation, options }) => {
 
       <div className="note-authors">
         <NoteAuthorsV2
-          authors={note.content.authors?.value}
-          authorIds={note.content.authorids?.value}
+          authors={note.content.authors}
+          authorIds={note.content.authorids}
           signatures={note.signatures}
-          original={note.details?.original}
+          noteReaders={note.readers}
         />
       </div>
 
@@ -109,12 +109,13 @@ export const NoteV2 = ({ note, invitation, options }) => {
       </ul>
 
       {options.showContents && (!note.ddate || note.ddate > Date.now()) && (
-        <NoteContent
+        <NoteContentV2
           id={note.id}
           content={note.content}
-          invitation={note.details?.originalInvitation || note.details?.invitation || invitation}
+          invitation={invitation}
           omit={options.omitFields}
           isReference={options.isReference}
+          presentation={note.details?.presentation}
         />
       )}
     </div>

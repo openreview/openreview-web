@@ -53,13 +53,6 @@ export const NoteTitleV2 = ({
         <img src="/images/html_icon_blue.svg" alt="hmtl icon" />
       </a>
     )}
-
-    {/* TODO: convert legacy notes that still use `ee` to use `html` */}
-    {options.htmlLink && content.ee && (
-      <a href={content.ee} className="html-link" title="Open Website" rel="noopener noreferrer" target="_blank">
-        <img src="/images/html_icon_blue.svg" alt="hmtl icon" />
-      </a>
-    )}
   </h4>
 )
 
