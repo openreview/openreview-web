@@ -58,6 +58,7 @@ const Activity = ({ appContext }) => {
       emptyMessage: 'No recent activity to display.',
       user: user.profile,
       showActionButtons: true,
+      isActivityPage: true,
     })
 
     $('[data-toggle="tooltip"]').tooltip()

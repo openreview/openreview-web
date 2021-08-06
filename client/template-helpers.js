@@ -127,7 +127,8 @@ Handlebars.registerHelper('pdfUrl', function(note, isReference) {
   }
 
   var urlPath = isReference ? '/references/pdf' : '/pdf';
-  return _.startsWith(note.content.pdf, '/pdf') ? urlPath + '?id=' + note.id : note.content.pdf;
+  var pdfValue = note.version === 2 ? note.content.pdf?.value : note.content.pdf
+  return _.startsWith(pdfValue, '/pdf') ? urlPath + '?id=' + note.id : pdfValue;
 });
 
 Handlebars.registerHelper('forumDate', view.forumDate);
@@ -300,6 +301,7 @@ Handlebars.registerHelper('noteAuthors', function(content, signatures, details) 
 });
 
 Handlebars.registerHelper('noteAuthorsV2', function (readers, content, signatures) {
+  console.log(readers)
   var html = '';
   var privateLabel = false;
 
@@ -1013,6 +1015,7 @@ Handlebars.registerHelper('getAnonId', function(varName,memberId,memberAnonIdMap
 Handlebars.registerPartial('noteContent', Handlebars.templates['partials/noteContent']);
 
 Handlebars.registerPartial('noteBasic', Handlebars.templates['partials/noteBasic']);
+Handlebars.registerPartial('noteBasicV2', Handlebars.templates['partials/noteBasicV2']);
 Handlebars.registerPartial('noteList', Handlebars.templates['partials/noteList']);
 
 Handlebars.registerPartial('noteActivity', Handlebars.templates['partials/noteActivity']);

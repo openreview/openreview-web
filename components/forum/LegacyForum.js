@@ -1,9 +1,9 @@
 import { useEffect, useContext } from 'react'
 import UserContext from '../UserContext'
 import LoadingSpinner from '../LoadingSpinner'
-import NoteAuthors from '../NoteAuthors'
+import NoteAuthors, { NoteAuthorsV2 } from '../NoteAuthors'
 import NoteReaders from '../NoteReaders'
-import NoteContent from '../NoteContent'
+import NoteContent, { NoteContentV2 } from '../NoteContent'
 import { prettyId, inflect, forumDate } from '../../lib/utils'
 
 // Component Styles
@@ -64,6 +64,62 @@ export default function LegacyForum({
   )
 }
 
+export const LegacyForumV2 = ({
+  forumNote, selectedNoteId, selectedInvitationId, clientJsLoading,
+}) => {
+  const { user, userLoading } = useContext(UserContext)
+  const { id, content, details } = forumNote
+  const authors = Array.isArray(content.authors?.value) || typeof content.authors?.value === 'string'
+    ? [content.authors?.value]?.flat()
+    : []
+
+  // Load and execute legacy forum code
+  useEffect(() => {
+    if (clientJsLoading || userLoading) return
+
+    // eslint-disable-next-line global-require
+    const runForum = require('../../client/forum-v2')
+    runForum(id, selectedNoteId, selectedInvitationId, user)
+  }, [clientJsLoading, user, JSON.stringify(authors), userLoading]) // authors is reset when clientJsLoading turns false
+
+  return (
+    <div className="forum-container">
+      <div className="note">
+        <ForumTitle
+          id={id}
+          title={content.title?.value}
+          pdf={content.pdf?.value}
+          html={content.html?.value}
+        />
+
+        <ForumAuthors
+          authors={content.authors} // NoteAuthorsV2 is expecting obj
+          authorIds={content.authorids}
+          signatures={forumNote.signatures}
+          noteReaders={forumNote.readers}
+          isV2Note
+        />
+
+        <ForumMetaV2 note={forumNote} />
+
+        <NoteContentV2
+          id={id}
+          content={content}
+          presentation={details.presentation}
+        />
+
+        <ForumReplyCount count={details.replyCount} />
+      </div>
+
+      <hr />
+
+      <div id="note_children">
+        <LoadingSpinner />
+      </div>
+    </div>
+  )
+}
+
 const ForumTitle = ({
   id, title, pdf, html,
 }) => (
@@ -87,17 +143,16 @@ const ForumTitle = ({
 )
 
 const ForumAuthors = ({
-  authors, authorIds, signatures, original,
+  authors, authorIds, signatures, original, isV2Note, noteReaders,
 }) => (
   <div className="meta_row">
 
     <h3 className="signatures author">
-      <NoteAuthors
-        authors={authors}
-        authorIds={authorIds}
-        signatures={signatures}
-        original={original}
-      />
+      {
+        isV2Note
+          ? <NoteAuthorsV2 authors={authors} authorIds={authorIds} signatures={signatures} noteReaders={noteReaders} />
+          : <NoteAuthors authors={authors} authorIds={authorIds} signatures={signatures} original={original} />
+      }
     </h3>
   </div>
 )
@@ -105,13 +160,35 @@ const ForumAuthors = ({
 const ForumMeta = ({ note }) => (
   <div className="meta_row">
     <span className="date item">
-      {forumDate(note.cdate, note.tcdatem, note.mdate, note.tmdate, note.content.year)}
+      {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year)}
     </span>
 
     {note.content.venue ? (
       <span className="item">{note.content.venue}</span>
     ) : (
       <span className="item">{prettyId(note.invitation)}</span>
+    )}
+
+    {note.readers && (
+      <span className="item">
+        Readers:
+        {' '}
+        <NoteReaders readers={note.readers} />
+      </span>
+    )}
+  </div>
+)
+
+const ForumMetaV2 = ({ note }) => (
+  <div className="meta_row">
+    <span className="date item">
+      {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year?.value)}
+    </span>
+
+    {note.content.venue?.value ? (
+      <span className="item">{note.content.venue.value}</span>
+    ) : (
+      <span className="item">{prettyId(note.invitations[0])}</span>
     )}
 
     {note.readers && (

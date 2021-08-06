@@ -26,7 +26,7 @@
 
     {{#if details.isForum}}
       <div class="note-authors">
-        {{noteAuthorsV2 readers content signatures details}}
+        {{noteAuthorsV2 readers content signatures}}
       </div>
     {{else}}
       <div class="parent-title">
@@ -37,6 +37,24 @@
           {{/with}}
         </span>
       </div>
+    {{/if}}
+  </div>
+
+   <div class="activity-actions">
+    {{#if options.showActionButtons}}
+      {{#unless options.isActivityPage}} {{! activity page hide action button}}
+        {{#if details.writable}}
+          {{#unless details.isDeleted}}
+            <button class="btn btn-xs note-action-edit"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></button>
+          {{/unless}}
+          {{#unless details.isDeleted}}
+            <button class="btn btn-xs note-action-trash"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+          {{/unless}}
+          {{#if details.isDeleted}}
+            <button class="btn btn-xs note-action-restore">Restore</button>
+          {{/if}}
+        {{/if}}
+        {{/unless}}
     {{/if}}
   </div>
 </div>

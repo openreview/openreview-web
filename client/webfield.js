@@ -3273,6 +3273,7 @@ module.exports = (function() {
     disableAutoLoading: disableAutoLoading,
     editModeBanner: editModeBanner,
     filterCollections: filterCollections,
+    _registerActionButtonHandlers: _registerActionButtonHandlers,
     api: {
       getSubmissionInvitation: getSubmissionInvitation,
       getSubmissions: getSubmissions,
