@@ -916,7 +916,7 @@ module.exports = function(profile, params, submitF, cancelF) {
         sort: 'tmdate:desc',
         offset: offset,
         limit: publicationEditorPageSize,
-        invitation: 'dblp.org/-/record|OpenReview.net/Archive/-/Imported_Record|OpenReview.net/Archive/-/Direct_Upload.*' //TODO: change to use invitations param
+        invitations: ['dblp.org/-/record','OpenReview.net/Archive/-/Imported_Record','OpenReview.net/Archive/-/Direct_Upload']
       }, { cache: false });
     };
 
