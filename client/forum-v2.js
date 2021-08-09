@@ -52,10 +52,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
       invitationsP = $.Deferred().resolve([]);
 
     } else {
-      notesP = Webfield.get('/notes', {
+      notesP = Webfield2.get('/notes', {
         forum: forumId,
         trash: true,
-        details: 'replyCount,writable,revisions,original,overwriting,invitation,tags'
+        details: 'replyCount,writable,revisions,overwriting,invitation,tags,presentation'
       }, { handleErrors: false })
         .then(function(result) {
           if (!result.notes || !result.notes.length) {
@@ -73,7 +73,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
           return getProfilesP(notes);
         }, onError);
 
-      invitationsP = Webfield.get('/invitations', {
+      invitationsP = Webfield2.get('/invitations', {
         replyForum: forumId, details: 'repliedNotes'
       }, { handleErrors: false })
         .then(function(result) {
@@ -86,7 +86,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         return $.Deferred().resolve([]);
       }
 
-      return Webfield.get('/invitations', {
+      return Webfield2.get('/invitations', {
         replyForum: forum, tags: true
       }, { handleErrors: false })
         .then(function(result) {
@@ -94,77 +94,36 @@ module.exports = function(forumId, noteId, invitationId, user) {
         }, onError);
     };
 
-    var originalInvitationsP = function(original) {
-      if (!original) {
-        return $.Deferred().resolve([]);
-      }
-
-      return Webfield.get('/invitations', {
-        replyForum: original.id, details: 'repliedNotes'
-      }, { handleErrors: false })
-        .then(function(result) {
-          if (!result.invitations || !result.invitations.length) {
-            return [];
-          }
-          return result.invitations;
-        }, onError);
-    };
-
     var noteRecsP = $.when(notesP, invitationsP).then(function(notes, invitations) {
-
-      // a "common invitation" is one that applies to all notes in the forum.
-      var commonInvitations = _.filter(invitations, function(invitation) {
-        return _.isEmpty(invitation.reply.replyto) &&
-          _.isEmpty(invitation.reply.referent) &&
-          _.isEmpty(invitation.reply.referentInvitation) &&
-          _.isEmpty(invitation.reply.invitation);
-      });
-
       var noteRecPs = _.map(notes, function(note) {
-        var noteInvitations = _.filter(invitations, function(invitation) {
-          // Check if invitation is replying to this note
-          var isInvitationRelated = (invitation.reply.replyto === note.id) || (invitation.reply.invitation === note.invitation);
-          // Check if invitation does not have multiReply OR invitation has the field multiReply but it is not set to false OR invitation has the field multireply which is set to false but there have not been any replies yet
-          var isMultireplyApplicable = (!_.has(invitation, 'multiReply') || (invitation.multiReply !== false) || !_.has(invitation, 'details.repliedNotes[0]'));
-          return isInvitationRelated && isMultireplyApplicable;
-        });
+        // pure delete invitation without content
+        var deleteOnlyInvitation = invitations.filter(p => p.edit?.note?.id?.value === note.id || note.invitations.includes(p.edit?.note?.id?.["value-invitation"]))
+          .find(p => p.edit?.note?.ddate && !p.edit?.note?.content)
 
-        var referenceInvitations = _.filter(invitations, function(invitation) {
-          // Check if invitation is replying to this note
-          var isInvitationRelated = (invitation.reply.referent === note.id) || (invitation.reply.referentInvitation === note.invitation);
-          // Check if invitation does not have multiReply OR invitation has the field multiReply but it is not set to false OR invitation has the field multireply which is set to false but there have not been any replies yet
-          var isMultireplyApplicable = (!_.has(invitation, 'multiReply') || (invitation.multiReply !== false) || !_.has(invitation, 'details.repliedNotes[0]'));
-          return isInvitationRelated && isMultireplyApplicable;
-        });
+          var editInvitations = invitations.filter(p => p.edit?.note?.id?.value === note.id || note.invitations.includes(p.edit?.note?.id?.["value-invitation"]))
+          .filter(p => p.id !== deleteOnlyInvitation?.id)
 
-        var noteCommonInvitations = _.filter(commonInvitations, function(invitation) {
-          // if selfReplyOnly restrict only to the note that responds to the same invitation
-          var isReplyInvitation = !invitation.reply.selfReplyOnly ||
-            (invitation.reply.selfReplyOnly && invitation.id === note.invitation);
-
-          // Check invitation enabled by invitation
-          if (_.has(invitation.reply, 'invitation')) {
-            return (invitation.reply.invitation === note.invitation) || isReplyInvitation;
+        var replyInvitations = invitations.filter(p => {
+          const replyToValue = p.edit?.note?.replyto?.value
+          if (replyToValue) {
+            if (replyToValue === note.id) return true
+            return false
           }
-
-          // Check invitation enabled by forum
-          return (note.id === invitation.reply.forum) || isReplyInvitation;
-        });
-
-        var replyInvitations = _.union(noteCommonInvitations, noteInvitations);
+          if (p.edit?.note?.id) return false
+          return true
+        })
 
         var noteForumId = note.id === forumId ? forumId : undefined;
         return $.when(
           tagInvitationsP(noteForumId),  // get tag invitations only for forum
-          originalInvitationsP(note.details.original)
         )
-        .then(function(tagInvitations, originalInvitations) {
+        .then(function(tagInvitations) {
           return {
-            note: note,
-            replyInvitations: replyInvitations,
-            referenceInvitations: referenceInvitations,
-            tagInvitations: tagInvitations,
-            originalInvitations: originalInvitations
+            note,
+            deleteOnlyInvitation,
+            editInvitations,
+            replyInvitations,
+            tagInvitations,
           };
         });
       });
@@ -180,7 +139,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   // Render functions
   var mkNewEditor = function(invitation, replyto, done) {
-    view.mkNewNoteEditor(invitation, forumId, replyto, user, {
+    view2.mkNewNoteEditor(invitation, forumId, replyto, user, {
       onNoteCreated: function(newNote) {
         getNoteRecsP().then(function(noteRecs) {
           $content.one('forumRendered', function() {
@@ -221,19 +180,9 @@ module.exports = function(forumId, noteId, invitationId, user) {
   };
 
   var mkPanel = function(rec, $anchor) {
-    var $note = view.mkNotePanel(rec.note, {
-      onEditRequested: function(invitation, options) {
-        var noteToRender;
-        if (options?.original) {
-          noteToRender = rec.note.details?.original;
-        } else if (options?.revision) {
-          noteToRender = invitation.details?.repliedNotes?.[0]
-          if (noteToRender) {
-            // Include both the referent and the note id so the API doesn't create a new reference
-            noteToRender.updateId = noteToRender.id
-          }
-        }
-        mkEditor(rec, noteToRender || rec.note, invitation, $anchor, function(editor) {
+    var $note = view2.mkNotePanel(rec.note, {
+      onEditRequested: function(editInvitation) {
+        mkEditor(rec, rec.note, editInvitation, $anchor, function(editor) {
           if (editor) {
             $note.replaceWith(editor);
           }
@@ -242,8 +191,9 @@ module.exports = function(forumId, noteId, invitationId, user) {
       withContent: true,
       withRevisionsLink: true,
       withModificationDate: true,
+      deleteOnlyInvitation: rec.deleteOnlyInvitation,
+      editInvitations: rec.editInvitations,
       replyInvitations: rec.replyInvitations,
-      referenceInvitations: rec.referenceInvitations,
       onNewNoteRequested: function(invitation) {
         var isLoading = $anchor.children('.spinner-container').length;
         var $existingEditor = $anchor.children('.note_editor');
@@ -270,7 +220,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
       user: user,
       tagInvitations: rec.tagInvitations,
       readOnlyTags: true,
-      originalInvitations: rec.originalInvitations,
       newLayout: forumId !== rec.note.id && sm.get('useNewLayout')
     });
     $note.attr('id', 'note_' + rec.note.id);
@@ -589,9 +538,9 @@ module.exports = function(forumId, noteId, invitationId, user) {
     }
 
     // Set search bar params
-    var conf = rootRec.note.content.venueid ?
-      rootRec.note.content.venueid :
-      rootRec.note.invitation.split('/-/')[0];
+    var conf = rootRec.note.content.venueid.value ?
+      rootRec.note.content.venueid.value :
+      rootRec.note.invitations[0].split('/-/')[0];
     $('#search_group').val(conf);
     $('#search_input').val('');
     $('#search_input').attr('placeholder','Search ' + view.prettyId(conf));

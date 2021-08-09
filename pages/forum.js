@@ -121,7 +121,7 @@ const ForumPageV2 = ({ forumNote, query, appContext }) => {
 
         {/* For more information on required meta tags for Google Scholar see: */}
         {/* https://scholar.google.com/intl/en/scholar/inclusion.html#indexing */}
-        {forumNote.invitation.startsWith(`${process.env.SUPER_USER}`) ? (
+        {forumNote.invitations[0].startsWith(`${process.env.SUPER_USER}`) ? (
           <meta name="robots" content="noindex" />
         ) : (
           <>
@@ -192,28 +192,20 @@ ForumGateway.getInitialProps = async (ctx) => {
   }
 
   try {
-    const result = await api.getCombined('/notes', {
-      id: ctx.query.id, trash: true, details: 'original,invitation,replyCount,writable,presentation',
-    }, null, { accessToken: token })
+    const note = await api.getNoteById(ctx.query.id, token,
+      {
+        trash: true, details: 'original,invitation,replyCount,writable,presentation',
+      })
 
-    // Can not see the note but there is no error thrown from the API and an empty array is returned instead
-    if (!result.notes.length) {
-      const redirect = await shouldRedirect(ctx.query.id)
-      if (redirect) {
-        return redirectForum(redirect.id)
-      }
-      return { statusCode: 404, message: 'Not Found' }
+    if (note?.version === 2) {
+      return { forumNote: note, query: ctx.query, isVersion2Note: true }
     }
-    const note = result.notes[0]
 
     // Only super user can see deleted forums
     if (note.ddate && !note.details.writable) {
       return { statusCode: 404, message: 'Not Found' }
     }
 
-    if (note.version === 2) {
-      return { forumNote: note, query: ctx.query, isVersion2Note: true }
-    }
     // if blind submission return the forum
     if (note.original) {
       return { forumNote: note, query: ctx.query }
