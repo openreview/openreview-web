@@ -219,7 +219,7 @@ module.exports = (function() {
     token = newAccessToken;
   };
 
-  var getSubmissionInvitation = function(invitationId, options) {
+  var getInvitation = function(invitationId, options) {
     var defaults = {
     };
     options = _.assign(defaults, options);
@@ -1578,6 +1578,20 @@ module.exports = (function() {
     }
   };
 
+  function renderInvitationButton(container, invitationId, options) {
+    var defaults = {
+      onNoteCreated: function() { console.warn('onNoteCreated option is required'); },
+    };
+    options = _.assign(defaults, options);
+    getInvitation(invitationId)
+      .then(function(invitation) {
+        Webfield.ui.submissionButton(invitation, user, {
+          container: container,
+          onNoteCreated: options.onNoteCreated
+        });
+      });
+  }
+
   var submissionList = function(notes, options) {
     var defaults = {
       heading: 'Submitted Papers',
@@ -1880,7 +1894,7 @@ module.exports = (function() {
           $widget.trigger('bidUpdated', [result]);
         };
         var apiError = function(jqXhr, textStatus) {
-          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+          var errorText = getErrorFromJqXhr(jqXhr, textStatus);
           promptError(_.isString(errorText) ? errorText : 'The specified tag could not be updated. Please reload the page and try again.');
           $self.parent().removeClass('disabled');
           $widget.trigger('apiReturnedError', errorText);
@@ -1975,7 +1989,7 @@ module.exports = (function() {
               $('.selected-reviewer', $widget).last().data('id', result.id);
               $widget.trigger('tagUpdated', [result]);
             }, function(jqXhr, textStatus) {
-              var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+              var errorText = getErrorFromJqXhr(jqXhr, textStatus);
               promptError(_.isString(errorText) ? errorText : 'The specified tag could not be updated. Please reload the page and try again.');
             });
         });
@@ -2009,7 +2023,7 @@ module.exports = (function() {
           .then(function(result) {
             $widget.trigger('tagUpdated', [result]);
           }, function(jqXhr, textStatus) {
-            var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+            var errorText = getErrorFromJqXhr(jqXhr, textStatus);
             promptError(_.isString(errorText) ? errorText : 'The specified tag could not be updated. Please reload the page and try again.');
           });
         return false;
@@ -2132,7 +2146,7 @@ module.exports = (function() {
 
     api: {
       // Aliases
-      getSubmissionInvitation: getSubmissionInvitation,
+      getInvitation: getInvitation,
       getSubmissions: getSubmissions,
       getTagInvitations: Webfield.api.getTagInvitations
     },
@@ -2142,6 +2156,7 @@ module.exports = (function() {
       groupEditor: groupEditor,
       invitationInfo: invitationInfo,
       invitationEditor: invitationEditor,
+      renderInvitationButton: renderInvitationButton,
       // Aliases
       setup: Webfield.ui.setup,
       header: Webfield.ui.basicHeader,
