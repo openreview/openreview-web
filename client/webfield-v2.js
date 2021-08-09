@@ -1578,7 +1578,7 @@ module.exports = (function() {
     }
   };
 
-  function renderInvitationButton(container, invitationId, options) {
+  var renderInvitationButton = function(container, invitationId, options) {
     var defaults = {
       onNoteCreated: function() { console.warn('onNoteCreated option is required'); },
     };
@@ -1590,6 +1590,42 @@ module.exports = (function() {
           onNoteCreated: options.onNoteCreated
         });
       });
+  }
+
+  var renderTabPanel = function(container, titles, options) {
+    var loadingMessage = '<p class="empty-message">Loading...</p>';
+    var tabsList = [];
+    titles.forEach(function(title) {
+      tabsList.push({
+        heading: title,
+        id: title.replace(/\s/g, '-').toLowerCase(),
+        content: loadingMessage
+      })
+    })
+    tabsList[0].active = true;
+    tabsList[0].extraClasses = 'horizontal-scroll'; //do we need this?
+    Webfield.ui.tabPanel(tabsList, { container: container });
+  }
+
+  var setup = function(container, venueId, options) {
+    var defaults = {
+      title: venueId,
+      instructions: 'Instructions here',
+      tabs: [],
+      referrer: null
+    };
+    options = _.defaults(options, defaults);
+
+    if (options.referrer) {
+      OpenBanner.referrerLink(options.referrer);
+    } else {
+      OpenBanner.venueHomepageLink(venueId);
+    }
+    Webfield.ui.setup(container, venueId);
+    Webfield.ui.header(options.title, options.instructions);
+    if (options.tabs.length) {
+      renderTabPanel('#notes', options.tabs);
+    }
   }
 
   var submissionList = function(notes, options) {
@@ -2158,7 +2194,7 @@ module.exports = (function() {
       invitationEditor: invitationEditor,
       renderInvitationButton: renderInvitationButton,
       // Aliases
-      setup: Webfield.ui.setup,
+      setup: setup,
       header: Webfield.ui.basicHeader,
       venueHeader: Webfield.ui.venueHeader,
       linksList: Webfield.ui.linksList,
