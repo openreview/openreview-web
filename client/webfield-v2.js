@@ -261,6 +261,345 @@ module.exports = (function() {
       });
   };
 
+  var getAllSubmissions = function(invitationId, options) {
+    var defaults = {
+      numbers: [],
+    };
+    options = _.defaults(options, defaults);
+    var noteNumbers = options.numbers;
+    var noteNumbersStr = noteNumbers.join(',');
+    var query = {
+      invitation: invitationId,
+      select: 'id,number,forum,content,details,invitations',
+      details: 'directReplies',
+      sort: 'number:asc'
+    }
+    if (noteNumbersStr) {
+      query.number = noteNumbersStr;
+    }
+
+    return getAll('/notes', query);
+
+  }
+
+  var getAssignedInvitations = function(venueId, roleName) {
+
+    var invitationsP = getAll('/invitations', {
+      regex: venueId + '/.*',
+      invitee: true,
+      duedate: true,
+      replyto: true,
+      type: 'notes',
+      details: 'replytoNote,repliedNotes',
+      version: '1' //TODO: remove when the task view supports V2
+    });
+
+    var edgeInvitationsP = getAll('/invitations', {
+      regex: venueId + '/.*',
+      invitee: true,
+      duedate: true,
+      type: 'edges',
+      details: 'repliedEdges',
+      version: '1' //TODO: remove when the task view supports V2
+    });
+
+    var tagInvitationsP = getAll('/invitations', {
+      regex: venueId + '/.*',
+      invitee: true,
+      duedate: true,
+      type: 'tags',
+      details: 'repliedTags',
+      version: '1' //TODO: remove when the task view supports V2
+    });
+
+    var filterInvitee = function(inv) {
+      return _.some(inv.invitees, function(invitee) { return invitee.indexOf(roleName) !== -1; });
+    };
+
+    return $.when(
+      invitationsP,
+      edgeInvitationsP,
+      tagInvitationsP
+    ).then(function(noteInvitations, edgeInvitations, tagInvitations) {
+      var invitations = noteInvitations.concat(edgeInvitations).concat(tagInvitations);
+      return _.filter(invitations, filterInvitee);
+    });
+  };
+
+  var getNumberfromGroup = function(groupId, name) {
+    var tokens = groupId.split('/');
+    var paper = _.find(tokens, function(token) {
+      return _.startsWith(token, name);
+    });
+
+    if (paper) {
+      return paper.replace(name, '');
+    } else {
+      return null;
+    }
+  };
+
+  var getPaperNumbersfromGroups = function(groups) {
+    return _.uniq(_.map(groups, function(group) {
+      return parseInt(getNumberfromGroup(group.id, 'Paper'));
+    }));
+  };
+
+  var renderTable = function(container, rows, options) {
+    var defaults = {
+      renders:[],
+      headings: rows.length ? Object.keys(rows[0]) : [],
+      extraClasses: '',
+      reminderOptions: {
+        container: 'a.send-reminder-link',
+        defaultSubject: 'Reminder',
+        defaultBody: 'This is a reminder to please submit your review. \n\n Thank you,\n'
+      },
+      postRenderTable: function() {},
+    };
+    options = _.defaults(options, defaults);
+
+    var defaultRender = function(row) {
+      var propertiesHtml = '';
+      Object.keys(row).forEach(function(key) {
+        propertiesHtml = propertiesHtml + '<tr><td><strong>' + key + '</strong></td><td>' + row[key] + '</td></tr>';
+      })
+      return '<div><table class="table table-condensed table-minimal"><tbody>' + propertiesHtml + '</tbody></table></div>';
+    }
+
+    var render = function(rows, postRenderTable) {
+      var rowsHtml = rows.map(function(row) {
+        return Object.values(row).map(function(cell, i) {
+          var fn = options.renders[i] || defaultRender;
+          return fn(cell);
+        });
+      });
+
+      var tableHtml = Handlebars.templates['components/table']({
+        headings: options.headings,
+        rows: rowsHtml,
+        extraClasses: options.extraClasses
+      });
+
+      $('.table-container', container).remove();
+      $(container).append(tableHtml);
+
+      postRenderTable();
+    }
+
+    var registerHelpers = function() {
+      $(container).on('change', '#select-all-papers', function(e) {
+        var $superCheckBox = $(this);
+        var $allPaperCheckBoxes = $('input.select-note-reviewers');
+        var $msgReviewerButton = $('#message-reviewers-btn');
+        if ($superCheckBox[0].checked === true) {
+          $allPaperCheckBoxes.prop('checked', true);
+          $msgReviewerButton.attr('disabled', false);
+        } else {
+          $allPaperCheckBoxes.prop('checked', false);
+          $msgReviewerButton.attr('disabled', true);
+        }
+      });
+
+      $(container).on('click', options.reminderOptions.container, function(e) {
+        var $link = $(this);
+        var userId = $link.data('userId');
+        var forumUrl = $link.data('forumUrl');
+
+        var sendReviewerReminderEmails = function(e) {
+          var postData = {
+            groups: [userId],
+            forumUrl: forumUrl,
+            subject: $('#message-reviewers-modal input[name="subject"]').val().trim(),
+            message: $('#message-reviewers-modal textarea[name="message"]').val().trim(),
+          };
+
+          $('#message-reviewers-modal').modal('hide');
+          promptMessage('A reminder email has been sent to ' + view.prettyId(userId), { overlay: true });
+          postReviewerEmails(postData);
+          $link.after(' (Last sent: ' + (new Date()).toLocaleDateString() + ')');
+
+          return false;
+        };
+
+        var modalHtml = Handlebars.templates.messageReviewersModalFewerOptions({
+          singleRecipient: true,
+          reviewerId: userId,
+          forumUrl: forumUrl,
+          defaultSubject: options.reminderOptions.defaultSubject,
+          defaultBody: options.reminderOptions.defaultBody,
+        });
+        $('#message-reviewers-modal').remove();
+        $('body').append(modalHtml);
+
+        $('#message-reviewers-modal .btn-primary').on('click', sendReviewerReminderEmails);
+        $('#message-reviewers-modal form').on('submit', sendReviewerReminderEmails);
+
+        $('#message-reviewers-modal').modal();
+        return false;
+      });
+
+      var postReviewerEmails = function(postData) {
+        postData.message = postData.message.replace(
+          '{{submit_review_link}}',
+          postData.forumUrl
+        );
+
+        return Webfield.post('/messages', _.pick(postData, ['groups', 'subject', 'message']))
+          .then(function(response) {
+            // Save the timestamp in the local storage
+            for (var i = 0; i < postData.groups.length; i++) {
+              var userId = postData.groups[i];
+              localStorage.setItem(postData.forumUrl + '|' + userId, Date.now());
+            }
+          });
+      };
+
+    }
+
+    if (options.sortOptions) {
+      var order = 'desc';
+      var sortOptionHtml = Object.keys(options.sortOptions).map(function(option) {
+        return '<option value="' + option + '">' + option.replace(/_/g, ' ') + '</option>';
+      }).join('\n');
+
+      //#region sortBarHtml
+      var sortBarHtml = '<form class="form-inline search-form clearfix" role="search">' +
+        // Don't show this for now
+        // '<div id="div-msg-reviewers" class="btn-group" role="group">' +
+        //   '<button id="message-reviewers-btn" type="button" class="btn btn-icon dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Select papers to message corresponding reviewers" disabled="disabled">' +
+        //     '<span class="glyphicon glyphicon-envelope"></span> &nbsp;Message ' +
+        //     '<span class="caret"></span>' +
+        //   '</button>' +
+        //   '<ul class="dropdown-menu" aria-labelledby="grp-msg-reviewers-btn">' +
+        //     '<li><a id="msg-all-reviewers">All Reviewers of selected papers</a></li>' +
+        //     '<li><a id="msg-submitted-reviewers">Reviewers of selected papers with submitted reviews</a></li>' +
+        //     '<li><a id="msg-unsubmitted-reviewers">Reviewers of selected papers with unsubmitted reviews</a></li>' +
+        //   '</ul>' +
+        // '</div>' +
+        // '<div class="btn-group"><button class="btn btn-export-data" type="button">Export</button></div>' +
+        '<div class="pull-right">' +
+          '<strong style="vertical-align: middle;">Search:</strong>' +
+          '<input type="text" class="form-search form-control" class="form-control" placeholder="Enter search term or type + to start a query and press enter" style="width:440px; margin-right: 1.5rem; line-height: 34px;">' +
+          '<strong>Sort By:</strong> ' +
+          '<select id="form-sort" class="form-control" style="width: 250px; line-height: 1rem;">' + sortOptionHtml + '</select>' +
+          '<button id="form-order" class="btn btn-icon" type="button"><span class="glyphicon glyphicon-sort"></span></button>' +
+        '</div>' +
+      '</form>';
+      //#endregion
+
+      if (rows.length) {
+        $(container).empty().append(sortBarHtml);
+      }
+
+      // Need to add event handlers for these controls inside this function so they have access to row
+      // data
+      var sortResults = function(newOption, switchOrder) {
+        if (switchOrder) {
+          order = order === 'asc' ? 'desc' : 'asc';
+        }
+        render(_.orderBy(rows, options.sortOptions[newOption], order), options.postRenderTable);
+      }
+
+      $(container).on('change', '#form-sort', function(e) {
+        sortResults($(e.target).val(), false);
+      });
+      $(container).on('click', '#form-order', function(e) {
+        sortResults($(this).prev().val(), true);
+        return false;
+      });
+    }
+
+    if (options.searchProperties) {
+
+      var filterOperators = ['!=','>=','<=','>','<','=']; // sequence matters
+      var searchResults = function(searchText, isQueryMode) {
+        $(container + ' #form-sort').val('Paper_Number');
+
+        // Currently only searching on note title if exists
+        var filterFunc = function(row) {
+          return (row.submission && row.submission.content.title.toLowerCase().indexOf(searchText) !== -1) || (row.submissionNumber && row.submissionNumber.number) == searchText;
+        };
+
+        if (searchText) {
+          if (isQueryMode) {
+            var filterResult = Webfield.filterCollections(rows, searchText.slice(1), filterOperators, options.searchProperties, 'note.id')
+            filteredRows = filterResult.filteredRows;
+            queryIsInvalid = filterResult.queryIsInvalid;
+            if(queryIsInvalid) $(container + ' .form-search').addClass('invalid-value')
+          } else {
+            filteredRows = _.filter(rows, filterFunc)
+          }
+        } else {
+          filteredRows = rows;
+        }
+        render(filteredRows, options.postRenderTable);
+      };
+
+      $(container + ' .form-search').on('keyup', function (e) {
+        var searchText = $(container + ' .form-search').val().trim();
+        var searchLabel = $(container + ' .form-search').prevAll('strong:first').text();
+        $(container + ' .form-search').removeClass('invalid-value');
+
+        if (searchText.startsWith('+')) {
+          // filter query mode
+          if (searchLabel === 'Search:') {
+            $(container + ' .form-search').prevAll('strong:first').text('Query:');
+            $(container + ' .form-search').prevAll('strong:first').after($('<span/>', {
+              class: 'glyphicon glyphicon-info-sign'
+            }).hover(function (e) {
+              $(e.target).tooltip({
+                title: "<strong class='tooltip-title'>Query Mode Help</strong>\n<p>In Query mode, you can enter an expression and hit ENTER to search.<br/> The expression consists of property of a paper and a value you would like to search.</p><p>e.g. +number=5 will return the paper 5</p><p>Expressions may also be combined with AND/OR.<br>e.g. +number=5 OR number=6 OR number=7 will return paper 5,6 and 7.<br>If the value has multiple words, it should be enclosed in double quotes.<br>e.g. +title=\"some title to search\"</p><p>Braces can be used to organize expressions.<br>e.g. +number=1 OR ((number=5 AND number=7) OR number=8) will return paper 1 and 8.</p><p>Operators available:".concat(filterOperators.join(', '), "</p><p>Properties available:").concat(Object.keys(options.searchProperties).join(', '), "</p>"),
+                html: true,
+                placement: 'bottom'
+              });
+            }));
+          }
+
+          if (e.key === 'Enter') {
+            searchResults(searchText, true);
+          }
+        } else {
+          if (searchLabel !== 'Search:') {
+            $(container + ' .form-search').prev().remove(); // remove info icon
+
+            $(container + ' .form-search').prev().text('Search:');
+          }
+
+          _.debounce(function () {
+            searchResults(searchText.toLowerCase(),false);
+          }, 300)();
+        }
+      });
+
+      $(container + ' form.search-form').on('submit', function() {
+        return false;
+      });
+    }
+    render(rows, options.postRenderTable);
+    registerHelpers();
+
+
+
+  }
+
+  var renderTasks = function(container, invitations, options) {
+    var defaults = {
+      emptyMessage: 'No outstanding tasks for this venue'
+    };
+    options = _.defaults(options, defaults);
+
+    var tasksOptions = {
+      container: container,
+      emptyMessage: options.emptyMessage,
+      referrer: options.referrer
+    }
+    $(tasksOptions.container).empty();
+
+    Webfield.ui.newTaskList(invitations, [], tasksOptions);
+    $('.tabs-container a[href="#' + container + '"]').parent().show();
+  }
+
   var sendFile = function(url, data, contentType) {
     var baseUrl = window.OR_API_V2_URL ? window.OR_API_V2_URL : '';
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
@@ -1578,6 +1917,51 @@ module.exports = (function() {
     }
   };
 
+  var getGroupsByNumber = function(venueId, roleName, options) {
+    var defaults = {
+      numberToken: 'Paper',
+    };
+    options = _.defaults(options, defaults);
+
+    var anonRoleName = roleName.slice(0, -1) + '_';
+    var numberToken = options.numberToken;
+    var query = {
+      regex: venueId + '/' + numberToken + '.*',
+      select: 'id,members'
+    }
+    if (options && options.assigned) {
+      query.member = user.id
+    }
+    return getAll('/groups', query)
+    .then(function(groups) {
+      var paperGroups = [];
+      var anonPaperGroups = [];
+      groups.forEach(function(group) {
+        if (group.id.endsWith('/' + roleName)) {
+          paperGroups.push(group);
+        } else if (_.includes(group.id, '/' + anonRoleName)) {
+          anonPaperGroups.push(group);
+        }
+      });
+      var groupsByNumber = {};
+      paperGroups.forEach(function(group) {
+        var number = getNumberfromGroup(group.id, numberToken);
+        var memberGroups = [];
+        group.members.forEach(function(member) {
+          var anonGroup = anonPaperGroups.find(function(anonGroup) {
+            return anonGroup.id.startsWith(venueId + '/' + numberToken + number) && anonGroup.members[0] == member;
+          })
+          memberGroups.push({
+            id: member,
+            anonId: anonGroup && getNumberfromGroup(anonGroup.id, anonRoleName)
+          })
+        });
+        groupsByNumber[number] = memberGroups;
+      })
+      return groupsByNumber;
+    })
+  }
+
   var renderInvitationButton = function(container, invitationId, options) {
     var defaults = {
       onNoteCreated: function() { console.warn('onNoteCreated option is required'); },
@@ -2184,6 +2568,9 @@ module.exports = (function() {
       // Aliases
       getInvitation: getInvitation,
       getSubmissions: getSubmissions,
+      getAllSubmissions: getAllSubmissions,
+      getGroupsByNumber: getGroupsByNumber,
+      getAssignedInvitations: getAssignedInvitations,
       getTagInvitations: Webfield.api.getTagInvitations
     },
 
@@ -2193,6 +2580,8 @@ module.exports = (function() {
       invitationInfo: invitationInfo,
       invitationEditor: invitationEditor,
       renderInvitationButton: renderInvitationButton,
+      renderTable: renderTable,
+      renderTasks: renderTasks,
       // Aliases
       setup: setup,
       header: Webfield.ui.basicHeader,
@@ -2211,6 +2600,10 @@ module.exports = (function() {
       errorMessage: Webfield.ui.errorMessage,
       defaultEmptyMessage: Webfield.ui.defaultEmptyMessage,
       done: Webfield.ui.done
+    },
+    utils: {
+      getPaperNumbersfromGroups: getPaperNumbersfromGroups,
+      getNumberfromGroup: getNumberfromGroup
     }
   };
 }());
