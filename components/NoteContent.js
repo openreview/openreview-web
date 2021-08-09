@@ -95,7 +95,7 @@ function DownloadLink({
 }
 
 export const NoteContentV2 = ({
-  id, content, omit = [], include = [], isReference = false, presentation,
+  id, content, omit = [], include = [], isEdit = false, presentation,
 }) => {
   const contentKeys = Object.keys(content)
   const contentOrder = presentation
@@ -103,7 +103,7 @@ export const NoteContentV2 = ({
     : contentKeys
 
   const omittedFields = [
-    'title', 'authors', 'author_emails', 'authorids', 'pdf',
+    'title', 'authors', 'authorids', 'pdf',
     'verdict', 'paperhash', 'ee', 'html', 'year', 'venue', 'venueid',
   ].concat(omit).filter(field => !include.includes(field))
 
@@ -123,7 +123,7 @@ export const NoteContentV2 = ({
             {fieldValue.startsWith('/attachment/') ? (
               <span className="note-content-value">
                 {/* eslint-disable-next-line max-len */}
-                <DownloadLink noteId={id} fieldName={fieldName} fieldValue={fieldValue} isReference={isReference} isV2 />
+                <DownloadLink noteId={id} fieldName={fieldName} fieldValue={fieldValue} isReference={isEdit} isV2 />
               </span>
             ) : (
               <NoteContentValue content={fieldValue} enableMarkdown={enableMarkdown} />

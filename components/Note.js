@@ -113,7 +113,7 @@ export const NoteV2 = ({ note, options }) => {
           id={note.id}
           content={note.content}
           omit={options.omitFields}
-          isReference={options.isReference}
+          isEdit={options.isReference}
           presentation={note.details?.presentation}
         />
       )}
