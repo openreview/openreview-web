@@ -301,7 +301,6 @@ Handlebars.registerHelper('noteAuthors', function(content, signatures, details) 
 });
 
 Handlebars.registerHelper('noteAuthorsV2', function (readers, content, signatures) {
-  console.log(readers)
   var html = '';
   var privateLabel = false;
 

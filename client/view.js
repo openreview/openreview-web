@@ -2177,7 +2177,7 @@ module.exports = (function() {
       $dateItem = !notePastDue ?
         $('<span>', { class: 'date item', 'data-toggle': 'tooltip', 'data-placement': 'top', title: 'Date Created' }).text(formattedDate) :
         null;
-        $invItem = $('<span>', { class: 'item highlight', 'data-toggle': 'tooltip', 'data-placement': 'top', title: 'Reply Type' })
+      $invItem = $('<span>', { class: 'item highlight', 'data-toggle': 'tooltip', 'data-placement': 'top', title: 'Reply Type' })
         .text(options.isReference ? prettyInv : note.content.venue || prettyInv)
         .css(getInvitationColors(prettyInv));
       $readersItem = $('<span>', { class: 'item' }).append(
@@ -2197,7 +2197,7 @@ module.exports = (function() {
       $dateItem = (!notePastDue || details.writable) ?
         $('<span>', {class: 'date item'}).text(formattedDate) :
         null;
-        $invItem = $('<span>', {class: 'item'})
+      $invItem = $('<span>', {class: 'item'})
         .text(options.isReference ? prettyId(note.invitation) : note.content.venue || prettyId(note.invitation));
       $readersItem = _.has(note, 'readers') ?
         $('<span>', {class: 'item'}).html('Readers: ' + prettyReadersList(note.readers)) :
