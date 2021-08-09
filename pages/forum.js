@@ -202,18 +202,21 @@ ForumGateway.getInitialProps = async (ctx) => {
     }
 
     // Only super user can see deleted forums
-    if (note.ddate && !note.details.writable) {
+    if (note?.ddate && !note?.details?.writable) {
       return { statusCode: 404, message: 'Not Found' }
     }
 
     // if blind submission return the forum
-    if (note.original) {
+    if (note?.original) {
       return { forumNote: note, query: ctx.query }
     }
 
-    const redirect = await shouldRedirect(note.id)
+    const redirect = await shouldRedirect(ctx.query.id)
     if (redirect) {
       return redirectForum(redirect.id)
+    }
+    if (!note) {
+      return { statusCode: 404, message: 'Not Found' }
     }
     return { forumNote: note, query: ctx.query }
   } catch (error) {
