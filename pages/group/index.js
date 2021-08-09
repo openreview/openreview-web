@@ -97,16 +97,11 @@ $(function() {
   };
   var controller = {
     get: Webfield.get,
-    post: Webfield.post,
-    put: Webfield.put,
-    sendFile: Webfield.sendFile,
     addHandler: function(name, funcMap) {
       Object.values(funcMap).forEach(function(func) {
         func();
       });
     },
-    removeHandler: function() {},
-    removeAllButMain: function() {},
   };
 
   $('#group-container').empty();
