@@ -121,7 +121,7 @@ This is what the Pythagorean theorem $x^2 + y^2 = z^2$ looks like.
 Here is an example of multiple integrals:
 
 $$
-\\iiiint_V \\mu(t,u,v,w) \\,dt\\,du\\,dv\\,dw
+\\iiiint_V \\mu(t,u,v,w) \\\\,dt\\\\,du\\\\,dv\\\\,dw
 $$
 \`\`\`
 will be displayed as:
