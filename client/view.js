@@ -2821,7 +2821,8 @@ module.exports = (function() {
   var getContent = function(invitation, $contentMap) {
     var files = {};
     var errors = [];
-    var content = _.reduce(invitation.reply.content, function(ret, contentObj, k) {
+    var invitationContent = invitation.edit ? invitation.edit.note.content : invitation.reply.content
+    var content = _.reduce(invitationContent, function(ret, contentObj, k) {
       // Let the widget handle it :D and extract the data when we encouter authorids
       if (contentObj.hidden && k === 'authors') {
         return ret;
@@ -3906,6 +3907,10 @@ module.exports = (function() {
     mkDropdownAdder,mkDropdownAdder,
     buildSignatures: buildSignatures,
     autolinkFieldDescriptions: autolinkFieldDescriptions,
+    isTildeIdAllowed: isTildeIdAllowed,
+    mkSearchProfile: mkSearchProfile,
+    mkFileInput: mkFileInput,
+    getContent: getContent,
   };
 
 }());
