@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-import omit from 'lodash/omit'
 import Head from 'next/head'
 import Router from 'next/router'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -89,10 +88,20 @@ $(function() {
   var group = ${JSON.stringify(groupObjSlim)};
   var document = null;
   var window = null;
+
+  // TODO: remove these vars when all old webfields have been archived
   var model = {
     tokenPayload: function() {
       return { user: user }
     }
+  };
+  var controller = {
+    get: Webfield.get,
+    addHandler: function(name, funcMap) {
+      Object.values(funcMap).forEach(function(func) {
+        func();
+      });
+    },
   };
 
   $('#group-container').empty();

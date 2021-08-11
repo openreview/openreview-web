@@ -32,9 +32,8 @@ const Activity = ({ appContext }) => {
       details: 'forumContent,writable,invitation,presentation',
       limit: 200,
     }
-    let notes
     try {
-      ({ notes } = await api.getCombined('/notes', queryParamV1, queryParamV2, { accessToken, sort: 'tmdate:desc' }))
+      const { notes } = await api.getCombined('/notes', queryParamV1, queryParamV2, { accessToken, sort: 'tmdate:desc' })
       setActivityNotes(notes)
     } catch (apiError) {
       setError(apiError)
