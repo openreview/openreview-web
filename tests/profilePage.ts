@@ -54,7 +54,7 @@ test('user open own profile', async (t) => {
     .expect(Selector('h1').withText('Edit Profile').exists).ok()
     .expect(Selector('#or-banner').find('a').innerText).eql('View Profile')
     .expect(Selector('#show-dblp-import-modal').getAttribute('disabled')).eql('disabled')
-    .expect(Selector('ul.submissions-list').find('.note').count).eql(3) // has 1 publication note
+    .expect(Selector('ul.submissions-list').exists).notOk() // show imported papers only
     .expect(saveProfileButton.exists).ok()
     // make some changes and save
     // add a name
