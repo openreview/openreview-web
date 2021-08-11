@@ -56,12 +56,12 @@ const AutoCompleteInput = () => {
 
   const searchByTerm = async (term) => {
     try {
-      const result = await api.get('/notes/search', {
+      const { notes } = await api.getCombined('/notes/search', {
         term, type: 'prefix', content: 'all', group: 'all', source: 'all', limit: 10,
-      })
+      }, null, { resultsKey: 'notes' })
       if (cancelRequest) return
-      const tokenObjects = getTokenObjects(result.notes, term)
-      const titleObjects = getTitleObjects(result.notes, term)
+      const tokenObjects = getTokenObjects(notes, term)
+      const titleObjects = getTitleObjects(notes, term)
       if (tokenObjects.length && titleObjects.length) {
         setAutoCompleteItems([...tokenObjects, null, ...titleObjects]) // null maps to <hr/>
       } else {
