@@ -92,12 +92,11 @@ export const LegacyForumV2 = ({
           html={content.html?.value}
         />
 
-        <ForumAuthors
+        <ForumAuthorsV2
           authors={content.authors} // NoteAuthorsV2 is expecting obj
           authorIds={content.authorids}
           signatures={forumNote.signatures}
           noteReaders={forumNote.readers}
-          isV2Note
         />
 
         <ForumMetaV2 note={forumNote} />
@@ -143,16 +142,28 @@ const ForumTitle = ({
 )
 
 const ForumAuthors = ({
-  authors, authorIds, signatures, original, isV2Note, noteReaders,
+  authors, authorIds, signatures, original,
 }) => (
   <div className="meta_row">
 
     <h3 className="signatures author">
-      {
-        isV2Note
-          ? <NoteAuthorsV2 authors={authors} authorIds={authorIds} signatures={signatures} noteReaders={noteReaders} />
-          : <NoteAuthors authors={authors} authorIds={authorIds} signatures={signatures} original={original} />
-      }
+      <NoteAuthors
+        authors={authors}
+        authorIds={authorIds}
+        signatures={signatures}
+        original={original}
+      />
+    </h3>
+  </div>
+)
+
+const ForumAuthorsV2 = ({
+  authors, authorIds, signatures, noteReaders,
+}) => (
+  <div className="meta_row">
+
+    <h3 className="signatures author">
+      <NoteAuthorsV2 authors={authors} authorIds={authorIds} signatures={signatures} noteReaders={noteReaders} />
     </h3>
   </div>
 )

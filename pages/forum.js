@@ -158,9 +158,9 @@ const ForumPageV2 = ({ forumNote, query, appContext }) => {
 }
 
 const ForumGateway = ({
-  forumNote, query, isVersion2Note, appContext,
+  forumNote, query, appContext,
 }) => (
-  isVersion2Note
+  forumNote.version === 2
     ? <ForumPageV2 {...{ forumNote, query, appContext }} />
     : <ForumPage {...{ forumNote, query, appContext }} />
 )
@@ -192,13 +192,12 @@ ForumGateway.getInitialProps = async (ctx) => {
   }
 
   try {
-    const note = await api.getNoteById(ctx.query.id, token,
-      {
-        trash: true, details: 'original,invitation,replyCount,writable,presentation',
-      })
+    const note = await api.getNoteById(ctx.query.id, token, {
+      trash: true, details: 'original,invitation,replyCount,writable,presentation',
+    })
 
     if (note?.version === 2) {
-      return { forumNote: note, query: ctx.query, isVersion2Note: true }
+      return { forumNote: note, query: ctx.query }
     }
 
     // Only super user can see deleted forums

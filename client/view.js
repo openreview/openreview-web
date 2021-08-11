@@ -3903,7 +3903,7 @@ module.exports = (function() {
     setupMarked: setupMarked,
     getInvitationColors: getInvitationColors,
     mkTitleComponent: mkTitleComponent,
-    mkDropdownAdder,mkDropdownAdder,
+    mkDropdownAdder: mkDropdownAdder,
     buildSignatures: buildSignatures,
     autolinkFieldDescriptions: autolinkFieldDescriptions,
   };
