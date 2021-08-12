@@ -8,36 +8,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
   var sm = mkStateManager();
 
   // Data fetching functions
-  var getProfilesP = function(notes) {
-    var authorEmails = _.without(_.uniq(_.map(notes, function(n) { return n.tauthor; })), undefined);
-    if (!authorEmails.length) {
-      return $.Deferred().resolve(notes);
-    }
-
-    var getPreferredUserName = function(profile) {
-      var preferredName = _.find(profile.content.names, ['preferred', true]);
-      if (preferredName) {
-        return preferredName.username;
-      }
-      return profile.id;
-    };
-
-    return Webfield.post('/profiles/search', { emails: authorEmails })
-      .then(function(result) {
-        var profiles = {};
-        _.forEach(result.profiles, function(p) {
-          profiles[p.email] = p;
-        });
-
-        _.forEach(notes, function(n) {
-          var profile = profiles[n.tauthor];
-          if (profile) {
-            n.tauthor = getPreferredUserName(profile);
-          }
-        });
-        return notes;
-      });
-  };
 
   var getNoteRecsP = function() {
     var onError = function() {
@@ -55,7 +25,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       notesP = Webfield2.get('/notes', {
         forum: forumId,
         trash: true,
-        details: 'replyCount,writable,presentation'
+        details: 'replyCount,writable,presentation,signatures'
       }, { handleErrors: false })
         .then(function(result) {
           if (!result.notes || !result.notes.length) {
@@ -70,7 +40,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
             }
           });
 
-          return getProfilesP(notes);
+          return notes
         }, onError);
 
       invitationsP = Webfield2.get('/invitations', {

@@ -293,9 +293,10 @@
     var $contentSignatures = $('<span>', {class: 'signatures'}).html(authorText);
     var $contentAuthors = $('<div>', {class: 'meta_row'}).append($contentSignatures);
 
-    var trueAuthorText = (note.tauthor && note.tauthor.indexOf('~') === 0) ?
-      '<a href="/profile?id='+ encodeURIComponent(note.tauthor) +'" class="profile-link">'+ view.prettyId(note.tauthor) +'</a>' :
-      view.prettyId(note.tauthor);
+    var trueAuthorText = note.details.signatures?.map(p => p.startsWith('~')
+      ? '<a href="/profile?id=' + encodeURIComponent(p) + '" class="profile-link">' + view.prettyId(p) + '</a>'
+      : view.prettyId(p)
+    ).join(', ')
     if (!note.content.authors?.value && trueAuthorText && trueAuthorText !== authorText) {
       $contentAuthors.append(
         '<span class="author no-margin">' + trueAuthorText + '</span>',
