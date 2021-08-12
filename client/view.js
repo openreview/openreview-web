@@ -2897,9 +2897,9 @@ module.exports = (function() {
 
       } else if (contentObj.hasOwnProperty('value-file') || (contentObj['value-regex'] && contentObj['value-regex'] === 'upload')) {
         var $fileSection = $contentMap[k];
-        var $fileInput = $fileSection && $fileSection.find('input.note_' + k + '[type="file"]');
+        var $fileInput = $fileSection && $fileSection.find('input.note_' + k.replace(' ','.') + '[type="file"]');
         var file = $fileInput && $fileInput.val() ? $fileInput[0].files[0] : null;
-        var $textInput = $fileSection && $fileSection.find('input.note_' + k + '[type="text"]');
+        var $textInput = $fileSection && $fileSection.find('input.note_' + k.replace(' ','.') + '[type="text"]');
         var url = $textInput && $textInput.val();
 
         // Check if there's a file. If not, check if there's a url and update ONLY if the new value
