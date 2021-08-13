@@ -73,9 +73,9 @@ Handlebars.registerHelper('prettyInvitationId', function(invitationId, options) 
     var invMatches = invitationId.match(/\/(Paper\d+)\//);
     if (invMatches) {
       paperStr = invMatches[1] + ' ';
-      var anonReviewerMatches = invitationId.match(/\/(AnonReviewer\d+)\//);
+      var anonReviewerMatches = invitationId.match(/\/(AnonReviewer\d+|Reviewer_\w+)\//);
       if (anonReviewerMatches) {
-        paperStr = paperStr + ' ' + anonReviewerMatches[1] + ' ';
+        paperStr = paperStr + anonReviewerMatches[1].replace('_', ' ') + ' ';
       }
     }
   }
