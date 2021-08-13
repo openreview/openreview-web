@@ -117,7 +117,6 @@ const ForumAuthors = ({
   authors, authorIds, signatures, original,
 }) => (
   <div className="meta_row">
-
     <h3 className="signatures author">
       <NoteAuthors
         authors={authors}
@@ -133,7 +132,6 @@ const ForumAuthorsV2 = ({
   authors, authorIds, signatures, noteReaders,
 }) => (
   <div className="meta_row">
-
     <h3 className="signatures author">
       <NoteAuthorsV2 authors={authors} authorIds={authorIds} signatures={signatures} noteReaders={noteReaders} />
     </h3>
