@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
 import truncate from 'lodash/truncate'
-import LegacyForum, { LegacyForumV2 } from '../components/forum/LegacyForum'
+import LegacyForum from '../components/forum/LegacyForum'
 import withError from '../components/withError'
 import api from '../lib/api-client'
 import { auth } from '../lib/auth'
@@ -13,24 +13,33 @@ const ForumPage = ({ forumNote, query, appContext }) => {
   const { clientJsLoading, setBannerContent } = appContext
   const { id, content } = forumNote
 
-  const truncatedTitle = truncate(content.title, { length: 70, separator: /,? +/ })
-  const truncatedAbstract = truncate(content['TL;DR'] || content.abstract, { length: 200, separator: /,? +/ })
-  const authors = (Array.isArray(content.authors) || typeof content.authors === 'string')
-    ? [content.authors].flat()
+  const isV2Note = forumNote.version === 2
+  const noteTitle = isV2Note ? content.title?.value : content.title
+  const noteTLDR = isV2Note ? content['TL;DR']?.value : content['TL;DR']
+  const noteAbstract = isV2Note ? content.abstract?.value : content.abstract
+  const noteAuthors = isV2Note ? content.authors?.value : content.authors
+  // eslint-disable-next-line no-underscore-dangle
+  const noteBibtex = isV2Note ? content._bibtex?.value : content._bibtex
+  const noteVenueid = isV2Note ? content.venueid?.value : content.venueid
+  const noteInvitation = isV2Note ? forumNote.invitations[0] : forumNote.invitation
+  const notePdf = isV2Note ? content.pdf?.value : content.pdf
+
+  const truncatedTitle = truncate(noteTitle, { length: 70, separator: /,? +/ })
+  const truncatedAbstract = truncate(noteTLDR || noteAbstract, { length: 200, separator: /,? +/ })
+  const authors = (Array.isArray(noteAuthors) || typeof noteAuthors === 'string')
+    ? [noteAuthors].flat()
     : []
   const creationDate = new Date(forumNote.cdate || forumNote.tcdate || Date.now()).toISOString().slice(0, 10).replace(/-/g, '/')
   const modificationDate = new Date(forumNote.tmdate || Date.now()).toISOString().slice(0, 10).replace(/-/g, '/')
   // eslint-disable-next-line no-underscore-dangle
-  const conferenceName = getConferenceName(content._bibtex)
+  const conferenceName = getConferenceName(noteBibtex)
 
   // Set banner link
   useEffect(() => {
     if (query.referrer) {
       setBannerContent(referrerLink(query.referrer))
     } else {
-      const groupId = content.venueid
-        ? content.venueid
-        : forumNote.invitation.split('/-/')[0]
+      const groupId = noteVenueid || noteInvitation.split('/-/')[0]
       setBannerContent(venueHomepageLink(groupId))
     }
   }, [forumNote, query])
@@ -38,8 +47,8 @@ const ForumPage = ({ forumNote, query, appContext }) => {
   return (
     <>
       <Head>
-        <title key="title">{`${content.title || 'Forum'} | OpenReview`}</title>
-        <meta name="description" content={content['TL;DR'] || content.abstract || ''} />
+        <title key="title">{`${noteTitle || 'Forum'} | OpenReview`}</title>
+        <meta name="description" content={noteTLDR || noteAbstract || ''} />
 
         <meta property="og:title" key="og:title" content={truncatedTitle} />
         <meta property="og:description" key="og:description" content={truncatedAbstract} />
@@ -47,12 +56,12 @@ const ForumPage = ({ forumNote, query, appContext }) => {
 
         {/* For more information on required meta tags for Google Scholar see: */}
         {/* https://scholar.google.com/intl/en/scholar/inclusion.html#indexing */}
-        {forumNote.invitation.startsWith(`${process.env.SUPER_USER}`) ? (
+        {noteInvitation.startsWith(`${process.env.SUPER_USER}`) ? (
           <meta name="robots" content="noindex" />
         ) : (
           <>
-            {content.title && (
-              <meta name="citation_title" content={content.title} />
+            {noteTitle && (
+              <meta name="citation_title" content={noteTitle} />
             )}
             {/*
             {authors.map(author => (
@@ -63,7 +72,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
             <meta name="citation_authors" content={authors.join('; ')} />
             <meta name="citation_publication_date" content={creationDate} />
             <meta name="citation_online_date" content={modificationDate} />
-            {content.pdf && (
+            {notePdf && (
               <meta name="citation_pdf_url" content={`https://openreview.net/pdf?id=${id}`} />
             )}
             {conferenceName && (
@@ -83,89 +92,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
   )
 }
 
-const ForumPageV2 = ({ forumNote, query, appContext }) => {
-  const { clientJsLoading, setBannerContent } = appContext
-  const { id, content } = forumNote
-
-  const truncatedTitle = truncate(content.title?.value, { length: 70, separator: /,? +/ })
-  const truncatedAbstract = truncate(content['TL;DR']?.value || content.abstract?.value, { length: 200, separator: /,? +/ })
-  const authors = (Array.isArray(content.authors?.value) || typeof content.authors?.value === 'string')
-    ? [content.authors?.value]?.flat()
-    : []
-  const creationDate = new Date(forumNote.cdate || forumNote.tcdate || Date.now()).toISOString().slice(0, 10).replace(/-/g, '/')
-  const modificationDate = new Date(forumNote.tmdate || Date.now()).toISOString().slice(0, 10).replace(/-/g, '/')
-  // eslint-disable-next-line no-underscore-dangle
-  const conferenceName = getConferenceName(content._bibtex?.value)
-
-  // Set banner link
-  useEffect(() => {
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
-    } else {
-      const groupId = content.venueid?.value
-        ? content.venueid.value
-        : forumNote.invitations[0].split('/-/')[0]
-      setBannerContent(venueHomepageLink(groupId))
-    }
-  }, [forumNote, query])
-
-  return (
-    <>
-      <Head>
-        <title key="title">{`${content.title?.value || 'Forum'} | OpenReview`}</title>
-        <meta name="description" content={content['TL;DR']?.value || content.abstract?.value || ''} />
-
-        <meta property="og:title" key="og:title" content={truncatedTitle} />
-        <meta property="og:description" key="og:description" content={truncatedAbstract} />
-        <meta property="og:type" key="og:type" content="article" />
-
-        {/* For more information on required meta tags for Google Scholar see: */}
-        {/* https://scholar.google.com/intl/en/scholar/inclusion.html#indexing */}
-        {forumNote.invitations[0].startsWith(`${process.env.SUPER_USER}`) ? (
-          <meta name="robots" content="noindex" />
-        ) : (
-          <>
-            {content.title && (
-              <meta name="citation_title" content={content.title?.value} />
-            )}
-            {/*
-            {authors.map(author => (
-              <meta key={author} name="citation_author" content={author} />
-            ))}
-            */}
-            {/* temporary hack to get google scholar to work, revert to above when next.js unique issue is solved */}
-            <meta name="citation_authors" content={authors.join('; ')} />
-            <meta name="citation_publication_date" content={creationDate} />
-            <meta name="citation_online_date" content={modificationDate} />
-            {content.pdf?.value && (
-              <meta name="citation_pdf_url" content={`https://openreview.net/pdf?id=${id}`} />
-            )}
-            {conferenceName && (
-              <meta name="citation_conference_title" content={conferenceName} />
-            )}
-          </>
-        )}
-      </Head>
-
-      <LegacyForumV2
-        forumNote={forumNote}
-        selectedNoteId={query.noteId}
-        selectedInvitationId={query.invitationId}
-        clientJsLoading={clientJsLoading}
-      />
-    </>
-  )
-}
-
-const ForumGateway = ({
-  forumNote, query, appContext,
-}) => (
-  forumNote.version === 2
-    ? <ForumPageV2 {...{ forumNote, query, appContext }} />
-    : <ForumPage {...{ forumNote, query, appContext }} />
-)
-
-ForumGateway.getInitialProps = async (ctx) => {
+ForumPage.getInitialProps = async (ctx) => {
   if (!ctx.query.id) {
     return { statusCode: 400, message: 'Forum ID is required' }
   }
@@ -239,6 +166,6 @@ ForumGateway.getInitialProps = async (ctx) => {
   }
 }
 
-ForumGateway.bodyClass = 'legacy-forum'
+ForumPage.bodyClass = 'legacy-forum'
 
-export default withError(ForumGateway)
+export default withError(ForumPage)

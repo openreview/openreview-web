@@ -14,7 +14,14 @@ export default function LegacyForum({
 }) {
   const { user, userLoading } = useContext(UserContext)
   const { id, content, details } = forumNote
-  const authors = Array.isArray(content.authors) || typeof content.authors === 'string'
+
+  const isV2Note = forumNote.version === 2
+  const noteAuthors = isV2Note ? content.authors?.value : content.authors
+  const noteTitle = isV2Note ? content.title?.value : content.title
+  const notePdf = isV2Note ? content.pdf?.value : content.pdf
+  const noteHtml = isV2Note ? content.html?.value : content.html || content.ee
+
+  const authors = Array.isArray(noteAuthors) || typeof noteAuthors === 'string'
     ? [content.authors].flat()
     : []
 
@@ -23,7 +30,7 @@ export default function LegacyForum({
     if (clientJsLoading || userLoading) return
 
     // eslint-disable-next-line global-require
-    const runForum = require('../../client/forum')
+    const runForum = isV2Note ? require('../../client/forum-v2') : require('../../client/forum')
     runForum(id, selectedNoteId, selectedInvitationId, user)
   }, [clientJsLoading, user, JSON.stringify(authors), userLoading]) // authors is reset when clientJsLoading turns false
 
@@ -32,80 +39,45 @@ export default function LegacyForum({
       <div className="note">
         <ForumTitle
           id={id}
-          title={content.title}
-          pdf={content.pdf}
-          html={content.html || content.ee}
+          title={noteTitle}
+          pdf={notePdf}
+          html={noteHtml}
         />
-
-        <ForumAuthors
-          authors={content.authors}
-          authorIds={content.authorids}
-          signatures={forumNote.signatures}
-          original={details.original}
-        />
+        {isV2Note
+          ? (
+            <ForumAuthors
+              authors={content.authors}
+              authorIds={content.authorids}
+              signatures={forumNote.signatures}
+              original={details.original}
+            />
+          )
+          : (
+            <ForumAuthorsV2
+              authors={content.authors} // NoteAuthorsV2 is expecting obj
+              authorIds={content.authorids}
+              signatures={forumNote.signatures}
+              noteReaders={forumNote.readers}
+            />
+          )}
 
         <ForumMeta note={forumNote} />
 
-        <NoteContent
-          id={id}
-          content={content}
-          invitation={details.originalInvitation || details.invitation}
-        />
-
-        <ForumReplyCount count={details.replyCount} />
-      </div>
-
-      <hr />
-
-      <div id="note_children">
-        <LoadingSpinner />
-      </div>
-    </div>
-  )
-}
-
-export const LegacyForumV2 = ({
-  forumNote, selectedNoteId, selectedInvitationId, clientJsLoading,
-}) => {
-  const { user, userLoading } = useContext(UserContext)
-  const { id, content, details } = forumNote
-  const authors = Array.isArray(content.authors?.value) || typeof content.authors?.value === 'string'
-    ? [content.authors?.value]?.flat()
-    : []
-
-  // Load and execute legacy forum code
-  useEffect(() => {
-    if (clientJsLoading || userLoading) return
-
-    // eslint-disable-next-line global-require
-    const runForum = require('../../client/forum-v2')
-    runForum(id, selectedNoteId, selectedInvitationId, user)
-  }, [clientJsLoading, user, JSON.stringify(authors), userLoading]) // authors is reset when clientJsLoading turns false
-
-  return (
-    <div className="forum-container">
-      <div className="note">
-        <ForumTitle
-          id={id}
-          title={content.title?.value}
-          pdf={content.pdf?.value}
-          html={content.html?.value}
-        />
-
-        <ForumAuthorsV2
-          authors={content.authors} // NoteAuthorsV2 is expecting obj
-          authorIds={content.authorids}
-          signatures={forumNote.signatures}
-          noteReaders={forumNote.readers}
-        />
-
-        <ForumMetaV2 note={forumNote} />
-
-        <NoteContentV2
-          id={id}
-          content={content}
-          presentation={details.presentation}
-        />
+        {isV2Note
+          ? (
+            <NoteContentV2
+              id={id}
+              content={content}
+              presentation={details.presentation}
+            />
+          )
+          : (
+            <NoteContent
+              id={id}
+              content={content}
+              invitation={details.originalInvitation || details.invitation}
+            />
+          )}
 
         <ForumReplyCount count={details.replyCount} />
       </div>
@@ -168,49 +140,34 @@ const ForumAuthorsV2 = ({
   </div>
 )
 
-const ForumMeta = ({ note }) => (
-  <div className="meta_row">
-    <span className="date item">
-      {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year)}
-    </span>
+const ForumMeta = ({ note }) => {
+  const isV2Note = note.version === 2
+  const noteYear = isV2Note ? note.year?.value : note.year
+  const noteVenue = isV2Note ? note.venue?.value : note.venue
+  const noteInvitation = isV2Note ? note.invitations[0] : note.invitation
 
-    {note.content.venue ? (
-      <span className="item">{note.content.venue}</span>
-    ) : (
-      <span className="item">{prettyId(note.invitation)}</span>
-    )}
-
-    {note.readers && (
-      <span className="item">
-        Readers:
-        {' '}
-        <NoteReaders readers={note.readers} />
+  return (
+    <div className="meta_row">
+      <span className="date item">
+        {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, noteYear)}
       </span>
-    )}
-  </div>
-)
 
-const ForumMetaV2 = ({ note }) => (
-  <div className="meta_row">
-    <span className="date item">
-      {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year?.value)}
-    </span>
+      {noteVenue ? (
+        <span className="item">{noteVenue}</span>
+      ) : (
+        <span className="item">{prettyId(noteInvitation)}</span>
+      )}
 
-    {note.content.venue?.value ? (
-      <span className="item">{note.content.venue.value}</span>
-    ) : (
-      <span className="item">{prettyId(note.invitations[0])}</span>
-    )}
-
-    {note.readers && (
-      <span className="item">
-        Readers:
-        {' '}
-        <NoteReaders readers={note.readers} />
-      </span>
-    )}
-  </div>
-)
+      {note.readers && (
+        <span className="item">
+          Readers:
+          {' '}
+          <NoteReaders readers={note.readers} />
+        </span>
+      )}
+    </div>
+  )
+}
 
 const ForumReplyCount = ({ count }) => (
   <div className="reply_row clearfix">
