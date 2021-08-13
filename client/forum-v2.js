@@ -479,11 +479,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
             var replyInv = _.find(noteOrForumRec.replyInvitations, ['id', invitationId]);
             if (replyInv) {
               appendInvitation(replyInv, noteId);
-            } else {
-              var origInv = _.find(noteOrForumRec.originalInvitations, ['id', invitationId]);
-              if (origInv) {
-                $('#note_' + forumId + ' .meta_actions .edit_button').trigger('click')
-              }
             }
           }
         }

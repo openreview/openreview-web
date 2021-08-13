@@ -162,6 +162,15 @@
         return;
       }
 
+      let privateLabel = null
+      if (note.content[fieldName]?.readers && !_.isEqual(note.readers?.sort(), note.content[fieldName].readers.sort())) {
+        privateLabel = `<span class="private-contents-label">(privately revealed to ${note.content[fieldName].readers.map(p => p.startsWith('~')
+        ? '<a href="/profile?id=' + encodeURIComponent(p) + '" class="profile-link">' + view.prettyId(p) + '</a>'
+        : view.prettyId(p)
+      ).join(', ')
+        })</span>`
+      }
+
       // Build download links
       if (valueString.indexOf('/attachment/') === 0) {
         $contents.push($('<div>', {class: 'note_contents'}).append(
@@ -169,7 +178,7 @@
           $('<span>', {class: 'note_content_value'}).html(
             view.mkDownloadLink(note.id, fieldName, valueString, { isReference: params.isEdit })
           )
-        ));
+        ).append(privateLabel));
         return;
       }
 
@@ -186,7 +195,8 @@
 
       $contents.push($('<div>', {class: 'note_contents'}).append(
         $('<span>', {class: 'note_content_field'}).text(view.prettyField(fieldName) + ': '),
-        $elem
+        privateLabel,
+        $elem,
       ));
     });
 
@@ -297,7 +307,7 @@
       ? '<a href="/profile?id=' + encodeURIComponent(p) + '" class="profile-link">' + view.prettyId(p) + '</a>'
       : view.prettyId(p)
     ).join(', ')
-    if (!note.content.authors?.value && trueAuthorText && trueAuthorText !== authorText) {
+    if (trueAuthorText) {
       $contentAuthors.append(
         '<span class="author no-margin">' + trueAuthorText + '</span>',
         '<span class="private-author-label">(privately revealed to you)</span>'
