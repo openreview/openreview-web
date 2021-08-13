@@ -376,9 +376,9 @@ Note that assigning an area chair using python does not send an email to that us
     id: 'question-author-permissions',
     a: 'If an author cannot access their own submission, they must make sure that the email address associated with the submission has been added to their profile and confirmed.',
   }, {
-    q: 'Test How can I edit a submission after the deadline?',
+    q: 'How can I edit a submission after the deadline?',
     id: 'question-edit-submission-after-deadline',
-    a: 'To edit a submission after the deadline, go to the forum of the paper you wish to edit and click on the edit button. Similarly, you can use the trash button to delete the submission.',
+    a: 'Program chairs have the option to enable a ‘Submission Revision Stage’ during which authors may edit their submissions. If this is available for your venue, you can go to the forum of the paper you wish to edit and click on the edit button. Similarly, you can use the trash button to delete the submission. If this option is not available, only PCs can edit submissions after the deadline.',
   }, {
     q: 'How do I make submissions public after the decisions are made?',
     id: 'question-release-submissions',
