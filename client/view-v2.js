@@ -40,8 +40,8 @@
 
     // Display a warning when "\\" is detected in a MathJax block ($...$ or $$ ... $$)
     // All double backslashes need to be escaped or Markdown will convert it to "\"
-    $contentInput.on('input', () => {
-      const $warning = $(this).closest('.row').find('.content-warning');
+    $contentInput.on('input', function() {
+      var $warning = $(this).closest('.row').find('.content-warning');
       if ($(this).val().match(/\$[\s\S]*\\\\[\s\S]*\$/)) {
         if ($warning.length === 0) {
           $(this).closest('.row').find('.char-counter').append(
@@ -622,6 +622,7 @@
     var $note = $('<div>', {id: 'note_' + note.id, class: 'note panel'});
     var forumId = note.forum;
     var details = note.details || {};
+    var canEdit = details.writable;
 
     var notePastDue = note.ddate && note.ddate < Date.now();
     if (notePastDue) {
@@ -642,7 +643,7 @@
 
     // Link to comment button
     var $linkButton = null;
-    if (forumId !== note.id && $('#content').hasClass('forum')) {
+    if (forumId !== note.id && $('#content').hasClass('legacy-forum')) {
       var commentUrl = location.origin + '/forum?id=' + forumId + '&noteId=' + note.id;
       $linkButton = $('<button class="btn btn-xs btn-default permalink-button" title="Link to this comment" data-permalink-url="' + commentUrl + '">' +
         '<span class="glyphicon glyphicon-link" aria-hidden="true"></span></button>');
@@ -650,19 +651,15 @@
 
     // Trash button
     var $trashButton = null;
-    var $actionButtons = null;
     if ($('#content').hasClass('forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
-      var canEdit = details.writable;
       if (canEdit && params.onTrashedOrRestored && params.deleteOnlyInvitation) {
         var buttonContent = notePastDue ? 'Restore' : '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>';
-        $trashButton = $('<button id="trashbutton_' + note.id + '" class="btn btn-xs trash_button">' + buttonContent + '</button>');
+        $trashButton = $('<div>', { class: 'meta_actions' }).append(
+          $('<button id="trashbutton_' + note.id + '" class="btn btn-xs trash_button">' + buttonContent + '</button>')
+        );
         $trashButton.click(function() {
           deleteOrRestoreNote(note, titleText, params.user, params.onTrashedOrRestored, params.isEdit);
         });
-      }
-
-      if ($trashButton) {
-        $actionButtons = $('<div>', {class: 'meta_actions'}).append($trashButton);
         $titleHTML.addClass('pull-left');
       }
     }
@@ -680,7 +677,7 @@
     var $titleAndPdf = $('<div>', {class: 'title_pdf_row clearfix'}).append(
       // Need the spaces for now to match the spacing of the template code
       $titleHTML.append(' ', $pdfLink, ' ', $htmlLink, $linkButton),
-      $actionButtons
+      $trashButton
     );
 
     var $parentNote = null;
@@ -742,15 +739,13 @@
     );
 
     var $metaActionsRow = null;
-    // var $modifiableOriginalButton = null;
-
-    var $editInvitations = _.map(params.editInvitations, function(invitation) {
-      return $('<button class="btn btn-xs edit_button referenceinvitation">').text(view.prettyInvitationId(invitation.id)).click(function() {
-        params.onEditRequested(invitation);
+    if (canEdit) {
+      var $editInvitations = _.map(params.editInvitations, function (invitation) {
+        return $('<button class="btn btn-xs edit_button referenceinvitation">').text(`Edit ${view.prettyInvitationId(invitation.id)}`).click(function () {
+          params.onEditRequested(invitation);
+        });
       });
-    });
-    if ($editInvitations) {
-      $metaActionsRow = $('<div>', {class: 'meta_row meta_actions'}).append(
+      $metaActionsRow = $('<div>', { class: 'meta_row meta_actions' }).append(
         $editInvitations
       );
       $metaEditRow.addClass('pull-left');
@@ -892,21 +887,25 @@
   var mkNewNoteEditor = function(invitation, forum, replyto, user, options) {
   };
 
-  const buildReaders = (fieldDescription, fieldValue, replyto, done) => {
+  function buildReaders(fieldDescription, fieldValue, replyto, done) {
+    if (!fieldDescription) {
+      done(undefined, 'Invitation is missing readers');
+      return;
+    }
+
     var requiredText = $('<span>', { text: '*', class: 'required_field' });
     var setParentReaders = function(parent, fieldDescription, fieldType, done) {
       if (parent) {
-        Webfield2.get('/notes', { id: parent }).then(function(result) {
-          var newFieldDescription = { value: fieldDescription };
+        Webfield2.get('/notes', { id: parent }).then(function (result) {
+          var newFieldDescription = fieldDescription;
           if (result.notes.length) {
             var parentReaders = result.notes[0].readers;
             if (!_.includes(parentReaders, 'everyone')) {
               newFieldDescription = {
-                value:{},
                 description: fieldDescription.description,
-                presentation: { default: fieldDescription.default }
+                default: fieldDescription.default
               };
-              newFieldDescription.value[fieldType] = parentReaders;
+              newFieldDescription[fieldType] = parentReaders;
               if (!fieldValue.length) {
                 fieldValue = newFieldDescription[fieldType];
               }
@@ -915,12 +914,13 @@
           done(newFieldDescription);
         });
       } else {
-        done({ value: fieldDescription });
+        done(fieldDescription);
       }
     };
 
     if (_.has(fieldDescription, 'values-regex')) {
-      Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleError: false }).then(function(result) {
+      Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
+      .then(function(result) {
         if (_.isEmpty(result.groups)) {
           done(undefined, 'no_results');
         } else {
@@ -933,12 +933,13 @@
             return g.id;
           });
 
-          var $readers = mkComposerInput('readers', fieldDescription, fieldValue, { groups: everyoneList.concat(restOfList)});
+          var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue, { groups: everyoneList.concat(restOfList) });
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
         }
-      }, function(error) {
-        done(undefined, error);
+      }, function(jqXhr, textStatus) {
+        var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+        done(undefined, errorText);
       });
     } else if (_.has(fieldDescription, 'values-dropdown')) {
       var values = fieldDescription['values-dropdown'];
@@ -978,17 +979,30 @@
             if (_.difference(newFieldDescription.default, newFieldDescription['values-dropdown']).length !== 0) { //invitation default is not in list of possible values
               done(undefined, 'Default reader is not in the list of readers');
             }
-            var $readers = mkComposerInput('readers', newFieldDescription, fieldValue);
+            var $readers = mkComposerInput('readers', { value: newFieldDescription }, fieldValue);
             $readers.find('.small_heading').prepend(requiredText);
             done($readers);
           });
         });
 
+    } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
+      setParentReaders(replyto, fieldDescription, 'value-dropdown-hierarchy', function(newFieldDescription) {
+        var $readers = mkComposerInput('readers', { value: newFieldDescription }, fieldValue);
+        $readers.find('.small_heading').prepend(requiredText);
+        done($readers);
+      });
     } else if (_.has(fieldDescription, 'values')) {
       setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
-        if (_.isEqual(newFieldDescription.value.values, fieldDescription.values)
-          || fieldDescription.values.every(function (val) { return newFieldDescription.value.values.indexOf(val) !== -1; })) {
-          var $readers = mkComposerInput('readers', newFieldDescription, fieldValue); //for values, readers must match with invitation instead of parent invitation
+        var subsetReaders = fieldDescription.values.every(function (val) {
+          var found = newFieldDescription.values.indexOf(val) !== -1;
+          if (!found && val.includes('/Reviewer_')) {
+            var hasReviewers = _.find(newFieldDescription.values, function(v) { return v.includes('/Reviewers')});
+            return hasReviewers;
+          }
+          return found;
+          })
+        if (_.isEqual(newFieldDescription.values, fieldDescription.values) || subsetReaders) {
+          var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue); //for values, readers must match with invitation instead of parent invitation
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
         } else {
@@ -1015,7 +1029,7 @@
         .then(function() {
           setParentReaders(replyto, fieldDescription, 'values-checkbox', function (newFieldDescription) {
             //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
-            var replyValues = _.intersection(newFieldDescription.value['values-checkbox'], fieldDescription['values-checkbox']);
+            var replyValues = _.intersection(newFieldDescription['values-checkbox'], fieldDescription['values-checkbox']);
 
             //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
             var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
@@ -1028,17 +1042,17 @@
               });
             }
 
-            newFieldDescription.value['values-checkbox'] = replyValues;
-            if (_.difference(newFieldDescription.presentation?.default, newFieldDescription.value['values-checkbox']).length !== 0) { //invitation default is not in list of possible values
+            newFieldDescription['values-checkbox'] = replyValues;
+            if (_.difference(newFieldDescription.default, newFieldDescription['values-checkbox']).length !== 0) { //invitation default is not in list of possible values
               done(undefined, 'Default reader is not in the list of readers');
             }
-            var $readers = mkComposerInput('readers', newFieldDescription, fieldValue.length ? fieldValue : newFieldDescription.presentation?.default, { prettyId: true});
+            var $readers = mkComposerInput('readers', newFieldDescription, fieldValue.length ? fieldValue : newFieldDescription.default, { prettyId: true});
             $readers.find('.small_heading').prepend(requiredText);
             done($readers);
           });
         });
     } else {
-      var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue);
+      var $readers = mkComposerInput('readers', fieldDescription, fieldValue);
       $readers.find('.small_heading').prepend(requiredText);
       done($readers);
     }
@@ -1073,11 +1087,11 @@
       return map;
     }, {});
 
-    function buildEditor(readers, signatures) {
-      var $submitButton = $('<button class="btn btn-sm">Submit</button>');
-      var $cancelButton = $('<button class="btn btn-sm">Cancel</button>');
+    const buildEditor = (readers, signatures) => {
+      const $submitButton = $('<button class="btn btn-sm">Submit</button>');
+      const $cancelButton = $('<button class="btn btn-sm">Cancel</button>');
 
-      $submitButton.click(function() {
+      $submitButton.click(() => {
         if ($submitButton.prop('disabled')) {
           return false;
         }
@@ -1090,23 +1104,21 @@
         ].join('\n'));
         $cancelButton.prop('disabled', true);
 
-        var content = view.getContent(invitation, $contentMap);
-        console.log(content)
+        const content = view.getContent(invitation, $contentMap);
 
-        // var signatureInputValues = view.idsFromListAdder(signatures, invitation.edit.signatures);
-        // var readerValues = view.getReaders(readers, invitation, signatureInputValues);
-        // var nonreaderValues = null;
-        // if (_.has(invitation, 'edit.nonreaders.values')) {
-        //   nonreaderValues = invitation.edit.nonreaders.values;
-        // }
-        // var writerValues = view.getWriters(invitation, signatureInputValues, user);
+        var signatureInputValues = view.idsFromListAdder(signatures, invitation.edit.signatures);
+        var readerValues = view.getReaders(readers, invitation, signatureInputValues);
+        var writerValues = view.getWriters(invitation, signatureInputValues, user);
+        content[0].signatures = signatureInputValues;
+        content[0].readers = readerValues;
+        content[0].writers = writerValues;
 
-        var errorList = content[2].concat(validate(invitation, content[0], readers));
+        let errorList = content[2].concat(validate(invitation, content[0], readers));
         if (params.onValidate) {
           errorList = errorList.concat(params.onValidate(invitation, content[0], note));
         }
 
-        var files = content[1];
+        const files = content[1];
 
         if (!_.isEmpty(errorList)) {
           if (params.onError) {
@@ -1119,13 +1131,8 @@
           return;
         }
 
-        var editNote={
-          note: {
-            content: content[0]
-          }
-        }
         if (_.isEmpty(files)) {
-          return saveNote(editNote);
+          return saveNote(content[0], note, invitation);
           return;
         }
 
@@ -1163,13 +1170,13 @@
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
           return Webfield2.sendFile('/attachment', data).then(function(result) {
-            editNote.note.content[fieldName].value = result.url;
-            view.updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, editNote.note.content[fieldName].value);
+            content[0][fieldName].value = result.url;
+            view.updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, content[fieldName].value);
           });
         });
 
         $.when.apply($, promises).then(function() {
-          saveNote(editNote);
+          saveNote(content[0], note, invitation);
         }, onError);
       });
 
@@ -1181,9 +1188,8 @@
         }
       });
 
-      var saveNote = function(note) {
-        const editToPost = constructEdit({ noteObj: note, invitationObj: invitation });
-        return note
+      var saveNote = function (formContent, existingNote, invitation) {
+        const editToPost = constructEdit({ formData: formContent, noteObj: existingNote, invitationObj: invitation });
         Webfield2.post('/notes/edits', editToPost, { handleError: false }).then(function() {
           if (params.onNoteEdited) {
             Webfield2.get('/notes', { id: note.id }).then(function (result) {
@@ -1230,7 +1236,7 @@
         promptError(error);
       }
     };
-    buildReaders(invitation.edit.readers, note.readers, parentId, function(readers, error) {
+    buildReaders(invitation.edit.note.readers, note.readers, parentId, function(readers, error) {
       if (error) {
         return handleError(error);
       }
@@ -1295,7 +1301,45 @@
     return orderedFields;
   };
 
-  const constructEdit = ({ noteObj, editObj, invitationObj }) => {
+  const constructEdit = ({ formData, noteObj, invitationObj }) => {
+    if (!invitationObj.edit) return undefined;
+    const result = {}
+    const note = {}
+    const content = {}
+    const { note: noteFields, ...otherFields } = invitationObj.edit
+    // editToPost.readers/writers etc.
+    Object.entries(otherFields).forEach(([field, value]) => {
+      if (value.value || value.values) return
+      result[field] = formData?.[field] ?? noteObj?.[field] // readers/writers/signatures collected in editor default to note readers/writers/signatures
+    })
+    const { content: contentFields, ...otherNoteFields } = noteFields
+    // editToPost.note.id/reader/writers etc.
+    Object.entries(otherNoteFields).forEach(([otherNoteField, value]) => {
+      if (value.value || value.values) return
+      note[otherNoteField] = formData?.[otherNoteField] ?? noteObj?.[otherNoteField]
+    })
+    // content fields
+    Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
+      if (valueObj = contentFieldValue.value) {
+        if (valueObj.value || valueObj.values) {
+          return
+        } else {
+          content[contentFieldName] = { value: formData?.[contentFieldName] ?? noteObj?.content?.[contentFieldName]?.value }
+        }
+      }
+      if (fieldReader = contentFieldValue.readers) {
+        if (fieldReader.value || fieldReader.values) {
+          return
+        } else {
+          content[contentFieldName].readers = noteObj?.content?.[contentFieldName]?.readers
+        }
+      }
+    })
+
+    result.invitation = invitationObj.id
+    if (Object.keys(content).length) note.content = content
+    if (Object.keys(note).length) result.note = note
+    return result
   }
 
   const validate = (invitation, content, readersWidget) => {

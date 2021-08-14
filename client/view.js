@@ -2822,8 +2822,9 @@ module.exports = (function() {
     var files = {};
     var errors = [];
     var invitationContent = invitation.edit ? invitation.edit.note.content : invitation.reply.content
-    var content = _.reduce(invitationContent, function(ret, contentObj, k) {
+    var content = _.reduce(invitationContent, function(ret, contentObjInInvitation, k) {
       // Let the widget handle it :D and extract the data when we encouter authorids
+      const contentObj = invitation.edit ? contentObjInInvitation.value : contentObjInInvitation
       if (contentObj.hidden && k === 'authors') {
         return ret;
       }
@@ -2927,12 +2928,13 @@ module.exports = (function() {
   };
 
   var getWriters = function(invitation, signatures, user) {
+    var writers = invitation.edit ? invitation.edit.writers : invitation.reply.writers
 
-    if (invitation.reply.writers && _.has(invitation.reply.writers, 'values')) {
-      return invitation.reply.writers.values;
+    if (writers && _.has(writers, 'values')) {
+      return writers.values;
     }
 
-    if (invitation.reply.writers && _.has(invitation.reply.writers, 'values-regex') && invitation.reply.writers['values-regex'] === '~.*') {
+    if (writers && _.has(writers, 'values-regex') && writers['values-regex'] === '~.*') {
       return [user.profile.id];
     }
 
@@ -2940,21 +2942,22 @@ module.exports = (function() {
   };
 
   var getReaders = function(widget, invitation, signatures) {
-    var inputValues = idsFromListAdder(widget, invitation.reply.readers);
+    var readers = invitation.edit ? invitation.edit.readers : invitation.reply.readers
+    var inputValues = idsFromListAdder(widget, readers);
 
     var invitationValues = [];
-    if (_.has(invitation.reply.readers, 'values-dropdown')) {
-      invitationValues = invitation.reply.readers['values-dropdown'].map(function(v) { return _.has(v, 'id') ? v.id : v; });
-    } else if (_.has(invitation.reply.readers, 'value-dropdown-hierarchy')) {
-      invitationValues = invitation.reply.readers['value-dropdown-hierarchy'];
-    } else if (_.has(invitation.reply.readers, 'values-checkbox')) {
+    if (_.has(readers, 'values-dropdown')) {
+      invitationValues = readers['values-dropdown'].map(function(v) { return _.has(v, 'id') ? v.id : v; });
+    } else if (_.has(readers, 'value-dropdown-hierarchy')) {
+      invitationValues = readers['value-dropdown-hierarchy'];
+    } else if (_.has(readers, 'values-checkbox')) {
       inputValues = [];
       widget.find('.note_content_value input[type="checkbox"]').each(function(i) {
         if ($(this).prop('checked')) {
           inputValues.push($(this).val());
         }
       });
-      invitationValues = invitation.reply.readers['values-checkbox'];
+      invitationValues = readers['values-checkbox'];
     }
 
     // Add signature if exists in the invitation readers list
@@ -3911,6 +3914,9 @@ module.exports = (function() {
     mkSearchProfile: mkSearchProfile,
     mkFileInput: mkFileInput,
     getContent: getContent,
+    idsFromListAdder:idsFromListAdder,
+    getReaders: getReaders,
+    getWriters: getWriters,
   };
 
 }());
