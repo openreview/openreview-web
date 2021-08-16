@@ -64,41 +64,42 @@ module.exports = function(forumId, noteId, invitationId, user) {
         }, onError);
     };
 
-    var noteRecsP = $.when(notesP, invitationsP).then(function(notes, invitations) {
-      var noteRecPs = _.map(notes, function(note) {
-        // pure delete invitation without content
-        var deleteOnlyInvitation = invitations.filter(p => p.edit?.note?.id?.value === note.id || note.invitations.includes(p.edit?.note?.id?.["value-invitation"]))
-          .find(p => p.edit?.note?.ddate && !p.edit?.note?.content)
+    var noteRecsP = $.when(notesP, invitationsP).then(function (notes, invitations) {
+      var noteRecPs = _.map(notes, function (note) {
+        var deleteInvitation = invitations.filter(p => p.edit?.note?.id?.value === note.id || note.invitations.includes(p.edit?.note?.id?.["value-invitation"]))
+          .find(p => p.edit?.note?.ddate)
+        var isPureDeleteInvitation = deleteInvitation?.edit?.note?.content // pure delete invitation should not be edit invitation
+        var editInvitations = invitations.filter(p => p.edit?.note?.id?.value === note.id || note.invitations.includes(p.edit?.note?.id?.["value-invitation"]))
+        if (isPureDeleteInvitation) editInvitations = editInvitations.filter(p => p.id !== deleteInvitation?.id)
 
-          var editInvitations = invitations.filter(p => p.edit?.note?.id?.value === note.id || note.invitations.includes(p.edit?.note?.id?.["value-invitation"]))
-          .filter(p => p.id !== deleteOnlyInvitation?.id)
-
-        var replyInvitations = invitations.filter(p => {
-          const replyToValue = p.edit?.note?.replyto?.value
-          if (replyToValue) {
-            if (replyToValue === note.id) return true
-            return false
-          }
-          if (p.edit?.note?.id) return false
-          return true
-        })
+        var replyInvitations = invitations
+          .filter(p => {
+            const replyToValue = p.edit?.note?.replyto?.value
+            if (replyToValue) {
+              if (replyToValue === note.id) return true
+              return false
+            }
+            if (p.edit?.note?.id) return false
+            return true
+          })
+          .filter(q => !q.multiReply || q.multiReply !== 1 || !q.details?.repliedNotes?.[0])
 
         var noteForumId = note.id === forumId ? forumId : undefined;
         return $.when(
           tagInvitationsP(noteForumId),  // get tag invitations only for forum
         )
-        .then(function(tagInvitations) {
-          return {
-            note,
-            deleteOnlyInvitation,
-            editInvitations,
-            replyInvitations,
-            tagInvitations,
-          };
-        });
+          .then(function (tagInvitations) {
+            return {
+              note,
+              deleteInvitation,
+              editInvitations,
+              replyInvitations,
+              tagInvitations,
+            };
+          });
       });
 
-      return $.when.apply($, noteRecPs).then(function() {
+      return $.when.apply($, noteRecPs).then(function () {
         return _.toArray(arguments);
       });
 
@@ -161,7 +162,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       withContent: true,
       withRevisionsLink: true,
       withModificationDate: true,
-      deleteOnlyInvitation: rec.deleteOnlyInvitation,
+      deleteInvitation: rec.deleteInvitation,
       editInvitations: rec.editInvitations,
       replyInvitations: rec.replyInvitations,
       onNewNoteRequested: function(invitation) {
