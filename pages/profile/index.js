@@ -266,6 +266,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
     // Always show user's preferred username in the URL
     if (profileQuery.email || (profileQuery.id !== profile.preferredId)) {
       router.replace(`/profile?id=${profile.preferredId}`, undefined, { shallow: true })
+      return
     }
 
     if (profile.id === user?.profile?.id) {
