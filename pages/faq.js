@@ -219,6 +219,10 @@ You must click the "**Save Profile Changes**" button at the bottom of the page s
     a: `If one or more publications are not present in your DBLP homepage, you can use our direct upload page to manually upload your missing publications.
     Please go to the [OpenReview.net Archive page](/group?id=OpenReview.net/Archive) and follow the instructions listed on the page.`,
   }, {
+    q: 'How can I edit a submission after the deadline?',
+    id: 'question-edit-submission-after-deadline',
+    a: 'If a ‘Submission Revision Stage’ has been enabled by your venue’s Program Chairs, you may edit your submissions during this time by clicking the Revision button on the forum page of your submission. Otherwise, only PCs can edit submissions after the deadline. ',
+  }, {
     q: 'Where can I find the Semantic Scholar URL?',
     id: 'question-semantic-scholar',
     a: `To locate your Semantic Scholar URL, go to https://semanticscholar.org and search for the name you publish by.
@@ -377,8 +381,8 @@ Note that assigning an area chair using python does not send an email to that us
     a: 'If an author cannot access their own submission, they must make sure that the email address associated with the submission has been added to their profile and confirmed.',
   }, {
     q: 'How can I edit a submission after the deadline?',
-    id: 'question-edit-submission-after-deadline',
-    a: 'Program chairs have the option to enable a ‘Submission Revision Stage’ during which authors may edit their submissions. If this is available for your venue, you can go to the forum of the paper you wish to edit and click on the edit button. Similarly, you can use the trash button to delete the submission. If this option is not available, only PCs can edit submissions after the deadline.',
+    id: 'question-edit-submission-after-deadline-pc',
+    a: 'In order to edit a submission after the deadline, you can go to the forum of the paper you wish to edit and click on the edit button. Similarly, you can use the trash button to delete the submission. You can also allow authors to edit their submissions after the deadline by enabling a ‘Submission Revision Stage’ for your venue. ',
   }, {
     q: 'How do I make submissions public after the decisions are made?',
     id: 'question-release-submissions',
