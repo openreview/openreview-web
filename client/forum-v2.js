@@ -201,7 +201,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     var invitationP = invitation ?
       $.Deferred().resolve(invitation) :
-      Webfield.get('/invitations', { id: note.invitation }).then(function(result) {
+      Webfield.get('/invitations', { id: note.invitations[0] }).then(function(result) {
         if (result.invitations && result.invitations.length) {
           return result.invitations[0];
         }
@@ -857,7 +857,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   // Assumes there is always going to be just one invitation per note.
   var getInvitationFilters = function(note) {
-    return [note.invitation];
+    return [note.invitations[0]];
   };
   var getSignatureFilters = function(note) {
     return note.signatures;

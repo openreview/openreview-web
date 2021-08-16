@@ -164,21 +164,19 @@
 
       let privateLabel = null
       if (note.content[fieldName]?.readers && !_.isEqual(note.readers?.sort(), note.content[fieldName].readers.sort())) {
-        privateLabel = `<span class="private-contents-label">(privately revealed to ${note.content[fieldName].readers.map(p => p.startsWith('~')
-        ? '<a href="/profile?id=' + encodeURIComponent(p) + '" class="profile-link">' + view.prettyId(p) + '</a>'
-        : view.prettyId(p)
-      ).join(', ')
-        })</span>`
+        var tooltip = `privately revealed to ${note.content[fieldName].readers.map(p =>view.prettyId(p)).join(', ')}`
+        privateLabel = `<span class="private-contents-icon glyphicon glyphicon-lock" title="${tooltip}" data-toggle="tooltip" data-placement="top"/>`
       }
 
       // Build download links
       if (valueString.indexOf('/attachment/') === 0) {
         $contents.push($('<div>', {class: 'note_contents'}).append(
           $('<span>', {class: 'note_content_field'}).text(view.prettyField(fieldName) + ': '),
+          privateLabel,
           $('<span>', {class: 'note_content_value'}).html(
             view.mkDownloadLink(note.id, fieldName, valueString, { isReference: params.isEdit })
           )
-        ).append(privateLabel));
+        ));
         return;
       }
 
@@ -229,6 +227,7 @@
     var $note = $('<div>', {id: 'note_' + note.id, class: 'note panel'});
     var forumId = note.forum;
     var details = note.details || {};
+    var canEdit = details.writable;
 
     var notePastDue = note.ddate && note.ddate < Date.now();
     if (notePastDue) {
@@ -249,7 +248,7 @@
 
     // Link to comment button
     var $linkButton = null;
-    if (forumId !== note.id && $('#content').hasClass('forum')) {
+    if (forumId !== note.id && $('#content').hasClass('legacy-forum')) {
       var commentUrl = location.origin + '/forum?id=' + forumId + '&noteId=' + note.id;
       $linkButton = $('<button class="btn btn-xs btn-default permalink-button" title="Link to this comment" data-permalink-url="' + commentUrl + '">' +
         '<span class="glyphicon glyphicon-link" aria-hidden="true"></span></button>');
@@ -257,19 +256,16 @@
 
     // Trash button
     var $trashButton = null;
-    var $actionButtons = null;
     if ($('#content').hasClass('forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
-      var canEdit = details.writable;
       if (canEdit && params.onTrashedOrRestored && params.deleteOnlyInvitation) {
         var buttonContent = notePastDue ? 'Restore' : '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>';
-        $trashButton = $('<button id="trashbutton_' + note.id + '" class="btn btn-xs trash_button">' + buttonContent + '</button>');
+        $trashButton = $('<div>', { class: 'meta_actions' }).append(
+          $('<button id="trashbutton_' + note.id + '" class="btn btn-xs trash_button">' + buttonContent + '</button>')
+        );
         $trashButton.click(function() {
           deleteOrRestoreNote(note, titleText, params.user, params.onTrashedOrRestored, params.isEdit);
         });
-      }
 
-      if ($trashButton) {
-        $actionButtons = $('<div>', {class: 'meta_actions'}).append($trashButton);
         $titleHTML.addClass('pull-left');
       }
     }
@@ -287,7 +283,7 @@
     var $titleAndPdf = $('<div>', {class: 'title_pdf_row clearfix'}).append(
       // Need the spaces for now to match the spacing of the template code
       $titleHTML.append(' ', $pdfLink, ' ', $htmlLink, $linkButton),
-      $actionButtons
+      $trashButton
     );
 
     var $parentNote = null;
@@ -350,15 +346,14 @@
     );
 
     var $metaActionsRow = null;
-    // var $modifiableOriginalButton = null;
-
-    var $editInvitations = _.map(params.editInvitations, function(invitation) {
-      return $('<button class="btn btn-xs edit_button referenceinvitation">').text(view.prettyInvitationId(invitation.id)).click(function() {
-        params.onEditRequested(invitation);
+    if (canEdit && params.editInvitations?.length) {
+      var $editInvitations = _.map(params.editInvitations, function (invitation) {
+        return $('<button class="btn btn-xs edit_button referenceinvitation">').text(view.prettyInvitationId(invitation.id)).click(function () {
+          params.onEditRequested(invitation);
+        });
       });
-    });
-    if ($editInvitations) {
       $metaActionsRow = $('<div>', {class: 'meta_row meta_actions'}).append(
+        '<span class="item hint">Edit</span>',
         $editInvitations
       );
       $metaEditRow.addClass('pull-left');
