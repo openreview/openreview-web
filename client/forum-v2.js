@@ -77,7 +77,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
             const replyTo = p.edit?.note?.replyto
             if (replyTo) {
               if (replyTo.value === note.id || replyTo['with-forum'] === forumId) return true
-              return false
             }
           })
           .filter(q => !q.maxReplies || q.maxReplies !== 1 || !q.details?.repliedNotes?.[0])
