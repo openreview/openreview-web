@@ -1,10 +1,5 @@
 <nav class="pagination-container text-center {{#if options.loading}}loading{{/if}}" aria-label="page navigation">
   <ul class="pagination">
-    {{#if options.showCount}}
-      <li class="disabled">
-        <span>{{{startCount}}}~{{{endCount}}} of {{{totalNotes}}}</span>
-      </li>
-    {{/if}}
     {{#each pageList}}
       <li class="{{#if disabled}}disabled{{/if}} {{#if active}}active{{/if}} {{extraClasses}}" data-page-number="{{number}}">
         {{#if disabled}}
@@ -15,4 +10,7 @@
       </li>
     {{/each}}
   </ul>
+  {{#if options.showCount}}
+    <span class="pagination-count">Showing{{{startCount}}}-{{{endCount}}} of {{{totalNotes}}}</span>
+  {{/if}}
 </nav>
