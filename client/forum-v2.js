@@ -8,36 +8,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
   var sm = mkStateManager();
 
   // Data fetching functions
-  var getProfilesP = function(notes) {
-    var authorEmails = _.without(_.uniq(_.map(notes, function(n) { return n.tauthor; })), undefined);
-    if (!authorEmails.length) {
-      return $.Deferred().resolve(notes);
-    }
-
-    var getPreferredUserName = function(profile) {
-      var preferredName = _.find(profile.content.names, ['preferred', true]);
-      if (preferredName) {
-        return preferredName.username;
-      }
-      return profile.id;
-    };
-
-    return Webfield.post('/profiles/search', { emails: authorEmails })
-      .then(function(result) {
-        var profiles = {};
-        _.forEach(result.profiles, function(p) {
-          profiles[p.email] = p;
-        });
-
-        _.forEach(notes, function(n) {
-          var profile = profiles[n.tauthor];
-          if (profile) {
-            n.tauthor = getPreferredUserName(profile);
-          }
-        });
-        return notes;
-      });
-  };
 
   var getNoteRecsP = function() {
     var onError = function() {
@@ -55,7 +25,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       notesP = Webfield2.get('/notes', {
         forum: forumId,
         trash: true,
-        details: 'replyCount,writable,revisions,overwriting,invitation,tags,presentation'
+        details: 'replyCount,writable,presentation,signatures'
       }, { handleErrors: false })
         .then(function(result) {
           if (!result.notes || !result.notes.length) {
@@ -70,7 +40,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
             }
           });
 
-          return getProfilesP(notes);
+          return notes
         }, onError);
 
       invitationsP = Webfield2.get('/invitations', {
@@ -94,41 +64,39 @@ module.exports = function(forumId, noteId, invitationId, user) {
         }, onError);
     };
 
-    var noteRecsP = $.when(notesP, invitationsP).then(function(notes, invitations) {
-      var noteRecPs = _.map(notes, function(note) {
-        // pure delete invitation without content
-        var deleteOnlyInvitation = invitations.filter(p => p.edit?.note?.id?.value === note.id || note.invitations.includes(p.edit?.note?.id?.["value-invitation"]))
-          .find(p => p.edit?.note?.ddate && !p.edit?.note?.content)
+    var noteRecsP = $.when(notesP, invitationsP).then(function (notes, invitations) {
+      var noteRecPs = _.map(notes, function (note) {
+        var deleteInvitation = invitations.filter(p => p.edit?.note?.id?.value === note.id || note.invitations.includes(p.edit?.note?.id?.["value-invitation"]))
+          .find(p => p.edit?.note?.ddate)
+        var isPureDeleteInvitation = deleteInvitation?.edit?.note?.content // pure delete invitation should not be edit invitation
+        var editInvitations = invitations.filter(p => p.edit?.note?.id?.value === note.id || note.invitations.includes(p.edit?.note?.id?.["value-invitation"]))
+        if (isPureDeleteInvitation) editInvitations = editInvitations.filter(p => p.id !== deleteInvitation?.id)
 
-          var editInvitations = invitations.filter(p => p.edit?.note?.id?.value === note.id || note.invitations.includes(p.edit?.note?.id?.["value-invitation"]))
-          .filter(p => p.id !== deleteOnlyInvitation?.id)
-
-        var replyInvitations = invitations.filter(p => {
-          const replyToValue = p.edit?.note?.replyto?.value
-          if (replyToValue) {
-            if (replyToValue === note.id) return true
-            return false
-          }
-          if (p.edit?.note?.id) return false
-          return true
-        })
+        var replyInvitations = invitations
+          .filter(p => {
+            const replyTo = p.edit?.note?.replyto
+            if (replyTo) {
+              if (replyTo.value === note.id || replyTo['with-forum'] === forumId) return true
+            }
+          })
+          .filter(q => !q.maxReplies || q.maxReplies !== 1 || !q.details?.repliedNotes?.[0])
 
         var noteForumId = note.id === forumId ? forumId : undefined;
         return $.when(
           tagInvitationsP(noteForumId),  // get tag invitations only for forum
         )
-        .then(function(tagInvitations) {
-          return {
-            note,
-            deleteOnlyInvitation,
-            editInvitations,
-            replyInvitations,
-            tagInvitations,
-          };
-        });
+          .then(function (tagInvitations) {
+            return {
+              note,
+              deleteInvitation,
+              editInvitations,
+              replyInvitations,
+              tagInvitations,
+            };
+          });
       });
 
-      return $.when.apply($, noteRecPs).then(function() {
+      return $.when.apply($, noteRecPs).then(function () {
         return _.toArray(arguments);
       });
 
@@ -191,7 +159,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       withContent: true,
       withRevisionsLink: true,
       withModificationDate: true,
-      deleteOnlyInvitation: rec.deleteOnlyInvitation,
+      deleteInvitation: rec.deleteInvitation,
       editInvitations: rec.editInvitations,
       replyInvitations: rec.replyInvitations,
       onNewNoteRequested: function(invitation) {
@@ -231,7 +199,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     var invitationP = invitation ?
       $.Deferred().resolve(invitation) :
-      Webfield.get('/invitations', { id: note.invitation }).then(function(result) {
+      Webfield.get('/invitations', { id: note.invitations[0] }).then(function(result) {
         if (result.invitations && result.invitations.length) {
           return result.invitations[0];
         }
@@ -508,11 +476,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
             var replyInv = _.find(noteOrForumRec.replyInvitations, ['id', invitationId]);
             if (replyInv) {
               appendInvitation(replyInv, noteId);
-            } else {
-              var origInv = _.find(noteOrForumRec.originalInvitations, ['id', invitationId]);
-              if (origInv) {
-                $('#note_' + forumId + ' .meta_actions .edit_button').trigger('click')
-              }
             }
           }
         }
@@ -891,7 +854,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   // Assumes there is always going to be just one invitation per note.
   var getInvitationFilters = function(note) {
-    return [note.invitation];
+    return [note.invitations[0]];
   };
   var getSignatureFilters = function(note) {
     return note.signatures;

@@ -493,6 +493,21 @@
     return $htmlLink;
   };
 
+  var prettyProfileLink = function (id, text, source) {
+    if (!id) return text;
+    if (id.indexOf('~') === 0) {
+      return `<a href="/profile?id=${encodeURIComponent(id)}" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="${id}">${text}</a>`
+    }
+    if (source === 'signature') return text
+    if(id.indexOf('@') !== -1) {
+      return `<a href="/profile?email=${encodeURIComponent(id)}" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="${id}">${text}</a>`
+    }
+    if(id.indexOf('http') === 0) {
+      return `<a href="${id}" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="${id}">${text}</a>`
+    }
+    return text
+  }
+
   var getAuthorText = function(note) {
     var notePastDue = note.ddate && note.ddate < Date.now();
     var authorText;
@@ -505,35 +520,28 @@
       if (_.isArray(note.content.authorids?.value) && note.content.authorids.value.length) {
         authorText = note.content.authors?.value?.map(function(a, i) {
           var aId = note.content.authorids.value[i];
-          if (!aId) {
-            return a;
-          }
-
-          if (aId.indexOf('~') === 0) {
-            return '<a href="/profile?id='+ encodeURIComponent(aId) +
-              '" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="'+ aId +'">'+ a +'</a>';
-          } else if (aId.indexOf('@') !== -1) {
-            return '<a href="/profile?email='+ encodeURIComponent(aId) +
-              '" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="'+ aId +'">'+ a +'</a>';
-          } else if (aId.indexOf('http') === 0) {
-            return '<a href="'+ aId +
-              '" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="'+ aId +'">'+ a +'</a>';
-          } else {
-            return a;
-          }
+          return prettyProfileLink(aId, a, 'authorids')
         }).join(', ');
       } else {
         authorText = note.content.authors?.value?.join(', ');
       }
-
+      var showPrivateLabel = !_.isEqual(note.readers?.sort(), note.content.authorids?.readers?.sort())
+      if (showPrivateLabel){
+        var tooltip = `privately revealed to ${note.content.authorids?.readers?.map(p =>view.prettyId(p)).join(', ')}`
+        privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
+        authorText = `${authorText} ${privateLabel}`
+      }
     } else {
       // Note with no authors, just signatures, such as a forum comment
       authorText = note.signatures.map(function(signature) {
-        if (signature.indexOf('~') === 0) {
-          return '<a href="/profile?id='+ encodeURIComponent(signature) +'" class="profile-link">'+ view.prettyId(signature) +'</a>';
-        } else {
-          return view.prettyId(signature);
+        var signatureGroup = note.details.signatures?.find(p => p.id === signature)
+        var signatureLink = prettyProfileLink(signature,view.prettyId(signature), 'signatures');
+        if (signatureGroup && !signatureGroup.readers?.includes('everyone')) {
+          var tooltip = `privately revealed to ${signatureGroup.readers?.map(p => view.prettyId(p)).join(', ')}`
+          privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
+          return `${signatureLink} ${privateLabel} ${signatureGroup.members.map(q=>prettyProfileLink(q,view.prettyId(q))).join(', ')}`
         }
+        return signatureLink;
       }).join(', ');
     }
     return authorText;
@@ -565,10 +573,17 @@
         return;
       }
 
+      let privateLabel = null
+      if (note.content[fieldName]?.readers && !_.isEqual(note.readers?.sort(), note.content[fieldName].readers.sort())) {
+        var tooltip = `privately revealed to ${note.content[fieldName].readers.map(p =>view.prettyId(p)).join(', ')}`
+        privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
+      }
+
       // Build download links
       if (valueString.indexOf('/attachment/') === 0) {
         $contents.push($('<div>', {class: 'note_contents'}).append(
           $('<span>', {class: 'note_content_field'}).text(view.prettyField(fieldName) + ': '),
+          privateLabel,
           $('<span>', {class: 'note_content_value'}).html(
             view.mkDownloadLink(note.id, fieldName, valueString, { isReference: params.isEdit })
           )
@@ -589,7 +604,8 @@
 
       $contents.push($('<div>', {class: 'note_contents'}).append(
         $('<span>', {class: 'note_content_field'}).text(view.prettyField(fieldName) + ': '),
-        $elem
+        privateLabel,
+        $elem,
       ));
     });
 
@@ -600,7 +616,7 @@
     var params = _.assign({
       invitation: null,
       onEditRequested: null,
-      deleteOnlyInvitation: null,
+      deleteInvitation: null,
       editInvitations:[],
       replyInvitations: [],
       tagInvitations: [],
@@ -651,8 +667,8 @@
 
     // Trash button
     var $trashButton = null;
-    if ($('#content').hasClass('forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
-      if (canEdit && params.onTrashedOrRestored && params.deleteOnlyInvitation) {
+    if ($('#content').hasClass('legacy-forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
+      if (canEdit && params.onTrashedOrRestored && params.deleteInvitation) {
         var buttonContent = notePastDue ? 'Restore' : '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>';
         $trashButton = $('<div>', { class: 'meta_actions' }).append(
           $('<button id="trashbutton_' + note.id + '" class="btn btn-xs trash_button">' + buttonContent + '</button>')
@@ -693,21 +709,6 @@
     var $contentSignatures = $('<span>', {class: 'signatures'}).html(authorText);
     var $contentAuthors = $('<div>', {class: 'meta_row'}).append($contentSignatures);
 
-    var trueAuthorText = (note.tauthor && note.tauthor.indexOf('~') === 0) ?
-      '<a href="/profile?id='+ encodeURIComponent(note.tauthor) +'" class="profile-link">'+ view.prettyId(note.tauthor) +'</a>' :
-      view.prettyId(note.tauthor);
-    if (!note.content.authors?.value && trueAuthorText && trueAuthorText !== authorText) {
-      $contentAuthors.append(
-        '<span class="author no-margin">' + trueAuthorText + '</span>',
-        '<span class="private-author-label">(privately revealed to you)</span>'
-      );
-    }
-    if (note.readers.length == 1 && note.readers[0].indexOf('~') === 0 && note.readers[0] == note.signatures[0]) {
-      $contentAuthors.append(
-        '<span class="private-author-label">(visible only to you)</span>'
-      );
-    }
-
     var $revisionsLink = (params.withRevisionsLink && details.revisions) ?
       $('<a>', { class: 'note_content_pdf item', href: '/revisions?id=' + note.id, text: 'Show Revisions' }) :
       null;
@@ -739,13 +740,15 @@
     );
 
     var $metaActionsRow = null;
-    if (canEdit) {
+
+    if (canEdit && params.editInvitations?.length) {
       var $editInvitations = _.map(params.editInvitations, function (invitation) {
-        return $('<button class="btn btn-xs edit_button referenceinvitation">').text(`Edit ${view.prettyInvitationId(invitation.id)}`).click(function () {
+        return $('<button class="btn btn-xs edit_button referenceinvitation">').text(view.prettyInvitationId(invitation.id)).click(function () {
           params.onEditRequested(invitation);
         });
       });
-      $metaActionsRow = $('<div>', { class: 'meta_row meta_actions' }).append(
+      $metaActionsRow = $('<div>', {class: 'meta_row meta_actions'}).append(
+        '<span class="item hint">Edit</span>',
         $editInvitations
       );
       $metaEditRow.addClass('pull-left');

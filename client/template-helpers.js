@@ -73,9 +73,9 @@ Handlebars.registerHelper('prettyInvitationId', function(invitationId, options) 
     var invMatches = invitationId.match(/\/(Paper\d+)\//);
     if (invMatches) {
       paperStr = invMatches[1] + ' ';
-      var anonReviewerMatches = invitationId.match(/\/(AnonReviewer\d+)\//);
+      var anonReviewerMatches = invitationId.match(/\/(AnonReviewer\d+|Reviewer_\w+)\//);
       if (anonReviewerMatches) {
-        paperStr = paperStr + ' ' + anonReviewerMatches[1] + ' ';
+        paperStr = paperStr + anonReviewerMatches[1].replace('_', ' ') + ' ';
       }
     }
   }
@@ -1014,7 +1014,7 @@ Handlebars.registerHelper('getAnonId', function(varName,memberId,memberAnonIdMap
 Handlebars.registerPartial('noteContent', Handlebars.templates['partials/noteContent']);
 
 Handlebars.registerPartial('noteBasic', Handlebars.templates['partials/noteBasic']);
-Handlebars.registerPartial('noteBasicV2', Handlebars.templates['partials/noteBasicV2']);
+// Handlebars.registerPartial('noteBasicV2', Handlebars.templates['partials/noteBasicV2']);
 Handlebars.registerPartial('noteList', Handlebars.templates['partials/noteList']);
 
 Handlebars.registerPartial('noteActivity', Handlebars.templates['partials/noteActivity']);

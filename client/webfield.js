@@ -3115,9 +3115,11 @@ module.exports = (function() {
       if (!_.isEmpty(inv.details.replytoNote) || inv.reply.forum) {
         inv.noteInvitation = true;
 
-        if (inv.details.repliedNotes && inv.details.repliedNotes.length) {
+        if (inv.details.repliedNotes?.length > 0) {
           inv.completed = true;
         }
+        inv.noteId = inv.details.repliedNotes?.length === 1 ? inv.details.repliedNotes[0].id : inv.reply.replyto;
+
         if (_.isEmpty(inv.details.replytoNote)) {
           // Some invitations returned by the API do not contain replytoNote
           inv.details.replytoNote = { forum: inv.reply.forum };
