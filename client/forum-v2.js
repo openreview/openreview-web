@@ -74,15 +74,13 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
         var replyInvitations = invitations
           .filter(p => {
-            const replyToValue = p.edit?.note?.replyto?.value
-            if (replyToValue) {
-              if (replyToValue === note.id) return true
+            const replyTo = p.edit?.note?.replyto
+            if (replyTo) {
+              if (replyTo.value === note.id || replyTo['with-forum'] === forumId) return true
               return false
             }
-            if (p.edit?.note?.id) return false
-            return true
           })
-          .filter(q => !q.multiReply || q.multiReply !== 1 || !q.details?.repliedNotes?.[0])
+          .filter(q => !q.maxReplies || q.maxReplies !== 1 || !q.details?.repliedNotes?.[0])
 
         var noteForumId = note.id === forumId ? forumId : undefined;
         return $.when(
