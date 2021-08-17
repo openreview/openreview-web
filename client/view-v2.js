@@ -136,7 +136,7 @@
         if (signatureGroup && !signatureGroup.readers?.includes('everyone')) {
           var tooltip = `privately revealed to ${signatureGroup.readers?.map(p => view.prettyId(p)).join(', ')}`
           privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
-          return `${signatureLink} ${signatureGroup.members.map(q=>prettyProfileLink(q,view.prettyId(q))).join(', ')} ${privateLabel}`
+          return `${signatureLink} ${privateLabel} ${signatureGroup.members.map(q=>prettyProfileLink(q,view.prettyId(q))).join(', ')}`
         }
         return signatureLink;
       }).join(', ');
