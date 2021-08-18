@@ -1,21 +1,22 @@
 import { useEffect, useContext } from 'react'
 import UserContext from '../UserContext'
 import LoadingSpinner from '../LoadingSpinner'
-import NoteAuthors from '../NoteAuthors'
+import { NoteAuthorsV2 } from '../NoteAuthors'
 import NoteReaders from '../NoteReaders'
-import NoteContent from '../NoteContent'
+import { NoteContentV2 } from '../NoteContent'
 import { prettyId, inflect, forumDate } from '../../lib/utils'
 
 // Component Styles
 import '../../styles/components/legacy-forum.less'
 
-export default function LegacyForum({
+export default function LegacyForumV2({
   forumNote, selectedNoteId, selectedInvitationId, clientJsLoading,
 }) {
   const { user, userLoading } = useContext(UserContext)
   const { id, content, details } = forumNote
-  const authors = Array.isArray(content.authors) || typeof content.authors === 'string'
-    ? [content.authors].flat()
+
+  const authors = Array.isArray(content.authors?.value) || typeof content.authors?.value === 'string'
+    ? [content.authors?.value].flat()
     : []
 
   // Load and execute legacy forum code
@@ -23,7 +24,7 @@ export default function LegacyForum({
     if (clientJsLoading || userLoading) return
 
     // eslint-disable-next-line global-require
-    const runForum = require('../../client/forum')
+    const runForum = require('../../client/forum-v2')
     runForum(id, selectedNoteId, selectedInvitationId, user)
   }, [clientJsLoading, user, JSON.stringify(authors), userLoading]) // authors is reset when clientJsLoading turns false
 
@@ -32,24 +33,23 @@ export default function LegacyForum({
       <div className="note">
         <ForumTitle
           id={id}
-          title={content.title}
-          pdf={content.pdf}
-          html={content.html || content.ee}
+          title={content.title?.value}
+          pdf={content.pdf?.value}
+          html={content.html?.value}
         />
-
         <ForumAuthors
-          authors={content.authors}
+          authors={content.authors} // NoteAuthorsV2 is expecting obj
           authorIds={content.authorids}
           signatures={forumNote.signatures}
-          original={details.original}
+          noteReaders={forumNote.readers}
         />
 
         <ForumMeta note={forumNote} />
 
-        <NoteContent
+        <NoteContentV2
           id={id}
           content={content}
-          invitation={details.originalInvitation || details.invitation}
+          presentation={details.presentation}
         />
 
         <ForumReplyCount count={details.replyCount} />
@@ -87,16 +87,15 @@ const ForumTitle = ({
 )
 
 const ForumAuthors = ({
-  authors, authorIds, signatures, original,
+  authors, authorIds, signatures, noteReaders,
 }) => (
   <div className="meta_row">
-
     <h3 className="signatures author">
-      <NoteAuthors
+      <NoteAuthorsV2
         authors={authors}
         authorIds={authorIds}
         signatures={signatures}
-        original={original}
+        noteReaders={noteReaders}
       />
     </h3>
   </div>
@@ -105,14 +104,10 @@ const ForumAuthors = ({
 const ForumMeta = ({ note }) => (
   <div className="meta_row">
     <span className="date item">
-      {forumDate(note.cdate, note.tcdatem, note.mdate, note.tmdate, note.content.year)}
+      {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year?.value)}
     </span>
 
-    {note.content.venue ? (
-      <span className="item">{note.content.venue}</span>
-    ) : (
-      <span className="item">{prettyId(note.invitation)}</span>
-    )}
+    <span className="item">{note.content.venue?.value || prettyId(note.invitations[0])}</span>
 
     {note.readers && (
       <span className="item">
