@@ -2395,7 +2395,7 @@ module.exports = (function() {
   };
 
   var pdfUrl = function(note, isReference) {
-    var path = isReference ? '/references/pdf' : '/pdf';
+    var path = isReference ? `${note.version === 2 ? '/notes/edits/pdf' : '/references/pdf'}` : '/pdf';
     return _.startsWith(note.content.pdf, '/pdf') ? (path + '?id=' + note.id) : note.content.pdf;
   };
 
@@ -3914,7 +3914,11 @@ module.exports = (function() {
     getCopiedValues : getCopiedValues,
     freeTextTagWidgetLabel: freeTextTagWidgetLabel,
     setupMarked: setupMarked,
-    getInvitationColors: getInvitationColors
+    getInvitationColors: getInvitationColors,
+    mkTitleComponent: mkTitleComponent,
+    mkDropdownAdder: mkDropdownAdder,
+    buildSignatures: buildSignatures,
+    autolinkFieldDescriptions: autolinkFieldDescriptions,
   };
 
 }());
