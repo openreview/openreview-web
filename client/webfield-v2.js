@@ -178,7 +178,7 @@ module.exports = (function() {
     console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus);
     console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2));
 
-    var errorText = getErrorFromJqXhr(jqXhr, textStatus);
+    var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
     var notSignatoryError = errorText.type === 'notSignatory' && errorText.path === 'signatures' && _.startsWith(errorText.user, 'guest_');
     var forbiddenError = (errorText.type === 'forbidden' || errorText.type === 'ForbiddenError') && _.startsWith(errorText.user, 'guest_');
 
@@ -192,26 +192,6 @@ module.exports = (function() {
       promptError(errorText);
     }
 
-    return errorText;
-  };
-
-  var getErrorFromJqXhr = function(jqXhr, textStatus) {
-    var errorResponse = jqXhr.responseJSON;
-    var errorText = 'Something went wrong';
-    if (textStatus === 'timeout') {
-      // If the request timed out, display a special message and don't call
-      // the onError callback to prevent it from chaining or not displaying the mesage.
-      errorText = 'OpenReview is currently under heavy load. Please try again soon.';
-      return errorText;
-    }
-
-    if (errorResponse) {
-      if (errorResponse.errors && errorResponse.errors.length) {
-        errorText = errorResponse.errors[0];
-      } else if (errorResponse.message) {
-        errorText = errorResponse.message;
-      }
-    }
     return errorText;
   };
 
@@ -1071,7 +1051,7 @@ module.exports = (function() {
           }
         })
         .fail(function(jqXhr, textStatus) {
-          var errorToShow = getErrorFromJqXhr(jqXhr, textStatus);
+          var errorToShow = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
           var msgHtml = _.flatten([
             '<strong>Error: </strong>',
             translateErrorMessage(errorToShow)
@@ -2314,7 +2294,7 @@ module.exports = (function() {
           $widget.trigger('bidUpdated', [result]);
         };
         var apiError = function(jqXhr, textStatus) {
-          var errorText = getErrorFromJqXhr(jqXhr, textStatus);
+          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
           promptError(_.isString(errorText) ? errorText : 'The specified tag could not be updated. Please reload the page and try again.');
           $self.parent().removeClass('disabled');
           $widget.trigger('apiReturnedError', errorText);
@@ -2409,7 +2389,7 @@ module.exports = (function() {
               $('.selected-reviewer', $widget).last().data('id', result.id);
               $widget.trigger('tagUpdated', [result]);
             }, function(jqXhr, textStatus) {
-              var errorText = getErrorFromJqXhr(jqXhr, textStatus);
+              var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
               promptError(_.isString(errorText) ? errorText : 'The specified tag could not be updated. Please reload the page and try again.');
             });
         });
@@ -2443,7 +2423,7 @@ module.exports = (function() {
           .then(function(result) {
             $widget.trigger('tagUpdated', [result]);
           }, function(jqXhr, textStatus) {
-            var errorText = getErrorFromJqXhr(jqXhr, textStatus);
+            var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
             promptError(_.isString(errorText) ? errorText : 'The specified tag could not be updated. Please reload the page and try again.');
           });
         return false;
@@ -2557,7 +2537,7 @@ module.exports = (function() {
     getAll: getAll,
     setToken: setToken,
     sendFile: sendFile,
-    getErrorFromJqXhr: getErrorFromJqXhr,
+    getErrorFromJqXhr: Webfield.getErrorFromJqXhr,
     // Aliases
     setupAutoLoading: Webfield.setupAutoLoading,
     disableAutoLoading: Webfield.disableAutoLoading,
