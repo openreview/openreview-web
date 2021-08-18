@@ -126,8 +126,9 @@ Handlebars.registerHelper('pdfUrl', function(note, isReference) {
     return '';
   }
 
-  var urlPath = isReference ? '/references/pdf' : '/pdf';
-  return _.startsWith(note.content.pdf, '/pdf') ? urlPath + '?id=' + note.id : note.content.pdf;
+  var urlPath = isReference ? `${note.version === 2 ? '/notes/edits/pdf' : '/references/pdf'}` : '/pdf';
+  var pdfValue = note.version === 2 ? note.content.pdf?.value : note.content.pdf
+  return _.startsWith(pdfValue, '/pdf') ? urlPath + '?id=' + note.id : pdfValue;
 });
 
 Handlebars.registerHelper('forumDate', view.forumDate);

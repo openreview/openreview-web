@@ -10,4 +10,7 @@
       </li>
     {{/each}}
   </ul>
+  {{#if options.showCount}}
+    <span class="pagination-count">Showing {{startCount}}-{{endCount}} of {{totalNotes}}</span>
+  {{/if}}
 </nav>
