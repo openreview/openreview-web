@@ -537,7 +537,7 @@
         var signatureGroup = note.details.signatures?.find(p => p.id === signature)
         var signatureLink = prettyProfileLink(signature,view.prettyId(signature), 'signatures');
         if (signatureGroup && !signatureGroup.readers?.includes('everyone')) {
-          var tooltip = `privately revealed to ${signatureGroup.readers?.map(p => view.prettyId(p)).join(', ')}`
+          var tooltip = `Privately revealed to ${signatureGroup.readers?.map(p => view.prettyId(p)).join(', ')}`
           privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
           return `${signatureLink} ${privateLabel} ${signatureGroup.members.map(q=>prettyProfileLink(q,view.prettyId(q))).join(', ')}`
         }

@@ -3730,11 +3730,24 @@ module.exports = (function() {
       counter++;
     }
 
-    return Handlebars.templates['partials/paginationLinks']({
+    var templateParams = {
       pageList: pageList,
       baseUrl: baseUrl,
       options: displayOptions
-    });
+    }
+
+    if (displayOptions?.showCount) {
+      var startCount = (pageNum - 1) * notesPerPage + 1;
+      var endCount = (pageNum - 1) * notesPerPage + notesPerPage;
+      if (endCount > totalNotes) endCount = totalNotes;
+      templateParams = {
+        ...templateParams,
+        startCount: startCount,
+        endCount: endCount,
+        totalNotes: totalNotes,
+      }
+    }
+    return Handlebars.templates['partials/paginationLinks'](templateParams);
   };
 
   var mkInvitationButton = function(invitation, onClick, options) {
