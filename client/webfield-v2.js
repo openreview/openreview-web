@@ -199,12 +199,7 @@ module.exports = (function() {
     token = newAccessToken;
   };
 
-  var getInvitation = function(invitationId, options) {
-    var defaults = {
-    };
-    options = _.assign(defaults, options);
-
-    // Don't use the Webfield get function so the fail callback can be overridden
+  var getInvitation = function(invitationId) {
     return get('/invitations', { id: invitationId }, { handleErrors: false })
       .then(function(result) {
         if (result.invitations.length) {
@@ -259,11 +254,9 @@ module.exports = (function() {
     }
 
     return getAll('/notes', query);
-
-  }
+  };
 
   var getAssignedInvitations = function(venueId, roleName) {
-
     var invitationsP = getAll('/invitations', {
       regex: venueId + '/.*',
       invitee: true,
@@ -435,7 +428,7 @@ module.exports = (function() {
           });
       };
 
-    }
+    };
 
     if (options.sortOptions) {
       var order = 'desc';
@@ -491,7 +484,6 @@ module.exports = (function() {
     }
 
     if (options.searchProperties) {
-
       var filterOperators = ['!=','>=','<=','>','<','=']; // sequence matters
       var searchResults = function(searchText, isQueryMode) {
         $(container + ' #form-sort').val('Paper_Number');
@@ -556,12 +548,10 @@ module.exports = (function() {
         return false;
       });
     }
+
     render(rows, options.postRenderTable);
     registerHelpers();
-
-
-
-  }
+  };
 
   var renderTasks = function(container, invitations, options) {
     var defaults = {
@@ -573,12 +563,12 @@ module.exports = (function() {
       container: container,
       emptyMessage: options.emptyMessage,
       referrer: options.referrer
-    }
+    };
     $(tasksOptions.container).empty();
 
     Webfield.ui.newTaskList(invitations, [], tasksOptions);
     $('.tabs-container a[href="#' + container + '"]').parent().show();
-  }
+  };
 
   var sendFile = function(url, data, contentType) {
     var baseUrl = window.OR_API_V2_URL ? window.OR_API_V2_URL : '';
@@ -1940,7 +1930,7 @@ module.exports = (function() {
       })
       return groupsByNumber;
     })
-  }
+  };
 
   var renderInvitationButton = function(container, invitationId, options) {
     var defaults = {
@@ -1956,20 +1946,21 @@ module.exports = (function() {
       });
   }
 
-  var renderTabPanel = function(container, titles, options) {
+  var renderTabPanel = function(container, titles) {
     var loadingMessage = '<p class="empty-message">Loading...</p>';
     var tabsList = [];
     titles.forEach(function(title) {
       tabsList.push({
         heading: title,
         id: title.replace(/\s/g, '-').toLowerCase(),
-        content: loadingMessage
+        content: loadingMessage,
+        extraClasses: 'horizontal-scroll'
       })
-    })
+    });
     tabsList[0].active = true;
-    tabsList[0].extraClasses = 'horizontal-scroll'; //do we need this?
+
     Webfield.ui.tabPanel(tabsList, { container: container });
-  }
+  };
 
   var setup = function(container, venueId, options) {
     var defaults = {
@@ -1985,12 +1976,14 @@ module.exports = (function() {
     } else {
       OpenBanner.venueHomepageLink(venueId);
     }
+
     Webfield.ui.setup(container, venueId);
     Webfield.ui.header(options.title, options.instructions);
+
     if (options.tabs.length) {
       renderTabPanel('#notes', options.tabs);
     }
-  }
+  };
 
   var submissionList = function(notes, options) {
     var defaults = {
