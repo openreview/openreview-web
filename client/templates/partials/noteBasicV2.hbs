@@ -11,7 +11,7 @@
   {{#if options.pdfLink}}{{#if content.pdf.value}}
     <a href="{{pdfUrl this false}}" class="pdf-link" title="Download PDF" target="_blank"><img src="/images/pdf_icon_blue.svg"></a>
   {{/if}}{{/if}}
-  {{#if content.html.value}}
+  {{#if options.htmlLink}}{{#if content.html.value}}
     <a href="{{content.html.value}}" class="html-link" title="Open Website" target="_blank"><img src="/images/html_icon_blue.svg"></a>
   {{/if}}{{/if}}
 </h4>
