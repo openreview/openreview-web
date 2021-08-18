@@ -68,7 +68,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       var noteRecPs = _.map(notes, function (note) {
         var deleteInvitation = invitations.filter(p => p.edit?.note?.id?.value === note.id || note.invitations.includes(p.edit?.note?.id?.["value-invitation"]))
           .find(p => p.edit?.note?.ddate)
-        var isPureDeleteInvitation = deleteInvitation?.edit?.note?.content // pure delete invitation should not be edit invitation
+        var isPureDeleteInvitation = !deleteInvitation?.edit?.note?.content // pure delete invitation should not be edit invitation
         var editInvitations = invitations.filter(p => p.edit?.note?.id?.value === note.id || note.invitations.includes(p.edit?.note?.id?.["value-invitation"]))
         if (isPureDeleteInvitation) editInvitations = editInvitations.filter(p => p.id !== deleteInvitation?.id)
 

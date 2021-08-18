@@ -3369,7 +3369,7 @@ module.exports = (function() {
     }
   }
 
-  function buildSignatures(fieldDescription, fieldValue, user) {
+  function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures') {
 
     var $signatures;
     if (_.has(fieldDescription, 'values-regex')) {
@@ -3379,7 +3379,7 @@ module.exports = (function() {
         if (user && user.profile) {
           var prefId = user.profile.preferredId || user.profile.id;
           $signatures = mkDropdownList(
-            'signatures', fieldDescription.description, currentVal, [prefId], true
+            headingText, fieldDescription.description, currentVal, [prefId], true
           );
           return $.Deferred().resolve($signatures);
         } else {
@@ -3412,7 +3412,7 @@ module.exports = (function() {
             }
           });
           $signatures = mkDropdownList(
-            'signatures', fieldDescription.description, currentVal, dropdownListOptions, true
+            headingText, fieldDescription.description, currentVal, dropdownListOptions, true
           );
           return $signatures;
         }, function(jqXhr, textStatus) {
@@ -3421,7 +3421,7 @@ module.exports = (function() {
       }
 
     } else {
-      $signatures = mkComposerInput('signatures', fieldDescription, fieldValue);
+      $signatures = mkComposerInput(headingText, fieldDescription, fieldValue);
       return $.Deferred().resolve($signatures);
     }
 

@@ -1374,13 +1374,13 @@
 
     try {
       const editReaders = await buildEditReaders(invitation.edit.readers, null);
-      const editSignatures = await view.buildSignatures(invitation.edit?.signatures, null, user);
+      const editSignatures = await view.buildSignatures(invitation.edit?.signatures, null, user, 'edit signatures');
       let noteReaders = null;
       await buildNoteReaders(invitation.edit.note.readers, note.readers, parentId, (result, error) => {
         noteReaders = result;
         if (error) throw (error);
        })
-      const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, note.signatures, user)
+      const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, note.signatures, user, 'note signatures')
       buildEditor(editReaders, editSignatures, noteReaders, noteSignatures);
     } catch (error) {
       console.log('error', error);
