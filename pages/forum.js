@@ -87,14 +87,14 @@ const ForumPage = ({ forumNote, query, appContext }) => {
       </Head>
 
       {forumNote.version === 2 ? (
-        <LegacyForum
+        <LegacyForumV2
           forumNote={forumNote}
           selectedNoteId={query.noteId}
           selectedInvitationId={query.invitationId}
           clientJsLoading={clientJsLoading}
         />
       ) : (
-        <LegacyForumV2
+        <LegacyForum
           forumNote={forumNote}
           selectedNoteId={query.noteId}
           selectedInvitationId={query.invitationId}
