@@ -882,45 +882,59 @@
 
   const deleteOrRestoreNote = async (note, invitation, noteTitle, user, onTrashedOrRestored) => {
     const isDeleted = note.ddate && note.ddate < Date.now();
-    if (isDeleted) {
-      // Restore deleted note
-      const editToPost = constructEdit({ noteObj: { ...note, ddate: null }, invitationObj: invitation })
-      return Webfield2.post('/notes/edits', editToPost, null).then(function () {
-        // the return of the post is edit without updatednote
-        Webfield2.get('/notes', { id: note.id }).then(function (result) {
-          onTrashedOrRestored({ ...result.notes[0], details: note.details });
-        });
-      });
-    }
-
-    var postUpdatedNote = function ($signaturesDropdown) {
-      let editSignatureInputValues = view.idsFromListAdder($signaturesDropdown, invitation.edit.signatures);
+    var postUpdatedNote = function ($editSignatures, $editReaders) {
+      const ddate = isDeleted ? null : Date.now();
+      let editSignatureInputValues = view.idsFromListAdder($editSignatures, invitation.edit.signatures);
+      const editReaderValues = view.getReaders($editReaders, invitation, editSignatureInputValues);
       if (!editSignatureInputValues || !editSignatureInputValues.length) {
         editSignatureInputValues = [user.profile.id];
       }
-      const editToPost = constructEdit({ formData: { editSignatureInputValues }, noteObj: { ...note, ddate: Date.now() }, invitationObj: invitation })
-      Webfield2.post('/notes/edits', editToPost, null).then(function (edit) {
+      const editToPost = constructEdit({ formData: { editSignatureInputValues,editReaderValues }, noteObj: { ...note, ddate }, invitationObj: invitation })
+      Webfield2.post('/notes/edits', editToPost, null).then(function () {
         // the return of the post is edit without updatednote
         // so get the updated note again
-        Webfield2.get('/notes', { id: note.id, trash: true }).then(function (result) {
+        Webfield2.get('/notes', { id: note.id, trash: isDeleted ? false : true }).then(function (result) {
           onTrashedOrRestored({ ...result.notes[0], details: note.details });
         });
       });
     };
 
-    const $signaturesDropdown = await view.buildSignatures(invitation.edit.signatures, null, user);
+    const $editSignatures = await view.buildSignatures(invitation.edit.signatures, null, user, 'edit signature');
+    const $editReaders = await buildEditReaders(invitation.edit.readers, null);
+
     // If there's only 1 signature available don't show the modal
-    if (!$signaturesDropdown.find('div.dropdown').length) {
-      postUpdatedNote($signaturesDropdown);
+    if (!$editSignatures.find('div.dropdown').length) {
+      postUpdatedNote($editSignatures);
       return;
     }
 
-    view.showConfirmDeleteModal(note, noteTitle, $signaturesDropdown);
+    showConfirmDeleteModal(note, noteTitle, $editSignatures, $editReaders);
 
     $('#confirm-delete-modal .modal-footer .btn-primary').on('click', function () {
-      postUpdatedNote($signaturesDropdown);
+      postUpdatedNote($editSignatures);
       $('#confirm-delete-modal').modal('hide');
     });
+  };
+
+  const showConfirmDeleteModal = (note, noteTitle, $signaturesDropdown, $editReaders) => {
+    $('#confirm-delete-modal').remove();
+
+    $('#content').append(Handlebars.templates.genericModal({
+      id: 'confirm-delete-modal',
+      showHeader: true,
+      title: 'Delete Note',
+      body: '<p style="margin-bottom: 1.5rem;">Are you sure you want to delete "' +
+        noteTitle + '" by ' + view.prettyId(note.signatures[0]) + '? The deleted note will ' +
+        'be updated with the signature you choose below.</p>',
+      showFooter: true,
+      primaryButtonText: 'Delete'
+    }));
+
+    $signaturesDropdown.addClass('note_editor ml-0');
+    $signaturesDropdown.find('.required_field').remove();
+    $('#confirm-delete-modal .modal-body').append($editReaders).append($signaturesDropdown);
+
+    $('#confirm-delete-modal').modal('show');
   };
 
   var mkNewNoteEditor = function(invitation, forum, replyto, user, options) {
