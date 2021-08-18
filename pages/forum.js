@@ -3,6 +3,7 @@ import Head from 'next/head'
 import Router from 'next/router'
 import truncate from 'lodash/truncate'
 import LegacyForum from '../components/forum/LegacyForum'
+import LegacyForumV2 from '../components/forum/LegacyForumV2'
 import withError from '../components/withError'
 import api from '../lib/api-client'
 import { auth } from '../lib/auth'
@@ -11,7 +12,21 @@ import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 const ForumPage = ({ forumNote, query, appContext }) => {
   const { clientJsLoading, setBannerContent } = appContext
-  const { id, content } = forumNote
+
+  let content
+  let noteInvitation
+  if (forumNote.version === 2) {
+    content = Object.keys(forumNote.content).reduce((translatedContent, key) => {
+      // eslint-disable-next-line no-param-reassign
+      translatedContent[key] = forumNote.content[key].value
+      return translatedContent
+    }, {})
+    noteInvitation = forumNote.invitations[0]
+  } else {
+    // eslint-disable-next-line prefer-destructuring
+    content = forumNote.content
+    noteInvitation = forumNote.invitation
+  }
 
   const isV2Note = forumNote.version === 2
   const noteTitle = isV2Note ? content.title?.value : content.title
@@ -39,7 +54,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
     if (query.referrer) {
       setBannerContent(referrerLink(query.referrer))
     } else {
-      const groupId = noteVenueid || noteInvitation.split('/-/')[0]
+      const groupId = content.venueid || noteInvitation.split('/-/')[0]
       setBannerContent(venueHomepageLink(groupId))
     }
   }, [forumNote, query])
@@ -72,8 +87,8 @@ const ForumPage = ({ forumNote, query, appContext }) => {
             <meta name="citation_authors" content={authors.join('; ')} />
             <meta name="citation_publication_date" content={creationDate} />
             <meta name="citation_online_date" content={modificationDate} />
-            {notePdf && (
-              <meta name="citation_pdf_url" content={`https://openreview.net/pdf?id=${id}`} />
+            {content.pdf && (
+              <meta name="citation_pdf_url" content={`https://openreview.net/pdf?id=${forumNote.id}`} />
             )}
             {conferenceName && (
               <meta name="citation_conference_title" content={conferenceName} />
@@ -82,12 +97,21 @@ const ForumPage = ({ forumNote, query, appContext }) => {
         )}
       </Head>
 
-      <LegacyForum
-        forumNote={forumNote}
-        selectedNoteId={query.noteId}
-        selectedInvitationId={query.invitationId}
-        clientJsLoading={clientJsLoading}
-      />
+      {forumNote.version === 2 ? (
+        <LegacyForumV2
+          forumNote={forumNote}
+          selectedNoteId={query.noteId}
+          selectedInvitationId={query.invitationId}
+          clientJsLoading={clientJsLoading}
+        />
+      ) : (
+        <LegacyForum
+          forumNote={forumNote}
+          selectedNoteId={query.noteId}
+          selectedInvitationId={query.invitationId}
+          clientJsLoading={clientJsLoading}
+        />
+      )}
     </>
   )
 }
