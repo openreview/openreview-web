@@ -627,7 +627,6 @@
       withRevisionsLink: false,
       withParentNote: false,
       onTrashedOrRestored: null,
-      isEdit: false,
       user: {},
       withModificationDate: false,
       withDateTime: false,
@@ -674,7 +673,7 @@
           $('<button id="trashbutton_' + note.id + '" class="btn btn-xs trash_button">' + buttonContent + '</button>')
         );
         $trashButton.click(function() {
-          deleteOrRestoreNote(note, titleText, params.user, params.onTrashedOrRestored, params.isEdit);
+          deleteOrRestoreNote(note, params.deleteInvitation, titleText, params.user, params.onTrashedOrRestored);
         });
         $titleHTML.addClass('pull-left');
       }
@@ -881,10 +880,47 @@
     return _.startsWith(note.content.pdf?.value, '/pdf') ? (path + '?id=' + note.id) : note.content.pdf?.value;
   };
 
-  var deleteOrRestoreNote = function(note, noteTitle, user, onTrashedOrRestored, isEdit) {
-  };
+  const deleteOrRestoreNote = async (note, invitation, noteTitle, user, onTrashedOrRestored) => {
+    const isDeleted = note.ddate && note.ddate < Date.now();
+    if (isDeleted) {
+      // Restore deleted note
+      const editToPost = constructEdit({ noteObj: { ...note, ddate: null }, invitationObj: invitation })
+      return Webfield2.post('/notes/edits', editToPost, null).then(function () {
+        // the return of the post is edit without updatednote
+        Webfield2.get('/notes', { id: note.id }).then(function (result) {
+          onTrashedOrRestored({ ...result.notes[0], details: note.details });
+        });
+      });
+    }
 
-  var loadSignaturesDropdown = function(invitationId, noteSignatures, user) {
+    var postUpdatedNote = function ($signaturesDropdown) {
+      let editSignatureInputValue = view.idsFromListAdder($signaturesDropdown, invitation.edit.signatures);
+      if (!editSignatureInputValue || !editSignatureInputValue.length) {
+        editSignatureInputValue = [user.profile.id];
+      }
+      const editToPost = constructEdit({ formData: { editSignatureInputValue }, noteObj: { ...note, ddate: Date.now() }, invitationObj: invitation })
+      Webfield2.post('/notes/edits', editToPost, null).then(function (edit) {
+        // the return of the post is edit without updatednote
+        // so get the updated note again
+        Webfield2.get('/notes', { id: note.id, trash: true }).then(function (result) {
+          onTrashedOrRestored({ ...result.notes[0], details: note.details });
+        });
+      });
+    };
+
+    const $signaturesDropdown = await view.buildSignatures(invitation.edit.signatures, null, user);
+    // If there's only 1 signature available don't show the modal
+    if (!$signaturesDropdown.find('div.dropdown').length) {
+      postUpdatedNote($signaturesDropdown);
+      return;
+    }
+
+    view.showConfirmDeleteModal(note, noteTitle, $signaturesDropdown);
+
+    $('#confirm-delete-modal .modal-footer .btn-primary').on('click', function () {
+      postUpdatedNote($signaturesDropdown);
+      $('#confirm-delete-modal').modal('hide');
+    });
   };
 
   var mkNewNoteEditor = function(invitation, forum, replyto, user, options) {
@@ -1413,13 +1449,13 @@
       if (value.value || value.values) return
       switch (field) {
         case 'readers':
-          result[field] = formData?.editReaderValues
+          result[field] = formData?.editReaderValues ?? noteObj?.[field]
           break;
         case 'writers':
-          result[field] = formData?.editWriterValues
+          result[field] = formData?.editWriterValues ?? noteObj?.[field]
           break;
         case 'signatures':
-          result[field] = formData?.editSignatureInputValues
+          result[field] = formData?.editSignatureInputValues ?? noteObj?.[field]
           break;
         default:
           result[field] = formData?.[field] ?? noteObj?.[field] // readers/writers/signatures collected in editor default to note readers/writers/signatures
@@ -1427,7 +1463,7 @@
       }
     })
     const { content: contentFields, ...otherNoteFields } = noteFields
-    // editToPost.note.id/reader/writers etc.
+    // editToPost.note.id/ddate/reader/writers etc.
     Object.entries(otherNoteFields).forEach(([otherNoteField, value]) => {
       if (value.value || value.values) return
       switch (otherNoteField) {

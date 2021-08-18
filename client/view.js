@@ -3917,6 +3917,7 @@ module.exports = (function() {
     idsFromListAdder:idsFromListAdder,
     getReaders: getReaders,
     getWriters: getWriters,
+    showConfirmDeleteModal: showConfirmDeleteModal,
   };
 
 }());
