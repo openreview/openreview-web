@@ -740,7 +740,7 @@
 
     var $metaActionsRow = null;
 
-    if (canEdit && params.editInvitations?.length) {
+    if (canEdit && params.editInvitations?.length && !notePastDue) {
       var $editInvitations = _.map(params.editInvitations, function (invitation) {
         return $('<button class="btn btn-xs edit_button referenceinvitation">').text(view.prettyInvitationId(invitation.id)).click(function () {
           params.onEditRequested(invitation);
@@ -894,11 +894,11 @@
     }
 
     var postUpdatedNote = function ($signaturesDropdown) {
-      let editSignatureInputValue = view.idsFromListAdder($signaturesDropdown, invitation.edit.signatures);
-      if (!editSignatureInputValue || !editSignatureInputValue.length) {
-        editSignatureInputValue = [user.profile.id];
+      let editSignatureInputValues = view.idsFromListAdder($signaturesDropdown, invitation.edit.signatures);
+      if (!editSignatureInputValues || !editSignatureInputValues.length) {
+        editSignatureInputValues = [user.profile.id];
       }
-      const editToPost = constructEdit({ formData: { editSignatureInputValue }, noteObj: { ...note, ddate: Date.now() }, invitationObj: invitation })
+      const editToPost = constructEdit({ formData: { editSignatureInputValues }, noteObj: { ...note, ddate: Date.now() }, invitationObj: invitation })
       Webfield2.post('/notes/edits', editToPost, null).then(function (edit) {
         // the return of the post is edit without updatednote
         // so get the updated note again
@@ -1455,7 +1455,7 @@
           result[field] = formData?.editWriterValues ?? noteObj?.[field]
           break;
         case 'signatures':
-          result[field] = formData?.editSignatureInputValues ?? noteObj?.[field]
+          result[field] = formData?.editSignatureInputValues
           break;
         default:
           result[field] = formData?.[field] ?? noteObj?.[field] // readers/writers/signatures collected in editor default to note readers/writers/signatures
