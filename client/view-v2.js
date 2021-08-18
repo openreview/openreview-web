@@ -890,9 +890,100 @@
   var mkNewNoteEditor = function(invitation, forum, replyto, user, options) {
   };
 
-  function buildReaders(fieldDescription, fieldValue, replyto, done) {
+  function buildEditReaders(fieldDescription) {
     if (!fieldDescription) {
-      done(undefined, 'Invitation is missing readers');
+      // done(undefined, 'Invitation is missing readers');
+      return null; // not essentially an error
+    }
+
+    var requiredText = $('<span>', { text: '*', class: 'required_field' });
+
+    if (_.has(fieldDescription, 'values-regex')) {
+      Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
+        .then(function (result) {
+          if (_.isEmpty(result.groups)) {
+            throw('You do not have permission to create a note');
+          } else {
+            var everyoneList = _.filter(result.groups, function (g) {
+              return g.id === 'everyone';
+            });
+            var restOfList = _.sortBy(_.filter(result.groups, function (g) {
+              return g.id !== 'everyone';
+            }), function (g) {
+              return g.id;
+            });
+
+            var $readers = mkComposerInput('edit readers', { value: fieldDescription }, fieldValue, { groups: everyoneList.concat(restOfList) });
+            $readers.find('.small_heading').prepend(requiredText);
+            return $readers;
+          }
+        }, function (jqXhr, textStatus) {
+          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+          throw(errorText);
+        });
+    } else if (_.has(fieldDescription, 'values-dropdown')) {
+      var values = fieldDescription['values-dropdown'];
+      var extraGroupsP = $.Deferred().resolve([]);
+      var regexIndex = _.findIndex(values, function (g) { return g.indexOf('.*') >= 0; });
+      if (regexIndex >= 0) {
+        var regex = values[regexIndex];
+        extraGroupsP = Webfield.get('/groups', { regex: regex })
+          .then(function (result) {
+            if (result.groups && result.groups.length) {
+              var groups = result.groups.map(function (g) { return g.id; });
+              fieldDescription['values-dropdown'] = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
+            } else {
+              fieldDescription['values-dropdown'].splice(regexIndex, 1);
+            }
+            return result.groups;
+          });
+      }
+      extraGroupsP
+        .then(function () {
+          var $readers = mkComposerInput('edit readers', { value: fieldDescription }, fieldValue);
+          $readers.find('.small_heading').prepend(requiredText);
+          return $readers;
+        });
+
+    } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
+      var $readers = mkComposerInput('edit readers', { value: fieldDescription }, fieldValue);
+      $readers.find('.small_heading').prepend(requiredText);
+      return $readers;
+    } else if (_.has(fieldDescription, 'values')) {
+      return null;
+    } else if (_.has(fieldDescription, 'values-checkbox')) {
+      var initialValues = fieldDescription['values-checkbox'];
+      var promise = $.Deferred().resolve();
+      var index = _.findIndex(initialValues, function (g) { return g.indexOf('.*') >= 0; });
+      if (index >= 0) {
+        var regexGroup = initialValues[index];
+        promise = Webfield.get('/groups', { regex: regexGroup })
+          .then(function (result) {
+            if (result.groups && result.groups.length) {
+              var groups = result.groups.map(function (g) { return g.id; });
+              fieldDescription['values-checkbox'] = initialValues.slice(0, index).concat(groups, initialValues.slice(index + 1));
+            } else {
+              fieldDescription['values-checkbox'].splice(index, 1);
+            }
+          });
+      }
+      promise
+        .then(function () {
+          var $readers = mkComposerInput('edit readers', fieldDescription, fieldValue.length ? fieldValue : fieldDescription.default, { prettyId: true });
+          $readers.find('.small_heading').prepend(requiredText);
+          return $readers;
+        });
+    } else {
+      var $readers = mkComposerInput('edit readers', fieldDescription, fieldValue);
+      $readers.find('.small_heading').prepend(requiredText);
+      return $readers;
+    }
+  }
+
+  function buildNoteReaders(fieldDescription, fieldValue, replyto, done) {
+    if (!fieldDescription) {
+      // done(undefined, 'Invitation is missing readers');
+      done(null); // not essentially an error
       return;
     }
 
@@ -925,7 +1016,7 @@
       Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
       .then(function(result) {
         if (_.isEmpty(result.groups)) {
-          done(undefined, 'no_results');
+          done(undefined, 'You do not have permission to create a note');
         } else {
           var everyoneList = _.filter(result.groups, function(g) {
             return g.id === 'everyone';
@@ -936,7 +1027,7 @@
             return g.id;
           });
 
-          var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue, { groups: everyoneList.concat(restOfList) });
+          var $readers = mkComposerInput('note readers', { value: fieldDescription }, fieldValue, { groups: everyoneList.concat(restOfList) });
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
         }
@@ -982,7 +1073,7 @@
             if (_.difference(newFieldDescription.default, newFieldDescription['values-dropdown']).length !== 0) { //invitation default is not in list of possible values
               done(undefined, 'Default reader is not in the list of readers');
             }
-            var $readers = mkComposerInput('readers', { value: newFieldDescription }, fieldValue);
+            var $readers = mkComposerInput('note readers', { value: newFieldDescription }, fieldValue);
             $readers.find('.small_heading').prepend(requiredText);
             done($readers);
           });
@@ -990,7 +1081,7 @@
 
     } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
       setParentReaders(replyto, fieldDescription, 'value-dropdown-hierarchy', function(newFieldDescription) {
-        var $readers = mkComposerInput('readers', { value: newFieldDescription }, fieldValue);
+        var $readers = mkComposerInput('note readers', { value: newFieldDescription }, fieldValue);
         $readers.find('.small_heading').prepend(requiredText);
         done($readers);
       });
@@ -1005,7 +1096,7 @@
           return found;
           })
         if (_.isEqual(newFieldDescription.values, fieldDescription.values) || subsetReaders) {
-          var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue); //for values, readers must match with invitation instead of parent invitation
+          var $readers = mkComposerInput('note readers', { value: fieldDescription }, fieldValue); //for values, readers must match with invitation instead of parent invitation
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
         } else {
@@ -1049,19 +1140,19 @@
             if (_.difference(newFieldDescription.default, newFieldDescription['values-checkbox']).length !== 0) { //invitation default is not in list of possible values
               done(undefined, 'Default reader is not in the list of readers');
             }
-            var $readers = mkComposerInput('readers', newFieldDescription, fieldValue.length ? fieldValue : newFieldDescription.default, { prettyId: true});
+            var $readers = mkComposerInput('note readers', newFieldDescription, fieldValue.length ? fieldValue : newFieldDescription.default, { prettyId: true});
             $readers.find('.small_heading').prepend(requiredText);
             done($readers);
           });
         });
     } else {
-      var $readers = mkComposerInput('readers', fieldDescription, fieldValue);
+      var $readers = mkComposerInput('note readers', fieldDescription, fieldValue);
       $readers.find('.small_heading').prepend(requiredText);
       done($readers);
     }
   }
 
-  const mkNoteEditor = (note, invitation, user, options) => {
+  const mkNoteEditor = async (note, invitation, user, options) => {
     const params = {
       onNoteCreated: null,
       onCompleted: null,
@@ -1090,7 +1181,7 @@
       return map;
     }, {});
 
-    const buildEditor = (readers, signatures) => {
+    const buildEditor = (editReaders, editSignatures, noteReaders, noteSignatures) => {
       const $submitButton = $('<button class="btn btn-sm">Submit</button>');
       const $cancelButton = $('<button class="btn btn-sm">Cancel</button>');
 
@@ -1109,12 +1200,16 @@
 
         const content = view.getContent(invitation, $contentMap);
 
-        var signatureInputValues = view.idsFromListAdder(signatures, invitation.edit.signatures);
-        var readerValues = view.getReaders(readers, invitation, signatureInputValues);
-        var writerValues = view.getWriters(invitation, signatureInputValues, user);
-        content[0].signatures = signatureInputValues;
-        content[0].readers = readerValues;
-        content[0].writers = writerValues;
+        const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
+        const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
+        const editReaderValues = view.getReaders(editReaders, invitation, editSignatureInputValues);
+        const noteReaderValues = view.getReaders(noteReaders, invitation, noteSignatureInputValues);
+        const editWriterValues = view.getWriters(invitation, editSignatureInputValues, user);
+        content[0].editSignatureInputValues = editSignatureInputValues;
+        content[0].noteSignatureInputValues = noteSignatureInputValues;
+        content[0].editReaderValues = editReaderValues;
+        content[0].noteReaderValues = noteReaderValues;
+        content[0].editWriterValues = editWriterValues;
 
         let errorList = content[2].concat(validate(invitation, content[0], readers));
         if (params.onValidate) {
@@ -1218,8 +1313,10 @@
         '<div class="required_field">* denotes a required field</div>',
         '<hr class="small">',
         _.values($contentMap),
-        readers,
-        signatures,
+        editReaders,
+        editSignatures,
+        noteReaders,
+        noteSignatures,
         $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
       );
       $noteEditor.data('invitationId', invitation.id);
@@ -1230,7 +1327,6 @@
         params.onCompleted($noteEditor);
       }
     }
-
     const parentId = note.forum === note.replyto ? null : note.replyto;
     const handleError = (error) => {
       if (params.onError) {
@@ -1239,19 +1335,21 @@
         promptError(error);
       }
     };
-    buildReaders(invitation.edit.note.readers, note.readers, parentId, function(readers, error) {
-      if (error) {
-        return handleError(error);
-      }
-      view.buildSignatures(invitation.edit?.signatures, note.signatures, user).then(function(signatures) {
-        buildEditor(readers, signatures);
-      }).fail(function(error) {
-        error = error === 'no_results' ?
-          'You do not have permission to create a note' :
-          error;
-        handleError(error);
-      });
-    });
+
+    try {
+      const editReaders = await buildEditReaders(invitation.edit.readers, null);
+      const editSignatures = await view.buildSignatures(invitation.edit?.signatures, null, user);
+      let noteReaders = null;
+      await buildNoteReaders(invitation.edit.note.readers, note.readers, parentId, (result, error) => {
+        noteReaders = result;
+        if (error) throw (error);
+       })
+      const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, note.signatures, user)
+      buildEditor(editReaders, editSignatures, noteReaders, noteSignatures);
+    } catch (error) {
+      console.log('error', error);
+      return handleError(error);
+    }
   };
 
   var setupMarked = function() {
@@ -1313,13 +1411,36 @@
     // editToPost.readers/writers etc.
     Object.entries(otherFields).forEach(([field, value]) => {
       if (value.value || value.values) return
-      result[field] = formData?.[field] ?? noteObj?.[field] // readers/writers/signatures collected in editor default to note readers/writers/signatures
+      switch (field) {
+        case 'readers':
+          result[field] = formData?.editReaderValues
+          break;
+        case 'writers':
+          result[field] = formData?.editWriterValues
+          break;
+        case 'signatures':
+          result[field] = formData?.editSignatureInputValues
+          break;
+        default:
+          result[field] = formData?.[field] ?? noteObj?.[field] // readers/writers/signatures collected in editor default to note readers/writers/signatures
+          break;
+      }
     })
     const { content: contentFields, ...otherNoteFields } = noteFields
     // editToPost.note.id/reader/writers etc.
     Object.entries(otherNoteFields).forEach(([otherNoteField, value]) => {
       if (value.value || value.values) return
-      note[otherNoteField] = formData?.[otherNoteField] ?? noteObj?.[otherNoteField]
+      switch (otherNoteField) {
+        case 'readers':
+          note[otherNoteField] = formData?.noteReaderValues
+          break;
+        case 'signatures':
+          note[otherNoteField] = formData?.noteSignatureInputValues
+          break;
+        default:
+          note[otherNoteField] = formData?.[otherNoteField] ?? noteObj?.[otherNoteField]
+          break;
+      }
     })
     // content fields
     Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
