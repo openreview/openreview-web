@@ -926,6 +926,7 @@
   var mkNewNoteEditor = function(invitation, forum, replyto, user, options) {
   };
 
+
   function buildEditReaders(fieldDescription) {
     if (!fieldDescription) {
       // done(undefined, 'Invitation is missing readers');
