@@ -11,18 +11,9 @@
   {{#if options.pdfLink}}{{#if content.pdf.value}}
     <a href="{{pdfUrl this false}}" class="pdf-link" title="Download PDF" target="_blank"><img src="/images/pdf_icon_blue.svg"></a>
   {{/if}}{{/if}}
-  {{#if options.htmlLink}}{{#if content.ee.value}}
-    <a href="{{content.ee.value}}" class="html-link" title="Open Website" target="_blank"><img src="/images/html_icon_blue.svg"></a>
-  {{/if}}
   {{#if content.html.value}}
     <a href="{{content.html.value}}" class="html-link" title="Open Website" target="_blank"><img src="/images/html_icon_blue.svg"></a>
   {{/if}}{{/if}}
-  {{!-- unlink dblp publication button in profile page --}}
-  {{#if options.showUnlinkPublicationButton}}
-    {{#canUnlink invitations.[0]}}
-      <span class="unlink-publication glyphicon glyphicon-minus-sign" role="button" aria-label="unlink this publication from your profile" tabindex="0"></span>
-    {{/canUnlink}}
-  {{/if}}
 </h4>
 
 {{#if details.forumContent}}{{#isnt id forum}}
@@ -53,26 +44,10 @@
   {{#if options.replyCount}}{{#isnt details.replyCount undefined}}
     <span>{{inflect details.replyCount "Reply" "Replies" true}}</span>
   {{/isnt}}{{/if}}
-  {{#if metadata.conflict}}
-    <span class="warning-conflict">Conflict</span>
-  {{/if}}
-  {{#if options.showActionButtons}}{{#if details.writable}}
-    <span class="note-actions">
-      {{#unless isDeleted}}
-        <button class="btn btn-xs note-action-edit"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></button>
-      {{/unless}}
-      {{#unless isDeleted}}
-        <button class="btn btn-xs note-action-trash"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
-      {{/unless}}
-      {{#if isDeleted}}
-        <button class="btn btn-xs note-action-restore">Restore</button>
-      {{/if}}
-    </span>
-  {{/if}}{{/if}}
 </div>
 
 {{#if options.showContents}}
-  {{noteContentCollapsible this isV2API=true}}
+  {{noteContentCollapsible this}}
 {{/if}}
 
 {{#if options.showTags}}
@@ -83,11 +58,3 @@
   {{tagWidgets details.edges options.edgeInvitations}}
 {{/if}}
 
-{{#if options.showTasks}}{{#if taskInvitation}}
-  <div class="note-task">
-    <a href="/forum?id={{taskInvitation.reply.forum}}&noteId={{taskInvitation.reply.replyTo}}&invitationId={{taskInvitation.id}}{{#if options.referrer}}&referrer={{options.referrer}}{{/if}}">
-      {{prettyInvitationId taskInvitation.id}}
-    </a>
-    <span class="duedate {{taskInvitation.dueDateStatus}}">Due: {{taskInvitation.dueDateStr}}</span>
-  </div>
-{{/if}}{{/if}}
