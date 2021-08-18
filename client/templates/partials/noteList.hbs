@@ -1,7 +1,7 @@
 <ul class="list-unstyled submissions-list">
   {{#each notes}}
     <li class="note {{#if metadata.conflict}}has-conflict{{/if}}" data-id="{{id}}" data-number="{{number}}">
-      {{#if version}}
+      {{#if (isEqual version 2)}}
         {{> noteBasicV2 options=../options}}
       {{else}}
         {{> noteBasic options=../options}}
