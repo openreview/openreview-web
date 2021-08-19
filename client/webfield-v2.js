@@ -2246,7 +2246,7 @@ module.exports = (function() {
         var $self = $(this);
         var $widget = $self.closest('.tag-widget');
         var $note = $self.closest('.note');
-        var newValue = $self.text().trim();
+        var newValue = $self.data('value') || $self.text().trim();
         var tagId = $widget.data('id') || null;
         var isTagWidget = !$widget.hasClass('edge-widget');
         var returnVal;
@@ -2438,11 +2438,12 @@ module.exports = (function() {
       $container.on('click', '.tag-widget[data-type="radio"] .btn-group .radio-toggle', bidWidgetHandler);
     }
 
-    if (options.displayOptions.showActionButtons) {
-      _registerActionButtonHandlersV2(
-        $container, notes, Handlebars.templates['partials/noteBasic'], options
-      );
-    }
+    // TODO: support action buttons in noteBasicV2 template
+    // if (options.displayOptions.showActionButtons) {
+    //   Webfield._registerActionButtonHandlersV2(
+    //     $container, notes, Handlebars.templates['partials/noteBasic'], options
+    //   );
+    // }
 
     // Pagination via page buttons or auto loading (aka infinite scroll)
     if (options.autoLoad && options.pageSize && notes.length > options.pageSize) {
@@ -2498,7 +2499,7 @@ module.exports = (function() {
           var scrollPos = $container.offset().top - 51 - 12;
           $('html, body').animate({scrollTop: scrollPos}, 400);
           $('.submissions-list', $container).replaceWith(
-            Handlebars.templates['partials/noteListV2']({
+            Handlebars.templates['partials/noteList']({
               notes: newNotes,
               options: options.displayOptions
             })
