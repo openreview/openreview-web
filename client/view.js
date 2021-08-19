@@ -3931,6 +3931,8 @@ module.exports = (function() {
     getReaders: getReaders,
     getWriters: getWriters,
     showConfirmDeleteModal: showConfirmDeleteModal,
+    setupAutosaveHandlers: setupAutosaveHandlers,
+    clearAutosaveData: clearAutosaveData,
   };
 
 }());

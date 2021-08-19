@@ -916,7 +916,7 @@
     });
   };
 
-  const showConfirmDeleteModal = (note, noteTitle, $signaturesDropdown, $editReaders) => {
+  const showConfirmDeleteModal = (note, noteTitle, $editSignaturesDropdown, $editReaders) => {
     $('#confirm-delete-modal').remove();
 
     $('#content').append(Handlebars.templates.genericModal({
@@ -930,14 +930,224 @@
       primaryButtonText: 'Delete'
     }));
 
-    $signaturesDropdown.addClass('note_editor ml-0');
-    $signaturesDropdown.find('.required_field').remove();
-    $('#confirm-delete-modal .modal-body').append($editReaders).append($signaturesDropdown);
+    $editSignaturesDropdown.addClass('note_editor ml-0');
+    $editReaders.addClass('note_editor ml-0');
+    $('#confirm-delete-modal .modal-body').append($editReaders).append($editSignaturesDropdown);
 
     $('#confirm-delete-modal').modal('show');
   };
 
-  var mkNewNoteEditor = function(invitation, forum, replyto, user, options) {
+  const mkNewNoteEditor = async (invitation, forum, replyto, user, options) => {
+    var params = _.assign({
+      onNoteCreated: null,
+      onCompleted: null,
+      onNoteCancelled: null,
+      onValidate: null,
+      onError: null
+    }, options);
+
+    if ($('.note_editor.panel').length) {
+      promptError('You currently have another editor pane open on this page. ' +
+        'Please submit your changes or click Cancel before continuing', { scrollToTop: false });
+      if (params.onCompleted) {
+        params.onCompleted(null);
+      }
+      return;
+    }
+
+    var contentOrder = order(invitation.edit?.note?.content, invitation.id);
+    var $contentMap = _.reduce(contentOrder, function(ret, k) {
+      ret[k] = mkComposerInput(k, invitation.edit?.note?.content?.[k], invitation.edit?.note?.content?.[k]?.presentation?.default || '', { useDefaults: true, user: user});
+      return ret;
+    }, {});
+
+    function buildEditor(editReaders, editSignatures, noteReaders, noteSignatures) {
+      var $submitButton = $('<button class="btn btn-sm">Submit</button>');
+      var $cancelButton = $('<button class="btn btn-sm">Cancel</button>');
+
+      $submitButton.click(function() {
+        if ($submitButton.prop('disabled')) {
+          return false;
+        }
+
+        $submitButton.prop({ disabled: true }).append([
+          '<div class="spinner-small">',
+            '<div class="rect1"></div><div class="rect2"></div>',
+            '<div class="rect3"></div><div class="rect4"></div>',
+          '</div>'
+        ].join('\n'));
+        $cancelButton.prop({ disabled: true });
+
+        var content = view.getContent(invitation, $contentMap);
+
+        var signatureInputValues = view.idsFromListAdder(signatures, invitation.edit.signatures);
+        var readerValues = view.getReaders(readers, invitation, signatureInputValues);
+        var nonReadersValues = undefined;
+        if (_.has(invitation, 'edit.nonreaders.values')) {
+          nonReadersValues = invitation.edit.nonreaders.values;
+        }
+
+        var writerValues = view.getWriters(invitation, signatureInputValues, user);
+
+        var errorList = content[2].concat(validate(invitation, content[0], readers));
+        if (params.onValidate) {
+          errorList = errorList.concat(params.onValidate(invitation, content[0]));
+        }
+        var files = content[1];
+
+        if (!_.isEmpty(errorList)) {
+          if (params.onError) {
+            params.onError(errorList);
+          } else {
+            promptError(errorList[0]);
+          }
+          $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
+          $cancelButton.prop({ disabled: false });
+          return;
+        }
+
+        var newNoteEdit = {
+          note: {
+            content: content[0],
+            forum: forum || invitation.edit?.note?.forum,
+            replyto: replyto || invitation.edit?.note?.replyto,
+            readers: readerValues, // invitation value is checked in constructEdit fn
+            nonreaders: nonReadersValues,
+            signatures: signatureInputValues,
+            writers: writerValues,
+          },
+          readers: readerValues, // invitation value is checked in constructEdit fn
+          nonreaders: nonReadersValues,
+          signatures: signatureInputValues,
+          writers: writerValues,
+          invitation: invitation.id,
+          // invitation: invitation.id,
+        };
+
+        if (_.isEmpty(files)) {
+          return saveNote(newNoteEdit);
+        }
+
+        var onError = function(e) {
+          var errorMsg;
+          if (e.responseJSON && e.responseJSON.message) {
+            errorMsg = e.responseJSON.message;
+          } else if (e.readyState === 0) {
+            errorMsg = 'There is an error with the network and the file could not be uploaded'
+          } else {
+            errorMsg = 'There was an error uploading the file';
+          }
+
+          if (params.onError) {
+            params.onError([errorMsg]);
+          } else if (e.responseJSON && e.responseJSON.errors) {
+            promptError(e.responseJSON.errors[0]);
+          } else {
+            promptError(errorMsg);
+          }
+          $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
+          $cancelButton.prop({ disabled: false });
+        };
+
+        var fieldNames = _.keys(files);
+        var promises = fieldNames.map(function(fieldName) {
+          if (fieldName === 'pdf' && invitation.edit.note?.content?.pdf?.value?.['value-regex']) {
+            return Webfield2.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+              newNoteEdit.note.content[fieldName].value = result.url;
+              return view.updatePdfSection($contentMap.pdf, invitation.edit.note?.content?.pdf?.value, newNoteEdit.note.content.pdf.value);
+            });
+          }
+          var data = new FormData();
+          data.append('invitationId', invitation.id);
+          data.append('name', fieldName);
+          data.append('file', files[fieldName]);
+          return Webfield2.sendFile('/attachment', data).then(function(result) {
+            newNoteEdit.note.content[fieldName].value = result.url;
+            view.updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, newNoteEdit.note.content[fieldName].value);
+          });
+        });
+
+        $.when.apply($, promises).then(function() {
+          saveNote(newNoteEdit);
+        }, onError);
+      });
+
+      $cancelButton.click(function() {
+        view.clearAutosaveData(autosaveStorageKeys);
+        if (params.onNoteCancelled) {
+          params.onNoteCancelled();
+        } else {
+          $noteEditor.remove();
+        }
+      });
+
+      var saveNote = function(note) {
+        const editToPost = constructEdit({ noteObj: note, invitationObj: invitation });
+        Webfield2.post('/notes/edits', editToPost, { handleError: false }).then(function(result) {
+          if (params.onNoteCreated) {
+            params.onNoteCreated(result);
+          }
+          $noteEditor.remove();
+          view.clearAutosaveData(autosaveStorageKeys);
+        }, function(jqXhr, textStatus) {
+          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+          if (params.onError) {
+            params.onError([errorText]);
+          } else {
+            promptError(errorText);
+          }
+          $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
+          $cancelButton.prop({ disabled: false });
+        });
+      };
+
+      var $noteEditor = $('<div>', { class: 'note_editor panel' }).append(
+        '<h2 class="note_content_title">New ' + view.prettyInvitationId(invitation.id) + '</h2>',
+        '<div class="required_field">* denotes a required field</div>',
+        '<hr class="small">',
+        _.values($contentMap),
+        editReaders,
+        editSignatures,
+        noteReaders,
+        noteSignatures,
+        $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
+      );
+      $noteEditor.data('invitationId', invitation.id);
+
+      view.autolinkFieldDescriptions($noteEditor);
+      var autosaveStorageKeys = view.setupAutosaveHandlers($noteEditor, user, replyto + '|new', invitation.id);
+
+      if (params.onCompleted) {
+        params.onCompleted($noteEditor);
+      }
+    }
+
+    var parentId = forum === replyto ? null : replyto;
+    var handleError = function(error) {
+      if (params.onError) {
+        params.onError([error]);
+      } else {
+        promptError(error);
+      }
+    };
+
+    try {
+      const editReaders = await buildEditReaders(invitation.edit.readers, null);
+      const editSignatures = await view.buildSignatures(invitation.edit?.signatures, null, user, 'edit signatures');
+      let noteReaders = null;
+      await buildNoteReaders(invitation.edit.note.readers, [], parentId, (result, error) => {
+        console.log('result', result);
+        noteReaders = result;
+        if (error) throw (error);
+      })
+      console.log(noteReaders);
+      const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, null, user, 'note signatures')
+      buildEditor(editReaders, editSignatures, noteReaders, noteSignatures);
+    } catch (error) {
+      console.log('error', error);
+      return handleError(error);
+    }
+
   };
 
 
@@ -947,7 +1157,7 @@
       return null; // not essentially an error
     }
 
-    var requiredText = $('<span>', { text: '*', class: 'required_field' });
+    var requiredText = fieldDescription.optional ? null : $('<span>', { text: '*', class: 'required_field' });
 
     if (_.has(fieldDescription, 'values-regex')) {
       Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
@@ -964,7 +1174,7 @@
               return g.id;
             });
 
-            var $readers = mkComposerInput('edit readers', { value: fieldDescription }, fieldValue, { groups: everyoneList.concat(restOfList) });
+            var $readers = mkComposerInput('edit readers', { value: fieldDescription }, [], { groups: everyoneList.concat(restOfList) });
             $readers.find('.small_heading').prepend(requiredText);
             return $readers;
           }
@@ -991,17 +1201,17 @@
       }
       extraGroupsP
         .then(function () {
-          var $readers = mkComposerInput('edit readers', { value: fieldDescription }, fieldValue);
+          var $readers = mkComposerInput('edit readers', { value: fieldDescription }, []);
           $readers.find('.small_heading').prepend(requiredText);
           return $readers;
         });
 
     } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
-      var $readers = mkComposerInput('edit readers', { value: fieldDescription }, fieldValue);
+      var $readers = mkComposerInput('edit readers', { value: fieldDescription }, []);
       $readers.find('.small_heading').prepend(requiredText);
       return $readers;
-    } else if (_.has(fieldDescription, 'values')) {
-      return null;
+    // } else if (_.has(fieldDescription, 'values')) {
+    //   return null;
     } else if (_.has(fieldDescription, 'values-checkbox')) {
       var initialValues = fieldDescription['values-checkbox'];
       var promise = $.Deferred().resolve();
@@ -1020,28 +1230,29 @@
       }
       promise
         .then(function () {
-          var $readers = mkComposerInput('edit readers', fieldDescription, fieldValue.length ? fieldValue : fieldDescription.default, { prettyId: true });
+          var $readers = mkComposerInput('edit readers', { value: fieldDescription }, fieldDescription.default, { prettyId: true });
           $readers.find('.small_heading').prepend(requiredText);
           return $readers;
         });
     } else {
-      var $readers = mkComposerInput('edit readers', fieldDescription, fieldValue);
+      var $readers = mkComposerInput('edit readers', { value: fieldDescription }, []);
       $readers.find('.small_heading').prepend(requiredText);
       return $readers;
     }
   }
 
-  function buildNoteReaders(fieldDescription, fieldValue, replyto, done) {
+  const buildNoteReaders= async (fieldDescription, fieldValue, replyto, done) => {
     if (!fieldDescription) {
       // done(undefined, 'Invitation is missing readers');
       done(null); // not essentially an error
       return;
     }
 
-    var requiredText = $('<span>', { text: '*', class: 'required_field' });
-    var setParentReaders = function(parent, fieldDescription, fieldType, done) {
+    var requiredText = fieldDescription.optional ? null : $('<span>', { text: '*', class: 'required_field' });
+    var setParentReaders = async function(parent, fieldDescription, fieldType, done) {
+      console.log('set parent readers called',parent)
       if (parent) {
-        Webfield2.get('/notes', { id: parent }).then(function (result) {
+        await Webfield2.get('/notes', { id: parent }).then(function (result) {
           var newFieldDescription = fieldDescription;
           if (result.notes.length) {
             var parentReaders = result.notes[0].readers;
@@ -1079,7 +1290,7 @@
           });
 
           var $readers = mkComposerInput('note readers', { value: fieldDescription }, fieldValue, { groups: everyoneList.concat(restOfList) });
-          $readers.find('.small_heading').prepend(requiredText);
+          if (fieldDescription.optional) $readers.find('.small_heading').prepend(requiredText);
           done($readers);
         }
       }, function(jqXhr, textStatus) {
@@ -1088,56 +1299,50 @@
       });
     } else if (_.has(fieldDescription, 'values-dropdown')) {
       var values = fieldDescription['values-dropdown'];
-      var extraGroupsP = $.Deferred().resolve([]);
+      var extraGroupsP = [];
       var regexIndex = _.findIndex(values, function(g) { return g.indexOf('.*') >=0; });
       if (regexIndex >= 0) {
         var regex = values[regexIndex];
-        extraGroupsP = Webfield.get('/groups', { regex: regex })
-        .then(function(result) {
-          if (result.groups && result.groups.length) {
-            var groups = result.groups.map(function(g) { return g.id; });
-            fieldDescription['values-dropdown'] = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
-          } else {
-            fieldDescription['values-dropdown'].splice(regexIndex, 1);
-          }
-          return result.groups;
-        });
+        var result = await Webfield.get('/groups', { regex: regex })
+        if (result.groups && result.groups.length) {
+          var groups = result.groups.map(function(g) { return g.id; });
+          fieldDescription['values-dropdown'] = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
+        } else {
+          fieldDescription['values-dropdown'].splice(regexIndex, 1);
+        }
       }
-      extraGroupsP
-        .then(function(groups) {
-          setParentReaders(replyto, fieldDescription, 'values-dropdown', function (newFieldDescription) {
-            //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
-            var replyValues = _.intersection(newFieldDescription['values-dropdown'], fieldDescription['values-dropdown']);
+      await setParentReaders(replyto, fieldDescription, 'values-dropdown', function (newFieldDescription) {
+        //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
+        var replyValues = _.intersection(newFieldDescription['values-dropdown'], fieldDescription['values-dropdown']);
 
-            //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
-            var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
-            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_');  });
-            if (hasReviewers && !hasAnonReviewers) {
-              fieldDescription['values-dropdown'].forEach(function(value) {
-                if (value.includes('AnonReviewer') || value.includes('Reviewer_')) {
-                  replyValues.push(value);
-                }
-              });
+        //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
+        var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
+        var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_');  });
+        if (hasReviewers && !hasAnonReviewers) {
+          fieldDescription['values-dropdown'].forEach(function(value) {
+            if (value.includes('AnonReviewer') || value.includes('Reviewer_')) {
+              replyValues.push(value);
             }
-
-            newFieldDescription['values-dropdown'] = replyValues;
-            if (_.difference(newFieldDescription.default, newFieldDescription['values-dropdown']).length !== 0) { //invitation default is not in list of possible values
-              done(undefined, 'Default reader is not in the list of readers');
-            }
-            var $readers = mkComposerInput('note readers', { value: newFieldDescription }, fieldValue);
-            $readers.find('.small_heading').prepend(requiredText);
-            done($readers);
           });
-        });
+        }
+
+        newFieldDescription['values-dropdown'] = replyValues;
+        if (_.difference(newFieldDescription.default, newFieldDescription['values-dropdown']).length !== 0) { //invitation default is not in list of possible values
+          done(undefined, 'Default reader is not in the list of readers');
+        }
+        var $readers = mkComposerInput('note readers', { value: newFieldDescription }, fieldValue);
+        $readers.find('.small_heading').prepend(requiredText);
+        done($readers);
+      });
 
     } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
-      setParentReaders(replyto, fieldDescription, 'value-dropdown-hierarchy', function(newFieldDescription) {
+      await setParentReaders(replyto, fieldDescription, 'value-dropdown-hierarchy', function(newFieldDescription) {
         var $readers = mkComposerInput('note readers', { value: newFieldDescription }, fieldValue);
         $readers.find('.small_heading').prepend(requiredText);
         done($readers);
       });
     } else if (_.has(fieldDescription, 'values')) {
-      setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
+      await setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
         var subsetReaders = fieldDescription.values.every(function (val) {
           var found = newFieldDescription.values.indexOf(val) !== -1;
           if (!found && val.includes('/Reviewer_')) {
@@ -1160,44 +1365,39 @@
       var index = _.findIndex(initialValues, function(g) { return g.indexOf('.*') >=0; });
       if (index >= 0) {
         var regexGroup = initialValues[index];
-        promise = Webfield.get('/groups', { regex: regexGroup })
-        .then(function(result) {
-          if (result.groups && result.groups.length) {
-            var groups = result.groups.map(function(g) { return g.id; });
-            fieldDescription['values-checkbox'] = initialValues.slice(0, index).concat(groups, initialValues.slice(index + 1));
-          } else {
-            fieldDescription['values-checkbox'].splice(index, 1);
-          }
-        });
+        var result = await Webfield.get('/groups', { regex: regexGroup });
+        if (result.groups && result.groups.length) {
+          var groups = result.groups.map(function(g) { return g.id; });
+          fieldDescription['values-checkbox'] = initialValues.slice(0, index).concat(groups, initialValues.slice(index + 1));
+        } else {
+          fieldDescription['values-checkbox'].splice(index, 1);
+        }
       }
-      promise
-        .then(function() {
-          setParentReaders(replyto, fieldDescription, 'values-checkbox', function (newFieldDescription) {
-            //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
-            var replyValues = _.intersection(newFieldDescription['values-checkbox'], fieldDescription['values-checkbox']);
+      await setParentReaders(replyto, fieldDescription, 'values-checkbox', function (newFieldDescription) {
+        //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
+        var replyValues = _.intersection(newFieldDescription['values-checkbox'], fieldDescription['values-checkbox']);
 
-            //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
-            var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
-            var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_'); });
-            if (hasReviewers && !hasAnonReviewers) {
-              fieldDescription['values-checkbox'].forEach(function(value) {
-                if (value.includes('AnonReviewer') || v.includes('/Reviewer_')) {
-                  replyValues.push(value);
-                }
-              });
+        //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
+        var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
+        var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_'); });
+        if (hasReviewers && !hasAnonReviewers) {
+          fieldDescription['values-checkbox'].forEach(function(value) {
+            if (value.includes('AnonReviewer') || v.includes('/Reviewer_')) {
+              replyValues.push(value);
             }
-
-            newFieldDescription['values-checkbox'] = replyValues;
-            if (_.difference(newFieldDescription.default, newFieldDescription['values-checkbox']).length !== 0) { //invitation default is not in list of possible values
-              done(undefined, 'Default reader is not in the list of readers');
-            }
-            var $readers = mkComposerInput('note readers', newFieldDescription, fieldValue.length ? fieldValue : newFieldDescription.default, { prettyId: true});
-            $readers.find('.small_heading').prepend(requiredText);
-            done($readers);
           });
-        });
+        }
+
+        newFieldDescription['values-checkbox'] = replyValues;
+        if (_.difference(newFieldDescription.default, newFieldDescription['values-checkbox']).length !== 0) { //invitation default is not in list of possible values
+          done(undefined, 'Default reader is not in the list of readers');
+        }
+        var $readers = mkComposerInput('note readers', { value: fieldDescription }, fieldValue.length ? fieldValue : newFieldDescription.default, { prettyId: true});
+        $readers.find('.small_heading').prepend(requiredText);
+        done($readers);
+      });
     } else {
-      var $readers = mkComposerInput('note readers', fieldDescription, fieldValue);
+      var $readers = mkComposerInput('note readers', { value: fieldDescription }, fieldValue);
       $readers.find('.small_heading').prepend(requiredText);
       done($readers);
     }
@@ -1339,6 +1539,7 @@
 
       var saveNote = function (formContent, existingNote, invitation) {
         const editToPost = constructEdit({ formData: formContent, noteObj: existingNote, invitationObj: invitation });
+        return;
         Webfield2.post('/notes/edits', editToPost, { handleError: false }).then(function() {
           if (params.onNoteEdited) {
             Webfield2.get('/notes', { id: note.id }).then(function (result) {
@@ -1357,8 +1558,8 @@
         });
       };
 
-      // For reference invitations show that a new reference is being created
-      var editorAction = invitation.edit.note.id === note.id ? 'New' : 'Edit';
+      // var editorAction = invitation.edit.note.id === note.id ? 'New' : 'Edit';
+      var editorAction = 'Edit' //
       var $noteEditor = $('<div>', { class: 'note_editor existing panel' }).append(
         '<h2 class="note_content_title">' + editorAction + ' ' + view.prettyInvitationId(invitation.id) + '</h2>',
         '<div class="required_field">* denotes a required field</div>',
@@ -1370,7 +1571,7 @@
         noteSignatures,
         $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
       );
-      $noteEditor.data('invitationId', invitation.id);
+      // $noteEditor.data('invitationId', invitation.id);
 
       view.autolinkFieldDescriptions($noteEditor);
 
@@ -1391,7 +1592,7 @@
       const editReaders = await buildEditReaders(invitation.edit.readers, null);
       const editSignatures = await view.buildSignatures(invitation.edit?.signatures, null, user, 'edit signatures');
       let noteReaders = null;
-      await buildNoteReaders(invitation.edit.note.readers, note.readers, parentId, (result, error) => {
+      await buildNoteReaders(invitation.edit.note.readers, note.readers??[], parentId, (result, error) => {
         noteReaders = result;
         if (error) throw (error);
        })
@@ -1517,17 +1718,17 @@
     return result
   }
 
-  const validate = (invitation, content, readersWidget) => {
+  const validate = (invitation, formContent, readersWidget) => {
     const errorList = [];
     const invitationEditContent = invitation.edit?.note?.content;
 
     Object.keys(invitationEditContent).forEach(function(fieldName) {
       if (fieldName === 'pdf' && !invitationEditContent.pdf.value?.optional) {
-        if (content.pdf?.value && !_.endsWith(content.pdf.value, '.pdf') && !_.startsWith(content.pdf.value, '/pdf') && !_.startsWith(content.pdf.value, 'http')) {
+        if (formContent.pdf && !_.endsWith(formContent.pdf, '.pdf') && !_.startsWith(formContent.pdf, '/pdf') && !_.startsWith(formContent.pdf, 'http')) {
           errorList.push('Uploaded file must have .pdf extension');
         }
 
-        if (!content.pdf && invitationEditContent.pdf?.value?.['value-regex']) {
+        if (!formContent.pdf && invitationEditContent.pdf?.value?.['value-regex']) {
           if (invitationEditContent.pdf?.value?.['value-regex'] === 'upload') {
             errorList.push('You must provide a PDF (file upload)');
           } else if (invitationEditContent.pdf?.value?.['value-regex'].includes('upload')) {
@@ -1538,7 +1739,7 @@
         }
       }
 
-      if (!invitationEditContent[fieldName].value?.optional && _.isEmpty(content[fieldName])) {
+      if (!invitationEditContent[fieldName].value?.optional && _.isEmpty(formContent[fieldName])) {
         errorList.push('Field missing: ' + view.prettyField(fieldName));
       }
 
@@ -1571,7 +1772,7 @@
   };
 
   return {
-    // mkNewNoteEditor: mkNewNoteEditor,
+    mkNewNoteEditor: mkNewNoteEditor,
     mkNoteEditor: mkNoteEditor,
     mkNotePanel: mkNotePanel,
     // deleteOrRestoreNote: deleteOrRestoreNote,
