@@ -542,8 +542,8 @@ module.exports = (function() {
         });
         return;
       }
-
-      view.mkNewNoteEditor(invitationData, null, null, user, {
+      var newNoteEditorFn = invitationData.edit ? view2.mkNewNoteEditor : view.mkNewNoteEditor;
+      newNoteEditorFn(invitationData, null, null, user, {
         onCompleted: function($editor) {
           if (!$editor) return;
           $editor.hide();

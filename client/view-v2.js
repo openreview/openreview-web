@@ -980,16 +980,18 @@
 
         var content = view.getContent(invitation, $contentMap);
 
-        var signatureInputValues = view.idsFromListAdder(signatures, invitation.edit.signatures);
-        var readerValues = view.getReaders(readers, invitation, signatureInputValues);
-        var nonReadersValues = undefined;
-        if (_.has(invitation, 'edit.nonreaders.values')) {
-          nonReadersValues = invitation.edit.nonreaders.values;
-        }
+        const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
+        const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
+        const editReaderValues = view.getReaders(editReaders, invitation, editSignatureInputValues);
+        const noteReaderValues = view.getReaders(noteReaders, invitation, noteSignatureInputValues);
+        const editWriterValues = view.getWriters(invitation, editSignatureInputValues, user);
+        content[0].editSignatureInputValues = editSignatureInputValues;
+        content[0].noteSignatureInputValues = noteSignatureInputValues;
+        content[0].editReaderValues = editReaderValues;
+        content[0].noteReaderValues = noteReaderValues;
+        content[0].editWriterValues = editWriterValues;
 
-        var writerValues = view.getWriters(invitation, signatureInputValues, user);
-
-        var errorList = content[2].concat(validate(invitation, content[0], readers));
+        var errorList = content[2].concat(validate(invitation, content[0], noteReaders));
         if (params.onValidate) {
           errorList = errorList.concat(params.onValidate(invitation, content[0]));
         }
@@ -1006,26 +1008,8 @@
           return;
         }
 
-        var newNoteEdit = {
-          note: {
-            content: content[0],
-            forum: forum || invitation.edit?.note?.forum,
-            replyto: replyto || invitation.edit?.note?.replyto,
-            readers: readerValues, // invitation value is checked in constructEdit fn
-            nonreaders: nonReadersValues,
-            signatures: signatureInputValues,
-            writers: writerValues,
-          },
-          readers: readerValues, // invitation value is checked in constructEdit fn
-          nonreaders: nonReadersValues,
-          signatures: signatureInputValues,
-          writers: writerValues,
-          invitation: invitation.id,
-          // invitation: invitation.id,
-        };
-
         if (_.isEmpty(files)) {
-          return saveNote(newNoteEdit);
+          return saveNote(content[0], invitation);
         }
 
         var onError = function(e) {
@@ -1053,8 +1037,8 @@
         var promises = fieldNames.map(function(fieldName) {
           if (fieldName === 'pdf' && invitation.edit.note?.content?.pdf?.value?.['value-regex']) {
             return Webfield2.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
-              newNoteEdit.note.content[fieldName].value = result.url;
-              return view.updatePdfSection($contentMap.pdf, invitation.edit.note?.content?.pdf?.value, newNoteEdit.note.content.pdf.value);
+              content[0][fieldName] = result.url;
+              return view.updatePdfSection($contentMap.pdf, invitation.edit.note?.content?.pdf?.value, content[0][fieldName]);
             });
           }
           var data = new FormData();
@@ -1062,13 +1046,13 @@
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
           return Webfield2.sendFile('/attachment', data).then(function(result) {
-            newNoteEdit.note.content[fieldName].value = result.url;
-            view.updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, newNoteEdit.note.content[fieldName].value);
+            content[0][fieldName] = result.url;
+            view.updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, content[0][fieldName]);
           });
         });
 
         $.when.apply($, promises).then(function() {
-          saveNote(newNoteEdit);
+          saveNote(content[0], invitation);
         }, onError);
       });
 
@@ -1081,8 +1065,8 @@
         }
       });
 
-      var saveNote = function(note) {
-        const editToPost = constructEdit({ noteObj: note, invitationObj: invitation });
+      var saveNote = function(formContent, invitation) {
+        const editToPost = constructEdit({ formData: formContent, invitationObj: invitation });
         Webfield2.post('/notes/edits', editToPost, { handleError: false }).then(function(result) {
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
@@ -1136,11 +1120,9 @@
       const editSignatures = await view.buildSignatures(invitation.edit?.signatures, null, user, 'edit signatures');
       let noteReaders = null;
       await buildNoteReaders(invitation.edit.note.readers, [], parentId, (result, error) => {
-        console.log('result', result);
         noteReaders = result;
         if (error) throw (error);
       })
-      console.log(noteReaders);
       const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, null, user, 'note signatures')
       buildEditor(editReaders, editSignatures, noteReaders, noteSignatures);
     } catch (error) {
@@ -1250,7 +1232,6 @@
 
     var requiredText = fieldDescription.optional ? null : $('<span>', { text: '*', class: 'required_field' });
     var setParentReaders = async function(parent, fieldDescription, fieldType, done) {
-      console.log('set parent readers called',parent)
       if (parent) {
         await Webfield2.get('/notes', { id: parent }).then(function (result) {
           var newFieldDescription = fieldDescription;
@@ -1462,7 +1443,7 @@
         content[0].noteReaderValues = noteReaderValues;
         content[0].editWriterValues = editWriterValues;
 
-        let errorList = content[2].concat(validate(invitation, content[0], readers));
+        let errorList = content[2].concat(validate(invitation, content[0], noteReaders));
         if (params.onValidate) {
           errorList = errorList.concat(params.onValidate(invitation, content[0], note));
         }
@@ -1510,8 +1491,8 @@
         var promises = fieldNames.map(function(fieldName) {
           if (fieldName === 'pdf' && invitation.edit.note?.content?.pdf?.value?.['value-regex']) {
             return Webfield2.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
-              editNote.note.content[fieldName].value = result.url;
-              return view.updatePdfSection($contentMap.pdf, invitation.edit.note?.content?.pdf?.value, editNote.note.content.pdf.value);
+              content[0][fieldName] = result.url;
+              return view.updatePdfSection($contentMap.pdf, invitation.edit.note?.content?.pdf?.value, content[0][fieldName]);
             });
           }
           var data = new FormData();
@@ -1519,8 +1500,8 @@
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
           return Webfield2.sendFile('/attachment', data).then(function(result) {
-            content[0][fieldName].value = result.url;
-            view.updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, content[fieldName].value);
+            content[0][fieldName] = result.url;
+            view.updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, content[0][fieldName]);
           });
         });
 

@@ -3933,6 +3933,8 @@ module.exports = (function() {
     showConfirmDeleteModal: showConfirmDeleteModal,
     setupAutosaveHandlers: setupAutosaveHandlers,
     clearAutosaveData: clearAutosaveData,
+    updateFileSection: updateFileSection,
+    updatePdfSection: updatePdfSection,
   };
 
 }());
