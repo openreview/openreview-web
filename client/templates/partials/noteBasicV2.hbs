@@ -1,0 +1,60 @@
+{{!-- Basic note. Used when displaying lists of paper submissions --}}
+<h4>
+  <a href="/{{#if options.path}}{{options.path}}{{else}}forum{{/if}}?id={{forum}}{{#isnt id forum}}&noteId={{id}}{{/isnt}}{{#if options.referrer}}&referrer={{options.referrer}}{{/if}}" {{#if options.openInNewTab}}target="_blank"{{/if}}>
+    {{#if content.title.value}}
+      {{content.title.value}}
+    {{else}}
+      {{noteTitle invitations.[0] signatures}}
+    {{/if}}
+  </a>
+
+  {{#if options.pdfLink}}{{#if content.pdf.value}}
+    <a href="{{pdfUrl this false}}" class="pdf-link" title="Download PDF" target="_blank"><img src="/images/pdf_icon_blue.svg"></a>
+  {{/if}}{{/if}}
+  {{#if options.htmlLink}}{{#if content.html.value}}
+    <a href="{{content.html.value}}" class="html-link" title="Open Website" target="_blank"><img src="/images/html_icon_blue.svg"></a>
+  {{/if}}{{/if}}
+</h4>
+
+{{#if details.forumContent}}{{#isnt id forum}}
+<div class="parent-title">
+  <span class="glyphicon glyphicon-share-alt"></span>
+  <span class="title">
+    {{#with details.forumContent}}
+      {{#if title}}{{title}}{{else}}No Title{{/if}}
+    {{/with}}
+  </span>
+</div>
+{{/isnt}}{{/if}}
+
+<div class="note-authors">
+  {{noteAuthorsV2 readers content signatures}}
+</div>
+
+<div class="note-meta-info">
+  <span class="date">{{forumDate cdate tcdate mdate tmdate content.year.value}}</span>
+  {{#if content.venue.value}}
+    <span class="item">{{content.venue.value}}</span>
+  {{else}}
+    <span class="item">{{prettyId invitations.[0]}}</span>
+  {{/if}}
+  {{#if readers}}
+    <span class="readers">Readers: {{forumReaders readers}}</span>
+  {{/if}}
+  {{#if options.replyCount}}{{#isnt details.replyCount undefined}}
+    <span>{{inflect details.replyCount "Reply" "Replies" true}}</span>
+  {{/isnt}}{{/if}}
+</div>
+
+{{#if options.showContents}}
+  {{noteContentCollapsible this}}
+{{/if}}
+
+{{#if options.showTags}}
+  {{tagWidgets details.tags details.tagInvitations options.tagInvitations}}
+{{/if}}
+
+{{#if options.showEdges}}
+  {{tagWidgets details.edges options.edgeInvitations}}
+{{/if}}
+
