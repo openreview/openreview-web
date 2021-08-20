@@ -25,7 +25,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       notesP = Webfield2.get('/notes', {
         forum: forumId,
         trash: true,
-        details: 'replyCount,writable,presentation,signatures'
+        details: 'replyCount,writable,presentation,signatures,revisions'
       }, { handleErrors: false })
         .then(function(result) {
           if (!result.notes || !result.notes.length) {
@@ -44,7 +44,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         }, onError);
 
       invitationsP = Webfield2.get('/invitations', {
-        replyForum: forumId, details: 'repliedNotes'
+        replyForum: forumId, details: 'repliedNotes,repliedEdits'
       }, { handleErrors: false })
         .then(function(result) {
           return result.invitations || [];
@@ -79,7 +79,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
               if (replyTo.value === note.id || replyTo['with-forum'] === forumId) return true
             }
           })
-          .filter(q => !q.maxReplies || q.maxReplies !== 1 || !q.details?.repliedNotes?.[0])
+          .filter(q => !q.maxReplies || q.details?.repliedNotes?.length < q.maxReplies) // maxNoteReplies
+          // .filter(q => !q.maxReplies || q.details?.repliedEdits?.length < q.maxReplies) // maxEditReplies
 
         var noteForumId = note.id === forumId ? forumId : undefined;
         return $.when(
