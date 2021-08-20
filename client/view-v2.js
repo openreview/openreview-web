@@ -1520,7 +1520,6 @@
 
       var saveNote = function (formContent, existingNote, invitation) {
         const editToPost = constructEdit({ formData: formContent, noteObj: existingNote, invitationObj: invitation });
-        return;
         Webfield2.post('/notes/edits', editToPost, { handleError: false }).then(function() {
           if (params.onNoteEdited) {
             Webfield2.get('/notes', { id: note.id }).then(function (result) {
