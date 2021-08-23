@@ -9,7 +9,8 @@
         <tr>
           <td style="width: 28px;"><strong>{{note.number}}.</strong></td>
           <td style="width: 214px;">
-            Recommendation: {{metaReview.content.recommendation}} / Format: {{metaReview.content.format}}
+            Recommendation: {{metaReview.content.recommendation}}
+            {{#if metaReview.content.format}}/ Format: {{metaReview.content.format}}{{/if}}
           </td>
         </tr>
         <tr>
