@@ -237,6 +237,7 @@ export default class OpenReviewApp extends App {
     // Load legacy JS code
     window.mkStateManager = require('../client/state-manager')
     window.view = require('../client/view')
+    window.view2 = require('../client/view-v2')
     window.Webfield = require('../client/webfield')
     window.Webfield2 = require('../client/webfield-v2')
     window.OpenBanner = this.getLegacyBannerObject()
@@ -246,6 +247,7 @@ export default class OpenReviewApp extends App {
 
     // setup marked options and renderer overwrite
     window.view.setupMarked()
+    window.view2.setupMarked()
 
     // Set required constants
     window.OR_API_URL = process.env.API_URL

@@ -2395,7 +2395,7 @@ module.exports = (function() {
   };
 
   var pdfUrl = function(note, isReference) {
-    var path = isReference ? '/references/pdf' : '/pdf';
+    var path = isReference ? `${note.version === 2 ? '/notes/edits/pdf' : '/references/pdf'}` : '/pdf';
     return _.startsWith(note.content.pdf, '/pdf') ? (path + '?id=' + note.id) : note.content.pdf;
   };
 
@@ -2897,9 +2897,9 @@ module.exports = (function() {
 
       } else if (contentObj.hasOwnProperty('value-file') || (contentObj['value-regex'] && contentObj['value-regex'] === 'upload')) {
         var $fileSection = $contentMap[k];
-        var $fileInput = $fileSection && $fileSection.find('input.note_' + k.replaceAll(' ','.') + '[type="file"]');
+        var $fileInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '.') + '[type="file"]');
         var file = $fileInput && $fileInput.val() ? $fileInput[0].files[0] : null;
-        var $textInput = $fileSection && $fileSection.find('input.note_' + k.replaceAll(' ','.') + '[type="text"]');
+        var $textInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '.') + '[type="text"]');
         var url = $textInput && $textInput.val();
 
         // Check if there's a file. If not, check if there's a url and update ONLY if the new value
@@ -3726,11 +3726,24 @@ module.exports = (function() {
       counter++;
     }
 
-    return Handlebars.templates['partials/paginationLinks']({
+    var templateParams = {
       pageList: pageList,
       baseUrl: baseUrl,
       options: displayOptions
-    });
+    }
+
+    if (displayOptions?.showCount) {
+      var startCount = (pageNum - 1) * notesPerPage + 1;
+      var endCount = (pageNum - 1) * notesPerPage + notesPerPage;
+      if (endCount > totalNotes) endCount = totalNotes;
+      templateParams = {
+        ...templateParams,
+        startCount: startCount,
+        endCount: endCount,
+        totalNotes: totalNotes,
+      }
+    }
+    return Handlebars.templates['partials/paginationLinks'](templateParams);
   };
 
   var mkInvitationButton = function(invitation, onClick, options) {
@@ -3901,7 +3914,11 @@ module.exports = (function() {
     getCopiedValues : getCopiedValues,
     freeTextTagWidgetLabel: freeTextTagWidgetLabel,
     setupMarked: setupMarked,
-    getInvitationColors: getInvitationColors
+    getInvitationColors: getInvitationColors,
+    mkTitleComponent: mkTitleComponent,
+    mkDropdownAdder: mkDropdownAdder,
+    buildSignatures: buildSignatures,
+    autolinkFieldDescriptions: autolinkFieldDescriptions,
   };
 
 }());
