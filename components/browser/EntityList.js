@@ -19,7 +19,7 @@ export default function EntityList(props) {
 
     const isSelected = entity.id === props.selectedItemId
     switch (props.type) {
-      case 'Note':
+      case 'note':
         return (
           <NoteEntity
             key={`${entity.id}-${index}`}
@@ -38,7 +38,7 @@ export default function EntityList(props) {
           />
         )
 
-      case 'Group':
+      case 'group':
         return (
           <GroupEntity
             key={`${entity.id}-${index}`}
@@ -53,7 +53,7 @@ export default function EntityList(props) {
           />
         )
 
-      case 'Profile':
+      case 'profile':
         return (
           <ProfileEntity
             key={`${entity.id}-${index}`}
@@ -73,7 +73,7 @@ export default function EntityList(props) {
           />
         )
 
-      case 'Tag':
+      case 'tag':
         return (
           <TagEntity
             key={`${entity.id}-${index}`}

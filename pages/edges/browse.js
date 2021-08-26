@@ -70,7 +70,7 @@ const Browse = ({ appContext }) => {
     setMaxColumns(Math.max(Number.parseInt(query.maxColumns, 10), -1) || -1)
 
     const idsToLoad = uniq(allInvitations.map(i => i.id)).filter(id => id !== 'staticList')
-    api.get('/invitations', { ids: idsToLoad.join(','), expired: true, type: 'edges' }, { accessToken })
+    api.get('/invitations', { ids: idsToLoad.join(','), expired: true, type: 'edges' }, { accessToken, version: 2 })
       .then((apiRes) => {
         if (!apiRes.invitations?.length) {
           setError(invalidError)
@@ -102,14 +102,14 @@ const Browse = ({ appContext }) => {
 
           const readers = buildInvitationReplyArr(fullInvitation, 'readers', user.profile.id)
           const writers = buildInvitationReplyArr(fullInvitation, 'writers', user.profile.id) || readers
-          const signatures = fullInvitation.reply?.signatures
+          const signatures = fullInvitation.edge?.signatures
           const nonreaders = buildInvitationReplyArr(fullInvitation, 'nonreaders', user.profile.id)
           Object.assign(invObj, {
-            head: fullInvitation.reply.content.head,
-            tail: fullInvitation.reply.content.tail,
-            weight: fullInvitation.reply.content.weight,
-            defaultWeight: fullInvitation.reply.content.weight?.default,
-            label: fullInvitation.reply.content.label,
+            head: fullInvitation.edge.head,
+            tail: fullInvitation.edge.tail,
+            weight: fullInvitation.edge.weight,
+            defaultWeight: fullInvitation.edge.weight?.default,
+            label: fullInvitation.edge.label,
             readers,
             writers,
             signatures,

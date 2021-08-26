@@ -111,6 +111,7 @@ export default function Column(props) {
     const apiQuery = {
       invitation: invitationId,
       sort: shouldSort ? 'weight:desc' : undefined,
+      version: 2,
     }
     if (parentId) {
       apiQuery[otherType] = parentId
@@ -138,9 +139,9 @@ export default function Column(props) {
       let entityInvitation = null
       let defautEntityName = null
       switch (columnType) {
-        case 'Note':
-          entityInvitation = traverseInvitation[type].query.invitation
-          defautEntityName = 'Note'
+        case 'note':
+          entityInvitation = traverseInvitation[type]['value-invitation']
+          defautEntityName = 'note'
           break
         case 'Profile':
           entityInvitation = traverseInvitation[type].query.group
@@ -206,10 +207,10 @@ export default function Column(props) {
 
   const getPlaceholderText = (isLoadMoreButton = false) => {
     let entityName = props.entityType
-    if (props.entityType === 'Note') {
-      entityName = prettyInvitationId(traverseInvitation[type].query.invitation)
-    } else if (props.entityType === 'Profile') {
-      entityName = prettyId(traverseInvitation[type].query.group, true)
+    if (props.entityType === 'note') {
+      entityName = prettyInvitationId(traverseInvitation[type]['value-invitation'])
+    } else if (props.entityType === 'profile') {
+      entityName = prettyId(traverseInvitation[type]['member-of'], true)
     }
     if (startInvitation) {
       entityName = prettyInvitationId(startInvitation.id)
@@ -409,7 +410,7 @@ export default function Column(props) {
         invitations: [invitationType],
         getWritable,
         sort,
-        promise: Webfield.getAll('/edges', buildQuery(
+        promise: Webfield2.getAll('/edges', buildQuery(
           invitation.id,
           {
             ...invitation.query,
@@ -475,7 +476,7 @@ export default function Column(props) {
         return
       }
 
-      Webfield.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false))
+      Webfield2.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false))
         .then((startEdges) => {
           if (!startEdges) {
             setItems([])

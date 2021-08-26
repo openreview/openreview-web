@@ -84,18 +84,22 @@ export default class EdgeBrowser extends React.Component {
     // Get all head or tail objects referenced by the traverse parameter invitation
     const invReplyObj = this.traverseInvitation[headOrTail]
     const requestParams = { ...invReplyObj?.query } // avoid polluting invReplyObj which is used for compare
-    if (invReplyObj.type === 'Note') {
+    if (invReplyObj.type === 'note') {
       // TODO: move these params to the invitation so it's not hardcoded
-      requestParams.details = 'original'
+      //requestParams.details = 'original'
       requestParams.sort = 'number:asc'
+      requestParams.invitation = invReplyObj['value-invitation']
+    }
+    if (invReplyObj.type === 'profile') {
+      requestParams.group = invReplyObj['member-of']
     }
     const apiUrlMap = {
-      Note: '/notes',
-      Profile: '/profiles',
-      Group: '/groups',
-      Tag: '/tags',
+      note: '/notes',
+      profile: '/profiles',
+      group: '/groups',
+      tag: '/tags',
     }
-    const mainResultsP = Webfield.getAll(apiUrlMap[invReplyObj.type], requestParams)
+    const mainResultsP = Webfield2.getAll(apiUrlMap[invReplyObj.type], requestParams)
 
     // Get all head or tail objects referenced by the start parameter edge
     // invitation. Note: currently startInvitation has to have the same head
@@ -106,11 +110,12 @@ export default class EdgeBrowser extends React.Component {
       startInv.type !== invReplyObj.type || !_.isEqual(startInv.query, invReplyObj.query)
     )) {
       const startRequestParams = startInv.query || {}
-      if (startInv.type === 'Note') {
-        startRequestParams.details = 'original'
+      if (startInv.type === 'note') {
+        //startRequestParams.details = 'original'
         startRequestParams.sort = 'number:asc'
+        startRequestParams.invitation = startInv['value-invitation']
       }
-      startResultsP = Webfield.getAll(apiUrlMap[startInv.type], startRequestParams)
+      startResultsP = Webfield2.getAll(apiUrlMap[startInv.type], startRequestParams)
     } else {
       startResultsP = Promise.resolve([])
     }
@@ -118,14 +123,14 @@ export default class EdgeBrowser extends React.Component {
     // Get list of all keys to seed the entity map with. Currently only used for
     // profiles
     let initialKeysP
-    if (invReplyObj.type === 'Profile' && requestParams.group) {
-      initialKeysP = Webfield.get('/groups', { id: requestParams.group })
+    if (invReplyObj.type === 'profile' && requestParams['member-of']) {
+      initialKeysP = Webfield.get('/groups', { id: requestParams['member-of'] })
         .then(response => _.get(response, 'groups[0].members', []))
     } else {
       initialKeysP = Promise.resolve(null)
     }
 
-    const groupedEdgesP = Webfield.getAll('/edges', {
+    const groupedEdgesP = Webfield2.getAll('/edges', {
       invitation: this.traverseInvitation.id,
       groupBy: headOrTail,
       select: 'count',

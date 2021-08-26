@@ -87,7 +87,7 @@ export default function ProfileEntity(props) {
       signatures,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken })
+      const result = await api.post('/edges', body, { accessToken, version: 2 })
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
       } else {
@@ -125,7 +125,6 @@ export default function ProfileEntity(props) {
       creationDate, modificationDate, name, writable, ...body // removed fields added for entity display
     } = {
       tail: id,
-      ddate: null,
       ...existingEdge ?? {
         ...editEdgeTemplate,
         defaultWeight: undefined,
@@ -139,7 +138,7 @@ export default function ProfileEntity(props) {
       ...updatedEdgeFields,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken })
+      const result = await api.post('/edges', body, { accessToken, version: 2 })
       if (isTraverseInvitation) {
         props.addEdgeToEntity(id, result)
       } else {
