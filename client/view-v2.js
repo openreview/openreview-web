@@ -1,10 +1,4 @@
-/**
- * Changes:
- * - Replace all /static/images/ --> /images/
- * - Replace all $('body') --> $('#content')
- * - Replace all { overlay: true } --> { scrollToTop: false }
- */
- module.exports = (function() {
+module.exports = (function() {
   const valueInput = (contentInput, fieldName, fieldDescription) => {
     const $smallHeading = $('<div>', { text: view.prettyField(fieldName), class: 'small_heading' });
     if (!fieldDescription.value.optional) {
@@ -1223,7 +1217,7 @@
     }
   }
 
-  const buildNoteReaders= async (fieldDescription, fieldValue, replyto, done) => {
+  const buildNoteReaders = async (fieldDescription, fieldValue, replyto, done) => {
     if (!fieldDescription) {
       // done(undefined, 'Invitation is missing readers');
       done(null); // not essentially an error
@@ -1231,11 +1225,11 @@
     }
 
     var requiredText = fieldDescription.optional ? null : $('<span>', { text: '*', class: 'required_field' });
-    var setParentReaders = async function(parent, fieldDescription, fieldType, done) {
+    var setParentReaders = function(parent, fieldDescription, fieldType, done) {
       if (parent) {
-        await Webfield2.get('/notes', { id: parent }).then(function (result) {
+        Webfield2.get('/notes', { id: parent }).then(function (result) {
           var newFieldDescription = fieldDescription;
-          if (result.notes.length) {
+          if (result.notes.length > 0) {
             var parentReaders = result.notes[0].readers;
             if (!_.includes(parentReaders, 'everyone')) {
               newFieldDescription = {
@@ -1256,7 +1250,7 @@
     };
 
     if (_.has(fieldDescription, 'values-regex')) {
-      Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
+      Webfield2.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
       .then(function(result) {
         if (_.isEmpty(result.groups)) {
           done(undefined, 'You do not have permission to create a note');
@@ -1292,11 +1286,12 @@
           fieldDescription['values-dropdown'].splice(regexIndex, 1);
         }
       }
-      await setParentReaders(replyto, fieldDescription, 'values-dropdown', function (newFieldDescription) {
-        //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
+
+      setParentReaders(replyto, fieldDescription, 'values-dropdown', function (newFieldDescription) {
+        // when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
         var replyValues = _.intersection(newFieldDescription['values-dropdown'], fieldDescription['values-dropdown']);
 
-        //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
+        // Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
         var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
         var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_');  });
         if (hasReviewers && !hasAnonReviewers) {
@@ -1317,13 +1312,13 @@
       });
 
     } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
-      await setParentReaders(replyto, fieldDescription, 'value-dropdown-hierarchy', function(newFieldDescription) {
+      setParentReaders(replyto, fieldDescription, 'value-dropdown-hierarchy', function(newFieldDescription) {
         var $readers = mkComposerInput('note readers', { value: newFieldDescription }, fieldValue);
         $readers.find('.small_heading').prepend(requiredText);
         done($readers);
       });
     } else if (_.has(fieldDescription, 'values')) {
-      await setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
+      setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
         var subsetReaders = fieldDescription.values.every(function (val) {
           var found = newFieldDescription.values.indexOf(val) !== -1;
           if (!found && val.includes('/Reviewer_')) {
@@ -1354,11 +1349,11 @@
           fieldDescription['values-checkbox'].splice(index, 1);
         }
       }
-      await setParentReaders(replyto, fieldDescription, 'values-checkbox', function (newFieldDescription) {
-        //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
+      setParentReaders(replyto, fieldDescription, 'values-checkbox', function (newFieldDescription) {
+        // when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
         var replyValues = _.intersection(newFieldDescription['values-checkbox'], fieldDescription['values-checkbox']);
 
-        //Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
+        // Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
         var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
         var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_'); });
         if (hasReviewers && !hasAnonReviewers) {
@@ -1582,32 +1577,6 @@
       console.log('error', error);
       return handleError(error);
     }
-  };
-
-  var setupMarked = function() {
-    var renderer = new marked.Renderer();
-
-    renderer.image = function(href, title, text) {
-      return $('<div />').text('<img src="' + href + '" alt="' + text + '" title="' + title + '">').html();
-    };
-    renderer.checkbox = function(checked) {
-      if (checked) return '[x]';
-      return '[ ]';
-    };
-    renderer.html = function(html) {
-      return $('<div />').text(html).html();
-    };
-
-    // For details on options see https://marked.js.org/#/USING_ADVANCED.md#options
-    marked.setOptions({
-      baseUrl: null,
-      breaks: false,
-      gfm: true,
-      headerIds: false,
-      langPrefix: 'language-',
-      mangle: true,
-      renderer: renderer,
-    });
   };
 
   const orderCache =  {};
