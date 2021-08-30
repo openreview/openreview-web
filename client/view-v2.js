@@ -1084,10 +1084,12 @@ module.exports = (function() {
         '<div class="required_field">* denotes a required field</div>',
         '<hr class="small">',
         _.values($contentMap),
-        editReaders,
-        editSignatures,
         noteReaders,
         noteSignatures,
+        '<h2 class="note_content_section">Edit History</h2>',
+        '<hr class="small">',
+        editReaders,
+        editSignatures,
         $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
       );
       $noteEditor.data('invitationId', invitation.id);
@@ -1111,13 +1113,13 @@ module.exports = (function() {
 
     try {
       const editReaders = await buildEditReaders(invitation.edit.readers, null);
-      const editSignatures = await view.buildSignatures(invitation.edit?.signatures, null, user, 'edit signatures');
+      const editSignatures = await view.buildSignatures(invitation.edit?.signatures, null, user, 'signatures');
       let noteReaders = null;
       await buildNoteReaders(invitation.edit.note.readers, [], parentId, (result, error) => {
         noteReaders = result;
         if (error) throw (error);
       })
-      const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, null, user, 'note signatures')
+      const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, null, user, 'signatures')
       buildEditor(editReaders, editSignatures, noteReaders, noteSignatures);
     } catch (error) {
       console.log('error', error);
@@ -1150,7 +1152,7 @@ module.exports = (function() {
               return g.id;
             });
 
-            var $readers = mkComposerInput('edit readers', { value: fieldDescription }, [], { groups: everyoneList.concat(restOfList) });
+            var $readers = mkComposerInput('readers', { value: fieldDescription }, [], { groups: everyoneList.concat(restOfList) });
             $readers.find('.small_heading').prepend(requiredText);
             return $readers;
           }
@@ -1177,13 +1179,13 @@ module.exports = (function() {
       }
       extraGroupsP
         .then(function () {
-          var $readers = mkComposerInput('edit readers', { value: fieldDescription }, []);
+          var $readers = mkComposerInput('readers', { value: fieldDescription }, []);
           $readers.find('.small_heading').prepend(requiredText);
           return $readers;
         });
 
     } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
-      var $readers = mkComposerInput('edit readers', { value: fieldDescription }, []);
+      var $readers = mkComposerInput('readers', { value: fieldDescription }, []);
       $readers.find('.small_heading').prepend(requiredText);
       return $readers;
     // } else if (_.has(fieldDescription, 'values')) {
@@ -1206,12 +1208,12 @@ module.exports = (function() {
       }
       promise
         .then(function () {
-          var $readers = mkComposerInput('edit readers', { value: fieldDescription }, fieldDescription.default, { prettyId: true });
+          var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldDescription.default, { prettyId: true });
           $readers.find('.small_heading').prepend(requiredText);
           return $readers;
         });
     } else {
-      var $readers = mkComposerInput('edit readers', { value: fieldDescription }, []);
+      var $readers = mkComposerInput('readers', { value: fieldDescription }, []);
       $readers.find('.small_heading').prepend(requiredText);
       return $readers;
     }
@@ -1264,7 +1266,7 @@ module.exports = (function() {
             return g.id;
           });
 
-          var $readers = mkComposerInput('note readers', { value: fieldDescription }, fieldValue, { groups: everyoneList.concat(restOfList) });
+          var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue, { groups: everyoneList.concat(restOfList) });
           if (fieldDescription.optional) $readers.find('.small_heading').prepend(requiredText);
           done($readers);
         }
@@ -1306,14 +1308,14 @@ module.exports = (function() {
         if (_.difference(newFieldDescription.default, newFieldDescription['values-dropdown']).length !== 0) { //invitation default is not in list of possible values
           done(undefined, 'Default reader is not in the list of readers');
         }
-        var $readers = mkComposerInput('note readers', { value: newFieldDescription }, fieldValue);
+        var $readers = mkComposerInput('readers', { value: newFieldDescription }, fieldValue);
         $readers.find('.small_heading').prepend(requiredText);
         done($readers);
       });
 
     } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
       setParentReaders(replyto, fieldDescription, 'value-dropdown-hierarchy', function(newFieldDescription) {
-        var $readers = mkComposerInput('note readers', { value: newFieldDescription }, fieldValue);
+        var $readers = mkComposerInput('readers', { value: newFieldDescription }, fieldValue);
         $readers.find('.small_heading').prepend(requiredText);
         done($readers);
       });
@@ -1328,7 +1330,7 @@ module.exports = (function() {
           return found;
           })
         if (_.isEqual(newFieldDescription.values, fieldDescription.values) || subsetReaders) {
-          var $readers = mkComposerInput('note readers', { value: fieldDescription }, fieldValue); //for values, readers must match with invitation instead of parent invitation
+          var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue); //for values, readers must match with invitation instead of parent invitation
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
         } else {
@@ -1368,12 +1370,12 @@ module.exports = (function() {
         if (_.difference(newFieldDescription.default, newFieldDescription['values-checkbox']).length !== 0) { //invitation default is not in list of possible values
           done(undefined, 'Default reader is not in the list of readers');
         }
-        var $readers = mkComposerInput('note readers', { value: fieldDescription }, fieldValue.length ? fieldValue : newFieldDescription.default, { prettyId: true});
+        var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue.length ? fieldValue : newFieldDescription.default, { prettyId: true});
         $readers.find('.small_heading').prepend(requiredText);
         done($readers);
       });
     } else {
-      var $readers = mkComposerInput('note readers', { value: fieldDescription }, fieldValue);
+      var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue);
       $readers.find('.small_heading').prepend(requiredText);
       done($readers);
     }
@@ -1458,7 +1460,6 @@ module.exports = (function() {
 
         if (_.isEmpty(files)) {
           return saveNote(content[0], note, invitation);
-          return;
         }
 
         var onError = function(e) {
@@ -1540,10 +1541,12 @@ module.exports = (function() {
         '<div class="required_field">* denotes a required field</div>',
         '<hr class="small">',
         _.values($contentMap),
-        editReaders,
-        editSignatures,
         noteReaders,
         noteSignatures,
+        '<h2 class="note_content_section">Edit History</h2>',
+        '<hr class="small">',
+        editReaders,
+        editSignatures,
         $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
       );
       // $noteEditor.data('invitationId', invitation.id);
@@ -1554,6 +1557,7 @@ module.exports = (function() {
         params.onCompleted($noteEditor);
       }
     }
+
     const parentId = note.forum === note.replyto ? null : note.replyto;
     const handleError = (error) => {
       if (params.onError) {
@@ -1565,13 +1569,13 @@ module.exports = (function() {
 
     try {
       const editReaders = await buildEditReaders(invitation.edit.readers, null);
-      const editSignatures = await view.buildSignatures(invitation.edit?.signatures, null, user, 'edit signatures');
+      const editSignatures = await view.buildSignatures(invitation.edit?.signatures, null, user, 'signature');
       let noteReaders = null;
       await buildNoteReaders(invitation.edit.note.readers, note.readers??[], parentId, (result, error) => {
         noteReaders = result;
         if (error) throw (error);
        })
-      const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, note.signatures, user, 'note signatures')
+      const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, note.signatures, user, 'signatures')
       buildEditor(editReaders, editSignatures, noteReaders, noteSignatures);
     } catch (error) {
       console.log('error', error);
@@ -1725,7 +1729,6 @@ module.exports = (function() {
     mkNoteEditor: mkNoteEditor,
     mkNotePanel: mkNotePanel,
     // deleteOrRestoreNote: deleteOrRestoreNote,
-    setupMarked: setupMarked
   };
 
 }());

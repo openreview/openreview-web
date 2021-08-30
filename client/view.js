@@ -463,17 +463,10 @@ module.exports = (function() {
 
   var mkDropdownAdder = function(fieldName, fieldDescription, values, fieldValue, params) {
     var $dropdown = $('<div>', {class: 'row'});
-
-    if (fieldName === 'readers' && values.length > 1) {
-      var $smallHeading = $('<div>', { text: prettyField(fieldName), class: 'small_heading' });
-      var $description = $('<div class="hint">').text(fieldDescription);
-      $dropdown.append($smallHeading, $description);
-    } else {
-      var $hoveritem = mkHoverItem(
-        $('<span>', {text: prettyField(fieldName), class: 'line_heading'}), fieldDescription, false, true, params.required
-      );
-      $dropdown.append($hoveritem);
-    }
+    var $hoveritem = mkHoverItem(
+      $('<span>', {text: prettyField(fieldName), class: 'line_heading'}), fieldDescription, false, true, params.required
+    );
+    $dropdown.append($hoveritem);
 
     var dropdownOptions = _.map(values, function(value) {
       if (value.id && value.description) {
