@@ -1569,9 +1569,9 @@ module.exports = (function() {
 
       var defaults = { bulk: null };
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
-        if (field.name === 'multiReply' || field.name === 'hideOriginalRevisions' || field.name === 'bulk') {
+        if (field.name === 'bulk') {
           result[field.name] = field.value === '' ? null : field.value === 'True';
-        } else if (field.name === 'duedate' || field.name === 'expdate' || field.name === 'cdate') {
+        } else if (field.name === 'duedate' || field.name === 'expdate' || field.name === 'cdate' || field.name === 'maxReplies' || field.name === 'minReplies') {
           result[field.name] = field.value ? parseInt(field.value, 10) : null;
         } else if (field.name === 'super') {
           var superId = _.trim(field.value);
