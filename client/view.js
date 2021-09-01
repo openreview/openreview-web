@@ -578,6 +578,10 @@ module.exports = (function() {
       });
     }
 
+    // Add formatting to $ notation content
+    if (_.isString(content)) {
+      content = content.replace(/(\[.*\])/g, '<em>$1</em>');
+    }
     var $hoverTarget = $('<div>', {class: 'hover_target'}).append(content);
 
     if (required) {

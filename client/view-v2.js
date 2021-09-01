@@ -1078,6 +1078,7 @@ module.exports = (function() {
         });
       };
 
+      const showEditHistorySection = editReaders || editSignatures;
       var $noteEditor = $('<div>', { class: 'note_editor panel' }).append(
         '<h2 class="note_content_title">New ' + view.prettyInvitationId(invitation.id) + '</h2>',
         '<div class="required_field">* denotes a required field</div>',
@@ -1085,8 +1086,8 @@ module.exports = (function() {
         _.values($contentMap),
         noteReaders,
         noteSignatures,
-        '<h2 class="note_content_section">Edit History</h2>',
-        '<hr class="small">',
+        showEditHistorySection ? '<h2 class="note_content_section">Edit History</h2>' : null,
+        showEditHistorySection ? '<hr class="small">' : null,
         editReaders,
         editSignatures,
         $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
@@ -1101,28 +1102,34 @@ module.exports = (function() {
       }
     }
 
-    var parentId = forum === replyto ? null : replyto;
-    var handleError = function(error) {
+    var isStaticField = function(fieldDescription) {
+      if (_.isEmpty(fieldDescription)) return true;
+      return fieldDescription.value || fieldDescription.values;
+    };
+
+    try {
+      const editReaders = isStaticField(invitation.edit?.readers)
+        ? null
+        : await buildEditReaders(invitation.edit?.readers, null);
+      const editSignatures = isStaticField(invitation.edit?.signatures)
+        ? null
+        : await view.buildSignatures(invitation.edit?.signatures, null, user, 'signatures');
+
+      const parentId = forum === replyto ? null : replyto;
+      let noteReaders = null;
+      await buildNoteReaders(invitation.edit.note.readers, [], parentId, (result, error) => {
+        if (error) throw (error);
+        noteReaders = result;
+      });
+      const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, null, user, 'signatures')
+      buildEditor(editReaders, editSignatures, noteReaders, noteSignatures);
+    } catch (error) {
+      console.error(error);
       if (params.onError) {
         params.onError([error]);
       } else {
         promptError(error);
       }
-    };
-
-    try {
-      const editReaders = await buildEditReaders(invitation.edit.readers, null);
-      const editSignatures = await view.buildSignatures(invitation.edit?.signatures, null, user, 'signatures');
-      let noteReaders = null;
-      await buildNoteReaders(invitation.edit.note.readers, [], parentId, (result, error) => {
-        noteReaders = result;
-        if (error) throw (error);
-      })
-      const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, null, user, 'signatures')
-      buildEditor(editReaders, editSignatures, noteReaders, noteSignatures);
-    } catch (error) {
-      console.log('error', error);
-      return handleError(error);
     }
 
   };
@@ -1533,22 +1540,21 @@ module.exports = (function() {
         });
       };
 
-      // var editorAction = invitation.edit.note.id === note.id ? 'New' : 'Edit';
-      var editorAction = 'Edit' //
+      const showEditHistorySection = editReaders || editSignatures;
       var $noteEditor = $('<div>', { class: 'note_editor existing panel' }).append(
-        '<h2 class="note_content_title">' + editorAction + ' ' + view.prettyInvitationId(invitation.id) + '</h2>',
+        '<h2 class="note_content_title">Edit ' + view.prettyInvitationId(invitation.id) + '</h2>',
         '<div class="required_field">* denotes a required field</div>',
         '<hr class="small">',
         _.values($contentMap),
         noteReaders,
         noteSignatures,
-        '<h2 class="note_content_section">Edit History</h2>',
-        '<hr class="small">',
+        showEditHistorySection ? '<h2 class="note_content_section">Edit History</h2>' : null,
+        showEditHistorySection ? '<hr class="small">' : null,
         editReaders,
         editSignatures,
         $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
       );
-      // $noteEditor.data('invitationId', invitation.id);
+      $noteEditor.data('invitationId', invitation.id);
 
       view.autolinkFieldDescriptions($noteEditor);
 
@@ -1557,28 +1563,34 @@ module.exports = (function() {
       }
     }
 
-    const parentId = note.forum === note.replyto ? null : note.replyto;
-    const handleError = (error) => {
+    var isStaticField = function(fieldDescription) {
+      if (_.isEmpty(fieldDescription)) return true;
+      return fieldDescription.value || fieldDescription.values;
+    };
+
+    try {
+      const editReaders = isStaticField(invitation.edit?.readers)
+        ? null
+        : await buildEditReaders(invitation.edit?.readers, null);
+      const editSignatures = isStaticField(invitation.edit?.signatures)
+        ? null
+        : await view.buildSignatures(invitation.edit?.signatures, null, user, 'signature');
+
+      const parentId = note.forum === note.replyto ? null : note.replyto;
+      let noteReaders = null;
+      await buildNoteReaders(invitation.edit.note.readers, note.readers ?? [], parentId, (result, error) => {
+        if (error) throw (error);
+        noteReaders = result;
+      });
+      const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, null, user, 'signature')
+      buildEditor(editReaders, editSignatures, noteReaders, noteSignatures);
+    } catch (error) {
+      console.error(error);
       if (params.onError) {
         params.onError([error]);
       } else {
         promptError(error);
       }
-    };
-
-    try {
-      const editReaders = await buildEditReaders(invitation.edit.readers, null);
-      const editSignatures = await view.buildSignatures(invitation.edit?.signatures, null, user, 'signature');
-      let noteReaders = null;
-      await buildNoteReaders(invitation.edit.note.readers, note.readers??[], parentId, (result, error) => {
-        noteReaders = result;
-        if (error) throw (error);
-       })
-      const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, note.signatures, user, 'signatures')
-      buildEditor(editReaders, editSignatures, noteReaders, noteSignatures);
-    } catch (error) {
-      console.log('error', error);
-      return handleError(error);
     }
   };
 
