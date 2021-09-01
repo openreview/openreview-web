@@ -593,7 +593,6 @@ module.exports = (function() {
         // First set content as text to escape HTML, then autolink escaped HTML
         $elem.text(valueString);
         $elem.html(view.autolinkHtml($elem.html()));
-
       }
 
       $contents.push($('<div>', {class: 'note_contents'}).append(

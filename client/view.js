@@ -2549,6 +2549,12 @@ module.exports = (function() {
       }
 
       var transformedId = tokens.map(function(token) {
+        // API v2 tokens can include strings like ${note.number}
+        if (token.includes('${')) {
+          token = token.replace(/\$\{/g, ' [').replace(/\}/g, ']').replace(/_/g, ' ');
+          return token;
+        }
+
         token = token
           .replace(/\..+/g, '') // remove text after dots, ex: uai.org
           .replace(/^-$/g, '')  // remove dashes
