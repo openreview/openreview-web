@@ -1597,7 +1597,8 @@ module.exports = (function() {
             Handlebars.templates['partials/invitationInfoTable']({
               invitation: invitation,
               parentGroupId: parentGroupId,
-              editable: true
+              editable: true,
+              apiVersion: 2,
             })
           );
           setupDatePickers();
