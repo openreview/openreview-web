@@ -565,13 +565,10 @@ module.exports = (function() {
 
   var mkHoverItem = function(content, resultText, removable, title, required) {
     var cssClass = title ? 'hover_title' : 'hover_item';
-    var $hoverItem = $('<div>', {class: removable ? cssClass + ' removable_item' : cssClass});
-    if ( _.isString(resultText) && resultText.length > 0 ) {
+    var $hoverItem = $('<div>', { class: cssClass + (removable ? ' removable_item' : '') });
+    if (_.isString(resultText) && resultText.length > 0) {
       var $hoverResult = $('<div>', {class: 'hover_result'}).text(resultText).hide();
-      $hoverItem.append(
-        $hoverResult
-      )
-      .hover(function() {
+      $hoverItem.append($hoverResult).hover(function() {
         $hoverResult.show();
       }, function() {
         $hoverResult.hide();

@@ -1078,7 +1078,6 @@ module.exports = (function() {
         });
       };
 
-      const showEditHistorySection = editReaders || editSignatures;
       var $noteEditor = $('<div>', { class: 'note_editor panel' }).append(
         '<h2 class="note_content_title">New ' + view.prettyInvitationId(invitation.id) + '</h2>',
         '<div class="required_field">* denotes a required field</div>',
@@ -1086,8 +1085,8 @@ module.exports = (function() {
         _.values($contentMap),
         noteReaders,
         noteSignatures,
-        showEditHistorySection ? '<h2 class="note_content_section">Edit History</h2>' : null,
-        showEditHistorySection ? '<hr class="small">' : null,
+        '<h2 class="note_content_section">Edit History</h2>',
+        '<hr class="small">',
         editReaders,
         editSignatures,
         $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
@@ -1102,18 +1101,9 @@ module.exports = (function() {
       }
     }
 
-    var isStaticField = function(fieldDescription) {
-      if (_.isEmpty(fieldDescription)) return true;
-      return fieldDescription.value || fieldDescription.values;
-    };
-
     try {
-      const editReaders = isStaticField(invitation.edit?.readers)
-        ? null
-        : await buildEditReaders(invitation.edit?.readers, null);
-      const editSignatures = isStaticField(invitation.edit?.signatures)
-        ? null
-        : await view.buildSignatures(invitation.edit?.signatures, null, user, 'signatures');
+      const editReaders = await buildEditReaders(invitation.edit?.readers, null);
+      const editSignatures = await view.buildSignatures(invitation.edit?.signatures, null, user, 'signatures');
 
       const parentId = forum === replyto ? null : replyto;
       let noteReaders = null;
@@ -1540,7 +1530,6 @@ module.exports = (function() {
         });
       };
 
-      const showEditHistorySection = editReaders || editSignatures;
       var $noteEditor = $('<div>', { class: 'note_editor existing panel' }).append(
         '<h2 class="note_content_title">Edit ' + view.prettyInvitationId(invitation.id) + '</h2>',
         '<div class="required_field">* denotes a required field</div>',
@@ -1548,8 +1537,8 @@ module.exports = (function() {
         _.values($contentMap),
         noteReaders,
         noteSignatures,
-        showEditHistorySection ? '<h2 class="note_content_section">Edit History</h2>' : null,
-        showEditHistorySection ? '<hr class="small">' : null,
+        '<h2 class="note_content_section">Edit History</h2>',
+        '<hr class="small">',
         editReaders,
         editSignatures,
         $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
@@ -1563,18 +1552,9 @@ module.exports = (function() {
       }
     }
 
-    var isStaticField = function(fieldDescription) {
-      if (_.isEmpty(fieldDescription)) return true;
-      return fieldDescription.value || fieldDescription.values;
-    };
-
     try {
-      const editReaders = isStaticField(invitation.edit?.readers)
-        ? null
-        : await buildEditReaders(invitation.edit?.readers, null);
-      const editSignatures = isStaticField(invitation.edit?.signatures)
-        ? null
-        : await view.buildSignatures(invitation.edit?.signatures, null, user, 'signature');
+      const editReaders = await buildEditReaders(invitation.edit?.readers, null);
+      const editSignatures = await view.buildSignatures(invitation.edit?.signatures, null, user, 'signatures');
 
       const parentId = note.forum === note.replyto ? null : note.replyto;
       let noteReaders = null;
@@ -1582,7 +1562,7 @@ module.exports = (function() {
         if (error) throw (error);
         noteReaders = result;
       });
-      const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, null, user, 'signature')
+      const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, null, user, 'signatures')
       buildEditor(editReaders, editSignatures, noteReaders, noteSignatures);
     } catch (error) {
       console.error(error);
