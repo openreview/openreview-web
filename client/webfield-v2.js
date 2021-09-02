@@ -430,6 +430,10 @@ module.exports = (function() {
 
     };
 
+    if (rows.length) {
+      $(container).empty();
+    }
+
     if (options.sortOptions) {
       var order = 'desc';
       var sortOptionHtml = Object.keys(options.sortOptions).map(function(option) {
@@ -462,7 +466,7 @@ module.exports = (function() {
       //#endregion
 
       if (rows.length) {
-        $(container).empty().append(sortBarHtml);
+        $(container).append(sortBarHtml);
       }
 
       // Need to add event handlers for these controls inside this function so they have access to row
@@ -553,6 +557,81 @@ module.exports = (function() {
     registerHelpers();
   };
 
+  var newTaskList = function(invitations, options) {
+    var taskDefaults = {
+      container: '#notes',
+      showTasks: true,
+      showContents: true,
+      referrer: null,
+      emptyMessage: 'No outstanding tasks to display'
+    };
+    options = _.defaults(options, taskDefaults);
+
+    var dateOptions = {
+      hour: 'numeric', minute: 'numeric', day: '2-digit', month: 'short', year: 'numeric', timeZoneName: 'long'
+    };
+
+    var getDueDateStatus = function(date) {
+      var day = 24 * 60 * 60 * 1000;
+      var diff = Date.now() - date.getTime();
+
+      if (diff > 0) {
+        return 'expired';
+      }
+      if (diff > -3 * day) {
+        return 'warning';
+      }
+      return '';
+    };
+
+    var allInvitations = invitations.sort(function(a, b) {
+      return a.duedate - b.duedate;
+    });
+
+    allInvitations.forEach(function(inv) {
+      var duedate = new Date(inv.duedate);
+      inv.dueDateStr = duedate.toLocaleDateString('en-GB', dateOptions);
+      inv.dueDateStatus = getDueDateStatus(duedate);
+      inv.groupId = inv.id.split('/-/')[0];
+
+      if (!inv.details) {
+        inv.details = {};
+      }
+
+      if (!_.isEmpty(inv.details.replytoNote) || (inv.edit && inv.edit.note)) {
+        inv.noteInvitation = true;
+
+        if (inv.details.repliedNotes?.length > 0) {
+          inv.completed = true;
+        }
+        inv.noteId = inv.details.repliedNotes?.length === 1 ? inv.details.repliedNotes[0].id : inv.reply.replyto;
+
+        if (_.isEmpty(inv.details.replytoNote)) {
+          // Some invitations returned by the API do not contain replytoNote
+          inv.details.replytoNote = { forum: inv.reply.forum };
+        }
+      } else {
+        inv.tagInvitation = true;
+
+        if (inv.minReplies && inv.details) {
+          var repliedCount = (inv.details.repliedTags && inv.details.repliedTags.length) ||
+            (inv.details.repliedEdges && inv.details.repliedEdges.length);
+          if (repliedCount && repliedCount >= inv.minReplies) {
+            inv.completed = true;
+          }
+        }
+      }
+    });
+
+    var $container = $(options.container);
+    var taskListHtml = Handlebars.templates['partials/taskList']({
+      invitations: allInvitations,
+      taskOptions: options
+    });
+
+    $container.append(taskListHtml);
+  };
+
   var renderTasks = function(container, invitations, options) {
     var defaults = {
       emptyMessage: 'No outstanding tasks for this venue'
@@ -566,7 +645,7 @@ module.exports = (function() {
     };
     $(tasksOptions.container).empty();
 
-    Webfield.ui.newTaskList(invitations, [], tasksOptions);
+    newTaskList(invitations, tasksOptions);
     $('.tabs-container a[href="#' + container + '"]').parent().show();
   };
 
@@ -2545,7 +2624,7 @@ module.exports = (function() {
       getAllSubmissions: getAllSubmissions,
       getGroupsByNumber: getGroupsByNumber,
       getAssignedInvitations: getAssignedInvitations,
-      getTagInvitations: Webfield.api.getTagInvitations
+      // getTagInvitations: Webfield.api.getTagInvitations
     },
 
     ui: {
@@ -2558,22 +2637,22 @@ module.exports = (function() {
       renderTasks: renderTasks,
       // Aliases
       setup: setup,
-      header: Webfield.ui.basicHeader,
-      venueHeader: Webfield.ui.venueHeader,
-      linksList: Webfield.ui.linksList,
-      accordion: Webfield.ui.accordion,
-      submissionButton: Webfield.ui.invitationButtonAndNoteEditor,
+      // header: Webfield.ui.basicHeader,
+      // venueHeader: Webfield.ui.venueHeader,
+      // linksList: Webfield.ui.linksList,
+      // accordion: Webfield.ui.accordion,
+      // submissionButton: Webfield.ui.invitationButtonAndNoteEditor,
       submissionList: submissionList,
-      taskList: Webfield.ui.taskList,
-      newTaskList: Webfield.ui.newTaskList,
-      activityList: Webfield.ui.activityList,
-      tabPanel: Webfield.ui.tabPanel,
-      searchResults: Webfield.ui.searchResults,
-      userModerationQueue: Webfield.ui.userModerationQueue,
-      spinner: Webfield.ui.loadingSpinner,
-      errorMessage: Webfield.ui.errorMessage,
-      defaultEmptyMessage: Webfield.ui.defaultEmptyMessage,
-      done: Webfield.ui.done
+      // taskList: Webfield.ui.taskList,
+      // newTaskList: Webfield.ui.newTaskList,
+      // activityList: Webfield.ui.activityList,
+      // tabPanel: Webfield.ui.tabPanel,
+      // searchResults: Webfield.ui.searchResults,
+      // userModerationQueue: Webfield.ui.userModerationQueue,
+      // spinner: Webfield.ui.loadingSpinner,
+      // errorMessage: Webfield.ui.errorMessage,
+      // defaultEmptyMessage: Webfield.ui.defaultEmptyMessage,
+      // done: Webfield.ui.done
     },
     utils: {
       getPaperNumbersfromGroups: getPaperNumbersfromGroups,
