@@ -1657,7 +1657,7 @@ module.exports = (function() {
 
       updateInvitation(updateObj)
         .then(function(response) {
-          invitation = response;
+          invitation.mdate = response.mdate
           updateModifiedDate();
           showAlert('Settings for ' + view.prettyId(invitation.id) + ' updated');
         });
@@ -1775,7 +1775,7 @@ module.exports = (function() {
 
       updateInvitation(updateObj)
         .then(function(response) {
-          invitation = response;
+          invitation.mdate = response.mdate
           updateModifiedDate();
           showAlert(_.upperFirst(fieldName) + ' code for ' + invitation.id + ' has been updated', { scrollToTop: false });
         })
