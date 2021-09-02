@@ -2611,11 +2611,6 @@ module.exports = (function() {
     setToken: setToken,
     sendFile: sendFile,
     getErrorFromJqXhr: Webfield.getErrorFromJqXhr,
-    // Aliases
-    setupAutoLoading: Webfield.setupAutoLoading,
-    disableAutoLoading: Webfield.disableAutoLoading,
-    editModeBanner: Webfield.editModeBanner,
-    filterCollections: Webfield.filterCollections,
 
     api: {
       // Aliases
@@ -2624,7 +2619,6 @@ module.exports = (function() {
       getAllSubmissions: getAllSubmissions,
       getGroupsByNumber: getGroupsByNumber,
       getAssignedInvitations: getAssignedInvitations,
-      // getTagInvitations: Webfield.api.getTagInvitations
     },
 
     ui: {
@@ -2635,24 +2629,10 @@ module.exports = (function() {
       renderInvitationButton: renderInvitationButton,
       renderTable: renderTable,
       renderTasks: renderTasks,
-      // Aliases
       setup: setup,
-      // header: Webfield.ui.basicHeader,
-      // venueHeader: Webfield.ui.venueHeader,
-      // linksList: Webfield.ui.linksList,
-      // accordion: Webfield.ui.accordion,
-      // submissionButton: Webfield.ui.invitationButtonAndNoteEditor,
       submissionList: submissionList,
-      // taskList: Webfield.ui.taskList,
-      // newTaskList: Webfield.ui.newTaskList,
-      // activityList: Webfield.ui.activityList,
-      // tabPanel: Webfield.ui.tabPanel,
-      // searchResults: Webfield.ui.searchResults,
-      // userModerationQueue: Webfield.ui.userModerationQueue,
-      // spinner: Webfield.ui.loadingSpinner,
-      // errorMessage: Webfield.ui.errorMessage,
-      // defaultEmptyMessage: Webfield.ui.defaultEmptyMessage,
-      // done: Webfield.ui.done
+      errorMessage: Webfield.ui.errorMessage,
+      done: Webfield.ui.done
     },
     utils: {
       getPaperNumbersfromGroups: getPaperNumbersfromGroups,
