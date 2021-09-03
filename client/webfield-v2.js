@@ -2012,6 +2012,49 @@ module.exports = (function() {
     })
   };
 
+  var getGroup = function(groupId, options) {
+    var defaults = {
+      withProfiles: false,
+    };
+    options = _.defaults(options, defaults);
+
+    return get('/groups', { id: groupId, select: 'id,members', limit: 1 })
+    .then(function(result) {
+      var group = result.groups[0];
+      if (options.withProfiles) {
+        return post('/profiles/search', { ids: group.members })
+        .then(function(result) {
+          var profilesById = _.keyBy(result.profiles, 'id');
+          var groupWithProfiles = { id: group.id, members: []};
+          groupWithProfiles.members = group.members.map(function(id) {
+            var profile = profilesById[id];
+            if (profile) {
+              return {
+                id: profile.id,
+                name: view.prettyId((_.find(profile.content.names, ['preferred', true]) || _.first(profile.content.names)).username),
+                allNames: _.map(_.filter(profile.content.names, function(name) { return name.username; }), 'username'),
+                email: profile.content.preferredEmail || profile.content.emailsConfirmed[0],
+                allEmails: profile.content.emailsConfirmed,
+                affiliation: profile.content.history && profile.content.history[0]
+              };
+            } else {
+              return {
+                id: id,
+                name: id.indexOf('~') === 0 ? view.prettyId(id) : id,
+                email: id,
+                allEmails: [id],
+                allNames: [id]
+              }
+            }
+          });
+          return groupWithProfiles;
+        })
+      }
+      return group;
+    });
+  };
+
+
   var renderInvitationButton = function(container, invitationId, options) {
     var defaults = {
       onNoteCreated: function() { console.warn('onNoteCreated option is required'); },
@@ -2620,6 +2663,8 @@ module.exports = (function() {
       getAllSubmissions: getAllSubmissions,
       getGroupsByNumber: getGroupsByNumber,
       getAssignedInvitations: getAssignedInvitations,
+      getGroup: getGroup,
+
     },
 
     ui: {
