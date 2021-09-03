@@ -102,7 +102,7 @@ var runWebfield = function(note) {
 };
 
 var $noteEditor;
-view.mkNoteEditor(
+${invitation.apiVersion === 2 ? 'view2' : 'view'}.mkNoteEditor(
   {
     parent: args.parent,
     content: args
