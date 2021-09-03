@@ -84,7 +84,7 @@ Invitation.getInitialProps = async (ctx) => {
 
   const { user, token: accessToken } = auth(ctx)
 
-  const generateWebfieldCode = (invitation) => {
+  const generateWebfieldCode = (invitation, query) => {
     const invitationTitle = prettyId(invitation.id)
     const invitationObjSlim = omit(invitation, 'web', 'process', 'details', 'preprocess')
     const isInvitationWritable = invitation.details && invitation.details.writable
@@ -95,7 +95,7 @@ Webfield.ui.setup($('#invitation-container'), '${invitation.id}');
 Webfield.ui.header('${prettyId(invitation.id)}')
   .append('<p><em>Nothing to display</em></p>');`
 
-    const noteParams = without(Object.keys(ctx.query), 'id', 'mode', 'referrer')
+    const noteParams = without(Object.keys(query), 'id', 'mode', 'referrer')
     const noteEditorCode = noteParams.length && `
 var runWebfield = function(note) {
   ${webfieldCode}
@@ -104,8 +104,9 @@ var runWebfield = function(note) {
 var $noteEditor;
 ${invitation.apiVersion === 2 ? 'view2' : 'view'}.mkNoteEditor(
   {
+    id: args.id,
     parent: args.parent,
-    content: args
+    content: noteContent,
   },
   invitation,
   user,
@@ -156,11 +157,16 @@ ${invitation.apiVersion === 2 ? 'view2' : 'view'}.mkNoteEditor(
 );`
 
     const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
+    const noteContent = invitation.apiVersion === 2
+      ? noteParams.reduce((acc, key) => { acc[key] = { value: query[key] }; return acc }, {})
+      : noteParams.reduce((acc, key) => { acc[key] = query[key]; return acc }, {})
+
     return `// Webfield Code for ${invitation.id}
 window.user = ${JSON.stringify(userOrGuest)};
 $(function() {
-  var args = ${JSON.stringify(ctx.query)};
+  var args = ${JSON.stringify(query)};
   var invitation = ${JSON.stringify(invitationObjSlim)};
+  var noteContent = ${JSON.stringify(noteContent)};
   var user = ${JSON.stringify(userOrGuest)};
   var document = null;
   var window = null;
@@ -178,8 +184,7 @@ $(function() {
     if (invitation) {
       return {
         invitationId: invitation.id,
-        webfieldCode: generateWebfieldCode(invitation),
-        query: ctx.query,
+        webfieldCode: generateWebfieldCode(invitation, ctx.query),
       }
     }
     return { statusCode: 404, message: 'Invitation not found' }
