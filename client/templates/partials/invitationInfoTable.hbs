@@ -35,16 +35,30 @@
     {{/if}}
   {{/is}}
 
-  <dt>Multi-Reply:</dt>
-  <dd>{{#if invitation.multiReply}}True{{else}}{{#is invitation.multiReply false}}False{{/is}}{{/if}}</dd>
+  {{#is apiVersion 1}}
+    <dt>Multi-Reply:</dt>
+    <dd>{{#if invitation.multiReply}}True{{else}}{{#is invitation.multiReply false}}False{{/is}}{{/if}}</dd>
+  {{/is}}
 
   {{#is apiVersion 1}}
     <dt>Completed After:</dt>
     <dd>{{invitation.taskCompletionCount}}</dd>
   {{/is}}
 
-  <dt>Hide revisions:</dt>
-  <dd>{{#if invitation.hideOriginalRevisions}}True{{else}}{{#is invitation.hideOriginalRevisions false}}False{{/is}}{{/if}}</dd>
+  {{#is apiVersion 1}}
+    <dt>Hide revisions:</dt>
+    <dd>{{#if invitation.hideOriginalRevisions}}True{{else}}{{#is invitation.hideOriginalRevisions false}}False{{/is}}{{/if}}</dd>
+  {{/is}}
+
+  {{#is apiVersion 2}}
+    <dt>Max Replies:</dt>
+    <dd>{{invitation.maxReplies}}</dd>
+  {{/is}}
+
+  {{#is apiVersion 2}}
+    <dt>Min Replies:</dt>
+    <dd>{{invitation.minReplies}}</dd>
+  {{/is}}
 
   {{#is apiVersion 2}}
     <dt>Bulk:</dt>
@@ -135,25 +149,14 @@
       </div>
     {{/is}}
 
-    <div class="form-group">
-      <label for="multiReply" class="col-xs-2 control-label">Multi-Reply:</label>
-      <div class="col-xs-10">
-        <select name="multiReply" class="form-control input-sm">
-          <option></option>
-          <option {{#is invitation.multiReply true}}selected{{/is}}>True</option>
-          <option {{#is invitation.multiReply false}}selected{{/is}}>False</option>
-        </select>
-      </div>
-    </div>
-
-    {{#is apiVersion 2}}
+    {{#is apiVersion 1}}
       <div class="form-group">
-        <label for="bulk" class="col-xs-2 control-label">Bulk:</label>
+        <label for="multiReply" class="col-xs-2 control-label">Multi-Reply:</label>
         <div class="col-xs-10">
-          <select name="bulk" class="form-control input-sm">
+          <select name="multiReply" class="form-control input-sm">
             <option></option>
-            <option {{#is invitation.bulk true}}selected{{/is}}>True</option>
-            <option {{#is invitation.bulk false}}selected{{/is}}>False</option>
+            <option {{#is invitation.multiReply true}}selected{{/is}}>True</option>
+            <option {{#is invitation.multiReply false}}selected{{/is}}>False</option>
           </select>
         </div>
       </div>
@@ -166,7 +169,9 @@
           <input type="number" class="form-control input-sm" name="taskCompletionCount" value="{{join invitation.taskCompletionCount}}">
         </div>
       </div>
+    {{/is}}
 
+    {{#is apiVersion 1}}
       <div class="form-group">
         <label for="hideOriginalRevisions" class="col-xs-2 control-label">Hide Revisions:</label>
         <div class="col-xs-10">
@@ -174,6 +179,37 @@
             <option></option>
             <option {{#is invitation.hideOriginalRevisions true}}selected{{/is}}>True</option>
             <option {{#is invitation.hideOriginalRevisions false}}selected{{/is}}>False</option>
+          </select>
+        </div>
+      </div>
+    {{/is}}
+
+    {{#is apiVersion 2}}
+      <div class="form-group">
+        <label for="maxReplies" class="col-xs-2 control-label">Max Replies:</label>
+        <div class="col-xs-10">
+          <input type="number" class="form-control input-sm" name="maxReplies" value="{{join invitation.maxReplies}}">
+        </div>
+      </div>
+    {{/is}}
+
+    {{#is apiVersion 2}}
+      <div class="form-group">
+        <label for="minReplies" class="col-xs-2 control-label">Min Replies:</label>
+        <div class="col-xs-10">
+          <input type="number" class="form-control input-sm" name="minReplies" value="{{join invitation.minReplies}}">
+        </div>
+      </div>
+    {{/is}}
+
+    {{#is apiVersion 2}}
+      <div class="form-group">
+        <label for="bulk" class="col-xs-2 control-label">Bulk:</label>
+        <div class="col-xs-10">
+          <select name="bulk" class="form-control input-sm">
+            <option></option>
+            <option {{#is invitation.bulk true}}selected{{/is}}>True</option>
+            <option {{#is invitation.bulk false}}selected{{/is}}>False</option>
           </select>
         </div>
       </div>
