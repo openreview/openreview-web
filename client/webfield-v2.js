@@ -1648,9 +1648,9 @@ module.exports = (function() {
 
       var defaults = { bulk: null };
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
-        if (field.name === 'multiReply' || field.name === 'hideOriginalRevisions' || field.name === 'bulk') {
+        if (field.name === 'bulk') {
           result[field.name] = field.value === '' ? null : field.value === 'True';
-        } else if (field.name === 'duedate' || field.name === 'expdate' || field.name === 'cdate') {
+        } else if (field.name === 'duedate' || field.name === 'expdate' || field.name === 'cdate' || field.name === 'maxReplies' || field.name === 'minReplies') {
           result[field.name] = field.value ? parseInt(field.value, 10) : null;
         } else if (field.name === 'super') {
           var superId = _.trim(field.value);
@@ -1676,7 +1676,8 @@ module.exports = (function() {
             Handlebars.templates['partials/invitationInfoTable']({
               invitation: invitation,
               parentGroupId: parentGroupId,
-              editable: true
+              editable: true,
+              apiVersion: 2,
             })
           );
           setupDatePickers();
@@ -1735,7 +1736,7 @@ module.exports = (function() {
 
       updateInvitation(updateObj)
         .then(function(response) {
-          invitation = response;
+          invitation.mdate = response.mdate
           updateModifiedDate();
           showAlert('Settings for ' + view.prettyId(invitation.id) + ' updated');
         });
@@ -1853,7 +1854,7 @@ module.exports = (function() {
 
       updateInvitation(updateObj)
         .then(function(response) {
-          invitation = response;
+          invitation.mdate = response.mdate
           updateModifiedDate();
           showAlert(_.upperFirst(fieldName) + ' code for ' + invitation.id + ' has been updated', { scrollToTop: false });
         })
