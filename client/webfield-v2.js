@@ -320,6 +320,7 @@ module.exports = (function() {
 
   var renderTable = function(container, rows, options) {
     var defaults = {
+      emptyMessage: 'No information to show at this time.',
       renders:[],
       headings: rows.length ? Object.keys(rows[0]) : [],
       extraClasses: '',
@@ -331,6 +332,7 @@ module.exports = (function() {
       postRenderTable: function() {},
     };
     options = _.defaults(options, defaults);
+    var $container = $(container).empty();
 
     var defaultRender = function(row) {
       var propertiesHtml = '';
@@ -355,13 +357,13 @@ module.exports = (function() {
       });
 
       $('.table-container', container).remove();
-      $(container).append(tableHtml);
+      $container.append(tableHtml);
 
       postRenderTable();
     }
 
     var registerHelpers = function() {
-      $(container).on('change', '#select-all-papers', function(e) {
+      $container.on('change', '#select-all-papers', function(e) {
         var $superCheckBox = $(this);
         var $allPaperCheckBoxes = $('input.select-note-reviewers');
         var $msgReviewerButton = $('#message-reviewers-btn');
@@ -374,7 +376,7 @@ module.exports = (function() {
         }
       });
 
-      $(container).on('click', options.reminderOptions.container, function(e) {
+      $container.on('click', options.reminderOptions.container, function(e) {
         var $link = $(this);
         var userId = $link.data('userId');
         var forumUrl = $link.data('forumUrl');
@@ -430,8 +432,11 @@ module.exports = (function() {
 
     };
 
-    if (rows.length) {
-      $(container).empty();
+    if (!rows.length) {
+      $container.append(
+        '<p class="empty-message">' + options.emptyMessage + '</p>'
+      );
+      return;
     }
 
     if (options.sortOptions) {
@@ -466,7 +471,7 @@ module.exports = (function() {
       //#endregion
 
       if (rows.length) {
-        $(container).append(sortBarHtml);
+        $container.append(sortBarHtml);
       }
 
       // Need to add event handlers for these controls inside this function so they have access to row
@@ -478,10 +483,10 @@ module.exports = (function() {
         render(_.orderBy(rows, options.sortOptions[newOption], order), options.postRenderTable);
       }
 
-      $(container).on('change', '#form-sort', function(e) {
+      $container.on('change', '#form-sort', function(e) {
         sortResults($(e.target).val(), false);
       });
-      $(container).on('click', '#form-order', function(e) {
+      $container.on('click', '#form-order', function(e) {
         sortResults($(this).prev().val(), true);
         return false;
       });
