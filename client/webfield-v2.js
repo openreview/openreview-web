@@ -448,7 +448,7 @@ module.exports = (function() {
 
       //#region sortBarHtml
       var searchHtml = options.searchProperties ? '<strong style="vertical-align: middle;">Search:</strong>' +
-      '<input type="text" class="form-search form-control" class="form-control" placeholder="Enter search term or type + to start a query and press enter" style="width:440px; margin-right: 1.5rem; line-height: 34px;">' : '';
+      '<input id="form-search-' + containerId + '" type="text" class="form-search form-control" class="form-control" placeholder="Enter search term or type + to start a query and press enter" style="width:440px; margin-right: 1.5rem; line-height: 34px;">' : '';
 
       var sortBarHtml = '<form class="form-inline search-form clearfix" role="search">' +
         // Don't show this for now
@@ -497,12 +497,19 @@ module.exports = (function() {
 
     if (options.searchProperties) {
       var filterOperators = ['!=','>=','<=','>','<','=']; // sequence matters
+      var formSearchId = '#form-search-' + containerId;
+      var defaultFields = options.searchProperties.default || [];
       var searchResults = function(searchText, isQueryMode) {
         $('form-sort-' + containerId).val('Paper_Number');
 
         // Currently only searching on note title if exists
         var filterFunc = function(row) {
-          return (row.submission && row.submission.content.title.toLowerCase().indexOf(searchText) !== -1) || (row.submissionNumber && row.submissionNumber.number) == searchText;
+          return defaultFields.some(function(field) {
+            var value = _.get(row, field);
+            if (value && value.toString().toLowerCase().indexOf(searchText) !== -1) {
+              return true;
+            }
+          });
         };
 
         if (searchText) {
@@ -510,7 +517,7 @@ module.exports = (function() {
             var filterResult = Webfield.filterCollections(rows, searchText.slice(1), filterOperators, options.searchProperties, 'note.id')
             filteredRows = filterResult.filteredRows;
             queryIsInvalid = filterResult.queryIsInvalid;
-            if(queryIsInvalid) $(container + ' .form-search').addClass('invalid-value')
+            if(queryIsInvalid) $(formSearchId).addClass('invalid-value')
           } else {
             filteredRows = _.filter(rows, filterFunc)
           }
@@ -520,20 +527,40 @@ module.exports = (function() {
         render(filteredRows, options.postRenderTable);
       };
 
-      $(container + ' .form-search').on('keyup', function (e) {
-        var searchText = $(container + ' .form-search').val().trim();
-        var searchLabel = $(container + ' .form-search').prevAll('strong:first').text();
-        $(container + ' .form-search').removeClass('invalid-value');
+      $(formSearchId).on('keyup', function (e) {
+        var searchText = $(formSearchId).val().trim();
+        var searchLabel = $(formSearchId).prevAll('strong:first').text();
+        $(formSearchId).removeClass('invalid-value');
 
         if (searchText.startsWith('+')) {
           // filter query mode
           if (searchLabel === 'Search:') {
-            $(container + ' .form-search').prevAll('strong:first').text('Query:');
-            $(container + ' .form-search').prevAll('strong:first').after($('<span/>', {
+            $(formSearchId).prevAll('strong:first').text('Query:');
+            $(formSearchId).prevAll('strong:first').after($('<span/>', {
               class: 'glyphicon glyphicon-info-sign'
             }).hover(function (e) {
               $(e.target).tooltip({
-                title: "<strong class='tooltip-title'>Query Mode Help</strong>\n<p>In Query mode, you can enter an expression and hit ENTER to search.<br/> The expression consists of property of a paper and a value you would like to search.</p><p>e.g. +number=5 will return the paper 5</p><p>Expressions may also be combined with AND/OR.<br>e.g. +number=5 OR number=6 OR number=7 will return paper 5,6 and 7.<br>If the value has multiple words, it should be enclosed in double quotes.<br>e.g. +title=\"some title to search\"</p><p>Braces can be used to organize expressions.<br>e.g. +number=1 OR ((number=5 AND number=7) OR number=8) will return paper 1 and 8.</p><p>Operators available:".concat(filterOperators.join(', '), "</p><p>Properties available:").concat(Object.keys(options.searchProperties).join(', '), "</p>"),
+                title: '<strong class="tooltip-title">Query Mode Help</strong>' +
+                '<p>' +
+                  'In Query mode, you can enter an expression and hit ENTER to search.<br/>' +
+                  'The expression consists of property of a paper and a value you would like to search.' +
+                '</p>' +
+                '<p>' +
+                  'e.g. +number=5 will return the paper 5' +
+                '</p>' +
+                '<p>' +
+                  'Expressions may also be combined with AND/OR.<br>' +
+                  'e.g. +number=5 OR number=6 OR number=7 will return paper 5,6 and 7.<br>' +
+                  'If the value has multiple words, it should be enclosed in double quotes.<br>' +
+                  'e.g. +title=\"some title to search\"</p><p>Braces can be used to organize expressions.<br>' +
+                  'e.g. +number=1 OR ((number=5 AND number=7) OR number=8) will return paper 1 and 8.' +
+                '</p>' +
+                '<p>' +
+                  'Operators available: ' + filterOperators.join(', ') +
+                '</p>' +
+                '<p>' +
+                  'Properties available: ' + Object.keys(options.searchProperties).filter(function(k) { return k !== 'default'; }).join(', ') +
+                '</p>',
                 html: true,
                 placement: 'bottom'
               });
@@ -545,9 +572,9 @@ module.exports = (function() {
           }
         } else {
           if (searchLabel !== 'Search:') {
-            $(container + ' .form-search').prev().remove(); // remove info icon
+            $(formSearchId).prev().remove(); // remove info icon
 
-            $(container + ' .form-search').prev().text('Search:');
+            $(formSearchId).prev().text('Search:');
           }
 
           _.debounce(function () {
