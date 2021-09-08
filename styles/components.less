@@ -690,7 +690,7 @@ table.table-minimal {
 
 // Note editor
 .note_editor {
-  > .row {
+  > .row, > .note_content_section > .row {
     margin-top: 1em;
     margin-left: 0;
     margin-right: 0;
@@ -759,6 +759,10 @@ table.table-minimal {
   .hover_title {
     display: inline-block;
     vertical-align: middle;
+    .hover_target {
+      background-color: transparent;
+      padding: 0;
+    }
   }
   .hover_result {
     font-size: .75rem;
@@ -784,14 +788,17 @@ table.table-minimal {
   }
   .hover_target {
     cursor: default;
+    background-color: rgba(0, 0, 0, 0.08);
+    padding: 2px 6px;
+    border-radius: 2px;
     em {
-      color: @mediumBlue;
+      color: @orRed;
     }
   }
   .hover_item {
     display: inline-block;
     vertical-align: middle;
-    padding: 5px;
+    padding: 2px 4px;
   }
   .removable_item, .removable_pair {
     margin-right: 0.75rem;

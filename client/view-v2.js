@@ -1085,10 +1085,12 @@ module.exports = (function() {
         _.values($contentMap),
         noteReaders,
         noteSignatures,
-        '<h2 class="note_content_section">Edit History</h2>',
-        '<hr class="small">',
-        editReaders,
-        editSignatures,
+        $('<div class="note_content_section">').append(
+          '<h2 class="note_content_section">Edit History</h2>',
+          '<hr class="small">',
+          editReaders,
+          editSignatures,
+        ),
         $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
       );
       $noteEditor.data('invitationId', invitation.id);
@@ -1537,10 +1539,12 @@ module.exports = (function() {
         _.values($contentMap),
         noteReaders,
         noteSignatures,
-        '<h2 class="note_content_section">Edit History</h2>',
-        '<hr class="small">',
-        editReaders,
-        editSignatures,
+        $('<div class="note_content_section">').append(
+          '<h2>Edit History</h2>',
+          '<hr class="small">',
+          editReaders,
+          editSignatures,
+        ),
         $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
       );
       $noteEditor.data('invitationId', invitation.id);

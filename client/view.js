@@ -577,7 +577,7 @@ module.exports = (function() {
 
     // Add formatting to $ notation content
     if (_.isString(content)) {
-      content = content.replace(/(\[.*\])/g, '<em>$1</em>');
+      content = content.replace(/\{(\S+)\}/g, '<em>$1</em>'); // todo remove brackets
     }
     var $hoverTarget = $('<div>', {class: 'hover_target'}).append(content);
 
@@ -2552,7 +2552,9 @@ module.exports = (function() {
       var transformedId = tokens.map(function(token) {
         // API v2 tokens can include strings like ${note.number}
         if (token.includes('${')) {
-          token = token.replace(/\$\{/g, ' [').replace(/\}/g, ']').replace(/_/g, ' ');
+          token = token.replace(/\$\{(\S+)\}/g, function(match, p1) {
+            return ' {' + p1.split('.').pop() + '}';
+          }).replace(/_/g, ' ');
           return token;
         }
 

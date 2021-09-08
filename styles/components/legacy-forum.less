@@ -165,12 +165,31 @@ main.legacy-forum {
       }
     }
   }
-  h2.note_content_section {
-    font-size: 1.125rem;
-    line-height: 1.125rem;
-    font-weight: bold;
-    margin-top: 1.5rem;
-    margin-bottom: 1rem;
+  div.note_content_section {
+    margin-top: 1rem;
+    margin-left: -.75rem;
+    margin-right: -.75rem;
+    padding: .75rem;
+    background: rgba(0,0,0,0.08);
+
+    > h2 {
+      font-size: 1rem;
+      line-height: normal;
+      font-weight: bold;
+      margin-top: 0;
+      margin-bottom: .5rem;
+    }
+    > .row:last-child {
+      margin-bottom: .25rem;
+    }
+  }
+  .note_with_children div.note_content_section {
+    margin-left: -.5rem;
+    margin-right: -.5rem;
+    padding: .75rem .5rem .75rem .5rem;
+    > .row:last-child {
+      margin-bottom: .25rem;
+    }
   }
 
   .citation_author {
