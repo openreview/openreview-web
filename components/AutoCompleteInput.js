@@ -130,6 +130,7 @@ const AutoCompleteInput = () => {
           value={immediateSearchTerm}
           placeholder="Search OpenReview..."
           autoComplete="off"
+          autoCorrect="off"
           onChange={(e) => { setImmediateSearchTerm(e.target.value); delaySearch(e.target.value) }}
           onKeyDown={e => keyDownHandler(e)}
         />
