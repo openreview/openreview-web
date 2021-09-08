@@ -2115,7 +2115,6 @@ module.exports = (function() {
         extraClasses: 'horizontal-scroll'
       })
     });
-    tabsList[0].active = true;
 
     Webfield.ui.tabPanel(tabsList, { container: container });
   };
@@ -2125,14 +2124,17 @@ module.exports = (function() {
       title: venueId,
       instructions: 'Instructions here',
       tabs: [],
-      referrer: null
+      referrer: null,
+      showBanner: true
     };
     options = _.defaults(options, defaults);
 
-    if (options.referrer) {
-      OpenBanner.referrerLink(options.referrer);
-    } else {
-      OpenBanner.venueHomepageLink(venueId);
+    if (options.showBanner) {
+      if (options.referrer) {
+        OpenBanner.referrerLink(options.referrer);
+      } else {
+        OpenBanner.venueHomepageLink(venueId);
+      }
     }
 
     Webfield.ui.setup(container, venueId);
