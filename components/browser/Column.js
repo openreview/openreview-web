@@ -853,6 +853,7 @@ export default function Column(props) {
               value={search.term}
               onChange={e => setSearch({ term: e.target.value })}
               autoComplete="off"
+              autoCorrect="off"
             />
             <span className="glyphicon glyphicon-search form-control-feedback" aria-hidden="true" />
           </div>
