@@ -1,12 +1,14 @@
 /* eslint-disable no-param-reassign */
 /* globals $: false */
-/* globals view: false */
+/* globals view,view2: false */
 /* globals Handlebars: false */
 /* globals promptLogin: false */
 /* globals promptError: false */
 /* globals promptMessage: false */
 
-import { useEffect, useContext, useState } from 'react'
+import {
+  useEffect, useContext, useState, useRef,
+} from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import useQuery from '../../hooks/useQuery'
@@ -102,18 +104,30 @@ const RevisionsList = ({
     }).removeClass('panel')
   }
 
+  const buildEditPanelV2 = (reference, editInvitation) => {
+    const edit = {
+      ...reference,
+      content: reference.note.content, // to avoid changing note.cotent to note.note.content in view2.mkNotePanel
+    }
+    return view2.mkNotePanel(edit, {
+      isEdit: true,
+      invitation: editInvitation,
+      withContent: true,
+      withModificationDate: true,
+      withDateTime: true,
+      withBibtexLink: false,
+      user,
+    }).removeClass('panel')
+  }
+
   useEffect(() => {
     if (!revisions) return
 
     $('.references-list .note-container').each(function appendNotePanel(index) {
       const [reference, invitation] = revisions[index]
-      $(this).append(buildNotePanel(reference, invitation))
+      $(this).append(reference.note ? buildEditPanelV2(reference, invitation) : buildNotePanel(reference, invitation))
     })
-
-    // eslint-disable-next-line consistent-return
-    return () => {
-      $('#note-editor-modal').remove()
-    }
+    $('[data-toggle="tooltip"]').tooltip()
   }, [revisions])
 
   if (!revisions) return <LoadingSpinner />
@@ -157,6 +171,7 @@ const Revisions = ({ appContext }) => {
   const { user, accessToken, userLoading } = useContext(UserContext)
   const router = useRouter()
   const query = useQuery()
+  const isEditRevisions = useRef(false)
   const { setBannerContent, setBannerHidden } = appContext
 
   const enterSelectMode = () => {
@@ -173,33 +188,25 @@ const Revisions = ({ appContext }) => {
     // element represents the older revision, which should go on the left
     const leftId = revisions[selectedIndexes[1]][0].id
     const rightId = revisions[selectedIndexes[0]][0].id
+    if (isEditRevisions.current) {
+      const hasPdf = revisions[selectedIndexes[0]][0].note.content.pdf?.value
+        && revisions[selectedIndexes[1]][0].note.content.pdf?.value
+      router.push(`/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${hasPdf ? '&pdf=true' : ''}${isEditRevisions.current ? '&v2=true' : ''}`)
+      return
+    }
     const hasPdf = revisions[selectedIndexes[0]][0].content.pdf && revisions[selectedIndexes[1]][0].content.pdf
     router.push(`/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${hasPdf ? '&pdf=true' : ''}`)
   }
 
   useEffect(() => {
     if (userLoading || !query) return
-
+    let note = null
     const noteId = query.id
     if (!noteId) {
       setError({ message: 'Missing required parameter id' })
       return
     }
     setParentNoteId(noteId)
-
-    const setBanner = async () => {
-      try {
-        const { notes } = await api.get('/notes', { id: noteId }, { accessToken })
-        if (notes?.length > 0) {
-          setBannerContent(forumLink(notes[0]))
-        } else {
-          setBannerHidden(true)
-        }
-      } catch (apiError) {
-        setBannerHidden(true)
-      }
-    }
-    setBanner()
 
     const loadRevisions = async () => {
       let apiRes
@@ -235,7 +242,55 @@ const Revisions = ({ appContext }) => {
         setError(apiError)
       }
     }
-    loadRevisions()
+    const loadEdits = async () => {
+      let apiRes
+      try {
+        apiRes = await api.get('/notes/edits', {
+          'note.id': noteId,
+        }, { accessToken, version: 2 })
+      } catch (apiError) {
+        setError(apiError)
+        return
+      }
+      const edits = apiRes.edits || []
+      const invitationIds = Array.from(new Set(edits.map(edit => edit.invitations[0])))
+
+      try {
+        const { invitations } = await api.get('/invitations', { ids: invitationIds, expired: true }, { accessToken, version: 2 })
+
+        if (invitations?.length > 0) {
+          setRevisions(edits.map((edit) => {
+            const invId = edit.invitations[0]
+            const editInvitation = invitations.find(invitation => invitation.id === invId)
+            return [edit, editInvitation]
+          }))
+        } else {
+          setRevisions([])
+        }
+      } catch (apiError) {
+        setError(apiError)
+      }
+    }
+
+    const setBanner = async () => {
+      try {
+        note = await api.getNoteById(noteId, accessToken)
+        if (note) {
+          setBannerContent(forumLink(note))
+        } else {
+          setBannerHidden(true)
+        }
+      } catch (apiError) {
+        setBannerHidden(true)
+      }
+      if (note.version === 2) {
+        isEditRevisions.current = true
+        loadEdits()
+        return
+      }
+      loadRevisions()
+    }
+    setBanner()
   }, [userLoading, query, accessToken])
 
   return (

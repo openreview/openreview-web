@@ -25,7 +25,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       notesP = Webfield2.get('/notes', {
         forum: forumId,
         trash: true,
-        details: 'replyCount,writable,presentation,signatures'
+        details: 'replyCount,writable,presentation,signatures,revisions'
       }, { handleErrors: false })
         .then(function(result) {
           if (!result.notes || !result.notes.length) {

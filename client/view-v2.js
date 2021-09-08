@@ -122,7 +122,7 @@
       } else {
         authorText = note.content.authors?.value?.join(', ');
       }
-      var showPrivateLabel = !_.isEqual(note.readers?.sort(), note.content.authorids?.readers?.sort())
+      var showPrivateLabel = note.content.authorids?.readers && !_.isEqual(note.readers?.sort(), note.content.authorids.readers?.sort())
       if (showPrivateLabel){
         var tooltip = `privately revealed to ${note.content.authorids?.readers?.map(p =>view.prettyId(p)).join(', ')}`
         privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
@@ -131,7 +131,7 @@
     } else {
       // Note with no authors, just signatures, such as a forum comment
       authorText = note.signatures.map(function(signature) {
-        var signatureGroup = note.details.signatures?.find(p => p.id === signature)
+        var signatureGroup = note.details?.signatures?.find(p => p.id === signature)
         var signatureLink = prettyProfileLink(signature,view.prettyId(signature), 'signatures');
         if (signatureGroup && !signatureGroup.readers?.includes('everyone')) {
           var tooltip = `Privately revealed to ${signatureGroup.readers?.map(p => view.prettyId(p)).join(', ')}`
@@ -150,8 +150,8 @@
     }
 
     var contentKeys = Object.keys(note.content);
-    const contentOrder = note.details.presentation
-      ? Object.values(note.details.presentation ?? {}).sort((a, b) => a?.order - b?.order).map(p => p.name)
+    const contentOrder = note.details?.presentation
+      ? Object.values(note.details?.presentation ?? {}).sort((a, b) => a?.order - b?.order).map(p => p.name)
       : contentKeys
 
     var omittedContentFields = [
@@ -189,7 +189,7 @@
       }
 
       var $elem = $('<span>', {class: 'note_content_value'});
-      if (note.details.presentation?.find(p=>p.name === fieldName)?.markdown) {
+      if (note.details?.presentation?.find(p=>p.name === fieldName)?.markdown) {
         $elem[0].innerHTML = DOMPurify.sanitize(marked(valueString));
         $elem.addClass('markdown-rendered');
       } else {
