@@ -333,6 +333,7 @@ module.exports = (function() {
     };
     options = _.defaults(options, defaults);
     var $container = $(container).empty();
+    var containerId = container.slice(1);
 
     var defaultRender = function(row) {
       var propertiesHtml = '';
@@ -446,6 +447,9 @@ module.exports = (function() {
       }).join('\n');
 
       //#region sortBarHtml
+      var searchHtml = options.searchProperties ? '<strong style="vertical-align: middle;">Search:</strong>' +
+      '<input type="text" class="form-search form-control" class="form-control" placeholder="Enter search term or type + to start a query and press enter" style="width:440px; margin-right: 1.5rem; line-height: 34px;">' : '';
+
       var sortBarHtml = '<form class="form-inline search-form clearfix" role="search">' +
         // Don't show this for now
         // '<div id="div-msg-reviewers" class="btn-group" role="group">' +
@@ -461,11 +465,10 @@ module.exports = (function() {
         // '</div>' +
         // '<div class="btn-group"><button class="btn btn-export-data" type="button">Export</button></div>' +
         '<div class="pull-right">' +
-          '<strong style="vertical-align: middle;">Search:</strong>' +
-          '<input type="text" class="form-search form-control" class="form-control" placeholder="Enter search term or type + to start a query and press enter" style="width:440px; margin-right: 1.5rem; line-height: 34px;">' +
+          searchHtml +
           '<strong>Sort By:</strong> ' +
-          '<select id="form-sort" class="form-control" style="width: 250px; line-height: 1rem;">' + sortOptionHtml + '</select>' +
-          '<button id="form-order" class="btn btn-icon" type="button"><span class="glyphicon glyphicon-sort"></span></button>' +
+          '<select id="form-sort-' + containerId + '" class="form-control" style="width: 250px; line-height: 1rem;">' + sortOptionHtml + '</select>' +
+          '<button id="form-order-' + containerId + '" class="btn btn-icon" type="button"><span class="glyphicon glyphicon-sort"></span></button>' +
         '</div>' +
       '</form>';
       //#endregion
@@ -483,10 +486,10 @@ module.exports = (function() {
         render(_.orderBy(rows, options.sortOptions[newOption], order), options.postRenderTable);
       }
 
-      $container.on('change', '#form-sort', function(e) {
+      $container.on('change', '#form-sort-' + containerId, function(e) {
         sortResults($(e.target).val(), false);
       });
-      $container.on('click', '#form-order', function(e) {
+      $container.on('click', '#form-order-' + containerId, function(e) {
         sortResults($(this).prev().val(), true);
         return false;
       });
@@ -495,7 +498,7 @@ module.exports = (function() {
     if (options.searchProperties) {
       var filterOperators = ['!=','>=','<=','>','<','=']; // sequence matters
       var searchResults = function(searchText, isQueryMode) {
-        $(container + ' #form-sort').val('Paper_Number');
+        $('form-sort-' + containerId).val('Paper_Number');
 
         // Currently only searching on note title if exists
         var filterFunc = function(row) {
