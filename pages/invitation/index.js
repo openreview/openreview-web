@@ -104,7 +104,6 @@ var runWebfield = function(note) {
 var $noteEditor;
 ${invitation.apiVersion === 2 ? 'view2' : 'view'}.mkNoteEditor(
   {
-    id: args.id,
     parent: args.parent,
     content: noteContent,
   },
