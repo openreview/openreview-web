@@ -252,15 +252,16 @@ const Revisions = ({ appContext }) => {
         setError(apiError)
         return
       }
-      const edits = apiRes.edits || []
-      const invitationIds = Array.from(new Set(edits.map(edit => edit.invitations[0])))
+      // eslint-disable-next-line max-len
+      const edits = apiRes.edits.map(edit => ({ ...edit, invitations: [edit.invitation] })) || [] // for reusing mkNotePanel
+      const invitationIds = Array.from(new Set(edits.map(edit => edit.invitation)))
 
       try {
         const { invitations } = await api.get('/invitations', { ids: invitationIds, expired: true }, { accessToken, version: 2 })
 
         if (invitations?.length > 0) {
           setRevisions(edits.map((edit) => {
-            const invId = edit.invitations[0]
+            const invId = edit.invitation
             const editInvitation = invitations.find(invitation => invitation.id === invId)
             return [edit, editInvitation]
           }))
