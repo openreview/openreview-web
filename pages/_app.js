@@ -247,7 +247,6 @@ export default class OpenReviewApp extends App {
 
     // setup marked options and renderer overwrite
     window.view.setupMarked()
-    window.view2.setupMarked()
 
     // Set required constants
     window.OR_API_URL = process.env.API_URL

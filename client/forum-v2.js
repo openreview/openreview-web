@@ -44,7 +44,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         }, onError);
 
       invitationsP = Webfield2.get('/invitations', {
-        replyForum: forumId, details: 'repliedNotes'
+        replyForum: forumId, details: 'repliedNotes,repliedEdits'
       }, { handleErrors: false })
         .then(function(result) {
           return result.invitations || [];
@@ -79,7 +79,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
               if (replyTo.value === note.id || replyTo['with-forum'] === forumId) return true
             }
           })
-          .filter(q => !q.maxReplies || q.maxReplies !== 1 || !q.details?.repliedNotes?.[0])
+          .filter(q => !q.maxReplies || q.details?.repliedNotes?.length < q.maxReplies) // maxNoteReplies
+          // .filter(q => !q.maxReplies || q.details?.repliedEdits?.length < q.maxReplies) // maxEditReplies
 
         var noteForumId = note.id === forumId ? forumId : undefined;
         return $.when(
@@ -206,8 +207,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       });
 
     return invitationP.then(function(invitation) {
-
-      view.mkNoteEditor(note, invitation, user, {
+      view2.mkNoteEditor(note, invitation, user, {
         onNoteEdited: function(newNote) {
           getNoteRecsP().then(function(noteRecs) {
             $content.one('forumRendered', function() {
