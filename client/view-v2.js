@@ -892,7 +892,7 @@ module.exports = (function() {
       });
     };
 
-    const $editSignatures = await view.buildSignatures(invitation.edit.signatures, null, user, 'edit signature');
+    const $editSignatures = await view.buildSignatures(invitation.edit.signatures, null, user, 'signature');
     const $editReaders = await buildEditReaders(invitation.edit.readers, null);
 
     // If there's only 1 signature available don't show the modal
@@ -916,16 +916,16 @@ module.exports = (function() {
       id: 'confirm-delete-modal',
       showHeader: true,
       title: 'Delete Note',
-      body: '<p style="margin-bottom: 1.5rem;">Are you sure you want to delete "' +
+      body: '<p class="mb-4">Are you sure you want to delete "' +
         noteTitle + '" by ' + view.prettyId(note.signatures[0]) + '? The deleted note will ' +
         'be updated with the signature you choose below.</p>',
       showFooter: true,
       primaryButtonText: 'Delete'
     }));
 
-    $editSignaturesDropdown.addClass('note_editor ml-0');
-    $editReaders.addClass('note_editor ml-0');
-    $('#confirm-delete-modal .modal-body').append($editReaders).append($editSignaturesDropdown);
+    $editReaders.addClass('note_editor ml-0 mr-0 mb-2');
+    $editSignaturesDropdown.addClass('note_editor ml-0 mr-0 mb-2');
+    $('#confirm-delete-modal .modal-body').append($editReaders, $editSignaturesDropdown);
 
     $('#confirm-delete-modal').modal('show');
   };

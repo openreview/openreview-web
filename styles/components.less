@@ -741,6 +741,27 @@ table.table-minimal {
     white-space: pre-wrap;
     font-weight: 400;
   }
+  div.note_content_section {
+    margin-top: 1rem;
+    margin-left: -.5rem;
+    margin-right: -.5rem;
+    padding: .75rem .5rem .75rem .5rem;
+    background: rgba(0,0,0,0.08);
+
+    > h2 {
+      font-size: 1rem;
+      line-height: normal;
+      font-weight: bold;
+      margin-top: 0;
+      margin-bottom: .5rem;
+    }
+    > hr.small {
+      display: block;
+    }
+    > .row:last-child {
+      margin-bottom: .25rem;
+    }
+  }
   input[type="text"].form-control, textarea.form-control {
     // There is an issue with Noto Sans and backticks, so use a different font for these fields
     font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
@@ -863,6 +884,9 @@ table.table-minimal {
 .modal-body .note_editor {
   .note_content_title {
     font-size: 1.25rem;
+  }
+  .dropdown input {
+    width: 418px;
   }
 }
 
