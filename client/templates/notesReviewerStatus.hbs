@@ -9,10 +9,12 @@
           <td style="width: 28px;"><strong>{{note.number}}.</strong></td>
           <td style="width: 280px;"><strong>{{numOfReviews}} of {{numOfReviewers}} Reviews Submitted </strong></td>
         </tr>
-        <tr>
-          <td style="width: 28px;"></td>
-          <td style="width: 280px;">Average Rating: {{averageRating}} (Min: {{minRating}}, Max: {{maxRating}})</td>
-        </tr>
+        {{#if averageRating}}
+          <tr>
+            <td style="width: 28px;"></td>
+            <td style="width: 280px;">Average Rating: {{averageRating}} (Min: {{minRating}}, Max: {{maxRating}})</td>
+          </tr>
+        {{/if}}
       {{/each}}
     </tbody>
   </table>
