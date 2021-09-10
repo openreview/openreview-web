@@ -95,7 +95,7 @@ export default class EdgeBrowser extends React.Component {
       Group: '/groups',
       Tag: '/tags',
     }
-    const mainResultsP = Webfield.getAll(apiUrlMap[invReplyObj.type], requestParams)
+    const mainResultsP = api.getAll(apiUrlMap[invReplyObj.type], requestParams, this.accessToken)
 
     // Get all head or tail objects referenced by the start parameter edge
     // invitation. Note: currently startInvitation has to have the same head
@@ -110,7 +110,7 @@ export default class EdgeBrowser extends React.Component {
         startRequestParams.details = 'original'
         startRequestParams.sort = 'number:asc'
       }
-      startResultsP = Webfield.getAll(apiUrlMap[startInv.type], startRequestParams)
+      startResultsP = api.getAll(apiUrlMap[startInv.type], startRequestParams, this.accessToken)
     } else {
       startResultsP = Promise.resolve([])
     }
@@ -119,18 +119,18 @@ export default class EdgeBrowser extends React.Component {
     // profiles
     let initialKeysP
     if (invReplyObj.type === 'Profile' && requestParams.group) {
-      initialKeysP = Webfield.get('/groups', { id: requestParams.group })
+      initialKeysP = api.get('/groups', { id: requestParams.group }, { accessToken: this.accessToken })
         .then(response => _.get(response, 'groups[0].members', []))
     } else {
       initialKeysP = Promise.resolve(null)
     }
 
-    const groupedEdgesP = Webfield.getAll('/edges', {
+    const groupedEdgesP = api.getAll('/edges', {
       invitation: this.traverseInvitation.id,
       groupBy: headOrTail,
       select: 'count',
       ...this.traverseInvitation.query,
-    }, 'groupedEdges').then(results => _.keyBy(results, `id.${headOrTail}`))
+    }, this.accessToken, 'groupedEdges').then(results => _.keyBy(results, `id.${headOrTail}`))
 
     return Promise.all([
       initialKeysP,
