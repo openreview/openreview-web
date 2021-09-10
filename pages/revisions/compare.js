@@ -79,12 +79,12 @@ const CompareRevisions = ({ appContext }) => {
     try {
       const { leftNote, rightNote, viewerUrl } = await api.get('/pdf/compare', {
         noteId: query.id, leftId: query.left, rightId: query.right,
-      }, { accessToken, version: query.v2 ? 2 : 1 })
+      }, { accessToken, version: query.version === '2' ? 2 : 1 })
       setReferences([leftNote, rightNote])
       setDraftableUrl(viewerUrl)
     } catch (apiError) {
       // eslint-disable-next-line no-unused-expressions
-      query.v2 ? loadEdits() : loadReferences()
+      query.version === '2' ? loadEdits() : loadReferences()
     }
   }
 
@@ -101,13 +101,13 @@ const CompareRevisions = ({ appContext }) => {
       loadComparison()
     } else {
       // eslint-disable-next-line no-unused-expressions
-      query.v2 ? loadEdits() : loadReferences()
+      query.version === '2' ? loadEdits() : loadReferences()
     }
   }, [userLoading, query, accessToken])
 
   useEffect(() => {
     if (!references) return
-    const diffFn = query.v2 ? editNoteContentDiff : noteContentDiff
+    const diffFn = query.version === '2' ? editNoteContentDiff : noteContentDiff
     const diff = diffFn(references[0], references[1])
     if (Object.keys(diff).length > 0) {
       setContentDiff(diff)

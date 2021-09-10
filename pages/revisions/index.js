@@ -168,6 +168,7 @@ const Revisions = ({ appContext }) => {
   const [revisions, setRevisions] = useState(null)
   const [error, setError] = useState(null)
   const [selectedIndexes, setSelectedIndexes] = useState(null)
+  const [referencesToLoad, setReferencesToLoad] = useState(null)
   const { user, accessToken, userLoading } = useContext(UserContext)
   const router = useRouter()
   const query = useQuery()
@@ -191,11 +192,77 @@ const Revisions = ({ appContext }) => {
     if (isEditRevisions.current) {
       const hasPdf = revisions[selectedIndexes[0]][0].note.content?.pdf?.value
         && revisions[selectedIndexes[1]][0].note.content?.pdf?.value
-      router.push(`/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${hasPdf ? '&pdf=true' : ''}${isEditRevisions.current ? '&v2=true' : ''}`)
+      router.push(`/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${hasPdf ? '&pdf=true' : ''}${isEditRevisions.current ? '&version=2' : ''}`)
       return
     }
     const hasPdf = revisions[selectedIndexes[0]][0].content.pdf && revisions[selectedIndexes[1]][0].content.pdf
     router.push(`/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${hasPdf ? '&pdf=true' : ''}`)
+  }
+
+  const loadRevisions = async () => {
+    let apiRes
+    try {
+      apiRes = await api.get('/references', {
+        referent: query.id, original: true, trash: true,
+      }, { accessToken })
+    } catch (apiError) {
+      setError(apiError)
+      return
+    }
+
+    const references = apiRes.references || []
+    const invitationIds = Array.from(new Set(references.map(reference => (
+      reference.details?.original?.invitation || reference.invitation
+    ))))
+
+    try {
+      const { invitations } = await api.get('/invitations', { ids: invitationIds, expired: true })
+
+      if (invitations?.length > 0) {
+        setRevisions(references.map((reference) => {
+          const invId = (reference.details && reference.details.original)
+            ? reference.details.original.invitation
+            : reference.invitation
+          const referenceInvitation = invitations.find(invitation => invitation.id === invId)
+          return [reference, referenceInvitation]
+        }))
+      } else {
+        setRevisions([])
+      }
+    } catch (apiError) {
+      setError(apiError)
+    }
+  }
+  const loadEdits = async () => {
+    let apiRes
+    try {
+      apiRes = await api.get('/notes/edits', {
+        'note.id': query.id,
+        sort: 'tcdate',
+      }, { accessToken, version: 2 })
+    } catch (apiError) {
+      setError(apiError)
+      return
+    }
+    // eslint-disable-next-line max-len
+    const edits = apiRes.edits.map(edit => ({ ...edit, invitations: [edit.invitation] })) || [] // for reusing mkNotePanel
+    const invitationIds = Array.from(new Set(edits.map(edit => edit.invitation)))
+
+    try {
+      const { invitations } = await api.get('/invitations', { ids: invitationIds, expired: true }, { accessToken, version: 2 })
+
+      if (invitations?.length > 0) {
+        setRevisions(edits.map((edit) => {
+          const invId = edit.invitation
+          const editInvitation = invitations.find(invitation => invitation.id === invId)
+          return [edit, editInvitation]
+        }))
+      } else {
+        setRevisions([])
+      }
+    } catch (apiError) {
+      setError(apiError)
+    }
   }
 
   useEffect(() => {
@@ -207,72 +274,6 @@ const Revisions = ({ appContext }) => {
       return
     }
     setParentNoteId(noteId)
-
-    const loadRevisions = async () => {
-      let apiRes
-      try {
-        apiRes = await api.get('/references', {
-          referent: noteId, original: true, trash: true,
-        }, { accessToken })
-      } catch (apiError) {
-        setError(apiError)
-        return
-      }
-
-      const references = apiRes.references || []
-      const invitationIds = Array.from(new Set(references.map(reference => (
-        reference.details?.original?.invitation || reference.invitation
-      ))))
-
-      try {
-        const { invitations } = await api.get('/invitations', { ids: invitationIds, expired: true })
-
-        if (invitations?.length > 0) {
-          setRevisions(references.map((reference) => {
-            const invId = (reference.details && reference.details.original)
-              ? reference.details.original.invitation
-              : reference.invitation
-            const referenceInvitation = invitations.find(invitation => invitation.id === invId)
-            return [reference, referenceInvitation]
-          }))
-        } else {
-          setRevisions([])
-        }
-      } catch (apiError) {
-        setError(apiError)
-      }
-    }
-    const loadEdits = async () => {
-      let apiRes
-      try {
-        apiRes = await api.get('/notes/edits', {
-          'note.id': noteId,
-          sort: 'cdate',
-        }, { accessToken, version: 2 })
-      } catch (apiError) {
-        setError(apiError)
-        return
-      }
-      // eslint-disable-next-line max-len
-      const edits = apiRes.edits.map(edit => ({ ...edit, invitations: [edit.invitation] })) || [] // for reusing mkNotePanel
-      const invitationIds = Array.from(new Set(edits.map(edit => edit.invitation)))
-
-      try {
-        const { invitations } = await api.get('/invitations', { ids: invitationIds, expired: true }, { accessToken, version: 2 })
-
-        if (invitations?.length > 0) {
-          setRevisions(edits.map((edit) => {
-            const invId = edit.invitation
-            const editInvitation = invitations.find(invitation => invitation.id === invId)
-            return [edit, editInvitation]
-          }))
-        } else {
-          setRevisions([])
-        }
-      } catch (apiError) {
-        setError(apiError)
-      }
-    }
 
     const setBanner = async () => {
       try {
@@ -287,13 +288,18 @@ const Revisions = ({ appContext }) => {
       }
       if (note.version === 2) {
         isEditRevisions.current = true
-        loadEdits()
+        setReferencesToLoad('edits')
         return
       }
-      loadRevisions()
+      setReferencesToLoad('revisions')
     }
     setBanner()
   }, [userLoading, query, accessToken])
+
+  useEffect(() => {
+    if (referencesToLoad === 'edits') loadEdits()
+    if (referencesToLoad === 'revisions') loadRevisions()
+  }, [referencesToLoad])
 
   return (
     <>
