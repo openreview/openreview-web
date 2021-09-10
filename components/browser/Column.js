@@ -1,4 +1,4 @@
-/* globals Webfield: false */
+/* globals Webfield,promptError: false */
 /* eslint-disable react/destructuring-assignment */
 
 import {
@@ -424,7 +424,7 @@ export default function Column(props) {
             })(),
           },
           sort,
-        ), accessToken, 'edges'),
+        ), accessToken, 'edges').catch(error => promptError(error.message)),
       })
     }
   }
@@ -511,7 +511,7 @@ export default function Column(props) {
             existingItems.add(headOrTailId)
           })
           setItems(colItems)
-        })
+        }).catch(error => promptError(error.message))
       return
     }
 
@@ -614,7 +614,7 @@ export default function Column(props) {
       }
 
       // Add existing edit edges to items
-      editEdgeGroups.forEach(editEdge => editEdge.forEach(updateColumnItems('editEdges', colItems)))
+      editEdgeGroups.forEach(editEdge => editEdge?.forEach(updateColumnItems('editEdges', colItems)))
 
       // Add all browse edges to items
       browseEdgeGroups.forEach((browseEdges, i) => {

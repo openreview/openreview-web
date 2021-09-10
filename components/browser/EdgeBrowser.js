@@ -96,6 +96,7 @@ export default class EdgeBrowser extends React.Component {
       Tag: '/tags',
     }
     const mainResultsP = api.getAll(apiUrlMap[invReplyObj.type], requestParams, this.accessToken)
+      .catch(error => promptError(error.message))
 
     // Get all head or tail objects referenced by the start parameter edge
     // invitation. Note: currently startInvitation has to have the same head
@@ -111,6 +112,7 @@ export default class EdgeBrowser extends React.Component {
         startRequestParams.sort = 'number:asc'
       }
       startResultsP = api.getAll(apiUrlMap[startInv.type], startRequestParams, this.accessToken)
+        .catch(error => promptError(error.message))
     } else {
       startResultsP = Promise.resolve([])
     }
@@ -120,7 +122,7 @@ export default class EdgeBrowser extends React.Component {
     let initialKeysP
     if (invReplyObj.type === 'Profile' && requestParams.group) {
       initialKeysP = api.get('/groups', { id: requestParams.group }, { accessToken: this.accessToken })
-        .then(response => _.get(response, 'groups[0].members', []))
+        .then(response => _.get(response, 'groups[0].members', [])).catch(error => promptError(error.message))
     } else {
       initialKeysP = Promise.resolve(null)
     }
@@ -131,6 +133,7 @@ export default class EdgeBrowser extends React.Component {
       select: 'count',
       ...this.traverseInvitation.query,
     }, this.accessToken, 'groupedEdges').then(results => _.keyBy(results, `id.${headOrTail}`))
+      .catch(error => promptError(error.message))
 
     return Promise.all([
       initialKeysP,
@@ -151,8 +154,8 @@ export default class EdgeBrowser extends React.Component {
           entityMap[entity.id].searchText = buildSearchText(entity, entityType)
           entityMap[entity.id].traverseEdgesCount = _.get(groupedEdges, [entity.id, 'count'], 0)
         }
-        mainResults.forEach(buildEntityMap)
-        startResults.forEach(buildEntityMap)
+        mainResults?.forEach(buildEntityMap)
+        startResults?.forEach(buildEntityMap)
 
         // After profile map has been created, if there are any ids without profiles
         // create dummy profiles for them
