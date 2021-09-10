@@ -169,10 +169,10 @@ const Revisions = ({ appContext }) => {
   const [error, setError] = useState(null)
   const [selectedIndexes, setSelectedIndexes] = useState(null)
   const [referencesToLoad, setReferencesToLoad] = useState(null)
+  const [isEditRevisions, setIsEditRevisions] = useState(false)
   const { user, accessToken, userLoading } = useContext(UserContext)
   const router = useRouter()
   const query = useQuery()
-  const isEditRevisions = useRef(false)
   const { setBannerContent, setBannerHidden } = appContext
 
   const enterSelectMode = () => {
@@ -189,10 +189,10 @@ const Revisions = ({ appContext }) => {
     // element represents the older revision, which should go on the left
     const leftId = revisions[selectedIndexes[1]][0].id
     const rightId = revisions[selectedIndexes[0]][0].id
-    if (isEditRevisions.current) {
+    if (isEditRevisions) {
       const hasPdf = revisions[selectedIndexes[0]][0].note.content?.pdf?.value
         && revisions[selectedIndexes[1]][0].note.content?.pdf?.value
-      router.push(`/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${hasPdf ? '&pdf=true' : ''}${isEditRevisions.current ? '&version=2' : ''}`)
+      router.push(`/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${hasPdf ? '&pdf=true' : ''}${isEditRevisions ? '&version=2' : ''}`)
       return
     }
     const hasPdf = revisions[selectedIndexes[0]][0].content.pdf && revisions[selectedIndexes[1]][0].content.pdf
@@ -287,7 +287,7 @@ const Revisions = ({ appContext }) => {
         setBannerHidden(true)
       }
       if (note.version === 2) {
-        isEditRevisions.current = true
+        setIsEditRevisions(true)
         setReferencesToLoad('edits')
         return
       }

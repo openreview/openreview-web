@@ -83,8 +83,11 @@ const CompareRevisions = ({ appContext }) => {
       setReferences([leftNote, rightNote])
       setDraftableUrl(viewerUrl)
     } catch (apiError) {
-      // eslint-disable-next-line no-unused-expressions
-      query.version === '2' ? loadEdits() : loadReferences()
+      if (query.version === '2') {
+        loadEdits()
+      } else {
+        loadReferences()
+      }
     }
   }
 
@@ -99,9 +102,10 @@ const CompareRevisions = ({ appContext }) => {
     setBanner()
     if (query.pdf) {
       loadComparison()
+    } else if (query.version === '2') {
+      loadEdits()
     } else {
-      // eslint-disable-next-line no-unused-expressions
-      query.version === '2' ? loadEdits() : loadReferences()
+      loadReferences()
     }
   }, [userLoading, query, accessToken])
 
