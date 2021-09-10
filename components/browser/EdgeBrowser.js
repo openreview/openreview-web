@@ -95,7 +95,7 @@ export default class EdgeBrowser extends React.Component {
       Group: '/groups',
       Tag: '/tags',
     }
-    const mainResultsP = api.getAll(apiUrlMap[invReplyObj.type], requestParams, this.accessToken)
+    const mainResultsP = api.getAll(apiUrlMap[invReplyObj.type], requestParams, { accessToken: this.accessToken })
       .catch(error => promptError(error.message))
 
     // Get all head or tail objects referenced by the start parameter edge
@@ -111,7 +111,7 @@ export default class EdgeBrowser extends React.Component {
         startRequestParams.details = 'original'
         startRequestParams.sort = 'number:asc'
       }
-      startResultsP = api.getAll(apiUrlMap[startInv.type], startRequestParams, this.accessToken)
+      startResultsP = api.getAll(apiUrlMap[startInv.type], startRequestParams, { accessToken: this.accessToken })
         .catch(error => promptError(error.message))
     } else {
       startResultsP = Promise.resolve([])
@@ -132,7 +132,7 @@ export default class EdgeBrowser extends React.Component {
       groupBy: headOrTail,
       select: 'count',
       ...this.traverseInvitation.query,
-    }, this.accessToken, 'groupedEdges').then(results => _.keyBy(results, `id.${headOrTail}`))
+    }, { accessToken: this.accessToken, resultsKey: 'groupedEdges' }).then(results => _.keyBy(results, `id.${headOrTail}`))
       .catch(error => promptError(error.message))
 
     return Promise.all([

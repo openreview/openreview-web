@@ -424,7 +424,7 @@ export default function Column(props) {
             })(),
           },
           sort,
-        ), accessToken, 'edges').catch(error => promptError(error.message)),
+        ), { accessToken, resultsKey: 'edges' }).catch(error => promptError(error.message)),
       })
     }
   }
@@ -478,7 +478,7 @@ export default function Column(props) {
         return
       }
 
-      api.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false), accessToken, 'edges')
+      api.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false), { accessToken, resultsKey: 'edges' })
         .then((startEdges) => {
           if (!startEdges) {
             setItems([])
