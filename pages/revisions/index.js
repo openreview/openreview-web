@@ -189,8 +189,8 @@ const Revisions = ({ appContext }) => {
     const leftId = revisions[selectedIndexes[1]][0].id
     const rightId = revisions[selectedIndexes[0]][0].id
     if (isEditRevisions.current) {
-      const hasPdf = revisions[selectedIndexes[0]][0].note.content.pdf?.value
-        && revisions[selectedIndexes[1]][0].note.content.pdf?.value
+      const hasPdf = revisions[selectedIndexes[0]][0].note.content?.pdf?.value
+        && revisions[selectedIndexes[1]][0].note.content?.pdf?.value
       router.push(`/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${hasPdf ? '&pdf=true' : ''}${isEditRevisions.current ? '&v2=true' : ''}`)
       return
     }
@@ -247,6 +247,7 @@ const Revisions = ({ appContext }) => {
       try {
         apiRes = await api.get('/notes/edits', {
           'note.id': noteId,
+          sort: 'cdate',
         }, { accessToken, version: 2 })
       } catch (apiError) {
         setError(apiError)

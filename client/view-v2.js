@@ -446,10 +446,10 @@ module.exports = (function() {
   };
 
   var getTitleText = function(note, generatedTitleText) {
-    if (_.trim(note.content.title?.value)) {
+    if (_.trim(note.content?.title?.value)) {
       return note.content.title.value;
     }
-    if (_.trim(note.content.verdict?.value)) {
+    if (_.trim(note.content?.verdict?.value)) {
       return 'Verdict: ' + note.content.verdict.value;
     }
     return generatedTitleText;
@@ -458,7 +458,7 @@ module.exports = (function() {
   var mkPdfIcon = function(note, isEdit) {
     // PDF for title
     var $pdfLink = null;
-    if (note.content.pdf?.value) {
+    if (note.content?.pdf?.value) {
       var downloadURL = pdfUrl(note, isEdit);
       $pdfLink = $('<a>', {
         class: 'note_content_pdf',
@@ -474,10 +474,10 @@ module.exports = (function() {
 
   var mkHtmlIcon = function(note) {
     var $htmlLink = null;
-    if (note.content.html?.value) {
+    if (note.content?.html?.value) {
       $htmlLink = $('<a>', {
         class: 'note_content_pdf html-link',
-        href: note.content.html?.value,
+        href: note.content.html.value,
         title: 'Open Website',
         target: '_blank'
       }).append(
@@ -509,19 +509,19 @@ module.exports = (function() {
       // Note trashed
       authorText = '[Deleted]';
 
-    } else if (_.isArray(note.content.authors?.value) && note.content.authors.value.length) {
+    } else if (_.isArray(note.content?.authors?.value) && note.content.authors.value.length) {
       // Probably a forum-level note (because it has authors)
-      if (_.isArray(note.content.authorids?.value) && note.content.authorids.value.length) {
-        authorText = note.content.authors?.value?.map(function(a, i) {
+      if (_.isArray(note.content?.authorids?.value) && note.content.authorids.value.length) {
+        authorText = note.content.authors.value?.map(function(a, i) {
           var aId = note.content.authorids.value[i];
           return prettyProfileLink(aId, a, 'authorids')
         }).join(', ');
       } else {
-        authorText = note.content.authors?.value?.join(', ');
+        authorText = note.content.authors.value?.join(', ');
       }
-      var showPrivateLabel = note.content.authorids?.readers && !_.isEqual(note.readers?.sort(), note.content.authorids.readers?.sort())
+      var showPrivateLabel = note.content?.authorids?.readers && !_.isEqual(note.readers?.sort(), note.content.authorids.readers?.sort())
       if (showPrivateLabel){
-        var tooltip = `privately revealed to ${note.content.authorids?.readers?.map(p =>view.prettyId(p)).join(', ')}`
+        var tooltip = `privately revealed to ${note.content?.authorids?.readers?.map(p =>view.prettyId(p)).join(', ')}`
         privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
         authorText = `${authorText} ${privateLabel}`
       }
@@ -546,7 +546,7 @@ module.exports = (function() {
       return;
     }
 
-    var contentKeys = Object.keys(note.content);
+    var contentKeys = Object.keys(note.content ?? {});
     const contentOrder = note.details?.presentation
       ? Object.values(note.details?.presentation ?? {}).sort((a, b) => a?.order - b?.order).map(p => p.name)
       : contentKeys
@@ -637,13 +637,13 @@ module.exports = (function() {
       $note.addClass('trashed');
     }
 
-    if (note.content._disableTexRendering?.value) {
+    if (note.content?._disableTexRendering?.value) {
       $note.addClass('disable-tex-rendering');
     }
 
     var generatedTitleText = view.generateNoteTitle(note.invitations[0], note.signatures);
     var titleText = getTitleText(note, generatedTitleText);
-    var useGeneratedTitle = !_.trim(note.content.title?.value) && !_.trim(note.content.verdict?.value);
+    var useGeneratedTitle = !_.trim(note.content?.title?.value) && !_.trim(note.content?.verdict?.value);
     var $titleHTML = view.mkTitleComponent(note, params.titleLink, titleText);
 
     var $pdfLink = mkPdfIcon(note, params.isEdit);
@@ -706,16 +706,16 @@ module.exports = (function() {
       null;
 
     // Display modal showing full BibTeX reference. Click handler is definied in public/index.js
-    var $bibtexLink = (note.content._bibtex?.value && params.withBibtexLink) ?
+    var $bibtexLink = (note.content?._bibtex?.value && params.withBibtexLink) ?
       $('<span class="item"><a href="#" data-target="#bibtex-modal" data-toggle="modal" data-bibtex="' + encodeURIComponent(note.content._bibtex.value) + '">Show Bibtex</a></span>') :
       null;
 
     var $metaEditRow = $('<div>', {class: 'meta_row'});
-    var formattedDate = view.forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year?.value);
+    var formattedDate = view.forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content?.year?.value);
     var $dateItem = (!notePastDue || details.writable) ?
       $('<span>', {class: 'date item'}).text(formattedDate) :
       null;
-    var $invItem = $('<span>', {class: 'item'}).text(options.isEdit ? view.prettyId(note.invitations[0]) : note.content.venue?.value || view.prettyId(note.invitations[0]));
+    var $invItem = $('<span>', {class: 'item'}).text(options.isEdit ? view.prettyId(note.invitations[0]) : note.content?.venue?.value || view.prettyId(note.invitations[0]));
     var $readersItem = _.has(note, 'readers') ?
       $('<span>', {class: 'item'}).html('Readers: ' + view.prettyReadersList(note.readers)) :
       null;
@@ -870,7 +870,7 @@ module.exports = (function() {
 
   var pdfUrl = function(note, isEdit) {
     var path = isEdit ? '/notes/edits/pdf' : '/pdf';
-    return _.startsWith(note.content.pdf?.value, '/pdf') ? (path + '?id=' + note.id) : note.content.pdf?.value;
+    return _.startsWith(note.content.pdf?.value, '/pdf') ? (path + '?id=' + note.id) : note.content?.pdf?.value;
   };
 
   const deleteOrRestoreNote = async (note, invitation, noteTitle, user, onTrashedOrRestored) => {
