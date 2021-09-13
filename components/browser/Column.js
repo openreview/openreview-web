@@ -1,4 +1,4 @@
-/* globals Webfield,promptError: false */
+/* globals promptError: false */
 /* eslint-disable react/destructuring-assignment */
 
 import {

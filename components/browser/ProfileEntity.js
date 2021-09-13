@@ -1,7 +1,6 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/destructuring-assignment */
-/* globals Webfield: false */
 /* globals $: false */
 /* globals promptError,promptMessage: false */
 

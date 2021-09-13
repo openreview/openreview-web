@@ -1,4 +1,3 @@
-/* globals Webfield: false */
 /* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/no-access-state-in-setstate */
 /* globals promptError: false */
