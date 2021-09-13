@@ -955,6 +955,7 @@ module.exports = (function() {
     }, {});
 
     function buildEditor(editReaders, editSignatures, noteReaders, noteSignatures) {
+      var formIsDirty = false;
       var $submitButton = $('<button class="btn btn-sm">Submit</button>');
       var $cancelButton = $('<button class="btn btn-sm">Cancel</button>');
 
@@ -1050,8 +1051,8 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
-        const confirmCancel = window.confirm('You are closing the editor. Any unsaved changes will be lost.');
-        if(!confirmCancel) return;
+        const confirmCancel = formIsDirty ? window.confirm('You are closing the editor. Any unsaved changes will be lost.') : true;
+        if(formIsDirty && !confirmCancel) return;
         view.clearAutosaveData(autosaveStorageKeys);
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
@@ -1099,7 +1100,9 @@ module.exports = (function() {
 
       view.autolinkFieldDescriptions($noteEditor);
       var autosaveStorageKeys = view.setupAutosaveHandlers($noteEditor, user, replyto + '|new', invitation.id);
-
+      $noteEditor.on('input', e => {
+        formIsDirty = true;
+      })
       if (params.onCompleted) {
         params.onCompleted($noteEditor);
       }
@@ -1411,6 +1414,7 @@ module.exports = (function() {
     }, {});
 
     const buildEditor = (editReaders, editSignatures, noteReaders, noteSignatures) => {
+      var formIsDirty = false;
       const $submitButton = $('<button class="btn btn-sm">Submit</button>');
       const $cancelButton = $('<button class="btn btn-sm">Cancel</button>');
 
@@ -1507,8 +1511,8 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
-        const confirmCancel = window.confirm('You are closing the editor. Any unsaved changes will be lost.');
-        if(!confirmCancel) return;
+        const confirmCancel = formIsDirty ? window.confirm('You are closing the editor. Any unsaved changes will be lost.') : true;
+        if(formIsDirty && !confirmCancel) return;
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
         } else {
@@ -1554,7 +1558,9 @@ module.exports = (function() {
       $noteEditor.data('invitationId', invitation.id);
 
       view.autolinkFieldDescriptions($noteEditor);
-
+      $noteEditor.on('input', e => {
+        formIsDirty = true;
+      })
       if (params.onCompleted) {
         params.onCompleted($noteEditor);
       }

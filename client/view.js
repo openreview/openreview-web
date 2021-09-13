@@ -3023,6 +3023,7 @@ module.exports = (function() {
     }, {});
 
     function buildEditor(readers, signatures) {
+      var formIsDirty = false;
       var $submitButton = $('<button class="btn btn-sm">Submit</button>');
       var $cancelButton = $('<button class="btn btn-sm">Cancel</button>');
 
@@ -3128,8 +3129,8 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
-        const confirmCancel = window.confirm('You are closing the editor. Any unsaved changes will be lost.');
-        if(!confirmCancel) return;
+        const confirmCancel = formIsDirty ? window.confirm('You are closing the editor. Any unsaved changes will be lost.') : true;
+        if(formIsDirty && !confirmCancel) return;
         clearAutosaveData(autosaveStorageKeys);
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
@@ -3172,7 +3173,9 @@ module.exports = (function() {
 
       autolinkFieldDescriptions($noteEditor);
       var autosaveStorageKeys = setupAutosaveHandlers($noteEditor, user, replyto + '|new', invitation.id);
-
+      $noteEditor.on('input', e => {
+        formIsDirty = true;
+      })
       if (params.onCompleted) {
         params.onCompleted($noteEditor);
       }
@@ -3458,6 +3461,7 @@ module.exports = (function() {
     }, {});
 
     function buildEditor(readers, signatures) {
+      var formIsDirty = false;
       var $submitButton = $('<button class="btn btn-sm">Submit</button>');
       var $cancelButton = $('<button class="btn btn-sm">Cancel</button>');
 
@@ -3571,8 +3575,8 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
-        const confirmCancel = window.confirm('You are closing the editor. Any unsaved changes will be lost.');
-        if(!confirmCancel) return;
+        const confirmCancel = formIsDirty ? window.confirm('You are closing the editor. Any unsaved changes will be lost.') : true;
+        if(formIsDirty && !confirmCancel) return;
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
         } else {
@@ -3617,7 +3621,9 @@ module.exports = (function() {
 
       autolinkFieldDescriptions($noteEditor);
       var autosaveStorageKeys = setupAutosaveHandlers($noteEditor, user, note.id, invitation.id);
-
+      $noteEditor.on('input', e => {
+        formIsDirty = true;
+      })
       if (params.onCompleted) {
         params.onCompleted($noteEditor);
       }
