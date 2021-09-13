@@ -1050,6 +1050,8 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
+        const confirmCancel = window.confirm('You are closing the editor. Any unsaved changes will be lost.');
+        if(!confirmCancel) return;
         view.clearAutosaveData(autosaveStorageKeys);
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
@@ -1505,6 +1507,8 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
+        const confirmCancel = window.confirm('You are closing the editor. Any unsaved changes will be lost.');
+        if(!confirmCancel) return;
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
         } else {
