@@ -96,7 +96,6 @@ export default class EdgeBrowser extends React.Component {
       Tag: '/tags',
     }
     const mainResultsP = api.getAll(apiUrlMap[invReplyObj.type], requestParams, { accessToken: this.accessToken })
-      .catch(error => promptError(error.message))
 
     // Get all head or tail objects referenced by the start parameter edge
     // invitation. Note: currently startInvitation has to have the same head
