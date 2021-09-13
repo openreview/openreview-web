@@ -77,7 +77,7 @@ export default class EdgeBrowser extends React.Component {
           tailMap,
           loading: false,
         })
-      })
+      }).catch(error => promptError(error.message))
   }
 
   buildEntityMapFromInvitation(headOrTail) {
@@ -151,8 +151,8 @@ export default class EdgeBrowser extends React.Component {
           entityMap[entity.id].searchText = buildSearchText(entity, entityType)
           entityMap[entity.id].traverseEdgesCount = _.get(groupedEdges, [entity.id, 'count'], 0)
         }
-        mainResults?.forEach(buildEntityMap)
-        startResults?.forEach(buildEntityMap)
+        mainResults.forEach(buildEntityMap)
+        startResults.forEach(buildEntityMap)
 
         // After profile map has been created, if there are any ids without profiles
         // create dummy profiles for them
@@ -177,7 +177,7 @@ export default class EdgeBrowser extends React.Component {
           })
         }
         return entityMap
-      }).catch(error => promptError(error.message))
+      })
   }
 
   addNewColumn(index) {
