@@ -1408,7 +1408,7 @@ module.exports = (function() {
     renderPaginatedList($('section.notes'), {
       templateName: 'partials/paginatedNoteListV2',
       loadItems: function(limit, offset) {
-        return get('/notes', { signature: groupId, limit: limit, offset: offset })
+        return get('/notes', { signatures: groupId, limit: limit, offset: offset })
           .then(apiResponseHandler('notes'));
       },
       renderItem: renderNoteListItem
