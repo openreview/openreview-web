@@ -449,7 +449,7 @@ export default function Column(props) {
     // If no parent id is provided, display the full list of entities. Used for
     // the first column when no start invitation is provided
     if (!parentId && !startInvitation) {
-      setItems(Object.values(globalEntityMap))
+      setItems(Object.values(globalEntityMap ?? {}))
       return
     }
 
@@ -538,7 +538,7 @@ export default function Column(props) {
       // if clicked on invite invitation profile entity
       // dispay full list of notes with meta/browseEdges/editEdges/editEdgeTemplates
       if (parentColumnEntityType === 'Profile' && !altGlobalEntityMap[parentId]) {
-        const allItems = Object.values(globalEntityMap).map(p => appendEdgesInfo({
+        const allItems = Object.values(globalEntityMap ?? {}).map(p => appendEdgesInfo({
           item: p,
           traverseEdges,
           hideEdges,
@@ -683,7 +683,7 @@ export default function Column(props) {
     if (parentId) {
       const searchedIds = items.map(item => item.id)
 
-      Object.values(globalEntityMap).forEach((item) => {
+      Object.values(globalEntityMap ?? {}).forEach((item) => {
         if (searchedIds.includes(item.id)) return
 
         if (item.searchText.match(searchRegex)) {

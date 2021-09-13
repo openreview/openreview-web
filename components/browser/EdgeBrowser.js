@@ -112,7 +112,6 @@ export default class EdgeBrowser extends React.Component {
         startRequestParams.sort = 'number:asc'
       }
       startResultsP = api.getAll(apiUrlMap[startInv.type], startRequestParams, { accessToken: this.accessToken })
-        .catch(error => promptError(error.message))
     } else {
       startResultsP = Promise.resolve([])
     }
@@ -122,7 +121,7 @@ export default class EdgeBrowser extends React.Component {
     let initialKeysP
     if (invReplyObj.type === 'Profile' && requestParams.group) {
       initialKeysP = api.get('/groups', { id: requestParams.group }, { accessToken: this.accessToken })
-        .then(response => _.get(response, 'groups[0].members', [])).catch(error => promptError(error.message))
+        .then(response => _.get(response, 'groups[0].members', []))
     } else {
       initialKeysP = Promise.resolve(null)
     }
@@ -133,7 +132,6 @@ export default class EdgeBrowser extends React.Component {
       select: 'count',
       ...this.traverseInvitation.query,
     }, { accessToken: this.accessToken, resultsKey: 'groupedEdges' }).then(results => _.keyBy(results, `id.${headOrTail}`))
-      .catch(error => promptError(error.message))
 
     return Promise.all([
       initialKeysP,
@@ -180,7 +178,7 @@ export default class EdgeBrowser extends React.Component {
           })
         }
         return entityMap
-      })
+      }).catch(error => promptError(error.message))
   }
 
   addNewColumn(index) {
