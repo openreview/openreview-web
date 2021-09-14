@@ -91,6 +91,53 @@ const CompareRevisions = ({ appContext }) => {
     }
   }
 
+  const renderDiffSection = (diff, shouldPrettyField = true) => {
+    if (!diff) return null
+    return Object.entries(diff).map(([fieldName, fieldValue]) => {
+      const prettifiedFieldName = shouldPrettyField ? prettyField(fieldName) : fieldName
+      const prettifiedLeftValue = prettyContentValue(fieldValue.left)
+      const prettifiedRightValue = prettyContentValue(fieldValue.right)
+      return (
+        <tr key={fieldName}>
+          <td>
+            {fieldValue.left && (
+              <>
+                {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+                <strong>{prettifiedFieldName}:</strong> {prettifiedLeftValue}
+              </>
+            )}
+          </td>
+          <td>
+            {fieldValue.right && (
+              <>
+                {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+                <strong>{prettifiedFieldName}:</strong> {prettifiedRightValue}
+              </>
+            )}
+          </td>
+        </tr>
+      )
+    })
+  }
+
+  const renderDiff = () => {
+    if (query.version === '2') {
+      return (
+        <>
+          <tr><th colSpan="4">Edit Properties</th></tr>
+          {renderDiffSection(contentDiff?.edit, false)}
+          <tr><th colSpan="4">Note Properties</th></tr>
+          {renderDiffSection(contentDiff?.editNote, false)}
+          <tr><th colSpan="4">Note.content Properties</th></tr>
+          {renderDiffSection(contentDiff?.editNoteContent)}
+        </>
+      )
+    }
+    return (
+      renderDiffSection(contentDiff)
+    )
+  }
+
   useEffect(() => {
     if (userLoading || !query) return
 
@@ -156,26 +203,7 @@ const CompareRevisions = ({ appContext }) => {
               </thead>
 
               <tbody>
-                {contentDiff && Object.entries(contentDiff).map(([fieldName, fieldValue]) => (
-                  <tr key={fieldName}>
-                    <td>
-                      {fieldValue.left && (
-                        <>
-                          {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-                          <strong>{prettyField(fieldName)}:</strong> {prettyContentValue(fieldValue.left)}
-                        </>
-                      )}
-                    </td>
-                    <td>
-                      {fieldValue.right && (
-                        <>
-                          {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-                          <strong>{prettyField(fieldName)}:</strong> {prettyContentValue(fieldValue.right)}
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                {renderDiff()}
               </tbody>
             </table>
           </div>
