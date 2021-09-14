@@ -10,7 +10,7 @@ import ErrorDisplay from '../../components/ErrorDisplay'
 import api from '../../lib/api-client'
 import { forumLink } from '../../lib/banner-links'
 import {
-  prettyField, prettyContentValue, formatTimestamp, noteContentDiff,
+  prettyField, prettyContentValue, formatTimestamp, noteContentDiff, editNoteContentDiff,
 } from '../../lib/utils'
 
 import '../../styles/pages/revisions-compare.less'
@@ -26,9 +26,9 @@ const CompareRevisions = ({ appContext }) => {
 
   const setBanner = async () => {
     try {
-      const { notes } = await api.get('/notes', { id: query.id }, { accessToken })
-      if (notes?.length > 0) {
-        setBannerContent(forumLink(notes[0]))
+      const note = await api.getNoteById(query.id, accessToken)
+      if (note) {
+        setBannerContent(forumLink(note))
       } else {
         setBannerHidden(true)
       }
@@ -57,15 +57,37 @@ const CompareRevisions = ({ appContext }) => {
     }
   }
 
+  const loadEdits = async () => {
+    try {
+      const apiRes = await api.get('/notes/edits', { 'note.id': query.id, trash: true }, { accessToken, version: 2 })
+
+      if (apiRes.edits?.length > 1) {
+        const leftEdit = apiRes.edits.find(edit => edit.id === query.left)
+        const rightEdit = apiRes.edits.find(edit => edit.id === query.right)
+        if (leftEdit && rightEdit) {
+          setReferences([leftEdit, rightEdit])
+          return
+        }
+      }
+      setError({ statusCode: 404, message: 'Reference not found' })
+    } catch (apiError) {
+      setError(apiError)
+    }
+  }
+
   const loadComparison = async () => {
     try {
       const { leftNote, rightNote, viewerUrl } = await api.get('/pdf/compare', {
         noteId: query.id, leftId: query.left, rightId: query.right,
-      }, { accessToken })
+      }, { accessToken, version: query.version === '2' ? 2 : 1 })
       setReferences([leftNote, rightNote])
       setDraftableUrl(viewerUrl)
     } catch (apiError) {
-      loadReferences()
+      if (query.version === '2') {
+        loadEdits()
+      } else {
+        loadReferences()
+      }
     }
   }
 
@@ -80,6 +102,8 @@ const CompareRevisions = ({ appContext }) => {
     setBanner()
     if (query.pdf) {
       loadComparison()
+    } else if (query.version === '2') {
+      loadEdits()
     } else {
       loadReferences()
     }
@@ -87,8 +111,8 @@ const CompareRevisions = ({ appContext }) => {
 
   useEffect(() => {
     if (!references) return
-
-    const diff = noteContentDiff(references[0], references[1])
+    const diffFn = query.version === '2' ? editNoteContentDiff : noteContentDiff
+    const diff = diffFn(references[0], references[1])
     if (Object.keys(diff).length > 0) {
       setContentDiff(diff)
     }
