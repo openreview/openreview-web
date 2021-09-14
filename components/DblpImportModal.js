@@ -65,7 +65,8 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
 
   const getExistingFromDblpPubs = (allDblpPubs) => {
     const existingPubsInAllDblpPubs = allDblpPubs.filter(
-      dblpPub => publicationsInOpenReview.current.find(orPub => orPub.title === dblpPub.formattedTitle),
+      // eslint-disable-next-line max-len
+      dblpPub => publicationsInOpenReview.current.find(orPub => orPub.title === dblpPub.formattedTitle && orPub.venue === dblpPub.venue),
     )
     const associatedWithOtherProfilesPubsInAllDblpPubs = allDblpPubs.filter(
       dblpPub => publicationsImportedByOtherProfiles.current.find(orPub => orPub.title === dblpPub.formattedTitle),
@@ -105,6 +106,7 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
         authorIndex: p.authorIndex,
         authorCount: p.authorCount,
         title: p.formattedTitle,
+        venue: p.venue,
       })), profileId, accessToken)
       publicationsImportedByOtherProfiles.current = result.filter(p => p)
       const {
