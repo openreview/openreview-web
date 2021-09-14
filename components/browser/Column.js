@@ -424,7 +424,7 @@ export default function Column(props) {
             })(),
           },
           sort,
-        ), { accessToken, resultsKey: 'edges' }).catch(error => promptError(error.message)),
+        ), { accessToken, resultsKey: 'edges' }).catch(error => promptError(error.details ?? error.message)),
       })
     }
   }
@@ -511,7 +511,7 @@ export default function Column(props) {
             existingItems.add(headOrTailId)
           })
           setItems(colItems)
-        }).catch(error => promptError(error.message))
+        }).catch(error => promptError(error.details ?? error.message))
       return
     }
 

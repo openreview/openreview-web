@@ -85,7 +85,7 @@ export default function NoteEntity(props) {
         props.reloadColumnEntities()
       }
     } catch (error) {
-      promptError(error.message)
+      promptError(error.details ?? error.message)
     }
   }
 
@@ -131,7 +131,7 @@ export default function NoteEntity(props) {
         props.reloadColumnEntities()
       }
     } catch (error) {
-      promptError(error.message)
+      promptError(error.details ?? error.message)
     }
   }
 
