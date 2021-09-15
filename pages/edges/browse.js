@@ -53,6 +53,7 @@ const Browse = ({ appContext }) => {
       setBannerHidden(true)
     }
 
+    const apiVersion = Number.parseInt(query.version, 10)
     const startInvitations = parseEdgeList(query.start, 'start')
     const traverseInvitations = parseEdgeList(query.traverse, 'traverse')
     const editInvitations = parseEdgeList(query.edit, 'edit')
@@ -69,10 +70,10 @@ const Browse = ({ appContext }) => {
     // Use the first traverse invitation as the main group ID
     setTitleInvitation(traverseInvitations[0])
     setMaxColumns(Math.max(Number.parseInt(query.maxColumns, 10), -1) || -1)
-    setVersion(Number.parseInt(query.version, 10))
+    setVersion(apiVersion)
 
     const idsToLoad = uniq(allInvitations.map(i => i.id)).filter(id => id !== 'staticList')
-    api.get('/invitations', { ids: idsToLoad.join(','), expired: true, type: 'edges' }, { accessToken, version: Number.parseInt(query.version, 10) })
+    api.get('/invitations', { ids: idsToLoad.join(','), expired: true, type: 'edges' }, { accessToken, version: apiVersion })
       .then((apiRes) => {
         if (!apiRes.invitations?.length) {
           setError(invalidError)
@@ -104,14 +105,14 @@ const Browse = ({ appContext }) => {
 
           const readers = buildInvitationReplyArr(fullInvitation, 'readers', user.profile.id)
           const writers = buildInvitationReplyArr(fullInvitation, 'writers', user.profile.id) || readers
-          const signatures = fullInvitation.edge?.signatures
+          const signatures = version === 2 ? fullInvitation.edge?.signatures : fullInvitation.reply?.signatures
           const nonreaders = buildInvitationReplyArr(fullInvitation, 'nonreaders', user.profile.id)
           Object.assign(invObj, {
-            head: translateFieldSpec(fullInvitation, 'head', version),
-            tail: translateFieldSpec(fullInvitation, 'tail', version),
-            weight: translateFieldSpec(fullInvitation, 'weight', version),
-            defaultWeight: translateFieldSpec(fullInvitation, 'weight', version)?.default,
-            label: translateFieldSpec(fullInvitation, 'label', version),
+            head: translateFieldSpec(fullInvitation, 'head', apiVersion),
+            tail: translateFieldSpec(fullInvitation, 'tail', apiVersion),
+            weight: translateFieldSpec(fullInvitation, 'weight', apiVersion),
+            defaultWeight: translateFieldSpec(fullInvitation, 'weight', apiVersion)?.default,
+            label: translateFieldSpec(fullInvitation, 'label', apiVersion),
             readers,
             writers,
             signatures,
@@ -132,6 +133,7 @@ const Browse = ({ appContext }) => {
         })
       })
       .catch((apiError) => {
+        console.log(apiError)
         if (typeof apiError === 'object' && apiError.name) {
           if (apiError.name === 'Not Found' || apiError.name === 'NotFoundError') {
             setError(notFoundError)
