@@ -16,6 +16,7 @@ import '../../styles/pages/edge-browser.less'
 
 const Browse = ({ appContext }) => {
   const { user, accessToken, userLoading } = useLoginRedirect()
+  const [version, setVersion] = useState(1)
   const [invitations, setInvitations] = useState(null)
   const [titleInvitation, setTitleInvitation] = useState(null)
   const [maxColumns, setMaxColumns] = useState(-1)
@@ -68,9 +69,10 @@ const Browse = ({ appContext }) => {
     // Use the first traverse invitation as the main group ID
     setTitleInvitation(traverseInvitations[0])
     setMaxColumns(Math.max(Number.parseInt(query.maxColumns, 10), -1) || -1)
+    setVersion(Number.parseInt(query.version, 10))
 
     const idsToLoad = uniq(allInvitations.map(i => i.id)).filter(id => id !== 'staticList')
-    api.get('/invitations', { ids: idsToLoad.join(','), expired: true, type: 'edges' }, { accessToken, version: 2 })
+    api.get('/invitations', { ids: idsToLoad.join(','), expired: true, type: 'edges' }, { accessToken, version: Number.parseInt(query.version, 10) })
       .then((apiRes) => {
         if (!apiRes.invitations?.length) {
           setError(invalidError)
@@ -164,6 +166,7 @@ const Browse = ({ appContext }) => {
 
       {invitations ? (
         <EdgeBrowser
+          version={version}
           startInvitation={invitations.startInvitation}
           traverseInvitations={invitations.traverseInvitations}
           editInvitations={invitations.editInvitations}

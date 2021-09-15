@@ -13,6 +13,7 @@ export default class EdgeBrowser extends React.Component {
   constructor(props) {
     super(props)
 
+    this.version = props.version
     this.startInvitation = props.startInvitation
     this.traverseInvitation = props.traverseInvitations[0]
     this.editInvitations = props.editInvitations
@@ -98,7 +99,8 @@ export default class EdgeBrowser extends React.Component {
       group: '/groups',
       tag: '/tags',
     }
-    const mainResultsP = api.getAll(apiUrlMap[invReplyObj.type], requestParams, { accessToken: this.accessToken })
+    const mainResultsP = api.getAll(apiUrlMap[invReplyObj.type],
+      requestParams, { accessToken: this.accessToken, version: this.version })
 
     // Get all head or tail objects referenced by the start parameter edge
     // invitation. Note: currently startInvitation has to have the same head
@@ -114,7 +116,8 @@ export default class EdgeBrowser extends React.Component {
         startRequestParams.sort = 'number:asc'
         startRequestParams.invitation = startInv['value-invitation']
       }
-      startResultsP = api.getAll(apiUrlMap[startInv.type], startRequestParams, { accessToken: this.accessToken })
+      startResultsP = api.getAll(apiUrlMap[startInv.type],
+        startRequestParams, { accessToken: this.accessToken, version: this.version })
     } else {
       startResultsP = Promise.resolve([])
     }
@@ -123,7 +126,7 @@ export default class EdgeBrowser extends React.Component {
     // profiles
     let initialKeysP
     if (invReplyObj.type === 'profile' && requestParams['member-of']) {
-      initialKeysP = api.get('/groups', { id: requestParams.group }, { accessToken: this.accessToken })
+      initialKeysP = api.get('/groups', { id: requestParams.group }, { accessToken: this.accessToken, version: this.version })
         .then(response => _.get(response, 'groups[0].members', []))
     } else {
       initialKeysP = Promise.resolve(null)
@@ -134,7 +137,7 @@ export default class EdgeBrowser extends React.Component {
       groupBy: headOrTail,
       select: 'count',
       ...this.traverseInvitation.query,
-    }, { accessToken: this.accessToken, resultsKey: 'groupedEdges' }).then(results => _.keyBy(results, `id.${headOrTail}`))
+    }, { accessToken: this.accessToken, version: this.version, resultsKey: 'groupedEdges' }).then(results => _.keyBy(results, `id.${headOrTail}`))
 
     return Promise.all([
       initialKeysP,
@@ -298,7 +301,7 @@ export default class EdgeBrowser extends React.Component {
       if (editInvitation.signatures['values-regex'] && !editInvitation.signatures['values-regex']?.startsWith('~.*')) {
         if (editInvitation.signatures.default) {
           try {
-            const defaultLookupResult = await api.get('/groups', { regex: editInvitation.signatures.default, signatory: this.userId }, { accessToken: this.accessToken })
+            const defaultLookupResult = await api.get('/groups', { regex: editInvitation.signatures.default, signatory: this.userId }, { accessToken: this.accessToken, version: this.version })
             if (defaultLookupResult.groups.length === 1) {
               editInvitationSignaturesMap.push({
                 invitation: editInvitation.id,
@@ -312,7 +315,7 @@ export default class EdgeBrowser extends React.Component {
         }
         const interpolatedSignature = editInvitation.signatures['values-regex'].replace(/{head\.number}/g, '.*')
         try {
-          const interpolatedLookupResult = await api.get('/groups', { regex: interpolatedSignature, signatory: this.userId }, { accessToken: this.accessToken })
+          const interpolatedLookupResult = await api.get('/groups', { regex: interpolatedSignature, signatory: this.userId }, { accessToken: this.accessToken, version: this.version })
           editInvitationSignaturesMap.push({
             invitation: editInvitation.id,
             signatures: interpolatedLookupResult.groups.map(group => group.id),
