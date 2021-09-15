@@ -25,7 +25,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       notesP = Webfield2.get('/notes', {
         forum: forumId,
         trash: true,
-        details: 'replyCount,writable,presentation,signatures'
+        details: 'replyCount,writable,presentation,signatures,revisions'
       }, { handleErrors: false })
         .then(function(result) {
           if (!result.notes || !result.notes.length) {
@@ -44,7 +44,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         }, onError);
 
       invitationsP = Webfield2.get('/invitations', {
-        replyForum: forumId, details: 'repliedNotes'
+        replyForum: forumId, details: 'repliedNotes,repliedEdits'
       }, { handleErrors: false })
         .then(function(result) {
           return result.invitations || [];
@@ -75,11 +75,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
         var replyInvitations = invitations
           .filter(p => {
             const replyTo = p.edit?.note?.replyto
-            if (replyTo) {
-              if (replyTo.value === note.id || replyTo['with-forum'] === forumId) return true
-            }
+            return replyTo && (replyTo.value === note.id || replyTo['with-forum'] === forumId)
           })
-          .filter(q => !q.maxReplies || q.maxReplies !== 1 || !q.details?.repliedNotes?.[0])
+          .filter(q => !q.maxReplies || q.details?.repliedNotes?.length < q.maxReplies) // maxNoteReplies
+          // .filter(q => !q.maxReplies || q.details?.repliedEdits?.length < q.maxReplies) // maxEditReplies
 
         var noteForumId = note.id === forumId ? forumId : undefined;
         return $.when(
@@ -206,8 +205,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       });
 
     return invitationP.then(function(invitation) {
-
-      view.mkNoteEditor(note, invitation, user, {
+      view2.mkNoteEditor(note, invitation, user, {
         onNoteEdited: function(newNote) {
           getNoteRecsP().then(function(noteRecs) {
             $content.one('forumRendered', function() {
@@ -501,7 +499,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     }
 
     // Set search bar params
-    var conf = rootRec.note.content.venueid.value ?
+    var conf = rootRec.note.content.venueid?.value ?
       rootRec.note.content.venueid.value :
       rootRec.note.invitations[0].split('/-/')[0];
     $('#search_group').val(conf);

@@ -12,7 +12,15 @@
         <tr>
           <td style="width: 28px;"></td>
           {{#if review}}
-          <td style="width: 300px;">Rating: {{review.rating}} / Confidence: {{review.confidence}} / Review length: {{review.content.review.length}}</td>
+            {{#if review.status}}
+              <td style="width: 300px;">
+                {{#each review.status as |value name|}}
+                  {{name}}: {{value}} /
+                {{/each}}
+              </td>
+            {{else}}
+              <td style="width: 300px;">Rating: {{review.rating}} / Confidence: {{review.confidence}} / Review length: {{review.content.review.length}}</td>
+            {{/if}}
           <td>
             <a href="/forum?id={{review.forum}}&noteId={{review.id}}{{#if ../referrer}}&referrer={{../referrer}}{{/if}}" target="_blank">Read Review</a>
           </td>

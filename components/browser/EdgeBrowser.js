@@ -1,4 +1,3 @@
-/* globals Webfield: false */
 /* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/no-access-state-in-setstate */
 /* globals promptError: false */
@@ -77,7 +76,7 @@ export default class EdgeBrowser extends React.Component {
           tailMap,
           loading: false,
         })
-      })
+      }).catch(error => promptError(error.details ?? error.message))
   }
 
   buildEntityMapFromInvitation(headOrTail) {
@@ -99,7 +98,7 @@ export default class EdgeBrowser extends React.Component {
       group: '/groups',
       tag: '/tags',
     }
-    const mainResultsP = Webfield2.getAll(apiUrlMap[invReplyObj.type], requestParams)
+    const mainResultsP = api.getAll(apiUrlMap[invReplyObj.type], requestParams, { accessToken: this.accessToken })
 
     // Get all head or tail objects referenced by the start parameter edge
     // invitation. Note: currently startInvitation has to have the same head
@@ -115,7 +114,7 @@ export default class EdgeBrowser extends React.Component {
         startRequestParams.sort = 'number:asc'
         startRequestParams.invitation = startInv['value-invitation']
       }
-      startResultsP = Webfield2.getAll(apiUrlMap[startInv.type], startRequestParams)
+      startResultsP = api.getAll(apiUrlMap[startInv.type], startRequestParams, { accessToken: this.accessToken })
     } else {
       startResultsP = Promise.resolve([])
     }
@@ -124,18 +123,18 @@ export default class EdgeBrowser extends React.Component {
     // profiles
     let initialKeysP
     if (invReplyObj.type === 'profile' && requestParams['member-of']) {
-      initialKeysP = Webfield.get('/groups', { id: requestParams['member-of'] })
+      initialKeysP = api.get('/groups', { id: requestParams.group }, { accessToken: this.accessToken })
         .then(response => _.get(response, 'groups[0].members', []))
     } else {
       initialKeysP = Promise.resolve(null)
     }
 
-    const groupedEdgesP = Webfield2.getAll('/edges', {
+    const groupedEdgesP = api.getAll('/edges', {
       invitation: this.traverseInvitation.id,
       groupBy: headOrTail,
       select: 'count',
       ...this.traverseInvitation.query,
-    }, 'groupedEdges').then(results => _.keyBy(results, `id.${headOrTail}`))
+    }, { accessToken: this.accessToken, resultsKey: 'groupedEdges' }).then(results => _.keyBy(results, `id.${headOrTail}`))
 
     return Promise.all([
       initialKeysP,

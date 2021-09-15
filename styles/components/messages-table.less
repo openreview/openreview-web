@@ -1,4 +1,5 @@
 @import "../utils/constants";
+@import "../utils/mixins";
 
 table.messages-table {
   border-bottom: 1px solid #ddd;
@@ -41,6 +42,10 @@ table.messages-table {
     p {
       white-space: pre-wrap;
       margin-bottom: .5rem;
+    }
+    &.markdown-rendered p {
+      white-space: normal;
+      .markdown-content-styles;
     }
   }
   .status {

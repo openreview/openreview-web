@@ -1,4 +1,4 @@
-/* globals Webfield: false */
+/* globals promptError: false */
 /* eslint-disable react/destructuring-assignment */
 
 import {
@@ -14,6 +14,8 @@ import {
 } from '../../lib/utils'
 import EditEdgeInviteEmail from './EditEdgeInviteEmail'
 import { transformName } from '../../lib/edge-utils'
+import api from '../../lib/api-client'
+import useUser from '../../hooks/useUser'
 
 export default function Column(props) {
   const {
@@ -41,6 +43,7 @@ export default function Column(props) {
   const colBodyEl = useRef(null)
   const entityMap = useRef({ globalEntityMap, altGlobalEntityMap })
   const [entityMapChanged, setEntityMapChanged] = useState(false)
+  const { accessToken } = useUser()
 
   const sortOptions = [{ key: traverseInvitation.id, value: 'default', text: transformName(prettyInvitationId(traverseInvitation.id)) }]
   const editAndBrowserInvitations = [...editInvitations, ...browseInvitations]
@@ -410,7 +413,7 @@ export default function Column(props) {
         invitations: [invitationType],
         getWritable,
         sort,
-        promise: Webfield2.getAll('/edges', buildQuery(
+        promise: api.getAll('/edges', buildQuery(
           invitation.id,
           {
             ...invitation.query,
@@ -422,7 +425,7 @@ export default function Column(props) {
             })(),
           },
           sort,
-        )),
+        ), { accessToken, resultsKey: 'edges' }).catch(error => promptError(error.details ?? error.message)),
       })
     }
   }
@@ -476,7 +479,7 @@ export default function Column(props) {
         return
       }
 
-      Webfield2.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false))
+      api.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false), { accessToken, resultsKey: 'edges' })
         .then((startEdges) => {
           if (!startEdges) {
             setItems([])
@@ -509,7 +512,7 @@ export default function Column(props) {
             existingItems.add(headOrTailId)
           })
           setItems(colItems)
-        })
+        }).catch(error => promptError(error.details ?? error.message))
       return
     }
 
@@ -612,7 +615,7 @@ export default function Column(props) {
       }
 
       // Add existing edit edges to items
-      editEdgeGroups.forEach(editEdge => editEdge.forEach(updateColumnItems('editEdges', colItems)))
+      editEdgeGroups.forEach(editEdge => editEdge?.forEach(updateColumnItems('editEdges', colItems)))
 
       // Add all browse edges to items
       browseEdgeGroups.forEach((browseEdges, i) => {
@@ -854,6 +857,7 @@ export default function Column(props) {
               value={search.term}
               onChange={e => setSearch({ term: e.target.value })}
               autoComplete="off"
+              autoCorrect="off"
             />
             <span className="glyphicon glyphicon-search form-control-feedback" aria-hidden="true" />
           </div>
