@@ -84,11 +84,6 @@ export default class EdgeBrowser extends React.Component {
     // Get all head or tail objects referenced by the traverse parameter invitation
     const invReplyObj = this.traverseInvitation[headOrTail]
     const requestParams = { ...invReplyObj?.query } // avoid polluting invReplyObj which is used for compare
-    if (invReplyObj.type === 'note') {
-      // TODO: move these params to the invitation so it's not hardcoded
-      //requestParams.details = 'original'
-      requestParams.sort = 'number:asc'
-    }
     const apiUrlMap = {
       note: '/notes',
       profile: '/profiles',
@@ -108,8 +103,6 @@ export default class EdgeBrowser extends React.Component {
     )) {
       const startRequestParams = startInv.query || {}
       if (startInv.type === 'note') {
-        //startRequestParams.details = 'original'
-        startRequestParams.sort = 'number:asc'
         startRequestParams.invitation = startInv.query.invitation
       }
       startResultsP = api.getAll(apiUrlMap[startInv.type],
