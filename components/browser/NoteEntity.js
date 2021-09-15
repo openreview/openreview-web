@@ -143,6 +143,7 @@ export default function NoteEntity(props) {
     parentPaperNumber: props.parentInfo.number,
     id,
     parentId: props.parentInfo.id,
+    version,
   })
 
   const renderEditEdgeWidget = ({ editEdge, editInvitation }) => {

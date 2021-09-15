@@ -160,6 +160,7 @@ export default function ProfileEntity(props) {
     parentPaperNumber: props.parentInfo.number,
     id,
     parentId: props.parentInfo.id,
+    version,
   })
   const renderEditEdgeWidget = ({ edge, invitation, isTraverseEdge = false }) => {
     const isAssigned = (metadata.isAssigned || metadata.isUserAssigned)

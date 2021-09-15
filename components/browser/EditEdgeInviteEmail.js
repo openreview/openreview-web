@@ -9,7 +9,9 @@ import UserContext from '../UserContext'
 import EdgeBrowserContext from './EdgeBrowserContext'
 
 // eslint-disable-next-line object-curly-newline
-const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumber, reloadColumnEntities }) => {
+const EditEdgeInviteEmail = ({
+  type, otherType, entityType, parentId, parentNumber, reloadColumnEntities, version,
+}) => {
   const [emailToInvite, setEmailToInvite] = useState('')
   const [loading, setLoading] = useState(false)
   const { editInvitations, availableSignaturesInvitationMap } = useContext(EdgeBrowserContext)
@@ -35,7 +37,7 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
     }
     // post
     try {
-      const result = await api.post('/edges', newEdgeJson, { accessToken, version: 2 })
+      const result = await api.post('/edges', newEdgeJson, { accessToken, version })
       setEmailToInvite('')
       promptMessage(`Invitation has been sent to ${email} and it's waiting for the response.`)
     } catch (error) {
@@ -55,6 +57,7 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
     parentPaperNumber: parentNumber,
     id: email,
     parentId,
+    version,
   })
 
   const shouldDisableSubmitBtn = () => {
