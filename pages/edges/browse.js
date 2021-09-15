@@ -105,7 +105,7 @@ const Browse = ({ appContext }) => {
 
           const readers = buildInvitationReplyArr(fullInvitation, 'readers', user.profile.id)
           const writers = buildInvitationReplyArr(fullInvitation, 'writers', user.profile.id) || readers
-          const signatures = version === 2 ? fullInvitation.edge?.signatures : fullInvitation.reply?.signatures
+          const signatures = apiVersion === 2 ? fullInvitation.edge?.signatures : fullInvitation.reply?.signatures
           const nonreaders = buildInvitationReplyArr(fullInvitation, 'nonreaders', user.profile.id)
           Object.assign(invObj, {
             head: translateFieldSpec(fullInvitation, 'head', apiVersion),
