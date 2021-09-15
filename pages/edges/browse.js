@@ -9,7 +9,7 @@ import EdgeBrowser from '../../components/browser/EdgeBrowser'
 import EdgeBrowserHeader from '../../components/browser/EdgeBrowserHeader'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import api from '../../lib/api-client'
-import { parseEdgeList, buildInvitationReplyArr } from '../../lib/edge-utils'
+import { parseEdgeList, buildInvitationReplyArr, translateFieldSpec } from '../../lib/edge-utils'
 import { referrerLink } from '../../lib/banner-links'
 
 import '../../styles/pages/edge-browser.less'
@@ -107,11 +107,11 @@ const Browse = ({ appContext }) => {
           const signatures = fullInvitation.edge?.signatures
           const nonreaders = buildInvitationReplyArr(fullInvitation, 'nonreaders', user.profile.id)
           Object.assign(invObj, {
-            head: fullInvitation.edge.head,
-            tail: fullInvitation.edge.tail,
-            weight: fullInvitation.edge.weight,
-            defaultWeight: fullInvitation.edge.weight?.default,
-            label: fullInvitation.edge.label,
+            head: translateFieldSpec(fullInvitation, 'head', version),
+            tail: translateFieldSpec(fullInvitation, 'tail', version),
+            weight: translateFieldSpec(fullInvitation, 'weight', version),
+            defaultWeight: translateFieldSpec(fullInvitation, 'weight', version)?.default,
+            label: translateFieldSpec(fullInvitation, 'label', version),
             readers,
             writers,
             signatures,

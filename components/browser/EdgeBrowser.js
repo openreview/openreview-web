@@ -88,10 +88,6 @@ export default class EdgeBrowser extends React.Component {
       // TODO: move these params to the invitation so it's not hardcoded
       //requestParams.details = 'original'
       requestParams.sort = 'number:asc'
-      requestParams.invitation = invReplyObj['value-invitation']
-    }
-    if (invReplyObj.type === 'profile') {
-      requestParams.group = invReplyObj['member-of']
     }
     const apiUrlMap = {
       note: '/notes',
@@ -114,7 +110,7 @@ export default class EdgeBrowser extends React.Component {
       if (startInv.type === 'note') {
         //startRequestParams.details = 'original'
         startRequestParams.sort = 'number:asc'
-        startRequestParams.invitation = startInv['value-invitation']
+        startRequestParams.invitation = startInv.query.invitation
       }
       startResultsP = api.getAll(apiUrlMap[startInv.type],
         startRequestParams, { accessToken: this.accessToken, version: this.version })
@@ -125,7 +121,7 @@ export default class EdgeBrowser extends React.Component {
     // Get list of all keys to seed the entity map with. Currently only used for
     // profiles
     let initialKeysP
-    if (invReplyObj.type === 'profile' && requestParams['member-of']) {
+    if (invReplyObj.type === 'profile' && requestParams.group) {
       initialKeysP = api.get('/groups', { id: requestParams.group }, { accessToken: this.accessToken, version: this.version })
         .then(response => _.get(response, 'groups[0].members', []))
     } else {

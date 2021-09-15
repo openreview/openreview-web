@@ -143,7 +143,7 @@ export default function Column(props) {
       let defautEntityName = null
       switch (columnType) {
         case 'note':
-          entityInvitation = traverseInvitation[type]['value-invitation']
+          entityInvitation = traverseInvitation[type].query.invitation
           defautEntityName = 'note'
           break
         case 'Profile':
@@ -211,9 +211,9 @@ export default function Column(props) {
   const getPlaceholderText = (isLoadMoreButton = false) => {
     let entityName = props.entityType
     if (props.entityType === 'note') {
-      entityName = prettyInvitationId(traverseInvitation[type]['value-invitation'])
+      entityName = prettyInvitationId(traverseInvitation[type].query.invitation)
     } else if (props.entityType === 'profile') {
-      entityName = prettyId(traverseInvitation[type]['member-of'], true)
+      entityName = prettyId(traverseInvitation[type].query.group, true)
     }
     if (startInvitation) {
       entityName = prettyInvitationId(startInvitation.id)
