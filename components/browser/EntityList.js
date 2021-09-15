@@ -35,6 +35,7 @@ export default function EntityList(props) {
             parentInfo={props.parentInfo}
             altGlobalEntityMap={props.altGlobalEntityMap}
             reloadColumnEntities={props.reloadColumnEntities}
+            version={props.version}
           />
         )
 
@@ -50,6 +51,7 @@ export default function EntityList(props) {
             isSelected={isSelected}
             setSelectedItemId={props.setSelectedItemId}
             canTraverse={props.canTraverse}
+            version={props.version}
           />
         )
 
@@ -70,6 +72,7 @@ export default function EntityList(props) {
             reloadColumnEntities={props.reloadColumnEntities}
             updateChildColumn={props.updateChildColumn}
             columnIndex={props.columnIndex}
+            version={props.version}
           />
         )
 
@@ -85,6 +88,7 @@ export default function EntityList(props) {
             isSelected={isSelected}
             setSelectedItemId={props.setSelectedItemId}
             canTraverse={props.canTraverse}
+            version={props.version}
           />
         )
 

@@ -354,6 +354,7 @@ export default class EdgeBrowser extends React.Component {
               updateChildColumn={this.updateChildColumn}
               shouldReloadEntities={column.shouldReloadEntities}
               reloadColumnEntities={this.reloadColumnEntities}
+              version={this.version}
             />
           ))}
           <div className="column column-spacer" tabIndex="-1" />

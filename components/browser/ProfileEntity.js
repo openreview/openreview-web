@@ -20,6 +20,7 @@ export default function ProfileEntity(props) {
   }
 
   // Format profile data for rendering
+  const { version } = props
   const {
     id,
     content,
@@ -86,7 +87,7 @@ export default function ProfileEntity(props) {
       signatures,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken, version: 2 })
+      const result = await api.post('/edges', body, { accessToken, version })
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
       } else {
@@ -137,7 +138,7 @@ export default function ProfileEntity(props) {
       ...updatedEdgeFields,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken, version: 2 })
+      const result = await api.post('/edges', body, { accessToken, version })
       if (isTraverseInvitation) {
         props.addEdgeToEntity(id, result)
       } else {

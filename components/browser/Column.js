@@ -31,6 +31,7 @@ export default function Column(props) {
     parentCustomLoad,
     parentExistingLoad,
     shouldReloadEntities, // something non traverse changed in another column with same parent
+    version,
   } = props
   const {
     traverseInvitation,
@@ -114,7 +115,7 @@ export default function Column(props) {
     const apiQuery = {
       invitation: invitationId,
       sort: shouldSort ? 'weight:desc' : undefined,
-      version: 2,
+      version: props.version,
     }
     if (parentId) {
       apiQuery[otherType] = parentId
@@ -425,7 +426,7 @@ export default function Column(props) {
             })(),
           },
           sort,
-        ), { accessToken, resultsKey: 'edges', version: 2 }).catch(error => promptError(error.details ?? error.message)),
+        ), { accessToken, resultsKey: 'edges', version }).catch(error => promptError(error.details ?? error.message)),
       })
     }
   }
@@ -479,7 +480,7 @@ export default function Column(props) {
         return
       }
 
-      api.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false), { accessToken, version: 2, resultsKey: 'edges' })
+      api.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false), { accessToken, version, resultsKey: 'edges' })
         .then((startEdges) => {
           if (!startEdges) {
             setItems([])
@@ -921,6 +922,7 @@ export default function Column(props) {
               reloadColumnEntities={() => props.reloadColumnEntities(props.index)}
               updateChildColumn={props.updateChildColumn}
               columnIndex={props.index}
+              version={version}
             />
             {showLoadMoreButton
                 && <button type="button" className="btn btn-default btn-xs ml-2 mt-2 mb-2" onClick={() => loadMoreItems()}>{`Load More ${getPlaceholderText(true)}`}</button>}
@@ -931,6 +933,7 @@ export default function Column(props) {
               parentId={parentId}
               parentNumber={parent?.number}
               reloadColumnEntities={() => props.reloadColumnEntities(props.index)}
+              version={version}
             />
           </>
         )}

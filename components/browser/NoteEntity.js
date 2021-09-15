@@ -20,7 +20,7 @@ export default function NoteEntity(props) {
   if (!props.note || !props.note.content) {
     return null
   }
-
+  const { version } = props
   // Format note data for rendering
   const {
     id,
@@ -78,7 +78,7 @@ export default function NoteEntity(props) {
       signatures,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken, version: 2 })
+      const result = await api.post('/edges', body, { accessToken, version })
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
       } else {
@@ -123,7 +123,7 @@ export default function NoteEntity(props) {
       ...updatedEdgeFields,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken, version: 2 })
+      const result = await api.post('/edges', body, { accessToken, version })
       if (isTraverseInvitation) {
         props.addEdgeToEntity(id, result)
       } else {
