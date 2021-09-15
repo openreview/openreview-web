@@ -133,7 +133,6 @@ const Browse = ({ appContext }) => {
         })
       })
       .catch((apiError) => {
-        console.log(apiError)
         if (typeof apiError === 'object' && apiError.name) {
           if (apiError.name === 'Not Found' || apiError.name === 'NotFoundError') {
             setError(notFoundError)
