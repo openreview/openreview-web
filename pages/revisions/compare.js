@@ -91,9 +91,13 @@ const CompareRevisions = ({ appContext }) => {
     }
   }
 
-  const renderDiffSection = (diff, shouldPrettyField = true) => {
+  const renderDiffSection = (diff, prefixToRemove = null, shouldPrettyField = true) => {
     if (!diff) return null
     return Object.entries(diff).map(([fieldName, fieldValue]) => {
+      // eslint-disable-next-line no-param-reassign
+      if (fieldName.startsWith(prefixToRemove)) fieldName = fieldName.substring(prefixToRemove.length)
+      // eslint-disable-next-line no-param-reassign
+      if (fieldName.endsWith('.value')) fieldName = fieldName.substring(0, fieldName.length - 6)
       const prettifiedFieldName = shouldPrettyField ? prettyField(fieldName) : fieldName
       const prettifiedLeftValue = prettyContentValue(fieldValue.left)
       const prettifiedRightValue = prettyContentValue(fieldValue.right)
@@ -124,12 +128,12 @@ const CompareRevisions = ({ appContext }) => {
     if (query.version === '2') {
       return (
         <>
-          <tr><th colSpan="4">Edit Properties</th></tr>
-          {renderDiffSection(contentDiff?.edit, false)}
-          <tr><th colSpan="4">Note Properties</th></tr>
-          {renderDiffSection(contentDiff?.editNote, false)}
-          <tr><th colSpan="4">Note.content Properties</th></tr>
-          {renderDiffSection(contentDiff?.editNoteContent)}
+          <tr><th colSpan="4" className="section-title">Edit Properties</th></tr>
+          {renderDiffSection(contentDiff?.edit, null, false)}
+          <tr><th colSpan="4" className="section-title">Note Properties</th></tr>
+          {renderDiffSection(contentDiff?.editNote, 'note.', false)}
+          <tr><th colSpan="4" className="section-title">Note.content Properties</th></tr>
+          {renderDiffSection(contentDiff?.editNoteContent, 'note.content.')}
         </>
       )
     }
