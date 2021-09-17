@@ -1,5 +1,6 @@
-/* eslint-disable no-use-before-define */
-/* globals promptError,promptMessage: false */
+/* globals promptError: false */
+/* globals promptMessage: false */
+
 import { useContext, useState } from 'react'
 import api from '../../lib/api-client'
 import { getInterpolatedValues, getSignatures } from '../../lib/edge-utils'
@@ -8,16 +9,27 @@ import LoadingSpinner from '../LoadingSpinner'
 import UserContext from '../UserContext'
 import EdgeBrowserContext from './EdgeBrowserContext'
 
-// eslint-disable-next-line object-curly-newline
 const EditEdgeInviteEmail = ({
-  type, otherType, entityType, parentId, parentNumber, reloadColumnEntities, version,
+  type, otherType, entityType, parentId, parentNumber, reloadColumnEntities,
 }) => {
   const [emailToInvite, setEmailToInvite] = useState('')
   const [loading, setLoading] = useState(false)
-  const { editInvitations, availableSignaturesInvitationMap } = useContext(EdgeBrowserContext)
+  const { editInvitations, availableSignaturesInvitationMap, version } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
 
   const editInvitation = editInvitations?.filter(p => p?.[type]?.query?.['value-regex'] === '~.*|.+@.+')?.[0]
+
+  // readers/nonreaders/writers
+  const getValues = (value, email) => getInterpolatedValues({
+    value,
+    columnType: type,
+    shouldReplaceHeadNumber: false,
+    paperNumber: null,
+    parentPaperNumber: parentNumber,
+    id: email,
+    parentId,
+    version,
+  })
 
   const handleInviteBtnClick = async () => {
     let email = emailToInvite.trim()
@@ -47,18 +59,6 @@ const EditEdgeInviteEmail = ({
     // trigger column update
     reloadColumnEntities()
   }
-
-  // readers/nonreaders/writers
-  const getValues = (value, email) => getInterpolatedValues({
-    value,
-    columnType: type,
-    shouldReplaceHeadNumber: false,
-    paperNumber: null,
-    parentPaperNumber: parentNumber,
-    id: email,
-    parentId,
-    version,
-  })
 
   const shouldDisableSubmitBtn = () => {
     if (loading) return true

@@ -126,7 +126,8 @@ export default class EdgeBrowser extends React.Component {
       groupBy: headOrTail,
       select: 'count',
       ...this.traverseInvitation.query,
-    }, { accessToken: this.accessToken, version: this.version, resultsKey: 'groupedEdges' }).then(results => _.keyBy(results, `id.${headOrTail}`))
+    }, { accessToken: this.accessToken, version: this.version, resultsKey: 'groupedEdges' })
+      .then(results => _.keyBy(results, `id.${headOrTail}`))
 
     return Promise.all([
       initialKeysP,
@@ -324,6 +325,7 @@ export default class EdgeBrowser extends React.Component {
       browseInvitations: this.browseInvitations,
       hideInvitation: this.hideInvitation,
       availableSignaturesInvitationMap: this.availableSignaturesInvitationMap,
+      version: this.version,
     }
 
     return (
@@ -354,7 +356,6 @@ export default class EdgeBrowser extends React.Component {
               updateChildColumn={this.updateChildColumn}
               shouldReloadEntities={column.shouldReloadEntities}
               reloadColumnEntities={this.reloadColumnEntities}
-              version={this.version}
             />
           ))}
           <div className="column column-spacer" tabIndex="-1" />

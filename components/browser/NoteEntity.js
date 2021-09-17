@@ -20,7 +20,7 @@ export default function NoteEntity(props) {
   if (!props.note || !props.note.content) {
     return null
   }
-  const { version } = props
+
   // Format note data for rendering
   const {
     id,
@@ -31,7 +31,12 @@ export default function NoteEntity(props) {
     editEdges,
     editEdgeTemplates,
   } = props.note
-  const { editInvitations, availableSignaturesInvitationMap, traverseInvitation } = useContext(EdgeBrowserContext)
+  const {
+    editInvitations,
+    traverseInvitation,
+    availableSignaturesInvitationMap,
+    version,
+  } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
 
   const title = content.title ? content.title : 'No Title'

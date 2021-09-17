@@ -53,7 +53,6 @@ const Browse = ({ appContext }) => {
       setBannerHidden(true)
     }
 
-    const apiVersion = Number.parseInt(query.version, 10)
     const startInvitations = parseEdgeList(query.start, 'start')
     const traverseInvitations = parseEdgeList(query.traverse, 'traverse')
     const editInvitations = parseEdgeList(query.edit, 'edit')
@@ -70,6 +69,8 @@ const Browse = ({ appContext }) => {
     // Use the first traverse invitation as the main group ID
     setTitleInvitation(traverseInvitations[0])
     setMaxColumns(Math.max(Number.parseInt(query.maxColumns, 10), -1) || -1)
+
+    const apiVersion = Number.parseInt(query.version, 10)
     setVersion(apiVersion)
 
     const idsToLoad = uniq(allInvitations.map(i => i.id)).filter(id => id !== 'staticList')

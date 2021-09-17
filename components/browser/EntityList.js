@@ -1,5 +1,3 @@
-/* eslint-disable react/destructuring-assignment */
-
 import { useContext } from 'react'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import NoteEntity from './NoteEntity'
@@ -12,13 +10,17 @@ export default function EntityList(props) {
   const { traverseInvitation } = useContext(EdgeBrowserContext)
   const traverseLabel = pluralizeString(traverseInvitation.name.split(' ').pop())
 
+  const {
+    heading, items, numItemsToRender, type,
+  } = props
+
   const renderEntity = (entity, index) => {
     if ((entity.metadata && entity.metadata.isHidden) && !props.showHiddenItems) {
       return null
     }
 
     const isSelected = entity.id === props.selectedItemId
-    switch (props.type) {
+    switch (type) {
       case 'note':
         return (
           <NoteEntity
@@ -35,7 +37,6 @@ export default function EntityList(props) {
             parentInfo={props.parentInfo}
             altGlobalEntityMap={props.altGlobalEntityMap}
             reloadColumnEntities={props.reloadColumnEntities}
-            version={props.version}
           />
         )
 
@@ -51,7 +52,6 @@ export default function EntityList(props) {
             isSelected={isSelected}
             setSelectedItemId={props.setSelectedItemId}
             canTraverse={props.canTraverse}
-            version={props.version}
           />
         )
 
@@ -72,7 +72,6 @@ export default function EntityList(props) {
             reloadColumnEntities={props.reloadColumnEntities}
             updateChildColumn={props.updateChildColumn}
             columnIndex={props.columnIndex}
-            version={props.version}
           />
         )
 
@@ -88,7 +87,6 @@ export default function EntityList(props) {
             isSelected={isSelected}
             setSelectedItemId={props.setSelectedItemId}
             canTraverse={props.canTraverse}
-            version={props.version}
           />
         )
 
@@ -99,16 +97,16 @@ export default function EntityList(props) {
 
   return (
     <>
-      {props.heading && (
-        <h3 className="entry divider">{props.heading}</h3>
+      {heading && (
+        <h3 className="entry divider">{heading}</h3>
       )}
 
-      {props.items?.length > 0 ? (
-        <ul className={`list-unstyled entry-list ${!props.heading ? 'without-title' : ''}`}>
-          {props.items.slice(0, props.numItemsToRender).map(renderEntity)}
+      {items?.length > 0 ? (
+        <ul className={`list-unstyled entry-list ${!heading ? 'without-title' : ''}`}>
+          {items.slice(0, numItemsToRender).map(renderEntity)}
         </ul>
       ) : (
-        <p className="empty-message">{`No ${props.type.toLowerCase()}s to display`}</p>
+        <p className="empty-message">{`No ${type.toLowerCase()}s to display`}</p>
       )}
     </>
   )

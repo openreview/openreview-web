@@ -1,8 +1,7 @@
-/* eslint-disable no-use-before-define */
-/* eslint-disable jsx-a11y/anchor-is-valid */
-/* eslint-disable react/destructuring-assignment */
 /* globals $: false */
-/* globals promptError,promptMessage: false */
+/* globals promptError: false */
+/* globals promptMessage: false */
+/* eslint-disable react/destructuring-assignment */
 
 import React, { useContext } from 'react'
 import api from '../../lib/api-client'
@@ -20,7 +19,6 @@ export default function ProfileEntity(props) {
   }
 
   // Format profile data for rendering
-  const { version } = props
   const {
     id,
     content,
@@ -35,6 +33,7 @@ export default function ProfileEntity(props) {
     availableSignaturesInvitationMap,
     traverseInvitation,
     browseInvitations,
+    version,
   } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
 
@@ -99,6 +98,18 @@ export default function ProfileEntity(props) {
     }
   }
 
+  // readers/nonreaders/writers
+  const getValues = value => getInterpolatedValues({
+    value,
+    columnType: props.columnType,
+    shouldReplaceHeadNumber: false,
+    paperNumber: null,
+    parentPaperNumber: props.parentInfo.number,
+    id,
+    parentId: props.parentInfo.id,
+    version,
+  })
+
   const addEdge = async ({
     e, existingEdge, editEdgeTemplate, updatedEdgeFields = {}, isTraverseEdge = false,
   }) => {
@@ -151,17 +162,6 @@ export default function ProfileEntity(props) {
     }
   }
 
-  // readers/nonreaders/writers
-  const getValues = value => getInterpolatedValues({
-    value,
-    columnType: props.columnType,
-    shouldReplaceHeadNumber: false,
-    paperNumber: null,
-    parentPaperNumber: props.parentInfo.number,
-    id,
-    parentId: props.parentInfo.id,
-    version,
-  })
   const renderEditEdgeWidget = ({ edge, invitation, isTraverseEdge = false }) => {
     const isAssigned = (metadata.isAssigned || metadata.isUserAssigned)
     const isInviteInvitation = invitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
@@ -346,6 +346,7 @@ export default function ProfileEntity(props) {
           <ul className="list-unstyled text-right">
             <li>
               {props.canTraverse ? (
+                // eslint-disable-next-line jsx-a11y/anchor-is-valid
                 <a href="#" className="show-assignments">
                   {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
                   {props.traverseLabel} ({props.profile.traverseEdgesCount}) &raquo;

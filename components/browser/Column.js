@@ -31,13 +31,13 @@ export default function Column(props) {
     parentCustomLoad,
     parentExistingLoad,
     shouldReloadEntities, // something non traverse changed in another column with same parent
-    version,
   } = props
   const {
     traverseInvitation,
     editInvitations,
     browseInvitations,
     hideInvitation,
+    version,
   } = useContext(EdgeBrowserContext)
   const parent = parentId ? altGlobalEntityMap[parentId] : null
   const otherType = type === 'head' ? 'tail' : 'head'
@@ -115,7 +115,7 @@ export default function Column(props) {
     const apiQuery = {
       invitation: invitationId,
       sort: shouldSort ? 'weight:desc' : undefined,
-      version: props.version,
+      version,
     }
     if (parentId) {
       apiQuery[otherType] = parentId
@@ -408,25 +408,21 @@ export default function Column(props) {
     if (existingIndex >= 0) {
       edgesPromiseMap[existingIndex].invitations.push(invitationType)
     } else {
+      // eslint-disable-next-line no-nested-ternary
+      const detailsParam = getWritable
+        ? (invitation.query.details ? `${invitation.query.details},writable` : 'writable')
+        : invitation.query.details
       edgesPromiseMap.push({
         id: invitation.id,
         query: invitation.query,
         invitations: [invitationType],
         getWritable,
         sort,
-        promise: api.getAll('/edges', buildQuery(
-          invitation.id,
-          {
-            ...invitation.query,
-            details: (() => {
-              if (getWritable) {
-                return invitation.query.details ? `${invitation.query.details},writable` : 'writable'
-              }
-              return invitation.query.details
-            })(),
-          },
-          sort,
-        ), { accessToken, resultsKey: 'edges', version }).catch(error => promptError(error.details ?? error.message)),
+        promise: api.getAll(
+          '/edges',
+          buildQuery(invitation.id, { ...invitation.query, details: detailsParam }, sort),
+          { accessToken, version },
+        ).catch(error => promptError(error.details ?? error.message)),
       })
     }
   }
@@ -480,7 +476,7 @@ export default function Column(props) {
         return
       }
 
-      api.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false), { accessToken, version, resultsKey: 'edges' })
+      api.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false), { accessToken, version })
         .then((startEdges) => {
           if (!startEdges) {
             setItems([])
@@ -513,7 +509,8 @@ export default function Column(props) {
             existingItems.add(headOrTailId)
           })
           setItems(colItems)
-        }).catch(error => promptError(error.details ?? error.message))
+        })
+        .catch(error => promptError(error.details ?? error.message))
       return
     }
 
@@ -922,7 +919,6 @@ export default function Column(props) {
               reloadColumnEntities={() => props.reloadColumnEntities(props.index)}
               updateChildColumn={props.updateChildColumn}
               columnIndex={props.index}
-              version={version}
             />
             {showLoadMoreButton
                 && <button type="button" className="btn btn-default btn-xs ml-2 mt-2 mb-2" onClick={() => loadMoreItems()}>{`Load More ${getPlaceholderText(true)}`}</button>}
@@ -933,7 +929,6 @@ export default function Column(props) {
               parentId={parentId}
               parentNumber={parent?.number}
               reloadColumnEntities={() => props.reloadColumnEntities(props.index)}
-              version={version}
             />
           </>
         )}
