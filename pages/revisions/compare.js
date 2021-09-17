@@ -93,14 +93,19 @@ const CompareRevisions = ({ appContext }) => {
 
   const renderDiffSection = (diff, prefixToRemove = null, shouldPrettyField = true) => {
     if (!diff) return null
+
     return Object.entries(diff).map(([fieldName, fieldValue]) => {
       // eslint-disable-next-line no-param-reassign
       if (fieldName.startsWith(prefixToRemove)) fieldName = fieldName.substring(prefixToRemove.length)
       // eslint-disable-next-line no-param-reassign
-      if (fieldName.endsWith('.value')) fieldName = fieldName.substring(0, fieldName.length - 6)
+      if (fieldName.endsWith('.value')) fieldName = fieldName.slice(0, -6)
+      // eslint-disable-next-line no-param-reassign
+      if (fieldName.endsWith('.readers')) fieldName = `${fieldName.slice(0, -8)} readers`
+
       const prettifiedFieldName = shouldPrettyField ? prettyField(fieldName) : fieldName
       const prettifiedLeftValue = prettyContentValue(fieldValue.left)
       const prettifiedRightValue = prettyContentValue(fieldValue.right)
+
       return (
         <tr key={fieldName}>
           <td>
@@ -122,24 +127,6 @@ const CompareRevisions = ({ appContext }) => {
         </tr>
       )
     })
-  }
-
-  const renderDiff = () => {
-    if (query.version === '2') {
-      return (
-        <>
-          <tr><th colSpan="4" className="section-title">Edit Properties</th></tr>
-          {renderDiffSection(contentDiff?.edit, null, false)}
-          <tr><th colSpan="4" className="section-title">Note Properties</th></tr>
-          {renderDiffSection(contentDiff?.editNote, 'note.', false)}
-          <tr><th colSpan="4" className="section-title">Note.content Properties</th></tr>
-          {renderDiffSection(contentDiff?.editNoteContent, 'note.content.')}
-        </>
-      )
-    }
-    return (
-      renderDiffSection(contentDiff)
-    )
   }
 
   useEffect(() => {
@@ -207,7 +194,20 @@ const CompareRevisions = ({ appContext }) => {
               </thead>
 
               <tbody>
-                {renderDiff()}
+                {query.version === '2' ? (
+                  <>
+                    <tr><th colSpan="4" className="section-title">Edit Properties</th></tr>
+                    {renderDiffSection(contentDiff?.edit, null, false)}
+
+                    <tr><th colSpan="4" className="section-title">Note Properties</th></tr>
+                    {renderDiffSection(contentDiff?.editNote, 'note.', false)}
+
+                    <tr><th colSpan="4" className="section-title">Note Content Properties</th></tr>
+                    {renderDiffSection(contentDiff?.editNoteContent, 'note.content.')}
+                  </>
+                ) : (
+                  renderDiffSection(contentDiff)
+                )}
               </tbody>
             </table>
           </div>
