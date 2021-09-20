@@ -75,9 +75,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         var replyInvitations = invitations
           .filter(p => {
             const replyTo = p.edit?.note?.replyto
-            if (replyTo) {
-              if (replyTo.value === note.id || replyTo['with-forum'] === forumId) return true
-            }
+            return replyTo && (replyTo.value === note.id || replyTo['with-forum'] === forumId)
           })
           .filter(q => !q.maxReplies || q.details?.repliedNotes?.length < q.maxReplies) // maxNoteReplies
           // .filter(q => !q.maxReplies || q.details?.repliedEdits?.length < q.maxReplies) // maxEditReplies
@@ -501,7 +499,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     }
 
     // Set search bar params
-    var conf = rootRec.note.content.venueid.value ?
+    var conf = rootRec.note.content.venueid?.value ?
       rootRec.note.content.venueid.value :
       rootRec.note.invitations[0].split('/-/')[0];
     $('#search_group').val(conf);
