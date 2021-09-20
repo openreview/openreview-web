@@ -1,7 +1,6 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/destructuring-assignment */
-/* globals Webfield: false */
 /* globals $: false */
 /* globals promptError,promptMessage: false */
 
@@ -95,7 +94,7 @@ export default function ProfileEntity(props) {
         props.reloadColumnEntities()
       }
     } catch (error) {
-      promptError(error.message)
+      promptError(error.details ?? error.message)
     }
   }
 
@@ -148,7 +147,7 @@ export default function ProfileEntity(props) {
       }
       if (isInviteInvitation) promptMessage(`Invitation has been sent to ${body.tail} and it's waiting for the response.`)
     } catch (error) {
-      promptError(error.message)
+      promptError(error.details ?? error.message)
     }
   }
 

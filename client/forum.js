@@ -1004,7 +1004,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   // Build the filter tabs from forum views array
   var getForumViewTabs = function(replyForumViews, forumNote) {
-    if (_.isEmpty(replyForumViews)) return null;
+    if (_.isEmpty(replyForumViews)) {
+      sm.update('forumFiltersMap', {});
+      return null;
+    }
 
     var filterMap = replyForumViews.reduce(function(map, view) {
       map['#' + view.id] = parseFilterQuery(replaceFilterWildcards(view.filter, forumNote));

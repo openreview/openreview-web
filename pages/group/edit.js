@@ -1,4 +1,5 @@
 /* globals Webfield: false */
+/* globals Webfield2: false */
 
 import { useEffect, useState, useRef } from 'react'
 import Head from 'next/head'
@@ -30,7 +31,7 @@ export default function GroupEdit({ appContext }) {
       const { groups } = await api.get('/groups', { id }, { accessToken })
       if (groups?.length > 0) {
         if (groups[0].details?.writable) {
-          setGroup({ ...groups[0], web: null })
+          setGroup({ ...groups[0], web: null, apiVersion: id.startsWith('.') ? 2 : 1 })
         } else {
           // User is a reader, not a writer of the group, so redirect to info mode
           router.replace(`/group/info?id=${id}`)
@@ -68,7 +69,12 @@ export default function GroupEdit({ appContext }) {
     if (!group || !containerRef || clientJsLoading) return
 
     Webfield.editModeBanner(group.id, 'edit')
-    Webfield.ui.groupEditor(group, {
+
+    const webfieldEditorFn = group.apiVersion === 2
+      ? Webfield2.ui.groupEditor
+      : Webfield.ui.groupEditor
+
+    webfieldEditorFn(group, {
       container: containerRef.current,
       isSuperUser: isSuperUser(user),
     })
