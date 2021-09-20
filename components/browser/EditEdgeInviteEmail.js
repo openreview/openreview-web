@@ -66,7 +66,7 @@ const EditEdgeInviteEmail = ({
     return !isValidEmail(emailToInvite.trim())
   }
 
-  if (!editInvitation || entityType !== 'Profile') return null
+  if (!editInvitation || entityType !== 'profile') return null
   return (
     <div className="">
       <form className="form-inline widget-invite-assignment">
