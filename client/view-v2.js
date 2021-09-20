@@ -218,9 +218,7 @@ module.exports = (function() {
         });
         $inputGroup = valueInput($input, fieldName, fieldDescription); //input will probably be omitted field when rendered
       }
-      if (!_.get(fieldDescription, 'disableAutosave', false)) {
-        $input.addClass('autosave-enabled');
-      }
+      $input.addClass('autosave-enabled');
       contentInputResult = $inputGroup;
 
     } else if (_.has(fieldDescription.value, 'values-regex')) {
@@ -239,9 +237,7 @@ module.exports = (function() {
           name: fieldName,
           value: fieldValue
         });
-        if (!_.get(fieldDescription, 'disableAutosave', false)) {
-          $input.addClass('autosave-enabled');
-        }
+        $input.addClass('autosave-enabled');
         contentInputResult = valueInput($input, fieldName, fieldDescription);
       }
 
