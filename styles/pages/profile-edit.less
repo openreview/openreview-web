@@ -7,6 +7,23 @@ main.profile-edit {
     margin-bottom: 1.5rem;
   }
 
+  .small-heading {
+    font-size: .875rem;
+    font-weight: bold;
+    line-height: 1rem;
+    color: @darkBlue;
+    display: inline-block;
+  }
+
+  .invalid-value {
+    border-color: @orRed;
+  }
+
+  table {
+    border-collapse: separate;
+    border-spacing: 0 5px;
+  }
+
   .profile-edit-container {
     margin-bottom: 2rem;
   }
@@ -62,4 +79,50 @@ main.profile-edit {
     }
   }
 
+  .names-table {
+    td {
+      padding-right: 0.5em;
+    }
+    .newUsername {
+      color: @subtleGray;
+      font-size: .75rem;
+      margin-right: .5rem;
+    }
+  }
+
+  .gender-dropdown{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    &__control{
+      width: 500px;
+      background-color: #fffaf4;
+      border: 2px solid lighten(@mediumBlue, 10%);
+    }
+    &__menu{
+      width: 500px;
+    }
+
+    > div {
+      cursor: pointer;
+      color: @subtleGray;
+      padding: 0.25rem .75rem;
+    }
+    .active {
+      background-color: @mediumBlue;
+      color: #fff;
+      outline: 0px solid transparent;
+    }
+  }
+
+  .emails-table {
+    input {
+      width: 420px;
+    }
+    .confirm-cell {
+      width: 90px;
+    }
+    .preferred-cell {
+      width: 110px;
+    }
+  }
 }
