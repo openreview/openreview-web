@@ -60,7 +60,7 @@ Group.getInitialProps = async (ctx) => {
   }
 
   const redirectToEditOrInfoMode = (mode) => {
-    const redirectUrl = `/group/${mode}?id=${encodeURIComponent(ctx.query.id)}`
+    const redirectUrl = `/group/${mode}?id=${encodeURI(ctx.query.id)}`
     if (ctx.req) {
       ctx.res.writeHead(302, { Location: redirectUrl }).end()
     } else {
