@@ -218,6 +218,7 @@ module.exports = (function() {
         });
         $inputGroup = valueInput($input, fieldName, fieldDescription); //input will probably be omitted field when rendered
       }
+      $input.addClass('autosave-enabled');
       contentInputResult = $inputGroup;
 
     } else if (_.has(fieldDescription.value, 'values-regex')) {
@@ -236,6 +237,7 @@ module.exports = (function() {
           name: fieldName,
           value: fieldValue
         });
+        $input.addClass('autosave-enabled');
         contentInputResult = valueInput($input, fieldName, fieldDescription);
       }
 
@@ -1050,6 +1052,9 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
+        const confirmCancel = $noteEditor.data('hasUnsavedData') && !window.confirm('Any unsaved changes will be lost. Are you sure you want to continue?');
+        if (confirmCancel) return;
+
         view.clearAutosaveData(autosaveStorageKeys);
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
@@ -1505,11 +1510,15 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
+        const confirmCancel = $noteEditor.data('hasUnsavedData') && !window.confirm('Any unsaved changes will be lost. Are you sure you want to continue?');
+        if (confirmCancel) return;
+
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
         } else {
           $noteEditor.remove();
         }
+        view.clearAutosaveData(autosaveStorageKeys);
       });
 
       var saveNote = function (formContent, existingNote, invitation) {
@@ -1521,6 +1530,7 @@ module.exports = (function() {
             })
           }
           $noteEditor.remove();
+          view.clearAutosaveData(autosaveStorageKeys);
         }, function(error) {
           if (params.onError) {
             params.onError([error]);
@@ -1550,6 +1560,7 @@ module.exports = (function() {
       $noteEditor.data('invitationId', invitation.id);
 
       view.autolinkFieldDescriptions($noteEditor);
+      var autosaveStorageKeys = view.setupAutosaveHandlers($noteEditor, user, note.id, invitation.id);
 
       if (params.onCompleted) {
         params.onCompleted($noteEditor);
