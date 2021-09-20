@@ -10,6 +10,7 @@ import { viewProfileLink } from '../../lib/banner-links'
 import { formatProfileData } from '../../lib/profiles'
 import '../../styles/pages/profile-edit.less'
 import EmailsSection from '../../components/profile/EmailsSection'
+import PersonalLinksSection from '../../components/profile/PersonalLinksSection'
 
 const profileEditNew = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
@@ -52,6 +53,7 @@ const profileEditNew = ({ appContext }) => {
         <NamesSection profileNames={profile?.names} />
         <GenderSection profileGender={profile?.gender} />
         <EmailsSection profileEmails={profile?.emails} profileId={profile?.id} />
+        <PersonalLinksSection />
         <button type="button" className="btn">Register for OpenReview</button>
         <button type="button" className="btn">Cancel</button>
       </div>
