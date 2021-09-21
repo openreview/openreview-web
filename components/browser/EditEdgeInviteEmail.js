@@ -1,5 +1,6 @@
-/* eslint-disable no-use-before-define */
-/* globals promptError,promptMessage: false */
+/* globals promptError: false */
+/* globals promptMessage: false */
+
 import { useContext, useState } from 'react'
 import api from '../../lib/api-client'
 import { getInterpolatedValues, getSignatures } from '../../lib/edge-utils'
@@ -8,14 +9,27 @@ import LoadingSpinner from '../LoadingSpinner'
 import UserContext from '../UserContext'
 import EdgeBrowserContext from './EdgeBrowserContext'
 
-// eslint-disable-next-line object-curly-newline
-const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumber, reloadColumnEntities }) => {
+const EditEdgeInviteEmail = ({
+  type, otherType, entityType, parentId, parentNumber, reloadColumnEntities,
+}) => {
   const [emailToInvite, setEmailToInvite] = useState('')
   const [loading, setLoading] = useState(false)
-  const { editInvitations, availableSignaturesInvitationMap } = useContext(EdgeBrowserContext)
+  const { editInvitations, availableSignaturesInvitationMap, version } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
 
   const editInvitation = editInvitations?.filter(p => p?.[type]?.query?.['value-regex'] === '~.*|.+@.+')?.[0]
+
+  // readers/nonreaders/writers
+  const getValues = (value, email) => getInterpolatedValues({
+    value,
+    columnType: type,
+    shouldReplaceHeadNumber: false,
+    paperNumber: null,
+    parentPaperNumber: parentNumber,
+    id: email,
+    parentId,
+    version,
+  })
 
   const handleInviteBtnClick = async () => {
     let email = emailToInvite.trim()
@@ -35,7 +49,7 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
     }
     // post
     try {
-      const result = await api.post('/edges', newEdgeJson, { accessToken })
+      const result = await api.post('/edges', newEdgeJson, { accessToken, version })
       setEmailToInvite('')
       promptMessage(`Invitation has been sent to ${email} and it's waiting for the response.`)
     } catch (error) {
@@ -46,24 +60,13 @@ const EditEdgeInviteEmail = ({ type, otherType, entityType, parentId, parentNumb
     reloadColumnEntities()
   }
 
-  // readers/nonreaders/writers
-  const getValues = (value, email) => getInterpolatedValues({
-    value,
-    columnType: type,
-    shouldReplaceHeadNumber: false,
-    paperNumber: null,
-    parentPaperNumber: parentNumber,
-    id: email,
-    parentId,
-  })
-
   const shouldDisableSubmitBtn = () => {
     if (loading) return true
     if (emailToInvite.trim().startsWith('~')) return false
     return !isValidEmail(emailToInvite.trim())
   }
 
-  if (!editInvitation || entityType !== 'Profile') return null
+  if (!editInvitation || entityType !== 'profile') return null
   return (
     <div className="">
       <form className="form-inline widget-invite-assignment">

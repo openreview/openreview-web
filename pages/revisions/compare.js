@@ -91,6 +91,44 @@ const CompareRevisions = ({ appContext }) => {
     }
   }
 
+  const renderDiffSection = (diff, prefixToRemove = null, shouldPrettyField = true) => {
+    if (!diff) return null
+
+    return Object.entries(diff).map(([fieldName, fieldValue]) => {
+      // eslint-disable-next-line no-param-reassign
+      if (fieldName.startsWith(prefixToRemove)) fieldName = fieldName.substring(prefixToRemove.length)
+      // eslint-disable-next-line no-param-reassign
+      if (fieldName.endsWith('.value')) fieldName = fieldName.slice(0, -6)
+      // eslint-disable-next-line no-param-reassign
+      if (fieldName.endsWith('.readers')) fieldName = `${fieldName.slice(0, -8)} readers`
+
+      const prettifiedFieldName = shouldPrettyField ? prettyField(fieldName) : fieldName
+      const prettifiedLeftValue = prettyContentValue(fieldValue.left)
+      const prettifiedRightValue = prettyContentValue(fieldValue.right)
+
+      return (
+        <tr key={fieldName}>
+          <td>
+            {fieldValue.left && (
+              <>
+                {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+                <strong>{prettifiedFieldName}:</strong> {prettifiedLeftValue}
+              </>
+            )}
+          </td>
+          <td>
+            {fieldValue.right && (
+              <>
+                {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+                <strong>{prettifiedFieldName}:</strong> {prettifiedRightValue}
+              </>
+            )}
+          </td>
+        </tr>
+      )
+    })
+  }
+
   useEffect(() => {
     if (userLoading || !query) return
 
@@ -156,26 +194,20 @@ const CompareRevisions = ({ appContext }) => {
               </thead>
 
               <tbody>
-                {contentDiff && Object.entries(contentDiff).map(([fieldName, fieldValue]) => (
-                  <tr key={fieldName}>
-                    <td>
-                      {fieldValue.left && (
-                        <>
-                          {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-                          <strong>{prettyField(fieldName)}:</strong> {prettyContentValue(fieldValue.left)}
-                        </>
-                      )}
-                    </td>
-                    <td>
-                      {fieldValue.right && (
-                        <>
-                          {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-                          <strong>{prettyField(fieldName)}:</strong> {prettyContentValue(fieldValue.right)}
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                {query.version === '2' ? (
+                  <>
+                    <tr><th colSpan="4" className="section-title">Edit Properties</th></tr>
+                    {renderDiffSection(contentDiff?.edit, null, false)}
+
+                    <tr><th colSpan="4" className="section-title">Note Properties</th></tr>
+                    {renderDiffSection(contentDiff?.editNote, 'note.', false)}
+
+                    <tr><th colSpan="4" className="section-title">Note Content Properties</th></tr>
+                    {renderDiffSection(contentDiff?.editNoteContent, 'note.content.')}
+                  </>
+                ) : (
+                  renderDiffSection(contentDiff)
+                )}
               </tbody>
             </table>
           </div>

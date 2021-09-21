@@ -3128,6 +3128,9 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
+        const confirmCancel = $noteEditor.data('hasUnsavedData') && !window.confirm('Any unsaved changes will be lost. Are you sure you want to continue?');
+        if (confirmCancel) return;
+
         clearAutosaveData(autosaveStorageKeys);
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
@@ -3569,6 +3572,9 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
+        const confirmCancel = $noteEditor.data('hasUnsavedData') && !window.confirm('Any unsaved changes will be lost. Are you sure you want to continue?');
+        if (confirmCancel) return;
+
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
         } else {
@@ -3672,6 +3678,7 @@ module.exports = (function() {
 
       $(this).on('keyup', _.throttle(function() {
         localStorage.setItem(uniqueKey, $(this).val());
+        $noteEditor.data('hasUnsavedData', true);
       }, 2000));
     });
 
