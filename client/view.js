@@ -3664,8 +3664,7 @@ module.exports = (function() {
   var setupAutosaveHandlers = function($noteEditor, user, noteId, invitationId) {
     var autosaveStorageKeys = [];
     var userIdForKey = (!user || _.startsWith(user.id, 'guest_')) ? 'guest' : user.id;
-    var invitationName = invitationId.split('/-/').pop();
-    var keyPrefix = [userIdForKey, noteId, invitationName].join('|');
+    var keyPrefix = [userIdForKey, noteId, invitationId].join('|');
 
     $noteEditor.find('input.autosave-enabled, textarea.autosave-enabled').each(function() {
       var uniqueKey = keyPrefix + '|' + $(this).attr('name');
