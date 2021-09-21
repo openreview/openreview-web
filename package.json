@@ -1,6 +1,6 @@
 {
   "name": "openreview-web",
-  "version": "1.0.10",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS='--inspect' next dev --port $NEXT_PORT",
