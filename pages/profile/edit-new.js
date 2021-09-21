@@ -11,12 +11,19 @@ import { formatProfileData } from '../../lib/profiles'
 import '../../styles/pages/profile-edit.less'
 import EmailsSection from '../../components/profile/EmailsSection'
 import PersonalLinksSection from '../../components/profile/PersonalLinksSection'
+import EducationHisotrySection from '../../components/profile/EducationHisotrySection'
+import RelationsSection from '../../components/profile/RelationsSection'
 
 const profileEditNew = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
   const [profile, setProfile] = useState(null)
   const [error, setError] = useState(null)
   const { setBannerContent } = appContext
+  const [dropdownOptions, setDropdownOptions] = useState(null)
+  const relations = dropdownOptions?.prefixedRelations
+  const relationReaders = dropdownOptions?.relationReaders
+  const positions = dropdownOptions?.prefixedPositions
+  const institutions = dropdownOptions?.institutions
 
   const loadProfile = async () => {
     try {
@@ -37,6 +44,19 @@ const profileEditNew = ({ appContext }) => {
     loadProfile()
   }, [accessToken])
 
+  useEffect(() => {
+    const loadOptions = async () => {
+      try {
+        const result = await api.get('/profiles/options')
+        console.log(result)
+        setDropdownOptions(result)
+      } catch (apiError) {
+        setDropdownOptions({})
+      }
+    }
+    loadOptions()
+  }, [])
+
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
 
   if (!profile) return <LoadingSpinner />
@@ -50,10 +70,21 @@ const profileEditNew = ({ appContext }) => {
         <h1>Edit Profile</h1>
       </header>
       <div className="profile-edit-container">
+        {console.log(profile)}
         <NamesSection profileNames={profile?.names} />
         <GenderSection profileGender={profile?.gender} />
         <EmailsSection profileEmails={profile?.emails} profileId={profile?.id} />
-        <PersonalLinksSection />
+        <PersonalLinksSection profileLinks={profile?.links} />
+        <EducationHisotrySection
+          profileHistory={profile?.history}
+          positions={positions}
+          institutions={institutions}
+        />
+        <RelationsSection
+          profileRelation={profile?.relations}
+          relations={relations}
+          relationReaders={relationReaders}
+        />
         <button type="button" className="btn">Register for OpenReview</button>
         <button type="button" className="btn">Cancel</button>
       </div>

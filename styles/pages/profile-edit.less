@@ -120,6 +120,10 @@ main.profile-edit {
       width: 500px;
       background-color: #fffaf4;
       border: 2px solid lighten(@mediumBlue, 10%);
+      padding: 0 0.75rem;
+    }
+    &__value-container {
+      padding: 0;
     }
     &__menu{
       width: 500px;
@@ -152,6 +156,71 @@ main.profile-edit {
   .personal-links {
     &__input {
       width: 420px;
+    }
+    &__column {
+      padding-left: 0;
+      padding-right: 0;
+      margin-bottom: 10px;
+      width: auto;
+    }
+    &__faqlink {
+      padding-left: .25rem;
+      span {
+        font-size: .85rem;
+      }
+    }
+    &__adddblpbtn {
+      margin-top: .875rem;
+    }
+  }
+
+  .history {
+    .small-heading {
+      padding-left: 0;
+      padding-right: 0;
+      margin-bottom: 5px;
+    }
+    &__value {
+      padding-left: 0;
+      padding-right:5px;
+      margin-bottom: 5px;
+    }
+  }
+
+  .position-dropdown, .institution-dropdown , .relation-dropdown{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    &__control{
+      background-color: #fffaf4;
+      border: 2px solid lighten(@mediumBlue, 10%);
+      padding: 0, 0.75rem;
+    }
+
+    > div {
+      cursor: pointer;
+      color: @subtleGray;
+      padding: 0.25rem .75rem;
+    }
+    .active {
+      background-color: @mediumBlue;
+      color: #fff;
+      outline: 0px solid transparent;
+    }
+  }
+
+  .relation{
+    &__value{
+      padding-left: 0;
+      padding-right:5px;
+      margin-bottom: 5px;
+    }
+    &__visibility-dropdown {
+      margin-top:0!important;
+    }
+    &__visibility-button {
+      max-width: 100%;
+      overflow-x: hidden;
+      text-overflow: ellipsis;
     }
   }
 }

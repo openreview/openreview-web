@@ -1,5 +1,13 @@
 export default function MultiSelectorDropdown({
-  id, options, selectedValues, setSelectedValues, disabled,
+  id,
+  options,
+  selectedValues,
+  setSelectedValues,
+  disabled,
+  rightAlign = false,
+  extraDropdownClasses = undefined,
+  extraButtonClasses = undefined,
+  displayTextFn = undefined,
 }) {
   const allValues = options.map(f => f.value)
   const numOptions = allValues.length
@@ -21,6 +29,7 @@ export default function MultiSelectorDropdown({
   }
 
   const getButtonText = () => {
+    if (displayTextFn) return displayTextFn(selectedValues)
     if (selectedValues.length === numOptions) return 'All'
     if (selectedValues.length === 0) return 'None'
     if (selectedValues.length === 1) return selectedValues[0]
@@ -28,9 +37,9 @@ export default function MultiSelectorDropdown({
   }
 
   return (
-    <div className="multiselector dropdown">
+    <div className={`multiselector dropdown ${extraDropdownClasses}`}>
       <button
-        className="form-control dropdown-toggle"
+        className={`form-control dropdown-toggle ${extraButtonClasses}`}
         type="button"
         id={id}
         data-toggle="dropdown"
@@ -40,7 +49,7 @@ export default function MultiSelectorDropdown({
       >
         {getButtonText()}
       </button>
-      <ul className="dropdown-menu checkbox-menu allow-focus">
+      <ul className={` ${extraDropdownClasses} dropdown-menu checkbox-menu allow-focus ${rightAlign ? 'dropdown-menu-right' : undefined}`}>
         <li className="select-all-item">
           <label>
             <input
@@ -62,7 +71,7 @@ export default function MultiSelectorDropdown({
                 checked={selectedValues.includes(option.value)}
                 onChange={e => handleSelectValueChange(e.target.value)}
               />
-              {option.text}
+              {option.label}
             </label>
           </li>
         ))}
