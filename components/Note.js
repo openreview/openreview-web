@@ -7,7 +7,6 @@ import { prettyId, forumDate, inflect } from '../lib/utils'
 
 const Note = ({ note, invitation, options }) => {
   const privatelyRevealed = options.showPrivateIcon && !note.readers.includes('everyone')
-  console.log('options.unlinkedPublications', options.unlinkedPublications)
   return (
     <div className={`note ${privatelyRevealed ? 'note-private' : ''} ${options.unlinkedPublications?.includes(note.id) ? 'unlinked-publication' : ''}`}>
       <NoteTitle
@@ -16,7 +15,12 @@ const Note = ({ note, invitation, options }) => {
         invitation={note.invitation}
         content={note.content}
         signatures={note.signatures}
-        options={options}
+        options={
+          {
+            ...options,
+            isUnlinked: options.unlinkedPublications?.includes(note.id),
+          }
+        }
       />
 
       {(note.forumContent && note.id !== note.forum) && (

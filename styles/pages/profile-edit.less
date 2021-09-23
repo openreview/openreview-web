@@ -15,6 +15,10 @@ main.profile-edit {
     display: inline-block;
   }
 
+  .hint {
+    vertical-align: bottom;
+  }
+
   .invalid-value {
     border-color: @orRed;
   }
@@ -40,11 +44,6 @@ main.profile-edit {
     font-weight: bold;
     line-height: 1rem;
     color: @darkBlue;
-  }
-
-  table {
-    border-collapse: separate;
-    border-spacing: 0 5px;
   }
 
   .profile-edit-container {
@@ -102,17 +101,6 @@ main.profile-edit {
     }
   }
 
-  .names-table {
-    td {
-      padding-right: 0.5em;
-    }
-    .newUsername {
-      color: @subtleGray;
-      font-size: .75rem;
-      margin-right: .5rem;
-    }
-  }
-
   .gender-dropdown{
     margin-top: 5px;
     margin-bottom: 5px;
@@ -141,15 +129,38 @@ main.profile-edit {
     }
   }
 
-  .emails-table {
-    input {
-      width: 420px;
+  .names {
+    .small-heading {
+      padding-left: 0;
+      padding-right: 0;
+      margin-bottom: 5px;
     }
-    .confirm-cell {
-      width: 90px;
+    &__value {
+      padding-left: 0;
+      padding-right:5px;
+      margin-bottom: 5px;
+      input {
+        text-overflow: ellipsis;
+      }
     }
-    .preferred-cell {
-      width: 110px;
+    &__tilde-id {
+      color: @subtleGray;
+      font-size: .75rem;
+      margin-right: .5rem;
+      margin-top: .5rem;
+      overflow-x: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .emails {
+    &__value {
+      padding-left: 0;
+      padding-right:5px;
+      margin-bottom: 5px;
+      input {
+        text-overflow: ellipsis;
+      }
     }
   }
 
@@ -184,6 +195,13 @@ main.profile-edit {
       padding-left: 0;
       padding-right:5px;
       margin-bottom: 5px;
+      input {
+        text-overflow: ellipsis;
+      }
+    }
+    .glyphicon-minus-sign {
+      margin-top: .5rem;
+      top:0
     }
   }
 
@@ -240,6 +258,10 @@ main.profile-edit {
       padding-left: 0;
       padding-right:5px;
       margin-bottom: 5px;
+    }
+    .glyphicon-minus-sign {
+      margin-top: .5rem;
+      top:0
     }
   }
 

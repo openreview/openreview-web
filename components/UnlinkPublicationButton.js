@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import Icon from './Icon'
 
-const UnlinkPublicationButton = ({ noteId, linkUnlinkPublication }) => {
-  const [iconType, setIconType] = useState('minus-sign')
+const UnlinkPublicationButton = ({ noteId, linkUnlinkPublication, isUnlinked }) => {
+  const [iconType, setIconType] = useState(isUnlinked ? 'repeat' : 'minus-sign')
   const extraClasses = iconType === 'minus-sign' ? 'unlink-publication' : 'unlink-publication mirror'
 
   const handleClick = () => {

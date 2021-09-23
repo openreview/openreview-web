@@ -86,73 +86,68 @@ const NamesSection = ({ profileNames, updateNames }) => {
     <section>
       <h4>Names</h4>
       <p className="instructions">Enter your full name (first, middle, last). Also add any other names you have used in the past when authoring papers.</p>
-      <table className="names-table">
-        <tbody>
-          <tr border="0">
-            <td><div className="small-heading">First</div></td>
-            <td>
-              <div className="small-heading">{'Middle '}</div>
-              <span className="hint">(optional)</span>
-            </td>
-            <td><div className="small-heading">Last</div></td>
-            <td><div className="small-heading" /></td>
-            <td><div className="small-heading" /></td>
-          </tr>
-          {
-            // eslint-disable-next-line arrow-body-style
-            names && names.map((name) => {
-              return (
-                <tr border="0" className="info_row" key={name.key}>
-                  <td className="info_item">
-                    <input
-                      type="text"
-                      className="form-control first_name profile"
-                      value={name.first}
-                      readOnly={!name.newRow && name.username.length}
-                      onChange={(e) => { handleUpdateName(name.key, 'first', e.target.value) }}
-                    />
-                  </td>
-                  <td className="info_item">
-                    <input
-                      type="text"
-                      className="form-control middle_name profile"
-                      value={name.middle}
-                      readOnly={!name.newRow && name.username.length}
-                      onChange={(e) => { handleUpdateName(name.key, 'middle', e.target.value) }}
-                    />
-                  </td>
-                  <td className="info_item">
-                    <input
-                      type="text"
-                      className="form-control last_name profile"
-                      value={name.last}
-                      readOnly={!name.newRow && name.username.length}
-                      onChange={(e) => { handleUpdateName(name.key, 'last', e.target.value) }}
-                    />
-                  </td>
-                  <td className="info_item">
-                    <span className="newUsername">{name.username}</span>
-                  </td>
-                  <td className="info_item">
-                    <span className="username" style={{ display: 'none' }}>{name.username}</span>
-                  </td>
-                  <td className="info_item preferred_cell">
-                    <NamesButton
-                      key={name.key}
-                      newRow={name.newRow}
-                      readonly={name.username.length}
-                      preferred={name.preferred}
-                      handleRemove={() => handleRemoveName(name.key)}
-                      handleMakePreferred={() => handleMakePreferredName(name.key)}
-                    />
-                  </td>
-                </tr>
-              )
-            })
-          }
-        </tbody>
-      </table>
-      <div className="glyphicon glyphicon-plus-sign" role="button" aria-label="add another name" tabIndex={0} onClick={handleAddName} />
+      <div className="container names">
+        <div className="row">
+          <div className="small-heading col-md-2">First</div>
+          <div className="small-heading col-md-2">
+            Middle
+            {' '}
+            <span className="hint">(optional)</span>
+          </div>
+          <div className="small-heading col-md-2">Last</div>
+          <div className="small-heading col-md-2" />
+          <div className="small-heading col-md-2" />
+        </div>
+        {
+          names.map(p => (
+            <div className="row" key={p.key}>
+              <div className="col-md-2 names__value">
+                <input
+                  type="text"
+                  className="form-control"
+                  value={p.first}
+                  readOnly={!p.newRow && p.username.length}
+                  onChange={(e) => { handleUpdateName(p.key, 'first', e.target.value) }}
+                />
+              </div>
+              <div className="col-md-2 names__value">
+                <input
+                  type="text"
+                  className="form-control"
+                  value={p.middle}
+                  readOnly={!p.newRow && p.username.length}
+                  onChange={(e) => { handleUpdateName(p.key, 'middle', e.target.value) }}
+                />
+              </div>
+              <div className="col-md-2 names__value">
+                <input
+                  type="text"
+                  className="form-control"
+                  value={p.last}
+                  readOnly={!p.newRow && p.username.length}
+                  onChange={(e) => { handleUpdateName(p.key, 'last', e.target.value) }}
+                />
+              </div>
+              <div className="col-md-2 names__value">
+                <div className="names__tilde-id">{p.username}</div>
+              </div>
+              <div className="col-md-2 names__value">
+                <NamesButton
+                  key={p.key}
+                  newRow={p.newRow}
+                  readonly={p.username.length}
+                  preferred={p.preferred}
+                  handleRemove={() => handleRemoveName(p.key)}
+                  handleMakePreferred={() => handleMakePreferredName(p.key)}
+                />
+              </div>
+            </div>
+          ))
+        }
+        <div className="row">
+          <div className="glyphicon glyphicon-plus-sign" role="button" aria-label="add another name" tabIndex={0} onClick={handleAddName} />
+        </div>
+      </div>
     </section>
   )
 }

@@ -1,22 +1,37 @@
-import { useReducer } from 'react'
+import { useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
 import { CreatableDropdown } from '../Dropdown'
 import MultiSelectorDropdown from '../MultiSelectorDropdown'
 
-const RelationsSection = ({ profileRelation, relations, relationReaders, updateRelations }) => {
+const RelationsSection = ({
+  profileRelation,
+  prefixedRelations,
+  relationReaders,
+  updateRelations,
+}) => {
   const relationPlaceholder = 'Choose or type a relation'
-  const relationOptions = relations.map(p => ({ value: p, label: p }))
-  const relationReaderOptions = relationReaders.map(p => ({ value: p, label: p }))
+  const relationOptions = prefixedRelations?.map(p => ({ value: p, label: p }))
+  const relationReaderOptions = relationReaders?.map(p => ({ value: p, label: p }))
+  // #region action type constants
+  const relationType = 'updateRelation'
+  const readersType = 'updateReaders'
+  const startType = 'updateStart'
+  const endType = 'updateEnd'
+  const nameType = 'updateName'
+  const emailType = 'updateEmail'
+  const addRelationType = 'addRelation'
+  const removeRelationType = 'removeRelation'
+  // #endregion
 
   const relationReducer = (state, action) => {
     switch (action.type) {
-      case 'relation':
+      case relationType:
         return state.map((p) => {
           const recordCopy = { ...p }
           if (p.key === action.data.key) recordCopy.relation = action.data.value
           return recordCopy
         })
-      case 'updateReaders':
+      case readersType:
         return state.map((p) => {
           const recordCopy = { ...p }
           if (p.key === action.data.key) {
@@ -24,31 +39,39 @@ const RelationsSection = ({ profileRelation, relations, relationReaders, updateR
           }
           return recordCopy
         })
-      case 'startYear':
+      case startType:
         return state.map((p) => {
           const recordCopy = { ...p }
-          if (p.key === action.data.key) recordCopy.start = action.data.value
+          if (p.key === action.data.key) {
+            const cleanStart = action.data.value?.trim()
+            const parsedStart = Number(cleanStart)
+            recordCopy.start = Number.isNaN(parsedStart) || !cleanStart ? null : parsedStart
+          }
           return recordCopy
         })
-      case 'endYear':
+      case endType:
         return state.map((p) => {
           const recordCopy = { ...p }
-          if (p.key === action.data.key) recordCopy.end = action.data.value
+          if (p.key === action.data.key) {
+            const cleanEnd = action.data.value?.trim()
+            const parsedEnd = Number(cleanEnd)
+            recordCopy.end = Number.isNaN(parsedEnd) || !cleanEnd ? null : parsedEnd
+          }
           return recordCopy
         })
-      case 'name':
+      case nameType:
         return state.map((p) => {
           const recordCopy = { ...p }
           if (p.key === action.data.key) recordCopy.name = action.data.value
           return recordCopy
         })
-      case 'email':
+      case emailType:
         return state.map((p) => {
           const recordCopy = { ...p }
           if (p.key === action.data.key) recordCopy.email = action.data.value
           return recordCopy
         })
-      case 'addRelation':
+      case addRelationType:
         return [...state, {
           key: nanoid(),
           relation: '',
@@ -58,7 +81,7 @@ const RelationsSection = ({ profileRelation, relations, relationReaders, updateR
           end: '',
           readers: [],
         }]
-      case 'removeRelation':
+      case removeRelationType:
         return state.length > 1 ? state.filter(p => p.key !== action.data.key) : [{
           key: nanoid(),
           relation: '',
@@ -73,12 +96,29 @@ const RelationsSection = ({ profileRelation, relations, relationReaders, updateR
     }
   }
 
-  const [relation, setRelation] = useReducer(relationReducer, profileRelation.map(p => ({ ...p, key: nanoid() })))
+  const [relations, setRelation] = useReducer(
+    relationReducer,
+    profileRelation?.length > 0
+      ? profileRelation?.map(p => ({ ...p, key: nanoid() }))
+      : [...Array(3).keys()].map(() => ({
+        key: nanoid(),
+        relation: '',
+        name: '',
+        email: '',
+        start: '',
+        end: '',
+        readers: [],
+      })),
+  )
 
   const getReaderText = (selectedValues) => {
     if (!selectedValues || !selectedValues.length || selectedValues.includes('everyone')) return 'everyone'
     return selectedValues.join(',')
   }
+
+  useEffect(() => {
+    updateRelations(relations)
+  }, [relations])
 
   return (
     <section>
@@ -94,29 +134,29 @@ const RelationsSection = ({ profileRelation, relations, relationReaders, updateR
           <div className="small-heading col-md-1">Visible to</div>
         </div>
         {
-          relation.map(p => (
+          relations.map(p => (
             <div className="row" key={p.key}>
               <div className="col-md-2 relation__value">
                 <CreatableDropdown
                   hideArrow
                   classNamePrefix="relation-dropdown"
                   placeholder={relationPlaceholder}
-                  defaultValue={p.position ? { value: p.position, label: p.position } : null}
-                  onChange={e => setRelation({ type: 'relation', data: { value: e.value, key: p.key } })}
+                  defaultValue={p.relation ? { value: p.relation, label: p.relation } : null}
+                  onChange={e => setRelation({ type: relationType, data: { value: e.value, key: p.key } })}
                   options={relationOptions}
                 />
               </div>
               <div className="col-md-3 relation__value">
-                <input className="form-control" value={p.name ?? ''} onChange={e => setRelation({ type: 'name', data: { value: e.value, key: p.key } })} />
+                <input className="form-control" value={p.name ?? ''} onChange={e => setRelation({ type: nameType, data: { value: e.target.value, key: p.key } })} />
               </div>
               <div className="col-md-3 relation__value">
-                <input className="form-control" value={p.email ?? ''} onChange={e => setRelation({ type: 'email', data: { value: e.value, key: p.key } })} />
+                <input className="form-control" value={p.email ?? ''} onChange={e => setRelation({ type: emailType, data: { value: e.target.value, key: p.key } })} />
               </div>
               <div className="col-md-1 relation__value">
-                <input className="form-control" value={p.start ?? ''} onChange={e => setRelation({ type: 'startYear', data: { value: e.value, key: p.key } })} />
+                <input className="form-control" value={p.start ?? ''} placeholder="year" onChange={e => setRelation({ type: startType, data: { value: e.target.value, key: p.key } })} />
               </div>
               <div className="col-md-1 relation__value">
-                <input className="form-control" value={p.end ?? ''} onChange={e => setRelation({ type: 'endYear', data: { value: e.value, key: p.key } })} />
+                <input className="form-control" value={p.end ?? ''} placeholder="year" onChange={e => setRelation({ type: endType, data: { value: e.target.value, key: p.key } })} />
               </div>
               <div className="col-md-1 relation__value">
                 <MultiSelectorDropdown
@@ -124,17 +164,17 @@ const RelationsSection = ({ profileRelation, relations, relationReaders, updateR
                   extraButtonClasses="relation__visibility-button"
                   options={relationReaderOptions}
                   selectedValues={p.readers}
-                  setSelectedValues={values => setRelation({ type: 'updateReaders', data: { value: values, key: p.key } })}
+                  setSelectedValues={values => setRelation({ type: readersType, data: { value: values, key: p.key } })}
                   displayTextFn={getReaderText}
                 />
               </div>
               <div className="col-md-1 relation__value">
-                <div className="glyphicon glyphicon-minus-sign" role="button" aria-label="remove relation" tabIndex={0} onClick={() => setRelation({ type: 'removeRelation', data: { key: p.key } })} />
+                <div className="glyphicon glyphicon-minus-sign" role="button" aria-label="remove relation" tabIndex={0} onClick={() => setRelation({ type: removeRelationType, data: { key: p.key } })} />
               </div>
             </div>
           ))
         }
-        <div className="row"><div className="glyphicon glyphicon-plus-sign" role="button" aria-label="add another relation" tabIndex={0} onClick={() => setRelation({ type: 'addRelation' })} /></div>
+        <div className="row"><div className="glyphicon glyphicon-plus-sign" role="button" aria-label="add another relation" tabIndex={0} onClick={() => setRelation({ type: addRelationType })} /></div>
       </div>
     </section>
   )

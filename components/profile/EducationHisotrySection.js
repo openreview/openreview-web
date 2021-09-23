@@ -2,9 +2,23 @@ import { useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
 import { CreatableDropdown } from '../Dropdown'
 
-const EducationHisotrySection = ({ profileHistory, positions, institutions, updateHistory }) => {
+const EducationHisotrySection = ({
+  profileHistory,
+  positions,
+  institutions,
+  updateHistory,
+}) => {
   const positionPlaceholder = 'Choose or type a position'
   const institutionPlaceholder = 'Choose or type an institution'
+  // #region action type constants
+  const posititonType = 'updatePosition'
+  const startType = 'updateStart'
+  const endType = 'updateEnd'
+  const institutionDomainType = 'updateInstitutionDomain'
+  const institutionNameType = 'updateInstitutionName'
+  const addHistoryType = 'addHistory'
+  const removeHistoryType = 'removeHistory'
+  // #endregion
   const institutionDomainOptions = institutions.flatMap(p => (p.id ? { value: p.id, label: p.id } : []))
   const positionOptions = positions.map(p => ({ value: p, label: p }))
 
@@ -17,13 +31,13 @@ const EducationHisotrySection = ({ profileHistory, positions, institutions, upda
 
   const historyReducer = (state, action) => {
     switch (action.type) {
-      case 'position':
+      case posititonType:
         return state.map((p) => {
           const recordCopy = { ...p }
           if (p.key === action.data.key) recordCopy.position = action.data.value
           return recordCopy
         })
-      case 'institutionName':
+      case institutionNameType:
         return state.map((p) => {
           const recordCopy = { ...p, institution: { ...p.institution } }
           if (p.key === action.data.key) {
@@ -31,7 +45,7 @@ const EducationHisotrySection = ({ profileHistory, positions, institutions, upda
           }
           return recordCopy
         })
-      case 'institutionDomain':
+      case institutionDomainType:
         return state.map((p) => {
           const recordCopy = { ...p, institution: { ...p.institution } }
           if (p.key === action.data.key) {
@@ -42,19 +56,27 @@ const EducationHisotrySection = ({ profileHistory, positions, institutions, upda
           }
           return recordCopy
         })
-      case 'startYear':
+      case startType:
         return state.map((p) => {
           const recordCopy = { ...p }
-          if (p.key === action.data.key) recordCopy.start = action.data.value
+          if (p.key === action.data.key) {
+            const cleanStart = action.data.value?.trim()
+            const parsedStart = Number(cleanStart)
+            recordCopy.start = Number.isNaN(parsedStart) || !cleanStart ? null : parsedStart
+          }
           return recordCopy
         })
-      case 'endYear':
+      case endType:
         return state.map((p) => {
           const recordCopy = { ...p }
-          if (p.key === action.data.key) recordCopy.end = action.data.value
+          if (p.key === action.data.key) {
+            const cleanEnd = action.data.value?.trim()
+            const parsedEnd = Number(cleanEnd)
+            recordCopy.end = Number.isNaN(parsedEnd) || !cleanEnd ? null : parsedEnd
+          }
           return recordCopy
         })
-      case 'addHistory':
+      case addHistoryType:
         return [...state, {
           key: nanoid(),
           position: '',
@@ -65,14 +87,26 @@ const EducationHisotrySection = ({ profileHistory, positions, institutions, upda
             name: '',
           },
         }]
-      case 'removeHistory':
+      case removeHistoryType:
         return state.filter(p => p.key !== action.data.key)
       default:
         return state
     }
   }
 
-  const [history, setHistory] = useReducer(historyReducer, profileHistory.map(p => ({ ...p, key: nanoid() })))
+  const [history, setHistory] = useReducer(historyReducer,
+    profileHistory?.length > 0
+      ? profileHistory?.map(p => ({ ...p, key: nanoid() }))
+      : [...Array(3).keys()].map(() => ({
+        key: nanoid(),
+        position: '',
+        start: '',
+        end: '',
+        institution: {
+          domain: '',
+          name: '',
+        },
+      })))
 
   useEffect(() => {
     updateHistory(history)
@@ -104,15 +138,15 @@ const EducationHisotrySection = ({ profileHistory, positions, institutions, upda
                   classNamePrefix="position-dropdown"
                   placeholder={positionPlaceholder}
                   defaultValue={p.position ? { value: p.position, label: p.position } : null}
-                  onChange={e => setHistory({ type: 'position', data: { value: e.value, key: p.key } })}
+                  onChange={e => setHistory({ type: posititonType, data: { value: e.value, key: p.key } })}
                   options={positionOptions}
                 />
               </div>
               <div className="col-md-1 history__value">
-                <input className="form-control" value={p.start ?? ''} placeholder="year" onChange={e => setHistory({ type: 'startYear', data: { value: e.value, key: p.key } })} />
+                <input className="form-control" value={p.start ?? ''} placeholder="year" onChange={e => setHistory({ type: startType, data: { value: e.target.value, key: p.key } })} />
               </div>
               <div className="col-md-1 history__value">
-                <input className="form-control" value={p.end ?? ''} placeholder="year" onChange={e => setHistory({ type: 'endYear', data: { value: e.value, key: p.key } })} />
+                <input className="form-control" value={p.end ?? ''} placeholder="year" onChange={e => setHistory({ type: endType, data: { value: e.target.value, key: p.key } })} />
               </div>
               <div className="col-md-3 history__value">
                 <CreatableDropdown
@@ -121,20 +155,20 @@ const EducationHisotrySection = ({ profileHistory, positions, institutions, upda
                   placeholder={institutionPlaceholder}
                   // eslint-disable-next-line max-len
                   defaultValue={p.institution?.domain ? { value: p.institution?.domain, label: p.institution?.domain } : null}
-                  onChange={e => setHistory({ type: 'institutionDomain', data: { value: e.value, key: p.key } })}
+                  onChange={e => setHistory({ type: institutionDomainType, data: { value: e.value, key: p.key } })}
                   options={institutionDomainOptions}
                 />
               </div>
               <div className="col-md-4 history__value">
-                <input className="form-control" value={p.institution?.name ?? ''} onChange={e => setHistory({ type: 'institutionName', data: { value: e.value, key: p.key } })} />
+                <input className="form-control" value={p.institution?.name ?? ''} onChange={e => setHistory({ type: institutionNameType, data: { value: e.target.value, key: p.key } })} />
               </div>
               <div className="col-md-1 history__value">
-                {history.length > 1 && <div className="glyphicon glyphicon-minus-sign" role="button" aria-label="remove history" tabIndex={0} onClick={() => setHistory({ type: 'removeHistory', data: { key: p.key } })} />}
+                {history.length > 1 && <div className="glyphicon glyphicon-minus-sign" role="button" aria-label="remove history" tabIndex={0} onClick={() => setHistory({ type: removeHistoryType, data: { key: p.key } })} />}
               </div>
             </div>
           ))
         }
-        <div className="row"><div className="glyphicon glyphicon-plus-sign" role="button" aria-label="add another history" tabIndex={0} onClick={() => setHistory({ type: 'addHistory' })} /></div>
+        <div className="row"><div className="glyphicon glyphicon-plus-sign" role="button" aria-label="add another history" tabIndex={0} onClick={() => setHistory({ type: addHistoryType })} /></div>
       </div>
     </section>
   )

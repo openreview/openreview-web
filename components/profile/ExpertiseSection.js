@@ -2,9 +2,17 @@ import { useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
 
 const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
+  // #region action type constants
+  const expertiseType = 'updateExpertise'
+  const startType = 'updateStart'
+  const endType = 'updateEnd'
+  const addExpertiseType = 'addExpertise'
+  const removeExpertiseType = 'removeExpertise'
+  // #endregion
+
   const expertiseReducer = (state, action) => {
     switch (action.type) {
-      case 'updateExpertise':
+      case expertiseType:
         return state.map((p) => {
           const recordCopy = { ...p }
           if (p.key === action.data.key) {
@@ -12,30 +20,34 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
           }
           return recordCopy
         })
-      case 'updateStart':
+      case startType:
         return state.map((p) => {
           const recordCopy = { ...p }
           if (p.key === action.data.key) {
-            recordCopy.start = action.data.value
+            const cleanStart = action.data.value?.trim()
+            const parsedStart = Number(cleanStart)
+            recordCopy.start = Number.isNaN(parsedStart) || !cleanStart ? null : parsedStart
           }
           return recordCopy
         })
-      case 'updateEnd':
+      case endType:
         return state.map((p) => {
           const recordCopy = { ...p }
           if (p.key === action.data.key) {
-            recordCopy.end = action.data.value
+            const cleanEnd = action.data.value?.trim()
+            const parsedEnd = Number(cleanEnd)
+            recordCopy.end = Number.isNaN(parsedEnd) || !cleanEnd ? null : parsedEnd
           }
           return recordCopy
         })
-      case 'addExpertise':
+      case addExpertiseType:
         return [...state, {
           keywords: [],
           start: '',
           end: '',
           key: nanoid(),
         }]
-      case 'removeExpertise':
+      case removeExpertiseType:
         return state.length > 1 ? state.filter(p => p.key !== action.data.key) : [{
           keywords: [],
           start: '',
@@ -46,8 +58,18 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
         return state
     }
   }
-  // eslint-disable-next-line max-len
-  const [expertises, setExpertises] = useReducer(expertiseReducer, profileExpertises.map(p => ({ ...p, key: nanoid() })))
+
+  const [expertises, setExpertises] = useReducer(
+    expertiseReducer,
+    profileExpertises?.length > 0
+      ? profileExpertises?.map(p => ({ ...p, key: nanoid() }))
+      : [...Array(3).keys()].map(() => ({
+        keywords: [],
+        start: '',
+        end: '',
+        key: nanoid(),
+      })),
+  )
 
   useEffect(() => {
     updateExpertise(expertises)
@@ -75,22 +97,22 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
           expertises.map(p => (
             <div className="row" key={p.key}>
               <div className="col-md-6 expertise__value">
-                <input className="form-control" value={p.keywords.join(', ') ?? ''} onChange={e => setExpertises({ type: 'updateExpertise', data: { value: e.target.value, key: p.key } })} />
+                <input className="form-control" value={p.keywords.join(', ') ?? ''} onChange={e => setExpertises({ type: expertiseType, data: { value: e.target.value, key: p.key } })} />
               </div>
               <div className="col-md-1 expertise__value">
-                <input className="form-control" value={p.start ?? ''} onChange={e => setExpertises({ type: 'updateStart', data: { value: e.target.value, key: p.key } })} />
+                <input className="form-control" placeholder="year" value={p.start ?? ''} onChange={e => setExpertises({ type: startType, data: { value: e.target.value, key: p.key } })} />
               </div>
               <div className="col-md-1 expertise__value">
-                <input className="form-control" value={p.end ?? ''} onChange={e => setExpertises({ type: 'updateEnd', data: { value: e.target.value, key: p.key } })} />
+                <input className="form-control" placeholder="year" value={p.end ?? ''} onChange={e => setExpertises({ type: endType, data: { value: e.target.value, key: p.key } })} />
               </div>
               <div className="col-md-1 relation__value">
-                <div className="glyphicon glyphicon-minus-sign" role="button" aria-label="remove expertise" tabIndex={0} onClick={() => setExpertises({ type: 'removeExpertise', data: { key: p.key } })} />
+                <div className="glyphicon glyphicon-minus-sign" role="button" aria-label="remove expertise" tabIndex={0} onClick={() => setExpertises({ type: removeExpertiseType, data: { key: p.key } })} />
               </div>
             </div>
           ))
         }
         <div className="row">
-          <div className="glyphicon glyphicon-plus-sign" role="button" aria-label="add another expertise" tabIndex={0} onClick={() => setExpertises({ type: 'addExpertise' })} />
+          <div className="glyphicon glyphicon-plus-sign" role="button" aria-label="add another expertise" tabIndex={0} onClick={() => setExpertises({ type: addExpertiseType })} />
         </div>
       </div>
     </section>

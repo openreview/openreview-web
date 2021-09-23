@@ -29,7 +29,7 @@ const profileEditNew = ({ appContext }) => {
   const { setBannerContent } = appContext
   const [dropdownOptions, setDropdownOptions] = useState(null)
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
-  const relations = dropdownOptions?.prefixedRelations
+  const prefixedRelations = dropdownOptions?.prefixedRelations
   const relationReaders = dropdownOptions?.relationReaders
   const positions = dropdownOptions?.prefixedPositions
   const institutions = dropdownOptions?.institutions
@@ -52,6 +52,7 @@ const profileEditNew = ({ appContext }) => {
     }
   }
   const [profile, setProfile] = useReducer(profileReducer, null)
+  const [renderPublicationEditor, setRenderPublicationEditor] = useState(false)
 
   const loadProfile = async () => {
     try {
@@ -68,7 +69,7 @@ const profileEditNew = ({ appContext }) => {
 
   const handleSubmitButtonClick = () => {
     // eslint-disable-next-line no-use-before-define
-    saveProfile(profile)
+    if (validateProfile()) saveProfile()
   }
 
   const unlinkPublication = async (profileId, noteId) => {
@@ -114,23 +115,38 @@ const profileEditNew = ({ appContext }) => {
     return api.post('/notes', updateAuthorIdsObject, { accessToken })
   }
 
-  const saveProfile = async (newProfileData, done) => {
+  const validateProfile = () => {
+
+  }
+
+  const saveProfile = async () => {
     const dataToSubmit = {
-      id: newProfileData.id,
+      id: profile.id,
       content: {
-        ...newProfileData,
-        names: newProfileData.names.map((p) => { const { altUsernames, key, ...rest } = p; return rest }),
-        emails: newProfileData.emails.map(p => p.email),
+        ...profile,
+        names: profile.names.map((p) => { const { altUsernames, key, ...rest } = p; return rest }),
+        emails: profile.emails.map(p => p.email),
         links: undefined,
-        ...newProfileData.links,
-        history: newProfileData.history.map((p) => { const { key, ...rest } = p; return rest }),
-        expertise: newProfileData.expertise.map((p) => { const { key, ...rest } = p; return rest }),
+        ...profile.links,
+        history: profile.history.flatMap((p) => {
+          const { key, ...rest } = p
+          return p.position || p.institution?.domain || p.institution?.name ? rest : []
+        }),
+        expertise: profile.expertise.flatMap((p) => {
+          const { key, ...rest } = p
+          return p.expertise ? rest : []
+        }),
+        relations: profile.relations.flatMap((p) => {
+          const { key, ...rest } = p
+          return p.relation ? rest : []
+        }),
+        preferredEmail: profile.emails.find(p => p.confirmed)?.email,
         preferredName: undefined,
         currentInstitution: undefined,
         id: undefined,
         preferredId: undefined,
       },
-      signatures: [newProfileData.id],
+      signatures: [profile.id],
     }
     try {
       const apiRes = await api.post('/profiles', dataToSubmit, { accessToken })
@@ -182,7 +198,14 @@ const profileEditNew = ({ appContext }) => {
         <NamesSection profileNames={profile?.names} updateNames={names => setProfile({ type: 'names', data: names })} />
         <GenderSection profileGender={profile?.gender} updateGender={gender => setProfile({ type: 'gender', data: gender })} />
         <EmailsSection profileEmails={profile?.emails} profileId={profile?.id} updateEmails={emails => setProfile({ type: 'emails', data: emails })} />
-        <PersonalLinksSection profileLinks={profile?.links} updateLinks={links => setProfile({ type: 'links', data: links })} />
+        <PersonalLinksSection
+          profileLinks={profile?.links}
+          updateLinks={links => setProfile({ type: 'links', data: links })}
+          id={profile?.id}
+          names={profile?.names}
+          preferredEmail={profile?.preferredEmail}
+          renderPublicationsEditor={() => setRenderPublicationEditor(current => !current)}
+        />
         <EducationHisotrySection
           profileHistory={profile?.history}
           positions={positions}
@@ -191,14 +214,15 @@ const profileEditNew = ({ appContext }) => {
         />
         <RelationsSection
           profileRelation={profile?.relations}
-          relations={relations}
+          prefixedRelations={prefixedRelations}
           relationReaders={relationReaders}
-          updateRelations={updatedRelations => setProfile({ type: 'relations', data: updatedRelations })}
+          updateRelations={relations => setProfile({ type: 'relations', data: relations })}
         />
         <ExpertiseSection profileExpertises={profile?.expertise} updateExpertise={expertise => setProfile({ type: 'expertise', data: expertise })} />
         <ImportedPublicationsSection
           profileId={profile?.id}
           updatePublicationIdsToUnlink={ids => setPublicationIdsToUnlink(ids)}
+          reRender={renderPublicationEditor}
         />
         <button type="button" className="btn mr-1" onClick={handleSubmitButtonClick}>{submitButtontext}</button>
         <button type="button" className="btn">Cancel</button>

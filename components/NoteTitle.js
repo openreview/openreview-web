@@ -39,7 +39,13 @@ const NoteTitle = ({
 
     {
       options.unlinkButton
-      && <UnlinkPublicationButton noteId={id} linkUnlinkPublication={options.linkUnlinkPublication} />
+      && (
+        <UnlinkPublicationButton
+          noteId={id}
+          linkUnlinkPublication={options.linkUnlinkPublication}
+          isUnlinked={options.isUnlinked}
+        />
+      )
     }
   </h4>
 )

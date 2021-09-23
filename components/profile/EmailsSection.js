@@ -14,18 +14,10 @@ const EmailsButton = ({
 
   if (type === 'confirmed') {
     if (confirmed) {
-      return (
-        <td className="confirm-cell">
-          <div className="confirmed hint">(Confirmed)</div>
-        </td>
-      )
+      return <div className="confirmed hint">(Confirmed)</div>
     }
     if (email && isValid) {
-      return (
-        <td className="confirm-cell">
-          <button type="button" className="btn confirm-button" onClick={handleConfirm}>Confirm</button>
-        </td>
-      )
+      return <button type="button" className="btn confirm-button" onClick={handleConfirm}>Confirm</button>
     }
     return null
   }
@@ -36,18 +28,10 @@ const EmailsButton = ({
 
   if (type === 'preferred') {
     if (preferred) {
-      return (
-        <td className="preferred-cell">
-          <div className="preferred hint">(Preferred Email)</div>
-        </td>
-      )
+      return <div className="preferred hint">(Preferred Email)</div>
     }
     if (confirmed) {
-      return (
-        <td className="preferred-cell">
-          <button type="button" className="btn preferred-button" onClick={handleMakePreferred}>Make Preferred</button>
-        </td>
-      )
+      return <button type="button" className="btn preferred-button" onClick={handleMakePreferred}>Make Preferred</button>
     }
   }
   return null
@@ -148,6 +132,25 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
           ))}
         </tbody>
       </table>
+      <div className="container emails">
+        {
+          emails.map(emailObj => (
+            <div className="row">
+              <div className="col-md-4 emails__value">
+                {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
+                <input type="email" autoFocus value={emailObj.email} readOnly={emailObj.confirmed} className={`form-control email profile ${emailObj.isValid ? undefined : 'invalid-value'}`} onChange={e => handleUpdateEmail(e.target.value.trim(), emailObj.key)} />
+              </div>
+              <div className="col-md-2 emails__value">
+                <EmailsButton type="confirmed" emailObj={emailObj} handleConfirm={() => handleConfirmEmail(emailObj.key)} />
+                <EmailsButton type="preferred" emailObj={emailObj} handleMakePreferred={() => handleMakeEmailPreferred(emailObj.key)} />
+              </div>
+              <div className="col-md-2 emails__value">
+                <EmailsButton type="remove" emailObj={emailObj} handleRemove={() => handleRemoveEmail(emailObj.key)} />
+              </div>
+            </div>
+          ))
+        }
+      </div>
       <div className="glyphicon glyphicon-plus-sign" role="button" aria-label="add another name" tabIndex={0} onClick={handleAddEmail} />
     </section>
   )
