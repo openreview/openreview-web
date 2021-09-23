@@ -1,17 +1,13 @@
-import { useReducer } from 'react'
+import { useEffect, useReducer } from 'react'
 
-const PersonalLinksSection = ({ profileLinks }) => {
+const PersonalLinksSection = ({ profileLinks, updateLinks }) => {
   const linksReducer = (state, action) => ({ ...state, [action.type]: action.data })
 
-  const [links, setLinks] = useReducer(linksReducer, {
-    homepage: profileLinks?.find(p => p.key === 'homepage')?.url ?? '',
-    gscholar: profileLinks?.find(p => p.key === 'gscholar')?.url ?? '',
-    dblp: profileLinks?.find(p => p.key === 'dblp')?.url ?? '',
-    orcid: profileLinks?.find(p => p.key === 'orcid')?.url ?? '',
-    linkedin: profileLinks?.find(p => p.key === 'linkedin')?.url ?? '',
-    wikipedia: profileLinks?.find(p => p.key === 'wikipedia')?.url ?? '',
-    semanticScholar: profileLinks?.find(p => p.key === 'semanticScholar')?.url ?? '',
-  })
+  const [links, setLinks] = useReducer(linksReducer, profileLinks)
+
+  useEffect(() => {
+    updateLinks(links)
+  }, [links])
 
   return (
     <section>

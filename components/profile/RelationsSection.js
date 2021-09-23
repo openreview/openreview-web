@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid'
 import { CreatableDropdown } from '../Dropdown'
 import MultiSelectorDropdown from '../MultiSelectorDropdown'
 
-const RelationsSection = ({ profileRelation, relations, relationReaders }) => {
+const RelationsSection = ({ profileRelation, relations, relationReaders, updateRelations }) => {
   const relationPlaceholder = 'Choose or type a relation'
   const relationOptions = relations.map(p => ({ value: p, label: p }))
   const relationReaderOptions = relationReaders.map(p => ({ value: p, label: p }))
@@ -59,7 +59,15 @@ const RelationsSection = ({ profileRelation, relations, relationReaders }) => {
           readers: [],
         }]
       case 'removeRelation':
-        return state.filter(p => p.key !== action.data.key)
+        return state.length > 1 ? state.filter(p => p.key !== action.data.key) : [{
+          key: nanoid(),
+          relation: '',
+          name: '',
+          email: '',
+          start: '',
+          end: '',
+          readers: [],
+        }]
       default:
         return state
     }
@@ -121,7 +129,7 @@ const RelationsSection = ({ profileRelation, relations, relationReaders }) => {
                 />
               </div>
               <div className="col-md-1 relation__value">
-                {relation.length > 1 && <div className="glyphicon glyphicon-minus-sign" role="button" aria-label="remove relation" tabIndex={0} onClick={() => setRelation({ type: 'removeRelation', data: { key: p.key } })} />}
+                <div className="glyphicon glyphicon-minus-sign" role="button" aria-label="remove relation" tabIndex={0} onClick={() => setRelation({ type: 'removeRelation', data: { key: p.key } })} />
               </div>
             </div>
           ))

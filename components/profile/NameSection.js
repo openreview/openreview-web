@@ -1,12 +1,22 @@
 /* globals promptError: false */
-import { useReducer, useEffect } from 'react'
+import { useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
 import api from '../../lib/api-client'
-import NamesButton from './NameButton'
 
-const NamesSection = ({ profileNames }) => {
+const NamesButton = ({
+  newRow, readonly, preferred, handleRemove, handleMakePreferred,
+}) => {
+  if (!newRow && readonly) {
+    if (preferred) {
+      return <span className="preferred hint">(Preferred Name)</span>
+    }
+    return <button type="button" className="btn preferred_button" onClick={handleMakePreferred}>Make Preferred</button>
+  }
+  return <button type="button" className="btn remove_button" onClick={handleRemove}>Remove</button>
+}
+
+const NamesSection = ({ profileNames, updateNames }) => {
   const namesReducer = (names, action) => {
-    // if (action.initialLoad) return action.data
     if (action.addNewName) return [...names, action.data]
     if (action.updateName) {
       return names.map((name) => {
@@ -27,7 +37,6 @@ const NamesSection = ({ profileNames }) => {
     }
     return names
   }
-
   const [names, setNames] = useReducer(namesReducer, profileNames?.map(p => ({ ...p, key: nanoid() })))
 
   const handleAddName = () => {
@@ -51,9 +60,9 @@ const NamesSection = ({ profileNames }) => {
     setNames(update)
     try {
       const tildeUsername = await api.get('/tildeusername', {
-        first: field === 'first' ? targetValue : names.find(name => name.key === key).first,
-        middle: field === 'middle' ? targetValue : names.find(name => name.key === key).middle,
-        last: field === 'last' ? targetValue : names.find(name => name.key === key).last,
+        first: field === 'first' ? targetValue : names.find(name => name.key === key)?.first,
+        middle: field === 'middle' ? targetValue : names.find(name => name.key === key)?.middle,
+        last: field === 'last' ? targetValue : names.find(name => name.key === key)?.last,
       })
       setNames({ updateName: true, data: { key, field: 'username', value: tildeUsername.username } })
     } catch (error) {
@@ -69,11 +78,9 @@ const NamesSection = ({ profileNames }) => {
     setNames({ setPreferred: true, data: { key } })
   }
 
-  // useEffect(() => {
-  //   if (profileNames) {
-  //     setNames({ initialLoad: true, data: profileNames })
-  //   }
-  // }, [profileNames])
+  useEffect(() => {
+    updateNames(names)
+  }, [names])
 
   return (
     <section>
@@ -111,7 +118,7 @@ const NamesSection = ({ profileNames }) => {
                       className="form-control middle_name profile"
                       value={name.middle}
                       readOnly={!name.newRow && name.username.length}
-                      onChange={(e) => { handleUpdateName(name.ley, 'middle', e.target.value) }}
+                      onChange={(e) => { handleUpdateName(name.key, 'middle', e.target.value) }}
                     />
                   </td>
                   <td className="info_item">

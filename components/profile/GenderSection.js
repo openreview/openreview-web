@@ -1,11 +1,14 @@
-import { useState } from 'react'
-import Dropdown, { CreatableDropdown } from '../Dropdown'
+import { useEffect, useState } from 'react'
+import { CreatableDropdown } from '../Dropdown'
 
-const GenderSection = ({ profileGender }) => {
+const GenderSection = ({ profileGender, updateGender }) => {
   const defaultGenderOptions = ['Male', 'Female', 'Non-Binary', 'Not Specified']
-  const placeHolder = 'Choose a gender or type a custom gender'
   const [genderOptions, setGenderOptions] = useState(defaultGenderOptions.map(p => ({ value: p, label: p })))
   const [gender, setGender] = useState(profileGender)
+
+  useEffect(() => {
+    updateGender(gender)
+  }, [gender])
 
   return (
     <section>
@@ -14,7 +17,7 @@ const GenderSection = ({ profileGender }) => {
       <CreatableDropdown
         hideArrow
         classNamePrefix="gender-dropdown"
-        defaultValue={profileGender ? { value: profileGender, label: profileGender } : null}
+        defaultValue={gender ? { value: gender, label: gender } : null}
         onChange={e => setGender(e.value)}
         options={genderOptions}
         placeholder="Choose a gender or type a custom gender"

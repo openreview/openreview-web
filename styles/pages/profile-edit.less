@@ -190,7 +190,7 @@ main.profile-edit {
   .position-dropdown, .institution-dropdown , .relation-dropdown{
     margin-top: 5px;
     margin-bottom: 5px;
-    &__control{
+    &__control {
       background-color: #fffaf4;
       border: 2px solid lighten(@mediumBlue, 10%);
       padding: 0, 0.75rem;
@@ -206,6 +206,10 @@ main.profile-edit {
       color: #fff;
       outline: 0px solid transparent;
     }
+
+    &__placeholder {
+      white-space: nowrap;
+    }
   }
 
   .relation{
@@ -215,12 +219,38 @@ main.profile-edit {
       margin-bottom: 5px;
     }
     &__visibility-dropdown {
+      width: 100%;
       margin-top:0!important;
     }
     &__visibility-button {
-      max-width: 100%;
+      // padding:0;
+      width: 100%;
       overflow-x: hidden;
       text-overflow: ellipsis;
     }
+  }
+
+  .expertise {
+    .small-heading {
+      padding-left: 0;
+      padding-right: 0;
+      margin-bottom: 5px;
+    }
+    &__value {
+      padding-left: 0;
+      padding-right:5px;
+      margin-bottom: 5px;
+    }
+  }
+
+  span.mirror {
+    transform: scale(-1,1);
+    margin-left: .25rem;
+    cursor: pointer;
+  }
+
+  div.unlinked-publication {
+    opacity: 0.5;
+    pointer-events: none;
   }
 }

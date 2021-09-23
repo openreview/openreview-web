@@ -1,8 +1,8 @@
-import { useReducer } from 'react'
+import { useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
 import { CreatableDropdown } from '../Dropdown'
 
-const EducationHisotrySection = ({ profileHistory, positions, institutions }) => {
+const EducationHisotrySection = ({ profileHistory, positions, institutions, updateHistory }) => {
   const positionPlaceholder = 'Choose or type a position'
   const institutionPlaceholder = 'Choose or type an institution'
   const institutionDomainOptions = institutions.flatMap(p => (p.id ? { value: p.id, label: p.id } : []))
@@ -73,6 +73,10 @@ const EducationHisotrySection = ({ profileHistory, positions, institutions }) =>
   }
 
   const [history, setHistory] = useReducer(historyReducer, profileHistory.map(p => ({ ...p, key: nanoid() })))
+
+  useEffect(() => {
+    updateHistory(history)
+  }, [history])
 
   return (
     <section>
