@@ -74,6 +74,8 @@ fixture`Group page`
 test('try to access to an invalid group and get a not found error', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/group?id=dslkjf`)
-    .expect(errorCodeLabel.innerText).eql('Error 404')
+    .expect(errorCodeLabel.innerText).eql('Error 400')
+    // New error format
+    // .expect(errorCodeLabel.innerText).eql('Error 404')
     .expect(errorMessageLabel.innerText).eql('Group Not Found: dslkjf')
 })
