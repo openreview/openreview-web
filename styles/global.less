@@ -378,11 +378,11 @@ strong.hint {
   box-sizing: border-box;
   position: relative;
   padding: 20px 0 30px 0;
-  min-height: ~"calc(100vh - 260px)";
+  min-height: calc(100vh - ~"243px");
   .clearfix;
 
   &.banner-hidden {
-    min-height: ~"calc(100vh - 221px)";
+    min-height: calc(100vh - ~"204px");
   }
   &.minimal-footer {
     padding-bottom: 0;
@@ -395,10 +395,10 @@ strong.hint {
 
   @media @phone-only {
     padding: 15px 0 20px 0;
-    min-height: ~"calc(100vh - 273px)";
+    min-height: calc(100vh - ~"273px");
 
     &.banner-hidden {
-      min-height: ~"calc(100vh - 236px)";
+      min-height: calc(100vh - ~"239px");
     }
     &.minimal-footer {
       min-height: calc(100vh - ~"120px");
@@ -698,6 +698,10 @@ strong.hint {
 .pagination-container {
   &.loading > ul.pagination {
     opacity: .5;
+  }
+  .pagination-count{
+    display: block;
+    color: @subtleGray;
   }
 }
 

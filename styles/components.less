@@ -690,7 +690,7 @@ table.table-minimal {
 
 // Note editor
 .note_editor {
-  > .row {
+  > .row, > .note_content_section > .row {
     margin-top: 1em;
     margin-left: 0;
     margin-right: 0;
@@ -717,6 +717,9 @@ table.table-minimal {
     color: @orRed;
     margin-right: .25rem;
   }
+  .required_field + .line_heading {
+    width: 134px;
+  }
   .hint {
     margin-bottom: .25rem;
   }
@@ -738,6 +741,31 @@ table.table-minimal {
     white-space: pre-wrap;
     font-weight: 400;
   }
+  div.note_content_section {
+    margin-top: 1rem;
+    margin-left: -.5rem;
+    margin-right: -.5rem;
+    padding: .75rem .5rem .75rem .5rem;
+    background: rgba(0,0,0,0.08);
+
+    > h2 {
+      font-size: 1rem;
+      line-height: normal;
+      font-weight: bold;
+      margin-top: 0;
+      margin-bottom: .5rem;
+    }
+    > hr.small {
+      display: block;
+    }
+    > .row:last-child {
+      margin-bottom: .25rem;
+    }
+  }
+  input[type="text"].form-control, textarea.form-control {
+    // There is an issue with Noto Sans and backticks, so use a different font for these fields
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  }
   textarea.note_content_value {
     height: 280px;
   }
@@ -752,6 +780,10 @@ table.table-minimal {
   .hover_title {
     display: inline-block;
     vertical-align: middle;
+    .hover_target {
+      background-color: transparent;
+      padding: 0;
+    }
   }
   .hover_result {
     font-size: .75rem;
@@ -777,11 +809,17 @@ table.table-minimal {
   }
   .hover_target {
     cursor: default;
+    background-color: rgba(0, 0, 0, 0.08);
+    padding: 2px 6px;
+    border-radius: 2px;
+    em {
+      color: @orRed;
+    }
   }
   .hover_item {
     display: inline-block;
     vertical-align: middle;
-    padding: 5px;
+    padding: 2px 4px;
   }
   .removable_item, .removable_pair {
     margin-right: 0.75rem;
@@ -847,6 +885,9 @@ table.table-minimal {
   .note_content_title {
     font-size: 1.25rem;
   }
+  .dropdown input {
+    width: 418px;
+  }
 }
 
 
@@ -855,7 +896,7 @@ table.table-minimal {
   display: inline-block;
 
   input {
-    width: 400px;
+    width: 500px;
   }
 
   &.show-arrow input {
@@ -873,7 +914,7 @@ table.table-minimal {
   position: absolute;
   padding: .25rem 0px;
   height: 202px;
-  width: 400px;
+  width: 500px;
   border: 2px solid lighten(@mediumBlue, 10%);
   border-top: 0;
   overflow-y: scroll;
@@ -929,6 +970,16 @@ table.table-minimal {
 
 // User Moderation
 .moderation-container {
+  .filter-form {
+    display: flex;
+    margin-bottom: .75rem;
+
+    input {
+      flex-grow: 1;
+      margin-right: .5rem;
+    }
+  }
+
   .profiles-list {
     width: 1040px;
     margin: 1.75rem auto;
@@ -960,7 +1011,7 @@ table.table-minimal {
         }
       }
       &.col-actions {
-        width: 260px;
+        width: 270px;
         text-align: right;
       }
     }
@@ -971,11 +1022,12 @@ table.table-minimal {
       min-width: 5.5rem;
     }
   }
+
   .spinner-container {
     margin: 2rem 0;
   }
 
-  .form-rejection{
+  .form-rejection {
     display: flex;
     flex-flow: column;
   }
@@ -1104,7 +1156,7 @@ table.table-minimal {
 
 // Multiselector
 .multiselector.dropdown {
-  margin: 0 0.25rem;
+  margin: 0 .25rem;
   display: inline-block;
 
   button {
@@ -1125,7 +1177,8 @@ table.table-minimal {
   input[type=checkbox] {
     width: 14px;
     height: 14px;
-    margin: 0px .5rem 0 0;
+    margin: 3px 8px 0 -20px;
+    position: absolute;
   }
 
   ul.dropdown-menu {
@@ -1160,6 +1213,7 @@ table.table-minimal {
       text-overflow: ellipsis;
       margin-bottom: 0;
       color: #555555;
+      padding-left: 20px;
     }
   }
 }

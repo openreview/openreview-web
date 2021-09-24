@@ -288,7 +288,7 @@ module.exports = (function() {
       if (values.length) {
         update(filteredOptions(values, prefix));
       } else {
-        controller.get(tag.optionsUrl, {}, function(result) {
+        Webfield.get(tag.optionsUrl, {}).then(function(result) {
           var group = result.groups[0];
           values = _.map(group.members, function(member) {
             return { id: member, description: prettyId(member) };
@@ -463,19 +463,16 @@ module.exports = (function() {
 
   var mkDropdownAdder = function(fieldName, fieldDescription, values, fieldValue, params) {
     var $dropdown = $('<div>', {class: 'row'});
-
-    if (fieldName === 'readers' && values.length > 1) {
-      var $smallHeading = $('<div>', { text: prettyField(fieldName), class: 'small_heading' });
-      var $description = $('<div class="hint">').text(fieldDescription);
-      $dropdown.append($smallHeading, $description);
-    } else {
-      var $hoveritem = mkHoverItem(
-        $('<span>', {text: prettyField(fieldName), class: 'line_heading'}), fieldDescription, false, true, params.required
-      );
-      $dropdown.append($hoveritem);
-    }
+    var $hoveritem = mkHoverItem(
+      $('<span>', {text: prettyField(fieldName), class: 'line_heading'}), fieldDescription, false, true, params.required
+    );
+    $dropdown.append($hoveritem);
 
     var dropdownOptions = _.map(values, function(value) {
+      if (value.id && value.description) {
+        return value;
+      }
+
       return {
         id: value,
         description: prettyId(value)
@@ -483,6 +480,10 @@ module.exports = (function() {
     });
 
     var alwaysHaveValues = _.map(params.alwaysHaveValues, function (value) {
+      if (value.id && value.description) {
+        return value;
+      }
+
       return {
         id: value,
         description: prettyId(value),
@@ -564,19 +565,20 @@ module.exports = (function() {
 
   var mkHoverItem = function(content, resultText, removable, title, required) {
     var cssClass = title ? 'hover_title' : 'hover_item';
-    var $hoverItem = $('<div>', {class: removable ? cssClass + ' removable_item' : cssClass});
-    if ( _.isString(resultText) && resultText.length > 0 ) {
+    var $hoverItem = $('<div>', { class: cssClass + (removable ? ' removable_item' : '') });
+    if (_.isString(resultText) && resultText.length > 0) {
       var $hoverResult = $('<div>', {class: 'hover_result'}).text(resultText).hide();
-      $hoverItem.append(
-        $hoverResult
-      )
-      .hover(function() {
+      $hoverItem.append($hoverResult).hover(function() {
         $hoverResult.show();
       }, function() {
         $hoverResult.hide();
       });
     }
 
+    // Add formatting to $ notation content
+    if (_.isString(content)) {
+      content = content.replace(/\{(\S+)\}/g, '<em>$1</em>'); // todo remove brackets
+    }
     var $hoverTarget = $('<div>', {class: 'hover_target'}).append(content);
 
     if (required) {
@@ -772,7 +774,7 @@ module.exports = (function() {
           return '<span class="' + className + '">' + match + '</span>';
         };
       };
-      return $('<a>', { href: '/profile?id=' + tildeId, target: '_blank' }).append(
+      return $('<a>', { href: '/profile?id=' + tildeId, target: '_blank', "data-tildeid":tildeId }).append(
         tildeId
           .replace(/[^~_0-9]+/g, setClass('black'))
           .replace(/[~_0-9]+/g, setClass('light-gray'))
@@ -802,19 +804,38 @@ module.exports = (function() {
 
     // If authors and authorids are passed, we prepopulate the table
     if (authors && authorids) {
-      controller.post('/profiles/search', {
-        ids: authorids
-      }).then(function(response) {
-        var profiles = response.profiles;
+      var tildeIds = [];
+      var emailIds = [];
+      for (var i = 0; i < authorids.length; i++) {
+        if (_.startsWith(authorids[i], '~')) {
+          tildeIds.push(authorids[i])
+        } else if (_.includes(authorids[i], '@')) {
+          emailIds.push(authorids[i])
+        }
+      }
+
+      var tildeProfilesP = Webfield.post('/profiles/search', { ids: tildeIds });
+      var emailProfilesP = Webfield.post('/profiles/search', { emails: emailIds });
+
+      $.when(tildeProfilesP, emailProfilesP).then(function(tildeRes, emailRes) {
+        var profiles = _.concat(tildeRes.profiles, emailRes.profiles);
         for (var i = 0; i < authors.length; i++) {
           var $spanFullname;
           var $spanEmails;
-          var title;
-          if (_.startsWith(authorids[i], '~')) {
-            // eslint-disable-next-line no-loop-func
-            var profile = _.find(profiles, function(profile) {
-              return profile.id === authorids[i] || _.find(profile.content.names, ['username', authorids[i]]);
-            });
+          var title = '';
+
+          // eslint-disable-next-line no-loop-func
+          var profile = _.find(profiles, function(profile) {
+            if (profile.id === authorids[i]) {
+              return true;
+            }
+            if (_.startsWith(authorids[i], '~') && _.find(profile.content.names, ['username', authorids[i]])) {
+              return true;
+            }
+            return profile.email === authorids[i];
+          });
+
+          if (profile) {
             $spanFullname = options.allowAddRemove
               ? getPreferredName(profile)
               : getPreferredName(null, authorids[i]);
@@ -952,20 +973,20 @@ module.exports = (function() {
       // If both the name and the email information are in the search, then we have to do two searches
       // Then we merge the responses by doing a union and prioritizing email results
       if (hasValidName && hasValidEmail) {
-        controller.get('/profiles/search', { term: email })
+        Webfield.get('/profiles/search', { term: email })
           .then(function(emailResponse) {
-            controller.get('/profiles/search', { first: firstName, last: lastName })
+            Webfield.get('/profiles/search', { first: firstName, last: lastName })
             .then(function(namesResponse) {
               handleResponses(namesResponse, emailResponse);
             });
           });
       } else if (hasValidEmail) {
-        controller.get('/profiles/search', { term: email })
+        Webfield.get('/profiles/search', { term: email })
           .then(function(emailResponse) {
             handleResponses(null, emailResponse);
           });
       } else if (hasValidName) {
-        controller.get('/profiles/search', { first: firstName, last: lastName })
+        Webfield.get('/profiles/search', { first: firstName, last: lastName })
           .then(function(namesResponse) {
             handleResponses(namesResponse, null);
           });
@@ -1355,16 +1376,21 @@ module.exports = (function() {
       );
     }
 
-    if (values.length === 1) {
-      $input.append(mkHoverItem(prettyId(values[0]),values[0]).addClass('list_adder_list'));
+    var dropdownOptions = _.map(values, function(value) {
+      if (value.id && value.description) {
+        return value;
+      }
+      return {
+        id: value,
+        description: prettyId(value)
+      };
+    });
+
+
+    if (dropdownOptions.length === 1) {
+      $input.append(mkHoverItem(dropdownOptions[0].description, dropdownOptions[0].id).addClass('list_adder_list'));
 
     } else {
-      var dropdownOptions = _.map(values, function(value) {
-        return {
-          id: value,
-          description: prettyId(value)
-        };
-      });
 
       var selectedValue = _.find(dropdownOptions, ['id', fieldValue]);
 
@@ -1409,7 +1435,7 @@ module.exports = (function() {
       contentInputResult = mkPdfSection(fieldDescription, fieldValue);
 
     } else if (fieldName === 'authorids' && (
-      (_.has(fieldDescription, 'values-regex') && fieldDescription['values-regex'].indexOf('~.*') !== -1) ||
+      (_.has(fieldDescription, 'values-regex') && isTildeIdAllowed(fieldDescription['values-regex'])) ||
       _.has(fieldDescription, 'values')
     )) {
       var authors;
@@ -1427,7 +1453,7 @@ module.exports = (function() {
       // Don't enable adding or removing authors if invitation uses 'values' instead of values-regex
       contentInputResult = valueInput(
         mkSearchProfile(authors, authorids, {
-          allowUserDefined: invitationRegex && invitationRegex.indexOf('~.*|') !== -1,
+          allowUserDefined: invitationRegex && invitationRegex.includes('|'),
           allowAddRemove: !!invitationRegex
         }),
         'authors',
@@ -1438,7 +1464,7 @@ module.exports = (function() {
       contentInputResult = mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
     }
 
-    if (fieldDescription.hidden === true) {
+    if (fieldDescription && fieldDescription.hidden === true) {
       return contentInputResult.hide();
     }
     return contentInputResult;
@@ -1667,9 +1693,9 @@ module.exports = (function() {
     $fileSection.append(mkAttachmentSection(fieldName, fieldDescription, fieldValue).children());
   };
 
-  var prettyReadersList = function(readers) {
+  var prettyReadersList = function(readers, dontShowGlobe) {
     var readersHtml;
-    if (readers.indexOf('everyone') > -1) {
+    if (readers.indexOf('everyone') > -1 && !dontShowGlobe) {
       readersHtml = '<span class="readers-icon glyphicon glyphicon-globe"></span> Everyone';
     } else {
       var formattedReaders = [];
@@ -1742,7 +1768,6 @@ module.exports = (function() {
       titleHref = '/forum?id=' + note.forum + (note.forum !== note.id ? '&noteId=' + note.id : '');
     } else if (titleLink === 'JS') {
       $titleHTML.click(function() {
-        controller.removeAllButMain();
         pushForum(note.forum, note.id);
       });
     }
@@ -1878,7 +1903,7 @@ module.exports = (function() {
         return;
       }
 
-      var invitationField = (invitation && invitation.reply.content[fieldName]) || {};
+      var invitationField = invitation?.reply?.content?.[fieldName] ?? {};
 
       // Build download links
       if (valueString.indexOf('/attachment/') === 0) {
@@ -2016,7 +2041,8 @@ module.exports = (function() {
       withModificationDate: false,
       withDateTime: false,
       withBibtexLink: true,
-      readOnlyTags: false
+      readOnlyTags: false,
+      newLayout: false,
     }, options);
     var $note = $('<div>', {id: 'note_' + note.id, class: 'note panel'});
     var forumId = note.forum;
@@ -2026,9 +2052,11 @@ module.exports = (function() {
     if (notePastDue) {
       $note.addClass('trashed');
     }
-
     if (note.content._disableTexRendering) {
       $note.addClass('disable-tex-rendering');
+    }
+    if (params.newLayout) {
+      $note.addClass('new-layout');
     }
 
     var generatedTitleText = generateNoteTitle(note.invitation, note.signatures);
@@ -2041,7 +2069,7 @@ module.exports = (function() {
 
     // Link to comment button
     var $linkButton = null;
-    if (forumId !== note.id && $('#content').hasClass('forum')) {
+    if (forumId !== note.id && $('#content').hasClass('legacy-forum')) {
       var commentUrl = location.origin + '/forum?id=' + forumId + '&noteId=' + note.id;
       $linkButton = $('<button class="btn btn-xs btn-default permalink-button" title="Link to this comment" data-permalink-url="' + commentUrl + '">' +
         '<span class="glyphicon glyphicon-link" aria-hidden="true"></span></button>');
@@ -2051,7 +2079,7 @@ module.exports = (function() {
     var $trashButton = null;
     var $editButton = null;
     var $actionButtons = null;
-    if ($('#content').hasClass('forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
+    if ($('#content').hasClass('legacy-forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
       var canEdit = (details.original && details.originalWritable) || (!details.originalWritable && details.writable);
 
       if (canEdit && params.onTrashedOrRestored) {
@@ -2115,36 +2143,69 @@ module.exports = (function() {
         '<span class="private-author-label">(privately revealed to you)</span>'
       );
     }
+    if (note.readers.length == 1 && note.readers[0].indexOf('~') === 0 && note.readers[0] == note.signatures[0]) {
+      $contentAuthors.append(
+        '<span class="private-author-label">(visible only to you)</span>'
+      );
+    }
 
+    // Meta Info Row
+    var $metaEditRow = $('<div>', {class: 'meta_row'});
+    var formattedDate = forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year);
+    var $replyCountLabel = (params.withReplyCount && details.replyCount) ?
+      $('<span>', {class: 'item'}).text(details.replyCount === 1 ? '1 Reply' : details.replyCount + ' Replies') :
+      null;
     var $revisionsLink = (params.withRevisionsLink && details.revisions) ?
       $('<a>', { class: 'note_content_pdf item', href: '/revisions?id=' + note.id, text: 'Show Revisions' }) :
       null;
-
     // Display modal showing full BibTeX reference. Click handler is definied in public/index.js
     var $bibtexLink = (note.content._bibtex && params.withBibtexLink) ?
       $('<span class="item"><a href="#" data-target="#bibtex-modal" data-toggle="modal" data-bibtex="' + encodeURIComponent(note.content._bibtex) + '">Show Bibtex</a></span>') :
       null;
 
-    var $metaEditRow = $('<div>', {class: 'meta_row'});
-    var formattedDate = forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year);
-    var $dateItem = (!notePastDue || details.writable) ?
-      $('<span>', {class: 'date item'}).text(formattedDate) :
-      null;
-    var $invItem = $('<span>', {class: 'item'}).text(note.content.venue || prettyId(note.invitation));
-    var $readersItem = _.has(note, 'readers') ?
-      $('<span>', {class: 'item'}).html('Readers: ' + prettyReadersList(note.readers)) :
-      null;
-    var $replyCountLabel = (params.withReplyCount && details.replyCount) ?
-      $('<span>', {class: 'item'}).text(details.replyCount === 1 ? '1 Reply' : details.replyCount + ' Replies') :
-      null;
-    $metaEditRow.append(
-      $dateItem,
-      $invItem,
-      $readersItem,
-      $replyCountLabel,
-      $bibtexLink,
-      $revisionsLink
-    );
+    var $dateItem = null;
+    var $invItem = null;
+    var $readersItem = null;
+    var prettyInv = prettyInvitationId(note.invitation);
+    if (params.newLayout) {
+      $dateItem = !notePastDue ?
+        $('<span>', { class: 'date item', 'data-toggle': 'tooltip', 'data-placement': 'top', title: 'Date Created' }).text(formattedDate) :
+        null;
+      var invLabelText = prettyInv + ' by ' + prettyId(note.signatures[0], true);
+      $invItem = $('<span>', { class: 'item highlight', 'data-toggle': 'tooltip', 'data-placement': 'top', title: 'Reply Type' })
+        .text(invLabelText)
+        .css(getInvitationColors(prettyInv));
+      $readersItem = $('<span>', { class: 'item' }).append(
+        '<span class="glyphicon glyphicon-eye-open" data-toggle="tooltip" data-placement="top" title="Reply Visibility" aria-hidden="true"></span>',
+        ' ',
+        prettyReadersList(note.readers, true)
+      );
+      $metaEditRow.append(
+        $invItem,
+        $dateItem,
+        $readersItem,
+        $replyCountLabel,
+        $bibtexLink,
+        $revisionsLink
+      );
+    } else {
+      $dateItem = (!notePastDue || details.writable) ?
+        $('<span>', {class: 'date item'}).text(formattedDate) :
+        null;
+      $invItem = $('<span>', {class: 'item'})
+        .text(options.isReference ? prettyId(note.invitation) : note.content.venue || prettyId(note.invitation));
+      $readersItem = _.has(note, 'readers') ?
+        $('<span>', {class: 'item'}).html('Readers: ' + prettyReadersList(note.readers)) :
+        null;
+      $metaEditRow.append(
+        $dateItem,
+        $invItem,
+        $readersItem,
+        $replyCountLabel,
+        $bibtexLink,
+        $revisionsLink
+      );
+    }
 
     var $metaActionsRow = null;
     var $modifiableOriginalButton = null;
@@ -2232,7 +2293,7 @@ module.exports = (function() {
           };
           body = getCopiedValues(body, tagInvitation.reply);
 
-          controller.post('/tags', body, function(result) {
+          Webfield.post('/tags', body).then(function(result) {
             done(result);
             if (params.onTagChanged) {
               params.onTagChanged(result);
@@ -2328,7 +2389,7 @@ module.exports = (function() {
   };
 
   var pdfUrl = function(note, isReference) {
-    var path = isReference ? '/references/pdf' : '/pdf';
+    var path = isReference ? `${note.version === 2 ? '/notes/edits/pdf' : '/references/pdf'}` : '/pdf';
     return _.startsWith(note.content.pdf, '/pdf') ? (path + '?id=' + note.id) : note.content.pdf;
   };
 
@@ -2339,10 +2400,11 @@ module.exports = (function() {
     if (isDeleted) {
       // Restore deleted note
       newNote.ddate = null;
-      return controller.post('/notes', newNote, null, function(jqXhr, error) {
-        promptError(error, { scrollToTop: false });
-      }, true).then(function(updatedNote) {
+      return Webfield.post('/notes', newNote, { handleErrors: false }).then(function(updatedNote) {
         onTrashedOrRestored(Object.assign(newNote, updatedNote));
+      }, function(jqXhr, textStatus) {
+        var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+        promptError(errorText, { scrollToTop: false });
       });
     }
 
@@ -2353,10 +2415,11 @@ module.exports = (function() {
       }
       newNote.signatures = newSignatures;
       newNote.ddate = Date.now();
-      controller.post('/notes', newNote, null, function(jqXhr, error) {
-        promptError(error, { scrollToTop: false });
-      }, true).then(function(updatedNote) {
+      Webfield.post('/notes', newNote, { handleErrors: false }).then(function(updatedNote) {
         onTrashedOrRestored(Object.assign(newNote, updatedNote));
+      }, function(jqXhr, textStatus) {
+        var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+        promptError(errorText, { scrollToTop: false });
       });
     };
 
@@ -2487,6 +2550,14 @@ module.exports = (function() {
       }
 
       var transformedId = tokens.map(function(token) {
+        // API v2 tokens can include strings like ${note.number}
+        if (token.includes('${')) {
+          token = token.replace(/\$\{(\S+)\}/g, function(match, p1) {
+            return ' {' + p1.split('.').pop() + '}';
+          }).replace(/_/g, ' ');
+          return token;
+        }
+
         token = token
           .replace(/\..+/g, '') // remove text after dots, ex: uai.org
           .replace(/^-$/g, '')  // remove dashes
@@ -2551,6 +2622,10 @@ module.exports = (function() {
   var prettyField = function(fieldName) {
     if (typeof fieldName !== 'string') {
       return '';
+    }
+
+    if (fieldName === 'pdf') {
+      return 'PDF';
     }
 
     var words = fieldName.replace(/_/g, ' ').split(' ').map(function(word) {
@@ -2675,6 +2750,10 @@ module.exports = (function() {
     return first && last && (first.length + last.length > 2);
   };
 
+  var isTildeIdAllowed = function(regex) {
+    return regex.indexOf('~.*') !== -1 || regex.indexOf('^~\\S+$') !== -1;
+  };
+
   var validate = function(invitation, content, readersWidget) {
     var errorList = [];
     var replyContent = invitation.reply.content;
@@ -2744,8 +2823,10 @@ module.exports = (function() {
   var getContent = function(invitation, $contentMap) {
     var files = {};
     var errors = [];
-    var content = _.reduce(invitation.reply.content, function(ret, contentObj, k) {
+    var invitationContent = invitation.edit ? invitation.edit.note.content : invitation.reply.content
+    var content = _.reduce(invitationContent, function(ret, contentObjInInvitation, k) {
       // Let the widget handle it :D and extract the data when we encouter authorids
+      const contentObj = invitation.edit ? contentObjInInvitation.value : contentObjInInvitation
       if (contentObj.hidden && k === 'authors') {
         return ret;
       }
@@ -2756,12 +2837,13 @@ module.exports = (function() {
         inputVal = idsFromListAdder($contentMap[k], ret);
 
       } else if (k === 'authorids' && (
-        (contentObj['values-regex'] && contentObj['values-regex'].indexOf('~.*') !== -1) || contentObj['values']
+        (contentObj['values-regex'] && isTildeIdAllowed(contentObj['values-regex'])) || contentObj['values']
       )) {
         ret.authorids = [];
         ret.authors = [];
         $contentMap.authorids.find('.author-row').each(function() {
-          var authorid = $(this).find('.author-fullname').text();
+          var authoridStored = $(this).find('.author-fullname>a').data('tildeid')
+          var authorid = authoridStored ?? $(this).find('.author-fullname').text() // text() may add extra space
           // If it does the field .author-fullname does not start with a tilde
           // it means that the name was user defined and should be placed in the authors field
           // Also the authorid would be the email
@@ -2819,9 +2901,9 @@ module.exports = (function() {
 
       } else if (contentObj.hasOwnProperty('value-file') || (contentObj['value-regex'] && contentObj['value-regex'] === 'upload')) {
         var $fileSection = $contentMap[k];
-        var $fileInput = $fileSection && $fileSection.find('input.note_' + k + '[type="file"]');
+        var $fileInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '.') + '[type="file"]');
         var file = $fileInput && $fileInput.val() ? $fileInput[0].files[0] : null;
-        var $textInput = $fileSection && $fileSection.find('input.note_' + k + '[type="text"]');
+        var $textInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '.') + '[type="text"]');
         var url = $textInput && $textInput.val();
 
         // Check if there's a file. If not, check if there's a url and update ONLY if the new value
@@ -2848,12 +2930,13 @@ module.exports = (function() {
   };
 
   var getWriters = function(invitation, signatures, user) {
+    var writers = invitation.edit ? invitation.edit.writers : invitation.reply.writers
 
-    if (invitation.reply.writers && _.has(invitation.reply.writers, 'values')) {
-      return invitation.reply.writers.values;
+    if (writers && _.has(writers, 'values')) {
+      return writers.values;
     }
 
-    if (invitation.reply.writers && _.has(invitation.reply.writers, 'values-regex') && invitation.reply.writers['values-regex'] === '~.*') {
+    if (writers && _.has(writers, 'values-regex') && writers['values-regex'] === '~.*') {
       return [user.profile.id];
     }
 
@@ -2861,21 +2944,22 @@ module.exports = (function() {
   };
 
   var getReaders = function(widget, invitation, signatures) {
-    var inputValues = idsFromListAdder(widget, invitation.reply.readers);
+    var readers = invitation.edit ? invitation.edit.readers : invitation.reply.readers
+    var inputValues = idsFromListAdder(widget, readers);
 
     var invitationValues = [];
-    if (_.has(invitation.reply.readers, 'values-dropdown')) {
-      invitationValues = invitation.reply.readers['values-dropdown'];
-    } else if (_.has(invitation.reply.readers, 'value-dropdown-hierarchy')) {
-      invitationValues = invitation.reply.readers['value-dropdown-hierarchy'];
-    } else if (_.has(invitation.reply.readers, 'values-checkbox')) {
+    if (_.has(readers, 'values-dropdown')) {
+      invitationValues = readers['values-dropdown'].map(function(v) { return _.has(v, 'id') ? v.id : v; });
+    } else if (_.has(readers, 'value-dropdown-hierarchy')) {
+      invitationValues = readers['value-dropdown-hierarchy'];
+    } else if (_.has(readers, 'values-checkbox')) {
       inputValues = [];
       widget.find('.note_content_value input[type="checkbox"]').each(function(i) {
         if ($(this).prop('checked')) {
           inputValues.push($(this).val());
         }
       });
-      invitationValues = invitation.reply.readers['values-checkbox'];
+      invitationValues = readers['values-checkbox'];
     }
 
     // Add signature if exists in the invitation readers list
@@ -3000,7 +3084,15 @@ module.exports = (function() {
         }
 
         var onError = function(e) {
-          var errorMsg = e.responseJSON && e.responseJSON.message || 'There was an error uploading the file';
+          var errorMsg;
+          if (e.responseJSON && e.responseJSON.message) {
+            errorMsg = e.responseJSON.message;
+          } else if (e.readyState === 0) {
+            errorMsg = 'There is an error with the network and the file could not be uploaded'
+          } else {
+            errorMsg = 'There was an error uploading the file';
+          }
+
           if (params.onError) {
             params.onError([errorMsg]);
           } else if (e.responseJSON && e.responseJSON.errors) {
@@ -3015,7 +3107,7 @@ module.exports = (function() {
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
           if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
-            return controller.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+            return Webfield.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
               note.content[fieldName] = result.url;
               return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, note.content.pdf);
             });
@@ -3024,7 +3116,7 @@ module.exports = (function() {
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return controller.sendFile('/attachment', data).then(function(result) {
+          return Webfield.sendFile('/attachment', data).then(function(result) {
             note.content[fieldName] = result.url;
             updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], note.content[fieldName]);
           });
@@ -3036,25 +3128,33 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
+        const confirmCancel = $noteEditor.data('hasUnsavedData') && !window.confirm('Any unsaved changes will be lost. Are you sure you want to continue?');
+        if (confirmCancel) return;
+
+        clearAutosaveData(autosaveStorageKeys);
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
         } else {
           $noteEditor.remove();
         }
-        clearAutosaveData(autosaveStorageKeys);
       });
 
       var saveNote = function(note) {
         // apply any 'value-copied' fields
         note = getCopiedValues(note, invitation.reply);
-        controller.post('/notes', note, function(result) {
+        Webfield.post('/notes', note, { handleErrors: false }).then(function (result) {
+          clearAutosaveData(autosaveStorageKeys);
+          $noteEditor.remove();
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
           }
-          $noteEditor.remove();
-          clearAutosaveData(autosaveStorageKeys);
-        }, function(jqXhr, errorText) {
-          promptError(errorText);
+        }, function(jqXhr, textStatus) {
+          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+          if (params.onError) {
+            params.onError([errorText]);
+          } else {
+            promptError(errorText);
+          }
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
           $cancelButton.prop({ disabled: false });
         });
@@ -3104,10 +3204,15 @@ module.exports = (function() {
   };
 
   function buildReaders(fieldDescription, fieldValue, replyto, done) {
+    if (!fieldDescription) {
+      done(undefined, 'Invitation is missing readers');
+      return;
+    }
+
     var requiredText = $('<span>', { text: '*', class: 'required_field' });
     var setParentReaders = function(parent, fieldDescription, fieldType, done) {
       if (parent) {
-        controller.get('/notes', { id: parent }, function(result) {
+        Webfield.get('/notes', { id: parent }).then(function (result) {
           var newFieldDescription = fieldDescription;
           if (result.notes.length) {
             var parentReaders = result.notes[0].readers;
@@ -3130,7 +3235,8 @@ module.exports = (function() {
     };
 
     if (_.has(fieldDescription, 'values-regex')) {
-      controller.get('/groups', { regex: fieldDescription['values-regex'] }, function(result) {
+      Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
+      .then(function(result) {
         if (_.isEmpty(result.groups)) {
           done(undefined, 'no_results');
         } else {
@@ -3147,16 +3253,17 @@ module.exports = (function() {
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
         }
-      }, function(error) {
-        done(undefined, error);
+      }, function(jqXhr, textStatus) {
+        var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+        done(undefined, errorText);
       });
     } else if (_.has(fieldDescription, 'values-dropdown')) {
       var values = fieldDescription['values-dropdown'];
-      var extraGroupsP = $.Deferred().resolve();
+      var extraGroupsP = $.Deferred().resolve([]);
       var regexIndex = _.findIndex(values, function(g) { return g.indexOf('.*') >=0; });
       if (regexIndex >= 0) {
         var regex = values[regexIndex];
-        extraGroupsP = controller.get('/groups', { regex: regex })
+        extraGroupsP = Webfield.get('/groups', { regex: regex })
         .then(function(result) {
           if (result.groups && result.groups.length) {
             var groups = result.groups.map(function(g) { return g.id; });
@@ -3164,10 +3271,11 @@ module.exports = (function() {
           } else {
             fieldDescription['values-dropdown'].splice(regexIndex, 1);
           }
+          return result.groups;
         });
       }
       extraGroupsP
-        .then(function() {
+        .then(function(groups) {
           setParentReaders(replyto, fieldDescription, 'values-dropdown', function (newFieldDescription) {
             //when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
             var replyValues = _.intersection(newFieldDescription['values-dropdown'], fieldDescription['values-dropdown']);
@@ -3201,8 +3309,15 @@ module.exports = (function() {
       });
     } else if (_.has(fieldDescription, 'values')) {
       setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
-        if (_.isEqual(newFieldDescription.values, fieldDescription.values)
-          || fieldDescription.values.every(function (val) { return newFieldDescription.values.indexOf(val) !== -1; })) {
+        var subsetReaders = fieldDescription.values.every(function (val) {
+          var found = newFieldDescription.values.indexOf(val) !== -1;
+          if (!found && val.includes('/Reviewer_')) {
+            var hasReviewers = _.find(newFieldDescription.values, function(v) { return v.includes('/Reviewers')});
+            return hasReviewers;
+          }
+          return found;
+          })
+        if (_.isEqual(newFieldDescription.values, fieldDescription.values) || subsetReaders) {
           var $readers = mkComposerInput('readers', fieldDescription, fieldValue); //for values, readers must match with invitation instead of parent invitation
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
@@ -3216,7 +3331,7 @@ module.exports = (function() {
       var index = _.findIndex(initialValues, function(g) { return g.indexOf('.*') >=0; });
       if (index >= 0) {
         var regexGroup = initialValues[index];
-        promise = controller.get('/groups', { regex: regexGroup })
+        promise = Webfield.get('/groups', { regex: regexGroup })
         .then(function(result) {
           if (result.groups && result.groups.length) {
             var groups = result.groups.map(function(g) { return g.id; });
@@ -3259,7 +3374,7 @@ module.exports = (function() {
     }
   }
 
-  function buildSignatures(fieldDescription, fieldValue, user) {
+  function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures') {
 
     var $signatures;
     if (_.has(fieldDescription, 'values-regex')) {
@@ -3269,7 +3384,7 @@ module.exports = (function() {
         if (user && user.profile) {
           var prefId = user.profile.preferredId || user.profile.id;
           $signatures = mkDropdownList(
-            'signatures', fieldDescription.description, currentVal, [prefId], true
+            headingText, fieldDescription.description, currentVal, [prefId], true
           );
           return $.Deferred().resolve($signatures);
         } else {
@@ -3281,25 +3396,37 @@ module.exports = (function() {
           return $.Deferred().reject('no_results');
         }
 
-        return controller.get('/groups', {
+        return Webfield.get('/groups', {
           regex: fieldDescription['values-regex'], signatory: user.id
-        }, function(result) {
+        }, { handleErrors: false }).then(function(result) {
           if (_.isEmpty(result.groups)) {
             return $.Deferred().reject('no_results');
           }
 
-          var groupIds = _.map(result.groups, 'id');
+          var uniquePrettyIds = {};
+          var dropdownListOptions = [];
+          var singleOption = result.groups.length == 1;
+          _.forEach(result.groups, function(group) {
+            var prettyGroupId = prettyId(group.id);
+            if (!(prettyGroupId in uniquePrettyIds)) {
+              dropdownListOptions.push({
+                id: group.id,
+                description: prettyGroupId + ((!singleOption && !group.id.startsWith('~') && group.members && group.members.length == 1) ? (' (' + prettyId(group.members[0]) + ')') : '')
+              });
+              uniquePrettyIds[prettyGroupId] = group.id;
+            }
+          });
           $signatures = mkDropdownList(
-            'signatures', fieldDescription.description, currentVal, groupIds, true
+            headingText, fieldDescription.description, currentVal, dropdownListOptions, true
           );
           return $signatures;
-        }, function(jqXhr, error) {
-          return error;
+        }, function(jqXhr, textStatus) {
+          return Webfield.getErrorFromJqXhr(jqXhr, textStatus);
         });
       }
 
     } else {
-      $signatures = mkComposerInput('signatures', fieldDescription, fieldValue);
+      $signatures = mkComposerInput(headingText, fieldDescription, fieldValue);
       return $.Deferred().resolve($signatures);
     }
 
@@ -3401,7 +3528,15 @@ module.exports = (function() {
         }
 
         var onError = function(e) {
-          var errorMsg = (e.responseJSON && e.responseJSON.message) || 'There was an error uploading the file';
+          var errorMsg;
+          if (e.responseJSON && e.responseJSON.message) {
+            errorMsg = e.responseJSON.message;
+          } else if (e.readyState === 0) {
+            errorMsg = 'There is an error with the network and the file could not be uploaded'
+          } else {
+            errorMsg = 'There was an error uploading the file';
+          }
+
           if (params.onError) {
             params.onError([errorMsg]);
           } else if (e.responseJSON && e.responseJSON.errors) {
@@ -3416,7 +3551,7 @@ module.exports = (function() {
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
           if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
-            return controller.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
+            return Webfield.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
               editNote.content[fieldName] = result.url;
               return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, editNote.content.pdf);
             });
@@ -3425,7 +3560,7 @@ module.exports = (function() {
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return controller.sendFile('/attachment' , data).then(function(result) {
+          return Webfield.sendFile('/attachment' , data).then(function(result) {
             editNote.content[fieldName] = result.url;
             updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
           });
@@ -3437,6 +3572,9 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
+        const confirmCancel = $noteEditor.data('hasUnsavedData') && !window.confirm('Any unsaved changes will be lost. Are you sure you want to continue?');
+        if (confirmCancel) return;
+
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
         } else {
@@ -3448,13 +3586,14 @@ module.exports = (function() {
       var saveNote = function(note) {
         // apply any 'value-copied' fields
         note = getCopiedValues(note, invitation.reply);
-        controller.post('/notes', note, function(result) {
+        Webfield.post('/notes', note, { handleErrors: false }).then(function (result) {
           if (params.onNoteEdited) {
             params.onNoteEdited(result);
           }
           $noteEditor.remove();
           clearAutosaveData(autosaveStorageKeys);
-        }, function(jqXhr, errorText) {
+        }, function(jqXhr, textStatus) {
+          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
           if (params.onError) {
             params.onError([errorText]);
           } else {
@@ -3525,8 +3664,7 @@ module.exports = (function() {
   var setupAutosaveHandlers = function($noteEditor, user, noteId, invitationId) {
     var autosaveStorageKeys = [];
     var userIdForKey = (!user || _.startsWith(user.id, 'guest_')) ? 'guest' : user.id;
-    var invitationName = invitationId.split('/-/').pop();
-    var keyPrefix = [userIdForKey, noteId, invitationName].join('|');
+    var keyPrefix = [userIdForKey, noteId, invitationId].join('|');
 
     $noteEditor.find('input.autosave-enabled, textarea.autosave-enabled').each(function() {
       var uniqueKey = keyPrefix + '|' + $(this).attr('name');
@@ -3539,6 +3677,7 @@ module.exports = (function() {
 
       $(this).on('keyup', _.throttle(function() {
         localStorage.setItem(uniqueKey, $(this).val());
+        $noteEditor.data('hasUnsavedData', true);
       }, 2000));
     });
 
@@ -3599,11 +3738,24 @@ module.exports = (function() {
       counter++;
     }
 
-    return Handlebars.templates['partials/paginationLinks']({
+    var templateParams = {
       pageList: pageList,
       baseUrl: baseUrl,
       options: displayOptions
-    });
+    }
+
+    if (displayOptions?.showCount) {
+      var startCount = (pageNum - 1) * notesPerPage + 1;
+      var endCount = (pageNum - 1) * notesPerPage + notesPerPage;
+      if (endCount > totalNotes) endCount = totalNotes;
+      templateParams = {
+        ...templateParams,
+        startCount: startCount,
+        endCount: endCount,
+        totalNotes: totalNotes,
+      }
+    }
+    return Handlebars.templates['partials/paginationLinks'](templateParams);
   };
 
   var mkInvitationButton = function(invitation, onClick, options) {
@@ -3650,6 +3802,35 @@ module.exports = (function() {
 
   var iMess = function(text) {
     return $('<span>', {class: 'important_message'}).text(text);
+  };
+
+  // Temporarily duplicated from forum-utils.js
+  // TODO: remove this function when new forum launches
+  var getInvitationColors = function(prettyId) {
+    const styleMap = {
+      Comment: { backgroundColor: '#bfb', color: '#2c3a4a' },
+      'Public Comment': { backgroundColor: '#bfb', color: '#2c3a4a' }, // Same as Comment
+      'Official Comment': { backgroundColor: '#bbf', color: '#2c3a4a' },
+      Review: { backgroundColor: '#fbb', color: '#2c3a4a' },
+      'Official Review': { backgroundColor: '#fbb', color: '#2c3a4a' }, // Same as Review
+      'Meta Review': { backgroundColor: '#fbf', color: '#2c3a4a' },
+      'Secondary Meta Review': { backgroundColor: '#fbf', color: '#2c3a4a' }, // Same as Meta Review
+      Decision: { backgroundColor: '#bff', color: '#2c3a4a' },
+    }
+    if (styleMap[prettyId]) {
+      return styleMap[prettyId]
+    }
+
+    let sum = 0
+    for (let i = 0; i < prettyId.length; i += 1) {
+      sum += prettyId.charCodeAt(i)
+    }
+
+    const additionalColors = [
+      '#8cf', '#8fc', '#8ff', '#8cc', '#fc8', '#f8c', '#cf8', '#c8f', '#cc8', '#ccf',
+    ]
+    const selectedColor = additionalColors[sum % additionalColors.length]
+    return { backgroundColor: selectedColor, color: '#2c3a4a' }
   };
 
   var getNoteCreationDate = function(note) {
@@ -3744,7 +3925,24 @@ module.exports = (function() {
     iMess: iMess,
     getCopiedValues : getCopiedValues,
     freeTextTagWidgetLabel: freeTextTagWidgetLabel,
-    setupMarked: setupMarked
+    setupMarked: setupMarked,
+    getInvitationColors: getInvitationColors,
+    mkTitleComponent: mkTitleComponent,
+    mkDropdownAdder: mkDropdownAdder,
+    buildSignatures: buildSignatures,
+    autolinkFieldDescriptions: autolinkFieldDescriptions,
+    isTildeIdAllowed: isTildeIdAllowed,
+    mkSearchProfile: mkSearchProfile,
+    mkFileInput: mkFileInput,
+    getContent: getContent,
+    idsFromListAdder:idsFromListAdder,
+    getReaders: getReaders,
+    getWriters: getWriters,
+    showConfirmDeleteModal: showConfirmDeleteModal,
+    setupAutosaveHandlers: setupAutosaveHandlers,
+    clearAutosaveData: clearAutosaveData,
+    updateFileSection: updateFileSection,
+    updatePdfSection: updatePdfSection,
   };
 
 }());

@@ -54,12 +54,12 @@ test('user open own profile', async (t) => {
     .expect(Selector('h1').withText('Edit Profile').exists).ok()
     .expect(Selector('#or-banner').find('a').innerText).eql('View Profile')
     .expect(Selector('#show-dblp-import-modal').getAttribute('disabled')).eql('disabled')
-    .expect(Selector('ul.submissions-list').find('.note').count).eql(3) // has 1 publication note
+    .expect(Selector('ul.submissions-list').exists).notOk() // show imported papers only
     .expect(saveProfileButton.exists).ok()
     // make some changes and save
     // add a name
     .click(nameSectionPlusIconSelector)
-    .typeText(editFirstNameInputSelector, '111')
+    .typeText(editFirstNameInputSelector, '111', { paste: true })
     .expect(errorMessageSelector.innerText).eql('The first name 111 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed')
     .typeText(editFirstNameInputSelector, '`', { replace: true })
     .expect(errorMessageSelector.innerText).eql('The first name ` is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed')
@@ -82,7 +82,7 @@ test('user open own profile', async (t) => {
     // personal links
     .expect(Selector('#show-dblp-import-modal').getAttribute('disabled')).eql('disabled')
     .typeText(Selector('#dblp_url'), 'test')
-    .expect(Selector('#show-dblp-import-modal').getAttribute('disabled')).eql(undefined) // button is enabled
+    .expect(Selector('#show-dblp-import-modal').getAttribute('disabled')).eql(null) // button is enabled
     // save
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText).eql('test is not a valid URL')
@@ -108,12 +108,12 @@ test('import paper from dblp', async (t) => {
     .click(persistentUrlInput) // to make sure input get focus
     .typeText(persistentUrlInput, testPersistentUrl)
     .click(showPapersButton)
-    .expect(Selector('#dblp-import-modal').find('div.modal-body').innerText).contains('Please ensure that the DBLP URL provided is yours and the name used in your DBLP papers is listed in your profile.')
+    .expect(Selector('#dblp-import-modal').find('div.modal-body>p').nth(0).innerText).contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.')
     .click(dblpImportModalCancelButton)
     // put persistent url of other people in page
     .typeText(Selector('input#dblp_url'), testPersistentUrl, { replace: true })
     .click(addDBLPPaperToProfileButton)
-    .expect(Selector('#dblp-import-modal').find('div.modal-body').innerText).contains('Please ensure that the DBLP URL provided is yours and the name used in your DBLP papers is listed in your profile.')
+    .expect(Selector('#dblp-import-modal').find('div.modal-body>p').nth(0).innerText).contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.')
     .click(dblpImportModalCancelButton)
     // add name to skip validation error
     .click(nameSectionPlusIconSelector)

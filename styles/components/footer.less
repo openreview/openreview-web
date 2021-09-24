@@ -26,6 +26,11 @@ footer {
     a {
       color: @darkBlue;
     }
+    @media @phone-only {
+      a {
+        font-size: .75rem;
+      }
+    }
   }
 
   &.sponsor {
@@ -46,7 +51,11 @@ footer {
     }
 
     @media @phone-only {
-      min-height: 99px;
+      min-height: 59px;
+
+      p {
+        font-size: 9px;
+      }
     }
   }
 

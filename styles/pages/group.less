@@ -71,6 +71,9 @@ main.group, main.invitation {
       hr {
         display: none;
       }
+      .note_content_section > hr {
+        display: block;
+      }
       .hint {
         margin-bottom: .25rem;
       }
@@ -126,6 +129,23 @@ main.group, main.invitation {
     }
     .btn {
       margin-right: .25rem;
+    }
+    input.invalid-value {
+      border-color: @orRed;
+    }
+    .tooltip {
+      width:300px;
+    }
+    .tooltip-arrow {
+      left: 20%;
+    }
+    .tooltip-inner {
+      width: 100%;
+      max-width: none;
+      text-align: left;
+      .tooltip-title {
+        margin-left: 30%;
+      }
     }
   }
 
@@ -222,8 +242,8 @@ main.group, main.invitation {
 
   // Edit and Info Mode
   section {
-    &.general, &.members, &.children, &.invitations,
-    &.subinvitations, &.webfield, &.process, &.reply, &.tabs, &.notes {
+    &.general, &.members, &.children, &.invitations, &.messages,
+    &.subinvitations, &.webfield, &.process, &.preprocess, &.reply, &.tabs, &.notes {
       margin-bottom: 1.75rem;
       h4 {
         margin-bottom: 1rem;
@@ -295,10 +315,11 @@ main.group, main.invitation {
     margin-bottom: 0rem;
     dt {
       width: 110px;
-      text-align: left;
+      text-align: right;
     }
     dd {
       margin-left: 120px;
+      margin-bottom: .2rem;
     }
   }
 
@@ -384,14 +405,14 @@ main.group, main.invitation {
     margin-top: .75rem;
   }
 
-  #webfield-editor, #process-editor {
+  #webfield-editor, #process-editor, #preprocess-editor {
     width: 100%;
     height: 600px;
     margin-bottom: 1rem;
     border: 1px solid #eee;
   }
 
-  section.webfield, section.process {
+  section.webfield, section.process, section.preprocess {
     .alert {
       margin-top: 1rem;
       margin-bottom: .5rem;
@@ -417,6 +438,18 @@ main.group, main.invitation {
       width: 100%;
       max-width: 800px;
       margin-bottom: .5rem;
+    }
+  }
+
+  section.messages {
+    h4 {
+      margin-bottom: 1.25rem;
+    }
+    .progress {
+      margin-bottom: 1rem;
+    }
+    .progress-bar {
+      background-color: @mediumBlue;
     }
   }
 

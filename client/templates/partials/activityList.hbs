@@ -1,7 +1,11 @@
 <ul class="list-unstyled submissions-list activity-list">
   {{#each notes}}
     <li class="note note-activity {{#if details.isDeleted}}trashed{{/if}}" data-id="{{id}}">
+    {{#if (isEqual version 2)}}
+      {{> noteActivityV2 options=../activityOptions}}
+    {{else}}
       {{> noteActivity options=../activityOptions}}
+    {{/if}}
     </li>
   {{else}}
     <li><p class="empty-message">{{activityOptions.emptyMessage}}</p></li>

@@ -22,6 +22,7 @@ const Footer = () => (
               <li><Link href="/contact"><a>Contact</a></Link></li>
               {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
               <li><a href="#" data-toggle="modal" data-target="#feedback-modal">Feedback</a></li>
+              <li><Link href="/sponsors"><a>Sponsors</a></Link></li>
               <li><a className="join-the-team" href="https://codeforscience.org/jobs?job=OpenReview-Developer" target="_blank" rel="noopener noreferrer"><strong>Join the Team</strong></a></li>
             </ul>
           </div>
@@ -42,6 +43,7 @@ const Footer = () => (
               <li><Link href="/about"><a>About OpenReview</a></Link></li>
               <li><Link href={`/group?id=${process.env.SUPER_USER}/Support`}><a>Hosting a Venue</a></Link></li>
               <li><Link href="/venues"><a>All Venues</a></Link></li>
+              <li><Link href="/sponsors"><a>Sponsors</a></Link></li>
               <li><a className="join-the-team" href="https://codeforscience.org/jobs?job=OpenReview-Developer" target="_blank" rel="noopener noreferrer"><strong>Join the Team</strong></a></li>
             </ul>
           </div>
@@ -66,16 +68,22 @@ const Footer = () => (
         <div className="row">
           <div className="col-sm-10 col-sm-offset-1">
             <p className="text-center">
-              OpenReview is created by the
-              {' '}
-              <a href="http://www.iesl.cs.umass.edu/" target="_blank" rel="noopener noreferrer">
-                Information Extraction and Synthesis Laboratory
+              <a href="/about" target="_blank" rel="noopener noreferrer">
+                OpenReview
               </a>
-              , College of Information and Computer Science, University of Massachusetts Amherst.
-              We gratefully acknowledge the support of the OpenReview sponsors:  Google,  Facebook,
-              NSF, the University of Massachusetts Amherst Center for Data Science, and Center for
-              Intelligent Information Retrieval, as well as the Google Cloud Platform for donating
-              the computing and networking services on which OpenReview.net runs.
+              {' '}
+              is a long-term project to advance science through improved peer review,
+              with legal nonprofit status through
+              {' '}
+              <a href="https://codeforscience.org/" target="_blank" rel="noopener noreferrer">
+                Code for Science & Society
+              </a>
+              . We gratefully acknowledge the support of the
+              {' '}
+              <a href="/sponsors" target="_blank" rel="noopener noreferrer">
+                OpenReview Sponsors
+              </a>
+              .
             </p>
           </div>
         </div>

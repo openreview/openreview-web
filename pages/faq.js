@@ -121,7 +121,7 @@ This is what the Pythagorean theorem $x^2 + y^2 = z^2$ looks like.
 Here is an example of multiple integrals:
 
 $$
-\\iiiint_V \\mu(t,u,v,w) \\,dt\\,du\\,dv\\,dw
+\\iiiint_V \\mu(t,u,v,w) \\\\,dt\\\\,du\\\\,dv\\\\,dw
 $$
 \`\`\`
 will be displayed as:
@@ -213,6 +213,15 @@ You can click on the minus icon to remove a publication from your profile. If yo
 
 You must click the "**Save Profile Changes**" button at the bottom of the page so that selected publications are removed from your profile.
 `,
+  }, {
+    q: 'How do I add a publication manually?',
+    id: 'question-upload-manually',
+    a: `If one or more publications are not present in your DBLP homepage, you can use our direct upload page to manually upload your missing publications.
+    Please go to the [OpenReview.net Archive page](/group?id=OpenReview.net/Archive) and follow the instructions listed on the page.`,
+  }, {
+    q: 'How can I edit my submission after the deadline?',
+    id: 'question-edit-submission-after-deadline',
+    a: 'If revisions have been enabled by your venue\'s Program Chairs, you may edit your submission by clicking the Revision button on its forum page. You can find your submission by going to the Author console listed in the venue\'s home page or by going to your profile under the section \'Recent Publications\'.',
   }, {
     q: 'Where can I find the Semantic Scholar URL?',
     id: 'question-semantic-scholar',
@@ -372,8 +381,8 @@ Note that assigning an area chair using python does not send an email to that us
     a: 'If an author cannot access their own submission, they must make sure that the email address associated with the submission has been added to their profile and confirmed.',
   }, {
     q: 'How can I edit a submission after the deadline?',
-    id: 'question-edit-submission-after-deadline',
-    a: 'To edit a submission after the deadline, go to the forum of the paper you wish to edit and click on the edit button. Similarly, you can use the trash button to delete the submission.',
+    id: 'question-edit-submission-after-deadline-pc',
+    a: 'In order to edit a submission after the deadline, you can go to the forum of the paper you wish to edit and click on the edit button. Similarly, you can use the trash button to delete the submission. You can also allow authors to edit their submissions after the deadline by enabling a \'Submission Revision Stage\' for your venue. ',
   }, {
     q: 'How do I make submissions public after the decisions are made?',
     id: 'question-release-submissions',

@@ -97,7 +97,6 @@ const Relation = ({ relationships, highlightValue }) => (
   </table>
 )
 
-// eslint-disable-next-line no-shadow
 const Expertise = ({ expertises, highlightValue }) => (
   <table>
     <tbody>
@@ -210,6 +209,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   const [withSignatureProfiles, setWithSignatureProfiles] = useState(null)
   const [highlightValues, setHighlightValues] = useState(null)
   const [fields, setFields] = useState([])
+  const [edgeCounts, setEdgeCounts] = useState(null)
   const { setBannerHidden } = appContext
 
   const getPublications = async (profileId) => {
@@ -396,6 +396,19 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     }
   }
 
+  const renderEdgeLink = (count, headTail, id) => {
+    if (count === 0) return `no ${headTail} edge`
+    return (
+      <>
+        <a href={`${process.env.API_URL}/edges?${headTail}=${id}`} target="_blank" rel="noreferrer">{count}</a>
+        {' '}
+        {headTail}
+        {' '}
+        edges
+      </>
+    )
+  }
+
   const mergeProfile = (from, to) => {
     const fromProfile = { id: basicProfiles[from].id, active: basicProfiles[from].active }
     const toProfile = { id: basicProfiles[to].id, active: basicProfiles[to].active }
@@ -418,6 +431,27 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     }
   }
 
+  const getEdges = async () => {
+    if (!basicProfiles.left?.id
+      || !basicProfiles.right?.id
+      || basicProfiles.left.id === basicProfiles.right.id) return
+    try {
+      const leftHeadP = api.get('/edges', { head: basicProfiles.left.id }, { accessToken })
+      const leftTailP = api.get('/edges', { tail: basicProfiles.left.id }, { accessToken })
+      const rightHeadP = api.get('/edges', { head: basicProfiles.right.id }, { accessToken })
+      const rightTailP = api.get('/edges', { tail: basicProfiles.right.id }, { accessToken })
+      const results = await Promise.all([leftHeadP, leftTailP, rightHeadP, rightTailP])
+      setEdgeCounts({
+        leftHead: results[0].count,
+        leftTail: results[1].count,
+        rightHead: results[2].count,
+        rightTail: results[3].count,
+      })
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
   useEffect(() => {
     setBannerHidden(true)
 
@@ -434,6 +468,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       left: addSignatureToProfile(basicProfiles.left),
       right: addSignatureToProfile(basicProfiles.right),
     })
+    getEdges()
   }, [basicProfiles])
 
   useEffect(() => {
@@ -515,6 +550,26 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                   </td>
                 </tr>
               ))}
+              {
+                edgeCounts
+                && (
+                  <tr>
+                    <td>
+                      <strong>Edges</strong>
+                    </td>
+                    <td colSpan="2">
+                      {renderEdgeLink(edgeCounts.leftHead, 'head', basicProfiles.left.id)}
+                      {', '}
+                      {renderEdgeLink(edgeCounts.leftTail, 'tail', basicProfiles.left.id)}
+                    </td>
+                    <td colSpan="2">
+                      {renderEdgeLink(edgeCounts.rightHead, 'head', basicProfiles.right.id)}
+                      {', '}
+                      {renderEdgeLink(edgeCounts.rightTail, 'tail', basicProfiles.right.id)}
+                    </td>
+                  </tr>
+                )
+              }
             </tbody>
           </table>
         ) : (

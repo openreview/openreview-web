@@ -7,7 +7,7 @@ const waitForJobs = (noteId, superUserToken) => new Promise((resolve, reject) =>
   const interval = setInterval(async () => {
     try {
       const statuses = await getJobsStatus(superUserToken)
-      if (statuses.pyQueueStatus.failed > 0) {
+      if (Object.values(statuses).some((p: any) => p.failed > 0)) {
         clearInterval(interval)
         reject(new Error('Process function failed'))
       }
@@ -15,7 +15,7 @@ const waitForJobs = (noteId, superUserToken) => new Promise((resolve, reject) =>
         .reduce((count, job: any) => count + job.waiting + job.active + job.delayed, 0)
       if (queueCount === 0) {
         clearInterval(interval)
-        resolve()
+        resolve(null)
       }
     } catch (err) {
       clearInterval(interval)
@@ -30,7 +30,7 @@ fixture`Setup data`
     await setupProfileViewEdit(ctx.superUserToken)
     await setupRegister(ctx.superUserToken)
     await createUser({
-      first: 'Test',
+      first: 'SomeFirstName',
       last: 'User',
       email: 'test@mail.com',
       password: '1234',
@@ -38,7 +38,7 @@ fixture`Setup data`
     })
     await createUser({
       first: 'John',
-      last: 'Test',
+      last: 'SomeLastName',
       email: 'john@mail.com',
       password: '1234',
       history: undefined,
@@ -313,6 +313,7 @@ test('setup ICLR', async (t) => {
       desk_rejected_submissions_author_anonymity: 'No, author identities of desk rejected submissions should not be revealed.',
       'How did you hear about us?': 'ML conferences',
       'Expected Submissions': '6000',
+      reviewer_identity: ['Program Chairs', 'Assigned Area Chair'],
     },
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)

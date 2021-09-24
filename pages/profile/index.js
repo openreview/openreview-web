@@ -149,6 +149,7 @@ const RecentPublications = ({
     pdfLink: false,
     htmlLink: false,
     showContents: false,
+    showPrivateIcon: true,
   }
   const numPublicationsToShow = 10
 
@@ -231,14 +232,18 @@ const Profile = ({ profile, publicProfile, appContext }) => {
   const profileQuery = useQuery()
   const { setBannerHidden, setBannerContent } = appContext
 
+  const uniqueNames = profile.names.filter(name => !name.duplicate)
+  const sortedNames = [...uniqueNames.filter(p => p.preferred), ...uniqueNames.filter(p => !p.preferred)]
+
   const loadPublications = async () => {
     let apiRes
+    const queryParam = {
+      'content.authorids': profile.id,
+      sort: 'cdate:desc',
+      limit: 1000,
+    }
     try {
-      apiRes = await api.get('/notes', {
-        'content.authorids': profile.id,
-        sort: 'cdate:desc',
-        limit: 1000,
-      }, { token: accessToken })
+      apiRes = await api.getCombined('/notes', queryParam, null, { accessToken })
     } catch (error) {
       apiRes = error
     }
@@ -246,6 +251,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
       setPublications(apiRes.notes)
       setCount(apiRes.count)
     }
+    $('[data-toggle="tooltip"]').tooltip({ container: 'body' })
   }
 
   useEffect(() => {
@@ -260,6 +266,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
     // Always show user's preferred username in the URL
     if (profileQuery.email || (profileQuery.id !== profile.preferredId)) {
       router.replace(`/profile?id=${profile.preferredId}`, undefined, { shallow: true })
+      return
     }
 
     if (profile.id === user?.profile?.id) {
@@ -267,8 +274,6 @@ const Profile = ({ profile, publicProfile, appContext }) => {
     }
 
     loadPublications()
-
-    $('[data-toggle="tooltip"]').tooltip()
   }, [profile, profileQuery, user, userLoading, accessToken])
 
   useEffect(() => {
@@ -300,9 +305,11 @@ const Profile = ({ profile, publicProfile, appContext }) => {
             actionLink="Suggest Name"
           >
             <div className="list-compact">
-              {profile.names.filter(name => !name.duplicate)
-                .map(name => <ProfileName key={name.username || (name.first + name.last)} name={name} />)
-                .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+              {
+                sortedNames
+                  .map(name => <ProfileName key={name.username || (name.first + name.last)} name={name} />)
+                  .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)
+              }
             </div>
           </ProfileSection>
 
@@ -390,7 +397,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
 
           <ProfileSection name="publications" title="Recent Publications">
             <RecentPublications
-              profileId={profile.id}
+              profileId={profile.preferredId}
               publications={publications}
               count={count}
               loading={!publications}

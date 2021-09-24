@@ -1,10 +1,16 @@
-/**
- * Changes:
- * - replaced first line with module.exports
- * - enabled CORS for ajax functions
- * - replaced all controller api calls with webfield versions
- * - add local token var and a new setToken method
- */
+/* globals _: false */
+/* globals $: false */
+/* globals Handlebars: false */
+/* globals moment: false */
+/* globals MathJax: false */
+/* globals Webfield: false */
+/* globals view: false */
+/* globals promptError: false */
+/* globals promptLogin: false */
+/* globals promptMessage: false */
+/* globals translateErrorMessage: false */
+/* globals typesetMathJax: false */
+
 module.exports = (function() {
   // Save authentication token as a private var
   var token;
@@ -107,8 +113,8 @@ module.exports = (function() {
     }).then(jqSuccessCallback, errorCallback);
   };
 
-  var getAll = function(url, queryObj, resultsKey) {
-    queryObj = queryObj || {};
+  var getAll = function(url, queryObjParam, resultsKey) {
+    const queryObj = {...queryObjParam};
     queryObj.limit = Math.min(queryObj.limit || 1000, 1000);
     var offset = queryObj.offset || 0;
 
@@ -167,10 +173,10 @@ module.exports = (function() {
     console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2));
 
     var errorText = getErrorFromJqXhr(jqXhr, textStatus);
-    var errorName = jqXhr.responseJSON.name;
-    var errorDetails = jqXhr.responseJSON.details;
-    var notSignatoryError = errorName === 'NotSignatoryError' && _.startsWith(errorDetails.user, 'guest_');
-    var forbiddenError = errorName === 'ForbiddenError' && _.startsWith(errorDetails.user, 'guest_');
+    var errorName = jqXhr.responseJSON?.name || jqXhr.responseJSON?.errors?.[0]?.type;
+    var errorDetails = jqXhr.responseJSON?.details || jqXhr.responseJSON?.errors?.[0];
+    var notSignatoryError = (errorName === 'notSignatory' || errorName === 'NotSignatoryError') && _.startsWith(errorDetails.user, 'guest_');
+    var forbiddenError = (errorName  === 'forbidden' || errorName === 'ForbiddenError') && _.startsWith(errorDetails.user, 'guest_');
 
     if (errorText === 'User does not exist') {
       location.reload(true);
@@ -194,22 +200,43 @@ module.exports = (function() {
   };
 
   var getErrorFromJqXhr = function(jqXhr, textStatus) {
-    var errorResponse = jqXhr.responseJSON;
-    var errorText = 'Something went wrong';
     if (textStatus === 'timeout') {
       // If the request timed out, display a special message and don't call
       // the onError callback to prevent it from chaining or not displaying the mesage.
       return 'OpenReview is currently under heavy load. Please try again soon.';
     }
 
-    if (errorResponse && errorResponse.message) {
-      errorText = errorResponse.message;
-    }
-    return errorText;
+    var error = jqXhr.responseJSON
+    // TODO: remove when migration to new error format is complete
+    if (error?.errors?.length > 0) return error.errors[0];
+
+    return error?.message || 'Something went wrong';
   };
 
   var setToken = function(newAccessToken) {
     token = newAccessToken;
+  };
+
+  var sendFile = function(url, data, contentType) {
+    var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
+    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
+    var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
+    return $.ajax({
+      url: baseUrl + url,
+      type: 'put',
+      cache: false,
+      dataType: 'json',
+      processData: false,
+      contentType: contentType ? contentType : false,
+      data: data,
+      headers:  Object.assign(defaultHeaders, authHeaders),
+      xhrFields: {
+        withCredentials: true
+      }
+    }).fail(function(jqXhr, textStatus, errorThrown) {
+      console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus);
+      console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2));
+    });
   };
 
   // API Functions
@@ -270,7 +297,7 @@ module.exports = (function() {
       source: 'forum',
       group: groupId,
       limit: options.pageSize,
-      offset: options.offset
+      offset: options.offset,
     };
 
     if (options.invitation) {
@@ -519,8 +546,8 @@ module.exports = (function() {
         });
         return;
       }
-
-      view.mkNewNoteEditor(invitationData, null, null, user, {
+      var newNoteEditorFn = invitationData.edit ? view2.mkNewNoteEditor : view.mkNewNoteEditor;
+      newNoteEditorFn(invitationData, null, null, user, {
         onCompleted: function($editor) {
           if (!$editor) return;
           $editor.hide();
@@ -534,6 +561,220 @@ module.exports = (function() {
 
     return $container.fadeIn().promise();
   };
+
+  // search filtering related functions
+  class TreeNode {
+    constructor(value, left, right) {
+      this.value = value
+      this.left = left
+      this.right = right
+    }
+  }
+  // parse search query to a tree
+  const queryToTree = (queryParam) => {
+    let currentOperand = null
+    let middleOfOperand = false
+    let stuffInBrackets = ''
+    let query = queryParam.trim()
+    const tokens = [...query]
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i];
+      if (t === 'A') {
+        if (`A${tokens[i + 1]}${tokens[i + 2]}` === 'AND') {
+          if (middleOfOperand) {
+            currentOperand += 'AND'
+            i = i + 2
+            continue
+          } else {
+            if (stuffInBrackets.length) {
+              return new TreeNode('AND', queryToTree(stuffInBrackets), queryToTree(query.slice(i + 3)))
+            } else {
+              return new TreeNode('AND', currentOperand, queryToTree(query.slice(i + 3)))
+            }
+          }
+        } else {
+          currentOperand ? currentOperand += t : currentOperand = t
+          continue
+        }
+      }
+      if (t === 'O') {
+        if (`O${tokens[i + 1]}` === 'OR') {
+          if (middleOfOperand) {
+            currentOperand += 'OR'
+            i = i + 1
+            continue
+          } else {
+            if (stuffInBrackets.length) {
+              return new TreeNode('OR', queryToTree(stuffInBrackets), queryToTree(query.slice(i + 2)))
+            } else {
+              return new TreeNode('OR', currentOperand, queryToTree(query.slice(i + 2)))
+            }
+          }
+        } else {
+          currentOperand ? currentOperand += t : currentOperand = t
+          continue
+        }
+      }
+      else if (t === '(') {
+        if (middleOfOperand) {
+          currentOperand += t
+        } else {
+          const lengthToRightBracket = getRightBracketIndex(query.slice(i + 1))
+          stuffInBrackets = query.slice(i + 1, i + lengthToRightBracket + 1)
+          i = i + lengthToRightBracket + 1
+          if (i === query.length - 1) return queryToTree(query.slice(1, -1))//no more expression
+          continue
+        }
+      }
+      else if (t === '"' || t==="'") {
+        middleOfOperand = !middleOfOperand
+      } else {
+        currentOperand ? currentOperand += t : currentOperand = t
+      }
+    }
+    return currentOperand
+  }
+
+  //find index of match right bracket
+  const getRightBracketIndex = (remainingQuery) => {
+    let bracketLevel = 0
+    let middleOfOperand = false
+    const tokens = [...remainingQuery]
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i];
+      if (t === ')') {
+        if (bracketLevel === 0) {
+          return i
+        } else {
+          bracketLevel -= 1
+        }
+      }
+      if (t === '(') {
+        if (!middleOfOperand) {
+          bracketLevel += 1
+        }
+      }
+      if (t === '"') {
+        middleOfOperand = !middleOfOperand
+      }
+    }
+  }
+
+  const filterTreeNode = (collections, treeNode, filterOperators, propertiesAllowed, uniqueIdentifier) => {
+    if (treeNode instanceof TreeNode) {
+      return combineResults(
+        filterTreeNode(collections, treeNode.left, filterOperators, propertiesAllowed, uniqueIdentifier),
+        filterTreeNode(collections, treeNode.right, filterOperators, propertiesAllowed, uniqueIdentifier),
+        treeNode.value, uniqueIdentifier
+      )
+    }
+    // single expression
+    return filterOneOperand(collections, treeNode, filterOperators, propertiesAllowed)
+  }
+
+  // extract property to search, the expected value and how the value should be compared
+  // like =,>,< from string of filtering criteria
+  const operandToPropertyValue = (operandPram, filterOperators) => {
+    const operand = operandPram.trim()
+    const filterOperator = filterOperators.find(p => operand.includes(p))
+    if (!filterOperator) throw new Error('operator is invalid')
+    const [property, value] = operand.split(filterOperator)
+    return {
+      property:property.trim(), value: value.replace(/"/g, '').trim(), filterOperator
+    }
+  }
+
+  const evaluateOperator = (operator, propertyValue, targetValue) => {
+    // propertyValue can be number/array/string/obj
+    let isString = false
+    if (propertyValue === null || propertyValue === undefined || targetValue === null || targetValue === undefined) return false
+    if (typeof (targetValue) === 'number' && propertyValue === 'N/A') propertyValue = 0
+    if (typeof (propertyValue) === 'object' && !Array.isArray(propertyValue)) { // reviewers are objects
+      propertyValue = [
+        ...Object.values(propertyValue).map(p => p.name),
+        ...Object.values(propertyValue).map(p => p.email)
+      ]
+      targetValue = targetValue.toString().toLowerCase()
+    }
+    if (!(typeof (propertyValue) === 'number' && typeof (targetValue) === 'number') && !Array.isArray(propertyValue)) {
+      propertyValue = propertyValue.toString().toLowerCase()
+      targetValue = targetValue.toString().toLowerCase()
+      isString = true
+    }
+    const allowGreaterLessComparison = !(typeof propertyValue === 'string' && typeof targetValue === 'string')
+    switch (operator) {
+      case '=':
+        if (Array.isArray(propertyValue)) return propertyValue.some(p => p.toString().toLowerCase().includes(targetValue.toString().toLowerCase()))
+        return isString ? propertyValue.includes(targetValue) : propertyValue === targetValue
+      case '>':
+        if (allowGreaterLessComparison) return propertyValue > targetValue
+        throw new Error('operator is invalid')
+      case '<':
+        if (allowGreaterLessComparison) return propertyValue < targetValue
+        throw new Error('operator is invalid')
+      case '>=':
+        if (allowGreaterLessComparison) return propertyValue >= targetValue
+        throw new Error('operator is invalid')
+      case '<=':
+        if (allowGreaterLessComparison) return propertyValue <= targetValue
+        throw new Error('operator is invalid')
+      case '!=':
+        if (Array.isArray(propertyValue)) return !propertyValue.some(p => p.toString().toLowerCase().includes(targetValue.toString().toLowerCase()))
+        return propertyValue !== targetValue
+      default:
+        throw new Error('operator is invalid')
+    }
+  }
+
+  // filter a collection by 1 filter criteria
+  const filterOneOperand = (collections, operand, filterOperators, propertiesAllowed) => {
+    if (!operand || operand.trim().length === 0) return null
+    const { property, value, filterOperator } = operandToPropertyValue(operand, filterOperators)
+    if (!propertiesAllowed[property]) throw new Error('property is invalid')
+    const propertyPath = propertiesAllowed[property].length === 0
+      ? [property] // not a nested property
+      : propertiesAllowed[property].map(p => p.split('.')) // has dot or match multiple properties
+
+    const convertedValue = isNaN(Number(value))?value:Number(value)
+    return collections.filter(p => {
+      if (propertyPath.length === 1) {
+        return evaluateOperator(filterOperator, propertyPath[0].reduce((r, s) => r?.[s], p), convertedValue)
+      }
+      return propertyPath.map(q => q.reduce((r, s) => r?.[s], p))
+        .some(t => evaluateOperator(filterOperator, t, convertedValue))
+    })
+  }
+
+  // combind two collections by operator AND(intersection) or OR(unique union)
+  const combineResults = (collection1, collection2, operator, uniqueIdentifier) => {
+    if (!collection1) {
+      if (!collection2) {
+        return []
+      }
+      return collection2
+    }
+    if (!collection2) return collection1
+    const propertyPath = uniqueIdentifier.includes('.') ? uniqueIdentifier.split('.') : [uniqueIdentifier]
+    switch (operator) {
+      case 'OR':
+        return [...new Set([...collection1, ...collection2])]
+      case 'AND':
+        const collection2UniqueIdentifiers = collection2.map(p => propertyPath.reduce((r, s) => r?.[s], p))
+        return collection1.filter(p => collection2UniqueIdentifiers.includes(propertyPath.reduce((r, s) => r?.[s], p)))
+      default:
+        return []
+    }
+  }
+
+  const filterCollections = (collections, filterString, filterOperators, propertiesAllowed, uniqueIdentifier) => {
+    try {
+      const syntaxTree = queryToTree(filterString)
+      const filterResult = filterTreeNode(collections, syntaxTree, filterOperators, propertiesAllowed, uniqueIdentifier)
+      return { filteredRows: filterResult }
+    } catch (error) {
+      return { filteredRows: collections, queryIsInvalid: true }
+    }
+  }
 
   // Deprecated
   var invitationForm = function(invitationData, user, options) {
@@ -592,6 +833,8 @@ module.exports = (function() {
         invitation: null,
         subjectAreas: null,
         subjectAreaDropdown: 'advanced',
+        pageSize: 1000,
+        placeholder: 'Search by paper title and metadata',
         onResults: function() {},
         onReset: function() {}
       },
@@ -685,7 +928,7 @@ module.exports = (function() {
             if (term) {
               filterNotes(notes, {
                 term: term,
-                pageSize: 1000,
+                pageSize: options.search.pageSize,
                 invitation: options.search.invitation,
                 onResults: options.search.onResults,
                 localSearch: options.search.localSearch
@@ -711,7 +954,7 @@ module.exports = (function() {
             } else {
               filterNotes(notes, {
                 term: term,
-                pageSize: 1000,
+                pageSize: options.search.pageSize,
                 subject: selectedSubject,
                 invitation: options.search.invitation,
                 onResults: options.search.onResults,
@@ -744,7 +987,7 @@ module.exports = (function() {
 
             filterNotes(notes, {
               term: term,
-              pageSize: 1000,
+              pageSize: options.search.pageSize,
               subject: selectedSubject,
               invitation: options.search.invitation,
               onResults: options.search.onResults,
@@ -755,47 +998,48 @@ module.exports = (function() {
       }
 
       // Set up handler for basic text search
-      var searchFormHandler = function() {
-        var $formElem = $(this).closest('form.notes-search-form');
-        var term = $formElem.find('.search-content input').val().trim().toLowerCase();
+      var searchFormHandler = function(minLength) {
+        return function() {
+          var $formElem = $(this).closest('form.notes-search-form');
+          var term = $formElem.find('.search-content input').val().trim().toLowerCase();
 
-        var $subjectDropdown;
-        var selectedSubject = '';
-        if (options.search.subjectAreaDropdown === 'advanced') {
-          $subjectDropdown = $formElem.find('.subject-area-dropdown input');
-        } else {
-          $subjectDropdown = $formElem.find('.subject-area-dropdown');
+          var $subjectDropdown;
+          var selectedSubject = '';
+          if (options.search.subjectAreaDropdown === 'advanced') {
+            $subjectDropdown = $formElem.find('.subject-area-dropdown input');
+          } else {
+            $subjectDropdown = $formElem.find('.subject-area-dropdown');
+          }
+          if ($subjectDropdown.length) {
+            selectedSubject = $subjectDropdown.val().trim();
+          }
+          var filterSubjects = selectedSubject && selectedSubject !== 'All';
+
+          if (!term && !filterSubjects) {
+            options.search.onReset();
+          } else if (term.length >= minLength || (!term && filterSubjects)) {
+            $formElem.append(Handlebars.templates.spinner({ extraClasses: 'spinner-mini' }));
+
+            // Use a timeout so the loading indicator will show
+            setTimeout(function() {
+              var extraParams = filterSubjects ? {subject: selectedSubject} : {};
+              filterNotes(notes, _.assign({
+                term: term,
+                pageSize: options.search.pageSize,
+                invitation: options.search.invitation,
+                onResults: options.search.onResults,
+                localSearch: options.search.localSearch
+              }, extraParams));
+              $formElem.find('.spinner-container').remove();
+            }, 50);
+          }
+
+          return false;
         }
-        if ($subjectDropdown.length) {
-          selectedSubject = $subjectDropdown.val().trim();
-        }
-        var filterSubjects = selectedSubject && selectedSubject !== 'All';
-
-        if (!term && !filterSubjects) {
-          options.search.onReset();
-        } else if (term.length > 2 || (!term && filterSubjects)) {
-          $formElem.append(Handlebars.templates.spinner({ extraClasses: 'spinner-mini' }));
-
-          // Use a timeout so the loading indicator will show
-          setTimeout(function() {
-            var extraParams = filterSubjects ? {subject: selectedSubject} : {};
-            filterNotes(notes, _.assign({
-              term: term,
-              pageSize: 1000,
-              invitation: options.search.invitation,
-              onResults: options.search.onResults,
-              localSearch: options.search.localSearch
-            }, extraParams));
-            $formElem.find('.spinner-container').remove();
-          }, 50);
-        }
-
-
-        return false;
       };
 
-      $container.on('submit', 'form.notes-search-form', searchFormHandler);
-      $container.on('keyup', 'form.notes-search-form .search-content input', _.debounce(searchFormHandler, 400));
+      $container.on('submit', 'form.notes-search-form', searchFormHandler(2));
+      $container.on('keyup', 'form.notes-search-form .search-content input', _.debounce(searchFormHandler(3), 400));
 
       // Set up sorting handler
       if (!_.isEmpty(options.search.sort)) {
@@ -839,7 +1083,7 @@ module.exports = (function() {
         var $self = $(this);
         var $widget = $self.closest('.tag-widget');
         var $note = $self.closest('.note');
-        var newValue = $self.text().trim();
+        var newValue = $self.data('value') || $self.text().trim();
         var tagId = $widget.data('id') || null;
         var isTagWidget = !$widget.hasClass('edge-widget');
         var returnVal;
@@ -1152,7 +1396,7 @@ module.exports = (function() {
 
       note.details.isForum = note.forum === note.id;
 
-      var invitationArr = note.invitation.split('/-/');
+      var invitationArr = note.version === 2 ? note.invitations[0].split('/-/') : note.invitation.split('/-/');
       note.details.group = invitationArr[0];
 
       var invitationLower = invitationArr[1].toLowerCase();
@@ -1461,7 +1705,8 @@ module.exports = (function() {
   var groupEditor = function(group, options) {
     var defaults = {
       container: '#notes',
-      showAddForm: true
+      showAddForm: true,
+      isSuperUser: false
     };
     options = _.defaults(options, defaults);
 
@@ -1474,7 +1719,19 @@ module.exports = (function() {
     var editor;
 
     // Helper functions
-    var renderMembersTable = function(groupMembers, removedMembers, startPage) {
+    var renderMembersTable = async function(groupMembers, removedMembers, startPage) {
+      let memberAnonIdMap = new Map()
+      if (group.anonids && options.isSuperUser) {
+        const anonGroupRegex = groupId.endsWith('s') ? `${groupId.slice(0, -1)}_` : `${groupId}_`
+        const result = await get(`/groups?regex=${anonGroupRegex}`)
+        groupMembers.forEach(m => {
+          const anonId = result.groups.find(p => p?.members == m)?.id
+          memberAnonIdMap.set(m, {
+            id: anonId,
+            prettyId: anonId ? view.prettyId(anonId) : null
+          })
+        })
+      }
       var limit = 15;
       var membersCount = groupMembers ? groupMembers.length : 0;
       var removedCount = removedMembers ? removedMembers.length : 0;
@@ -1491,13 +1748,14 @@ module.exports = (function() {
           selectedMembers: selectedMembers,
           searchTerm: searchTerm,
           addButtonEnabled: addButtonEnabled,
+          memberAnonIdMap: memberAnonIdMap,
           options: { showAddForm: options.showAddForm }
         }
       ));
 
       // Move cursor to end of the search input
       var $input = $section.find('.group-members-form .add-member-input');
-      $input.focus();
+      $input.trigger('focus');
       var pos = searchTerm.length;
       if ($input[0].setSelectionRange) {
         $input[0].setSelectionRange(pos, pos);
@@ -1537,8 +1795,6 @@ module.exports = (function() {
           return false;
         });
       }
-
-      $section.append('<a href="/messages?parentGroup=' + group.id + '" target="_blank" rel="nofollow">View Messages sent to this group</a>')
     };
 
     var getOffsetFromPageNum = function(limit, membersCount, pageNum) {
@@ -1613,8 +1869,9 @@ module.exports = (function() {
       groupParent: groupParent,
       groupMembersCount: membersCount,
       removedMembers: removedMembers,
-      options: { showAddForm: options.showAddForm }
+      isSuperUser: options.isSuperUser
     }));
+    $container.off();
 
     renderMembersTable(group.members, removedMembers);
     loadChildGroups(groupId);
@@ -1636,7 +1893,11 @@ module.exports = (function() {
       $submitButton.addClass('disabled');
 
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
-        result[field.name] = _.compact(field.value.split(',').map(_.trim));
+        if (field.name === 'anonids') {
+          result[field.name] = field.value === '' ? null : field.value === 'True';
+        } else {
+          result[field.name] = _.compact(field.value.split(',').map(_.trim));
+        }
         return result;
       }, {});
 
@@ -1654,12 +1915,15 @@ module.exports = (function() {
             Handlebars.templates['partials/groupInfoTable']({
               group: group,
               groupParent: groupParent,
-              editable: true
+              editable: true,
+              isSuperUser: options.isSuperUser
             })
           );
           showAlert('Settings for ' + view.prettyId(groupId) + ' updated');
         }).always(function() {
           $submitButton.removeClass('disabled');
+          //may need to show/remove annon id
+          if(options.isSuperUser) renderMembersTable(group.members, removedMembers);
         });
       });
 
@@ -1847,17 +2111,20 @@ module.exports = (function() {
         groups: groupIds,
         subject: subject,
         message: message,
-        parentGroup: groupId
+        parentGroup: groupId,
+        useJob: true
       }, { handleErrors: false })
         .then(function(response) {
           $('#message-group-members-modal').modal('hide');
 
-          var messagedIds = getMessagedIds(response.groups);
-          showAlert('Email sent to ' + messagedIds.length + ' group member' + (messagedIds.length === 1 ? '' : 's'));
+          var scrollPos = $container.find('section.messages').offset().top - 51 - 12;
+          $('html, body').animate({scrollTop: scrollPos}, 400);
+
+          showEmailProgress(response.jobId)
 
           // Save the timestamp in the local storage (used in PC console)
-          for (var i = 0; i < messagedIds.length; i++) {
-            localStorage.setItem(groupId + '|' + messagedIds[i], Date.now());
+          for (var i = 0; i < groupIds.length; i++) {
+            localStorage.setItem(groupId + '|' + groupIds[i], Date.now());
           }
         })
         .fail(function(jqXhr, textStatus) {
@@ -1894,6 +2161,68 @@ module.exports = (function() {
       }
 
       return messagedIds;
+    };
+
+    var showEmailProgress = function(jobId) {
+      var $progress = $container.find('section.messages .progress').show();
+      var failures = 0;
+      var loadProgress = function() {
+        get('/logs/process', { id: jobId }).then(function(response) {
+          if (!response.logs || !response.logs.length) {
+            return $.Deferred().reject('Email progress could not be loaded. See link below for more details.');
+          }
+          var status = response.logs[0];
+
+          if (status.status === 'error') {
+            return $.Deferred().reject('Error: ' + status.error.message);
+          }
+          if (!status.progress || !status.progress.groupsProcessed) {
+            return $.Deferred().reject('Email progress could not be loaded. See link below for more details.');
+          }
+          var queued = status.progress.groupsProcessed[0];
+          var totalQueued = status.progress.groupsProcessed[1];
+          var sent = status.progress.emailsProcessed ? status.progress.emailsProcessed[0] : 0;
+          var totalSent = status.progress.emailsProcessed ? status.progress.emailsProcessed[1] : 0;
+          var isQueuing = queued < totalQueued;
+          var percentComplete = _.round((isQueuing ? (queued / totalQueued) : (sent / totalSent)) * 100, 2);
+
+          var statusText;
+          if (status.status === 'ok') {
+            statusText = '<strong>All ' + totalSent + ' emails have been sent</strong>' +
+              '<br><br><em>Note: The number of emails sent may not exactly match the number of users you selected if multiple IDs belonging to the same user were included.</em>'
+          } else if (isQueuing) {
+            statusText = '<strong>Queuing emails:</strong> ' + queued + ' / ' + totalQueued + ' complete'
+          } else {
+            statusText = '<strong>Sending emails:</strong> ' + sent + ' / ' + totalSent + ' complete'
+          }
+
+          $progress.find('.progress-bar')
+            .attr('aria-valuenow', isQueuing ? queued : sent)
+            .attr('aria-valuemax', isQueuing ? totalQueued : totalSent)
+            .css('width', percentComplete + '%')
+            .find('span').text(percentComplete + '%');
+          $container.find('section.messages .progress-status')
+            .html(statusText);
+
+          if (status.status === 'ok') {
+            clearInterval(refreshTimer)
+          }
+        }).fail(function(err) {
+          $container.find('section.messages .progress-status').text(err);
+
+          failures += 1;
+          if (failures > 5) {
+            clearInterval(refreshTimer);
+          }
+        });
+      };
+      var refreshTimer = setInterval(loadProgress, 1000);
+
+      $container.find('section.messages .progress-bar')
+        .attr('aria-valuenow', 0).attr('aria-valuemax', 10).css('width', 0 + '%').find('span').text(0 + '%');
+      $container.find('section.messages .progress-status')
+        .text('');
+      loadProgress();
     };
 
     $container.on('change', 'tbody input[type="checkbox"]', function() {
@@ -2138,7 +2467,7 @@ module.exports = (function() {
   };
 
   var renderGroupListItem = function(group) {
-    var groupUrl = '/group?id=' + group.id;
+    var groupUrl = '/group/edit?id=' + group.id;
     if (group.id.indexOf('~') === 0) {
       groupUrl = '/profile?id=' + group.id;
     } else if (group.id.indexOf('@') !== -1) {
@@ -2147,7 +2476,7 @@ module.exports = (function() {
 
     return [
       '<li data-id="' + group.id + '">',
-        '<a href="' + groupUrl + '&mode=edit">' + view.prettyId(group.id) + '</a>',
+        '<a href="' + groupUrl + '">' + view.prettyId(group.id) + '</a>',
       '</li>'
     ].join('\n');
   };
@@ -2156,7 +2485,7 @@ module.exports = (function() {
     var id = invitation.id;
     return [
       '<li data-id="' + id + '">',
-        '<a href="/invitation?id=' + id + '&mode=edit">' + view.prettyId(id) + '</a>',
+        '<a href="/invitation/edit?id=' + id + '">' + view.prettyId(id) + '</a>',
       '</li>'
     ].join('\n');
   };
@@ -2243,7 +2572,7 @@ module.exports = (function() {
       invitation: invitation,
       parentGroupId: parentGroupId,
       replyJson: JSON.stringify(invitation.reply, undefined, 4),
-      options: {}
+      options: { apiVersion: 1 }
     }));
 
     loadChildInvitations(invitation.id);
@@ -2266,9 +2595,11 @@ module.exports = (function() {
       replyJson: JSON.stringify(invitation.reply, undefined, 4),
       replyForumViewsJson: JSON.stringify(invitation.replyForumViews || [], undefined, 4),
       options: {
-        showProcessEditor: options.showProcessEditor
+        showProcessEditor: options.showProcessEditor,
+        apiVersion: 1,
       }
     }));
+    $container.off();
 
     loadChildInvitations(invitation.id);
     setupDatePickers();
@@ -2367,6 +2698,8 @@ module.exports = (function() {
       var formData = _.reduce($(this).serializeArray(), function(result, field) {
         if (field.name === 'multiReply') {
           result[field.name] = field.value === '' ? null : field.value === 'True';
+        } else if (field.name === 'hideOriginalRevisions') {
+          result[field.name] = field.value === '' ? null : field.value === 'True';
         } else if (field.name === 'taskCompletionCount') {
           result[field.name] = field.value ? parseInt(field.value, 10) : null;
         } else if (field.name === 'duedate' || field.name === 'expdate' || field.name === 'cdate') {
@@ -2380,7 +2713,7 @@ module.exports = (function() {
           result[field.name] = _.compact(field.value.split(',').map(_.trim));
         }
         return result;
-      }, { multiReply: null });
+      }, { multiReply: null, hideOriginalRevisions: null });
 
       updateInvitation(formData)
         .then(function(response) {
@@ -2395,7 +2728,8 @@ module.exports = (function() {
             Handlebars.templates['partials/invitationInfoTable']({
               invitation: invitation,
               parentGroupId: parentGroupId,
-              editable: true
+              editable: true,
+              apiVersion: 1,
             })
           );
           setupDatePickers();
@@ -2435,7 +2769,7 @@ module.exports = (function() {
 
       var updateObj = $(this).hasClass('invitation-reply-form')
         ? { reply: parsedObj }
-        : { replyForumViews : parsedObj };
+        : { replyForumViews: parsedObj };
       updateInvitation(updateObj)
         .then(function(response) {
           invitation = response;
@@ -2480,9 +2814,12 @@ module.exports = (function() {
         if ($section.hasClass('webfield')) {
           editorType = 'webfield';
           codeToEdit = response.invitations[0].web;
-        } else {
+        } else if ($section.hasClass('process')) {
           editorType = 'process';
           codeToEdit = response.invitations[0].process;
+        } else if ($section.hasClass('preprocess')) {
+          editorType = 'preprocess';
+          codeToEdit = response.invitations[0].preprocess;
         }
 
         $.ajax({
@@ -2528,9 +2865,12 @@ module.exports = (function() {
       if ($section.hasClass('webfield')) {
         editorType = 'webfield';
         fieldName = 'web';
-      } else {
+      } else if ($section.hasClass('process')) {
         editorType = 'process';
         fieldName = 'process';
+      } else if ($section.hasClass('preprocess')) {
+        editorType = 'preprocess';
+        fieldName = 'preprocess';
       }
 
       var newCode = editors[editorType].getSession().getValue().trim();
@@ -2780,9 +3120,11 @@ module.exports = (function() {
       if (!_.isEmpty(inv.details.replytoNote) || inv.reply.forum) {
         inv.noteInvitation = true;
 
-        if (inv.details.repliedNotes && inv.details.repliedNotes.length) {
+        if (inv.details.repliedNotes?.length > 0) {
           inv.completed = true;
         }
+        inv.noteId = inv.details.repliedNotes?.length === 1 ? inv.details.repliedNotes[0].id : inv.reply.replyto;
+
         if (_.isEmpty(inv.details.replytoNote)) {
           // Some invitations returned by the API do not contain replytoNote
           inv.details.replytoNote = { forum: inv.reply.forum };
@@ -2876,10 +3218,9 @@ module.exports = (function() {
 
   var editModeBanner = function(groupOrInvitationId, mode) {
     mode = mode || 'default';
-    var otherMode = mode === 'default' ? 'edit' : 'default';
-    var pageType = window.location.pathname.substr(1).toLowerCase();
+    var pageType = window.location.pathname.toLowerCase().indexOf('group') !== -1 ? 'group' : 'invitation';
     var buttonText = mode === 'default' ? 'Edit' : 'View';
-    var buttonUrl = window.location.pathname + '?id=' + groupOrInvitationId + '&mode=' + otherMode;
+    var buttonUrl = (mode === 'default' ? `/${pageType}/edit` : `/${pageType}`) + '?id=' + groupOrInvitationId;
     var messageHtml = '<span class="important_message profile-flash-message">' +
       'Currently showing ' + pageType + ' in ' + mode + ' mode &nbsp;' +
       '<a href="' + buttonUrl + '" class="btn btn-xs btn-primary toggle-profile-mode">' +
@@ -2933,10 +3274,13 @@ module.exports = (function() {
     delete: xhrDelete,
     getAll: getAll,
     setToken: setToken,
+    sendFile: sendFile,
+    getErrorFromJqXhr: getErrorFromJqXhr,
     setupAutoLoading: setupAutoLoading,
     disableAutoLoading: disableAutoLoading,
     editModeBanner: editModeBanner,
-
+    filterCollections: filterCollections,
+    _registerActionButtonHandlers: _registerActionButtonHandlers,
     api: {
       getSubmissionInvitation: getSubmissionInvitation,
       getSubmissions: getSubmissions,
@@ -2967,4 +3311,4 @@ module.exports = (function() {
       done: done
     }
   };
-})();
+}());

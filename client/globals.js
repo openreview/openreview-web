@@ -65,6 +65,7 @@ window.translateErrorMessage = function(error) {
     'Invalid Field': [view.iMess(' is invalid')],
     'Not Found': [view.iMess(' could not be found')],
     'cannot override final field': [view.iMess(' is a final field and cannot be edited')],
+    'missing required fields': [view.iMess(' is missing')],
     tooMany: [view.iMess(': too many replies')]
   };
 
@@ -174,6 +175,12 @@ $('#flash-message-container button.close').on('click', function() {
 // Dropdowns
 $(document).on('click', function(event) {
   if (!$(event.target).closest('.dropdown').length) {
+    $('.dropdown .dropdown_content').hide();
+  }
+});
+
+$('#content').on('focusout', '.dropdown_content', (e) => {
+  if (e.target.nextSibling === null && !$(e.relatedTarget?.parentElement).hasClass('dropdown_content')) {
     $('.dropdown .dropdown_content').hide();
   }
 });

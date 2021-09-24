@@ -73,9 +73,9 @@ Handlebars.registerHelper('prettyInvitationId', function(invitationId, options) 
     var invMatches = invitationId.match(/\/(Paper\d+)\//);
     if (invMatches) {
       paperStr = invMatches[1] + ' ';
-      var anonReviewerMatches = invitationId.match(/\/(AnonReviewer\d+)\//);
+      var anonReviewerMatches = invitationId.match(/\/(AnonReviewer\d+|Reviewer_\w+)\//);
       if (anonReviewerMatches) {
-        paperStr = paperStr + ' ' + anonReviewerMatches[1] + ' ';
+        paperStr = paperStr + anonReviewerMatches[1].replace('_', ' ') + ' ';
       }
     }
   }
@@ -126,8 +126,9 @@ Handlebars.registerHelper('pdfUrl', function(note, isReference) {
     return '';
   }
 
-  var urlPath = isReference ? '/references/pdf' : '/pdf';
-  return _.startsWith(note.content.pdf, '/pdf') ? urlPath + '?id=' + note.id : note.content.pdf;
+  var urlPath = isReference ? `${note.version === 2 ? '/notes/edits/pdf' : '/references/pdf'}` : '/pdf';
+  var pdfValue = note.version === 2 ? note.content.pdf?.value : note.content.pdf
+  return _.startsWith(pdfValue, '/pdf') ? urlPath + '?id=' + note.id : pdfValue;
 });
 
 Handlebars.registerHelper('forumDate', view.forumDate);
@@ -299,6 +300,73 @@ Handlebars.registerHelper('noteAuthors', function(content, signatures, details) 
   return new Handlebars.SafeString(html);
 });
 
+Handlebars.registerHelper('noteAuthorsV2', function (readers, content, signatures) {
+  var html = '';
+  var privateLabel = false;
+
+  if (!_.isEqual(readers?.sort(), content?.authorids?.readers?.sort())) { // note reader and author are not the same
+    privateLabel = true;
+  }
+
+  var authors = content?.authors?.value;
+  var authorids = content?.authorids?.value;
+
+  if (_.isArray(authors) && authors.length) {
+    if (_.isArray(authorids) && authorids.length) {
+      html = authors.map(function(author, i) {
+        var authorId;
+
+        author = Handlebars.Utils.escapeExpression(author);
+        authorId = Handlebars.Utils.escapeExpression(authorids[i]);
+        if (authorId && authorId.indexOf('~') === 0) {
+          return '<a href="/profile?id='+ encodeURIComponent(authorId) +
+            '" class="profile-link" data-toggle="tooltip" data-placement="top" title="'+ authorId +
+            '">'+ author +'</a>';
+        } else if (authorId && authorId.indexOf('@') !== -1) {
+          return '<a href="/profile?email='+ encodeURIComponent(authorId) +
+            '" class="profile-link" data-toggle="tooltip" data-placement="top" title="'+ authorId +
+            '">'+ author +'</a>';
+        } else if (authorId && authorId.indexOf('http') === 0) {
+          return '<a href="'+ authorId +
+            '" class="profile-link" data-toggle="tooltip" data-placement="top" title="'+ authorId +
+            '">'+ author +'</a>';
+        } else {
+          return author;
+        }
+      }).join(', ');
+
+    } else {
+      html = authors.map(function(author, i) {
+        return Handlebars.Utils.escapeExpression(author);
+      }).join(', ');
+    }
+  } else {
+    if ((_.isArray(signatures) && signatures.length)) {
+      html = signatures.map(function(authorId, i) {
+
+        var author = view.prettyId(authorId);
+        if (authorId && authorId.indexOf('~') === 0) {
+          return '<a href="/profile?id='+ encodeURIComponent(authorId) +
+            '" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="'+ authorId +
+            '">'+ author +'</a>';
+        } else if (authorId && authorId.indexOf('@') !== -1) {
+          return '<a href="/profile?email='+ encodeURIComponent(authorId) +
+            '" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="'+ authorId +
+            '">'+ author +'</a>';
+        } else {
+          return author;
+        }
+      }).join(', ');
+    }
+  }
+
+  if (privateLabel) {
+    html = html + ' <span class="private-author-label">(privately revealed to you)</span>';
+  }
+
+  return new Handlebars.SafeString(html);
+});
+
 Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
   if (_.isEmpty(noteObj)) {
     return '';
@@ -318,9 +386,14 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
   }
 
   var contentKeys = Object.keys(noteObj.content);
-  var contentOrder = invitation
-    ? _.union(order(invitation.reply.content, invitation.id), contentKeys)
-    : contentKeys;
+  var contentOrder = [];
+  if (noteObj.version === 2) {
+    contentOrder = noteObj.details.presentation ? Object.values(noteObj.details.presentation ?? {}).sort((a, b) => a?.order - b?.order).map(p => p.name) : contentKeys
+  } else {
+    contentOrder = invitation
+      ? _.union(order(invitation.reply.content, invitation.id), contentKeys)
+      : contentKeys;
+  }
 
   var omittedContentFields = [
     'title', 'authors', 'author_emails', 'authorids', 'pdf',
@@ -333,19 +406,19 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
       return;
     }
 
-    var valueString = view.prettyContentValue(noteObj.content[fieldName]);
+    var valueString = view.prettyContentValue(noteObj.version === 2 ? noteObj.content[fieldName]?.value : noteObj.content[fieldName]);
     if (!valueString) {
       return;
     }
-
-    var invitationField = (invitation && invitation.reply.content[fieldName]) || {};
+    var invitationField = invitation?.reply?.content?.[fieldName] ?? {};
+    var renderMarkdown = noteObj.version === 2 ? noteObj.details.presentation?.find(p => p.name === fieldName)?.markdown : invitationField.markdown
 
     var urlRegex = /^(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*)?$/i;
 
     // Build download links or render markdown if enabled
     if (valueString.indexOf('/attachment/') === 0) {
       valueString = view.mkDownloadLink(noteObj.id, fieldName, valueString);
-    } else if (invitationField.markdown) {
+    } else if (renderMarkdown) {
       valueString = DOMPurify.sanitize(marked(valueString));
     } else if (urlRegex.test(valueString)) {
       var url = valueString.startsWith('https://openreview.net') ? valueString.replace('https://openreview.net', '') : valueString
@@ -357,7 +430,7 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
     contents.push({
       fieldName: fieldName,
       fieldValue: new Handlebars.SafeString(valueString),
-      markdownRendered: invitationField.markdown
+      markdownRendered: renderMarkdown
     });
   });
   if (!contents.length) {
@@ -645,7 +718,7 @@ Handlebars.registerHelper('forumReadersIcon', function(readersArr) {
   return new Handlebars.SafeString(readersHtml);
 });
 
-var urlFromGroupId = function(groupId) {
+var urlFromGroupId = function(groupId, editMode) {
   var commonGroups = ['everyone', '(anonymous)', '(guest)'];
   if (!groupId || commonGroups.indexOf(groupId) !== -1) {
     return '';
@@ -654,7 +727,7 @@ var urlFromGroupId = function(groupId) {
   } else if (groupId.indexOf('@') !== -1) {
     return '/profile?email=' + groupId;
   }
-  return '/group?id=' + groupId;
+  return '/group' + (editMode ? '/edit' : '') + '?id=' + groupId;
 };
 
 Handlebars.registerHelper('groupUrl', urlFromGroupId);
@@ -930,13 +1003,22 @@ Handlebars.registerHelper('canUnlink', function(value, options) {
   return options.inverse(this);
 });
 
+Handlebars.registerHelper('getAnonId', function(varName,memberId,memberAnonIdMap,options){
+  if(!options.data.root){
+    options.data.root={}
+  }
+  options.data.root[varName]=memberAnonIdMap.get(memberId)
+})
+
 // Register Handlebars partials
 Handlebars.registerPartial('noteContent', Handlebars.templates['partials/noteContent']);
 
 Handlebars.registerPartial('noteBasic', Handlebars.templates['partials/noteBasic']);
+Handlebars.registerPartial('noteBasicV2', Handlebars.templates['partials/noteBasicV2']);
 Handlebars.registerPartial('noteList', Handlebars.templates['partials/noteList']);
 
 Handlebars.registerPartial('noteActivity', Handlebars.templates['partials/noteActivity']);
+Handlebars.registerPartial('noteActivityV2', Handlebars.templates['partials/noteActivityV2']);
 Handlebars.registerPartial('activityList', Handlebars.templates['partials/activityList']);
 
 Handlebars.registerPartial('noteTask', Handlebars.templates['partials/noteTask']);
@@ -948,7 +1030,6 @@ Handlebars.registerPartial('groupInfoTable', Handlebars.templates['partials/grou
 Handlebars.registerPartial('invitationInfoTable', Handlebars.templates['partials/invitationInfoTable']);
 Handlebars.registerPartial('configurationNotes', Handlebars.templates['partials/configurationNotes']);
 
-Handlebars.registerPartial('userMenu', Handlebars.templates['partials/userMenu']);
 Handlebars.registerPartial('spinner', Handlebars.templates.spinner);
 
 Handlebars.registerPartial('profileExpertise', Handlebars.templates['partials/merge/profileExpertise']);

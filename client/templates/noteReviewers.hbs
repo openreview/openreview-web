@@ -13,10 +13,17 @@
             <td>
               {{user.name}} <span class="text-muted">({{user.email}})</span>
               {{#if user.completedReview}}
-                <br>
-                {{#if user.preliminary_rating}}Rating preliminary: {{user.preliminary_rating}}|final: {{user.rating}}{{else}}{{#if user.rating}}Rating: {{user.rating}}{{/if}}{{/if}}{{#if user.confidence}} / Confidence: {{user.confidence}}{{/if}}
-                <br>
-                {{#if user.reviewLength}}Review length: {{user.reviewLength}} / {{/if}}{{#if user.ranking}}Ranking: {{user.ranking}}{{/if}}
+                {{#if user.status}}
+                  {{#each user.status as |value name|}}
+                    <br>
+                    {{name}}: {{value}}
+                  {{/each}}
+                {{else}}
+                  <!-- Deprecated -->
+                  <br>
+                  {{#if user.preliminary_rating}}Rating preliminary: {{user.preliminary_rating}}|final: {{user.rating}}{{else}}{{#if user.rating}}Rating: {{user.rating}}{{/if}}{{/if}}{{#if user.confidence}} / Confidence: {{user.confidence}}{{/if}}
+                  {{#if user.reviewLength}}<br>Review length: {{user.reviewLength}} / {{/if}}{{#if user.ranking}}Ranking: {{user.ranking}}{{/if}}
+                {{/if}}
                 <br>
                 <a href="/forum?id={{user.forum}}&noteId={{user.note}}{{#if ../referrer}}&referrer={{../referrer}}{{/if}}" target="_blank">Read Review</a>
               {{else}}
@@ -45,6 +52,10 @@
   </div>
 
   <div>
+    {{#each stats as |values name|}}
+      <br>
+      <strong>Average {{name}}:</strong> {{values.avg}} (Min: {{values.min}}, Max: {{values.max}})
+    {{/each}}
     {{#isnt averageRating undefined}}
       <br>
       <strong>Average Rating:</strong> {{averageRating}} (Min: {{minRating}}, Max: {{maxRating}})

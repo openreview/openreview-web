@@ -1,16 +1,15 @@
 import { useEffect } from 'react'
-import omit from 'lodash/omit'
 import Head from 'next/head'
 import Router from 'next/router'
-import LoadingSpinner from '../components/LoadingSpinner'
-import WebfieldContainer from '../components/WebfieldContainer'
-import withError from '../components/withError'
-import api from '../lib/api-client'
-import { auth } from '../lib/auth'
-import { prettyId } from '../lib/utils'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import WebfieldContainer from '../../components/WebfieldContainer'
+import withError from '../../components/withError'
+import api from '../../lib/api-client'
+import { auth } from '../../lib/auth'
+import { prettyId } from '../../lib/utils'
 
 // Page Styles
-import '../styles/pages/group.less'
+import '../../styles/pages/group.less'
 
 const Group = ({ groupId, webfieldCode, appContext }) => {
   const { setBannerHidden, clientJsLoading } = appContext
@@ -60,34 +59,28 @@ Group.getInitialProps = async (ctx) => {
     return { statusCode: 400, message: 'Group ID is required' }
   }
 
-  const generateWebfieldCode = (group, user, mode) => {
-    const groupTitle = prettyId(group.id)
-    const isGroupWritable = group.details?.writable
-    const editModeEnabled = mode === 'edit'
-    const infoModeEnabled = mode === 'info'
-    const showModeBanner = isGroupWritable || infoModeEnabled
+  const redirectToEditOrInfoMode = (mode) => {
+    const redirectUrl = `/group/${mode}?id=${encodeURI(ctx.query.id)}`
+    if (ctx.req) {
+      ctx.res.writeHead(302, { Location: redirectUrl }).end()
+    } else {
+      Router.replace(redirectUrl)
+    }
+  }
 
+  // TODO: remove this redirect when all group editor links have been changed
+  if (ctx.query.mode === 'edit' || ctx.query.mode === 'info') {
+    redirectToEditOrInfoMode(ctx.query.mode)
+  }
+
+  const generateWebfieldCode = (group, user) => {
     const webfieldCode = group.web || `
 Webfield.ui.setup($('#group-container'), '${group.id}');
 Webfield.ui.header('${prettyId(group.id)}')
   .append('<p><em>Nothing to display</em></p>');`
 
-    const editorCode = isGroupWritable && editModeEnabled && `
-Webfield.ui.setup('#group-container', group.id);
-Webfield.ui.header('${groupTitle}');
-Webfield.ui.groupEditor(group, {
-  container: '#notes'
-});`
-
-    const infoCode = (infoModeEnabled || !group.web) && `
-Webfield.ui.setup('#group-container', group.id);
-Webfield.ui.header('${groupTitle}');
-Webfield.ui.groupInfo(group, {
-  container: '#notes'
-});`
-
     const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
-    const groupObjSlim = omit(group, ['web'])
+    const groupObjSlim = { id: group.id }
     return `// Webfield Code for ${groupObjSlim.id}
 window.user = ${JSON.stringify(userOrGuest)};
 $(function() {
@@ -95,16 +88,26 @@ $(function() {
   var group = ${JSON.stringify(groupObjSlim)};
   var document = null;
   var window = null;
+
+  // TODO: remove these vars when all old webfields have been archived
   var model = {
     tokenPayload: function() {
       return { user: user }
     }
   };
+  var controller = {
+    get: Webfield.get,
+    addHandler: function(name, funcMap) {
+      Object.values(funcMap).forEach(function(func) {
+        func();
+      });
+    },
+  };
 
   $('#group-container').empty();
-  ${showModeBanner ? 'Webfield.editModeBanner(group.id, args.mode);' : ''}
+  ${group.details?.writable ? 'Webfield.editModeBanner(group.id, args.mode);' : ''}
 
-  ${editorCode || infoCode || webfieldCode}
+  ${webfieldCode}
 });
 //# sourceURL=webfieldCode.js`
   }
@@ -117,6 +120,9 @@ $(function() {
       return { statusCode: 404, message: 'Group not found' }
     }
 
+    if (!group.web) {
+      redirectToEditOrInfoMode('info')
+    }
     // Old HTML webfields are no longer supported
     if (group.web?.includes('<script type="text/javascript">')) {
       return {
@@ -131,7 +137,7 @@ $(function() {
       query: ctx.query,
     }
   } catch (error) {
-    if (error.name === 'ForbiddenError') {
+    if (error.name === 'forbidden' || error.name === 'ForbiddenError') {
       if (!token) {
         if (ctx.req) {
           ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()

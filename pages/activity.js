@@ -1,5 +1,5 @@
 /* globals $: false */
-/* globals Webfield: false */
+/* globals Webfield, Webfield2: false */
 /* globals typesetMathJax: false */
 
 import { useState, useEffect, useRef } from 'react'
@@ -20,14 +20,20 @@ const Activity = ({ appContext }) => {
   const { setBannerHidden, clientJsLoading } = appContext
 
   const loadActivityData = async () => {
+    const queryParamV1 = {
+      tauthor: true,
+      trash: true,
+      details: 'forumContent,writable,invitation',
+      limit: 200,
+    }
+    const queryParamV2 = {
+      signature: user.profile.id,
+      trash: true,
+      details: 'forumContent,writable,invitation,presentation',
+      limit: 200,
+    }
     try {
-      const { notes } = await api.get('/notes', {
-        tauthor: true,
-        trash: true,
-        details: 'forumContent,writable,invitation',
-        limit: 200,
-      }, { accessToken })
-
+      const { notes } = await api.getCombined('/notes', queryParamV1, queryParamV2, { accessToken, sort: 'tmdate:desc' })
       setActivityNotes(notes)
     } catch (apiError) {
       setError(apiError)

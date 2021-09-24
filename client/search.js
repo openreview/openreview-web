@@ -57,12 +57,13 @@ var emphasize = function(label, searchTerm) {
 // Output: a list of unique tokens that match the termRegex
 var getTokenObjects = function(docArray, searchTerm) {
   var contentArray = _.map(docArray, function(docObj) {
-    return docObj.content;
+    return { content: docObj.content, version: docObj.version };
   });
   var termRegex = new RegExp(searchTerm + '.*', 'i');
 
   var tokens = _.uniq(_.filter(_.flattenDeep(_.map(contentArray, function(contentObj) {
-    return _.without(_.map(contentObj, function(val) {
+    return _.without(_.map(contentObj.content, function(val) {
+      if (contentObj.version === 2) val = val?.value
       if (_.isArray(val)) {
         return val;
       } else if (typeof val === 'string') {
@@ -102,16 +103,18 @@ var contentToString = function(stringOrArray) {
 };
 
 var getTitleObjects = function(docArray, searchTerm) {
-  var termRegex = new RegExp(searchTerm + '.*', 'i');
+  var termRegex = new RegExp(_.escapeRegExp(searchTerm) + '.*', 'i');
   return _.filter(_.map(docArray, function(docObj) {
     var contentObj = docObj.content;
+    var title = docObj.version === 2 ? contentObj.title?.value : contentObj.title;
+    var authors = docObj.version === 2 ? contentObj.authors?.value : contentObj.authors;
     return {
-      value: _.isEmpty(contentObj.title) ? '' : contentObj.title,
+      value: _.isEmpty(title) ? '' : title,
       forum: _.has(docObj, 'forum') ? docObj.forum : '',
       id: docObj.id,
-      label: _.isEmpty(contentObj.title) ? '' : emphasize(contentObj.title, searchTerm),
-      subtitle: _.isEmpty(contentObj.authors) ? '' : emphasize(contentToString(contentObj.authors), searchTerm),
-      authors: _.isEmpty(contentObj.authors) ? '' : contentObj.authors,
+      label: _.isEmpty(title) ? '' : emphasize(title, searchTerm),
+      subtitle: _.isEmpty(authors) ? '' : emphasize(contentToString(authors), searchTerm),
+      authors: _.isEmpty(authors) ? '' : authors,
       section: 'titles'
     };
   }), function(titleObj) {

@@ -1,16 +1,3 @@
-/**
- * Changes:
- * - delete replaceWithForum and pushForum
- * - change `var runForum =` to `module.exports =`
- * - replace `controller.addHandler('forum', { ... })` with `onTokenChange()`
- * - delete first 2 lines of onTokenChange (setting the user var)
- * - replace referrer argument with user
- * - delete all references to OpenBanner and setting document.title
- * - replace all controller api function with Webfield api functions
- * - remove preRendered var
- * - add `$root.removeClass('panel');` to line 574
- * - replace `#content` with `#content > .forum-container`
- */
 module.exports = function(forumId, noteId, invitationId, user) {
   if (!noteId) {
     noteId = forumId;
@@ -22,7 +9,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   // Data fetching functions
   var getProfilesP = function(notes) {
-
     var authorEmails = _.without(_.uniq(_.map(notes, function(n) { return n.tauthor; })), undefined);
     if (!authorEmails.length) {
       return $.Deferred().resolve(notes);
@@ -51,7 +37,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
         });
         return notes;
       });
-
   };
 
   var getNoteRecsP = function() {
@@ -74,7 +59,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
       }, { handleErrors: false })
         .then(function(result) {
           if (!result.notes || !result.notes.length) {
-            controller.removeHandler('forum');
             location.href = '/';
             return;
           }
@@ -200,6 +184,15 @@ module.exports = function(forumId, noteId, invitationId, user) {
       onNoteCreated: function(newNote) {
         getNoteRecsP().then(function(noteRecs) {
           $content.one('forumRendered', function() {
+            // Change to the previously selected tab unless this would cause the new note would be hidden,
+            // in which case switch to the All tab
+            if (sm.get('useNewLayout')) {
+              if (location.hash !== '#all' && noteMatchesFilters(newNote, location.hash)) {
+                $(window).trigger('hashchange');
+              } else {
+                location.hash = '#all';
+              }
+            }
             scrollToNote(newNote.id);
           });
           sm.update('noteRecs', noteRecs);
@@ -277,7 +270,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
       user: user,
       tagInvitations: rec.tagInvitations,
       readOnlyTags: true,
-      originalInvitations: rec.originalInvitations
+      originalInvitations: rec.originalInvitations,
+      newLayout: forumId !== rec.note.id && sm.get('useNewLayout')
     });
     $note.attr('id', 'note_' + rec.note.id);
     return $note;
@@ -352,7 +346,8 @@ module.exports = function(forumId, noteId, invitationId, user) {
       }
 
       childrenList.push($('<div>', {class: 'note_with_children ' + noteCssClass}).append(
-        '<a href="#" class="collapse-comment-tree" title="Collapse reply thread">[&ndash;]</a>',
+        '<a href="#" class="collapse-comment-tree collapse-link" title="Collapse reply thread">[&ndash;]</a>',
+        '<a href="#" class="collapse-comment-tree expand-link" title="Expand reply thread">[+]</a>',
         $note,
         $childrenContainer.append($replies),
         displayMoreLink
@@ -383,25 +378,12 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     // Show nested comment thread
     $content.on('click', '.view-more-replies', function() {
-      var replytoIdToChildren = sm.get('replytoIdMap');
       var noteId = $(this).data('noteId');
-      var noteReplytoId = $(this).data('noteReplytoId');
-      var noteTitle = $(this).closest('.note_with_children').find('.note_content_title a').eq(0).text();
+      var parentNote = _.find(sm.get('noteRecs'), ['note.id', noteId]);
       var scrollPos = $childrenAnchor.offset().top - 51 - 12;
 
       $('html, body').animate({scrollTop: scrollPos}, 400, function() {
-        $childrenAnchor.fadeOut('fast', function() {
-          $childrenAnchor.empty().append(
-            '<div class="view-all-replies-container">' +
-              '<span>Showing only replies to "' + noteTitle + '"</span>' +
-              '<button class="btn btn-default btn-xs view-all-replies">Show all replies</a>' +
-            '</div>',
-            mkReplyNotes(replytoIdToChildren, _.filter(replytoIdToChildren[noteReplytoId], ['note.id', noteId]), 1)
-          );
-          MathJax.typesetPromise();
-          applyFilter();
-          $childrenAnchor.fadeIn('fast');
-        });
+        showNestedReplies(parentNote);
       });
 
       return false;
@@ -409,10 +391,15 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     // Collapse/expand comment thread
     $content.on('click', '.collapse-comment-tree', function() {
-      var $container = $(this).parent();
-      $container.toggleClass('collapsed');
+      var $parent = $(this).parent();
 
-      $(this).html($container.hasClass('collapsed') ? '[+]' : '[&ndash;]');
+      if ($parent.hasClass('collapsed') || $parent.hasClass('semi-collapsed')) {
+        $parent.removeClass('collapsed');
+        $parent.removeClass('semi-collapsed');
+      } else {
+        $parent.addClass('collapsed');
+        $parent.removeClass('semi-collapsed');
+      }
       return false;
     });
 
@@ -420,14 +407,12 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $content.on('click', '.view-all-replies', function() {
       var replytoIdToChildren = sm.get('replytoIdMap');
 
-      $childrenAnchor.fadeOut('fast', function() {
-        $childrenAnchor.empty().append(
-          mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
-        );
-        MathJax.typesetPromise();
-        applyFilter();
-        $childrenAnchor.fadeIn('fast');
-      });
+      $content.children('.filter-row').show();
+      $childrenAnchor.empty().append(
+        mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
+      );
+      MathJax.typesetPromise();
+      applyFilter();
 
       return false;
     });
@@ -436,6 +421,33 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $content.on('click', '.checkbox-menu', applyFilter);
 
     $content.on('click', '.select-all-checkbox', applySelectAllFilters);
+
+    // Filter tabs
+    $(window).on('hashchange', function(e, initialUpdate) {
+      $('.filter-tabs li').removeClass('active semi-active');
+
+      var hash = location.hash;
+      if (!hash && !initialUpdate) return;
+
+      var options = $('.filter-tabs > li > a').map(function() { return this.attributes.href.value; }).get()
+      if (!options.includes(hash)) hash = '#all';
+
+      var tab = $('.filter-tabs').find('a[href="' + hash + '"]').parent();
+      if (!tab.length) return;
+
+      tab.addClass('active');
+
+      var filtersMap = sm.get('forumFiltersMap');
+      var newFilterObj = filtersMap[hash] || {};
+      setFilters(Object.assign({
+        invitations: null, signatures: null, readers: null, 'excluded-readers': null,
+      }, newFilterObj));
+      applyFilter();
+    });
+
+    if (sm.get('useNewLayout')) {
+      $(window).trigger('hashchange', true);
+    }
 
     $('[data-toggle="tooltip"]').tooltip();
   };
@@ -486,24 +498,15 @@ module.exports = function(forumId, noteId, invitationId, user) {
       doAnimation();
 
     } else {
-      // Note may be deeply nested, so render just its parent and siblings
+      // Note may be deeply nested, so check if the note exists then render just its parent and siblings
       var noteRecs = sm.get('noteRecs');
       var noteRec = _.find(noteRecs, ['note.id', noteId]);
       if (noteRec) {
-        var replytoIdToChildren = sm.get('replytoIdMap');
         var parentNote = _.find(noteRecs, ['note.id', noteRec.note.replyto]);
-        if (parentNote) {
-          $childrenAnchor.empty().append(
-            '<div class="view-all-replies-container">' +
-              '<span>Showing only replies to "' + parentNote.note.content.title + '"</span>' +
-              '<button class="btn btn-default btn-xs view-all-replies">Show all replies</a>' +
-            '</div>',
-            mkReplyNotes(replytoIdToChildren, [parentNote], 1)
-          );
-          MathJax.typesetPromise();
-          if ($(scrollToElem).length) {
-            doAnimation();
-          }
+        showNestedReplies(parentNote);
+
+        if ($(scrollToElem).length) {
+          doAnimation();
         }
       } else {
         animationDone.resolve(null);
@@ -527,6 +530,20 @@ module.exports = function(forumId, noteId, invitationId, user) {
     return count;
   };
 
+  var showNestedReplies = function(parentNote) {
+    if (!parentNote) return;
+
+    $content.children('.filter-row').hide();
+    $childrenAnchor.empty().append(
+      '<div class="view-all-replies-container">' +
+        '<span>Showing only replies to "' + parentNote.note.content.title + '"</span>' +
+        '<button class="btn btn-default btn-xs view-all-replies">Show all replies</a>' +
+      '</div>',
+      mkReplyNotes(sm.get('replytoIdMap'), [parentNote], 1)
+    );
+
+    MathJax.typesetPromise();
+  };
 
   // State handler functions
   var onTokenChange = function() {
@@ -571,12 +588,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       return;
     }
 
-    // Make map of parent id -> child notes and sort in reverse chronological order
-    var replytoIdToChildren = _.groupBy(_.sortBy(noteRecs, function(rec) {
-      return -1 * rec.note.tcdate;
-    }), 'note.replyto');
-    sm.update('replytoIdMap', replytoIdToChildren);
-
+    // Set search bar params
     var conf = rootRec.note.content.venueid ?
       rootRec.note.content.venueid :
       rootRec.note.invitation.split('/-/')[0];
@@ -585,95 +597,112 @@ module.exports = function(forumId, noteId, invitationId, user) {
     $('#search_input').attr('placeholder','Search ' + view.prettyId(conf));
     $('#search_content').val('all');
 
+    // Make map of parent id -> child notes and sort in reverse chronological order
+    var replytoIdToChildren = _.groupBy(_.sortBy(noteRecs, function(rec) {
+      return -1 * rec.note.tcdate;
+    }), 'note.replyto');
+    sm.update('replytoIdMap', replytoIdToChildren);
+
     // Render forum page
-    var $root = mkPanel(rootRec, $childrenAnchor);
-    $root.removeClass('panel');
+    var $root = mkPanel(rootRec, $childrenAnchor).removeClass('panel');
 
-    if (_.has(rootRec.note, 'details.replyCount')) {
-      var replyCount = rootRec.note.details.replyCount;
+    var replyForumViews = _.get(rootRec.note, 'details.invitation.replyForumViews', null);
+    sm.update('useNewLayout', !_.isEmpty(replyForumViews));
+    var $forumViewsTabs = getForumViewTabs(replyForumViews, rootRec.note);
+
+    buildFiltersMaps(noteRecs);
+    var replyCount = _.get(rootRec.note, 'details.replyCount', 0)
+    var $forumFiltersRow = null;
+    if (replyCount) {
       var replyCountText = replyCount === 1 ? '1 Reply' : replyCount + ' Replies';
-      $root.find('div.reply_row').eq(0).prepend('<div class="item" id="reply_count">' + replyCountText + '</div>');
+      var $replyCount = $('<div class="pull-right" id="reply_count">' + replyCountText + '</div>');
+      var $forumFilters = getForumFilters().addClass('pull-left');
+      $forumFiltersRow = $('<div class="filter-row">').append($forumFilters, $replyCount);
     }
 
-    var $forumFilters = null;
-    if (_.has(rootRec.note, 'details.replyCount') && rootRec.note.details.replyCount !== 0) {
-      $forumFilters = getForumFilters();
-    }
-
-    $content.removeClass('pre-rendered');
-    $content.empty().append($root, '<hr class="small">', $forumFilters, $childrenAnchor);
-    $childrenAnchor.empty().append(
-      mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
+    $content.removeClass('pre-rendered').empty().append(
+      $root,
+      $forumViewsTabs || '<hr class="small">',
+      $forumFiltersRow,
+      $childrenAnchor.empty().append(
+        mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
+      )
     );
 
     typesetMathJax();
-
     $content.trigger('forumRendered');
   };
 
-  var createMultiSelector = function(filters, id) {
+  var createMultiSelector = function(filters, id, defaultUnchecked) {
     var htmlFilters = filters.map(function(filter) {
       return {
         valueFilter: filter,
-        textFilter: view.prettyId(filter)
+        textFilter: view.prettyId(filter, true)
       };
     });
+    var buttonText = 'all';
+    if (id === 'signatures') {
+      buttonText = 'everybody';
+    } else if (id === 'readers') {
+      buttonText = 'all readers';
+    } else if (id === 'excluded-readers') {
+      buttonText = 'nobody';
+    }
     var multiselector = Handlebars.templates['partials/multiselectorDropdown']({
-      buttonText: id === 'signatures' ? 'everybody' : 'all',
+      buttonText: buttonText,
       id: id,
-      htmlFilters: htmlFilters
+      htmlFilters: htmlFilters,
+      defaultUnchecked: defaultUnchecked,
     });
     return multiselector;
   };
 
-  // Gets invitation groups in a note. There is always going to be just one Invitation per note.
-  var getInvitationFilters = function(note) {
-    return [view.prettyId(note.invitation, true).split(' ').join('_')];
-  };
-
-  // Gets signature groups in a note as an array.
-  var getSignatureFilters = function(note) {
-    return note.signatures.map(function(signature) {
-      return view.prettyId(signature, true).split(' ').join('_');
-    });
-  };
-
   // A Filter can be: Meta_Review, Official_Comment, Reviewer1, etc.
   // This function maps a Filter to its corresponding array of Notes.
-  var createFiltersToNotes = function(notes, getFilters) {
+  var createFiltersToNotes = function(notes, getFilters, extraFilters) {
     var filtersToNotes = {};
-    notes.forEach(function(note) {
+    for (var i = 0; i < notes.length; i += 1) {
+      var note = notes[i];
       var filters = getFilters(note);
-      filters.forEach(function(filter) {
-        if (filtersToNotes[filter]) {
-          filtersToNotes[filter].push(note);
+      for (var j = 0; j < filters.length; j += 1) {
+        if (filtersToNotes[filters[j]]) {
+          filtersToNotes[filters[j]].push(note);
         } else {
-          filtersToNotes[filter] = [note];
+          filtersToNotes[filters[j]] = [note];
         }
-      });
-    });
+      }
+    }
+
+    // Extra filters come from forum views and don't map to any notes
+    if (extraFilters?.length > 0) {
+      for (var k = 0; k < extraFilters.length; k += 1) {
+        var newFilter = extraFilters[k];
+        if (!filtersToNotes[newFilter]) {
+          filtersToNotes[newFilter] = [];
+        }
+      }
+    }
     return filtersToNotes;
   };
 
   // Returns Notes that are parents (replyto) of the intersection Notes. This is done so that the Note is expanded as well as its parents, otherwise, it would not be visible.
-  var getNotesToExpand = function(intersection, noteIdToNote) {
-    var notesToExpand = [];
+  var getTopLevelNotes = function(intersection, noteIdToNote) {
+    var topLevelNotes = [];
     intersection.forEach(function(note) {
-      notesToExpand.push(note);
-      addParents(note.replyto, notesToExpand, noteIdToNote);
+      addParents(note, topLevelNotes, noteIdToNote);
     });
-    return _.uniq(notesToExpand);
+    return _.uniq(topLevelNotes);
   };
 
-  var addParents = function(noteId, notesToExpand, noteIdToNote) {
-    // Convert note id to Note
-    var note = noteIdToNote[noteId];
-    // Do not include the Submission Note in any Group. noteIdToNote does not include the id of the submission. Therefore, note would be undefined.
-    if (note) {
-      notesToExpand.push(note);
-      // Recur to add all parent parents
-      addParents(note.replyto, notesToExpand, noteIdToNote);
+  var addParents = function(note, noteList, noteIdToNote) {
+    // noteIdToNote does not include the id of the forum note. Therefore, note would be undefined.
+    var parentNote = noteIdToNote[note.replyto];
+    if (!parentNote) {
+      noteList.push(note.id);
+      return
     }
+
+    addParents(parentNote, noteList, noteIdToNote);
   };
 
   // Gets all the Notes in the Forum except the Submission
@@ -684,22 +713,63 @@ module.exports = function(forumId, noteId, invitationId, user) {
   };
 
   // Accepts notesToCollapse and notesToExpand which are arrays of Notes.
-  var filterNotes = function(notesToExpand, notesToCollapse) {
+  var filterNotes = function(notesToExpand, notesToCollapse, parentIdsToShow) {
     var shouldCollapse = function(collapse) {
       return function(note) {
-        var comment = $('#note_' + note.id).parent();
-        // If want to collapse and it's collapsed, do nothing. If want to expand and it's expanded, do nothing. Otherwise click to collapse or expand.
-        if (comment.hasClass('collapsed') !== collapse) {
-          $('#note_' + note.id).prev().click();
+        var $comment = $('#note_' + note.id).parent();
+
+        // If collapsing note with open editor, close editor
+        var openEditor = $comment.find('.children .note_editor.panel');
+        if (collapse && openEditor.length) {
+          openEditor.remove()
+        }
+
+        // If want to collapse and it's collapsed, do nothing. If want to expand
+        // and it's expanded, do nothing. Otherwise collapse or expand.
+        if ($comment.hasClass('collapsed') || $comment.hasClass('semi-collapsed')) {
+          $comment.removeClass('collapsed');
+          if (collapse) {
+            $comment.addClass('semi-collapsed');
+          } else {
+            $comment.removeClass('semi-collapsed');
+          }
+        } else if (collapse) {
+          $comment.addClass('semi-collapsed');
         }
       };
     };
-
     notesToCollapse.forEach(shouldCollapse(true));
     notesToExpand.forEach(shouldCollapse(false));
+
+    $('#note_children > .note_with_children > .note').each(function() {
+      var id = this.id.replace('note_', '');
+      if (parentIdsToShow.includes(id)) {
+         $(this).parent().show();
+      } else {
+        $(this).parent().hide();
+      }
+    });
+    $('#reply-empty-message').remove();
+    if ($('#note_children > .note_with_children:visible').length === 0) {
+      $('#note_children').after('<div id="reply-empty-message"><p class="empty-message">No replies to show</p></div>');
+    }
   };
 
-  // Takes in a 'dictionary' that maps Invitatiions/Signatures to Notes and an array that contains all the filters (key values) to map the Invitations/Signatures to their corresponding Note.
+  var noteMatchesFilters = function(note, hash) {
+    var filtersMap = sm.get('forumFiltersMap');
+    var filtersObj = filtersMap?.[hash];
+    if (!filtersObj) return false;
+
+    return Object.entries(filtersObj).every(([field, values]) => {
+      if (field === 'excluded-readers') {
+        return values.every(value => !note.readers.includes(value));
+      } else {
+        return values.every(value => note[field].includes(value));
+      }
+    });
+  };
+
+  // Takes an object that maps Invitatiions/Signatures to Notes and an array that contains all the filters (key values) to map the Invitations/Signatures to their corresponding Note.
   // This function returns a union of Notes resulting from all the filters mapping to their corresponding Notes.
   var getUnion = function(filterToNotes, filters) {
     return filters.reduce(function(notes, filter) {
@@ -727,14 +797,15 @@ module.exports = function(forumId, noteId, invitationId, user) {
   // Decides what to write in the dropdown button depending on the selections made
   // This could be different, I haven't come up with a better way of displaying it
   var getButtonText = function(checkboxes, type) {
-    var checked = checkboxes.checked.map(function(checkbox) {
-      return checkbox.split('_').join(' ');
+    var checked = checkboxes.checked.map(function(value) {
+      return view.prettyId(value, true);
     });
-    var maxWordsToDisplay = 3; // Max amount of words to display on the button
+    var maxWordsToDisplay = 2; // Max amount of words to display on the button
     if (type === 'invitations' && checked.length === 0) return 'nothing';
-    if (type === 'signatures' && checked.length === 0) return 'nobody';
+    if ((type === 'signatures' || type === 'readers' || type === 'excluded-readers') && checked.length === 0) return 'nobody';
     if (type === 'invitations' && checkboxes.unchecked.length === 0) return 'all';
     if (type === 'signatures' && checkboxes.unchecked.length === 0) return 'everybody';
+    if ((type === 'readers' || type === 'excluded-readers') && checkboxes.unchecked.length === 0) return 'all readers';
     if (checked.length === 1) return checked[0];
     if (checked.length === 2) return checked[0] + ' and ' + checked[1];
     var buttonText = '';
@@ -752,18 +823,47 @@ module.exports = function(forumId, noteId, invitationId, user) {
   // Action taken every time a value in the filters is chosen
   var applyFilter = function(event) {
     if (event) event.stopPropagation();
+
     var invitationCheckboxes = classifyCheckboxes($('.invitations-multiselector-checkbox'));
     $('#invitations').text(getButtonText(invitationCheckboxes, 'invitations'));
     var signatureCheckboxes = classifyCheckboxes($('.signatures-multiselector-checkbox'));
     $('#signatures').text(getButtonText(signatureCheckboxes, 'signatures'));
+    var readersCheckboxes = classifyCheckboxes($('.readers-multiselector-checkbox'));
+    $('#readers').text(getButtonText(readersCheckboxes, 'readers'));
+    var excludedReadersCheckboxes = classifyCheckboxes($('.excluded-readers-multiselector-checkbox'));
+    $('#excluded-readers').text(getButtonText(excludedReadersCheckboxes, 'excluded-readers'));
+
     $('#invitations').next().find('input.select-all-checkbox').prop('checked', invitationCheckboxes.unchecked.length === 0);
     $('#signatures').next().find('input.select-all-checkbox').prop('checked', signatureCheckboxes.unchecked.length === 0);
-    var signatureUnion = getUnion(sm.get('signatureToNotes'), signatureCheckboxes.checked);
+    $('#readers').next().find('input.select-all-checkbox').prop('checked', readersCheckboxes.unchecked.length === 0);
+    $('#excluded-readers').next().find('input.select-all-checkbox').prop('checked', excludedReadersCheckboxes.unchecked.length === 0);
+
+    var forumReplies = getForumReplies(sm.get('noteRecs'));
     var invitationUnion = getUnion(sm.get('invitationToNotes'), invitationCheckboxes.checked);
-    var intersection = _.intersectionBy(signatureUnion, invitationUnion, 'id');
-    var notesToExpand = getNotesToExpand(intersection, sm.get('noteIdToNote'));
-    var notesToCollapse = _.difference(sm.get('forumReplies'), notesToExpand);
-    filterNotes(notesToExpand, notesToCollapse);
+    var signatureUnion = getUnion(sm.get('signatureToNotes'), signatureCheckboxes.checked);
+    var readerUnion = getUnion(sm.get('readerToNotes'), readersCheckboxes.checked);
+    var excludedReaderUnion = forumReplies.filter(function(note) {
+      return _.intersection(note.readers, excludedReadersCheckboxes.checked).length === 0;
+    });
+
+    var notesToExpand = _.intersectionBy(signatureUnion, invitationUnion, readerUnion, excludedReaderUnion, 'id');
+    var notesToCollapse = _.difference(forumReplies, notesToExpand);
+    var parentIdsToShow = getTopLevelNotes(notesToExpand, sm.get('noteIdToNote'));
+    filterNotes(notesToExpand, notesToCollapse, parentIdsToShow);
+
+    // If filters are changed, deselect current tab and make it so clicking it resets the filters
+    if (event && sm.get('useNewLayout')) {
+      $('.filter-tabs li.active').removeClass('active').addClass('semi-active').one('click', function() {
+        $(this).removeClass('semi-active').addClass('active');
+
+        var filtersMap = sm.get('forumFiltersMap');
+        var newFilterObj = filtersMap[location.hash] || {};
+        setFilters(Object.assign({
+          invitations: null, signatures: null, readers: null, 'excluded-readers': null,
+        }, newFilterObj));
+        applyFilter();
+      });
+    }
   };
 
   var applySelectAllFilters = function(event) {
@@ -772,6 +872,23 @@ module.exports = function(forumId, noteId, invitationId, user) {
     checkboxes.prop('checked', $(this).prop('checked'));
     // Apply filter
     applyFilter(event);
+  };
+
+  var setFilters = function(filtersObj) {
+    Object.keys(filtersObj).forEach(function(filterName) {
+      $dropdown = $('#' + filterName).next();
+      if (!$dropdown.length) return;
+
+      if (filtersObj[filterName]) {
+        $dropdown.find('li input[type="checkbox"]').each(function() {
+          var val = $(this).attr('value');
+          $(this).prop('checked', filtersObj[filterName].includes(val));
+        });
+      } else {
+        // No filters selected, check all boxes
+        $dropdown.find('li input[type="checkbox"]').prop('checked', filterName !== 'excluded-readers');
+      }
+    });
   };
 
   // Uses an array of compare functions to determine what comes first: a or b.
@@ -824,23 +941,113 @@ module.exports = function(forumId, noteId, invitationId, user) {
     });
   };
 
+  // Assumes there is always going to be just one invitation per note.
+  var getInvitationFilters = function(note) {
+    return [note.invitation];
+  };
+  var getSignatureFilters = function(note) {
+    return note.signatures;
+  };
+  var getReadersFilters = function(note) {
+    return note.readers;
+  };
+
+  var buildFiltersMaps = function(noteRecs) {
+    // Make sure to also include any ids used by the view tabs in the dropdown
+    var forumFiltersMap = sm.get('forumFiltersMap');
+    var additionalFilters = {};
+    if (forumFiltersMap) {
+      additionalFilters = Object.values(forumFiltersMap).reduce(function(map, filters) {
+        return _.merge(map, filters);
+      }, {});
+      additionalFilters.readers = _.union(additionalFilters.readers, additionalFilters['excluded-readers']);
+    }
+
+    var forumReplies = getForumReplies(noteRecs);
+    sm.update('noteIdToNote', _.keyBy(forumReplies, 'id'));
+    sm.update('signatureToNotes', createFiltersToNotes(forumReplies, getSignatureFilters, additionalFilters.signatures));
+    sm.update('invitationToNotes', createFiltersToNotes(forumReplies, getInvitationFilters, additionalFilters.invitations));
+    sm.update('readerToNotes', createFiltersToNotes(forumReplies, getReadersFilters, additionalFilters.readers));
+  };
+
   // These creates the multiselectors and returns a jQuery object that contains them
   var getForumFilters = function() {
-    var forumReplies = getForumReplies(sm.get('noteRecs'));
-    sm.update('forumReplies', forumReplies);
-    sm.update('noteIdToNote', _.keyBy(forumReplies, 'id'));
-    sm.update('signatureToNotes', createFiltersToNotes(forumReplies, getSignatureFilters));
-    sm.update('invitationToNotes', createFiltersToNotes(forumReplies, getInvitationFilters));
-    var $filtersContainer = $('<div class=filter-row></div>');
     var invitationFilters = _.keys(sm.get('invitationToNotes'));
     sortFilters(invitationFilters, [allAfter('decision'), allAfter('review'), allAfter('comment')]);
     var invitationMultiSelector = createMultiSelector(invitationFilters, 'invitations');
+
     var signatureFilters = _.keys(sm.get('signatureToNotes'));
     sortFilters(signatureFilters, [allAfter('author'), allAfter('reviewer'), allAfter('chair'), allBefore('anonymous')]);
     var signatureMultiSelector = createMultiSelector(signatureFilters, 'signatures');
-    $filtersContainer.append('<span>Show </span>', invitationMultiSelector, '<span> from </span>', signatureMultiSelector);
-    return $filtersContainer;
+
+    var readersFilters = _.keys(sm.get('readerToNotes'));
+    sortFilters(readersFilters, [allAfter('author'), allAfter('reviewer'), allAfter('chair'), allBefore('anonymous')]);
+    var readersMultiSelector = createMultiSelector(readersFilters, 'readers');
+
+    var excludedReadersMultiSelector = createMultiSelector(readersFilters, 'excluded-readers', true);
+
+    return $('<div class="filter-container">').append(
+      $('<div>').append(
+        '<span>Reply Type:</span>', invitationMultiSelector
+      ),
+      $('<div>').append(
+        '<span>Author:</span>', signatureMultiSelector
+      ),
+      $('<div>').append(
+        '<span>Visible To:</span>', readersMultiSelector
+      ),
+      $('<div>').append(
+        '<span>Hidden From:</span>', excludedReadersMultiSelector
+      )
+    );
   };
+
+  // Build the filter tabs from forum views array
+  var getForumViewTabs = function(replyForumViews, forumNote) {
+    if (_.isEmpty(replyForumViews)) {
+      sm.update('forumFiltersMap', {});
+      return null;
+    }
+
+    var filterMap = replyForumViews.reduce(function(map, view) {
+      map['#' + view.id] = parseFilterQuery(replaceFilterWildcards(view.filter, forumNote));
+      return map;
+    }, {});
+    sm.update('forumFiltersMap', filterMap);
+
+    return $('<ul class="nav nav-tabs filter-tabs">').append(
+      replyForumViews.map(function(view) {
+        return $('<li role="presentation">').append($('<a href="#' + view.id + '">').text(view.label));
+      })
+    );
+  };
+
+  // Convert filter query string into object representing all the active filters
+  // Copied from lib/forum-utils.js
+  var parseFilterQuery = function(filterQuery, searchQuery) {
+    var filterObj = (filterQuery || '').split(' ').reduce(function(map, token) {
+      var [field, val] = token.split(':');
+      if (val) {
+        var mapKey = field.startsWith('-')
+          ? 'excluded-' + field.slice(1)
+          : field;
+        map[mapKey] = val.split(',').filter(Boolean);
+      }
+      return map;
+    }, {});
+
+    if (searchQuery) {
+      filterObj.keywords = [searchQuery.toLowerCase()];
+    }
+
+    return filterObj;
+  }
+
+  // Convert filter query string into object representing all the active filters
+  // Copied from lib/forum-utils.js
+  var replaceFilterWildcards = function(filterQuery, replyNote) {
+    return filterQuery.replace(/\${note\.([\w.]+)}/g, (match, field) => _.get(replyNote, field, ''));
+  }
 
   onTokenChange();
 };

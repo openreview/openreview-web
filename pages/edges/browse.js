@@ -9,13 +9,14 @@ import EdgeBrowser from '../../components/browser/EdgeBrowser'
 import EdgeBrowserHeader from '../../components/browser/EdgeBrowserHeader'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import api from '../../lib/api-client'
-import { parseEdgeList, buildInvitationReplyArr } from '../../lib/edge-utils'
+import { parseEdgeList, buildInvitationReplyArr, translateFieldSpec } from '../../lib/edge-utils'
 import { referrerLink } from '../../lib/banner-links'
 
 import '../../styles/pages/edge-browser.less'
 
 const Browse = ({ appContext }) => {
   const { user, accessToken, userLoading } = useLoginRedirect()
+  const [version, setVersion] = useState(1)
   const [invitations, setInvitations] = useState(null)
   const [titleInvitation, setTitleInvitation] = useState(null)
   const [maxColumns, setMaxColumns] = useState(-1)
@@ -39,7 +40,7 @@ const Browse = ({ appContext }) => {
   useEffect(() => {
     if (userLoading || !query) return
 
-    if (!query.traverse || !query.browse) {
+    if (!query.traverse) {
       setError(notFoundError)
       return
     }
@@ -52,11 +53,11 @@ const Browse = ({ appContext }) => {
       setBannerHidden(true)
     }
 
-    const startInvitations = parseEdgeList(query.start)
-    const traverseInvitations = parseEdgeList(query.traverse)
-    const editInvitations = parseEdgeList(query.edit)
-    const browseInvitations = parseEdgeList(query.browse)
-    const hideInvitations = parseEdgeList(query.hide)
+    const startInvitations = parseEdgeList(query.start, 'start')
+    const traverseInvitations = parseEdgeList(query.traverse, 'traverse')
+    const editInvitations = parseEdgeList(query.edit, 'edit')
+    const browseInvitations = parseEdgeList(query.browse, 'browse')
+    const hideInvitations = parseEdgeList(query.hide, 'hide')
     const allInvitations = traverseInvitations.concat(
       startInvitations, editInvitations, browseInvitations, hideInvitations,
     )
@@ -69,8 +70,11 @@ const Browse = ({ appContext }) => {
     setTitleInvitation(traverseInvitations[0])
     setMaxColumns(Math.max(Number.parseInt(query.maxColumns, 10), -1) || -1)
 
+    const apiVersion = Number.parseInt(query.version, 10)
+    setVersion(apiVersion)
+
     const idsToLoad = uniq(allInvitations.map(i => i.id)).filter(id => id !== 'staticList')
-    api.get('/invitations', { ids: idsToLoad.join(','), expired: true, type: 'edges' }, { accessToken })
+    api.get('/invitations', { ids: idsToLoad.join(','), expired: true, type: 'edges' }, { accessToken, version: apiVersion })
       .then((apiRes) => {
         if (!apiRes.invitations?.length) {
           setError(invalidError)
@@ -85,22 +89,31 @@ const Browse = ({ appContext }) => {
             return inv.id === invId
           })
           if (!fullInvitation) {
-            setError({
-              name: 'Not Found', message: `Could not load edge explorer. Invitation not found: ${invObj.id}`, statusCode: 404,
-            })
-            allValid = false
+            // Filter out invalid edit or browse invitations, but don't fail completely
+            if (invObj.category === 'edit' || invObj.category === 'browse') {
+              // eslint-disable-next-line no-console
+              console.error(`${invObj.category} invitation ${invObj.id} does not exist or is expired`)
+              // eslint-disable-next-line no-param-reassign
+              invObj.invalid = true
+            } else {
+              setError({
+                name: 'Not Found', message: `Could not load edge explorer. Invitation not found: ${invObj.id}`, statusCode: 404,
+              })
+              allValid = false
+            }
             return
           }
 
           const readers = buildInvitationReplyArr(fullInvitation, 'readers', user.profile.id)
           const writers = buildInvitationReplyArr(fullInvitation, 'writers', user.profile.id) || readers
-          const signatures = fullInvitation.reply?.signatures
+          const signatures = apiVersion === 2 ? fullInvitation.edge?.signatures : fullInvitation.reply?.signatures
           const nonreaders = buildInvitationReplyArr(fullInvitation, 'nonreaders', user.profile.id)
           Object.assign(invObj, {
-            head: fullInvitation.reply.content.head,
-            tail: fullInvitation.reply.content.tail,
-            weight: fullInvitation.reply.content.weight,
-            label: fullInvitation.reply.content.label,
+            head: translateFieldSpec(fullInvitation, 'head', apiVersion),
+            tail: translateFieldSpec(fullInvitation, 'tail', apiVersion),
+            weight: translateFieldSpec(fullInvitation, 'weight', apiVersion),
+            defaultWeight: translateFieldSpec(fullInvitation, 'weight', apiVersion)?.default,
+            label: translateFieldSpec(fullInvitation, 'label', apiVersion),
             readers,
             writers,
             signatures,
@@ -114,17 +127,17 @@ const Browse = ({ appContext }) => {
         setInvitations({
           startInvitation: startInvitations[0],
           traverseInvitations,
-          editInvitations,
-          browseInvitations,
+          editInvitations: editInvitations.filter(inv => !inv.invalid),
+          browseInvitations: browseInvitations.filter(inv => !inv.invalid),
           hideInvitations,
-          allInvitations,
+          allInvitations: allInvitations.filter(inv => !inv.invalid),
         })
       })
       .catch((apiError) => {
         if (typeof apiError === 'object' && apiError.name) {
-          if (apiError.name === 'NotFoundError') {
+          if (apiError.name === 'Not Found' || apiError.name === 'NotFoundError') {
             setError(notFoundError)
-          } else if (error.name === 'ForbiddenError') {
+          } else if (apiError.name === 'forbidden' || apiError.name === 'ForbiddenError') {
             setError(forbiddenError)
           }
         } else if (typeof apiError === 'string' && apiError.startsWith('Invitation Not Found')) {
@@ -155,6 +168,7 @@ const Browse = ({ appContext }) => {
 
       {invitations ? (
         <EdgeBrowser
+          version={version}
           startInvitation={invitations.startInvitation}
           traverseInvitations={invitations.traverseInvitations}
           editInvitations={invitations.editInvitations}

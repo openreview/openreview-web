@@ -6,18 +6,20 @@ import union from 'lodash/union'
 import { prettyField, prettyContentValue, orderReplyFields } from '../lib/utils'
 import Icon from './Icon'
 
+import '../styles/components/note-content.less'
+
 function NoteContent({
-  id, content, invitation, omit = [], isReference = false,
+  id, content, invitation, omit = [], include = [], isReference = false,
 }) {
   const contentKeys = Object.keys(content)
   const contentOrder = invitation
-    ? union(orderReplyFields(invitation.reply.content || {}, invitation.id), contentKeys)
+    ? union(orderReplyFields(invitation?.reply?.content || {}, invitation.id), contentKeys)
     : contentKeys
 
   const omittedFields = [
     'title', 'authors', 'author_emails', 'authorids', 'pdf',
     'verdict', 'paperhash', 'ee', 'html', 'year', 'venue', 'venueid',
-  ].concat(omit)
+  ].concat(omit).filter(field => !include.includes(field))
 
   return (
     <ul className="list-unstyled note-content">
@@ -27,7 +29,7 @@ function NoteContent({
         const fieldValue = prettyContentValue(content[fieldName])
         if (!fieldValue) return null
 
-        const invitationField = invitation?.reply.content[fieldName] ?? {}
+        const invitationField = invitation?.reply?.content?.[fieldName] ?? {}
 
         return (
           <li key={fieldName}>
@@ -76,10 +78,10 @@ function NoteContentValue({ content = '', enableMarkdown }) {
 }
 
 function DownloadLink({
-  noteId, fieldName, fieldValue, isReference,
+  noteId, fieldName, fieldValue, isReference, isV2 = false,
 }) {
   const fileExtension = fieldValue.split('.').pop()
-  const urlPath = isReference ? '/references/attachment' : '/attachment'
+  const urlPath = isReference ? `${isV2 ? '/notes/edits/attachment' : '/references/attachment'}` : '/attachment'
   const href = `${urlPath}?id=${noteId}&name=${fieldName}`
 
   return (
@@ -89,6 +91,47 @@ function DownloadLink({
       {' '}
       {fileExtension}
     </a>
+  )
+}
+
+export const NoteContentV2 = ({
+  id, content, omit = [], include = [], isEdit = false, presentation,
+}) => {
+  const contentKeys = Object.keys(content)
+  const contentOrder = presentation
+    ? Object.values(presentation ?? {}).sort((a, b) => a?.order - b?.order).map(p => p.name)
+    : contentKeys
+
+  const omittedFields = [
+    'title', 'authors', 'authorids', 'pdf',
+    'verdict', 'paperhash', 'ee', 'html', 'year', 'venue', 'venueid',
+  ].concat(omit).filter(field => !include.includes(field))
+
+  return (
+    <ul className="list-unstyled note-content">
+      {contentOrder.map((fieldName) => {
+        if (omittedFields.includes(fieldName) || fieldName.startsWith('_')) return null
+
+        const fieldValue = prettyContentValue(content[fieldName]?.value)
+        if (!fieldValue) return null
+        const enableMarkdown = presentation?.find(p => p.name === fieldName)?.markdown
+
+        return (
+          <li key={fieldName}>
+            <NoteContentField name={fieldName} />
+            {' '}
+            {fieldValue.startsWith('/attachment/') ? (
+              <span className="note-content-value">
+                {/* eslint-disable-next-line max-len */}
+                <DownloadLink noteId={id} fieldName={fieldName} fieldValue={fieldValue} isReference={isEdit} isV2 />
+              </span>
+            ) : (
+              <NoteContentValue content={fieldValue} enableMarkdown={enableMarkdown} />
+            )}
+          </li>
+        )
+      })}
+    </ul>
   )
 }
 

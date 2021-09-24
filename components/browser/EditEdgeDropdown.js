@@ -1,13 +1,27 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/destructuring-assignment */
+/* globals $: false */
+
+import { getTooltipTitle } from '../../lib/edge-utils'
 
 export default function EditEdgeDropdown(props) {
   const defaultOption = props.default ? props.default : props.options[0]
+  const showTrashButton = props.existingEdge?.writers?.length !== 0
+
+  const handleHover = (target) => {
+    if (!props.existingEdge) return
+    const title = getTooltipTitle(props.existingEdge)
+    $(target).tooltip({
+      title,
+      trigger: 'hover',
+      container: 'body',
+    })
+  }
 
   if (!props.existingEdge && !props.canAddEdge) return null
   return (
     <div className="edit-controls full-width">
-      <label>
+      <label onMouseEnter={e => handleHover(e.target)}>
         {props.label}
         :
       </label>
@@ -20,7 +34,7 @@ export default function EditEdgeDropdown(props) {
           aria-expanded="false"
           onClick={e => e.stopPropagation()}
         >
-          <span className="edge-weight">{props.selected}</span>
+          <span className="edge-weight">{props.selected ?? props.editEdgeTemplate?.defaultWeight}</span>
           <span className="caret" />
         </button>
         <ul className="dropdown-menu">
@@ -41,7 +55,7 @@ export default function EditEdgeDropdown(props) {
           ))}
         </ul>
       </div>
-      {props.existingEdge && (
+      {props.existingEdge && showTrashButton && (
         <a href="#" className="edit-edge-remove" onClick={(e) => { e.stopPropagation(); props.removeEdge() }}>
           <span className="glyphicon glyphicon-trash" />
         </a>

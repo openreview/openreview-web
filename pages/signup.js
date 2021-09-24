@@ -5,12 +5,14 @@ import {
   useState, useEffect, useCallback, useContext, createContext,
 } from 'react'
 import Head from 'next/head'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 import debounce from 'lodash/debounce'
 import UserContext from '../components/UserContext'
 import NoteList from '../components/NoteList'
+import BasicModal from '../components/BasicModal'
 import api from '../lib/api-client'
-import { isValidEmail } from '../lib/utils'
+import { isValidEmail, isValidPassword } from '../lib/utils'
 
 // Page Styles
 import '../styles/pages/signup.less'
@@ -22,6 +24,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
   const [middleName, setMiddleName] = useState('')
   const [lastName, setLastName] = useState('')
   const [newUsername, setNewUsername] = useState('')
+  const [nameConfirmed, setNameConfirmed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [existingProfiles, setExistingProfiles] = useState([])
 
@@ -185,7 +188,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
             ? profile.emailsConfirmed
             : Array.from(new Set([...profile.emailsConfirmed, ...profile.emails]))
 
-          if (profile.password) {
+          if (allEmails.length > 0) {
             formComponents = allEmails.map(email => (
               <ExistingProfileForm
                 key={email}
@@ -199,25 +202,14 @@ const SignupForm = ({ setSignupConfirmation }) => {
               />
             ))
           } else {
-            formComponents = [<ClaimProfileForm key={profile.id} id={profile.id} registerUser={registerUser} />]
-            if (allEmails.length > 0) {
-              formComponents = formComponents.concat(allEmails.map(email => (
-                <ExistingProfileForm
-                  key={email}
-                  id={profile.id}
-                  obfuscatedEmail={email}
-                  hasPassword={profile.password}
-                  isActive={profile.active}
-                  registerUser={registerUser}
-                  resetPassword={resetPassword}
-                  sendActivationLink={sendActivationLink}
-                />
-              )))
-            }
+            formComponents = [
+              <ClaimProfileForm key={profile.id} id={profile.id} registerUser={registerUser} />,
+            ]
           }
           return formComponents.concat(<hr key={`${profile.id}-spacer`} className="spacer" />)
         })}
-        <NewProfileForm id={newUsername} registerUser={registerUser} />
+
+        <NewProfileForm id={newUsername} registerUser={registerUser} nameConfirmed={nameConfirmed} />
       </LoadingContext.Provider>
 
       {existingProfiles.length > 0 && (
@@ -230,6 +222,15 @@ const SignupForm = ({ setSignupConfirmation }) => {
           and we will assist you in merging your profiles.
         </p>
       )}
+
+      <ConfirmNameModal
+        name={`${firstName} ${middleName} ${lastName}`}
+        id={newUsername}
+        onConfirm={() => {
+          $('#confirm-name-modal').modal('hide')
+          setNameConfirmed(true)
+        }}
+      />
     </div>
   )
 }
@@ -239,6 +240,7 @@ const ExistingProfileForm = ({
 }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
 
   let buttonLabel
@@ -247,8 +249,8 @@ const ExistingProfileForm = ({
     buttonLabel = isActive ? 'Reset Password' : 'Send Activation Link'
     usernameLabel = 'for'
   } else {
-    buttonLabel = 'Sign Up'
-    usernameLabel = 'as'
+    buttonLabel = 'Claim Profile'
+    usernameLabel = 'for'
   }
 
   const handleSubmit = (e) => {
@@ -279,12 +281,18 @@ const ExistingProfileForm = ({
           readOnly
         />
         {!passwordVisible && (
-          <button type="submit" className="btn">{buttonLabel}</button>
+          <>
+            <button type="submit" className="btn">{buttonLabel}</button>
+            <span className="new-username hint">
+              {usernameLabel}
+              {' '}
+              <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+            </span>
+          </>
         )}
-        <span className="new-username hint">{`${usernameLabel} ${id}`}</span>
       </div>
       {passwordVisible && (
-        <div className="password-row">
+        <div className="email-row">
           <input
             type="email"
             className="form-control"
@@ -294,21 +302,52 @@ const ExistingProfileForm = ({
             onChange={e => setEmail(e.target.value)}
             autoComplete="email"
           />
-          {hasPassword && <SubmitButton disabled={!isValidEmail(email)}>{buttonLabel}</SubmitButton>}
+          {hasPassword && (
+            <>
+              <SubmitButton disabled={!isValidEmail(email)}>{buttonLabel}</SubmitButton>
+              <span className="new-username hint">
+                {usernameLabel}
+                {' '}
+                <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+              </span>
+            </>
+          )}
         </div>
       )}
       {passwordVisible && !hasPassword && (
-        <div className="password-row">
-          <input
-            type="password"
-            className="form-control"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-          <SubmitButton disabled={!isValidEmail(email) || !password}>{buttonLabel}</SubmitButton>
-        </div>
+        <>
+          <div className="password-row">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="New password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+          </div>
+          <div className="claim-button-row">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Confirm new password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              required
+            />
+            <SubmitButton
+              disabled={!isValidEmail(email) || !isValidPassword(password, confirmPassword)}
+            >
+              {buttonLabel}
+            </SubmitButton>
+            <span className="new-username hint">
+              {usernameLabel}
+              {' '}
+              <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+            </span>
+          </div>
+        </>
       )}
     </form>
   )
@@ -316,12 +355,31 @@ const ExistingProfileForm = ({
 
 const ClaimProfileForm = ({ id, registerUser }) => {
   const [email, setEmail] = useState('')
+  const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [emailVisible, setEmailVisible] = useState(false)
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [recentPublications, setRecentPublications] = useState(null)
 
+  const validateFullName = () => {
+    // Compare the first and last words of the id and full name entered by the user
+    const idWords = id.toLowerCase().slice(1, -1).split('_')
+    const nameWords = fullName.toLowerCase().split(' ')
+    return `${nameWords[0]} ${nameWords.pop()}` === `${idWords[0]} ${idWords.pop()}`
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
+
+    if (!emailVisible) {
+      if (!validateFullName()) {
+        promptError('Your name must match the name of the profile you are claiming', { scrollToTop: false })
+        return
+      }
+      setEmailVisible(true)
+      return
+    }
 
     if (!passwordVisible) {
       setPasswordVisible(true)
@@ -360,40 +418,88 @@ const ClaimProfileForm = ({ id, registerUser }) => {
 
       <div>
         <input
-          type="email"
+          type="text"
           className="form-control"
-          placeholder="Your email address"
-          value={email}
+          placeholder="Your full name"
+          value={fullName}
           maxLength={254}
-          onChange={e => setEmail(e.target.value)}
+          onChange={e => setFullName(e.target.value)}
         />
-        {!passwordVisible && (
-          <button type="submit" className="btn" disabled={!isValidEmail(email)}>Claim Profile</button>
+        {!emailVisible && (
+          <>
+            <button type="submit" className="btn" disabled={!fullName}>Claim Profile</button>
+            <span className="new-username hint">
+              for
+              {' '}
+              <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+            </span>
+          </>
         )}
-        <span className="new-username hint">{`for ${id}`}</span>
       </div>
 
-      {passwordVisible && (
-        <div className="password-row">
+      {emailVisible && (
+        <div className="pt-2">
           <input
-            type="password"
+            type="email"
             className="form-control"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            autoComplete="new-password"
-            required
+            placeholder="Your email address"
+            value={email}
+            maxLength={254}
+            onChange={e => setEmail(e.target.value)}
           />
-          <SubmitButton disabled={!password}>Claim Profile</SubmitButton>
+          {!passwordVisible && (
+            <>
+              <button type="submit" className="btn" disabled={!isValidEmail(email)}>Claim Profile</button>
+              <span className="new-username hint">
+                for
+                {' '}
+                <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+              </span>
+            </>
+          )}
         </div>
+      )}
+
+      {passwordVisible && (
+        <>
+          <div className="password-row">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="New password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+          </div>
+          <div className="claim-button-row">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Confirm new password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+            <SubmitButton disabled={!isValidPassword(password, confirmPassword)}>Claim Profile</SubmitButton>
+            <span className="new-username hint">
+              for
+              {' '}
+              <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+            </span>
+          </div>
+        </>
       )}
     </form>
   )
 }
 
-const NewProfileForm = ({ id, registerUser }) => {
+const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
 
   const handleSubmit = (e) => {
@@ -404,7 +510,7 @@ const NewProfileForm = ({ id, registerUser }) => {
       return
     }
 
-    registerUser('new', email, password)
+    $('#confirm-name-modal').modal('show')
   }
 
   useEffect(() => {
@@ -412,6 +518,12 @@ const NewProfileForm = ({ id, registerUser }) => {
       setPasswordVisible(false)
     }
   }, [id, email, passwordVisible])
+
+  useEffect(() => {
+    if (nameConfirmed) {
+      registerUser('new', email, password)
+    }
+  }, [nameConfirmed])
 
   return (
     <form className="form-inline" onSubmit={handleSubmit}>
@@ -428,23 +540,37 @@ const NewProfileForm = ({ id, registerUser }) => {
         {!passwordVisible && (
           <button type="submit" className="btn" disabled={!id || !isValidEmail(email)}>Sign Up</button>
         )}
-        {id && (
+        {!passwordVisible && id && (
           <span className="new-username hint">{`as ${id}`}</span>
         )}
       </div>
       {passwordVisible && (
-        <div className="password-row">
-          <input
-            type="password"
-            className="form-control"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            autoComplete="new-password"
-            required
-          />
-          <SubmitButton disabled={!password}>Sign Up</SubmitButton>
-        </div>
+        <>
+          <div className="password-row">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="New password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+          </div>
+          <div className="claim-button-row">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Confirm new password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+            <SubmitButton disabled={!isValidPassword(password, confirmPassword)}>Sign Up</SubmitButton>
+            {id && <span className="new-username hint">{`as ${id}`}</span>}
+          </div>
+        </>
       )}
     </form>
   )
@@ -468,6 +594,24 @@ const SubmitButton = ({ disabled, children }) => {
     </button>
   )
 }
+
+const ConfirmNameModal = ({ name, id, onConfirm }) => (
+  <BasicModal
+    id="confirm-name-modal"
+    title="Confirm Full Name"
+    primaryButtonText="Register"
+    onPrimaryButtonClick={onConfirm}
+  >
+    <p className="mb-3">You are registering with the name:</p>
+    <h3 className="mt-0 mb-3">{name}</h3>
+    <p className="mb-3">
+      {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+      Your public profile ID will be <strong>{id}</strong>.
+      If you need to change this name in the future you will have to contact OpenReview support.
+      Are you sure you want to register with this name?
+    </p>
+  </BasicModal>
+)
 
 const ConfirmationMessage = ({ registrationType, registeredEmail }) => {
   if (registrationType === 'reset') {

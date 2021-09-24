@@ -50,8 +50,15 @@ main.sign-up {
         display: inline-block;
         vertical-align: middle;
         width: calc(~'100%' - 520px);
+
+        a {
+          color: @subtleGray;
+        }
+        a:hover {
+          text-decoration: underline;
+        }
       }
-      .password-row {
+      .email-row, .password-row, .claim-button-row{
         padding-top: .5rem;
       }
       .submissions-list {

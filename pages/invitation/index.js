@@ -5,15 +5,15 @@ import omit from 'lodash/omit'
 import without from 'lodash/without'
 import Head from 'next/head'
 import Router from 'next/router'
-import LoadingSpinner from '../components/LoadingSpinner'
-import WebfieldContainer from '../components/WebfieldContainer'
-import withError from '../components/withError'
-import api from '../lib/api-client'
-import { auth, isSuperUser } from '../lib/auth'
-import { prettyId } from '../lib/utils'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import WebfieldContainer from '../../components/WebfieldContainer'
+import withError from '../../components/withError'
+import api from '../../lib/api-client'
+import { auth, isSuperUser } from '../../lib/auth'
+import { prettyId } from '../../lib/utils'
 
 // Page Styles
-import '../styles/pages/invitation.less'
+import '../../styles/pages/invitation.less'
 
 const Invitation = ({ invitationId, webfieldCode, appContext }) => {
   const { setBannerHidden, clientJsLoading } = appContext
@@ -28,7 +28,7 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
 
     window.moment = require('moment')
     require('moment-timezone')
-    window.datetimepicker = require('../client/bootstrap-datetimepicker-4.17.47.min')
+    window.datetimepicker = require('../../client/bootstrap-datetimepicker-4.17.47.min')
 
     const script = document.createElement('script')
     script.innerHTML = webfieldCode
@@ -68,45 +68,44 @@ Invitation.getInitialProps = async (ctx) => {
     return { statusCode: 400, message: 'Invitation ID is required' }
   }
 
-  const generateWebfieldCode = (invitation, user, mode) => {
+  // TODO: remove this when migration away from mode param is complete
+  const redirectToEditOrInfoMode = (mode) => {
+    const redirectUrl = `/invitation/${mode}?id=${ctx.query.id}`
+    if (ctx.req) {
+      ctx.res.writeHead(302, { Location: redirectUrl }).end()
+    } else {
+      Router.replace(redirectUrl)
+    }
+  }
+
+  if (ctx.query.mode === 'edit' || ctx.query.mode === 'info') {
+    redirectToEditOrInfoMode(ctx.query.mode)
+  }
+
+  const { user, token: accessToken } = auth(ctx)
+
+  const generateWebfieldCode = (invitation, query) => {
     const invitationTitle = prettyId(invitation.id)
-    const invitationObjSlim = omit(invitation, 'web', 'process', 'details')
+    const invitationObjSlim = omit(invitation, 'web', 'process', 'details', 'preprocess')
     const isInvitationWritable = invitation.details && invitation.details.writable
-    const editModeEnabled = mode === 'edit'
-    const infoModeEnabled = mode === 'info'
-    const showModeBanner = isInvitationWritable || infoModeEnabled
+    const showModeBanner = isInvitationWritable
 
     const webfieldCode = invitation.web || `
 Webfield.ui.setup($('#invitation-container'), '${invitation.id}');
 Webfield.ui.header('${prettyId(invitation.id)}')
   .append('<p><em>Nothing to display</em></p>');`
 
-    const editorCode = isInvitationWritable && editModeEnabled && `
-Webfield.ui.setup('#invitation-container', invitation.id);
-Webfield.ui.header('${invitationTitle}');
-Webfield.ui.invitationEditor(invitation, {
-  container: '#notes',
-  showProcessEditor: ${isSuperUser(user) ? 'true' : 'false'}
-});`
-
-    const infoCode = (infoModeEnabled || !invitation.web) && `
-Webfield.ui.setup('#invitation-container', invitation.id);
-Webfield.ui.header('${invitationTitle}');
-Webfield.ui.invitationInfo(invitation, {
-  container: '#notes'
-});`
-
-    const noteParams = without(Object.keys(ctx.query), 'id', 'mode', 'referrer')
+    const noteParams = without(Object.keys(query), 'id', 'mode', 'referrer')
     const noteEditorCode = noteParams.length && `
 var runWebfield = function(note) {
   ${webfieldCode}
 };
 
 var $noteEditor;
-view.mkNoteEditor(
+${invitation.apiVersion === 2 ? 'view2' : 'view'}.mkNoteEditor(
   {
     parent: args.parent,
-    content: args
+    content: noteContent,
   },
   invitation,
   user,
@@ -157,11 +156,16 @@ view.mkNoteEditor(
 );`
 
     const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
+    const noteContent = invitation.apiVersion === 2
+      ? noteParams.reduce((acc, key) => { acc[key] = { value: query[key] }; return acc }, {})
+      : noteParams.reduce((acc, key) => { acc[key] = query[key]; return acc }, {})
+
     return `// Webfield Code for ${invitation.id}
 window.user = ${JSON.stringify(userOrGuest)};
 $(function() {
-  var args = ${JSON.stringify(ctx.query)};
+  var args = ${JSON.stringify(query)};
   var invitation = ${JSON.stringify(invitationObjSlim)};
+  var noteContent = ${JSON.stringify(noteContent)};
   var user = ${JSON.stringify(userOrGuest)};
   var document = null;
   var window = null;
@@ -169,27 +173,23 @@ $(function() {
   $('#invitation-container').empty();
   ${showModeBanner ? 'Webfield.editModeBanner(invitation.id, args.mode);' : ''}
 
-  ${editorCode || infoCode || noteEditorCode || webfieldCode}
+  ${noteEditorCode || webfieldCode}
 });
 //# sourceURL=webfieldCode.js`
   }
 
-  const { user, token } = auth(ctx)
   try {
-    const { invitations } = await api.get('/invitations', { id: ctx.query.id }, { accessToken: token })
-    const invitation = invitations?.length > 0 ? invitations[0] : null
-    if (!invitation) {
-      return { statusCode: 404, message: 'Invitation not found' }
+    const invitation = await api.getInvitationById(ctx.query.id, accessToken)
+    if (invitation) {
+      return {
+        invitationId: invitation.id,
+        webfieldCode: generateWebfieldCode(invitation, ctx.query),
+      }
     }
-
-    return {
-      invitationId: invitation.id,
-      webfieldCode: generateWebfieldCode(invitation, user, ctx.query.mode),
-      query: ctx.query,
-    }
+    return { statusCode: 404, message: 'Invitation not found' }
   } catch (error) {
-    if (error.name === 'ForbiddenError') {
-      if (!token) {
+    if (error.name === 'forbidden' || error.name === 'ForbiddenError') {
+      if (!accessToken) {
         if (ctx.req) {
           ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
         } else {

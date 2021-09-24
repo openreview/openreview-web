@@ -1,0 +1,60 @@
+<div class="activity-heading clearfix">
+  <div class="explanation">
+    {{#if details.userIsSignatory}}
+      {{details.formattedSignature}}
+    {{else}}
+      <span class="sig">{{details.formattedSignature}}</span>
+    {{/if}}
+    {{#if details.isUpdated}}edited a{{else}}posted a new{{/if}} {{prettyInvitationId invitations.[0]}}
+    {{#if options.showGroup}}to <a href="/group?id={{details.group}}">{{prettyId details.group}}</a>{{/if}}
+  </div>
+  <div class="date">{{#if readers}}{{forumReadersIcon readers}} &nbsp;&bull;&nbsp;{{/if}} {{timeAgo tmdate}} ago</div>
+</div>
+
+<div class="clearfix">
+  <div class="activity-title">
+    <h4>
+      <a href="/forum?id={{forum}}{{#unless details.isForum}}&noteId={{id}}{{/unless}}">
+        {{#if details.isDeleted}}[Deleted]{{/if}}
+        {{#if content.title.value}}
+          {{content.title.value}}
+        {{else}}
+          {{noteTitle invitations.[0] signatures}}
+        {{/if}}
+      </a>
+    </h4>
+
+    {{#if details.isForum}}
+      <div class="note-authors">
+        {{noteAuthorsV2 readers content signatures}}
+      </div>
+    {{else}}
+      <div class="parent-title">
+        <span class="glyphicon glyphicon-share-alt"></span>
+        <span class="title">
+          {{#with details.forumContent}}
+            {{#if title.value}}{{title.value}}{{else}}No Title{{/if}}
+          {{/with}}
+        </span>
+      </div>
+    {{/if}}
+  </div>
+</div>
+
+{{#if details.isForum}}
+
+  {{#if options.showContents}}
+    {{noteContentCollapsible this}}
+  {{/if}}
+
+  {{#if options.showTags}}
+    {{tagWidgets details.tags options.tagInvitations}}
+  {{/if}}
+
+{{else}}
+
+  {{#if options.showContents}}
+    {{noteContentCollapsible this noCollapse="true"}}
+  {{/if}}
+
+{{/if}}

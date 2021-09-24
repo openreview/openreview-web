@@ -56,12 +56,12 @@ const AutoCompleteInput = () => {
 
   const searchByTerm = async (term) => {
     try {
-      const result = await api.get('/notes/search', {
+      const { notes } = await api.getCombined('/notes/search', {
         term, type: 'prefix', content: 'all', group: 'all', source: 'all', limit: 10,
-      })
+      }, null, { resultsKey: 'notes' })
       if (cancelRequest) return
-      const tokenObjects = getTokenObjects(result.notes, term)
-      const titleObjects = getTitleObjects(result.notes, term)
+      const tokenObjects = getTokenObjects(notes, term)
+      const titleObjects = getTitleObjects(notes, term)
       if (tokenObjects.length && titleObjects.length) {
         setAutoCompleteItems([...tokenObjects, null, ...titleObjects]) // null maps to <hr/>
       } else {
@@ -130,6 +130,7 @@ const AutoCompleteInput = () => {
           value={immediateSearchTerm}
           placeholder="Search OpenReview..."
           autoComplete="off"
+          autoCorrect="off"
           onChange={(e) => { setImmediateSearchTerm(e.target.value); delaySearch(e.target.value) }}
           onKeyDown={e => keyDownHandler(e)}
         />
@@ -142,7 +143,8 @@ const AutoCompleteInput = () => {
             const activeClass = hoverIndex === index ? 'ui-state-active' : ''
             return item ? (
               <li
-                key={item.value}
+                // eslint-disable-next-line react/no-array-index-key
+                key={`${item.value}${index}`}
                 className="menuItem ui-menu-item"
                 role="presentation"
                 onClick={() => itemClickHandler(item)}

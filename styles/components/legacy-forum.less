@@ -1,14 +1,16 @@
 @import "../utils/constants";
 @import "../utils/mixins";
 
-main.forum {
+main.legacy-forum {
   .note {
+    background: transparent;
+    border: none;
+    box-shadow: none;
     padding-bottom: .75rem;
+    margin-bottom: 0;
 
     .title_collapsed {
       display: none;
-      margin-top: 1px;
-      margin-bottom: .25rem;
     }
   }
 
@@ -51,14 +53,16 @@ main.forum {
     font-weight: bold;
   }
   .view-all-replies-container {
-    // background: transparent;
-    // padding: 0;
-    // margin-bottom: 1.125rem;
+    text-align: center;
+    padding-top: .75rem;
+    padding-bottom: .75rem;
 
     > span {
+      display: inline-block;
+      margin-top: 1px;
       font-style: italic;
       color: @subtleGray;
-      padding-right: .5rem;
+      padding-right: .75rem;
     }
   }
 
@@ -85,10 +89,29 @@ main.forum {
   }
 
   .filter-row {
-    margin: 1rem 0;
+    .clearfix;
+    margin: 1rem 0 -.25rem 0;
 
     span {
       color: #555555;
+    }
+    .multiselector.dropdown {
+      margin: 0 .5rem .5rem .25rem;
+    }
+    .filter-container {
+      width: calc(100% - ~'80px');
+
+      > div {
+        display: inline-block;
+      }
+    }
+  }
+
+  .filter-tabs {
+    > li.semi-active > a {
+      text-decoration: none;
+      background-color: #f3f5f5;
+      border-color: #eee #eee #ddd;
     }
   }
 
@@ -140,6 +163,19 @@ main.forum {
       .note_content_pdf img {
         margin-top: -15px;
       }
+    }
+  }
+  div.note_content_section {
+    margin-left: -.75rem;
+    margin-right: -.75rem;
+    padding: .75rem;
+  }
+  .note_with_children div.note_content_section {
+    margin-left: -1.5rem;
+    margin-right: -.5rem;
+    padding: .75rem .5rem .75rem 1.5rem;
+    > .row:last-child {
+      margin-bottom: .25rem;
     }
   }
 
@@ -205,9 +241,20 @@ main.forum {
       line-height: normal;
       color: @subtleGray;
     }
+    .hint {
+      padding-right: 0;
+      margin-right: .5rem;
+    }
     .trash_button, .edit_button {
       margin-top: -1px;
       margin-right: .25rem;
+    }
+    .highlight {
+      background-color: @mediumBlue;
+      color: #fff;
+      padding: 0 4px;
+      border-radius: 2px;
+      margin-right: 1.25rem;
     }
   }
 
@@ -259,17 +306,17 @@ main.forum {
       margin-right: 0;
     }
 
-    #reply_count {
-      float: left;
-      font-size: .875rem;
-      color: @darkBlue;
-      font-weight: bold;
-      padding-top: .125rem;
-    }
-
     @media @phone-only {
       margin-top: .5rem;
     }
+  }
+
+  #reply_count {
+    text-align: right;
+    font-size: .875rem;
+    color: @darkBlue;
+    font-weight: bold;
+    line-height: 34px;
   }
 
   hr {
@@ -278,7 +325,7 @@ main.forum {
 
   // Comments, reviews, replies, etc.
   #note_children {
-    margin-top: 1.25rem;
+    margin-top: .75rem;
 
     > div {
       background: rgba(0, 0, 0, 0.04);
@@ -300,6 +347,14 @@ main.forum {
         }
       }
     }
+    .note.new-layout {
+      .meta_row {
+        .glyphicon {
+          font-size: .75rem;
+          padding-right: .25rem;
+        }
+      }
+    }
 
     .spinner-container {
       position: static;
@@ -309,35 +364,10 @@ main.forum {
       padding: 2rem 0;
     }
 
-    h2.note_content_title {
-      font-size: 1.125rem;
-      line-height: 1.125rem;
-      margin-top: 0;
-      margin-bottom: 0;
-
-      .btn-default {
-        margin-top: -4px;
-        margin-left: .5rem;
-        background: transparent;
-        border: 2px solid transparent;
-        opacity: 0;
-
-        &:hover {
-          background-color: @backgroundGray;
-          border-color: @subtleGray;
-        }
-      }
-    }
-
     .meta_row {
       .signatures, .author, .profile-link {
         font-size: .875rem;
       }
-    }
-
-    .collapsed h2.note_content_title {
-      line-height: 1rem;
-      font-size: 1rem;
     }
 
     div.note_contents {
@@ -345,6 +375,9 @@ main.forum {
     }
 
     .note_editor.panel .note_content_title {
+      font-size: 1.125rem;
+      line-height: 1.125rem;
+      margin-top: 0;
       margin-bottom: .5rem;
     }
     .note_editor.panel hr {
@@ -356,6 +389,16 @@ main.forum {
       hr {
         margin-right: 0;
       }
+    }
+  }
+
+  #reply-empty-message {
+    p.empty-message {
+      color: @subtleGray;
+      font-style: italic;
+      text-align: center;
+      margin-top: 3rem;
+      margin-bottom: 1rem;
     }
   }
 
@@ -402,22 +445,74 @@ main.forum {
       }
     }
 
-    &.collapsed {
-      height: 2.25rem;
-      overflow: hidden;
+    h2.note_content_title {
+      font-size: 1.125rem;
+      line-height: 1.125rem;
+      margin-top: 0;
+      margin-bottom: 0;
 
-      .note_content_title {
-        height: 1.25rem;
+      .btn-default {
+        margin-top: -4px;
+        margin-left: .5rem;
+        background: transparent;
+        border: 2px solid transparent;
+        opacity: 0;
+
+        &:hover {
+          background-color: @backgroundGray;
+          border-color: @subtleGray;
+        }
+      }
+    }
+
+    .collapse-comment-tree.expand-link {
+      display: none;
+    }
+
+    .title_collapsed {
+      display: none;
+
+      h2.note_content_title {
+        font-size: 1rem;
         width: 100%;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      .title_pdf_row {
+    }
+
+    &.collapsed, &.semi-collapsed {
+      > .collapse-comment-tree.collapse-link {
         display: none;
       }
-      .title_collapsed {
+      > .collapse-comment-tree.expand-link {
         display: block;
+      }
+      > .note {
+        > .title_collapsed {
+          display: block;
+        }
+        > .title_pdf_row,
+        > .note_contents,
+        > .clearfix,
+        > .meta_row {
+          display: none;
+        }
+      }
+      > .children {
+        display: none;
+      }
+    }
+    &.collapsed {
+      height: 2.25rem;
+      overflow: hidden;
+    }
+    &.semi-collapsed {
+      > .children {
+        display: block;
+      }
+      > .children:empty {
+        display: none;
       }
     }
   }
@@ -425,6 +520,17 @@ main.forum {
   .note_editor.panel {
     margin-bottom: .5rem;
     border-radius: 0;
+  }
+  .forum-container > .note_editor.panel {
+    margin-bottom: 2rem;
+  }
+
+  .private-contents-icon {
+    font-size: .75rem;
+    margin-right: .25rem;
+    margin-left: .25rem;
+    line-height: normal;
+    color: @subtleGray;
   }
 }
 

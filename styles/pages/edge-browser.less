@@ -3,6 +3,7 @@
 @lockGreen: #dff0d8;
 @vetoRed: #f2dede;
 @hoverColor: #f5f5f5;
+@conflictAssignedColor:#e9d7c7;
 
 main.edge-browser {
 
@@ -66,6 +67,9 @@ main.edge-browser {
     &.is-assigned {
       background-color: @lockGreen;
     }
+    &.has-conflict.is-assigned{
+      background-color: @conflictAssignedColor;
+    }
     &.is-editable {
       .reviewer-heading,
       .note-heading {
@@ -97,6 +101,7 @@ main.edge-browser {
         clear: both;
         text-align: left;
         margin-bottom: .25rem;
+        margin-top: .25rem;
       }
       .btn-xs {
         border-width: 1px;
@@ -173,6 +178,13 @@ main.edge-browser {
       }
       .edit-edge-toggle-btn{
         vertical-align: super;
+        &.disable{
+          opacity: .5;
+          cursor: no-drop;
+        }
+      }
+      .span-disabled{
+        pointer-events: none;
       }
     }
     .scores-list, .action-links {
@@ -381,6 +393,16 @@ main.edge-browser {
           display: inline-block;
           line-height: 1.125rem;
           width: ~"calc(100% - 60px)";
+        }
+      }
+      div.checkbox {
+        margin-top: .25rem;
+        margin-bottom: 0;
+        label {
+          font-size: .75rem;
+        }
+        input {
+          margin-top: 2px;
         }
       }
     }
@@ -641,6 +663,30 @@ main.edge-browser {
   .show-lock-break .entry-reviewer .reviewer-heading,
   .show-lock-break .entry-areachair .areachair-heading {
     width: ~"calc(100% - 134px)";
+  }
+  .widget-invite-assignment {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.5rem;
+    align-items: baseline;
+    input {
+      flex-grow: 1;
+      // margin-left: 0.5rem;
+      margin-right: 0.5rem;
+    }
+    .btn-xs{
+      display: flex;
+    }
+    .spinner-small{
+      height: 15px;
+      display: inline-block;
+      width: 40px;
+      text-align: center;
+      margin: 0;
+      & > div {
+        background-color: @orRed;
+      }
+    }
   }
 }
 

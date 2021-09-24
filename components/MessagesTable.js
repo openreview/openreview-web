@@ -1,3 +1,5 @@
+/* globals DOMPurify: false */
+
 import Table from './Table'
 import { formatTimestamp } from '../lib/utils'
 
@@ -30,7 +32,7 @@ const MessageRow = ({ message }) => (
             Parent:
             {' '}
             <a
-              href={`/group?id=${encodeURIComponent(message.referrer)}&mode=edit`}
+              href={`/group/edit?id=${encodeURIComponent(message.referrer)}`}
               className="profile-link"
               target="_blank"
               rel="noreferrer"
@@ -53,10 +55,11 @@ const MessageRow = ({ message }) => (
       <div
         role="button"
         tabIndex="0"
-        className="email-content collapsed"
+        className={`email-content collapsed ${message.content?.text?.startsWith('<p>') ? 'markdown-rendered' : ''}`}
         onClick={e => e.currentTarget.classList.toggle('collapsed')}
       >
-        <p>{message.content?.text}</p>
+        {/* eslint-disable-next-line react/no-danger */}
+        <p dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.content?.text) }} />
         <div className="gradient-overlay" />
       </div>
 

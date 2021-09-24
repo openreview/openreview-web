@@ -11,6 +11,8 @@ export default function DblpPublicationTable({
   const pubsCouldImport = []
   dblpPublications.forEach((dblpPub, index) => {
     const titleMatch = orPub => orPub.title === dblpPub.formattedTitle
+      && orPub.authorCount === dblpPub.authorCount
+      && orPub.venue === dblpPub.venue
     const existing = orPublications.find(titleMatch)
     const existingWithOtherProfile = orPublicationsImportedByOtherProfile.find(titleMatch)
     if (existing || existingWithOtherProfile) {
@@ -63,6 +65,8 @@ export default function DblpPublicationTable({
     <Table headings={headings}>
       {dblpPublications.map((publication, index) => {
         const titleMatch = orPub => orPub.title === publication.formattedTitle
+          && orPub.authorCount === publication.authorCount
+          && orPub.venue === publication.venue
         const existingPublication = orPublications.find(titleMatch)
         const existingPublicationOfOtherProfile = orPublicationsImportedByOtherProfile.find(titleMatch)
         // eslint-disable-next-line no-nested-ternary
@@ -81,6 +85,7 @@ export default function DblpPublicationTable({
             toggleSelected={selectPublication(index)}
             otherProfileId={existingPublicationOfOtherProfile?.existingProfileId}
             category={category}
+            venue={publication.venue}
           />
         )
       })}
@@ -89,7 +94,7 @@ export default function DblpPublicationTable({
 }
 
 const DblpPublicationRow = ({
-  title, authors, openReviewId, selected, toggleSelected, otherProfileId, category,
+  title, authors, openReviewId, selected, toggleSelected, otherProfileId, category, venue,
 }) => (
   <tr className={category === 'nonExisting' ? '' : `${category}-row`}>
     <th scope="row">
@@ -108,6 +113,11 @@ const DblpPublicationRow = ({
         ) : (
           <span>{title}</span>
         )}
+        <span className="venue">
+          (
+          {venue}
+          )
+        </span>
       </div>
       <div className="publication-author-names">
         {authors.join(', ')}

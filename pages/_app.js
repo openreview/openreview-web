@@ -47,9 +47,9 @@ export default class OpenReviewApp extends App {
     this.setState({ user: authenticatedUser, accessToken: userAccessToken, logoutRedirect: false })
     setAuthCookie(userAccessToken)
 
-    // Need pass new accessToken to Webfield and controller so legacy ajax functions work
+    // Need pass new accessToken to Webfield so legacy ajax functions work
     window.Webfield.setToken(userAccessToken)
-    window.controller.setToken(userAccessToken)
+    window.Webfield2.setToken(userAccessToken)
 
     const timeToExpiration = cookieExpiration - 1000
     this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
@@ -66,9 +66,9 @@ export default class OpenReviewApp extends App {
     if (!setCookie) return
     setAuthCookie(userAccessToken)
 
-    // Need pass new accessToken to Webfield and controller so legacy ajax functions work
+    // Need pass new accessToken to Webfield so legacy ajax functions work
     window.Webfield.setToken(userAccessToken)
-    window.controller.setToken(userAccessToken)
+    window.Webfield2.setToken(userAccessToken)
 
     const timeToExpiration = tokenExpiration * 1000 - Date.now() - 1000
     this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
@@ -79,7 +79,7 @@ export default class OpenReviewApp extends App {
     removeAuthCookie()
 
     window.Webfield.setToken(null)
-    window.controller.setToken(null)
+    window.Webfield2.setToken(null)
 
     clearTimeout(this.logoutTimer)
 
@@ -236,9 +236,10 @@ export default class OpenReviewApp extends App {
 
     // Load legacy JS code
     window.mkStateManager = require('../client/state-manager')
-    window.controller = require('../client/controller')
     window.view = require('../client/view')
+    window.view2 = require('../client/view-v2')
     window.Webfield = require('../client/webfield')
+    window.Webfield2 = require('../client/webfield-v2')
     window.OpenBanner = this.getLegacyBannerObject()
     require('../client/templates')
     require('../client/template-helpers')
@@ -249,8 +250,9 @@ export default class OpenReviewApp extends App {
 
     // Set required constants
     window.OR_API_URL = process.env.API_URL
+    window.OR_API_V2_URL = process.env.API_V2_URL
     window.Webfield.setToken(token)
-    window.controller.setToken(token)
+    window.Webfield2.setToken(token)
 
     this.setState({ clientJsLoading: false })
 
