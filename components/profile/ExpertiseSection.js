@@ -97,13 +97,27 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
           expertises.map(p => (
             <div className="row" key={p.key}>
               <div className="col-md-6 expertise__value">
-                <input className="form-control" value={p.keywords.join(', ') ?? ''} onChange={e => setExpertises({ type: expertiseType, data: { value: e.target.value, key: p.key } })} />
+                <input
+                  className={`form-control ${profileExpertises?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+                  value={p.keywords.join(', ') ?? ''}
+                  onChange={e => setExpertises({ type: expertiseType, data: { value: e.target.value, key: p.key } })}
+                />
               </div>
               <div className="col-md-1 expertise__value">
-                <input className="form-control" placeholder="year" value={p.start ?? ''} onChange={e => setExpertises({ type: startType, data: { value: e.target.value, key: p.key } })} />
+                <input
+                  className={`form-control ${profileExpertises?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+                  placeholder="year"
+                  value={p.start ?? ''}
+                  onChange={e => setExpertises({ type: startType, data: { value: e.target.value, key: p.key } })}
+                />
               </div>
               <div className="col-md-1 expertise__value">
-                <input className="form-control" placeholder="year" value={p.end ?? ''} onChange={e => setExpertises({ type: endType, data: { value: e.target.value, key: p.key } })} />
+                <input
+                  className={`form-control ${profileExpertises?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+                  placeholder="year"
+                  value={p.end ?? ''}
+                  onChange={e => setExpertises({ type: endType, data: { value: e.target.value, key: p.key } })}
+                />
               </div>
               <div className="col-md-1 relation__value">
                 <div className="glyphicon glyphicon-minus-sign" role="button" aria-label="remove expertise" tabIndex={0} onClick={() => setExpertises({ type: removeExpertiseType, data: { key: p.key } })} />

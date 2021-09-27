@@ -144,19 +144,44 @@ const RelationsSection = ({
                   defaultValue={p.relation ? { value: p.relation, label: p.relation } : null}
                   onChange={e => setRelation({ type: relationType, data: { value: e.value, key: p.key } })}
                   options={relationOptions}
+                  styles={{
+                    control: (provided, state) => ({
+                      ...provided,
+                      borderColor: state.selectProps.isInvalid ? '#8c1b13!important' : provided.borderColor,
+                    }),
+                  }}
+                  isInvalid={profileRelation?.find(q => q.key === p.key)?.valid === false}
                 />
               </div>
               <div className="col-md-3 relation__value">
-                <input className="form-control" value={p.name ?? ''} onChange={e => setRelation({ type: nameType, data: { value: e.target.value, key: p.key } })} />
+                <input
+                  className={`form-control ${profileRelation?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+                  value={p.name ?? ''}
+                  onChange={e => setRelation({ type: nameType, data: { value: e.target.value, key: p.key } })}
+                />
               </div>
               <div className="col-md-3 relation__value">
-                <input className="form-control" value={p.email ?? ''} onChange={e => setRelation({ type: emailType, data: { value: e.target.value, key: p.key } })} />
+                <input
+                  className={`form-control ${profileRelation?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+                  value={p.email ?? ''}
+                  onChange={e => setRelation({ type: emailType, data: { value: e.target.value, key: p.key } })}
+                />
               </div>
               <div className="col-md-1 relation__value">
-                <input className="form-control" value={p.start ?? ''} placeholder="year" onChange={e => setRelation({ type: startType, data: { value: e.target.value, key: p.key } })} />
+                <input
+                  className={`form-control ${profileRelation?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+                  value={p.start ?? ''}
+                  placeholder="year"
+                  onChange={e => setRelation({ type: startType, data: { value: e.target.value, key: p.key } })}
+                />
               </div>
               <div className="col-md-1 relation__value">
-                <input className="form-control" value={p.end ?? ''} placeholder="year" onChange={e => setRelation({ type: endType, data: { value: e.target.value, key: p.key } })} />
+                <input
+                  className={`form-control ${profileRelation?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+                  value={p.end ?? ''}
+                  placeholder="year"
+                  onChange={e => setRelation({ type: endType, data: { value: e.target.value, key: p.key } })}
+                />
               </div>
               <div className="col-md-1 relation__value">
                 <MultiSelectorDropdown

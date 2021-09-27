@@ -28,7 +28,7 @@ const EmailsButton = ({
 
   if (type === 'preferred') {
     if (preferred) {
-      return <div className="preferred hint">(Preferred Email)</div>
+      return <div className="emails__preferred-text hint">(Preferred Email)</div>
     }
     if (confirmed) {
       return <button type="button" className="btn preferred-button" onClick={handleMakePreferred}>Make Preferred</button>
@@ -117,34 +117,19 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
         This information is crucial for deduplicating users and ensuring that you see your reviewing assignments.
         OpenReview will only send messages to the address marked as “Preferred”.
       </p>
-      <table className="emails-table">
-        <tbody>
-          {emails.map(emailObj => (
-            <tr key={emailObj.key}>
-              <td>
-                {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
-                <input type="email" autoFocus value={emailObj.email} readOnly={emailObj.confirmed} className={`form-control email profile ${emailObj.isValid ? undefined : 'invalid-value'}`} onChange={e => handleUpdateEmail(e.target.value.trim(), emailObj.key)} />
-              </td>
-              <EmailsButton type="confirmed" emailObj={emailObj} handleConfirm={() => handleConfirmEmail(emailObj.key)} />
-              <EmailsButton type="preferred" emailObj={emailObj} handleMakePreferred={() => handleMakeEmailPreferred(emailObj.key)} />
-              <td><EmailsButton type="remove" emailObj={emailObj} handleRemove={() => handleRemoveEmail(emailObj.key)} /></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
       <div className="container emails">
         {
           emails.map(emailObj => (
-            <div className="row">
+            <div className="row" key={emailObj.key}>
               <div className="col-md-4 emails__value">
                 {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
                 <input type="email" autoFocus value={emailObj.email} readOnly={emailObj.confirmed} className={`form-control email profile ${emailObj.isValid ? undefined : 'invalid-value'}`} onChange={e => handleUpdateEmail(e.target.value.trim(), emailObj.key)} />
               </div>
-              <div className="col-md-2 emails__value">
+              <div className="col-md-1 emails__value">
                 <EmailsButton type="confirmed" emailObj={emailObj} handleConfirm={() => handleConfirmEmail(emailObj.key)} />
-                <EmailsButton type="preferred" emailObj={emailObj} handleMakePreferred={() => handleMakeEmailPreferred(emailObj.key)} />
               </div>
-              <div className="col-md-2 emails__value">
+              <div className="col-md-1 emails__value">
+                <EmailsButton type="preferred" emailObj={emailObj} handleMakePreferred={() => handleMakeEmailPreferred(emailObj.key)} />
                 <EmailsButton type="remove" emailObj={emailObj} handleRemove={() => handleRemoveEmail(emailObj.key)} />
               </div>
             </div>

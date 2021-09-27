@@ -2,7 +2,7 @@ import { useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
 import { CreatableDropdown } from '../Dropdown'
 
-const EducationHisotrySection = ({
+const EducationHistorySection = ({
   profileHistory,
   positions,
   institutions,
@@ -114,7 +114,7 @@ const EducationHisotrySection = ({
 
   return (
     <section>
-      <h4>Education & Career Hisotry</h4>
+      <h4>Education & Career History</h4>
       <p className="instructions">
         Enter your education and career history.
         The institution domain is used for conflict of interest detection,
@@ -140,13 +140,30 @@ const EducationHisotrySection = ({
                   defaultValue={p.position ? { value: p.position, label: p.position } : null}
                   onChange={e => setHistory({ type: posititonType, data: { value: e.value, key: p.key } })}
                   options={positionOptions}
+                  styles={{
+                    control: (provided, state) => ({
+                      ...provided,
+                      borderColor: state.selectProps.isInvalid ? '#8c1b13!important' : provided.borderColor,
+                    }),
+                  }}
+                  isInvalid={profileHistory?.find(q => q.key === p.key)?.valid === false}
                 />
               </div>
               <div className="col-md-1 history__value">
-                <input className="form-control" value={p.start ?? ''} placeholder="year" onChange={e => setHistory({ type: startType, data: { value: e.target.value, key: p.key } })} />
+                <input
+                  className={`form-control ${profileHistory?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+                  value={p.start ?? ''}
+                  placeholder="year"
+                  onChange={e => setHistory({ type: startType, data: { value: e.target.value, key: p.key } })}
+                />
               </div>
               <div className="col-md-1 history__value">
-                <input className="form-control" value={p.end ?? ''} placeholder="year" onChange={e => setHistory({ type: endType, data: { value: e.target.value, key: p.key } })} />
+                <input
+                  className={`form-control ${profileHistory?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+                  value={p.end ?? ''}
+                  placeholder="year"
+                  onChange={e => setHistory({ type: endType, data: { value: e.target.value, key: p.key } })}
+                />
               </div>
               <div className="col-md-3 history__value">
                 <CreatableDropdown
@@ -157,10 +174,21 @@ const EducationHisotrySection = ({
                   defaultValue={p.institution?.domain ? { value: p.institution?.domain, label: p.institution?.domain } : null}
                   onChange={e => setHistory({ type: institutionDomainType, data: { value: e.value, key: p.key } })}
                   options={institutionDomainOptions}
+                  styles={{
+                    control: (provided, state) => ({
+                      ...provided,
+                      borderColor: state.selectProps.isInvalid ? '#8c1b13!important' : provided.borderColor,
+                    }),
+                  }}
+                  isInvalid={profileHistory?.find(q => q.key === p.key)?.valid === false}
                 />
               </div>
               <div className="col-md-4 history__value">
-                <input className="form-control" value={p.institution?.name ?? ''} onChange={e => setHistory({ type: institutionNameType, data: { value: e.target.value, key: p.key } })} />
+                <input
+                  className="form-control"
+                  value={p.institution?.name ?? ''}
+                  onChange={e => setHistory({ type: institutionNameType, data: { value: e.target.value, key: p.key } })}
+                />
               </div>
               <div className="col-md-1 history__value">
                 {history.length > 1 && <div className="glyphicon glyphicon-minus-sign" role="button" aria-label="remove history" tabIndex={0} onClick={() => setHistory({ type: removeHistoryType, data: { key: p.key } })} />}
@@ -174,4 +202,4 @@ const EducationHisotrySection = ({
   )
 }
 
-export default EducationHisotrySection
+export default EducationHistorySection

@@ -1,4 +1,4 @@
-/* eslint-disable no-param-reassign */
+/* eslint-disable no-cond-assign */
 /* globals promptMessage,promptError: false */
 import Head from 'next/head'
 import { useEffect, useReducer, useState } from 'react'
@@ -15,11 +15,14 @@ import { formatProfileData } from '../../lib/profiles'
 import '../../styles/pages/profile-edit.less'
 import EmailsSection from '../../components/profile/EmailsSection'
 import PersonalLinksSection from '../../components/profile/PersonalLinksSection'
-import EducationHisotrySection from '../../components/profile/EducationHisotrySection'
 import RelationsSection from '../../components/profile/RelationsSection'
 import ExpertiseSection from '../../components/profile/ExpertiseSection'
 import ImportedPublicationsSection from '../../components/profile/ImportedPublicationsSection'
 import useUser from '../../hooks/useUser'
+import {
+  isValidDomain, isValidEmail, isValidURL, isValidYear,
+} from '../../lib/utils'
+import EducationHistorySection from '../../components/profile/EducationHistorySection'
 
 const profileEditNew = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
@@ -34,14 +37,15 @@ const profileEditNew = ({ appContext }) => {
   const positions = dropdownOptions?.prefixedPositions
   const institutions = dropdownOptions?.institutions
   const submitButtontext = 'Save Profile Changes'
+  const personalLinkNames = ['homepage', 'gscholar', 'dblp', 'orcid', 'linkedin', 'wikipedia', 'semanticScholar']
 
   const profileReducer = (state, action) => {
     if (action.type === 'load') {
       return {
         ...action.data,
-        links: ['homepage', 'gscholar', 'dblp', 'orcid', 'linkedin', 'wikipedia', 'semanticScholar'].reduce(
+        links: personalLinkNames.reduce(
           (previous, current) => (
-            { ...previous, [current]: action.data.links.find(p => p.key === current)?.url ?? '' }
+            { ...previous, [current]: { value: action.data.links.find(p => p.key === current)?.url ?? '' } }
           ), {},
         ),
       }
@@ -69,7 +73,9 @@ const profileEditNew = ({ appContext }) => {
 
   const handleSubmitButtonClick = () => {
     // eslint-disable-next-line no-use-before-define
-    if (validateProfile()) saveProfile()
+    const { isValid, profileContent } = validateCleanProfile()
+    // eslint-disable-next-line no-use-before-define
+    if (isValid) saveProfile(profileContent)
   }
 
   const unlinkPublication = async (profileId, noteId) => {
@@ -115,37 +121,171 @@ const profileEditNew = ({ appContext }) => {
     return api.post('/notes', updateAuthorIdsObject, { accessToken })
   }
 
-  const validateProfile = () => {
-
+  const promptInvalidValue = (type, invalidKey, message) => {
+    promptError(message)
+    setProfile({
+      type,
+      data: profile[type].map((p) => {
+        if (p.key === invalidKey) return { ...p, valid: false }
+        return p
+      }),
+    })
+    return { isValid: false, profileContent: null }
   }
 
-  const saveProfile = async () => {
+  const promptInvalidLink = (link, message) => {
+    promptError(message)
+    setProfile({
+      type: 'links',
+      data: {
+        ...profile.links,
+        [link]: {
+          ...profile.links[link],
+          valid: false,
+        },
+      },
+    })
+    return { isValid: false, profileContent: null }
+  }
+
+  // validate and remove empty/not required data
+  const validateCleanProfile = () => {
+    // filter out empty rows, keep row key
+    let profileContent = {
+      ...profile,
+      names: profile.names.flatMap(p => (p.first || p.middle || p.last ? p : [])),
+      emails: profile.emails.flatMap(p => (p.email ? p : [])),
+      links: undefined,
+      ...profile.links,
+      history: profile.history.flatMap(p => (p.position || p.institution?.domain || p.institution?.name ? p : [])),
+      expertise: profile.expertise.flatMap(p => (p.expertise ? p : [])),
+      relations: profile.relations.flatMap(p => (p.relation ? p : [])),
+      preferredEmail: profile.emails.find(p => p.confirmed)?.email,
+      preferredName: undefined,
+      currentInstitution: undefined,
+      id: undefined,
+      preferredId: undefined,
+    }
+    console.log(profileContent)
+    // profileContent = {
+    //   ...profile,
+    //   names: profile.names.map((p) => { const { altUsernames, key, ...rest } = p; return rest }),
+    //   emails: profile.emails.map(p => p.email),
+    //   links: undefined,
+    //   ...profile.links,
+    //   history: profile.history.flatMap((p) => {
+    //     const { key, ...rest } = p
+    //     return p.position || p.institution?.domain || p.institution?.name ? rest : []
+    //   }),
+    //   expertise: profile.expertise.flatMap((p) => {
+    //     const { key, ...rest } = p
+    //     return p.expertise ? rest : []
+    //   }),
+    //   relations: profile.relations.flatMap((p) => {
+    //     const { key, ...rest } = p
+    //     return p.relation ? rest : []
+    //   }),
+    //   preferredEmail: profile.emails.find(p => p.confirmed)?.email,
+    //   preferredName: undefined,
+    //   currentInstitution: undefined,
+    //   id: undefined,
+    //   preferredId: undefined,
+    // }
+    let invalidRecord = null
+    // validate names
+    if (invalidRecord = profileContent.names.find(p => !p.first || !p.last)) {
+      return promptInvalidValue('names', invalidRecord.key, 'First and last name cannot be empty')
+    }
+    // validate emails
+    if (invalidRecord = profileContent.emails.find(p => !isValidEmail(p.email))) {
+      return promptInvalidValue('emails', invalidRecord.key, `${invalidRecord.email} is not a valid email address`)
+    }
+    // #region validate personal links
+    // eslint-disable-next-line consistent-return
+    ['homepage', 'dblp', 'orcid', 'wikipedia', 'linkedin'].forEach((p) => {
+      if (profileContent[p].value && !isValidURL(profileContent[p].value)) {
+        return promptInvalidLink(p, `${profileContent[p].value} is not a valid URL`)
+      }
+    })
+    if (profileContent.gscholar.value && !(isValidURL(profileContent.gscholar.value) && profileContent.gscholar.value.startsWith('https://scholar.google'))) {
+      return promptInvalidLink('gscholar', `${profileContent.gscholar.value} is not a valid Google Scholar URL`)
+    }
+    if (profileContent.semanticScholar.value && !(isValidURL(profileContent.semanticScholar.value) && profileContent.semanticScholar.value.startsWith('https://www.semanticscholar.org'))) {
+      return promptInvalidLink('semanticScholar', `${profileContent.semanticScholar.value} is not a valid Semantic Scholar URL`)
+    }
+    // must have >1 links
+    if (!personalLinkNames.some(p => profileContent[p].value)) {
+      return promptInvalidLink('homepage', 'You must enter at least one personal link')
+    }
+    // #endregion
+    // #region validate history
+    if (invalidRecord = profileContent.history.find(p => !p.institution?.domain)) {
+      return promptInvalidValue('history', invalidRecord.key, 'Domain is required for all positions')
+    }
+    if (invalidRecord = profileContent.history.find(p => p.institution.domain.startsWith('www') || !isValidDomain(p.institution.domain))) {
+      return promptInvalidValue('history', invalidRecord.key, `${invalidRecord.institution.domain} is not a valid domain. Domains should not contain "http", "www", or and special characters like "?" or "/".`)
+    }
+    if (invalidRecord = profileContent.history.find(p => p.start && !isValidYear(p.start))) {
+      return promptInvalidValue('history', invalidRecord.key, 'Start date should be a valid year')
+    }
+    if (invalidRecord = profileContent.history.find(p => p.end && !isValidYear(p.end))) {
+      return promptInvalidValue('history', invalidRecord.key, 'End date should be a valid year')
+    }
+    if (invalidRecord = profileContent.history.find(p => p.start && p.end && p.start > p.end)) {
+      return promptInvalidValue('history', invalidRecord.key, 'End date should be higher than start date')
+    }
+    if (invalidRecord = profileContent.history.find(p => !p.start && p.end)) {
+      return promptInvalidValue('history', invalidRecord.key, 'Start date can not be empty')
+    }
+    // if (!profileContent.history.length) { // may not happen
+    //   promptError('You must enter at least one position for your education and career history')
+    // }
+    if (invalidRecord = profileContent.history.find(p => !p.position || !p.institution.name || !p.institution.domain)) {
+      return promptInvalidValue('history', invalidRecord.key, 'You must enter position, institution, and domain information for each entry in your education and career history')
+    }
+    // #endregion
+    // #region validate relations
+    if (invalidRecord = profileContent.relations.find(p => !p.relation || !p.name || !p.email)) {
+      return promptInvalidValue('relations', invalidRecord.key, 'You must enter relation, name and email information for each entry in your advisor and other relations')
+    }
+    if (invalidRecord = profileContent.relations.find(p => !isValidEmail(p.email))) {
+      return promptInvalidValue('relations', invalidRecord.key, `${invalidRecord.email} is not a valid email address`)
+    }
+    if (invalidRecord = profileContent.relations.find(p => p.start && !isValidYear(p.start))) {
+      return promptInvalidValue('relations', invalidRecord.key, 'Start date should be a valid year')
+    }
+    if (invalidRecord = profileContent.relations.find(p => p.end && !isValidYear(p.end))) {
+      return promptInvalidValue('relations', invalidRecord.key, 'End date should be a valid year')
+    }
+    if (invalidRecord = profileContent.relations.find(p => p.start && p.end && p.start > p.end)) {
+      return promptInvalidValue('relations', invalidRecord.key, 'End date should be higher than start date')
+    }
+    if (invalidRecord = profileContent.relations.find(p => !p.start && p.end)) {
+      return promptInvalidValue('relations', invalidRecord.key, 'Start date can not be empty')
+    }
+    // #endregion
+    // #region validate expertise
+    if (invalidRecord = profileContent.expertise.find(p => p.start && !isValidYear(p.start))) {
+      return promptInvalidValue('expertise', invalidRecord.key, 'Start date should be a valid year')
+    }
+    if (invalidRecord = profileContent.expertise.find(p => p.end && !isValidYear(p.end))) {
+      return promptInvalidValue('expertise', invalidRecord.key, 'End date should be a valid year')
+    }
+    if (invalidRecord = profileContent.expertise.find(p => p.start && p.end && p.start > p.end)) {
+      return promptInvalidValue('expertise', invalidRecord.key, 'End date should be higher than start date')
+    }
+    if (invalidRecord = profileContent.expertise.find(p => !p.start && p.end)) {
+      return promptInvalidValue('expertise', invalidRecord.key, 'Start date can not be empty')
+    }
+    // #endregion
+    // #region validate expertise
+    return { isValid: true, profileContent }
+  }
+
+  const saveProfile = async (profileContent) => {
     const dataToSubmit = {
       id: profile.id,
-      content: {
-        ...profile,
-        names: profile.names.map((p) => { const { altUsernames, key, ...rest } = p; return rest }),
-        emails: profile.emails.map(p => p.email),
-        links: undefined,
-        ...profile.links,
-        history: profile.history.flatMap((p) => {
-          const { key, ...rest } = p
-          return p.position || p.institution?.domain || p.institution?.name ? rest : []
-        }),
-        expertise: profile.expertise.flatMap((p) => {
-          const { key, ...rest } = p
-          return p.expertise ? rest : []
-        }),
-        relations: profile.relations.flatMap((p) => {
-          const { key, ...rest } = p
-          return p.relation ? rest : []
-        }),
-        preferredEmail: profile.emails.find(p => p.confirmed)?.email,
-        preferredName: undefined,
-        currentInstitution: undefined,
-        id: undefined,
-        preferredId: undefined,
-      },
+      content: profileContent,
       signatures: [profile.id],
     }
     try {
@@ -206,7 +346,7 @@ const profileEditNew = ({ appContext }) => {
           preferredEmail={profile?.preferredEmail}
           renderPublicationsEditor={() => setRenderPublicationEditor(current => !current)}
         />
-        <EducationHisotrySection
+        <EducationHistorySection
           profileHistory={profile?.history}
           positions={positions}
           institutions={institutions}
