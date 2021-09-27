@@ -781,7 +781,7 @@ module.exports = (function() {
             .replace(/[~_0-9]+/g, setClass('light-gray'))
         );
       } else {
-        return $('<a>', { href: '/profile?email=' + tildeId, target: '_blank' }).append(authorname);
+        return $('<a>', { href: '/profile?email=' + tildeId, class: 'black', target: '_blank' }).append(authorname);
       }
     };
 
