@@ -1,9 +1,7 @@
-/* eslint-disable no-use-before-define */
-/* eslint-disable jsx-a11y/anchor-is-valid */
-/* eslint-disable react/destructuring-assignment */
-/* globals Webfield: false */
 /* globals $: false */
-/* globals promptError,promptMessage: false */
+/* globals promptError: false */
+/* globals promptMessage: false */
+/* eslint-disable react/destructuring-assignment */
 
 import React, { useContext } from 'react'
 import api from '../../lib/api-client'
@@ -35,6 +33,7 @@ export default function ProfileEntity(props) {
     availableSignaturesInvitationMap,
     traverseInvitation,
     browseInvitations,
+    version,
   } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
 
@@ -87,7 +86,7 @@ export default function ProfileEntity(props) {
       signatures,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken })
+      const result = await api.post('/edges', body, { accessToken, version })
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
       } else {
@@ -95,9 +94,21 @@ export default function ProfileEntity(props) {
         props.reloadColumnEntities()
       }
     } catch (error) {
-      promptError(error.message)
+      promptError(error.details ?? error.message)
     }
   }
+
+  // readers/nonreaders/writers
+  const getValues = value => getInterpolatedValues({
+    value,
+    columnType: props.columnType,
+    shouldReplaceHeadNumber: false,
+    paperNumber: null,
+    parentPaperNumber: props.parentInfo.number,
+    id,
+    parentId: props.parentInfo.id,
+    version,
+  })
 
   const addEdge = async ({
     e, existingEdge, editEdgeTemplate, updatedEdgeFields = {}, isTraverseEdge = false,
@@ -125,7 +136,6 @@ export default function ProfileEntity(props) {
       creationDate, modificationDate, name, writable, ...body // removed fields added for entity display
     } = {
       tail: id,
-      ddate: null,
       ...existingEdge ?? {
         ...editEdgeTemplate,
         defaultWeight: undefined,
@@ -139,7 +149,7 @@ export default function ProfileEntity(props) {
       ...updatedEdgeFields,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken })
+      const result = await api.post('/edges', body, { accessToken, version })
       if (isTraverseInvitation) {
         props.addEdgeToEntity(id, result)
       } else {
@@ -148,20 +158,10 @@ export default function ProfileEntity(props) {
       }
       if (isInviteInvitation) promptMessage(`Invitation has been sent to ${body.tail} and it's waiting for the response.`)
     } catch (error) {
-      promptError(error.message)
+      promptError(error.details ?? error.message)
     }
   }
 
-  // readers/nonreaders/writers
-  const getValues = value => getInterpolatedValues({
-    value,
-    columnType: props.columnType,
-    shouldReplaceHeadNumber: false,
-    paperNumber: null,
-    parentPaperNumber: props.parentInfo.number,
-    id,
-    parentId: props.parentInfo.id,
-  })
   const renderEditEdgeWidget = ({ edge, invitation, isTraverseEdge = false }) => {
     const isAssigned = (metadata.isAssigned || metadata.isUserAssigned)
     const isInviteInvitation = invitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
@@ -346,6 +346,7 @@ export default function ProfileEntity(props) {
           <ul className="list-unstyled text-right">
             <li>
               {props.canTraverse ? (
+                // eslint-disable-next-line jsx-a11y/anchor-is-valid
                 <a href="#" className="show-assignments">
                   {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
                   {props.traverseLabel} ({props.profile.traverseEdgesCount}) &raquo;

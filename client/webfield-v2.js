@@ -320,6 +320,7 @@ module.exports = (function() {
 
   var renderTable = function(container, rows, options) {
     var defaults = {
+      emptyMessage: 'No information to show at this time.',
       renders:[],
       headings: rows.length ? Object.keys(rows[0]) : [],
       extraClasses: '',
@@ -331,6 +332,8 @@ module.exports = (function() {
       postRenderTable: function() {},
     };
     options = _.defaults(options, defaults);
+    var $container = $(container).empty();
+    var containerId = container.slice(1);
 
     var defaultRender = function(row) {
       var propertiesHtml = '';
@@ -355,13 +358,13 @@ module.exports = (function() {
       });
 
       $('.table-container', container).remove();
-      $(container).append(tableHtml);
+      $container.append(tableHtml);
 
       postRenderTable();
     }
 
     var registerHelpers = function() {
-      $(container).on('change', '#select-all-papers', function(e) {
+      $container.on('change', '#select-all-papers', function(e) {
         var $superCheckBox = $(this);
         var $allPaperCheckBoxes = $('input.select-note-reviewers');
         var $msgReviewerButton = $('#message-reviewers-btn');
@@ -374,7 +377,7 @@ module.exports = (function() {
         }
       });
 
-      $(container).on('click', options.reminderOptions.container, function(e) {
+      $container.on('click', options.reminderOptions.container, function(e) {
         var $link = $(this);
         var userId = $link.data('userId');
         var forumUrl = $link.data('forumUrl');
@@ -430,6 +433,13 @@ module.exports = (function() {
 
     };
 
+    if (!rows.length) {
+      $container.append(
+        '<p class="empty-message">' + options.emptyMessage + '</p>'
+      );
+      return;
+    }
+
     if (options.sortOptions) {
       var order = 'desc';
       var sortOptionHtml = Object.keys(options.sortOptions).map(function(option) {
@@ -437,6 +447,9 @@ module.exports = (function() {
       }).join('\n');
 
       //#region sortBarHtml
+      var searchHtml = options.searchProperties ? '<strong style="vertical-align: middle;">Search:</strong>' +
+      '<input id="form-search-' + containerId + '" type="text" class="form-search form-control" class="form-control" placeholder="Enter search term or type + to start a query and press enter" style="width:440px; margin-right: 1.5rem; line-height: 34px;">' : '';
+
       var sortBarHtml = '<form class="form-inline search-form clearfix" role="search">' +
         // Don't show this for now
         // '<div id="div-msg-reviewers" class="btn-group" role="group">' +
@@ -452,17 +465,16 @@ module.exports = (function() {
         // '</div>' +
         // '<div class="btn-group"><button class="btn btn-export-data" type="button">Export</button></div>' +
         '<div class="pull-right">' +
-          '<strong style="vertical-align: middle;">Search:</strong>' +
-          '<input type="text" class="form-search form-control" class="form-control" placeholder="Enter search term or type + to start a query and press enter" style="width:440px; margin-right: 1.5rem; line-height: 34px;">' +
+          searchHtml +
           '<strong>Sort By:</strong> ' +
-          '<select id="form-sort" class="form-control" style="width: 250px; line-height: 1rem;">' + sortOptionHtml + '</select>' +
-          '<button id="form-order" class="btn btn-icon" type="button"><span class="glyphicon glyphicon-sort"></span></button>' +
+          '<select id="form-sort-' + containerId + '" class="form-control" style="width: 250px; line-height: 1rem;">' + sortOptionHtml + '</select>' +
+          '<button id="form-order-' + containerId + '" class="btn btn-icon" type="button"><span class="glyphicon glyphicon-sort"></span></button>' +
         '</div>' +
       '</form>';
       //#endregion
 
       if (rows.length) {
-        $(container).empty().append(sortBarHtml);
+        $container.append(sortBarHtml);
       }
 
       // Need to add event handlers for these controls inside this function so they have access to row
@@ -474,10 +486,10 @@ module.exports = (function() {
         render(_.orderBy(rows, options.sortOptions[newOption], order), options.postRenderTable);
       }
 
-      $(container).on('change', '#form-sort', function(e) {
+      $container.on('change', '#form-sort-' + containerId, function(e) {
         sortResults($(e.target).val(), false);
       });
-      $(container).on('click', '#form-order', function(e) {
+      $container.on('click', '#form-order-' + containerId, function(e) {
         sortResults($(this).prev().val(), true);
         return false;
       });
@@ -485,12 +497,19 @@ module.exports = (function() {
 
     if (options.searchProperties) {
       var filterOperators = ['!=','>=','<=','>','<','=']; // sequence matters
+      var formSearchId = '#form-search-' + containerId;
+      var defaultFields = options.searchProperties.default || [];
       var searchResults = function(searchText, isQueryMode) {
-        $(container + ' #form-sort').val('Paper_Number');
+        $('form-sort-' + containerId).val('Paper_Number');
 
         // Currently only searching on note title if exists
         var filterFunc = function(row) {
-          return (row.submission && row.submission.content.title.toLowerCase().indexOf(searchText) !== -1) || (row.submissionNumber && row.submissionNumber.number) == searchText;
+          return defaultFields.some(function(field) {
+            var value = _.get(row, field);
+            if (value && value.toString().toLowerCase().indexOf(searchText) !== -1) {
+              return true;
+            }
+          });
         };
 
         if (searchText) {
@@ -498,7 +517,7 @@ module.exports = (function() {
             var filterResult = Webfield.filterCollections(rows, searchText.slice(1), filterOperators, options.searchProperties, 'note.id')
             filteredRows = filterResult.filteredRows;
             queryIsInvalid = filterResult.queryIsInvalid;
-            if(queryIsInvalid) $(container + ' .form-search').addClass('invalid-value')
+            if(queryIsInvalid) $(formSearchId).addClass('invalid-value')
           } else {
             filteredRows = _.filter(rows, filterFunc)
           }
@@ -508,20 +527,40 @@ module.exports = (function() {
         render(filteredRows, options.postRenderTable);
       };
 
-      $(container + ' .form-search').on('keyup', function (e) {
-        var searchText = $(container + ' .form-search').val().trim();
-        var searchLabel = $(container + ' .form-search').prevAll('strong:first').text();
-        $(container + ' .form-search').removeClass('invalid-value');
+      $(formSearchId).on('keyup', function (e) {
+        var searchText = $(formSearchId).val().trim();
+        var searchLabel = $(formSearchId).prevAll('strong:first').text();
+        $(formSearchId).removeClass('invalid-value');
 
         if (searchText.startsWith('+')) {
           // filter query mode
           if (searchLabel === 'Search:') {
-            $(container + ' .form-search').prevAll('strong:first').text('Query:');
-            $(container + ' .form-search').prevAll('strong:first').after($('<span/>', {
+            $(formSearchId).prevAll('strong:first').text('Query:');
+            $(formSearchId).prevAll('strong:first').after($('<span/>', {
               class: 'glyphicon glyphicon-info-sign'
             }).hover(function (e) {
               $(e.target).tooltip({
-                title: "<strong class='tooltip-title'>Query Mode Help</strong>\n<p>In Query mode, you can enter an expression and hit ENTER to search.<br/> The expression consists of property of a paper and a value you would like to search.</p><p>e.g. +number=5 will return the paper 5</p><p>Expressions may also be combined with AND/OR.<br>e.g. +number=5 OR number=6 OR number=7 will return paper 5,6 and 7.<br>If the value has multiple words, it should be enclosed in double quotes.<br>e.g. +title=\"some title to search\"</p><p>Braces can be used to organize expressions.<br>e.g. +number=1 OR ((number=5 AND number=7) OR number=8) will return paper 1 and 8.</p><p>Operators available:".concat(filterOperators.join(', '), "</p><p>Properties available:").concat(Object.keys(options.searchProperties).join(', '), "</p>"),
+                title: '<strong class="tooltip-title">Query Mode Help</strong>' +
+                '<p>' +
+                  'In Query mode, you can enter an expression and hit ENTER to search.<br/>' +
+                  'The expression consists of property of a paper and a value you would like to search.' +
+                '</p>' +
+                '<p>' +
+                  'e.g. +number=5 will return the paper 5' +
+                '</p>' +
+                '<p>' +
+                  'Expressions may also be combined with AND/OR.<br>' +
+                  'e.g. +number=5 OR number=6 OR number=7 will return paper 5,6 and 7.<br>' +
+                  'If the value has multiple words, it should be enclosed in double quotes.<br>' +
+                  'e.g. +title=\"some title to search\"</p><p>Braces can be used to organize expressions.<br>' +
+                  'e.g. +number=1 OR ((number=5 AND number=7) OR number=8) will return paper 1 and 8.' +
+                '</p>' +
+                '<p>' +
+                  'Operators available: ' + filterOperators.join(', ') +
+                '</p>' +
+                '<p>' +
+                  'Properties available: ' + Object.keys(options.searchProperties).filter(function(k) { return k !== 'default'; }).join(', ') +
+                '</p>',
                 html: true,
                 placement: 'bottom'
               });
@@ -533,9 +572,9 @@ module.exports = (function() {
           }
         } else {
           if (searchLabel !== 'Search:') {
-            $(container + ' .form-search').prev().remove(); // remove info icon
+            $(formSearchId).prev().remove(); // remove info icon
 
-            $(container + ' .form-search').prev().text('Search:');
+            $(formSearchId).prev().text('Search:');
           }
 
           _.debounce(function () {
@@ -553,6 +592,81 @@ module.exports = (function() {
     registerHelpers();
   };
 
+  var newTaskList = function(invitations, options) {
+    var taskDefaults = {
+      container: '#notes',
+      showTasks: true,
+      showContents: true,
+      referrer: null,
+      emptyMessage: 'No outstanding tasks to display'
+    };
+    options = _.defaults(options, taskDefaults);
+
+    var dateOptions = {
+      hour: 'numeric', minute: 'numeric', day: '2-digit', month: 'short', year: 'numeric', timeZoneName: 'long'
+    };
+
+    var getDueDateStatus = function(date) {
+      var day = 24 * 60 * 60 * 1000;
+      var diff = Date.now() - date.getTime();
+
+      if (diff > 0) {
+        return 'expired';
+      }
+      if (diff > -3 * day) {
+        return 'warning';
+      }
+      return '';
+    };
+
+    var allInvitations = invitations.sort(function(a, b) {
+      return a.duedate - b.duedate;
+    });
+
+    allInvitations.forEach(function(inv) {
+      var duedate = new Date(inv.duedate);
+      inv.dueDateStr = duedate.toLocaleDateString('en-GB', dateOptions);
+      inv.dueDateStatus = getDueDateStatus(duedate);
+      inv.groupId = inv.id.split('/-/')[0];
+
+      if (!inv.details) {
+        inv.details = {};
+      }
+
+      if (!_.isEmpty(inv.details.replytoNote) || (inv.edit && inv.edit.note)) {
+        inv.noteInvitation = true;
+
+        if (inv.details.repliedNotes?.length > 0) {
+          inv.completed = true;
+        }
+        inv.noteId = inv.details.repliedNotes?.length === 1 ? inv.details.repliedNotes[0].id : inv.reply.replyto;
+
+        if (_.isEmpty(inv.details.replytoNote)) {
+          // Some invitations returned by the API do not contain replytoNote
+          inv.details.replytoNote = { forum: inv.reply.forum };
+        }
+      } else {
+        inv.tagInvitation = true;
+
+        if (inv.minReplies && inv.details) {
+          var repliedCount = (inv.details.repliedTags && inv.details.repliedTags.length) ||
+            (inv.details.repliedEdges && inv.details.repliedEdges.length);
+          if (repliedCount && repliedCount >= inv.minReplies) {
+            inv.completed = true;
+          }
+        }
+      }
+    });
+
+    var $container = $(options.container);
+    var taskListHtml = Handlebars.templates['partials/taskList']({
+      invitations: allInvitations,
+      taskOptions: options
+    });
+
+    $container.append(taskListHtml);
+  };
+
   var renderTasks = function(container, invitations, options) {
     var defaults = {
       emptyMessage: 'No outstanding tasks for this venue'
@@ -566,7 +680,7 @@ module.exports = (function() {
     };
     $(tasksOptions.container).empty();
 
-    Webfield.ui.newTaskList(invitations, [], tasksOptions);
+    newTaskList(invitations, tasksOptions);
     $('.tabs-container a[href="#' + container + '"]').parent().show();
   };
 
@@ -1292,9 +1406,9 @@ module.exports = (function() {
 
   var loadSignedNotes = function(groupId) {
     renderPaginatedList($('section.notes'), {
-      templateName: 'partials/paginatedNoteList',
+      templateName: 'partials/paginatedNoteListV2',
       loadItems: function(limit, offset) {
-        return get('/notes', { signature: groupId, limit: limit, offset: offset })
+        return get('/notes', { signatures: [groupId], limit: limit, offset: offset })
           .then(apiResponseHandler('notes'));
       },
       renderItem: renderNoteListItem
@@ -1933,6 +2047,49 @@ module.exports = (function() {
     })
   };
 
+  var getGroup = function(groupId, options) {
+    var defaults = {
+      withProfiles: false,
+    };
+    options = _.defaults(options, defaults);
+
+    return get('/groups', { id: groupId, select: 'id,members', limit: 1 })
+    .then(function(result) {
+      var group = result.groups[0];
+      if (options.withProfiles) {
+        return post('/profiles/search', { ids: group.members })
+        .then(function(result) {
+          var profilesById = _.keyBy(result.profiles, 'id');
+          var groupWithProfiles = { id: group.id, members: []};
+          groupWithProfiles.members = group.members.map(function(id) {
+            var profile = profilesById[id];
+            if (profile) {
+              return {
+                id: profile.id,
+                name: view.prettyId((_.find(profile.content.names, ['preferred', true]) || _.first(profile.content.names)).username),
+                allNames: _.map(_.filter(profile.content.names, function(name) { return name.username; }), 'username'),
+                email: profile.content.preferredEmail || profile.content.emailsConfirmed[0],
+                allEmails: profile.content.emailsConfirmed,
+                affiliation: profile.content.history && profile.content.history[0]
+              };
+            } else {
+              return {
+                id: id,
+                name: id.indexOf('~') === 0 ? view.prettyId(id) : id,
+                email: id,
+                allEmails: [id],
+                allNames: [id]
+              }
+            }
+          });
+          return groupWithProfiles;
+        })
+      }
+      return group;
+    });
+  };
+
+
   var renderInvitationButton = function(container, invitationId, options) {
     var defaults = {
       onNoteCreated: function() { console.warn('onNoteCreated option is required'); },
@@ -1958,7 +2115,6 @@ module.exports = (function() {
         extraClasses: 'horizontal-scroll'
       })
     });
-    tabsList[0].active = true;
 
     Webfield.ui.tabPanel(tabsList, { container: container });
   };
@@ -1968,14 +2124,17 @@ module.exports = (function() {
       title: venueId,
       instructions: 'Instructions here',
       tabs: [],
-      referrer: null
+      referrer: null,
+      showBanner: true
     };
     options = _.defaults(options, defaults);
 
-    if (options.referrer) {
-      OpenBanner.referrerLink(options.referrer);
-    } else {
-      OpenBanner.venueHomepageLink(venueId);
+    if (options.showBanner) {
+      if (options.referrer) {
+        OpenBanner.referrerLink(options.referrer);
+      } else {
+        OpenBanner.venueHomepageLink(venueId);
+      }
     }
 
     Webfield.ui.setup(container, venueId);
@@ -2533,11 +2692,6 @@ module.exports = (function() {
     setToken: setToken,
     sendFile: sendFile,
     getErrorFromJqXhr: Webfield.getErrorFromJqXhr,
-    // Aliases
-    setupAutoLoading: Webfield.setupAutoLoading,
-    disableAutoLoading: Webfield.disableAutoLoading,
-    editModeBanner: Webfield.editModeBanner,
-    filterCollections: Webfield.filterCollections,
 
     api: {
       // Aliases
@@ -2546,7 +2700,8 @@ module.exports = (function() {
       getAllSubmissions: getAllSubmissions,
       getGroupsByNumber: getGroupsByNumber,
       getAssignedInvitations: getAssignedInvitations,
-      getTagInvitations: Webfield.api.getTagInvitations
+      getGroup: getGroup,
+
     },
 
     ui: {
@@ -2557,23 +2712,9 @@ module.exports = (function() {
       renderInvitationButton: renderInvitationButton,
       renderTable: renderTable,
       renderTasks: renderTasks,
-      // Aliases
       setup: setup,
-      header: Webfield.ui.basicHeader,
-      venueHeader: Webfield.ui.venueHeader,
-      linksList: Webfield.ui.linksList,
-      accordion: Webfield.ui.accordion,
-      submissionButton: Webfield.ui.invitationButtonAndNoteEditor,
       submissionList: submissionList,
-      taskList: Webfield.ui.taskList,
-      newTaskList: Webfield.ui.newTaskList,
-      activityList: Webfield.ui.activityList,
-      tabPanel: Webfield.ui.tabPanel,
-      searchResults: Webfield.ui.searchResults,
-      userModerationQueue: Webfield.ui.userModerationQueue,
-      spinner: Webfield.ui.loadingSpinner,
       errorMessage: Webfield.ui.errorMessage,
-      defaultEmptyMessage: Webfield.ui.defaultEmptyMessage,
       done: Webfield.ui.done
     },
     utils: {

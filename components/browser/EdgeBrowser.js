@@ -1,4 +1,3 @@
-/* globals Webfield: false */
 /* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/no-access-state-in-setstate */
 /* globals promptError: false */
@@ -14,6 +13,7 @@ export default class EdgeBrowser extends React.Component {
   constructor(props) {
     super(props)
 
+    this.version = props.version
     this.startInvitation = props.startInvitation
     this.traverseInvitation = props.traverseInvitations[0]
     this.editInvitations = props.editInvitations
@@ -77,25 +77,21 @@ export default class EdgeBrowser extends React.Component {
           tailMap,
           loading: false,
         })
-      })
+      }).catch(error => promptError(error.details ?? error.message))
   }
 
   buildEntityMapFromInvitation(headOrTail) {
     // Get all head or tail objects referenced by the traverse parameter invitation
     const invReplyObj = this.traverseInvitation[headOrTail]
     const requestParams = { ...invReplyObj?.query } // avoid polluting invReplyObj which is used for compare
-    if (invReplyObj.type === 'Note') {
-      // TODO: move these params to the invitation so it's not hardcoded
-      requestParams.details = 'original'
-      requestParams.sort = 'number:asc'
-    }
     const apiUrlMap = {
-      Note: '/notes',
-      Profile: '/profiles',
-      Group: '/groups',
-      Tag: '/tags',
+      note: '/notes',
+      profile: '/profiles',
+      group: '/groups',
+      tag: '/tags',
     }
-    const mainResultsP = Webfield.getAll(apiUrlMap[invReplyObj.type], requestParams)
+    const mainResultsP = api.getAll(apiUrlMap[invReplyObj.type],
+      requestParams, { accessToken: this.accessToken, version: this.version })
 
     // Get all head or tail objects referenced by the start parameter edge
     // invitation. Note: currently startInvitation has to have the same head
@@ -106,11 +102,11 @@ export default class EdgeBrowser extends React.Component {
       startInv.type !== invReplyObj.type || !_.isEqual(startInv.query, invReplyObj.query)
     )) {
       const startRequestParams = startInv.query || {}
-      if (startInv.type === 'Note') {
-        startRequestParams.details = 'original'
-        startRequestParams.sort = 'number:asc'
+      if (startInv.type === 'note') {
+        startRequestParams.invitation = startInv.query.invitation
       }
-      startResultsP = Webfield.getAll(apiUrlMap[startInv.type], startRequestParams)
+      startResultsP = api.getAll(apiUrlMap[startInv.type],
+        startRequestParams, { accessToken: this.accessToken, version: this.version })
     } else {
       startResultsP = Promise.resolve([])
     }
@@ -118,19 +114,20 @@ export default class EdgeBrowser extends React.Component {
     // Get list of all keys to seed the entity map with. Currently only used for
     // profiles
     let initialKeysP
-    if (invReplyObj.type === 'Profile' && requestParams.group) {
-      initialKeysP = Webfield.get('/groups', { id: requestParams.group })
+    if (invReplyObj.type === 'profile' && requestParams.group) {
+      initialKeysP = api.get('/groups', { id: requestParams.group }, { accessToken: this.accessToken, version: this.version })
         .then(response => _.get(response, 'groups[0].members', []))
     } else {
       initialKeysP = Promise.resolve(null)
     }
 
-    const groupedEdgesP = Webfield.getAll('/edges', {
+    const groupedEdgesP = api.getAll('/edges', {
       invitation: this.traverseInvitation.id,
       groupBy: headOrTail,
       select: 'count',
       ...this.traverseInvitation.query,
-    }, 'groupedEdges').then(results => _.keyBy(results, `id.${headOrTail}`))
+    }, { accessToken: this.accessToken, version: this.version, resultsKey: 'groupedEdges' })
+      .then(results => _.keyBy(results, `id.${headOrTail}`))
 
     return Promise.all([
       initialKeysP,
@@ -294,7 +291,7 @@ export default class EdgeBrowser extends React.Component {
       if (editInvitation.signatures['values-regex'] && !editInvitation.signatures['values-regex']?.startsWith('~.*')) {
         if (editInvitation.signatures.default) {
           try {
-            const defaultLookupResult = await api.get('/groups', { regex: editInvitation.signatures.default, signatory: this.userId }, { accessToken: this.accessToken })
+            const defaultLookupResult = await api.get('/groups', { regex: editInvitation.signatures.default, signatory: this.userId }, { accessToken: this.accessToken, version: this.version })
             if (defaultLookupResult.groups.length === 1) {
               editInvitationSignaturesMap.push({
                 invitation: editInvitation.id,
@@ -308,7 +305,7 @@ export default class EdgeBrowser extends React.Component {
         }
         const interpolatedSignature = editInvitation.signatures['values-regex'].replace(/{head\.number}/g, '.*')
         try {
-          const interpolatedLookupResult = await api.get('/groups', { regex: interpolatedSignature, signatory: this.userId }, { accessToken: this.accessToken })
+          const interpolatedLookupResult = await api.get('/groups', { regex: interpolatedSignature, signatory: this.userId }, { accessToken: this.accessToken, version: this.version })
           editInvitationSignaturesMap.push({
             invitation: editInvitation.id,
             signatures: interpolatedLookupResult.groups.map(group => group.id),
@@ -328,6 +325,7 @@ export default class EdgeBrowser extends React.Component {
       browseInvitations: this.browseInvitations,
       hideInvitation: this.hideInvitation,
       availableSignaturesInvitationMap: this.availableSignaturesInvitationMap,
+      version: this.version,
     }
 
     return (

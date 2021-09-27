@@ -1,7 +1,6 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/destructuring-assignment */
-/* globals Webfield: false */
 /* globals $: false */
 /* globals promptError: false */
 
@@ -32,7 +31,12 @@ export default function NoteEntity(props) {
     editEdges,
     editEdgeTemplates,
   } = props.note
-  const { editInvitations, availableSignaturesInvitationMap, traverseInvitation } = useContext(EdgeBrowserContext)
+  const {
+    editInvitations,
+    traverseInvitation,
+    availableSignaturesInvitationMap,
+    version,
+  } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
 
   const title = content.title ? content.title : 'No Title'
@@ -79,14 +83,14 @@ export default function NoteEntity(props) {
       signatures,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken })
+      const result = await api.post('/edges', body, { accessToken, version })
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
       } else {
         props.reloadColumnEntities()
       }
     } catch (error) {
-      promptError(error.message)
+      promptError(error.details ?? error.message)
     }
   }
 
@@ -111,7 +115,6 @@ export default function NoteEntity(props) {
       creationDate, modificationDate, name, writable, ...body // removed fields added for entity display
     } = {
       tail: id,
-      ddate: null,
       ...existingEdge ?? {
         ...editEdgeTemplate,
         defaultWeight: undefined,
@@ -125,14 +128,14 @@ export default function NoteEntity(props) {
       ...updatedEdgeFields,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken })
+      const result = await api.post('/edges', body, { accessToken, version })
       if (isTraverseInvitation) {
         props.addEdgeToEntity(id, result)
       } else {
         props.reloadColumnEntities()
       }
     } catch (error) {
-      promptError(error.message)
+      promptError(error.details ?? error.message)
     }
   }
 
@@ -145,6 +148,7 @@ export default function NoteEntity(props) {
     parentPaperNumber: props.parentInfo.number,
     id,
     parentId: props.parentInfo.id,
+    version,
   })
 
   const renderEditEdgeWidget = ({ editEdge, editInvitation }) => {

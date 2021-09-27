@@ -463,17 +463,10 @@ module.exports = (function() {
 
   var mkDropdownAdder = function(fieldName, fieldDescription, values, fieldValue, params) {
     var $dropdown = $('<div>', {class: 'row'});
-
-    if (fieldName === 'readers' && values.length > 1) {
-      var $smallHeading = $('<div>', { text: prettyField(fieldName), class: 'small_heading' });
-      var $description = $('<div class="hint">').text(fieldDescription);
-      $dropdown.append($smallHeading, $description);
-    } else {
-      var $hoveritem = mkHoverItem(
-        $('<span>', {text: prettyField(fieldName), class: 'line_heading'}), fieldDescription, false, true, params.required
-      );
-      $dropdown.append($hoveritem);
-    }
+    var $hoveritem = mkHoverItem(
+      $('<span>', {text: prettyField(fieldName), class: 'line_heading'}), fieldDescription, false, true, params.required
+    );
+    $dropdown.append($hoveritem);
 
     var dropdownOptions = _.map(values, function(value) {
       if (value.id && value.description) {
@@ -572,19 +565,20 @@ module.exports = (function() {
 
   var mkHoverItem = function(content, resultText, removable, title, required) {
     var cssClass = title ? 'hover_title' : 'hover_item';
-    var $hoverItem = $('<div>', {class: removable ? cssClass + ' removable_item' : cssClass});
-    if ( _.isString(resultText) && resultText.length > 0 ) {
+    var $hoverItem = $('<div>', { class: cssClass + (removable ? ' removable_item' : '') });
+    if (_.isString(resultText) && resultText.length > 0) {
       var $hoverResult = $('<div>', {class: 'hover_result'}).text(resultText).hide();
-      $hoverItem.append(
-        $hoverResult
-      )
-      .hover(function() {
+      $hoverItem.append($hoverResult).hover(function() {
         $hoverResult.show();
       }, function() {
         $hoverResult.hide();
       });
     }
 
+    // Add formatting to $ notation content
+    if (_.isString(content)) {
+      content = content.replace(/\{(\S+)\}/g, '<em>$1</em>'); // todo remove brackets
+    }
     var $hoverTarget = $('<div>', {class: 'hover_target'}).append(content);
 
     if (required) {
@@ -2556,6 +2550,14 @@ module.exports = (function() {
       }
 
       var transformedId = tokens.map(function(token) {
+        // API v2 tokens can include strings like ${note.number}
+        if (token.includes('${')) {
+          token = token.replace(/\$\{(\S+)\}/g, function(match, p1) {
+            return ' {' + p1.split('.').pop() + '}';
+          }).replace(/_/g, ' ');
+          return token;
+        }
+
         token = token
           .replace(/\..+/g, '') // remove text after dots, ex: uai.org
           .replace(/^-$/g, '')  // remove dashes
@@ -2821,8 +2823,10 @@ module.exports = (function() {
   var getContent = function(invitation, $contentMap) {
     var files = {};
     var errors = [];
-    var content = _.reduce(invitation.reply.content, function(ret, contentObj, k) {
+    var invitationContent = invitation.edit ? invitation.edit.note.content : invitation.reply.content
+    var content = _.reduce(invitationContent, function(ret, contentObjInInvitation, k) {
       // Let the widget handle it :D and extract the data when we encouter authorids
+      const contentObj = invitation.edit ? contentObjInInvitation.value : contentObjInInvitation
       if (contentObj.hidden && k === 'authors') {
         return ret;
       }
@@ -2926,12 +2930,13 @@ module.exports = (function() {
   };
 
   var getWriters = function(invitation, signatures, user) {
+    var writers = invitation.edit ? invitation.edit.writers : invitation.reply.writers
 
-    if (invitation.reply.writers && _.has(invitation.reply.writers, 'values')) {
-      return invitation.reply.writers.values;
+    if (writers && _.has(writers, 'values')) {
+      return writers.values;
     }
 
-    if (invitation.reply.writers && _.has(invitation.reply.writers, 'values-regex') && invitation.reply.writers['values-regex'] === '~.*') {
+    if (writers && _.has(writers, 'values-regex') && writers['values-regex'] === '~.*') {
       return [user.profile.id];
     }
 
@@ -2939,21 +2944,22 @@ module.exports = (function() {
   };
 
   var getReaders = function(widget, invitation, signatures) {
-    var inputValues = idsFromListAdder(widget, invitation.reply.readers);
+    var readers = invitation.edit ? invitation.edit.readers : invitation.reply.readers
+    var inputValues = idsFromListAdder(widget, readers);
 
     var invitationValues = [];
-    if (_.has(invitation.reply.readers, 'values-dropdown')) {
-      invitationValues = invitation.reply.readers['values-dropdown'].map(function(v) { return _.has(v, 'id') ? v.id : v; });
-    } else if (_.has(invitation.reply.readers, 'value-dropdown-hierarchy')) {
-      invitationValues = invitation.reply.readers['value-dropdown-hierarchy'];
-    } else if (_.has(invitation.reply.readers, 'values-checkbox')) {
+    if (_.has(readers, 'values-dropdown')) {
+      invitationValues = readers['values-dropdown'].map(function(v) { return _.has(v, 'id') ? v.id : v; });
+    } else if (_.has(readers, 'value-dropdown-hierarchy')) {
+      invitationValues = readers['value-dropdown-hierarchy'];
+    } else if (_.has(readers, 'values-checkbox')) {
       inputValues = [];
       widget.find('.note_content_value input[type="checkbox"]').each(function(i) {
         if ($(this).prop('checked')) {
           inputValues.push($(this).val());
         }
       });
-      invitationValues = invitation.reply.readers['values-checkbox'];
+      invitationValues = readers['values-checkbox'];
     }
 
     // Add signature if exists in the invitation readers list
@@ -3122,6 +3128,9 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
+        const confirmCancel = $noteEditor.data('hasUnsavedData') && !window.confirm('Any unsaved changes will be lost. Are you sure you want to continue?');
+        if (confirmCancel) return;
+
         clearAutosaveData(autosaveStorageKeys);
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
@@ -3365,7 +3374,7 @@ module.exports = (function() {
     }
   }
 
-  function buildSignatures(fieldDescription, fieldValue, user) {
+  function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures') {
 
     var $signatures;
     if (_.has(fieldDescription, 'values-regex')) {
@@ -3375,7 +3384,7 @@ module.exports = (function() {
         if (user && user.profile) {
           var prefId = user.profile.preferredId || user.profile.id;
           $signatures = mkDropdownList(
-            'signatures', fieldDescription.description, currentVal, [prefId], true
+            headingText, fieldDescription.description, currentVal, [prefId], true
           );
           return $.Deferred().resolve($signatures);
         } else {
@@ -3408,7 +3417,7 @@ module.exports = (function() {
             }
           });
           $signatures = mkDropdownList(
-            'signatures', fieldDescription.description, currentVal, dropdownListOptions, true
+            headingText, fieldDescription.description, currentVal, dropdownListOptions, true
           );
           return $signatures;
         }, function(jqXhr, textStatus) {
@@ -3417,7 +3426,7 @@ module.exports = (function() {
       }
 
     } else {
-      $signatures = mkComposerInput('signatures', fieldDescription, fieldValue);
+      $signatures = mkComposerInput(headingText, fieldDescription, fieldValue);
       return $.Deferred().resolve($signatures);
     }
 
@@ -3563,6 +3572,9 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
+        const confirmCancel = $noteEditor.data('hasUnsavedData') && !window.confirm('Any unsaved changes will be lost. Are you sure you want to continue?');
+        if (confirmCancel) return;
+
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
         } else {
@@ -3652,8 +3664,7 @@ module.exports = (function() {
   var setupAutosaveHandlers = function($noteEditor, user, noteId, invitationId) {
     var autosaveStorageKeys = [];
     var userIdForKey = (!user || _.startsWith(user.id, 'guest_')) ? 'guest' : user.id;
-    var invitationName = invitationId.split('/-/').pop();
-    var keyPrefix = [userIdForKey, noteId, invitationName].join('|');
+    var keyPrefix = [userIdForKey, noteId, invitationId].join('|');
 
     $noteEditor.find('input.autosave-enabled, textarea.autosave-enabled').each(function() {
       var uniqueKey = keyPrefix + '|' + $(this).attr('name');
@@ -3666,6 +3677,7 @@ module.exports = (function() {
 
       $(this).on('keyup', _.throttle(function() {
         localStorage.setItem(uniqueKey, $(this).val());
+        $noteEditor.data('hasUnsavedData', true);
       }, 2000));
     });
 
@@ -3919,6 +3931,18 @@ module.exports = (function() {
     mkDropdownAdder: mkDropdownAdder,
     buildSignatures: buildSignatures,
     autolinkFieldDescriptions: autolinkFieldDescriptions,
+    isTildeIdAllowed: isTildeIdAllowed,
+    mkSearchProfile: mkSearchProfile,
+    mkFileInput: mkFileInput,
+    getContent: getContent,
+    idsFromListAdder:idsFromListAdder,
+    getReaders: getReaders,
+    getWriters: getWriters,
+    showConfirmDeleteModal: showConfirmDeleteModal,
+    setupAutosaveHandlers: setupAutosaveHandlers,
+    clearAutosaveData: clearAutosaveData,
+    updateFileSection: updateFileSection,
+    updatePdfSection: updatePdfSection,
   };
 
 }());

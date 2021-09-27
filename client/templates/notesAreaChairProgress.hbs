@@ -11,7 +11,7 @@
         </tr>
         <tr>
           <td style="width: 28px;"></td>
-          <td style="width: 314px;"><strong>{{numOfReviews}} of {{numOfReviewers}} Reviews Submitted </strong>/ Average Rating:</strong> {{averageRating}} (Min: {{minRating}}, Max: {{maxRating}})</td>
+          <td style="width: 314px;"><strong>{{numOfReviews}} of {{numOfReviewers}} Reviews Submitted </strong>{{#if averageRating}}/ Average Rating:</strong> {{averageRating}} (Min: {{minRating}}, Max: {{maxRating}}){{/if}}</td>
         </tr>
       {{/each}}
     </tbody>
