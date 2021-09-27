@@ -1,43 +1,54 @@
-/* globals promptMessage: false */
-/* globals promptError: false */
-
-import { useEffect, useState } from 'react'
+/* globals promptMessage,promptError: false */
 import Head from 'next/head'
-import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 import get from 'lodash/get'
-import omit from 'lodash/omit'
-import LegacyProfileEditor from '../../components/LegacyProfileEditor'
+import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import DblpImportModal from '../../components/DblpImportModal'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
-import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { formatProfileData } from '../../lib/profiles'
 import { viewProfileLink } from '../../lib/banner-links'
+import { formatProfileData } from '../../lib/profiles'
+import useUser from '../../hooks/useUser'
+import {
+  isValidDomain, isValidEmail, isValidURL, isValidYear,
+} from '../../lib/utils'
+import ProfileEditor from '../../components/profile/ProfileEditor'
 
-// Page Styles
-import '../../styles/pages/profile-edit.less'
-
-export default function ProfileEdit({ appContext }) {
+const profileEditNew = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
   const { updateUserName } = useUser()
-  const [profile, setProfile] = useState(null)
-  const [error, setError] = useState(null)
   const router = useRouter()
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
   const { setBannerContent } = appContext
+  const [profile, setProfile] = useState(null)
+  const personalLinkNames = ['homepage', 'gscholar', 'dblp', 'orcid', 'linkedin', 'wikipedia', 'semanticScholar']
 
   const loadProfile = async () => {
     try {
       const { profiles } = await api.get('/profiles', {}, { accessToken })
       if (profiles?.length > 0) {
-        setProfile(formatProfileData(profiles[0]))
+        const formattedProfile = formatProfileData(profiles[0])
+        setProfile({
+          ...formattedProfile,
+          links: personalLinkNames.reduce(
+            (previous, current) => (
+              { ...previous, [current]: { value: formattedProfile.links.find(p => p.key === current)?.url ?? '' } }
+            ), {},
+          ),
+        })
       } else {
         setError({ statusCode: 404, message: 'Profile not found' })
       }
     } catch (apiError) {
       setError({ statusCode: apiError.status, message: apiError.message })
     }
+  }
+
+  const handleSubmitButtonClick = (profileContent, publicationIdsToUnlink) => {
+    // eslint-disable-next-line no-use-before-define
+    saveProfile(profileContent, publicationIdsToUnlink)
   }
 
   const unlinkPublication = async (profileId, noteId) => {
@@ -83,15 +94,12 @@ export default function ProfileEdit({ appContext }) {
     return api.post('/notes', updateAuthorIdsObject, { accessToken })
   }
 
-  const saveProfile = async (newProfileData, done) => {
-    // Save profile handler
-    const { publicationIdsToUnlink } = newProfileData.content
+  const saveProfile = async (profileContent, publicationIdsToUnlink) => {
+    setLoading(true)
     const dataToSubmit = {
-      id: newProfileData.id,
-      content: omit(newProfileData.content, [
-        'preferredName', 'currentInstitution', 'options', 'publicationIdsToUnlink',
-      ]),
-      signatures: [newProfileData.id],
+      id: profile.id,
+      content: profileContent,
+      signatures: [profile.id],
     }
     try {
       const apiRes = await api.post('/profiles', dataToSubmit, { accessToken })
@@ -105,20 +113,14 @@ export default function ProfileEdit({ appContext }) {
       router.push('/profile')
     } catch (apiError) {
       promptError(apiError.message)
-      done()
     }
-  }
-
-  const returnToProfilePage = () => {
-    router.push('/profile').then(() => window.scrollTo(0, 0))
+    setLoading(false)
   }
 
   useEffect(() => {
     if (!accessToken) return
-
-    setBannerContent(viewProfileLink())
-
     loadProfile()
+    setBannerContent(viewProfileLink())
   }, [accessToken])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
@@ -130,27 +132,19 @@ export default function ProfileEdit({ appContext }) {
       <Head>
         <title key="title">Edit Profile | OpenReview</title>
       </Head>
-
       <header>
         <h1>Edit Profile</h1>
       </header>
-
-      <LegacyProfileEditor
-        profile={profile}
-        onSubmit={saveProfile}
-        onCancel={returnToProfilePage}
-        submitButtonText="Save Profile Changes"
-      />
-
-      <DblpImportModal
-        profileId={profile.id}
-        profileNames={profile.names.map(name => (
-          name.middle ? `${name.first} ${name.middle} ${name.last}` : `${name.first} ${name.last}`
-        ))}
-        email={profile.preferredEmail}
+      <ProfileEditor
+        loadedProfile={profile}
+        submitHandler={handleSubmitButtonClick}
+        cancelHandler={() => router.push('/profile').then(() => window.scrollTo(0, 0))}
+        personalLinkNames={personalLinkNames}
+        loading={loading}
       />
     </div>
   )
 }
 
-ProfileEdit.bodyClass = 'profile-edit'
+profileEditNew.bodyClass = 'profile-edit'
+export default profileEditNew
