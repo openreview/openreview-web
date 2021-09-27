@@ -6,7 +6,7 @@ import '../styles/pages/sponsors.less'
 
 function Sponsor({ name, image, link }) {
   return (
-    <a href={link}>
+    <a href={link} target="_blank">
       <img src={`/images/sponsors/${image}`} alt={name} />
     </a>
   )
@@ -32,9 +32,7 @@ export default function Sponsors({ sponsors }) {
           <h2>Gold</h2>
           <div className="width-5 height-5">
             {sponsors.gold.map(sponsor => (
-
                 <Sponsor key={sponsor.name} name={sponsor.name} image={sponsor.image} link={sponsor.link}/>
-
             ))}
           </div>
 
@@ -121,7 +119,7 @@ export async function getStaticProps() {
         ],
         bronze: [
           { name: 'Google', image: 'google.png', link: 'https://www.google.org/' },
-          { name: 'Bloomberg', image: 'bloomberg.png', link: 'https://www.bloomberg.org/?gclid=Cj0KCQjw18WKBhCUARIsAFiW7Jxm9Nqyr3ru2dMBWHRfSzbkwJf5OiJ2HBPsioPxAyrVS_Hl4t3nu5gaArfvEALw_wcB'},
+          { name: 'Bloomberg', image: 'bloomberg.png', link: 'https://www.bloomberg.org'},
           { name: 'IBM', image: 'ibm.png', link: 'https://www.ibm.com/opensource/philanthropy/' },
           { name: 'DeepMind', image: 'deepmind.png', link: 'https://deepmind.com/about#our_global_community' },
         ],
