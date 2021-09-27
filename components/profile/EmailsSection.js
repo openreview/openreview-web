@@ -14,7 +14,7 @@ const EmailsButton = ({
 
   if (type === 'confirmed') {
     if (confirmed) {
-      return <div className="confirmed hint">(Confirmed)</div>
+      return <div className="emails__confirmed-text hint">(Confirmed)</div>
     }
     if (email && isValid) {
       return <button type="button" className="btn confirm-button" onClick={handleConfirm}>Confirm</button>
@@ -60,7 +60,7 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
     return state
   }
   // eslint-disable-next-line max-len
-  const [emails, setEmails] = useReducer(emailsReducer, profileEmails?.map(p => ({ ...p, key: nanoid(), isValid: true })))
+  const [emails, setEmails] = useReducer(emailsReducer, profileEmails?.map(p => ({ ...p, key: nanoid(), isValid: true })) ?? [])
   const { accessToken } = useUser()
 
   const handleAddEmail = () => {

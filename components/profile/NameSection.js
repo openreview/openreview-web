@@ -37,7 +37,7 @@ const NamesSection = ({ profileNames, updateNames }) => {
     }
     return names
   }
-  const [names, setNames] = useReducer(namesReducer, profileNames?.map(p => ({ ...p, key: nanoid() })))
+  const [names, setNames] = useReducer(namesReducer, profileNames?.map(p => ({ ...p, key: nanoid() })) ?? [])
 
   const handleAddName = () => {
     const newNameRow = {

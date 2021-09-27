@@ -10,8 +10,8 @@ const RelationsSection = ({
   updateRelations,
 }) => {
   const relationPlaceholder = 'Choose or type a relation'
-  const relationOptions = prefixedRelations?.map(p => ({ value: p, label: p }))
-  const relationReaderOptions = relationReaders?.map(p => ({ value: p, label: p }))
+  const relationOptions = prefixedRelations?.map(p => ({ value: p, label: p })) ?? []
+  const relationReaderOptions = relationReaders?.map(p => ({ value: p, label: p })) ?? []
   // #region action type constants
   const relationType = 'updateRelation'
   const readersType = 'updateReaders'

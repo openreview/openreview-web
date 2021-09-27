@@ -19,13 +19,13 @@ const EducationHistorySection = ({
   const addHistoryType = 'addHistory'
   const removeHistoryType = 'removeHistory'
   // #endregion
-  const institutionDomainOptions = institutions.flatMap(p => (p.id ? { value: p.id, label: p.id } : []))
-  const positionOptions = positions.map(p => ({ value: p, label: p }))
+  const institutionDomainOptions = institutions?.flatMap(p => (p.id ? { value: p.id, label: p.id } : []))
+  const positionOptions = positions?.map(p => ({ value: p, label: p }))
 
   const getInstitutionName = (domain) => {
-    const institution = institutions.find(i => i.id === domain)
+    const institution = institutions?.find(i => i.id === domain)
     if (!institution) return ''
-    const parentInstitution = institutions.find(i => i.id === institution.parent)
+    const parentInstitution = institutions?.find(i => i.id === institution.parent)
     return `${institution.fullname}${parentInstitution ? `, ${parentInstitution.fullname}` : ''}`
   }
 

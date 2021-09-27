@@ -3,11 +3,11 @@ import { useEffect, useReducer } from 'react'
 import DblpImportModal from '../DblpImportModal'
 
 const PersonalLinksSection = ({
-  profileLinks, updateLinks, id, names, preferredEmail, renderPublicationsEditor,
+  profileLinks, updateLinks, id, names, preferredEmail, renderPublicationsEditor, hideDblpButton,
 }) => {
   const linksReducer = (state, action) => ({ ...state, [action.type]: { value: action.data } })
 
-  const [links, setLinks] = useReducer(linksReducer, profileLinks)
+  const [links, setLinks] = useReducer(linksReducer, profileLinks ?? {})
 
   const handleAddDBLPButtonClick = () => {
     $('#dblp-import-modal').modal({
@@ -33,11 +33,11 @@ const PersonalLinksSection = ({
           <div className="row">
             <div className="col-md-6 personal-links__column">
               <div className="small-heading">Homepage URL</div>
-              <input className={`form-control personal-links__input ${profileLinks.homepage?.valid === false ? 'invalid-value' : ''}`} value={links.homepage?.value ?? ''} onChange={(e) => { setLinks({ type: 'homepage', data: e.target.value }) }} />
+              <input className={`form-control personal-links__input ${profileLinks?.homepage?.valid === false ? 'invalid-value' : ''}`} value={links.homepage?.value ?? ''} onChange={(e) => { setLinks({ type: 'homepage', data: e.target.value }) }} />
             </div>
             <div className="col-md-6 personal-links__column">
               <div className="small-heading">Google Scholar URL</div>
-              <input className={`form-control personal-links__input ${profileLinks.gscholar?.valid === false ? 'invalid-value' : ''}`} value={links.gscholar?.value ?? ''} onChange={(e) => { setLinks({ type: 'gscholar', data: e.target.value }) }} />
+              <input className={`form-control personal-links__input ${profileLinks?.gscholar?.valid === false ? 'invalid-value' : ''}`} value={links.gscholar?.value ?? ''} onChange={(e) => { setLinks({ type: 'gscholar', data: e.target.value }) }} />
             </div>
           </div>
           <div className="row">
@@ -48,10 +48,10 @@ const PersonalLinksSection = ({
                   <span className="glyphicon glyphicon-info-sign" />
                 </a>
               </div>
-              <input id="dblp_url" className={`form-control personal-links__input ${profileLinks.dblp?.valid === false ? 'invalid-value' : ''}`} value={links.dblp?.value ?? ''} onChange={(e) => { setLinks({ type: 'dblp', data: e.target.value }) }} />
+              <input id="dblp_url" className={`form-control personal-links__input ${profileLinks?.dblp?.valid === false ? 'invalid-value' : ''}`} value={links.dblp?.value ?? ''} onChange={(e) => { setLinks({ type: 'dblp', data: e.target.value }) }} />
             </div>
             <div className="col-md-6 personal-links__column">
-              <button className="btn btn-primary personal-links__adddblpbtn" type="button" disabled={!links.dblp?.value} onClick={handleAddDBLPButtonClick}>Add DBLP Papers to Profile</button>
+              {!hideDblpButton && <button className="btn btn-primary personal-links__adddblpbtn" type="button" disabled={!links.dblp?.value} onClick={handleAddDBLPButtonClick}>Add DBLP Papers to Profile</button>}
             </div>
           </div>
           <div className="row">
@@ -83,7 +83,7 @@ const PersonalLinksSection = ({
       </section>
       <DblpImportModal
         profileId={id}
-        profileNames={names.map(name => (
+        profileNames={names?.map(name => (
           name.middle ? `${name.first} ${name.middle} ${name.last}` : `${name.first} ${name.last}`
         ))}
         email={preferredEmail}
