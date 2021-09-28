@@ -104,7 +104,7 @@ const NamesSection = ({ profileNames, updateNames }) => {
               <div className="col-md-2 names__value">
                 <input
                   type="text"
-                  className={`form-control ${profileNames.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+                  className={`form-control first-name ${profileNames.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
                   value={p.first}
                   readOnly={!p.newRow && p.username.length}
                   onChange={(e) => { handleUpdateName(p.key, 'first', e.target.value) }}
@@ -113,7 +113,7 @@ const NamesSection = ({ profileNames, updateNames }) => {
               <div className="col-md-2 names__value">
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control middle-name"
                   value={p.middle}
                   readOnly={!p.newRow && p.username.length}
                   onChange={(e) => { handleUpdateName(p.key, 'middle', e.target.value) }}
@@ -122,7 +122,7 @@ const NamesSection = ({ profileNames, updateNames }) => {
               <div className="col-md-2 names__value">
                 <input
                   type="text"
-                  className={`form-control ${profileNames.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+                  className={`form-control last-name ${profileNames.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
                   value={p.last}
                   readOnly={!p.newRow && p.username.length}
                   onChange={(e) => { handleUpdateName(p.key, 'last', e.target.value) }}

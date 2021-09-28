@@ -179,7 +179,12 @@ const ProfileEditor = ({
     // remove unused props
     profileContent = {
       ...profileContent,
-      names: profileContent.names.map((p) => { const { altUsernames, key, ...rest } = p; return rest }),
+      names: profileContent.names.map((p) => {
+        const {
+          altUsernames, newRow, key, ...rest
+        } = p
+        return rest
+      }),
       emails: profileContent.emails.map(p => p.email),
       history: profileContent.history.map((p) => { const { key, ...rest } = p; return rest }),
       expertise: profileContent.expertise.map((p) => { const { key, ...rest } = p; return rest }),
