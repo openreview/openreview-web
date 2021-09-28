@@ -685,6 +685,7 @@ module.exports = (function() {
     let isString = false
     if (propertyValue === null || propertyValue === undefined || targetValue === null || targetValue === undefined) return false
     if (typeof (targetValue) === 'number' && propertyValue === 'N/A') propertyValue = 0
+    if (typeof (propertyValue) === 'object' && typeof targetValue === 'string') return false // no decision is string
     if (typeof (propertyValue) === 'object' && !Array.isArray(propertyValue)) { // reviewers are objects
       propertyValue = [
         ...Object.values(propertyValue).map(p => p.name),
