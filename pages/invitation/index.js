@@ -95,7 +95,7 @@ Webfield.ui.setup($('#invitation-container'), '${invitation.id}');
 Webfield.ui.header('${prettyId(invitation.id)}')
   .append('<p><em>Nothing to display</em></p>');`
 
-    const noteParams = without(Object.keys(query), 'id', 'mode', 'referrer')
+    const noteParams = without(Object.keys(query), 'id', 'mode', 'referrer', 't')
     const noteEditorCode = noteParams.length && `
 var runWebfield = function(note) {
   ${webfieldCode}
