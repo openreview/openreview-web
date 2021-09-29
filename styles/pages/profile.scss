@@ -1,0 +1,294 @@
+@import "../utils/constants";
+
+main.profile {
+  header {
+    margin-top: .75rem;
+    margin-bottom: 1.75rem;
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+    h3 {
+      font-size: 1.375rem;
+      color: $subtleGray;
+      line-height: normal;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+    h5 {
+      font-size: 1rem;
+    }
+    .img-container {
+      float: left;
+      margin-right: 1.25rem;
+
+      img {
+        width: 100px;
+        height: 100px;
+        border: 1px solid #ddd;
+        margin-top: 6px;
+      }
+    }
+    .title-container {
+      float: left;
+    }
+  }
+
+  @media $large {
+    // Make columns equal height so border extends all the way to the bottom of the page
+    .row.equal-height-cols {
+      overflow: hidden;
+    }
+    .row.equal-height-cols [class*="col-"]{
+      margin-bottom: -9999px;
+      padding-bottom: 9999px;
+    }
+
+    aside {
+      border-left: 1px solid $borderGray;
+    }
+  }
+
+  section {
+    margin-bottom: 1.5rem;
+
+    h4 {
+      margin-top: 0;
+      padding-bottom: .25rem;
+      border-bottom: 1px solid $borderGray;
+      margin-bottom: .5rem;
+    }
+    .instructions, small {
+      font-size: .75rem;
+      color: $subtleGray;
+    }
+    .instructions {
+      display: none;  // TODO: for now always hide instructions
+      margin-bottom: .5rem;
+    }
+    .empty-message {
+      color: $subtleGray;
+      font-style: italic;
+      margin-top: .5rem;
+    }
+    span.edit-badge {
+      font-size: .75rem;
+      color: #aaa;
+      top: 1px;
+    }
+    .list-unstyled {
+      margin-bottom: .25rem;
+    }
+    .list-compact > div {
+      display: inline-block;
+      line-height: normal;
+
+      &:last-child .separator {
+        display: none;
+      }
+      small {
+        color: $orRed;
+      }
+    }
+    .table-row > div {
+      small {
+        color: $orRed;
+      }
+    }
+    .section-content {
+      line-height: 1rem;
+      padding-bottom: .375rem;
+
+      .table-row {
+        padding: .25rem 0;
+      }
+      div[data-toggle="tooltip"] {
+        cursor: pointer;
+        color: $subtleGray;
+        &:hover {
+          background-color: rgba(239, 236, 227, 0.7);
+        }
+      }
+      div.edit-confirmed {
+        color: #333;
+      }
+      .table {
+        width: auto;
+        margin-bottom: .25rem;
+
+        & > tbody > tr > td {
+          border-top: 0;
+          padding-left: 0;
+        }
+      }
+      p {
+        margin-bottom: .25rem;
+      }
+      .separator {
+        padding-right: 4px;
+      }
+    }
+    .actions {
+      display: none;
+
+      a {
+        font-size: .75rem;
+        cursor: pointer;
+      }
+    }
+    .glyphicon {
+      color: $mediumDarkBlue;
+      font-size: 1.25rem;
+    }
+  }
+
+  $dateColWidth: 100px;
+  $nameColWidth: 160px;
+  $emailColWidth: 260px;
+  $badgeColWidth: 16px;
+  $readerColWidth: 10px;
+
+  section.links {
+    .section-content {
+      width: 100%;
+
+      & > div {
+        display: inline-block;
+        margin-right: 2.5rem;
+
+        a {
+          font-weight: bold;
+        }
+      }
+    }
+  }
+
+  section.history {
+    .table-row {
+      div:nth-child(1):not(.tooltip-arrow) {
+        width: $nameColWidth;
+      }
+      div:nth-child(2):not(.tooltip):not(.tooltip-inner) {
+        width: calc('100%' - ($nameColWidth + $dateColWidth + $badgeColWidth));
+      }
+      div:nth-child(3) {
+        width: $dateColWidth;
+      }
+      div:nth-child(4) {
+        text-align: right;
+        width: $badgeColWidth;
+        padding-right: 2px;
+      }
+    }
+  }
+
+  section.relations {
+    .table-row {
+      > div:nth-child(1) {
+        width: $nameColWidth;
+      }
+      > div:nth-child(2) {
+        width: calc('100%' - ($nameColWidth + $dateColWidth + $badgeColWidth + $emailColWidth + $readerColWidth));
+      }
+      > div:nth-child(3) {
+        width: $emailColWidth;
+        max-width: $emailColWidth;
+        padding-right: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        &:hover {
+          overflow: visible;
+          max-width: $emailColWidth + 95px;
+        }
+      }
+      > div:nth-child(4) {
+        width: $dateColWidth;
+      }
+      > div:nth-child(5) {
+        width: $readerColWidth;
+      }
+      > div:nth-child(6) {
+        text-align: right;
+        width: $badgeColWidth;
+        padding-right: 2px;
+      }
+
+      .relation-visible-icon {
+        font-size: .75rem;
+        cursor: pointer;
+        color: $subtleGray;
+        vertical-align: top;
+      }
+    }
+  }
+
+  section.expertise {
+    .table-row {
+      div:nth-child(1) {
+        width: calc('100%' - ($dateColWidth + $badgeColWidth));
+      }
+      div:nth-child(2) {
+        width: $dateColWidth;
+      }
+      div:nth-child(3) {
+        text-align: right;
+        width: $badgeColWidth;
+        padding-right: 2px;
+      }
+    }
+  }
+
+  section.publications {
+    .submissions-list {
+      margin-bottom: .5rem;
+
+      .note {
+        padding: .25rem 0;
+
+        h4 {
+          font-size: .875rem;
+          line-height: 1.125rem;
+          padding-bottom: .125rem;
+          border-bottom: 0;
+          margin-bottom: 0;
+        }
+        .note-authors {
+          line-height: 1.125rem;
+        }
+        .note-meta-info .readers {
+          display: none;
+        }
+      }
+      .note-private > h4 > a{
+        color: mix($mediumBlue,gray,20%);
+      }
+      .note-visible-icon {
+        font-size: .75rem;
+        cursor: pointer;
+        color: $subtleGray;
+        margin-left: .25rem;
+      }
+    }
+    .actions {
+      display: block;
+    }
+  }
+
+  section.coauthors {
+    ul li {
+      line-height: 1.25rem;
+    }
+    .list-unstyled {
+      margin-bottom: 1rem;
+    }
+  }
+
+  // Public profile
+  .profile-public {
+    .instructions {
+      display: none;
+    }
+  }
+
+}

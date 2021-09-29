@@ -1,0 +1,69 @@
+@import "../utils/constants";
+
+main.assignments-list {
+
+  header {
+    margin-top: 1rem;
+    margin-bottom: 2.5rem;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: normal;
+      line-height: 34px;
+      margin: 0;
+    }
+  }
+
+  .empty-message {
+    color: $subtleGray;
+    font-style: italic;
+    margin-top: 1rem;
+  }
+
+  .assignments-table {
+    margin-bottom: 2rem;
+    .assignment-label {
+      overflow: hidden;
+    }
+    .btn-link {
+      text-align: left;
+      font-weight: normal;
+      border: 0;
+      padding: 0;
+      .glyphicon {
+        color: $mediumBlue;
+      }
+    }
+    .btn-link:hover {
+      background-color: transparent;
+      color: $mediumDarkBlue;
+      text-decoration: none;
+      .glyphicon {
+        color: $mediumDarkBlue;
+      }
+    }
+    span.glyphicon {
+      padding-right: .5rem;
+    }
+  }
+
+  .modal-title {
+    margin: 0;
+  }
+  .modal-body {
+    h2 {
+      margin: 0;
+    }
+    .note_editor {
+      .note_content_title {
+        font-size: 1.25rem;
+        line-height: normal;
+        font-weight: bold;
+        margin-bottom: .5rem;
+      }
+    }
+  }
+
+}
+
+
