@@ -179,7 +179,7 @@ module.exports = (function() {
       var $inputGroup;
       // Create a new regex that doesn't include min and max length
       var regexStr = fieldDescription.value['value-regex'];
-      var re = new RegExp('^' + regexStr.replace(/\{\d+,\d+\}$/, '') + '$');
+      var re = new RegExp('^' + regexStr.replace(/\{\d+,\d+\}\$$/, '') + '$');
       var newlineMatch = '\n'.match(re);
       if (newlineMatch && newlineMatch.length) {
         $input = $('<textarea>', {
@@ -195,7 +195,7 @@ module.exports = (function() {
         }
 
         if (!_.get(fieldDescription.presentation, 'hideCharCounter', false)) {
-          var lenMatches = _.get(fieldDescription.value, 'value-regex', '').match(/\{(\d+),(\d+)\}$/);
+          var lenMatches = _.get(fieldDescription.value, 'value-regex', '').match(/\{(\d+),(\d+)\}\$$/);
           if (lenMatches) {
             var minLen = parseInt(lenMatches[1], 10);
             var maxLen = parseInt(lenMatches[2], 10);
@@ -1071,12 +1071,11 @@ module.exports = (function() {
           }
           $noteEditor.remove();
           view.clearAutosaveData(autosaveStorageKeys);
-        }, function(jqXhr, textStatus) {
-          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+        }, function(error) {
           if (params.onError) {
-            params.onError([errorText]);
+            params.onError([error]);
           } else {
-            promptError(errorText);
+            promptError(error);
           }
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
           $cancelButton.prop({ disabled: false });
