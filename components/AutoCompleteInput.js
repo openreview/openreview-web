@@ -8,7 +8,7 @@ import Icon from './Icon'
 import api from '../lib/api-client'
 import { getTitleObjects, getTokenObjects } from '../client/search'
 
-import '../styles/components/autocomplete-input.less'
+import '../styles/components/autocomplete-input.scss'
 
 const AutoCompleteInput = () => {
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')

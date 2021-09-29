@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import api from '../lib/api-client'
 import editController from '../client/profile-view'
 
-import '../styles/components/legacy-profile-editor.less'
+import '../styles/components/legacy-profile-editor.scss'
 
 export default function LegacyProfileEditor({
   profile, onSubmit, onCancel, submitButtonText = 'Save Profile',

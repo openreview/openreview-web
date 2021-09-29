@@ -10,7 +10,7 @@ import ErrorAlert from '../components/ErrorAlert'
 import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 
-import '../styles/pages/activity.less'
+import '../styles/pages/activity.scss'
 
 const Activity = ({ appContext }) => {
   const { user, accessToken } = useLoginRedirect()

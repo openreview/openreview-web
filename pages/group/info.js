@@ -12,7 +12,7 @@ import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
 // Page Styles
-import '../../styles/pages/group.less'
+import '../../styles/pages/group.scss'
 
 const GroupInfo = ({ appContext }) => {
   const { accessToken, userLoading } = useUser()

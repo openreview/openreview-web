@@ -16,7 +16,7 @@
 import { useEffect, useReducer } from 'react'
 import api from '../lib/api-client'
 
-import '../styles/components/legacy-profile-editor.less'
+import '../styles/components/legacy-profile-editor.scss'
 
 const NamesSection = ({ profileNames }) => {
   const namesReducer = (names, action) => {

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-import '../styles/components/footer.less'
+import '../styles/components/footer.scss'
 
 const Footer = () => (
   <>

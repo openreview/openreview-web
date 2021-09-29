@@ -17,7 +17,7 @@ import { formatProfileData } from '../../lib/profiles'
 import { viewProfileLink } from '../../lib/banner-links'
 
 // Page Styles
-import '../../styles/pages/profile-edit.less'
+import '../../styles/pages/profile-edit.scss'
 
 export default function ProfileEdit({ appContext }) {
   const { accessToken } = useLoginRedirect()

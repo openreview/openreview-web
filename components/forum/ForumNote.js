@@ -8,7 +8,7 @@ import NoteContent from '../NoteContent'
 import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
 
-import '../../styles/components/forum-note.less'
+import '../../styles/components/forum-note.scss'
 
 function ForumNote({ note, updateNote }) {
   const {

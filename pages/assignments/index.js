@@ -21,7 +21,7 @@ import { prettyId, formatDateTime, cloneAssignmentConfigNote } from '../../lib/u
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
-import '../../styles/pages/assignments.less'
+import '../../styles/pages/assignments.scss'
 
 const ActionLink = ({
   label, className, iconName, href, onClick, disabled,

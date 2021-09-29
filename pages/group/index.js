@@ -9,7 +9,7 @@ import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 
 // Page Styles
-import '../../styles/pages/group.less'
+import '../../styles/pages/group.scss'
 
 const Group = ({ groupId, webfieldCode, appContext }) => {
   const { setBannerHidden, clientJsLoading } = appContext

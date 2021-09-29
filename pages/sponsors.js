@@ -2,7 +2,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 
 // Page Styles
-import '../styles/pages/sponsors.less'
+import '../styles/pages/sponsors.scss'
 
 function Sponsor({ name, image }) {
   return (

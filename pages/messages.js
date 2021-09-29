@@ -11,7 +11,7 @@ import MultiSelectorDropdown from '../components/MultiSelectorDropdown'
 import PaginationLinks from '../components/PaginationLinks'
 import api from '../lib/api-client'
 
-import '../styles/pages/messages.less'
+import '../styles/pages/messages.scss'
 
 const statusOptions = [
   { text: 'Delivered', value: 'delivered' },

@@ -15,7 +15,7 @@ import api from '../lib/api-client'
 import { isValidEmail, isValidPassword } from '../lib/utils'
 
 // Page Styles
-import '../styles/pages/signup.less'
+import '../styles/pages/signup.scss'
 
 const LoadingContext = createContext()
 

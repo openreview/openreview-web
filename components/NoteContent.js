@@ -6,7 +6,7 @@ import union from 'lodash/union'
 import { prettyField, prettyContentValue, orderReplyFields } from '../lib/utils'
 import Icon from './Icon'
 
-import '../styles/components/note-content.less'
+import '../styles/components/note-content.scss'
 
 function NoteContent({
   id, content, invitation, omit = [], include = [], isReference = false,

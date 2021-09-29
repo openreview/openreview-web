@@ -11,8 +11,8 @@ import {
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 // Global Styles
-import '../styles/global.less'
-import '../styles/components.less'
+import '../styles/global.scss'
+import '../styles/components.scss'
 
 export default class OpenReviewApp extends App {
   constructor(props) {

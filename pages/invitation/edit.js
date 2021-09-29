@@ -16,7 +16,7 @@ import { isSuperUser } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 
 // Page Styles
-import '../../styles/pages/invitation.less'
+import '../../styles/pages/invitation.scss'
 
 const InvitationEdit = ({ appContext }) => {
   const query = useQuery()

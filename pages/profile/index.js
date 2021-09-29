@@ -18,7 +18,7 @@ import { auth } from '../../lib/auth'
 import { editProfileLink } from '../../lib/banner-links'
 
 // Page Styles
-import '../../styles/pages/profile.less'
+import '../../styles/pages/profile.scss'
 
 const ProfileSection = ({
   name, title, instructions, actionLink, children,

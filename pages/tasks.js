@@ -10,7 +10,7 @@ import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 import { formatTasksData } from '../lib/utils'
 
-import '../styles/pages/tasks.less'
+import '../styles/pages/tasks.scss'
 
 const Tasks = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()

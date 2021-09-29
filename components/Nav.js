@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import NavUserLinks from './NavUserLinks'
 import AutoCompleteInput from './AutoCompleteInput'
 
-import '../styles/components/nav.less'
+import '../styles/components/nav.scss'
 
 function Nav() {
   const router = useRouter()
