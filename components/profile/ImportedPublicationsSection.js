@@ -39,7 +39,7 @@ const ImportedPublicationsSection = ({ profileId, updatePublicationIdsToUnlink, 
       sort: 'tmdate:desc',
       offset: (pageNumber - 1) * pageSize,
       limit: pageSize,
-      invitations: ['dblp.org/-/record', 'OpenReview.net/Archive/-/Imported_Record', 'OpenReview.net/Archive/-/Direct_Upload']
+      invitations: ['dblp.org/-/record', 'OpenReview.net/Archive/-/Imported_Record', 'OpenReview.net/Archive/-/Direct_Upload'],
     }, { accessToken, cache: false })
     setPublications(result.notes)
     setTotalCount(result.count)

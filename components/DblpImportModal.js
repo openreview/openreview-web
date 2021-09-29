@@ -163,6 +163,7 @@ export default function DblpImportModal({
 
       // replace other format of dblp homepage with persistent url
       if ($('#dblp_url').val() !== dblpUrl) {
+        // eslint-disable-next-line no-unused-expressions
         updateDBLPUrl ? updateDBLPUrl(dblpUrl) : $('#dblp_url').val(dblpUrl)
       }
 
