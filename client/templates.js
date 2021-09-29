@@ -2619,7 +2619,14 @@ templates['partials/groupMembersTableRow'] = template({"1":function(container,de
     + "  </td>\n</tr>\n";
 },"useData":true});
 templates['partials/invitationEditor'] = template({"1":function(container,depth0,helpers,partials,data) {
-    return "Edit";
+    var lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return container.escapeExpression((lookupProperty(helpers,"upperFirst")||(depth0 && lookupProperty(depth0,"upperFirst"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"replyField") : depth0),{"name":"upperFirst","hash":{},"data":data,"loc":{"start":{"line":8,"column":34},"end":{"line":8,"column":59}}}));
 },"3":function(container,depth0,helpers,partials,data) {
     return "Reply Parameters";
 },"5":function(container,depth0,helpers,partials,data) {
@@ -2635,8 +2642,10 @@ templates['partials/invitationEditor'] = template({"1":function(container,depth0
   return "<section class=\"general\">\n  <h4>General Info</h4>\n\n"
     + ((stack1 = container.invokePartial(lookupProperty(partials,"invitationInfoTable"),depth0,{"name":"invitationInfoTable","hash":{"apiVersion":((stack1 = (depth0 != null ? lookupProperty(depth0,"options") : depth0)) != null ? lookupProperty(stack1,"apiVersion") : stack1),"editable":true},"data":data,"indent":"  ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
     + "</section>\n\n<section class=\"reply\">\n  <h4>"
-    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"options") : depth0)) != null ? lookupProperty(stack1,"apiVersion") : stack1),2,{"name":"is","hash":{},"fn":container.program(1, data, 0),"inverse":container.program(3, data, 0),"data":data,"loc":{"start":{"line":8,"column":6},"end":{"line":8,"column":69}}})) != null ? stack1 : "")
-    + "</h4>\n\n  <form class=\"invitation-reply-form\">\n    <textarea name=\"reply\" class=\"form-control\" rows=\"10\">"
+    + ((stack1 = (lookupProperty(helpers,"is")||(depth0 && lookupProperty(depth0,"is"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"options") : depth0)) != null ? lookupProperty(stack1,"apiVersion") : stack1),2,{"name":"is","hash":{},"fn":container.program(1, data, 0),"inverse":container.program(3, data, 0),"data":data,"loc":{"start":{"line":8,"column":6},"end":{"line":8,"column":90}}})) != null ? stack1 : "")
+    + "</h4>\n\n  <form class=\"invitation-reply-form\" data-field-name=\""
+    + alias4(((helper = (helper = lookupProperty(helpers,"replyField") || (depth0 != null ? lookupProperty(depth0,"replyField") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"replyField","hash":{},"data":data,"loc":{"start":{"line":10,"column":55},"end":{"line":10,"column":69}}}) : helper)))
+    + "\">\n    <textarea name=\"reply\" class=\"form-control\" rows=\"10\">"
     + alias4(((helper = (helper = lookupProperty(helpers,"replyJson") || (depth0 != null ? lookupProperty(depth0,"replyJson") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"replyJson","hash":{},"data":data,"loc":{"start":{"line":11,"column":58},"end":{"line":11,"column":71}}}) : helper)))
     + "</textarea>\n    <div class=\"alert alert-danger\" style=\"display: none;\">\n      <strong>Error:</strong> Reply content is not valid JSON. Make sure all quotes and brackets match.\n    </div>\n    <button type=\"submit\" class=\"btn btn-sm btn-primary\">Save Invitation</button>\n  </form>\n</section>\n\n<section class=\"tabs\">\n  <h4>Reply Forum Views</h4>\n\n  <form class=\"invitation-forum-views-form\">\n    <textarea name=\"reply-forum-views\" class=\"form-control\" rows=\"10\">"
     + alias4(((helper = (helper = lookupProperty(helpers,"replyForumViewsJson") || (depth0 != null ? lookupProperty(depth0,"replyForumViewsJson") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"replyForumViewsJson","hash":{},"data":data,"loc":{"start":{"line":23,"column":70},"end":{"line":23,"column":93}}}) : helper)))
