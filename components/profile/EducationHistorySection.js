@@ -185,7 +185,7 @@ const EducationHistorySection = ({
               </div>
               <div className="col-md-4 history__value">
                 <input
-                  className="form-control"
+                  className="form-control institution-name"
                   value={p.institution?.name ?? ''}
                   onChange={e => setHistory({ type: institutionNameType, data: { value: e.target.value, key: p.key } })}
                 />
