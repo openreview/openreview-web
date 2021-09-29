@@ -1577,7 +1577,7 @@ module.exports = (function() {
   var invitationEditor = function(invitation, options) {
     var defaults = {
       container: '#notes',
-      showProcessEditor: false,
+      showProcessEditor: true,
     };
     options = _.defaults(options, defaults);
 
