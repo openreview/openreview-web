@@ -1563,11 +1563,13 @@ module.exports = (function() {
 
     var $container = $(options.container);
     var parentGroupId = invitation.id.split('/-/')[0];
+    var replyField = !_.isEmpty(invitation.edge) ? 'edge' : 'edit';
 
     $container.empty().append(Handlebars.templates['partials/invitationInfo']({
       invitation: invitation,
       parentGroupId: parentGroupId,
-      replyJson: JSON.stringify(invitation.edit, undefined, 4),
+      replyField: replyField,
+      replyJson: JSON.stringify(invitation[replyField], undefined, 4),
       options: { apiVersion: 2 }
     }));
 
@@ -1583,12 +1585,14 @@ module.exports = (function() {
 
     var $container = $(options.container);
     var parentGroupId = invitation.id.split('/-/')[0];
+    var replyField = !_.isEmpty(invitation.edge) ? 'edge' : 'edit';
     var editors = { webfield: null, process: null, preprocess: null };
 
     $container.empty().append(Handlebars.templates['partials/invitationEditor']({
       invitation: invitation,
       parentGroupId: parentGroupId,
-      replyJson: JSON.stringify(invitation.edit, undefined, 4),
+      replyField: replyField,
+      replyJson: JSON.stringify(invitation[replyField], undefined, 4),
       replyForumViewsJson: JSON.stringify(invitation.replyForumViews || [], undefined, 4),
       options: {
         showProcessEditor: options.showProcessEditor,
@@ -1762,19 +1766,23 @@ module.exports = (function() {
 
       var updateObj;
       if ($(this).hasClass('invitation-reply-form')) {
-        // Have to set the fields of the content object to null, so if a user is removing
-        // or renaming a field it will be deleted.
-        var defaultContent = { ...invitation.edit.note.content };
-        Object.keys(defaultContent).forEach(function(key) {
-          defaultContent[key] = null;
-        });
-        updateObj = {
-          edit: _.merge({
-            note: {
-              signatures: null, readers: null, writers: null, content: defaultContent
-            }
-          }, parsedObj),
-        };
+        if ($(this).data('fieldName') === 'edge') {
+          updateObj = { edge: parsedObj };
+        } else {
+          // Have to set the fields of the content object to null, so if a user is removing
+          // or renaming a field it will be deleted.
+          var defaultContent = { ...invitation.edit.note.content };
+          Object.keys(defaultContent).forEach(function(key) {
+            defaultContent[key] = null;
+          });
+          updateObj = {
+            edit: _.merge({
+              note: {
+                signatures: null, readers: null, writers: null, content: defaultContent
+              }
+            }, parsedObj),
+          };
+        }
       } else {
         updateObj = { replyForumViews: parsedObj };
       }
