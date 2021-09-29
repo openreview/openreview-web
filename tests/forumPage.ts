@@ -121,6 +121,8 @@ test('get a non existent forum and return a not found', async (t) => {
     .expect(content.exists).ok()
     .expect(errorCodeLabel.innerText).eql('Error 404')
     .expect(errorMessageLabel.innerText).eql('Not Found')
+    // New error format
+    // .expect(errorMessageLabel.innerText).eql('The Note 12315sx was not found')
 })
 
 test('get original note and redirect to the blinded note', async (t) => {
