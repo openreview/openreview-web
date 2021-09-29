@@ -124,7 +124,7 @@ const RelationsSection = ({
     <section>
       <h4>Advisors & Other Relations</h4>
       <p className="instructions">Enter all advisors, co-workers, and other people that should be included when detecting conflicts of interest.</p>
-      <div className="container history">
+      <div className="container relation">
         <div className="row">
           <div className="small-heading col-md-2">Relation</div>
           <div className="small-heading col-md-3">Name</div>
