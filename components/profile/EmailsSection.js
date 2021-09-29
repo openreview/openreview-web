@@ -91,6 +91,25 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
         await api.post('/user/confirm', linkData, { accessToken })
         return promptMessage(`A confirmation email has been sent to ${newEmail}`)
       } catch (error) {
+        if (error.message === 'AlreadyConfirmed') {
+          return promptError(`Error: ${error.details.path} is already associated with another OpenReview profile,
+          <a href="/profile?id=${error.details.value}" title="View profile" target="_blank" class="action-link">${error.details.value}</a>.
+          To merge this profile with your account, please click here to submit a support request:
+          <a
+            href="#"
+            title="View profile"
+            target="_blank"
+            class="action-link"
+            data-toggle="modal"
+            data-target="#feedback-modal"
+            onclick="
+              $('#feedback-modal').find('#feedback-from').val('${error.details.user}');
+              $('#feedback-modal').find('#feedback-subject').val('Merge Profiles');
+              $('#feedback-modal').find('#feedback-message').val('Hi OpenReview Support,\\n\\nPlease merge the profiles with the following usernames:\\n${error.details.value2}\\n${error.details.value}\\n\\nThank you.');
+            "
+          >Merge Profiles</a>.
+          `, { html: true })
+        }
         return promptError(error.message)
       }
     } else {

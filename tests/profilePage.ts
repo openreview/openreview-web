@@ -142,7 +142,7 @@ test('unlink paper', async (t) => {
     .expect(Selector('ul.submissions-list').find('div.note').count).eql(2) // profile view has the 2 papers imported
     .click(Selector('a').withText('Edit Profile'))
     .click(Selector('ul.submissions-list').find('.glyphicon-minus-sign').nth(1)) // unlink 2nd paper
-    .expect(Selector('ul.submissions-list').find('li.unlinked-publication').count).eql(1)
+    .expect(Selector('ul.submissions-list').find('div.unlinked-publication').count).eql(1)
     .expect(Selector('ul.submissions-list').find('.glyphicon-minus-sign').count).eql(1)
     .expect(Selector('ul.submissions-list').find('.glyphicon-repeat').count).eql(1)
     .click(Selector('ul.submissions-list').find('.glyphicon-repeat').nth(0)) // relink

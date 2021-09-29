@@ -126,7 +126,7 @@ window.generalPrompt = function(type, content, options) {
   } else {
     msgHtml = view.iMess(content);
   }
-  $outer.find('.alert-content').append(msgHtml);
+  $outer.find('.alert-content').replaceWith(msgHtml);
   $outer.slideDown();
 
   if (options.scrollToTop && window.scrollY > 0) {
