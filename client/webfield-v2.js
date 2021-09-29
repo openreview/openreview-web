@@ -179,8 +179,10 @@ module.exports = (function() {
     console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2));
 
     var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
-    var notSignatoryError = errorText.type === 'notSignatory' && errorText.path === 'signatures' && _.startsWith(errorText.user, 'guest_');
-    var forbiddenError = (errorText.type === 'forbidden' || errorText.type === 'ForbiddenError') && _.startsWith(errorText.user, 'guest_');
+    var errorName = jqXhr.responseJSON?.name || jqXhr.responseJSON?.errors?.[0]?.type;
+    var errorDetails = jqXhr.responseJSON?.details || jqXhr.responseJSON?.errors?.[0];
+    var notSignatoryError = (errorName === 'notSignatory' || errorName === 'NotSignatoryError') && _.startsWith(errorDetails.user, 'guest_');
+    var forbiddenError = (errorName  === 'forbidden' || errorName === 'ForbiddenError') && _.startsWith(errorDetails.user, 'guest_');
 
     if (errorText === 'User does not exist') {
       location.reload(true);
@@ -188,6 +190,14 @@ module.exports = (function() {
       location.href = '/login?redirect=' + encodeURIComponent(
         location.pathname + location.search + location.hash
       );
+    } else if (errorName === 'AlreadyConfirmedError') {
+      promptError({
+        type: 'alreadyConfirmed',
+        path: errorDetails.alternate,
+        value: errorDetails.otherProfile,
+        value2: errorDetails.thisProfile,
+        user: errorDetails.user
+      });
     } else {
       promptError(errorText);
     }
@@ -1567,7 +1577,7 @@ module.exports = (function() {
   var invitationEditor = function(invitation, options) {
     var defaults = {
       container: '#notes',
-      showProcessEditor: false,
+      showProcessEditor: true,
     };
     options = _.defaults(options, defaults);
 
