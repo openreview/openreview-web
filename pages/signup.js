@@ -77,6 +77,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
       })
     } catch (apiError) {
       promptError(apiError.message)
+      setNameConfirmed(false)
     }
     setLoading(false)
   }
@@ -224,8 +225,9 @@ const SignupForm = ({ setSignupConfirmation }) => {
       )}
 
       <ConfirmNameModal
-        name={`${firstName} ${middleName} ${lastName}`}
-        id={newUsername}
+        firstName={firstName}
+        middleName={middleName}
+        lastName={lastName}
         onConfirm={() => {
           $('#confirm-name-modal').modal('hide')
           setNameConfirmed(true)
@@ -510,7 +512,7 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
       return
     }
 
-    $('#confirm-name-modal').modal('show')
+    $('#confirm-name-modal').modal({ show: true, backdrop: 'static' })
   }
 
   useEffect(() => {
@@ -595,23 +597,49 @@ const SubmitButton = ({ disabled, children }) => {
   )
 }
 
-const ConfirmNameModal = ({ name, id, onConfirm }) => (
-  <BasicModal
-    id="confirm-name-modal"
-    title="Confirm Full Name"
-    primaryButtonText="Register"
-    onPrimaryButtonClick={onConfirm}
-  >
-    <p className="mb-3">You are registering with the name:</p>
-    <h3 className="mt-0 mb-3">{name}</h3>
-    <p className="mb-3">
-      {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-      Your public profile ID will be <strong>{id}</strong>.
-      If you need to change this name in the future you will have to contact OpenReview support.
-      Are you sure you want to register with this name?
-    </p>
-  </BasicModal>
-)
+const ConfirmNameModal = ({
+  firstName, middleName, lastName, onConfirm,
+}) => {
+  const [agreeTerms, setAgreeTerms] = useState(false)
+  return (
+    <BasicModal
+      id="confirm-name-modal"
+      title="Confirm Full Name"
+      primaryButtonText="Register"
+      onPrimaryButtonClick={onConfirm}
+      primaryButtonDisabled={!agreeTerms}
+    >
+      <p className="mb-3">You are registering with the name:</p>
+      <h3 className="mt-0 mb-3">
+        <span>{firstName}</span>
+        {' '}
+        <span>{middleName}</span>
+        {' '}
+        <span className="last-name">{lastName}</span>
+      </h3>
+      <p className="mb-3">
+        Your last name is
+        {' '}
+        <strong>{lastName}</strong>
+        .
+        You will
+        {' '}
+        <em>Not</em>
+        {' '}
+        be able to remove this name from you profile.
+        Are you sure you want to register with this name?
+      </p>
+      <input id="agree-checkbox" type="checkbox" onClick={() => setAgreeTerms(value => !value)} />
+      <label htmlFor="agree-checkbox">
+        I understand and agree to
+        {' '}
+        <a href="/legal/terms" target="_blank" rel="nofollow noreferrer">terms and conditions</a>
+        {' '}
+        of OpenReview
+      </label>
+    </BasicModal>
+  )
+}
 
 const ConfirmationMessage = ({ registrationType, registeredEmail }) => {
   if (registrationType === 'reset') {
