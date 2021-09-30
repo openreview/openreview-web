@@ -110,18 +110,18 @@ export async function getStaticProps() {
     props: {
       sponsors: {
         gold: [
-          { name: 'Facebook', image: 'facebook.png', link: 'https://socialimpact.facebook.com/charitable-giving/' },
+          { name: 'Facebook', image: 'facebook.png', link: 'https://research.facebook.com/' },
           { name: 'UMass IESL', image: 'umass_iesl2.png', link: 'http://www.iesl.cs.umass.edu/' },
         ],
         silver: [
-          { name: 'Amazon', image: 'amazon.png', link: 'https://www.aboutamazon.com/impact/community' },
+          { name: 'Amazon', image: 'amazon.png', link: 'https://www.amazon.science/' },
           { name: 'CZI', image: 'czi.png', link: 'https://chanzuckerberg.com/' },
         ],
         bronze: [
-          { name: 'Google', image: 'google.png', link: 'https://www.google.org/' },
+          { name: 'Google', image: 'google.png', link: 'https://research.google/' },
           { name: 'Bloomberg', image: 'bloomberg.png', link: 'https://www.bloomberg.org' },
-          { name: 'IBM', image: 'ibm.png', link: 'https://www.ibm.com/opensource/philanthropy/' },
-          { name: 'DeepMind', image: 'deepmind.png', link: 'https://deepmind.com/about#our_global_community' },
+          { name: 'IBM', image: 'ibm.png', link: 'https://research.ibm.com/' },
+          { name: 'DeepMind', image: 'deepmind.png', link: 'https://deepmind.com/' },
         ],
         benefactors: [
           { name: 'CDS', image: 'cds.png', link: 'https://www.cds-global.com/' },
