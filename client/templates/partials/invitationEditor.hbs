@@ -5,9 +5,9 @@
 </section>
 
 <section class="reply">
-  <h4>{{#is options.apiVersion 2}}Edit{{else}}Reply Parameters{{/is}}</h4>
+  <h4>{{#is options.apiVersion 2}}{{upperFirst replyField}}{{else}}Reply Parameters{{/is}}</h4>
 
-  <form class="invitation-reply-form">
+  <form class="invitation-reply-form" data-field-name="{{replyField}}">
     <textarea name="reply" class="form-control" rows="10">{{replyJson}}</textarea>
     <div class="alert alert-danger" style="display: none;">
       <strong>Error:</strong> Reply content is not valid JSON. Make sure all quotes and brackets match.
