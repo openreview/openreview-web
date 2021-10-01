@@ -31,7 +31,12 @@ export default function NoteEntity(props) {
     editEdges,
     editEdgeTemplates,
   } = props.note
-  const { editInvitations, availableSignaturesInvitationMap, traverseInvitation } = useContext(EdgeBrowserContext)
+  const {
+    editInvitations,
+    traverseInvitation,
+    availableSignaturesInvitationMap,
+    version,
+  } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
 
   const title = content.title ? content.title : 'No Title'
@@ -78,7 +83,7 @@ export default function NoteEntity(props) {
       signatures,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken })
+      const result = await api.post('/edges', body, { accessToken, version })
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
       } else {
@@ -110,7 +115,6 @@ export default function NoteEntity(props) {
       creationDate, modificationDate, name, writable, ...body // removed fields added for entity display
     } = {
       tail: id,
-      ddate: null,
       ...existingEdge ?? {
         ...editEdgeTemplate,
         defaultWeight: undefined,
@@ -124,7 +128,7 @@ export default function NoteEntity(props) {
       ...updatedEdgeFields,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken })
+      const result = await api.post('/edges', body, { accessToken, version })
       if (isTraverseInvitation) {
         props.addEdgeToEntity(id, result)
       } else {
@@ -144,6 +148,7 @@ export default function NoteEntity(props) {
     parentPaperNumber: props.parentInfo.number,
     id,
     parentId: props.parentInfo.id,
+    version,
   })
 
   const renderEditEdgeWidget = ({ editEdge, editInvitation }) => {

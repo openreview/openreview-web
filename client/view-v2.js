@@ -179,7 +179,7 @@ module.exports = (function() {
       var $inputGroup;
       // Create a new regex that doesn't include min and max length
       var regexStr = fieldDescription.value['value-regex'];
-      var re = new RegExp('^' + regexStr.replace(/\{\d+,\d+\}$/, '') + '$');
+      var re = new RegExp('^' + regexStr.replace(/\{\d+,\d+\}\$$/, '') + '$');
       var newlineMatch = '\n'.match(re);
       if (newlineMatch && newlineMatch.length) {
         $input = $('<textarea>', {
@@ -195,7 +195,7 @@ module.exports = (function() {
         }
 
         if (!_.get(fieldDescription.presentation, 'hideCharCounter', false)) {
-          var lenMatches = _.get(fieldDescription.value, 'value-regex', '').match(/\{(\d+),(\d+)\}$/);
+          var lenMatches = _.get(fieldDescription.value, 'value-regex', '').match(/\{(\d+),(\d+)\}\$$/);
           if (lenMatches) {
             var minLen = parseInt(lenMatches[1], 10);
             var maxLen = parseInt(lenMatches[2], 10);
@@ -218,6 +218,7 @@ module.exports = (function() {
         });
         $inputGroup = valueInput($input, fieldName, fieldDescription); //input will probably be omitted field when rendered
       }
+      $input.addClass('autosave-enabled');
       contentInputResult = $inputGroup;
 
     } else if (_.has(fieldDescription.value, 'values-regex')) {
@@ -236,6 +237,7 @@ module.exports = (function() {
           name: fieldName,
           value: fieldValue
         });
+        $input.addClass('autosave-enabled');
         contentInputResult = valueInput($input, fieldName, fieldDescription);
       }
 
@@ -1050,6 +1052,9 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
+        const confirmCancel = $noteEditor.data('hasUnsavedData') && !window.confirm('Any unsaved changes will be lost. Are you sure you want to continue?');
+        if (confirmCancel) return;
+
         view.clearAutosaveData(autosaveStorageKeys);
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
@@ -1066,12 +1071,11 @@ module.exports = (function() {
           }
           $noteEditor.remove();
           view.clearAutosaveData(autosaveStorageKeys);
-        }, function(jqXhr, textStatus) {
-          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+        }, function(error) {
           if (params.onError) {
-            params.onError([errorText]);
+            params.onError([error]);
           } else {
-            promptError(errorText);
+            promptError(error);
           }
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
           $cancelButton.prop({ disabled: false });
@@ -1505,11 +1509,15 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
+        const confirmCancel = $noteEditor.data('hasUnsavedData') && !window.confirm('Any unsaved changes will be lost. Are you sure you want to continue?');
+        if (confirmCancel) return;
+
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
         } else {
           $noteEditor.remove();
         }
+        view.clearAutosaveData(autosaveStorageKeys);
       });
 
       var saveNote = function (formContent, existingNote, invitation) {
@@ -1521,6 +1529,7 @@ module.exports = (function() {
             })
           }
           $noteEditor.remove();
+          view.clearAutosaveData(autosaveStorageKeys);
         }, function(error) {
           if (params.onError) {
             params.onError([error]);
@@ -1550,6 +1559,7 @@ module.exports = (function() {
       $noteEditor.data('invitationId', invitation.id);
 
       view.autolinkFieldDescriptions($noteEditor);
+      var autosaveStorageKeys = view.setupAutosaveHandlers($noteEditor, user, note.id, invitation.id);
 
       if (params.onCompleted) {
         params.onCompleted($noteEditor);

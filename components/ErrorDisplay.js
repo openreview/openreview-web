@@ -3,6 +3,7 @@ import { translateErrorDetails } from '../lib/utils'
 
 const ErrorDisplay = ({ statusCode, message, details }) => {
   const errorMessage = details ? translateErrorDetails(details) : message
+
   return (
     <div className="row error-display">
       <Head>
