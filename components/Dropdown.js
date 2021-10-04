@@ -23,8 +23,17 @@ const createCustomTheme = height => theme => ({
 export const CreatableDropdown = (props) => {
   // eslint-disable-next-line react/destructuring-assignment
   const customTheme = createCustomTheme(props.height)
-  // eslint-disable-next-line max-len,no-param-reassign,react/destructuring-assignment
-  if (props.hideArrow) props = { ...props, components: { DropdownIndicator: () => null, IndicatorSeparator: () => null } }
+  // eslint-disable-next-line react/destructuring-assignment
+  if (props.hideArrow) {
+    // eslint-disable-next-line no-param-reassign
+    props = {
+      ...props,
+      components: {
+        DropdownIndicator: () => null,
+        IndicatorSeparator: () => null,
+      },
+    }
+  }
   return (
     <CreatableSelect
       theme={customTheme}

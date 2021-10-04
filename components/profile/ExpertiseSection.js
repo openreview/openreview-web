@@ -1,5 +1,6 @@
 import { useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
+import ProfileSectionHeader from './ProfileSectionHeader'
 
 const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
   // #region action type constants
@@ -77,16 +78,7 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
 
   return (
     <section>
-      <h4>Expertise</h4>
-      <p className="instructions">
-        For each line, enter comma-separated keyphrases representing an intersection of your interests.
-        {' '}
-        Think of each line as a query for papers in which you would have expertise and interest. For example:
-        <br />
-        <em>topic models, social network analysis, computational social science</em>
-        <br />
-        <em>deep learning, RNNs, dependency parsing</em>
-      </p>
+      <ProfileSectionHeader type="expertise" />
       <div className="container expertise">
         <div className="row">
           <div className="small-heading col-md-6">Research areas of interest</div>

@@ -2,6 +2,7 @@
 import { useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
 import api from '../../lib/api-client'
+import ProfileSectionHeader from './ProfileSectionHeader'
 
 const NamesButton = ({
   newRow, readonly, preferred, handleRemove, handleMakePreferred,
@@ -84,8 +85,7 @@ const NamesSection = ({ profileNames, updateNames }) => {
 
   return (
     <section>
-      <h4>Names</h4>
-      <p className="instructions">Enter your full name (first, middle, last). Also add any other names you have used in the past when authoring papers.</p>
+      <ProfileSectionHeader type="names" />
       <div className="container names">
         <div className="row">
           <div className="small-heading col-md-2">First</div>

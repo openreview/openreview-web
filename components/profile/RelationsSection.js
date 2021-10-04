@@ -2,6 +2,7 @@ import { useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
 import { CreatableDropdown } from '../Dropdown'
 import MultiSelectorDropdown from '../MultiSelectorDropdown'
+import ProfileSectionHeader from './ProfileSectionHeader'
 
 const RelationsSection = ({
   profileRelation,
@@ -122,8 +123,7 @@ const RelationsSection = ({
 
   return (
     <section>
-      <h4>Advisors & Other Relations</h4>
-      <p className="instructions">Enter all advisors, co-workers, and other people that should be included when detecting conflicts of interest.</p>
+      <ProfileSectionHeader type="relation" />
       <div className="container relation">
         <div className="row">
           <div className="small-heading col-md-2">Relation</div>
@@ -185,8 +185,7 @@ const RelationsSection = ({
               </div>
               <div className="col-md-1 relation__value">
                 <MultiSelectorDropdown
-                  extraDropdownClasses="relation__visibility-dropdown"
-                  extraButtonClasses="relation__visibility-button"
+                  extraClass="relation__multiple-select"
                   options={relationReaderOptions}
                   selectedValues={p.readers}
                   setSelectedValues={values => setRelation({ type: readersType, data: { value: values, key: p.key } })}

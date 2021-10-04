@@ -4,9 +4,7 @@ export default function MultiSelectorDropdown({
   selectedValues,
   setSelectedValues,
   disabled,
-  rightAlign = false,
-  extraDropdownClasses = undefined,
-  extraButtonClasses = undefined,
+  extraClass = undefined,
   displayTextFn = undefined,
 }) {
   const allValues = options.map(f => f.value)
@@ -37,9 +35,9 @@ export default function MultiSelectorDropdown({
   }
 
   return (
-    <div className={`multiselector dropdown ${extraDropdownClasses}`}>
+    <div className={`multiselector dropdown ${extraClass}`}>
       <button
-        className={`form-control dropdown-toggle ${extraButtonClasses}`}
+        className="form-control dropdown-toggle"
         type="button"
         id={id}
         data-toggle="dropdown"
@@ -49,7 +47,7 @@ export default function MultiSelectorDropdown({
       >
         {getButtonText()}
       </button>
-      <ul className={` ${extraDropdownClasses} dropdown-menu checkbox-menu allow-focus ${rightAlign ? 'dropdown-menu-right' : undefined}`}>
+      <ul className="dropdown-menu checkbox-menu allow-focus">
         <li className="select-all-item">
           <label>
             <input

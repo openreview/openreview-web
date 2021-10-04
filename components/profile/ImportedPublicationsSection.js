@@ -5,6 +5,7 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import NoteList from '../NoteList'
 import PaginationLinks from '../PaginationLinks'
+import ProfileSectionHeader from './ProfileSectionHeader'
 
 const ImportedPublicationsSection = ({ profileId, updatePublicationIdsToUnlink, reRender }) => {
   const { accessToken } = useUser()
@@ -60,12 +61,7 @@ const ImportedPublicationsSection = ({ profileId, updatePublicationIdsToUnlink, 
   if (!publications.length) return null
   return (
     <section>
-      <h4>Imported Publications</h4>
-      <p className="instructions">
-        Below is a list of publications imported from DBLP and other sources that include you as an author.
-        {' '}
-        To remove any publications of which you are not actually an author of, click the minus sign next to the title.
-      </p>
+      <ProfileSectionHeader type="importedPublications" />
       <NoteList notes={publications} displayOptions={displayOptions} />
       <PaginationLinks
         currentPage={pageNumber}

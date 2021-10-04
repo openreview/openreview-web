@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CreatableDropdown } from '../Dropdown'
+import ProfileSectionHeader from './ProfileSectionHeader'
 
 const GenderSection = ({ profileGender, updateGender }) => {
   const defaultGenderOptions = ['Male', 'Female', 'Non-Binary', 'Not Specified']
@@ -12,8 +13,7 @@ const GenderSection = ({ profileGender, updateGender }) => {
 
   return (
     <section>
-      <h4>Gender</h4>
-      <p className="instructions">This information helps conferences better understand their gender diversity. (Optional)</p>
+      <ProfileSectionHeader type="gender" />
       <CreatableDropdown
         hideArrow
         classNamePrefix="gender-dropdown"

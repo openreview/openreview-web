@@ -1,6 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
 import { CreatableDropdown } from '../Dropdown'
+import SectionHeader from './ProfileSectionHeader'
 
 const EducationHistorySection = ({
   profileHistory,
@@ -114,13 +115,7 @@ const EducationHistorySection = ({
 
   return (
     <section>
-      <h4>Education & Career History</h4>
-      <p className="instructions">
-        Enter your education and career history.
-        The institution domain is used for conflict of interest detection,
-        author deduplication, analysis of career path history, and tallies of institutional diversity.
-        For ongoing positions, leave the End field blank.
-      </p>
+      <SectionHeader type="educationHistory" />
       <div className="container history">
         <div className="row">
           <div className="small-heading col-md-2">Position</div>

@@ -1,6 +1,7 @@
 /* globals $: false */
 import { useEffect, useReducer } from 'react'
 import DblpImportModal from '../DblpImportModal'
+import ProfileSectionHeader from './ProfileSectionHeader'
 
 const PersonalLinksSection = ({
   profileLinks, updateLinks, id, names, preferredEmail, renderPublicationsEditor, hideDblpButton,
@@ -27,8 +28,7 @@ const PersonalLinksSection = ({
   return (
     <>
       <section>
-        <h4>Personal Links</h4>
-        <p className="instructions">Enter full URLs of your public profiles on other sites. All URLs should begin with http or https.</p>
+        <ProfileSectionHeader type="personalLinks" />
         <div className="container">
           <div className="row">
             <div className="col-md-6 personal-links__column">

@@ -109,14 +109,6 @@ window.generalPrompt = function(type, content, options) {
 
   clearTimeout(flashMessageTimer);
 
-  var elemsToRemove = [
-    '.alert-content span.important_message',
-    '.alert-content span.important_term',
-    '.alert-content strong',
-    '.alert-content .action-link'
-  ];
-  $outer.find(elemsToRemove.join(', ')).remove();
-
   var msgHtml;
   if (options.html) {
     msgHtml = content;

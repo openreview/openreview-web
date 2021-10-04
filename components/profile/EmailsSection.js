@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid'
 import { isValidEmail } from '../../lib/utils'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
+import ProfileSectionHeader from './ProfileSectionHeader'
 
 const EmailsButton = ({
   type, emailObj, handleRemove, handleConfirm, handleMakePreferred,
@@ -123,19 +124,7 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
 
   return (
     <section>
-      <h4>Emails</h4>
-      <p className="instructions">
-        Enter all email addresses associated with your current and historical institutional affiliations,
-        your previous publications, and any other related systems, such as TPMS, CMT, and ArXiv.
-        {' '}
-        <strong>
-          Email addresses associated with your old affiliations
-          (including previous employers) should not be deleted.
-        </strong>
-        {' '}
-        This information is crucial for deduplicating users and ensuring that you see your reviewing assignments.
-        OpenReview will only send messages to the address marked as “Preferred”.
-      </p>
+      <ProfileSectionHeader type="emails" />
       <div className="container emails">
         {
           emails.map(emailObj => (

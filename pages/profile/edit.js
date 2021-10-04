@@ -15,7 +15,7 @@ import {
 } from '../../lib/utils'
 import ProfileEditor from '../../components/profile/ProfileEditor'
 
-const profileEditNew = ({ appContext }) => {
+const ProfileEditNew = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
   const { updateUserName } = useUser()
   const router = useRouter()
@@ -146,5 +146,5 @@ const profileEditNew = ({ appContext }) => {
   )
 }
 
-profileEditNew.bodyClass = 'profile-edit'
-export default profileEditNew
+ProfileEditNew.bodyClass = 'profile-edit'
+export default ProfileEditNew
