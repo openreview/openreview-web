@@ -173,8 +173,10 @@ module.exports = (function() {
     console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2));
 
     var errorText = getErrorFromJqXhr(jqXhr, textStatus);
-    var notSignatoryError = errorText.type === 'notSignatory' && errorText.path === 'signatures' && _.startsWith(errorText.user, 'guest_');
-    var forbiddenError = (errorText.type === 'forbidden' || errorText.type === 'ForbiddenError') && _.startsWith(errorText.user, 'guest_');
+    var errorName = jqXhr.responseJSON?.name || jqXhr.responseJSON?.errors?.[0]?.type;
+    var errorDetails = jqXhr.responseJSON?.details || jqXhr.responseJSON?.errors?.[0];
+    var notSignatoryError = (errorName === 'notSignatory' || errorName === 'NotSignatoryError') && _.startsWith(errorDetails.user, 'guest_');
+    var forbiddenError = (errorName  === 'forbidden' || errorName === 'ForbiddenError') && _.startsWith(errorDetails.user, 'guest_');
 
     if (errorText === 'User does not exist') {
       location.reload(true);
@@ -182,6 +184,14 @@ module.exports = (function() {
       location.href = '/login?redirect=' + encodeURIComponent(
         location.pathname + location.search + location.hash
       );
+    } else if (errorName === 'AlreadyConfirmedError') {
+      promptError({
+        type: 'alreadyConfirmed',
+        path: errorDetails.alternate,
+        value: errorDetails.otherProfile,
+        value2: errorDetails.thisProfile,
+        user: errorDetails.user
+      });
     } else {
       promptError(errorText);
     }
@@ -190,23 +200,17 @@ module.exports = (function() {
   };
 
   var getErrorFromJqXhr = function(jqXhr, textStatus) {
-    var errorResponse = jqXhr.responseJSON;
-    var errorText = 'Something went wrong';
     if (textStatus === 'timeout') {
       // If the request timed out, display a special message and don't call
       // the onError callback to prevent it from chaining or not displaying the mesage.
-      errorText = 'OpenReview is currently under heavy load. Please try again soon.';
-      return errorText;
+      return 'OpenReview is currently under heavy load. Please try again soon.';
     }
 
-    if (errorResponse) {
-      if (errorResponse.errors && errorResponse.errors.length) {
-        errorText = errorResponse.errors[0];
-      } else if (errorResponse.message) {
-        errorText = errorResponse.message;
-      }
-    }
-    return errorText;
+    var error = jqXhr.responseJSON
+    // TODO: remove when migration to new error format is complete
+    if (error?.errors?.length > 0) return error.errors[0];
+
+    return error?.message || 'Something went wrong';
   };
 
   var setToken = function(newAccessToken) {

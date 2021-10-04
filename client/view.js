@@ -761,24 +761,28 @@ module.exports = (function() {
       return $row;
     };
 
-    var getPreferredName = function(profile, username) {
+    var getPreferredName = function(profile, authorid, authorname) {
       var tildeId;
       if (profile) {
         var nameObj = _.find(profile.content.names, 'preferred');
         tildeId = nameObj && nameObj.username || profile.id;
       } else {
-        tildeId = username
+        tildeId = authorid
       }
       var setClass = function(className) {
         return function(match) {
           return '<span class="' + className + '">' + match + '</span>';
         };
       };
-      return $('<a>', { href: '/profile?id=' + tildeId, target: '_blank', "data-tildeid":tildeId }).append(
-        tildeId
-          .replace(/[^~_0-9]+/g, setClass('black'))
-          .replace(/[~_0-9]+/g, setClass('light-gray'))
-      );
+      if (tildeId.startsWith('~')) {
+        return $('<a>', { href: '/profile?id=' + tildeId, target: '_blank', "data-tildeid":tildeId }).append(
+          tildeId
+            .replace(/[^~_0-9]+/g, setClass('black'))
+            .replace(/[~_0-9]+/g, setClass('light-gray'))
+        );
+      } else {
+        return $('<a>', { href: '/profile?email=' + tildeId, class: 'black', target: '_blank' }).append(authorname);
+      }
     };
 
     var getNameFromInput = function(first, middle, last) {
@@ -836,11 +840,19 @@ module.exports = (function() {
           });
 
           if (profile) {
-            $spanFullname = options.allowAddRemove
-              ? getPreferredName(profile)
-              : getPreferredName(null, authorids[i]);
             title = formatProfileContent(profile.content).title;
-            $spanEmails = getEmails(profile.content.emails);
+            if (options.allowAddRemove) {
+              $spanFullname = getPreferredName(profile);
+              $spanEmails = getEmails(profile.content.emails);
+            } else {
+              //Authors are not editable, keep the original values
+              $spanFullname = getPreferredName(null, authorids[i], authors[i]);
+              if (profile.email) {
+                $spanEmails = getEmails([profile.email]);
+              } else {
+                $spanEmails = getEmails(profile.content.emails);
+              }
+            }
           } else {
             $spanFullname = $('<span>' + authors[i] + '</span>');
             $spanEmails = getEmails([authorids[i]]);
@@ -3128,6 +3140,9 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
+        const confirmCancel = $noteEditor.data('hasUnsavedData') && !window.confirm('Any unsaved changes will be lost. Are you sure you want to continue?');
+        if (confirmCancel) return;
+
         clearAutosaveData(autosaveStorageKeys);
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
@@ -3569,6 +3584,9 @@ module.exports = (function() {
       });
 
       $cancelButton.click(function() {
+        const confirmCancel = $noteEditor.data('hasUnsavedData') && !window.confirm('Any unsaved changes will be lost. Are you sure you want to continue?');
+        if (confirmCancel) return;
+
         if (params.onNoteCancelled) {
           params.onNoteCancelled();
         } else {
@@ -3658,8 +3676,7 @@ module.exports = (function() {
   var setupAutosaveHandlers = function($noteEditor, user, noteId, invitationId) {
     var autosaveStorageKeys = [];
     var userIdForKey = (!user || _.startsWith(user.id, 'guest_')) ? 'guest' : user.id;
-    var invitationName = invitationId.split('/-/').pop();
-    var keyPrefix = [userIdForKey, noteId, invitationName].join('|');
+    var keyPrefix = [userIdForKey, noteId, invitationId].join('|');
 
     $noteEditor.find('input.autosave-enabled, textarea.autosave-enabled').each(function() {
       var uniqueKey = keyPrefix + '|' + $(this).attr('name');
@@ -3672,6 +3689,7 @@ module.exports = (function() {
 
       $(this).on('keyup', _.throttle(function() {
         localStorage.setItem(uniqueKey, $(this).val());
+        $noteEditor.data('hasUnsavedData', true);
       }, 2000));
     });
 

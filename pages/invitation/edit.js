@@ -82,7 +82,7 @@ const InvitationEdit = ({ appContext }) => {
     webfieldEditorFn(invitation, {
       container: containerRef.current,
       userId: user.profile.id,
-      showProcessEditor: isSuperUser(user),
+      showProcessEditor: invitation.apiVersion === 2 || isSuperUser(user),
     })
 
     // eslint-disable-next-line consistent-return

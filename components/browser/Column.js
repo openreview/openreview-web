@@ -37,6 +37,7 @@ export default function Column(props) {
     editInvitations,
     browseInvitations,
     hideInvitation,
+    version,
   } = useContext(EdgeBrowserContext)
   const parent = parentId ? altGlobalEntityMap[parentId] : null
   const otherType = type === 'head' ? 'tail' : 'head'
@@ -69,7 +70,7 @@ export default function Column(props) {
   const [search, setSearch] = useState({ term: '' })
 
   const showLoadMoreButton = numItemsToRender < filteredItems.length
-  const showHideQuotaReachedCheckbox = entityType === 'Profile' && editAndBrowserInvitations.some(p => p.id.includes('Custom_Max_Papers'))
+  const showHideQuotaReachedCheckbox = entityType === 'profile' && editAndBrowserInvitations.some(p => p.id.includes('Custom_Max_Papers'))
 
   // Helpers
   const formatEdge = edge => ({
@@ -114,6 +115,7 @@ export default function Column(props) {
     const apiQuery = {
       invitation: invitationId,
       sort: shouldSort ? 'weight:desc' : undefined,
+      version,
     }
     if (parentId) {
       apiQuery[otherType] = parentId
@@ -141,17 +143,17 @@ export default function Column(props) {
       let entityInvitation = null
       let defautEntityName = null
       switch (columnType) {
-        case 'Note':
+        case 'note':
           entityInvitation = traverseInvitation[type].query.invitation
-          defautEntityName = 'Note'
+          defautEntityName = 'note'
           break
-        case 'Profile':
+        case 'profile':
           entityInvitation = traverseInvitation[type].query.group
-          defautEntityName = 'User'
+          defautEntityName = 'user'
           break
-        case 'Group':
+        case 'group':
           entityInvitation = traverseInvitation[type].query.group
-          defautEntityName = 'Group'
+          defautEntityName = 'group'
           break
         default:
           break
@@ -209,9 +211,9 @@ export default function Column(props) {
 
   const getPlaceholderText = (isLoadMoreButton = false) => {
     let entityName = props.entityType
-    if (props.entityType === 'Note') {
+    if (props.entityType === 'note') {
       entityName = prettyInvitationId(traverseInvitation[type].query.invitation)
-    } else if (props.entityType === 'Profile') {
+    } else if (props.entityType === 'profile') {
       entityName = prettyId(traverseInvitation[type].query.group, true)
     }
     if (startInvitation) {
@@ -254,7 +256,7 @@ export default function Column(props) {
       // eslint-disable-next-line no-console
       console.warn(`${headOrTailId} not found in global entity map. From ${edgeFormatted.name}`)
 
-      if (fieldName === 'editEdges' && entityType === 'Profile') {
+      if (fieldName === 'editEdges' && entityType === 'profile') {
         const editInvitation = editInvitations.filter(p => p.id === edge.invitation)?.[0]
         if (editInvitation[type]?.query?.['value-regex']) {
           itemToAdd = {
@@ -406,25 +408,21 @@ export default function Column(props) {
     if (existingIndex >= 0) {
       edgesPromiseMap[existingIndex].invitations.push(invitationType)
     } else {
+      // eslint-disable-next-line no-nested-ternary
+      const detailsParam = getWritable
+        ? (invitation.query.details ? `${invitation.query.details},writable` : 'writable')
+        : invitation.query.details
       edgesPromiseMap.push({
         id: invitation.id,
         query: invitation.query,
         invitations: [invitationType],
         getWritable,
         sort,
-        promise: api.getAll('/edges', buildQuery(
-          invitation.id,
-          {
-            ...invitation.query,
-            details: (() => {
-              if (getWritable) {
-                return invitation.query.details ? `${invitation.query.details},writable` : 'writable'
-              }
-              return invitation.query.details
-            })(),
-          },
-          sort,
-        ), { accessToken, resultsKey: 'edges' }).catch(error => promptError(error.details ?? error.message)),
+        promise: api.getAll(
+          '/edges',
+          buildQuery(invitation.id, { ...invitation.query, details: detailsParam }, sort),
+          { accessToken, version },
+        ).catch(error => promptError(error.details ?? error.message)),
       })
     }
   }
@@ -478,7 +476,7 @@ export default function Column(props) {
         return
       }
 
-      api.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false), { accessToken, resultsKey: 'edges' })
+      api.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false), { accessToken, version })
         .then((startEdges) => {
           if (!startEdges) {
             setItems([])
@@ -511,7 +509,8 @@ export default function Column(props) {
             existingItems.add(headOrTailId)
           })
           setItems(colItems)
-        }).catch(error => promptError(error.details ?? error.message))
+        })
+        .catch(error => promptError(error.details ?? error.message))
       return
     }
 
@@ -537,7 +536,7 @@ export default function Column(props) {
       const colItems = []
       // if clicked on invite invitation profile entity
       // dispay full list of notes with meta/browseEdges/editEdges/editEdgeTemplates
-      if (parentColumnEntityType === 'Profile' && !altGlobalEntityMap[parentId]) {
+      if (parentColumnEntityType === 'profile' && !altGlobalEntityMap[parentId]) {
         const allItems = Object.values(globalEntityMap).map(p => appendEdgesInfo({
           item: p,
           traverseEdges,
@@ -566,7 +565,7 @@ export default function Column(props) {
         const headOrTailId = tEdge[type]
         let itemToAdd = globalEntityMap[headOrTailId]
         if (!itemToAdd) {
-          if (entityType === 'Profile') {
+          if (entityType === 'profile') {
             const hasInviteInvitation = editInvitations.some(p => p[type]?.query?.['value-regex'])
             const hasProposedAssignmentInvitation = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
             if (hasInviteInvitation || hasProposedAssignmentInvitation) {
