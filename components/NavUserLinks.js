@@ -23,8 +23,8 @@ const NavUserLinks = () => {
   }
 
   const getRedirectPath = () => {
-    const routesToSkipRedirection = ['/login', '/confirm', '/logout', 'singup', 'activate']
-    if (routesToSkipRedirection.includes(router.pathname)) {
+    const routesToSkipRedirection = ['/login', '/confirm', '/logout', '/signup', '/activate']
+    if (routesToSkipRedirection.includes(router.asPath)) {
       return '/login'
     }
     return `/login?redirect=${encodeURIComponent(router.asPath)}&noprompt=true`
