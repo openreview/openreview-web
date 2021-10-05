@@ -240,29 +240,33 @@ If you would like to edit your Semantic Scholar author page or add additional me
 After you have claimed your page and the claim has been approved you will receive an email from Semantic Scholar with instructions to edit and update your author page.
 You will have the option to edit or add metadata, remove papers or add additional papers to your claimed Semantic Scholar author page (in case there are multiple author pages with your name).
     `,
-  },{
+  }, {
     q: 'What is the edge browser, and how do Area Chairs use it?',
     id: 'question-edge-browser-AC',
-    a: `The edge browser is a tool for visualizing edges, or matches, created by OpenReview’s automatic paper matching algorithm. You can use it to browse, sort, search, and create new assignments between reviewers and papers until you are happy with the assignments generated.
+    a: `The edge browser is a tool for visualizing edges, or matches, created by OpenReview's automatic paper matching algorithm. You can use it to browse, sort, search, and create new assignments between reviewers and papers until you are happy with the assignments generated.
 
 **Navigating the Edge Browser**</br>
 
-From your Area Chair console, click on the ‘Modify Reviewer Assignment’ button.
+From your Area Chair console, click on the 'Modify Reviewer Assignment' button.
 
-All of your assigned papers will appear in a single column on the left. Clicking on a cell will pull up a second column containing all reviewers, sorted by their relationship to the selected paper:
+All of your assigned papers will appear in a single column on the left. Clicking on a cell will pull up a second column containing all reviewers, colored by their relationship to the selected paper:
   1. Light green means that the cell is assigned to the cell selected at left
   2. Light red means that the cell has conflict with the cell selected at left
   3. Light orange means that the cell both has conflict and is assigned to the cell selected at left.
 
-You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent column you can also search for specific reviewers by profileID, name, or email. You can sort the column on the right by Assignment, Aggregate Score, Bid, Affinity Score, and Conflict using the ‘Order By’ dropdown.
+You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent column you can also search for specific reviewers by their name or email. You can sort the column on the right by Assignment, Aggregate Score, Bid, Affinity Score, and Conflict using the 'Order By' dropdown.
 
+![Edge Browser](/images/faq-AC-edge-browser.png)
 **Creating and Removing Assignments Using the Edge Browser**</br>
 
 You can delete an assignment using the trash can button on a certain cell.
 
-You can create new assignments by clicking ‘Invite Assignment’ on the cell of a given reviewer. You can invite reviewers from outside the reviewer pool, including other Area Chairs, by searching for their email address or profileID in the reviewer search bar and clicking ‘Invite Assignment’. If they are in conflict with that paper, a banner will alert you with an error. Otherwise, they will receive an email notifying them of their invitation with the option to accept or reject the assignment. Their status will change according to their response to your invitation.
+You can create new assignments by clicking 'Invite Assignment' on the cell of a given reviewer. If you want to invite a reviewer from outside the reviewer pool, including another Area Chair, you can do so by searching for their email address or profileID in the search bar of the second column and clicking 'Invite Assignment'. If they are in conflict with that paper, a banner will alert you with an error. Otherwise, they will receive an email notifying them of their invitation with the option to accept or reject the assignment. Their status will change according to their response to your invitation ('Declined', 'Pending Sign Up', 'Accepted', or 'Conflict Detected').
 
-    `
+![Reviewer Declined](/images/faq-reviewer-declined.png)
+![Reviewer Accepted](/images/faq-reviewer-accepted.png)
+Some reviewers have a custom reduced paper load which appears in the edge browser as 'Custom Max Papers'. You cannot assign a reviewer to more papers than their custom max papers.
+`
   },
   {
     q: 'I couldn\'t find the answer to my question on this page. Where can I get more help?',
@@ -802,23 +806,24 @@ You can have different types of fields:
 **Finding the edge browser**<br/>
 
 You should see links for ‘Assignment’ in the ‘Timeline’ section of your Program Chair console.
-[insert screenshot]
+![PC Console](/images/faq-PC_Console.png)
 Clicking on one of the assignment links will bring you to the assignment page. To create a new matching, click the ‘New Assignment Configuration’. This will pull up a form with some default values:
-[insert screenshot]
-[insert screenshot]
+![Matching Form](/images/faq-new-assignment-form1.png)
+![Matching Form](/images/faq-new-assignment-form2.png)
 After filling out this form and hitting submit, you should see the following:
-[insert screenshot]
+![Assignment Page](/images/faq-assignment-page.png)
 You can view, edit or copy the values you filled out in the matching form. When you are happy with it, you can hit ‘Run Matcher’. Then you should see options to browse assignments, view statistics or deploy matching. If you click ‘Browse Assignments’ you will be brought to the edge browser.
 
 **Using the Edge Browser**<br/>
 All papers will appear in a column on the left. You can click on the cell of a certain paper to see a second column of reviewers pop up to the right. Similarly, if you click on the cell of a reviewer, all of their assigned papers will pop up in another column to the right, and so on.
-[insert screenshot]
+![Edge Browser](/images/faq-matcher-column2.png)
 
 The color of each cell represents the relationship between that cell and the one selected at left:
   1. Light green means that the cell is assigned to the cell selected at left
   2. Light red means that the cell has conflict with the cell selected at left
   3. Light orange means that the cell both has conflict and is assigned to the cell selected at left.
-Each cell will contain various edges calculated by the matcher and used to make assignments, such as the Bid, Affinity, and Aggregate scores. The trashcan button can be used to remove an edge. ‘Assignments’ tells you how many papers are assigned to a given reviewer. You may also see ‘Custom Max Papers’ here if certain reviewers requested a specific max number of papers.
+
+  Each cell will contain various edges calculated by the matcher and used to make assignments, such as the Bid, Affinity, and Aggregate scores. The trashcan button can be used to remove an edge. ‘Assignments’ tells you how many papers are assigned to a given reviewer. You may also see ‘Custom Max Papers’ here if certain reviewers requested a specific max number of papers.
 [insert screenshot]
 
 You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent columns you can also search for specific reviewers by profileID, name, or email. You can sort subsequent columns by Assignment, Aggregate Score, Bid, Affinity Score, and Conflict using the ‘Order By’ dropdown.
