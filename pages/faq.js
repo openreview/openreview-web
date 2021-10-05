@@ -266,7 +266,7 @@ You can create new assignments by clicking 'Invite Assignment' on the cell of a 
 ![Reviewer Declined](/images/faq-reviewer-declined.png)
 ![Reviewer Accepted](/images/faq-reviewer-accepted.png)
 Some reviewers have a custom reduced paper load which appears in the edge browser as 'Custom Max Papers'. You cannot assign a reviewer to more papers than their custom max papers.
-`
+`,
   },
   {
     q: 'I couldn\'t find the answer to my question on this page. Where can I get more help?',
@@ -832,7 +832,7 @@ You can copy, edit, and create matching configurations as many times as you want
 
 **Post Deployment**<br/>
 After deploying, ‘Browse Assignments’ will change to ‘Edit assignments’. You can continue to use the edge browser and hit ‘Deploy’ in order to see your changes implemented. If you would like to assign a reviewer to a given paper who is not in the reviewer pool, you will need to add that reviewer to your Reviewer group before manually assigning them to a paper through the edge browser.
-`
+`,
   }]
 
   return {
