@@ -1,6 +1,7 @@
 /* globals $: false */
 import { useEffect, useReducer } from 'react'
 import DblpImportModal from '../DblpImportModal'
+import Icon from '../Icon'
 import ProfileSectionHeader from './ProfileSectionHeader'
 
 const PersonalLinksSection = ({
@@ -45,7 +46,7 @@ const PersonalLinksSection = ({
               <div className="row ml-0">
                 <div className="small-heading">DBLP URL</div>
                 <a className="personal-links__faqlink" href="/faq#question-dblp-import" target="_blank" rel="noreferrer">
-                  <span className="glyphicon glyphicon-info-sign" />
+                  <Icon name="info-sign" />
                 </a>
               </div>
               <input id="dblp_url" className={`form-control personal-links__input ${profileLinks?.dblp?.valid === false ? 'invalid-value' : ''}`} value={links.dblp?.value ?? ''} onChange={(e) => { setLinks({ type: 'dblp', data: e.target.value }) }} />
@@ -73,7 +74,7 @@ const PersonalLinksSection = ({
               <div className="row ml-0">
                 <div className="small-heading">Semantic Scholar URL</div>
                 <a className="personal-links__faqlink" href="/faq#question-semantic-scholar" target="_blank" rel="noreferrer">
-                  <span className="glyphicon glyphicon-info-sign" />
+                  <Icon name="info-sign" />
                 </a>
               </div>
               <input className="form-control personal-links__input" value={links.semanticScholar?.value ?? ''} onChange={(e) => { setLinks({ type: 'semanticScholar', data: e.target.value }) }} />

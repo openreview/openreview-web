@@ -1,6 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
 import ProfileSectionHeader from './ProfileSectionHeader'
+import Icon from '../Icon'
 
 const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
   // #region action type constants
@@ -112,13 +113,17 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
                 />
               </div>
               <div className="col-md-1 relation__value">
-                <div className="glyphicon glyphicon-minus-sign" role="button" aria-label="remove expertise" tabIndex={0} onClick={() => setExpertises({ type: removeExpertiseType, data: { key: p.key } })} />
+                <div role="button" aria-label="remove expertise" tabIndex={0} onClick={() => setExpertises({ type: removeExpertiseType, data: { key: p.key } })}>
+                  <Icon name="minus-sign" tooltip="remove expertise" />
+                </div>
               </div>
             </div>
           ))
         }
         <div className="row">
-          <div className="glyphicon glyphicon-plus-sign" role="button" aria-label="add another expertise" tabIndex={0} onClick={() => setExpertises({ type: addExpertiseType })} />
+          <div role="button" aria-label="add another expertise" tabIndex={0} onClick={() => setExpertises({ type: addExpertiseType })}>
+            <Icon name="plus-sign" tooltip="add another expertise" />
+          </div>
         </div>
       </div>
     </section>

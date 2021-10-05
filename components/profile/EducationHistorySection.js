@@ -2,6 +2,7 @@ import { useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
 import { CreatableDropdown } from '../Dropdown'
 import SectionHeader from './ProfileSectionHeader'
+import Icon from '../Icon'
 
 const EducationHistorySection = ({
   profileHistory,
@@ -186,12 +187,23 @@ const EducationHistorySection = ({
                 />
               </div>
               <div className="col-md-1 history__value">
-                {history.length > 1 && <div className="glyphicon glyphicon-minus-sign" role="button" aria-label="remove history" tabIndex={0} onClick={() => setHistory({ type: removeHistoryType, data: { key: p.key } })} />}
+                {
+                  history.length > 1
+                  && (
+                    <div role="button" aria-label="remove history" tabIndex={0} onClick={() => setHistory({ type: removeHistoryType, data: { key: p.key } })}>
+                      <Icon name="minus-sign" tooltip="remove history" />
+                    </div>
+                  )
+                }
               </div>
             </div>
           ))
         }
-        <div className="row"><div className="glyphicon glyphicon-plus-sign" role="button" aria-label="add another history" tabIndex={0} onClick={() => setHistory({ type: addHistoryType })} /></div>
+        <div className="row">
+          <div role="button" aria-label="add another history" tabIndex={0} onClick={() => setHistory({ type: addHistoryType })}>
+            <Icon name="plus-sign" tooltip="add another history" />
+          </div>
+        </div>
       </div>
     </section>
   )

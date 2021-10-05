@@ -3,6 +3,7 @@ import { useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
 import api from '../../lib/api-client'
 import ProfileSectionHeader from './ProfileSectionHeader'
+import Icon from '../Icon'
 
 const NamesButton = ({
   newRow, readonly, preferred, handleRemove, handleMakePreferred,
@@ -145,7 +146,9 @@ const NamesSection = ({ profileNames, updateNames }) => {
           ))
         }
         <div className="row">
-          <div className="glyphicon glyphicon-plus-sign" role="button" aria-label="add another name" tabIndex={0} onClick={handleAddName} />
+          <div role="button" aria-label="add another name" tabIndex={0} onClick={handleAddName}>
+            <Icon name="plus-sign" tooltip="add another name" />
+          </div>
         </div>
       </div>
     </section>

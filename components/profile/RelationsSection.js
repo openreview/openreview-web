@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid'
 import { CreatableDropdown } from '../Dropdown'
 import MultiSelectorDropdown from '../MultiSelectorDropdown'
 import ProfileSectionHeader from './ProfileSectionHeader'
+import Icon from '../Icon'
 
 const RelationsSection = ({
   profileRelation,
@@ -193,12 +194,18 @@ const RelationsSection = ({
                 />
               </div>
               <div className="col-md-1 relation__value">
-                <div className="glyphicon glyphicon-minus-sign" role="button" aria-label="remove relation" tabIndex={0} onClick={() => setRelation({ type: removeRelationType, data: { key: p.key } })} />
+                <div role="button" aria-label="remove relation" tabIndex={0} onClick={() => setRelation({ type: removeRelationType, data: { key: p.key } })}>
+                  <Icon name="minus-sign" tooltip="remove relation" />
+                </div>
               </div>
             </div>
           ))
         }
-        <div className="row"><div className="glyphicon glyphicon-plus-sign" role="button" aria-label="add another relation" tabIndex={0} onClick={() => setRelation({ type: addRelationType })} /></div>
+        <div className="row">
+          <div role="button" aria-label="add another relation" tabIndex={0} onClick={() => setRelation({ type: addRelationType })}>
+            <Icon name="plus-sign" tooltip="add another relation" />
+          </div>
+        </div>
       </div>
     </section>
   )

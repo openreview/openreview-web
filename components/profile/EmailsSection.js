@@ -5,6 +5,7 @@ import { isValidEmail } from '../../lib/utils'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
 import ProfileSectionHeader from './ProfileSectionHeader'
+import Icon from '../Icon'
 
 const EmailsButton = ({
   type, emailObj, handleRemove, handleConfirm, handleMakePreferred,
@@ -144,7 +145,9 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
           ))
         }
       </div>
-      <div className="glyphicon glyphicon-plus-sign" role="button" aria-label="add another name" tabIndex={0} onClick={handleAddEmail} />
+      <div role="button" aria-label="add another name" tabIndex={0} onClick={handleAddEmail}>
+        <Icon name="plus-sign" tooltip="add another name" />
+      </div>
     </section>
   )
 }
