@@ -246,8 +246,7 @@ test('add alternate email', async (t) => {
     .click(Selector('a').withAttribute('href', '/profile/edit'))
     .expect(Selector('h4').withText('Emails').exists)
     .ok()
-    .click(Selector('div').withAttribute('class', 'profile-edit-container').child('section').nth(2)
-      .child('span.glyphicon')) // add button
+    .click(Selector('div').withAttribute('class', 'profile-edit-container').child('section').nth(2).find('span.glyphicon')) // add button
     .expect(Selector('div.container.emails').child('div.row').count).eql(2)
     .typeText(Selector('div.container.emails').child('div.row').nth(1)
       .find('input'), 'melisa@alternate.com')
