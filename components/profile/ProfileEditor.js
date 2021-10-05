@@ -27,10 +27,11 @@ const ProfileEditor = ({
   personalLinkNames,
   loading,
 }) => {
-  const profileReducer = (state, action) => ({
-    ...state,
-    [action.type]: action.data,
-  })
+  const profileReducer = (state, action) => {
+    // eslint-disable-next-line no-param-reassign
+    state[action.type] = action.data
+    return state
+  }
   const [profile, setProfile] = useReducer(profileReducer, loadedProfile)
   const [dropdownOptions, setDropdownOptions] = useState(null)
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
@@ -189,7 +190,7 @@ const ProfileEditor = ({
       history: profileContent.history.map((p) => { const { key, ...rest } = p; return rest }),
       expertise: profileContent.expertise.map((p) => { const { key, ...rest } = p; return rest }),
       relations: profileContent.relations.map((p) => { const { key, ...rest } = p; return rest }),
-      preferredEmail: profileContent.emails.find(p => p.confirmed)?.email,
+      preferredEmail: profileContent.emails.find(p => p.preferred)?.email,
       homepage: profileContent.homepage?.value,
       gscholar: profileContent.gscholar?.value,
       dblp: profileContent.dblp?.value,

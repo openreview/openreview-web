@@ -24,7 +24,7 @@ window.parseUrlParams = function(urlStr) {
 
 window.translateErrorMessage = function(error) {
   var topic = error && error.path ? [view.iTerm(error.path)] : '';
-  var buildFeebackModalLink = function(linkText, formFields) {
+  var buildFeebackModalLink = function(linkText, formFields) { // to remove when profile edit pr is ok
     return $('<a>', {
       href: '#',
       class: 'action-link',
