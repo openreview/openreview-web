@@ -124,7 +124,7 @@ export async function getStaticProps() {
           { name: 'DeepMind', image: 'deepmind.png', link: 'https://deepmind.com/' },
         ],
         benefactors: [
-          { name: 'CDS', image: 'cds.png', link: 'https://www.cds-global.com/' },
+          { name: 'CDS', image: 'cds.png', link: 'http://ds.cs.umass.edu/' },
         ],
         large_patrons: [
           { name: 'NeurIPS', image: 'neurips.png', link: 'https://nips.cc/' },
