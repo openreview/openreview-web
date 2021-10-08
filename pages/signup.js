@@ -134,7 +134,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
       return
     }
     getMatchingProfiles(firstName, lastName)
-  }, [firstName, lastName])
+  }, [firstName, middleName, lastName])
 
   return (
     <div className="signup-form-container">

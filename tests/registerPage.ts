@@ -27,6 +27,7 @@ test('create new profile', async (t) => {
     .typeText(firstNameInputSelector, 'Melisa')
     .typeText(lastNameInputSelector, 'Bok')
     .typeText(emailAddressInputSelector, 'melisa@test.com')
+    .expect(signupButtonSelector.hasAttribute('disabled')).notOk('not enabled yet', { timeout: 5000 })
     .click(signupButtonSelector)
     .expect(newPasswordInputSelector.exists).ok()
     .expect(confirmPasswordInputSelector.exists).ok()
