@@ -831,7 +831,7 @@ You can search for specific papers by paper title or number at the top of the fi
 You can copy, edit, and create matching configurations as many times as you want until deployment. You can also use the ‘View Statistics’ button on the assignment page to view a breakdown of paper assignments. When you are happy with your assignments, hit ‘Deploy Assignments’ on the assignment page.
 
 **Post Deployment**<br/>
-After deploying, ‘Browse Assignments’ will change to ‘Edit assignments’. You can continue to use the edge browser and hit ‘Deploy’ in order to see your changes implemented. If you would like to assign a reviewer to a given paper who is not in the reviewer pool, you will need to add that reviewer to your Reviewer group before manually assigning them to a paper through the edge browser.
+After deploying, ‘Browse Assignments’ will change to ‘Edit assignments’ so that you can continue to make manual assignments. If you would like to assign a reviewer to a given paper who is not in the reviewer pool, you will need to add that reviewer to your Reviewer group before manually assigning them to a paper through the edge browser.
 `,
   }]
 
