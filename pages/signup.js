@@ -1,4 +1,3 @@
-/* eslint-disable no-return-assign */
 /* globals promptError: false */
 /* globals $: false */
 
@@ -40,7 +39,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
       setNewUsername('')
       promptError(apiError.message)
     }
-  }, 1000), [])
+  }, 600), [])
 
   const getMatchingProfiles = useCallback(debounce(async (first, last) => {
     try {
