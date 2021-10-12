@@ -117,6 +117,10 @@ const RevisionsList = ({
       withDateTime: true,
       withBibtexLink: false,
       user,
+      onTrashedOrRestored: () => {
+        $(`#note_${edit.id}`).closest('.row').remove()
+        promptMessage('Revision deleted')
+      },
     }).removeClass('panel')
   }
 
@@ -239,6 +243,7 @@ const Revisions = ({ appContext }) => {
       apiRes = await api.get('/notes/edits', {
         'note.id': query.id,
         sort: 'tcdate',
+        details: 'writable',
       }, { accessToken, version: 2 })
     } catch (apiError) {
       setError(apiError)

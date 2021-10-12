@@ -662,13 +662,15 @@ module.exports = (function() {
     // Trash button
     var $trashButton = null;
     if ($('#content').hasClass('legacy-forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
-      if (canEdit && params.onTrashedOrRestored && params.deleteInvitation) {
+      if ((canEdit && params.onTrashedOrRestored && params.deleteInvitation) || (canEdit && params.isEdit)) {
         var buttonContent = notePastDue ? 'Restore' : '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>';
         $trashButton = $('<div>', { class: 'meta_actions' }).append(
           $('<button id="trashbutton_' + note.id + '" class="btn btn-xs trash_button">' + buttonContent + '</button>')
         );
         $trashButton.click(function() {
-          deleteOrRestoreNote(note, params.deleteInvitation, titleText, params.user, params.onTrashedOrRestored);
+          params.isEdit
+            ? deleteEdit(note, params.invitation, titleText, params.user, params.onTrashedOrRestored)
+            : deleteOrRestoreNote(note, params.deleteInvitation, titleText, params.user, params.onTrashedOrRestored);
         });
         $titleHTML.addClass('pull-left');
       }
@@ -903,7 +905,12 @@ module.exports = (function() {
       return;
     }
 
-    showConfirmDeleteModal(note, noteTitle, $editSignatures, $editReaders);
+    showConfirmDeleteModal({
+      noteOrEdit:note,
+      noteOrEditTitle:noteTitle,
+      $editSignaturesDropdown: $editSignatures,
+      $editReaders
+    });
 
     $('#confirm-delete-modal .modal-footer .btn-primary').on('click', function () {
       postUpdatedNote($editSignatures);
@@ -911,21 +918,65 @@ module.exports = (function() {
     });
   };
 
-  const showConfirmDeleteModal = (note, noteTitle, $editSignaturesDropdown, $editReaders) => {
+  const deleteEdit = async (edit, invitation, title, user, onTrashedOrRestored) => {
+    const $editSignatures = await view.buildSignatures(invitation.edit.signatures, null, user, 'signature');
+    const postDeleteEdit = () => {
+      let editSignatureInputValues = view.idsFromListAdder($editSignatures, invitation.edit.signatures);
+      if (!editSignatureInputValues || !editSignatureInputValues.length) {
+        editSignatureInputValues = [user.profile.id];
+      }
+      const editToPost = {
+        ...edit,
+        note: {
+          ...edit.note,
+          mdate: undefined,
+          tmdate: undefined,
+        },
+        ddate: edit.ddate ? null : Date.now(),
+        signatures: editSignatureInputValues,
+        cdate: undefined,
+        tcdate: undefined,
+        mdate: undefined,
+        tmdate: undefined,
+        details: undefined,
+        invitations: undefined,
+        content: undefined,
+      }
+      Webfield2.post('/notes/edits', editToPost, null).then(function () {
+        onTrashedOrRestored();
+      });
+    }
+    if (!$editSignatures.find('div.dropdown').length) {
+      postDeleteEdit($editSignatures);
+      return;
+    }
+
+    showConfirmDeleteModal({
+      noteOrEdit: edit,
+      noteOrEditTitle: title,
+      $editSignaturesDropdown: $editSignatures,
+      isEdit: true
+    });
+
+    $('#confirm-delete-modal .modal-footer .btn-primary').on('click', function () {
+      postDeleteEdit($editSignatures);
+      $('#confirm-delete-modal').modal('hide');
+    });
+  }
+
+  const showConfirmDeleteModal = ({ noteOrEdit, noteOrEditTitle, $editSignaturesDropdown, $editReaders, isEdit = false }) => {
     $('#confirm-delete-modal').remove();
 
     $('#content').append(Handlebars.templates.genericModal({
       id: 'confirm-delete-modal',
       showHeader: true,
-      title: 'Delete Note',
-      body: '<p class="mb-4">Are you sure you want to delete "' +
-        noteTitle + '" by ' + view.prettyId(note.signatures[0]) + '? The deleted note will ' +
-        'be updated with the signature you choose below.</p>',
+      title: isEdit?'Delete Edit':'Delete Note',
+      body: `<p class="mb-4">Are you sure you want to delete "${noteOrEditTitle}" by ${view.prettyId(noteOrEdit.signatures[0])}? The deleted ${isEdit?'edit':'note'} will be updated with the signature you choose below.</p>`,
       showFooter: true,
       primaryButtonText: 'Delete'
     }));
 
-    $editReaders.addClass('note_editor ml-0 mr-0 mb-2');
+    $editReaders?.addClass('note_editor ml-0 mr-0 mb-2');
     $editSignaturesDropdown.addClass('note_editor ml-0 mr-0 mb-2');
     $('#confirm-delete-modal .modal-body').append($editReaders, $editSignaturesDropdown);
 
