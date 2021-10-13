@@ -608,34 +608,33 @@ const ConfirmNameModal = ({
       primaryButtonText="Register"
       onPrimaryButtonClick={onConfirm}
       primaryButtonDisabled={!agreeTerms}
+      onClose={() => setAgreeTerms(false)}
     >
-      <p className="mb-3">You are registering with the name:</p>
-      <h3 className="mt-0 mb-3">
-        <span>{firstName}</span>
-        {' '}
-        <span>{middleName}</span>
-        {' '}
-        <span className="last-name">{lastName}</span>
-      </h3>
+      <p className="mb-3">You are registering with:</p>
       <p className="mb-3">
-        Your last name is
+        First name
+        {' '}
+        <strong>{firstName}</strong>
+        {
+          middleName && (
+            <>
+              {', '}
+              middle name
+              {' '}
+              <strong>{middleName}</strong>
+            </>
+          )
+        }
+        {' '}
+        and last name
         {' '}
         <strong>{lastName}</strong>
-        .
-        You will
-        {' '}
-        <em>Not</em>
-        {' '}
-        be able to remove this name from you profile.
-        Are you sure you want to register with this name?
+        {'. '}
+        Please confirm you name to continue.
       </p>
-      <input id="agree-checkbox" type="checkbox" onClick={() => setAgreeTerms(value => !value)} />
+      <input id="agree-checkbox" type="checkbox" checked={agreeTerms} onClick={() => setAgreeTerms(value => !value)} />
       <label htmlFor="agree-checkbox">
-        I understand and agree to
-        {' '}
-        <a href="/legal/terms" target="_blank" rel="nofollow noreferrer">terms and conditions</a>
-        {' '}
-        of OpenReview
+        I confirm my profile name is correct.
       </label>
     </BasicModal>
   )
