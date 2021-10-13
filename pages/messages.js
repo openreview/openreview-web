@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
-import debounce from 'lodash/debounce'
+/* globals $: false */
+
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import useQuery from '../hooks/useQuery'
@@ -12,6 +13,7 @@ import PaginationLinks from '../components/PaginationLinks'
 import api from '../lib/api-client'
 
 import '../styles/pages/messages.less'
+import Icon from '../components/Icon'
 
 const statusOptions = [
   { text: 'Delivered', value: 'delivered' },
@@ -29,6 +31,9 @@ const FilterForm = ({ searchQuery, loading }) => {
   const queryStatutes = Array.isArray(queryStatus) ? queryStatus : [queryStatus]
   const selectedStatuses = queryStatutes.filter(s => statusOptionValues.includes(s))
   const router = useRouter()
+  if (typeof window !== 'undefined' && window.$) {
+    $('[data-toggle="tooltip"]').tooltip({ container: 'body' })
+  }
 
   const onFiltersChange = (field, value) => {
     const newSearchQuery = { ...searchQuery, [field]: value }
@@ -49,13 +54,14 @@ const FilterForm = ({ searchQuery, loading }) => {
       </div>
       <div className="form-group">
         <label htmlFor="subject-search-input">Subject:</label>
+        <Icon name="info-sign" tooltip="when searching with regex, some characters such as [ need to be escaped. e.g. \[ABC.* " extraClasses="mr-1" />
         <input
           type="text"
           id="subject-search-input"
           className="form-control"
           placeholder="Message subject"
           disabled={loading}
-          value={searchQuery?.subject ?? ''}
+          defaultValue={searchQuery?.subject ?? ''}
           onChange={e => onFiltersChange('subject', e.target.value)}
         />
       </div>
@@ -67,7 +73,7 @@ const FilterForm = ({ searchQuery, loading }) => {
           className="form-control"
           placeholder="To address"
           disabled={loading}
-          value={searchQuery?.to ?? ''}
+          defaultValue={searchQuery?.to ?? ''}
           onChange={e => onFiltersChange('to', e.target.value)}
         />
       </div>
@@ -79,7 +85,7 @@ const FilterForm = ({ searchQuery, loading }) => {
           className="form-control"
           placeholder="Parent group"
           disabled={loading}
-          value={searchQuery?.parentGroup ?? ''}
+          defaultValue={searchQuery?.parentGroup ?? ''}
           onChange={e => onFiltersChange('parentGroup', e.target.value)}
         />
       </div>
