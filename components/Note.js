@@ -65,9 +65,8 @@ const Note = ({ note, invitation, options }) => {
 
 export const NoteV2 = ({ note, options }) => {
   const privatelyRevealed = options.showPrivateIcon && !note.readers.includes('everyone')
-
   return (
-    <div className={`note ${privatelyRevealed ? 'note-private' : ''}`}>
+    <div className={`note ${privatelyRevealed ? 'note-private' : ''} ${options.extraClasses}`}>
       <NoteTitleV2
         id={note.id}
         forum={note.forum}
@@ -115,6 +114,7 @@ export const NoteV2 = ({ note, options }) => {
           omit={options.omitFields}
           isEdit={options.isReference}
           presentation={note.details?.presentation}
+          noteReaders={note.readers?.sort()}
         />
       )}
     </div>

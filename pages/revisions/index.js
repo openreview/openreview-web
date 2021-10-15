@@ -11,19 +11,95 @@ import {
 } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import { nanoid } from 'nanoid'
 import useQuery from '../../hooks/useQuery'
 import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorAlert from '../../components/ErrorAlert'
+import { NoteV2 } from '../../components/Note'
 import api from '../../lib/api-client'
 import { forumLink } from '../../lib/banner-links'
 
 import '../../styles/pages/revisions.less'
+import { EditButton, RestoreButton, TrashButton } from '../../components/EditButtons'
+import BasicModal from '../../components/BasicModal'
+import { buildNoteTitle, prettyId } from '../../lib/utils'
+import Dropdown from '../../components/Dropdown'
+
+const ConfirmDeleteRestoreModal = ({
+  editInfo, user, accessToken, deleteRestoreEdit,
+}) => {
+  if (!editInfo?.edit || !editInfo?.invitation) return null
+  const { edit, invitation } = editInfo
+  const [signature, setSignature] = useState(null)
+  const [signatureDropdownOptions, setSignatureDropdownOptions] = useState([])
+  const isSignatureRequired = !invitation.edit?.signatures?.['values-regex']?.value?.optional
+  const showSignatureDropdown = signatureDropdownOptions.length > 0
+
+  useEffect(() => {
+    const getAllSignatures = async () => {
+      const result = await api.get('/groups', { regex: invitation.edit.signatures['values-regex'], signatory: user.id }, { accessToken })
+      setSignatureDropdownOptions(result.groups.flatMap((p, i) => {
+        if (result.groups.findIndex(q => q.id === p.id) === i) {
+          return {
+            value: p.id, label: prettyId(p.id),
+          }
+        }
+        return []
+      }))
+    }
+
+    if (invitation.edit?.signatures?.['values-regex']) {
+      if (invitation.edit.signatures['values-regex'] === '.~') {
+        setSignature(user.profile.preferredId ?? user.profile.id)
+        setSignatureDropdownOptions([])
+      } else {
+        setSignature(null)
+        getAllSignatures()
+      }
+    } else {
+      setSignature(null)
+      setSignatureDropdownOptions([])
+    }
+  }, [editInfo])
+
+  return (
+    <BasicModal
+      id="confirm-delete-restore-modal"
+      title={`${edit.ddate ? 'Restore' : 'Delete'} Edit`}
+      primaryButtonText={`${edit.ddate ? 'Restore' : 'Delete'}`}
+      primaryButtonDisabled={showSignatureDropdown && !signature}
+      onPrimaryButtonClick={() => { deleteRestoreEdit(edit, signature) }}
+    >
+      <p className="mb-4">
+        {/* eslint-disable-next-line react/destructuring-assignment */}
+        {`Are you sure you want to ${edit.ddate ? 'restore' : 'delete'} "${edit.note.content.title?.value || buildNoteTitle(invitation.id, edit.signatures)}" by ${view.prettyId(edit.signatures[0])}?
+        ${showSignatureDropdown ? 'The deleted edit will be updated with the signature you choose below.' : ''}`}
+      </p>
+      {showSignatureDropdown && (
+        <div className="row">
+          <div className="col-sm-2">
+            <span className="signature-dropdown-label">{`${isSignatureRequired ? '*' : ''}Signature`}</span>
+          </div>
+          <div className="col-sm-10">
+            <Dropdown
+              key={nanoid()}
+              options={signatureDropdownOptions}
+              placeholder="Signature"
+              onChange={(e) => { setSignature(e.value) }}
+            />
+          </div>
+        </div>
+      )}
+    </BasicModal>
+  )
+}
 
 const RevisionsList = ({
-  revisions, user, selectedIndexes, setSelectedIndexes,
+  revisions, user, selectedIndexes, setSelectedIndexes, accessToken, loadEdits,
 }) => {
   const router = useRouter()
+  const [editToDeleteRestore, setEditToDeleteRestore] = useState(null)
 
   const toggleSelected = (idx, checked) => {
     if (checked) {
@@ -124,6 +200,33 @@ const RevisionsList = ({
     }).removeClass('panel')
   }
 
+  const deleteRestoreEdit = async (edit, signature, invitation) => {
+    const editToPost = {
+      ...edit,
+      note: {
+        ...edit.note,
+        mdate: undefined,
+        tmdate: undefined,
+      },
+      ddate: edit.ddate ? null : Date.now(),
+      ...(signature && { signatures: [signature] }),
+      cdate: undefined,
+      tcdate: undefined,
+      mdate: undefined,
+      tmdate: undefined,
+      details: undefined,
+      invitations: undefined,
+      content: undefined,
+    }
+    await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
+    setEditToDeleteRestore(null)
+    loadEdits()
+  }
+
+  const editEdit = () => {
+
+  }
+
   useEffect(() => {
     if (!revisions) return
 
@@ -131,8 +234,17 @@ const RevisionsList = ({
       const [reference, invitation] = revisions[index]
       $(this).append(reference.note ? buildEditPanelV2(reference, invitation) : buildNotePanel(reference, invitation))
     })
-    $('[data-toggle="tooltip"]').tooltip()
+    $('[data-toggle="tooltip"]').tooltip({ placement: 'bottom' })
   }, [revisions])
+
+  useEffect(() => {
+    if (editToDeleteRestore) {
+      $('#confirm-delete-restore-modal').modal({ backdrop: 'static' })
+    } else {
+      $('#confirm-delete-restore-modal').modal('hide')
+      $('.modal-backdrop').remove()
+    }
+  }, [editToDeleteRestore])
 
   if (!revisions) return <LoadingSpinner />
 
@@ -156,9 +268,50 @@ const RevisionsList = ({
               />
             </label>
           </div>
-          <div className="col-sm-11 note-container" />
+          {/* <div className="col-sm-11 note-container" /> */}
+          {reference.note
+            ? (
+              <>
+                <div className="col-sm-9">
+                  <NoteV2
+                    note={{ ...reference, content: reference.note.content }}
+                    invitation={invitation}
+                    options={{
+                      showContents: true,
+                      showPrivateIcon: true,
+                      isReference: true,
+                      pdfLink: true,
+                      htmlLink: true,
+                      ...reference.ddate && { extraClasses: 'note-trashed' },
+                    }}
+                  />
+                </div>
+                {reference.details?.writable
+                  && (
+                  <div className="meta_actions">
+                    {reference.ddate
+                      ? <RestoreButton onClick={() => setEditToDeleteRestore({ edit: reference, invitation })} />
+                      : (
+                        <>
+                          {/* eslint-disable-next-line max-len */}
+                          {invitation.edit.ddate && <TrashButton onClick={() => setEditToDeleteRestore({ edit: reference, invitation })} />}
+                          <EditButton onClick={() => editEdit(reference)} />
+                        </>
+                      )}
+                  </div>
+                  )}
+              </>
+            )
+            : <div className="col-sm-11 note-container" />}
         </div>
       ))}
+
+      <ConfirmDeleteRestoreModal
+        editInfo={editToDeleteRestore}
+        user={user}
+        accessToken={accessToken}
+        deleteRestoreEdit={deleteRestoreEdit}
+      />
 
       {revisions.length === 0 && (
         <div className="alert alert-danger">No revisions to display.</div>
@@ -244,6 +397,7 @@ const Revisions = ({ appContext }) => {
         'note.id': query.id,
         sort: 'tcdate',
         details: 'writable',
+        trash: true,
       }, { accessToken, version: 2 })
     } catch (apiError) {
       setError(apiError)
@@ -354,6 +508,8 @@ const Revisions = ({ appContext }) => {
           user={user}
           selectedIndexes={selectedIndexes}
           setSelectedIndexes={setSelectedIndexes}
+          accessToken={accessToken}
+          loadEdits={loadEdits}
         />
       )}
     </>
