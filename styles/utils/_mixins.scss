@@ -1,4 +1,4 @@
-@import "constants";
+@use "constants";
 
 @mixin clearfix() {
   &:after {

@@ -1,5 +1,5 @@
-@import "../utils/constants";
-@import "../utils/mixins";
+@use "../utils/_constants";
+@use "../utils/_mixins";
 
 main.embed {
   padding-bottom: 8px;

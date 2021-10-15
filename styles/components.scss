@@ -1,9 +1,9 @@
 // Global styles for Webfield components
 // Need to be imported in _app.js so they can be used on any page
 
-@import "utils/constants";
-@import "utils/mixins";
-@import "vendor/bootstrap-datetimepicker";
+@use "utils/_constants";
+@use "utils/_mixins";
+@use "vendor/_bootstrap-datetimepicker";
 
 // Tab navigation
 .nav-tabs {
