@@ -452,6 +452,21 @@ $bannerHeight: 39px;
   margin: 0;
 }
 
+.clearfix {
+  &:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
+.well {
+  background: $sandyBrown;
+  padding: .5rem;
+  margin-bottom: 1.875rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0;
+}
+
 // Modals
 .modal-content {
   background-color: $backgroundWhite;

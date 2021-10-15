@@ -1,6 +1,6 @@
 @import "constants";
 
-.clearfix {
+@mixin clearfix() {
   &:after {
     content: "";
     display: table;
@@ -8,7 +8,7 @@
   }
 }
 
-.well {
+@mixin well() {
   background: $sandyBrown;
   padding: .5rem;
   margin-bottom: 1.875rem;
@@ -17,7 +17,7 @@
 }
 
 // Markdown Styles
-.markdown-content-styles {
+@mixin markdown-content-styles() {
   white-space: normal;
 
   h1, h2, h3, h4, h5, h6 {
