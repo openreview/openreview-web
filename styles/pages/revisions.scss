@@ -123,7 +123,7 @@ main.revisions {
       max-width: 'calc(100% - 85px)';
     }
 
-    @media $phone-only {
+    @media #{$phone-only} {
       font-size: 1.75rem;
       margin-bottom: .5rem;
 
@@ -157,7 +157,7 @@ main.revisions {
     &.pull-left {
       max-width: none;
       margin-right: 0;
-      @media $phone-only {
+      @media #{$phone-only} {
         max-width: none;
       }
     }

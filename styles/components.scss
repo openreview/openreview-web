@@ -493,7 +493,7 @@ table.table-minimal {
     }
   }
 
-  @media $phone-only {
+  @media #{$phone-only} {
     .form-group {
       margin-right: 0;
       margin-bottom: 8px;
@@ -871,7 +871,7 @@ table.table-minimal {
   .row button {
     margin-right: .25rem;
   }
-  @media $phone-only {
+  @media #{$phone-only} {
     .dropdown {
       width: 100%;
 
@@ -1041,7 +1041,7 @@ table.table-minimal {
       width: 96%;
       margin: 0.25rem;
 
-      @media $phone-only {
+      @media #{$phone-only} {
         width: 100%;
       }
 
@@ -1091,7 +1091,7 @@ table.table-minimal {
       font-weight: 400;
       margin-right: .5rem;
 
-      @media $phone-only {
+      @media #{$phone-only} {
         margin-bottom: 0.5rem;
       }
     }
@@ -1108,7 +1108,7 @@ table.table-minimal {
       visibility: hidden;
     }
 
-    @media $phone-only {
+    @media #{$phone-only} {
       width: 100%;
       display: block;
     }

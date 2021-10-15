@@ -43,7 +43,7 @@ main.messages {
       }
     }
 
-    @media $large {
+    @media #{$large} {
       .form-group {
         margin-bottom: 0;
       }

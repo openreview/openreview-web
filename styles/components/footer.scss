@@ -26,7 +26,7 @@ footer {
     a {
       color: $darkBlue;
     }
-    @media $phone-only {
+    @media #{$phone-only} {
       a {
         font-size: .75rem;
       }
@@ -50,7 +50,7 @@ footer {
       }
     }
 
-    @media $phone-only {
+    @media #{$phone-only} {
       min-height: 59px;
 
       p {

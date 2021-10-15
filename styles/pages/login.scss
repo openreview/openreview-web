@@ -15,12 +15,12 @@ main.login {
       max-width: 480px;
     }
 
-    @media $tablet {
+    @media #{$tablet} {
       input {
         max-width: 326px;
       }
     }
-    @media $desktop {
+    @media #{$desktop} {
       margin-top: 1.5rem;
       margin-bottom: 2rem;
       padding: 0 2rem;

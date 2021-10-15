@@ -34,7 +34,7 @@ main.edge-browser {
       }
     }
 
-    @media $desktop {
+    @media #{$desktop} {
       &.expand-columns-2 {
         .column {
           width: 40%;
@@ -314,7 +314,7 @@ main.edge-browser {
     height: calc(100vh - unquote("195px"));
     scroll-behavior: smooth; // Not supported in IE
 
-    @media $phone-only {
+    @media #{$phone-only} {
       height: unquote("calc(100vh - 177px)");
     }
 
@@ -333,7 +333,7 @@ main.edge-browser {
       &:last-child {
         margin-right: 14px;
       }
-      @media $phone-only {
+      @media #{$phone-only} {
         width: 345px;
       }
     }
@@ -500,7 +500,7 @@ main.edge-browser {
 
   &.banner-hidden .explore-interface {
     height: calc(100vh - unquote("156px"));
-    @media $phone-only {
+    @media #{$phone-only} {
       height: unquote("calc(100vh - 145px)");
     }
   }
@@ -748,7 +748,7 @@ main.edge-browser {
     }
   }
 
-  @media $desktop {
+  @media #{$desktop} {
     .modal-lg {
       width: 800px;
     }

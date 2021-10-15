@@ -156,7 +156,7 @@ main.legacy-forum {
       max-width: 'calc(100% - 85px)';
     }
 
-    @media $phone-only {
+    @media #{$phone-only} {
       font-size: 1.75rem;
       margin-bottom: .5rem;
 
@@ -201,7 +201,7 @@ main.legacy-forum {
     &.pull-left {
       max-width: 'calc(100% - 160px)';
       margin-right: 0;
-      @media $phone-only {
+      @media #{$phone-only} {
         max-width: none;
       }
     }
@@ -306,7 +306,7 @@ main.legacy-forum {
       margin-right: 0;
     }
 
-    @media $phone-only {
+    @media #{$phone-only} {
       margin-top: .5rem;
     }
   }
@@ -413,7 +413,7 @@ main.legacy-forum {
       margin-top: .75rem;
     }
 
-    @media $tablet {
+    @media #{$tablet} {
       margin-left: 2.25rem;
     }
   }

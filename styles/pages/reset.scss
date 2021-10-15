@@ -26,12 +26,12 @@ main.reset {
       margin-top: 3rem;
     }
 
-    @media $tablet {
+    @media #{$tablet} {
       input {
         max-width: 320px;
       }
     }
-    @media $desktop {
+    @media #{$desktop} {
       margin-bottom: 2rem;
       padding: 0 2rem;
     }

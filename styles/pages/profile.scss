@@ -35,7 +35,7 @@ main.profile {
     }
   }
 
-  @media $large {
+  @media #{$large} {
     // Make columns equal height so border extends all the way to the bottom of the page
     .row.equal-height-cols {
       overflow: hidden;

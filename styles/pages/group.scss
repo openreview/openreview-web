@@ -41,7 +41,7 @@ main.group, main.invitation {
       }
     }
 
-    @media $phone-only {
+    @media #{$phone-only} {
       h4 > span {
         display: block;
         margin-bottom: 5px

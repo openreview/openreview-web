@@ -18,7 +18,7 @@
       margin: 0;
       margin-right: auto;
 
-      @media $phone-only {
+      @media #{$phone-only} {
         font-size: 1.75rem;
       }
     }
