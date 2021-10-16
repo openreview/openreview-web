@@ -18,8 +18,6 @@ import ErrorAlert from '../../components/ErrorAlert'
 import api from '../../lib/api-client'
 import { forumLink } from '../../lib/banner-links'
 
-import '../../styles/pages/revisions.scss'
-
 const RevisionsList = ({
   revisions, user, selectedIndexes, setSelectedIndexes,
 }) => {

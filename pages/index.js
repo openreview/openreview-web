@@ -6,8 +6,6 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import api from '../lib/api-client'
 import { prettyId, formatTimestamp } from '../lib/utils'
 
-// Page Styles
-
 const VenueList = ({ name, venues }) => {
   if (!venues) {
     return <LoadingSpinner inline />

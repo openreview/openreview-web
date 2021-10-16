@@ -13,7 +13,7 @@
 
   strong {
     font-weight: bold;
-    color: $orRed;
+    color: constants.$orRed;
     padding-right: .25rem;
   }
 
@@ -21,7 +21,7 @@
     white-space: pre-wrap;
     overflow-wrap: break-word;
     &.markdown-rendered {
-      @include markdown-content-styles;
+      @include mixins.markdown-content-styles;
     }
   }
 

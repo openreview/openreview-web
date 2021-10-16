@@ -1,8 +1,6 @@
 const nextBuildId = require('next-build-id')
 
-// Without CSS Modules, with PostCSS
 module.exports = {
-  import: true,
   env: {
     IS_PRODUCTION: process.env.NODE_ENV === 'production',
     IS_STAGING: process.env.NODE_ENV === 'staging',

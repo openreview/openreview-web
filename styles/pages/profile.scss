@@ -11,7 +11,7 @@ main.profile {
     }
     h3 {
       font-size: 1.375rem;
-      color: $subtleGray;
+      color: constants.$subtleGray;
       line-height: normal;
       margin-top: 0;
       margin-bottom: 0;
@@ -35,7 +35,7 @@ main.profile {
     }
   }
 
-  @media #{$large} {
+  @media #{constants.$large} {
     // Make columns equal height so border extends all the way to the bottom of the page
     .row.equal-height-cols {
       overflow: hidden;
@@ -46,7 +46,7 @@ main.profile {
     }
 
     aside {
-      border-left: 1px solid $borderGray;
+      border-left: 1px solid constants.$borderGray;
     }
   }
 
@@ -56,19 +56,19 @@ main.profile {
     h4 {
       margin-top: 0;
       padding-bottom: .25rem;
-      border-bottom: 1px solid $borderGray;
+      border-bottom: 1px solid constants.$borderGray;
       margin-bottom: .5rem;
     }
     .instructions, small {
       font-size: .75rem;
-      color: $subtleGray;
+      color: constants.$subtleGray;
     }
     .instructions {
       display: none;  // TODO: for now always hide instructions
       margin-bottom: .5rem;
     }
     .empty-message {
-      color: $subtleGray;
+      color: constants.$subtleGray;
       font-style: italic;
       margin-top: .5rem;
     }
@@ -88,12 +88,12 @@ main.profile {
         display: none;
       }
       small {
-        color: $orRed;
+        color: constants.$orRed;
       }
     }
     .table-row > div {
       small {
-        color: $orRed;
+        color: constants.$orRed;
       }
     }
     .section-content {
@@ -105,7 +105,7 @@ main.profile {
       }
       div[data-toggle="tooltip"] {
         cursor: pointer;
-        color: $subtleGray;
+        color: constants.$subtleGray;
         &:hover {
           background-color: rgba(239, 236, 227, 0.7);
         }
@@ -138,7 +138,7 @@ main.profile {
       }
     }
     .glyphicon {
-      color: $mediumDarkBlue;
+      color: constants.$mediumDarkBlue;
       font-size: 1.25rem;
     }
   }
@@ -170,7 +170,7 @@ main.profile {
         width: $nameColWidth;
       }
       div:nth-child(2):not(.tooltip):not(.tooltip-inner) {
-        width: calc('100%' - ($nameColWidth + $dateColWidth + $badgeColWidth));
+        width: calc(100% - ($nameColWidth + $dateColWidth + $badgeColWidth));
       }
       div:nth-child(3) {
         width: $dateColWidth;
@@ -189,7 +189,7 @@ main.profile {
         width: $nameColWidth;
       }
       > div:nth-child(2) {
-        width: calc('100%' - ($nameColWidth + $dateColWidth + $badgeColWidth + $emailColWidth + $readerColWidth));
+        width: calc(100% - ($nameColWidth + $dateColWidth + $badgeColWidth + $emailColWidth + $readerColWidth));
       }
       > div:nth-child(3) {
         width: $emailColWidth;
@@ -217,7 +217,7 @@ main.profile {
       .relation-visible-icon {
         font-size: .75rem;
         cursor: pointer;
-        color: $subtleGray;
+        color: constants.$subtleGray;
         vertical-align: top;
       }
     }
@@ -226,7 +226,7 @@ main.profile {
   section.expertise {
     .table-row {
       div:nth-child(1) {
-        width: calc('100%' - ($dateColWidth + $badgeColWidth));
+        width: calc(100% - ($dateColWidth + $badgeColWidth));
       }
       div:nth-child(2) {
         width: $dateColWidth;
@@ -261,12 +261,12 @@ main.profile {
         }
       }
       .note-private > h4 > a{
-        color: mix($mediumBlue,gray,20%);
+        color: mix(constants.$mediumBlue,gray,20%);
       }
       .note-visible-icon {
         font-size: .75rem;
         cursor: pointer;
-        color: $subtleGray;
+        color: constants.$subtleGray;
         margin-left: .25rem;
       }
     }

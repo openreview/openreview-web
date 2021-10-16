@@ -1,8 +1,6 @@
 import Head from 'next/head'
 import Link from 'next/link'
 
-// Page Styles
-
 function Sponsor({ name, image }) {
   return (
     <img src={`/images/sponsors/${image}`} alt={name} />

@@ -6,7 +6,7 @@ footer {
     padding-bottom: 10px;
 
     a {
-      color: $subtleGray;
+      color: constants.$subtleGray;
       text-decoration: underline;
 
       &:hover {
@@ -18,15 +18,15 @@ footer {
   &.sitemap {
     padding-top: 12px;
     padding-bottom: 12px;
-    background-color: $sandyBrown;
+    background-color: constants.$sandyBrown;
 
     .container {
       max-width: 750px;
     }
     a {
-      color: $darkBlue;
+      color: constants.$darkBlue;
     }
-    @media #{$phone-only} {
+    @media #{constants.$phone-only} {
       a {
         font-size: .75rem;
       }
@@ -36,21 +36,21 @@ footer {
   &.sponsor {
     padding-top: 12px;
     padding-bottom: 12px;
-    background-color: $darkBlue;
+    background-color: constants.$darkBlue;
 
     p {
-      color: $subtleGray;
+      color: constants.$subtleGray;
     }
     a {
-      color: $subtleGray;
+      color: constants.$subtleGray;
       text-decoration: underline;
 
       &:hover {
-        color: $sandyBrown;
+        color: constants.$sandyBrown;
       }
     }
 
-    @media #{$phone-only} {
+    @media #{constants.$phone-only} {
       min-height: 59px;
 
       p {
@@ -60,7 +60,7 @@ footer {
   }
 
   p {
-    color: $subtleGray;
+    color: constants.$subtleGray;
     font-size: .75rem;
     margin-bottom: 0;
   }

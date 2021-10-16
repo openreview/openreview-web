@@ -13,8 +13,6 @@ import {
   prettyField, prettyContentValue, formatTimestamp, noteContentDiff, editNoteContentDiff,
 } from '../../lib/utils'
 
-import '../../styles/pages/revisions-compare.scss'
-
 const CompareRevisions = ({ appContext }) => {
   const [references, setReferences] = useState(null)
   const [draftableUrl, setDraftableUrl] = useState('')

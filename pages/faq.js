@@ -7,8 +7,6 @@ import Head from 'next/head'
 import LoadingSpinner from '../components/LoadingSpinner'
 import Accordion from '../components/Accordion'
 
-// Page Styles
-
 function Faq({ generalQuestions, pcQuestions, appContext }) {
   const [formattedGeneralQuestions, setFormattedGeneralQuestions] = useState(null)
   const [formattedPCQuestions, setFormattedPCQuestions] = useState(null)

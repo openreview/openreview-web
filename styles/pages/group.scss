@@ -37,11 +37,11 @@ main.group, main.invitation {
     p {
       color: #777777;
       &.dark {
-        color: $darkBlue;
+        color: constants.$darkBlue;
       }
     }
 
-    @media #{$phone-only} {
+    @media #{constants.$phone-only} {
       h4 > span {
         display: block;
         margin-bottom: 5px
@@ -59,7 +59,7 @@ main.group, main.invitation {
     margin-bottom: 1.5rem;
 
     div.panel {
-      @include well;
+      @include mixins.well;
       margin-bottom: 0;
     }
     .note_editor {
@@ -131,7 +131,7 @@ main.group, main.invitation {
       margin-right: .25rem;
     }
     input.invalid-value {
-      border-color: $orRed;
+      border-color: constants.$orRed;
     }
     .tooltip {
       width:300px;
@@ -174,7 +174,7 @@ main.group, main.invitation {
       max-width: 850px;
       strong {
         padding-right: .25rem;
-        color: $orRed;
+        color: constants.$orRed;
       }
       li {
         padding: .125rem 0;
@@ -249,7 +249,7 @@ main.group, main.invitation {
         margin-bottom: 1rem;
       }
       .empty-message {
-        color: $subtleGray;
+        color: constants.$subtleGray;
         font-style: italic;
       }
       textarea {
@@ -339,7 +339,7 @@ main.group, main.invitation {
     }
   }
   .group-members-form {
-    @include well;
+    @include mixins.well;
     margin-bottom: 0;
     overflow: hidden;
 
@@ -388,7 +388,7 @@ main.group, main.invitation {
       }
       > .glyphicon {
         top: 2px;
-        color: $subtleGray;
+        color: constants.$subtleGray;
         margin-left: -2rem;
       }
       select {
@@ -449,7 +449,7 @@ main.group, main.invitation {
       margin-bottom: 1rem;
     }
     .progress-bar {
-      background-color: $mediumBlue;
+      background-color: constants.$mediumBlue;
     }
   }
 
@@ -459,8 +459,8 @@ main.group, main.invitation {
       line-height: normal;
     }
     hr {
-      border-top: 1px solid $backgroundGray;
-      border-bottom: 1px solid $backgroundGray;
+      border-top: 1px solid constants.$backgroundGray;
+      border-bottom: 1px solid constants.$backgroundGray;
     }
   }
 }

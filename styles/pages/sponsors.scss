@@ -11,7 +11,7 @@ main.sponsors {
       padding-bottom: .75rem;
       font-size: 1.25rem;
       font-weight: bold;
-      color: $orRed;
+      color: constants.$orRed;
     }
     & > div {
       display: flex;

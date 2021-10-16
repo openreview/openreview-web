@@ -2,7 +2,7 @@
 
 .ui-autocomplete {
   background: #fff;
-  border: 1px solid $backgroundGray;
+  border: 1px solid constants.$backgroundGray;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   margin-top: 1px;
   padding: 5px 0;
@@ -20,22 +20,22 @@
     padding: 4px 12px;
   }
   .ui-menu-item {
-    color: $mediumBlue;
+    color: constants.$mediumBlue;
     list-style-image: none;
 
     &:hover .ui-menu-item-wrapper {
-      background-color: $mediumBlue;
+      background-color: constants.$mediumBlue;
       color: #fff;
     }
     .authlist {
-      color:$subtleGray;
+      color:constants.$subtleGray;
       font-size: .75rem;
       font-style: italic;
       padding-top: 0;
       margin-top: -4px;
     }
     .ui-state-hover, .ui-state-active {
-      background-color: $mediumBlue;
+      background-color: constants.$mediumBlue;
       color: #fff;
       border: 0;
     }

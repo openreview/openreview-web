@@ -12,7 +12,7 @@ main.reset {
       margin-top: 1rem;
     }
     label {
-      color: $orRed;
+      color: constants.$orRed;
     }
     button {
       margin-top: .25rem;
@@ -26,12 +26,12 @@ main.reset {
       margin-top: 3rem;
     }
 
-    @media #{$tablet} {
+    @media #{constants.$tablet} {
       input {
         max-width: 320px;
       }
     }
-    @media #{$desktop} {
+    @media #{constants.$desktop} {
       margin-bottom: 2rem;
       padding: 0 2rem;
     }

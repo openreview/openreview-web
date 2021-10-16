@@ -10,8 +10,6 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 
-import '../../styles/pages/reset.scss'
-
 const ResetForm = ({ resetToken }) => {
   const [password, setPassword] = useState('')
   const [passwordConfirmation, setPasswordConfirmation] = useState('')

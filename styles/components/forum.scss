@@ -109,12 +109,12 @@ main.forum {
         padding-left: .375rem;
       }
       .btn.active {
-        background-color: $mediumBlue;
+        background-color: constants.$mediumBlue;
         color: #fff;
         box-shadow: none;
       }
       .btn.state-2 {
-        background-color: $orRed;
+        background-color: constants.$orRed;
         color: #bbb;
         text-decoration: line-through;
       }
@@ -127,8 +127,8 @@ main.forum {
     }
     .btn {
       background-color: #fff;
-      border-color: lighten($mediumBlue, 10%);
-      color: $mediumDarkBlue;
+      border-color: lighten(constants.$mediumBlue, 10%);
+      color: constants.$mediumDarkBlue;
     }
 
     .form-control {
@@ -200,7 +200,7 @@ main.forum {
   .note {
     position: relative;
     h4 {
-      color: $darkBlue;
+      color: constants.$darkBlue;
       line-height: 1.25rem;
       padding-top: 3px;
       margin-bottom: .125rem;
@@ -209,7 +209,7 @@ main.forum {
 
       &.minimal-title {
         .signatures {
-          color: $subtleGray;
+          color: constants.$subtleGray;
           font-weight: normal;
         }
       }
@@ -231,7 +231,7 @@ main.forum {
           box-shadow: none;
         }
         span {
-          color: $mediumBlue;
+          color: constants.$mediumBlue;
         }
       }
     }
@@ -244,7 +244,7 @@ main.forum {
         padding-right: .5rem;
       }
       .signatures, .invitation, .created-date, .readers {
-        color: $subtleGray;
+        color: constants.$subtleGray;
         font-weight: 400;
         font-size: .75rem;
       }
@@ -255,7 +255,7 @@ main.forum {
         padding-right: .25rem;
       }
       .highlight {
-        background-color: $mediumBlue;
+        background-color: constants.$mediumBlue;
         color: #fff;
         padding: 0 4px;
         border-radius: 2px;
@@ -278,8 +278,8 @@ main.forum {
           top: 130px;
           height: 40px;
           width: 100%;
-          // background-image: linear-gradient(to bottom, transparent 0%, $backgroundWhite 100%);
-          background-color: $backgroundWhite;
+          // background-image: linear-gradient(to bottom, transparent 0%, constants.$backgroundWhite 100%);
+          background-color: constants.$backgroundWhite;
           content: '';
           a {
             display: inline;
@@ -327,6 +327,6 @@ main.forum {
     font-size: .75rem;
   }
   em.instructions {
-    color: $subtleGray;
+    color: constants.$subtleGray;
   }
 }

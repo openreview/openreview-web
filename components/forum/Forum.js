@@ -23,7 +23,6 @@ import { prettyInvitationId } from '../../lib/utils'
 import { formatNote, parseFilterQuery, replaceFilterWildcards } from '../../lib/forum-utils'
 
 // Component Styles
-import '../../styles/components/forum.scss'
 
 export default function Forum({ forumNote, clientJsLoading }) {
   const { userLoading, accessToken } = useUser()

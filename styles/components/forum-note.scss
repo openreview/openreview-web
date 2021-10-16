@@ -18,7 +18,7 @@
       margin: 0;
       margin-right: auto;
 
-      @media #{$phone-only} {
+      @media #{constants.$phone-only} {
         font-size: 1.75rem;
       }
     }
@@ -41,7 +41,7 @@
       font-style: italic;
       margin: 0;
       a {
-        color: $darkBlue;
+        color: constants.$darkBlue;
       }
     }
   }
@@ -52,7 +52,7 @@
     margin-bottom: .125rem;
     .item {
       font-size: .75rem;
-      color: $subtleGray;
+      color: constants.$subtleGray;
       padding-right: 1rem;
       margin: 0;
     }
@@ -65,7 +65,7 @@
       font-style: italic;
       margin-right: .875rem;
       line-height: normal;
-      color: $subtleGray;
+      color: constants.$subtleGray;
     }
   }
 

@@ -16,8 +16,6 @@ import PaginationLinks from '../components/PaginationLinks'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorAlert from '../components/ErrorAlert'
 
-// Page Styles
-
 const FilterForm = ({ searchQuery }) => {
   const defaultOption = { value: 'all', label: 'all of OpenReview' }
   const [groupOptions, setGroupOptions] = useState([])

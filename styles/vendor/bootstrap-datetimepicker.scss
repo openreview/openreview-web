@@ -3,21 +3,35 @@
  * version : 4.17.47
  * https://github.com/Eonasdan/bootstrap-datetimepicker/
  */
+
+@use "../utils/constants";
+
 $bs-datetimepicker-timepicker-font-size: 1.2em;
-$bs-datetimepicker-active-bg: $mediumBlue;
+$bs-datetimepicker-active-bg: constants.$mediumBlue;
 $bs-datetimepicker-active-color: #fff;
 $bs-datetimepicker-border-radius: 0px;
-$bs-datetimepicker-btn-hover-bg: $backgroundGray;
-$bs-datetimepicker-disabled-color: $subtleGray;
-$bs-datetimepicker-alternate-color: $subtleGray;
-$bs-datetimepicker-secondary-border-color: $mediumBlue;
-$bs-datetimepicker-secondary-border-color-rgba: $mediumBlue;
+$bs-datetimepicker-btn-hover-bg: constants.$backgroundGray;
+$bs-datetimepicker-disabled-color: constants.$subtleGray;
+$bs-datetimepicker-alternate-color: constants.$subtleGray;
+$bs-datetimepicker-secondary-border-color: constants.$mediumBlue;
+$bs-datetimepicker-secondary-border-color-rgba: constants.$mediumBlue;
 $bs-datetimepicker-primary-border-color: white;
 $bs-datetimepicker-text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
 
 $screen-sm-min: 768px;
 $screen-md-min: 992px;
 $screen-lg-min: 1200px;
+
+@mixin sr-only() {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    border: 0;
+}
 
 .bootstrap-datetimepicker-widget {
     list-style: none;
@@ -28,7 +42,7 @@ $screen-lg-min: 1200px;
         padding: 4px;
         width: 18rem;
         border-radius: 0px;
-        border: 1px solid $mediumBlue;
+        border: 1px solid constants.$mediumBlue;
 
         &.timepicker-sbs {
             @media (min-width: $screen-sm-min) {
@@ -355,16 +369,4 @@ $screen-lg-min: 1200px;
     & .input-group-addon {
         cursor: pointer;
     }
-}
-
-// This is here so the compiler doesn't complain about a missing bootstrap mixin
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0,0,0,0);
-  border: 0;
 }

@@ -7,7 +7,6 @@ import NoteContent from '../NoteContent'
 import { prettyId, inflect, forumDate } from '../../lib/utils'
 
 // Component Styles
-import '../../styles/components/legacy-forum.scss'
 
 export default function LegacyForum({
   forumNote, selectedNoteId, selectedInvitationId, clientJsLoading,

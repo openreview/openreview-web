@@ -16,9 +16,6 @@ import api from '../../lib/api-client'
 import { formatProfileData } from '../../lib/profiles'
 import { viewProfileLink } from '../../lib/banner-links'
 
-// Page Styles
-import '../../styles/pages/profile-edit.scss'
-
 export default function ProfileEdit({ appContext }) {
   const { accessToken } = useLoginRedirect()
   const { updateUserName } = useUser()

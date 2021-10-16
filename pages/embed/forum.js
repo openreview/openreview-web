@@ -14,9 +14,6 @@ import useInterval from '../../hooks/useInterval'
 import { prettyId, forumDate } from '../../lib/utils'
 import api from '../../lib/api-client'
 
-// Page Styles
-import '../../styles/pages/embed.scss'
-
 export default function EmbeddedForum({ appContext, userContext }) {
   const [forumNote, setForumNote] = useState(null)
   const [displayMode, setDisplayMode] = useState('linear')

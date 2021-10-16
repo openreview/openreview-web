@@ -12,9 +12,6 @@ import LegacyProfileEditor from '../../components/LegacyProfileEditor'
 import api from '../../lib/api-client'
 import { formatProfileData } from '../../lib/profiles'
 
-// Page Styles
-import '../../styles/pages/profile-edit.scss'
-
 const ActivateProfile = ({ appContext }) => {
   const [activateToken, setActivateToken] = useState('')
   const [profile, setProfile] = useState(null)

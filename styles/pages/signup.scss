@@ -22,12 +22,12 @@ main.sign-up {
       padding-left: 5px;
       padding-right: 5px;
 
-      @media #{$tablet} {
+      @media #{constants.$tablet} {
         margin-bottom: 0;
       }
     }
     label {
-      color: $orRed;
+      color: constants.$orRed;
     }
     .help-block {
       font-size: .75rem;
@@ -49,10 +49,10 @@ main.sign-up {
       .new-username {
         display: inline-block;
         vertical-align: middle;
-        width: calc('100%' - 520px);
+        width: calc(100% - 520px);
 
         a {
-          color: $subtleGray;
+          color: constants.$subtleGray;
         }
         a:hover {
           text-decoration: underline;
@@ -65,7 +65,7 @@ main.sign-up {
         margin-top: -.5rem;
       }
 
-      @media #{$phone-only} {
+      @media #{constants.$phone-only} {
         input {
           display: block;
           width: 100%;
@@ -80,10 +80,10 @@ main.sign-up {
     margin-bottom: 1.5rem;
     span.email {
       font-weight: bold;
-      color: $mediumBlue;
+      color: constants.$mediumBlue;
     }
     strong {
-      color: $orRed;
+      color: constants.$orRed;
     }
   }
 

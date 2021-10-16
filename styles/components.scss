@@ -1,29 +1,29 @@
 // Global styles for Webfield components
 // Need to be imported in _app.js so they can be used on any page
 
-@use "utils/_constants";
-@use "utils/_mixins";
-@use "vendor/_bootstrap-datetimepicker";
+@use "utils/constants";
+@use "utils/mixins";
 
-@import "nav";
-@import "footer";
-@import "forum-note";
-@import "note-content";
-@import "forum";
-@import "dropdown";
-@import "messages-table";
-@import "autocomplete-input";
-@import "legacy-forum";
-@import "legacy-profile-editor";
+@import "components/nav";
+@import "components/footer";
+@import "components/forum-note";
+@import "components/note-content";
+@import "components/forum";
+@import "components/dropdown";
+@import "components/messages-table";
+@import "components/autocomplete-input";
+@import "components/legacy-forum";
+@import "components/legacy-profile-editor";
+@import "vendor/bootstrap-datetimepicker";
 
 // Tab navigation
 .nav-tabs {
   > li {
     > a {
       font-weight: bold;
-      background: $sandyBrown;
+      background: constants.$sandyBrown;
       border-radius: 0;
-      border-bottom-color: $backgroundGray;
+      border-bottom-color: constants.$backgroundGray;
       margin-right: 4px;
       padding: 10px 16px;
 
@@ -35,14 +35,14 @@
 
     &.active {
       a, a:focus, a:hover {
-        background: $backgroundWhite;
+        background: constants.$backgroundWhite;
       }
     }
     &.loading {
       a, a:focus, a:hover {
         cursor: wait;
-        color: $subtleGray;
-        background: lighten($sandyBrown, 3%);
+        color: constants.$subtleGray;
+        background: lighten(constants.$sandyBrown, 3%);
       }
     }
   }
@@ -72,7 +72,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: $backgroundWhite;
+    background-color: constants.$backgroundWhite;
     opacity: .45;
     z-index: 100;
   }
@@ -149,7 +149,7 @@ table.table-minimal {
     }
 
     .parent-title, .note-parent-title {
-      color: $subtleGray;
+      color: constants.$subtleGray;
       margin-bottom: .125rem;
 
       .glyphicon {
@@ -161,21 +161,21 @@ table.table-minimal {
         font-size: .875rem;
       }
       a {
-        color: $subtleGray;
+        color: constants.$subtleGray;
       }
     }
 
     .note-authors {
-      color: $darkBlue;
+      color: constants.$darkBlue;
       margin-bottom: .125rem;
 
       a {
-        color: $darkBlue;
+        color: constants.$darkBlue;
       }
     }
 
     .private-author-label {
-      color: $subtleGray;
+      color: constants.$subtleGray;
       font-style: italic;
     }
 
@@ -186,7 +186,7 @@ table.table-minimal {
       // Overrides styles defined in legacy.scss
       border-left: 0;
       > ul {
-        border-left: 2px solid $backgroundGray;
+        border-left: 2px solid constants.$backgroundGray;
       }
     }
 
@@ -197,7 +197,7 @@ table.table-minimal {
     .note-meta-info {
       font-size: .75rem;
       line-height: 1.25rem;
-      color: $subtleGray;
+      color: constants.$subtleGray;
       margin-bottom: .125rem;
 
       & > li {
@@ -207,7 +207,7 @@ table.table-minimal {
         }
       }
       span.warning-conflict {
-        background-color: $orRed;
+        background-color: constants.$orRed;
         padding: 1px 5px;
         color: #fff;
         font-weight: bold;
@@ -242,7 +242,7 @@ table.table-minimal {
     .duedate {
       font-size: .75rem;
       font-weight: normal;
-      color: $orRed;
+      color: constants.$orRed;
 
       &.warning, &.expired {
         padding: 0 4px;
@@ -251,13 +251,13 @@ table.table-minimal {
         top: -1px;
       }
       &.warning {
-        background-color: $sandyBrown;
-        border: 1px solid darken($sandyBrown, 5%)
+        background-color: constants.$sandyBrown;
+        border: 1px solid darken(constants.$sandyBrown, 5%)
       }
       &.expired {
-        background-color: $alertRed;
+        background-color: constants.$alertRed;
         border-color: #ebccd1;
-        border: 1px solid darken($alertRed, 5%)
+        border: 1px solid darken(constants.$alertRed, 5%)
       }
     }
 
@@ -281,13 +281,13 @@ table.table-minimal {
 
     strong {
       padding-right: .25rem;
-      color: $orRed;
+      color: constants.$orRed;
     }
     .note-content-value {
       white-space: pre-wrap;
       overflow-x: auto;
       &.markdown-rendered {
-        @include markdown-content-styles;
+        @include mixins.markdown-content-styles;
       }
     }
     li {
@@ -317,7 +317,7 @@ table.table-minimal {
     .completed-date {
       font-size: .75rem;
       font-weight: normal;
-      color: $darkBlue;
+      color: constants.$darkBlue;
     }
 
     h4 {
@@ -341,10 +341,10 @@ table.table-minimal {
       }
       .note-authors {
         font-style: normal;
-        color: $subtleGray;
+        color: constants.$subtleGray;
 
         a {
-          color: $mediumBlue;
+          color: constants.$mediumBlue;
         }
       }
     }
@@ -409,22 +409,22 @@ table.table-minimal {
     border-bottom: 1px solid #ddd;
     padding-bottom: .25rem;
     margin-bottom: .25rem;
-    color: $subtleGray;
+    color: constants.$subtleGray;
     overflow: hidden;
 
     .explanation {
       float: left;
-      width: 'calc(100% - 160px)';
+      width: calc(100% - 160px);
       span.sig {
         font-style: italic;
-        color: $darkBlue;
+        color: constants.$darkBlue;
       }
       span.readers {
         padding-left: .5rem;
       }
       a {
         font-weight: bold;
-        color: $subtleGray;
+        color: constants.$subtleGray;
       }
     }
     .date {
@@ -436,7 +436,7 @@ table.table-minimal {
 
   .activity-title {
     float: left;
-    width: 'calc(100% - 80px)';
+    width: calc(100% - 80px);
   }
   .activity-actions {
     float: right;
@@ -503,7 +503,7 @@ table.table-minimal {
     }
   }
 
-  @media #{$phone-only} {
+  @media #{constants.$phone-only} {
     .form-group {
       margin-right: 0;
       margin-bottom: 8px;
@@ -537,7 +537,7 @@ table.table-minimal {
 
   label {
     font-size: .75rem;
-    color: $subtleGray;
+    color: constants.$subtleGray;
     margin-top: 4px;
     margin-bottom: 4px;
   }
@@ -553,7 +553,7 @@ table.table-minimal {
     border-radius: 2px;
 
     &:hover, &:focus {
-      border-color: $mediumBlue;
+      border-color: constants.$mediumBlue;
       text-decoration: none;
     }
   }
@@ -569,18 +569,18 @@ table.table-minimal {
     border-radius: 2px;
 
     > li > a {
-      color: $mediumBlue;
+      color: constants.$mediumBlue;
       padding: 3px 16px;
 
       &:focus, &:hover {
-        background-color: $mediumDarkBlue;
+        background-color: constants.$mediumDarkBlue;
         color: #fff;
       }
     }
   }
   &.incomplete {
     span.bid-value {
-      color: $orRed;
+      color: constants.$orRed;
     }
   }
 
@@ -590,11 +590,11 @@ table.table-minimal {
       padding-right: 8px;
     }
     .selected-reviewer {
-      color: $subtleGray;
+      color: constants.$subtleGray;
       padding-right: 8px;
 
       a:hover span {
-        color: $mediumBlue;
+        color: constants.$mediumBlue;
       }
       .glyphicon {
         margin-left: 3px;
@@ -617,7 +617,7 @@ table.table-minimal {
 
       > div {
         font-size: 0.75rem;
-        color: $mediumBlue;
+        color: constants.$mediumBlue;
         padding: 3px 10px;
 
         &.active {
@@ -633,7 +633,7 @@ table.table-minimal {
       padding-right: 5px;
     }
     .current-value {
-      color: $subtleGray;
+      color: constants.$subtleGray;
       padding-right: 6px;
 
       &:empty {
@@ -656,7 +656,7 @@ table.table-minimal {
       &.disabled {
         opacity: .65;
         label {
-          color: $mediumDarkBlue;
+          color: constants.$mediumDarkBlue;
           cursor: not-allowed;
         }
         label.active {
@@ -666,7 +666,7 @@ table.table-minimal {
           background-color: transparent;
         }
         label.active:hover {
-          background-color: $mediumBlue;
+          background-color: constants.$mediumBlue;
         }
       }
     }
@@ -686,12 +686,12 @@ table.table-minimal {
     }
 
     .btn-default {
-      color: $mediumBlue;
+      color: constants.$mediumBlue;
 
       &.active {
         color: #fff;
-        background-color: $mediumBlue;
-        border-color: $mediumDarkBlue;
+        background-color: constants.$mediumBlue;
+        border-color: constants.$mediumDarkBlue;
       }
     }
   }
@@ -712,7 +712,7 @@ table.table-minimal {
   .small_heading, .line_heading {
     font-size: 1rem;
     font-weight: bold;
-    color: $orRed;
+    color: constants.$orRed;
   }
   .line_heading {
     display: inline-block;
@@ -723,7 +723,7 @@ table.table-minimal {
   .required_field {
     vertical-align: top;
     font-size: .75rem;
-    color: $orRed;
+    color: constants.$orRed;
     margin-right: .25rem;
   }
   .required_field + .line_heading {
@@ -799,7 +799,7 @@ table.table-minimal {
     color: white;
     position: absolute;
     display: block;
-    background-color: $subtleGray;
+    background-color: constants.$subtleGray;
     padding: .25em .5em .25em .5em;
     margin-top: -2rem;
     margin-left: -20px;
@@ -810,7 +810,7 @@ table.table-minimal {
     padding: 0;
     position: absolute;
     border: solid transparent;
-    border-top-color: $subtleGray;
+    border-top-color: constants.$subtleGray;
     border-width: 10px;
     top: 100%;
     left: 20px;
@@ -822,7 +822,7 @@ table.table-minimal {
     padding: 2px 6px;
     border-radius: 2px;
     em {
-      color: $orRed;
+      color: constants.$orRed;
     }
   }
   .hover_item {
@@ -835,18 +835,18 @@ table.table-minimal {
     line-height: 1.5rem;
 
     &.disabled{
-      color: $subtleGray;
+      color: constants.$subtleGray;
       cursor: not-allowed;
       pointer-events: none;
     }
   }
   .removable_item .removable_item_button {
-    color: $mediumBlue;
+    color: constants.$mediumBlue;
     margin-left: 0.25rem;
     cursor: pointer;
 
     &.disabled{
-      color: $subtleGray;
+      color: constants.$subtleGray;
       cursor: not-allowed;
       pointer-events: none;
     }
@@ -871,16 +871,16 @@ table.table-minimal {
       font-weight: bold;
     }
     &.warning {
-      color: $darkBlue;
+      color: constants.$darkBlue;
     }
     &.danger {
-      color: lighten($orRed, 20%);
+      color: lighten(constants.$orRed, 20%);
     }
   }
   .row button {
     margin-right: .25rem;
   }
-  @media #{$phone-only} {
+  @media #{constants.$phone-only} {
     .dropdown {
       width: 100%;
 
@@ -923,7 +923,7 @@ table.table-minimal {
   padding: .25rem 0px;
   height: 202px;
   width: 500px;
-  border: 2px solid lighten($mediumBlue, 10%);
+  border: 2px solid lighten(constants.$mediumBlue, 10%);
   border-top: 0;
   overflow-y: scroll;
   background-color: white;
@@ -932,11 +932,11 @@ table.table-minimal {
 
   > div {
     cursor: pointer;
-    color: $subtleGray;
+    color: constants.$subtleGray;
     padding: 0.25rem .75rem;
   }
   .active {
-    background-color: $mediumBlue;
+    background-color: constants.$mediumBlue;
     color: #fff;
     outline: 0px solid transparent;
   }
@@ -963,7 +963,7 @@ table.table-minimal {
   border: 1px solid #ddd;
   border-top: 0;
   padding: .75rem 1rem;
-  background-color: $backgroundWhite;
+  background-color: constants.$backgroundWhite;
   overflow-y: scroll;
   overflow-x: hidden;
   .note_content_value {
@@ -971,7 +971,7 @@ table.table-minimal {
     white-space: pre-wrap;
     overflow-wrap: break-word;
     &.markdown-rendered {
-      @include markdown-content-styles;
+      @include mixins.markdown-content-styles;
     }
   }
 }
@@ -1049,7 +1049,7 @@ table.table-minimal {
       width: 96%;
       margin: 0.25rem;
 
-      @media #{$phone-only} {
+      @media #{constants.$phone-only} {
         width: 100%;
       }
 
@@ -1099,7 +1099,7 @@ table.table-minimal {
       font-weight: 400;
       margin-right: .5rem;
 
-      @media #{$phone-only} {
+      @media #{constants.$phone-only} {
         margin-bottom: 0.5rem;
       }
     }
@@ -1116,7 +1116,7 @@ table.table-minimal {
       visibility: hidden;
     }
 
-    @media #{$phone-only} {
+    @media #{constants.$phone-only} {
       width: 100%;
       display: block;
     }
@@ -1142,7 +1142,7 @@ table.table-minimal {
     a.btn {
       background: transparent;
       .glyphicon {
-        color: $mediumBlue;
+        color: constants.$mediumBlue;
       }
     }
     button {
@@ -1175,7 +1175,7 @@ table.table-minimal {
     background-position: 100% 70%;
     background-repeat: no-repeat;
     background-color: #fffaf4;
-    border: 2px solid lighten($mediumBlue, 10%);
+    border: 2px solid lighten(constants.$mediumBlue, 10%);
     padding-right: 24px;
   }
   button[disabled] {
@@ -1193,7 +1193,7 @@ table.table-minimal {
     width: auto;
     min-width: 100px;
     background-color: #fff;
-    border-color: $mediumBlue;
+    border-color: constants.$mediumBlue;
     border-radius: 0;
     border-width: 2px;
     margin-top: 3px;
@@ -1209,7 +1209,7 @@ table.table-minimal {
     }
 
     li.select-all-item {
-      border-bottom: 1px solid $backgroundGray;
+      border-bottom: 1px solid constants.$backgroundGray;
       height: 35px;
       margin-bottom: 5px;
     }
@@ -1248,9 +1248,9 @@ table.table-minimal {
     font-weight: bold;
     margin-left: -.5rem;
     a {
-      color: $mediumBlue;
+      color: constants.$mediumBlue;
       &:hover {
-        color: $mediumDarkBlue;
+        color: constants.$mediumDarkBlue;
       }
     }
     .glyphicon {

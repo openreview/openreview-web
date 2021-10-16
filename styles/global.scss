@@ -1,12 +1,12 @@
 // Global styles for used by all pages and components
 
-@use "utils/_constants";
-@use "utils/_mixins";
+@use "utils/constants";
+@use "utils/mixins";
 
 html {
   font-size: 16px;
 
-  @media #{$phone-only} {
+  @media #{constants.$phone-only} {
     font-size: 14px;
   }
 }
@@ -16,13 +16,13 @@ body {
 }
 #__next {
   padding-top: 50px;
-  background-color: $backgroundWhite;
+  background-color: constants.$backgroundWhite;
 }
 
 h1, h2, h3 {
-  color: $darkBlue;
+  color: constants.$darkBlue;
 
-  @media #{$phone-only} {
+  @media #{constants.$phone-only} {
     letter-spacing: -0.5px;
   }
 }
@@ -38,30 +38,30 @@ h1, h2, h3 {
 .h4, h4 {
   font-size: 1rem;
   font-weight: bold;
-  color: $orRed;
+  color: constants.$orRed;
 }
 
 a {
-  color: $mediumBlue;
+  color: constants.$mediumBlue;
 
   &:focus, &:hover {
-    color: $mediumDarkBlue;
+    color: constants.$mediumDarkBlue;
     text-decoration: none;
   }
   &[disabled] {
     pointer-events: none;
-    color: $subtleGray;
+    color: constants.$subtleGray;
   }
 }
 .link-color {
-  color: $mediumBlue;
+  color: constants.$mediumBlue;
 }
 pre {
   border-radius: 0;
 }
 hr {
   border: 0;
-  border-top: 1px solid $borderGray;
+  border-top: 1px solid constants.$borderGray;
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
@@ -192,40 +192,40 @@ hr {
   min-width: 5rem;
 
   color: #fff;
-  background-color: $mediumBlue;
-  border: 2px solid $mediumDarkBlue;
+  background-color: constants.$mediumBlue;
+  border: 2px solid constants.$mediumDarkBlue;
   &:hover, &:active, &:focus {
     color: #fff;
-    background-color: $mediumDarkBlue;
-    border-color: $mediumDarkBlue;
+    background-color: constants.$mediumDarkBlue;
+    border-color: constants.$mediumDarkBlue;
   }
   &.disabled:hover {
-    background-color: $mediumBlue;
+    background-color: constants.$mediumBlue;
   }
 }
 .btn-primary {
   color: #fff;
-  background-color: $mediumBlue;
-  border: 2px solid $mediumDarkBlue;
+  background-color: constants.$mediumBlue;
+  border: 2px solid constants.$mediumDarkBlue;
 
   &[disabled]:hover {
-    background-color: $mediumBlue;
-    border: 2px solid $mediumDarkBlue;
+    background-color: constants.$mediumBlue;
+    border: 2px solid constants.$mediumDarkBlue;
   }
 }
 .btn-default {
-  color: $mediumBlue;
-  background-color: $backgroundWhite;
-  border: 2px solid $mediumDarkBlue;
+  color: constants.$mediumBlue;
+  background-color: constants.$backgroundWhite;
+  border: 2px solid constants.$mediumDarkBlue;
 
   &:hover, &:active, &:focus {
-    color: $darkBlue;
-    background-color: $backgroundGray;
-    border-color: $subtleGray;
+    color: constants.$darkBlue;
+    background-color: constants.$backgroundGray;
+    border-color: constants.$subtleGray;
   }
 }
 .btn-link {
-  color: $mediumBlue;
+  color: constants.$mediumBlue;
   background-color: transparent;
   border-width: 1px;
 }
@@ -243,7 +243,7 @@ hr {
 }
 .btn.active.focus, .btn.active:focus, .btn.focus, .btn:active.focus, .btn:active:focus, .btn:focus {
   outline: none;
-  box-shadow: 0 0 0 1px $mediumBlue;
+  box-shadow: 0 0 0 1px constants.$mediumBlue;
 }
 .glyphicon {
   top: 2px;
@@ -257,7 +257,7 @@ hr {
   top: 2px;
 }
 .btn-link .glyphicon {
-  color: $mediumDarkBlue;
+  color: constants.$mediumDarkBlue;
 }
 .trashed {
   opacity: 0.35;
@@ -267,21 +267,21 @@ hr {
   font-size: .875rem;
   padding: .375rem .75rem;
   background-color: #fffaf4;
-  border: 2px solid lighten($mediumBlue, 10%);
+  border: 2px solid lighten(constants.$mediumBlue, 10%);
   border-radius: 0;
 
   &:focus {
-    border-color: $mediumDarkBlue;
+    border-color: constants.$mediumDarkBlue;
   }
   &.input-sm {
     font-size: .75rem;
   }
   &.form-invalid {
-    border-color: $orRed;
+    border-color: constants.$orRed;
   }
 }
 .form-control-feedback {
-  color: $subtleGray;
+  color: constants.$subtleGray;
 }
 .glyphicon.form-control-feedback {
   top: 0;
@@ -322,9 +322,9 @@ select.form-control {
 .input-group .input-group-addon {
   border-radius: 0;
   border-width: 2px;
-  border-color: lighten($mediumBlue, 10%);
+  border-color: lighten(constants.$mediumBlue, 10%);
   .glyphicon {
-    color: $subtleGray;
+    color: constants.$subtleGray;
     top: 1px;
   }
 }
@@ -344,7 +344,7 @@ select.form-control {
     margin-right: 0;
     min-width: auto;
     height: 36px;
-    border-color: lighten($mediumBlue, 10%);
+    border-color: lighten(constants.$mediumBlue, 10%);
     border-radius: 0;
   }
 }
@@ -357,14 +357,14 @@ select.form-control {
 div.tooltip-inner {
   border-radius: 2px;
   padding: 5px 10px;
-  background-color: $darkBlue;
+  background-color: constants.$darkBlue;
 }
 .tooltip.top .tooltip-arrow {
-  border-top-color: $darkBlue;
+  border-top-color: constants.$darkBlue;
 }
 .hint {
   font-size: .75rem;
-  color: $subtleGray;
+  color: constants.$subtleGray;
   font-weight: normal;
 }
 strong.hint {
@@ -378,32 +378,32 @@ $bannerHeight: 39px;
   box-sizing: border-box;
   position: relative;
   padding: 20px 0 30px 0;
-  min-height: calc(100vh - unquote("243px"));
-  @include clearfix;
+  min-height: calc(100vh - 243px);
+  @include mixins.clearfix;
 
   &.banner-hidden {
-    min-height: calc(100vh - unquote("204px"));
+    min-height: calc(100vh - 204px);
   }
   &.minimal-footer {
     padding-bottom: 0;
-    min-height: calc(100vh - unquote("126px"));
+    min-height: calc(100vh - 126px);
   }
   &.banner-hidden.minimal-footer {
-    min-height: calc(100vh - unquote("88px"));
+    min-height: calc(100vh - 88px);
   }
 
-  @media #{$phone-only} {
+  @media #{constants.$phone-only} {
     padding: 15px 0 20px 0;
-    min-height: calc(100vh - unquote("273px"));
+    min-height: calc(100vh - 273px);
 
     &.banner-hidden {
-      min-height: calc(100vh - unquote("239px"));
+      min-height: calc(100vh - 239px);
     }
     &.minimal-footer {
-      min-height: calc(100vh - unquote("120px"));
+      min-height: calc(100vh - 120px);
     }
     &.minimal-footer.banner-hidden {
-      min-height: calc(100vh - unquote("85px"));
+      min-height: calc(100vh - 85px);
     }
   }
 }
@@ -459,7 +459,7 @@ $bannerHeight: 39px;
   }
 }
 .well {
-  background: $sandyBrown;
+  background: constants.$sandyBrown;
   padding: .5rem;
   margin-bottom: 1.875rem;
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -468,7 +468,7 @@ $bannerHeight: 39px;
 
 // Modals
 .modal-content {
-  background-color: $backgroundWhite;
+  background-color: constants.$backgroundWhite;
   border-radius: 0;
 
   form {
@@ -489,7 +489,7 @@ $bannerHeight: 39px;
   padding: 12px 15px;
 }
 .modal-backdrop {
-  background-color: $darkBlue;
+  background-color: constants.$darkBlue;
 }
 
 // Flash message
@@ -520,13 +520,13 @@ $bannerHeight: 39px;
 
   &.alert-success {
     a {
-      color: $mediumBlue;
+      color: constants.$mediumBlue;
       text-decoration: underline;
     }
   }
   &.alert-warning {
-    background-color: $sandyBrown;
-    border-color: $backgroundGray;
+    background-color: constants.$sandyBrown;
+    border-color: constants.$backgroundGray;
   }
   &.fixed-overlay {
     position: fixed;
@@ -591,7 +591,7 @@ $bannerHeight: 39px;
   font-size: 10px;
 
   & > div {
-    background-color: $orRed;
+    background-color: constants.$orRed;
     height: 100%;
     width: 8px;
     float: left;
@@ -675,8 +675,8 @@ $bannerHeight: 39px;
 
   & > li {
     & > a, & > span {
-      color: $mediumBlue;
-      background-color: $sandyBrown;
+      color: constants.$mediumBlue;
+      background-color: constants.$sandyBrown;
     }
     a:focus, a:hover, span:focus, span:hover {
       background-color: transparent;
@@ -694,13 +694,13 @@ $bannerHeight: 39px;
   & > .active {
     a, a:focus, a:hover, span, span:focus, span:hover {
       color: #fff;
-      background-color: $mediumBlue;
+      background-color: constants.$mediumBlue;
     }
   }
   & > .disabled {
     a, a:focus, a:hover, span, span:focus, span:hover {
-      color: $subtleGray;
-      background-color: $sandyBrown;
+      color: constants.$subtleGray;
+      background-color: constants.$sandyBrown;
     }
   }
   & > li:first-child, & > li:last-child {
@@ -715,7 +715,7 @@ $bannerHeight: 39px;
   }
   .pagination-count{
     display: block;
-    color: $subtleGray;
+    color: constants.$subtleGray;
   }
 }
 
@@ -749,7 +749,7 @@ $bannerHeight: 39px;
     line-height: 1.125rem;
 
     span {
-      color: $subtleGray;
+      color: constants.$subtleGray;
     }
   }
   .alert-danger {
@@ -772,7 +772,7 @@ $bannerHeight: 39px;
       margin-bottom: .25rem;
     }
     strong {
-      color: $orRed;
+      color: constants.$orRed;
     }
   }
   p.empty-message {

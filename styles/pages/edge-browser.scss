@@ -34,7 +34,7 @@ main.edge-browser {
       }
     }
 
-    @media #{$desktop} {
+    @media #{constants.$desktop} {
       &.expand-columns-2 {
         .column {
           width: 40%;
@@ -108,8 +108,8 @@ main.edge-browser {
         padding: 2px 7px;
 
         &.active {
-          border-color: $mediumDarkBlue;
-          color: $darkBlue;
+          border-color: constants.$mediumDarkBlue;
+          color: constants.$darkBlue;
         }
       }
       .glyphicon-plus {
@@ -215,12 +215,12 @@ main.edge-browser {
       font-size: .75rem;
       line-height: normal;
       a {
-        color: $darkBlue;
+        color: constants.$darkBlue;
         &:hover {
           text-decoration: underline;
         }
         &.show-all-authors {
-          color: $mediumBlue;
+          color: constants.$mediumBlue;
         }
       }
     }
@@ -247,7 +247,7 @@ main.edge-browser {
           margin-top: .25rem;
         }
         strong {
-          color: $orRed;
+          color: constants.$orRed;
         }
       }
     }
@@ -311,11 +311,11 @@ main.edge-browser {
     white-space: nowrap;
     padding: 0 15px 0 15px;
     min-height: 360px;
-    height: calc(100vh - unquote("195px"));
+    height: calc(100vh - 195px);
     scroll-behavior: smooth; // Not supported in IE
 
-    @media #{$phone-only} {
-      height: unquote("calc(100vh - 177px)");
+    @media #{constants.$phone-only} {
+      height: calc(100vh - 177px);
     }
 
     .column {
@@ -333,7 +333,7 @@ main.edge-browser {
       &:last-child {
         margin-right: 14px;
       }
-      @media #{$phone-only} {
+      @media #{constants.$phone-only} {
         width: 345px;
       }
     }
@@ -344,7 +344,7 @@ main.edge-browser {
     }
 
     .head, .col-search {
-      background-color: $sandyBrown;
+      background-color: constants.$sandyBrown;
       border-bottom: 1px solid #ccc;
       padding: .5rem;
     }
@@ -392,7 +392,7 @@ main.edge-browser {
         select {
           display: inline-block;
           line-height: 1.125rem;
-          width: unquote("calc(100% - 60px)");
+          width: calc(100% - 60px);
         }
       }
       div.checkbox {
@@ -412,8 +412,8 @@ main.edge-browser {
       border: 1px solid #ccc;
 
       &:focus {
-        border-color: $mediumBlue;
-        box-shadow: inset 0 1px 1px rgba(0, 0, 0, .01), 0 0 0 1px $mediumBlue;
+        border-color: constants.$mediumBlue;
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, .01), 0 0 0 1px constants.$mediumBlue;
       }
     }
 
@@ -428,10 +428,10 @@ main.edge-browser {
         padding: 8px;
         font-size: .875rem;
         line-height: 1rem;
-        color: $orRed;
-        background-color: $sandyBrown;
+        color: constants.$orRed;
+        background-color: constants.$sandyBrown;
         font-weight: bold;
-        border-bottom: 1px solid $orRed;
+        border-bottom: 1px solid constants.$orRed;
         // box-shadow: 0px 1px 5px rgba(80,80,80,0.15);
         // z-index: 100;
 
@@ -460,7 +460,7 @@ main.edge-browser {
         &.disabled {
           opacity: .65;
           label {
-            color: $mediumDarkBlue;
+            color: constants.$mediumDarkBlue;
             cursor: not-allowed;
           }
           label.active {
@@ -470,7 +470,7 @@ main.edge-browser {
             background-color: transparent;
           }
           label.active:hover {
-            background-color: $mediumBlue;
+            background-color: constants.$mediumBlue;
           }
         }
       }
@@ -488,20 +488,20 @@ main.edge-browser {
         border-bottom-right-radius: 2px;
       }
       .btn-default {
-        color: $mediumBlue;
+        color: constants.$mediumBlue;
         &.active {
           color: #fff;
-          background-color: $mediumBlue;
-          border-color: $mediumDarkBlue;
+          background-color: constants.$mediumBlue;
+          border-color: constants.$mediumDarkBlue;
         }
       }
     }
   }
 
   &.banner-hidden .explore-interface {
-    height: calc(100vh - unquote("156px"));
-    @media #{$phone-only} {
-      height: unquote("calc(100vh - 145px)");
+    height: calc(100vh - 156px);
+    @media #{constants.$phone-only} {
+      height: calc(100vh - 145px);
     }
   }
 
@@ -521,7 +521,7 @@ main.edge-browser {
       top: 0;
       left: 0;
       height: 100%;
-      border-right: 3px solid $orRed;
+      border-right: 3px solid constants.$orRed;
     }
 
     h3 {
@@ -532,7 +532,7 @@ main.edge-browser {
       line-height: 1.125rem;
 
       a {
-        color: $mediumBlue;
+        color: constants.$mediumBlue;
         &:hover {
           color: #23527c;
         }
@@ -540,7 +540,7 @@ main.edge-browser {
     }
 
     p {
-      color: $subtleGray;
+      color: constants.$subtleGray;
       font-size: .75rem;
       margin-bottom: 0;
     }
@@ -627,7 +627,7 @@ main.edge-browser {
         margin-top: 2px;
       }
       ul.left {
-        width: unquote("calc(100% - 125px)");
+        width: calc(100% - 125px);
         float: left;
       }
       ul.right {
@@ -638,7 +638,7 @@ main.edge-browser {
     }
   }
   .show-lock-break .entry-paper .action-links ul.left {
-    width: unquote("calc(100% - 155px)");
+    width: calc(100% - 155px);
     float: left;
   }
 
@@ -657,12 +657,12 @@ main.edge-browser {
     }
     .reviewer-heading, .areachair-heading {
       float: left;
-      width: unquote("calc(100% - 105px)");
+      width: calc(100% - 105px);
     }
   }
   .show-lock-break .entry-reviewer .reviewer-heading,
   .show-lock-break .entry-areachair .areachair-heading {
-    width: unquote("calc(100% - 134px)");
+    width: calc(100% - 134px);
   }
   .widget-invite-assignment {
     display: flex;
@@ -684,7 +684,7 @@ main.edge-browser {
       text-align: center;
       margin: 0;
       & > div {
-        background-color: $orRed;
+        background-color: constants.$orRed;
       }
     }
   }
@@ -738,7 +738,7 @@ main.edge-browser {
     }
     td.conflict {
       background: repeating-linear-gradient(45deg, $vetoRed, $vetoRed 10px, $lockGreen 10px, $lockGreen 20px);
-      color: $mediumBlue;
+      color: constants.$mediumBlue;
       &:hover {
         text-decoration: underline;
       }
@@ -748,7 +748,7 @@ main.edge-browser {
     }
   }
 
-  @media #{$desktop} {
+  @media #{constants.$desktop} {
     .modal-lg {
       width: 800px;
     }

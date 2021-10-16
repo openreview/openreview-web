@@ -22,14 +22,14 @@ main.legacy-forum {
 
     strong, .note_content_field {
       font-weight: bold;
-      color: $orRed;
+      color: constants.$orRed;
       padding-right: .25rem;
     }
     .note-content-value, .note_content_value {
       white-space: pre-wrap;
       overflow-wrap: break-word;
       &.markdown-rendered {
-        @include markdown-content-styles;
+        @include mixins.markdown-content-styles;
       }
     }
     li {
@@ -61,7 +61,7 @@ main.legacy-forum {
       display: inline-block;
       margin-top: 1px;
       font-style: italic;
-      color: $subtleGray;
+      color: constants.$subtleGray;
       padding-right: .75rem;
     }
   }
@@ -84,12 +84,12 @@ main.legacy-forum {
       font-weight: bold;
       text-decoration: none;
       text-shadow: none;
-      background-color: lighten($mediumBlue, 10%);
+      background-color: lighten(constants.$mediumBlue, 10%);
     }
   }
 
   .filter-row {
-    @include clearfix;
+    @include mixins.clearfix;
     margin: 1rem 0 -.25rem 0;
 
     span {
@@ -99,7 +99,7 @@ main.legacy-forum {
       margin: 0 .5rem .5rem .25rem;
     }
     .filter-container {
-      width: calc(100% - '80px');
+      width: calc(100% - 80px);
 
       > div {
         display: inline-block;
@@ -128,7 +128,7 @@ main.legacy-forum {
     margin-bottom: .25rem;
 
     a {
-      color: $darkBlue;
+      color: constants.$darkBlue;
     }
     a:hover {
       text-decoration: none;
@@ -153,10 +153,10 @@ main.legacy-forum {
     }
     &.pull-left {
       // Leave enough room for the edit and delete buttons
-      max-width: 'calc(100% - 85px)';
+      max-width: calc(100% - 85px);
     }
 
-    @media #{$phone-only} {
+    @media #{constants.$phone-only} {
       font-size: 1.75rem;
       margin-bottom: .5rem;
 
@@ -190,7 +190,7 @@ main.legacy-forum {
     line-height: 1.125rem;
 
     .note_content_field {
-      color: $orRed;
+      color: constants.$orRed;
       padding-right: 4px;
     }
   }
@@ -199,9 +199,9 @@ main.legacy-forum {
     margin-right: .625rem;
 
     &.pull-left {
-      max-width: 'calc(100% - 160px)';
+      max-width: calc(100% - 160px);
       margin-right: 0;
-      @media #{$phone-only} {
+      @media #{constants.$phone-only} {
         max-width: none;
       }
     }
@@ -210,7 +210,7 @@ main.legacy-forum {
       font-style: italic;
       margin-right: 1rem;
       a {
-        color: $darkBlue;
+        color: constants.$darkBlue;
       }
       &.no-margin {
         margin-right: 4px;
@@ -228,7 +228,7 @@ main.legacy-forum {
       margin: 0;
     }
     .note_content_pdf {
-      color: $mediumBlue;
+      color: constants.$mediumBlue;
     }
     .readers-icon {
       font-size: .875rem;
@@ -239,7 +239,7 @@ main.legacy-forum {
       font-style: italic;
       margin-right: .875rem;
       line-height: normal;
-      color: $subtleGray;
+      color: constants.$subtleGray;
     }
     .hint {
       padding-right: 0;
@@ -250,7 +250,7 @@ main.legacy-forum {
       margin-right: .25rem;
     }
     .highlight {
-      background-color: $mediumBlue;
+      background-color: constants.$mediumBlue;
       color: #fff;
       padding: 0 4px;
       border-radius: 2px;
@@ -306,7 +306,7 @@ main.legacy-forum {
       margin-right: 0;
     }
 
-    @media #{$phone-only} {
+    @media #{constants.$phone-only} {
       margin-top: .5rem;
     }
   }
@@ -314,7 +314,7 @@ main.legacy-forum {
   #reply_count {
     text-align: right;
     font-size: .875rem;
-    color: $darkBlue;
+    color: constants.$darkBlue;
     font-weight: bold;
     line-height: 34px;
   }
@@ -394,7 +394,7 @@ main.legacy-forum {
 
   #reply-empty-message {
     p.empty-message {
-      color: $subtleGray;
+      color: constants.$subtleGray;
       font-style: italic;
       text-align: center;
       margin-top: 3rem;
@@ -413,7 +413,7 @@ main.legacy-forum {
       margin-top: .75rem;
     }
 
-    @media #{$tablet} {
+    @media #{constants.$tablet} {
       margin-left: 2.25rem;
     }
   }
@@ -425,7 +425,7 @@ main.legacy-forum {
     position: relative;
 
     &.comment-level-even {
-      background-color: $backgroundWhite;
+      background-color: constants.$backgroundWhite;
       border: 1px solid #eee;
 
       > .children > .note_editor.panel {
@@ -439,7 +439,7 @@ main.legacy-forum {
       border: 1px solid #eee;
 
       > .children > .note_editor.panel {
-        background-color: $backgroundWhite;
+        background-color: constants.$backgroundWhite;
         padding: .5rem;
         border: 1px solid #eee;
       }
@@ -459,8 +459,8 @@ main.legacy-forum {
         opacity: 0;
 
         &:hover {
-          background-color: $backgroundGray;
-          border-color: $subtleGray;
+          background-color: constants.$backgroundGray;
+          border-color: constants.$subtleGray;
         }
       }
     }
@@ -530,7 +530,7 @@ main.legacy-forum {
     margin-right: .25rem;
     margin-left: .25rem;
     line-height: normal;
-    color: $subtleGray;
+    color: constants.$subtleGray;
   }
 }
 
@@ -539,7 +539,7 @@ main.legacy-forum {
     font-size: .75rem;
   }
   em.instructions {
-    color: $subtleGray;
+    color: constants.$subtleGray;
   }
 }
 

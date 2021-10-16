@@ -39,11 +39,11 @@ main.messages {
       margin-right: -36px; // prevent other form elements from shifting
 
       & > div {
-        background-color: $orRed;
+        background-color: constants.$orRed;
       }
     }
 
-    @media #{$large} {
+    @media #{constants.$large} {
       .form-group {
         margin-bottom: 0;
       }

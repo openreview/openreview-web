@@ -15,7 +15,7 @@ main.assignments-list {
   }
 
   .empty-message {
-    color: $subtleGray;
+    color: constants.$subtleGray;
     font-style: italic;
     margin-top: 1rem;
   }
@@ -31,15 +31,15 @@ main.assignments-list {
       border: 0;
       padding: 0;
       .glyphicon {
-        color: $mediumBlue;
+        color: constants.$mediumBlue;
       }
     }
     .btn-link:hover {
       background-color: transparent;
-      color: $mediumDarkBlue;
+      color: constants.$mediumDarkBlue;
       text-decoration: none;
       .glyphicon {
-        color: $mediumDarkBlue;
+        color: constants.$mediumDarkBlue;
       }
     }
     span.glyphicon {

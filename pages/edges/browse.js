@@ -12,8 +12,6 @@ import api from '../../lib/api-client'
 import { parseEdgeList, buildInvitationReplyArr, translateFieldSpec } from '../../lib/edge-utils'
 import { referrerLink } from '../../lib/banner-links'
 
-import '../../styles/pages/edge-browser.scss'
-
 const Browse = ({ appContext }) => {
   const { user, accessToken, userLoading } = useLoginRedirect()
   const [version, setVersion] = useState(1)

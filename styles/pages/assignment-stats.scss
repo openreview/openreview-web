@@ -43,11 +43,11 @@ main.assignment-stats {
     fill: #aaa;
 
     &.clickable {
-      fill: $mediumBlue;
+      fill: constants.$mediumBlue;
       cursor: pointer;
 
       &:hover {
-        fill: lighten($mediumBlue, 20%);
+        fill: lighten(constants.$mediumBlue, 20%);
       }
     }
   }
@@ -62,8 +62,8 @@ main.assignment-stats {
   }
 
   .stat-scalar {
-    background-color: $sandyBrown;
-    border: 1px solid $backgroundGray;
+    background-color: constants.$sandyBrown;
+    border: 1px solid constants.$backgroundGray;
     text-align: center;
     height: 180px;
     padding: 1rem;
@@ -72,13 +72,13 @@ main.assignment-stats {
     .stat-val {
       font-size: 1.75rem;
       font-weight: bold;
-      color: $orRed;
+      color: constants.$orRed;
       margin-top: 30px;
       margin-bottom: 12px;
     }
 
     .stat-name {
-      color: $darkBlue;
+      color: constants.$darkBlue;
       font-size: .875rem;
     }
   }
@@ -87,7 +87,7 @@ main.assignment-stats {
     margin-bottom: 15px;
 
     .stat-name {
-      color: $darkBlue;
+      color: constants.$darkBlue;
       font-size: .875rem;
     }
   }

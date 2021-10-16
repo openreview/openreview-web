@@ -4,7 +4,7 @@
 main.revisions {
 
   header {
-    @include clearfix;
+    @include mixins.clearfix;
 
     h1 {
       font-weight: normal;
@@ -34,7 +34,7 @@ main.revisions {
       }
     }
     .row .col-sm-11 {
-      width: calc(100% - '30px');
+      width: calc(100% - 30px);
     }
 
     .note {
@@ -45,7 +45,7 @@ main.revisions {
         line-height: 1.375rem;
         margin-bottom: .125rem;
         a {
-          color: $darkBlue;
+          color: constants.$darkBlue;
         }
         img {
           width: 1.375rem;
@@ -80,7 +80,7 @@ main.revisions {
   }
 
   .alert-warning {
-    @include well;
+    @include mixins.well;
     padding: .75rem;
     margin-bottom: 1.25rem;
   }
@@ -95,7 +95,7 @@ main.revisions {
     margin-bottom: .125rem;
 
     a {
-      color: $darkBlue;
+      color: constants.$darkBlue;
     }
     a:hover {
       text-decoration: none;
@@ -120,10 +120,10 @@ main.revisions {
     }
     &.pull-left {
       // Leave enough room for the edit and delete buttons
-      max-width: 'calc(100% - 85px)';
+      max-width: calc(100% - 85px);
     }
 
-    @media #{$phone-only} {
+    @media #{constants.$phone-only} {
       font-size: 1.75rem;
       margin-bottom: .5rem;
 
@@ -145,7 +145,7 @@ main.revisions {
     margin-bottom: .125rem;
 
     .note_content_field {
-      color: $orRed;
+      color: constants.$orRed;
       font-weight: bold;
       padding-right: 4px;
     }
@@ -157,7 +157,7 @@ main.revisions {
     &.pull-left {
       max-width: none;
       margin-right: 0;
-      @media #{$phone-only} {
+      @media #{constants.$phone-only} {
         max-width: none;
       }
     }
@@ -166,7 +166,7 @@ main.revisions {
       font-style: italic;
       margin-right: 1rem;
       a {
-        color: $darkBlue;
+        color: constants.$darkBlue;
       }
       &.no-margin {
         margin-right: 4px;
@@ -180,7 +180,7 @@ main.revisions {
       margin: 0;
     }
     .note_content_pdf {
-      color: $mediumBlue;
+      color: constants.$mediumBlue;
     }
     .readers-icon {
       font-size: .875rem;
@@ -191,7 +191,7 @@ main.revisions {
       font-style: italic;
       margin-right: .875rem;
       line-height: normal;
-      color: $subtleGray;
+      color: constants.$subtleGray;
     }
     .trash_button, .edit_button {
       margin-top: -1px;
@@ -231,7 +231,7 @@ main.revisions {
     margin-right: .25rem;
     margin-left: .25rem;
     line-height: normal;
-    color: $subtleGray;
+    color: constants.$subtleGray;
   }
 
 }

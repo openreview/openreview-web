@@ -13,9 +13,6 @@ import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import { isSuperUser } from '../../lib/auth'
 
-// Page Styles
-import '../../styles/pages/group.scss'
-
 export default function GroupEdit({ appContext }) {
   const { accessToken, userLoading, user } = useLoginRedirect()
   const [group, setGroup] = useState(null)

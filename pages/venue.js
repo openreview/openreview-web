@@ -11,7 +11,6 @@ import Accordion from '../components/Accordion'
 import { referrerLink } from '../lib/banner-links'
 import { auth } from '../lib/auth'
 
-// Page Styles
 import VenueDetails from '../components/VenueDetails'
 
 function VenuesList({ filteredVenues }) {

@@ -18,7 +18,7 @@ main.profile-edit {
       overflow-y: auto;
     }
     .publication-title {
-      color: $darkBlue;
+      color: constants.$darkBlue;
       font-weight: bold;
       .venue{
         font-weight: lighter;
@@ -28,7 +28,7 @@ main.profile-edit {
       }
     }
     .existing-publication-row {
-      background-color: $backgroundGray;
+      background-color: constants.$backgroundGray;
       opacity: .5;
     }
     .existing-different-profile-row{

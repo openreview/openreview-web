@@ -41,7 +41,7 @@ main.embed {
       margin-top: 0;
       margin-bottom: .5rem;
       span {
-        color: $subtleGray;
+        color: constants.$subtleGray;
         font-size: .75rem;
         font-weight: normal;
         padding-left: .5rem;
@@ -54,11 +54,11 @@ main.embed {
     }
   }
   .markdown-rendered {
-    @include markdown-content-styles;
+    @include mixins.markdown-content-styles;
   }
   .submit-container {
     margin-top: .5rem;
-    border-top: 1px solid $mediumBlue;
+    border-top: 1px solid constants.$mediumBlue;
     padding-top: 1rem;
 
     &.message:hover {
@@ -72,7 +72,7 @@ main.embed {
       margin-bottom: 6px;
     }
     textarea {
-      border: 1px solid $borderGray;
+      border: 1px solid constants.$borderGray;
       box-shadow: none;
     }
     label {
