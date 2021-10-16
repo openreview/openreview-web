@@ -5,6 +5,17 @@
 @use "utils/_mixins";
 @use "vendor/_bootstrap-datetimepicker";
 
+@import "nav";
+@import "footer";
+@import "forum-note";
+@import "note-content";
+@import "forum";
+@import "dropdown";
+@import "messages-table";
+@import "autocomplete-input";
+@import "legacy-forum";
+@import "legacy-profile-editor";
+
 // Tab navigation
 .nav-tabs {
   > li {
@@ -66,7 +77,6 @@
     z-index: 100;
   }
 }
-
 
 // Table
 .tab-pane .table-container {
@@ -521,7 +531,6 @@ table.table-minimal {
   }
 }
 
-
 // Tag widget
 #content .tag-widget {
   margin-bottom: -4px;
@@ -889,7 +898,6 @@ table.table-minimal {
     width: 418px;
   }
 }
-
 
 // Dropdowns
 .dropdown {
@@ -1274,7 +1282,6 @@ table.table-minimal {
     margin-bottom: .5rem
   }
 }
-
 header, #header {
   .webfield-accordion {
     .panel-title {

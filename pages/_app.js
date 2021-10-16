@@ -13,6 +13,7 @@ import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 // Global Styles
 import '../styles/global.scss'
 import '../styles/components.scss'
+import '../styles/pages.scss'
 
 export default class OpenReviewApp extends App {
   constructor(props) {

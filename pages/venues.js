@@ -7,7 +7,6 @@ import { auth } from '../lib/auth'
 import { prettyId } from '../lib/utils'
 
 // Page Styles
-import '../styles/pages/venues.scss'
 
 const VenueItemDBLP = ({ venue }) => (
   <p>

@@ -3,8 +3,6 @@
 import Table from './Table'
 import { formatTimestamp } from '../lib/utils'
 
-import '../styles/components/messages-table.scss'
-
 const MessageRow = ({ message }) => (
   <tr>
     <td>

@@ -9,7 +9,6 @@ import api from '../lib/api-client'
 import { isValidEmail } from '../lib/utils'
 
 // Page Styles
-import '../styles/pages/reset.scss'
 
 const ResetForm = ({ setEmailSent }) => {
   const [email, setEmail] = useState('')

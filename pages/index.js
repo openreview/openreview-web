@@ -7,7 +7,6 @@ import api from '../lib/api-client'
 import { prettyId, formatTimestamp } from '../lib/utils'
 
 // Page Styles
-import '../styles/pages/home.scss'
 
 const VenueList = ({ name, venues }) => {
   if (!venues) {

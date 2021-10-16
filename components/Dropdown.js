@@ -1,7 +1,5 @@
 import Select from 'react-select'
 
-import '../styles/components/dropdown.scss'
-
 export default function Dropdown(props) {
   // For more details see https://react-select.com/styles#overriding-the-theme
   const customTheme = theme => ({

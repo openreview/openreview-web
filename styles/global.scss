@@ -392,7 +392,6 @@ $bannerHeight: 39px;
     min-height: calc(100vh - unquote("88px"));
   }
 
-
   @media #{$phone-only} {
     padding: 15px 0 20px 0;
     min-height: calc(100vh - unquote("273px"));

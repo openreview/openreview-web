@@ -12,7 +12,6 @@ import api from '../lib/api-client'
 import { isValidEmail } from '../lib/utils'
 
 // Page Styles
-import '../styles/pages/login.scss'
 
 const LoginForm = () => {
   const [email, setEmail] = useState('')

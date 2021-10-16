@@ -8,7 +8,6 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import Accordion from '../components/Accordion'
 
 // Page Styles
-import '../styles/pages/faq.scss'
 
 function Faq({ generalQuestions, pcQuestions, appContext }) {
   const [formattedGeneralQuestions, setFormattedGeneralQuestions] = useState(null)
