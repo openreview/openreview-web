@@ -11,7 +11,6 @@ import {
 } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { nanoid } from 'nanoid'
 import useQuery from '../../hooks/useQuery'
 import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -83,9 +82,9 @@ const ConfirmDeleteRestoreModal = ({
           </div>
           <div className="col-sm-10">
             <Dropdown
-              key={nanoid()}
               options={signatureDropdownOptions}
               placeholder="Signature"
+              value={signature ? { value: signature, label: prettyId(signature) } : null}
               onChange={(e) => { setSignature(e.value) }}
             />
           </div>
@@ -294,8 +293,7 @@ const RevisionsList = ({
                       : (
                         <>
                           {/* eslint-disable-next-line max-len */}
-                          {invitation.edit.ddate && <TrashButton onClick={() => setEditToDeleteRestore({ edit: reference, invitation })} />}
-                          <EditButton onClick={() => editEdit(reference)} />
+                          {invitation.edit.ddate && <TrashButton onClick={() => setEditToDeleteRestore({ edit: reference, invitation })} />}                          <EditButton onClick={() => editEdit(reference)} />
                         </>
                       )}
                   </div>
