@@ -293,7 +293,8 @@ const RevisionsList = ({
                       : (
                         <>
                           {/* eslint-disable-next-line max-len */}
-                          {invitation.edit.ddate && <TrashButton onClick={() => setEditToDeleteRestore({ edit: reference, invitation })} />}                          <EditButton onClick={() => editEdit(reference)} />
+                          {invitation.edit.ddate && <TrashButton onClick={() => setEditToDeleteRestore({ edit: reference, invitation })} />}
+                          <EditButton onClick={() => editEdit(reference)} />
                         </>
                       )}
                   </div>
