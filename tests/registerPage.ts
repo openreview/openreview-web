@@ -48,7 +48,7 @@ test('enter invalid name', async (t) => {
     .typeText(firstNameInputSelector, 'abc')
     .typeText(lastNameInputSelector, '1')
     .expect(Selector('.important_message').exists).ok()
-    .expect(Selector('.important_message').textContent).eql('The last name 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed')
+    .expect(Selector('.important_message').textContent).eql('The name 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed')
 })
 
 test('enter valid name invalid email and change to valid email and register', async (t) => {
