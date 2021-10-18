@@ -903,12 +903,7 @@ module.exports = (function() {
       return;
     }
 
-    showConfirmDeleteModal({
-      noteOrEdit:note,
-      noteOrEditTitle:noteTitle,
-      $editSignaturesDropdown: $editSignatures,
-      $editReaders
-    });
+    showConfirmDeleteModal(note, noteTitle, $editSignatures, $editReaders);
 
     $('#confirm-delete-modal .modal-footer .btn-primary').on('click', function () {
       postUpdatedNote($editSignatures);
@@ -916,14 +911,16 @@ module.exports = (function() {
     });
   };
 
-  const showConfirmDeleteModal = ({ noteOrEdit, noteOrEditTitle, $editSignaturesDropdown, $editReaders, isEdit = false }) => {
+  const showConfirmDeleteModal = (note, noteTitle, $editSignaturesDropdown, $editReaders) => {
     $('#confirm-delete-modal').remove();
 
     $('#content').append(Handlebars.templates.genericModal({
       id: 'confirm-delete-modal',
       showHeader: true,
-      title: isEdit?'Delete Edit':'Delete Note',
-      body: `<p class="mb-4">Are you sure you want to delete "${noteOrEditTitle}" by ${view.prettyId(noteOrEdit.signatures[0])}? The deleted ${isEdit?'edit':'note'} will be updated with the signature you choose below.</p>`,
+      title: 'Delete Note',
+      body: '<p class="mb-4">Are you sure you want to delete "' +
+        noteTitle + '" by ' + view.prettyId(note.signatures[0]) + '? The deleted note will ' +
+        'be updated with the signature you choose below.</p>',
       showFooter: true,
       primaryButtonText: 'Delete'
     }));
@@ -1777,7 +1774,6 @@ module.exports = (function() {
     mkNewNoteEditor: mkNewNoteEditor,
     mkNoteEditor: mkNoteEditor,
     mkNotePanel: mkNotePanel,
-    // deleteOrRestoreNote: deleteOrRestoreNote,
   };
 
 }());
