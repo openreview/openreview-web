@@ -243,12 +243,12 @@ const RevisionsList = ({
 
   useEffect(() => {
     if (!revisions) return
-    $('[data-toggle="tooltip"]').tooltip({ placement: 'bottom' })
     if (revisions[0]?.note) return
     $('.references-list .note-container').each(function appendNotePanel(index) {
       const [reference, invitation] = revisions[index]
       $(this).append(buildNotePanel(reference, invitation))
     })
+    $('[data-toggle="tooltip"]').tooltip({ placement: 'bottom' })
   }, [revisions])
 
   useEffect(() => {
