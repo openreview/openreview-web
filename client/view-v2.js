@@ -662,15 +662,13 @@ module.exports = (function() {
     // Trash button
     var $trashButton = null;
     if ($('#content').hasClass('legacy-forum') || $('#content').hasClass('tasks') || $('#content').hasClass('revisions')) {
-      if ((canEdit && params.onTrashedOrRestored && params.deleteInvitation) || (canEdit && params.isEdit)) {
+      if (canEdit && params.onTrashedOrRestored && params.deleteInvitation) {
         var buttonContent = notePastDue ? 'Restore' : '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>';
         $trashButton = $('<div>', { class: 'meta_actions' }).append(
           $('<button id="trashbutton_' + note.id + '" class="btn btn-xs trash_button">' + buttonContent + '</button>')
         );
         $trashButton.click(function() {
-          params.isEdit
-            ? deleteEdit(note, params.invitation, titleText, params.user, params.onTrashedOrRestored)
-            : deleteOrRestoreNote(note, params.deleteInvitation, titleText, params.user, params.onTrashedOrRestored);
+          deleteOrRestoreNote(note, params.deleteInvitation, titleText, params.user, params.onTrashedOrRestored);
         });
         $titleHTML.addClass('pull-left');
       }
@@ -917,52 +915,6 @@ module.exports = (function() {
       $('#confirm-delete-modal').modal('hide');
     });
   };
-
-  const deleteEdit = async (edit, invitation, title, user, onTrashedOrRestored) => {
-    const $editSignatures = await view.buildSignatures(invitation.edit.signatures, null, user, 'signature');
-    const postDeleteEdit = () => {
-      let editSignatureInputValues = view.idsFromListAdder($editSignatures, invitation.edit.signatures);
-      if (!editSignatureInputValues || !editSignatureInputValues.length) {
-        editSignatureInputValues = [user.profile.id];
-      }
-      const editToPost = {
-        ...edit,
-        note: {
-          ...edit.note,
-          mdate: undefined,
-          tmdate: undefined,
-        },
-        ddate: edit.ddate ? null : Date.now(),
-        signatures: editSignatureInputValues,
-        cdate: undefined,
-        tcdate: undefined,
-        mdate: undefined,
-        tmdate: undefined,
-        details: undefined,
-        invitations: undefined,
-        content: undefined,
-      }
-      Webfield2.post('/notes/edits', editToPost, null).then(function () {
-        onTrashedOrRestored();
-      });
-    }
-    if (!$editSignatures.find('div.dropdown').length) {
-      postDeleteEdit($editSignatures);
-      return;
-    }
-
-    showConfirmDeleteModal({
-      noteOrEdit: edit,
-      noteOrEditTitle: title,
-      $editSignaturesDropdown: $editSignatures,
-      isEdit: true
-    });
-
-    $('#confirm-delete-modal .modal-footer .btn-primary').on('click', function () {
-      postDeleteEdit($editSignatures);
-      $('#confirm-delete-modal').modal('hide');
-    });
-  }
 
   const showConfirmDeleteModal = ({ noteOrEdit, noteOrEditTitle, $editSignaturesDropdown, $editReaders, isEdit = false }) => {
     $('#confirm-delete-modal').remove();
@@ -1572,12 +1524,18 @@ module.exports = (function() {
       });
 
       var saveNote = function (formContent, existingNote, invitation) {
-        const editToPost = constructEdit({ formData: formContent, noteObj: existingNote, invitationObj: invitation });
+        const editToPost = params.isEdit
+          ? constructUpdatedEdit(params.editToUpdate, invitation, formContent)
+          : constructEdit({ formData: formContent, noteObj: existingNote, invitationObj: invitation });
         Webfield2.post('/notes/edits', editToPost, { handleError: false }).then(function() {
-          if (params.onNoteEdited) {
-            Webfield2.get('/notes', { id: note.id }).then(function (result) {
-              params.onNoteEdited(result);
-            })
+          if (params.onNoteEdited ) {
+            if (params.isEdit) {
+              params.onNoteEdited();
+            } else {
+              Webfield2.get('/notes', { id: note.id }).then(function (result) {
+                params.onNoteEdited(result);
+              })
+            }
           }
           $noteEditor.remove();
           view.clearAutosaveData(autosaveStorageKeys);
@@ -1725,6 +1683,41 @@ module.exports = (function() {
     if (Object.keys(content).length) note.content = content
     if (Object.keys(note).length) result.note = note
     return result
+  }
+
+  constructUpdatedEdit = (edit, invitation, formContent) => {
+    const shouldSetValue = (fieldPath)=>{
+      const field = fieldPath.split('.').reduce((acc, fieldName) => { return acc?.fielName }, invitation)
+      if (!field || field?.value || field?.values) return false
+      return true
+    }
+
+    const editToPost = {
+      ...edit,
+      note: {
+        ...edit.note,
+        content: Object.entries(invitation.edit.note?.content ?? {}).reduce((acc, [fieldName, fieldValue]) => {
+          acc[fieldName] = {
+            value: formContent[fieldName],
+            ...(shouldSetValue(`edit.note.content.${fieldName}.readers`) && { readers: edit.note?.content?.[fieldName]?.readers }),
+          }
+          return acc
+        }, {}),
+        ...(shouldSetValue('edit.note.readers') && { readers: formContent.noteReaderValues }),
+        ...(shouldSetValue('edit.note.signatures') && { signatures: formContent.noteSignatureInputValues }),
+        mdate: undefined,
+        tmdate: undefined,
+      },
+      ...(shouldSetValue('edit.readers') && { signatures: formContent.editSignatureInputValues }),
+      ...(shouldSetValue('edit.signatures') && { signatures: formContent.editSignatureInputValues }),
+      cdate: undefined,
+      tcdate: undefined,
+      mdate: undefined,
+      tmdate: undefined,
+      details: undefined,
+      invitations: undefined,
+    }
+    return editToPost
   }
 
   const validate = (invitation, formContent, readersWidget) => {

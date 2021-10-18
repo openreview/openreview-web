@@ -24,6 +24,7 @@ import { EditButton, RestoreButton, TrashButton } from '../../components/EditBut
 import BasicModal from '../../components/BasicModal'
 import { buildNoteTitle, prettyId } from '../../lib/utils'
 import Dropdown from '../../components/Dropdown'
+import viewV2 from '../../client/view-v2'
 
 const ConfirmDeleteRestoreModal = ({
   editInfo, user, accessToken, deleteRestoreEdit,
@@ -179,27 +180,7 @@ const RevisionsList = ({
     }).removeClass('panel')
   }
 
-  const buildEditPanelV2 = (reference, editInvitation) => {
-    const edit = {
-      ...reference,
-      content: reference.note.content, // to avoid changing note.cotent to note.note.content in view2.mkNotePanel
-    }
-    return view2.mkNotePanel(edit, {
-      isEdit: true,
-      invitation: editInvitation,
-      withContent: true,
-      withModificationDate: true,
-      withDateTime: true,
-      withBibtexLink: false,
-      user,
-      onTrashedOrRestored: () => {
-        $(`#note_${edit.id}`).closest('.row').remove()
-        promptMessage('Revision deleted')
-      },
-    }).removeClass('panel')
-  }
-
-  const deleteRestoreEdit = async (edit, signature, invitation) => {
+  const deleteRestoreEdit = async (edit, signature) => {
     const editToPost = {
       ...edit,
       note: {
@@ -222,18 +203,52 @@ const RevisionsList = ({
     loadEdits()
   }
 
-  const editEdit = () => {
+  const editEdit = (edit, invitation) => {
+    $('#edit-edit-modal').remove()
+    $('body').append(Handlebars.templates.genericModal({
+      id: 'edit-edit-modal',
+      extraClasses: 'modal-lg',
+      showHeader: false,
+      showFooter: false,
+    }))
+    $('#edit-edit-modal').modal('show')
+    viewV2.mkNoteEditor(edit.note, invitation, user, {
+      isEdit: true,
+      editToUpdate: edit,
+      onNoteEdited: () => {
+        $('#edit-edit-modal').modal('hide')
+        promptMessage('Edit updated successfully')
+        loadEdits()
+        return true
+      },
+      onNoteCancelled: () => {
+        $('#edit-edit-modal').modal('hide')
+      },
+      onError: (errors) => {
+        $('#edit-edit-modal .modal-body .alert-danger').remove()
 
+        $('#edit-edit-modal .modal-body').prepend('<div class="alert alert-danger"><strong>Error:</strong> </div>')
+        let errorText = 'Could not save note'
+        if (errors && errors.length) {
+          errorText = window.translateErrorMessage(errors[0])
+        }
+        $('#edit-edit-modal .modal-body .alert-danger').append(errorText)
+        $('#edit-edit-modal').animate({ scrollTop: 0 }, 400)
+      },
+      onCompleted: (editor) => {
+        $('#edit-edit-modal .modal-body').empty().addClass('legacy-styles').append(editor)
+      },
+    })
   }
 
   useEffect(() => {
     if (!revisions) return
-
+    $('[data-toggle="tooltip"]').tooltip({ placement: 'bottom' })
+    if (revisions[0]?.note) return
     $('.references-list .note-container').each(function appendNotePanel(index) {
       const [reference, invitation] = revisions[index]
-      $(this).append(reference.note ? buildEditPanelV2(reference, invitation) : buildNotePanel(reference, invitation))
+      $(this).append(buildNotePanel(reference, invitation))
     })
-    $('[data-toggle="tooltip"]').tooltip({ placement: 'bottom' })
   }, [revisions])
 
   useEffect(() => {
@@ -267,7 +282,6 @@ const RevisionsList = ({
               />
             </label>
           </div>
-          {/* <div className="col-sm-11 note-container" /> */}
           {reference.note
             ? (
               <>
@@ -294,7 +308,7 @@ const RevisionsList = ({
                         <>
                           {/* eslint-disable-next-line max-len */}
                           {invitation.edit.ddate && <TrashButton onClick={() => setEditToDeleteRestore({ edit: reference, invitation })} />}
-                          <EditButton onClick={() => editEdit(reference)} />
+                          <EditButton onClick={() => editEdit(reference, invitation)} />
                         </>
                       )}
                   </div>
