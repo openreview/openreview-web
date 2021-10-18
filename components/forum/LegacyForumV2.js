@@ -6,8 +6,6 @@ import NoteReaders from '../NoteReaders'
 import { NoteContentV2 } from '../NoteContent'
 import { prettyId, inflect, forumDate } from '../../lib/utils'
 
-// Component Styles
-
 export default function LegacyForumV2({
   forumNote, selectedNoteId, selectedInvitationId, clientJsLoading,
 }) {

@@ -22,8 +22,6 @@ import api from '../../lib/api-client'
 import { prettyInvitationId } from '../../lib/utils'
 import { formatNote, parseFilterQuery, replaceFilterWildcards } from '../../lib/forum-utils'
 
-// Component Styles
-
 export default function Forum({ forumNote, clientJsLoading }) {
   const { userLoading, accessToken } = useUser()
   const [parentNote, setParentNote] = useState(forumNote)
