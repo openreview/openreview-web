@@ -33,7 +33,7 @@ test('create new profile', async (t) => {
     .typeText(newPasswordInputSelector, '1234')
     .typeText(confirmPasswordInputSelector, '1234')
     .click(signupButtonSelector)
-    .expect(Selector('.modal-title').withText('Confirm Full Name').exists).ok()
+    .expect(Selector('.modal-title').withText('^Confirm Full Name.*').exists).ok()
     .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled')).ok()
     .click(Selector('#agree-checkbox'))
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
