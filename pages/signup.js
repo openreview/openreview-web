@@ -605,7 +605,7 @@ const ConfirmNameModal = ({
   return (
     <BasicModal
       id="confirm-name-modal"
-      title={`Confirm your Name for ${newUsername}`}
+      title={`Confirm your name for ${newUsername}`}
       primaryButtonText="Register"
       onPrimaryButtonClick={onConfirm}
       primaryButtonDisabled={!agreeTerms}
@@ -635,7 +635,6 @@ const ConfirmNameModal = ({
         <strong>{`${firstName} ${lastName}`}</strong>
         {'. '}
       </p>
-      <p className="mb-3">Please confirm your name to continue.</p>
       <input id="agree-checkbox" type="checkbox" checked={agreeTerms} onChange={() => setAgreeTerms(value => !value)} />
       <label htmlFor="agree-checkbox">
         I confirm my name is correct.
