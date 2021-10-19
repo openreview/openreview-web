@@ -98,7 +98,7 @@ export const NoteV2 = ({ note, options }) => {
         <li>{forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year?.value)}</li>
         <li>
           {note.content.venue?.value ? note.content.venue.value : prettyId(note.invitations[0])}
-          {privatelyRevealed && <Icon name="eye-close" extraClasses="note-visible-icon" tooltip="Privately revealed to you" />}
+          {privatelyRevealed && <Icon name="eye-open" extraClasses="note-visible-icon ml-2" tooltip="Privately revealed to you" />}
         </li>
         {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
         <li className="readers">Readers: <NoteReaders readers={note.readers} /></li>

@@ -1065,17 +1065,18 @@ module.exports = (function() {
 
       var saveNote = function(formContent, invitation) {
         const editToPost = constructEdit({ formData: formContent, invitationObj: invitation });
-        Webfield2.post('/notes/edits', editToPost, { handleError: false }).then(function(result) {
+        Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(function(result) {
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
           }
           $noteEditor.remove();
           view.clearAutosaveData(autosaveStorageKeys);
-        }, function(error) {
+        }, function(jqXhr, textStatus) {
+          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
           if (params.onError) {
-            params.onError([error]);
+            params.onError([errorText]);
           } else {
-            promptError(error);
+            promptError(errorText);
           }
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
           $cancelButton.prop({ disabled: false });
@@ -1524,7 +1525,7 @@ module.exports = (function() {
         const editToPost = params.isEdit
           ? constructUpdatedEdit(params.editToUpdate, invitation, formContent)
           : constructEdit({ formData: formContent, noteObj: existingNote, invitationObj: invitation });
-        Webfield2.post('/notes/edits', editToPost, { handleError: false }).then(function() {
+        Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(function() {
           if (params.onNoteEdited ) {
             if (params.isEdit) {
               params.onNoteEdited();
@@ -1536,11 +1537,12 @@ module.exports = (function() {
           }
           $noteEditor.remove();
           view.clearAutosaveData(autosaveStorageKeys);
-        }, function(error) {
+        }, function(jqXhr, textStatus) {
+          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
           if (params.onError) {
-            params.onError([error]);
+            params.onError([errorText]);
           } else {
-            promptError(error);
+            promptError(errorText);
           }
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
           $cancelButton.prop({ disabled: false });

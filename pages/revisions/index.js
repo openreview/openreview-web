@@ -228,11 +228,7 @@ const RevisionsList = ({
         $('#edit-edit-modal .modal-body .alert-danger').remove()
 
         $('#edit-edit-modal .modal-body').prepend('<div class="alert alert-danger"><strong>Error:</strong> </div>')
-        let errorText = 'Could not save note'
-        if (errors && errors.length) {
-          errorText = window.translateErrorMessage(errors[0])
-        }
-        $('#edit-edit-modal .modal-body .alert-danger').append(errorText)
+        $('#edit-edit-modal .modal-body .alert-danger').append(errors.length ? errors[0] : 'Could not save edit')
         $('#edit-edit-modal').animate({ scrollTop: 0 }, 400)
       },
       onCompleted: (editor) => {
