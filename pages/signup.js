@@ -125,6 +125,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
   }, [firstName, middleName, lastName, isComposing])
 
   useEffect(() => {
+    if (isComposing) return
     if (firstName.length === 1 && !isComposing) setFirstName(firstName.toUpperCase())
     if (middleName.length === 1 && !isComposing) setMiddleName(middleName.toUpperCase())
     if (lastName.length === 1 && !isComposing) setLastName(lastName.toUpperCase())
@@ -133,7 +134,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
       return
     }
     getMatchingProfiles(firstName, lastName)
-  }, [firstName, middleName, lastName])
+  }, [firstName, middleName, lastName, isComposing])
 
   return (
     <div className="signup-form-container">
