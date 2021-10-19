@@ -22,9 +22,9 @@ const NavUserLinks = () => {
     }
   }
 
-  const getRedirectPath = () => {
-    const routesToSkipRedirection = ['/', '/login', '/confirm', '/logout', '/signup', '/404']
-    if (routesToSkipRedirection.some(p => p === router.pathname)) {
+  const getLoginPath = () => {
+    const routesToSkipRedirection = ['/', '/login', '/confirm', '/logout', '/signup', '/404', '/profile/activate', '/reset', '/user/password']
+    if (routesToSkipRedirection.includes(router.pathname)) {
       return '/login'
     }
     return `/login?redirect=${encodeURIComponent(router.asPath)}&noprompt=true`
@@ -34,7 +34,7 @@ const NavUserLinks = () => {
     return (
       <ul className="nav navbar-nav navbar-right">
         <li id="user-menu">
-          <Link href={getRedirectPath()}><a>Login</a></Link>
+          <Link href={getLoginPath()}><a>Login</a></Link>
         </li>
       </ul>
     )
