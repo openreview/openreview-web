@@ -228,6 +228,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
         firstName={firstName}
         middleName={middleName}
         lastName={lastName}
+        newUsername={newUsername}
         onConfirm={() => {
           $('#confirm-name-modal').modal('hide')
           setNameConfirmed(true)
@@ -598,21 +599,20 @@ const SubmitButton = ({ disabled, children }) => {
 }
 
 const ConfirmNameModal = ({
-  firstName, middleName, lastName, onConfirm,
+  firstName, middleName, lastName, newUsername, onConfirm,
 }) => {
   const [agreeTerms, setAgreeTerms] = useState(false)
   return (
     <BasicModal
       id="confirm-name-modal"
-      title="Confirm Full Name"
+      title={`Confirm your Name for ${newUsername}`}
       primaryButtonText="Register"
       onPrimaryButtonClick={onConfirm}
       primaryButtonDisabled={!agreeTerms}
       onClose={() => setAgreeTerms(false)}
     >
-      <p className="mb-3">You are registering with:</p>
       <p className="mb-3">
-        First name
+        You are registering with the first name
         {' '}
         <strong>{firstName}</strong>
         {
@@ -630,9 +630,13 @@ const ConfirmNameModal = ({
         {' '}
         <strong>{lastName}</strong>
         {'. '}
-        Please confirm you name to continue.
+        On your OpenReview profile your name will appear as
+        {' '}
+        <strong>{`${firstName} ${lastName}`}</strong>
+        {'. '}
       </p>
-      <input id="agree-checkbox" type="checkbox" checked={agreeTerms} onClick={() => setAgreeTerms(value => !value)} />
+      <p className="mb-3">Please confirm your name to continue.</p>
+      <input id="agree-checkbox" type="checkbox" checked={agreeTerms} onChange={() => setAgreeTerms(value => !value)} />
       <label htmlFor="agree-checkbox">
         I confirm my name is correct.
       </label>
