@@ -18,9 +18,6 @@ export default class OpenReviewDocument extends Document {
         <body>
           <Main />
           <NextScript />
-
-          {/* This script tag is necessary to prevent a flash of unstyled content */}
-          <script> </script>
         </body>
       </Html>
     )
