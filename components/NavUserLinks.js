@@ -27,7 +27,8 @@ const NavUserLinks = () => {
     if (routesToSkipRedirection.includes(router.pathname)) {
       return '/login'
     }
-    return `/login?redirect=${encodeURIComponent(router.asPath)}&noprompt=true`
+    const asPath = typeof window === 'undefined' ? decodeURIComponent(router.asPath) : router.asPath
+    return `/login?redirect=${encodeURIComponent(asPath)}&noprompt=true`
   }
 
   if (!user) {
