@@ -55,7 +55,7 @@ const FilterForm = ({ searchQuery, loading }) => {
       </div>
       <div className="form-group">
         <label htmlFor="subject-search-input">Subject:</label>
-        <Icon name="info-sign" tooltip="When performing a regex search some characters such as [ need to be escaped.For example \[ABC.* " extraClasses="mr-1" />
+        <Icon name="info-sign" tooltip="When performing a regex search some special characters such as '[' need to be escaped. For example: \[ABC.*" extraClasses="mr-1" />
         <input
           type="text"
           id="subject-search-input"
