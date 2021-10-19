@@ -10,10 +10,10 @@ import ErrorAlert from '../components/ErrorAlert'
 import LoadingSpinner from '../components/LoadingSpinner'
 import MultiSelectorDropdown from '../components/MultiSelectorDropdown'
 import PaginationLinks from '../components/PaginationLinks'
+import Icon from '../components/Icon'
 import api from '../lib/api-client'
 
 import '../styles/pages/messages.less'
-import Icon from '../components/Icon'
 
 const statusOptions = [
   { text: 'Delivered', value: 'delivered' },
@@ -31,9 +31,10 @@ const FilterForm = ({ searchQuery, loading }) => {
   const queryStatutes = Array.isArray(queryStatus) ? queryStatus : [queryStatus]
   const selectedStatuses = queryStatutes.filter(s => statusOptionValues.includes(s))
   const router = useRouter()
-  if (typeof window !== 'undefined' && window.$) {
+
+  useEffect(() => {
     $('[data-toggle="tooltip"]').tooltip({ container: 'body' })
-  }
+  }, [])
 
   const onFiltersChange = (field, value) => {
     const newSearchQuery = { ...searchQuery, [field]: value }
@@ -54,7 +55,7 @@ const FilterForm = ({ searchQuery, loading }) => {
       </div>
       <div className="form-group">
         <label htmlFor="subject-search-input">Subject:</label>
-        <Icon name="info-sign" tooltip="when searching with regex, some characters such as [ need to be escaped. e.g. \[ABC.* " extraClasses="mr-1" />
+        <Icon name="info-sign" tooltip="When performing a regex search some characters such as [ need to be escaped.For example \[ABC.* " extraClasses="mr-1" />
         <input
           type="text"
           id="subject-search-input"
