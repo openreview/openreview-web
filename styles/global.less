@@ -781,3 +781,12 @@ strong.hint {
     }
   }
 }
+
+//input/textarea/rendered markdown font family overwrite
+input[type="text"].form-control, textarea.form-control, .markdown-rendered{
+  // There is an issue with Noto Sans and backticks, so use a different font for these fields
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+
+

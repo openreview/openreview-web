@@ -126,9 +126,9 @@ const SignupForm = ({ setSignupConfirmation }) => {
 
   useEffect(() => {
     if (isComposing) return
-    if (firstName.length === 1 && !isComposing) setFirstName(firstName.toUpperCase())
-    if (middleName.length === 1 && !isComposing) setMiddleName(middleName.toUpperCase())
-    if (lastName.length === 1 && !isComposing) setLastName(lastName.toUpperCase())
+    if (firstName.length === 1) setFirstName(firstName.toUpperCase())
+    if (middleName.length === 1) setMiddleName(middleName.toUpperCase())
+    if (lastName.length === 1) setLastName(lastName.toUpperCase())
     if (firstName.trim().length < 2 || lastName.trim().length < 2) {
       setExistingProfiles([])
       return
