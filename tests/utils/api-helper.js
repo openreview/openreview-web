@@ -1,11 +1,11 @@
 /* eslint-disable no-use-before-define */
 
+import { readFileSync } from 'fs'
 import fetch from 'node-fetch'
+import { loadEnvConfig } from '@next/env'
 import api from '../../lib/api-client'
 
-const fs = require('fs')
-
-require('dotenv').config()
+loadEnvConfig(process.cwd())
 
 api.configure({ fetchFn: fetch })
 
@@ -144,7 +144,7 @@ export function createNote(jsonToPost, userToken) {
 }
 
 export function sendFile(fileName, userToken) {
-  const readStream = fs.readFileSync(`${__dirname}/data/${fileName}`)
+  const readStream = readFileSync(`${__dirname}/data/${fileName}`)
   return api.sendFile(readStream, userToken)
 }
 
