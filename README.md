@@ -19,12 +19,14 @@ Next set the port that the Next.js server will listen on, or add it to your shel
 export NEXT_PORT=3030
 ```
 
-Finally, copy the sample `.env` file and replace the dummy values with the correct
+Finally, copy the sample config file and replace the default values with the correct
 values for your environment:
 
 ```bash
-cp .env.sample .env
+cp .env.example .env.local
 ```
+
+Unless you have a non-standard configuration, you may not need to change any of these variables.
 
 ## Development
 
