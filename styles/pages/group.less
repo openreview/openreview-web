@@ -463,4 +463,26 @@ main.group, main.invitation {
       border-bottom: 1px solid @backgroundGray;
     }
   }
+
+  //new implementation
+  .info-container, .edit-container {
+    .row {
+      margin-bottom: .5rem;
+    }
+    &__label {
+      font-weight: bold;
+      white-space: nowrap;
+      text-align: right;
+      padding-right: 0;
+      width: 120px;
+    }
+    &__value {
+      margin-left: 1rem;
+      padding-left:0;
+      padding-right: 0;
+    }
+    .edit-container__label{
+      margin-top: 5px;
+    }
+  }
 }

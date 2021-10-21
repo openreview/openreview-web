@@ -15,6 +15,7 @@ import { isSuperUser } from '../../lib/auth'
 
 // Page Styles
 import '../../styles/pages/group.less'
+import GroupEditor from '../../components/GroupEditor'
 
 export default function GroupEdit({ appContext }) {
   const { accessToken, userLoading, user } = useLoginRedirect()
@@ -105,6 +106,7 @@ export default function GroupEdit({ appContext }) {
           <h1>{prettyId(query?.id)}</h1>
         </div>
 
+        <GroupEditor group={group} isSuperUser={isSuperUser(user)} accessToken={accessToken} />
         <div id="notes" ref={containerRef} />
       </WebfieldContainer>
     </>

@@ -70,9 +70,9 @@ const AssignmentRow = ({
         </Link>
       </td>
 
-      <td>{formatDateTime(note.tcdate)}</td>
+      <td>{formatDateTime({ timestamp: note.tcdate })}</td>
 
-      <td>{note.tmdate === note.tcdate ? null : formatDateTime(note.tmdate)}</td>
+      <td>{note.tmdate === note.tcdate ? null : formatDateTime({ timestamp: note.tmdate })}</td>
 
       <td>
         {['Error', 'No Solution', 'Deployment Error'].includes(status) ? (
