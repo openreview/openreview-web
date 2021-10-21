@@ -48,7 +48,7 @@ const LoginForm = () => {
   }
 
   useEffect(() => {
-    if (query?.redirect) {
+    if (query?.redirect && !query?.noprompt) {
       promptMessage(`Please login to access ${truncate(query.redirect, { length: 100 })}`)
     }
   }, [query])
