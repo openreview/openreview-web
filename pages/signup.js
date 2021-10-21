@@ -118,13 +118,14 @@ const SignupForm = ({ setSignupConfirmation }) => {
   useEffect(() => {
     if (isComposing) return
 
+    if (firstName.length === 1) setFirstName(firstName.toUpperCase())
+    if (middleName.length === 1) setMiddleName(middleName.toUpperCase())
+    if (lastName.length === 1) setLastName(lastName.toUpperCase())
+
     if (firstName.trim().length < 1 || lastName.trim().length < 1) {
       setNewUsername('')
       return
     }
-    if (firstName.length === 1) setFirstName(firstName.toUpperCase())
-    if (middleName.length === 1) setMiddleName(middleName.toUpperCase())
-    if (lastName.length === 1) setLastName(lastName.toUpperCase())
 
     getNewUsername(firstName, middleName, lastName)
   }, [firstName, middleName, lastName, isComposing])
