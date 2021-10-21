@@ -656,10 +656,13 @@ const ConfirmNameModal = ({
         <strong>{newUsername}</strong>
         .
       </p>
-      <input id="agree-checkbox" type="checkbox" checked={agreeTerms} onChange={() => setAgreeTerms(value => !value)} />
-      <label htmlFor="agree-checkbox">
-        I confirm my name is correct.
-      </label>
+      <div className="checkbox">
+        <label>
+          <input type="checkbox" checked={agreeTerms} onChange={() => setAgreeTerms(value => !value)} />
+          {' '}
+          I confirm my name is correct.
+        </label>
+      </div>
     </BasicModal>
   )
 }
