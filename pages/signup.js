@@ -605,7 +605,7 @@ const ConfirmNameModal = ({
   return (
     <BasicModal
       id="confirm-name-modal"
-      title={`Confirm your name for ${newUsername}`}
+      title="Confirm Full Name"
       primaryButtonText="Register"
       onPrimaryButtonClick={onConfirm}
       primaryButtonDisabled={!agreeTerms}
@@ -633,7 +633,11 @@ const ConfirmNameModal = ({
         On your OpenReview profile your name will appear as
         {' '}
         <strong>{`${firstName} ${lastName}`}</strong>
-        {'. '}
+        {' '}
+        and your username will be
+        {' '}
+        <strong>{newUsername}</strong>
+        .
       </p>
       <input id="agree-checkbox" type="checkbox" checked={agreeTerms} onChange={() => setAgreeTerms(value => !value)} />
       <label htmlFor="agree-checkbox">
