@@ -27,6 +27,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
   const [nameConfirmed, setNameConfirmed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [existingProfiles, setExistingProfiles] = useState([])
+  const [isComposing, setIsComposing] = useState(false)
 
   const getNewUsername = useCallback(debounce(async (first, middle, last) => {
     try {
@@ -38,7 +39,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
       setNewUsername('')
       promptError(apiError.message)
     }
-  }, 200), [])
+  }, 500), [])
 
   const getMatchingProfiles = useCallback(debounce(async (first, last) => {
     try {
@@ -116,20 +117,30 @@ const SignupForm = ({ setSignupConfirmation }) => {
   }
 
   useEffect(() => {
+    if (isComposing) return
+
+    if (firstName.length === 1) setFirstName(firstName.toUpperCase())
+    if (middleName.length === 1) setMiddleName(middleName.toUpperCase())
+    if (lastName.length === 1) setLastName(lastName.toUpperCase())
+
     if (firstName.trim().length < 1 || lastName.trim().length < 1) {
       setNewUsername('')
       return
     }
+
     getNewUsername(firstName, middleName, lastName)
-  }, [firstName, middleName, lastName])
+  }, [firstName, middleName, lastName, isComposing])
 
   useEffect(() => {
+    if (isComposing) return
+
     if (firstName.trim().length < 2 || lastName.trim().length < 2) {
       setExistingProfiles([])
       return
     }
+
     getMatchingProfiles(firstName, lastName)
-  }, [firstName, lastName])
+  }, [firstName, lastName, isComposing])
 
   return (
     <div className="signup-form-container">
@@ -142,7 +153,9 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="first-input"
               className="form-control"
               value={firstName}
-              onChange={e => setFirstName(e.target.value.length === 1 ? e.target.value.toUpperCase() : e.target.value)}
+              onInput={e => setIsComposing(e.nativeEvent.isComposing)}
+              onCompositionEnd={() => setIsComposing(false)}
+              onChange={e => setFirstName(e.target.value)}
               placeholder="First name"
               autoComplete="given-name"
             />
@@ -159,7 +172,9 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="middle-input"
               className="form-control"
               value={middleName}
-              onChange={e => setMiddleName(e.target.value.length === 1 ? e.target.value.toUpperCase() : e.target.value)}
+              onInput={e => setIsComposing(e.nativeEvent.isComposing)}
+              onCompositionEnd={() => setIsComposing(false)}
+              onChange={e => setMiddleName(e.target.value)}
               placeholder="Middle name"
               autoComplete="additional-name"
             />
@@ -172,7 +187,9 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="last-input"
               className="form-control"
               value={lastName}
-              onChange={e => setLastName(e.target.value.length === 1 ? e.target.value.toUpperCase() : e.target.value)}
+              onInput={e => setIsComposing(e.nativeEvent.isComposing)}
+              onCompositionEnd={() => setIsComposing(false)}
+              onChange={e => setLastName(e.target.value)}
               placeholder="Last name"
               autoComplete="family-name"
             />

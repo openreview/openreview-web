@@ -48,7 +48,7 @@ const LoginForm = () => {
   }
 
   useEffect(() => {
-    if (query?.redirect) {
+    if (query?.redirect && !query?.noprompt) {
       promptMessage(`Please login to access ${truncate(query.redirect, { length: 100 })}`)
     }
   }, [query])
@@ -64,7 +64,7 @@ const LoginForm = () => {
           placeholder="Email"
           value={email}
           maxLength={254}
-          onChange={e => setEmail(e.target.value)}
+          onChange={e => setEmail(e.target.value.trim())}
         />
       </div>
 
