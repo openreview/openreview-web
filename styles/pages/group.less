@@ -485,4 +485,74 @@ main.group, main.invitation {
       margin-top: 5px;
     }
   }
+
+  .members-container {
+    .search-row {
+      background-color: @sandyBrown;
+      padding-top: .5rem;
+      padding-bottom: .5rem;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+
+      button {
+        height: 30px;
+        margin-left: .25rem;
+        margin-right: .25rem;
+      }
+      .space-taker {
+        flex-grow: 1;
+      }
+
+      .input-group {
+        flex-grow: 1;
+        max-width: 45%;
+        margin-left: .5rem;
+        white-space: nowrap;
+
+        span {
+          margin-left: -3rem;
+          margin-top: 5px;
+          padding-left: 1.5rem;
+          z-index: 3;
+          color: @subtleGray;
+        }
+      }
+    }
+
+
+    .empty-message-row {
+      border-bottom: 1px solid #ddd;
+      padding: 6px 8px;
+      font-style: italic;
+      color: @subtleGray;
+    }
+
+    .member-row {
+      &:hover {
+        background-color: @backgroundGray;
+      }
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #ddd;
+      padding: 6px 8px;
+      align-items: center;
+      input {
+        margin: 0;
+      }
+      a {
+        flex-grow: 1;
+        margin-left: .5rem;
+        height: 100%;
+      }
+      .glyphicon {
+        margin-right: .25rem;
+      }
+      button {
+        margin-left: .25rem;
+      }
+    }
+  }
 }

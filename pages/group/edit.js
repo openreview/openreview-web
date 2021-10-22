@@ -106,11 +106,18 @@ export default function GroupEdit({ appContext }) {
           <h1>{prettyId(query?.id)}</h1>
         </div>
 
-        <GroupEditor group={group} isSuperUser={isSuperUser(user)} accessToken={accessToken} />
+        <GroupEditor
+          group={group}
+          isSuperUser={isSuperUser(user)}
+          accessToken={accessToken}
+          reloadGroup={() => loadGroup(group.id)}
+        />
         <div id="notes" ref={containerRef} />
       </WebfieldContainer>
     </>
   )
 }
+
+export const getServerSideProps = async () => ({ props: {} })
 
 GroupEdit.bodyClass = 'group'
