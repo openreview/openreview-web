@@ -3877,6 +3877,11 @@ module.exports = (function() {
     var renderer = new marked.Renderer();
 
     renderer.image = function(href, title, text) {
+      if (href.startsWith('/images/')) {
+        var titleAttr = title ? 'title="' + title + '" ' : '';
+        var classAttr = href.endsWith('_icon.svg') ? 'class="icon" ' : '';
+        return '<img src="' + href + '" alt="' + text + '" ' + titleAttr + classAttr + '/>';
+      }
       return $('<div />').text('<img src="' + href + '" alt="' + text + '" title="' + title + '">').html();
     };
     renderer.checkbox = function(checked) {
