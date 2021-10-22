@@ -12,6 +12,7 @@ import {
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 // Global Styles
+import 'bootstrap/dist/css/bootstrap.min.css'
 import '../styles/global.scss'
 import '../styles/components.scss'
 import '../styles/pages.scss'
