@@ -1,7 +1,7 @@
 <div class="arechair-progress">
-  <h4>{{numMetaReview}} Meta Review Submitted</h4>
+  <h4>{{numMetaReview}} {{#if metaReviewName}}{{metaReviewName}}{{else}}Meta Review{{/if}} Submitted</h4>
 
-  <strong>Area Chair:</strong>
+  <strong>{{#if committeeName}}{{committeeName}}{{else}}Area Chair{{/if}}:</strong>
   <table class="table table-condensed table-minimal">
     <tbody>
       <tr>
@@ -11,12 +11,21 @@
       <tr>
         <td>
           <br>Recommendation: {{metaReview.content.recommendation}}
-          {{#if metaReview.content.format}}/ Format: {{metaReview.content.format}}{{/if}}
+          {{#if status}}
+            {{#each status as |value name|}}
+              <br>
+              {{name}}: {{value}}
+            {{/each}}
+          {{else}}
+            <!-- Deprecated -->
+            {{#if metaReview.content.format}}/ Format: {{metaReview.content.format}}{{/if}}
+          {{/if}}
         </td>
       </tr>
+
       <tr>
         <td>
-          <a href="/forum?id={{metaReview.forum}}&noteId={{metaReview.id}}{{#if referrer}}&referrer={{referrer}}{{/if}}" target="_blank">Read Meta Review</a>
+          <a href="/forum?id={{metaReview.forum}}&noteId={{metaReview.id}}{{#if referrer}}&referrer={{referrer}}{{/if}}" target="_blank">Read {{#if metaReviewName}}{{metaReviewName}}{{else}}Meta Review{{/if}}</a>
         </td>
       </tr>
       {{/if}}
