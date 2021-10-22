@@ -12,12 +12,12 @@ export default function GoogleAnalyticsScript() {
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{
           __html: `window.dataLayer = window.dataLayer || [];
-            function gtag() { dataLayer.push(arguments); }
-            gtag('js', new Date());
-            gtag('config', '${googleAnalyticsId}', {
-              page_path: window.location.pathname + window.location.search,
-              transport_type: 'beacon'
-            });`,
+function gtag() { dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', '${googleAnalyticsId}', {
+  page_path: window.location.pathname + window.location.search,
+  transport_type: 'beacon'
+});`,
         }}
       />
     </>

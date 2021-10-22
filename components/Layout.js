@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import GoogleAnalyticsScript from './GoogleAnalyticsScript'
 import Nav from './Nav'
 import Banner from './Banner'
 import FlashAlert from './FlashAlert'
@@ -19,6 +20,8 @@ export default function Layout({
         <title key="title">OpenReview</title>
         <meta name="description" content="Promoting openness in scientific communication and the peer-review process" />
 
+        <link rel="icon" href="/favicon.ico" />
+
         <meta property="og:title" key="og:title" content="OpenReview" />
         <meta property="og:description" key="og:description" content="" />
         <meta property="og:image" key="og:image" content="https://openreview.net/images/openreview_logo_512.png" />
@@ -26,6 +29,8 @@ export default function Layout({
         <meta property="og:site_name" key="og:site_name" content="OpenReview" />
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:site" content="@openreviewnet" />
+
+        <GoogleAnalyticsScript />
       </Head>
 
       <Nav />
