@@ -1,4 +1,4 @@
-const GoogleAnalyticsScript = () => {
+export default function GoogleAnalyticsScript() {
   const googleAnalyticsId = process.env.GA_PROPERTY_ID
 
   if (!process.env.IS_PRODUCTION && !process.env.IS_STAGING) {
@@ -23,5 +23,3 @@ const GoogleAnalyticsScript = () => {
     </>
   )
 }
-
-export default GoogleAnalyticsScript
