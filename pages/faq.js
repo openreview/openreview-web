@@ -245,7 +245,7 @@ You will have the option to edit or add metadata, remove papers or add additiona
     id: 'question-edge-browser-AC',
     a: `The edge browser is a tool for visualizing edges, or matches, created by OpenReview's automatic paper matching algorithm. You can use it to browse, sort, search, and create new assignments between reviewers and papers until you are happy with the assignments generated.
 
-**Navigating the Edge Browser**</br>
+### Navigating the Edge Browser
 
 From your Area Chair console, click on the 'Modify Reviewer Assignment' button.
 
@@ -254,10 +254,10 @@ All of your assigned papers will appear in a single column on the left. Clicking
   2. Light red means that the cell has conflict with the cell selected at left
   3. Light orange means that the cell both has conflict and is assigned to the cell selected at left.
 
-You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent column you can also search for specific reviewers by their name or email. You can sort the column on the right by Assignment, Aggregate Score, Bid, Affinity Score, and Conflict using the 'Order By' dropdown.
+You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent column you can also search for specific reviewers by their name or email. You can sort the column on the right by whatever edges appear in each cell, such as Assignment, Aggregate Score, Bid, Affinity Score, and/or Conflict, using the 'Order By' dropdown.
 
 ![Edge Browser](/images/faq-AC-edge-browser.png)
-**Creating and Removing Assignments Using the Edge Browser**</br>
+### Creating and Removing Assignments Using the Edge Browser
 
 You can delete an assignment using the trash can button on a certain cell.
 
@@ -803,18 +803,17 @@ You can have different types of fields:
     id: 'question-edge-browswer',
     a: `The edge browser is a tool for visualizing edges, or matches, created by OpenReview’s automatic paper matching algorithm. You can use it to browse, sort, search, and create new assignments between reviewers and papers until you are happy with the assignments generated.
 
-**Finding the edge browser**<br/>
+### Finding the edge browser
 
 You should see links for ‘Assignment’ in the ‘Timeline’ section of your Program Chair console.
 ![PC Console](/images/faq-PC_Console.png)
-Clicking on one of the assignment links will bring you to the assignment page. To create a new matching, click the ‘New Assignment Configuration’. This will pull up a form with some default values:
-![Matching Form](/images/faq-new-assignment-form1.png)
-![Matching Form](/images/faq-new-assignment-form2.png)
-After filling out this form and hitting submit, you should see the following:
+Clicking on one of the assignment links will bring you to the assignment page. To create a new matching, click the ‘New Assignment Configuration’. This will pull up a form with some default values pertaining to your matching settings. After filling out this form and hitting submit, you should see the following:
+
+
 ![Assignment Page](/images/faq-assignment-page.png)
 You can view, edit or copy the values you filled out in the matching form. When you are happy with it, you can hit ‘Run Matcher’. Then you should see options to browse assignments, view statistics or deploy matching. If you click ‘Browse Assignments’ you will be brought to the edge browser.
 
-**Using the Edge Browser**<br/>
+### Using the Edge Browser
 All papers will appear in a column on the left. You can click on the cell of a certain paper to see a second column of reviewers pop up to the right. Similarly, if you click on the cell of a reviewer, all of their assigned papers will pop up in another column to the right, and so on.
 ![Edge Browser](/images/faq-matcher-column2.png)
 
@@ -824,13 +823,13 @@ The color of each cell represents the relationship between that cell and the one
   3. Light orange means that the cell both has conflict and is assigned to the cell selected at left.
 
   Each cell will contain various edges calculated by the matcher and used to make assignments, such as the Bid, Affinity, and Aggregate scores. The trashcan button can be used to remove an edge. ‘Assignments’ tells you how many papers are assigned to a given reviewer. You may also see ‘Custom Max Papers’ here if certain reviewers requested a specific max number of papers.
-[insert screenshot]
 
-You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent columns you can also search for specific reviewers by profileID, name, or email. You can sort subsequent columns by Assignment, Aggregate Score, Bid, Affinity Score, and Conflict using the ‘Order By’ dropdown.
+
+You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent columns you can also search for specific reviewers by profileID, name, or email. You can sort subsequent columns on the right by whatever edges appear in each cell, such as Assignment, Aggregate Score, Bid, Affinity Score, and/or Conflict, using the 'Order By' dropdown.
 
 You can copy, edit, and create matching configurations as many times as you want until deployment. You can also use the ‘View Statistics’ button on the assignment page to view a breakdown of paper assignments. When you are happy with your assignments, hit ‘Deploy Assignments’ on the assignment page.
 
-**Post Deployment**<br/>
+### Post Deployment
 After deploying, ‘Browse Assignments’ will change to ‘Edit assignments’ so that you can continue to make manual assignments. If you would like to assign a reviewer to a given paper who is not in the reviewer pool, you will need to add that reviewer to your Reviewer group before manually assigning them to a paper through the edge browser.
 `,
   }]
