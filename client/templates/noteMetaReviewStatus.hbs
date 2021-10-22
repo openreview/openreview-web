@@ -1,6 +1,6 @@
 <div id="{{paperNumber}}-metareview-status">
   {{#if recommendation}}
-    <h4>AC Recommendation:</h4>
+    <h4>{{#if committeeName}}{{committeeName}}{{else}}AC{{/if}} Recommendation:</h4>
     <p>
       <strong>{{recommendation}}</strong>
     </p>

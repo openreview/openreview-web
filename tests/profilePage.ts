@@ -60,9 +60,9 @@ test('user open own profile', async (t) => {
     // add a name
     .click(nameSectionPlusIconSelector)
     .typeText(editFirstNameInputSelector, '111', { paste: true })
-    .expect(errorMessageSelector.innerText).eql('The first name 111 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed')
+    .expect(errorMessageSelector.innerText).eql('The name 111 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed')
     .typeText(editFirstNameInputSelector, '`', { replace: true })
-    .expect(errorMessageSelector.innerText).eql('The first name ` is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed')
+    .expect(errorMessageSelector.innerText).eql('The name ` is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed')
     .click(Selector('button.remove_button').filterVisible())
     // add a email
     .click(emailSectionPlusIconSelector)
@@ -78,7 +78,7 @@ test('user open own profile', async (t) => {
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages({ to: 'a@aa.com', subject: 'OpenReview Account Linking' }, superUserToken)
-  await t.expect(messages[0].content.text).contains('Click on the link below to confirm that a@aa.com and a@a.com both belong to the same person')
+  await t.expect(messages[0].content.text).contains('Click on the link below to confirm that <a href="mailto:a@aa.com">a@aa.com</a> and <a href="mailto:a@a.com">a@a.com</a> both belong to the same person')
     // personal links
     .expect(Selector('#show-dblp-import-modal').getAttribute('disabled')).eql('disabled')
     .typeText(Selector('#dblp_url'), 'test')
