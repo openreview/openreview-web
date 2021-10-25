@@ -270,12 +270,7 @@ There are two ways to create assignments:
 ![Reviewer Declined](/images/faq-reviewer-declined.png)
 
 ![Reviewer Accepted](/images/faq-reviewer-accepted.png)
-<<<<<<< HEAD
-
-Some reviewers have a custom reduced paper load which appears in the edge browser as 'Custom Max Papers'. You cannot assign a reviewer to more papers than their custom max papers.
-=======
 Some reviewers have a custom reduced paper load which appears in the edge browser as 'Custom Max Papers'. You cannot directly assign a reviewer to more papers than their custom max papers, but you can 'Invite' reviewers if that option is enabled for you. You can also filter out reviewers who have met their quota with the checkbox 'Only show reviewers with fewer than max assigned papers.'
->>>>>>> 32e37ab (Changes to wording)
 `,
   },
   {
@@ -835,51 +830,8 @@ You can have different types of fields:
     will be displayed as:
 
     ![Decision](/images/faq-decision-form.png)`,
-<<<<<<< HEAD
-  },
-  {
-    q: 'What is the edge browser, and how do I use it?',
-    id: 'question-edge-browswer',
-    a: `The edge browser is a tool for visualizing edges, or matches, created by OpenReview’s automatic paper matching algorithm. You can use it to browse, sort, search, and create new assignments between reviewers and papers until you are happy with the assignments generated.
-
-#### Finding the edge browser
-
-You should see links for ‘Assignment’ in the ‘Timeline’ section of your Program Chair console.
-
-![PC Console](/images/faq-PC_Console.png)
-
-Clicking on one of the assignment links will bring you to the assignment page. To create a new matching, click the ‘New Assignment Configuration’. This will pull up a form with some default values pertaining to your matching settings. After filling out this form and hitting submit, you should see the following:
-
-![Assignment Page](/images/faq-assignment-page.png)
-
-You can view, edit or copy the values you filled out in the matching form. When you are happy with it, you can hit ‘Run Matcher’. Then you should see options to browse assignments, view statistics or deploy matching. If you click ‘Browse Assignments’ you will be brought to the edge browser.
-
-#### Using the Edge Browser
-
-All papers will appear in a column on the left. You can click on the cell of a certain paper to see a second column of reviewers pop up to the right. Similarly, if you click on the cell of a reviewer, all of their assigned papers will pop up in another column to the right, and so on.
-
-![Edge Browser](/images/faq-matcher-column2.png)
-
-The color of each cell represents the relationship between that cell and the one selected at left:
-  1. Light green means that the cell is assigned to the cell selected at left
-  2. Light red means that the cell has conflict with the cell selected at left
-  3. Light orange means that the cell both has conflict and is assigned to the cell selected at left.
-
-Each cell will contain various edges calculated by the matcher and used to make assignments, such as the Bid, Affinity, and Aggregate scores. The trashcan button can be used to remove an edge. ‘Assignments’ tells you how many papers are assigned to a given reviewer. You may also see ‘Custom Max Papers’ here if certain reviewers requested a specific max number of papers.
-
-You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent columns you can also search for specific reviewers by profileID, name, or email. You can sort subsequent columns on the right by whatever edges appear in each cell, such as Assignment, Aggregate Score, Bid, Affinity Score, and/or Conflict, using the 'Order By' dropdown.
-
-You can copy, edit, and create matching configurations as many times as you want until deployment. You can also use the ‘View Statistics’ button on the assignment page to view a breakdown of paper assignments. When you are happy with your assignments, hit ‘Deploy Assignments’ on the assignment page.
-
-#### Post Deployment
-
-After deploying, ‘Browse Assignments’ will change to ‘Edit assignments’ so that you can continue to make manual assignments. If you would like to assign a reviewer to a given paper who is not in the reviewer pool, you will need to add that reviewer to your Reviewer group before manually assigning them to a paper through the edge browser.
-`,
-  }]
-=======
   }
   ]
->>>>>>> 32e37ab (Changes to wording)
 
   return {
     props: { generalQuestions, pcQuestions },
