@@ -401,7 +401,7 @@ You can copy, edit, and create matching configurations as many times as you want
 After deploying, 'Browse Assignments' will change to 'Edit assignments' so that you can continue to make manual assignments. If you would like to assign a reviewer to a given paper who is not in the reviewer pool, you will need to add that reviewer to your Reviewer group before manually assigning them to a paper through the edge browser.
 `,
   },
-   {
+  {
     q: 'How can I enable comments on papers?',
     id: 'question-enable-comments',
     a: 'On the request from for your venue, click on the ‘Comment Stage’ button to set up confidential comments and/or public comments.',
@@ -830,7 +830,7 @@ You can have different types of fields:
     will be displayed as:
 
     ![Decision](/images/faq-decision-form.png)`,
-  }
+  },
   ]
 
   return {
