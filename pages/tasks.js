@@ -11,6 +11,7 @@ import api from '../lib/api-client'
 import { formatTasksData } from '../lib/utils'
 
 import '../styles/pages/tasks.less'
+import { filter } from 'lodash'
 
 const Tasks = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
@@ -74,6 +75,14 @@ const Tasks = ({ appContext }) => {
   useEffect(() => {
     if (!groupedTasks) return
 
+    // Groups with no pending tasks should not be shown
+    const filteredGroupedTasks = {}
+    Object.keys(groupedTasks).forEach((groupId) => {
+      if (groupedTasks[groupId].numPending > 0) {
+        filteredGroupedTasks[groupId] = groupedTasks[groupId]
+      }
+    })
+
     const taskOptions = {
       showTasks: true,
       pdfLink: true,
@@ -85,7 +94,7 @@ const Tasks = ({ appContext }) => {
       emptyMessage: 'No current pending or completed tasks',
     }
     $(tasksRef.current).empty().append(
-      Handlebars.templates.groupedTaskList({ groupedInvitations: groupedTasks, taskOptions }),
+      Handlebars.templates.groupedTaskList({ groupedInvitations: filteredGroupedTasks, taskOptions }),
     )
 
     registerEventHandlers()
