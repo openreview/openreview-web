@@ -25,10 +25,10 @@ test('should open tasks page and complete pending task', async (t) => {
     .click(Selector('div.dropdown_content div').withText('9: Top 15% of accepted papers, strong accept')) // fill in comment content
     .click(Selector('input').withAttribute('name', 'confidence').withAttribute('value', '4: The reviewer is confident but not absolutely certain that the evaluation is correct')) // fill in comment content
     .click(Selector('button').withText('Submit')) // submit
-    // should see 0 pending task and 1 completed
     .click(Selector('a').withText('Tasks')) // go tasks page
-    .expect(Selector('a.show-tasks').innerText)
-    .eql('Show 0 pending tasks and 1 completed task')
+    // should see no task message
+    .expect(Selector('p.empty-message').exists).ok()
+    .expect(Selector('p.empty-message').textContent).eql('No current pending or completed tasks')
 })
 
 test('task should change when note is deleted and restored', async (t) => {
@@ -45,7 +45,9 @@ test('task should change when note is deleted and restored', async (t) => {
     .click(Selector('.note_editor').find('button').withText('Cancel')) // don't add new comment
     .click(Selector('button').withText('Restore'))
     .click(Selector('a').withText('Tasks'))
-    .expect(Selector('a.show-tasks').innerText).eql('Show 0 pending tasks and 1 completed task')
+    // should see no task message
+    .expect(Selector('p.empty-message').exists).ok()
+    .expect(Selector('p.empty-message').textContent).eql('No current pending or completed tasks')
 })
 
 test('user with no tasks should see an empty tasks page', async (t) => {
