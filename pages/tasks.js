@@ -11,7 +11,6 @@ import api from '../lib/api-client'
 import { formatTasksData } from '../lib/utils'
 
 import '../styles/pages/tasks.less'
-import { filter } from 'lodash'
 
 const Tasks = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
