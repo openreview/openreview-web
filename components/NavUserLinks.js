@@ -2,11 +2,13 @@
 
 import { useContext } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import UserContext from './UserContext'
 import api from '../lib/api-client'
 
 const NavUserLinks = () => {
   const { user, logoutUser } = useContext(UserContext)
+  const router = useRouter()
 
   const handleLogout = async (e) => {
     e.preventDefault()
@@ -20,11 +22,20 @@ const NavUserLinks = () => {
     }
   }
 
+  const getLoginPath = () => {
+    const routesToSkipRedirection = ['/', '/login', '/confirm', '/logout', '/signup', '/404', '/profile/activate', '/reset', '/user/password']
+    if (routesToSkipRedirection.includes(router.pathname)) {
+      return '/login'
+    }
+    const asPath = typeof window === 'undefined' ? decodeURIComponent(router.asPath) : router.asPath
+    return `/login?redirect=${encodeURIComponent(asPath)}&noprompt=true`
+  }
+
   if (!user) {
     return (
       <ul className="nav navbar-nav navbar-right">
         <li id="user-menu">
-          <Link href="/login"><a>Login</a></Link>
+          <Link href={getLoginPath()}><a>Login</a></Link>
         </li>
       </ul>
     )

@@ -27,6 +27,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
   const [nameConfirmed, setNameConfirmed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [existingProfiles, setExistingProfiles] = useState([])
+  const [isComposing, setIsComposing] = useState(false)
 
   const getNewUsername = useCallback(debounce(async (first, middle, last) => {
     try {
@@ -38,7 +39,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
       setNewUsername('')
       promptError(apiError.message)
     }
-  }, 200), [])
+  }, 500), [])
 
   const getMatchingProfiles = useCallback(debounce(async (first, last) => {
     try {
@@ -77,6 +78,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
       })
     } catch (apiError) {
       promptError(apiError.message)
+      setNameConfirmed(false)
     }
     setLoading(false)
   }
@@ -115,20 +117,30 @@ const SignupForm = ({ setSignupConfirmation }) => {
   }
 
   useEffect(() => {
+    if (isComposing) return
+
+    if (firstName.length === 1) setFirstName(firstName.toUpperCase())
+    if (middleName.length === 1) setMiddleName(middleName.toUpperCase())
+    if (lastName.length === 1) setLastName(lastName.toUpperCase())
+
     if (firstName.trim().length < 1 || lastName.trim().length < 1) {
       setNewUsername('')
       return
     }
+
     getNewUsername(firstName, middleName, lastName)
-  }, [firstName, middleName, lastName])
+  }, [firstName, middleName, lastName, isComposing])
 
   useEffect(() => {
+    if (isComposing) return
+
     if (firstName.trim().length < 2 || lastName.trim().length < 2) {
       setExistingProfiles([])
       return
     }
+
     getMatchingProfiles(firstName, lastName)
-  }, [firstName, lastName])
+  }, [firstName, lastName, isComposing])
 
   return (
     <div className="signup-form-container">
@@ -141,7 +153,9 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="first-input"
               className="form-control"
               value={firstName}
-              onChange={e => setFirstName(e.target.value.length === 1 ? e.target.value.toUpperCase() : e.target.value)}
+              onInput={e => setIsComposing(e.nativeEvent.isComposing)}
+              onCompositionEnd={() => setIsComposing(false)}
+              onChange={e => setFirstName(e.target.value)}
               placeholder="First name"
               autoComplete="given-name"
             />
@@ -158,7 +172,9 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="middle-input"
               className="form-control"
               value={middleName}
-              onChange={e => setMiddleName(e.target.value.length === 1 ? e.target.value.toUpperCase() : e.target.value)}
+              onInput={e => setIsComposing(e.nativeEvent.isComposing)}
+              onCompositionEnd={() => setIsComposing(false)}
+              onChange={e => setMiddleName(e.target.value)}
               placeholder="Middle name"
               autoComplete="additional-name"
             />
@@ -171,7 +187,9 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="last-input"
               className="form-control"
               value={lastName}
-              onChange={e => setLastName(e.target.value.length === 1 ? e.target.value.toUpperCase() : e.target.value)}
+              onInput={e => setIsComposing(e.nativeEvent.isComposing)}
+              onCompositionEnd={() => setIsComposing(false)}
+              onChange={e => setLastName(e.target.value)}
               placeholder="Last name"
               autoComplete="family-name"
             />
@@ -224,8 +242,10 @@ const SignupForm = ({ setSignupConfirmation }) => {
       )}
 
       <ConfirmNameModal
-        name={`${firstName} ${middleName} ${lastName}`}
-        id={newUsername}
+        firstName={firstName}
+        middleName={middleName}
+        lastName={lastName}
+        newUsername={newUsername}
         onConfirm={() => {
           $('#confirm-name-modal').modal('hide')
           setNameConfirmed(true)
@@ -510,7 +530,7 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
       return
     }
 
-    $('#confirm-name-modal').modal('show')
+    $('#confirm-name-modal').modal({ show: true, backdrop: 'static' })
   }
 
   useEffect(() => {
@@ -595,23 +615,57 @@ const SubmitButton = ({ disabled, children }) => {
   )
 }
 
-const ConfirmNameModal = ({ name, id, onConfirm }) => (
-  <BasicModal
-    id="confirm-name-modal"
-    title="Confirm Full Name"
-    primaryButtonText="Register"
-    onPrimaryButtonClick={onConfirm}
-  >
-    <p className="mb-3">You are registering with the name:</p>
-    <h3 className="mt-0 mb-3">{name}</h3>
-    <p className="mb-3">
-      {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-      Your public profile ID will be <strong>{id}</strong>.
-      If you need to change this name in the future you will have to contact OpenReview support.
-      Are you sure you want to register with this name?
-    </p>
-  </BasicModal>
-)
+const ConfirmNameModal = ({
+  firstName, middleName, lastName, newUsername, onConfirm,
+}) => {
+  const [agreeTerms, setAgreeTerms] = useState(false)
+  return (
+    <BasicModal
+      id="confirm-name-modal"
+      title="Confirm Full Name"
+      primaryButtonText="Register"
+      onPrimaryButtonClick={onConfirm}
+      primaryButtonDisabled={!agreeTerms}
+      onClose={() => setAgreeTerms(false)}
+    >
+      <p className="mb-3">
+        You are registering with the first name
+        {' '}
+        <strong>{firstName}</strong>
+        {
+          middleName && (
+            <>
+              {', '}
+              middle name
+              {' '}
+              <strong>{middleName}</strong>
+            </>
+          )
+        }
+        {' '}
+        and last name
+        {' '}
+        <strong>{lastName}</strong>
+        {'. '}
+        On your OpenReview profile your name will appear as
+        {' '}
+        <strong>{`${firstName} ${lastName}`}</strong>
+        {' '}
+        and your username will be
+        {' '}
+        <strong>{newUsername}</strong>
+        .
+      </p>
+      <div className="checkbox">
+        <label>
+          <input type="checkbox" checked={agreeTerms} onChange={() => setAgreeTerms(value => !value)} />
+          {' '}
+          I confirm my name is correct.
+        </label>
+      </div>
+    </BasicModal>
+  )
+}
 
 const ConfirmationMessage = ({ registrationType, registeredEmail }) => {
   if (registrationType === 'reset') {
