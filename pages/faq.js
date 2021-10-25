@@ -250,17 +250,17 @@ You will have the option to edit or add metadata, remove papers or add additiona
 From your Area Chair console, you should find a link or button that will bring you directly to the edge browser.
 
 All of your assigned papers will appear in a single column on the left. Clicking on an item in the list will pull up a second column containing all reviewers, colored by their relationship to the selected paper:
-  1. Light green means that the block is assigned to the block selected at left
-  2. Light red means that the block has conflict with the block selected at left
-  3. Light orange means that the block both has conflict and is assigned to the block selected at left.
+  1. Light green means that the item is assigned to the item selected at left
+  2. Light red means that the item has conflict with the item selected at left
+  3. Light orange means that the item both has conflict and is assigned to the item selected at left.
 
-You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent column you can also search for specific reviewers by their name or email. You can sort the column on the right by whatever edges appear in each block, such as Assignment, Aggregate Score, Bid, Affinity Score, and/or Conflict, using the 'Order By' dropdown.
+You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent column you can also search for specific reviewers by their name or email. You can sort the column on the right by whatever edge types are shown, such as Assignment, Aggregate Score, Bid, Affinity Score, and/or Conflict, using the 'Order By' dropdown.
 
 ![Edge Browser](/images/faq-AC-edge-browser.png)
 
 #### Creating and Removing Assignments Using the Edge Browser
 
-You can delete an assignment using the trash can button on a certain block.
+You can delete an assignment using the trash can button on a certain item.
 
 There are two ways to create assignments:
 
@@ -382,18 +382,18 @@ Clicking on one of the assignment links will bring you to the assignment page. T
 You can view, edit or copy the values you filled out in the matching form. When you are happy with it, you can hit 'Run Matcher'. Then you should see options to browse assignments, view statistics or deploy matching. If you click ‘Browse Assignments’ you will be brought to the edge browser.
 
 ### Using the Edge Browser
-All papers will appear in a column on the left. You can click on the block containing a certain paper to see a second column of reviewers pop up to the right. Similarly, if you click on the block of a reviewer, all of their assigned papers will pop up in another column to the right, and so on.
+All papers will appear in a column on the left. You can click on a certain paper to see a second column of reviewers pop up to the right. Similarly, if you click on a reviewer, all of their assigned papers will pop up in another column to the right, and so on.
 ![Edge Browser](/images/faq-matcher-column2.png)
 
 The color of each block represents the relationship between that block and the one selected at left:
-  1. Light green means that the block is assigned to the block selected at left
-  2. Light red means that the block has conflict with the block selected at left
-  3. Light orange means that the block both has conflict and is assigned to the block selected at left.
+  1. Light green means that the item is assigned to the item selected at left
+  2. Light red means that the item has conflict with the item selected at left
+  3. Light orange means that the item both has conflict and is assigned to the item selected at left.
 
-  Each block will contain various edges calculated by the matcher and used to make assignments, such as the Bid, Affinity, and Aggregate scores. The trashcan button can be used to remove an edge. ‘Assignments’ tells you how many papers are assigned to a given reviewer. You may also see 'Custom Max Papers' here if certain reviewers requested a specific max number of papers. You can filter out reviewers who have met their quota with the checkbox 'Only show reviewers with fewer than max assigned papers.'
+Each item will display various edges calculated by the matcher and used to make assignments, such as the Bid, Affinity, and Aggregate scores. The trashcan button can be used to remove an edge. ‘Assignments’ tells you how many papers are assigned to a given reviewer. You may also see 'Custom Max Papers' here if certain reviewers requested a specific max number of papers. You can filter out reviewers who have met their quota with the checkbox 'Only show reviewers with fewer than max assigned papers.'
 
 
-You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent columns you can also search for specific reviewers by profileID, name, or email. You can sort subsequent columns on the right by whatever edges appear in each block, such as Assignment, Aggregate Score, Bid, Affinity Score, and/or Conflict, using the 'Order By' dropdown.
+You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent columns you can also search for specific reviewers by profileID, name, or email. You can sort subsequent columns on the right by whatever edges are displayed, such as Assignment, Aggregate Score, Bid, Affinity Score, and/or Conflict, using the 'Order By' dropdown.
 
 You can copy, edit, and create matching configurations as many times as you want until deployment. You can also use the ‘View Statistics’ button on the assignment page to view a breakdown of paper assignments. When you are happy with your assignments, hit 'Deploy Assignments' on the assignment page.
 
