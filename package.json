@@ -12,6 +12,10 @@
     "templates": "handlebars client/templates/ -n 'window.Handlebars.templates' -f client/templates.js -e 'hbs'"
   },
   "dependencies": {
+    "@codemirror/basic-setup": "^0.19.0",
+    "@codemirror/commands": "^0.19.5",
+    "@codemirror/lang-javascript": "^0.19.2",
+    "@codemirror/view": "^0.19.9",
     "@zeit/next-less": "github:zbialecki/next-less",
     "bootstrap": "^3.4.1",
     "copy-to-clipboard": "^3.3.1",

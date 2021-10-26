@@ -1725,6 +1725,7 @@ module.exports = (function() {
         const anonGroupRegex = groupId.endsWith('s') ? `${groupId.slice(0, -1)}_` : `${groupId}_`
         const result = await get(`/groups?regex=${anonGroupRegex}`)
         groupMembers.forEach(m => {
+          console.log('m',m)
           const anonId = result.groups.find(p => p?.members == m)?.id
           memberAnonIdMap.set(m, {
             id: anonId,
@@ -1732,7 +1733,7 @@ module.exports = (function() {
           })
         })
       }
-      var limit = 15;
+      var limit = 3;
       var membersCount = groupMembers ? groupMembers.length : 0;
       var removedCount = removedMembers ? removedMembers.length : 0;
       var offset = getOffsetFromPageNum(limit, membersCount + removedCount, startPage);

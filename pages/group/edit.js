@@ -10,7 +10,7 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
+import { getGroupVersion, prettyId } from '../../lib/utils'
 import { isSuperUser } from '../../lib/auth'
 
 // Page Styles
@@ -32,7 +32,7 @@ export default function GroupEdit({ appContext }) {
       const { groups } = await api.get('/groups', { id }, { accessToken })
       if (groups?.length > 0) {
         if (groups[0].details?.writable) {
-          setGroup({ ...groups[0], web: null, apiVersion: id.startsWith('.') ? 2 : 1 })
+          setGroup({ ...groups[0], apiVersion: getGroupVersion(id) })
         } else {
           // User is a reader, not a writer of the group, so redirect to info mode
           router.replace(`/group/info?id=${id}`)

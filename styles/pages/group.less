@@ -542,7 +542,7 @@ main.group, main.invitation {
       input {
         margin: 0;
       }
-      a {
+      .member-id {
         flex-grow: 1;
         margin-left: .5rem;
         height: 100%;
@@ -553,6 +553,23 @@ main.group, main.invitation {
       button {
         margin-left: .25rem;
       }
+      &.deleted {
+        background-color: rgba(221, 221, 221, 0.5);
+        .member-id,a{
+          opacity: .5;
+          color: rgba(51, 51, 51, 1);
+          font-style: italic;
+        }
+      }
+    }
+  }
+  section.members {
+    textarea {
+      width: 100%;
+    }
+    .receiver-list {
+      max-height: 150px;
+      overflow-y: scroll;
     }
   }
 }
