@@ -29,10 +29,10 @@ export default function GroupEdit({ appContext }) {
 
   const loadGroup = async (id) => {
     try {
-      const { groups } = await api.get('/groups', { id }, { accessToken })
+      const { groups } = await api.get('/groups', { id }, { accessToken, version: getGroupVersion(id) })
       if (groups?.length > 0) {
         if (groups[0].details?.writable) {
-          setGroup({ ...groups[0], apiVersion: getGroupVersion(id) })
+          setGroup(groups[0])
         } else {
           // User is a reader, not a writer of the group, so redirect to info mode
           router.replace(`/group/info?id=${id}`)
@@ -71,15 +71,6 @@ export default function GroupEdit({ appContext }) {
 
     Webfield.editModeBanner(group.id, 'edit')
 
-    const webfieldEditorFn = group.apiVersion === 2
-      ? Webfield2.ui.groupEditor
-      : Webfield.ui.groupEditor
-
-    webfieldEditorFn(group, {
-      container: containerRef.current,
-      isSuperUser: isSuperUser(user),
-    })
-
     // eslint-disable-next-line consistent-return
     return () => {
       // Hide edit mode banner
@@ -101,19 +92,12 @@ export default function GroupEdit({ appContext }) {
         <LoadingSpinner />
       )}
 
-      <WebfieldContainer id="group-container">
-        <div id="header">
-          <h1>{prettyId(query?.id)}</h1>
-        </div>
-
-        <GroupEditor
-          group={group}
-          isSuperUser={isSuperUser(user)}
-          accessToken={accessToken}
-          reloadGroup={() => loadGroup(group.id)}
-        />
-        <div id="notes" ref={containerRef} />
-      </WebfieldContainer>
+      <GroupEditor
+        group={group}
+        isSuperUser={isSuperUser(user)}
+        accessToken={accessToken}
+        reloadGroup={() => loadGroup(group.id)}
+      />
     </>
   )
 }

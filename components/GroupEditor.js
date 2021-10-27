@@ -318,6 +318,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
   }
 
   useEffect(() => {
+    if (!jobId) return
     sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     setNow(0)
     setVariant(null)
@@ -720,11 +721,12 @@ const GroupSignedNotes = ({ groupId, accessToken }) => {
   const SignedNotesRow = ({ signedNote, version }) => {
     const invitationId = version === 2 ? signedNote.invitations[0] : signedNote.invitation
     const title = version === 2 ? signedNote.content?.title?.value : signedNote.content?.title
+    const user = version === 2 ? signedNote.content?.user?.value : signedNote.content?.user
     return (
       <li>
-        <Link href={`forum?id=${signedNote.forum}${signedNote.forum === signedNote.id ? '' : `&noteId=${signedNote.id}`}`}>
+        <Link href={`/forum?id=${signedNote.forum}${signedNote.forum === signedNote.id ? '' : `&noteId=${signedNote.id}`}`}>
           <a>
-            {`${prettyInvitationId(invitationId)}: ${title ?? signedNote.forum}`}
+            {`${prettyInvitationId(invitationId)}: ${title ?? signedNote.forum}${user ? ` - ${user}` : ''}`}
           </a>
         </Link>
       </li>
@@ -733,7 +735,8 @@ const GroupSignedNotes = ({ groupId, accessToken }) => {
 
   const loadNotes = async (limit = 15, offset = 0) => {
     try {
-      const result = await api.get('/notes', { signature: groupId, limit, offset }, { accessToken, version: groupVersion })
+      // TODO: how signatures is passed to api may change
+      const result = await api.get('/notes', { 'signatures[]': [groupId], limit, offset }, { accessToken, version: groupVersion })
       setTotalCount(result.count)
       setSignedNotes(result.notes)
     } catch (error) {
@@ -891,17 +894,22 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
   )
 }
 
-const GroupUICodeEditor = ({ group }) => {
+const GroupUICodeEditor = ({ group, accessToken }) => {
   const [showCodeEditor, setShowCodeEditor] = useState(false)
-  const [code, setCode] = useState(group.web)
+  const [code, setCode] = useState(group.web ?? '')
   const [modifiedWebCode, setModifiedWebCode] = useState(group.web)
   const handleUpdateCodeClick = async () => {
     try {
       const groupToPost = {
         ...group,
-        web: modifiedWebCode.trim() ? `${modifiedWebCode.trim()}\n` : null,
+        web: modifiedWebCode.trim() ? modifiedWebCode.trim() : null,
       }
-      // await api.post('/groups', { id: groupId, webCode: modifiedWebCode })
+      const result = await api.post('/groups', groupToPost, {
+        accessToken, version: getGroupVersion(group.id),
+      })
+      setCode(result.web ?? '')
+      setModifiedWebCode(modifiedWebCode.trim())
+      promptMessage(`UI code for ${group.id} has been updated`)
     } catch (error) {
       promptError(error.message)
     }
@@ -913,7 +921,7 @@ const GroupUICodeEditor = ({ group }) => {
         <>
           <CodeEditor code={code} onChange={modifiedCode => setModifiedWebCode(modifiedCode)} />
           <div className="mt-2">
-            <button type="button" className="btn btn-primary" onClick={handleUpdateCodeClick} disabled={webCode === modifiedWebCode}>Update Code</button>
+            <button type="button" className="btn btn-primary" onClick={handleUpdateCodeClick} disabled={code === modifiedWebCode}>Update Code</button>
             <button type="button" className="btn btn-default ml-1" onClick={() => setShowCodeEditor(false)}>Cancel</button>
           </div>
         </>
@@ -929,12 +937,13 @@ const GroupEditor = ({
 
   return (
     <>
-      <GeneralInfoEditor group={group} isSuperUser={isSuperUser} accessToken={accessToken} reloadGroup={reloadGroup} />
-      <GroupMembers group={group} isSuperUser={isSuperUser} accessToken={accessToken} />
-      <GroupSignedNotes groupId={group.id} accessToken={accessToken} />
-      <GroupChildGroups groupId={group.id} accessToken={accessToken} />
-      <GroupRelatedInvitations groupId={group.id} accessToken={accessToken} />
-      <GroupUICodeEditor group={group} accessToken={accessToken} />
+      {/* eslint-disable-next-line max-len */}
+      <GeneralInfoEditor key={`${group.id}-info`} group={group} isSuperUser={isSuperUser} accessToken={accessToken} reloadGroup={reloadGroup} />
+      <GroupMembers key={`${group.id}-members`} group={group} isSuperUser={isSuperUser} accessToken={accessToken} />
+      <GroupSignedNotes key={`${group.id}-signednotes`} groupId={group.id} accessToken={accessToken} />
+      <GroupChildGroups key={`${group.id}-childgroups`} groupId={group.id} accessToken={accessToken} />
+      <GroupRelatedInvitations key={`${group.id}-invitations`} groupId={group.id} accessToken={accessToken} />
+      <GroupUICodeEditor key={`${group.id}-code`} group={group} accessToken={accessToken} />
     </>
   )
 }
