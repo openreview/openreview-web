@@ -3,7 +3,6 @@
 
 import App from 'next/app'
 import Router from 'next/router'
-import 'formdata-polyfill'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
 import {
