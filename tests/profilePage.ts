@@ -78,7 +78,7 @@ test('user open own profile', async (t) => {
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages({ to: 'a@aa.com', subject: 'OpenReview Account Linking' }, superUserToken)
-  await t.expect(messages[0].content.text).contains('Click on the link below to confirm that a@aa.com and a@a.com both belong to the same person')
+  await t.expect(messages[0].content.text).contains('Click on the link below to confirm that <a href="mailto:a@aa.com">a@aa.com</a> and <a href="mailto:a@a.com">a@a.com</a> both belong to the same person')
     // personal links
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled')).ok()
     .typeText(Selector('#dblp_url'), 'test')
