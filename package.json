@@ -11,6 +11,12 @@
     "test-setup": "testcafe chrome tests/_setup.ts",
     "templates": "handlebars client/templates/ -n 'window.Handlebars.templates' -f client/templates.js -e 'hbs'"
   },
+  "browserslist": [
+    ">0.3%",
+    "not ie 11",
+    "not dead",
+    "not op_mini all"
+  ],
   "dependencies": {
     "bootstrap": "^3.4.1",
     "copy-to-clipboard": "^3.3.1",
