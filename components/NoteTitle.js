@@ -33,7 +33,7 @@ const NoteTitle = ({
 )
 
 export const NoteTitleV2 = ({
-  id, forum, invitation, content, signatures, options,
+  id, forum, invitation, content = {}, signatures, options,
 }) => {
   const baseAttachmentPath = options.isReference ? '/notes/edits/attachment' : '/attachment'
   return (

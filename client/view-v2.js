@@ -1715,6 +1715,7 @@ module.exports = (function() {
       tmdate: undefined,
       details: undefined,
       invitations: undefined,
+      tauthor: undefined,
     }
     return editToPost
   }

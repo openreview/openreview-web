@@ -69,7 +69,7 @@ const ConfirmDeleteRestoreModal = ({
       title={`${edit.ddate ? 'Restore' : 'Delete'} Edit`}
       primaryButtonText={`${edit.ddate ? 'Restore' : 'Delete'}`}
       primaryButtonDisabled={showSignatureDropdown && !signature}
-      onPrimaryButtonClick={() => { deleteRestoreEdit(edit, signature) }}
+      onPrimaryButtonClick={() => { deleteRestoreEdit(edit, invitation, signature) }}
     >
       <p className="mb-4">
         {/* eslint-disable-next-line react/destructuring-assignment */}
@@ -180,24 +180,24 @@ const RevisionsList = ({
     }).removeClass('panel')
   }
 
-  const deleteRestoreEdit = async (edit, signature) => {
-    const editToPost = {
-      ...edit,
-      note: {
-        ...edit.note,
-        mdate: undefined,
-        tmdate: undefined,
-      },
-      ddate: edit.ddate ? null : Date.now(),
-      ...(signature && { signatures: [signature] }),
-      cdate: undefined,
-      tcdate: undefined,
-      mdate: undefined,
-      tmdate: undefined,
-      details: undefined,
-      invitations: undefined,
-      content: undefined,
+  const deleteRestoreEdit = async (edit, invitation, signature) => {
+    if (!invitation.edit) {
+      promptError('invitation is invalid')
+      return
     }
+    const editToPost = {}
+    Object.keys(invitation.edit).forEach((p) => {
+      editToPost[p] = edit[p]
+    })
+    editToPost.id = edit.id
+    editToPost.ddate = edit.ddate ? null : Date.now()
+    editToPost.invitation = edit.invitation
+    if (signature) editToPost.signatures = [signature]
+    const editNote = {}
+    Object.keys(invitation.edit.note).forEach((p) => {
+      editNote[p] = edit.note[p]
+    })
+    editToPost.note = editNote
     await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
     setEditToDeleteRestore(null)
     loadEdits()

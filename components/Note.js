@@ -71,7 +71,7 @@ export const NoteV2 = ({ note, options }) => {
         id={note.id}
         forum={note.forum}
         invitation={note.invitations[0]}
-        content={note.content}
+        content={note.content ?? {}}
         signatures={note.signatures}
         options={options}
       />
@@ -87,17 +87,17 @@ export const NoteV2 = ({ note, options }) => {
 
       <div className="note-authors">
         <NoteAuthorsV2
-          authors={note.content.authors}
-          authorIds={note.content.authorids}
+          authors={note.content?.authors}
+          authorIds={note.content?.authorids}
           signatures={note.signatures}
           noteReaders={note.readers}
         />
       </div>
 
       <ul className="note-meta-info list-inline">
-        <li>{forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year?.value)}</li>
+        <li>{forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content?.year?.value)}</li>
         <li>
-          {note.content.venue?.value ? note.content.venue.value : prettyId(note.invitations[0])}
+          {note.content?.venue?.value ? note.content?.venue?.value : prettyId(note.invitations[0])}
           {privatelyRevealed && <Icon name="eye-open" extraClasses="note-visible-icon ml-2" tooltip="Privately revealed to you" />}
         </li>
         {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
@@ -110,7 +110,7 @@ export const NoteV2 = ({ note, options }) => {
       {options.showContents && (!note.ddate || note.ddate > Date.now()) && (
         <NoteContentV2
           id={note.id}
-          content={note.content}
+          content={note.content ?? {}}
           omit={options.omitFields}
           isEdit={options.isReference}
           presentation={note.details?.presentation}
