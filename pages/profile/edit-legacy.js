@@ -19,7 +19,7 @@ import { viewProfileLink } from '../../lib/banner-links'
 // Page Styles
 import '../../styles/pages/profile-edit.less'
 
-export default function ProfileEdit({ appContext }) {
+export default function ProfileEditLegacy({ appContext }) {
   const { accessToken } = useLoginRedirect()
   const { updateUserName } = useUser()
   const [profile, setProfile] = useState(null)
@@ -153,4 +153,4 @@ export default function ProfileEdit({ appContext }) {
   )
 }
 
-ProfileEdit.bodyClass = 'profile-edit'
+ProfileEditLegacy.bodyClass = 'profile-edit'

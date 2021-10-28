@@ -130,7 +130,7 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
       <div className="container emails">
         {
           emails.map(emailObj => (
-            <div className="row" key={emailObj.key}>
+            <div className="row d-flex" key={emailObj.key}>
               <div className="col-md-4 emails__value">
                 {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
                 <input type="email" autoFocus value={emailObj.email} readOnly={emailObj.confirmed} className={`form-control email profile ${emailObj.isValid ? undefined : 'invalid-value'}`} onChange={e => handleUpdateEmail(e.target.value.trim(), emailObj.key)} />
@@ -146,8 +146,8 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
           ))
         }
       </div>
-      <div role="button" aria-label="add another name" tabIndex={0} onClick={handleAddEmail}>
-        <Icon name="plus-sign" tooltip="add another name" />
+      <div role="button" aria-label="add another email" tabIndex={0} onClick={handleAddEmail}>
+        <Icon name="plus-sign" tooltip="add another email" />
       </div>
     </section>
   )

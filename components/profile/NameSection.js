@@ -1,9 +1,11 @@
 /* globals promptError: false */
-import { useEffect, useReducer } from 'react'
+import { useCallback, useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
+import debounce from 'lodash/debounce'
 import api from '../../lib/api-client'
 import ProfileSectionHeader from './ProfileSectionHeader'
 import Icon from '../Icon'
+import useBreakpoint from '../../hooks/useBreakPoint'
 
 const NamesButton = ({
   newRow, readonly, preferred, handleRemove, handleMakePreferred,
@@ -40,6 +42,7 @@ const NamesSection = ({ profileNames, updateNames }) => {
     return names
   }
   const [names, setNames] = useReducer(namesReducer, profileNames?.map(p => ({ ...p, key: nanoid() })) ?? [])
+  const isMobile = !useBreakpoint('sm')
 
   const handleAddName = () => {
     const newNameRow = {
@@ -55,11 +58,8 @@ const NamesSection = ({ profileNames, updateNames }) => {
     setNames({ addNewName: true, data: newNameRow })
   }
 
-  const handleUpdateName = async (key, field, targetValue) => {
-    // eslint-disable-next-line no-param-reassign
-    if (targetValue.length === 1) targetValue = targetValue.toUpperCase()
-    const update = { updateName: true, data: { key, field, value: targetValue } }
-    setNames(update)
+  // eslint-disable-next-line no-shadow
+  const getTildUserName = useCallback(debounce(async (field, targetValue, key, names) => {
     try {
       const tildeUsername = await api.get('/tildeusername', {
         first: field === 'first' ? targetValue : names.find(name => name.key === key)?.first,
@@ -70,6 +70,14 @@ const NamesSection = ({ profileNames, updateNames }) => {
     } catch (error) {
       promptError(error.message)
     }
+  }, 800), [])
+
+  const handleUpdateName = async (key, field, targetValue) => {
+    // eslint-disable-next-line no-param-reassign
+    if (targetValue.length === 1) targetValue = targetValue.toUpperCase()
+    const update = { updateName: true, data: { key, field, value: targetValue } }
+    setNames(update)
+    getTildUserName(field, targetValue, key, names)
   }
 
   const handleRemoveName = (key) => {
@@ -88,21 +96,24 @@ const NamesSection = ({ profileNames, updateNames }) => {
     <section>
       <ProfileSectionHeader type="names" />
       <div className="container names">
-        <div className="row">
-          <div className="small-heading col-md-2">First</div>
-          <div className="small-heading col-md-2">
-            Middle
-            {' '}
-            <span className="hint">(optional)</span>
+        {!isMobile && (
+          <div className="row">
+            <div className="small-heading col-md-2">First</div>
+            <div className="small-heading col-md-2">
+              Middle
+              {' '}
+              <span className="hint">(optional)</span>
+            </div>
+            <div className="small-heading col-md-2">Last</div>
+            <div className="small-heading col-md-2" />
+            <div className="small-heading col-md-2" />
           </div>
-          <div className="small-heading col-md-2">Last</div>
-          <div className="small-heading col-md-2" />
-          <div className="small-heading col-md-2" />
-        </div>
+        )}
         {
           names.map(p => (
             <div className="row" key={p.key}>
               <div className="col-md-2 names__value">
+                {isMobile && <div className="small-heading col-md-2">First</div>}
                 <input
                   type="text"
                   className={`form-control first-name ${profileNames.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
@@ -112,6 +123,13 @@ const NamesSection = ({ profileNames, updateNames }) => {
                 />
               </div>
               <div className="col-md-2 names__value">
+                {isMobile && (
+                  <div className="small-heading col-md-2">
+                    Middle
+                    {' '}
+                    <span className="hint">(optional)</span>
+                  </div>
+                )}
                 <input
                   type="text"
                   className="form-control middle-name"
@@ -121,6 +139,7 @@ const NamesSection = ({ profileNames, updateNames }) => {
                 />
               </div>
               <div className="col-md-2 names__value">
+                {isMobile && <div className="small-heading col-md-2">Last</div>}
                 <input
                   type="text"
                   className={`form-control last-name ${profileNames.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}

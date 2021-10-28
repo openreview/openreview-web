@@ -2,6 +2,7 @@ import { useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
 import ProfileSectionHeader from './ProfileSectionHeader'
 import Icon from '../Icon'
+import useBreakpoint from '../../hooks/useBreakPoint'
 
 const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
   // #region action type constants
@@ -11,6 +12,7 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
   const addExpertiseType = 'addExpertise'
   const removeExpertiseType = 'removeExpertise'
   // #endregion
+  const isMobile = !useBreakpoint('sm')
 
   const expertiseReducer = (state, action) => {
     switch (action.type) {
@@ -81,15 +83,18 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
     <section>
       <ProfileSectionHeader type="expertise" />
       <div className="container expertise">
-        <div className="row">
-          <div className="small-heading col-md-6">Research areas of interest</div>
-          <div className="small-heading col-md-1">Start</div>
-          <div className="small-heading col-md-1">End</div>
-        </div>
+        {!isMobile && (
+          <div className="row">
+            <div className="small-heading col-md-6">Research areas of interest</div>
+            <div className="small-heading col-md-1">Start</div>
+            <div className="small-heading col-md-1">End</div>
+          </div>
+        )}
         {
           expertises.map(p => (
             <div className="row" key={p.key}>
               <div className="col-md-6 expertise__value">
+                {isMobile && <div className="small-heading col-md-6">Research areas of interest</div>}
                 <input
                   className={`form-control ${profileExpertises?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
                   value={p.keywords.join(', ') ?? ''}
@@ -97,6 +102,7 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
                 />
               </div>
               <div className="col-md-1 expertise__value">
+                {isMobile && <div className="small-heading col-md-1">Start</div>}
                 <input
                   className={`form-control ${profileExpertises?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
                   placeholder="year"
@@ -105,6 +111,7 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
                 />
               </div>
               <div className="col-md-1 expertise__value">
+                {isMobile && <div className="small-heading col-md-1">End</div>}
                 <input
                   className={`form-control ${profileExpertises?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
                   placeholder="year"

@@ -10,12 +10,9 @@ import api from '../../lib/api-client'
 import { viewProfileLink } from '../../lib/banner-links'
 import { formatProfileData } from '../../lib/profiles'
 import useUser from '../../hooks/useUser'
-import {
-  isValidDomain, isValidEmail, isValidURL, isValidYear,
-} from '../../lib/utils'
 import ProfileEditor from '../../components/profile/ProfileEditor'
 
-const ProfileEditNew = ({ appContext }) => {
+const ProfileEdit = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
   const { updateUserName } = useUser()
   const router = useRouter()
@@ -146,5 +143,5 @@ const ProfileEditNew = ({ appContext }) => {
   )
 }
 
-ProfileEditNew.bodyClass = 'profile-edit'
-export default ProfileEditNew
+ProfileEdit.bodyClass = 'profile-edit'
+export default ProfileEdit

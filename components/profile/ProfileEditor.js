@@ -27,11 +27,10 @@ const ProfileEditor = ({
   personalLinkNames,
   loading,
 }) => {
-  const profileReducer = (state, action) => {
-    // eslint-disable-next-line no-param-reassign
-    state[action.type] = action.data
-    return state
-  }
+  const profileReducer = (state, action) => ({
+    ...state,
+    [action.type]: action.data,
+  })
   const [profile, setProfile] = useReducer(profileReducer, loadedProfile)
   const [dropdownOptions, setDropdownOptions] = useState(null)
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
@@ -81,7 +80,7 @@ const ProfileEditor = ({
       // eslint-disable-next-line max-len
       history: profile.history.flatMap(p => (p.position || p.institution?.domain || p.institution?.name ? p : [])),
       expertise: profile.expertise.flatMap(p => (p.expertise ? p : [])),
-      relations: profile.relations.flatMap(p => (p.relation ? p : [])),
+      relations: profile.relations.flatMap(p => (p.relation || p.name || p.email ? p : [])),
       preferredEmail: profile.emails.find(p => p.confirmed)?.email,
       preferredName: undefined,
       currentInstitution: undefined,
@@ -255,11 +254,13 @@ const ProfileEditor = ({
           />
         )
       }
-      <button type="button" className="btn submit-button" disabled={loading} onClick={() => handleSubmitButtonClick()}>
-        {submitButtontext}
-        {loading && <LoadingSpinner inline text="" extraClass="spinner-small" />}
-      </button>
-      {!hideCancelButton && <button type="button" className="btn btn-default" onClick={cancelHandler}>Cancel</button>}
+      <div className="buttons-row">
+        <button type="button" className="btn submit-button" disabled={loading} onClick={() => handleSubmitButtonClick()}>
+          {submitButtontext}
+          {loading && <LoadingSpinner inline text="" extraClass="spinner-small" />}
+        </button>
+        {!hideCancelButton && <button type="button" className="btn btn-default" onClick={cancelHandler}>Cancel</button>}
+      </div>
     </div>
   )
 }

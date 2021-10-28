@@ -1,9 +1,116 @@
-import { useEffect, useReducer } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import { nanoid } from 'nanoid'
-import { CreatableDropdown } from '../Dropdown'
-import MultiSelectorDropdown from '../MultiSelectorDropdown'
+import dynamic from 'next/dynamic'
 import ProfileSectionHeader from './ProfileSectionHeader'
 import Icon from '../Icon'
+import useBreakpoint from '../../hooks/useBreakPoint'
+
+const CreatableDropdown = dynamic(() => import('../Dropdown').then(mod => mod.CreatableDropdown))
+const MultiSelectorDropdown = dynamic(() => import('../MultiSelectorDropdown'))
+// #region action type constants
+const relationType = 'updateRelation'
+const readersType = 'updateReaders'
+const startType = 'updateStart'
+const endType = 'updateEnd'
+const nameType = 'updateName'
+const emailType = 'updateEmail'
+const addRelationType = 'addRelation'
+const removeRelationType = 'removeRelation'
+// #endregion
+
+const RelationRow = ({
+  relation, setRelation, profileRelation, relationOptions, relationReaderOptions, isMobile,
+}) => {
+  const relationPlaceholder = 'Choose or type a relation'
+  const [relationClicked, setRelationClicked] = useState(false)
+
+  const getReaderText = (selectedValues) => {
+    if (!selectedValues || !selectedValues.length || selectedValues.includes('everyone')) return 'everyone'
+    return selectedValues.join(',')
+  }
+
+  return (
+    <div className="row">
+      <div className="col-md-2 relation__value">
+        { isMobile && <div className="small-heading col-md-2">Relation</div> }
+        {
+          relationClicked
+            ? (
+              <CreatableDropdown
+                autofocus
+                defaultMenuIsOpen
+                hideArrow
+                disableMouseMove
+                classNamePrefix="relation-dropdown"
+                placeholder={relationPlaceholder}
+                defaultValue={relation.relation ? { value: relation.relation, label: relation.relation } : null}
+                // eslint-disable-next-line max-len
+                onChange={(e) => { setRelation({ type: relationType, data: { value: e.value, key: relation.key } }); setRelationClicked(false) }}
+                options={relationOptions}
+                styles={{
+                  control: (provided, state) => ({
+                    ...provided,
+                    borderColor: state.selectProps.isInvalid ? '#8c1b13!important' : provided.borderColor,
+                  }),
+                }}
+                isInvalid={profileRelation?.find(q => q.key === relation.key)?.valid === false}
+              />
+            )
+            : <input className="form-control relation__placeholder" placeholder={relationPlaceholder} value={relation.relation} onClick={() => setRelationClicked(true)} onChange={() => { }} />
+        }
+      </div>
+      <div className="col-md-3 relation__value">
+        {isMobile && <div className="small-heading col-md-3">Name</div> }
+        <input
+          className={`form-control ${profileRelation?.find(q => q.key === relation.key)?.valid === false ? 'invalid-value' : ''}`}
+          value={relation.name ?? ''}
+          onChange={e => setRelation({ type: nameType, data: { value: e.target.value, key: relation.key } })}
+        />
+      </div>
+      <div className="col-md-3 relation__value">
+        {isMobile && <div className="small-heading col-md-3">Email</div> }
+        <input
+          className={`form-control ${profileRelation?.find(q => q.key === relation.key)?.valid === false ? 'invalid-value' : ''}`}
+          value={relation.email ?? ''}
+          onChange={e => setRelation({ type: emailType, data: { value: e.target.value, key: relation.key } })}
+        />
+      </div>
+      <div className="col-md-1 relation__value">
+        {isMobile && <div className="small-heading col-md-1">Start</div> }
+        <input
+          className={`form-control ${profileRelation?.find(q => q.key === relation.key)?.valid === false ? 'invalid-value' : ''}`}
+          value={relation.start ?? ''}
+          placeholder="year"
+          onChange={e => setRelation({ type: startType, data: { value: e.target.value, key: relation.key } })}
+        />
+      </div>
+      <div className="col-md-1 relation__value">
+        {isMobile && <div className="small-heading col-md-1">End</div> }
+        <input
+          className={`form-control ${profileRelation?.find(q => q.key === relation.key)?.valid === false ? 'invalid-value' : ''}`}
+          value={relation.end ?? ''}
+          placeholder="year"
+          onChange={e => setRelation({ type: endType, data: { value: e.target.value, key: relation.key } })}
+        />
+      </div>
+      <div className="col-md-1 relation__value">
+        {isMobile && <div className="small-heading col-md-1">Visible to</div> }
+        <MultiSelectorDropdown
+          extraClass={`relation__multiple-select${isMobile ? ' relation__multiple-select-mobile' : ''}`}
+          options={relationReaderOptions}
+          selectedValues={relation.readers}
+          setSelectedValues={values => setRelation({ type: readersType, data: { value: values, key: relation.key } })}
+          displayTextFn={getReaderText}
+        />
+      </div>
+      <div className="col-md-1 relation__value">
+        <div role="button" aria-label="remove relation" tabIndex={0} onClick={() => setRelation({ type: removeRelationType, data: { key: relation.key } })}>
+          <Icon name="minus-sign" tooltip="remove relation" />
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const RelationsSection = ({
   profileRelation,
@@ -11,19 +118,9 @@ const RelationsSection = ({
   relationReaders,
   updateRelations,
 }) => {
-  const relationPlaceholder = 'Choose or type a relation'
+  const isMobile = !useBreakpoint('sm')
   const relationOptions = prefixedRelations?.map(p => ({ value: p, label: p })) ?? []
   const relationReaderOptions = relationReaders?.map(p => ({ value: p, label: p })) ?? []
-  // #region action type constants
-  const relationType = 'updateRelation'
-  const readersType = 'updateReaders'
-  const startType = 'updateStart'
-  const endType = 'updateEnd'
-  const nameType = 'updateName'
-  const emailType = 'updateEmail'
-  const addRelationType = 'addRelation'
-  const removeRelationType = 'removeRelation'
-  // #endregion
 
   const relationReducer = (state, action) => {
     switch (action.type) {
@@ -101,7 +198,7 @@ const RelationsSection = ({
   const [relations, setRelation] = useReducer(
     relationReducer,
     profileRelation?.length > 0
-      ? profileRelation?.map(p => ({ ...p, key: nanoid() }))
+      ? profileRelation?.map(p => ({ ...p, key: p.key ?? nanoid() }))
       : [...Array(3).keys()].map(() => ({
         key: nanoid(),
         relation: '',
@@ -113,11 +210,6 @@ const RelationsSection = ({
       })),
   )
 
-  const getReaderText = (selectedValues) => {
-    if (!selectedValues || !selectedValues.length || selectedValues.includes('everyone')) return 'everyone'
-    return selectedValues.join(',')
-  }
-
   useEffect(() => {
     updateRelations(relations)
   }, [relations])
@@ -126,79 +218,27 @@ const RelationsSection = ({
     <section>
       <ProfileSectionHeader type="relation" />
       <div className="container relation">
-        <div className="row">
-          <div className="small-heading col-md-2">Relation</div>
-          <div className="small-heading col-md-3">Name</div>
-          <div className="small-heading col-md-3">Email</div>
-          <div className="small-heading col-md-1">Start</div>
-          <div className="small-heading col-md-1">End</div>
-          <div className="small-heading col-md-1">Visible to</div>
-        </div>
+        {!isMobile && (
+          <div className="row">
+            <div className="small-heading col-md-2">Relation</div>
+            <div className="small-heading col-md-3">Name</div>
+            <div className="small-heading col-md-3">Email</div>
+            <div className="small-heading col-md-1">Start</div>
+            <div className="small-heading col-md-1">End</div>
+            <div className="small-heading col-md-1">Visible to</div>
+          </div>
+        )}
         {
-          relations.map(p => (
-            <div className="row" key={p.key}>
-              <div className="col-md-2 relation__value">
-                <CreatableDropdown
-                  hideArrow
-                  classNamePrefix="relation-dropdown"
-                  placeholder={relationPlaceholder}
-                  defaultValue={p.relation ? { value: p.relation, label: p.relation } : null}
-                  onChange={e => setRelation({ type: relationType, data: { value: e.value, key: p.key } })}
-                  options={relationOptions}
-                  styles={{
-                    control: (provided, state) => ({
-                      ...provided,
-                      borderColor: state.selectProps.isInvalid ? '#8c1b13!important' : provided.borderColor,
-                    }),
-                  }}
-                  isInvalid={profileRelation?.find(q => q.key === p.key)?.valid === false}
-                />
-              </div>
-              <div className="col-md-3 relation__value">
-                <input
-                  className={`form-control ${profileRelation?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
-                  value={p.name ?? ''}
-                  onChange={e => setRelation({ type: nameType, data: { value: e.target.value, key: p.key } })}
-                />
-              </div>
-              <div className="col-md-3 relation__value">
-                <input
-                  className={`form-control ${profileRelation?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
-                  value={p.email ?? ''}
-                  onChange={e => setRelation({ type: emailType, data: { value: e.target.value, key: p.key } })}
-                />
-              </div>
-              <div className="col-md-1 relation__value">
-                <input
-                  className={`form-control ${profileRelation?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
-                  value={p.start ?? ''}
-                  placeholder="year"
-                  onChange={e => setRelation({ type: startType, data: { value: e.target.value, key: p.key } })}
-                />
-              </div>
-              <div className="col-md-1 relation__value">
-                <input
-                  className={`form-control ${profileRelation?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
-                  value={p.end ?? ''}
-                  placeholder="year"
-                  onChange={e => setRelation({ type: endType, data: { value: e.target.value, key: p.key } })}
-                />
-              </div>
-              <div className="col-md-1 relation__value">
-                <MultiSelectorDropdown
-                  extraClass="relation__multiple-select"
-                  options={relationReaderOptions}
-                  selectedValues={p.readers}
-                  setSelectedValues={values => setRelation({ type: readersType, data: { value: values, key: p.key } })}
-                  displayTextFn={getReaderText}
-                />
-              </div>
-              <div className="col-md-1 relation__value">
-                <div role="button" aria-label="remove relation" tabIndex={0} onClick={() => setRelation({ type: removeRelationType, data: { key: p.key } })}>
-                  <Icon name="minus-sign" tooltip="remove relation" />
-                </div>
-              </div>
-            </div>
+          relations.map(relation => (
+            <RelationRow
+              key={relation.key}
+              relation={relation}
+              setRelation={setRelation}
+              profileRelation={profileRelation}
+              relationOptions={relationOptions}
+              relationReaderOptions={relationReaderOptions}
+              isMobile={isMobile}
+            />
           ))
         }
         <div className="row">

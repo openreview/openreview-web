@@ -101,11 +101,15 @@ main.profile-edit {
     }
   }
 
+  .d-flex{
+    display: flex;
+  }
+
   .gender-dropdown{
     margin-top: 5px;
     margin-bottom: 5px;
     &__control{
-      width: 500px;
+      max-width: 500px;
       background-color: #fffaf4;
       border: 2px solid lighten(@mediumBlue, 10%);
       padding: 0 0.75rem;
@@ -114,7 +118,7 @@ main.profile-edit {
       padding: 0;
     }
     &__menu{
-      width: 500px;
+      max-width: 500px;
     }
 
     > div {
@@ -176,13 +180,13 @@ main.profile-edit {
 
   .personal-links {
     &__input {
-      width: 420px;
+      max-width: 100%;
     }
     &__column {
       padding-left: 0;
-      padding-right: 0;
+      padding-right: .5rem;
       margin-bottom: 10px;
-      width: auto;
+      // width: auto;
     }
     &__faqlink {
       padding-left: .25rem;
@@ -191,7 +195,7 @@ main.profile-edit {
       }
     }
     &__adddblpbtn {
-      margin-top: .875rem;
+      // margin-top: .875rem;
     }
   }
 
@@ -241,7 +245,12 @@ main.profile-edit {
   }
 
   .relation{
-    &__value{
+    .small-heading {
+      padding-left: 0;
+      padding-right: 0;
+      margin-bottom: 5px;
+    }
+    &__value {
       padding-left: 0;
       padding-right:5px;
       margin-bottom: 5px;
@@ -249,6 +258,7 @@ main.profile-edit {
     &__multiple-select {
       width: 100%;
       margin-top:0!important;
+      margin-left: 0;
       button {
         width: 100%;
         overflow-x: hidden;
@@ -260,6 +270,21 @@ main.profile-edit {
         right: 0;
         left: auto;
       }
+    }
+
+    &__multiple-select-mobile {
+      ul.dropdown-menu {
+        width: 100%!important;
+      }
+    }
+
+    &__placeholder {
+      padding:1px 4px
+    }
+
+    .glyphicon-minus-sign {
+      margin-top: .5rem;
+      top:0
     }
   }
 
@@ -292,7 +317,19 @@ main.profile-edit {
     pointer-events: none;
   }
 
+  .submissions-list {
+    h4 {
+      font-size: 1rem;
+    }
+  }
+
+  div.buttons-row {
+    display: flex;
+    margin-top: 1rem;
+  }
+
   .submit-button{
+    display: flex;
     margin-right: .25rem;
     .spinner-small{
       width: 40px;
