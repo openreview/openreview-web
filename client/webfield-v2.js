@@ -233,7 +233,7 @@ module.exports = (function() {
     options = _.defaults(options, defaults);
 
     options.limit = options.pageSize;
-    options = _.omit(options, 'pageSize');
+    options = _.omit(options, ['pageSize','includeCount']);
 
     var urlParams = _.assign({invitation: invitationId}, options);
     return get('/notes', urlParams)
