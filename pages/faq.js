@@ -390,7 +390,7 @@ The color of each block represents the relationship between that block and the o
   2. Light red means that the item has conflict with the item selected at left
   3. Light orange means that the item both has conflict and is assigned to the item selected at left.
 
-Each item will display various edges calculated by the matcher and used to make assignments, such as the Bid, Affinity, and Aggregate scores. The trashcan button can be used to remove an edge. ‘Assignments’ tells you how many papers are assigned to a given reviewer. You may also see 'Custom Max Papers' here if certain reviewers requested a specific max number of papers. You can filter out reviewers who have met their quota with the checkbox 'Only show reviewers with fewer than max assigned papers.'
+Each item will display various edges calculated by the matcher and used to make assignments, such as the Bid, Affinity Aggregate scores and Conflicts. The trashcan button can be used to remove an edge. ‘Assignments’ tells you how many papers are assigned to a given reviewer. You may also see 'Custom Max Papers' here if certain reviewers requested a specific max number of papers. You can filter out reviewers who have met their quota with the checkbox 'Only show reviewers with fewer than max assigned papers.'
 
 
 You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent columns you can also search for specific reviewers by profileID, name, or email. You can sort subsequent columns on the right by whatever edges are displayed, such as Assignment, Aggregate Score, Bid, Affinity Score, and/or Conflict, using the 'Order By' dropdown.
