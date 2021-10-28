@@ -1,6 +1,7 @@
 const nextBuildId = require('next-build-id')
 
 module.exports = {
+  swcMinify: false,
   env: {
     IS_PRODUCTION: process.env.NODE_ENV === 'production',
     IS_STAGING: process.env.NODE_ENV === 'staging',
