@@ -379,7 +379,7 @@ Clicking on one of the assignment links will bring you to the assignment page. T
 
 
 ![Assignment Page](/images/faq-assignment-page.png)
-You can view, edit or copy the values you filled out in the matching form. When you are happy with it, you can hit 'Run Matcher'. Then you should see options to browse assignments, view statistics or deploy matching. If you click ‘Browse Assignments’ you will be brought to the edge browser.
+You can view, edit or copy the values you filled out in the matching form. When you are happy with it, you can hit 'Run Matcher' and wait until its status is 'Complete'. Then you should see options to browse assignments, view statistics or deploy matching. If you click ‘Browse Assignments’ you will be brought to the edge browser.
 
 ### Using the Edge Browser
 All papers will appear in a column on the left. You can click on a certain paper to see a second column of reviewers pop up to the right. Similarly, if you click on a reviewer, all of their assigned papers will pop up in another column to the right, and so on.
