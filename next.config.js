@@ -2,6 +2,9 @@ const nextBuildId = require('next-build-id')
 
 module.exports = {
   swcMinify: false,
+  eslint: {
+    dirs: ['pages', 'components', 'hooks', 'lib', 'tests'],
+  },
   env: {
     IS_PRODUCTION: process.env.NODE_ENV === 'production',
     IS_STAGING: process.env.NODE_ENV === 'staging',

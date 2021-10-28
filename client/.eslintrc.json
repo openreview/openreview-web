@@ -1,14 +1,5 @@
 {
-  "parser": "babel-eslint",
-  "parserOptions": {
-    "ecmaVersion": 2019
-  },
-  "env": {
-    "browser": true,
-    "node": true,
-    "es6": true
-  },
-  "extends": "airbnb",
+  "extends": "next",
   "rules": {
     "semi": ["error", "always"],
     "no-var": ["off"],

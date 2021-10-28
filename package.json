@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS='--inspect' next dev --port $NEXT_PORT",
-    "lint": "eslint --ext .js,.ts pages/** components/** lib/** hooks/** tests/**",
+    "lint": "next lint",
     "build": "next build",
     "start": "next start --port $NEXT_PORT",
     "test": "testcafe",
@@ -36,13 +36,10 @@
   "devDependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@next/env": "^12.0.1",
-    "babel-eslint": "^10.1.0",
     "eslint": "^7.32.0",
-    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-next": "12.0.1",
     "eslint-plugin-import": "^2.25.2",
-    "eslint-plugin-jsx-a11y": "^6.4.1",
-    "eslint-plugin-react": "^7.26.1",
-    "eslint-plugin-react-hooks": "^4.2.0",
     "node-fetch": "^2.6.5",
     "testcafe": "^1.16.1"
   }

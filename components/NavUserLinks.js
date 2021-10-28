@@ -64,6 +64,7 @@ const NavUserLinks = () => {
           </li>
           <li role="separator" className="divider hidden-xs" />
           <li>
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a href="/logout" onClick={handleLogout}>Logout</a>
           </li>
         </ul>

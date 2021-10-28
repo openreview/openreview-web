@@ -17,6 +17,14 @@ import UserContext from '../UserContext'
 import { getInterpolatedValues, getSignatures } from '../../lib/edge-utils'
 
 export default function NoteEntity(props) {
+  const {
+    editInvitations,
+    traverseInvitation,
+    availableSignaturesInvitationMap,
+    version,
+  } = useContext(EdgeBrowserContext)
+  const { user, accessToken } = useContext(UserContext)
+
   if (!props.note || !props.note.content) {
     return null
   }
@@ -31,16 +39,8 @@ export default function NoteEntity(props) {
     editEdges,
     editEdgeTemplates,
   } = props.note
-  const {
-    editInvitations,
-    traverseInvitation,
-    availableSignaturesInvitationMap,
-    version,
-  } = useContext(EdgeBrowserContext)
-  const { user, accessToken } = useContext(UserContext)
 
   const title = content.title ? content.title : 'No Title'
-
   const metadata = props.note.metadata || {}
   const extraClasses = []
   if (metadata.isAssigned || metadata.isUserAssigned) extraClasses.push('is-assigned')

@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import Script from 'next/script'
 
 export default function Donate() {
   return (
@@ -35,7 +36,7 @@ export default function Donate() {
         </div>
       </div>
 
-      <script src="https://donorbox.org/widget.js" paypalexpress="true" />
+      <Script src="https://donorbox.org/widget.js" paypalexpress="true" />
     </div>
   )
 }

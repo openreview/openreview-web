@@ -171,6 +171,7 @@ function HeaderNav({ title }) {
             <span className="icon-bar" />
           </button>
 
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a href="/" target="_blank" className="navbar-brand">
             <strong>{title}</strong>
           </a>
