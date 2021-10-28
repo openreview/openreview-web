@@ -11,7 +11,7 @@ html {
   }
 }
 body {
-  font-family: 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: .875rem;
 }
 #__next {
@@ -299,6 +299,10 @@ select.form-control {
   background-color: #fffaf4;
   padding-right: 24px;
 }
+input[type="text"].form-control, textarea.form-control {
+  // There is an issue with Noto Sans and backticks, so use a different font for inputs and textareas
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
 .checkbox, .radio {
   margin-top: .5rem;
   margin-bottom: .5rem;
@@ -440,6 +444,9 @@ $bannerHeight: 39px;
     font-weight: normal;
     color: inherit;
   }
+}
+.important_message {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 .no-margin {
   margin: 0;

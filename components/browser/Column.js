@@ -44,7 +44,7 @@ export default function Column(props) {
   const colBodyEl = useRef(null)
   const entityMap = useRef({ globalEntityMap, altGlobalEntityMap })
   const [entityMapChanged, setEntityMapChanged] = useState(false)
-  const { accessToken } = useUser()
+  const { accessToken, user } = useUser()
 
   const sortOptions = [{ key: traverseInvitation.id, value: 'default', text: transformName(prettyInvitationId(traverseInvitation.id)) }]
   const editAndBrowserInvitations = [...editInvitations, ...browseInvitations]
@@ -187,8 +187,9 @@ export default function Column(props) {
     }
 
     // Default
-    const parentIdToShow = parentId || startInvitation.query.tail
+    let parentIdToShow = parentId || startInvitation.query.tail
       || startInvitation.query.head || startInvitation.query.storageKey
+    if (parentIdToShow === user.profile?.id) parentIdToShow = user.profile.preferredId
     // eslint-disable-next-line react/jsx-one-expression-per-line
     return <p>{invitationNamePlural} for <strong>{prettyId(parentIdToShow)}</strong></p>
   }

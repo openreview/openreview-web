@@ -771,10 +771,6 @@ table.table-minimal {
       margin-bottom: .25rem;
     }
   }
-  input[type="text"].form-control, textarea.form-control {
-    // There is an issue with Noto Sans and backticks, so use a different font for these fields
-    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
-  }
   textarea.note_content_value {
     height: 280px;
   }

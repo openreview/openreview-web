@@ -69,4 +69,11 @@
       <strong>Number of Forum replies:</strong> {{forumReplyCount}}
     {{/isnt}}
   </div>
+
+  <div>
+    {{#each actions}}
+      <br>
+      <a href="{{url}}{{#if ../referrer}}&referrer={{../referrer}}{{/if}}" target="_blank">{{name}}</a>
+    {{/each}}
+  </div>
 </div>
