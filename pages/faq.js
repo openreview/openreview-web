@@ -241,7 +241,7 @@ After you have claimed your page and the claim has been approved you will receiv
 You will have the option to edit or add metadata, remove papers or add additional papers to your claimed Semantic Scholar author page (in case there are multiple author pages with your name).
     `,
   }, {
-    q: 'How can Area Chairs modify reviewer assignments?/What is the Edge Browser?',
+    q: 'How can Area Chairs/Action Editors modify reviewer assignments?',
     id: 'question-edge-browser-AC',
     a: `The edge browser is a tool for visualizing edges, or matches, created by OpenReview's automatic paper matching algorithm. You can use it to browse, sort, search, and create new assignments between reviewers and papers until you are happy with the assignments generated.
 
