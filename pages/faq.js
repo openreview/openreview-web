@@ -247,7 +247,7 @@ You will have the option to edit or add metadata, remove papers or add additiona
 
 #### Navigating the Edge Browser
 
-From your Area Chair console, you should find a link or button that will bring you directly to the edge browser.
+From your Area Chair or Action Editor console, you should find a link or button to modify the reviewer assignments that will bring you directly to the edge browser.
 
 All of your assigned papers will appear in a single column on the left. Clicking on an item in the list will pull up a second column containing all reviewers, colored by their relationship to the selected paper:
   1. Light green means that the item is assigned to the item selected at left
