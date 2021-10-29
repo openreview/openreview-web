@@ -96,7 +96,7 @@ const ConfirmDeleteRestoreModal = ({
 }
 
 const RevisionsList = ({
-  revisions, user, selectedIndexes, setSelectedIndexes, accessToken, loadEdits,
+  revisions, user, selectedIndexes, setSelectedIndexes, accessToken, loadEdits, isNoteWritable,
 }) => {
   const router = useRouter()
   const [editToDeleteRestore, setEditToDeleteRestore] = useState(null)
@@ -299,12 +299,27 @@ const RevisionsList = ({
                   && (
                   <div className="meta_actions">
                     {reference.ddate
-                      ? <RestoreButton onClick={() => setEditToDeleteRestore({ edit: reference, invitation })} />
+                      ? (
+                        <RestoreButton
+                          onClick={() => setEditToDeleteRestore({ edit: reference, invitation })}
+                          disableButton={!isNoteWritable}
+                          disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
+                        />
+                      )
                       : (
                         <>
-                          {/* eslint-disable-next-line max-len */}
-                          {invitation.edit.ddate && <TrashButton onClick={() => setEditToDeleteRestore({ edit: reference, invitation })} />}
-                          <EditButton onClick={() => editEdit(reference, invitation)} />
+                          <EditButton
+                            onClick={() => editEdit(reference, invitation)}
+                            disableButton={!isNoteWritable}
+                            disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
+                          />
+                          {invitation.edit.ddate && (
+                            <TrashButton
+                              onClick={() => setEditToDeleteRestore({ edit: reference, invitation })}
+                              disableButton={!isNoteWritable}
+                              disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
+                            />
+                          )}
                         </>
                       )}
                   </div>
@@ -336,6 +351,7 @@ const Revisions = ({ appContext }) => {
   const [selectedIndexes, setSelectedIndexes] = useState(null)
   const [referencesToLoad, setReferencesToLoad] = useState(null)
   const [isEditRevisions, setIsEditRevisions] = useState(false)
+  const [isNoteWritable, setIsNoteWritable] = useState(false)
   const { user, accessToken, userLoading } = useContext(UserContext)
   const router = useRouter()
   const query = useQuery()
@@ -445,7 +461,7 @@ const Revisions = ({ appContext }) => {
 
     const setBanner = async () => {
       try {
-        note = await api.getNoteById(noteId, accessToken)
+        note = await api.getNoteById(noteId, accessToken, { details: 'writable' })
         if (note) {
           setBannerContent(forumLink(note))
         } else {
@@ -457,6 +473,9 @@ const Revisions = ({ appContext }) => {
       if (note.version === 2) {
         setIsEditRevisions(true)
         setReferencesToLoad('edits')
+        if (note.details.writable) {
+          setIsNoteWritable(true)
+        }
         return
       }
       setReferencesToLoad('revisions')
@@ -519,6 +538,7 @@ const Revisions = ({ appContext }) => {
           setSelectedIndexes={setSelectedIndexes}
           accessToken={accessToken}
           loadEdits={loadEdits}
+          isNoteWritable={isNoteWritable}
         />
       )}
     </>
