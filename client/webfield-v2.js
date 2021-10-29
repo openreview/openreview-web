@@ -232,11 +232,11 @@ module.exports = (function() {
     };
     options = _.defaults(options, defaults);
 
-    options.limit = options.pageSize;
-    options = _.omit(options, ['pageSize','includeCount']);
+    var query = _.omit(options, ['pageSize', 'includeCount']);
+    query.limit = options.pageSize;
+    query.invitation = invitationId;
 
-    var urlParams = _.assign({invitation: invitationId}, options);
-    return get('/notes', urlParams)
+    return get('/notes', query)
       .then(function(result) {
         if (options.includeCount) {
           return result;
