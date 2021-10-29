@@ -1686,7 +1686,7 @@ module.exports = (function() {
 
   constructUpdatedEdit = (edit, invitation, formContent) => {
     const shouldSetValue = (fieldPath)=>{
-      const field = fieldPath.split('.').reduce((acc, fieldName) => { return acc?.fielName }, invitation)
+      const field = fieldPath.split('.').reduce((acc, fieldName) => { return acc?.fieldName }, invitation)
       if (!field || field?.value || field?.values) return false
       return true
     }
@@ -1697,12 +1697,13 @@ module.exports = (function() {
     })
     editToPost.id = edit.id
     editToPost.invitation = edit.invitation
-    if(shouldSetValue('edit.readers')) editToPost.signatures = formContent.editSignatureInputValues
-    if(shouldSetValue('edit.signatures')) editToPost.signatures = formContent.editSignatureInputValues
+    if (shouldSetValue('edit.readers')) editToPost.readers = formContent.editReaderValues
+    if (shouldSetValue('edit.signatures')) editToPost.signatures = formContent.editSignatureInputValues
     const editNote = {}
     Object.keys(invitation.edit.note).forEach((p) => {
       editNote[p] = edit.note[p]
     })
+    // if (edit.note?.id) editNote.id = edit.note.id TODO: validation may fail with or without this line
     if (invitation.edit.note?.content) {
       editNote.content = Object.entries(invitation.edit.note.content).reduce((acc, [fieldName, fieldValue]) => {
         acc[fieldName] = {

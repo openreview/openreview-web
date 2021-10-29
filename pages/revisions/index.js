@@ -1,13 +1,8 @@
 /* eslint-disable no-param-reassign */
-/* globals $: false */
-/* globals view,view2: false */
-/* globals Handlebars: false */
-/* globals promptLogin: false */
-/* globals promptError: false */
-/* globals promptMessage: false */
+/* globals $,view,view2,Handlebars,promptLogin,promptError,promptMessage: false */
 
 import {
-  useEffect, useContext, useState, useRef,
+  useEffect, useContext, useState,
 } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -15,16 +10,14 @@ import useQuery from '../../hooks/useQuery'
 import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorAlert from '../../components/ErrorAlert'
-import { NoteV2 } from '../../components/Note'
 import api from '../../lib/api-client'
 import { forumLink } from '../../lib/banner-links'
-
 import '../../styles/pages/revisions.less'
-import { EditButton, RestoreButton, TrashButton } from '../../components/EditButtons'
+import { EditButton, RestoreButton, TrashButton } from '../../components/IconButtons'
 import BasicModal from '../../components/BasicModal'
 import { buildNoteTitle, prettyId } from '../../lib/utils'
 import Dropdown from '../../components/Dropdown'
-import viewV2 from '../../client/view-v2'
+import { NoteV2 } from '../../components/Note'
 
 const ConfirmDeleteRestoreModal = ({
   editInfo, user, accessToken, deleteRestoreEdit,
@@ -79,7 +72,7 @@ const ConfirmDeleteRestoreModal = ({
       {showSignatureDropdown && (
         <div className="row">
           <div className="col-sm-2">
-            <span className="signature-dropdown-label">{`${isSignatureRequired ? '*' : ''}Signature`}</span>
+            <span className="signature-dropdown-label">{`${isSignatureRequired ? '* ' : ''}Signature`}</span>
           </div>
           <div className="col-sm-10">
             <Dropdown
@@ -204,6 +197,7 @@ const RevisionsList = ({
   }
 
   const editEdit = (edit, invitation) => {
+    console.log('edit in index', edit.readers)
     $('#edit-edit-modal').remove()
     $('body').append(Handlebars.templates.genericModal({
       id: 'edit-edit-modal',
@@ -212,7 +206,7 @@ const RevisionsList = ({
       showFooter: false,
     }))
     $('#edit-edit-modal').modal('show')
-    viewV2.mkNoteEditor(edit.note, invitation, user, {
+    view2.mkNoteEditor(edit.note, invitation, user, {
       isEdit: true,
       editToUpdate: edit,
       onNoteEdited: () => {
@@ -238,8 +232,7 @@ const RevisionsList = ({
   }
 
   useEffect(() => {
-    if (!revisions) return
-    if (revisions[0]?.note) return
+    if (!revisions || revisions[0]?.note) return
     $('.references-list .note-container').each(function appendNotePanel(index) {
       const [reference, invitation] = revisions[index]
       $(this).append(buildNotePanel(reference, invitation))
@@ -428,8 +421,10 @@ const Revisions = ({ appContext }) => {
       setError(apiError)
       return
     }
+    console.log('apiRes.edits', apiRes.edits)
     // eslint-disable-next-line max-len
     const edits = apiRes.edits.map(edit => ({ ...edit, invitations: [edit.invitation] })) || [] // for reusing mkNotePanel
+    console.log('edits', edits)
     const invitationIds = Array.from(new Set(edits.map(edit => edit.invitation)))
 
     try {
