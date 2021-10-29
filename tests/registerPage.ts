@@ -169,9 +169,10 @@ fixture`Activate`
 test('update profile', async (t) => {
   await t
     .typeText(Selector('input.personal-links__input').nth(0), 'http://homepage.do')
-    .click(Selector('div.position-dropdown__placeholder').nth(0))
+    .click(Selector('input.position-dropdown__placeholder').nth(0))
     .pressKey('M S space s t u d e n t tab')
-    .click(Selector('div.institution-dropdown__placeholder').nth(0))
+    .click(Selector('input.institution-dropdown__placeholder').nth(0))
+    .click(Selector('div.institution-dropdown__option').nth(0))
     .pressKey('tab')
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messagePanelSelector.exists).ok()
