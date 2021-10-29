@@ -232,7 +232,7 @@ module.exports = (function() {
     };
     options = _.defaults(options, defaults);
 
-    query = _.omit(options, ['pageSize', 'includeCount']);
+    var query = _.omit(options, ['pageSize', 'includeCount']);
     query.limit = options.pageSize;
     query.invitation = invitationId;
 
