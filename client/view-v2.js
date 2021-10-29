@@ -1691,32 +1691,29 @@ module.exports = (function() {
       return true
     }
 
-    const editToPost = {
-      ...edit,
-      note: {
-        ...edit.note,
-        content: Object.entries(invitation.edit.note?.content ?? {}).reduce((acc, [fieldName, fieldValue]) => {
-          acc[fieldName] = {
-            value: formContent[fieldName],
-            ...(shouldSetValue(`edit.note.content.${fieldName}.readers`) && { readers: edit.note?.content?.[fieldName]?.readers }),
-          }
-          return acc
-        }, {}),
-        ...(shouldSetValue('edit.note.readers') && { readers: formContent.noteReaderValues }),
-        ...(shouldSetValue('edit.note.signatures') && { signatures: formContent.noteSignatureInputValues }),
-        mdate: undefined,
-        tmdate: undefined,
-      },
-      ...(shouldSetValue('edit.readers') && { signatures: formContent.editSignatureInputValues }),
-      ...(shouldSetValue('edit.signatures') && { signatures: formContent.editSignatureInputValues }),
-      cdate: undefined,
-      tcdate: undefined,
-      mdate: undefined,
-      tmdate: undefined,
-      details: undefined,
-      invitations: undefined,
-      tauthor: undefined,
+    const editToPost = {}
+    Object.keys(invitation.edit).forEach((p) => {
+      editToPost[p] = edit[p]
+    })
+    editToPost.id = edit.id
+    editToPost.invitation = edit.invitation
+    if(shouldSetValue('edit.readers')) editToPost.signatures = formContent.editSignatureInputValues
+    if(shouldSetValue('edit.signatures')) editToPost.signatures = formContent.editSignatureInputValues
+    const editNote = {}
+    Object.keys(invitation.edit.note).forEach((p) => {
+      editNote[p] = edit.note[p]
+    })
+    if (invitation.edit.note?.content) {
+      editNote.content = Object.entries(invitation.edit.note.content).reduce((acc, [fieldName, fieldValue]) => {
+        acc[fieldName] = {
+          value: formContent[fieldName],
+          ...(shouldSetValue(`edit.note.content.${fieldName}.readers`) && { readers: edit.note?.content?.[fieldName]?.readers }),
+        }
+        return acc
+      }, {})
     }
+    editToPost.note = editNote
+
     return editToPost
   }
 
