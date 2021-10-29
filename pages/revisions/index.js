@@ -13,7 +13,7 @@ import ErrorAlert from '../../components/ErrorAlert'
 import api from '../../lib/api-client'
 import { forumLink } from '../../lib/banner-links'
 import '../../styles/pages/revisions.less'
-import { EditButton, RestoreButton, TrashButton } from '../../components/IconButtons'
+import { EditButton, RestoreButton, TrashButton } from '../../components/IconButton'
 import BasicModal from '../../components/BasicModal'
 import { buildNoteTitle, prettyId } from '../../lib/utils'
 import Dropdown from '../../components/Dropdown'
@@ -197,7 +197,6 @@ const RevisionsList = ({
   }
 
   const editEdit = (edit, invitation) => {
-    console.log('edit in index', edit.readers)
     $('#edit-edit-modal').remove()
     $('body').append(Handlebars.templates.genericModal({
       id: 'edit-edit-modal',
@@ -421,10 +420,8 @@ const Revisions = ({ appContext }) => {
       setError(apiError)
       return
     }
-    console.log('apiRes.edits', apiRes.edits)
     // eslint-disable-next-line max-len
     const edits = apiRes.edits.map(edit => ({ ...edit, invitations: [edit.invitation] })) || [] // for reusing mkNotePanel
-    console.log('edits', edits)
     const invitationIds = Array.from(new Set(edits.map(edit => edit.invitation)))
 
     try {

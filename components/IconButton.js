@@ -1,7 +1,7 @@
 import Icon from './Icon'
 
 const IconButton = ({
-  onClick, disableButton = false, disableReason = null, title = null, name, extraClasses
+  onClick, disableButton = false, disableReason = null, title = null, name, extraClasses,
 }) => (
   <button type="button" className="btn btn-xs" onClick={onClick} title={disableReason ?? title} disabled={disableButton}>
     <Icon name={name} extraClasses={extraClasses} />
