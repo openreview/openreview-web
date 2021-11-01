@@ -1,3 +1,6 @@
+/**
+ * DEPRECATED - See Layout component for Google analytics code
+ */
 export default function GoogleAnalyticsScript() {
   const googleAnalyticsId = process.env.GA_PROPERTY_ID
 
