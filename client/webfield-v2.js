@@ -232,11 +232,11 @@ module.exports = (function() {
     };
     options = _.defaults(options, defaults);
 
-    options.limit = options.pageSize;
-    options = _.omit(options, 'pageSize');
+    var query = _.omit(options, ['pageSize', 'includeCount']);
+    query.limit = options.pageSize;
+    query.invitation = invitationId;
 
-    var urlParams = _.assign({invitation: invitationId}, options);
-    return get('/notes', urlParams)
+    return get('/notes', query)
       .then(function(result) {
         if (options.includeCount) {
           return result;
@@ -374,6 +374,14 @@ module.exports = (function() {
     }
 
     var registerHelpers = function() {
+      $container.on('click', 'a.collapse-btn', function(e) {
+        if ($(this).text() === 'Show reviewers') {
+          $(this).text('Hide reviewers');
+        } else {
+          $(this).text('Show reviewers');
+        }
+      });
+
       $container.on('change', '#select-all-papers', function(e) {
         var $superCheckBox = $(this);
         var $allPaperCheckBoxes = $('input.select-note-reviewers');
