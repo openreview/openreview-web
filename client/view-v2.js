@@ -985,6 +985,7 @@ module.exports = (function() {
         content[0].editReaderValues = editReaderValues;
         content[0].noteReaderValues = noteReaderValues;
         content[0].editWriterValues = editWriterValues;
+        content[0].replyto = replyto;
 
         var errorList = content[2].concat(validate(invitation, content[0], noteReaders));
         if (params.onValidate) {
@@ -1231,7 +1232,7 @@ module.exports = (function() {
     var requiredText = fieldDescription.optional ? null : $('<span>', { text: '*', class: 'required_field' });
     var setParentReaders = function(parent, fieldDescription, fieldType, done) {
       if (parent) {
-        Webfield2.get('/notes', { id: parent }).then(function (result) {
+       return Webfield2.get('/notes', { id: parent }).then(function (result) {
           var newFieldDescription = fieldDescription;
           if (result.notes.length > 0) {
             var parentReaders = result.notes[0].readers;
@@ -1254,7 +1255,7 @@ module.exports = (function() {
     };
 
     if (_.has(fieldDescription, 'values-regex')) {
-      Webfield2.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
+      return Webfield2.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
       .then(function(result) {
         if (_.isEmpty(result.groups)) {
           done(undefined, 'You do not have permission to create a note');
@@ -1291,7 +1292,7 @@ module.exports = (function() {
         }
       }
 
-      setParentReaders(replyto, fieldDescription, 'values-dropdown', function (newFieldDescription) {
+      return setParentReaders(replyto, fieldDescription, 'values-dropdown', function (newFieldDescription) {
         // when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
         var replyValues = _.intersection(newFieldDescription['values-dropdown'], fieldDescription['values-dropdown']);
 
@@ -1316,13 +1317,13 @@ module.exports = (function() {
       });
 
     } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
-      setParentReaders(replyto, fieldDescription, 'value-dropdown-hierarchy', function(newFieldDescription) {
+      return setParentReaders(replyto, fieldDescription, 'value-dropdown-hierarchy', function(newFieldDescription) {
         var $readers = mkComposerInput('readers', { value: newFieldDescription }, fieldValue);
         $readers.find('.small_heading').prepend(requiredText);
         done($readers);
       });
     } else if (_.has(fieldDescription, 'values')) {
-      setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
+      return setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
         var subsetReaders = fieldDescription.values.every(function (val) {
           var found = newFieldDescription.values.indexOf(val) !== -1;
           if (!found && val.includes('/Reviewer_')) {
@@ -1353,7 +1354,7 @@ module.exports = (function() {
           fieldDescription['values-checkbox'].splice(index, 1);
         }
       }
-      setParentReaders(replyto, fieldDescription, 'values-checkbox', function (newFieldDescription) {
+      return setParentReaders(replyto, fieldDescription, 'values-checkbox', function (newFieldDescription) {
         // when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
         var replyValues = _.intersection(newFieldDescription['values-checkbox'], fieldDescription['values-checkbox']);
 
