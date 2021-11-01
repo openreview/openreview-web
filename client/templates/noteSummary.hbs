@@ -17,5 +17,9 @@
     <div class="note-authors">Conflict Domains: {{join content.authorDomains}}</div>
   {{/if}}
 
+  {{#if showDates}}
+    <span class="date"><strong>Submision date</strong>: {{forumDate cdate tcdate mdate tmdate content.year}}</span>
+  {{/if}}
+
   {{noteContentCollapsible this}}
 </div>
