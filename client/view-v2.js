@@ -1703,7 +1703,7 @@ module.exports = (function() {
     Object.keys(invitation.edit.note).forEach((p) => {
       editNote[p] = edit.note[p]
     })
-    // if (edit.note?.id) editNote.id = edit.note.id TODO: validation may fail with or without this line
+
     if (invitation.edit.note?.content) {
       editNote.content = Object.entries(invitation.edit.note.content).reduce((acc, [fieldName, fieldValue]) => {
         acc[fieldName] = {
