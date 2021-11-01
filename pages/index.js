@@ -3,48 +3,23 @@ import Link from 'next/link'
 import Head from 'next/head'
 import uniqBy from 'lodash/uniqBy'
 import LoadingSpinner from '../components/LoadingSpinner'
+import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { prettyId, formatTimestamp } from '../lib/utils'
 
 // Page Styles
 import '../styles/pages/home.less'
 
-const VenueList = ({ name, venues }) => {
-  if (!venues) {
-    return <LoadingSpinner inline />
-  }
-  if (venues.length === 0) {
-    // eslint-disable-next-line react/jsx-one-expression-per-line
-    return <p className="empty">There are currently no {name}.</p>
-  }
-
-  return venues.map(venue => (
-    <Venue
-      key={`${name}-${venue.groupId}`}
-      groupId={venue.groupId}
-      dueDate={venue.dueDate}
-    />
-  ))
-}
-
-const Venue = ({ groupId, dueDate }) => (
-  <h2>
-    <Link href={`/group?id=${groupId}`}><a>{prettyId(groupId)}</a></Link>
-    {dueDate && (
-      <span>
-        Due
-        {' '}
-        {formatTimestamp(dueDate)}
-      </span>
-    )}
-  </h2>
-)
-
-const Home = () => {
-  const [venues, setVenues] = useState({ active: null, open: null, all: null })
+export default function Home() {
+  const [venues, setVenues] = useState({
+    user: null, active: null, open: null, all: null,
+  })
   const [error, setError] = useState(null)
+  const { user, userLoading } = useUser()
 
-  const loadVenues = async () => {
+  useEffect(() => {
+    if (userLoading) return
+
     const formatGroupResults = apiRes => (apiRes.groups?.[0]?.members || [])
       .map(groupId => ({ groupId, dueDate: null }))
 
@@ -53,31 +28,47 @@ const Home = () => {
       'groupId',
     ).sort((a, b) => a.dueDate - b.dueDate)
 
-    try {
-      const [activeVenues, openVenues, allVenues] = await Promise.all([
-        api.get('/groups', { id: 'active_venues' }).then(formatGroupResults),
-        api.getCombined('/invitations', { invitee: '~', pastdue: false }).then(formatInvitationResults),
-        api.get('/groups', { id: 'host' }).then(formatGroupResults),
-      ])
-      setVenues({
-        active: activeVenues,
-        open: openVenues,
-        all: allVenues,
-      })
-    } catch (apiError) {
-      setError(apiError)
-    }
-  }
+    const loadVenues = async () => {
+      try {
+        const [userVenues, activeVenues, openVenues, allVenues] = await Promise.all([
+          user ? api.get('/groups', { member: user.id, web: true }).then(apiRes => (apiRes.groups || [])) : Promise.resolve([]),
+          api.get('/groups', { id: 'active_venues' }).then(formatGroupResults),
+          api.getCombined('/invitations', { invitee: '~', pastdue: false }).then(formatInvitationResults),
+          api.get('/groups', { id: 'host' }).then(formatGroupResults),
+        ])
+        const activeAndOpenVenues = activeVenues.concat(openVenues)
+        const filteredUserVenues = userVenues.filter(group => activeAndOpenVenues.find(v => v.groupId === group.id))
+          .map(group => ({ groupId: group.id, dueDate: null }))
 
-  useEffect(() => {
+        setVenues({
+          user: filteredUserVenues,
+          active: activeVenues,
+          open: openVenues,
+          all: allVenues,
+        })
+      } catch (apiError) {
+        setError(apiError)
+      }
+    }
+
     loadVenues()
-  }, [])
+  }, [user, userLoading])
 
   return (
     <div>
       <Head>
         <title key="title">Venues | OpenReview</title>
       </Head>
+
+      {venues.user?.length > 0 && (
+        <>
+          <h1>Your Active Venues</h1>
+          <hr className="small" />
+          <div id="your-active-venues" className="conferences">
+            <VenueList name="active venues" venues={venues.user} />
+          </div>
+        </>
+      )}
 
       <h1>Active Venues</h1>
       <hr className="small" />
@@ -99,7 +90,37 @@ const Home = () => {
     </div>
   )
 }
-
 Home.bodyClass = 'home'
 
-export default Home
+function VenueList({ name, venues }) {
+  if (!venues) {
+    return <LoadingSpinner inline />
+  }
+  if (venues.length === 0) {
+    // eslint-disable-next-line react/jsx-one-expression-per-line
+    return <p className="empty">There are currently no {name}.</p>
+  }
+
+  return venues.map(venue => (
+    <Venue
+      key={`${name}-${venue.groupId}`}
+      groupId={venue.groupId}
+      dueDate={venue.dueDate}
+    />
+  ))
+}
+
+function Venue({ groupId, dueDate }) {
+  return (
+    <h2>
+      <Link href={`/group?id=${groupId}`}><a>{prettyId(groupId)}</a></Link>
+      {dueDate && (
+        <span>
+          Due
+          {' '}
+          {formatTimestamp(dueDate)}
+        </span>
+      )}
+    </h2>
+  )
+}
