@@ -410,8 +410,20 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
     if (!valueString) {
       return;
     }
-    var invitationField = invitation?.reply?.content?.[fieldName] ?? {};
-    var renderMarkdown = noteObj.version === 2 ? noteObj.details.presentation?.find(p => p.name === fieldName)?.markdown : invitationField.markdown
+
+    var renderMarkdown;
+    var renderMarkdownInline;
+    if (noteObj.version === 2) {
+      var presentationDetails = noteObj.details.presentation?.find(p => p.name === fieldName) ?? {};
+      renderMarkdown = presentationDetails?.markdown || presentationDetails?.markdownInline;
+      renderMarkdownInline = presentationDetails?.markdownInline;
+    } else {
+      var invitationField = invitation?.reply?.content?.[fieldName] ?? {};
+      renderMarkdown = invitationField?.markdown;
+      var re = new RegExp('^' + (invitationField['value-regex'] ?? '').replace(/\{\d+,\d+\}$/, '') + '$');
+      var newlineAllowed = re.test('\n');
+      renderMarkdownInline = !newlineAllowed;
+    }
 
     var urlRegex = /^(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*)?$/i;
 
@@ -419,7 +431,7 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
     if (valueString.indexOf('/attachment/') === 0) {
       valueString = view.mkDownloadLink(noteObj.id, fieldName, valueString);
     } else if (renderMarkdown) {
-      valueString = DOMPurify.sanitize(marked(valueString));
+      valueString = DOMPurify.sanitize(renderMarkdownInline ? marked.parseInline(valueString) : marked(valueString));
     } else if (urlRegex.test(valueString)) {
       var url = valueString.startsWith('https://openreview.net') ? valueString.replace('https://openreview.net', '') : valueString
       valueString = `<a href="${url}" target="_blank" rel="nofollow noreferrer">${url}</a>`;

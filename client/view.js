@@ -1893,6 +1893,7 @@ module.exports = (function() {
     } else if (!_.isEmpty(params.invitation)) {
       invitation = params.invitation;
     }
+    if (note.id === 'BJx040EFvH') console.log(invitation.reply.content);
 
     var contentKeys = Object.keys(note.content);
     var contentOrder = invitation
@@ -1915,8 +1916,6 @@ module.exports = (function() {
         return;
       }
 
-      var invitationField = invitation?.reply?.content?.[fieldName] ?? {};
-
       // Build download links
       if (valueString.indexOf('/attachment/') === 0) {
         $contents.push($('<div>', {class: 'note_contents'}).append(
@@ -1928,15 +1927,18 @@ module.exports = (function() {
         return;
       }
 
+      var invitationField = invitation?.reply?.content?.[fieldName] ?? {};
+      if (note.id === 'BJx040EFvH') console.log(fieldName, invitationField);
       var $elem = $('<span>', {class: 'note_content_value'});
       if (invitationField.markdown) {
-        $elem[0].innerHTML = DOMPurify.sanitize(marked(valueString));
+        var re = new RegExp('^' + (invitationField['value-regex'] ?? '').replace(/\{\d+,\d+\}$/, '') + '$');
+        var newlineAllowed = re.test('\n');
+        $elem[0].innerHTML = DOMPurify.sanitize(newlineAllowed ? marked(valueString) : marked.parseInline(valueString));
         $elem.addClass('markdown-rendered');
       } else {
         // First set content as text to escape HTML, then autolink escaped HTML
         $elem.text(valueString);
         $elem.html(autolinkHtml($elem.html()));
-
       }
 
       $contents.push($('<div>', {class: 'note_contents'}).append(
