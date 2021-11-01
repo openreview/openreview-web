@@ -256,7 +256,6 @@ module.exports = (function() {
     var noteNumbersStr = noteNumbers.join(',');
     var query = {
       invitation: invitationId,
-      select: 'id,number,forum,content,details,invitations',
       details: 'directReplies',
       sort: options.sort
     }
