@@ -64,7 +64,7 @@ const LoginForm = () => {
           placeholder="Email"
           value={email}
           maxLength={254}
-          onChange={e => setEmail(e.target.value)}
+          onChange={e => setEmail(e.target.value.trim())}
         />
       </div>
 
