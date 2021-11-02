@@ -1141,7 +1141,7 @@ module.exports = (function() {
     var requiredText = fieldDescription.optional ? null : $('<span>', { text: '*', class: 'required_field' });
 
     if (_.has(fieldDescription, 'values-regex')) {
-      Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
+      return Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
         .then(function (result) {
           if (_.isEmpty(result.groups)) {
             throw('You do not have permission to create a note');
@@ -1180,7 +1180,7 @@ module.exports = (function() {
             return result.groups;
           });
       }
-      extraGroupsP
+      return extraGroupsP
         .then(function () {
           var $readers = mkComposerInput('readers', { value: fieldDescription }, []);
           $readers.find('.small_heading').prepend(requiredText);
@@ -1209,7 +1209,7 @@ module.exports = (function() {
             }
           });
       }
-      promise
+      return promise
         .then(function () {
           var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldDescription.default, { prettyId: true });
           $readers.find('.small_heading').prepend(requiredText);
