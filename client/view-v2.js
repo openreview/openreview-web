@@ -1115,7 +1115,13 @@ module.exports = (function() {
       const parentId = forum === replyto ? null : replyto;
       let noteReaders = null;
       await buildNoteReaders(invitation.edit.note.readers, [], parentId, (result, error) => {
-        if (error) throw (error);
+        if (error){
+          if (params.onError) {
+            params.onError([error]);
+          } else {
+            promptError(error);
+          }
+        }
         noteReaders = result;
       });
       const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, null, user, 'signatures')
@@ -1144,7 +1150,7 @@ module.exports = (function() {
       return Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
         .then(function (result) {
           if (_.isEmpty(result.groups)) {
-            throw('You do not have permission to create a note');
+            promptError('You do not have permission to create a note');
           } else {
             var everyoneList = _.filter(result.groups, function (g) {
               return g.id === 'everyone';
@@ -1161,7 +1167,7 @@ module.exports = (function() {
           }
         }, function (jqXhr, textStatus) {
           var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
-          throw(errorText);
+          promptError(errorText);
         });
     } else if (_.has(fieldDescription, 'values-dropdown')) {
       var values = fieldDescription['values-dropdown'];
@@ -1574,7 +1580,13 @@ module.exports = (function() {
       const parentId = note.forum === note.replyto ? null : note.replyto;
       let noteReaders = null;
       await buildNoteReaders(invitation.edit.note.readers, note.readers ?? [], parentId, (result, error) => {
-        if (error) throw (error);
+        if (error){
+          if (params.onError) {
+            params.onError([error]);
+          } else {
+            promptError(error);
+          }
+        }
         noteReaders = result;
       });
       const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, null, user, 'signatures')
