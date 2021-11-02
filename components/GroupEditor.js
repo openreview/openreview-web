@@ -1,4 +1,4 @@
-/* globals promptError,promptMessage,$: false */
+/* globals promptError,promptMessage,$,DOMPurify,marked: false */
 
 import { nanoid } from 'nanoid'
 import Link from 'next/link'
@@ -14,9 +14,8 @@ import Icon from './Icon'
 import PaginationLinks from './PaginationLinks'
 import BasicModal from './BasicModal'
 import ProgressBar from './ProgressBar'
-import LoadingSpinner from './LoadingSpinner'
-import NoteList from './NoteList'
 import CodeEditor from './CodeEditor'
+import MarkdownPreviewTab from './MarkdownPreviewTab'
 
 const GroupIdList = ({ groupIds }) => {
   const commonGroups = ['everyone', '(anonymous)', '(guest)', '~', '~Super_User1']
@@ -653,12 +652,13 @@ const MessageMemberModal = ({
   const [error, setError] = useState(null)
 
   const sendMessage = async () => {
-    if (subject && message) {
+    const sanitizedMessage = DOMPurify.sanitize(marked(message))
+    if (subject && sanitizedMessage) {
       try {
         const result = await api.post('/messages', {
           groups: membersToMessage,
           subject,
-          message,
+          message: sanitizedMessage,
           parentGroup: groupId,
           useJob: true,
         }, { accessToken })
@@ -705,7 +705,11 @@ const MessageMemberModal = ({
             will automatically be replaced with the recipient's first or full name if they have an OpenReview profile.
             If a profile isn't found their email address will be used instead.`}
           </p>
-          <textarea className="form-control test" rows="6" placeholder="Message" value={message} required onChange={e => setMessage(e.target.value)} />
+          <MarkdownPreviewTab
+            value={message}
+            onValueChanged={setMessage}
+            placeholder="Message"
+          />
         </div>
       </div>
     </BasicModal>
