@@ -880,7 +880,7 @@ module.exports = (function() {
     var postUpdatedNote = function ($editSignatures, $editReaders) {
       const ddate = isDeleted ? null : Date.now();
       let editSignatureInputValues = view.idsFromListAdder($editSignatures, invitation.edit.signatures);
-      const editReaderValues = view.getReaders($editReaders, invitation, editSignatureInputValues);
+      const editReaderValues = view.getReaders($editReaders, invitation, editSignatureInputValues, true);
       if (!editSignatureInputValues || !editSignatureInputValues.length) {
         editSignatureInputValues = [user.profile.id];
       }
@@ -974,11 +974,11 @@ module.exports = (function() {
         $cancelButton.prop({ disabled: true });
 
         var content = view.getContent(invitation, $contentMap);
-
+        const useEditSignature = invitation.edit.note?.signatures?.values=='${signatures}' // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
-        const editReaderValues = view.getReaders(editReaders, invitation, editSignatureInputValues);
-        const noteReaderValues = view.getReaders(noteReaders, invitation, noteSignatureInputValues);
+        const editReaderValues = view.getReaders(editReaders, invitation, editSignatureInputValues, true);
+        const noteReaderValues = view.getReaders(noteReaders, invitation, useEditSignature ? editSignatureInputValues : noteSignatureInputValues);
         const editWriterValues = view.getWriters(invitation, editSignatureInputValues, user);
         content[0].editSignatureInputValues = editSignatureInputValues;
         content[0].noteSignatureInputValues = noteSignatureInputValues;
@@ -1115,7 +1115,13 @@ module.exports = (function() {
       const parentId = forum === replyto ? null : replyto;
       let noteReaders = null;
       await buildNoteReaders(invitation.edit.note.readers, [], parentId, (result, error) => {
-        if (error) throw (error);
+        if (error){
+          if (params.onError) {
+            params.onError([error]);
+          } else {
+            promptError(error);
+          }
+        }
         noteReaders = result;
       });
       const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, null, user, 'signatures')
@@ -1141,10 +1147,10 @@ module.exports = (function() {
     var requiredText = fieldDescription.optional ? null : $('<span>', { text: '*', class: 'required_field' });
 
     if (_.has(fieldDescription, 'values-regex')) {
-      Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
+      return Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
         .then(function (result) {
           if (_.isEmpty(result.groups)) {
-            throw('You do not have permission to create a note');
+            promptError('You do not have permission to create a note');
           } else {
             var everyoneList = _.filter(result.groups, function (g) {
               return g.id === 'everyone';
@@ -1161,7 +1167,7 @@ module.exports = (function() {
           }
         }, function (jqXhr, textStatus) {
           var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
-          throw(errorText);
+          promptError(errorText);
         });
     } else if (_.has(fieldDescription, 'values-dropdown')) {
       var values = fieldDescription['values-dropdown'];
@@ -1180,7 +1186,7 @@ module.exports = (function() {
             return result.groups;
           });
       }
-      extraGroupsP
+      return extraGroupsP
         .then(function () {
           var $readers = mkComposerInput('readers', { value: fieldDescription }, []);
           $readers.find('.small_heading').prepend(requiredText);
@@ -1209,7 +1215,7 @@ module.exports = (function() {
             }
           });
       }
-      promise
+      return promise
         .then(function () {
           var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldDescription.default, { prettyId: true });
           $readers.find('.small_heading').prepend(requiredText);
@@ -1431,11 +1437,11 @@ module.exports = (function() {
         $cancelButton.prop('disabled', true);
 
         const content = view.getContent(invitation, $contentMap);
-
+        const useEditSignature = invitation.edit.note?.signatures?.values=='${signatures}' // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
-        const editReaderValues = view.getReaders(editReaders, invitation, editSignatureInputValues);
-        const noteReaderValues = view.getReaders(noteReaders, invitation, noteSignatureInputValues);
+        const editReaderValues = view.getReaders(editReaders, invitation, editSignatureInputValues, true);
+        const noteReaderValues = view.getReaders(noteReaders, invitation, useEditSignature ? editSignatureInputValues : noteSignatureInputValues);
         const editWriterValues = view.getWriters(invitation, editSignatureInputValues, user);
         content[0].editSignatureInputValues = editSignatureInputValues;
         content[0].noteSignatureInputValues = noteSignatureInputValues;
@@ -1574,7 +1580,13 @@ module.exports = (function() {
       const parentId = note.forum === note.replyto ? null : note.replyto;
       let noteReaders = null;
       await buildNoteReaders(invitation.edit.note.readers, note.readers ?? [], parentId, (result, error) => {
-        if (error) throw (error);
+        if (error){
+          if (params.onError) {
+            params.onError([error]);
+          } else {
+            promptError(error);
+          }
+        }
         noteReaders = result;
       });
       const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, null, user, 'signatures')
@@ -1643,10 +1655,10 @@ module.exports = (function() {
       if (value.value || value.values) return
       switch (otherNoteField) {
         case 'readers':
-          note[otherNoteField] = formData?.noteReaderValues
+          note[otherNoteField] = formData?.noteReaderValues ?? noteObj?.[otherNoteField]
           break;
         case 'signatures':
-          note[otherNoteField] = formData?.noteSignatureInputValues
+          note[otherNoteField] = formData?.noteSignatureInputValues ?? noteObj?.[otherNoteField]
           break;
         default:
           note[otherNoteField] = formData?.[otherNoteField] ?? noteObj?.[otherNoteField]
