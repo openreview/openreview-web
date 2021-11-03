@@ -207,9 +207,10 @@ const SignupForm = ({ setSignupConfirmation }) => {
             : Array.from(new Set([...profile.emailsConfirmed, ...profile.emails]))
 
           if (allEmails.length > 0) {
-            formComponents = allEmails.map(email => (
+            formComponents = allEmails.map((email, index) => (
               <ExistingProfileForm
-                key={email}
+                // eslint-disable-next-line react/no-array-index-key
+                key={`${email}${index}`}
                 id={profile.id}
                 obfuscatedEmail={email}
                 hasPassword={profile.password}
@@ -384,7 +385,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
 
   const validateFullName = () => {
     // Compare the first and last words of the id and full name entered by the user
-    const idWords = id.toLowerCase().slice(1, -1).split('_')
+    const idWords = id.toLowerCase().replace(/[\d~]/g, '').split('_')
     const nameWords = fullName.toLowerCase().split(' ')
     return `${nameWords[0]} ${nameWords.pop()}` === `${idWords[0]} ${idWords.pop()}`
   }
