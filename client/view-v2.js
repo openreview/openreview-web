@@ -1655,10 +1655,10 @@ module.exports = (function() {
       if (value.value || value.values) return
       switch (otherNoteField) {
         case 'readers':
-          note[otherNoteField] = formData?.noteReaderValues
+          note[otherNoteField] = formData?.noteReaderValues ?? noteObj?.[otherNoteField]
           break;
         case 'signatures':
-          note[otherNoteField] = formData?.noteSignatureInputValues
+          note[otherNoteField] = formData?.noteSignatureInputValues ?? noteObj?.[otherNoteField]
           break;
         default:
           note[otherNoteField] = formData?.[otherNoteField] ?? noteObj?.[otherNoteField]
