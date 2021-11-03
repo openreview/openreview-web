@@ -880,7 +880,7 @@ module.exports = (function() {
     var postUpdatedNote = function ($editSignatures, $editReaders) {
       const ddate = isDeleted ? null : Date.now();
       let editSignatureInputValues = view.idsFromListAdder($editSignatures, invitation.edit.signatures);
-      const editReaderValues = view.getReaders($editReaders, invitation, editSignatureInputValues);
+      const editReaderValues = view.getReaders($editReaders, invitation, editSignatureInputValues, true);
       if (!editSignatureInputValues || !editSignatureInputValues.length) {
         editSignatureInputValues = [user.profile.id];
       }
@@ -977,8 +977,8 @@ module.exports = (function() {
         const useEditSignature = invitation.edit.note?.signatures?.values=='${signatures}' // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
-        const editReaderValues = view.getReaders(editReaders, invitation, editSignatureInputValues);
-        const noteReaderValues = view.getReaders(noteReaders, invitation, useEditSignature ? editSignatureInputValues : noteSignatureInputValues, false);
+        const editReaderValues = view.getReaders(editReaders, invitation, editSignatureInputValues, true);
+        const noteReaderValues = view.getReaders(noteReaders, invitation, useEditSignature ? editSignatureInputValues : noteSignatureInputValues);
         const editWriterValues = view.getWriters(invitation, editSignatureInputValues, user);
         content[0].editSignatureInputValues = editSignatureInputValues;
         content[0].noteSignatureInputValues = noteSignatureInputValues;
@@ -1440,8 +1440,8 @@ module.exports = (function() {
         const useEditSignature = invitation.edit.note?.signatures?.values=='${signatures}' // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
-        const editReaderValues = view.getReaders(editReaders, invitation, editSignatureInputValues);
-        const noteReaderValues = view.getReaders(noteReaders, invitation, useEditSignature ? editSignatureInputValues : noteSignatureInputValues, false);
+        const editReaderValues = view.getReaders(editReaders, invitation, editSignatureInputValues, true);
+        const noteReaderValues = view.getReaders(noteReaders, invitation, useEditSignature ? editSignatureInputValues : noteSignatureInputValues);
         const editWriterValues = view.getWriters(invitation, editSignatureInputValues, user);
         content[0].editSignatureInputValues = editSignatureInputValues;
         content[0].noteSignatureInputValues = noteSignatureInputValues;

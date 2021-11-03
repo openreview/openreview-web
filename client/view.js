@@ -2955,7 +2955,7 @@ module.exports = (function() {
     return signatures;
   };
 
-  var getReaders = function(widget, invitation, signatures, isEdit = true) {
+  var getReaders = function(widget, invitation, signatures, isEdit = false) {
     var readers = invitation.edit ? (isEdit ? invitation.edit.readers : invitation.edit.note?.readers) : invitation.reply.readers
     var inputValues = idsFromListAdder(widget, readers);
 
