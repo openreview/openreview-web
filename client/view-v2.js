@@ -974,11 +974,11 @@ module.exports = (function() {
         $cancelButton.prop({ disabled: true });
 
         var content = view.getContent(invitation, $contentMap);
-
+        const useEditSignature = invitation.edit.note?.signatures?.values=='${signatures}' // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
         const editReaderValues = view.getReaders(editReaders, invitation, editSignatureInputValues);
-        const noteReaderValues = view.getReaders(noteReaders, invitation, noteSignatureInputValues);
+        const noteReaderValues = view.getReaders(noteReaders, invitation, useEditSignature ? editSignatureInputValues : noteSignatureInputValues, false);
         const editWriterValues = view.getWriters(invitation, editSignatureInputValues, user);
         content[0].editSignatureInputValues = editSignatureInputValues;
         content[0].noteSignatureInputValues = noteSignatureInputValues;
@@ -1437,11 +1437,11 @@ module.exports = (function() {
         $cancelButton.prop('disabled', true);
 
         const content = view.getContent(invitation, $contentMap);
-
+        const useEditSignature = invitation.edit.note?.signatures?.values=='${signatures}' // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
         const editReaderValues = view.getReaders(editReaders, invitation, editSignatureInputValues);
-        const noteReaderValues = view.getReaders(noteReaders, invitation, noteSignatureInputValues);
+        const noteReaderValues = view.getReaders(noteReaders, invitation, useEditSignature ? editSignatureInputValues : noteSignatureInputValues, false);
         const editWriterValues = view.getWriters(invitation, editSignatureInputValues, user);
         content[0].editSignatureInputValues = editSignatureInputValues;
         content[0].noteSignatureInputValues = noteSignatureInputValues;
