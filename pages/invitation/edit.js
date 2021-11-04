@@ -7,6 +7,7 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
 import ErrorDisplay from '../../components/ErrorDisplay'
+import InvitationEditor from '../../components/InvitationEditor'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import WebfieldContainer from '../../components/WebfieldContainer'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
@@ -105,6 +106,8 @@ const InvitationEdit = ({ appContext }) => {
       {(clientJsLoading || !invitation) && (
         <LoadingSpinner />
       )}
+
+      <InvitationEditor invitation={invitation} />
 
       <WebfieldContainer id="invitation-container">
         <div id="header">

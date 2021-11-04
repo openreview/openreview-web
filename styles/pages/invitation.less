@@ -49,4 +49,37 @@ main.invitation {
   select.timezone {
     display: inline-block;
   }
+
+  // new implementation
+  .row {
+    margin-bottom: .25rem;
+  }
+  .d-flex {
+    display: flex;
+  }
+  .info-title {
+    font-weight: 700;
+    width: 12%;
+    text-align: right;
+    white-space: nowrap;
+    margin-right: .5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    &.edit-title {
+      margin-top: 5px;
+    }
+  }
+  .info-edit-control{
+    width:40%;
+  }
+  button{
+    margin-top: .75rem;
+  }
+  .timezone-dropdown {
+    width: 100%;
+    .dropdown-select__option,.dropdown-select__menu,.dropdown-select__menu-list {
+      width: 450px;
+      overflow-x: hidden;
+    }
+  }
 }
