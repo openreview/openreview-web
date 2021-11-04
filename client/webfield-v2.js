@@ -232,11 +232,11 @@ module.exports = (function() {
     };
     options = _.defaults(options, defaults);
 
-    options.limit = options.pageSize;
-    options = _.omit(options, 'pageSize');
+    var query = _.omit(options, ['pageSize', 'includeCount']);
+    query.limit = options.pageSize;
+    query.invitation = invitationId;
 
-    var urlParams = _.assign({invitation: invitationId}, options);
-    return get('/notes', urlParams)
+    return get('/notes', query)
       .then(function(result) {
         if (options.includeCount) {
           return result;
@@ -249,15 +249,15 @@ module.exports = (function() {
   var getAllSubmissions = function(invitationId, options) {
     var defaults = {
       numbers: [],
+      sort: 'number:desc'
     };
     options = _.defaults(options, defaults);
     var noteNumbers = options.numbers;
     var noteNumbersStr = noteNumbers.join(',');
     var query = {
       invitation: invitationId,
-      select: 'id,number,forum,content,details,invitations',
       details: 'directReplies',
-      sort: 'number:asc'
+      sort: options.sort
     }
     if (noteNumbersStr) {
       query.number = noteNumbersStr;
