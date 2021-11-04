@@ -204,13 +204,12 @@ const SignupForm = ({ setSignupConfirmation }) => {
           let formComponents
           const allEmails = profile.active
             ? profile.emailsConfirmed
-            : Array.from(new Set([...profile.emailsConfirmed, ...profile.emails]))
+            : [...profile.emailsConfirmed, ...profile.emails]
 
           if (allEmails.length > 0) {
-            formComponents = allEmails.map((email, index) => (
+            formComponents = Array.from(new Set(allEmails)).map(email => (
               <ExistingProfileForm
-                // eslint-disable-next-line react/no-array-index-key
-                key={`${email}${index}`}
+                key={`${profile.id} ${email}`}
                 id={profile.id}
                 obfuscatedEmail={email}
                 hasPassword={profile.password}
