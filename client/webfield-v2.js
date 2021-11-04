@@ -2717,7 +2717,7 @@ module.exports = (function() {
       query: {}
     };
 
-    options = _.defaultsDeep(options, defaults);
+    options = _.defaults(options, defaults);
 
     $(container).empty();
 
