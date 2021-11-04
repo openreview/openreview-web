@@ -1893,7 +1893,6 @@ module.exports = (function() {
     } else if (!_.isEmpty(params.invitation)) {
       invitation = params.invitation;
     }
-    if (note.id === 'BJx040EFvH') console.log(invitation.reply.content);
 
     var contentKeys = Object.keys(note.content);
     var contentOrder = invitation
@@ -1928,7 +1927,6 @@ module.exports = (function() {
       }
 
       var invitationField = invitation?.reply?.content?.[fieldName] ?? {};
-      if (note.id === 'BJx040EFvH') console.log(fieldName, invitationField);
       var $elem = $('<span>', {class: 'note_content_value'});
       if (invitationField.markdown) {
         var re = new RegExp('^' + (invitationField['value-regex'] ?? '').replace(/\{\d+,\d+\}$/, '') + '$');
