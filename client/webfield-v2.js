@@ -2713,7 +2713,7 @@ module.exports = (function() {
 
     var defaults = {
       paperDisplayOptions: {},
-      page_size: 50,
+      pageSize: 50,
       query: {}
     };
 
@@ -2738,17 +2738,17 @@ module.exports = (function() {
         },
         onReset: function() {
           Webfield.ui.searchResults(notes, searchResultsListOptions);
-          $(container).append(view.paginationLinks(count, options.page_size, 1));
+          $(container).append(view.paginationLinks(count, options.pageSize, 1));
         }
       },
       displayOptions: options.paperDisplayOptions,
       autoLoad: false,
       noteCount: count,
-      pageSize: options.page_size,
+      pageSize: options.pageSize,
       onPageClick: function(offset) {
         return getSubmissions(invitation, _.assign(options.query, {
           details: 'replyCount',
-          pageSize: options.page_size,
+          pageSize: options.pageSize,
           offset: offset
         }));
       },
