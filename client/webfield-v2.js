@@ -249,15 +249,15 @@ module.exports = (function() {
   var getAllSubmissions = function(invitationId, options) {
     var defaults = {
       numbers: [],
+      sort: 'number:desc'
     };
     options = _.defaults(options, defaults);
     var noteNumbers = options.numbers;
     var noteNumbersStr = noteNumbers.join(',');
     var query = {
       invitation: invitationId,
-      select: 'id,number,forum,content,details,invitations',
       details: 'directReplies',
-      sort: 'number:asc'
+      sort: options.sort
     }
     if (noteNumbersStr) {
       query.number = noteNumbersStr;
@@ -2709,6 +2709,53 @@ module.exports = (function() {
     return $container;
   };
 
+  var renderSubmissionList = function(container, invitation, notes, count, options) {
+
+    var defaults = {
+      paperDisplayOptions: {},
+      pageSize: 50,
+      query: {}
+    };
+
+    options = _.defaults(options, defaults);
+
+    $(container).empty();
+
+    var searchResultsListOptions = _.assign({}, options.paperDisplayOptions, {
+      container: container,
+      autoLoad: false
+    });
+
+    submissionList(notes, {
+      heading: null,
+      container: container,
+      search: {
+        enabled: true,
+        localSearch: false,
+        invitation: invitation,
+        onResults: function(searchResults) {
+          Webfield.ui.searchResults(searchResults, searchResultsListOptions);
+        },
+        onReset: function() {
+          Webfield.ui.searchResults(notes, searchResultsListOptions);
+          $(container).append(view.paginationLinks(count, options.pageSize, 1));
+        }
+      },
+      displayOptions: options.paperDisplayOptions,
+      autoLoad: false,
+      noteCount: count,
+      pageSize: options.pageSize,
+      onPageClick: function(offset) {
+        return getSubmissions(invitation, _.assign(options.query, {
+          details: 'replyCount',
+          pageSize: options.pageSize,
+          offset: offset
+        }));
+      },
+      fadeIn: false
+    });
+  }
+
   return {
     get: get,
     post: post,
@@ -2738,6 +2785,7 @@ module.exports = (function() {
       renderInvitationButton: renderInvitationButton,
       renderTable: renderTable,
       renderTasks: renderTasks,
+      renderSubmissionList: renderSubmissionList,
       setup: setup,
       submissionList: submissionList,
       errorMessage: Webfield.ui.errorMessage,

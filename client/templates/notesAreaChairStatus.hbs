@@ -1,5 +1,5 @@
 <div class="reviewer-progress">
-  <h4>{{numCompletedMetaReviews}} of {{numPapers}} Papers Meta Reviews Completed</h4>
+  <h4>{{numCompletedMetaReviews}} of {{numPapers}} Papers {{#if metaReviewName}}{{metaReviewName}}{{else}}Meta Review{{/if}}s Completed</h4>
 
   <strong>Papers:</strong>
   <table class="table table-condensed table-minimal">
@@ -16,13 +16,13 @@
         <tr>
           <td style="width: 28px;"></td>
           <td style="width: 214px;">
-            <a href="/forum?id={{metaReview.forum}}&noteId={{metaReview.id}}{{#if ../referrer}}&referrer={{../referrer}}{{/if}}" target="_blank">Read Meta Review</a>
+            <a href="/forum?id={{metaReview.forum}}&noteId={{metaReview.id}}{{#if ../referrer}}&referrer={{../referrer}}{{/if}}" target="_blank">Read {{#if ../metaReviewName}}{{../metaReviewName}}{{else}}Meta Review{{/if}}</a>
           </td>
         </tr>
         {{else}}
         <tr>
           <td style="width: 28px;"><strong>{{note.number}}.</strong></td>
-          <td style="width: 2140px;">MetaReview pending</td>
+          <td style="width: 2140px;">{{#if ../metaReviewName}}{{../metaReviewName}}{{else}}Meta Review{{/if}} pending</td>
         </tr>
         <tr>
           <td style="width: 28px;"></td>

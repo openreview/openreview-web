@@ -388,7 +388,9 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
   var contentKeys = Object.keys(noteObj.content);
   var contentOrder = [];
   if (noteObj.version === 2) {
-    contentOrder = noteObj.details.presentation ? Object.values(noteObj.details.presentation ?? {}).sort((a, b) => a?.order - b?.order).map(p => p.name) : contentKeys
+    contentOrder = noteObj.details?.presentation
+      ? Object.values(noteObj.details.presentation).sort((a, b) => a?.order - b?.order).map(p => p.name)
+      : contentKeys
   } else {
     contentOrder = invitation
       ? _.union(order(invitation.reply.content, invitation.id), contentKeys)
@@ -414,9 +416,9 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
     var renderMarkdown;
     var renderMarkdownInline;
     if (noteObj.version === 2) {
-      var presentationDetails = noteObj.details.presentation?.find(p => p.name === fieldName) ?? {};
-      renderMarkdown = presentationDetails?.markdown || presentationDetails?.markdownInline;
-      renderMarkdownInline = presentationDetails?.markdownInline;
+      var presentationDetails = noteObj.details?.presentation?.find(p => p.name === fieldName) ?? {};
+      renderMarkdown = presentationDetails.markdown || presentationDetails.markdownInline;
+      renderMarkdownInline = presentationDetails.markdownInline;
     } else {
       var invitationField = invitation?.reply?.content?.[fieldName] ?? {};
       renderMarkdown = invitationField?.markdown;
