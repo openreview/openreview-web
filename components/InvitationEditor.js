@@ -68,12 +68,12 @@ const InvitationGeneralInfo = ({ invitation, accessToken, loadInvitation }) => {
   }
   const [generalInfo, setGeneralInfo] = useReducer(generalInfoReducer, {
     ...invitation,
-    readers: invitation.readers.join(', '),
-    nonreaders: invitation.nonreaders.join(', '),
-    writers: invitation.writers.join(', '),
-    invitees: invitation.invitees.join(', '),
-    noninvitees: invitation.noninvitees.join(', '),
-    ...(isV1Invitation && { final: invitation.final.join(', ') }),
+    readers: invitation.readers?.join(', '),
+    nonreaders: invitation.nonreaders?.join(', '),
+    writers: invitation.writers?.join(', '),
+    invitees: invitation.invitees?.join(', '),
+    noninvitees: invitation.noninvitees?.join(', '),
+    ...(isV1Invitation && { final: invitation.final?.join(', ') }),
     activationDateTimezone: getDefaultTimezone().value,
     duedateTimezone: getDefaultTimezone().value,
     expDateTimezone: getDefaultTimezone().value,
