@@ -35,9 +35,10 @@ const InvitationEdit = ({ appContext }) => {
       const invitationObj = await api.getInvitationById(invitationId, accessToken)
       if (invitationObj) {
         if (invitationObj.details?.writable) {
-          setInvitation({
-            ...invitationObj, web: null, process: null, preprocess: null,
-          })
+          // setInvitation({
+          //   ...invitationObj, web: null, process: null, preprocess: null,
+          // })
+          setInvitation(invitationObj)
         } else {
           // User is a reader, not a writer of the invitation, so redirect to info mode
           router.replace(`/invitation/info?id=${invitationObj.id}`)
@@ -73,8 +74,8 @@ const InvitationEdit = ({ appContext }) => {
     window.moment = require('moment')
     require('moment-timezone')
     window.datetimepicker = require('../../client/bootstrap-datetimepicker-4.17.47.min')
-
-    Webfield.editModeBanner(invitation.id, 'edit')
+    const editModeBannerDelay = document.querySelector('#flash-message-container.alert-success') ? 2500 : 0
+    setTimeout(() => Webfield.editModeBanner(invitation.id, 'edit'), editModeBannerDelay)
 
     const webfieldEditorFn = invitation.apiVersion === 2
       ? Webfield2.ui.invitationEditor
@@ -107,7 +108,7 @@ const InvitationEdit = ({ appContext }) => {
         <LoadingSpinner />
       )}
 
-      <InvitationEditor invitation={invitation} />
+      <InvitationEditor invitation={invitation} accessToken={accessToken} loadInvitation={loadInvitation} />
 
       <WebfieldContainer id="invitation-container">
         <div id="header">

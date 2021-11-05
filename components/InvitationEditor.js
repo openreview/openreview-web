@@ -1,9 +1,13 @@
+/* globals promptError,promptMessage,moment: false */
 import Link from 'next/link'
 import { nanoid } from 'nanoid'
 import React, { useReducer, useState } from 'react'
-import { formatDateTime, prettyId, urlFromGroupId } from '../lib/utils'
-import Dropdown, { TimezoneDroopdown } from './Dropdown'
+import {
+  formatDateTime, getDefaultTimezone, prettyId, urlFromGroupId,
+} from '../lib/utils'
+import Dropdown, { TimezoneDropdown } from './Dropdown'
 import DatetimePicker from './DatetimePicker'
+import api from '../lib/api-client'
 
 const GroupIdList = ({ groupIds }) => {
   const commonGroups = ['everyone', '(anonymous)', '(guest)', '~', '~Super_User1']
@@ -12,32 +16,110 @@ const GroupIdList = ({ groupIds }) => {
     if (commonGroups.includes(groupId)) {
       return (
         <React.Fragment key={nanoid()}>
-          {index > 0 && ', '}
+          {index > 0 && <>,&nbsp;</>}
           {prettyId(groupId)}
         </React.Fragment>
       )
     }
     return (
       <React.Fragment key={nanoid()}>
-        {index > 0 && ', '}
+        {index > 0 && <>,&nbsp;</>}
         <Link href={urlFromGroupId(groupId)}><a>{prettyId(groupId)}</a></Link>
       </React.Fragment>
     )
   })
 }
 
-const InvitationGeneralInfo = ({ invitation }) => {
+const InvitationGeneralInfo = ({ invitation, accessToken, loadInvitation }) => {
   const parentGroupId = invitation.id.split('/-/')[0]
   const isV1Invitation = !invitation.edit
-  console.log(invitation)
   const trueFalseOptions = [
     { value: true, label: 'True' },
     { value: false, label: 'False' },
   ]
 
   const [isEditMode, setIsEditMode] = useState(false)
-  const generalInfoReducer = (state, action) => state
-  const [generalInfo, setGeneralInfo] = useReducer(generalInfoReducer, invitation)
+  const generalInfoReducer = (state, action) => {
+    switch (action.type) {
+      case 'activationDateTimezone':
+        return {
+          ...state,
+          cdate: moment.tz(moment(state.cdate).format('YYYY-MM-DD HH:mm'), action.payload).valueOf(),
+          activationDateTimezone: action.payload,
+        }
+      case 'duedateTimezone':
+        return {
+          ...state,
+          duedate: moment.tz(moment(state.duedate).format('YYYY-MM-DD HH:mm'), action.payload).valueOf(),
+          duedateTimezone: action.payload,
+        }
+      case 'expDateTimezone':
+        return {
+          ...state,
+          expdate: moment.tz(moment(state.expdate).format('YYYY-MM-DD HH:mm'), action.payload).valueOf(),
+          expDateTimezone: action.payload,
+        }
+      default:
+        return {
+          ...state,
+          [action.type]: action.payload,
+        }
+    }
+  }
+  const [generalInfo, setGeneralInfo] = useReducer(generalInfoReducer, {
+    ...invitation,
+    readers: invitation.readers.join(', '),
+    nonreaders: invitation.nonreaders.join(', '),
+    writers: invitation.writers.join(', '),
+    invitees: invitation.invitees.join(', '),
+    noninvitees: invitation.noninvitees.join(', '),
+    ...(isV1Invitation && { final: invitation.final.join(', ') }),
+    activationDateTimezone: getDefaultTimezone().value,
+    duedateTimezone: getDefaultTimezone().value,
+    expDateTimezone: getDefaultTimezone().value,
+  })
+
+  // eslint-disable-next-line arrow-body-style
+  const stringToArray = (value) => {
+    return value?.split(',')?.flatMap(p => (p.trim() ? p.trim() : []))
+  }
+
+  const constructInvitationToPost = async () => {
+    const {
+      activationDateTimezone,
+      duedateTimezone,
+      expDateTimezone,
+      apiVersion,
+      ...rest
+    } = generalInfo
+    return {
+      ...rest,
+      readers: stringToArray(generalInfo.readers),
+      nonreaders: stringToArray(generalInfo.nonreaders),
+      writers: stringToArray(generalInfo.writers),
+      invitees: stringToArray(generalInfo.invitees),
+      noninvitees: stringToArray(generalInfo.noninvitees),
+      final: stringToArray(generalInfo.final),
+      taskCompletionCount: Number(generalInfo.taskCompletionCount),
+    }
+  }
+
+  const constructInvitationEditToPost = async () => {
+
+  }
+
+  const saveGeneralInfo = async () => {
+    try {
+      const requestPath = isV1Invitation ? '/invitations' : '/invitations/edits'
+      const requestBody = isV1Invitation ? await constructInvitationToPost() : await constructInvitationEditToPost()
+      const result = await api.post(requestPath, requestBody, { accessToken, version: isV1Invitation ? 1 : 2 })
+      promptMessage(`Settings for '${prettyId(invitation.id)} updated`)
+      setIsEditMode(false)
+      loadInvitation(invitation.id)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
 
   return (
     <section className="general">
@@ -49,38 +131,38 @@ const InvitationGeneralInfo = ({ invitation }) => {
               <div className="row d-flex">
                 <span className="info-title edit-title">Super Invitation:</span>
                 <div className="info-edit-control">
-                  <input className="form-control input-sm" value={invitation.super} onChange={e => setGeneralInfo({ type: 'super', payload: e.target.value })} />
+                  <input className="form-control input-sm" value={generalInfo.super} onChange={e => setGeneralInfo({ type: 'super', payload: e.target.value })} />
                 </div>
               </div>
             )}
             <div className="row d-flex">
               <span className="info-title edit-title">Readers:</span>
               <div className="info-edit-control">
-                <input className="form-control input-sm" value={invitation.readers?.join(', ')} onChange={e => setGeneralInfo({ type: 'readers', payload: e.target.value })} />
+                <input className="form-control input-sm" value={generalInfo.readers} onChange={e => setGeneralInfo({ type: 'readers', payload: e.target.value })} />
               </div>
             </div>
             <div className="row d-flex">
               <span className="info-title edit-title">Non-Readers:</span>
               <div className="info-edit-control">
-                <input className="form-control input-sm" value={invitation.nonreaders?.join(', ')} onChange={e => setGeneralInfo({ type: 'nonreaders', payload: e.target.value })} />
+                <input className="form-control input-sm" value={generalInfo.nonreaders} onChange={e => setGeneralInfo({ type: 'nonreaders', payload: e.target.value })} />
               </div>
             </div>
             <div className="row d-flex">
               <span className="info-title edit-title">Writers:</span>
               <div className="info-edit-control">
-                <input className="form-control input-sm" value={invitation.writers?.join(', ')} onChange={e => setGeneralInfo({ type: 'writers', payload: e.target.value })} />
+                <input className="form-control input-sm" value={generalInfo.writers} onChange={e => setGeneralInfo({ type: 'writers', payload: e.target.value })} />
               </div>
             </div>
             <div className="row d-flex">
               <span className="info-title edit-title">Invitees:</span>
               <div className="info-edit-control">
-                <input className="form-control input-sm" value={invitation.invitees?.join(', ')} onChange={e => setGeneralInfo({ type: 'invitees', payload: e.target.value })} />
+                <input className="form-control input-sm" value={generalInfo.invitees} onChange={e => setGeneralInfo({ type: 'invitees', payload: e.target.value })} />
               </div>
             </div>
             <div className="row d-flex">
               <span className="info-title edit-title">Non-Invitees:</span>
               <div className="info-edit-control">
-                <input className="form-control input-sm" value={invitation.noninvitees?.join(', ')} onChange={e => setGeneralInfo({ type: 'noninvitees', payload: e.target.value })} />
+                <input className="form-control input-sm" value={generalInfo.noninvitees} onChange={e => setGeneralInfo({ type: 'noninvitees', payload: e.target.value })} />
               </div>
             </div>
             {
@@ -88,7 +170,7 @@ const InvitationGeneralInfo = ({ invitation }) => {
                 <div className="row d-flex">
                   <span className="info-title edit-title">Final Fields:</span>
                   <div className="info-edit-control">
-                    <input className="form-control input-sm" value={invitation.final?.join(', ')} onChange={e => setGeneralInfo({ type: 'final', payload: e.target.value })} />
+                    <input className="form-control input-sm" value={generalInfo.final} onChange={e => setGeneralInfo({ type: 'final', payload: e.target.value })} />
                   </div>
                 </div>
               )
@@ -102,8 +184,8 @@ const InvitationGeneralInfo = ({ invitation }) => {
                       className="dropdown-select"
                       placeholder="select whether to enable anonymous id"
                       options={trueFalseOptions}
-                      onChange={e => setGeneralInfo({ type: 'multiReply', value: e.value })}
-                      value={invitation.multiReply ? { value: true, label: 'True' } : { value: false, label: 'False' }}
+                      onChange={e => setGeneralInfo({ type: 'multiReply', payload: e.value })}
+                      value={generalInfo.multiReply ? { value: true, label: 'True' } : { value: false, label: 'False' }}
                     />
                   </div>
                 </div>
@@ -114,7 +196,7 @@ const InvitationGeneralInfo = ({ invitation }) => {
                 <div className="row d-flex">
                   <span className="info-title edit-title">Completed After:</span>
                   <div className="info-edit-control">
-                    <input type="number" className="form-control input-sm" value={invitation.taskCompletionCount?.join(', ')} onChange={e => setGeneralInfo({ type: 'taskCompletionCount', payload: e.target.value })} />
+                    <input type="number" className="form-control input-sm" value={generalInfo.taskCompletionCount} onChange={e => setGeneralInfo({ type: 'taskCompletionCount', payload: e.target.value })} />
                   </div>
                 </div>
               )
@@ -128,8 +210,8 @@ const InvitationGeneralInfo = ({ invitation }) => {
                       className="dropdown-select"
                       placeholder="select whether to hide revisions"
                       options={trueFalseOptions}
-                      onChange={e => setGeneralInfo({ type: 'hideOriginalRevisions', value: e.value })}
-                      value={invitation.hideOriginalRevisions ? { value: true, label: 'True' } : { value: false, label: 'False' }}
+                      onChange={e => setGeneralInfo({ type: 'hideOriginalRevisions', payload: e.value })}
+                      value={generalInfo.hideOriginalRevisions ? { value: true, label: 'True' } : { value: false, label: 'False' }}
                     />
                   </div>
                 </div>
@@ -140,7 +222,7 @@ const InvitationGeneralInfo = ({ invitation }) => {
                 <div className="row d-flex">
                   <span className="info-title edit-title">Max Replies:</span>
                   <div className="info-edit-control">
-                    <input type="number" className="form-control input-sm" value={invitation.maxReplies?.join(', ')} onChange={e => setGeneralInfo({ type: 'maxReplies', payload: e.target.value })} />
+                    <input type="number" className="form-control input-sm" value={generalInfo.maxReplies} onChange={e => setGeneralInfo({ type: 'maxReplies', payload: e.target.value })} />
                   </div>
                 </div>
               )
@@ -150,7 +232,7 @@ const InvitationGeneralInfo = ({ invitation }) => {
                 <div className="row d-flex">
                   <span className="info-title edit-title">Min Replies:</span>
                   <div className="info-edit-control">
-                    <input type="number" className="form-control input-sm" value={invitation.minReplies?.join(', ')} onChange={e => setGeneralInfo({ type: 'minReplies', payload: e.target.value })} />
+                    <input type="number" className="form-control input-sm" value={generalInfo.minReplies} onChange={e => setGeneralInfo({ type: 'minReplies', payload: e.target.value })} />
                   </div>
                 </div>
               )
@@ -164,8 +246,8 @@ const InvitationGeneralInfo = ({ invitation }) => {
                       className="dropdown-select"
                       placeholder="select whether to bulk"
                       options={trueFalseOptions}
-                      onChange={e => setGeneralInfo({ type: 'bulk', value: e.value })}
-                      value={invitation.bulk ? { value: true, label: 'True' } : { value: false, label: 'False' }}
+                      onChange={e => setGeneralInfo({ type: 'bulk', payload: e.value })}
+                      value={generalInfo.bulk ? { value: true, label: 'True' } : { value: false, label: 'False' }}
                     />
                   </div>
                 </div>
@@ -175,10 +257,39 @@ const InvitationGeneralInfo = ({ invitation }) => {
               <span className="info-title edit-title">Activation Date:</span>
               <div className="info-edit-control">
                 <div className="d-flex">
-                  <DatetimePicker />
-                  <TimezoneDroopdown className="timezone-dropdown" />
+                  <DatetimePicker extraClasses="date-picker" value={generalInfo.cdate} timeZone={generalInfo.activationDateTimezone} onChange={e => setGeneralInfo({ type: 'cdate', payload: e })} />
+                  <TimezoneDropdown className="timezone-dropdown" value={generalInfo.activationDateTimezone} onChange={e => setGeneralInfo({ type: 'activationDateTimezone', payload: e.value })} />
                 </div>
               </div>
+            </div>
+            <div className="row d-flex">
+              <span className="info-title edit-title">Due Date:</span>
+              <div className="info-edit-control">
+                <div className="d-flex">
+                  <DatetimePicker extraClasses="date-picker" value={generalInfo.duedate} timeZone={generalInfo.duedateTimezone} onChange={e => setGeneralInfo({ type: 'duedate', payload: e })} />
+                  <TimezoneDropdown className="timezone-dropdown" value={generalInfo.duedateTimezone} onChange={e => setGeneralInfo({ type: 'duedateTimezone', payload: e.value })} />
+                </div>
+              </div>
+            </div>
+            <div className="row d-flex">
+              <span className="info-title edit-title">Expiration Date:</span>
+              <div className="info-edit-control">
+                <div className="d-flex">
+                  <DatetimePicker extraClasses="date-picker" value={generalInfo.expdate} timeZone={generalInfo.expDateTimezone} onChange={e => setGeneralInfo({ type: 'expdate', payload: e })} />
+                  <TimezoneDropdown className="timezone-dropdown" value={generalInfo.expDateTimezone} onChange={e => setGeneralInfo({ type: 'expDateTimezone', payload: e.value })} />
+                </div>
+              </div>
+            </div>
+            <div className="row d-flex">
+              <span className="info-title edit-title">Signature:</span>
+              <div className="info-edit-control">
+                <input className="form-control input-sm" value={generalInfo.signatures?.join(', ')} onChange={e => setGeneralInfo({ type: 'signatures', payload: e.target.value })} />
+              </div>
+            </div>
+            <div className="row d-flex">
+              <span className="info-title edit-title" />
+              <button type="button" className="btn btn-sm btn-primary" onClick={() => saveGeneralInfo()}>Save Invitation</button>
+              <button type="button" className="btn btn-sm btn-default" onClick={() => setIsEditMode(false)}>Cancel</button>
             </div>
           </>
         )
@@ -198,7 +309,7 @@ const InvitationGeneralInfo = ({ invitation }) => {
               <span className="info-title">Readers:</span>
               <GroupIdList groupIds={invitation.readers} />
             </div>
-            {invitation.nonreaders.length > 0 && (
+            {invitation.nonreaders?.length > 0 && (
               <div className="row d-flex">
                 <span className="info-title">Non-readers:</span>
                 <GroupIdList groupIds={invitation.nonreaders} />
@@ -212,13 +323,13 @@ const InvitationGeneralInfo = ({ invitation }) => {
               <span className="info-title">Invitees:</span>
               <GroupIdList groupIds={invitation.invitees} />
             </div>
-            {invitation.noninvitees.length > 0 && (
+            {invitation.noninvitees?.length > 0 && (
               <div className="row d-flex">
                 <span className="info-title">Non-Invitees:</span>
                 <GroupIdList groupIds={invitation.noninvitees} />
               </div>
             )}
-            {isV1Invitation && invitation.final.length > 0 && (
+            {isV1Invitation && invitation.final?.length > 0 && (
               <div className="row d-flex">
                 <span className="info-title">Final Fields:</span>
                 {invitation.final.join(', ')}
@@ -301,7 +412,7 @@ const InvitationGeneralInfo = ({ invitation }) => {
   )
 }
 
-const InvitationEditor = ({ invitation }) => {
+const InvitationEditor = ({ invitation, accessToken, loadInvitation }) => {
   const abc = 123
 
   if (!invitation) return null
@@ -310,7 +421,8 @@ const InvitationEditor = ({ invitation }) => {
       <div id="header">
         <h1>{prettyId(invitation.id)}</h1>
       </div>
-      <InvitationGeneralInfo invitation={invitation} />
+      {/* eslint-disable-next-line max-len */}
+      <InvitationGeneralInfo key={nanoid()} invitation={invitation} accessToken={accessToken} loadInvitation={loadInvitation} />
     </>
   )
 }
