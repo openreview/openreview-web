@@ -250,13 +250,11 @@ You will have the option to edit or add metadata, remove papers or add additiona
 If the option to modify assignments is available for Area Chairs in your venue, you should find a link to do so in your Area Chair console that will bring you directly to the edge browser. 
 
 All of your assigned papers will appear in a single column on the left. Clicking on a paper in the list will pull up a second column containing all reviewers, colored by their relationship to the selected paper:
-  1. Light green means that the reviewer is assigned to the paper selected at left
-  2. Light red means that the reviewer has conflict with the paper selected at left
-  3. Light orange means that the reviewer both has conflict and is assigned to the paper selected at left.
-  4. White means that the reviewer is not assigned to and has no conflict with the paper selected at left. 
+  1. Light green means that the reviewer is assigned to the paper selected at left.
+  2. White means that the reviewer is not assigned to and has no conflict with the paper selected at left. 
 
-  You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent column you can also search for specific reviewers by their name, email or profile id. You can sort the column on the right by whatever edge types are shown, such as Assignment, Aggregate Score, Bid, or Affinity Score, using the 'Order By' dropdown.
-![Edge Browser](/images/faq-AC-edge-browser.png)
+  You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent column you can also search for specific reviewers by their name, email or profile id. You can sort the column on the right by whatever edge types are shown, such as Assignment, Aggregate Score, Bid, or Affinity Score, using the 'Order By' dropdown. The second column will show the total number of assignments for the selected reviewer.
+  ![Edge Browser](/images/faq-AC-edge-browser.png)
 
 #### Creating and Removing Assignments Using the Edge Browser
 
@@ -381,10 +379,34 @@ After following these steps, you should see links for 'Assignment' in the 'Timel
 ![PC Console](/images/faq-PC_Console.png)
 Clicking on one of the assignment links will bring you to the assignment page, where you can run paper matching. You can learn more about our automatic paper matching algorithm from its github repo: https://github.com/openreview/openreview-matcher. To create a new matching, click the 'New Assignment Configuration'. This will pull up a form with some default values pertaining to your matching settings:
 
-  -User demand: The number of users available to be assigned to papers
-  -Max papers: The maximum number of papers that can be assigned to each reviewer 
-  -Min papers: The minimum number of papers that can be assigned to each reviewer 
-  -Scores specification: 
+  - User demand: The number of users available to be assigned to papers
+
+  - Max papers: The maximum number of papers that can be assigned to each reviewer 
+
+  - Min papers: The minimum number of papers that can be assigned to each reviewer 
+
+  - Scores specification: JSON providing further details and customization to scores, as in the following example: 
+        {
+        "Example_Venue/2022/Conference/Reviewers/-/Affinity_Score": {
+            "weight": 1,
+            "default": 0
+        },
+        "Example_Venue/2022/Conference/Reviewers/-/Bid": {
+            "weight": 1,
+            "default": 0,
+            "translate_map": {
+                "Very High": 1,
+                "High": 0.75,
+                "Neutral": 0,
+                "Low": -0.5,
+                "Very Low": -1
+            }
+        }
+        }
+    Each key represents an edge invitation (affinity score, bid, etc.) Weight can be added to a given score value with the numerical field 'Weight'. 'Default' is a numerical value that is used when there is not an edge for a specific reviewer-paper pair. Finally, 'translate_map' is a map function that translates an edge label value into a number. 
+
+    In the example above, the aggregate score being used by the optimizer is: 
+        weight * (affinity score) + weight * (translate_map(bid))
 
 After filling out this form and hitting submit, you should see the following:
 
@@ -394,16 +416,20 @@ You can view, edit or copy the values you filled out in the matching form. When 
 
 #### Manually Editing Assignments with the Edge Browser
 
-The edge browser is a tool for visualizing edges, or matches, created by OpenReview’s automatic paper matching algorithm. You can use it to browse, sort, search, and create new assignments between reviewers and papers until you are happy with the assignments generated. The Edge Browser is available to venues that selected 'Affinity Scores' or 'Bids' in the Paper Matching section of their venue request form. When you first open the edge browser, all papers will appear in a column on the left. You can click on a certain paper to see a second column of reviewers pop up to the right. Similarly, if you click on a reviewer, all of their assigned papers will pop up in another column to the right, and so on.
-![Edge Browser](/images/faq-matcher-column2.png)
+The edge browser is a tool for visualizing edges, or matches, created by OpenReview’s automatic paper matching algorithm. You can use it to browse, sort, search, and create new assignments between reviewers and papers until you are happy with the assignments generated. The edge browser is available to venues that selected 'Affinity Scores' or 'Bids' in the Paper Matching section of their venue request form. When you first open the edge browser, all papers will appear in a column on the left. You can click on a certain paper to see a second column of reviewers pop up to the right. Similarly, if you click on a reviewer, all of their assigned papers will pop up in another column to the right, and so on.
+![edge browser](/images/faq-matcher-column2.png)
 
 The color of each item represents the relationship between that item and the one selected at left:
-  1. Light green means that the item is assigned to the item selected at left
-  2. Light red means that the item has conflict with the item selected at left
+  1. Light green means that the item is assigned to the item selected at left.
+  2. Light red means that the item has conflict with the item selected at left.
   3. Light orange means that the item both has conflict and is assigned to the item selected at left.
   4. White means that the item is not assigned to and has no conflict with the item selected at left. 
 
-Each item will display various edges calculated by the matcher and used to make assignments, such as the Bid, Affinity, Aggregate scores, and Conflicts. The trashcan button can be used to remove an edge. 'Assignments' tells you how many papers are assigned to a given reviewer. You may also see 'Custom Max Papers' here if certain reviewers requested a specific max number of papers. You can filter out reviewers who have met their quota with the checkbox 'Only show reviewers with fewer than max assigned papers.' Once a reviewer has hit their quota, the 'Assign' button will be disabled and you will only be able to assign them additional papers using the 'Invite Assignments' button after deployment.
+Each item will display various edges calculated by the matcher and used to make assignments, such as the Bid, Affinity, Aggregate scores, and Conflicts. The trashcan button can be used to remove an edge. You can create new assignments in one of two ways:
+  1. The option 'Assign'  directly assigns the reviewer to the paper and sends an email notification. 
+  2. The option 'Invite Assignment'  sends an invitation email to the reviewer with an accept/decline link. 
+
+'Assignments' tells you how many papers are assigned to a given reviewer. You may also see 'Custom Max Papers' here if certain reviewers requested a specific max number of papers. You can filter out reviewers who have met their quota with the checkbox 'Only show reviewers with fewer than max assigned papers.' Once a reviewer has hit their quota, the 'Assign' button will be disabled and you will only be able to assign them additional papers using the 'Invite Assignments' button after deployment.
 
 ![Assign Button Disabled](/images/faq-assign-button-disabled.png)
 
@@ -412,9 +438,7 @@ You can search for specific papers by paper title or number at the top of the fi
 You can copy, edit, and create matching configurations as many times as you want until deployment. You can also use the ‘View Statistics’ button on the assignment page to view a breakdown of paper assignments. When you are happy with your assignments, hit 'Deploy Assignments' on the assignment page.
 
 #### Post Deployment
-After deploying, 'Browse Assignments' will change to 'Edit assignments' so that you can continue to make manual assignments using the option 'Assign' or 'Invite Assignment'. 
-The option 'Assign'  directly assigns the reviewer to the paper and an email notification is being sent. 
-The option 'Invite Assignment'  sends an invitation email to the reviewer with an accept/decline link. 
+After deploying, 'Browse Assignments' will change to 'Edit assignments' so that you can continue to make manual assignments using either of the options 'Assign' or 'Invite Assignment'. 
 
 Any changes made after deployment are immediately visible to the assigned Reviewers or ACs, and it is not necessary to deploy again. 
 
