@@ -375,7 +375,7 @@ Note that assigning an area chair using python does not send an email to that us
 #### Running Automatic Paper Matching
 
 In order to automatically assign Reviewers and Area Chairs, you must:
-  1. Contact OpenReview in advance of the deadline to calculate your affinity scores/bids
+  1. Contact OpenReview in advance of the deadline to calculate your affinity scores and conflicts.
   2. Enable the 'Review Stage' from your venue request form. This can only be done AFTER the submission deadline has passed. 
 After following these steps, you should see links for 'Assignment' in the 'Timeline' section of your Program Chair console.
 ![PC Console](/images/faq-PC_Console.png)
