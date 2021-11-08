@@ -412,7 +412,13 @@ You can search for specific papers by paper title or number at the top of the fi
 You can copy, edit, and create matching configurations as many times as you want until deployment. You can also use the ‘View Statistics’ button on the assignment page to view a breakdown of paper assignments. When you are happy with your assignments, hit 'Deploy Assignments' on the assignment page.
 
 #### Post Deployment
-After deploying, 'Browse Assignments' will change to 'Edit assignments' so that you can continue to make manual assignments using 'Invite Reviewer'. This sends an invitation to the reviewer with an accept/decline link. Any changes made after deployment are immediately visible to the assigned Reviewers or ACs, and it is not necessary to deploy again. The reviewer can then respond to the invitation. If you want to invite a reviewer from outside the reviewer pool, including another Area Chair, you can do so by searching for their email address or profileID in the search bar of the second column and clicking 'Invite Assignment'. If they are in conflict with that paper, a banner will alert you with an error. Otherwise, they will receive an email notifying them of their invitation with the option to accept or reject the assignment. Their status will change according to their response to your invitation ('Declined', 'Pending Sign Up', 'Accepted', or 'Conflict Detected').
+After deploying, 'Browse Assignments' will change to 'Edit assignments' so that you can continue to make manual assignments using the option 'Assign' or 'Invite Assignment'. 
+The option 'Assign'  directly assigns the reviewer to the paper and an email notification is being sent. 
+The option 'Invite Assignment'  sends an invitation email to the reviewer with an accept/decline link. 
+
+Any changes made after deployment are immediately visible to the assigned Reviewers or ACs, and it is not necessary to deploy again. 
+
+The reviewer can then respond to the invitation. If you want to invite a reviewer from outside the reviewer pool, including another Area Chair, you can do so by searching for their email address or profileID in the search bar of the second column and clicking 'Invite Assignment'. If they are in conflict with that paper, a banner will alert you with an error. Otherwise, they will receive an email notifying them of their invitation with the option to accept or reject the assignment. Their status will change according to their response to your invitation ('Declined', 'Pending Sign Up', 'Accepted', or 'Conflict Detected').
 
 ![Reviewer Declined](/images/faq-reviewer-declined.png)
 
