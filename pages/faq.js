@@ -268,6 +268,7 @@ There are two ways to create assignments:
 <img src="/images/faq-reviewer-accepted.png" alt="Reviewer Accepted" class="img-answer"/></br>
 
 Some reviewers have a custom reduced paper load which appears in the edge browser as 'Custom Max Papers'. You cannot directly assign a reviewer to more papers than their custom max papers, but you can 'Invite' reviewers if that option is enabled for you. You can also filter out reviewers who have met their quota with the checkbox 'Only show reviewers with fewer than max assigned papers.'
+
 <img src="/images/faq-assign-button-disabled.png" alt="Assign Button Disabled" class="img-answer"/></br>
 
 `,
