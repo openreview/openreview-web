@@ -108,7 +108,12 @@ const InvitationEdit = ({ appContext }) => {
         <LoadingSpinner />
       )}
 
-      <InvitationEditor invitation={invitation} accessToken={accessToken} loadInvitation={loadInvitation} />
+      <InvitationEditor
+        invitation={invitation}
+        user={user}
+        accessToken={accessToken}
+        loadInvitation={loadInvitation}
+      />
 
       <WebfieldContainer id="invitation-container">
         <div id="header">

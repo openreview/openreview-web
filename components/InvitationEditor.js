@@ -1,13 +1,16 @@
 /* globals promptError,promptMessage,moment: false */
 import Link from 'next/link'
 import { nanoid } from 'nanoid'
-import React, { useReducer, useState } from 'react'
+import React, { useEffect, useReducer, useState } from 'react'
 import {
-  formatDateTime, getDefaultTimezone, prettyId, urlFromGroupId,
+  formatDateTime, getDefaultTimezone, prettyId, translateErrorDetails, urlFromGroupId,
 } from '../lib/utils'
 import Dropdown, { TimezoneDropdown } from './Dropdown'
 import DatetimePicker from './DatetimePicker'
 import api from '../lib/api-client'
+import CodeEditor from './CodeEditor'
+import { isSuperUser } from '../lib/auth'
+import PaginationLinks from './PaginationLinks'
 
 const GroupIdList = ({ groupIds }) => {
   const commonGroups = ['everyone', '(anonymous)', '(guest)', '~', '~Super_User1']
@@ -30,9 +33,11 @@ const GroupIdList = ({ groupIds }) => {
   })
 }
 
-const InvitationGeneralInfo = ({ invitation, accessToken, loadInvitation }) => {
+const InvitationGeneralInfo = ({
+  invitation, profileId, accessToken, loadInvitation,
+}) => {
   const parentGroupId = invitation.id.split('/-/')[0]
-  const isV1Invitation = !invitation.edit
+  const isV1Invitation = !invitation.apiVersion === 1
   const trueFalseOptions = [
     { value: true, label: 'True' },
     { value: false, label: 'False' },
@@ -105,19 +110,39 @@ const InvitationGeneralInfo = ({ invitation, accessToken, loadInvitation }) => {
   }
 
   const constructInvitationEditToPost = async () => {
-
+    const invitationEdit = {
+      invitation: {
+        id: generalInfo.id,
+        signatures: generalInfo.signatures,
+        bulk: generalInfo.bulk,
+        cdate: Number.isNaN(parseInt(generalInfo.cdate, 10)) ? null : parseInt(generalInfo.cdate, 10),
+        duedate: Number.isNaN(parseInt(generalInfo.duedate, 10)) ? null : parseInt(generalInfo.duedate, 10),
+        expdate: Number.isNaN(parseInt(generalInfo.expdate, 10)) ? null : parseInt(generalInfo.expdate, 10),
+        invitees: stringToArray(generalInfo.invitees),
+        maxReplies: Number.isNaN(Number(generalInfo.maxReplies)) ? null : Number(generalInfo.maxReplies),
+        minReplies: Number.isNaN(Number(generalInfo.minReplies)) ? null : Number(generalInfo.minReplies),
+        noninvitees: stringToArray(generalInfo.noninvitees),
+        nonreaders: stringToArray(generalInfo.nonreaders),
+        readers: stringToArray(generalInfo.readers),
+        writers: stringToArray(generalInfo.writers),
+      },
+      readers: [profileId],
+      writers: [profileId],
+      signatures: [profileId],
+    }
+    return invitationEdit
   }
 
   const saveGeneralInfo = async () => {
     try {
       const requestPath = isV1Invitation ? '/invitations' : '/invitations/edits'
       const requestBody = isV1Invitation ? await constructInvitationToPost() : await constructInvitationEditToPost()
-      const result = await api.post(requestPath, requestBody, { accessToken, version: isV1Invitation ? 1 : 2 })
-      promptMessage(`Settings for '${prettyId(invitation.id)} updated`)
+      await api.post(requestPath, requestBody, { accessToken, version: invitation.apiVersion })
+      promptMessage(`Settings for '${prettyId(invitation.id)} updated`, { scrollToTop: false })
       setIsEditMode(false)
       loadInvitation(invitation.id)
     } catch (error) {
-      promptError(error.message)
+      promptError(error.details && error.legacy ? translateErrorDetails(error.details) : error.message)
     }
   }
 
@@ -412,17 +437,294 @@ const InvitationGeneralInfo = ({ invitation, accessToken, loadInvitation }) => {
   )
 }
 
-const InvitationEditor = ({ invitation, accessToken, loadInvitation }) => {
-  const abc = 123
+// for both reply and reply forum
+const InvitationReply = ({
+  invitation, profileId, accessToken, loadInvitation, replyField,
+}) => {
+  const isV1Invitation = invitation.apiVersion === 1
+  const [replyString, setReplyString] = useState(JSON.stringify(invitation[replyField], undefined, 2))
 
+  const getTitle = () => {
+    switch (replyField) {
+      case 'reply': return 'Reply Parameters'
+      case 'edge': return 'Edge'
+      case 'edit': return 'Edit'
+      case 'replyForumViews': return 'Reply Forum Views'
+      default: return replyField
+    }
+  }
+
+  const getRequestBody = (replyObj) => {
+    switch (replyField) {
+      case 'reply': return {
+        ...invitation,
+        reply: replyObj,
+        apiVersion: undefined,
+      }
+      case 'edge': return {
+        invitation: {
+          id: invitation.id,
+          signatures: invitation.signatures,
+          edge: replyObj,
+        },
+        readers: [profileId],
+        writers: [profileId],
+        signatures: [profileId],
+      }
+      case 'replyForumViews': return isV1Invitation ? {
+        ...invitation,
+        replyForumViews: replyObj,
+        apiVersion: undefined,
+      } : {
+        invitation: {
+          id: invitation.id,
+          signatures: invitation.signatures,
+          replyForumViews: replyObj,
+        },
+        readers: [profileId],
+        writers: [profileId],
+        signatures: [profileId],
+      }
+      case 'edit': return {
+        invitation: {
+          id: invitation.id,
+          signatures: invitation.signatures,
+          edit: {
+            note: {
+              signatures: null,
+              readers: null,
+              writers: null,
+              content: invitation.edit.note.content,
+            },
+            ...replyObj,
+          },
+        },
+        readers: [profileId],
+        writers: [profileId],
+        signatures: [profileId],
+      }
+      default: return null
+    }
+  }
+
+  const saveInvitationReply = async () => {
+    try {
+      const replyObj = JSON.parse(replyString)
+      const requestPath = isV1Invitation ? '/invitations' : '/invitations/edits'
+      const requestBody = getRequestBody(replyObj)
+      await api.post(requestPath, requestBody, { accessToken, version: isV1Invitation ? 1 : 2 })
+      promptMessage(`Settings for '${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      loadInvitation(invitation.id)
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        promptError(`Reply content is not valid JSON - ${error.message}. Make sure all quotes and brackets match.`)
+      } else {
+        promptError(error.details && error.legacy ? translateErrorDetails(error.details) : error.message)
+      }
+    }
+  }
+
+  return (
+    <section>
+      <h4>{getTitle()}</h4>
+      <CodeEditor code={replyString} onChange={setReplyString} isJson />
+      <button type="button" className="btn btn-sm btn-primary" onClick={() => saveInvitationReply()}>Save Invitation</button>
+    </section>
+  )
+}
+
+const InvitationCode = ({
+  invitation, profileId, accessToken, loadInvitation, codeType,
+}) => {
+  const isV1Invitation = invitation.apiVersion === 1
+  const [code, setCode] = useState(invitation[codeType])
+  const [showEditor, setShowEditor] = useState(false)
+
+  const saveCode = async () => {
+    try {
+      const requestPath = isV1Invitation ? '/invitations' : '/invitations/edits'
+      const requestBody = isV1Invitation
+        ? {
+          ...invitation,
+          [codeType]: code,
+          apiVersion: undefined,
+        }
+        : {
+          invitation: {
+            id: invitation.id,
+            signatures: invitation.signatures,
+            [codeType]: code,
+          },
+          readers: [profileId],
+          writers: [profileId],
+          signatures: [profileId],
+        }
+      await api.post(requestPath, requestBody, { accessToken, version: isV1Invitation ? 1 : 2 })
+      promptMessage(`Code for '${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      loadInvitation(invitation.id)
+    } catch (error) {
+      promptError(error.details && error.legacy ? translateErrorDetails(error.details) : error.message)
+    }
+  }
+
+  const handleCancelClick = () => {
+    setCode(invitation[codeType])
+    setShowEditor(false)
+  }
+
+  const getTitle = () => {
+    switch (codeType) {
+      case 'web': return 'Invitation UI Code'
+      case 'process': return 'Process Function Code'
+      case 'preprocess': return 'PreProcess Function Code'
+      default: return 'Code'
+    }
+  }
+
+  return (
+    <section>
+      <h4>{getTitle()}</h4>
+      {
+        showEditor
+          ? (
+            <>
+              <CodeEditor code={code} onChange={setCode} />
+              <button type="button" className="btn btn-sm btn-primary" onClick={() => saveCode()}>Update Code</button>
+              <button type="button" className="btn btn-sm btn-default" onClick={() => handleCancelClick()}>Cancel</button>
+            </>
+          )
+          : <button type="button" className="btn btn-sm btn-primary" onClick={() => setShowEditor(true)}>Show Code Editor</button>
+      }
+    </section>
+  )
+}
+
+const ChildInvitations = ({ invitation, accessToken }) => {
+  const isV1Invitation = invitation.apiVersion === 1
+  const [totalCount, setTotalCount] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [childInvitations, setChildInvitations] = useState([])
+
+  const ChildInvitationRow = ({ childInvitation }) => (
+    <li>
+      <Link href={`/invitation/edit?id=${childInvitation.id}`}>
+        <a>
+          {prettyId(childInvitation.id)}
+        </a>
+      </Link>
+    </li>
+  )
+
+  const loadChildInvitations = async (limit = 15, offset = 0) => {
+    try {
+      const result = await api.get('/invitations', {
+        super: invitation.id,
+        limit,
+        offset,
+      }, { accessToken, version: isV1Invitation ? 1 : 2 })
+      setTotalCount(result.count)
+      setChildInvitations(result.invitations)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  useEffect(() => {
+    loadChildInvitations()
+  }, [invitation])
+
+  const getTitle = () => `Child Invitations ${totalCount ? `(${totalCount})` : ''}`
+
+  if (!childInvitations.length) return null
+  return (
+    <section>
+      <h4>{getTitle()}</h4>
+      <ul className="list-unstyled">
+        {childInvitations.map(childInvitation => (
+          <ChildInvitationRow
+            key={childInvitation.id}
+            childInvitation={childInvitation}
+          />
+        ))}
+      </ul>
+      <PaginationLinks
+        // eslint-disable-next-line max-len
+        setCurrentPage={(pageNumber) => { setCurrentPage(pageNumber); loadChildInvitations(15, (pageNumber - 1) * 15) }}
+        totalCount={totalCount}
+        itemsPerPage={15}
+        currentPage={currentPage}
+        options={{ noScroll: true }}
+      />
+    </section>
+  )
+}
+
+const InvitationEditor = ({
+  invitation, user, accessToken, loadInvitation,
+}) => {
+  const profileId = user?.profile?.id
+  const showProcessEditor = invitation?.apiVersion === 2 || isSuperUser(user)
   if (!invitation) return null
   return (
     <>
       <div id="header">
         <h1>{prettyId(invitation.id)}</h1>
       </div>
-      {/* eslint-disable-next-line max-len */}
-      <InvitationGeneralInfo key={nanoid()} invitation={invitation} accessToken={accessToken} loadInvitation={loadInvitation} />
+      <InvitationGeneralInfo
+        // key={nanoid()}
+        invitation={invitation}
+        profileId={profileId}
+        accessToken={accessToken}
+        loadInvitation={loadInvitation}
+      />
+      <InvitationReply
+        key={nanoid()}
+        invitation={invitation}
+        profileId={profileId}
+        accessToken={accessToken}
+        loadInvitation={loadInvitation}
+        // eslint-disable-next-line no-nested-ternary
+        replyField={invitation.apiVersion === 1 ? 'reply' : (invitation.edge ? 'edge' : 'edit')}
+      />
+      <InvitationReply
+        key={nanoid()}
+        invitation={invitation}
+        profileId={profileId}
+        accessToken={accessToken}
+        loadInvitation={loadInvitation}
+        // eslint-disable-next-line no-nested-ternary
+        replyField="replyForumViews"
+      />
+      <InvitationCode
+        invitation={invitation}
+        profileId={profileId}
+        accessToken={accessToken}
+        loadInvitation={loadInvitation}
+        codeType="web"
+      />
+      {
+        showProcessEditor
+        && (
+          <>
+            <InvitationCode
+              invitation={invitation}
+              profileId={profileId}
+              accessToken={accessToken}
+              loadInvitation={loadInvitation}
+              codeType="process"
+            />
+            <InvitationCode
+              invitation={invitation}
+              profileId={profileId}
+              accessToken={accessToken}
+              loadInvitation={loadInvitation}
+              codeType="preprocess"
+            />
+
+          </>
+        )
+      }
+      <ChildInvitations invitation={invitation} />
     </>
   )
 }
