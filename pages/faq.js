@@ -167,10 +167,9 @@ For more details on the difference between OpenReview's TeX support and other sy
   You can click on the "Login" on the right of navigation menu to login to OpenReview.
 
 
-  2. **Go to edit mode of your profile page**<br/>
+  2. **Navigate to the edit profile page**<br/>
   Click on your name on the right of navigation menu and click on "Profile" link in the dropdown displayed.
   <img src="/images/faq-dblp-profile.png" alt="go to profile page" class="img-answer"/><br/>
-
   When you are directed to the profile page, click on the "Edit Profile" button in the ribbon displayed under the navigation bar.
   <img src="/images/faq-dblp-edit-profile.png" alt="go to edit mode" class="img-answer"/><br/>
 
@@ -178,16 +177,13 @@ For more details on the difference between OpenReview's TeX support and other sy
   3. **Add DBLP URL**<br/>
   Look for "DBLP URL" text input under "Personal Links" section and enter the "Persistent DBLP URL".
   <img src="/images/faq-dblp-input.png" alt="dblp url input" class="img-answer"/><br/>
-
   You can get the "Persistent DBLP URL" from your DBLP homepage.
-
-  To do so, hover over the <img src="/images/share_alt.svg" alt="share" class="share" /> icon to the right of your name in DBLP page heading and copy the persistent URL from the hover menu.
+  To do so, hover over the share icon to the right of your name in DBLP page heading and copy the persistent URL from the hover menu.
   <img src="/images/faq-dblp.png" alt="dblp website" class="img-answer"/><br/>
-
   You can then go to your OpenReview profile page, click "Edit Profile", paste your persistent DBLP URL to the corresponding input.
 
 
-  4. **Click "Add DBLP Papers to Profile" button**<br/>
+  4. **Click the "Add DBLP Papers to Profile" button**<br/>
   Valid DBLP URL will enable the "Add DBLP Papers to Profile" button. Click the button and your DBLP publications will be listed in a modal window.
 
 
@@ -195,11 +191,12 @@ For more details on the difference between OpenReview's TeX support and other sy
   Use the checkbox in front of each paper to select the papers which you would like to import to your OpenReview profile.
 
 
-  6. **Click "Add to Your Profile" button**<br/>
+  6. **Click the "Add to Your Profile" button**<br/>
   Click the "Add to Your Profile" button at the bottom of the modal window to import selected papers.
   <img src="/images/faq-dblp-import.png" alt="import papers" class="img-answer"/><br/>
 
 If you get an error that says "please ensure the provided DBLP URL is yours", please ensure that name (or one of the names) in your OpenReview profile **matches exactly** with the name used in DBLP publications.
+
 You can add a matching name to your OpenReview profile by clicking the plus icon in "Names" section of the profile edit page, saving your profile by clicking the "Save Profile Changes" button at the bottom of profile edit page and try importing again.
 
 **To remove publications which are imported from DBLP from your profile**:
@@ -247,14 +244,16 @@ You will have the option to edit or add metadata, remove papers or add additiona
 
 #### Navigating the Edge Browser
 
-If the option to modify assignments is available for Area Chairs in your venue, you should find a link to do so in your Area Chair console that will bring you directly to the edge browser. 
+If the option to modify assignments is available for Area Chairs in your venue, you should find a link to do so in your Area Chair console that will bring you directly to the edge browser.
 
 All of your assigned papers will appear in a single column on the left. Clicking on a paper in the list will pull up a second column containing all reviewers, colored by their relationship to the selected paper:
-  1. Light green means that the reviewer is assigned to the paper selected at left.
-  2. White means that the reviewer is not assigned to the paper selected at left. 
 
-  You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent column you can also search for specific reviewers by their name, email or profile id. You can sort the column on the right by whatever edge types are shown, such as Assignment, Aggregate Score, Bid, or Affinity Score, using the 'Order By' dropdown. The second column will show the total number of assignments for the selected reviewer.
-  ![Edge Browser](/images/faq-AC-edge-browser.png)
+  1. Light green means that the reviewer is assigned to the paper selected at left.
+  2. White means that the reviewer is not assigned to and has no conflict with the paper selected at left.
+
+You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent column you can also search for specific reviewers by their name, email or profile id. You can sort the column on the right by whatever edge types are shown, such as Assignment, Aggregate Score, Bid, or Affinity Score, using the 'Order By' dropdown. The second column will show the total number of assignments for the selected reviewer.
+
+![Edge Browser](/images/faq-AC-edge-browser.png)
 
 #### Creating and Removing Assignments Using the Edge Browser
 
@@ -347,6 +346,7 @@ which will be displayed as:
     q: 'How can I manually assign reviewers/ACs to papers?',
     id: 'question-manually-assign-reviewers',
     a: `**Reviewers:** If you did not specify you wanted to use the OpenReview matcher to assign reviewers to papers, you will be able to manually assign them using the PC console.
+
   1. You must first set the review stage by clicking on the 'Review Stage' button on the request form for your venue.
   2. Under the 'Paper Status' tab in the PC console, click on 'Show Reviewers' next to the paper you want to assign reviewers to.
    - To assign reviewers from the reviewer pool, you can choose a reviewer from the dropdown. Here, you can also search reviewers in the reviewer pool by name or email. After finding the reviewer you want to assign, click on the 'Assign' button.
@@ -355,11 +355,13 @@ which will be displayed as:
 Note that assigning a reviewer to a paper through the PC console automatically adds that reviewer to the reviewers pool and sends them an email notifying them about their new assignment.
 
 **Area Chairs:** Unfortunately, assigning ACs is not available through the PC console, but manual AC assignments can be made through the Python library: (You can check out the docs for our Python API [here](https://openreview-py.readthedocs.io/en/latest/))
+
 \`\`\`
 client = openreview.Client(baseurl = 'https://api.openreview.net', username = '', password = '')
 conference=openreview.helpers.get_conference(client, request_form_id)
 conference.set_assignment(number=paper_number, user=user_id, is_area_chair=True)
 \`\`\`
+
 - You will need to use your own OpenReview credentials to initialize the Client object.
 - **request_form_id** (string) refers to the forum id of the venue request for your venue, (e.g., [https://openreview.net/forum?id=**r1lf10zpw4**]())
 - **paper_number** (int) is the number of the paper you want to assign an area chair to (you can find this in the 'Paper Status' tab of the PC console)
@@ -370,24 +372,29 @@ Note that assigning an area chair using python does not send an email to that us
   {
     q: 'How can I automatically assign Reviewers/ACs to papers?',
     id: 'question-edge-browswer',
-    a: `
-#### Running Automatic Paper Matching
+    a: `#### Running Automatic Paper Matching
 
 In order to automatically assign Reviewers and Area Chairs, you must:
+
   1. Contact OpenReview in advance of the deadline to calculate your affinity scores and conflicts.
-  2. Enable the 'Review Stage' from your venue request form. This can only be done AFTER the submission deadline has passed. 
+  2. Enable the 'Review Stage' from your venue request form. This can only be done AFTER the submission deadline has passed.
+
 After following these steps, you should see links for 'Assignment' in the 'Timeline' section of your Program Chair console.
+
 ![PC Console](/images/faq-PC_Console.png)
+
 Clicking on one of the assignment links will bring you to the assignment page, where you can run paper matching. You can learn more about our automatic paper matching algorithm from its github repo: https://github.com/openreview/openreview-matcher. To create a new matching, click the 'New Assignment Configuration'. This will pull up a form with some default values pertaining to your matching settings:
 
   - User demand: The number of users available to be assigned to papers
 
-  - Max papers: The maximum number of papers that can be assigned to each reviewer 
+  - Max papers: The maximum number of papers that can be assigned to each reviewer
 
-  - Min papers: The minimum number of papers that can be assigned to each reviewer 
+  - Min papers: The minimum number of papers that can be assigned to each reviewer
 
-  - Scores specification: JSON providing further details and customization to scores, as in the following example: 
-        {
+  - Scores specification: JSON providing further details and customization to scores, as in the following example:
+
+    \`\`\`
+    {
         "Example_Venue/2022/Conference/Reviewers/-/Affinity_Score": {
             "weight": 1,
             "default": 0
@@ -403,30 +410,39 @@ Clicking on one of the assignment links will bring you to the assignment page, w
                 "Very Low": -1
             }
         }
-        }
-    Each key represents an edge invitation (affinity score, bid, etc.). Weight can be added to a given score value with the numerical field 'Weight'. 'Default' is a numerical value that is used when there is not an edge for a specific reviewer-paper pair. Finally, 'translate_map' is a map function that translates an edge label value into a number. 
+    }
+    \`\`\`
 
-    In the example above, the aggregate score being used by the optimizer is: 
+    Each key represents an edge invitation (affinity score, bid, etc.). Weight can be added to a given score value with the numerical field 'Weight'. 'Default' is a numerical value that is used when there is not an edge for a specific reviewer-paper pair. Finally, 'translate_map' is a map function that translates an edge label value into a number.
+
+    In the example above, the aggregate score being used by the optimizer is:
         weight * (affinity score) + weight * (translate_map(bid))
 
 After filling out this form and hitting submit, you should see the following:
 
-
 ![Assignment Page](/images/faq-assignment-page.png)
+
 You can view, edit or copy the values you filled out in the matching form. When you are happy with it, you should hit 'Run Matcher' and wait until its status is 'Complete'. Then you should see options to browse assignments, view statistics or deploy matching. If you click ‘Browse Assignments’ you will be brought to the edge browser.
 
 #### Manually Editing Assignments with the Edge Browser
 
 The edge browser is a tool for visualizing edges, or matches, created by OpenReview’s automatic paper matching algorithm. You can use it to browse, sort, search, and create new assignments between reviewers and papers until you are happy with the assignments generated. The edge browser is available to venues that selected 'Affinity Scores' or 'Bids' in the Paper Matching section of their venue request form. When you first open the edge browser, all papers will appear in a column on the left. You can click on a certain paper to see a second column of reviewers pop up to the right. Similarly, if you click on a reviewer, all of their assigned papers will pop up in another column to the right, and so on.
+
 ![edge browser](/images/faq-matcher-column2.png)
 
 The color of each item represents the relationship between that item and the one selected at left:
+
   1. Light green means that the item is assigned to the item selected at left.
   2. Light red means that the item has conflict with the item selected at left.
   3. Light orange means that the item both has conflict and is assigned to the item selected at left.
-  4. White means that the item is not assigned to and has no conflict with the item selected at left. 
+  4. White means that the item is not assigned to and has no conflict with the item selected at left.
 
-Each item will display various edges calculated by the matcher and used to make assignments, such as the Bid, Affinity, Aggregate scores, and Conflicts. The trashcan button can be used to remove an edge. The 'Assign' button can be used to create new assignments. 'Assignments' tells you how many papers are assigned to a given reviewer. You may also see 'Custom Max Papers' here if certain reviewers requested a specific max number of papers. You can filter out reviewers who have met their quota with the checkbox 'Only show reviewers with fewer than max assigned papers.' Once a reviewer has hit their quota, the 'Assign' button will be disabled and you will only be able to assign them additional papers using the 'Invite Assignments' button after deployment.
+Each item will display various edges calculated by the matcher and used to make assignments, such as the Bid, Affinity, Aggregate scores, and Conflicts. The trashcan button can be used to remove an edge. You can create new assignments in one of two ways:
+
+  1. The option 'Assign'  directly assigns the reviewer to the paper and sends an email notification.
+  2. The option 'Invite Assignment'  sends an invitation email to the reviewer with an accept/decline link.
+
+'Assignments' tells you how many papers are assigned to a given reviewer. You may also see 'Custom Max Papers' here if certain reviewers requested a specific max number of papers. You can filter out reviewers who have met their quota with the checkbox 'Only show reviewers with fewer than max assigned papers.' Once a reviewer has hit their quota, the 'Assign' button will be disabled and you will only be able to assign them additional papers using the 'Invite Assignments' button after deployment.
 
 <img src="/images/faq-assign-button-disabled.png" alt="Assign Button Disabled" class="img-answer"/></br>
 
@@ -435,17 +451,17 @@ You can search for specific papers by paper title or number at the top of the fi
 You can copy, edit, and create matching configurations as many times as you want until deployment. You can also use the ‘View Statistics’ button on the assignment page to view a breakdown of paper assignments. When you are happy with your assignments, hit 'Deploy Assignments' on the assignment page.
 
 #### Post Deployment
-After your matching is deployed, 'Browse Assignments' will change to 'Edit assignments' so that you can continue to make manual assignments using either of the options 'Assign' or 'Invite Assignment':
-1. 'Assign'  directly assigns the reviewer to the paper and sends an email notification. 
-2. 'Invite Assignment'  sends an invitation email to the reviewer with an accept/decline link. 
 
-Any changes made after deployment are immediately visible to the assigned Reviewers or ACs, and it is not necessary to deploy again. 
+After deploying, 'Browse Assignments' will change to 'Edit assignments' so that you can continue to make manual assignments using either of the options 'Assign' or 'Invite Assignment'.
+
+Any changes made after deployment are immediately visible to the assigned Reviewers or ACs, and it is not necessary to deploy again.
 
 The reviewer can then respond to the invitation. If you want to invite a reviewer from outside the reviewer pool, you can do so by searching for their email address or profileID in the search bar of the second column and clicking 'Invite Assignment'. If they are in conflict with that paper, a banner will alert you with an error. Otherwise, they will receive an email notifying them of their invitation with the option to accept or reject the assignment. Their status will change according to their response to your invitation ('Declined', 'Pending Sign Up', 'Accepted', or 'Conflict Detected').
 
 <img src="/images/faq-reviewer-declined.png" alt="Reviewer Declined" class="img-answer"/></br>
 <img src="/images/faq-reviewer-accepted.png" alt="Reviewer Accepted" class="img-answer"/></br>
 
+![Reviewer Accepted](/images/faq-reviewer-accepted.png)
 `,
   },
   {
