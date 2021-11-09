@@ -2187,8 +2187,9 @@ module.exports = (function() {
       $invItem = $('<span>', { class: 'item highlight', 'data-toggle': 'tooltip', 'data-placement': 'top', title: 'Reply Type' })
         .text(invLabelText)
         .css(getInvitationColors(prettyInv));
+      var iconName = note.readers.includes('everyone') ? 'globe' : 'eye-open';
       $readersItem = $('<span>', { class: 'item' }).append(
-        '<span class="glyphicon glyphicon-eye-open" data-toggle="tooltip" data-placement="top" title="Reply Visibility" aria-hidden="true"></span>',
+        '<span class="glyphicon glyphicon-' + iconName + '" data-toggle="tooltip" data-placement="top" title="Reply Visibility" aria-hidden="true"></span>',
         ' ',
         prettyReadersList(note.readers, true)
       );
