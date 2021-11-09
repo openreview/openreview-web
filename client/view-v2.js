@@ -588,8 +588,12 @@ module.exports = (function() {
       }
 
       var $elem = $('<span>', {class: 'note_content_value'});
-      if (note.details?.presentation?.find(p=>p.name === fieldName)?.markdown) {
+      var presentationDetails = note.details?.presentation?.find(p => p.name === fieldName);
+      if (presentationDetails?.markdown) {
         $elem[0].innerHTML = DOMPurify.sanitize(marked(valueString));
+        $elem.addClass('markdown-rendered');
+      } else if (presentationDetails?.markdownInline) {
+        $elem[0].innerHTML = DOMPurify.sanitize(marked.parseInline(valueString));
         $elem.addClass('markdown-rendered');
       } else {
         // First set content as text to escape HTML, then autolink escaped HTML
