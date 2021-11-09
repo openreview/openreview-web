@@ -37,7 +37,8 @@ export default function Home() {
           api.get('/groups', { id: 'host' }).then(formatGroupResults),
         ])
         const activeAndOpenVenues = activeVenues.concat(openVenues)
-        const filteredUserVenues = userVenues.filter(group => activeAndOpenVenues.find(v => v.groupId === group.id))
+        const filteredUserVenues = userVenues
+          .filter(group => activeAndOpenVenues.find(v => group.id.startsWith(v.groupId)))
           .map(group => ({ groupId: group.id, dueDate: null }))
 
         setVenues({
@@ -55,37 +56,43 @@ export default function Home() {
   }, [user, userLoading])
 
   return (
-    <div>
+    <div className="row">
       <Head>
         <title key="title">Venues | OpenReview</title>
       </Head>
 
       {venues.user?.length > 0 && (
-        <>
+        <div className="col-xs-12 col-md-6">
           <h1>Your Active Venues</h1>
           <hr className="small" />
           <div id="your-active-venues" className="conferences">
             <VenueList name="active venues" venues={venues.user} />
           </div>
-        </>
+        </div>
       )}
 
-      <h1>Active Venues</h1>
-      <hr className="small" />
-      <div id="active-venues" className="conferences">
-        <VenueList name="active venues" venues={venues.active} />
+      <div className="col-xs-12 col-md-6">
+        <h1>Open for Submissions</h1>
+        <hr className="small" />
+        <div id="open-venues" className="conferences">
+          <VenueList name="open venues" venues={venues.open} />
+        </div>
       </div>
 
-      <h1>Open for Submissions</h1>
-      <hr className="small" />
-      <div id="open-venues" className="conferences">
-        <VenueList name="open venues" venues={venues.open} />
+      <div className="col-xs-12 col-md-6">
+        <h1>Active Venues</h1>
+        <hr className="small" />
+        <div id="active-venues" className="conferences">
+          <VenueList name="active venues" venues={venues.active} />
+        </div>
       </div>
 
-      <h1>All Venues</h1>
-      <hr className="small" />
-      <div id="all-venues" className="conferences">
-        <VenueList name="all venues" venues={venues.all} />
+      <div className="col-xs-12 col-md-6">
+        <h1>All Venues</h1>
+        <hr className="small" />
+        <div id="all-venues" className="conferences">
+          <VenueList name="all venues" venues={venues.all} />
+        </div>
       </div>
     </div>
   )
@@ -101,25 +108,35 @@ function VenueList({ name, venues }) {
     return <p className="empty">There are currently no {name}.</p>
   }
 
-  return venues.map(venue => (
+  const cutoff = 12
+  return venues.map((venue, i) => (
     <Venue
       key={`${name}-${venue.groupId}`}
       groupId={venue.groupId}
       dueDate={venue.dueDate}
+      hidden={i > cutoff}
     />
-  ))
+  )).concat(venues.length > cutoff ? (
+    // eslint-disable-next-line react/jsx-one-expression-per-line
+    <button type="button" className="btn-link">Show all {venues.length} venues</button>
+  ) : null)
 }
 
-function Venue({ groupId, dueDate }) {
+function Venue({ groupId, dueDate, hidden }) {
+  const styles = hidden ? { display: 'none' } : {}
+
   return (
-    <h2>
+    <h2 style={styles}>
       <Link href={`/group?id=${groupId}`}><a>{prettyId(groupId)}</a></Link>
       {dueDate && (
-        <span>
-          Due
-          {' '}
-          {formatTimestamp(dueDate)}
-        </span>
+        <>
+          <br />
+          <span>
+            Due
+            {' '}
+            {formatTimestamp(dueDate)}
+          </span>
+        </>
       )}
     </h2>
   )
