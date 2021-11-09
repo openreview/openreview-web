@@ -461,8 +461,6 @@ The reviewer can then respond to the invitation. If you want to invite a reviewe
 
 <img src="/images/faq-reviewer-declined.png" alt="Reviewer Declined" class="img-answer"/></br>
 <img src="/images/faq-reviewer-accepted.png" alt="Reviewer Accepted" class="img-answer"/></br>
-
-![Reviewer Accepted](/images/faq-reviewer-accepted.png)
 `,
   },
   {
