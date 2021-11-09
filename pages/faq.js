@@ -251,7 +251,7 @@ If the option to modify assignments is available for Area Chairs in your venue, 
 
 All of your assigned papers will appear in a single column on the left. Clicking on a paper in the list will pull up a second column containing all reviewers, colored by their relationship to the selected paper:
   1. Light green means that the reviewer is assigned to the paper selected at left.
-  2. White means that the reviewer is not assigned to and has no conflict with the paper selected at left. 
+  2. White means that the reviewer is not assigned to the paper selected at left. 
 
   You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent column you can also search for specific reviewers by their name, email or profile id. You can sort the column on the right by whatever edge types are shown, such as Assignment, Aggregate Score, Bid, or Affinity Score, using the 'Order By' dropdown. The second column will show the total number of assignments for the selected reviewer.
   ![Edge Browser](/images/faq-AC-edge-browser.png)
@@ -265,11 +265,12 @@ There are two ways to create assignments:
   1. Using the 'Assign' button. This assigns a reviewer to a paper and notifies them by email. The assignment becomes automatically available in the Reviewer and AC consoles.
   2. Using the 'Invite Assignment' button. This is only availble if it has been enabled by the Program Chairs. This sends an invitation to the reviewer with an accept/decline link. The reviewer can then respond to the invitation. If you want to invite a reviewer from outside the reviewer pool, including another Area Chair, you can do so by searching for their email address or profileID in the search bar of the second column and clicking 'Invite Assignment'. If they are in conflict with that paper, a banner will alert you with an error. Otherwise, they will receive an email notifying them of their invitation with the option to accept or reject the assignment. Their status will change according to their response to your invitation ('Declined', 'Pending Sign Up', 'Accepted', or 'Conflict Detected').
 
-![Reviewer Declined](/images/faq-reviewer-declined.png)
+<img src="/images/faq-reviewer-declined.png" alt="Reviewer Declined" class="img-answer"/></br>
+<img src="/images/faq-reviewer-accepted.png" alt="Reviewer Accepted" class="img-answer"/></br>
 
-![Reviewer Accepted](/images/faq-reviewer-accepted.png)
 Some reviewers have a custom reduced paper load which appears in the edge browser as 'Custom Max Papers'. You cannot directly assign a reviewer to more papers than their custom max papers, but you can 'Invite' reviewers if that option is enabled for you. You can also filter out reviewers who have met their quota with the checkbox 'Only show reviewers with fewer than max assigned papers.'
-![Assign Button Disabled](/images/faq-assign-button-disabled.png)
+<img src="/images/faq-assign-button-disabled.png" alt="Assign Button Disabled" class="img-answer"/></br>
+
 `,
   },
   {
@@ -403,7 +404,7 @@ Clicking on one of the assignment links will bring you to the assignment page, w
             }
         }
         }
-    Each key represents an edge invitation (affinity score, bid, etc.) Weight can be added to a given score value with the numerical field 'Weight'. 'Default' is a numerical value that is used when there is not an edge for a specific reviewer-paper pair. Finally, 'translate_map' is a map function that translates an edge label value into a number. 
+    Each key represents an edge invitation (affinity score, bid, etc.). Weight can be added to a given score value with the numerical field 'Weight'. 'Default' is a numerical value that is used when there is not an edge for a specific reviewer-paper pair. Finally, 'translate_map' is a map function that translates an edge label value into a number. 
 
     In the example above, the aggregate score being used by the optimizer is: 
         weight * (affinity score) + weight * (translate_map(bid))
@@ -425,28 +426,26 @@ The color of each item represents the relationship between that item and the one
   3. Light orange means that the item both has conflict and is assigned to the item selected at left.
   4. White means that the item is not assigned to and has no conflict with the item selected at left. 
 
-Each item will display various edges calculated by the matcher and used to make assignments, such as the Bid, Affinity, Aggregate scores, and Conflicts. The trashcan button can be used to remove an edge. You can create new assignments in one of two ways:
-  1. The option 'Assign'  directly assigns the reviewer to the paper and sends an email notification. 
-  2. The option 'Invite Assignment'  sends an invitation email to the reviewer with an accept/decline link. 
+Each item will display various edges calculated by the matcher and used to make assignments, such as the Bid, Affinity, Aggregate scores, and Conflicts. The trashcan button can be used to remove an edge. The 'Assign' button can be used to create new assignments. 'Assignments' tells you how many papers are assigned to a given reviewer. You may also see 'Custom Max Papers' here if certain reviewers requested a specific max number of papers. You can filter out reviewers who have met their quota with the checkbox 'Only show reviewers with fewer than max assigned papers.' Once a reviewer has hit their quota, the 'Assign' button will be disabled and you will only be able to assign them additional papers using the 'Invite Assignments' button after deployment.
 
-'Assignments' tells you how many papers are assigned to a given reviewer. You may also see 'Custom Max Papers' here if certain reviewers requested a specific max number of papers. You can filter out reviewers who have met their quota with the checkbox 'Only show reviewers with fewer than max assigned papers.' Once a reviewer has hit their quota, the 'Assign' button will be disabled and you will only be able to assign them additional papers using the 'Invite Assignments' button after deployment.
-
-![Assign Button Disabled](/images/faq-assign-button-disabled.png)
+<img src="/images/faq-assign-button-disabled.png" alt="Assign Button Disabled" class="img-answer"/></br>
 
 You can search for specific papers by paper title or number at the top of the first column. At the top of the subsequent columns you can also search for specific reviewers by profileID, name, or email. You can sort subsequent columns on the right by whatever edges are displayed, such as Assignment, Aggregate Score, Bid, Affinity Score, and/or Conflict, using the 'Order By' dropdown.
 
 You can copy, edit, and create matching configurations as many times as you want until deployment. You can also use the ‘View Statistics’ button on the assignment page to view a breakdown of paper assignments. When you are happy with your assignments, hit 'Deploy Assignments' on the assignment page.
 
 #### Post Deployment
-After deploying, 'Browse Assignments' will change to 'Edit assignments' so that you can continue to make manual assignments using either of the options 'Assign' or 'Invite Assignment'. 
+After your matching is deployed, 'Browse Assignments' will change to 'Edit assignments' so that you can continue to make manual assignments using either of the options 'Assign' or 'Invite Assignment':
+1. 'Assign'  directly assigns the reviewer to the paper and sends an email notification. 
+2. 'Invite Assignment'  sends an invitation email to the reviewer with an accept/decline link. 
 
 Any changes made after deployment are immediately visible to the assigned Reviewers or ACs, and it is not necessary to deploy again. 
 
-The reviewer can then respond to the invitation. If you want to invite a reviewer from outside the reviewer pool, including another Area Chair, you can do so by searching for their email address or profileID in the search bar of the second column and clicking 'Invite Assignment'. If they are in conflict with that paper, a banner will alert you with an error. Otherwise, they will receive an email notifying them of their invitation with the option to accept or reject the assignment. Their status will change according to their response to your invitation ('Declined', 'Pending Sign Up', 'Accepted', or 'Conflict Detected').
+The reviewer can then respond to the invitation. If you want to invite a reviewer from outside the reviewer pool, you can do so by searching for their email address or profileID in the search bar of the second column and clicking 'Invite Assignment'. If they are in conflict with that paper, a banner will alert you with an error. Otherwise, they will receive an email notifying them of their invitation with the option to accept or reject the assignment. Their status will change according to their response to your invitation ('Declined', 'Pending Sign Up', 'Accepted', or 'Conflict Detected').
 
-![Reviewer Declined](/images/faq-reviewer-declined.png)
+<img src="/images/faq-reviewer-declined.png" alt="Reviewer Declined" class="img-answer"/></br>
+<img src="/images/faq-reviewer-accepted.png" alt="Reviewer Accepted" class="img-answer"/></br>
 
-![Reviewer Accepted](/images/faq-reviewer-accepted.png) 
 `,
   },
   {
