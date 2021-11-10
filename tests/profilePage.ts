@@ -243,7 +243,7 @@ test.skip('#2143 date validation', async (t) => {
   await t.useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     // modify history start date with invalid value
-    .typeText(Selector('div.container.history').find('input.start').nth(0), '-2e-5', { replace: true, paste: true })
+    .typeText(Selector('div.history').find('input.start').nth(0), '-2e-5', { replace: true, paste: true })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText).notEql('Your profile information has been successfully updated') // should not save successfully
 })
@@ -286,7 +286,7 @@ test('#160 allow user to overwrite last/middle/first name to be lowercase', asyn
 test('fail before 2099', async (t) => {
   await t.useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .typeText(Selector('div.container.history').find('input').nth(2), `${new Date().getFullYear() + 10}`, { replace: true }) // to fail in 2090, update validation regex
+    .typeText(Selector('div.history').find('input').nth(2), `${new Date().getFullYear() + 10}`, { replace: true }) // to fail in 2090, update validation regex
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText).eql('Your profile information has been successfully updated')
     .wait(5000)
