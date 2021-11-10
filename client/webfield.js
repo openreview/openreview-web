@@ -2626,6 +2626,7 @@ module.exports = (function() {
       $('.datetimepicker').each(function() {
         var timestamp = parseInt($(this).parent().next().val(), 10);
         var date = timestamp ? moment(timestamp) : null;
+
         $(this).datetimepicker({
           date: date,
           useCurrent: false
