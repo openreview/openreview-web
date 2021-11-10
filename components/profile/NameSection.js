@@ -68,7 +68,7 @@ const NamesSection = ({ profileNames, updateNames }) => {
       })
       setNames({ updateName: true, data: { key, field: 'username', value: tildeUsername.username } })
     } catch (error) {
-      promptError(error.message)
+      promptError(error.message, { scrollToTop: false })
     }
   }, 800), [])
 

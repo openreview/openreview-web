@@ -52,7 +52,16 @@ const EducationHisotryRow = ({
                 isInvalid={profileHistory?.find(q => q.key === p.key)?.valid === false}
               />
             )
-            : <input className="form-control position-dropdown__placeholder" placeholder={positionPlaceholder} value={p.position} onClick={() => setIsPositionClicked(true)} onChange={() => { }} />
+            : (
+              <input
+                className="form-control position-dropdown__placeholder"
+                placeholder={positionPlaceholder}
+                value={p.position}
+                onClick={() => setIsPositionClicked(true)}
+                onFocus={() => setIsPositionClicked(true)}
+                onChange={() => { }}
+              />
+            )
         }
       </div>
       <div className="col-md-1 history__value">
@@ -98,7 +107,16 @@ const EducationHisotryRow = ({
               }}
               isInvalid={profileHistory?.find(q => q.key === p.key)?.valid === false}
             />
-          ) : <input className="form-control institution-dropdown__placeholder" placeholder={institutionPlaceholder} value={p.institution?.domain} onClick={() => setIsDomainClicked(true)} onChange={() => { }} />}
+          ) : (
+            <input
+              className="form-control institution-dropdown__placeholder"
+              placeholder={institutionPlaceholder}
+              value={p.institution?.domain}
+              onClick={() => setIsDomainClicked(true)}
+              onFocus={() => setIsDomainClicked(true)}
+              onChange={() => { }}
+            />
+          )}
       </div>
       <div className="col-md-4 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution Name</div>}
@@ -225,7 +243,7 @@ const EducationHistorySection = ({
   return (
     <section>
       <SectionHeader type="educationHistory" />
-      <div className="container history">
+      <div className="history">
         {!isMobile && (
           <div className="row">
             <div className="small-heading col-md-2">Position</div>

@@ -56,7 +56,16 @@ const RelationRow = ({
                 isInvalid={profileRelation?.find(q => q.key === relation.key)?.valid === false}
               />
             )
-            : <input className="form-control relation__placeholder" placeholder={relationPlaceholder} value={relation.relation} onClick={() => setRelationClicked(true)} onChange={() => { }} />
+            : (
+              <input
+                className="form-control relation__placeholder"
+                placeholder={relationPlaceholder}
+                value={relation.relation}
+                onClick={() => setRelationClicked(true)}
+                onFocus={() => setRelationClicked(true)}
+                onChange={() => { }}
+              />
+            )
         }
       </div>
       <div className="col-md-3 relation__value">
@@ -217,7 +226,7 @@ const RelationsSection = ({
   return (
     <section>
       <ProfileSectionHeader type="relation" />
-      <div className="container relation">
+      <div className="relation">
         {!isMobile && (
           <div className="row">
             <div className="small-heading col-md-2">Relation</div>
