@@ -1703,7 +1703,7 @@ module.exports = (function() {
 
   constructUpdatedEdit = (edit, invitation, formContent) => {
     const shouldSetValue = (fieldPath)=>{
-      const field = fieldPath.split('.').reduce((acc, fieldName) => { return acc?.fieldName }, invitation)
+      const field = _.get(invitation, fieldPath)
       if (!field || field?.value || field?.values) return false
       return true
     }

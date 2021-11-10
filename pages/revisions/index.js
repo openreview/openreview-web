@@ -12,12 +12,12 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorAlert from '../../components/ErrorAlert'
 import api from '../../lib/api-client'
 import { forumLink } from '../../lib/banner-links'
-import '../../styles/pages/revisions.less'
 import { EditButton, RestoreButton, TrashButton } from '../../components/IconButton'
 import BasicModal from '../../components/BasicModal'
 import { buildNoteTitle, prettyId } from '../../lib/utils'
 import Dropdown from '../../components/Dropdown'
 import { NoteV2 } from '../../components/Note'
+import '../../styles/pages/revisions.less'
 
 const ConfirmDeleteRestoreModal = ({
   editInfo, user, accessToken, deleteRestoreEdit,

@@ -124,15 +124,13 @@ export const NoteContentV2 = ({
           <li key={fieldName}>
             <NoteContentField name={fieldName} />
             {' '}
-            {
-              showPrivateIcon && (
-                <Icon
-                  name="eye-open"
-                  extraClasses="private-contents-icon"
-                  tooltip={`privately revealed to ${fieldReaders.map(p => prettyId(p)).join(', ')}`}
-                />
-              )
-            }
+            {showPrivateIcon && (
+              <Icon
+                name="eye-open"
+                extraClasses="private-contents-icon"
+                tooltip={`privately revealed to ${fieldReaders.map(p => prettyId(p)).join(', ')}`}
+              />
+            )}
             {fieldValue.startsWith('/attachment/') ? (
               <span className="note-content-value">
                 {/* eslint-disable-next-line max-len */}
