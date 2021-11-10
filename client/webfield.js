@@ -399,6 +399,8 @@ module.exports = (function() {
     pdfLink: true,
     htmlLink: true,
     replyCount: true,
+    showInvitation: true,
+    showReaders: true,
     showContents: true,
     showTags: false,
     showEdges: false,

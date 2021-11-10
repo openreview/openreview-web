@@ -53,7 +53,6 @@ function Nav() {
             <input name="group" type="hidden" value="all" />
             <input name="content" type="hidden" value="all" />
             <input name="source" type="hidden" value="all" />
-            <input name="sort" type="hidden" value="cdate:desc" />
           </form>
 
           <NavUserLinks />
