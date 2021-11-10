@@ -9,11 +9,9 @@ import { useEffect, useRef, useState } from 'react'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import InvitationEditor from '../../components/InvitationEditor'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import WebfieldContainer from '../../components/WebfieldContainer'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { isSuperUser } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 
 // Page Styles
@@ -76,24 +74,6 @@ const InvitationEdit = ({ appContext }) => {
     window.datetimepicker = require('../../client/bootstrap-datetimepicker-4.17.47.min')
     const editModeBannerDelay = document.querySelector('#flash-message-container.alert-success') ? 2500 : 0
     setTimeout(() => Webfield.editModeBanner(invitation.id, 'edit'), editModeBannerDelay)
-
-    const webfieldEditorFn = invitation.apiVersion === 2
-      ? Webfield2.ui.invitationEditor
-      : Webfield.ui.invitationEditor
-
-    webfieldEditorFn(invitation, {
-      container: containerRef.current,
-      userId: user.profile.id,
-      showProcessEditor: invitation.apiVersion === 2 || isSuperUser(user),
-    })
-
-    // eslint-disable-next-line consistent-return
-    return () => {
-      // Hide edit mode banner
-      if (document.querySelector('#flash-message-container .profile-flash-message')) {
-        document.getElementById('flash-message-container').style.display = 'none'
-      }
-    }
   }, [clientJsLoading, containerRef, invitation])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
@@ -114,14 +94,6 @@ const InvitationEdit = ({ appContext }) => {
         accessToken={accessToken}
         loadInvitation={loadInvitation}
       />
-
-      <WebfieldContainer id="invitation-container">
-        <div id="header">
-          <h1>{prettyId(query?.id)}</h1>
-        </div>
-
-        <div id="notes" ref={containerRef} />
-      </WebfieldContainer>
     </>
   )
 }

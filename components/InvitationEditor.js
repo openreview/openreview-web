@@ -2,15 +2,18 @@
 import Link from 'next/link'
 import { nanoid } from 'nanoid'
 import React, { useEffect, useReducer, useState } from 'react'
+import dynamic from 'next/dynamic'
 import {
   formatDateTime, getDefaultTimezone, prettyId, translateErrorDetails, urlFromGroupId,
 } from '../lib/utils'
-import Dropdown, { TimezoneDropdown } from './Dropdown'
-import DatetimePicker from './DatetimePicker'
 import api from '../lib/api-client'
-import CodeEditor from './CodeEditor'
 import { isSuperUser } from '../lib/auth'
 import PaginationLinks from './PaginationLinks'
+
+const CodeEditor = dynamic(() => import('./CodeEditor'))
+const DatetimePicker = dynamic(() => import('./DatetimePicker'))
+const Dropdown = dynamic(() => import('./Dropdown'))
+const TimezoneDropdown = dynamic(() => import('./Dropdown').then(mod => mod.TimezoneDropdown))
 
 const GroupIdList = ({ groupIds }) => {
   const commonGroups = ['everyone', '(anonymous)', '(guest)', '~', '~Super_User1']
