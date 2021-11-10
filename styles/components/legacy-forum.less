@@ -104,6 +104,9 @@ main.legacy-forum {
       > div {
         display: inline-block;
       }
+      @media @phone-only {
+        width: 100%;
+      }
     }
   }
 
@@ -317,6 +320,10 @@ main.legacy-forum {
     color: @darkBlue;
     font-weight: bold;
     line-height: 34px;
+
+    @media @phone-only {
+      display: none;
+    }
   }
 
   hr {
