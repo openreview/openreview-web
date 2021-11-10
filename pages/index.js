@@ -56,44 +56,44 @@ export default function Home() {
   }, [user, userLoading])
 
   return (
-    <div className="row">
+    <div className="homepage-container">
       <Head>
         <title key="title">Venues | OpenReview</title>
       </Head>
 
       {venues.user?.length > 0 && (
-        <div className="col-xs-12 col-md-6">
+        <section>
           <h1>Your Active Venues</h1>
           <hr className="small" />
           <div id="your-active-venues" className="conferences">
             <VenueList name="active venues" venues={venues.user} />
           </div>
-        </div>
+        </section>
       )}
 
-      <div className="col-xs-12 col-md-6">
+      <section>
         <h1>Open for Submissions</h1>
         <hr className="small" />
         <div id="open-venues" className="conferences">
           <VenueList name="open venues" venues={venues.open} />
         </div>
-      </div>
+      </section>
 
-      <div className="col-xs-12 col-md-6">
+      <section>
         <h1>Active Venues</h1>
         <hr className="small" />
         <div id="active-venues" className="conferences">
           <VenueList name="active venues" venues={venues.active} />
         </div>
-      </div>
+      </section>
 
-      <div className="col-xs-12 col-md-6">
+      <section>
         <h1>All Venues</h1>
         <hr className="small" />
         <div id="all-venues" className="conferences">
           <VenueList name="all venues" venues={venues.all} />
         </div>
-      </div>
+      </section>
     </div>
   )
 }
