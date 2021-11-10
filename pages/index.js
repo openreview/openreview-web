@@ -65,34 +65,26 @@ export default function Home() {
         <section>
           <h1>Your Active Venues</h1>
           <hr className="small" />
-          <div id="your-active-venues" className="conferences">
-            <VenueList name="active venues" venues={venues.user} />
-          </div>
+          <VenueList name="your active venues" venues={venues.user} />
         </section>
       )}
 
       <section>
         <h1>Open for Submissions</h1>
         <hr className="small" />
-        <div id="open-venues" className="conferences">
-          <VenueList name="open venues" venues={venues.open} />
-        </div>
+        <VenueList name="open venues" venues={venues.open} />
       </section>
 
       <section>
         <h1>Active Venues</h1>
         <hr className="small" />
-        <div id="active-venues" className="conferences">
-          <VenueList name="active venues" venues={venues.active} />
-        </div>
+        <VenueList name="active venues" venues={venues.active} />
       </section>
 
       <section>
         <h1>All Venues</h1>
         <hr className="small" />
-        <div id="all-venues" className="conferences">
-          <VenueList name="all venues" venues={venues.all} />
-        </div>
+        <VenueList name="all venues" venues={venues.all} />
       </section>
     </div>
   )
@@ -103,41 +95,54 @@ function VenueList({ name, venues }) {
   if (!venues) {
     return <LoadingSpinner inline />
   }
+
+  const containerId = name.toLowerCase().split(' ').join('-')
   if (venues.length === 0) {
-    // eslint-disable-next-line react/jsx-one-expression-per-line
-    return <p className="empty">There are currently no {name}.</p>
+    return (
+      <div id={containerId}>
+        {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+        <p className="empty">There are currently no {name}.</p>
+      </div>
+    )
   }
 
   const cutoff = 12
-  return venues.map((venue, i) => (
-    <Venue
-      key={`${name}-${venue.groupId}`}
-      groupId={venue.groupId}
-      dueDate={venue.dueDate}
-      hidden={i > cutoff}
-    />
-  )).concat(venues.length > cutoff ? (
-    // eslint-disable-next-line react/jsx-one-expression-per-line
-    <button type="button" className="btn-link">Show all {venues.length} venues</button>
-  ) : null)
+  return (
+    <div id={containerId}>
+      <ul className="conferences list-unstyled">
+        {venues.map((venue, i) => (
+          <Venue
+            key={`${containerId}-${venue.groupId}`}
+            groupId={venue.groupId}
+            dueDate={venue.dueDate}
+            hidden={i > cutoff}
+          />
+        ))}
+      </ul>
+
+      {venues.length > cutoff && (
+        // eslint-disable-next-line react/jsx-one-expression-per-line
+        <button type="button" className="btn-link">Show all {venues.length} venues</button>
+      )}
+    </div>
+  )
 }
 
 function Venue({ groupId, dueDate, hidden }) {
   const styles = hidden ? { display: 'none' } : {}
 
   return (
-    <h2 style={styles}>
-      <Link href={`/group?id=${groupId}`}><a>{prettyId(groupId)}</a></Link>
+    <li style={styles}>
+      <h2>
+        <Link href={`/group?id=${groupId}`}><a>{prettyId(groupId)}</a></Link>
+      </h2>
       {dueDate && (
-        <>
-          <br />
-          <span>
-            Due
-            {' '}
-            {formatTimestamp(dueDate)}
-          </span>
-        </>
+        <p>
+          Due
+          {' '}
+          {formatTimestamp(dueDate)}
+        </p>
       )}
-    </h2>
+    </li>
   )
 }
