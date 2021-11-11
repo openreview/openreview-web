@@ -63,7 +63,7 @@ export default function Home() {
 
       {venues.user?.length > 0 && (
         <section>
-          <h1>Your Active Venues</h1>
+          <h1>Your Active Groups</h1>
           <hr className="small" />
           <VenueList name="your active venues" venues={venues.user} />
         </section>
@@ -92,6 +92,8 @@ export default function Home() {
 Home.bodyClass = 'home'
 
 function VenueList({ name, venues }) {
+  const [expanded, setExpanded] = useState(false)
+
   if (!venues) {
     return <LoadingSpinner inline />
   }
@@ -106,7 +108,7 @@ function VenueList({ name, venues }) {
     )
   }
 
-  const cutoff = 12
+  const cutoff = 14
   return (
     <div id={containerId}>
       <ul className="conferences list-unstyled">
@@ -115,14 +117,15 @@ function VenueList({ name, venues }) {
             key={`${containerId}-${venue.groupId}`}
             groupId={venue.groupId}
             dueDate={venue.dueDate}
-            hidden={i > cutoff}
+            hidden={!expanded && i > cutoff}
           />
         ))}
       </ul>
 
       {venues.length > cutoff && (
-        // eslint-disable-next-line react/jsx-one-expression-per-line
-        <button type="button" className="btn-link">Show all {venues.length} venues</button>
+        <button type="button" className="btn-link" onClick={() => { setExpanded(!expanded) }}>
+          {expanded ? 'Hide venues' : `Show all ${venues.length} venues`}
+        </button>
       )}
     </div>
   )
