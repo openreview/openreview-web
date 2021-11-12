@@ -254,7 +254,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
     const {
       status, sent, totalSent, queued, totalQueued, isQueuing,
     } = statusParam
-    if (status === 'ok') {
+    if (status.status === 'ok') {
       return (
         <>
           <strong>
@@ -288,37 +288,42 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
   }
 
   const getJobStatus = async () => {
-    if (retryCount > 5 || statusObj.status === 'ok') return
-    const result = await api.get('/logs/process', { id: jobId }, { accessToken })
-    if (!result.logs?.length) {
-      setErrorText('Error: Email progress could not be loaded. See link below for more details.')
-      setVariant('danger')
-      setNow(100)
+    if (retryCount > 5 || statusObj.status?.status === 'ok') return
+    try {
+      const result = await api.get('/logs/process', { id: jobId }, { accessToken })
+      if (!result.logs?.length) {
+        setErrorText('Error: Email progress could not be loaded. See link below for more details.')
+        setVariant('danger')
+        setNow(100)
+        setRetryCount(count => count + 1)
+        return
+      }
+      const status = result.logs[0]
+      if (status.status === 'error') {
+        setErrorText(`Error: ${status.error.message}`)
+        setVariant('danger')
+        setNow(100)
+        return
+      }
+      const queued = status.progress.groupsProcessed[0]
+      const totalQueued = status.progress.groupsProcessed[1]
+      const sent = status.progress.emailsProcessed ? status.progress.emailsProcessed[0] : 0
+      const totalSent = status.progress.emailsProcessed ? status.progress.emailsProcessed[1] : 0
+      const isQueuing = queued < totalQueued
+      const percentComplete = Math.round((isQueuing ? (queued / totalQueued) : (sent / totalSent)) * 100, 2)
+      setStatusObj({
+        status,
+        sent,
+        totalSent,
+        queued,
+        totalQueued,
+        isQueuing,
+      })
+      setNow(percentComplete)
+    } catch (error) {
+      promptError(error.message)
       setRetryCount(count => count + 1)
-      return
     }
-    const status = result.logs[0]
-    if (status.status === 'error') {
-      setErrorText(`Error: ${status.error.message}`)
-      setVariant('danger')
-      setNow(100)
-      return
-    }
-    const queued = status.progress.groupsProcessed[0]
-    const totalQueued = status.progress.groupsProcessed[1]
-    const sent = status.progress.emailsProcessed ? status.progress.emailsProcessed[0] : 0
-    const totalSent = status.progress.emailsProcessed ? status.progress.emailsProcessed[1] : 0
-    const isQueuing = queued < totalQueued
-    const percentComplete = Math.round((isQueuing ? (queued / totalQueued) : (sent / totalSent)) * 100, 2)
-    setStatusObj({
-      status,
-      sent,
-      totalSent,
-      queued,
-      totalQueued,
-      isQueuing,
-    })
-    setNow(percentComplete)
   }
 
   useEffect(() => {
@@ -326,6 +331,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
     sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     setNow(0)
     setVariant(null)
+    setStatusObj({})
   }, [jobId])
 
   return (
