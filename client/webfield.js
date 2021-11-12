@@ -268,11 +268,11 @@ module.exports = (function() {
     };
     options = _.defaults(options, defaults);
 
-    options.limit = options.pageSize;
-    options = _.omit(options, 'pageSize');
+    var query = _.omit(options, ['pageSize', 'includeCount']);
+    query.limit = options.pageSize;
+    query.invitation = invitationId;
 
-    var urlParams = _.assign({invitation: invitationId}, options);
-    return get('/notes', urlParams)
+    return get('/notes', query)
       .then(function(result) {
         if (options.includeCount) {
           return result;
@@ -302,6 +302,10 @@ module.exports = (function() {
 
     if (options.invitation) {
       searchParams.invitation = options.invitation;
+    }
+
+    if (options.venue) {
+      searchParams.venue = options.venue;
     }
 
     return get('/notes/search', searchParams)
@@ -384,7 +388,7 @@ module.exports = (function() {
         searchParams.term += ' ' + searchParams.subject;
         searchParams.term = searchParams.term.trim();
       }
-      return searchSubmissions(groupId, searchParams.term, {pageSize: searchParams.pageSize, invitation: searchParams.invitation})
+      return searchSubmissions(groupId, searchParams.term, {pageSize: searchParams.pageSize, invitation: searchParams.invitation, venue: searchParams.venue})
         .then(searchParams.onResults);
     }
   };
@@ -395,6 +399,8 @@ module.exports = (function() {
     pdfLink: true,
     htmlLink: true,
     replyCount: true,
+    showInvitation: true,
+    showReaders: true,
     showContents: true,
     showTags: false,
     showEdges: false,
@@ -831,6 +837,7 @@ module.exports = (function() {
         enabled: true,
         localSearch: true,
         invitation: null,
+        venue: null,
         subjectAreas: null,
         subjectAreaDropdown: 'advanced',
         pageSize: 1000,
@@ -930,6 +937,7 @@ module.exports = (function() {
                 term: term,
                 pageSize: options.search.pageSize,
                 invitation: options.search.invitation,
+                venue: options.search.venue,
                 onResults: options.search.onResults,
                 localSearch: options.search.localSearch
               });
@@ -957,6 +965,7 @@ module.exports = (function() {
                 pageSize: options.search.pageSize,
                 subject: selectedSubject,
                 invitation: options.search.invitation,
+                venue: options.search.venue,
                 onResults: options.search.onResults,
                 localSearch: options.search.localSearch
               });
@@ -990,6 +999,7 @@ module.exports = (function() {
               pageSize: options.search.pageSize,
               subject: selectedSubject,
               invitation: options.search.invitation,
+              venue: options.search.venue,
               onResults: options.search.onResults,
               localSearch: options.search.localSearch
             });
@@ -1027,6 +1037,7 @@ module.exports = (function() {
                 term: term,
                 pageSize: options.search.pageSize,
                 invitation: options.search.invitation,
+                venue: options.search.venue,
                 onResults: options.search.onResults,
                 localSearch: options.search.localSearch
               }, extraParams));

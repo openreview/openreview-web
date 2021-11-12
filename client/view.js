@@ -1915,8 +1915,6 @@ module.exports = (function() {
         return;
       }
 
-      var invitationField = invitation?.reply?.content?.[fieldName] ?? {};
-
       // Build download links
       if (valueString.indexOf('/attachment/') === 0) {
         $contents.push($('<div>', {class: 'note_contents'}).append(
@@ -1928,15 +1926,17 @@ module.exports = (function() {
         return;
       }
 
+      var invitationField = invitation?.reply?.content?.[fieldName] ?? {};
       var $elem = $('<span>', {class: 'note_content_value'});
       if (invitationField.markdown) {
-        $elem[0].innerHTML = DOMPurify.sanitize(marked(valueString));
+        var re = new RegExp('^' + (invitationField['value-regex'] ?? '').replace(/\{\d+,\d+\}$/, '') + '$');
+        var newlineAllowed = re.test('\n');
+        $elem[0].innerHTML = DOMPurify.sanitize(newlineAllowed ? marked(valueString) : marked.parseInline(valueString));
         $elem.addClass('markdown-rendered');
       } else {
         // First set content as text to escape HTML, then autolink escaped HTML
         $elem.text(valueString);
         $elem.html(autolinkHtml($elem.html()));
-
       }
 
       $contents.push($('<div>', {class: 'note_contents'}).append(
@@ -2187,8 +2187,9 @@ module.exports = (function() {
       $invItem = $('<span>', { class: 'item highlight', 'data-toggle': 'tooltip', 'data-placement': 'top', title: 'Reply Type' })
         .text(invLabelText)
         .css(getInvitationColors(prettyInv));
+      var iconName = note.readers.includes('everyone') ? 'globe' : 'eye-open';
       $readersItem = $('<span>', { class: 'item' }).append(
-        '<span class="glyphicon glyphicon-eye-open" data-toggle="tooltip" data-placement="top" title="Reply Visibility" aria-hidden="true"></span>',
+        '<span class="glyphicon glyphicon-' + iconName + '" data-toggle="tooltip" data-placement="top" title="Reply Visibility" aria-hidden="true"></span>',
         ' ',
         prettyReadersList(note.readers, true)
       );
@@ -2955,8 +2956,8 @@ module.exports = (function() {
     return signatures;
   };
 
-  var getReaders = function(widget, invitation, signatures) {
-    var readers = invitation.edit ? invitation.edit.readers : invitation.reply.readers
+  var getReaders = function(widget, invitation, signatures, isEdit = false) {
+    var readers = invitation.edit ? (isEdit ? invitation.edit.readers : invitation.edit.note?.readers) : invitation.reply.readers
     var inputValues = idsFromListAdder(widget, readers);
 
     var invitationValues = [];
@@ -3877,6 +3878,11 @@ module.exports = (function() {
     var renderer = new marked.Renderer();
 
     renderer.image = function(href, title, text) {
+      if (href.startsWith('/images/')) {
+        var titleAttr = title ? 'title="' + title + '" ' : '';
+        var classAttr = href.endsWith('_icon.svg') ? 'class="icon" ' : '';
+        return '<img src="' + href + '" alt="' + text + '" ' + titleAttr + classAttr + '/>';
+      }
       return $('<div />').text('<img src="' + href + '" alt="' + text + '" title="' + title + '">').html();
     };
     renderer.checkbox = function(checked) {
