@@ -6,6 +6,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { prettyId, formatTimestamp } from '../lib/utils'
+import Masonry from 'masonry-layout'
 
 // Page Styles
 import '../styles/pages/home.less'
@@ -72,7 +73,7 @@ export default function Home() {
       <section>
         <h1>Open for Submissions</h1>
         <hr className="small" />
-        <VenueList name="open venues" venues={venues.open} />
+        <VenueList name="open venues" venues={venues.open} maxVisible={9} />
       </section>
 
       <section>
@@ -91,7 +92,7 @@ export default function Home() {
 }
 Home.bodyClass = 'home'
 
-function VenueList({ name, venues }) {
+function VenueList({ name, venues, maxVisible = 14 }) {
   const [expanded, setExpanded] = useState(false)
 
   if (!venues) {
@@ -108,7 +109,6 @@ function VenueList({ name, venues }) {
     )
   }
 
-  const cutoff = 14
   return (
     <div id={containerId}>
       <ul className="conferences list-unstyled">
@@ -117,12 +117,12 @@ function VenueList({ name, venues }) {
             key={`${containerId}-${venue.groupId}`}
             groupId={venue.groupId}
             dueDate={venue.dueDate}
-            hidden={!expanded && i > cutoff}
+            hidden={!expanded && i > maxVisible}
           />
         ))}
       </ul>
 
-      {venues.length > cutoff && (
+      {venues.length > maxVisible && (
         <button type="button" className="btn-link" onClick={() => { setExpanded(!expanded) }}>
           {expanded ? 'Hide venues' : `Show all ${venues.length} venues`}
         </button>
