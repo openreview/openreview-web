@@ -96,11 +96,11 @@ const GroupGeneralInfoView = ({ group, setEdit }) => {
         }
         <div className="row">
           <div className="col-sm-2 info-container__label">Created:</div>
-          <div className="col-sm-10 info-container__value">{formatDateTime({ timestamp: group.cdate, month: 'long', timeZoneName: 'short' }) ?? formatDateTime({ timestamp: group.tcdate, month: 'long', timeZoneName: 'short' })}</div>
+          <div className="col-sm-10 info-container__value">{formatDateTime(group.cdate, { month: 'long', timeZoneName: 'short' }) ?? formatDateTime(group.tcdate, { month: 'long', timeZoneName: 'short' })}</div>
         </div>
         <div className="row">
           <div className="col-sm-2 info-container__label">Last Modified:</div>
-          <div className="col-sm-10 info-container__value">{formatDateTime({ timestamp: group.mdate, month: 'long', timeZoneName: 'short' }) ?? formatDateTime({ timestamp: group.tmdate, month: 'long', timeZoneName: 'short' })}</div>
+          <div className="col-sm-10 info-container__value">{formatDateTime(group.mdate, { month: 'long', timeZoneName: 'short' }) ?? formatDateTime(group.tmdate, { month: 'long', timeZoneName: 'short' })}</div>
         </div>
       </div>
       <button type="button" className="btn btn-sm btn-primary edit-group-info" onClick={setEdit}>Edit General Info</button>

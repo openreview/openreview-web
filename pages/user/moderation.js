@@ -164,7 +164,7 @@ const UserModerationQueue = ({
                   {profile.content.preferredEmail}
                 </span>
                 <span className="col-created">
-                  {formatDateTime({ timestamp: profile.tmdate })}
+                  {formatDateTime(profile.tmdate)}
                 </span>
                 <span className="col-status">
                   <span className={`label label-${profile.password ? 'success' : 'danger'}`}>password</span>

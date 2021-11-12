@@ -5,8 +5,8 @@ import { useEffect, useState, useRef } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
-import WebfieldContainer from '../../components/WebfieldContainer'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import GroupEditor from '../../components/GroupEditor'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
@@ -15,7 +15,6 @@ import { isSuperUser } from '../../lib/auth'
 
 // Page Styles
 import '../../styles/pages/group.less'
-import GroupEditor from '../../components/GroupEditor'
 
 export default function GroupEdit({ appContext }) {
   const { accessToken, userLoading, user } = useLoginRedirect()
@@ -101,7 +100,5 @@ export default function GroupEdit({ appContext }) {
     </>
   )
 }
-
-export const getServerSideProps = async () => ({ props: {} })
 
 GroupEdit.bodyClass = 'group'
