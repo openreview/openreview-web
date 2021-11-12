@@ -1,10 +1,10 @@
 /* globals promptError,promptMessage,$,DOMPurify,marked: false */
 
-import { nanoid } from 'nanoid'
 import Link from 'next/link'
 import React, {
   useEffect, useReducer, useRef, useState,
 } from 'react'
+import { nanoid } from 'nanoid'
 import api from '../lib/api-client'
 import {
   formatDateTime, getGroupVersion, prettyId, prettyInvitationId, urlFromGroupId,
@@ -16,6 +16,7 @@ import BasicModal from './BasicModal'
 import ProgressBar from './ProgressBar'
 import CodeEditor from './CodeEditor'
 import MarkdownPreviewTab from './MarkdownPreviewTab'
+import LoadingSpinner from './LoadingSpinner'
 
 const GroupIdList = ({ groupIds }) => {
   const commonGroups = ['everyone', '(anonymous)', '(guest)', '~', '~Super_User1']
@@ -23,14 +24,16 @@ const GroupIdList = ({ groupIds }) => {
   return groupIds.map((groupId, index) => {
     if (commonGroups.includes(groupId)) {
       return (
-        <React.Fragment key={nanoid()}>
+        // eslint-disable-next-line react/no-array-index-key
+        <React.Fragment key={index}>
           {index > 0 && ', '}
           {prettyId(groupId)}
         </React.Fragment>
       )
     }
     return (
-      <React.Fragment key={nanoid()}>
+      // eslint-disable-next-line react/no-array-index-key
+      <React.Fragment key={index}>
         {index > 0 && ', '}
         <Link href={urlFromGroupId(groupId)}><a>{prettyId(groupId)}</a></Link>
       </React.Fragment>
@@ -43,64 +46,64 @@ const GroupGeneralInfoView = ({ group, setEdit }) => {
 
   return (
     <>
-      <div className="container info-container">
+      <div className="info-container">
         <div className="row">
-          <div className="col-sm-2 info-container__label">Parent Group:</div>
-          <div className="col-sm-10 info-container__value"><Link href={urlFromGroupId(groupParent, true)}><a>{prettyId(groupParent)}</a></Link></div>
+          <div className="info-container__label">Parent Group:</div>
+          <Link href={urlFromGroupId(groupParent, true)}><a>{prettyId(groupParent)}</a></Link>
         </div>
         <div className="row">
-          <div className="col-sm-2 info-container__label">Readers:</div>
-          <div className="col-sm-10 info-container__value"><GroupIdList groupIds={group.readers} /></div>
+          <div className="info-container__label">Readers:</div>
+          <GroupIdList groupIds={group.readers} />
         </div>
         {group.nonreaders?.length > 0
           && (
             <div className="row">
-              <div className="col-sm-2 info-container__label">Non-readers:</div>
-              <div className="col-sm-10 info-container__value"><GroupIdList groupIds={group.nonreaders} /></div>
+              <div className="info-container__label">Non-readers:</div>
+              <GroupIdList groupIds={group.nonreaders} />
             </div>
           )}
         <div className="row">
-          <div className="col-sm-2 info-container__label">Writers:</div>
-          <div className="col-sm-10 info-container__value"><GroupIdList groupIds={group.writers} /></div>
+          <div className="info-container__label">Writers:</div>
+          <GroupIdList groupIds={group.writers} />
         </div>
         <div className="row">
-          <div className="col-sm-2 info-container__label">Signatories:</div>
-          <div className="col-sm-10 info-container__value"><GroupIdList groupIds={group.signatories} /></div>
+          <div className="info-container__label">Signatories:</div>
+          <GroupIdList groupIds={group.signatories} />
         </div>
         <div className="row">
-          <div className="col-sm-2 info-container__label">Signature:</div>
-          <div className="col-sm-10 info-container__value"><GroupIdList groupIds={group.signatures} /></div>
+          <div className="info-container__label">Signature:</div>
+          <GroupIdList groupIds={group.signatures} />
         </div>
         {
           group.anonids
           && (
             <>
               <div className="row">
-                <div className="col-sm-2 info-container__label">AnonymousId:</div>
-                <div className="col-sm-10 info-container__value">True</div>
+                <div className="info-container__label">AnonymousId:</div>
+                True
               </div>
               {
                 group.secret && (
                   <div className="row">
-                    <div className="col-sm-2 info-container__label">Secret:</div>
-                    <div className="col-sm-10 info-container__value">{group.secret}</div>
+                    <div className="info-container__label">Secret:</div>
+                    {group.secret}
                   </div>
                 )
               }
               <div className="row">
-                <div className="col-sm-2 info-container__label" title="deanonymizers">Deanonymizers:</div>
-                <div className="col-sm-10 info-container__value"><GroupIdList key="deanonymizers" groupIds={group.deanonymizers} /></div>
+                <div className="info-container__label" title="deanonymizers">Deanonymizers:</div>
+                <GroupIdList key="deanonymizers" groupIds={group.deanonymizers} />
               </div>
             </>
           )
         }
         <div className="row">
-          <div className="col-sm-2 info-container__label">Created:</div>
-          <div className="col-sm-10 info-container__value">{formatDateTime(group.cdate, { month: 'long', timeZoneName: 'short' }) ?? formatDateTime(group.tcdate, { month: 'long', timeZoneName: 'short' })}</div>
+          <div className="info-container__label">Created:</div>
+          {formatDateTime(group.cdate, { month: 'long', timeZoneName: 'short' }) ?? formatDateTime(group.tcdate, { month: 'long', timeZoneName: 'short' })}
         </div>
         <div className="row">
-          <div className="col-sm-2 info-container__label">Last Modified:</div>
-          <div className="col-sm-10 info-container__value">{formatDateTime(group.mdate, { month: 'long', timeZoneName: 'short' }) ?? formatDateTime(group.tmdate, { month: 'long', timeZoneName: 'short' })}</div>
+          <div className="info-container__label">Last Modified:</div>
+          {formatDateTime(group.mdate, { month: 'long', timeZoneName: 'short' }) ?? formatDateTime(group.tmdate, { month: 'long', timeZoneName: 'short' })}
         </div>
       </div>
       <button type="button" className="btn btn-sm btn-primary edit-group-info" onClick={setEdit}>Edit General Info</button>
@@ -130,28 +133,28 @@ const GroupGeneralInfoEdit = ({
 
   return (
     <>
-      <div className="container edit-container">
+      <div className="edit-container">
         <div className="row">
-          <div className="col-sm-2 edit-container__label">Readers:</div>
-          <div className="col-sm-6">
+          <div className="edit-container__label">Readers:</div>
+          <div className="edit-container__control">
             <input className="form-control" value={generalInfo.readers} onChange={e => setGeneralInfo({ type: 'readers', value: e.target.value })} />
           </div>
         </div>
         <div className="row">
-          <div className="col-sm-2 edit-container__label">Non-Readers:</div>
-          <div className="col-sm-6">
+          <div className="edit-container__label">Non-Readers:</div>
+          <div className="edit-container__control">
             <input className="form-control" value={generalInfo.nonreaders} onChange={e => setGeneralInfo({ type: 'nonreaders', value: e.target.value })} />
           </div>
         </div>
         <div className="row">
-          <div className="col-sm-2 edit-container__label">Writers:</div>
-          <div className="col-sm-6">
+          <div className="edit-container__label">Writers:</div>
+          <div className="edit-container__control">
             <input className="form-control" value={generalInfo.writers} onChange={e => setGeneralInfo({ type: 'writers', value: e.target.value })} />
           </div>
         </div>
         <div className="row">
-          <div className="col-sm-2 edit-container__label">Signatories:</div>
-          <div className="col-sm-6">
+          <div className="edit-container__label">Signatories:</div>
+          <div className="edit-container__control">
             <input className="form-control" value={generalInfo.signatories} onChange={e => setGeneralInfo({ type: 'signatories', value: e.target.value })} />
           </div>
         </div>
@@ -159,8 +162,8 @@ const GroupGeneralInfoEdit = ({
           isSuperUser && (
             <>
               <div className="row">
-                <div className="col-sm-2 edit-container__label">AnonymousId:</div>
-                <div className="col-sm-6">
+                <div className="edit-container__label">AnonymousId:</div>
+                <div className="edit-container__control">
                   <Dropdown
                     className="dropdown-select"
                     placeholder="select whether to enable anonymous id"
@@ -171,15 +174,17 @@ const GroupGeneralInfoEdit = ({
                 </div>
               </div>
               <div className="row">
-                <div className="col-sm-2 edit-container__label">Deanonymizers:</div>
-                <div className="col-sm-6"><input className="form-control" value={generalInfo.deanonymizers} onChange={e => setGeneralInfo({ type: 'deanonymizers', value: e.target.value })} /></div>
+                <div className="edit-container__label">Deanonymizers:</div>
+                <div className="edit-container__control">
+                  <input className="form-control" value={generalInfo.deanonymizers} onChange={e => setGeneralInfo({ type: 'deanonymizers', value: e.target.value })} />
+                </div>
               </div>
             </>
           )
         }
         <div className="row">
-          <div className="col-sm-2 edit-container__label" />
-          <div className="col-sm-10 edit-container">
+          <div className="edit-container__label" />
+          <div className="edit-container__control">
             <button type="button" className="btn btn-sm btn-primary" onClick={() => saveGeneralInfo(generalInfo)}>Save Group</button>
             <button type="button" className="btn btn-sm btn-default ml-1" onClick={() => setEdit(false)}>Cancel</button>
           </div>
@@ -341,8 +346,8 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
   )
 }
 
-const GroupMembers = ({ group, isSuperUser, accessToken }) => {
-  const membersPerPage = 3
+const GroupMembers = ({ group, accessToken }) => {
+  const membersPerPage = 15
   const [searchTerm, setSearchTerm] = useState('')
   const [memberAnonIds, setMemberAnonIds] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
@@ -705,6 +710,10 @@ const MessageMemberModal = ({
             will automatically be replaced with the recipient's first or full name if they have an OpenReview profile.
             If a profile isn't found their email address will be used instead.`}
           </p>
+          <p className="hint">
+            {/* eslint-disable-next-line max-len */}
+            You can use markdown syntax to compose email in HTML format. User the Preview tab to see how your email will look.
+          </p>
           <MarkdownPreviewTab
             value={message}
             onValueChanged={setMessage}
@@ -898,12 +907,16 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
   )
 }
 
-const GroupUICodeEditor = ({ group, accessToken }) => {
+const GroupUICodeEditor = ({ group, accessToken, reloadGroup }) => {
   const [showCodeEditor, setShowCodeEditor] = useState(false)
   const [code, setCode] = useState(group.web ?? '')
+  const [isSaving, setIsSaving] = useState(false)
   const [modifiedWebCode, setModifiedWebCode] = useState(group.web)
+  const codeEditorRef = useRef(null)
+
   const handleUpdateCodeClick = async () => {
     try {
+      setIsSaving(true)
       const groupToPost = {
         ...group,
         web: modifiedWebCode.trim() ? modifiedWebCode.trim() : null,
@@ -911,21 +924,32 @@ const GroupUICodeEditor = ({ group, accessToken }) => {
       const result = await api.post('/groups', groupToPost, {
         accessToken, version: getGroupVersion(group.id),
       })
-      setCode(result.web ?? '')
-      setModifiedWebCode(modifiedWebCode.trim())
+      setShowCodeEditor(false)
       promptMessage(`UI code for ${group.id} has been updated`)
+      reloadGroup()
     } catch (error) {
       promptError(error.message)
     }
+    setIsSaving(false)
   }
+
   return (
     <section>
       <h4>Group UI Code</h4>
       {showCodeEditor ? (
         <>
-          <CodeEditor code={code} onChange={modifiedCode => setModifiedWebCode(modifiedCode)} />
+          {/* eslint-disable-next-line max-len */}
+          <CodeEditor code={code} onChange={modifiedCode => setModifiedWebCode(modifiedCode)} isJavascript scrollIntoView />
           <div className="mt-2">
-            <button type="button" className="btn btn-primary" onClick={handleUpdateCodeClick} disabled={code === modifiedWebCode}>Update Code</button>
+            <button type="button" className="btn btn-primary" onClick={handleUpdateCodeClick} disabled={code === modifiedWebCode || isSaving}>
+              {isSaving ? (
+                <div className="save-button-wrapper">
+                  Saving
+                  <LoadingSpinner inline text="" extraClass="spinner-small" />
+                </div>
+              )
+                : <>Update Code</>}
+            </button>
             <button type="button" className="btn btn-default ml-1" onClick={() => setShowCodeEditor(false)}>Cancel</button>
           </div>
         </>
@@ -943,11 +967,11 @@ const GroupEditor = ({
     <>
       {/* eslint-disable-next-line max-len */}
       <GeneralInfoEditor key={`${group.id}-info`} group={group} isSuperUser={isSuperUser} accessToken={accessToken} reloadGroup={reloadGroup} />
-      <GroupMembers key={`${group.id}-members`} group={group} isSuperUser={isSuperUser} accessToken={accessToken} />
+      <GroupMembers key={`${group.id}-members`} group={group} accessToken={accessToken} />
       <GroupSignedNotes key={`${group.id}-signednotes`} groupId={group.id} accessToken={accessToken} />
       <GroupChildGroups key={`${group.id}-childgroups`} groupId={group.id} accessToken={accessToken} />
       <GroupRelatedInvitations key={`${group.id}-invitations`} groupId={group.id} accessToken={accessToken} />
-      <GroupUICodeEditor key={`${group.id}-code`} group={group} accessToken={accessToken} />
+      <GroupUICodeEditor key={nanoid()} group={group} accessToken={accessToken} reloadGroup={reloadGroup} />
     </>
   )
 }

@@ -68,7 +68,8 @@ export default function GroupEdit({ appContext }) {
   useEffect(() => {
     if (!group || !containerRef || clientJsLoading) return
 
-    Webfield.editModeBanner(group.id, 'edit')
+    const editModeBannerDelay = document.querySelector('#flash-message-container.alert-success') ? 2500 : 0
+    setTimeout(() => Webfield.editModeBanner(group.id, 'edit'), editModeBannerDelay)
 
     // eslint-disable-next-line consistent-return
     return () => {
@@ -90,6 +91,9 @@ export default function GroupEdit({ appContext }) {
       {(clientJsLoading || !group) && (
         <LoadingSpinner />
       )}
+      <div id="header">
+        <h1>{prettyId(query?.id)}</h1>
+      </div>
 
       <GroupEditor
         group={group}

@@ -488,24 +488,30 @@ main.group, main.invitation {
   }
 
   //new implementation
+  section {
+    margin-bottom: 1.75rem;
+  }
+
+  h4 {
+    margin-bottom: 1rem;
+  }
+
   .info-container, .edit-container {
     .row {
+      display: flex;
       margin-bottom: .5rem;
     }
     &__label {
-      font-weight: bold;
-      white-space: nowrap;
+      font-weight: 700;
+      width: 12%;
       text-align: right;
-      padding-right: 0;
-      width: 120px;
+      white-space: nowrap;
+      margin-right: .5rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    &__value {
-      margin-left: 1rem;
-      padding-left:0;
-      padding-right: 0;
-    }
-    .edit-container__label{
-      margin-top: 5px;
+    &__control {
+      width: 50%;
     }
   }
 
@@ -595,5 +601,9 @@ main.group, main.invitation {
       max-height: 150px;
       overflow-y: scroll;
     }
+  }
+
+  .spinner-small {
+    width: 40px;
   }
 }
