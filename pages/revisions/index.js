@@ -287,8 +287,7 @@ const RevisionsList = ({
                     }}
                   />
                 </div>
-                {reference.details?.writable
-                  && (
+                { reference.details?.writable && (
                   <div className="meta_actions">
                     {reference.ddate
                       ? (
@@ -489,50 +488,52 @@ const Revisions = ({ appContext }) => {
       <header>
         <h1>Revision History</h1>
         <div className="button-container">
-          {selectedIndexes ? (
-            <>
+          {selectedIndexes
+            ? (
+              <>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={selectedIndexes.length !== 2}
+                  onClick={compareRevisions}
+                >
+                  View Differences
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-default"
+                  onClick={() => setSelectedIndexes(null)}
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={selectedIndexes.length !== 2}
-                onClick={compareRevisions}
+                disabled={!revisions || revisions.length === 0}
+                onClick={() => enterSelectMode()}
               >
-                View Differences
+                Compare Revisions
               </button>
-              <button
-                type="button"
-                className="btn btn-default"
-                onClick={() => setSelectedIndexes(null)}
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={!revisions || revisions.length === 0}
-              onClick={() => enterSelectMode()}
-            >
-              Compare Revisions
-            </button>
-          )}
+            )}
         </div>
       </header>
 
-      {error ? (
-        <ErrorAlert error={error} />
-      ) : (
-        <RevisionsList
-          revisions={revisions}
-          user={user}
-          selectedIndexes={selectedIndexes}
-          setSelectedIndexes={setSelectedIndexes}
-          accessToken={accessToken}
-          loadEdits={loadEdits}
-          isNoteWritable={isNoteWritable}
-        />
-      )}
+      {error
+        ? (
+          <ErrorAlert error={error} />
+        ) : (
+          <RevisionsList
+            revisions={revisions}
+            user={user}
+            selectedIndexes={selectedIndexes}
+            setSelectedIndexes={setSelectedIndexes}
+            accessToken={accessToken}
+            loadEdits={loadEdits}
+            isNoteWritable={isNoteWritable}
+          />
+        )}
     </>
   )
 }
