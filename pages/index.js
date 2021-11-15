@@ -125,23 +125,27 @@ export default function Home() {
             <VenueSection
               title="Your Active Consoles"
               name="active consoles"
+              id="active-consoles-mobile"
               venues={venues.user}
             />
           )}
           <VenueSection
             title="Open for Submissions"
             name="open venues"
+            id="open-venues-mobile"
             venues={venues.open}
             maxVisible={9}
           />
           <VenueSection
             title="Active Venues"
             name="active venues"
+            id="active-venues-mobile"
             venues={venues.active}
           />
           <VenueSection
             title="All Venues"
             name="all venues"
+            id="all-venues-mobile"
             venues={venues.all}
           />
         </div>
@@ -152,10 +156,12 @@ export default function Home() {
 Home.bodyClass = 'home'
 
 function VenueSection({
-  title, name, venues, maxVisible,
+  title, name, id, venues, maxVisible,
 }) {
+  const containerId = id || name.toLowerCase().split(' ').join('-')
+
   return (
-    <section>
+    <section id={containerId}>
       <h1>{title}</h1>
       <hr className="small" />
       <VenueList name={name} venues={venues} maxVisible={maxVisible} />
@@ -170,10 +176,9 @@ function VenueList({ name, venues, maxVisible = 14 }) {
     return <LoadingSpinner inline />
   }
 
-  const containerId = name.toLowerCase().split(' ').join('-')
   if (venues.length === 0) {
     return (
-      <div id={containerId}>
+      <div>
         {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
         <p className="empty">There are currently no {name}.</p>
       </div>
@@ -181,11 +186,11 @@ function VenueList({ name, venues, maxVisible = 14 }) {
   }
 
   return (
-    <div id={containerId}>
+    <div>
       <ul className="conferences list-unstyled">
         {venues.map((venue, i) => (
           <VenueListItem
-            key={`${containerId}-${venue.groupId}`}
+            key={`${name}-${venue.groupId}`}
             groupId={venue.groupId}
             dueDate={venue.dueDate}
             hidden={!expanded && i > maxVisible}
