@@ -21,24 +21,28 @@ import LoadingSpinner from './LoadingSpinner'
 const GroupIdList = ({ groupIds }) => {
   const commonGroups = ['everyone', '(anonymous)', '(guest)', '~', '~Super_User1']
   if (!Array.isArray(groupIds)) return ''
-  return groupIds.map((groupId, index) => {
-    if (commonGroups.includes(groupId)) {
-      return (
-        // eslint-disable-next-line react/no-array-index-key
-        <React.Fragment key={index}>
-          {index > 0 && ', '}
-          {prettyId(groupId)}
-        </React.Fragment>
-      )
-    }
-    return (
-      // eslint-disable-next-line react/no-array-index-key
-      <React.Fragment key={index}>
-        {index > 0 && ', '}
-        <Link href={urlFromGroupId(groupId)}><a>{prettyId(groupId)}</a></Link>
-      </React.Fragment>
-    )
-  })
+  return (
+    <div className="info-container__content">
+      {groupIds.map((groupId, index) => {
+        if (commonGroups.includes(groupId)) {
+          return (
+            // eslint-disable-next-line react/no-array-index-key
+            <React.Fragment key={index}>
+              {index > 0 && ', '}
+              {prettyId(groupId)}
+            </React.Fragment>
+          )
+        }
+        return (
+          // eslint-disable-next-line react/no-array-index-key
+          <React.Fragment key={index}>
+            {index > 0 && ', '}
+            <Link href={urlFromGroupId(groupId)}><a>{prettyId(groupId)}</a></Link>
+          </React.Fragment>
+        )
+      })}
+    </div>
+  )
 }
 
 const GroupGeneralInfoView = ({ group, setEdit }) => {
@@ -49,7 +53,7 @@ const GroupGeneralInfoView = ({ group, setEdit }) => {
       <div className="info-container">
         <div className="row">
           <div className="info-container__label">Parent Group:</div>
-          <Link href={urlFromGroupId(groupParent, true)}><a>{prettyId(groupParent)}</a></Link>
+          <div><Link href={urlFromGroupId(groupParent, true)}><a>{prettyId(groupParent)}</a></Link></div>
         </div>
         <div className="row">
           <div className="info-container__label">Readers:</div>
@@ -340,7 +344,14 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
       <div className="container members-container pl-0" ref={sectionRef}>
         {jobId && (
           <>
-            <ProgressBar key={jobId} statusCheckFn={getJobStatus} now={now} variant={variant} />
+            <ProgressBar
+              key={jobId}
+              statusCheckFn={getJobStatus}
+              now={now}
+              variant={variant}
+              animated={now !== 100}
+              striped={now !== 100}
+            />
             <p>
               {errorText || <StatusMessage statusParam={statusObj} />}
             </p>
