@@ -6,7 +6,6 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { prettyId, formatTimestamp } from '../lib/utils'
-import Masonry from 'masonry-layout'
 
 // Page Styles
 import '../styles/pages/home.less'
@@ -62,35 +61,107 @@ export default function Home() {
         <title key="title">Venues | OpenReview</title>
       </Head>
 
-      {venues.user?.length > 0 && (
-        <section>
-          <h1>Your Active Groups</h1>
-          <hr className="small" />
-          <VenueList name="your active venues" venues={venues.user} />
-        </section>
+      {venues.user?.length > 0 ? (
+        // Logged in view
+        <div className="row hidden-xs">
+          <div className="col-xs-12 col-sm-6">
+            <VenueSection
+              title="Your Active Consoles"
+              name="active consoles"
+              venues={venues.user}
+            />
+            <VenueSection
+              title="Active Venues"
+              name="active venues"
+              venues={venues.active}
+            />
+          </div>
+
+          <div className="col-xs-12 col-sm-6">
+            <VenueSection
+              title="Open for Submissions"
+              name="open venues"
+              venues={venues.open}
+              maxVisible={9}
+            />
+            <VenueSection
+              title="All Venues"
+              name="all venues"
+              venues={venues.all}
+            />
+          </div>
+        </div>
+      ) : (
+        // Logged out view
+        <div className="row">
+          <div className="col-xs-12 col-sm-6">
+            <VenueSection
+              title="Open for Submissions"
+              name="open venues"
+              venues={venues.open}
+              maxVisible={9}
+            />
+            <VenueSection
+              title="All Venues"
+              name="all venues"
+              venues={venues.all}
+            />
+          </div>
+
+          <div className="col-xs-12 col-sm-6">
+            <VenueSection
+              title="Active Venues"
+              name="active venues"
+              venues={venues.active}
+            />
+          </div>
+        </div>
       )}
 
-      <section>
-        <h1>Open for Submissions</h1>
-        <hr className="small" />
-        <VenueList name="open venues" venues={venues.open} maxVisible={9} />
-      </section>
-
-      <section>
-        <h1>Active Venues</h1>
-        <hr className="small" />
-        <VenueList name="active venues" venues={venues.active} />
-      </section>
-
-      <section>
-        <h1>All Venues</h1>
-        <hr className="small" />
-        <VenueList name="all venues" venues={venues.all} />
-      </section>
+      {/* Mobile view */}
+      <div className="row visible-xs">
+        <div className="col-xs-12">
+          {venues.user?.length > 0 && (
+            <VenueSection
+              title="Your Active Consoles"
+              name="active consoles"
+              venues={venues.user}
+            />
+          )}
+          <VenueSection
+            title="Open for Submissions"
+            name="open venues"
+            venues={venues.open}
+            maxVisible={9}
+          />
+          <VenueSection
+            title="Active Venues"
+            name="active venues"
+            venues={venues.active}
+          />
+          <VenueSection
+            title="All Venues"
+            name="all venues"
+            venues={venues.all}
+          />
+        </div>
+      </div>
     </div>
   )
 }
 Home.bodyClass = 'home'
+
+function VenueSection({
+  title, name, venues, maxVisible,
+}) {
+  return (
+    <section>
+      <h1>{title}</h1>
+      <hr className="small" />
+      <VenueList name={name} venues={venues} maxVisible={maxVisible} />
+    </section>
+  )
+}
 
 function VenueList({ name, venues, maxVisible = 14 }) {
   const [expanded, setExpanded] = useState(false)
@@ -113,7 +184,7 @@ function VenueList({ name, venues, maxVisible = 14 }) {
     <div id={containerId}>
       <ul className="conferences list-unstyled">
         {venues.map((venue, i) => (
-          <Venue
+          <VenueListItem
             key={`${containerId}-${venue.groupId}`}
             groupId={venue.groupId}
             dueDate={venue.dueDate}
@@ -124,14 +195,14 @@ function VenueList({ name, venues, maxVisible = 14 }) {
 
       {venues.length > maxVisible && (
         <button type="button" className="btn-link" onClick={() => { setExpanded(!expanded) }}>
-          {expanded ? 'Hide venues' : `Show all ${venues.length} venues`}
+          {expanded ? 'Show fewer venues' : `Show all ${venues.length} venues`}
         </button>
       )}
     </div>
   )
 }
 
-function Venue({ groupId, dueDate, hidden }) {
+function VenueListItem({ groupId, dueDate, hidden }) {
   const styles = hidden ? { display: 'none' } : {}
 
   return (
