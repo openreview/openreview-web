@@ -19,22 +19,28 @@ const TimezoneDropdown = dynamic(() => import('./Dropdown').then(mod => mod.Time
 const GroupIdList = ({ groupIds }) => {
   const commonGroups = ['everyone', '(anonymous)', '(guest)', '~', '~Super_User1']
   if (!Array.isArray(groupIds)) return ''
-  return groupIds.map((groupId, index) => {
-    if (commonGroups.includes(groupId)) {
-      return (
-        <React.Fragment key={nanoid()}>
-          {index > 0 && <>,&nbsp;</>}
-          {prettyId(groupId)}
-        </React.Fragment>
-      )
-    }
-    return (
-      <React.Fragment key={nanoid()}>
-        {index > 0 && <>,&nbsp;</>}
-        <Link href={urlFromGroupId(groupId)}><a>{prettyId(groupId)}</a></Link>
-      </React.Fragment>
-    )
-  })
+  return (
+    <div className="info-content">
+      {groupIds.map((groupId, index) => {
+        if (commonGroups.includes(groupId)) {
+          return (
+            // eslint-disable-next-line react/no-array-index-key
+            <React.Fragment key={index}>
+              {index > 0 && <>,&nbsp;</>}
+              {prettyId(groupId)}
+            </React.Fragment>
+          )
+        }
+        return (
+          // eslint-disable-next-line react/no-array-index-key
+          <React.Fragment key={index}>
+            {index > 0 && <>,&nbsp;</>}
+            <Link href={urlFromGroupId(groupId)}><a>{prettyId(groupId)}</a></Link>
+          </React.Fragment>
+        )
+      })}
+    </div>
+  )
 }
 
 const InvitationGeneralInfo = ({
@@ -523,7 +529,8 @@ const InvitationReply = ({
 
   const saveInvitationReply = async () => {
     try {
-      const replyObj = JSON.parse(replyString)
+      const cleanReplyString = replyString.trim()
+      const replyObj = JSON.parse(cleanReplyString.length ? cleanReplyString : '[]')
       const requestPath = isV1Invitation ? '/invitations' : '/invitations/edits'
       const requestBody = getRequestBody(replyObj)
       await api.post(requestPath, requestBody, { accessToken, version: isV1Invitation ? 1 : 2 })
