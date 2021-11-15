@@ -208,7 +208,7 @@ function VenueListItem({ groupId, dueDate, hidden }) {
   return (
     <li style={styles}>
       <h2>
-        <Link href={`/group?id=${groupId}`}><a>{prettyId(groupId)}</a></Link>
+        <Link href={`/group?id=${groupId}&referrer=${encodeURIComponent('[Homepage](/)')}`}><a>{prettyId(groupId)}</a></Link>
       </h2>
       {dueDate && (
         <p>
