@@ -9,6 +9,7 @@ import {
 import api from '../lib/api-client'
 import { isSuperUser } from '../lib/auth'
 import PaginationLinks from './PaginationLinks'
+import LoadingSpinner from './LoadingSpinner'
 
 const CodeEditor = dynamic(() => import('./CodeEditor'))
 const DatetimePicker = dynamic(() => import('./DatetimePicker'))
@@ -40,13 +41,14 @@ const InvitationGeneralInfo = ({
   invitation, profileId, accessToken, loadInvitation,
 }) => {
   const parentGroupId = invitation.id.split('/-/')[0]
-  const isV1Invitation = !invitation.apiVersion === 1
+  const isV1Invitation = invitation.apiVersion === 1
   const trueFalseOptions = [
     { value: true, label: 'True' },
     { value: false, label: 'False' },
   ]
 
   const [isEditMode, setIsEditMode] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const generalInfoReducer = (state, action) => {
     switch (action.type) {
       case 'activationDateTimezone':
@@ -138,6 +140,7 @@ const InvitationGeneralInfo = ({
 
   const saveGeneralInfo = async () => {
     try {
+      setIsSaving(true)
       const requestPath = isV1Invitation ? '/invitations' : '/invitations/edits'
       const requestBody = isV1Invitation ? await constructInvitationToPost() : await constructInvitationEditToPost()
       await api.post(requestPath, requestBody, { accessToken, version: invitation.apiVersion })
@@ -147,180 +150,188 @@ const InvitationGeneralInfo = ({
     } catch (error) {
       promptError(error.details && error.legacy ? translateErrorDetails(error.details) : error.message)
     }
+    setIsSaving(false)
   }
 
   return (
     <section className="general">
       <h4>General Info</h4>
-      {isEditMode
-        ? (
-          <>
-            {isV1Invitation && (
+      {isEditMode ? (
+        <>
+          {isV1Invitation && (
+            <div className="row d-flex">
+              <span className="info-title edit-title">Super Invitation:</span>
+              <div className="info-edit-control">
+                <input className="form-control input-sm" value={generalInfo.super} onChange={e => setGeneralInfo({ type: 'super', payload: e.target.value })} />
+              </div>
+            </div>
+          )}
+          <div className="row d-flex">
+            <span className="info-title edit-title">Readers:</span>
+            <div className="info-edit-control">
+              <input className="form-control input-sm" value={generalInfo.readers} onChange={e => setGeneralInfo({ type: 'readers', payload: e.target.value })} />
+            </div>
+          </div>
+          <div className="row d-flex">
+            <span className="info-title edit-title">Non-Readers:</span>
+            <div className="info-edit-control">
+              <input className="form-control input-sm" value={generalInfo.nonreaders} onChange={e => setGeneralInfo({ type: 'nonreaders', payload: e.target.value })} />
+            </div>
+          </div>
+          <div className="row d-flex">
+            <span className="info-title edit-title">Writers:</span>
+            <div className="info-edit-control">
+              <input className="form-control input-sm" value={generalInfo.writers} onChange={e => setGeneralInfo({ type: 'writers', payload: e.target.value })} />
+            </div>
+          </div>
+          <div className="row d-flex">
+            <span className="info-title edit-title">Invitees:</span>
+            <div className="info-edit-control">
+              <input className="form-control input-sm" value={generalInfo.invitees} onChange={e => setGeneralInfo({ type: 'invitees', payload: e.target.value })} />
+            </div>
+          </div>
+          <div className="row d-flex">
+            <span className="info-title edit-title">Non-Invitees:</span>
+            <div className="info-edit-control">
+              <input className="form-control input-sm" value={generalInfo.noninvitees} onChange={e => setGeneralInfo({ type: 'noninvitees', payload: e.target.value })} />
+            </div>
+          </div>
+          {
+            isV1Invitation && (
               <div className="row d-flex">
-                <span className="info-title edit-title">Super Invitation:</span>
+                <span className="info-title edit-title">Final Fields:</span>
                 <div className="info-edit-control">
-                  <input className="form-control input-sm" value={generalInfo.super} onChange={e => setGeneralInfo({ type: 'super', payload: e.target.value })} />
+                  <input className="form-control input-sm" value={generalInfo.final} onChange={e => setGeneralInfo({ type: 'final', payload: e.target.value })} />
                 </div>
               </div>
-            )}
-            <div className="row d-flex">
-              <span className="info-title edit-title">Readers:</span>
-              <div className="info-edit-control">
-                <input className="form-control input-sm" value={generalInfo.readers} onChange={e => setGeneralInfo({ type: 'readers', payload: e.target.value })} />
+            )
+          }
+          {
+            isV1Invitation && (
+              <div className="row d-flex">
+                <span className="info-title edit-title">Multi-Reply:</span>
+                <div className="info-edit-control">
+                  <Dropdown
+                    className="dropdown-select"
+                    placeholder="select whether to enable anonymous id"
+                    options={trueFalseOptions}
+                    onChange={e => setGeneralInfo({ type: 'multiReply', payload: e.value })}
+                    value={generalInfo.multiReply ? { value: true, label: 'True' } : { value: false, label: 'False' }}
+                  />
+                </div>
+              </div>
+            )
+          }
+          {
+            isV1Invitation && (
+              <div className="row d-flex">
+                <span className="info-title edit-title">Completed After:</span>
+                <div className="info-edit-control">
+                  <input type="number" className="form-control input-sm" value={generalInfo.taskCompletionCount} onChange={e => setGeneralInfo({ type: 'taskCompletionCount', payload: e.target.value })} />
+                </div>
+              </div>
+            )
+          }
+          {
+            isV1Invitation && (
+              <div className="row d-flex">
+                <span className="info-title edit-title">Hide Revisions:</span>
+                <div className="info-edit-control">
+                  <Dropdown
+                    className="dropdown-select"
+                    placeholder="select whether to hide revisions"
+                    options={trueFalseOptions}
+                    onChange={e => setGeneralInfo({ type: 'hideOriginalRevisions', payload: e.value })}
+                    value={generalInfo.hideOriginalRevisions ? { value: true, label: 'True' } : { value: false, label: 'False' }}
+                  />
+                </div>
+              </div>
+            )
+          }
+          {
+            !isV1Invitation && (
+              <div className="row d-flex">
+                <span className="info-title edit-title">Max Replies:</span>
+                <div className="info-edit-control">
+                  <input type="number" className="form-control input-sm" value={generalInfo.maxReplies} onChange={e => setGeneralInfo({ type: 'maxReplies', payload: e.target.value })} />
+                </div>
+              </div>
+            )
+          }
+          {
+            !isV1Invitation && (
+              <div className="row d-flex">
+                <span className="info-title edit-title">Min Replies:</span>
+                <div className="info-edit-control">
+                  <input type="number" className="form-control input-sm" value={generalInfo.minReplies} onChange={e => setGeneralInfo({ type: 'minReplies', payload: e.target.value })} />
+                </div>
+              </div>
+            )
+          }
+          {
+            !isV1Invitation && (
+              <div className="row d-flex">
+                <span className="info-title edit-title">Bulk:</span>
+                <div className="info-edit-control">
+                  <Dropdown
+                    className="dropdown-select"
+                    placeholder="select whether to bulk"
+                    options={trueFalseOptions}
+                    onChange={e => setGeneralInfo({ type: 'bulk', payload: e.value })}
+                    value={generalInfo.bulk ? { value: true, label: 'True' } : { value: false, label: 'False' }}
+                  />
+                </div>
+              </div>
+            )
+          }
+          <div className="row d-flex">
+            <span className="info-title edit-title">Activation Date:</span>
+            <div className="info-edit-control">
+              <div className="d-flex">
+                <DatetimePicker extraClasses="date-picker" value={generalInfo.cdate} timeZone={generalInfo.activationDateTimezone} onChange={e => setGeneralInfo({ type: 'cdate', payload: e })} />
+                <TimezoneDropdown className="timezone-dropdown" value={generalInfo.activationDateTimezone} onChange={e => setGeneralInfo({ type: 'activationDateTimezone', payload: e.value })} />
               </div>
             </div>
-            <div className="row d-flex">
-              <span className="info-title edit-title">Non-Readers:</span>
-              <div className="info-edit-control">
-                <input className="form-control input-sm" value={generalInfo.nonreaders} onChange={e => setGeneralInfo({ type: 'nonreaders', payload: e.target.value })} />
+          </div>
+          <div className="row d-flex">
+            <span className="info-title edit-title">Due Date:</span>
+            <div className="info-edit-control">
+              <div className="d-flex">
+                <DatetimePicker extraClasses="date-picker" value={generalInfo.duedate} timeZone={generalInfo.duedateTimezone} onChange={e => setGeneralInfo({ type: 'duedate', payload: e })} />
+                <TimezoneDropdown className="timezone-dropdown" value={generalInfo.duedateTimezone} onChange={e => setGeneralInfo({ type: 'duedateTimezone', payload: e.value })} />
               </div>
             </div>
-            <div className="row d-flex">
-              <span className="info-title edit-title">Writers:</span>
-              <div className="info-edit-control">
-                <input className="form-control input-sm" value={generalInfo.writers} onChange={e => setGeneralInfo({ type: 'writers', payload: e.target.value })} />
+          </div>
+          <div className="row d-flex">
+            <span className="info-title edit-title">Expiration Date:</span>
+            <div className="info-edit-control">
+              <div className="d-flex">
+                <DatetimePicker extraClasses="date-picker" value={generalInfo.expdate} timeZone={generalInfo.expDateTimezone} onChange={e => setGeneralInfo({ type: 'expdate', payload: e })} />
+                <TimezoneDropdown className="timezone-dropdown" value={generalInfo.expDateTimezone} onChange={e => setGeneralInfo({ type: 'expDateTimezone', payload: e.value })} />
               </div>
             </div>
-            <div className="row d-flex">
-              <span className="info-title edit-title">Invitees:</span>
-              <div className="info-edit-control">
-                <input className="form-control input-sm" value={generalInfo.invitees} onChange={e => setGeneralInfo({ type: 'invitees', payload: e.target.value })} />
-              </div>
+          </div>
+          <div className="row d-flex">
+            <span className="info-title edit-title">Signature:</span>
+            <div className="info-edit-control">
+              <input className="form-control input-sm" value={generalInfo.signatures?.join(', ')} onChange={e => setGeneralInfo({ type: 'signatures', payload: e.target.value })} />
             </div>
-            <div className="row d-flex">
-              <span className="info-title edit-title">Non-Invitees:</span>
-              <div className="info-edit-control">
-                <input className="form-control input-sm" value={generalInfo.noninvitees} onChange={e => setGeneralInfo({ type: 'noninvitees', payload: e.target.value })} />
-              </div>
-            </div>
-            {
-              isV1Invitation && (
-                <div className="row d-flex">
-                  <span className="info-title edit-title">Final Fields:</span>
-                  <div className="info-edit-control">
-                    <input className="form-control input-sm" value={generalInfo.final} onChange={e => setGeneralInfo({ type: 'final', payload: e.target.value })} />
-                  </div>
+          </div>
+          <div className="row d-flex">
+            <span className="info-title edit-title" />
+            <button type="button" className="btn btn-sm btn-primary" onClick={() => saveGeneralInfo()} disabled={isSaving}>
+              {isSaving ? (
+                <div className="save-button-wrapper">
+                  Saving
+                  <LoadingSpinner inline text="" extraClass="spinner-small" />
                 </div>
               )
-            }
-            {
-              isV1Invitation && (
-                <div className="row d-flex">
-                  <span className="info-title edit-title">Multi-Reply:</span>
-                  <div className="info-edit-control">
-                    <Dropdown
-                      className="dropdown-select"
-                      placeholder="select whether to enable anonymous id"
-                      options={trueFalseOptions}
-                      onChange={e => setGeneralInfo({ type: 'multiReply', payload: e.value })}
-                      value={generalInfo.multiReply ? { value: true, label: 'True' } : { value: false, label: 'False' }}
-                    />
-                  </div>
-                </div>
-              )
-            }
-            {
-              isV1Invitation && (
-                <div className="row d-flex">
-                  <span className="info-title edit-title">Completed After:</span>
-                  <div className="info-edit-control">
-                    <input type="number" className="form-control input-sm" value={generalInfo.taskCompletionCount} onChange={e => setGeneralInfo({ type: 'taskCompletionCount', payload: e.target.value })} />
-                  </div>
-                </div>
-              )
-            }
-            {
-              isV1Invitation && (
-                <div className="row d-flex">
-                  <span className="info-title edit-title">Hide Revisions:</span>
-                  <div className="info-edit-control">
-                    <Dropdown
-                      className="dropdown-select"
-                      placeholder="select whether to hide revisions"
-                      options={trueFalseOptions}
-                      onChange={e => setGeneralInfo({ type: 'hideOriginalRevisions', payload: e.value })}
-                      value={generalInfo.hideOriginalRevisions ? { value: true, label: 'True' } : { value: false, label: 'False' }}
-                    />
-                  </div>
-                </div>
-              )
-            }
-            {
-              !isV1Invitation && (
-                <div className="row d-flex">
-                  <span className="info-title edit-title">Max Replies:</span>
-                  <div className="info-edit-control">
-                    <input type="number" className="form-control input-sm" value={generalInfo.maxReplies} onChange={e => setGeneralInfo({ type: 'maxReplies', payload: e.target.value })} />
-                  </div>
-                </div>
-              )
-            }
-            {
-              !isV1Invitation && (
-                <div className="row d-flex">
-                  <span className="info-title edit-title">Min Replies:</span>
-                  <div className="info-edit-control">
-                    <input type="number" className="form-control input-sm" value={generalInfo.minReplies} onChange={e => setGeneralInfo({ type: 'minReplies', payload: e.target.value })} />
-                  </div>
-                </div>
-              )
-            }
-            {
-              !isV1Invitation && (
-                <div className="row d-flex">
-                  <span className="info-title edit-title">Bulk:</span>
-                  <div className="info-edit-control">
-                    <Dropdown
-                      className="dropdown-select"
-                      placeholder="select whether to bulk"
-                      options={trueFalseOptions}
-                      onChange={e => setGeneralInfo({ type: 'bulk', payload: e.value })}
-                      value={generalInfo.bulk ? { value: true, label: 'True' } : { value: false, label: 'False' }}
-                    />
-                  </div>
-                </div>
-              )
-            }
-            <div className="row d-flex">
-              <span className="info-title edit-title">Activation Date:</span>
-              <div className="info-edit-control">
-                <div className="d-flex">
-                  <DatetimePicker extraClasses="date-picker" value={generalInfo.cdate} timeZone={generalInfo.activationDateTimezone} onChange={e => setGeneralInfo({ type: 'cdate', payload: e })} />
-                  <TimezoneDropdown className="timezone-dropdown" value={generalInfo.activationDateTimezone} onChange={e => setGeneralInfo({ type: 'activationDateTimezone', payload: e.value })} />
-                </div>
-              </div>
-            </div>
-            <div className="row d-flex">
-              <span className="info-title edit-title">Due Date:</span>
-              <div className="info-edit-control">
-                <div className="d-flex">
-                  <DatetimePicker extraClasses="date-picker" value={generalInfo.duedate} timeZone={generalInfo.duedateTimezone} onChange={e => setGeneralInfo({ type: 'duedate', payload: e })} />
-                  <TimezoneDropdown className="timezone-dropdown" value={generalInfo.duedateTimezone} onChange={e => setGeneralInfo({ type: 'duedateTimezone', payload: e.value })} />
-                </div>
-              </div>
-            </div>
-            <div className="row d-flex">
-              <span className="info-title edit-title">Expiration Date:</span>
-              <div className="info-edit-control">
-                <div className="d-flex">
-                  <DatetimePicker extraClasses="date-picker" value={generalInfo.expdate} timeZone={generalInfo.expDateTimezone} onChange={e => setGeneralInfo({ type: 'expdate', payload: e })} />
-                  <TimezoneDropdown className="timezone-dropdown" value={generalInfo.expDateTimezone} onChange={e => setGeneralInfo({ type: 'expDateTimezone', payload: e.value })} />
-                </div>
-              </div>
-            </div>
-            <div className="row d-flex">
-              <span className="info-title edit-title">Signature:</span>
-              <div className="info-edit-control">
-                <input className="form-control input-sm" value={generalInfo.signatures?.join(', ')} onChange={e => setGeneralInfo({ type: 'signatures', payload: e.target.value })} />
-              </div>
-            </div>
-            <div className="row d-flex">
-              <span className="info-title edit-title" />
-              <button type="button" className="btn btn-sm btn-primary" onClick={() => saveGeneralInfo()}>Save Invitation</button>
-              <button type="button" className="btn btn-sm btn-default" onClick={() => setIsEditMode(false)}>Cancel</button>
-            </div>
-          </>
-        )
+                : <>Save Invitation</>}
+            </button>
+            <button type="button" className="btn btn-sm btn-default" onClick={() => setIsEditMode(false)}>Cancel</button>
+          </div>
+        </>
+      )
         : (
           <>
             {isV1Invitation && invitation.super && (
