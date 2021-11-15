@@ -183,6 +183,13 @@ hr {
   padding-left: 1rem
 }
 
+@media @phone-only {
+  .mobile-full-width {
+    margin-left: -15px;
+    margin-right: -15px;
+  }
+}
+
 // Forms
 .btn {
   font-size: .875rem;
@@ -670,6 +677,9 @@ strong.hint {
     & > a, & > span {
       color: @mediumBlue;
       background-color: @sandyBrown;
+      @media @phone-only {
+        padding: 6px 10px;
+      }
     }
     a:focus, a:hover, span:focus, span:hover {
       background-color: transparent;
@@ -700,6 +710,9 @@ strong.hint {
     & > a, & > span {
       border-radius: 0;
     }
+    @media @phone-only {
+      display: none;
+    }
   }
 }
 .pagination-container {
@@ -709,6 +722,10 @@ strong.hint {
   .pagination-count{
     display: block;
     color: @subtleGray;
+  }
+  @media @phone-only {
+    margin-left: -15px;
+    margin-right: -15px;
   }
 }
 
