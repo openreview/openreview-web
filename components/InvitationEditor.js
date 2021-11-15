@@ -602,6 +602,11 @@ const InvitationCode = ({
     }
   }
 
+  useEffect(() => {
+    setCode(invitation[codeType])
+    setShowEditor(false)
+  }, [invitation.id])
+
   return (
     <section>
       <h4>{getTitle()}</h4>
@@ -692,7 +697,6 @@ const InvitationEditor = ({
         <h1>{prettyId(invitation.id)}</h1>
       </div>
       <InvitationGeneralInfo
-        // key={nanoid()}
         invitation={invitation}
         profileId={profileId}
         accessToken={accessToken}
