@@ -42,7 +42,7 @@ const NamesSection = ({ profileNames, updateNames }) => {
     return names
   }
   const [names, setNames] = useReducer(namesReducer, profileNames?.map(p => ({ ...p, key: nanoid() })) ?? [])
-  const isMobile = !useBreakpoint('sm')
+  const isMobile = !useBreakpoint('lg')
 
   const handleAddName = () => {
     const newNameRow = {

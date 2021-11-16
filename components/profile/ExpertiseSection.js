@@ -12,7 +12,7 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
   const addExpertiseType = 'addExpertise'
   const removeExpertiseType = 'removeExpertise'
   // #endregion
-  const isMobile = !useBreakpoint('sm')
+  const isMobile = !useBreakpoint('lg')
 
   const expertiseReducer = (state, action) => {
     switch (action.type) {

@@ -127,7 +127,7 @@ const RelationsSection = ({
   relationReaders,
   updateRelations,
 }) => {
-  const isMobile = !useBreakpoint('sm')
+  const isMobile = !useBreakpoint('lg')
   const relationOptions = prefixedRelations?.map(p => ({ value: p, label: p })) ?? []
   const relationReaderOptions = relationReaders?.map(p => ({ value: p, label: p })) ?? []
 

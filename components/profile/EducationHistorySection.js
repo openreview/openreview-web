@@ -146,7 +146,7 @@ const EducationHistorySection = ({
   institutions,
   updateHistory,
 }) => {
-  const isMobile = !useBreakpoint('sm')
+  const isMobile = !useBreakpoint('lg')
   const institutionDomainOptions = institutions?.flatMap(p => (p.id ? { value: p.id, label: p.id } : []))
   const positionOptions = positions?.map(p => ({ value: p, label: p }))
 

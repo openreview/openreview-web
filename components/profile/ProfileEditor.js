@@ -70,6 +70,7 @@ const ProfileEditor = ({
 
   // validate and remove empty/not required data
   const validateCleanProfile = () => {
+    console.log('profile.expertise', profile.expertise)
     // filter out empty rows, keep row key
     let profileContent = {
       ...profile,
@@ -79,7 +80,7 @@ const ProfileEditor = ({
       ...profile.links,
       // eslint-disable-next-line max-len
       history: profile.history.flatMap(p => (p.position || p.institution?.domain || p.institution?.name ? p : [])),
-      expertise: profile.expertise.flatMap(p => (p.expertise ? p : [])),
+      expertise: profile.expertise.flatMap(p => (p.keywords?.length ? p : [])),
       relations: profile.relations.flatMap(p => (p.relation || p.name || p.email ? p : [])),
       preferredEmail: profile.emails.find(p => p.confirmed)?.email,
       preferredName: undefined,
