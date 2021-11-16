@@ -104,7 +104,7 @@ main.legacy-forum {
       > div {
         display: inline-block;
       }
-      @media @phone-only {
+      @media #{constants.$phone-only} {
         width: 100%;
       }
     }
@@ -321,7 +321,7 @@ main.legacy-forum {
     font-weight: bold;
     line-height: 34px;
 
-    @media @phone-only {
+    @media #{constants.$phone-only} {
       display: none;
     }
   }
