@@ -3129,7 +3129,7 @@ module.exports = (function() {
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return Webfield.sendFile('/attachment', data).then(function(result) {
+          return Webfield.sendFile('/attachment', data, undefined, fieldName).then(function (result) {
             note.content[fieldName] = result.url;
             updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], note.content[fieldName]);
           });
@@ -3573,7 +3573,7 @@ module.exports = (function() {
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return Webfield.sendFile('/attachment' , data).then(function(result) {
+          return Webfield.sendFile('/attachment' , data, undefined, fieldName).then(function(result) {
             editNote.content[fieldName] = result.url;
             updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
           });
