@@ -270,54 +270,51 @@ const RevisionsList = ({
               />
             </label>
           </div>
-          {reference.note
-            ? (
-              <>
-                <div className="col-sm-9">
-                  <NoteV2
-                    note={{ ...reference, content: reference.note.content }}
-                    invitation={invitation}
-                    options={{
-                      showContents: true,
-                      showPrivateIcon: true,
-                      isReference: true,
-                      pdfLink: true,
-                      htmlLink: true,
-                      ...reference.ddate && { extraClasses: 'note-trashed' },
-                    }}
+          {reference.note ? (
+            <>
+              <div className="col-sm-9">
+                <NoteV2
+                  note={{ ...reference, content: reference.note.content }}
+                  invitation={invitation}
+                  options={{
+                    showContents: true,
+                    showPrivateIcon: true,
+                    isReference: true,
+                    pdfLink: true,
+                    htmlLink: true,
+                    ...reference.ddate && { extraClasses: 'note-trashed' },
+                  }}
+                />
+              </div>
+              { reference.details?.writable && (
+              <div className="meta_actions">
+                {reference.ddate ? (
+                  <RestoreButton
+                    onClick={() => setEditToDeleteRestore({ edit: reference, invitation })}
+                    disableButton={!isNoteWritable}
+                    disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
                   />
-                </div>
-                { reference.details?.writable && (
-                  <div className="meta_actions">
-                    {reference.ddate
-                      ? (
-                        <RestoreButton
-                          onClick={() => setEditToDeleteRestore({ edit: reference, invitation })}
-                          disableButton={!isNoteWritable}
-                          disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
-                        />
-                      )
-                      : (
-                        <>
-                          <EditButton
-                            onClick={() => editEdit(reference, invitation)}
-                            disableButton={!isNoteWritable}
-                            disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
-                          />
-                          {invitation.edit.ddate && (
-                            <TrashButton
-                              onClick={() => setEditToDeleteRestore({ edit: reference, invitation })}
-                              disableButton={!isNoteWritable}
-                              disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
-                            />
-                          )}
-                        </>
+                )
+                  : (
+                    <>
+                      <EditButton
+                        onClick={() => editEdit(reference, invitation)}
+                        disableButton={!isNoteWritable}
+                        disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
+                      />
+                      {invitation.edit.ddate && (
+                      <TrashButton
+                        onClick={() => setEditToDeleteRestore({ edit: reference, invitation })}
+                        disableButton={!isNoteWritable}
+                        disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
+                      />
                       )}
-                  </div>
+                    </>
                   )}
-              </>
-            )
-            : <div className="col-sm-11 note-container" />}
+              </div>
+                  )}
+            </>
+          ) : <div className="col-sm-11 note-container" />}
         </div>
       ))}
 
@@ -488,52 +485,50 @@ const Revisions = ({ appContext }) => {
       <header>
         <h1>Revision History</h1>
         <div className="button-container">
-          {selectedIndexes
-            ? (
-              <>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  disabled={selectedIndexes.length !== 2}
-                  onClick={compareRevisions}
-                >
-                  View Differences
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-default"
-                  onClick={() => setSelectedIndexes(null)}
-                >
-                  Cancel
-                </button>
-              </>
-            ) : (
+          {selectedIndexes ? (
+            <>
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={!revisions || revisions.length === 0}
-                onClick={() => enterSelectMode()}
+                disabled={selectedIndexes.length !== 2}
+                onClick={compareRevisions}
               >
-                Compare Revisions
+                View Differences
               </button>
-            )}
+              <button
+                type="button"
+                className="btn btn-default"
+                onClick={() => setSelectedIndexes(null)}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={!revisions || revisions.length === 0}
+              onClick={() => enterSelectMode()}
+            >
+              Compare Revisions
+            </button>
+          )}
         </div>
       </header>
 
-      {error
-        ? (
-          <ErrorAlert error={error} />
-        ) : (
-          <RevisionsList
-            revisions={revisions}
-            user={user}
-            selectedIndexes={selectedIndexes}
-            setSelectedIndexes={setSelectedIndexes}
-            accessToken={accessToken}
-            loadEdits={loadEdits}
-            isNoteWritable={isNoteWritable}
-          />
-        )}
+      {error ? (
+        <ErrorAlert error={error} />
+      ) : (
+        <RevisionsList
+          revisions={revisions}
+          user={user}
+          selectedIndexes={selectedIndexes}
+          setSelectedIndexes={setSelectedIndexes}
+          accessToken={accessToken}
+          loadEdits={loadEdits}
+          isNoteWritable={isNoteWritable}
+        />
+      )}
     </>
   )
 }
