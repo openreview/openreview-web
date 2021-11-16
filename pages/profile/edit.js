@@ -11,6 +11,7 @@ import { viewProfileLink } from '../../lib/banner-links'
 import { formatProfileData } from '../../lib/profiles'
 import useUser from '../../hooks/useUser'
 import ProfileEditor from '../../components/profile/ProfileEditor'
+import { translateErrorDetails } from '../../lib/utils'
 
 const ProfileEdit = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
@@ -109,7 +110,7 @@ const ProfileEdit = ({ appContext }) => {
       promptMessage('Your profile information has been successfully updated')
       router.push('/profile')
     } catch (apiError) {
-      promptError(apiError.message)
+      promptError(apiError.details && apiError.legacy ? translateErrorDetails(apiError.details) : apiError.message)
     }
     setLoading(false)
   }

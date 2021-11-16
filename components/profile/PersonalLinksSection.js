@@ -1,13 +1,55 @@
-/* globals $: false */
+/* globals $,promptError: false */
 import { useEffect, useReducer } from 'react'
+import { isValidURL } from '../../lib/utils'
 import DblpImportModal from '../DblpImportModal'
 import Icon from '../Icon'
 import ProfileSectionHeader from './ProfileSectionHeader'
 
+const PersonalLinkInput = ({ type, links, setLinks }) => {
+  const handleBlur = (e) => {
+    const { value } = e.target
+    if (!value.trim()?.length) return
+    switch (type) {
+      case 'gscholar': {
+        const isValid = isValidURL(value) && value.startsWith('https://scholar.google')
+        if (!isValid) promptError(`${value} is not a valid Google Scholar URL`, { scrollToTop: false })
+        setLinks({ type, payload: { data: value, valid: isValid } })
+        break
+      }
+      case 'semanticScholar': {
+        const isValid = isValidURL(value) && value.startsWith('https://www.semanticscholar.org')
+        if (!isValid) promptError(`${value} is not a valid Semantic Scholar URL`, { scrollToTop: false })
+        setLinks({ type, payload: { data: value, valid: isValid } })
+        break
+      }
+      default: {
+        const isValid = isValidURL(value)
+        if (!isValid) promptError(`${value} is not a valid ${type} URL`, { scrollToTop: false })
+        setLinks({ type, payload: { data: value, valid: isValid } })
+      }
+    }
+  }
+  return (
+    <input
+      className={`form-control personal-links__input ${links[type]?.valid === false ? 'invalid-value' : ''}`}
+      value={links[type]?.value ?? ''}
+      onChange={(e) => { setLinks({ type, payload: { data: e.target.value } }) }}
+      onBlur={handleBlur}
+    />
+  )
+}
+
 const PersonalLinksSection = ({
   profileLinks, updateLinks, id, names, preferredEmail, renderPublicationsEditor, hideDblpButton,
 }) => {
-  const linksReducer = (state, action) => ({ ...state, [action.type]: { value: action.data } })
+  const linksReducer = (state, action) => (
+    {
+      ...state,
+      [action.type]: {
+        value: action.payload.data,
+        valid: action.payload.valid,
+      },
+    })
 
   const [links, setLinks] = useReducer(linksReducer, profileLinks ?? {})
 
@@ -34,11 +76,11 @@ const PersonalLinksSection = ({
           <div className="row">
             <div className="col-md-4 personal-links__column">
               <div className="small-heading">Homepage URL</div>
-              <input className={`form-control personal-links__input ${profileLinks?.homepage?.valid === false ? 'invalid-value' : ''}`} value={links.homepage?.value ?? ''} onChange={(e) => { setLinks({ type: 'homepage', data: e.target.value }) }} />
+              <PersonalLinkInput type="homepage" links={links} setLinks={setLinks} />
             </div>
             <div className="col-md-4 personal-links__column">
               <div className="small-heading">Google Scholar URL</div>
-              <input className={`form-control personal-links__input ${profileLinks?.gscholar?.valid === false ? 'invalid-value' : ''}`} value={links.gscholar?.value ?? ''} onChange={(e) => { setLinks({ type: 'gscholar', data: e.target.value }) }} />
+              <PersonalLinkInput type="gscholar" links={links} setLinks={setLinks} />
             </div>
           </div>
           <div className="row">
@@ -49,7 +91,7 @@ const PersonalLinksSection = ({
                   <Icon name="info-sign" />
                 </a>
               </div>
-              <input id="dblp_url" className={`form-control personal-links__input ${profileLinks?.dblp?.valid === false ? 'invalid-value' : ''}`} value={links.dblp?.value ?? ''} onChange={(e) => { setLinks({ type: 'dblp', data: e.target.value }) }} />
+              <PersonalLinkInput type="dblp" links={links} setLinks={setLinks} />
             </div>
             <div className="col-md-4 personal-links__column">
               <div className="row ml-0">
@@ -61,17 +103,17 @@ const PersonalLinksSection = ({
           <div className="row">
             <div className="col-md-4 personal-links__column">
               <div className="small-heading">ORCID URL</div>
-              <input className="form-control personal-links__input" value={links.orcid?.value ?? ''} onChange={(e) => { setLinks({ type: 'orcid', data: e.target.value }) }} />
+              <PersonalLinkInput type="orcid" links={links} setLinks={setLinks} />
             </div>
             <div className="col-md-4 personal-links__column">
               <div className="small-heading">Wikipedia URL</div>
-              <input className="form-control personal-links__input" value={links.wikipedia?.value ?? ''} onChange={(e) => { setLinks({ type: 'wikipedia', data: e.target.value }) }} />
+              <PersonalLinkInput type="wikipedia" links={links} setLinks={setLinks} />
             </div>
           </div>
           <div className="row">
             <div className="col-md-4 personal-links__column">
               <div className="small-heading">Linkedin URL</div>
-              <input className="form-control personal-links__input" value={links.linkedin?.value ?? ''} onChange={(e) => { setLinks({ type: 'linkedin', data: e.target.value }) }} />
+              <PersonalLinkInput type="linkedin" links={links} setLinks={setLinks} />
             </div>
             <div className="col-md-4 personal-links__column">
               <div className="row ml-0">
@@ -80,7 +122,7 @@ const PersonalLinksSection = ({
                   <Icon name="info-sign" />
                 </a>
               </div>
-              <input className="form-control personal-links__input" value={links.semanticScholar?.value ?? ''} onChange={(e) => { setLinks({ type: 'semanticScholar', data: e.target.value }) }} />
+              <PersonalLinkInput type="semanticScholar" links={links} setLinks={setLinks} />
             </div>
           </div>
         </div>

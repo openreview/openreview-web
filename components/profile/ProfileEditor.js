@@ -99,18 +99,6 @@ const ProfileEditor = ({
       return promptInvalidValue('emails', invalidRecord.key, `${invalidRecord.email} is not a valid email address`)
     }
     // #region validate personal links
-    // eslint-disable-next-line consistent-return
-    ['homepage', 'dblp', 'orcid', 'wikipedia', 'linkedin'].forEach((p) => {
-      if (profileContent[p]?.value && !isValidURL(profileContent[p].value)) {
-        return promptInvalidLink(p, `${profileContent?.[p]?.value} is not a valid URL`)
-      }
-    })
-    if (profileContent.gscholar?.value && !(isValidURL(profileContent.gscholar.value) && profileContent.gscholar.value.startsWith('https://scholar.google'))) {
-      return promptInvalidLink('gscholar', `${profileContent.gscholar.value} is not a valid Google Scholar URL`)
-    }
-    if (profileContent.semanticScholar?.value && !(isValidURL(profileContent.semanticScholar.value) && profileContent.semanticScholar.value.startsWith('https://www.semanticscholar.org'))) {
-      return promptInvalidLink('semanticScholar', `${profileContent.semanticScholar.value} is not a valid Semantic Scholar URL`)
-    }
     // must have >1 links
     if (!personalLinkNames.some(p => profileContent[p]?.value)) {
       return promptInvalidLink('homepage', 'You must enter at least one personal link')
