@@ -869,12 +869,13 @@ module.exports = (function() {
       );
     }
 
-    // other invitations - splicit review approve, show only for solicit review notes
+    // conditional reply invitations - apply to note that meet the condition
+    // splicit review approve, show only for solicit review notes
     if (!_.isEmpty(params.otherInvitations) && !notePastDue) {
-      const solicitApproveInvitations = params.otherInvitations.filter(p =>
+      const conditionalReplyInvitations = params.otherInvitations.filter(p =>
         note.invitations.includes(p.edit?.note?.replyto?.['value-invitation']))
       $replyRow.append(
-        _.map(solicitApproveInvitations, function(invitation) {
+        _.map(conditionalReplyInvitations, function(invitation) {
           return $('<button class="btn btn-xs">').text(view.prettyInvitationId(invitation.id)).click(function() {
             params.onNewNoteRequested(invitation);
           });
@@ -1346,8 +1347,8 @@ module.exports = (function() {
         done($readers);
       });
     } else if (_.has(fieldDescription, 'values')) {
-      if(fieldDescription.values.length===1 && fieldDescription.values[0].startsWith("${")) return fieldDescription.values[0]
       return setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
+        if (fieldDescription.values?.[0] === "${{note.replyto}.readers}") return newFieldDescription.values
         var subsetReaders = fieldDescription.values.every(function (val) {
           var found = newFieldDescription.values.indexOf(val) !== -1;
           if (!found && val.includes('/Reviewer_')) {
