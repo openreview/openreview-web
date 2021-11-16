@@ -32,7 +32,7 @@ main.group, main.invitation {
       padding-left: 1.25rem;
     }
     div.description {
-      margin-top: 1.25rem;
+      margin-top: 1rem;
     }
     p {
       color: #777777;
@@ -42,6 +42,15 @@ main.group, main.invitation {
     }
 
     @media #{constants.$phone-only} {
+      margin-bottom: 1.25rem;
+
+      h1 {
+        font-size: 1.875rem;
+        margin-top: 0;
+      }
+      h4 {
+        font-size: 1rem;
+      }
       h4 > span {
         display: block;
         margin-bottom: 5px
@@ -103,6 +112,20 @@ main.group, main.invitation {
       &.spinner-mini {
         position: absolute;
         padding: 0;
+      }
+    }
+
+    @media #{constants.$phone-only} {
+      margin-bottom: 15px;
+
+      .spinner-container.spinner-mini {
+        position: static;
+        width: 100%;
+        margin-top: 1rem;
+
+        .spinner {
+          margin: 0 auto;
+        }
       }
     }
   }

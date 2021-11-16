@@ -1,14 +1,15 @@
 /* globals promptError: false */
 
-import { useContext } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import UserContext from './UserContext'
 import api from '../lib/api-client'
 
 const NavUserLinks = () => {
-  const { user, logoutUser } = useContext(UserContext)
+  const { user, userLoading, logoutUser } = useContext(UserContext)
   const router = useRouter()
+  const [loginPath, setLoginPath] = useState('/login')
 
   const handleLogout = async (e) => {
     e.preventDefault()
@@ -22,20 +23,22 @@ const NavUserLinks = () => {
     }
   }
 
-  const getLoginPath = () => {
-    const routesToSkipRedirection = ['/', '/login', '/confirm', '/logout', '/signup', '/404', '/profile/activate', '/reset', '/user/password']
-    if (routesToSkipRedirection.includes(router.pathname)) {
-      return '/login'
-    }
-    const asPath = typeof window === 'undefined' ? decodeURIComponent(router.asPath) : router.asPath
-    return `/login?redirect=${encodeURIComponent(asPath)}&noprompt=true`
-  }
+  useEffect(() => {
+    if (userLoading || user) return
+
+    const routesToSkipRedirection = [
+      '/', '/login', '/confirm', '/logout', '/signup', '/404', '/profile/activate', '/reset', '/user/password',
+    ]
+    if (routesToSkipRedirection.includes(router.pathname)) return
+
+    setLoginPath(`/login?redirect=${encodeURIComponent(router.asPath)}&noprompt=true`)
+  }, [user, userLoading, router.asPath])
 
   if (!user) {
     return (
       <ul className="nav navbar-nav navbar-right">
         <li id="user-menu">
-          <Link href={getLoginPath()}><a>Login</a></Link>
+          <Link href={loginPath}><a>Login</a></Link>
         </li>
       </ul>
     )

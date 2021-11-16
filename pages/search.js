@@ -121,7 +121,7 @@ const Search = ({ appContext }) => {
         group: query.group || 'all',
         source: query.source || 'all',
         limit: 1000,
-      }, null, { accessToken, resultsKey: 'notes' })
+      }, null, { accessToken, resultsKey: 'notes', sort: 'none' })
 
       if (searchRes.notes) {
         setAllSearchResults({

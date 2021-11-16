@@ -922,11 +922,11 @@ module.exports = function(forumId, noteId, invitationId, user) {
     }, {});
     sm.update('forumFiltersMap', filterMap);
 
-    return $('<ul class="nav nav-tabs filter-tabs">').append(
+    return $('<div class="mobile-full-width">').append($('<ul class="nav nav-tabs filter-tabs">').append(
       replyForumViews.map(function(view) {
         return $('<li role="presentation">').append($('<a href="#' + view.id + '">').text(view.label));
       })
-    );
+    ));
   };
 
   // Convert filter query string into object representing all the active filters

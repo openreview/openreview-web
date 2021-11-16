@@ -183,6 +183,13 @@ hr {
   padding-left: 1rem
 }
 
+@media #{constants.$phone-only} {
+  .mobile-full-width {
+    margin-left: -15px;
+    margin-right: -15px;
+  }
+}
+
 // Forms
 .btn {
   font-size: .875rem;
@@ -684,6 +691,9 @@ $bannerHeight: 39px;
     & > a, & > span {
       color: constants.$mediumBlue;
       background-color: constants.$sandyBrown;
+      @media #{constants.$phone-only} {
+        padding: 6px 10px;
+      }
     }
     a:focus, a:hover, span:focus, span:hover {
       background-color: transparent;
@@ -714,6 +724,9 @@ $bannerHeight: 39px;
     & > a, & > span {
       border-radius: 0;
     }
+    @media #{constants.$phone-only} {
+      display: none;
+    }
   }
 }
 .pagination-container {
@@ -723,6 +736,10 @@ $bannerHeight: 39px;
   .pagination-count{
     display: block;
     color: constants.$subtleGray;
+  }
+  @media #{constants.$phone-only} {
+    margin-left: -15px;
+    margin-right: -15px;
   }
 }
 

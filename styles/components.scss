@@ -19,13 +19,14 @@
 // Tab navigation
 .nav-tabs {
   > li {
+    white-space: nowrap;
     > a {
       font-weight: bold;
       background: constants.$sandyBrown;
       border-radius: 0;
       border-bottom-color: constants.$backgroundGray;
       margin-right: 4px;
-      padding: 10px 16px;
+      padding: .625rem 1rem;
 
       .badge {
         margin-left: 2px;
@@ -46,11 +47,25 @@
       }
     }
   }
+  @media #{constants.$phone-only} {
+    padding: 0 8px;
+
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -ms-overflow-style: none; // Edge
+    overflow: -moz-scrollbars-none; // Firefox
+    &::-webkit-scrollbar {
+      display: none; // Safari and Chrome
+    }
+  }
 }
 .tab-content {
   > .tab-pane {
-    padding-top: 10px;
-    padding-left: 16px;
+    padding-top: .625rem;
+    padding-left: 1rem;
 
     &.horizontal-scroll {
       overflow-x: visible;
@@ -60,10 +75,12 @@
         min-width: 940px;
       }
     }
-
     p.empty-message {
       margin-top: 15px;
       font-style: italic;
+    }
+    @media #{constants.$phone-only} {
+      padding-left: 0;
     }
   }
   .content-overlay {
@@ -138,6 +155,14 @@ table.table-minimal {
         width: 20px;
         height: 20px;
         margin-top: -7px;
+      }
+      @media #{constants.$phone-only} {
+        margin-left: .5rem;
+        img {
+          width: 18px;
+          height: 18px;
+          margin-top: -5px;
+        }
       }
     }
 
@@ -504,6 +529,9 @@ table.table-minimal {
   }
 
   @media #{constants.$phone-only} {
+    input.form-control {
+      width: 100%;
+    }
     .form-group {
       margin-right: 0;
       margin-bottom: 8px;
