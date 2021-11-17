@@ -136,7 +136,7 @@ const ProfileEdit = ({ appContext }) => {
         <title key="title">Edit Profile | OpenReview</title>
       </Head>
       <header>
-        <h1>Edit Profile New</h1>
+        <h1>Edit Profile</h1>
       </header>
       <ProfileEditor
         loadedProfile={profile}
