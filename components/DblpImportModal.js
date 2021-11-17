@@ -9,7 +9,7 @@ import {
   getDblpPublicationsFromXmlUrl, getAllPapersByGroupId, postOrUpdatePaper, getAllPapersImportedByOtherProfiles,
 } from '../lib/profiles'
 import UserContext from './UserContext'
-import { inflect } from '../lib/utils'
+import { deburrString, inflect } from '../lib/utils'
 
 const ErrorMessage = ({ message, dblpNames, profileNames }) => {
   if (!dblpNames?.length) return <p>{message}</p>
@@ -89,9 +89,11 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
 
     try {
       const { notes: allDblpPublications, possibleNames } = await getDblpPublicationsFromXmlUrl(`${url.trim()}.xml`, profileId)
-      if (!allDblpPublications.some(pub => profileNames.some(name => (
-        pub.note.content.dblp.toLowerCase().includes(name.toLowerCase())
-      )))) {
+      if (!allDblpPublications.some(
+        pub => profileNames.some(
+          name => deburrString(pub.note.content.dblp, true).includes(deburrString(name, true)),
+        ),
+      )) {
         dblpNames.current = possibleNames
         setMessage('notMatchError')
         setShowPersistentUrlInput(false)
