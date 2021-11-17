@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Head from 'next/head'
 import uniqBy from 'lodash/uniqBy'
+import Icon from '../components/Icon'
 import LoadingSpinner from '../components/LoadingSpinner'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
@@ -93,13 +94,12 @@ export default function Home() {
         </div>
       ) : (
         // Logged out view
-        <div className="row">
+        <div className="row hidden-xs">
           <div className="col-xs-12 col-sm-6">
             <VenueSection
-              title="Open for Submissions"
-              name="open venues"
-              venues={venues.open}
-              maxVisible={9}
+              title="Active Venues"
+              name="active venues"
+              venues={venues.active}
             />
             <VenueSection
               title="All Venues"
@@ -110,9 +110,10 @@ export default function Home() {
 
           <div className="col-xs-12 col-sm-6">
             <VenueSection
-              title="Active Venues"
-              name="active venues"
-              venues={venues.active}
+              title="Open for Submissions"
+              name="open venues"
+              venues={venues.open}
+              maxVisible={9}
             />
           </div>
         </div>
@@ -217,6 +218,7 @@ function VenueListItem({ groupId, dueDate, hidden }) {
       </h2>
       {dueDate && (
         <p>
+          <Icon name="time" />
           Due
           {' '}
           {formatTimestamp(dueDate)}
