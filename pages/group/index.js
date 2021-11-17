@@ -117,7 +117,7 @@ $(function() {
     const { groups } = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
     const group = groups?.length > 0 ? groups[0] : null
     if (!group) {
-      return { statusCode: 404, message: 'Group not found' }
+      return { statusCode: 404, message: `The Group ${ctx.query.id} was not found` }
     }
 
     if (!group.web) {
