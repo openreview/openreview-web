@@ -868,7 +868,6 @@ module.exports = (function() {
         })
       );
     }
-
     $note.append($replyRow);
 
     return $note;
