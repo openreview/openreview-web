@@ -20,6 +20,7 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
         return state.map((p) => {
           const recordCopy = { ...p }
           if (p.key === action.data.key) {
+            recordCopy.keyWordsValue = action.data.value
             recordCopy.keywords = action.data.value.split(',').map(q => q.trim())
           }
           return recordCopy
@@ -47,6 +48,7 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
       case addExpertiseType:
         return [...state, {
           keywords: [],
+          keyWordsValue: '',
           start: '',
           end: '',
           key: nanoid(),
@@ -66,9 +68,10 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
   const [expertises, setExpertises] = useReducer(
     expertiseReducer,
     profileExpertises?.length > 0
-      ? profileExpertises?.map(p => ({ ...p, key: nanoid() }))
+      ? profileExpertises?.map(p => ({ ...p, key: nanoid(), keyWordsValue: p.keywords.join(',') }))
       : [...Array(3).keys()].map(() => ({
         keywords: [],
+        keyWordsValue: '', // the value for input
         start: '',
         end: '',
         key: nanoid(),
@@ -97,7 +100,7 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
                 {isMobile && <div className="small-heading col-md-6">Research areas of interest</div>}
                 <input
                   className={`form-control ${profileExpertises?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
-                  value={p.keywords.join(', ') ?? ''}
+                  value={p.keyWordsValue}
                   onChange={e => setExpertises({ type: expertiseType, data: { value: e.target.value, key: p.key } })}
                 />
               </div>
