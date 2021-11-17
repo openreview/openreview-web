@@ -70,7 +70,6 @@ const ProfileEditor = ({
 
   // validate and remove empty/not required data
   const validateCleanProfile = () => {
-    console.log('profile.expertise', profile.expertise)
     // filter out empty rows, keep row key
     let profileContent = {
       ...profile,

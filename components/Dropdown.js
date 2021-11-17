@@ -84,6 +84,7 @@ export const CreatableDropdown = (props) => {
     <CreatableSelect
       ref={dropdownRef}
       theme={customTheme}
+      formatCreateLabel={value => value}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
     />

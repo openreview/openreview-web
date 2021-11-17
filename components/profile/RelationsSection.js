@@ -41,11 +41,13 @@ const RelationRow = ({
                 defaultMenuIsOpen
                 hideArrow
                 disableMouseMove
+                virtualList
+                isClearable
                 classNamePrefix="relation-dropdown"
                 placeholder={relationPlaceholder}
                 defaultValue={relation.relation ? { value: relation.relation, label: relation.relation } : null}
                 // eslint-disable-next-line max-len
-                onChange={(e) => { setRelation({ type: relationType, data: { value: e.value, key: relation.key } }); setRelationClicked(false) }}
+                onChange={(e) => { setRelation({ type: relationType, data: { value: e ? e.value : '', key: relation.key } }); if (e) setRelationClicked(false) }}
                 options={relationOptions}
                 styles={{
                   control: (provided, state) => ({
