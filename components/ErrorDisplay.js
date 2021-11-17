@@ -2,7 +2,7 @@ import Head from 'next/head'
 import { translateErrorDetails } from '../lib/utils'
 
 const ErrorDisplay = ({ statusCode, message, details }) => {
-  const errorMessage = details ? translateErrorDetails(details) : message
+  const errorMessage = message || translateErrorDetails(details)
 
   return (
     <div className="row error-display">

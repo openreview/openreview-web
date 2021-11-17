@@ -357,6 +357,15 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
       tab.addClass('active');
 
+      // Show tab message, if one exists
+      var tabMessage = tab.children('a').eq(0).data('message');
+      if (tabMessage && typeof tabMessage === 'string') {
+        $('#tab-message')[0].innerHTML = DOMPurify.sanitize(marked(tabMessage))
+        $('#tab-message').show();
+      } else {
+        $('#tab-message').hide();
+      }
+
       var filtersMap = sm.get('forumFiltersMap');
       var newFilterObj = filtersMap[hash] || {};
       setFilters(Object.assign({
@@ -539,6 +548,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       $root,
       $forumViewsTabs || '<hr class="small">',
       $forumFiltersRow,
+      $forumViewsTabs && '<div id="tab-message" class="alert alert-warning"></div>',
       $childrenAnchor.empty().append(
         mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
       )
@@ -929,7 +939,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     return $('<div class="mobile-full-width">').append($('<ul class="nav nav-tabs filter-tabs">').append(
       replyForumViews.map(function(view) {
-        return $('<li role="presentation">').append($('<a href="#' + view.id + '">').text(view.label));
+        return $('<li role="presentation">').append($('<a href="#' + view.id + '">').text(view.label).data('message', view.message));
       })
     ));
   };
