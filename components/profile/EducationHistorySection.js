@@ -246,7 +246,7 @@ const EducationHistorySection = ({
   return (
     <section>
       <SectionHeader type="educationHistory" />
-      <div className="history">
+      <div className="history history-new">
         {!isMobile && (
           <div className="row">
             <div className="small-heading col-md-2">Position</div>

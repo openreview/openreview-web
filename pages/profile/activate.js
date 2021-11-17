@@ -60,6 +60,35 @@ const ActivateProfile = ({ appContext }) => {
     setLoading(false)
   }
 
+  const renderProfileEditor = () => {
+    const USE_NEW_PROFILE_PAGE = Number(process.env.USE_NEW_PROFILE_PAGE)
+    const shouldUseLegacy = Number.isNaN(USE_NEW_PROFILE_PAGE) || Math.random() * 100 > USE_NEW_PROFILE_PAGE
+    if (shouldUseLegacy) {
+      return (
+        <LegacyProfileEditor
+          profile={profile}
+          onSubmit={saveProfile}
+          submitButtonText="Register for OpenReview"
+          hideCancelButton
+          hideDblpButton
+          hidePublicationEditor
+        />
+      )
+    }
+    return (
+      <ProfileEditor
+        loadedProfile={profile}
+        submitButtonText="Register for OpenReview"
+        submitHandler={saveProfile}
+        hideCancelButton
+        hideDblpButton
+        hidePublicationEditor
+        personalLinkNames={['homepage', 'gscholar', 'dblp', 'orcid', 'linkedin', 'wikipedia', 'semanticScholar']}
+        loading={loading}
+      />
+    )
+  }
+
   useEffect(() => {
     if (!query) return
 
@@ -89,26 +118,7 @@ const ActivateProfile = ({ appContext }) => {
         </h5>
       </header>
 
-      {profile ? (
-        // <LegacyProfileEditor
-        //   profile={profile}
-        //   onSubmit={saveProfile}
-        //   submitButtonText="Register for OpenReview"
-        //   hideCancelButton
-        //   hideDblpButton
-        //   hidePublicationEditor
-        // />
-        <ProfileEditor
-          loadedProfile={profile}
-          submitButtonText="Register for OpenReview"
-          submitHandler={saveProfile}
-          hideCancelButton
-          hideDblpButton
-          hidePublicationEditor
-          personalLinkNames={['homepage', 'gscholar', 'dblp', 'orcid', 'linkedin', 'wikipedia', 'semanticScholar']}
-          loading={loading}
-        />
-      ) : (
+      {profile ? renderProfileEditor() : (
         <LoadingSpinner inline />
       )}
     </div>

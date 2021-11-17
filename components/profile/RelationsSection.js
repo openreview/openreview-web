@@ -228,7 +228,7 @@ const RelationsSection = ({
   return (
     <section>
       <ProfileSectionHeader type="relation" />
-      <div className="relation">
+      <div className="relation relation-new">
         {!isMobile && (
           <div className="row">
             <div className="small-heading col-md-2">Relation</div>

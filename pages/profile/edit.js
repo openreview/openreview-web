@@ -12,6 +12,7 @@ import { formatProfileData } from '../../lib/profiles'
 import useUser from '../../hooks/useUser'
 import ProfileEditor from '../../components/profile/ProfileEditor'
 import { translateErrorDetails } from '../../lib/utils'
+import ProfileEditLegacy from './edit-legacy'
 
 const ProfileEdit = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
@@ -121,6 +122,10 @@ const ProfileEdit = ({ appContext }) => {
     setBannerContent(viewProfileLink())
   }, [accessToken])
 
+  const USE_NEW_PROFILE_PAGE = Number(process.env.USE_NEW_PROFILE_PAGE)
+  const shouldUseLegacy = Number.isNaN(USE_NEW_PROFILE_PAGE) || Math.random() * 100 > USE_NEW_PROFILE_PAGE
+  if (shouldUseLegacy) return <ProfileEditLegacy appContext={appContext} />
+
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
 
   if (!profile) return <LoadingSpinner />
@@ -131,7 +136,7 @@ const ProfileEdit = ({ appContext }) => {
         <title key="title">Edit Profile | OpenReview</title>
       </Head>
       <header>
-        <h1>Edit Profile</h1>
+        <h1>Edit Profile New</h1>
       </header>
       <ProfileEditor
         loadedProfile={profile}
