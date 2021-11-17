@@ -75,13 +75,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
         var replyInvitations = invitations
           .filter(p => {
             const replyTo = p.edit?.note?.replyto
-            return replyTo && (replyTo.value === note.id || replyTo['with-forum'] === forumId)
+            return replyTo && (replyTo.value === note.id || replyTo['with-forum'] === forumId || (replyTo['value-invitation'] && note.invitations.includes(replyTo['value-invitation'])))
           })
           .filter(q => !q.maxReplies || q.details?.repliedNotes?.length < q.maxReplies) // maxNoteReplies
           // .filter(q => !q.maxReplies || q.details?.repliedEdits?.length < q.maxReplies) // maxEditReplies
-
-        // similar to replyInvitations but does not apply to all notes
-        var otherInvitations = invitations.filter(p => ![deleteInvitation, ...editInvitations, ...replyInvitations].some(q => q?.id === p.id))
 
         var noteForumId = note.id === forumId ? forumId : undefined;
         return $.when(
@@ -94,7 +91,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
               editInvitations,
               replyInvitations,
               tagInvitations,
-              otherInvitations,
             };
           });
       });
@@ -165,7 +161,6 @@ module.exports = function(forumId, noteId, invitationId, user) {
       deleteInvitation: rec.deleteInvitation,
       editInvitations: rec.editInvitations,
       replyInvitations: rec.replyInvitations,
-      otherInvitations: rec.otherInvitations,
       onNewNoteRequested: function(invitation) {
         var isLoading = $anchor.children('.spinner-container').length;
         var $existingEditor = $anchor.children('.note_editor');

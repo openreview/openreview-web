@@ -869,19 +869,6 @@ module.exports = (function() {
       );
     }
 
-    // conditional reply invitations - apply to note that meet the condition
-    // splicit review approve, show only for solicit review notes
-    if (!_.isEmpty(params.otherInvitations) && !notePastDue) {
-      const conditionalReplyInvitations = params.otherInvitations.filter(p =>
-        note.invitations.includes(p.edit?.note?.replyto?.['value-invitation']))
-      $replyRow.append(
-        _.map(conditionalReplyInvitations, function(invitation) {
-          return $('<button class="btn btn-xs">').text(view.prettyInvitationId(invitation.id)).click(function() {
-            params.onNewNoteRequested(invitation);
-          });
-        })
-      );
-    }
     $note.append($replyRow);
 
     return $note;
