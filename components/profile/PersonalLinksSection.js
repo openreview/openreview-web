@@ -31,6 +31,7 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
   }
   return (
     <input
+      id={`${type}_url`}
       className={`form-control personal-links__input ${links[type]?.valid === false ? 'invalid-value' : ''}`}
       value={links[type]?.value ?? ''}
       onChange={(e) => { setLinks({ type, payload: { data: e.target.value } }) }}
