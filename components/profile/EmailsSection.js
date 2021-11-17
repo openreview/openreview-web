@@ -94,10 +94,10 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
         await api.post('/user/confirm', linkData, { accessToken })
         return promptMessage(`A confirmation email has been sent to ${newEmail}`)
       } catch (error) {
-        if (error.message === 'AlreadyConfirmed') {
+        if (error.message.includes('confirmed')) {
           alreadyConfirmedError.current = error.details
-          return promptError(`Error: ${error.details.path} is already associated with another OpenReview profile,
-          <a href="/profile?id=${error.details.value}" title="View profile" target="_blank" class="action-link">${error.details.value}</a>.
+          return promptError(`Error: ${error.details.alternate} is already associated with another OpenReview profile,
+          <a href="/profile?id=${error.details.otherProfile}" title="View profile" target="_blank" class="action-link">${error.details.otherProfile}</a>.
           To merge this profile with your account, please click here to submit a support request:
           <a href="#" title="View profile" target="_blank" class="action-link" data-toggle="modal" data-target="#feedback-modal">Merge Profiles</a>.
           `, { html: true })
@@ -113,7 +113,7 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
     $('#feedback-modal').on('shown.bs.modal', (e) => {
       $('#feedback-modal').find('#feedback-from').val(alreadyConfirmedError.current?.user)
       $('#feedback-modal').find('#feedback-subject').val('Merge Profiles')
-      $('#feedback-modal').find('#feedback-message').val(`Hi OpenReview Support,\n\nPlease merge the profiles with the following usernames:\n${alreadyConfirmedError.current?.value2}\n${alreadyConfirmedError.current?.value}\n\nThank you.`)
+      $('#feedback-modal').find('#feedback-message').val(`Hi OpenReview Support,\n\nPlease merge the profiles with the following usernames:\n${alreadyConfirmedError.current?.otherProfile}\n${alreadyConfirmedError.current?.thisProfile}\n\nThank you.`)
     })
     return () => {
       $('#feedback-modal').off('shown.bs.modal')
