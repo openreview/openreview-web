@@ -155,7 +155,7 @@ ForumPage.getInitialProps = async (ctx) => {
       return redirectForum(redirect.id)
     }
     if (!note) {
-      return { statusCode: 404, message: 'Not Found' }
+      return { statusCode: 404, message: `The Note ${ctx.query.id} was not found` }
     }
     return { forumNote: note, query: ctx.query }
   } catch (error) {
