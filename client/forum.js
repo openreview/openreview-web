@@ -439,8 +439,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
       // Show tab message, if one exists
       var tabMessage = tab.children('a').eq(0).data('message');
-      if (tabMessage) {
-        console.log(tabMessage);
+      if (tabMessage && typeof tabMessage === 'string') {
         $('#tab-message')[0].innerHTML = DOMPurify.sanitize(marked(tabMessage))
         $('#tab-message').show();
       } else {
