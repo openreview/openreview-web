@@ -1,52 +1,41 @@
-/* globals promptMessage,promptError: false */
-import Head from 'next/head'
+/* globals promptMessage: false */
+/* globals promptError: false */
+
 import { useEffect, useState } from 'react'
-import get from 'lodash/get'
+import Head from 'next/head'
 import { useRouter } from 'next/router'
+import get from 'lodash/get'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import ProfileEditor from '../../components/profile/ProfileEditor'
+import ProfileEditLegacy from '../../components/profile/ProfileEditLegacy'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { viewProfileLink } from '../../lib/banner-links'
 import { formatProfileData } from '../../lib/profiles'
-import useUser from '../../hooks/useUser'
-import ProfileEditor from '../../components/profile/ProfileEditor'
-import ProfileEditLegacy from '../../components/profile/ProfileEditLegacy'
 
-const ProfileEdit = ({ appContext }) => {
+export default function ProfileEdit({ appContext }) {
   const { accessToken } = useLoginRedirect()
   const { updateUserName } = useUser()
-  const router = useRouter()
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
-  const { setBannerContent } = appContext
   const [profile, setProfile] = useState(null)
-  const personalLinkNames = ['homepage', 'gscholar', 'dblp', 'orcid', 'linkedin', 'wikipedia', 'semanticScholar']
+  const router = useRouter()
+  const { setBannerContent } = appContext
 
   const loadProfile = async () => {
     try {
       const { profiles } = await api.get('/profiles', {}, { accessToken })
       if (profiles?.length > 0) {
-        const formattedProfile = formatProfileData(profiles[0])
-        setProfile({
-          ...formattedProfile,
-          links: personalLinkNames.reduce(
-            (previous, current) => (
-              { ...previous, [current]: { value: formattedProfile.links.find(p => p.key === current)?.url ?? '' } }
-            ), {},
-          ),
-        })
+        const formattedProfile = formatProfileData(profiles[0], false, true)
+        setProfile(formattedProfile)
       } else {
         setError({ statusCode: 404, message: 'Profile not found' })
       }
     } catch (apiError) {
       setError({ statusCode: apiError.status, message: apiError.message })
     }
-  }
-
-  const handleSubmitButtonClick = (profileContent, publicationIdsToUnlink) => {
-    // eslint-disable-next-line no-use-before-define
-    saveProfile(profileContent, publicationIdsToUnlink)
   }
 
   const unlinkPublication = async (profileId, noteId) => {
@@ -115,13 +104,17 @@ const ProfileEdit = ({ appContext }) => {
     setLoading(false)
   }
 
+  const handleSubmitButtonClick = (profileContent, publicationIdsToUnlink) => {
+    saveProfile(profileContent, publicationIdsToUnlink)
+  }
+
   useEffect(() => {
     if (!accessToken) return
     loadProfile()
     setBannerContent(viewProfileLink())
   }, [accessToken])
 
-  const USE_NEW_PROFILE_PAGE = Number(process.env.USE_NEW_PROFILE_PAGE)
+  const USE_NEW_PROFILE_PAGE = Number.parseInt(process.env.USE_NEW_PROFILE_PAGE, 10)
   const shouldUseLegacy = Number.isNaN(USE_NEW_PROFILE_PAGE) || Math.random() * 100 > USE_NEW_PROFILE_PAGE
   if (shouldUseLegacy) return <ProfileEditLegacy appContext={appContext} />
 
@@ -134,14 +127,15 @@ const ProfileEdit = ({ appContext }) => {
       <Head>
         <title key="title">Edit Profile | OpenReview</title>
       </Head>
+
       <header>
         <h1>Edit Profile</h1>
       </header>
+
       <ProfileEditor
         loadedProfile={profile}
         submitHandler={handleSubmitButtonClick}
         cancelHandler={() => router.push('/profile').then(() => window.scrollTo(0, 0))}
-        personalLinkNames={personalLinkNames}
         loading={loading}
       />
     </div>
@@ -149,4 +143,3 @@ const ProfileEdit = ({ appContext }) => {
 }
 
 ProfileEdit.bodyClass = 'profile-edit'
-export default ProfileEdit

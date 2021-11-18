@@ -8,8 +8,7 @@ const titleInstructionMap = {
         author deduplication, analysis of career path history, and tallies of institutional diversity.
         For ongoing positions, leave the End field blank.
       </>
-    )
-    ,
+    ),
   },
   emails: {
     title: 'Emails',

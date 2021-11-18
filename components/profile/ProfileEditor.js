@@ -1,5 +1,6 @@
-/* eslint-disable no-cond-assign */
 /* globals promptError: false */
+/* eslint-disable no-cond-assign */
+
 import { useEffect, useReducer, useState } from 'react'
 import EducationHistorySection from './EducationHistorySection'
 import EmailsSection from './EmailsSection'
@@ -24,7 +25,6 @@ const ProfileEditor = ({
   hideCancelButton,
   hideDblpButton,
   hidePublicationEditor,
-  personalLinkNames,
   loading,
 }) => {
   const profileReducer = (state, action) => ({
@@ -39,7 +39,8 @@ const ProfileEditor = ({
   const relationReaders = dropdownOptions?.relationReaders
   const positions = dropdownOptions?.prefixedPositions
   const institutions = dropdownOptions?.institutions
-  const submitButtontext = submitButtonText ?? 'Save Profile Changes'
+
+  const personalLinkNames = ['homepage', 'gscholar', 'dblp', 'orcid', 'linkedin', 'wikipedia', 'semanticScholar']
 
   const promptInvalidValue = (type, invalidKey, message) => {
     promptError(message)
@@ -205,49 +206,70 @@ const ProfileEditor = ({
     }
     loadOptions()
   }, [])
+
   return (
     <div className="profile-edit-container">
-      <NamesSection profileNames={profile?.names} updateNames={names => setProfile({ type: 'names', data: names })} />
-      <GenderSection profileGender={profile?.gender} updateGender={gender => setProfile({ type: 'gender', data: gender })} />
-      <EmailsSection profileEmails={profile?.emails} profileId={profile?.id} updateEmails={emails => setProfile({ type: 'emails', data: emails })} />
+      <NamesSection
+        profileNames={profile?.names}
+        updateNames={names => setProfile({ type: 'names', data: names })}
+      />
+
+      <GenderSection
+        profileGender={profile?.gender}
+        updateGender={gender => setProfile({ type: 'gender', data: gender })}
+      />
+
+      <EmailsSection
+        profileEmails={profile?.emails}
+        profileId={profile?.id}
+        updateEmails={emails => setProfile({ type: 'emails', data: emails })}
+      />
+
       <PersonalLinksSection
         profileLinks={profile?.links}
-        updateLinks={links => setProfile({ type: 'links', data: links })}
-        id={profile?.id}
+        profileId={profile?.id}
         names={profile?.names}
         preferredEmail={profile?.preferredEmail}
         renderPublicationsEditor={() => setRenderPublicationEditor(current => !current)}
         hideDblpButton={hideDblpButton}
+        updateLinks={links => setProfile({ type: 'links', data: links })}
       />
+
       <EducationHistorySection
         profileHistory={profile?.history}
         positions={positions}
         institutions={institutions}
         updateHistory={history => setProfile({ type: 'history', data: history })}
       />
+
       <RelationsSection
         profileRelation={profile?.relations}
         prefixedRelations={prefixedRelations}
         relationReaders={relationReaders}
         updateRelations={relations => setProfile({ type: 'relations', data: relations })}
       />
-      <ExpertiseSection profileExpertises={profile?.expertise} updateExpertise={expertise => setProfile({ type: 'expertise', data: expertise })} />
-      {
-        !hidePublicationEditor
-        && (
-          <ImportedPublicationsSection
-            profileId={profile?.id}
-            updatePublicationIdsToUnlink={ids => setPublicationIdsToUnlink(ids)}
-            reRender={renderPublicationEditor}
-          />
-        )
-      }
+
+      <ExpertiseSection
+        profileExpertises={profile?.expertise}
+        updateExpertise={expertise => setProfile({ type: 'expertise', data: expertise })}
+      />
+
+      {!hidePublicationEditor && (
+        <ImportedPublicationsSection
+          profileId={profile?.id}
+          updatePublicationIdsToUnlink={ids => setPublicationIdsToUnlink(ids)}
+          reRender={renderPublicationEditor}
+        />
+      )}
+
       <div className="buttons-row">
         <button type="button" className="btn submit-button" disabled={loading} onClick={() => handleSubmitButtonClick()}>
-          {submitButtontext}
+          {submitButtonText ?? 'Save Profile Changes'}
           {loading && <LoadingSpinner inline text="" extraClass="spinner-small" />}
         </button>
-        {!hideCancelButton && <button type="button" className="btn btn-default" onClick={cancelHandler}>Cancel</button>}
+        {!hideCancelButton && (
+          <button type="button" className="btn btn-default" onClick={cancelHandler}>Cancel</button>
+        )}
       </div>
     </div>
   )

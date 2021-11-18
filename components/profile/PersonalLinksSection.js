@@ -41,16 +41,15 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
 }
 
 const PersonalLinksSection = ({
-  profileLinks, updateLinks, id, names, preferredEmail, renderPublicationsEditor, hideDblpButton,
+  profileLinks, updateLinks, profileId, names, preferredEmail, renderPublicationsEditor, hideDblpButton,
 }) => {
-  const linksReducer = (state, action) => (
-    {
-      ...state,
-      [action.type]: {
-        value: action.payload.data,
-        valid: action.payload.valid,
-      },
-    })
+  const linksReducer = (state, action) => ({
+    ...state,
+    [action.type]: {
+      value: action.payload.data,
+      valid: action.payload.valid,
+    },
+  })
 
   const [links, setLinks] = useReducer(linksReducer, profileLinks ?? {})
 
@@ -84,6 +83,7 @@ const PersonalLinksSection = ({
               <PersonalLinkInput type="gscholar" links={links} setLinks={setLinks} />
             </div>
           </div>
+
           <div className="row">
             <div className="col-md-4 personal-links__column">
               <div className="row ml-0">
@@ -98,9 +98,14 @@ const PersonalLinksSection = ({
               <div className="row ml-0">
                 <div className="small-heading" />
               </div>
-              {!hideDblpButton && <button className="btn btn-primary personal-links__adddblpbtn" type="button" disabled={!links.dblp?.value} onClick={handleAddDBLPButtonClick}>Add DBLP Papers to Profile</button>}
+              {!hideDblpButton && (
+                <button className="btn btn-primary personal-links__adddblpbtn" type="button" disabled={!links.dblp?.value} onClick={handleAddDBLPButtonClick}>
+                  Add DBLP Papers to Profile
+                </button>
+              )}
             </div>
           </div>
+
           <div className="row">
             <div className="col-md-4 personal-links__column">
               <div className="small-heading">ORCID URL</div>
@@ -111,6 +116,7 @@ const PersonalLinksSection = ({
               <PersonalLinkInput type="wikipedia" links={links} setLinks={setLinks} />
             </div>
           </div>
+
           <div className="row">
             <div className="col-md-4 personal-links__column">
               <div className="small-heading">Linkedin URL</div>
@@ -128,8 +134,9 @@ const PersonalLinksSection = ({
           </div>
         </div>
       </section>
+
       <DblpImportModal
-        profileId={id}
+        profileId={profileId}
         profileNames={names?.map(name => (
           name.middle ? `${name.first} ${name.middle} ${name.last}` : `${name.first} ${name.last}`
         ))}

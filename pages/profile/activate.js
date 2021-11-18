@@ -4,12 +4,11 @@
 import { useEffect, useState, useContext } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import omit from 'lodash/omit'
-import useQuery from '../../hooks/useQuery'
 import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import LegacyProfileEditor from '../../components/LegacyProfileEditor'
 import ProfileEditor from '../../components/profile/ProfileEditor'
+import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { formatProfileData } from '../../lib/profiles'
 
@@ -83,7 +82,6 @@ const ActivateProfile = ({ appContext }) => {
         hideCancelButton
         hideDblpButton
         hidePublicationEditor
-        personalLinkNames={['homepage', 'gscholar', 'dblp', 'orcid', 'linkedin', 'wikipedia', 'semanticScholar']}
         loading={loading}
       />
     )
