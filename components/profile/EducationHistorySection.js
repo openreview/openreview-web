@@ -154,6 +154,7 @@ const EducationHistorySection = ({
   const positionOptions = positions?.map(p => ({ value: p, label: p }))
 
   const getInstitutionName = (domain) => {
+    if (!domain) return ''
     const institution = institutions?.find(i => i.id === domain)
     if (!institution) return ''
     const parentInstitution = institutions?.find(i => i.id === institution.parent)

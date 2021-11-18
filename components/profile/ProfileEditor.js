@@ -169,7 +169,7 @@ const ProfileEditor = ({
       ...profileContent,
       names: profileContent.names.map((p) => {
         const {
-          altUsernames, newRow, key, ...rest
+          altUsernames, newRow, key, duplicate, ...rest
         } = p
         return rest
       }),
