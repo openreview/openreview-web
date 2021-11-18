@@ -1334,6 +1334,9 @@ module.exports = (function() {
       });
     } else if (_.has(fieldDescription, 'values')) {
       return setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
+        if (fieldDescription.values?.[0] === "${{note.replyto}.readers}") {
+          fieldDescription.values = newFieldDescription.values;
+        }
         var subsetReaders = fieldDescription.values.every(function (val) {
           var found = newFieldDescription.values.indexOf(val) !== -1;
           if (!found && val.includes('/Reviewer_')) {
