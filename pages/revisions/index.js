@@ -1,22 +1,21 @@
-/* eslint-disable no-param-reassign */
 /* globals $,view,view2,Handlebars,promptLogin,promptError,promptMessage: false */
+/* eslint-disable no-param-reassign */
 
-import {
-  useEffect, useContext, useState,
-} from 'react'
+import { useEffect, useContext, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import useQuery from '../../hooks/useQuery'
+import { NoteV2 } from '../../components/Note'
 import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorAlert from '../../components/ErrorAlert'
-import api from '../../lib/api-client'
-import { forumLink } from '../../lib/banner-links'
+import Dropdown from '../../components/Dropdown'
 import { EditButton, RestoreButton, TrashButton } from '../../components/IconButton'
 import BasicModal from '../../components/BasicModal'
+import useQuery from '../../hooks/useQuery'
+import api from '../../lib/api-client'
 import { buildNoteTitle, prettyId } from '../../lib/utils'
-import Dropdown from '../../components/Dropdown'
-import { NoteV2 } from '../../components/Note'
+import { forumLink } from '../../lib/banner-links'
+
 import '../../styles/pages/revisions.less'
 
 const ConfirmDeleteRestoreModal = ({
@@ -286,16 +285,16 @@ const RevisionsList = ({
                   }}
                 />
               </div>
-              { reference.details?.writable && (
-              <div className="meta_actions">
-                {reference.ddate ? (
-                  <RestoreButton
-                    onClick={() => setEditToDeleteRestore({ edit: reference, invitation })}
-                    disableButton={!isNoteWritable}
-                    disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
-                  />
-                )
-                  : (
+
+              {reference.details?.writable && (
+                <div className="meta_actions">
+                  {reference.ddate ? (
+                    <RestoreButton
+                      onClick={() => setEditToDeleteRestore({ edit: reference, invitation })}
+                      disableButton={!isNoteWritable}
+                      disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
+                    />
+                  ) : (
                     <>
                       <EditButton
                         onClick={() => editEdit(reference, invitation)}
@@ -303,18 +302,20 @@ const RevisionsList = ({
                         disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
                       />
                       {invitation.edit.ddate && (
-                      <TrashButton
-                        onClick={() => setEditToDeleteRestore({ edit: reference, invitation })}
-                        disableButton={!isNoteWritable}
-                        disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
-                      />
+                        <TrashButton
+                          onClick={() => setEditToDeleteRestore({ edit: reference, invitation })}
+                          disableButton={!isNoteWritable}
+                          disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
+                        />
                       )}
                     </>
                   )}
-              </div>
-                  )}
+                </div>
+              )}
             </>
-          ) : <div className="col-sm-11 note-container" />}
+          ) : (
+            <div className="col-sm-11 note-container" />
+          )}
         </div>
       ))}
 

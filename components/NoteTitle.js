@@ -38,15 +38,13 @@ export const NoteTitleV2 = ({
   const baseAttachmentPath = options.isReference ? '/notes/edits/attachment' : '/attachment'
   return (
     <h4>
-      {
-        options.isReference
-          ? <a>{content.title?.value || buildNoteTitle(invitation, signatures)}</a>
-          : (
-            <Link href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}`}>
-              <a>{content.title?.value || buildNoteTitle(invitation, signatures)}</a>
-            </Link>
-          )
-      }
+      {options.isReference ? (
+        <a>{content.title?.value || buildNoteTitle(invitation, signatures)}</a>
+      ) : (
+        <Link href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}`}>
+          <a>{content.title?.value || buildNoteTitle(invitation, signatures)}</a>
+        </Link>
+      )}
 
       {options.pdfLink && content.pdf?.value && (
         <Link href={`${baseAttachmentPath}?id=${id}&name=pdf`}>
