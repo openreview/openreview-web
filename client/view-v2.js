@@ -916,17 +916,18 @@ module.exports = (function() {
   };
 
   const showConfirmDeleteModal = (note, noteTitle, $editSignaturesDropdown, $editReaders) => {
+    const actionText = note.ddate ? 'Restore' : 'Delete';
     $('#confirm-delete-modal').remove();
 
     $('#content').append(Handlebars.templates.genericModal({
       id: 'confirm-delete-modal',
       showHeader: true,
-      title: 'Delete Note',
-      body: '<p class="mb-4">Are you sure you want to delete "' +
-        noteTitle + '" by ' + view.prettyId(note.signatures[0]) + '? The deleted note will ' +
-        'be updated with the signature you choose below.</p>',
+      title: `${actionText} Note`,
+      body: `<p class="mb-4">Are you sure you want to ${actionText.toLowerCase()}
+        ${noteTitle} by ${view.prettyId(note.signatures[0])}? The ${actionText.toLowerCase()}ed note will
+        be updated with the signature you choose below.</p>`,
       showFooter: true,
-      primaryButtonText: 'Delete'
+      primaryButtonText: actionText
     }));
 
     $editReaders.addClass('note_editor ml-0 mr-0 mb-2');
