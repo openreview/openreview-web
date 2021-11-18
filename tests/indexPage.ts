@@ -13,20 +13,20 @@ test('show active venues', async (t) => {
   const conferenceGroupName = conferenceGroupId.replace(/\//g, ' ')
   await t
     // Active venues
-    .expect(activeVenues.child.length).eql(2)
+    .expect(activeVenues.find('li').count).eql(3)
     .expect(activeVenues.find('a').nth(0).textContent).eql(conferenceGroupName)
     .expect(activeVenues.find('a').nth(1).textContent).eql(`Another${conferenceGroupName}`)
     .expect(activeVenues.find('a').nth(2).textContent).eql('ICLR 2021 Conference')
 
     // Open for submissions
-    .expect(openVenues.child.length).eql(2)
+    .expect(openVenues.find('li').count).eql(3)
     .expect(openVenues.find('a').nth(0).textContent).eql(conferenceGroupName)
     .expect(openVenues.find('a').nth(1).textContent).eql(`Another${conferenceGroupName}`)
     .expect(openVenues.find('a').nth(2).textContent).eql('ICLR 2021 Conference')
-    .expect(openVenues.find('span').withText('Due').count).eql(3)
+    .expect(openVenues.find('p').withText('Due').count).eql(3)
 
     // All venues
-    .expect(allVenues.child.length).eql(2)
+    .expect(allVenues.find('li').count).eql(3)
     .expect(allVenues.find('a').nth(0).textContent).eql(baseGroupId)
     .expect(allVenues.find('a').nth(1).textContent).eql(`Another${baseGroupId}`)
     .expect(allVenues.find('a').nth(2).textContent).eql('ICLR')
