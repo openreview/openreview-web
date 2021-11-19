@@ -11,7 +11,6 @@ import { viewProfileLink } from '../../lib/banner-links'
 import { formatProfileData } from '../../lib/profiles'
 import useUser from '../../hooks/useUser'
 import ProfileEditor from '../../components/profile/ProfileEditor'
-import { translateErrorDetails } from '../../lib/utils'
 import ProfileEditLegacy from '../../components/profile/ProfileEditLegacy'
 
 const ProfileEdit = ({ appContext }) => {
