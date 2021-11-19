@@ -1,7 +1,6 @@
 import { useEffect, useReducer, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { nanoid } from 'nanoid'
-import SectionHeader from './ProfileSectionHeader'
 import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
 
@@ -29,42 +28,38 @@ const EducationHisotryRow = ({
     <div className="row">
       <div className="col-md-2 history__value">
         {isMobile && <div className="small-heading col-md-2">Position</div>}
-        {
-          isPositionClicked
-            ? (
-              <CreatableDropdown
-                autofocus
-                defaultMenuIsOpen
-                hideArrow
-                disableMouseMove
-                virtualList
-                isClearable
-                classNamePrefix="position-dropdown"
-                placeholder={positionPlaceholder}
-                defaultValue={p.position ? { value: p.position, label: p.position } : null}
-                // eslint-disable-next-line max-len
-                onChange={(e) => { setHistory({ type: posititonType, data: { value: e ? e.value : '', key: p.key } }); if (e) setIsPositionClicked(false) }}
-                options={positionOptions}
-                styles={{
-                  control: (provided, state) => ({
-                    ...provided,
-                    borderColor: state.selectProps.isInvalid ? '#8c1b13!important' : provided.borderColor,
-                  }),
-                }}
-                isInvalid={profileHistory?.find(q => q.key === p.key)?.valid === false}
-              />
-            )
-            : (
-              <input
-                className="form-control position-dropdown__placeholder"
-                placeholder={positionPlaceholder}
-                value={p.position}
-                onClick={() => setIsPositionClicked(true)}
-                onFocus={() => setIsPositionClicked(true)}
-                onChange={() => { }}
-              />
-            )
-        }
+        {isPositionClicked ? (
+          <CreatableDropdown
+            autofocus
+            defaultMenuIsOpen
+            hideArrow
+            disableMouseMove
+            virtualList
+            isClearable
+            classNamePrefix="position-dropdown"
+            placeholder={positionPlaceholder}
+            defaultValue={p.position ? { value: p.position, label: p.position } : null}
+            // eslint-disable-next-line max-len
+            onChange={(e) => { setHistory({ type: posititonType, data: { value: e ? e.value : '', key: p.key } }); if (e) setIsPositionClicked(false) }}
+            options={positionOptions}
+            styles={{
+              control: (provided, state) => ({
+                ...provided,
+                borderColor: state.selectProps.isInvalid ? '#8c1b13!important' : provided.borderColor,
+              }),
+            }}
+            isInvalid={profileHistory?.find(q => q.key === p.key)?.valid === false}
+          />
+        ) : (
+          <input
+            className="form-control position-dropdown__placeholder"
+            placeholder={positionPlaceholder}
+            value={p.position}
+            onClick={() => setIsPositionClicked(true)}
+            onFocus={() => setIsPositionClicked(true)}
+            onChange={() => { }}
+          />
+        )}
       </div>
       <div className="col-md-1 history__value">
         {isMobile && <div className="small-heading col-md-1">Start</div>}
@@ -86,40 +81,39 @@ const EducationHisotryRow = ({
       </div>
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-3">Institution Domain</div>}
-        {isDomainClicked
-          ? (
-            <CreatableDropdown
-              autofocus
-              defaultMenuIsOpen
-              hideArrow
-              disableMouseMove
-              virtualList
-              isClearable
-              classNamePrefix="institution-dropdown"
-              placeholder={institutionPlaceholder}
-              // eslint-disable-next-line max-len
-              defaultValue={p.institution?.domain ? { value: p.institution?.domain, label: p.institution?.domain } : null}
-              // eslint-disable-next-line max-len
-              onChange={(e) => { setHistory({ type: institutionDomainType, data: { value: e ? e.value : '', key: p.key } }); if (e) setIsDomainClicked(false) }}
-              options={institutionDomainOptions}
-              styles={{
-                control: (provided, state) => ({
-                  ...provided,
-                  borderColor: state.selectProps.isInvalid ? '#8c1b13!important' : provided.borderColor,
-                }),
-              }}
-              isInvalid={profileHistory?.find(q => q.key === p.key)?.valid === false}
-            />
-          ) : (
-            <input
-              className="form-control institution-dropdown__placeholder"
-              placeholder={institutionPlaceholder}
-              value={p.institution?.domain}
-              onClick={() => setIsDomainClicked(true)}
-              onFocus={() => setIsDomainClicked(true)}
-              onChange={() => { }}
-            />
-          )}
+        {isDomainClicked ? (
+          <CreatableDropdown
+            autofocus
+            defaultMenuIsOpen
+            hideArrow
+            disableMouseMove
+            virtualList
+            isClearable
+            classNamePrefix="institution-dropdown"
+            placeholder={institutionPlaceholder}
+            // eslint-disable-next-line max-len
+            defaultValue={p.institution?.domain ? { value: p.institution?.domain, label: p.institution?.domain } : null}
+            // eslint-disable-next-line max-len
+            onChange={(e) => { setHistory({ type: institutionDomainType, data: { value: e ? e.value : '', key: p.key } }); if (e) setIsDomainClicked(false) }}
+            options={institutionDomainOptions}
+            styles={{
+              control: (provided, state) => ({
+                ...provided,
+                borderColor: state.selectProps.isInvalid ? '#8c1b13!important' : provided.borderColor,
+              }),
+            }}
+            isInvalid={profileHistory?.find(q => q.key === p.key)?.valid === false}
+          />
+        ) : (
+          <input
+            className="form-control institution-dropdown__placeholder"
+            placeholder={institutionPlaceholder}
+            value={p.institution?.domain}
+            onClick={() => setIsDomainClicked(true)}
+            onFocus={() => setIsDomainClicked(true)}
+            onChange={() => { }}
+          />
+        )}
       </div>
       <div className="col-md-4 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution Name</div>}
@@ -130,14 +124,11 @@ const EducationHisotryRow = ({
         />
       </div>
       <div className="col-md-1 history__value">
-        {
-          history.length > 1
-          && (
-            <div role="button" aria-label="remove history" tabIndex={0} onClick={() => setHistory({ type: removeHistoryType, data: { key: p.key } })}>
-              <Icon name="minus-sign" tooltip="remove history" />
-            </div>
-          )
-        }
+        {history.length > 1 && (
+          <div role="button" aria-label="remove history" tabIndex={0} onClick={() => setHistory({ type: removeHistoryType, data: { key: p.key } })}>
+            <Icon name="minus-sign" tooltip="remove history" />
+          </div>
+        )}
       </div>
     </div>
   )
@@ -245,39 +236,34 @@ const EducationHistorySection = ({
   }, [history])
 
   return (
-    <section>
-      <SectionHeader type="educationHistory" />
-      <div className="history history-new">
-        {!isMobile && (
-          <div className="row">
-            <div className="small-heading col-md-2">Position</div>
-            <div className="small-heading col-md-1">Start</div>
-            <div className="small-heading col-md-1">End</div>
-            <div className="small-heading col-md-3">Institution Domain</div>
-            <div className="small-heading col-md-4">Institution Name</div>
-          </div>
-        )}
-        {
-          history.map(p => (
-            <EducationHisotryRow
-              key={p.key}
-              p={p}
-              history={history}
-              setHistory={setHistory}
-              profileHistory={profileHistory}
-              positionOptions={positionOptions}
-              institutionDomainOptions={institutionDomainOptions}
-              isMobile={isMobile}
-            />
-          ))
-        }
+    <div className="history history-new">
+      {!isMobile && (
         <div className="row">
-          <div role="button" aria-label="add another history" tabIndex={0} onClick={() => setHistory({ type: addHistoryType })}>
-            <Icon name="plus-sign" tooltip="add another history" />
-          </div>
+          <div className="small-heading col-md-2">Position</div>
+          <div className="small-heading col-md-1">Start</div>
+          <div className="small-heading col-md-1">End</div>
+          <div className="small-heading col-md-3">Institution Domain</div>
+          <div className="small-heading col-md-4">Institution Name</div>
+        </div>
+      )}
+      {history.map(p => (
+        <EducationHisotryRow
+          key={p.key}
+          p={p}
+          history={history}
+          setHistory={setHistory}
+          profileHistory={profileHistory}
+          positionOptions={positionOptions}
+          institutionDomainOptions={institutionDomainOptions}
+          isMobile={isMobile}
+        />
+      ))}
+      <div className="row">
+        <div role="button" aria-label="add another history" tabIndex={0} onClick={() => setHistory({ type: addHistoryType })}>
+          <Icon name="plus-sign" tooltip="add another history" />
         </div>
       </div>
-    </section>
+    </div>
   )
 }
 

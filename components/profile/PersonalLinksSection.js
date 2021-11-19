@@ -1,9 +1,9 @@
 /* globals $,promptError: false */
+
 import { useEffect, useReducer } from 'react'
-import { isValidURL } from '../../lib/utils'
 import DblpImportModal from '../DblpImportModal'
 import Icon from '../Icon'
-import ProfileSectionHeader from './ProfileSectionHeader'
+import { isValidURL } from '../../lib/utils'
 
 const PersonalLinkInput = ({ type, links, setLinks }) => {
   const handleBlur = (e) => {
@@ -69,71 +69,71 @@ const PersonalLinksSection = ({
   }, [links])
 
   return (
-    <>
-      <section>
-        <ProfileSectionHeader type="personalLinks" />
-        <div className="container personal-links">
-          <div className="row">
-            <div className="col-md-4 personal-links__column">
-              <div className="small-heading">Homepage URL</div>
-              <PersonalLinkInput type="homepage" links={links} setLinks={setLinks} />
-            </div>
-            <div className="col-md-4 personal-links__column">
-              <div className="small-heading">Google Scholar URL</div>
-              <PersonalLinkInput type="gscholar" links={links} setLinks={setLinks} />
-            </div>
-          </div>
-
-          <div className="row">
-            <div className="col-md-4 personal-links__column">
-              <div className="row ml-0">
-                <div className="small-heading">DBLP URL</div>
-                <a className="personal-links__faqlink" href="/faq#question-dblp-import" target="_blank" rel="noreferrer">
-                  <Icon name="info-sign" />
-                </a>
-              </div>
-              <PersonalLinkInput type="dblp" links={links} setLinks={setLinks} />
-            </div>
-            <div className="col-md-4 personal-links__column">
-              <div className="row ml-0">
-                <div className="small-heading" />
-              </div>
-              {!hideDblpButton && (
-                <button className="btn btn-primary personal-links__adddblpbtn" type="button" disabled={!links.dblp?.value} onClick={handleAddDBLPButtonClick}>
-                  Add DBLP Papers to Profile
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="row">
-            <div className="col-md-4 personal-links__column">
-              <div className="small-heading">ORCID URL</div>
-              <PersonalLinkInput type="orcid" links={links} setLinks={setLinks} />
-            </div>
-            <div className="col-md-4 personal-links__column">
-              <div className="small-heading">Wikipedia URL</div>
-              <PersonalLinkInput type="wikipedia" links={links} setLinks={setLinks} />
-            </div>
-          </div>
-
-          <div className="row">
-            <div className="col-md-4 personal-links__column">
-              <div className="small-heading">Linkedin URL</div>
-              <PersonalLinkInput type="linkedin" links={links} setLinks={setLinks} />
-            </div>
-            <div className="col-md-4 personal-links__column">
-              <div className="row ml-0">
-                <div className="small-heading">Semantic Scholar URL</div>
-                <a className="personal-links__faqlink" href="/faq#question-semantic-scholar" target="_blank" rel="noreferrer">
-                  <Icon name="info-sign" />
-                </a>
-              </div>
-              <PersonalLinkInput type="semanticScholar" links={links} setLinks={setLinks} />
-            </div>
-          </div>
+    <div className="container personal-links">
+      <div className="row">
+        <div className="col-md-4 personal-links__column">
+          <div className="small-heading">Homepage URL</div>
+          <PersonalLinkInput type="homepage" links={links} setLinks={setLinks} />
         </div>
-      </section>
+        <div className="col-md-4 personal-links__column">
+          <div className="small-heading">Google Scholar URL</div>
+          <PersonalLinkInput type="gscholar" links={links} setLinks={setLinks} />
+        </div>
+      </div>
+
+      <div className="row">
+        <div className="col-md-4 personal-links__column">
+          <div className="row ml-0">
+            <div className="small-heading">DBLP URL</div>
+            <a className="personal-links__faqlink" href="/faq#question-dblp-import" target="_blank" rel="noreferrer">
+              <Icon name="info-sign" />
+            </a>
+          </div>
+          <PersonalLinkInput type="dblp" links={links} setLinks={setLinks} />
+        </div>
+        <div className="col-md-4 personal-links__column">
+          <div className="row ml-0">
+            <div className="small-heading" />
+          </div>
+          {!hideDblpButton && (
+            <button
+              className="btn btn-primary personal-links__adddblpbtn"
+              type="button"
+              disabled={!links.dblp?.value}
+              onClick={handleAddDBLPButtonClick}
+            >
+              Add DBLP Papers to Profile
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="row">
+        <div className="col-md-4 personal-links__column">
+          <div className="small-heading">ORCID URL</div>
+          <PersonalLinkInput type="orcid" links={links} setLinks={setLinks} />
+        </div>
+        <div className="col-md-4 personal-links__column">
+          <div className="small-heading">Wikipedia URL</div>
+          <PersonalLinkInput type="wikipedia" links={links} setLinks={setLinks} />
+        </div>
+      </div>
+
+      <div className="row">
+        <div className="col-md-4 personal-links__column">
+          <div className="small-heading">Linkedin URL</div>
+          <PersonalLinkInput type="linkedin" links={links} setLinks={setLinks} />
+        </div>
+        <div className="col-md-4 personal-links__column">
+          <div className="row ml-0">
+            <div className="small-heading">Semantic Scholar URL</div>
+            <a className="personal-links__faqlink" href="/faq#question-semantic-scholar" target="_blank" rel="noreferrer">
+              <Icon name="info-sign" />
+            </a>
+          </div>
+          <PersonalLinkInput type="semanticScholar" links={links} setLinks={setLinks} />
+        </div>
+      </div>
 
       <DblpImportModal
         profileId={profileId}
@@ -143,7 +143,7 @@ const PersonalLinksSection = ({
         email={preferredEmail}
         updateDBLPUrl={(url) => { setLinks({ type: 'dblp', data: url }) }}
       />
-    </>
+    </div>
   )
 }
 

@@ -104,10 +104,6 @@ export default function ProfileEdit({ appContext }) {
     setLoading(false)
   }
 
-  const handleSubmitButtonClick = (profileContent, publicationIdsToUnlink) => {
-    saveProfile(profileContent, publicationIdsToUnlink)
-  }
-
   useEffect(() => {
     if (!accessToken) return
     loadProfile()
@@ -134,7 +130,7 @@ export default function ProfileEdit({ appContext }) {
 
       <ProfileEditor
         loadedProfile={profile}
-        submitHandler={handleSubmitButtonClick}
+        submitHandler={saveProfile}
         cancelHandler={() => router.push('/profile').then(() => window.scrollTo(0, 0))}
         loading={loading}
       />

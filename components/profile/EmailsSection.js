@@ -1,11 +1,10 @@
 /* globals promptError,promptMessage,$: false */
 import { useEffect, useReducer, useRef } from 'react'
 import { nanoid } from 'nanoid'
-import { isValidEmail } from '../../lib/utils'
-import api from '../../lib/api-client'
-import useUser from '../../hooks/useUser'
-import ProfileSectionHeader from './ProfileSectionHeader'
 import Icon from '../Icon'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { isValidEmail } from '../../lib/utils'
 
 const EmailsButton = ({
   type, emailObj, handleRemove, handleConfirm, handleMakePreferred,
@@ -125,31 +124,29 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
   }, [emails])
 
   return (
-    <section>
-      <ProfileSectionHeader type="emails" />
-      <div className="container emails">
-        {
-          emails.map(emailObj => (
-            <div className="row d-flex" key={emailObj.key}>
-              <div className="col-md-4 emails__value">
-                {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
-                <input type="email" autoFocus value={emailObj.email} readOnly={emailObj.confirmed} className={`form-control email profile ${emailObj.isValid ? undefined : 'invalid-value'}`} onChange={e => handleUpdateEmail(e.target.value.trim(), emailObj.key)} />
-              </div>
-              <div className="col-md-1 emails__value">
-                <EmailsButton type="confirmed" emailObj={emailObj} handleConfirm={() => handleConfirmEmail(emailObj.key)} />
-              </div>
-              <div className="col-md-1 emails__value">
-                <EmailsButton type="preferred" emailObj={emailObj} handleMakePreferred={() => handleMakeEmailPreferred(emailObj.key)} />
-                <EmailsButton type="remove" emailObj={emailObj} handleRemove={() => handleRemoveEmail(emailObj.key)} />
-              </div>
+    <div className="container emails">
+      <div>
+        {emails.map(emailObj => (
+          <div className="row d-flex" key={emailObj.key}>
+            <div className="col-md-4 emails__value">
+              {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
+              <input type="email" autoFocus value={emailObj.email} readOnly={emailObj.confirmed} className={`form-control email profile ${emailObj.isValid ? undefined : 'invalid-value'}`} onChange={e => handleUpdateEmail(e.target.value.trim(), emailObj.key)} />
             </div>
-          ))
-        }
+            <div className="col-md-1 emails__value">
+              <EmailsButton type="confirmed" emailObj={emailObj} handleConfirm={() => handleConfirmEmail(emailObj.key)} />
+            </div>
+            <div className="col-md-1 emails__value">
+              <EmailsButton type="preferred" emailObj={emailObj} handleMakePreferred={() => handleMakeEmailPreferred(emailObj.key)} />
+              <EmailsButton type="remove" emailObj={emailObj} handleRemove={() => handleRemoveEmail(emailObj.key)} />
+            </div>
+          </div>
+        ))}
       </div>
+
       <div role="button" aria-label="add another email" tabIndex={0} onClick={handleAddEmail}>
         <Icon name="plus-sign" tooltip="add another email" />
       </div>
-    </section>
+    </div>
   )
 }
 

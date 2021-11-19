@@ -1,7 +1,6 @@
 import { useEffect, useReducer, useState } from 'react'
 import { nanoid } from 'nanoid'
 import dynamic from 'next/dynamic'
-import ProfileSectionHeader from './ProfileSectionHeader'
 import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
 
@@ -32,43 +31,39 @@ const RelationRow = ({
   return (
     <div className="row">
       <div className="col-md-2 relation__value">
-        { isMobile && <div className="small-heading col-md-2">Relation</div> }
-        {
-          relationClicked
-            ? (
-              <CreatableDropdown
-                autofocus
-                defaultMenuIsOpen
-                hideArrow
-                disableMouseMove
-                virtualList
-                isClearable
-                classNamePrefix="relation-dropdown"
-                placeholder={relationPlaceholder}
-                defaultValue={relation.relation ? { value: relation.relation, label: relation.relation } : null}
-                // eslint-disable-next-line max-len
-                onChange={(e) => { setRelation({ type: relationType, data: { value: e ? e.value : '', key: relation.key } }); if (e) setRelationClicked(false) }}
-                options={relationOptions}
-                styles={{
-                  control: (provided, state) => ({
-                    ...provided,
-                    borderColor: state.selectProps.isInvalid ? '#8c1b13!important' : provided.borderColor,
-                  }),
-                }}
-                isInvalid={profileRelation?.find(q => q.key === relation.key)?.valid === false}
-              />
-            )
-            : (
-              <input
-                className="form-control relation__placeholder"
-                placeholder={relationPlaceholder}
-                value={relation.relation}
-                onClick={() => setRelationClicked(true)}
-                onFocus={() => setRelationClicked(true)}
-                onChange={() => { }}
-              />
-            )
-        }
+        {isMobile && <div className="small-heading col-md-2">Relation</div> }
+        {relationClicked ? (
+          <CreatableDropdown
+            autofocus
+            defaultMenuIsOpen
+            hideArrow
+            disableMouseMove
+            virtualList
+            isClearable
+            classNamePrefix="relation-dropdown"
+            placeholder={relationPlaceholder}
+            defaultValue={relation.relation ? { value: relation.relation, label: relation.relation } : null}
+            // eslint-disable-next-line max-len
+            onChange={(e) => { setRelation({ type: relationType, data: { value: e ? e.value : '', key: relation.key } }); if (e) setRelationClicked(false) }}
+            options={relationOptions}
+            styles={{
+              control: (provided, state) => ({
+                ...provided,
+                borderColor: state.selectProps.isInvalid ? '#8c1b13!important' : provided.borderColor,
+              }),
+            }}
+            isInvalid={profileRelation?.find(q => q.key === relation.key)?.valid === false}
+          />
+        ) : (
+          <input
+            className="form-control relation__placeholder"
+            placeholder={relationPlaceholder}
+            value={relation.relation}
+            onClick={() => setRelationClicked(true)}
+            onFocus={() => setRelationClicked(true)}
+            onChange={() => { }}
+          />
+        )}
       </div>
       <div className="col-md-3 relation__value">
         {isMobile && <div className="small-heading col-md-3">Name</div> }
@@ -226,39 +221,34 @@ const RelationsSection = ({
   }, [relations])
 
   return (
-    <section>
-      <ProfileSectionHeader type="relation" />
-      <div className="relation relation-new">
-        {!isMobile && (
-          <div className="row">
-            <div className="small-heading col-md-2">Relation</div>
-            <div className="small-heading col-md-3">Name</div>
-            <div className="small-heading col-md-3">Email</div>
-            <div className="small-heading col-md-1">Start</div>
-            <div className="small-heading col-md-1">End</div>
-            <div className="small-heading col-md-1">Visible to</div>
-          </div>
-        )}
-        {
-          relations.map(relation => (
-            <RelationRow
-              key={relation.key}
-              relation={relation}
-              setRelation={setRelation}
-              profileRelation={profileRelation}
-              relationOptions={relationOptions}
-              relationReaderOptions={relationReaderOptions}
-              isMobile={isMobile}
-            />
-          ))
-        }
+    <div className="relation relation-new">
+      {!isMobile && (
         <div className="row">
-          <div role="button" aria-label="add another relation" tabIndex={0} onClick={() => setRelation({ type: addRelationType })}>
-            <Icon name="plus-sign" tooltip="add another relation" />
-          </div>
+          <div className="small-heading col-md-2">Relation</div>
+          <div className="small-heading col-md-3">Name</div>
+          <div className="small-heading col-md-3">Email</div>
+          <div className="small-heading col-md-1">Start</div>
+          <div className="small-heading col-md-1">End</div>
+          <div className="small-heading col-md-1">Visible to</div>
+        </div>
+      )}
+      {relations.map(relation => (
+        <RelationRow
+          key={relation.key}
+          relation={relation}
+          setRelation={setRelation}
+          profileRelation={profileRelation}
+          relationOptions={relationOptions}
+          relationReaderOptions={relationReaderOptions}
+          isMobile={isMobile}
+        />
+      ))}
+      <div className="row">
+        <div role="button" aria-label="add another relation" tabIndex={0} onClick={() => setRelation({ type: addRelationType })}>
+          <Icon name="plus-sign" tooltip="add another relation" />
         </div>
       </div>
-    </section>
+    </div>
   )
 }
 

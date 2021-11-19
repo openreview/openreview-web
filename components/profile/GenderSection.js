@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { CreatableDropdown } from '../Dropdown'
-import ProfileSectionHeader from './ProfileSectionHeader'
 
 const GenderSection = ({ profileGender, updateGender }) => {
   const defaultGenderOptions = ['Male', 'Female', 'Non-Binary', 'Not Specified']
-  const [genderOptions, setGenderOptions] = useState(defaultGenderOptions.map(p => ({ value: p, label: p })))
+  const genderOptions = defaultGenderOptions.map(p => ({ value: p, label: p }))
   const [gender, setGender] = useState(profileGender)
 
   useEffect(() => {
@@ -12,8 +11,7 @@ const GenderSection = ({ profileGender, updateGender }) => {
   }, [gender])
 
   return (
-    <section>
-      <ProfileSectionHeader type="gender" />
+    <div className="container gender">
       <CreatableDropdown
         hideArrow
         classNamePrefix="gender-dropdown"
@@ -22,7 +20,7 @@ const GenderSection = ({ profileGender, updateGender }) => {
         options={genderOptions}
         placeholder="Choose a gender or type a custom gender"
       />
-    </section>
+    </div>
   )
 }
 

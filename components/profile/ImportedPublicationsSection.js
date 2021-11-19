@@ -1,11 +1,10 @@
 /* globals promptError: false */
 
 import { useEffect, useState } from 'react'
-import useUser from '../../hooks/useUser'
-import api from '../../lib/api-client'
 import NoteList from '../NoteList'
 import PaginationLinks from '../PaginationLinks'
-import ProfileSectionHeader from './ProfileSectionHeader'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
 
 const ImportedPublicationsSection = ({ profileId, updatePublicationIdsToUnlink, reRender }) => {
   const { accessToken } = useUser()
@@ -60,8 +59,7 @@ const ImportedPublicationsSection = ({ profileId, updatePublicationIdsToUnlink, 
 
   if (!publications.length) return null
   return (
-    <section>
-      <ProfileSectionHeader type="importedPublications" />
+    <div>
       <NoteList notes={publications} displayOptions={displayOptions} />
       <PaginationLinks
         currentPage={pageNumber}
@@ -70,7 +68,7 @@ const ImportedPublicationsSection = ({ profileId, updatePublicationIdsToUnlink, 
         setCurrentPage={setPageNumber}
         options={{ noScroll: true }}
       />
-    </section>
+    </div>
   )
 }
 

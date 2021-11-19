@@ -1,6 +1,5 @@
 import { useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
-import ProfileSectionHeader from './ProfileSectionHeader'
 import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
 
@@ -83,60 +82,55 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
   }, [expertises])
 
   return (
-    <section>
-      <ProfileSectionHeader type="expertise" />
-      <div className="container expertise">
-        {!isMobile && (
-          <div className="row">
-            <div className="small-heading col-md-6">Research areas of interest</div>
-            <div className="small-heading col-md-1">Start</div>
-            <div className="small-heading col-md-1">End</div>
-          </div>
-        )}
-        {
-          expertises.map(p => (
-            <div className="row" key={p.key}>
-              <div className="col-md-6 expertise__value">
-                {isMobile && <div className="small-heading col-md-6">Research areas of interest</div>}
-                <input
-                  className={`form-control ${profileExpertises?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
-                  value={p.keyWordsValue}
-                  onChange={e => setExpertises({ type: expertiseType, data: { value: e.target.value, key: p.key } })}
-                />
-              </div>
-              <div className="col-md-1 expertise__value">
-                {isMobile && <div className="small-heading col-md-1">Start</div>}
-                <input
-                  className={`form-control ${profileExpertises?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
-                  placeholder="year"
-                  value={p.start ?? ''}
-                  onChange={e => setExpertises({ type: startType, data: { value: e.target.value, key: p.key } })}
-                />
-              </div>
-              <div className="col-md-1 expertise__value">
-                {isMobile && <div className="small-heading col-md-1">End</div>}
-                <input
-                  className={`form-control ${profileExpertises?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
-                  placeholder="year"
-                  value={p.end ?? ''}
-                  onChange={e => setExpertises({ type: endType, data: { value: e.target.value, key: p.key } })}
-                />
-              </div>
-              <div className="col-md-1 relation__value">
-                <div role="button" aria-label="remove expertise" tabIndex={0} onClick={() => setExpertises({ type: removeExpertiseType, data: { key: p.key } })}>
-                  <Icon name="minus-sign" tooltip="remove expertise" />
-                </div>
-              </div>
-            </div>
-          ))
-        }
+    <div className="container expertise">
+      {!isMobile && (
         <div className="row">
-          <div role="button" aria-label="add another expertise" tabIndex={0} onClick={() => setExpertises({ type: addExpertiseType })}>
-            <Icon name="plus-sign" tooltip="add another expertise" />
+          <div className="small-heading col-md-6">Research areas of interest</div>
+          <div className="small-heading col-md-1">Start</div>
+          <div className="small-heading col-md-1">End</div>
+        </div>
+      )}
+      {expertises.map(p => (
+        <div className="row" key={p.key}>
+          <div className="col-md-6 expertise__value">
+            {isMobile && <div className="small-heading col-md-6">Research areas of interest</div>}
+            <input
+              className={`form-control ${profileExpertises?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+              value={p.keyWordsValue}
+              onChange={e => setExpertises({ type: expertiseType, data: { value: e.target.value, key: p.key } })}
+            />
+          </div>
+          <div className="col-md-1 expertise__value">
+            {isMobile && <div className="small-heading col-md-1">Start</div>}
+            <input
+              className={`form-control ${profileExpertises?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+              placeholder="year"
+              value={p.start ?? ''}
+              onChange={e => setExpertises({ type: startType, data: { value: e.target.value, key: p.key } })}
+            />
+          </div>
+          <div className="col-md-1 expertise__value">
+            {isMobile && <div className="small-heading col-md-1">End</div>}
+            <input
+              className={`form-control ${profileExpertises?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+              placeholder="year"
+              value={p.end ?? ''}
+              onChange={e => setExpertises({ type: endType, data: { value: e.target.value, key: p.key } })}
+            />
+          </div>
+          <div className="col-md-1 relation__value">
+            <div role="button" aria-label="remove expertise" tabIndex={0} onClick={() => setExpertises({ type: removeExpertiseType, data: { key: p.key } })}>
+              <Icon name="minus-sign" tooltip="remove expertise" />
+            </div>
           </div>
         </div>
+      ))}
+      <div className="row">
+        <div role="button" aria-label="add another expertise" tabIndex={0} onClick={() => setExpertises({ type: addExpertiseType })}>
+          <Icon name="plus-sign" tooltip="add another expertise" />
+        </div>
       </div>
-    </section>
+    </div>
   )
 }
 
