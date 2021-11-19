@@ -202,13 +202,19 @@ main.revisions {
   .meta_actions {
     float: right;
     margin-right: 0;
+    padding-right: 15px;
 
-    button:first-child {
-      margin-right: .25rem;
+    button {
+      margin-left: .25rem;
     }
     .trash_button, .edit_button {
       display: inline-block;
       float: none;
+    }
+    .mirror {
+      transform: scale(-1,1);
+      pointer-events: all;
+      cursor: pointer;
     }
   }
 
@@ -232,6 +238,20 @@ main.revisions {
     margin-left: .25rem;
     line-height: normal;
     color: @subtleGray;
+  }
+
+  .note-trashed {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  #confirm-delete-restore-modal {
+    .signature-dropdown-label{
+      font-size: 1rem;
+      font-weight: bold;
+      color:@orRed;
+      vertical-align: -webkit-baseline-middle;
+    }
   }
 
 }
