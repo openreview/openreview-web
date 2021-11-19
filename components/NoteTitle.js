@@ -6,15 +6,13 @@ const NoteTitle = ({
   id, forum, invitation, content, signatures, options,
 }) => (
   <h4>
-    {
-      options.openNoteInNewWindow
-        ? <a href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}`} target="_blank" rel="nofollow noreferrer">{content.title || buildNoteTitle(invitation, signatures)}</a>
-        : (
-          <Link href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}`}>
-            <a>{content.title || buildNoteTitle(invitation, signatures)}</a>
-          </Link>
-        )
-    }
+    {options.openNoteInNewWindow ? (
+      <a href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}`} target="_blank" rel="nofollow noreferrer">{content.title || buildNoteTitle(invitation, signatures)}</a>
+    ) : (
+      <Link href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}`}>
+        <a>{content.title || buildNoteTitle(invitation, signatures)}</a>
+      </Link>
+    )}
 
     {options.pdfLink && content.pdf && (
       <Link href={`/attachment?id=${id}&name=pdf`}>
@@ -37,16 +35,13 @@ const NoteTitle = ({
       </a>
     )}
 
-    {
-      options.unlinkButton
-      && (
-        <UnlinkPublicationButton
-          noteId={id}
-          linkUnlinkPublication={options.linkUnlinkPublication}
-          isUnlinked={options.isUnlinked}
-        />
-      )
-    }
+    {options.unlinkButton && (
+      <UnlinkPublicationButton
+        noteId={id}
+        linkUnlinkPublication={options.linkUnlinkPublication}
+        isUnlinked={options.isUnlinked}
+      />
+    )}
   </h4>
 )
 
