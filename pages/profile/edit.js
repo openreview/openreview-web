@@ -111,7 +111,7 @@ const ProfileEdit = ({ appContext }) => {
       promptMessage('Your profile information has been successfully updated')
       router.push('/profile')
     } catch (apiError) {
-      promptError(apiError.details && apiError.legacy ? translateErrorDetails(apiError.details) : apiError.message)
+      promptError(apiError.message)
     }
     setLoading(false)
   }
