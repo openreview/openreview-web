@@ -63,9 +63,9 @@ export default function Home() {
         <title key="title">Venues | OpenReview</title>
       </Head>
 
-      {/* {error && (
+      {error && (
         <ErrorAlert error={error} />
-      )} */}
+      )}
 
       {venues.user?.length > 0 ? (
         // Logged in view
