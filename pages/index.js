@@ -10,6 +10,7 @@ import { prettyId, formatTimestamp } from '../lib/utils'
 
 // Page Styles
 import '../styles/pages/home.less'
+import ErrorAlert from '../components/ErrorAlert'
 
 export default function Home() {
   const [venues, setVenues] = useState({
@@ -61,6 +62,10 @@ export default function Home() {
       <Head>
         <title key="title">Venues | OpenReview</title>
       </Head>
+
+      {/* {error && (
+        <ErrorAlert error={error} />
+      )} */}
 
       {venues.user?.length > 0 ? (
         // Logged in view

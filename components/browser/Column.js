@@ -423,7 +423,7 @@ export default function Column(props) {
           '/edges',
           buildQuery(invitation.id, { ...invitation.query, details: detailsParam }, sort),
           { accessToken, version },
-        ).catch(error => promptError(error.details ?? error.message)),
+        ).catch(error => promptError(error.message)),
       })
     }
   }
@@ -511,7 +511,7 @@ export default function Column(props) {
           })
           setItems(colItems)
         })
-        .catch(error => promptError(error.details ?? error.message))
+        .catch(error => promptError(error.message))
       return
     }
 
