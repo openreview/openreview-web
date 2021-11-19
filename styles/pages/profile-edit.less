@@ -14,6 +14,11 @@ main.profile-edit {
     color: @darkBlue;
     display: inline-block;
   }
+  section .small-heading {
+    padding-left: 0;
+    padding-right: 0;
+    margin-bottom: .25rem;
+  }
 
   .hint {
     vertical-align: bottom;
@@ -37,13 +42,6 @@ main.profile-edit {
 
   input {
     margin-right: 0.5rem;
-  }
-
-  .small-heading {
-    font-size: .875rem;
-    font-weight: bold;
-    line-height: 1rem;
-    color: @darkBlue;
   }
 
   .profile-edit-container {
@@ -101,11 +99,42 @@ main.profile-edit {
     }
   }
 
-  .d-flex{
+  .d-flex {
     display: flex;
   }
 
-  .gender-dropdown{
+  @media @phone-only {
+    .row {
+      margin-bottom: .5rem;
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+    .row > div {
+      padding-right: 0;
+    }
+    div.emails {
+      .row {
+        margin-bottom: 0;
+      }
+      .row > div {
+        padding-right: 5px;
+        &:last-child {
+          padding-right: 0;
+        }
+      }
+      .btn {
+        margin-right: 0;
+      }
+    }
+    div.personal-links {
+      .row {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .gender-dropdown {
     margin-top: 5px;
     margin-bottom: 5px;
     &__control{
@@ -134,14 +163,9 @@ main.profile-edit {
   }
 
   .names {
-    .small-heading {
-      padding-left: 0;
-      padding-right: 0;
-      margin-bottom: 5px;
-    }
     &__value {
       padding-left: 0;
-      padding-right:5px;
+      padding-right: 5px;
       margin-bottom: 5px;
       input {
         text-overflow: ellipsis;
@@ -160,7 +184,7 @@ main.profile-edit {
   .emails {
     &__value {
       padding-left: 0;
-      padding-right:5px;
+      padding-right: 5px;
       margin-bottom: 5px;
       input {
         text-overflow: ellipsis;
@@ -197,15 +221,9 @@ main.profile-edit {
   }
 
   .history {
-
-    .small-heading {
-      padding-left: 0;
-      padding-right: 0;
-      margin-bottom: 5px;
-    }
     &__value {
       padding-left: 0;
-      padding-right:5px;
+      padding-right: 5px;
       margin-bottom: 5px;
       input {
         text-overflow: ellipsis;
@@ -221,7 +239,7 @@ main.profile-edit {
     padding-left: 15px;
   }
 
-  .position-dropdown, .institution-dropdown , .relation-dropdown{
+  .position-dropdown, .institution-dropdown , .relation-dropdown {
     margin-top: 5px;
     margin-bottom: 5px;
     &__control {
@@ -247,14 +265,9 @@ main.profile-edit {
   }
 
   .relation {
-    .small-heading {
-      padding-left: 0;
-      padding-right: 0;
-      margin-bottom: 5px;
-    }
     &__value {
       padding-left: 0;
-      padding-right:5px;
+      padding-right: 5px;
       margin-bottom: 5px;
     }
     &__multiple-select {
@@ -295,19 +308,14 @@ main.profile-edit {
   }
 
   .expertise {
-    .small-heading {
-      padding-left: 0;
-      padding-right: 0;
-      margin-bottom: 5px;
-    }
     &__value {
       padding-left: 0;
-      padding-right:5px;
+      padding-right: 5px;
       margin-bottom: 5px;
     }
     .glyphicon-minus-sign {
       margin-top: .5rem;
-      top:0
+      top: 0
     }
   }
 
@@ -334,10 +342,10 @@ main.profile-edit {
     margin-top: 1rem;
   }
 
-  .submit-button{
+  .submit-button {
     display: flex;
     margin-right: .25rem;
-    .spinner-small{
+    .spinner-small {
       width: 40px;
     }
   }

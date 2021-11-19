@@ -221,7 +221,7 @@ const RelationsSection = ({
   }, [relations])
 
   return (
-    <div className="relation relation-new">
+    <div className="container relation relation-new">
       {!isMobile && (
         <div className="row">
           <div className="small-heading col-md-2">Relation</div>

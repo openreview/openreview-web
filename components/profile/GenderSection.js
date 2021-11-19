@@ -11,7 +11,7 @@ const GenderSection = ({ profileGender, updateGender }) => {
   }, [gender])
 
   return (
-    <div className="container gender">
+    <div className="gender">
       <CreatableDropdown
         hideArrow
         classNamePrefix="gender-dropdown"

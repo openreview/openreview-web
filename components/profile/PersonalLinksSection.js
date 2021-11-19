@@ -83,8 +83,8 @@ const PersonalLinksSection = ({
 
       <div className="row">
         <div className="col-md-4 personal-links__column">
-          <div className="row ml-0">
-            <div className="small-heading">DBLP URL</div>
+          <div className="small-heading">
+            DBLP URL
             <a className="personal-links__faqlink" href="/faq#question-dblp-import" target="_blank" rel="noreferrer">
               <Icon name="info-sign" />
             </a>
@@ -92,8 +92,8 @@ const PersonalLinksSection = ({
           <PersonalLinkInput type="dblp" links={links} setLinks={setLinks} />
         </div>
         <div className="col-md-4 personal-links__column">
-          <div className="row ml-0">
-            <div className="small-heading" />
+          <div className="row ml-0 hidden-xs hidden-sm">
+            <div className="small-heading">&nbsp;</div>
           </div>
           {!hideDblpButton && (
             <button
@@ -125,8 +125,8 @@ const PersonalLinksSection = ({
           <PersonalLinkInput type="linkedin" links={links} setLinks={setLinks} />
         </div>
         <div className="col-md-4 personal-links__column">
-          <div className="row ml-0">
-            <div className="small-heading">Semantic Scholar URL</div>
+          <div className="small-heading">
+            Semantic Scholar URL
             <a className="personal-links__faqlink" href="/faq#question-semantic-scholar" target="_blank" rel="noreferrer">
               <Icon name="info-sign" />
             </a>

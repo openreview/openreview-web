@@ -124,8 +124,8 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
   }, [emails])
 
   return (
-    <div className="container emails">
-      <div>
+    <div>
+      <div className="container emails">
         {emails.map(emailObj => (
           <div className="row d-flex" key={emailObj.key}>
             <div className="col-md-4 emails__value">
