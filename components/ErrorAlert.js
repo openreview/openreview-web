@@ -1,6 +1,5 @@
 import Alert from './Alert'
 import Icon from './Icon'
-import { translateErrorDetails } from '../lib/utils'
 
 function ErrorAlert({ error }) {
   return (
