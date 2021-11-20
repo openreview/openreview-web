@@ -1467,9 +1467,9 @@ module.exports = (function() {
           showHeader: false,
           showFooter: false
         }));
-        $('#note-editor-modal').on('hidden.bs.modal',function(){
+        $('#note-editor-modal').on('hidden.bs.modal', function() {
           $('#note-editor-modal').find('div.note_editor.panel').remove();
-        })
+        });
 
         view.mkNoteEditor(existingNote, invitationObj, user, {
           onNoteEdited: function(result) {
@@ -1512,7 +1512,7 @@ module.exports = (function() {
             $('#note-editor-modal').modal('hide');
           },
           onCompleted: function($editor) {
-            if (!$editor) return
+            if (!$editor) return;
             $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append(
               '<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
                 '<span aria-hidden="true">&times;</span>' +

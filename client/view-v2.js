@@ -930,7 +930,7 @@ module.exports = (function() {
       primaryButtonText: actionText
     }));
 
-    $editReaders.addClass('note_editor ml-0 mr-0 mb-2');
+    $editReaders?.addClass('note_editor ml-0 mr-0 mb-2');
     $editSignaturesDropdown.addClass('note_editor ml-0 mr-0 mb-2');
     $('#confirm-delete-modal .modal-body').append($editReaders, $editSignaturesDropdown);
 
@@ -1071,17 +1071,18 @@ module.exports = (function() {
 
       var saveNote = function(formContent, invitation) {
         const editToPost = constructEdit({ formData: formContent, invitationObj: invitation });
-        Webfield2.post('/notes/edits', editToPost, { handleError: false }).then(function(result) {
+        Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(function(result) {
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
           }
           $noteEditor.remove();
           view.clearAutosaveData(autosaveStorageKeys);
-        }, function(error) {
+        }, function(jqXhr, textStatus) {
+          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
           if (params.onError) {
-            params.onError([error]);
+            params.onError([errorText]);
           } else {
-            promptError(error);
+            promptError(errorText);
           }
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
           $cancelButton.prop({ disabled: false });
@@ -1536,20 +1537,27 @@ module.exports = (function() {
       });
 
       var saveNote = function (formContent, existingNote, invitation) {
-        const editToPost = constructEdit({ formData: formContent, noteObj: existingNote, invitationObj: invitation });
-        Webfield2.post('/notes/edits', editToPost, { handleError: false }).then(function() {
-          if (params.onNoteEdited) {
-            Webfield2.get('/notes', { id: note.id }).then(function (result) {
-              params.onNoteEdited(result);
-            })
+        const editToPost = params.isEdit
+          ? constructUpdatedEdit(params.editToUpdate, invitation, formContent)
+          : constructEdit({ formData: formContent, noteObj: existingNote, invitationObj: invitation });
+        Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(function() {
+          if (params.onNoteEdited ) {
+            if (params.isEdit) {
+              params.onNoteEdited();
+            } else {
+              Webfield2.get('/notes', { id: note.id }).then(function (result) {
+                params.onNoteEdited(result);
+              })
+            }
           }
           $noteEditor.remove();
           view.clearAutosaveData(autosaveStorageKeys);
-        }, function(error) {
+        }, function(jqXhr, textStatus) {
+          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
           if (params.onError) {
-            params.onError([error]);
+            params.onError([errorText]);
           } else {
-            promptError(error);
+            promptError(errorText);
           }
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
           $cancelButton.prop({ disabled: false });
@@ -1697,6 +1705,40 @@ module.exports = (function() {
     return result
   }
 
+  constructUpdatedEdit = (edit, invitation, formContent) => {
+    const shouldSetValue = (fieldPath)=>{
+      const field = _.get(invitation, fieldPath)
+      if (!field || field?.value || field?.values) return false
+      return true
+    }
+
+    const editToPost = {}
+    Object.keys(invitation.edit).forEach((p) => {
+      editToPost[p] = edit[p]
+    })
+    editToPost.id = edit.id
+    editToPost.invitation = edit.invitation
+    if (shouldSetValue('edit.readers')) editToPost.readers = formContent.editReaderValues
+    if (shouldSetValue('edit.signatures')) editToPost.signatures = formContent.editSignatureInputValues
+    const editNote = {}
+    Object.keys(invitation.edit.note).forEach((p) => {
+      editNote[p] = edit.note[p]
+    })
+
+    if (invitation.edit.note?.content) {
+      editNote.content = Object.entries(invitation.edit.note.content).reduce((acc, [fieldName, fieldValue]) => {
+        acc[fieldName] = {
+          value: formContent[fieldName],
+          ...(shouldSetValue(`edit.note.content.${fieldName}.readers`) && { readers: edit.note?.content?.[fieldName]?.readers }),
+        }
+        return acc
+      }, {})
+    }
+    editToPost.note = editNote
+
+    return editToPost
+  }
+
   const validate = (invitation, formContent, readersWidget) => {
     const errorList = [];
     const invitationEditContent = invitation.edit?.note?.content;
@@ -1754,7 +1796,6 @@ module.exports = (function() {
     mkNewNoteEditor: mkNewNoteEditor,
     mkNoteEditor: mkNoteEditor,
     mkNotePanel: mkNotePanel,
-    // deleteOrRestoreNote: deleteOrRestoreNote,
   };
 
 }());
