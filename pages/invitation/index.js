@@ -183,7 +183,7 @@ $(function() {
         webfieldCode: generateWebfieldCode(invitation, ctx.query),
       }
     }
-    return { statusCode: 404, message: 'Invitation not found' }
+    return { statusCode: 404, message: `The Invitation ${ctx.query.id} was not found` }
   } catch (error) {
     if (error.name === 'forbidden' || error.name === 'ForbiddenError') {
       if (!accessToken) {

@@ -68,7 +68,7 @@ const UserModerationQueue = ({
       setTotalCount(result.count ?? 0)
       setProfiles(result.profiles ?? [])
     } catch (error) {
-      promptError(error.message)
+      promptError(error.message, { scrollToTop: false })
     }
   }
 
@@ -90,9 +90,9 @@ const UserModerationQueue = ({
     try {
       await api.post('/profile/moderate', { id: profileId, decision: 'accept' }, { accessToken })
       reload()
-      promptMessage(`${prettyId(profileId)} is now active`)
+      promptMessage(`${prettyId(profileId)} is now active`, { scrollToTop: false })
     } catch (error) {
-      promptError(error.message)
+      promptError(error.message, { scrollToTop: false })
     }
   }
 
@@ -111,7 +111,7 @@ const UserModerationQueue = ({
       $(`#${modalId}`).modal('hide')
       reload()
     } catch (error) {
-      promptError(error.message)
+      promptError(error.message, { scrollToTop: false })
     }
   }
 
@@ -123,7 +123,7 @@ const UserModerationQueue = ({
       try {
         await api.post('/profile/moderate', { id: profile.id, decision: actionIsBlock ? 'block' : 'unblock' }, { accessToken })
       } catch (error) {
-        promptError(error.message)
+        promptError(error.message, { scrollToTop: false })
       }
       reload()
     }

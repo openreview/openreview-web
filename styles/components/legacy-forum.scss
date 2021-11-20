@@ -118,6 +118,15 @@ main.legacy-forum {
     }
   }
 
+  #tab-message {
+    margin: .5rem 0;
+    @include mixins.markdown-content-styles;
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+  }
+
   .tooltip .tooltip-inner {
     max-width: none;
   }
