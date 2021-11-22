@@ -98,9 +98,9 @@ export const NoteV2 = ({ note, options }) => {
         <li>{forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content?.year?.value)}</li>
         <li>
           {/* eslint-disable-next-line no-nested-ternary */}
-          {note.note
-            ? prettyId(note.invitations[0]) // this is an edit
-            : note.content?.venue?.value ? note.content?.venue?.value : prettyId(note.invitations[0])}
+          {note.note || !note.content?.venue?.value // note.note indicates this is an edit
+            ? prettyId(note.invitations[0])
+            : note.content?.venue?.value}
           {privatelyRevealed && <Icon name="eye-open" extraClasses="note-visible-icon ml-2" tooltip="Privately revealed to you" />}
         </li>
         {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
