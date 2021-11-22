@@ -99,7 +99,7 @@ const RelationRow = ({
           onChange={e => setRelation({ type: endType, data: { value: e.target.value, key: relation.key } })}
         />
       </div>
-      <div className="col-md-1 relation__value">
+      <div className="col-md-1 relation__value additional-width-col">
         {isMobile && <div className="small-heading col-md-1">Visible to</div> }
         <MultiSelectorDropdown
           extraClass={`relation__multiple-select${isMobile ? ' relation__multiple-select-mobile' : ''}`}
@@ -109,7 +109,7 @@ const RelationRow = ({
           displayTextFn={getReaderText}
         />
       </div>
-      <div className="col-md-1 relation__value">
+      <div className="col-md-1 relation__value fixed-width-col">
         <div role="button" aria-label="remove relation" tabIndex={0} onClick={() => setRelation({ type: removeRelationType, data: { key: relation.key } })}>
           <Icon name="minus-sign" tooltip="remove relation" />
         </div>
