@@ -1467,7 +1467,9 @@ module.exports = (function() {
           showHeader: false,
           showFooter: false
         }));
-        $('#note-editor-modal').modal('show');
+        $('#note-editor-modal').on('hidden.bs.modal', function() {
+          $('#note-editor-modal').find('div.note_editor.panel').remove();
+        });
 
         view.mkNoteEditor(existingNote, invitationObj, user, {
           onNoteEdited: function(result) {
@@ -1517,6 +1519,7 @@ module.exports = (function() {
               '</button>',
               $editor
             );
+            $('#note-editor-modal').modal('show');
           }
         });
       });
