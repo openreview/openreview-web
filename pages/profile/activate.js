@@ -4,6 +4,7 @@
 import { useEffect, useState, useContext } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
+import omit from 'lodash/omit'
 import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import LegacyProfileEditor from '../../components/LegacyProfileEditor'
@@ -29,7 +30,7 @@ const ActivateProfile = ({ appContext }) => {
     try {
       const apiRes = await api.get(`/activatable/${token}`)
 
-      setProfile(formatProfileData(apiRes.profile, false, true))
+      setProfile(formatProfileData(apiRes.profile, false, process.env.USE_NEW_PROFILE_PAGE))
       setActivateToken(token)
     } catch (error) {
       promptError(error.message)
@@ -38,11 +39,13 @@ const ActivateProfile = ({ appContext }) => {
   }
 
   const saveProfile = async (newProfileData) => {
-    setLoading(true)
-    const dataToSubmit = {
+    const dataToSubmit = process.env.USE_NEW_PROFILE_PAGE ? {
       id: profile.id,
       content: newProfileData,
       signatures: [profile.id],
+    } : {
+      ...newProfileData,
+      content: omit(newProfileData.content, ['publicationIdsToUnlink']),
     }
     try {
       const { user, token } = await api.put(`/activate/${activateToken}`, dataToSubmit)
