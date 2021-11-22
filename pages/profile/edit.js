@@ -110,9 +110,7 @@ export default function ProfileEdit({ appContext }) {
     setBannerContent(viewProfileLink())
   }, [accessToken])
 
-  const USE_NEW_PROFILE_PAGE = Number.parseInt(process.env.USE_NEW_PROFILE_PAGE, 10)
-  const shouldUseLegacy = Number.isNaN(USE_NEW_PROFILE_PAGE) || Math.random() * 100 > USE_NEW_PROFILE_PAGE
-  if (shouldUseLegacy) return <ProfileEditLegacy appContext={appContext} />
+  if (!process.env.USE_NEW_PROFILE_PAGE) return <ProfileEditLegacy appContext={appContext} />
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
 

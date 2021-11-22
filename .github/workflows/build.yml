@@ -17,7 +17,7 @@ jobs:
       API_URL: http://localhost:3000
       NEXT_PORT: 3030
       SUPER_USER: openreview.net
-      USE_NEW_PROFILE_PAGE: 100
+      USE_NEW_PROFILE_PAGE: true
 
     runs-on: ubuntu-latest
 

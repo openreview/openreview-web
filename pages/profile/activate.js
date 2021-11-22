@@ -60,30 +60,29 @@ const ActivateProfile = ({ appContext }) => {
   }
 
   const renderProfileEditor = () => {
-    const USE_NEW_PROFILE_PAGE = Number(process.env.USE_NEW_PROFILE_PAGE)
-    const shouldUseLegacy = Number.isNaN(USE_NEW_PROFILE_PAGE) || Math.random() * 100 > USE_NEW_PROFILE_PAGE
-    if (shouldUseLegacy) {
+    if (process.env.USE_NEW_PROFILE_PAGE) {
       return (
-        <LegacyProfileEditor
-          profile={profile}
-          onSubmit={saveProfile}
+        <ProfileEditor
+          loadedProfile={profile}
           submitButtonText="Register for OpenReview"
+          submitHandler={saveProfile}
           hideCancelButton
           hideDblpButton
           hidePublicationEditor
+          loading={loading}
         />
       )
     }
     return (
-      <ProfileEditor
-        loadedProfile={profile}
+      <LegacyProfileEditor
+        profile={profile}
+        onSubmit={saveProfile}
         submitButtonText="Register for OpenReview"
-        submitHandler={saveProfile}
         hideCancelButton
         hideDblpButton
         hidePublicationEditor
-        loading={loading}
       />
+
     )
   }
 
