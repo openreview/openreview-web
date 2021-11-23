@@ -15,8 +15,6 @@ import RelationsSection from './RelationsSection'
 import api from '../../lib/api-client'
 import { isValidDomain, isValidEmail, isValidYear } from '../../lib/utils'
 
-import '../../styles/pages/profile-edit.less'
-
 export default function ProfileEditor({
   loadedProfile,
   submitButtonText,

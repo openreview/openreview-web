@@ -19,6 +19,7 @@
       "specialLink": ["hrefLeft", "hrefRight"],
       "aspects": ["invalidHref", "preferButton"]
     }],
+    "import/no-extraneous-dependencies": ["error", { "packageDir": "./" }],
     "@next/next/no-img-element": "off"
   }
 }

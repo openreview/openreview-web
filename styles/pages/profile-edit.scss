@@ -11,7 +11,7 @@ main.profile-edit {
     font-size: .875rem;
     font-weight: bold;
     line-height: 1rem;
-    color: @darkBlue;
+    color: constants.$darkBlue;
     display: inline-block;
   }
   section .small-heading {
@@ -25,18 +25,18 @@ main.profile-edit {
   }
 
   .invalid-value {
-    border-color: @orRed;
+    border-color: constants.$orRed;
   }
 
   p.instructions {
     font-size: .75rem;
-    color: @subtleGray;
+    color: constants.$subtleGray;
     max-width: 800px;
     margin-bottom: .5rem;
   }
 
   .glyphicon {
-    color: @mediumBlue;
+    color: constants.$mediumBlue;
     font-size: 1.25rem;
   }
 
@@ -103,7 +103,7 @@ main.profile-edit {
     display: flex;
   }
 
-  @media @phone-only {
+  @media #{constants.$phone-only} {
     .row {
       margin-bottom: .5rem;
       &:last-child {
@@ -134,12 +134,12 @@ main.profile-edit {
     }
   }
 
-  @media @desktop {
+  @media #{constants.$desktop} {
     .fixed-width-col {
       width: 35px;
     }
     .additional-width-col {
-      width: calc(16.66666% - ~'50px');
+      width: calc(16.66666% - 50px);
     }
   }
 
@@ -149,7 +149,7 @@ main.profile-edit {
     &__control{
       max-width: 500px;
       background-color: #fffaf4;
-      border: 2px solid lighten(@mediumBlue, 10%);
+      border: 2px solid lighten(constants.$mediumBlue, 10%);
       padding: 0 0.75rem;
     }
     &__value-container {
@@ -161,11 +161,11 @@ main.profile-edit {
 
     > div {
       cursor: pointer;
-      color: @subtleGray;
+      color: constants.$subtleGray;
       padding: 0.25rem .75rem;
     }
     .active {
-      background-color: @mediumBlue;
+      background-color: constants.$mediumBlue;
       color: #fff;
       outline: 0px solid transparent;
     }
@@ -181,7 +181,7 @@ main.profile-edit {
       }
     }
     &__tilde-id {
-      color: @subtleGray;
+      color: constants.$subtleGray;
       font-size: .75rem;
       margin-right: .5rem;
       margin-top: .5rem;
@@ -253,17 +253,17 @@ main.profile-edit {
     margin-bottom: 5px;
     &__control {
       background-color: #fffaf4;
-      border: 2px solid lighten(@mediumBlue, 10%);
+      border: 2px solid lighten(constants.$mediumBlue, 10%);
       padding: 0, 0.75rem;
     }
 
     > div {
       cursor: pointer;
-      color: @subtleGray;
+      color: constants.$subtleGray;
       padding: 0.25rem .75rem;
     }
     .active {
-      background-color: @mediumBlue;
+      background-color: constants.$mediumBlue;
       color: #fff;
       outline: 0px solid transparent;
     }
