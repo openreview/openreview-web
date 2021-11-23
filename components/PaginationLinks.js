@@ -74,7 +74,7 @@ export default function PaginationLinks({
               e.preventDefault()
               if (!page.active) {
                 setCurrentPage(page.number)
-                window.scrollTo(0, 0)
+                if (!options.noScroll) window.scrollTo(0, 0)
               }
             }
             pageLink = (
