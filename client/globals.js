@@ -24,7 +24,7 @@ window.parseUrlParams = function(urlStr) {
 
 window.translateErrorMessage = function(error) {
   var topic = error && error.path ? [view.iTerm(error.path)] : '';
-  var buildFeebackModalLink = function(linkText, formFields) {
+  var buildFeebackModalLink = function(linkText, formFields) { // to remove when profile edit pr is ok
     return $('<a>', {
       href: '#',
       class: 'action-link',
@@ -109,14 +109,6 @@ window.generalPrompt = function(type, content, options) {
 
   clearTimeout(flashMessageTimer);
 
-  var elemsToRemove = [
-    '.alert-content span.important_message',
-    '.alert-content span.important_term',
-    '.alert-content strong',
-    '.alert-content .action-link'
-  ];
-  $outer.find(elemsToRemove.join(', ')).remove();
-
   var msgHtml;
   if (options.html) {
     msgHtml = content;
@@ -126,6 +118,7 @@ window.generalPrompt = function(type, content, options) {
   } else {
     msgHtml = view.iMess(content);
   }
+  $outer.find('.alert-content').empty()
   $outer.find('.alert-content').append(msgHtml);
   $outer.slideDown();
 
