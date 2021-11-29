@@ -956,7 +956,7 @@ const GroupUICodeEditor = ({ group, accessToken, reloadGroup }) => {
       {showCodeEditor ? (
         <>
           {/* eslint-disable-next-line max-len */}
-          <CodeEditor code={code} onChange={modifiedCode => setModifiedWebCode(modifiedCode)} isJavascript scrollIntoView />
+          <CodeEditor code={code} onChange={modifiedCode => setModifiedWebCode(modifiedCode)} scrollIntoView />
           <div className="mt-2">
             <button type="button" className="btn btn-primary" onClick={handleUpdateCodeClick} disabled={code === modifiedWebCode || isSaving}>
               {isSaving ? (
