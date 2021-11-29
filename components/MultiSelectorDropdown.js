@@ -1,5 +1,11 @@
 export default function MultiSelectorDropdown({
-  id, options, selectedValues, setSelectedValues, disabled,
+  id,
+  options,
+  selectedValues,
+  setSelectedValues,
+  disabled,
+  extraClass = undefined,
+  displayTextFn = undefined,
 }) {
   const allValues = options.map(f => f.value)
   const numOptions = allValues.length
@@ -21,6 +27,7 @@ export default function MultiSelectorDropdown({
   }
 
   const getButtonText = () => {
+    if (displayTextFn) return displayTextFn(selectedValues)
     if (selectedValues.length === numOptions) return 'All'
     if (selectedValues.length === 0) return 'None'
     if (selectedValues.length === 1) return selectedValues[0]
@@ -28,7 +35,7 @@ export default function MultiSelectorDropdown({
   }
 
   return (
-    <div className="multiselector dropdown">
+    <div className={`multiselector dropdown ${extraClass}`}>
       <button
         className="form-control dropdown-toggle"
         type="button"
@@ -62,7 +69,7 @@ export default function MultiSelectorDropdown({
                 checked={selectedValues.includes(option.value)}
                 onChange={e => handleSelectValueChange(e.target.value)}
               />
-              {option.text}
+              {option.label}
             </label>
           </li>
         ))}
