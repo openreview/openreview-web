@@ -89,6 +89,7 @@ export default function ProfileEntity(props) {
       const result = await api.post('/edges', body, { accessToken, version })
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
+        props.reloadColumnEntities()
       } else {
         if (isCustomLoadInvitation) props.updateChildColumn(props.columnIndex, null)
         props.reloadColumnEntities()
@@ -152,6 +153,7 @@ export default function ProfileEntity(props) {
       const result = await api.post('/edges', body, { accessToken, version })
       if (isTraverseInvitation) {
         props.addEdgeToEntity(id, result)
+        props.reloadColumnEntities()
       } else {
         if (isCustomLoadInvitation) props.updateChildColumn(props.columnIndex, updatedEdgeFields?.weight)
         props.reloadColumnEntities()
