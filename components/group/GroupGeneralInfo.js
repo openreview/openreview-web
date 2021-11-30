@@ -100,31 +100,31 @@ const GroupGeneralInfoEdit = ({
 
   return (
     <div className="edit-container">
-        <div className="row">
-          <div className="edit-container__label">Readers:</div>
-          <div className="edit-container__control">
-            <input className="form-control" value={generalInfo.readers} onChange={e => setGeneralInfo({ type: 'readers', value: e.target.value })} />
-          </div>
+      <div className="row">
+        <div className="edit-container__label">Readers:</div>
+        <div className="edit-container__control">
+          <input className="form-control" value={generalInfo.readers} onChange={e => setGeneralInfo({ type: 'readers', value: e.target.value })} />
         </div>
-        <div className="row">
-          <div className="edit-container__label">Non-Readers:</div>
-          <div className="edit-container__control">
-            <input className="form-control" value={generalInfo.nonreaders} onChange={e => setGeneralInfo({ type: 'nonreaders', value: e.target.value })} />
-          </div>
+      </div>
+      <div className="row">
+        <div className="edit-container__label">Non-Readers:</div>
+        <div className="edit-container__control">
+          <input className="form-control" value={generalInfo.nonreaders} onChange={e => setGeneralInfo({ type: 'nonreaders', value: e.target.value })} />
         </div>
-        <div className="row">
-          <div className="edit-container__label">Writers:</div>
-          <div className="edit-container__control">
-            <input className="form-control" value={generalInfo.writers} onChange={e => setGeneralInfo({ type: 'writers', value: e.target.value })} />
-          </div>
+      </div>
+      <div className="row">
+        <div className="edit-container__label">Writers:</div>
+        <div className="edit-container__control">
+          <input className="form-control" value={generalInfo.writers} onChange={e => setGeneralInfo({ type: 'writers', value: e.target.value })} />
         </div>
-        <div className="row">
-          <div className="edit-container__label">Signatories:</div>
-          <div className="edit-container__control">
-            <input className="form-control" value={generalInfo.signatories} onChange={e => setGeneralInfo({ type: 'signatories', value: e.target.value })} />
-          </div>
+      </div>
+      <div className="row">
+        <div className="edit-container__label">Signatories:</div>
+        <div className="edit-container__control">
+          <input className="form-control" value={generalInfo.signatories} onChange={e => setGeneralInfo({ type: 'signatories', value: e.target.value })} />
         </div>
-        {
+      </div>
+      {
           isSuperUser && (
             <>
               <div className="row">
@@ -148,14 +148,14 @@ const GroupGeneralInfoEdit = ({
             </>
           )
         }
-        <div className="row">
-          <div className="edit-container__label" />
-          <div className="edit-container__control">
-            <button type="button" className="btn btn-sm btn-primary" onClick={() => saveGeneralInfo(generalInfo)}>Save Group</button>
-            <button type="button" className="btn btn-sm btn-default ml-1" onClick={() => setEdit(false)}>Cancel</button>
-          </div>
+      <div className="row">
+        <div className="edit-container__label" />
+        <div className="edit-container__control">
+          <button type="button" className="btn btn-sm btn-primary" onClick={() => saveGeneralInfo(generalInfo)}>Save Group</button>
+          <button type="button" className="btn btn-sm btn-default ml-1" onClick={() => setEdit(false)}>Cancel</button>
         </div>
       </div>
+    </div>
   )
 }
 

@@ -1,12 +1,14 @@
-import { nanoid } from "nanoid"
-import GroupGeneralInfo from "./GroupGeneralInfo"
-import GroupMembers from "./GroupMembers"
-import GroupSignedNotes from "./GroupSignedNotes"
-import GroupChildGroups from "./GroupChildGroups"
-import GroupRelatedInvitations from "./GroupRelatedInvitations"
-import GroupUICode from "./GroupUICode"
+import { nanoid } from 'nanoid'
+import GroupGeneralInfo from './GroupGeneralInfo'
+import GroupMembers from './GroupMembers'
+import GroupSignedNotes from './GroupSignedNotes'
+import GroupChildGroups from './GroupChildGroups'
+import GroupRelatedInvitations from './GroupRelatedInvitations'
+import GroupUICode from './GroupUICode'
 
-const GroupEditor = ({ group, isSuperUser, accessToken, reloadGroup }) => {
+const GroupEditor = ({
+  group, isSuperUser, accessToken, reloadGroup,
+}) => {
   if (!group) return null
 
   return (

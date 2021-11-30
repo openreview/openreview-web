@@ -1,9 +1,9 @@
 /* globals promptError: false */
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import { getGroupVersion, prettyId } from "../../lib/utils"
-import api from "../../lib/api-client"
-import PaginationLinks from "../PaginationLinks"
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { getGroupVersion, prettyId } from '../../lib/utils'
+import api from '../../lib/api-client'
+import PaginationLinks from '../PaginationLinks'
 
 const RelatedInvitationRow = ({ relatedInvitation }) => (
   <li>
@@ -22,15 +22,15 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
   const loadRelatedInvitations = async (limit = 15, offset = 0) => {
     try {
       const result = await api.get(
-        "/invitations",
+        '/invitations',
         {
           regex: `${groupId}/-/.*`,
           expired: true,
-          type: "all",
+          type: 'all',
           limit,
-          offset
+          offset,
         },
-        { accessToken, version: groupVersion }
+        { accessToken, version: groupVersion },
       )
       setTotalCount(result.count)
       setRelatedInvitations(result.invitations)
@@ -39,8 +39,7 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
     }
   }
 
-  const getTitle = () =>
-    `Related Invitations ${totalCount ? `(${totalCount})` : ""}`
+  const getTitle = () => `Related Invitations ${totalCount ? `(${totalCount})` : ''}`
 
   useEffect(() => {
     loadRelatedInvitations()

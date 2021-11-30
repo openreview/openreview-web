@@ -1,22 +1,24 @@
 /* globals DOMPurify,marked,$,promptError,promptMessage: false */
-import React, { useEffect, useReducer, useRef, useState } from "react"
-import Link from "next/link"
-import api from "../../lib/api-client"
-import { getGroupVersion, prettyId, urlFromGroupId } from "../../lib/utils"
-import BasicModal from "../BasicModal"
-import MarkdownPreviewTab from "../MarkdownPreviewTab"
-import ProgressBar from "../ProgressBar"
-import PaginationLinks from "../PaginationLinks"
-import Icon from "../Icon"
+import React, {
+  useEffect, useReducer, useRef, useState,
+} from 'react'
+import Link from 'next/link'
+import api from '../../lib/api-client'
+import { getGroupVersion, prettyId, urlFromGroupId } from '../../lib/utils'
+import BasicModal from '../BasicModal'
+import MarkdownPreviewTab from '../MarkdownPreviewTab'
+import ProgressBar from '../ProgressBar'
+import PaginationLinks from '../PaginationLinks'
+import Icon from '../Icon'
 
 const MessageMemberModal = ({
   groupId,
   membersToMessage,
   accessToken,
-  setJobId
+  setJobId,
 }) => {
   const [subject, setSubject] = useState(`Message to ${prettyId(groupId)}`)
-  const [message, setMessage] = useState("")
+  const [message, setMessage] = useState('')
   const [error, setError] = useState(null)
 
   const sendMessage = async () => {
@@ -24,29 +26,27 @@ const MessageMemberModal = ({
     if (subject && sanitizedMessage) {
       try {
         const result = await api.post(
-          "/messages",
+          '/messages',
           {
             groups: membersToMessage,
             subject,
             message: sanitizedMessage,
             parentGroup: groupId,
-            useJob: true
+            useJob: true,
           },
-          { accessToken }
+          { accessToken },
         )
         setJobId(result.jobId)
         setSubject(`Message to ${prettyId(groupId)}`)
-        setMessage("")
+        setMessage('')
         // Save the timestamp in the local storage (used in PC console)
-        membersToMessage.forEach(member =>
-          localStorage.setItem(`${groupId}|${member}`, Date.now())
-        )
-        $("#message-group-members").modal("hide")
+        membersToMessage.forEach(member => localStorage.setItem(`${groupId}|${member}`, Date.now()))
+        $('#message-group-members').modal('hide')
         return
       } catch (e) {
         promptError(e.message)
       }
-      setError("Email Subject and Body are required to send messages.")
+      setError('Email Subject and Body are required to send messages.')
     }
   }
   return (
@@ -55,7 +55,7 @@ const MessageMemberModal = ({
       title="Message Group Members"
       primaryButtonText="Send Messages"
       onPrimaryButtonClick={sendMessage}
-      onClose={() => setMessage("")}
+      onClose={() => setMessage('')}
     >
       {error && <div className="alert alert-danger">{error}</div>}
       <p>
@@ -64,8 +64,8 @@ const MessageMemberModal = ({
       </p>
       <div className="well receiver-list">
         {membersToMessage
-          .map(p => (p.includes("@") ? p : prettyId(p)))
-          ?.join(", ")}
+          .map(p => (p.includes('@') ? p : prettyId(p)))
+          ?.join(', ')}
       </div>
       <div id="message-group-members-form">
         <div className="form-group">
@@ -113,9 +113,9 @@ const StatusMessage = ({ statusParam }) => {
     totalSent,
     queued,
     totalQueued,
-    isQueuing
+    isQueuing,
   } = statusParam
-  if (status.status === "ok") {
+  if (status.status === 'ok') {
     return (
       <>
         <strong>{`All ${totalSent} emails have been sent`}</strong>
@@ -133,13 +133,17 @@ const StatusMessage = ({ statusParam }) => {
   if (isQueuing) {
     return (
       <>
-        <strong>Queuing emails:</strong> {`${queued} / ${totalQueued} complete`}
+        <strong>Queuing emails:</strong>
+        {' '}
+        {`${queued} / ${totalQueued} complete`}
       </>
     )
   }
   return (
     <>
-      <strong>Sending emails:</strong> {`${sent} / ${totalSent} complete`}
+      <strong>Sending emails:</strong>
+      {' '}
+      {`${sent} / ${totalSent} complete`}
     </>
   )
 }
@@ -153,26 +157,26 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
   const [statusObj, setStatusObj] = useState({})
 
   const getJobStatus = async () => {
-    if (retryCount > 5 || statusObj.status?.status === "ok") return
+    if (retryCount > 5 || statusObj.status?.status === 'ok') return
     try {
       const result = await api.get(
-        "/logs/process",
+        '/logs/process',
         { id: jobId },
-        { accessToken }
+        { accessToken },
       )
       if (!result.logs?.length) {
         setErrorText(
-          "Error: Email progress could not be loaded. See link below for more details."
+          'Error: Email progress could not be loaded. See link below for more details.',
         )
-        setVariant("danger")
+        setVariant('danger')
         setNow(100)
         setRetryCount(count => count + 1)
         return
       }
       const status = result.logs[0]
-      if (status.status === "error") {
+      if (status.status === 'error') {
         setErrorText(`Error: ${status.error.message}`)
-        setVariant("danger")
+        setVariant('danger')
         setNow(100)
         return
       }
@@ -187,7 +191,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
       const isQueuing = queued < totalQueued
       const percentComplete = Math.round(
         (isQueuing ? queued / totalQueued : sent / totalSent) * 100,
-        2
+        2,
       )
       setStatusObj({
         status,
@@ -195,7 +199,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
         totalSent,
         queued,
         totalQueued,
-        isQueuing
+        isQueuing,
       })
       setNow(percentComplete)
     } catch (error) {
@@ -206,7 +210,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
 
   useEffect(() => {
     if (!jobId) return
-    sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+    sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     setNow(0)
     setVariant(null)
     setStatusObj({})
@@ -239,51 +243,43 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
 
 const GroupMembers = ({ group, accessToken }) => {
   const membersPerPage = 15
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState('')
   const [memberAnonIds, setMemberAnonIds] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const [jobId, setJobId] = useState(null)
   const groupMemberReducer = (state, action) => {
     switch (action.type) {
-      case "SELECT":
-        return state.map(p =>
-          p.id === action.payload ? { ...p, isSelected: true } : p
-        )
-      case "UNSELECT":
-        return state.map(p =>
-          p.id === action.payload ? { ...p, isSelected: false } : p
-        )
-      case "DELETE":
-        return state.map(p =>
-          action.payload.includes(p.id)
-            ? { ...p, isDeleted: true, isSelected: false }
-            : {
-                ...p,
-                isSelected: action.payload.length === 1 ? p.isSelected : false
-              }
-        )
-      case "ADD":
+      case 'SELECT':
+        return state.map(p => (p.id === action.payload ? { ...p, isSelected: true } : p))
+      case 'UNSELECT':
+        return state.map(p => (p.id === action.payload ? { ...p, isSelected: false } : p))
+      case 'DELETE':
+        return state.map(p => (action.payload.includes(p.id)
+          ? { ...p, isDeleted: true, isSelected: false }
+          : {
+            ...p,
+            isSelected: action.payload.length === 1 ? p.isSelected : false,
+          }))
+      case 'ADD':
         // eslint-disable-next-line no-use-before-define
         setCurrentPage(1)
         return [
           ...action.payload.newMembers?.map(p => ({
             id: p,
             isSelected: false,
-            isDeleted: false
+            isDeleted: false,
           })),
           ...state.map(p => ({
             ...p,
             isSelected: false,
             isDeleted: action.payload.existingDeleted.includes(p.id)
               ? false
-              : p.isDeleted
-          }))
+              : p.isDeleted,
+          })),
         ]
-      case "RESTORE":
-        return state.map(p =>
-          action.payload.includes(p.id) ? { ...p, isDeleted: false } : p
-        )
-      case "SELECTDESELECTALL":
+      case 'RESTORE':
+        return state.map(p => (action.payload.includes(p.id) ? { ...p, isDeleted: false } : p))
+      case 'SELECTDESELECTALL':
         // eslint-disable-next-line no-case-declarations
         const allSelected = state.every(p => p.isSelected)
         return state.map(p => ({ ...p, isSelected: !allSelected }))
@@ -296,8 +292,8 @@ const GroupMembers = ({ group, accessToken }) => {
     group.members.map(p => ({
       id: p,
       isDeleted: false,
-      isSelected: false
-    }))
+      isSelected: false,
+    })),
   )
   const [filteredMembers, setFilteredMembers] = useState(groupMembers)
   const [memberToMessage, setMemberToMessage] = useState([])
@@ -305,26 +301,25 @@ const GroupMembers = ({ group, accessToken }) => {
   const [displayedMembers, setDisplayedMembers] = useState(
     filteredMembers.length > membersPerPage
       ? filteredMembers.slice(0, membersPerPage)
-      : filteredMembers
+      : filteredMembers,
   )
   const showMembers = filteredMembers?.length > 0
 
   const getTitle = () => {
-    if (filteredMembers.length <= 3) return "Group Members"
+    if (filteredMembers.length <= 3) return 'Group Members'
     const selectedMembers = groupMembers.filter(p => p.isSelected)
-    if (selectedMembers.length)
-      return `Group Members (${filteredMembers.length} total, ${selectedMembers.length} selected)`
+    if (selectedMembers.length) { return `Group Members (${filteredMembers.length} total, ${selectedMembers.length} selected)` }
     return `Group Members (${filteredMembers.length})`
   }
 
   const deleteMember = async (memberId) => {
     try {
       await api.delete(
-        "/groups/members",
+        '/groups/members',
         { id: group.id, members: [memberId] },
-        { accessToken, version: getGroupVersion(group.id) }
+        { accessToken, version: getGroupVersion(group.id) },
       )
-      setGroupMembers({ type: "DELETE", payload: [memberId] })
+      setGroupMembers({ type: 'DELETE', payload: [memberId] })
     } catch (error) {
       promptError(error.message)
     }
@@ -333,11 +328,11 @@ const GroupMembers = ({ group, accessToken }) => {
   const restoreMember = async (memberId) => {
     try {
       await api.put(
-        "/groups/members",
+        '/groups/members',
         { id: group.id, members: [memberId] },
-        { accessToken, version: getGroupVersion(group.id) }
+        { accessToken, version: getGroupVersion(group.id) },
       )
-      setGroupMembers({ type: "RESTORE", payload: [memberId] })
+      setGroupMembers({ type: 'RESTORE', payload: [memberId] })
     } catch (error) {
       promptError(error.message)
     }
@@ -345,62 +340,61 @@ const GroupMembers = ({ group, accessToken }) => {
 
   const handleAddButtonClick = async (term) => {
     if (!term.trim()) {
-      promptError("No member to add")
+      promptError('No member to add')
       return
     }
-    const membersToAdd = term.split(",").flatMap(p => {
-      if (p.includes("@")) return p.trim().toLowerCase()
+    const membersToAdd = term.split(',').flatMap((p) => {
+      if (p.includes('@')) return p.trim().toLowerCase()
       if (p.trim()) return p.trim()
       return []
     })
     if (!membersToAdd.length) {
-      promptError("No member to add")
+      promptError('No member to add')
       return
     }
     // could be new member, existing deleted member or existing active member
     const newMembers = membersToAdd.filter(
-      p => !groupMembers.find(q => q.id === p)
+      p => !groupMembers.find(q => q.id === p),
     )
     const existingDeleted = membersToAdd.filter(
-      p => groupMembers.find(q => q.id === p)?.isDeleted
+      p => groupMembers.find(q => q.id === p)?.isDeleted,
     )
     const existingActive = membersToAdd.filter(
-      p =>
-        groupMembers.find(q => q.id === p) &&
-        !groupMembers.find(q => q.id === p).isDeleted
+      p => groupMembers.find(q => q.id === p)
+        && !groupMembers.find(q => q.id === p).isDeleted,
     )
 
     const newMembersMessage = newMembers.length
       ? `${newMembers.length} new member${
-          newMembers.length > 1 ? "s" : ""
-        } added`
-      : "No new member to add."
+        newMembers.length > 1 ? 's' : ''
+      } added`
+      : 'No new member to add.'
     const existingDeletedMessage = existingDeleted.length
       ? `${existingDeleted.length} previously deleted member${
-          existingDeleted.length > 1 ? "s" : ""
-        } restored.`
-      : ""
+        existingDeleted.length > 1 ? 's' : ''
+      } restored.`
+      : ''
     const existingActiveMessage = existingActive.length
       ? `${existingActive.length} member${
-          existingActive.length > 1 ? "s" : ""
-        } already exist.`
-      : ""
+        existingActive.length > 1 ? 's' : ''
+      } already exist.`
+      : ''
 
     try {
       await api.put(
-        "/groups/members",
+        '/groups/members',
         { id: group.id, members: [...newMembers, ...existingDeleted] },
-        { accessToken, version: getGroupVersion(group.id) }
+        { accessToken, version: getGroupVersion(group.id) },
       )
-      setSearchTerm("")
+      setSearchTerm('')
       setGroupMembers({
-        type: "ADD",
-        payload: { newMembers, existingDeleted }
+        type: 'ADD',
+        payload: { newMembers, existingDeleted },
       })
       // eslint-disable-next-line no-use-before-define
       getMemberAnonIds()
       promptMessage(
-        `${newMembersMessage} ${existingDeletedMessage} ${existingActiveMessage}`
+        `${newMembersMessage} ${existingDeletedMessage} ${existingActiveMessage}`,
       )
     } catch (error) {
       promptError(error.message)
@@ -409,7 +403,7 @@ const GroupMembers = ({ group, accessToken }) => {
 
   const handleRemoveSelectedButtonClick = async () => {
     if (!groupMembers.some(p => p.isSelected)) {
-      promptMessage("No member is selected")
+      promptMessage('No member is selected')
       return
     }
     const membersToRemove = groupMembers
@@ -417,11 +411,11 @@ const GroupMembers = ({ group, accessToken }) => {
       .map(p => p.id)
     try {
       await api.delete(
-        "/groups/members",
+        '/groups/members',
         { id: group.id, members: membersToRemove },
-        { accessToken, version: getGroupVersion(group.id) }
+        { accessToken, version: getGroupVersion(group.id) },
       )
-      setGroupMembers({ type: "DELETE", payload: membersToRemove })
+      setGroupMembers({ type: 'DELETE', payload: membersToRemove })
     } catch (error) {
       promptError(error.message)
     }
@@ -429,16 +423,16 @@ const GroupMembers = ({ group, accessToken }) => {
 
   const getMemberAnonIds = async () => {
     try {
-      const anonGroupRegex = group.id.endsWith("s")
+      const anonGroupRegex = group.id.endsWith('s')
         ? `${group.id.slice(0, -1)}_`
         : `${group.id}_`
       const result = await api.get(
         `/groups?regex=${anonGroupRegex}`,
         {},
-        { accessToken, version: getGroupVersion(group.id) }
+        { accessToken, version: getGroupVersion(group.id) },
       )
       setMemberAnonIds(
-        result.groups.map(p => ({ member: p.members, anonId: p.id }))
+        result.groups.map(p => ({ member: p.members, anonId: p.id })),
       )
     } catch (error) {
       promptError(error.message)
@@ -448,32 +442,28 @@ const GroupMembers = ({ group, accessToken }) => {
   const messageMember = (members) => {
     setJobId(null)
     setMemberToMessage(members)
-    $("#message-group-members").modal("show")
+    $('#message-group-members').modal('show')
   }
 
   useEffect(() => {
-    const filterResult = groupMembers.filter(p =>
-      p.id.toLowerCase().includes(searchTerm.trim().toLowerCase())
-    )
+    const filterResult = groupMembers.filter(p => p.id.toLowerCase().includes(searchTerm.trim().toLowerCase()))
     setFilteredMembers(filterResult)
     setDisplayedMembers(
       filterResult.length > membersPerPage
         ? filterResult.slice(0, membersPerPage)
-        : filterResult
+        : filterResult,
     )
     setCurrentPage(1)
   }, [searchTerm])
 
   useEffect(() => {
-    const filterResult = groupMembers.filter(p =>
-      p.id.toLowerCase().includes(searchTerm.trim().toLowerCase())
-    )
+    const filterResult = groupMembers.filter(p => p.id.toLowerCase().includes(searchTerm.trim().toLowerCase()))
     setFilteredMembers(filterResult)
     setDisplayedMembers(
       filterResult.slice(
         (currentPage - 1) * membersPerPage,
-        currentPage * membersPerPage
-      )
+        currentPage * membersPerPage,
+      ),
     )
   }, [currentPage, groupMembers])
 
@@ -509,7 +499,7 @@ const GroupMembers = ({ group, accessToken }) => {
           <button
             type="button"
             className="btn btn-sm btn-primary"
-            onClick={() => setGroupMembers({ type: "SELECTDESELECTALL" })}
+            onClick={() => setGroupMembers({ type: 'SELECTDESELECTALL' })}
           >
             Select All
           </button>
@@ -517,11 +507,9 @@ const GroupMembers = ({ group, accessToken }) => {
             type="button"
             className="btn btn-sm btn-primary"
             disabled={!groupMembers.some(p => p.isSelected)}
-            onClick={() =>
-              messageMember(
-                groupMembers.filter(p => p.isSelected)?.map(q => q.id)
-              )
-            }
+            onClick={() => messageMember(
+                groupMembers.filter(p => p.isSelected)?.map(q => q.id),
+            )}
           >
             Message Selected
           </button>
@@ -536,14 +524,14 @@ const GroupMembers = ({ group, accessToken }) => {
         </div>
         {showMembers ? (
           <>
-            {displayedMembers.map(member => {
+            {displayedMembers.map((member) => {
               // eslint-disable-next-line eqeqeq
               const hasAnonId = memberAnonIds.find(p => p.member == member.id)
               return (
                 <React.Fragment key={member.id}>
                   <div
                     className={`member-row ${
-                      member.isDeleted ? "deleted" : ""
+                      member.isDeleted ? 'deleted' : ''
                     }`}
                     key={member}
                   >
@@ -551,16 +539,16 @@ const GroupMembers = ({ group, accessToken }) => {
                       type="checkbox"
                       checked={member.isSelected}
                       disabled={member.isDeleted}
-                      onChange={e => {
+                      onChange={(e) => {
                         if (e.target.checked) {
                           setGroupMembers({
-                            type: "SELECT",
-                            payload: member.id
+                            type: 'SELECT',
+                            payload: member.id,
                           })
                         } else {
                           setGroupMembers({
-                            type: "UNSELECT",
-                            payload: member.id
+                            type: 'UNSELECT',
+                            payload: member.id,
                           })
                         }
                       }}
@@ -571,13 +559,18 @@ const GroupMembers = ({ group, accessToken }) => {
                       </Link>
                       {hasAnonId && (
                         <>
-                          {" | "}
+                          {' | '}
                           <Link href={urlFromGroupId(hasAnonId.anonId)}>
                             <a>{prettyId(hasAnonId.anonId)}</a>
                           </Link>
                         </>
                       )}
-                      {member.isDeleted && <> {"(Deleted)"}</>}
+                      {member.isDeleted && (
+                      <>
+                        {' '}
+                        {'(Deleted)'}
+                      </>
+                      )}
                     </span>
                     {member.isDeleted ? (
                       <button
@@ -624,7 +617,7 @@ const GroupMembers = ({ group, accessToken }) => {
           <div className="empty-message-row">
             {searchTerm
               ? `No members matching the search "${searchTerm}" found. Click Add to Group above to add a new member.`
-              : "No members to display"}
+              : 'No members to display'}
           </div>
         )}
       </div>
