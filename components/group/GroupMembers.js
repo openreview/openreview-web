@@ -247,7 +247,17 @@ const GroupMembers = ({ group, accessToken }) => {
   const [memberAnonIds, setMemberAnonIds] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const [jobId, setJobId] = useState(null)
-  const groupMemberReducer = (state, action) => {
+  const [groupMembers, setGroupMembers] = useReducer(
+    // eslint-disable-next-line no-use-before-define
+    groupMemberReducer,
+    group.members.map(p => ({
+      id: p,
+      isDeleted: false,
+      isSelected: false,
+    })),
+  )
+  const [filteredMembers, setFilteredMembers] = useState(groupMembers)
+  function groupMemberReducer(state, action) {
     switch (action.type) {
       case 'SELECT':
         return state.map(p => (p.id === action.payload ? { ...p, isSelected: true } : p))
@@ -281,26 +291,24 @@ const GroupMembers = ({ group, accessToken }) => {
         return state.map(p => (action.payload.includes(p.id) ? { ...p, isDeleted: false } : p))
       case 'SELECTDESELECTALL':
         // eslint-disable-next-line no-case-declarations
-        const allSelected = state
+        const filterdMembers = state.filter(p => p.id.toLowerCase().includes(searchTerm.trim().toLowerCase()))
+        // eslint-disable-next-line no-case-declarations
+        const allSelected = filterdMembers
           .filter(p => !p.isDeleted)
           .every(p => p.isSelected)
-        return state.map(p => ({
-          ...p,
-          isSelected: p.isDeleted ? false : !allSelected,
-        }))
+        return state.map((p) => {
+          const isSelected = filterdMembers.find(q => q.id === p.id) && !p.isDeleted
+            ? !allSelected
+            : p.isSelected
+          return {
+            ...p,
+            isSelected,
+          }
+        })
       default:
         return state
     }
   }
-  const [groupMembers, setGroupMembers] = useReducer(
-    groupMemberReducer,
-    group.members.map(p => ({
-      id: p,
-      isDeleted: false,
-      isSelected: false,
-    })),
-  )
-  const [filteredMembers, setFilteredMembers] = useState(groupMembers)
   const [memberToMessage, setMemberToMessage] = useState([])
   // eslint-disable-next-line max-len
   const [displayedMembers, setDisplayedMembers] = useState(
@@ -309,15 +317,17 @@ const GroupMembers = ({ group, accessToken }) => {
       : filteredMembers,
   )
   const showMembers = filteredMembers?.length > 0
-  const isAllSelected = groupMembers
-    .filter(p => !p.isDeleted).length && groupMembers.filter(p => !p.isDeleted).every(p => p.isSelected)
-  const isGroupEmpty = groupMembers.filter(p => !p.isDeleted).length === 0
+  const isAllFilterdSelected = filteredMembers
+    .filter(p => !p.isDeleted).length && filteredMembers.filter(p => !p.isDeleted).every(p => p.isSelected)
+  const isFilteredEmpty = filteredMembers.filter(p => !p.isDeleted).length === 0
 
   const getTitle = () => {
     if (filteredMembers.length <= 3) return 'Group Members'
     const selectedMembers = groupMembers.filter(p => p.isSelected)
-    if (selectedMembers.length) { return `Group Members (${filteredMembers.length} total, ${selectedMembers.length} selected)` }
-    return `Group Members (${filteredMembers.length})`
+    const groupMemberActive = groupMembers.filter(p => !p.isDeleted)
+    const filteredMembersActive = filteredMembers.filter(p => !p.isDeleted)
+    const isFiltered = filteredMembersActive.length !== groupMemberActive.length
+    return `Group Members (${groupMemberActive.length} total${isFiltered ? `,${filteredMembersActive.length} displayed` : ''}${selectedMembers.length ? `,${selectedMembers.length} selected` : ''})`
   }
 
   const deleteMember = async (memberId) => {
@@ -508,10 +518,10 @@ const GroupMembers = ({ group, accessToken }) => {
           <button
             type="button"
             className="btn btn-sm btn-primary"
-            disabled={isGroupEmpty}
+            disabled={isFilteredEmpty}
             onClick={() => setGroupMembers({ type: 'SELECTDESELECTALL' })}
           >
-            {isAllSelected ? 'Deselect All' : 'Select All'}
+            {isAllFilterdSelected ? 'Deselect All' : 'Select All'}
           </button>
           <button
             type="button"
