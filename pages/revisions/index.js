@@ -51,6 +51,7 @@ const ConfirmDeleteRestoreModal = ({
       setSignature(null)
       setSignatureDropdownOptions([])
     }
+    return undefined
   }, [editInfo])
 
   if (!edit || !invitation) {
