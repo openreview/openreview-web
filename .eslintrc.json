@@ -1,14 +1,18 @@
 {
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
   "parserOptions": {
-    "ecmaVersion": 2019
+    "ecmaVersion": 2019,
+    "requireConfigFile": false,
+    "babelOptions": {
+      "presets": ["@babel/preset-react"]
+   }
   },
   "env": {
     "browser": true,
     "node": true,
     "es6": true
   },
-  "extends": "airbnb",
+  "extends": ["airbnb", "airbnb/hooks","prettier"],
   "rules": {
     "semi": ["error", "never"],
     "no-unused-vars": ["off"],
@@ -21,8 +25,14 @@
       "ignoreRegExpLiterals": true
     }],
     "react/react-in-jsx-scope": "off",
-    "react/prop-types": 0,
+    "react/prop-types": "off",
     "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
+    "react/function-component-definition": "off",
+    "react/destructuring-assignment": "off",
+    "react-hooks/exhaustive-deps": "off",
+    "no-unsafe-optional-chaining": "off",
+    "react-hooks/rules-of-hooks": "off",
+    "react/jsx-no-constructed-context-values": "off",
     "jsx-a11y/label-has-associated-control": ["error", { "assert": "either" }],
     "jsx-a11y/click-events-have-key-events": 0,
     "jsx-a11y/anchor-is-valid": ["error", {

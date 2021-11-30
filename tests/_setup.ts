@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   createNote, createUser, getToken, addMembersToGroup, getJobsStatus, hasTaskUser, hasNoTaskUser,
   conferenceGroupId, conferenceSubmissionInvitationId, sendFile, setupProfileViewEdit, setupRegister,
@@ -7,12 +8,12 @@ const waitForJobs = (noteId, superUserToken) => new Promise((resolve, reject) =>
   const interval = setInterval(async () => {
     try {
       const statuses = await getJobsStatus(superUserToken)
-      if (Object.values(statuses).some((p: any) => p.failed > 0)) {
+      if (Object.values(statuses).some(p => p.failed > 0)) {
         clearInterval(interval)
         reject(new Error('Process function failed'))
       }
       const queueCount = Object.values(statuses)
-        .reduce((count, job: any) => count + job.waiting + job.active + job.delayed, 0)
+        .reduce((count, job) => count + job.waiting + job.active + job.delayed, 0)
       if (queueCount === 0) {
         clearInterval(interval)
         resolve(null)
@@ -389,3 +390,4 @@ test('setup ICLR', async (t) => {
 
   await addMembersToGroup('ICLR.cc/2021/Conference/Reviewers', ['reviewer_iclr@mail.com'], superUserToken)
 })
+
