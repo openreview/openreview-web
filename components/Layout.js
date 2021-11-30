@@ -19,6 +19,8 @@ export default function Layout({
         <title key="title">OpenReview</title>
         <meta name="description" content="Promoting openness in scientific communication and the peer-review process" />
 
+        <link rel="icon" href="/favicon.ico" />
+
         <meta property="og:title" key="og:title" content="OpenReview" />
         <meta property="og:description" key="og:description" content="" />
         <meta property="og:image" key="og:image" content="https://openreview.net/images/openreview_logo_512.png" />
@@ -26,6 +28,25 @@ export default function Layout({
         <meta property="og:site_name" key="og:site_name" content="OpenReview" />
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:site" content="@openreviewnet" />
+
+        {/* Google Analytics */}
+        {(process.env.IS_PRODUCTION || process.env.IS_STAGING) ? (
+          <>
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.GA_PROPERTY_ID}`} />
+            <script
+              // eslint-disable-next-line react/no-danger
+              dangerouslySetInnerHTML={{
+                __html: `window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+gtag('js', new Date());
+gtag('config', '${process.env.GA_PROPERTY_ID}', {
+  page_path: window.location.pathname + window.location.search,
+  transport_type: 'beacon'
+});`,
+              }}
+            />
+          </>
+        ) : null}
       </Head>
 
       <Nav />

@@ -8,9 +8,6 @@ import api from '../../lib/api-client'
 import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 
-// Page Styles
-import '../../styles/pages/group.less'
-
 const Group = ({ groupId, webfieldCode, appContext }) => {
   const { setBannerHidden, clientJsLoading } = appContext
   const groupTitle = prettyId(groupId)

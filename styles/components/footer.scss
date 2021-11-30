@@ -1,0 +1,79 @@
+@use "../utils/constants";
+
+footer {
+  &.minimal {
+    padding-top: 10px;
+    padding-bottom: 10px;
+
+    a {
+      color: constants.$subtleGray;
+      text-decoration: underline;
+
+      &:hover {
+        color: #666;
+      }
+    }
+  }
+
+  &.sitemap {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    background-color: constants.$sandyBrown;
+
+    .container {
+      max-width: 750px;
+    }
+    a {
+      color: constants.$darkBlue;
+    }
+    @media #{constants.$phone-only} {
+      a {
+        font-size: .75rem;
+      }
+    }
+  }
+
+  &.sponsor {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    background-color: constants.$darkBlue;
+
+    p {
+      color: constants.$subtleGray;
+    }
+    a {
+      color: constants.$subtleGray;
+      text-decoration: underline;
+
+      &:hover {
+        color: constants.$sandyBrown;
+      }
+    }
+
+    @media #{constants.$phone-only} {
+      min-height: 59px;
+
+      p {
+        font-size: 9px;
+      }
+    }
+  }
+
+  p {
+    color: constants.$subtleGray;
+    font-size: .75rem;
+    margin-bottom: 0;
+  }
+  ul {
+    font-size: .875rem;
+    text-align: center;
+    margin-bottom: 0;
+
+    li > a {
+      line-height: 1.5rem;
+    }
+  }
+  .join-the-team {
+    display: none;
+  }
+}

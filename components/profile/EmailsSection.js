@@ -1,4 +1,5 @@
 /* globals promptError,promptMessage,$: false */
+
 import { useEffect, useReducer, useRef } from 'react'
 import { nanoid } from 'nanoid'
 import Icon from '../Icon'

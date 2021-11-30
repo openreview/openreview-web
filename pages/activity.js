@@ -10,8 +10,6 @@ import ErrorAlert from '../components/ErrorAlert'
 import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 
-import '../styles/pages/activity.less'
-
 const Activity = ({ appContext }) => {
   const { user, accessToken } = useLoginRedirect()
   const [activityNotes, setActivityNotes] = useState(null)

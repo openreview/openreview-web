@@ -9,10 +9,13 @@ import {
   auth, getTokenPayload, setAuthCookie, removeAuthCookie, cookieExpiration,
 } from '../lib/auth'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
+import mathjaxConfig from '../lib/mathjax-config'
 
 // Global Styles
-import '../styles/global.less'
-import '../styles/components.less'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import '../styles/global.scss'
+import '../styles/components.scss'
+import '../styles/pages.scss'
 
 export default class OpenReviewApp extends App {
   constructor(props) {
@@ -224,8 +227,7 @@ export default class OpenReviewApp extends App {
     window.Handlebars = require('handlebars/runtime')
     window.marked = require('marked')
     window.DOMPurify = require('dompurify')
-    require('formdata-polyfill')
-    window.MathJax = require('../lib/mathjax-config')
+    window.MathJax = mathjaxConfig
 
     // MathJax has to be loaded asynchronously from the CDN after the config file loads
     const script = document.createElement('script')

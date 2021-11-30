@@ -85,7 +85,8 @@ const PersonalLinksSection = ({
         <div className="col-md-4 personal-links__column">
           <div className="small-heading">
             DBLP URL
-            <a className="personal-links__faqlink" href="/faq#question-dblp-import" target="_blank" rel="noreferrer">
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a className="personal-links__faqlink" href="/faq#question-dblp-import" target="_blank">
               <Icon name="info-sign" />
             </a>
           </div>
@@ -127,7 +128,8 @@ const PersonalLinksSection = ({
         <div className="col-md-4 personal-links__column">
           <div className="small-heading">
             Semantic Scholar URL
-            <a className="personal-links__faqlink" href="/faq#question-semantic-scholar" target="_blank" rel="noreferrer">
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a className="personal-links__faqlink" href="/faq#question-semantic-scholar" target="_blank">
               <Icon name="info-sign" />
             </a>
           </div>

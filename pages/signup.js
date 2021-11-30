@@ -14,9 +14,6 @@ import BasicModal from '../components/BasicModal'
 import api from '../lib/api-client'
 import { isValidEmail, isValidPassword } from '../lib/utils'
 
-// Page Styles
-import '../styles/pages/signup.less'
-
 const LoadingContext = createContext()
 
 const SignupForm = ({ setSignupConfirmation }) => {
