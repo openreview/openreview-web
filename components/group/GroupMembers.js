@@ -281,8 +281,13 @@ const GroupMembers = ({ group, accessToken }) => {
         return state.map(p => (action.payload.includes(p.id) ? { ...p, isDeleted: false } : p))
       case 'SELECTDESELECTALL':
         // eslint-disable-next-line no-case-declarations
-        const allSelected = state.every(p => p.isSelected)
-        return state.map(p => ({ ...p, isSelected: !allSelected }))
+        const allSelected = state
+          .filter(p => !p.isDeleted)
+          .every(p => p.isSelected)
+        return state.map(p => ({
+          ...p,
+          isSelected: p.isDeleted ? false : !allSelected,
+        }))
       default:
         return state
     }
@@ -304,6 +309,9 @@ const GroupMembers = ({ group, accessToken }) => {
       : filteredMembers,
   )
   const showMembers = filteredMembers?.length > 0
+  const isAllSelected = groupMembers
+    .filter(p => !p.isDeleted).length && groupMembers.filter(p => !p.isDeleted).every(p => p.isSelected)
+  const isGroupEmpty = groupMembers.filter(p => !p.isDeleted).length === 0
 
   const getTitle = () => {
     if (filteredMembers.length <= 3) return 'Group Members'
@@ -489,7 +497,8 @@ const GroupMembers = ({ group, accessToken }) => {
             type="button"
             className="btn btn-sm btn-primary mr-3 search-button"
             disabled={
-              !searchTerm.trim() || groupMembers.find(p => p.id === searchTerm)
+              !searchTerm.trim()
+              || groupMembers.find(p => p.id === searchTerm)
             }
             onClick={() => handleAddButtonClick(searchTerm)}
           >
@@ -499,9 +508,10 @@ const GroupMembers = ({ group, accessToken }) => {
           <button
             type="button"
             className="btn btn-sm btn-primary"
+            disabled={isGroupEmpty}
             onClick={() => setGroupMembers({ type: 'SELECTDESELECTALL' })}
           >
-            Select All
+            {isAllSelected ? 'Deselect All' : 'Select All'}
           </button>
           <button
             type="button"
