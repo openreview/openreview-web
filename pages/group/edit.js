@@ -1,12 +1,11 @@
 /* globals Webfield: false */
-/* globals Webfield2: false */
 
 import { useEffect, useState, useRef } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import GroupEditor from '../../components/GroupEditor'
+import GroupEditor from '../../components/group/GroupEditor'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
@@ -16,7 +15,7 @@ import { isSuperUser } from '../../lib/auth'
 // Page Styles
 import '../../styles/pages/group.less'
 
-export default function GroupEdit({ appContext }) {
+const GroupEdit = ({ appContext }) => {
   const { accessToken, userLoading, user } = useLoginRedirect()
   const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
@@ -106,3 +105,5 @@ export default function GroupEdit({ appContext }) {
 }
 
 GroupEdit.bodyClass = 'group'
+
+export default GroupEdit
