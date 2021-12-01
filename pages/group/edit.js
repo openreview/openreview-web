@@ -12,10 +12,7 @@ import api from '../../lib/api-client'
 import { getGroupVersion, prettyId } from '../../lib/utils'
 import { isSuperUser } from '../../lib/auth'
 
-// Page Styles
-import '../../styles/pages/group.less'
-
-const GroupEdit = ({ appContext }) => {
+export default function GroupEdit({ appContext }) {
   const { accessToken, userLoading, user } = useLoginRedirect()
   const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
@@ -105,5 +102,3 @@ const GroupEdit = ({ appContext }) => {
 }
 
 GroupEdit.bodyClass = 'group'
-
-export default GroupEdit

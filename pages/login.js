@@ -11,9 +11,6 @@ import useQuery from '../hooks/useQuery'
 import api from '../lib/api-client'
 import { isValidEmail } from '../lib/utils'
 
-// Page Styles
-import '../styles/pages/login.less'
-
 const LoginForm = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

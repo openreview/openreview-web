@@ -11,8 +11,6 @@ import { prettyId, getGroupIdfromInvitation } from '../../lib/utils'
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
-import '../../styles/pages/assignment-stats.less'
-
 const AssignmentStats = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
   const [assignmentConfigNote, setAssignmentConfigNote] = useState(null)

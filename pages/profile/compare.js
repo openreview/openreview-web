@@ -8,9 +8,6 @@ import withAdminAuth from '../../components/withAdminAuth'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import api from '../../lib/api-client'
 import { prettyId, prettyField } from '../../lib/utils'
-
-import '../../styles/pages/profile-compare.less'
-
 // #region components used by Compare (in renderField method)
 const Names = ({ names, highlightValue }) => (
   <table>

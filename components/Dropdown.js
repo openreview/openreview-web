@@ -3,8 +3,6 @@ import Select, { components } from 'react-select'
 import CreatableSelect from 'react-select/creatable'
 import List from 'rc-virtual-list'
 
-import '../styles/components/dropdown.less'
-
 // For more details see https://react-select.com/styles#overriding-the-theme
 const createCustomTheme = height => theme => ({
   ...theme,

@@ -8,8 +8,6 @@ import {
 } from '../lib/utils'
 import Icon from './Icon'
 
-import '../styles/components/note-content.less'
-
 function NoteContent({
   id, content, invitation, omit = [], include = [], isReference = false,
 }) {

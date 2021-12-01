@@ -528,7 +528,7 @@ const GroupMembers = ({ group, accessToken }) => {
             className="btn btn-sm btn-primary"
             disabled={!groupMembers.some(p => p.isSelected)}
             onClick={() => messageMember(
-                groupMembers.filter(p => p.isSelected)?.map(q => q.id),
+              groupMembers.filter(p => p.isSelected)?.map(q => q.id),
             )}
           >
             Message Selected

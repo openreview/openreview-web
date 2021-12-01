@@ -16,16 +16,13 @@ import api from '../../lib/api-client'
 import { buildNoteTitle, prettyId } from '../../lib/utils'
 import { forumLink } from '../../lib/banner-links'
 
-import '../../styles/pages/revisions.less'
-
 const ConfirmDeleteRestoreModal = ({
   editInfo, user, accessToken, deleteRestoreEdit,
 }) => {
-  if (!editInfo?.edit || !editInfo?.invitation) return null
-  const { edit, invitation } = editInfo
   const [signature, setSignature] = useState(null)
   const [signatureDropdownOptions, setSignatureDropdownOptions] = useState([])
-  const isSignatureRequired = !invitation.edit?.signatures?.['values-regex']?.value?.optional
+  const { edit, invitation } = editInfo ?? {}
+  const isSignatureRequired = !invitation?.edit?.signatures?.['values-regex']?.value?.optional
   const showSignatureDropdown = signatureDropdownOptions.length > 0
 
   useEffect(() => {
@@ -54,6 +51,10 @@ const ConfirmDeleteRestoreModal = ({
       setSignatureDropdownOptions([])
     }
   }, [editInfo])
+
+  if (!edit || !invitation) {
+    return null
+  }
 
   return (
     <BasicModal

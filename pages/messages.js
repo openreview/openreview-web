@@ -13,8 +13,6 @@ import PaginationLinks from '../components/PaginationLinks'
 import Icon from '../components/Icon'
 import api from '../lib/api-client'
 
-import '../styles/pages/messages.less'
-
 const statusOptions = [
   { label: 'Delivered', value: 'delivered' },
   { label: 'Bounced', value: 'bounce' },

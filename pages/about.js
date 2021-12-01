@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 
 import Head from 'next/head'
+import Link from 'next/link'
 
 const About = () => (
   <div>
@@ -67,10 +68,12 @@ const About = () => (
         <p>
           OpenReview.net is built over an earlier version described in the paper
           {' '}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a href="/forum?id=xf0zSBd2iufMg" target="_blank">Open Scholarship and Peer Review: a Time for Experimentation</a>
           {' '}
           published in the
           {' '}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a href="/group?id=ICML.cc/2013/PeerReview" target="_blank">ICML 2013 Peer Review Workshop</a>
           .
         </p>
@@ -83,9 +86,9 @@ const About = () => (
           </a>
           . We gratefully acknowledge the support of the great diversity of
           {' '}
-          <a href="/sponsors" target="_blank" rel="noopener noreferrer">
-            OpenReview Sponsors
-          </a>
+          <Link href="/sponsors">
+            <a>OpenReview Sponsors</a>
+          </Link>
           ––scientific peer review is sacrosanct, and should not be owned by any one sponsor.
         </p>
       </div>

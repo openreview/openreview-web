@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 
 import Head from 'next/head'
+import Link from 'next/link'
 
 const Terms = () => (
   <div>
@@ -48,7 +49,7 @@ const Terms = () => (
         <p>
           If you have any questions about these Terms, please
           {' '}
-          <a href="/contact">contact us</a>
+          <Link href="/contact"><a>contact us</a></Link>
           .
         </p>
         <br />

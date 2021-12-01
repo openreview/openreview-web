@@ -8,9 +8,6 @@ import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { prettyId, formatTimestamp } from '../lib/utils'
 
-// Page Styles
-import '../styles/pages/home.less'
-
 export default function Home() {
   const [venues, setVenues] = useState({
     user: null, active: null, open: null, all: null,
