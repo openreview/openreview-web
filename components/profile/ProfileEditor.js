@@ -168,7 +168,7 @@ export default function ProfileEditor({
       ...profileContent,
       names: profileContent.names.map((p) => {
         const {
-          altUsernames, newRow, key, duplicate, ...rest
+          altUsernames, newRow, key, duplicate, meta, ...rest
         } = p
         return rest
       }),
