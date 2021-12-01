@@ -173,9 +173,14 @@ export default function ProfileEditor({
         return rest
       }),
       emails: profileContent.emails.map(p => p.email),
-      history: profileContent.history.map((p) => { const { key, ...rest } = p; return rest }),
-      expertise: profileContent.expertise.map((p) => { const { key, keyWordsValue, ...rest } = p; return rest }),
-      relations: profileContent.relations.map((p) => { const { key, ...rest } = p; return rest }),
+      history: profileContent.history.map((p) => { const { key, meta, ...rest } = p; return rest }),
+      expertise: profileContent.expertise.map((p) => {
+        const {
+          key, keyWordsValue, meta, ...rest
+        } = p
+        return rest
+      }),
+      relations: profileContent.relations.map((p) => { const { key, meta, ...rest } = p; return rest }),
       preferredEmail: profileContent.emails.find(p => p.preferred)?.email,
       homepage: profileContent.homepage?.value,
       gscholar: profileContent.gscholar?.value,
