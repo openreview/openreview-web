@@ -27,6 +27,7 @@ const ConfirmDeleteRestoreModal = ({
 
   useEffect(() => {
     if (!edit || !invitation) return
+
     const getAllSignatures = async () => {
       const result = await api.get('/groups', { regex: invitation.edit.signatures['values-regex'], signatory: user.id }, { accessToken })
       setSignatureDropdownOptions(result.groups.flatMap((p, i) => {
