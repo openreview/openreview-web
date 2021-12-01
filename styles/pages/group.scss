@@ -525,7 +525,7 @@ main.group, main.invitation {
   .members-container {
     padding-left: 0;
     .search-row {
-      background-color: @sandyBrown;
+      background-color: constants.$sandyBrown;
       padding-top: .5rem;
       padding-bottom: .5rem;
       border: 1px solid rgba(0, 0, 0, 0.1);
@@ -553,7 +553,7 @@ main.group, main.invitation {
           margin-top: 5px;
           padding-left: 1.5rem;
           z-index: 3;
-          color: @subtleGray;
+          color: constants.$subtleGray;
         }
       }
     }
@@ -563,12 +563,12 @@ main.group, main.invitation {
       border-bottom: 1px solid #ddd;
       padding: 6px 8px;
       font-style: italic;
-      color: @subtleGray;
+      color: constants.$subtleGray;
     }
 
     .member-row {
       &:hover {
-        background-color: @backgroundGray;
+        background-color: constants.$backgroundGray;
       }
       display: flex;
       justify-content: space-around;
