@@ -8,9 +8,6 @@ import api from '../../lib/api-client'
 import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 
-// Page Styles
-import '../../styles/pages/group.less'
-
 const Group = ({ groupId, webfieldCode, appContext }) => {
   const { setBannerHidden, clientJsLoading } = appContext
   const groupTitle = prettyId(groupId)
@@ -117,7 +114,7 @@ $(function() {
     const { groups } = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
     const group = groups?.length > 0 ? groups[0] : null
     if (!group) {
-      return { statusCode: 404, message: 'Group not found' }
+      return { statusCode: 404, message: `The Group ${ctx.query.id} was not found` }
     }
 
     if (!group.web) {

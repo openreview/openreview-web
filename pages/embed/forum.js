@@ -14,9 +14,6 @@ import useInterval from '../../hooks/useInterval'
 import { prettyId, forumDate } from '../../lib/utils'
 import api from '../../lib/api-client'
 
-// Page Styles
-import '../../styles/pages/embed.less'
-
 export default function EmbeddedForum({ appContext, userContext }) {
   const [forumNote, setForumNote] = useState(null)
   const [displayMode, setDisplayMode] = useState('linear')
@@ -174,6 +171,7 @@ function HeaderNav({ title }) {
             <span className="icon-bar" />
           </button>
 
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a href="/" target="_blank" className="navbar-brand">
             <strong>{title}</strong>
           </a>

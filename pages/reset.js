@@ -8,9 +8,6 @@ import Alert from '../components/Alert'
 import api from '../lib/api-client'
 import { isValidEmail } from '../lib/utils'
 
-// Page Styles
-import '../styles/pages/reset.less'
-
 const ResetForm = ({ setEmailSent }) => {
   const [email, setEmail] = useState('')
   const [error, setError] = useState(null)

@@ -3,10 +3,10 @@
 
 import { useState, useEffect } from 'react'
 import union from 'lodash/union'
-import { prettyField, prettyContentValue, orderReplyFields } from '../lib/utils'
+import {
+  prettyField, prettyContentValue, orderReplyFields, prettyId,
+} from '../lib/utils'
 import Icon from './Icon'
-
-import '../styles/components/note-content.less'
 
 function NoteContent({
   id, content, invitation, omit = [], include = [], isReference = false,
@@ -95,7 +95,7 @@ function DownloadLink({
 }
 
 export const NoteContentV2 = ({
-  id, content, omit = [], include = [], isEdit = false, presentation,
+  id, content, omit = [], include = [], isEdit = false, presentation, noteReaders,
 }) => {
   const contentKeys = Object.keys(content)
   const contentOrder = presentation
@@ -115,11 +115,20 @@ export const NoteContentV2 = ({
         const fieldValue = prettyContentValue(content[fieldName]?.value)
         if (!fieldValue) return null
         const enableMarkdown = presentation?.find(p => p.name === fieldName)?.markdown
+        const fieldReaders = content[fieldName]?.readers?.sort()
+        const showPrivateIcon = fieldReaders && noteReaders && !fieldReaders.every((p, i) => p === noteReaders[i])
 
         return (
           <li key={fieldName}>
             <NoteContentField name={fieldName} />
             {' '}
+            {showPrivateIcon && (
+              <Icon
+                name="eye-open"
+                extraClasses="private-contents-icon"
+                tooltip={`privately revealed to ${fieldReaders.map(p => prettyId(p)).join(', ')}`}
+              />
+            )}
             {fieldValue.startsWith('/attachment/') ? (
               <span className="note-content-value">
                 {/* eslint-disable-next-line max-len */}

@@ -3,6 +3,7 @@ import isEqual from 'lodash/isEqual'
 import zip from 'lodash/zip'
 import Link from 'next/link'
 import { prettyId } from '../lib/utils'
+import Icon from './Icon'
 
 const NoteAuthors = ({
   authors, authorIds, signatures, original,
@@ -71,7 +72,7 @@ export const NoteAuthorsV2 = ({
   authors, authorIds, signatures, noteReaders,
 }) => {
   let showPrivateLabel = false
-  if (!isEqual(noteReaders?.sort(), authorIds?.readers?.sort())) {
+  if (authorIds?.readers && !isEqual(noteReaders?.sort(), authorIds?.readers?.sort())) {
     showPrivateLabel = true
   }
 
@@ -117,7 +118,7 @@ export const NoteAuthorsV2 = ({
     )
   }).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)
 
-  const privateLabel = <span key="private-author-label" className="private-author-label">(privately revealed to you)</span>
+  const privateLabel = <Icon key="private-label" name="eye-open" extraClasses="private-contents-icon" tooltip={`privately revealed to ${authorIds?.readers?.map(p => prettyId(p)).join(', ')}`} />
   return showPrivateLabel ? authorsLinks.concat([' ', privateLabel]) : authorsLinks
 }
 

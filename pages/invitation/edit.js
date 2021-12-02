@@ -14,9 +14,6 @@ import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
-// Page Styles
-import '../../styles/pages/invitation.less'
-
 const InvitationEdit = ({ appContext }) => {
   const query = useQuery()
   const router = useRouter()

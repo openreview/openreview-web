@@ -12,9 +12,6 @@ import api from '../../lib/api-client'
 import { auth, isSuperUser } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 
-// Page Styles
-import '../../styles/pages/invitation.less'
-
 const Invitation = ({ invitationId, webfieldCode, appContext }) => {
   const { setBannerHidden, clientJsLoading } = appContext
   const invitationTitle = prettyId(invitationId)
@@ -186,7 +183,7 @@ $(function() {
         webfieldCode: generateWebfieldCode(invitation, ctx.query),
       }
     }
-    return { statusCode: 404, message: 'Invitation not found' }
+    return { statusCode: 404, message: `The Invitation ${ctx.query.id} was not found` }
   } catch (error) {
     if (error.name === 'forbidden' || error.name === 'ForbiddenError') {
       if (!accessToken) {

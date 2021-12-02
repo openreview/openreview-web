@@ -75,7 +75,5 @@ test('accessing an invalid invitation should get a not found error', async (t) =
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/invitation?id=dslkjf`)
     .expect(errorCodeLabel.innerText).eql('Error 404')
-    .expect(errorMessageLabel.innerText).eql('Invitation not found')
-    // New error format
-    // .expect(errorMessageLabel.innerText).eql('The Invitation dslkjf was not found')
+    .expect(errorMessageLabel.innerText).eql('The Invitation dslkjf was not found')
 })

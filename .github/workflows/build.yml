@@ -17,6 +17,7 @@ jobs:
       API_URL: http://localhost:3000
       NEXT_PORT: 3030
       SUPER_USER: openreview.net
+      USE_NEW_PROFILE_PAGE: true
 
     runs-on: ubuntu-latest
 
@@ -28,7 +29,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: [16.x]
 
     steps:
     - name: Start MongoDB

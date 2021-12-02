@@ -1,8 +1,9 @@
 import Head from 'next/head'
+import Link from 'next/link'
 import { translateErrorDetails } from '../lib/utils'
 
 const ErrorDisplay = ({ statusCode, message, details }) => {
-  const errorMessage = details ? translateErrorDetails(details) : message
+  const errorMessage = message || translateErrorDetails(details)
 
   return (
     <div className="row error-display">
@@ -30,7 +31,7 @@ const ErrorDisplay = ({ statusCode, message, details }) => {
             <p className="error-help">
               To add a new email to your profile, navigate to the
               {' '}
-              <a href="/profile/edit">Edit Profile page</a>
+              <Link href="/profile/edit"><a>Edit Profile page</a></Link>
               , click the + icon at the bottom of the Emails section and enter the new email
               address. Then, click the Save Profile Changes button at the bottom of the page.
             </p>

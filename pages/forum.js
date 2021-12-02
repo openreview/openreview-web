@@ -67,13 +67,9 @@ const ForumPage = ({ forumNote, query, appContext }) => {
             {content.title && (
               <meta name="citation_title" content={content.title} />
             )}
-            {/*
             {authors.map(author => (
               <meta key={author} name="citation_author" content={author} />
             ))}
-            */}
-            {/* temporary hack to get google scholar to work, revert to above when next.js unique issue is solved */}
-            <meta name="citation_authors" content={authors.join('; ')} />
             <meta name="citation_publication_date" content={creationDate} />
             <meta name="citation_online_date" content={modificationDate} />
             {content.pdf && (
@@ -155,7 +151,7 @@ ForumPage.getInitialProps = async (ctx) => {
       return redirectForum(redirect.id)
     }
     if (!note) {
-      return { statusCode: 404, message: 'Not Found' }
+      return { statusCode: 404, message: `The Note ${ctx.query.id} was not found` }
     }
     return { forumNote: note, query: ctx.query }
   } catch (error) {
