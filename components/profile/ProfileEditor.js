@@ -167,6 +167,12 @@ export default function ProfileEditor({
     profileContent = {
       ...profileContent,
       names: profileContent.names.map((p) => {
+        if (p.newRow) {
+          const {
+            altUsernames, newRow, key, duplicate, meta, username, ...rest
+          } = p
+          return rest
+        }
         const {
           altUsernames, newRow, key, duplicate, meta, ...rest
         } = p
