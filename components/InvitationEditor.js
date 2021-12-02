@@ -422,33 +422,33 @@ const InvitationGeneralInfo = ({
             </div>
             <div className="row d-flex">
               <span className="info-title">Creation Date:</span>
-              {formatDateTime({ timestamp: invitation.tcdate, month: 'long', timeZoneName: 'short' })}
+              {formatDateTime(invitation.tcdate, { month: 'long', timeZoneName: 'short' })}
             </div>
             <div className="row d-flex">
               <span className="info-title">Activation Date:</span>
-              {formatDateTime({ timestamp: invitation.cdate, month: 'long', timeZoneName: 'short' }) ?? formatDateTime({ timestamp: invitation.tcdate, month: 'long', timeZoneName: 'short' })}
+              {formatDateTime(invitation.cdate, { month: 'long', timeZoneName: 'short' }) ?? formatDateTime(invitation.tcdate, { month: 'long', timeZoneName: 'short' })}
             </div>
             <div className="row d-flex">
               <span className="info-title">Modified Date:</span>
-              {formatDateTime({ timestamp: invitation.mdate, month: 'long', timeZoneName: 'short' }) ?? formatDateTime({ timestamp: invitation.tmdate, month: 'long', timeZoneName: 'short' })}
+              {formatDateTime(invitation.mdate, { month: 'long', timeZoneName: 'short' }) ?? formatDateTime(invitation.tmdate, { month: 'long', timeZoneName: 'short' })}
             </div>
             <div className="row d-flex">
               <span className="info-title">Due Date:</span>
-              {formatDateTime({ timestamp: invitation.duedate, month: 'long', timeZoneName: 'short' })}
+              {formatDateTime(invitation.duedate, { month: 'long', timeZoneName: 'short' })}
             </div>
             <div className="row d-flex">
               <span className="info-title">Expiration Date:</span>
-              {formatDateTime({ timestamp: invitation.expdate, month: 'long', timeZoneName: 'short' })}
+              {formatDateTime(invitation.expdate, { month: 'long', timeZoneName: 'short' })}
             </div>
             {invitation.ddate && (
               <div className="row d-flex">
                 <span className="info-title">Deleted:</span>
-                {formatDateTime({ timestamp: invitation.ddate, month: 'long', timeZoneName: 'short' })}
+                {formatDateTime(invitation.ddate, { month: 'long', timeZoneName: 'short' })}
               </div>
             )}
             <div className="row d-flex">
               <span className="info-title">Last Modified:</span>
-              {formatDateTime({ timestamp: invitation.mdate, month: 'long', timeZoneName: 'short' }) ?? formatDateTime({ timestamp: invitation.tmdate, month: 'long', timeZoneName: 'short' })}
+              {formatDateTime(invitation.mdate, { month: 'long', timeZoneName: 'short' }) ?? formatDateTime(invitation.tmdate, { month: 'long', timeZoneName: 'short' })}
             </div>
             <button type="button" className="btn btn-sm btn-primary" onClick={() => setIsEditMode(true)}>Edit General Info</button>
           </>
