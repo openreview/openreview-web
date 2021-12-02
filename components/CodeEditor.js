@@ -10,7 +10,7 @@ import { linter } from '@codemirror/lint'
 import Linter from 'eslint4b-prebuilt'
 
 const CodeEditor = ({
-  code, minHeight = '200px', maxHeight = '600px', wrap = true, onChange = undefined, isJson = false,
+  code, minHeight = '200px', maxHeight = '600px', wrap = true, onChange = undefined, isJson = false, isPython = false, scrollIntoView = false,
 }) => {
   const containerRef = useRef(null)
   const editorRef = useRef(null)
@@ -23,26 +23,27 @@ const CodeEditor = ({
       languageRef.current = 'json'
       return [lint.of(linter(jsonParseLinter())), language.of(json())]
     }
-    if (code?.startsWith('//javascript')) {
-      languageRef.current = 'javascript'
-      return [lint.of(linter(esLint(new Linter()))), language.of(javascript())]
+    if (code?.startsWith('def process') || isPython) {
+      languageRef.current = 'python'
+      return [language.of(python())]
     }
-    languageRef.current = 'python'
-    return [language.of(python())]
+    languageRef.current = 'javascript'
+    return [lint.of(linter(esLint(new Linter()))), language.of(javascript())]
   }
 
   const setLanguage = EditorState.transactionExtender.of((tr) => {
     const firstLine = editorRef.current.state?.doc?.toString()
-    if (firstLine?.startsWith('//javascript') && languageRef.current !== 'javascript') {
-      languageRef.current = 'javascript'
-      return {
-        effects: language.reconfigure(javascript()),
-      }
-    }
-    if (firstLine?.startsWith('#python') && languageRef.current !== 'python') {
+    if (languageRef.current === 'json') return null
+    if (firstLine?.startsWith('def process') && languageRef.current !== 'python') {
       languageRef.current = 'python'
       return {
         effects: language.reconfigure(python()),
+      }
+    }
+    if (!firstLine?.startsWith('def process') && languageRef.current !== 'javascript') {
+      languageRef.current = 'javascript'
+      return {
+        effects: language.reconfigure(javascript()),
       }
     }
     return null
@@ -50,14 +51,15 @@ const CodeEditor = ({
 
   const setLint = EditorState.transactionExtender.of((tr) => {
     const firstLine = editorRef.current.state?.doc?.toString()
-    if (firstLine?.startsWith('//javascript') && languageRef.current !== 'javascript') {
-      return {
-        effects: lint.reconfigure(linter(esLint(new Linter()))),
-      }
-    }
-    if (firstLine?.startsWith('#python') && languageRef.current !== 'python') {
+    if (languageRef.current === 'json') return null
+    if (firstLine?.startsWith('def process') && languageRef.current !== 'python') {
       return {
         effects: lint.reconfigure(null),
+      }
+    }
+    if (!firstLine?.startsWith('def process') && languageRef.current !== 'javascript') {
+      return {
+        effects: lint.reconfigure(linter(esLint(new Linter()))),
       }
     }
     return null
@@ -89,6 +91,9 @@ const CodeEditor = ({
       state,
       parent: containerRef.current,
     })
+    if (scrollIntoView) {
+      containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
     return () => editorRef.current?.destroy()
   }, [])
 
