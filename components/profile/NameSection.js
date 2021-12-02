@@ -118,7 +118,7 @@ const NamesSection = ({ profileNames, updateNames }) => {
                 type="text"
                 className={`form-control first-name ${profileNames.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
                 value={p.first}
-                readOnly={!p.newRow && p.username.length}
+                readOnly={!p.newRow && p.username}
                 onChange={(e) => { handleUpdateName(p.key, 'first', e.target.value) }}
               />
             </div>
@@ -134,7 +134,7 @@ const NamesSection = ({ profileNames, updateNames }) => {
                 type="text"
                 className="form-control middle-name"
                 value={p.middle}
-                readOnly={!p.newRow && p.username.length}
+                readOnly={!p.newRow && p.username}
                 onChange={(e) => { handleUpdateName(p.key, 'middle', e.target.value) }}
               />
             </div>
@@ -144,7 +144,7 @@ const NamesSection = ({ profileNames, updateNames }) => {
                 type="text"
                 className={`form-control last-name ${profileNames.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
                 value={p.last}
-                readOnly={!p.newRow && p.username.length}
+                readOnly={!p.newRow && p.username}
                 onChange={(e) => { handleUpdateName(p.key, 'last', e.target.value) }}
               />
             </div>
@@ -160,7 +160,7 @@ const NamesSection = ({ profileNames, updateNames }) => {
               <NamesButton
                 key={p.key}
                 newRow={p.newRow}
-                readonly={p.username.length}
+                readonly={p.username}
                 preferred={p.preferred}
                 handleRemove={() => handleRemoveName(p.key)}
                 handleMakePreferred={() => handleMakePreferredName(p.key)}
