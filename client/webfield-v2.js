@@ -423,7 +423,11 @@ module.exports = (function() {
         var messageContent = $('#message-reviewers-modal textarea[name="message"]').val().trim();
         var filter  = $(this)[0].dataset['filter'];
 
-        var users = options.reminderOptions.menu[0].getUsers();
+        var menuOption = options.reminderOptions.menu.find(function(menu) { return ('msg-' + menu.id) == filter; });
+        if (!menuOption) {
+          return false;
+        }
+        var users = menuOption.getUsers();
         var messages = [];
         var count = 0;
         var userCounts = Object.create(null);
@@ -449,6 +453,7 @@ module.exports = (function() {
               subject: subject,
               forumUrl: user.forumUrl
             })
+            count += groupIds.length;
           }
         })
 
@@ -550,6 +555,23 @@ module.exports = (function() {
       return;
     }
 
+    var reminderMenuHtml = '';
+    if (options.reminderOptions.menu.length) {
+      var optionsHtml = '';
+      options.reminderOptions.menu.forEach(function(menu) {
+        optionsHtml = optionsHtml + '<li><a id="msg-' + menu.id + '">' + menu.name + '</a></li>'
+      })
+      reminderMenuHtml = '<div id="div-msg-reviewers" class="btn-group" role="group">' +
+      '<button id="message-reviewers-btn" type="button" class="btn btn-icon dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Select papers to message corresponding reviewers" >' +
+        '<span class="glyphicon glyphicon-envelope"></span> &nbsp;Message ' +
+        '<span class="caret"></span>' +
+      '</button>' +
+      '<ul class="dropdown-menu" aria-labelledby="grp-msg-reviewers-btn">' +
+      optionsHtml +
+      '</ul>' +
+      '</div>';
+    }
+
     if (options.sortOptions) {
       var order = 'desc';
       var sortOptionHtml = Object.keys(options.sortOptions).map(function(option) {
@@ -561,19 +583,7 @@ module.exports = (function() {
       '<input id="form-search-' + containerId + '" type="text" class="form-search form-control" class="form-control" placeholder="Enter search term or type + to start a query and press enter" style="width:440px; margin-right: 1.5rem; line-height: 34px;">' : '';
 
       var sortBarHtml = '<form class="form-inline search-form clearfix" role="search">' +
-        // Don't show this for now
-        '<div id="div-msg-reviewers" class="btn-group" role="group">' +
-          '<button id="message-reviewers-btn" type="button" class="btn btn-icon dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Select papers to message corresponding reviewers" >' +
-            '<span class="glyphicon glyphicon-envelope"></span> &nbsp;Message ' +
-            '<span class="caret"></span>' +
-          '</button>' +
-          '<ul class="dropdown-menu" aria-labelledby="grp-msg-reviewers-btn">' +
-            '<li><a id="msg-all-reviewers">All Reviewers of selected papers</a></li>' +
-            // '<li><a id="msg-submitted-reviewers">Reviewers of selected papers with submitted reviews</a></li>' +
-            // '<li><a id="msg-unsubmitted-reviewers">Reviewers of selected papers with unsubmitted reviews</a></li>' +
-          '</ul>' +
-        '</div>' +
-        // '<div class="btn-group"><button class="btn btn-export-data" type="button">Export</button></div>' +
+        reminderMenuHtml +
         '<div class="pull-right">' +
           searchHtml +
           '<strong>Sort By:</strong> ' +
