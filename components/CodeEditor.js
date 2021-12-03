@@ -73,6 +73,7 @@ const CodeEditor = ({
         maxHeight,
         border: '1px solid #eee',
         fontFamily: 'Monaco, Menlo, "Ubuntu Mono", Consolas',
+        fontSize: '13px',
       },
     })]
     if (wrap) extensions.push(EditorView.lineWrapping)

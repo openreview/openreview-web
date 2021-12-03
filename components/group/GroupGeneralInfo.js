@@ -183,7 +183,7 @@ const GroupGeneralInfo = ({
         deanonymizers: convertInfoToArray(generalInfo.deanonymizers),
       }
       await api.post('/groups', resultToPost, { accessToken, version: getGroupVersion(group.id) })
-      promptMessage(`Settings for ${prettyId(group.id)} updated`)
+      promptMessage(`Settings for ${prettyId(group.id)} updated`, { scrollToTop: false })
       await reloadGroup()
       setEdit(false)
     } catch (error) {

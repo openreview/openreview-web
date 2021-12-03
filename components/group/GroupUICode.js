@@ -26,7 +26,7 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
         version: getGroupVersion(group.id),
       })
       setShowCodeEditor(false)
-      promptMessage(`UI code for ${group.id} has been updated`)
+      promptMessage(`UI code for ${group.id} has been updated`, { scrollToTop: false })
       reloadGroup()
     } catch (error) {
       promptError(error.message)

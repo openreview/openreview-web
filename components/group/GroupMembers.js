@@ -414,7 +414,7 @@ const GroupMembers = ({ group, accessToken }) => {
       // eslint-disable-next-line no-use-before-define
       getMemberAnonIds()
       promptMessage(
-        `${newMembersMessage} ${existingDeletedMessage} ${existingActiveMessage}`,
+        `${newMembersMessage} ${existingDeletedMessage} ${existingActiveMessage}`, { scrollToTop: false },
       )
     } catch (error) {
       promptError(error.message)
