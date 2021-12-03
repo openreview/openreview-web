@@ -1,10 +1,12 @@
 /* globals promptError,promptMessage: false */
 import { useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
 import api from '../../lib/api-client'
 import { getGroupVersion } from '../../lib/utils'
-import CodeEditor from '../CodeEditor'
 import EditorSection from '../EditorSection'
 import LoadingSpinner from '../LoadingSpinner'
+
+const CodeEditor = dynamic(() => import('../CodeEditor'), { loading: () => <LoadingSpinner inline/> })
 
 const GroupUICode = ({ group, accessToken, reloadGroup }) => {
   const [showCodeEditor, setShowCodeEditor] = useState(false)
