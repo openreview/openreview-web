@@ -180,7 +180,7 @@ main.profile-edit {
         text-overflow: ellipsis;
       }
     }
-    &__tilde-id {
+    &__tilde-id, .preferred {
       color: constants.$subtleGray;
       font-size: .75rem;
       margin-right: .5rem;
