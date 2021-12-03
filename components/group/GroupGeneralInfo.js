@@ -104,25 +104,25 @@ const GroupGeneralInfoEdit = ({
       <div className="row">
         <div className="edit-container__label">Readers:</div>
         <div className="edit-container__control">
-          <input className="form-control" value={generalInfo.readers} onChange={e => setGeneralInfo({ type: 'readers', value: e.target.value })} />
+          <input className="form-control input-sm" value={generalInfo.readers} onChange={e => setGeneralInfo({ type: 'readers', value: e.target.value })} />
         </div>
       </div>
       <div className="row">
         <div className="edit-container__label">Non-Readers:</div>
         <div className="edit-container__control">
-          <input className="form-control" value={generalInfo.nonreaders} onChange={e => setGeneralInfo({ type: 'nonreaders', value: e.target.value })} />
+          <input className="form-control input-sm" value={generalInfo.nonreaders} onChange={e => setGeneralInfo({ type: 'nonreaders', value: e.target.value })} />
         </div>
       </div>
       <div className="row">
         <div className="edit-container__label">Writers:</div>
         <div className="edit-container__control">
-          <input className="form-control" value={generalInfo.writers} onChange={e => setGeneralInfo({ type: 'writers', value: e.target.value })} />
+          <input className="form-control input-sm" value={generalInfo.writers} onChange={e => setGeneralInfo({ type: 'writers', value: e.target.value })} />
         </div>
       </div>
       <div className="row">
         <div className="edit-container__label">Signatories:</div>
         <div className="edit-container__control">
-          <input className="form-control" value={generalInfo.signatories} onChange={e => setGeneralInfo({ type: 'signatories', value: e.target.value })} />
+          <input className="form-control input-sm" value={generalInfo.signatories} onChange={e => setGeneralInfo({ type: 'signatories', value: e.target.value })} />
         </div>
       </div>
       {
@@ -132,7 +132,7 @@ const GroupGeneralInfoEdit = ({
                 <div className="edit-container__label">AnonymousId:</div>
                 <div className="edit-container__control">
                   <Dropdown
-                    className="dropdown-select"
+                    className="dropdown-select dropdown-sm"
                     placeholder="select whether to enable anonymous id"
                     options={anonymousIdOptions}
                     onChange={e => setGeneralInfo({ type: 'anonids', value: e.value })}
@@ -143,7 +143,7 @@ const GroupGeneralInfoEdit = ({
               <div className="row">
                 <div className="edit-container__label">Deanonymizers:</div>
                 <div className="edit-container__control">
-                  <input className="form-control" value={generalInfo.deanonymizers} onChange={e => setGeneralInfo({ type: 'deanonymizers', value: e.target.value })} />
+                  <input className="form-control input-sm" value={generalInfo.deanonymizers} onChange={e => setGeneralInfo({ type: 'deanonymizers', value: e.target.value })} />
                 </div>
               </div>
             </>

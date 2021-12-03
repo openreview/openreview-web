@@ -263,6 +263,8 @@ const GroupMembers = ({ group, accessToken }) => {
         return state.map(p => (p.id === action.payload ? { ...p, isSelected: true } : p))
       case 'UNSELECT':
         return state.map(p => (p.id === action.payload ? { ...p, isSelected: false } : p))
+      case 'INVERTSELECTION':
+        return state.map(p => (p.id === action.payload ? { ...p, isSelected: !p.isSelected } : p))
       case 'DELETE':
         return state.map(p => (action.payload.includes(p.id)
           ? { ...p, isDeleted: true, isSelected: false }
@@ -571,7 +573,13 @@ const GroupMembers = ({ group, accessToken }) => {
                         }
                       }}
                     />
-                    <span className="member-id">
+                    <span className="member-id" onClick={(e) => {
+                      if (e.currentTarget !== e.target) return
+                      setGroupMembers({
+                        type: 'INVERTSELECTION',
+                        payload: member.id,
+                      })
+                    }}>
                       <Link href={urlFromGroupId(member.id)}>
                         <a>{member.id}</a>
                       </Link>
