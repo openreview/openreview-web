@@ -7,6 +7,7 @@ import {
 } from '../../lib/utils'
 import Dropdown from '../Dropdown'
 import GroupIdList from './GroupIdList'
+import EditorSection from '../EditorSection'
 
 const GroupGeneralInfoView = ({ group, setEdit }) => {
   const groupParent = group.id.split('/').slice(0, -1).join('/')
@@ -190,8 +191,7 @@ const GroupGeneralInfo = ({
     }
   }
   return (
-    <section className="general">
-      <h4>General Info</h4>
+    <EditorSection getTitle={() => 'General Info'} classes="general" >
       {edit
         ? (
           <GroupGeneralInfoEdit
@@ -202,7 +202,7 @@ const GroupGeneralInfo = ({
           />
         )
         : <GroupGeneralInfoView group={group} setEdit={() => setEdit(true)} />}
-    </section>
+    </EditorSection>
   )
 }
 

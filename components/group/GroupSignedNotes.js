@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { getGroupVersion, prettyInvitationId } from '../../lib/utils'
 import api from '../../lib/api-client'
 import PaginationLinks from '../PaginationLinks'
+import EditorSection from '../EditorSection'
 
 const SignedNotesRow = ({ signedNote, version }) => {
   const invitationId = version === 2 ? signedNote.invitations[0] : signedNote.invitation
@@ -55,8 +56,7 @@ const GroupSignedNotes = ({ groupId, accessToken }) => {
 
   if (!signedNotes.length) return null
   return (
-    <section>
-      <h4>{getTitle()}</h4>
+    <EditorSection getTitle={getTitle}>
       <ul className="list-unstyled">
         {signedNotes.map(signedNote => (
           <SignedNotesRow
@@ -76,7 +76,7 @@ const GroupSignedNotes = ({ groupId, accessToken }) => {
         currentPage={currentPage}
         options={{ noScroll: true }}
       />
-    </section>
+    </EditorSection>
   )
 }
 

@@ -3,6 +3,7 @@ import { useRef, useState } from 'react'
 import api from '../../lib/api-client'
 import { getGroupVersion } from '../../lib/utils'
 import CodeEditor from '../CodeEditor'
+import EditorSection from '../EditorSection'
 import LoadingSpinner from '../LoadingSpinner'
 
 const GroupUICode = ({ group, accessToken, reloadGroup }) => {
@@ -32,8 +33,7 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
   }
 
   return (
-    <section>
-      <h4>Group UI Code</h4>
+    <EditorSection getTitle={() => 'Group UI Code'}>
       {showCodeEditor ? (
         <>
           {/* eslint-disable-next-line max-len */}
@@ -76,7 +76,7 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
           Show Code Editor
         </button>
       )}
-    </section>
+    </EditorSection>
   )
 }
 

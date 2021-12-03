@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { getGroupVersion, prettyId } from '../../lib/utils'
 import api from '../../lib/api-client'
 import PaginationLinks from '../PaginationLinks'
+import EditorSection from '../EditorSection'
 
 const RelatedInvitationRow = ({ relatedInvitation }) => (
   <li>
@@ -47,8 +48,7 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
 
   if (!relatedInvitations.length) return null
   return (
-    <section>
-      <h4>{getTitle()}</h4>
+    <EditorSection getTitle={getTitle}>
       <ul className="list-unstyled">
         {relatedInvitations.map(invitation => (
           <RelatedInvitationRow
@@ -68,7 +68,7 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
         currentPage={currentPage}
         options={{ noScroll: true }}
       />
-    </section>
+    </EditorSection>
   )
 }
 

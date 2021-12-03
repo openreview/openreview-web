@@ -10,6 +10,7 @@ import MarkdownPreviewTab from '../MarkdownPreviewTab'
 import ProgressBar from '../ProgressBar'
 import PaginationLinks from '../PaginationLinks'
 import Icon from '../Icon'
+import EditorSection from '../EditorSection'
 
 const MessageMemberModal = ({
   groupId,
@@ -217,8 +218,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
   }, [jobId])
 
   return (
-    <section className="members">
-      <h4>Group Messages</h4>
+    <EditorSection getTitle={() => 'Group Messages'} classes="members">
       <div className="container members-container pl-0" ref={sectionRef}>
         {jobId && (
           <>
@@ -237,7 +237,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
           <a>View all messages sent to this group </a>
         </Link>
       </div>
-    </section>
+    </EditorSection>
   )
 }
 
@@ -490,8 +490,7 @@ const GroupMembers = ({ group, accessToken }) => {
   }, [])
 
   return (
-    <section className="members">
-      <h4>{getTitle()}</h4>
+    <EditorSection getTitle={getTitle} classes="members">
       <div className="container members-container">
         <div className="search-row">
           <div className="input-group">
@@ -501,7 +500,6 @@ const GroupMembers = ({ group, accessToken }) => {
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
-            {/* <Icon name="search" /> */}
           </div>
           <button
             type="button"
@@ -652,7 +650,7 @@ const GroupMembers = ({ group, accessToken }) => {
         accessToken={accessToken}
         groupId={group.id}
       />
-    </section>
+    </EditorSection>
   )
 }
 

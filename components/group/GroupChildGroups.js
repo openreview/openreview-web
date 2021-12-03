@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { getGroupVersion, prettyId, urlFromGroupId } from '../../lib/utils'
 import PaginationLinks from '../PaginationLinks'
 import api from '../../lib/api-client'
+import EditorSection from '../EditorSection'
 
 const ChildGroupRow = ({ childGroup }) => (
   <li>
@@ -39,8 +40,7 @@ const GroupChildGroups = ({ groupId, accessToken }) => {
 
   if (!childGroups.length) return null
   return (
-    <section>
-      <h4>{getTitle()}</h4>
+    <EditorSection getTitle={getTitle}>
       <ul className="list-unstyled">
         {childGroups.map(childGroup => (
           <ChildGroupRow
@@ -51,14 +51,13 @@ const GroupChildGroups = ({ groupId, accessToken }) => {
         ))}
       </ul>
       <PaginationLinks
-        // eslint-disable-next-line max-len
         setCurrentPage={(pageNumber) => { setCurrentPage(pageNumber); loadChildGroups(15, (pageNumber - 1) * 15) }}
         totalCount={totalCount}
         itemsPerPage={15}
         currentPage={currentPage}
         options={{ noScroll: true }}
       />
-    </section>
+    </EditorSection>
   )
 }
 
