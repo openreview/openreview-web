@@ -167,16 +167,20 @@ export default function ProfileEditor({
     profileContent = {
       ...profileContent,
       names: profileContent.names.map((p) => {
-        if (p.newRow) {
+        if (p.newRow || !p.username) {
           const {
-            altUsernames, newRow, key, duplicate, meta, username, ...rest
+            first, middle, last, preferred,
           } = p
-          return rest
+          return {
+            first, middle, last, preferred,
+          }
         }
         const {
-          altUsernames, newRow, key, duplicate, meta, ...rest
+          first, middle, last, preferred, username,
         } = p
-        return rest
+        return {
+          first, middle, last, preferred, username,
+        }
       }),
       emails: profileContent.emails.map(p => p.email),
       history: profileContent.history.map((p) => { const { key, meta, ...rest } = p; return rest }),
