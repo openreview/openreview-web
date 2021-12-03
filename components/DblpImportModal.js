@@ -46,7 +46,9 @@ const ErrorMessage = ({ message, dblpNames, profileNames }) => {
   )
 }
 
-export default function DblpImportModal({ profileId, profileNames, email }) {
+export default function DblpImportModal({
+  profileId, profileNames, email, updateDBLPUrl,
+}) {
   const [dblpUrl, setDblpUrl] = useState('')
   const [dblpPersistentUrl, setDblpPersistentUrl] = useState('')
   const [message, setMessage] = useState('')
@@ -163,7 +165,8 @@ export default function DblpImportModal({ profileId, profileNames, email }) {
 
       // replace other format of dblp homepage with persistent url
       if ($('#dblp_url').val() !== dblpUrl) {
-        $('#dblp_url').val(dblpUrl)
+        // eslint-disable-next-line no-unused-expressions
+        updateDBLPUrl ? updateDBLPUrl(dblpUrl) : $('#dblp_url').val(dblpUrl)
       }
 
       if (allExistInOpenReview) {

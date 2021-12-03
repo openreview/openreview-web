@@ -17,9 +17,6 @@ import { prettyList } from '../../lib/utils'
 import { auth } from '../../lib/auth'
 import { editProfileLink } from '../../lib/banner-links'
 
-// Page Styles
-import '../../styles/pages/profile.less'
-
 const ProfileSection = ({
   name, title, instructions, actionLink, children,
 }) => (

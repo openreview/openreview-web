@@ -1,11 +1,17 @@
 export default function MultiSelectorDropdown({
-  id, options, selectedValues, setSelectedValues, disabled,
+  id,
+  options,
+  selectedValues,
+  setSelectedValues,
+  disabled,
+  extraClass = undefined,
+  displayTextFn = undefined,
 }) {
   const allValues = options.map(f => f.value)
   const numOptions = allValues.length
 
   const handleSelectAllChange = () => {
-    if (selectedValues.length === numOptions) {
+    if (selectedValues?.length === numOptions) {
       setSelectedValues([])
     } else {
       setSelectedValues(allValues)
@@ -13,22 +19,23 @@ export default function MultiSelectorDropdown({
   }
 
   const handleSelectValueChange = (value) => {
-    if (selectedValues.includes(value)) {
-      setSelectedValues(selectedValues.filter(v => v !== value))
+    if (selectedValues?.includes(value)) {
+      setSelectedValues(selectedValues?.filter(v => v !== value))
     } else {
       setSelectedValues([...selectedValues, value])
     }
   }
 
   const getButtonText = () => {
-    if (selectedValues.length === numOptions) return 'All'
-    if (selectedValues.length === 0) return 'None'
-    if (selectedValues.length === 1) return selectedValues[0]
-    return `${selectedValues.length} items`
+    if (displayTextFn) return displayTextFn(selectedValues)
+    if (selectedValues?.length === numOptions) return 'All'
+    if (selectedValues?.length === 0) return 'None'
+    if (selectedValues?.length === 1) return selectedValues[0]
+    return `${selectedValues?.length} items`
   }
 
   return (
-    <div className="multiselector dropdown">
+    <div className={`multiselector dropdown ${extraClass}`}>
       <button
         className="form-control dropdown-toggle"
         type="button"
@@ -47,7 +54,7 @@ export default function MultiSelectorDropdown({
               value="all"
               className="select-all-checkbox"
               type="checkbox"
-              checked={selectedValues.length === numOptions}
+              checked={selectedValues?.length === numOptions}
               onChange={e => handleSelectAllChange(e.target.value)}
             />
             Select All
@@ -59,10 +66,10 @@ export default function MultiSelectorDropdown({
               <input
                 value={option.value}
                 type="checkbox"
-                checked={selectedValues.includes(option.value)}
+                checked={selectedValues?.includes(option.value)}
                 onChange={e => handleSelectValueChange(e.target.value)}
               />
-              {option.text}
+              {option.label}
             </label>
           </li>
         ))}

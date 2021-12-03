@@ -7,16 +7,20 @@ import { prettyId, forumDate, inflect } from '../lib/utils'
 
 const Note = ({ note, invitation, options }) => {
   const privatelyRevealed = options.showPrivateIcon && !note.readers.includes('everyone')
-
   return (
-    <div className={`note ${privatelyRevealed ? 'note-private' : ''}`}>
+    <div className={`note ${privatelyRevealed ? 'note-private' : ''} ${options.unlinkedPublications?.includes(note.id) ? 'unlinked-publication' : ''}`}>
       <NoteTitle
         id={note.id}
         forum={note.forum}
         invitation={note.invitation}
         content={note.content}
         signatures={note.signatures}
-        options={options}
+        options={
+          {
+            ...options,
+            isUnlinked: options.unlinkedPublications?.includes(note.id),
+          }
+        }
       />
 
       {(note.forumContent && note.id !== note.forum) && (
@@ -97,7 +101,10 @@ export const NoteV2 = ({ note, options }) => {
       <ul className="note-meta-info list-inline">
         <li>{forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content?.year?.value)}</li>
         <li>
-          {note.content?.venue?.value ? note.content?.venue?.value : prettyId(note.invitations[0])}
+          {/* eslint-disable-next-line no-nested-ternary */}
+          {note.note || !note.content?.venue?.value // note.note indicates this is an edit
+            ? prettyId(note.invitations[0])
+            : note.content?.venue?.value}
           {privatelyRevealed && <Icon name="eye-open" extraClasses="note-visible-icon ml-2" tooltip="Privately revealed to you" />}
         </li>
         {/* eslint-disable-next-line react/jsx-one-expression-per-line */}

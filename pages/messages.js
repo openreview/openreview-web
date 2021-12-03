@@ -13,16 +13,14 @@ import PaginationLinks from '../components/PaginationLinks'
 import Icon from '../components/Icon'
 import api from '../lib/api-client'
 
-import '../styles/pages/messages.less'
-
 const statusOptions = [
-  { text: 'Delivered', value: 'delivered' },
-  { text: 'Bounced', value: 'bounce' },
-  { text: 'Processed', value: 'processed' },
-  { text: 'Dropped', value: 'dropped' },
-  { text: 'Error', value: 'error' },
-  { text: 'Blocked', value: 'blocked' },
-  { text: 'Deferred', value: 'deferred' },
+  { label: 'Delivered', value: 'delivered' },
+  { label: 'Bounced', value: 'bounce' },
+  { label: 'Processed', value: 'processed' },
+  { label: 'Dropped', value: 'dropped' },
+  { label: 'Error', value: 'error' },
+  { label: 'Blocked', value: 'blocked' },
+  { label: 'Deferred', value: 'deferred' },
 ]
 const statusOptionValues = statusOptions.map(o => o.value)
 

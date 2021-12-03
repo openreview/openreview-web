@@ -63,13 +63,13 @@ export default function FeedbackModal() {
 
       <form onSubmit={submitForm} ref={formRef}>
         <div className="form-group">
-          <input type="email" name="from" className="form-control" placeholder="Email" required />
+          <input id="feedback-from" type="email" name="from" className="form-control" placeholder="Email" required />
         </div>
         <div className="form-group">
-          <input type="text" name="subject" className="form-control" placeholder="Subject" />
+          <input id="feedback-subject" type="text" name="subject" className="form-control" placeholder="Subject" />
         </div>
         <div className="form-group">
-          <textarea name="message" className="form-control feedback-input" rows="5" placeholder="Message" required />
+          <textarea id="feedback-message" name="message" className="form-control feedback-input" rows="5" placeholder="Message" required />
         </div>
       </form>
     </BasicModal>
