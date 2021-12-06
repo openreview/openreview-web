@@ -4,9 +4,7 @@ import findIndex from 'lodash/findIndex'
 export default function ToggleButtonGroup({
   name, className, options, values, isDisabled, onChange,
 }) {
-  if (!options) return null
-
-  const [optionStates, setOptionStates] = useState((new Array(options.length)).fill(0))
+  const [optionStates, setOptionStates] = useState((new Array(options?.length || 0)).fill(0))
   const numStates = 3
 
   const onButtonClick = (e) => {
@@ -33,7 +31,7 @@ export default function ToggleButtonGroup({
   }
 
   useEffect(() => {
-    if (!values || !options.length) return
+    if (!values || !options?.length) return
 
     const newOptionStates = (new Array(options.length)).fill(0)
     values.forEach((selectedValues, state) => {
@@ -46,6 +44,8 @@ export default function ToggleButtonGroup({
 
     setOptionStates(newOptionStates)
   }, [options, values])
+
+  if (!options) return null
 
   return (
     <div

@@ -6,9 +6,6 @@ import PaginationLinks from '../components/PaginationLinks'
 import { auth } from '../lib/auth'
 import { prettyId } from '../lib/utils'
 
-// Page Styles
-import '../styles/pages/venues.less'
-
 const VenueItemDBLP = ({ venue }) => (
   <p>
     {venue.content.shortname}

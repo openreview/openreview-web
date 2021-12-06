@@ -11,9 +11,6 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
-// Page Styles
-import '../../styles/pages/group.less'
-
 const GroupInfo = ({ appContext }) => {
   const { accessToken, userLoading } = useUser()
   const [error, setError] = useState(null)

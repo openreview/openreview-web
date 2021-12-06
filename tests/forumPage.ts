@@ -171,9 +171,9 @@ test('get an forum page and see meta tags with conference title', async (t) => {
     .expect(Selector('meta').withAttribute('name', 'citation_online_date').exists).ok()
     .expect(Selector('meta').withAttribute('name', 'citation_pdf_url').exists).ok()
     .expect(Selector('meta').withAttribute('name', 'citation_conference_title').exists).ok()
-    .expect(Selector('meta').withAttribute('name', 'citation_authors').withAttribute('content', 'Anonymous').exists).ok()
-    .expect(Selector('meta').withAttribute('name', 'citation_authors').count).eql(1)
-    .expect(Selector('meta').withAttribute('name', 'citation_author').count).eql(0)
+    .expect(Selector('meta').withAttribute('name', 'citation_author').withAttribute('content', 'Anonymous').exists).ok()
+    .expect(Selector('meta').withAttribute('name', 'citation_author').count).eql(1)
+    .expect(Selector('meta').withAttribute('name', 'citation_authors').count).eql(0)
 
   const htmlResponse = await fetch(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`, { method: 'GET' })
   await t.expect(htmlResponse.ok).eql(true)
@@ -182,7 +182,7 @@ test('get an forum page and see meta tags with conference title', async (t) => {
   await t.expect(text).contains('<meta name="citation_publication_date"')
   await t.expect(text).contains('<meta name="citation_online_date"')
   await t.expect(text).contains('<meta name="citation_pdf_url"')
-  await t.expect(text).contains('<meta name="citation_authors" content="Anonymous"/>')
+  await t.expect(text).contains('<meta name="citation_author" content="Anonymous"/>')
   await t.expect(text).notContains('<h3 class="citation_author">Anonymous</h3')
 })
 
@@ -199,9 +199,9 @@ test('get forum page and see all available meta tags', async (t) => {
     .expect(Selector('meta').withAttribute('name', 'citation_online_date').exists).ok()
     .expect(Selector('meta').withAttribute('name', 'citation_pdf_url').exists).ok()
     .expect(Selector('meta').withAttribute('name', 'citation_conference_title').exists).notOk()
-    .expect(Selector('meta').withAttribute('name', 'citation_authors').withAttribute('content', 'FirstA LastA; Melisa Bok').exists).ok()
-    .expect(Selector('meta').withAttribute('name', 'citation_authors').count).eql(1)
-    .expect(Selector('meta').withAttribute('name', 'citation_author').count).eql(0)
+    .expect(Selector('meta').withAttribute('name', 'citation_author').withAttribute('content', 'FirstA LastA').exists).ok()
+    .expect(Selector('meta').withAttribute('name', 'citation_author').count).eql(2)
+    .expect(Selector('meta').withAttribute('name', 'citation_authors').count).eql(0)
 
   const htmlResponse = await fetch(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`, { method: 'GET', headers: { cookie: `openreview.accessToken=${superUserToken}` } })
   await t.expect(htmlResponse.ok).eql(true)
@@ -210,8 +210,9 @@ test('get forum page and see all available meta tags', async (t) => {
   await t.expect(text).contains('<meta name="citation_publication_date"')
   await t.expect(text).contains('<meta name="citation_online_date"')
   await t.expect(text).contains('<meta name="citation_pdf_url"')
-  await t.expect(text).contains('<meta name="citation_authors" content="FirstA LastA; Melisa Bok"/>')
-  await t.expect(text).notContains('<h3 class="citation_author">FirstA LastA, Melisa Bok</h3')
+  await t.expect(text).contains('<meta name="citation_author" content="FirstA LastA"/>')
+  await t.expect(text).contains('<meta name="citation_author" content="Melisa Bok"/>')
+  await t.expect(text).notContains('<h3 class="citation_author">FirstA LastA, Melisa Bok</h3>')
 })
 
 test('#139 no id param should show an error message', async (t) => {
@@ -237,7 +238,7 @@ test('get forum page from a request venue form and do not render any meta tag', 
     .expect(Selector('meta').withAttribute('name', 'citation_online_date').exists).notOk()
     .expect(Selector('meta').withAttribute('name', 'citation_pdf_url').exists).notOk()
     .expect(Selector('meta').withAttribute('name', 'citation_conference_title').exists).notOk()
-    .expect(Selector('meta').withAttribute('name', 'citation_author').exists).notOk()
+    .expect(Selector('meta').withAttribute('name', 'citation_authors').exists).notOk()
 
   const htmlResponse = await fetch(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`, { method: 'GET', headers: { cookie: `openreview.accessToken=${superUserToken}` } })
   await t.expect(htmlResponse.ok).eql(true)
@@ -246,6 +247,6 @@ test('get forum page from a request venue form and do not render any meta tag', 
   await t.expect(text).notContains('<meta name="citation_publication_date"')
   await t.expect(text).notContains('<meta name="citation_online_date"')
   await t.expect(text).notContains('<meta name="citation_pdf_url"')
-  await t.expect(text).notContains('<meta name="citation_author"')
+  await t.expect(text).notContains('<meta name="citation_authors"')
   await t.expect(text).notContains('<h3 class="citation_author">')
 })

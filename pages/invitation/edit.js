@@ -15,9 +15,6 @@ import api from '../../lib/api-client'
 import { isSuperUser } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 
-// Page Styles
-import '../../styles/pages/invitation.less'
-
 const InvitationEdit = ({ appContext }) => {
   const query = useQuery()
   const router = useRouter()

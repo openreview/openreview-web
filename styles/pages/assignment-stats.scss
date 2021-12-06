@@ -1,0 +1,95 @@
+@use "../utils/constants";
+
+main.assignment-stats {
+
+  header {
+    margin-top: 1rem;
+    margin-bottom: 2.5rem;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: normal;
+      line-height: 34px;
+      margin: 0;
+    }
+  }
+
+  #stats-container-basic,
+  #stats-container-assignment-dist,
+  #stats-container-recommendation-dist,
+  #stats-container-bid-dist {
+    margin-bottom: 1rem;
+
+    h3 {
+      margin-top: 0;
+      margin-bottom: 2rem;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.25rem;
+    }
+  }
+
+  #stats-container-basic {
+    margin-right: -.5rem;
+    margin-left: -.5rem;
+
+    & > div {
+      padding-left: .5rem;
+      padding-right: .5rem;
+    }
+  }
+
+  rect.bar {
+    fill: #aaa;
+
+    &.clickable {
+      fill: constants.$mediumBlue;
+      cursor: pointer;
+
+      &:hover {
+        fill: lighten(constants.$mediumBlue, 20%);
+      }
+    }
+  }
+
+  rect.hover-bar {
+    fill: transparent;
+    cursor: pointer;
+
+    &:hover {
+      fill: rgba(234, 234, 234, 0.5);
+    }
+  }
+
+  .stat-scalar {
+    background-color: constants.$sandyBrown;
+    border: 1px solid constants.$backgroundGray;
+    text-align: center;
+    height: 180px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+
+    .stat-val {
+      font-size: 1.75rem;
+      font-weight: bold;
+      color: constants.$orRed;
+      margin-top: 30px;
+      margin-bottom: 12px;
+    }
+
+    .stat-name {
+      color: constants.$darkBlue;
+      font-size: .875rem;
+    }
+  }
+
+  .stat-chart {
+    margin-bottom: 15px;
+
+    .stat-name {
+      color: constants.$darkBlue;
+      font-size: .875rem;
+    }
+  }
+
+}

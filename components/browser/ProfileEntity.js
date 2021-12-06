@@ -14,6 +14,15 @@ import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import ScoresList from './ScoresList'
 
 export default function ProfileEntity(props) {
+  const {
+    editInvitations,
+    availableSignaturesInvitationMap,
+    traverseInvitation,
+    browseInvitations,
+    version,
+  } = useContext(EdgeBrowserContext)
+  const { user, accessToken } = useContext(UserContext)
+
   if (!props.profile || !props.profile.content) {
     return null
   }
@@ -28,14 +37,6 @@ export default function ProfileEntity(props) {
     browseEdges,
     traverseEdgesCount,
   } = props.profile
-  const {
-    editInvitations,
-    availableSignaturesInvitationMap,
-    traverseInvitation,
-    browseInvitations,
-    version,
-  } = useContext(EdgeBrowserContext)
-  const { user, accessToken } = useContext(UserContext)
 
   const metadata = props.profile.metadata || {}
   const extraClasses = []
