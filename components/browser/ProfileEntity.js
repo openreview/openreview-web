@@ -90,7 +90,9 @@ export default function ProfileEntity(props) {
       const result = await api.post('/edges', body, { accessToken, version })
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
-      } else if (isCustomLoadInvitation) props.updateChildColumn(props.columnIndex, null)
+      } else if (isCustomLoadInvitation) {
+        props.updateChildColumn(props.columnIndex, null)
+      }
       props.reloadColumnEntities()
     } catch (error) {
       promptError(error.details ?? error.message)
@@ -151,7 +153,9 @@ export default function ProfileEntity(props) {
       const result = await api.post('/edges', body, { accessToken, version })
       if (isTraverseInvitation) {
         props.addEdgeToEntity(id, result)
-      } else if (isCustomLoadInvitation) props.updateChildColumn(props.columnIndex, updatedEdgeFields?.weight)
+      } else if (isCustomLoadInvitation) {
+        props.updateChildColumn(props.columnIndex, updatedEdgeFields?.weight)
+      }
       props.reloadColumnEntities()
       if (isInviteInvitation) promptMessage(`Invitation has been sent to ${body.tail} and it's waiting for the response.`)
     } catch (error) {
