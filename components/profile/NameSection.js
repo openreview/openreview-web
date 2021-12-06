@@ -11,7 +11,7 @@ const NamesButton = ({
 }) => {
   if (!newRow && readonly) {
     if (preferred) {
-      return <span className="preferred hint">(Preferred Name)</span>
+      return <div className="preferred hint">(Preferred Name)</div>
     }
     return <button type="button" className="btn preferred_button" onClick={handleMakePreferred}>Make Preferred</button>
   }
