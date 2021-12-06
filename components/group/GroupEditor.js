@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid'
-import GroupGeneralInfo from './GroupGeneralInfo'
+import GroupGeneral from './GroupGeneral'
 import GroupMembers from './GroupMembers'
 import GroupSignedNotes from './GroupSignedNotes'
 import GroupChildGroups from './GroupChildGroups'
@@ -13,7 +13,7 @@ const GroupEditor = ({
 
   return (
     <>
-      <GroupGeneralInfo
+      <GroupGeneral
         key={`${group.id}-info`}
         group={group}
         isSuperUser={isSuperUser}

@@ -10,6 +10,9 @@ import useQuery from '../../hooks/useQuery'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
+import EditorSection from '../../components/EditorSection'
+import GroupGeneralInfo from '../../components/group/info/GroupGeneralInfo'
+import GroupMembersInfo from '../../components/group/info/GroupMembersInfo'
 
 const GroupInfo = ({ appContext }) => {
   const { accessToken, userLoading } = useUser()
@@ -91,6 +94,16 @@ const GroupInfo = ({ appContext }) => {
 
         <div id="notes" ref={containerRef} />
       </WebfieldContainer>
+      {'###################################new implementation#############################################'}
+      <div id="header">
+        <h1>{prettyId(query?.id)}</h1>
+      </div>
+      {group && (
+        <>
+          <GroupGeneralInfo group={group} />
+          <GroupMembersInfo group={group} />
+        </>
+      )}
     </>
   )
 }

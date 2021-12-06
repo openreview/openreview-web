@@ -9,7 +9,7 @@ import Dropdown from '../Dropdown'
 import GroupIdList from './GroupIdList'
 import EditorSection from '../EditorSection'
 
-const GroupGeneralInfoView = ({ group, setEdit }) => {
+export const GroupGeneralView = ({ group, showEditButton = true, setEdit }) => {
   const groupParent = group.id.split('/').slice(0, -1).join('/')
 
   return (
@@ -74,12 +74,12 @@ const GroupGeneralInfoView = ({ group, setEdit }) => {
           {formatDateTime(group.mdate, { month: 'long', timeZoneName: 'short' }) ?? formatDateTime(group.tmdate, { month: 'long', timeZoneName: 'short' })}
         </div>
       </div>
-      <button type="button" className="btn btn-sm btn-primary edit-group-info" onClick={setEdit}>Edit General Info</button>
+      {showEditButton && <button type="button" className="btn btn-sm btn-primary edit-group-info" onClick={setEdit}>Edit General Info</button>}
     </>
   )
 }
 
-const GroupGeneralInfoEdit = ({
+const GroupGeneralEdit = ({
   group, isSuperUser, setEdit, saveGeneralInfo,
 }) => {
   const anonymousIdOptions = [
@@ -160,7 +160,7 @@ const GroupGeneralInfoEdit = ({
   )
 }
 
-const GroupGeneralInfo = ({
+const GroupGeneral = ({
   group, isSuperUser, accessToken, reloadGroup,
 }) => {
   const [edit, setEdit] = useState(false)
@@ -194,16 +194,16 @@ const GroupGeneralInfo = ({
     <EditorSection getTitle={() => 'General Info'} classes="general" >
       {edit
         ? (
-          <GroupGeneralInfoEdit
+          <GroupGeneralEdit
             group={group}
             isSuperUser={isSuperUser}
             setEdit={value => setEdit(value)}
             saveGeneralInfo={saveGeneralInfo}
           />
         )
-        : <GroupGeneralInfoView group={group} setEdit={() => setEdit(true)} />}
+        : <GroupGeneralView group={group} setEdit={() => setEdit(true)} />}
     </EditorSection>
   )
 }
 
-export default GroupGeneralInfo
+export default GroupGeneral
