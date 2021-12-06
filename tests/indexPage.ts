@@ -27,7 +27,7 @@ test('show active venues', async (t) => {
 
     // All venues
     .expect(allVenues.find('li').count).eql(3)
-    .expect(allVenues.find('a').nth(0).textContent).eql(baseGroupId)
-    .expect(allVenues.find('a').nth(1).textContent).eql(`Another${baseGroupId}`)
+    .expect(allVenues.find('a').nth(0).textContent).eql(`Another${baseGroupId}`)
+    .expect(allVenues.find('a').nth(1).textContent).eql(baseGroupId)
     .expect(allVenues.find('a').nth(2).textContent).eql('ICLR')
 })
