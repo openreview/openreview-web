@@ -93,7 +93,7 @@ test('request a new activation link', async (t) => {
     .expect(messageSelector.innerText)
     .eql('A confirmation email with the subject "OpenReview signup confirmation" has been sent to melisa@test.com. Please click the link in this email to confirm your email address and complete registration.')
 
-  await new Promise(r => setTimeout(r, 2000))
+  await new Promise((r) => { setTimeout(r, 2000) })
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages({ to: 'melisa@test.com', subject: 'OpenReview signup confirmation' }, superUserToken)

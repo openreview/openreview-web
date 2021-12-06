@@ -791,10 +791,10 @@ export default function Column(props) {
 
     // Update global head and tail maps
     const incr = modifiedExistingEdge ? 0 : 1
-    const newCount1 = altGlobalEntityMap[parentId]?.traverseEdgesCount + incr
+    const newCount1 = (altGlobalEntityMap[parentId]?.traverseEdgesCount ?? 0) + incr
     props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', newCount1)
 
-    const newCount2 = globalEntityMap[id]?.traverseEdgesCount + incr
+    const newCount2 = (globalEntityMap[id]?.traverseEdgesCount ?? 0) + incr
     props.updateGlobalEntityMap(type, id, 'traverseEdgesCount', newCount2)
   }
 
@@ -832,10 +832,10 @@ export default function Column(props) {
     }
 
     // Update global head and tail maps
-    const newCount1 = altGlobalEntityMap[parentId]?.traverseEdgesCount - 1
+    const newCount1 = (altGlobalEntityMap[parentId]?.traverseEdgesCount ?? 0) - 1
     props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', newCount1)
 
-    const newCount2 = globalEntityMap[id]?.traverseEdgesCount - 1
+    const newCount2 = (globalEntityMap[id]?.traverseEdgesCount ?? 0) - 1
     props.updateGlobalEntityMap(type, id, 'traverseEdgesCount', newCount2)
   }
 

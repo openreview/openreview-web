@@ -57,7 +57,10 @@ const Browse = ({ appContext }) => {
     const browseInvitations = parseEdgeList(query.browse, 'browse')
     const hideInvitations = parseEdgeList(query.hide, 'hide')
     const allInvitations = traverseInvitations.concat(
-      startInvitations, editInvitations, browseInvitations, hideInvitations,
+      startInvitations,
+      editInvitations,
+      browseInvitations,
+      hideInvitations,
     )
     if (allInvitations.length === 0) {
       setError(invalidError)
