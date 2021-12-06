@@ -396,7 +396,7 @@ module.exports = (function() {
         }
       });
 
-      $('#div-msg-reviewers').find('a').on('click', function(e) {
+      $container.on('click', '#div-msg-reviewers a', function(e) {
         var filter = $(this)[0].id;
         $('#message-reviewers-modal').remove();
 
