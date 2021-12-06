@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getGroupVersion, prettyId } from '../../lib/utils'
 import api from '../../lib/api-client'
-import PaginationLinks from '../PaginationLinks'
 import EditorSection from '../EditorSection'
+import PaginatedList from '../PaginatedList'
 
 const RelatedInvitationRow = ({ relatedInvitation }) => (
   <li>
@@ -42,6 +42,12 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
 
   const getTitle = () => `Related Invitations ${totalCount ? `(${totalCount})` : ''}`
 
+  const renderRelatedInvitation = invitation => <RelatedInvitationRow
+    key={invitation.id}
+    relatedInvitation={invitation}
+    version={groupVersion}
+  />
+
   useEffect(() => {
     loadRelatedInvitations()
   }, [])
@@ -49,24 +55,13 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
   if (!relatedInvitations.length) return null
   return (
     <EditorSection getTitle={getTitle}>
-      <ul className="list-unstyled">
-        {relatedInvitations.map(invitation => (
-          <RelatedInvitationRow
-            key={invitation.id}
-            relatedInvitation={invitation}
-            version={groupVersion}
-          />
-        ))}
-      </ul>
-      <PaginationLinks
-        setCurrentPage={(pageNumber) => {
-          setCurrentPage(pageNumber)
-          loadRelatedInvitations(15, (pageNumber - 1) * 15)
-        }}
+      <PaginatedList
+        items={relatedInvitations}
+        renderItem={renderRelatedInvitation}
         totalCount={totalCount}
-        itemsPerPage={15}
+        loadItems={loadRelatedInvitations}
         currentPage={currentPage}
-        options={{ noScroll: true, noBottomMargin: true }}
+        setCurrentPage={setCurrentPage}
       />
     </EditorSection>
   )

@@ -2,9 +2,9 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getGroupVersion, prettyId, urlFromGroupId } from '../../lib/utils'
-import PaginationLinks from '../PaginationLinks'
 import api from '../../lib/api-client'
 import EditorSection from '../EditorSection'
+import PaginatedList from '../PaginatedList'
 
 const ChildGroupRow = ({ childGroup }) => (
   <li>
@@ -34,6 +34,12 @@ const GroupChildGroups = ({ groupId, accessToken }) => {
 
   const getTitle = () => `Child Groups ${totalCount ? `(${totalCount})` : ''}`
 
+  const renderChildGroup = childGroup => <ChildGroupRow
+    key={childGroup.id}
+    childGroup={childGroup}
+    version={groupVersion}
+  />
+
   useEffect(() => {
     loadChildGroups()
   }, [])
@@ -41,21 +47,13 @@ const GroupChildGroups = ({ groupId, accessToken }) => {
   if (!childGroups.length) return null
   return (
     <EditorSection getTitle={getTitle}>
-      <ul className="list-unstyled">
-        {childGroups.map(childGroup => (
-          <ChildGroupRow
-            key={childGroup.id}
-            childGroup={childGroup}
-            version={groupVersion}
-          />
-        ))}
-      </ul>
-      <PaginationLinks
-        setCurrentPage={(pageNumber) => { setCurrentPage(pageNumber); loadChildGroups(15, (pageNumber - 1) * 15) }}
+      <PaginatedList
+        items={childGroups}
+        renderItem={renderChildGroup}
         totalCount={totalCount}
-        itemsPerPage={15}
+        loadItems={loadChildGroups}
         currentPage={currentPage}
-        options={{ noScroll: true, noBottomMargin: true }}
+        setCurrentPage={setCurrentPage}
       />
     </EditorSection>
   )

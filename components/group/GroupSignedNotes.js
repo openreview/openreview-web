@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getGroupVersion, prettyInvitationId } from '../../lib/utils'
 import api from '../../lib/api-client'
-import PaginationLinks from '../PaginationLinks'
 import EditorSection from '../EditorSection'
+import PaginatedList from '../PaginatedList'
 
 const SignedNotesRow = ({ signedNote, version }) => {
   const invitationId = version === 2 ? signedNote.invitations[0] : signedNote.invitation
@@ -50,6 +50,12 @@ const GroupSignedNotes = ({ groupId, accessToken }) => {
 
   const getTitle = () => `Signed Notes ${totalCount ? `(${totalCount})` : ''}`
 
+  const renderSignedNote = signedNote => <SignedNotesRow
+    key={signedNote.id}
+    signedNote={signedNote}
+    version={groupVersion}
+  />
+
   useEffect(() => {
     loadNotes()
   }, [])
@@ -57,24 +63,13 @@ const GroupSignedNotes = ({ groupId, accessToken }) => {
   if (!signedNotes.length) return null
   return (
     <EditorSection getTitle={getTitle}>
-      <ul className="list-unstyled">
-        {signedNotes.map(signedNote => (
-          <SignedNotesRow
-            key={signedNote.id}
-            signedNote={signedNote}
-            version={groupVersion}
-          />
-        ))}
-      </ul>
-      <PaginationLinks
-        setCurrentPage={(pageNumber) => {
-          setCurrentPage(pageNumber)
-          loadNotes(15, (pageNumber - 1) * 15)
-        }}
+      <PaginatedList
+        items={signedNotes}
+        renderItem={renderSignedNote}
         totalCount={totalCount}
-        itemsPerPage={15}
+        loadItems={loadNotes}
         currentPage={currentPage}
-        options={{ noScroll: true, noBottomMargin: true }}
+        setCurrentPage={setCurrentPage}
       />
     </EditorSection>
   )
