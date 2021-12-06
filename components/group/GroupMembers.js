@@ -492,173 +492,173 @@ const GroupMembers = ({ group, accessToken }) => {
   }, [])
 
   return (
-    <EditorSection getTitle={getTitle} classes="members">
-      <div className="container members-container">
-        <div className="search-row">
-          <div className="input-group">
-            <input
-              className="form-control input-sm"
-              placeholder="e.g. ~Jane_Doe1, jane@example.com, abc.com/2018/Conf/Authors"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-            />
+    <>
+      <EditorSection getTitle={getTitle} classes="members">
+        <div className="container members-container">
+          <div className="search-row">
+            <div className="input-group">
+              <input
+                className="form-control input-sm"
+                placeholder="e.g. ~Jane_Doe1, jane@example.com, abc.com/2018/Conf/Authors"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              className="btn btn-sm btn-primary mr-3 search-button"
+              disabled={
+                !searchTerm.trim()
+                || groupMembers.find(p => p.id === searchTerm)
+              }
+              onClick={() => handleAddButtonClick(searchTerm)}
+            >
+              Add to Group
+            </button>
+            <div className="space-taker" />
+            <button
+              type="button"
+              className="btn btn-sm btn-primary"
+              disabled={isFilteredEmpty}
+              onClick={() => setGroupMembers({ type: 'SELECTDESELECTALL' })}
+            >
+              {isAllFilterdSelected ? 'Deselect All' : 'Select All'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm btn-primary"
+              disabled={!groupMembers.some(p => p.isSelected)}
+              onClick={() => messageMember(
+                groupMembers.filter(p => p.isSelected)?.map(q => q.id),
+              )}
+            >
+              Message Selected
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm btn-primary"
+              disabled={!groupMembers.some(p => p.isSelected)}
+              onClick={() => handleRemoveSelectedButtonClick()}
+            >
+              Remove Selected
+            </button>
           </div>
-          <button
-            type="button"
-            className="btn btn-sm btn-primary mr-3 search-button"
-            disabled={
-              !searchTerm.trim()
-              || groupMembers.find(p => p.id === searchTerm)
-            }
-            onClick={() => handleAddButtonClick(searchTerm)}
-          >
-            Add to Group
-          </button>
-          <div className="space-taker" />
-          <button
-            type="button"
-            className="btn btn-sm btn-primary"
-            disabled={isFilteredEmpty}
-            onClick={() => setGroupMembers({ type: 'SELECTDESELECTALL' })}
-          >
-            {isAllFilterdSelected ? 'Deselect All' : 'Select All'}
-          </button>
-          <button
-            type="button"
-            className="btn btn-sm btn-primary"
-            disabled={!groupMembers.some(p => p.isSelected)}
-            onClick={() => messageMember(
-              groupMembers.filter(p => p.isSelected)?.map(q => q.id),
-            )}
-          >
-            Message Selected
-          </button>
-          <button
-            type="button"
-            className="btn btn-sm btn-primary"
-            disabled={!groupMembers.some(p => p.isSelected)}
-            onClick={() => handleRemoveSelectedButtonClick()}
-          >
-            Remove Selected
-          </button>
-        </div>
-        {showMembers ? (
-          <>
-            {displayedMembers.map((member) => {
-              // eslint-disable-next-line eqeqeq
-              const hasAnonId = memberAnonIds.find(p => p.member == member.id)
-              return (
-                <React.Fragment key={member.id}>
-                  <div
-                    className={`member-row ${
-                      member.isDeleted ? 'deleted' : ''
-                    }`}
-                    key={member}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={member.isSelected}
-                      disabled={member.isDeleted}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setGroupMembers({
-                            type: 'SELECT',
-                            payload: member.id,
-                          })
-                        } else {
-                          setGroupMembers({
-                            type: 'UNSELECT',
-                            payload: member.id,
-                          })
-                        }
-                      }}
-                    />
-                    <span className="member-id" onClick={(e) => {
-                      if (e.currentTarget !== e.target) return
-                      setGroupMembers({
-                        type: 'INVERTSELECTION',
-                        payload: member.id,
-                      })
-                    }}>
-                      <Link href={urlFromGroupId(member.id)}>
-                        <a>{member.id}</a>
-                      </Link>
-                      {hasAnonId && (
+          {showMembers ? (
+            <>
+              {displayedMembers.map((member) => {
+                // eslint-disable-next-line eqeqeq
+                const hasAnonId = memberAnonIds.find(p => p.member == member.id)
+                return (
+                  <React.Fragment key={member.id}>
+                    <div
+                      className={`member-row ${member.isDeleted ? 'deleted' : ''}`}
+                      key={member}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={member.isSelected}
+                        disabled={member.isDeleted}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setGroupMembers({
+                              type: 'SELECT',
+                              payload: member.id,
+                            })
+                          } else {
+                            setGroupMembers({
+                              type: 'UNSELECT',
+                              payload: member.id,
+                            })
+                          }
+                        }}
+                      />
+                      <span className="member-id" onClick={(e) => {
+                        if (e.currentTarget !== e.target) return
+                        setGroupMembers({
+                          type: 'INVERTSELECTION',
+                          payload: member.id,
+                        })
+                      }}>
+                        <Link href={urlFromGroupId(member.id)}>
+                          <a>{member.id}</a>
+                        </Link>
+                        {hasAnonId && (
+                          <>
+                            {' | '}
+                            <Link href={urlFromGroupId(hasAnonId.anonId)}>
+                              <a>{prettyId(hasAnonId.anonId)}</a>
+                            </Link>
+                          </>
+                        )}
+                        {member.isDeleted && (
+                          <>
+                            {' '}
+                            {'(Deleted)'}
+                          </>
+                        )}
+                      </span>
+                      {member.isDeleted ? (
+                        <button
+                          type="button"
+                          className="btn btn-xs btn-primary"
+                          onClick={() => restoreMember(member.id)}
+                        >
+                          <Icon name="repeat" />
+                          Undo
+                        </button>
+                      ) : (
                         <>
-                          {' | '}
-                          <Link href={urlFromGroupId(hasAnonId.anonId)}>
-                            <a>{prettyId(hasAnonId.anonId)}</a>
-                          </Link>
+                          <button
+                            type="button"
+                            className="btn btn-xs btn-primary"
+                            onClick={() => messageMember([member.id])}
+                          >
+                            <Icon name="envelope" />
+                            Message
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-xs btn-primary"
+                            onClick={() => deleteMember(member.id)}
+                          >
+                            <Icon name="remove" />
+                            Remove
+                          </button>
                         </>
                       )}
-                      {member.isDeleted && (
-                      <>
-                        {' '}
-                        {'(Deleted)'}
-                      </>
-                      )}
-                    </span>
-                    {member.isDeleted ? (
-                      <button
-                        type="button"
-                        className="btn btn-xs btn-primary"
-                        onClick={() => restoreMember(member.id)}
-                      >
-                        <Icon name="repeat" />
-                        Undo
-                      </button>
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          className="btn btn-xs btn-primary"
-                          onClick={() => messageMember([member.id])}
-                        >
-                          <Icon name="envelope" />
-                          Message
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-xs btn-primary"
-                          onClick={() => deleteMember(member.id)}
-                        >
-                          <Icon name="remove" />
-                          Remove
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </React.Fragment>
-              )
-            })}
-            <PaginationLinks
-              setCurrentPage={e => setCurrentPage(e)}
-              totalCount={filteredMembers.length}
-              itemsPerPage={membersPerPage}
-              currentPage={currentPage}
-              options={{ noScroll: true }}
-            />
-          </>
-        ) : (
-          <div className="empty-message-row">
-            {searchTerm
-              ? `No members matching the search "${searchTerm}" found. Click Add to Group above to add a new member.`
-              : 'No members to display'}
-          </div>
-        )}
-      </div>
-      <MessageMemberModal
-        groupId={group.id}
-        membersToMessage={memberToMessage}
-        accessToken={accessToken}
-        setJobId={id => setJobId(id)}
-      />
+                    </div>
+                  </React.Fragment>
+                )
+              })}
+              <PaginationLinks
+                setCurrentPage={e => setCurrentPage(e)}
+                totalCount={filteredMembers.length}
+                itemsPerPage={membersPerPage}
+                currentPage={currentPage}
+                options={{ noScroll: true, noBottomMargin: true }}
+              />
+            </>
+          ) : (
+            <div className="empty-message-row">
+              {searchTerm
+                ? `No members matching the search "${searchTerm}" found. Click Add to Group above to add a new member.`
+                : 'No members to display'}
+            </div>
+          )}
+        </div>
+        <MessageMemberModal
+          groupId={group.id}
+          membersToMessage={memberToMessage}
+          accessToken={accessToken}
+          setJobId={id => setJobId(id)}
+        />
+      </EditorSection>
       <GroupMessages
         jobId={jobId}
         accessToken={accessToken}
         groupId={group.id}
       />
-    </EditorSection>
+    </>
   )
 }
 

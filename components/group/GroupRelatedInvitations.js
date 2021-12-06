@@ -66,7 +66,7 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
         totalCount={totalCount}
         itemsPerPage={15}
         currentPage={currentPage}
-        options={{ noScroll: true }}
+        options={{ noScroll: true, noBottomMargin: true }}
       />
     </EditorSection>
   )
