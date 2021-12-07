@@ -564,6 +564,7 @@ main.group, main.invitation {
       padding: 6px 8px;
       font-style: italic;
       color: constants.$subtleGray;
+      overflow-wrap: break-word;
     }
 
     .member-row {

@@ -441,6 +441,16 @@ const GroupMembers = ({ group, accessToken }) => {
     }
   }
 
+  const handleCopySelectedButtonClick = async () => {
+    try {
+      const selectedMemberIds = groupMembers.filter(p => p.isSelected).map(q => q.id)
+      await navigator.clipboard.writeText(selectedMemberIds.join(','))
+      promptMessage(`${selectedMemberIds.length} ids copied to clipboard`, { scrollToTop: false })
+    } catch (error) {
+      promptError(error.message, { scrollToTop: false })
+    }
+  }
+
   const getMemberAnonIds = async () => {
     try {
       const anonGroupRegex = group.id.endsWith('s')
@@ -489,6 +499,7 @@ const GroupMembers = ({ group, accessToken }) => {
 
   useEffect(() => {
     getMemberAnonIds()
+    $('[data-toggle="tooltip"]').tooltip()
   }, [])
 
   return (
@@ -524,6 +535,17 @@ const GroupMembers = ({ group, accessToken }) => {
             >
               {isAllFilterdSelected ? 'Deselect All' : 'Select All'}
             </button>
+            {navigator.clipboard?.writeText && <button
+              type="button"
+              className="btn btn-sm btn-primary"
+              disabled={!groupMembers.some(p => p.isSelected)}
+              onClick={handleCopySelectedButtonClick}
+              title="Copy member ids to clipboard when you need to duplicate group members"
+              data-toggle="tooltip"
+              data-placement="top"
+            >
+              Copy Selected Id
+            </button>}
             <button
               type="button"
               className="btn btn-sm btn-primary"
