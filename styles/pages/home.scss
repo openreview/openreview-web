@@ -76,5 +76,11 @@ main.home {
       margin-top: 0;
       margin-bottom: .75rem;
     }
+    .leading-venue {
+      display: inline-block;
+      &:first-letter {
+        color: constants.$orRed;
+      }
+    }
   }
 }
