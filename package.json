@@ -44,7 +44,7 @@
   "devDependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@next/env": "^12.0.7",
-    "eslint": "^8.4.0",
+    "eslint": "^8.4.1",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-next": "^12.0.7",
     "eslint-plugin-import": "^2.25.3",
