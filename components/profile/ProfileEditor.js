@@ -167,20 +167,9 @@ export default function ProfileEditor({
     profileContent = {
       ...profileContent,
       names: profileContent.names.map((p) => {
-        if (p.newRow || !p.username) {
-          const {
-            first, middle, last, preferred,
-          } = p
-          return {
-            first, middle, last, preferred,
-          }
-        }
-        const {
-          first, middle, last, preferred, username,
-        } = p
-        return {
-          first, middle, last, preferred, username,
-        }
+        const fieldsToInclude = ['first', 'middle', 'last', 'preferred']
+        if (!p.newRow && p.username) fieldsToInclude.push('username')
+        return fieldsToInclude.reduce((acc, field) => { acc[field] = p?.[field]; return acc }, {})
       }),
       emails: profileContent.emails.map(p => p.email),
       history: profileContent.history.map((p) => { const { key, meta, ...rest } = p; return rest }),
