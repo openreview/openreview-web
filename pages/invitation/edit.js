@@ -1,13 +1,10 @@
 /* eslint-disable global-require */
 /* globals Webfield: false */
-/* globals Webfield2: false */
-/* globals moment: false */
-
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
 import ErrorDisplay from '../../components/ErrorDisplay'
-import InvitationEditor from '../../components/InvitationEditor'
+import InvitationEditor from '../../components/invitation/InvitationEditor'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
@@ -30,9 +27,6 @@ const InvitationEdit = ({ appContext }) => {
       const invitationObj = await api.getInvitationById(invitationId, accessToken)
       if (invitationObj) {
         if (invitationObj.details?.writable) {
-          // setInvitation({
-          //   ...invitationObj, web: null, process: null, preprocess: null,
-          // })
           setInvitation(invitationObj)
         } else {
           // User is a reader, not a writer of the invitation, so redirect to info mode
@@ -66,11 +60,11 @@ const InvitationEdit = ({ appContext }) => {
   useEffect(() => {
     if (!invitation || !containerRef || clientJsLoading) return
 
-    window.moment = require('moment')
-    require('moment-timezone')
     window.datetimepicker = require('../../client/bootstrap-datetimepicker-4.17.47.min')
     const editModeBannerDelay = document.querySelector('#flash-message-container.alert-success') ? 2500 : 0
-    setTimeout(() => Webfield.editModeBanner(invitation.id, 'edit'), editModeBannerDelay)
+    const bannerTimeout = setTimeout(() => Webfield.editModeBanner(invitation.id, 'edit', true), editModeBannerDelay)
+    // eslint-disable-next-line consistent-return
+    return () => clearTimeout(bannerTimeout)
   }, [clientJsLoading, containerRef, invitation])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />

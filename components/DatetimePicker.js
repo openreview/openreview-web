@@ -1,4 +1,6 @@
-/* globals $,moment: false */
+/* globals $: false */
+import moment from 'moment'
+import 'moment-timezone'
 import { useEffect, useRef } from 'react'
 import { getDefaultTimezone } from '../lib/utils'
 import Icon from './Icon'

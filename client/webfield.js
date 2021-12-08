@@ -3230,7 +3230,7 @@ module.exports = (function() {
     }));
   };
 
-  var editModeBanner = function(groupOrInvitationId, mode) {
+  var editModeBanner = function(groupOrInvitationId, mode, overlay=false) {
     mode = mode || 'default';
     var pageType = window.location.pathname.toLowerCase().indexOf('group') !== -1 ? 'group' : 'invitation';
     var buttonText = mode === 'default' ? 'Edit' : 'View';
@@ -3241,7 +3241,7 @@ module.exports = (function() {
       buttonText + ' ' + _.upperFirst(pageType) +
       '</a></span>';
 
-    generalPrompt('info', messageHtml, { html: true, noTimeout: true, overlay: false, scrollToTop: false });
+    generalPrompt('info', messageHtml, { html: true, noTimeout: true, overlay: overlay, scrollToTop: false });
   };
 
   var done = function(options) {
