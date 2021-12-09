@@ -1,4 +1,6 @@
-/* globals promptMessage,promptError: false */
+/* globals promptMessage: false */
+/* globals promptError: false */
+
 import { useReducer, useState } from 'react'
 import Link from 'next/link'
 import api from '../../lib/api-client'
@@ -9,73 +11,64 @@ import Dropdown from '../Dropdown'
 import GroupIdList from './GroupIdList'
 import EditorSection from '../EditorSection'
 
-export const GroupGeneralView = ({ group, showEditButton = true, setEdit }) => {
+export const GroupGeneralView = ({ group }) => {
   const groupParent = group.id.split('/').slice(0, -1).join('/')
 
   return (
-    <>
-      <div className="info-container">
+    <div className="info-container">
+      <div className="row">
+        <div className="info-container__label">Parent Group:</div>
+        <div><Link href={urlFromGroupId(groupParent, true)}><a>{prettyId(groupParent)}</a></Link></div>
+      </div>
+      <div className="row">
+        <div className="info-container__label">Readers:</div>
+        <GroupIdList groupIds={group.readers} />
+      </div>
+      {group.nonreaders?.length > 0 && (
         <div className="row">
-          <div className="info-container__label">Parent Group:</div>
-          <div><Link href={urlFromGroupId(groupParent, true)}><a>{prettyId(groupParent)}</a></Link></div>
+          <div className="info-container__label">Non-readers:</div>
+          <GroupIdList groupIds={group.nonreaders} />
         </div>
-        <div className="row">
-          <div className="info-container__label">Readers:</div>
-          <GroupIdList groupIds={group.readers} />
-        </div>
-        {group.nonreaders?.length > 0
-          && (
+      )}
+      <div className="row">
+        <div className="info-container__label">Writers:</div>
+        <GroupIdList groupIds={group.writers} />
+      </div>
+      <div className="row">
+        <div className="info-container__label">Signatories:</div>
+        <GroupIdList groupIds={group.signatories} />
+      </div>
+      <div className="row">
+        <div className="info-container__label">Signature:</div>
+        <GroupIdList groupIds={group.signatures} />
+      </div>
+      {group.anonids && (
+        <>
+          <div className="row">
+            <div className="info-container__label">AnonymousId:</div>
+            True
+          </div>
+          {group.secret && (
             <div className="row">
-              <div className="info-container__label">Non-readers:</div>
-              <GroupIdList groupIds={group.nonreaders} />
+              <div className="info-container__label">Secret:</div>
+              {group.secret}
             </div>
           )}
-        <div className="row">
-          <div className="info-container__label">Writers:</div>
-          <GroupIdList groupIds={group.writers} />
-        </div>
-        <div className="row">
-          <div className="info-container__label">Signatories:</div>
-          <GroupIdList groupIds={group.signatories} />
-        </div>
-        <div className="row">
-          <div className="info-container__label">Signature:</div>
-          <GroupIdList groupIds={group.signatures} />
-        </div>
-        {
-          group.anonids
-          && (
-            <>
-              <div className="row">
-                <div className="info-container__label">AnonymousId:</div>
-                True
-              </div>
-              {
-                group.secret && (
-                  <div className="row">
-                    <div className="info-container__label">Secret:</div>
-                    {group.secret}
-                  </div>
-                )
-              }
-              <div className="row">
-                <div className="info-container__label" title="deanonymizers">Deanonymizers:</div>
-                <GroupIdList key="deanonymizers" groupIds={group.deanonymizers} />
-              </div>
-            </>
-          )
-        }
-        <div className="row">
-          <div className="info-container__label">Created:</div>
-          {formatDateTime(group.cdate, { month: 'long', timeZoneName: 'short' }) ?? formatDateTime(group.tcdate, { month: 'long', timeZoneName: 'short' })}
-        </div>
-        <div className="row">
-          <div className="info-container__label">Last Modified:</div>
-          {formatDateTime(group.mdate, { month: 'long', timeZoneName: 'short' }) ?? formatDateTime(group.tmdate, { month: 'long', timeZoneName: 'short' })}
-        </div>
+          <div className="row">
+            <div className="info-container__label" title="deanonymizers">Deanonymizers:</div>
+            <GroupIdList key="deanonymizers" groupIds={group.deanonymizers} />
+          </div>
+        </>
+      )}
+      <div className="row">
+        <div className="info-container__label">Created:</div>
+        {formatDateTime(group.cdate, { month: 'long', timeZoneName: 'short' }) ?? formatDateTime(group.tcdate, { month: 'long', timeZoneName: 'short' })}
       </div>
-      {showEditButton && <button type="button" className="btn btn-sm btn-primary edit-group-info" onClick={setEdit}>Edit General Info</button>}
-    </>
+      <div className="row">
+        <div className="info-container__label">Last Modified:</div>
+        {formatDateTime(group.mdate, { month: 'long', timeZoneName: 'short' }) ?? formatDateTime(group.tmdate, { month: 'long', timeZoneName: 'short' })}
+      </div>
+    </div>
   )
 }
 
@@ -125,30 +118,29 @@ const GroupGeneralEdit = ({
           <input className="form-control input-sm" value={generalInfo.signatories} onChange={e => setGeneralInfo({ type: 'signatories', value: e.target.value })} />
         </div>
       </div>
-      {
-          isSuperUser && (
-            <>
-              <div className="row">
-                <div className="edit-container__label">AnonymousId:</div>
-                <div className="edit-container__control">
-                  <Dropdown
-                    className="dropdown-select dropdown-sm"
-                    placeholder="select whether to enable anonymous id"
-                    options={anonymousIdOptions}
-                    onChange={e => setGeneralInfo({ type: 'anonids', value: e.value })}
-                    value={generalInfo.anonids ? { value: true, label: 'True' } : { value: false, label: 'False' }}
-                  />
-                </div>
-              </div>
-              <div className="row">
-                <div className="edit-container__label">Deanonymizers:</div>
-                <div className="edit-container__control">
-                  <input className="form-control input-sm" value={generalInfo.deanonymizers} onChange={e => setGeneralInfo({ type: 'deanonymizers', value: e.target.value })} />
-                </div>
-              </div>
-            </>
-          )
-        }
+      {isSuperUser && (
+        <div className="row">
+          <div className="edit-container__label">AnonymousId:</div>
+          <div className="edit-container__control">
+            <Dropdown
+              className="dropdown-select dropdown-sm"
+              placeholder="select whether to enable anonymous id"
+              options={anonymousIdOptions}
+              onChange={e => setGeneralInfo({ type: 'anonids', value: e.value })}
+              value={generalInfo.anonids ? { value: true, label: 'True' } : { value: false, label: 'False' }}
+            />
+          </div>
+        </div>
+      )}
+      {isSuperUser && (
+        <div className="row">
+          <div className="edit-container__label">Deanonymizers:</div>
+          <div className="edit-container__control">
+            <input className="form-control input-sm" value={generalInfo.deanonymizers} onChange={e => setGeneralInfo({ type: 'deanonymizers', value: e.target.value })} />
+          </div>
+        </div>
+      )}
+
       <div className="row">
         <div className="edit-container__label" />
         <div className="edit-container__control">
@@ -190,18 +182,24 @@ const GroupGeneral = ({
       promptError(error.message)
     }
   }
+
   return (
     <EditorSection getTitle={() => 'General Info'} classes="general" >
-      {edit
-        ? (
-          <GroupGeneralEdit
-            group={group}
-            isSuperUser={isSuperUser}
-            setEdit={value => setEdit(value)}
-            saveGeneralInfo={saveGeneralInfo}
-          />
-        )
-        : <GroupGeneralView group={group} setEdit={() => setEdit(true)} />}
+      {edit ? (
+        <GroupGeneralEdit
+          group={group}
+          isSuperUser={isSuperUser}
+          setEdit={value => setEdit(value)}
+          saveGeneralInfo={saveGeneralInfo}
+        />
+      ) : (
+        <>
+          <GroupGeneralView group={group} />
+          <button type="button" className="btn btn-sm btn-primary edit-group-info" onClick={() => setEdit(true)}>
+            Edit General Info
+          </button>
+        </>
+      )}
     </EditorSection>
   )
 }

@@ -84,12 +84,13 @@ export default function GroupEdit({ appContext }) {
         <title key="title">{`Edit ${group ? prettyId(group.id) : 'Group'} | OpenReview`}</title>
       </Head>
 
-      {(clientJsLoading || !group) && (
-        <LoadingSpinner />
-      )}
       <div id="header">
         <h1>{prettyId(query?.id)}</h1>
       </div>
+
+      {(clientJsLoading || !group) && (
+        <LoadingSpinner />
+      )}
 
       <GroupEditor
         group={group}
