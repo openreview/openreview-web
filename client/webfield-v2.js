@@ -556,7 +556,7 @@ module.exports = (function() {
     }
 
     var reminderMenuHtml = '';
-    if (options.reminderOptions.menu.length) {
+    if (options.reminderOptions.menu && options.reminderOptions.menu.length) {
       var optionsHtml = '';
       options.reminderOptions.menu.forEach(function(menu) {
         optionsHtml = optionsHtml + '<li><a id="msg-' + menu.id + '">' + menu.name + '</a></li>'
@@ -2876,6 +2876,7 @@ module.exports = (function() {
       getGroupsByNumber: getGroupsByNumber,
       getAssignedInvitations: getAssignedInvitations,
       getGroup: getGroup,
+      getAll: getAll,
 
     },
 
