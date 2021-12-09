@@ -13,9 +13,6 @@ import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { formatProfileData } from '../../lib/profiles'
 
-// Page Styles
-import '../../styles/pages/profile-edit.less'
-
 const ActivateProfile = ({ appContext }) => {
   const [activateToken, setActivateToken] = useState('')
   const [profile, setProfile] = useState(null)

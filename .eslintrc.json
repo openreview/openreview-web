@@ -1,14 +1,5 @@
 {
-  "parser": "babel-eslint",
-  "parserOptions": {
-    "ecmaVersion": 2019
-  },
-  "env": {
-    "browser": true,
-    "node": true,
-    "es6": true
-  },
-  "extends": "airbnb",
+  "extends": ["airbnb-base", "next"],
   "rules": {
     "semi": ["error", "never"],
     "no-unused-vars": ["off"],
@@ -20,15 +11,15 @@
       "ignoreTemplateLiterals": true,
       "ignoreRegExpLiterals": true
     }],
-    "react/react-in-jsx-scope": "off",
-    "react/prop-types": 0,
-    "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
+    "react-hooks/exhaustive-deps": "off",
     "jsx-a11y/label-has-associated-control": ["error", { "assert": "either" }],
     "jsx-a11y/click-events-have-key-events": 0,
     "jsx-a11y/anchor-is-valid": ["error", {
       "components": ["Link"],
       "specialLink": ["hrefLeft", "hrefRight"],
       "aspects": ["invalidHref", "preferButton"]
-    }]
+    }],
+    "import/no-extraneous-dependencies": ["error", { "packageDir": "./" }],
+    "@next/next/no-img-element": "off"
   }
 }

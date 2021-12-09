@@ -15,8 +15,6 @@ import RelationsSection from './RelationsSection'
 import api from '../../lib/api-client'
 import { isValidDomain, isValidEmail, isValidYear } from '../../lib/utils'
 
-import '../../styles/pages/profile-edit.less'
-
 export default function ProfileEditor({
   loadedProfile,
   submitButtonText,
@@ -169,15 +167,26 @@ export default function ProfileEditor({
     profileContent = {
       ...profileContent,
       names: profileContent.names.map((p) => {
+        if (p.newRow) {
+          const {
+            altUsernames, newRow, key, duplicate, meta, username, ...rest
+          } = p
+          return rest
+        }
         const {
-          altUsernames, newRow, key, duplicate, ...rest
+          altUsernames, newRow, key, duplicate, meta, ...rest
         } = p
         return rest
       }),
       emails: profileContent.emails.map(p => p.email),
-      history: profileContent.history.map((p) => { const { key, ...rest } = p; return rest }),
-      expertise: profileContent.expertise.map((p) => { const { key, keyWordsValue, ...rest } = p; return rest }),
-      relations: profileContent.relations.map((p) => { const { key, ...rest } = p; return rest }),
+      history: profileContent.history.map((p) => { const { key, meta, ...rest } = p; return rest }),
+      expertise: profileContent.expertise.map((p) => {
+        const {
+          key, keyWordsValue, meta, ...rest
+        } = p
+        return rest
+      }),
+      relations: profileContent.relations.map((p) => { const { key, meta, ...rest } = p; return rest }),
       preferredEmail: profileContent.emails.find(p => p.preferred)?.email,
       homepage: profileContent.homepage?.value,
       gscholar: profileContent.gscholar?.value,

@@ -569,24 +569,20 @@ export default function Column(props) {
           if (entityType === 'profile') {
             const hasInviteInvitation = editInvitations.some(p => p[type]?.query?.['value-regex'])
             const hasProposedAssignmentInvitation = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
-            if (hasInviteInvitation || hasProposedAssignmentInvitation) {
-              itemToAdd = {
-                id: headOrTailId,
-                content: {
-                  name: { first: prettyId(headOrTailId), middle: '', last: '' },
-                  email: headOrTailId,
-                  title: '',
-                  expertise: [],
-                  isInvitedProfile: true,
-                },
-                searchText: headOrTailId,
-                traverseEdgesCount: traverseEdges.filter(p => p[type] === headOrTailId).length,
-              }
-            } else {
-              // eslint-disable-next-line no-console
-              console.warn(`${headOrTailId} not found in global entity map`)
-              return
+            itemToAdd = {
+              id: headOrTailId,
+              content: {
+                name: { first: prettyId(headOrTailId), middle: '', last: '' },
+                email: headOrTailId,
+                title: '',
+                expertise: [],
+                isInvitedProfile: hasInviteInvitation || hasProposedAssignmentInvitation,
+              },
+              searchText: headOrTailId,
+              traverseEdgesCount: traverseEdges.filter(p => p[type] === headOrTailId).length,
             }
+            // eslint-disable-next-line no-console
+            console.warn(`${headOrTailId} not found in global entity map`)
           } else {
             // eslint-disable-next-line no-console
             console.warn(`${headOrTailId} not found in global entity map`)

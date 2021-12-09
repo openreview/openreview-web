@@ -1,0 +1,33 @@
+@use "../utils/constants";
+@use "../utils/mixins";
+
+.note-content {
+  font-size: .75rem;
+  line-height: 1.125rem;
+  margin-top: .125rem;
+  margin-bottom: .125rem;
+
+  li {
+    padding: .125rem 0;
+  }
+
+  strong {
+    font-weight: bold;
+    color: constants.$orRed;
+    padding-right: .25rem;
+  }
+
+  .note-content-value {
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    &.markdown-rendered {
+      @include mixins.markdown-content-styles;
+    }
+  }
+
+  .attachment-download-link {
+    .glyphicon {
+      padding-right: .25rem;
+    }
+  }
+}
