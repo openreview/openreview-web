@@ -2,11 +2,13 @@
 /* eslint-disable react/destructuring-assignment */
 /* globals $: false */
 
+import { useState } from 'react'
 import { getTooltipTitle } from '../../lib/edge-utils'
 
 export default function EditEdgeDropdown(props) {
   const defaultOption = props.default ? props.default : props.options[0]
   const showTrashButton = props.existingEdge?.writers?.length !== 0
+  const [showDropdown, setShowDropdown] = useState(false)
 
   const handleHover = (target) => {
     if (!props.existingEdge) return
@@ -25,19 +27,24 @@ export default function EditEdgeDropdown(props) {
         {props.label}
         :
       </label>
-      <div className="btn-group edit-edge-dropdown">
+      <div
+        className="btn-group edit-edge-dropdown"
+        onBlur={(e) => {
+          if (e.currentTarget?.contains(e.relatedTarget)) return // clicked option
+          setShowDropdown(false)
+        }}>
         <button
-          className="btn btn-default btn-xs btn-link dropdown-toggle"
+          className="btn btn-default btn-xs btn-link"
           type="button"
           data-toggle="dropdown"
           aria-haspopup="true"
           aria-expanded="false"
-          onClick={e => e.stopPropagation()}
+          onClick={(e) => { setShowDropdown(true); e.stopPropagation() }}
         >
           <span className="edge-weight">{props.selected ?? props.editEdgeTemplate?.defaultWeight}</span>
           <span className="caret" />
         </button>
-        <ul className="dropdown-menu">
+        <ul className={`dropdown-menu${showDropdown ? ' show' : ''}`}>
           {props.options && props.options.map(option => (
             <li key={option}>
               <a

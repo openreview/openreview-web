@@ -159,6 +159,10 @@ main.edge-browser {
         .dropdown-menu {
           min-width: 80px;
 
+          &.show {
+            display: block;
+          }
+
           & > li > a {
             font-size: .75rem;
             padding: 3px 10px;
