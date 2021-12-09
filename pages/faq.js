@@ -375,7 +375,7 @@ Note that assigning an area chair using python does not send an email to that us
 In order to automatically assign Reviewers and Area Chairs, you must:
 
   1. Enable the 'Review' or 'Post Submission' stage from your venue request form. This can only be done AFTER the submission deadline has passed. 
-  2. Use the 'Paper Matching Setup' button on your venue request form to calculate affinity scores and conflicts. 
+  2. Use the 'Paper Matching Setup' button on your venue request form to calculate affinity scores and conflicts: https://openreview.net/faq#question-paper-matching-setup
 
 After following these steps, you should see links for 'Assignment' in the 'Timeline' section of your Program Chair console.
 
@@ -475,9 +475,9 @@ Clicking it should bring up the following form. The 'Matching Group' is a dropdo
 
 Running the paper matching setup should output a comment on your venue request page. If there were members missing profiles or publications, the message will identify them and say 'Affinity scores and/or conflicts could not be computed for these users. Please ask these users to sign up in OpenReview and upload their papers. Alternatively, you can remove these users from the Reviewers group.' This message does not mean that the process failed, but that those members were excluded from the calculations. You can run the Paper Matching Setup as many times as you want or until all users have completed profiles. 
 
-You can confirm that the affinity scores were computed by checking if an invitation for the scores was created: https://api.openreview.net/edges?invitation=your/venue/id/-/Affinity_Score
+You can confirm that the affinity scores were computed by checking if an invitation for the scores was created: https://api.openreview.net/edges?invitation=your/venue/id/role/-/Affinity_Score. 
 
-After you compute the scores by running Paper Matching Setup, a link for 'Paper Assignments' should appear on your Program Chair console. From there, you should be able to use the edge browser to automatically make assignments: https://openreview.net/faq#question-edge-browswer
+After you compute the scores by running Paper Matching Setup, a link for 'Paper Assignments' should appear on your Program Chair console. From there, you should be able to use the edge browser to automatically make assignments: https://openreview.net/faq#question-edge-browswer. All members of a group must have OpenReview profiles in order for the automatic assignment algorithm to run. Any members without profiles must be removed from the group before moving onto the next step. 
 
     `,
   },
