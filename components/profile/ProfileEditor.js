@@ -2,6 +2,7 @@
 /* eslint-disable no-cond-assign */
 
 import { useEffect, useReducer, useState } from 'react'
+import pick from 'lodash/pick'
 import EducationHistorySection from './EducationHistorySection'
 import EmailsSection from './EmailsSection'
 import ExpertiseSection from './ExpertiseSection'
@@ -169,17 +170,12 @@ export default function ProfileEditor({
       names: profileContent.names.map((p) => {
         const fieldsToInclude = ['first', 'middle', 'last', 'preferred']
         if (!p.newRow && p.username) fieldsToInclude.push('username')
-        return fieldsToInclude.reduce((acc, field) => { acc[field] = p?.[field]; return acc }, {})
+        return pick(p, fieldsToInclude)
       }),
       emails: profileContent.emails.map(p => p.email),
-      history: profileContent.history.map((p) => { const { key, meta, ...rest } = p; return rest }),
-      expertise: profileContent.expertise.map((p) => {
-        const {
-          key, keyWordsValue, meta, ...rest
-        } = p
-        return rest
-      }),
-      relations: profileContent.relations.map((p) => { const { key, meta, ...rest } = p; return rest }),
+      history: profileContent.history.map(p => pick(p, ['position', 'start', 'end', 'institution'])),
+      expertise: profileContent.expertise.map(p => pick(p, ['keywords', 'start', 'end'])),
+      relations: profileContent.relations.map(p => pick(p, ['relation', 'name', 'email', 'start', 'end', 'readers'])),
       preferredEmail: profileContent.emails.find(p => p.preferred)?.email,
       homepage: profileContent.homepage?.value,
       gscholar: profileContent.gscholar?.value,
