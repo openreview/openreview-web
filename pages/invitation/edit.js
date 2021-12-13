@@ -1,18 +1,14 @@
 /* eslint-disable global-require */
 /* globals Webfield: false */
-/* globals Webfield2: false */
-/* globals moment: false */
-
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
 import ErrorDisplay from '../../components/ErrorDisplay'
+import InvitationEditor from '../../components/invitation/InvitationEditor'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import WebfieldContainer from '../../components/WebfieldContainer'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { isSuperUser } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 
 const InvitationEdit = ({ appContext }) => {
@@ -31,9 +27,7 @@ const InvitationEdit = ({ appContext }) => {
       const invitationObj = await api.getInvitationById(invitationId, accessToken)
       if (invitationObj) {
         if (invitationObj.details?.writable) {
-          setInvitation({
-            ...invitationObj, web: null, process: null, preprocess: null,
-          })
+          setInvitation(invitationObj)
         } else {
           // User is a reader, not a writer of the invitation, so redirect to info mode
           router.replace(`/invitation/info?id=${invitationObj.id}`)
@@ -66,29 +60,11 @@ const InvitationEdit = ({ appContext }) => {
   useEffect(() => {
     if (!invitation || !containerRef || clientJsLoading) return
 
-    window.moment = require('moment')
-    require('moment-timezone')
     window.datetimepicker = require('../../client/bootstrap-datetimepicker-4.17.47.min')
-
-    Webfield.editModeBanner(invitation.id, 'edit')
-
-    const webfieldEditorFn = invitation.apiVersion === 2
-      ? Webfield2.ui.invitationEditor
-      : Webfield.ui.invitationEditor
-
-    webfieldEditorFn(invitation, {
-      container: containerRef.current,
-      userId: user.profile.id,
-      showProcessEditor: invitation.apiVersion === 2 || isSuperUser(user),
-    })
-
+    const editModeBannerDelay = document.querySelector('#flash-message-container.alert-success') ? 2500 : 0
+    const bannerTimeout = setTimeout(() => Webfield.editModeBanner(invitation.id, 'edit', true), editModeBannerDelay)
     // eslint-disable-next-line consistent-return
-    return () => {
-      // Hide edit mode banner
-      if (document.querySelector('#flash-message-container .profile-flash-message')) {
-        document.getElementById('flash-message-container').style.display = 'none'
-      }
-    }
+    return () => clearTimeout(bannerTimeout)
   }, [clientJsLoading, containerRef, invitation])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
@@ -103,13 +79,12 @@ const InvitationEdit = ({ appContext }) => {
         <LoadingSpinner />
       )}
 
-      <WebfieldContainer id="invitation-container">
-        <div id="header">
-          <h1>{prettyId(query?.id)}</h1>
-        </div>
-
-        <div id="notes" ref={containerRef} />
-      </WebfieldContainer>
+      <InvitationEditor
+        invitation={invitation}
+        user={user}
+        accessToken={accessToken}
+        loadInvitation={loadInvitation}
+      />
     </>
   )
 }

@@ -1185,6 +1185,12 @@ table.table-minimal {
     }
   }
 }
+.datetime-picker-icon {
+  color: constants.$subtleGray;
+  margin-left: -1.2rem;
+  margin-right: 1rem;
+  margin-top: .5rem;
+}
 
 // Multiselector
 .multiselector.dropdown {
