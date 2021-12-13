@@ -207,14 +207,21 @@ function VenueList({
   return (
     <div>
       <ul className={`conferences list-${listType === 'vertical' ? 'unstyled' : 'inline'}`}>
-        {venues.map((venue, i) => (
-          <VenueListItem
-            key={`${name}-${venue.groupId}`}
-            groupId={venue.groupId}
-            dueDate={venue.dueDate}
-            hidden={!expanded && i > maxVisible}
-          />
-        ))}
+        {venues.map((venue, i) => {
+          const isLeadingVenue = name === 'all venues'
+            // eslint-disable-next-line max-len
+            ? prettyId(venue.groupId).charAt(0).toLowerCase() !== prettyId(venues[i - 1]?.groupId)?.charAt(0)?.toLowerCase()
+            : false
+          return (
+            <VenueListItem
+              key={`${name}-${venue.groupId}`}
+              groupId={venue.groupId}
+              dueDate={venue.dueDate}
+              hidden={!expanded && i > maxVisible}
+              isLeadingVenue={isLeadingVenue}
+            />
+          )
+        })}
       </ul>
 
       {venues.length > maxVisible && (
@@ -226,13 +233,17 @@ function VenueList({
   )
 }
 
-function VenueListItem({ groupId, dueDate, hidden }) {
+function VenueListItem({
+  groupId, dueDate, hidden, isLeadingVenue = false,
+}) {
   const styles = hidden ? { display: 'none' } : {}
 
   return (
     <li style={styles}>
       <h2>
-        <Link href={`/group?id=${groupId}&referrer=${encodeURIComponent('[Homepage](/)')}`}><a>{prettyId(groupId)}</a></Link>
+        <Link href={`/group?id=${groupId}&referrer=${encodeURIComponent('[Homepage](/)')}`}>
+          <a className={`${isLeadingVenue ? 'leading-venue' : ''}`}>{prettyId(groupId)}</a>
+        </Link>
       </h2>
       {dueDate && (
         <p>
