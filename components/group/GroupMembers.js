@@ -234,7 +234,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
           </>
         )}
         <Link href={`/messages?parentGroup=${groupId}`}>
-          <a>View all messages sent to this group </a>
+          <a>View all messages sent to this group &raquo;</a>
         </Link>
       </div>
     </EditorSection>
@@ -257,6 +257,7 @@ const GroupMembers = ({ group, accessToken }) => {
     })),
   )
   const [filteredMembers, setFilteredMembers] = useState(groupMembers)
+
   function groupMemberReducer(state, action) {
     switch (action.type) {
       case 'SELECT':
@@ -311,6 +312,7 @@ const GroupMembers = ({ group, accessToken }) => {
         return state
     }
   }
+
   const [memberToMessage, setMemberToMessage] = useState([])
   // eslint-disable-next-line max-len
   const [displayedMembers, setDisplayedMembers] = useState(
@@ -565,6 +567,7 @@ const GroupMembers = ({ group, accessToken }) => {
               Remove Selected
             </button>
           </div>
+
           {showMembers ? (
             <>
               {displayedMembers.map((member) => {

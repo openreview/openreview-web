@@ -1,5 +1,4 @@
-// eslint-disable-next-line arrow-body-style
-const EditorSection = ({ getTitle, classes, children }) => {
+export default function EditorSection({ getTitle, classes, children }) {
   return (
     <section className={classes}>
       <h4>{getTitle()}</h4>
@@ -7,5 +6,3 @@ const EditorSection = ({ getTitle, classes, children }) => {
     </section>
   )
 }
-
-export default EditorSection

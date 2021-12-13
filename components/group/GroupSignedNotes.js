@@ -1,4 +1,5 @@
 /* globals promptError: false */
+
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getGroupVersion, prettyInvitationId } from '../../lib/utils'
@@ -13,14 +14,10 @@ const SignedNotesRow = ({ signedNote, version }) => {
   return (
     <li>
       <Link
-        href={`/forum?id=${signedNote.forum}${
-          signedNote.forum === signedNote.id ? '' : `&noteId=${signedNote.id}`
-        }`}
+        href={`/forum?id=${signedNote.forum}${signedNote.forum === signedNote.id ? '' : `&noteId=${signedNote.id}`}`}
       >
         <a>
-          {`${prettyInvitationId(invitationId)}: ${title ?? signedNote.forum}${
-            user ? ` - ${user}` : ''
-          }`}
+          {`${prettyInvitationId(invitationId)}: ${title ?? signedNote.forum}${user ? ` - ${user}` : ''}`}
         </a>
       </Link>
     </li>
@@ -50,17 +47,20 @@ const GroupSignedNotes = ({ groupId, accessToken }) => {
 
   const getTitle = () => `Signed Notes ${totalCount ? `(${totalCount})` : ''}`
 
-  const renderSignedNote = signedNote => <SignedNotesRow
-    key={signedNote.id}
-    signedNote={signedNote}
-    version={groupVersion}
-  />
+  const renderSignedNote = signedNote => (
+    <SignedNotesRow
+      key={signedNote.id}
+      signedNote={signedNote}
+      version={groupVersion}
+    />
+  )
 
   useEffect(() => {
     loadNotes()
   }, [])
 
-  if (!signedNotes.length) return null
+  if (signedNotes.length) return null
+
   return (
     <EditorSection getTitle={getTitle}>
       <PaginatedList
