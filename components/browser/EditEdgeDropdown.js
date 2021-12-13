@@ -32,7 +32,6 @@ export default function EditEdgeDropdown(props) {
           data-toggle="dropdown"
           aria-haspopup="true"
           aria-expanded="false"
-          onClick={e => e.stopPropagation()}
         >
           <span className="edge-weight">{props.selected ?? props.editEdgeTemplate?.defaultWeight}</span>
           <span className="caret" />

@@ -10,7 +10,7 @@ import { linter } from '@codemirror/lint'
 import Linter from 'eslint4b-prebuilt'
 
 const CodeEditor = ({
-  code, minHeight = '200px', maxHeight = '600px', wrap = true, onChange = undefined, isJson = false, isPython = false, scrollIntoView = false,
+  code, minHeight = '200px', maxHeight = '600px', wrap = true, onChange = undefined, isJson = false, isPython = false, scrollIntoView = false, readOnly = false,
 }) => {
   const containerRef = useRef(null)
   const editorRef = useRef(null)
@@ -77,6 +77,7 @@ const CodeEditor = ({
       },
     })]
     if (wrap) extensions.push(EditorView.lineWrapping)
+    if (readOnly) extensions.push(EditorView.editable.of(false))
     if (onChange && typeof onChange === 'function') {
       extensions.push(EditorView.updateListener.of((view) => {
         const value = view.state.doc.toString()
