@@ -193,16 +193,11 @@ module.exports = (function() {
 
   var getErrorFromJqXhr = function(jqXhr, textStatus) {
     if (textStatus === 'timeout') {
-      // If the request timed out, display a special message and don't call
-      // the onError callback to prevent it from chaining or not displaying the mesage.
+      // If the request timed out, display a special message
       return 'OpenReview is currently under heavy load. Please try again soon.';
     }
 
-    var error = jqXhr.responseJSON
-    // TODO: remove when migration to new error format is complete
-    if (error?.errors?.length > 0) return error.errors[0];
-
-    return error?.message || 'Something went wrong';
+    return jqXhr.responseJSON?.message || 'Something went wrong';
   };
 
   var setToken = function(newAccessToken) {
