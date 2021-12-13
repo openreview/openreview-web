@@ -2572,6 +2572,7 @@ module.exports = (function() {
         }
 
         token = token
+          .replace(/^\./g, '')  // journal names start with '.'
           .replace(/\..+/g, '') // remove text after dots, ex: uai.org
           .replace(/^-$/g, '')  // remove dashes
           .replace(/_/g, ' ');  // replace undescores with spaces
