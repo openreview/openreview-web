@@ -80,6 +80,7 @@ main.home {
       display: inline-block;
       &:first-letter {
         color: constants.$orRed;
+        font-weight: bold;
       }
     }
   }
