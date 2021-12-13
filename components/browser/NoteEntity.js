@@ -53,7 +53,8 @@ export default function NoteEntity(props) {
   const handleClick = (e) => {
     if (!props.canTraverse) return
 
-    if (e.target.tagName === 'A' && e.target.className !== 'show-assignments') {
+    if ((e.target.tagName === 'A' && e.target.className !== 'show-assignments')
+      || (e.target.tagName === 'BUTTON' && e.target.className.includes('dropdown-toggle'))) {
       return
     }
 
