@@ -60,7 +60,6 @@ const InvitationEdit = ({ appContext }) => {
   useEffect(() => {
     if (!invitation || !containerRef || clientJsLoading) return
 
-    window.datetimepicker = require('../../client/bootstrap-datetimepicker-4.17.47.min')
     const editModeBannerDelay = document.querySelector('#flash-message-container.alert-success') ? 2500 : 0
     const bannerTimeout = setTimeout(() => Webfield.editModeBanner(invitation.id, 'edit', true), editModeBannerDelay)
     // eslint-disable-next-line consistent-return

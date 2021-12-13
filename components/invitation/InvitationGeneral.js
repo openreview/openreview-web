@@ -1,14 +1,19 @@
 /* globals promptError,promptMessage: false */
-import moment from 'moment'
 import React, { useReducer, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
+import timezone from 'dayjs/plugin/timezone'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
 import api from '../../lib/api-client'
 import {
   formatDateTime, getDefaultTimezone, prettyId, urlFromGroupId,
 } from '../../lib/utils'
 import LoadingSpinner from '../LoadingSpinner'
 import EditorSection from '../EditorSection'
+
+dayjs.extend(timezone)
+dayjs.extend(utc)
 
 const DatetimePicker = dynamic(() => import('../DatetimePicker'))
 const Dropdown = dynamic(() => import('../Dropdown'))
@@ -175,19 +180,19 @@ const InvitationGeneralEdit = ({
       case 'activationDateTimezone':
         return {
           ...state,
-          cdate: moment.tz(moment(state.cdate).format('YYYY-MM-DD HH:mm'), action.payload).valueOf(),
+          cdate: dayjs(state.cdate).tz(action.payload, true).valueOf(),
           activationDateTimezone: action.payload,
         }
       case 'duedateTimezone':
         return {
           ...state,
-          duedate: moment.tz(moment(state.duedate).format('YYYY-MM-DD HH:mm'), action.payload).valueOf(),
+          duedate: dayjs(state.duedate).tz(action.payload, true).valueOf(),
           duedateTimezone: action.payload,
         }
       case 'expDateTimezone':
         return {
           ...state,
-          expdate: moment.tz(moment(state.expdate).format('YYYY-MM-DD HH:mm'), action.payload).valueOf(),
+          expdate: dayjs(state.expdate).tz(action.payload, true).valueOf(),
           expDateTimezone: action.payload,
         }
       default:
@@ -406,7 +411,7 @@ const InvitationGeneralEdit = ({
         <span className="info-title edit-title">Activation Date:</span>
         <div className="info-edit-control">
           <div className="d-flex">
-            <DatetimePicker extraClasses="date-picker" value={generalInfo.cdate} timeZone={generalInfo.activationDateTimezone} onChange={e => setGeneralInfo({ type: 'cdate', payload: e })} />
+            <DatetimePicker existingValue={generalInfo.cdate} timeZone={generalInfo.activationDateTimezone} onChange={e => setGeneralInfo({ type: 'cdate', payload: e })} />
             <TimezoneDropdown className="timezone-dropdown" value={generalInfo.activationDateTimezone} onChange={e => setGeneralInfo({ type: 'activationDateTimezone', payload: e.value })} />
           </div>
         </div>
@@ -415,7 +420,7 @@ const InvitationGeneralEdit = ({
         <span className="info-title edit-title">Due Date:</span>
         <div className="info-edit-control">
           <div className="d-flex">
-            <DatetimePicker extraClasses="date-picker" value={generalInfo.duedate} timeZone={generalInfo.duedateTimezone} onChange={e => setGeneralInfo({ type: 'duedate', payload: e })} />
+            <DatetimePicker existingValue={generalInfo.duedate} timeZone={generalInfo.duedateTimezone} onChange={e => setGeneralInfo({ type: 'duedate', payload: e })} />
             <TimezoneDropdown className="timezone-dropdown" value={generalInfo.duedateTimezone} onChange={e => setGeneralInfo({ type: 'duedateTimezone', payload: e.value })} />
           </div>
         </div>
@@ -424,7 +429,7 @@ const InvitationGeneralEdit = ({
         <span className="info-title edit-title">Expiration Date:</span>
         <div className="info-edit-control">
           <div className="d-flex">
-            <DatetimePicker extraClasses="date-picker" value={generalInfo.expdate} timeZone={generalInfo.expDateTimezone} onChange={e => setGeneralInfo({ type: 'expdate', payload: e })} />
+            <DatetimePicker existingValue={generalInfo.expdate} timeZone={generalInfo.expDateTimezone} onChange={e => setGeneralInfo({ type: 'expdate', payload: e })} />
             <TimezoneDropdown className="timezone-dropdown" value={generalInfo.expDateTimezone} onChange={e => setGeneralInfo({ type: 'expDateTimezone', payload: e.value })} />
           </div>
         </div>

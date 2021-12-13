@@ -1,33 +1,45 @@
-/* globals $: false */
-import moment from 'moment'
-import 'moment-timezone'
-import { useEffect, useRef } from 'react'
+import dayjs from 'dayjs'
+import Picker from 'rc-picker'
+import { useState } from 'react'
+import locale from 'rc-picker/lib/locale/en_US'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
+import { nanoid } from 'nanoid'
+import dayjsGenerator from '../lib/dayjsGenerator'
 import { getDefaultTimezone } from '../lib/utils'
-import Icon from './Icon'
 
-const DatetimePicker = ({
-  extraClasses, value, onChange, timeZone,
-}) => {
-  const pickerInputRef = useRef(null)
+dayjs.extend(timezone)
+dayjs.extend(utc)
 
-  useEffect(() => {
-    $(pickerInputRef.current).datetimepicker({ date: value ? moment(value) : null, useCurrent: false })
-    $(pickerInputRef.current).on('dp.change', (e) => {
-      let newTimestamp = null
-      if (e.date) {
-        const newMoment = moment.tz(e.date.format('YYYY-MM-DD HH:mm'), timeZone ?? getDefaultTimezone().value)
-        newTimestamp = newMoment.valueOf()
-      }
-      onChange(newTimestamp)
-    })
-  }, [])
+const DatetimePicker = ({ existingValue, onChange, timeZone }) => {
+  const [value, setValue] = useState(existingValue ? dayjs(existingValue) : '')
+  const [open, setOpen] = useState(false)
 
-  return (
-    <>
-      <input ref={pickerInputRef} type="text" className={`form-control input-sm ${extraClasses}`} />
-      <Icon name="calendar" extraClasses="datetime-picker-icon" />
-    </>
-  )
+  const handleOkClick = (e) => {
+    onChange(e.tz(timeZone ?? getDefaultTimezone().value, true).valueOf())
+    setOpen(false)
+  }
+
+  return <Picker
+    key={nanoid()}
+    open={open}
+    generateConfig={dayjsGenerator}
+    showTime={{
+      showSecond: false,
+    }}
+    locale={locale}
+    format="YYYY-MM-DD HH:mm"
+    value={value}
+    onOk={handleOkClick}
+    onChange={(date) => {
+      setValue(date)
+      if (!date) onChange(null)
+    }}
+    placeholder="Select datetime"
+    onBlur={() => { setOpen(false) }}
+    onClick={() => { setOpen(true) }}
+    autoFocus
+    allowClear
+  />
 }
-
 export default DatetimePicker
