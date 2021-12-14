@@ -143,7 +143,7 @@ const PersonalLinksSection = ({
           name.middle ? `${name.first} ${name.middle} ${name.last}` : `${name.first} ${name.last}`
         ))}
         email={preferredEmail}
-        updateDBLPUrl={(url) => { setLinks({ type: 'dblp', data: url }) }}
+        updateDBLPUrl={(url) => { setLinks({ type: 'dblp', payload: { data: url } }) }}
       />
     </div>
   )
