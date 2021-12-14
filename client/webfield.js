@@ -3241,7 +3241,7 @@ module.exports = (function() {
       buttonText + ' ' + _.upperFirst(pageType) +
       '</a></span>';
 
-      generalPrompt('info', messageHtml, { html: true, noTimeout: true, overlay: false, scrollToTop: false });
+    generalPrompt('info', messageHtml, { html: true, noTimeout: true, overlay: false, scrollToTop: false });
   };
 
   var done = function(options) {
