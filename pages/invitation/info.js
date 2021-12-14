@@ -6,13 +6,11 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import WebfieldContainer from '../../components/WebfieldContainer'
 import useQuery from '../../hooks/useQuery'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
-import EditorSection from '../../components/EditorSection'
-import { InvitationGeneralView } from '../../components/invitation/InvitationGeneral'
-import InvitationReply from '../../components/invitation/InvitationReply'
 
 const InvitationInfo = ({ appContext }) => {
   const { accessToken, userLoading } = useUser()
@@ -69,6 +67,14 @@ const InvitationInfo = ({ appContext }) => {
       Webfield.editModeBanner(invitation.id, 'info')
     }
 
+    const webfieldInfoFn = invitation.apiVersion === 2
+      ? Webfield2.ui.invitationInfo
+      : Webfield.ui.invitationInfo
+
+    webfieldInfoFn(invitation, {
+      container: containerRef.current,
+    })
+
     // eslint-disable-next-line consistent-return
     return () => {
       // Hide edit mode banner
@@ -89,19 +95,13 @@ const InvitationInfo = ({ appContext }) => {
         <LoadingSpinner />
       )}
 
-      {invitation && (
-        <>
-          <EditorSection getTitle={() => 'General Info'} classes="general">
-            <InvitationGeneralView invitation={invitation} showEditButton={false} />
-          </EditorSection>
-          <InvitationReply
-            invitation={invitation}
-            // eslint-disable-next-line no-nested-ternary
-            replyField={invitation.apiVersion === 1 ? 'reply' : (invitation.edge ? 'edge' : 'edit')}
-            readOnly={true}
-          />
-        </>
-      )}
+      <WebfieldContainer id="group-container">
+        <div id="header">
+          <h1>{prettyId(query?.id)}</h1>
+        </div>
+
+        <div id="notes" ref={containerRef} />
+      </WebfieldContainer>
     </>
   )
 }

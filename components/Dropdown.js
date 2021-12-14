@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react'
 import Select, { components } from 'react-select'
 import CreatableSelect from 'react-select/creatable'
 import List from 'rc-virtual-list'
-import { getDefaultTimezone, timezoneOptions } from '../lib/utils'
 
 // For more details see https://react-select.com/styles#overriding-the-theme
 const createCustomTheme = height => theme => ({
@@ -20,20 +19,6 @@ const createCustomTheme = height => theme => ({
     controlHeight: height || 34,
   },
 })
-
-export const TimezoneDropdown = ({ className, onChange, value }) => {
-  const defaultValue = getDefaultTimezone()
-
-  return (
-    <Dropdown
-      className={className}
-      placeholder="Select a timezone"
-      options={timezoneOptions}
-      value={timezoneOptions.find(p => p.value === value) ?? defaultValue}
-      onChange={onChange}
-    />
-  )
-}
 
 const CustomOption = ({ children, ...props }) => {
   const { onMouseMove, onMouseOver, ...rest } = props.innerProps
