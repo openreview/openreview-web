@@ -95,17 +95,14 @@ const GroupInfo = ({ appContext }) => {
           <GroupGeneralInfo group={group} />
           <GroupMembersInfo group={group} />
           <GroupSignedNotes
-            key={`${group.id}-signednotes`}
             groupId={group.id}
             accessToken={accessToken}
           />
           <GroupChildGroups
-            key={`${group.id}-childgroups`}
             groupId={group.id}
             accessToken={accessToken}
           />
           <GroupRelatedInvitations
-            key={`${group.id}-invitations`}
             groupId={group.id}
             accessToken={accessToken}
           />
