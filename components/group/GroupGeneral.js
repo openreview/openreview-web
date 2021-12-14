@@ -184,7 +184,7 @@ const GroupGeneral = ({
   }
 
   return (
-    <EditorSection title='General Info' classes="general" >
+    <EditorSection title="General Info" className="general" >
       {edit ? (
         <GroupGeneralEdit
           group={group}

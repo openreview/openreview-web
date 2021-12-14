@@ -5,8 +5,11 @@ import api from '../../lib/api-client'
 import { getGroupVersion } from '../../lib/utils'
 import EditorSection from '../EditorSection'
 import LoadingSpinner from '../LoadingSpinner'
+import SpinnerButton from '../SpinnerButton'
 
-const CodeEditor = dynamic(() => import('../CodeEditor'), { loading: () => <LoadingSpinner inline/> })
+const CodeEditor = dynamic(() => import('../CodeEditor'), {
+  loading: () => <LoadingSpinner inline/>,
+})
 
 const GroupUICode = ({ group, accessToken, reloadGroup }) => {
   const [showCodeEditor, setShowCodeEditor] = useState(false)
@@ -35,47 +38,35 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
   }
 
   return (
-    <EditorSection title='Group UI Code'>
+    <EditorSection title="Group UI Code">
+      {showCodeEditor && (
+        <CodeEditor
+          code={code.current}
+          onChange={setModifiedWebCode}
+          scrollIntoView
+        />
+      )}
+
       {showCodeEditor ? (
-        <>
-          <CodeEditor
-            code={code.current}
-            onChange={modifiedCode => setModifiedWebCode(modifiedCode)}
-            scrollIntoView
-          />
-          <div className="mt-2">
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleUpdateCodeClick}
-              disabled={code.current === modifiedWebCode || isSaving}
-            >
-              {isSaving ? (
-                <div className="save-button-wrapper">
-                  Saving
-                  <LoadingSpinner inline text="" extraClass="spinner-small" />
-                </div>
-              ) : (
-                <>Update Code</>
-              )}
-            </button>
-            <button
-              type="button"
-              className="btn btn-default ml-1"
-              onClick={() => setShowCodeEditor(false)}
-            >
-              Cancel
-            </button>
-          </div>
-        </>
+        <div className="mt-2">
+          <SpinnerButton
+            type="primary"
+            onClick={handleUpdateCodeClick}
+            disabled={code.current === modifiedWebCode || isSaving}
+            loading={isSaving}
+          >
+            {isSaving ? 'Saving' : 'Update Code'}
+          </SpinnerButton>
+          <button type="button" className="btn btn-default ml-1" onClick={() => setShowCodeEditor(false)}>
+            Cancel
+          </button>
+        </div>
       ) : (
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => setShowCodeEditor(true)}
-        >
-          Show Code Editor
-        </button>
+        <div>
+          <button type="button" className="btn btn-primary" onClick={() => setShowCodeEditor(true)}>
+            Show Code Editor
+          </button>
+        </div>
       )}
     </EditorSection>
   )

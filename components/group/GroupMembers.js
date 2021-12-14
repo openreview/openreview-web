@@ -218,7 +218,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
   }, [jobId])
 
   return (
-    <EditorSection title='Group Messages' classes="members">
+    <EditorSection title="Group Messages" className="members">
       <div className="container members-container pl-0" ref={sectionRef}>
         {jobId && (
           <>
@@ -506,7 +506,7 @@ const GroupMembers = ({ group, accessToken }) => {
 
   return (
     <>
-      <EditorSection title={getTitle()} classes="members">
+      <EditorSection title={getTitle()} className="members">
         <div className="container members-container">
           <div className="search-row">
             <div className="input-group">

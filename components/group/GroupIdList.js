@@ -5,6 +5,7 @@ import { prettyId, urlFromGroupId } from '../../lib/utils'
 const GroupIdList = ({ groupIds }) => {
   const commonGroups = ['everyone', '(anonymous)', '(guest)', '~', '~Super_User1']
   if (!Array.isArray(groupIds)) return ''
+
   return (
     <div className="info-container__content">
       {groupIds.map((groupId, index) => {

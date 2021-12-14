@@ -45,8 +45,6 @@ const GroupSignedNotes = ({ groupId, accessToken }) => {
     }
   }
 
-  const getTitle = () => `Signed Notes ${totalCount ? `(${totalCount})` : ''}`
-
   const renderSignedNote = signedNote => (
     <SignedNotesRow
       key={signedNote.id}

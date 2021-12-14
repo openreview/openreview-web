@@ -14,7 +14,7 @@ const GroupMembersInfo = ({ group }) => {
   }
 
   return (
-    <EditorSection title={hasMembers ? `Group Members (${group.members.length})` : 'Group Members'} classes="members" >
+    <EditorSection title={hasMembers ? `Group Members (${group.members.length})` : 'Group Members'} className="members" >
       {hasMembers ? (
         <PaginatedList
           items={membersToDisplay}
