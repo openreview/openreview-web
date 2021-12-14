@@ -134,7 +134,7 @@ $(function() {
       query: ctx.query,
     }
   } catch (error) {
-    if (error.name === 'forbidden' || error.name === 'ForbiddenError') {
+    if (error.name === 'ForbiddenError') {
       if (!token) {
         if (ctx.req) {
           ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
