@@ -35,7 +35,7 @@ const InvitationInfo = ({ appContext }) => {
         setError({ statusCode: 404, message: 'Invitation not found' })
       }
     } catch (apiError) {
-      if (apiError.name === 'forbidden' || apiError.name === 'ForbiddenError') {
+      if (apiError.name === 'ForbiddenError') {
         if (!accessToken) {
           router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
         } else {
