@@ -38,7 +38,6 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
     <EditorSection title='Group UI Code'>
       {showCodeEditor ? (
         <>
-          {/* eslint-disable-next-line max-len */}
           <CodeEditor
             code={code.current}
             onChange={modifiedCode => setModifiedWebCode(modifiedCode)}
