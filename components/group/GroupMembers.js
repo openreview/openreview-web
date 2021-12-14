@@ -218,7 +218,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
   }, [jobId])
 
   return (
-    <EditorSection title={'Group Messages'} classes="members">
+    <EditorSection title='Group Messages' classes="members">
       <div className="container members-container pl-0" ref={sectionRef}>
         {jobId && (
           <>
