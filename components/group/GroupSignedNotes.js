@@ -12,43 +12,37 @@ const SignedNotesRow = ({ signedNote, version }) => {
   const title = version === 2 ? signedNote.content?.title?.value : signedNote.content?.title
   const user = version === 2 ? signedNote.content?.user?.value : signedNote.content?.user
   return (
-    <li>
-      <Link
-        href={`/forum?id=${signedNote.forum}${signedNote.forum === signedNote.id ? '' : `&noteId=${signedNote.id}`}`}
-      >
-        <a>
-          {`${prettyInvitationId(invitationId)}: ${title ?? signedNote.forum}${user ? ` - ${user}` : ''}`}
-        </a>
-      </Link>
-    </li>
+    <Link
+      href={`/forum?id=${signedNote.forum}${signedNote.forum === signedNote.id ? '' : `&noteId=${signedNote.id}`}`}
+    >
+      <a>
+        {`${prettyInvitationId(invitationId)}: ${title ?? signedNote.forum}${user ? ` - ${user}` : ''}`}
+      </a>
+    </Link>
   )
 }
 
 const GroupSignedNotes = ({ groupId, accessToken }) => {
-  const [signedNotes, setSignedNotes] = useState([])
   const [totalCount, setTotalCount] = useState(null)
-  const [currentPage, setCurrentPage] = useState(1)
   const groupVersion = getGroupVersion(groupId)
 
   const loadNotes = async (limit = 15, offset = 0) => {
-    try {
-      // TODO: how signatures is passed to api may change
-      const result = await api.get(
-        '/notes',
-        { 'signatures[]': [groupId], limit, offset },
-        { accessToken, version: groupVersion },
-      )
-      setTotalCount(result.count)
-      setSignedNotes(result.notes)
-    } catch (error) {
-      promptError(error.message)
+    // TODO: how signatures is passed to api may change
+    const result = await api.get(
+      '/notes',
+      { 'signatures[]': [groupId], limit, offset },
+      { accessToken, version: groupVersion },
+    )
+    setTotalCount(result.count)
+    return {
+      items: result.notes,
+      count: result.count,
     }
   }
 
-  const renderSignedNote = signedNote => (
+  const renderSignedNote = ({ item }) => (
     <SignedNotesRow
-      key={signedNote.id}
-      signedNote={signedNote}
+      signedNote={item}
       version={groupVersion}
     />
   )
@@ -57,17 +51,12 @@ const GroupSignedNotes = ({ groupId, accessToken }) => {
     loadNotes()
   }, [])
 
-  if (signedNotes.length) return null
-
   return (
     <EditorSection title={`Signed Notes ${totalCount ? `(${totalCount})` : ''}`}>
       <PaginatedList
-        items={signedNotes}
-        renderItem={renderSignedNote}
-        totalCount={totalCount}
+        ListItem={renderSignedNote}
         loadItems={loadNotes}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
+        emptyMessage="No signed notes"
       />
     </EditorSection>
   )
