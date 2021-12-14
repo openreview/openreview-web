@@ -185,7 +185,7 @@ $(function() {
     }
     return { statusCode: 404, message: `The Invitation ${ctx.query.id} was not found` }
   } catch (error) {
-    if (error.name === 'forbidden' || error.name === 'ForbiddenError') {
+    if (error.name === 'ForbiddenError') {
       if (!accessToken) {
         if (ctx.req) {
           ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
