@@ -99,7 +99,7 @@ export const NoteContentV2 = ({
 }) => {
   const contentKeys = Object.keys(content)
   const contentOrder = presentation
-    ? Object.values(presentation ?? {}).sort((a, b) => a?.order - b?.order).map(p => p.name)
+    ? Object.values(presentation).sort((a, b) => (a?.order ?? 999) - (b?.order ?? 999)).map(p => p.name)
     : contentKeys
 
   const omittedFields = [

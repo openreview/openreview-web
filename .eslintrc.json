@@ -11,6 +11,7 @@
       "ignoreTemplateLiterals": true,
       "ignoreRegExpLiterals": true
     }],
+    "function-paren-newline": "off",
     "react-hooks/exhaustive-deps": "off",
     "jsx-a11y/label-has-associated-control": ["error", { "assert": "either" }],
     "jsx-a11y/click-events-have-key-events": 0,
