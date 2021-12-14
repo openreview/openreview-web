@@ -282,7 +282,7 @@ const GroupMembers = ({ group, accessToken }) => {
             id: p,
             isSelected: false,
             isDeleted: false,
-          })),
+          })) ?? [],
           ...state.map(p => ({
             ...p,
             isSelected: false,
