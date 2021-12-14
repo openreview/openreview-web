@@ -13,19 +13,19 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
       case 'gscholar': {
         const isValid = isValidURL(value) && value.startsWith('https://scholar.google')
         if (!isValid) promptError(`${value} is not a valid Google Scholar URL`, { scrollToTop: false })
-        setLinks({ type, payload: { data: value, valid: isValid } })
+        setLinks({ type, data: { value, valid: isValid } })
         break
       }
       case 'semanticScholar': {
         const isValid = isValidURL(value) && value.startsWith('https://www.semanticscholar.org')
         if (!isValid) promptError(`${value} is not a valid Semantic Scholar URL`, { scrollToTop: false })
-        setLinks({ type, payload: { data: value, valid: isValid } })
+        setLinks({ type, data: { value, valid: isValid } })
         break
       }
       default: {
         const isValid = isValidURL(value)
         if (!isValid) promptError(`${value} is not a valid ${type} URL`, { scrollToTop: false })
-        setLinks({ type, payload: { data: value, valid: isValid } })
+        setLinks({ type, data: { value, valid: isValid } })
       }
     }
   }
@@ -34,7 +34,7 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
       id={`${type}_url`}
       className={`form-control personal-links__input ${links[type]?.valid === false ? 'invalid-value' : ''}`}
       value={links[type]?.value ?? ''}
-      onChange={(e) => { setLinks({ type, payload: { data: e.target.value } }) }}
+      onChange={(e) => { setLinks({ type, data: { value: e.target.value } }) }}
       onBlur={handleBlur}
     />
   )
@@ -46,8 +46,8 @@ const PersonalLinksSection = ({
   const linksReducer = (state, action) => ({
     ...state,
     [action.type]: {
-      value: action.payload.data,
-      valid: action.payload.valid,
+      value: action.data.value,
+      valid: action.data.valid,
     },
   })
 
@@ -143,7 +143,7 @@ const PersonalLinksSection = ({
           name.middle ? `${name.first} ${name.middle} ${name.last}` : `${name.first} ${name.last}`
         ))}
         email={preferredEmail}
-        updateDBLPUrl={(url) => { setLinks({ type: 'dblp', payload: { data: url } }) }}
+        updateDBLPUrl={(url) => { setLinks({ type: 'dblp', data: { value: url } }) }}
       />
     </div>
   )
