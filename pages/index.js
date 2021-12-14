@@ -7,6 +7,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { prettyId, formatTimestamp } from '../lib/utils'
+import ErrorAlert from '../components/ErrorAlert'
 
 export default function Home() {
   const [venues, setVenues] = useState({
@@ -60,6 +61,10 @@ export default function Home() {
       <Head>
         <title key="title">Venues | OpenReview</title>
       </Head>
+
+      {error && (
+        <ErrorAlert error={error} />
+      )}
 
       {venues.user?.length > 0 ? (
         // Logged in view
@@ -202,14 +207,21 @@ function VenueList({
   return (
     <div>
       <ul className={`conferences list-${listType === 'vertical' ? 'unstyled' : 'inline'}`}>
-        {venues.map((venue, i) => (
-          <VenueListItem
-            key={`${name}-${venue.groupId}`}
-            groupId={venue.groupId}
-            dueDate={venue.dueDate}
-            hidden={!expanded && i > maxVisible}
-          />
-        ))}
+        {venues.map((venue, i) => {
+          const isLeadingVenue = name === 'all venues'
+            // eslint-disable-next-line max-len
+            ? prettyId(venue.groupId).charAt(0).toLowerCase() !== prettyId(venues[i - 1]?.groupId)?.charAt(0)?.toLowerCase()
+            : false
+          return (
+            <VenueListItem
+              key={`${name}-${venue.groupId}`}
+              groupId={venue.groupId}
+              dueDate={venue.dueDate}
+              hidden={!expanded && i > maxVisible}
+              isLeadingVenue={isLeadingVenue}
+            />
+          )
+        })}
       </ul>
 
       {venues.length > maxVisible && (
@@ -221,13 +233,17 @@ function VenueList({
   )
 }
 
-function VenueListItem({ groupId, dueDate, hidden }) {
+function VenueListItem({
+  groupId, dueDate, hidden, isLeadingVenue = false,
+}) {
   const styles = hidden ? { display: 'none' } : {}
 
   return (
     <li style={styles}>
       <h2>
-        <Link href={`/group?id=${groupId}&referrer=${encodeURIComponent('[Homepage](/)')}`}><a>{prettyId(groupId)}</a></Link>
+        <Link href={`/group?id=${groupId}&referrer=${encodeURIComponent('[Homepage](/)')}`}>
+          <a className={`${isLeadingVenue ? 'leading-venue' : ''}`}>{prettyId(groupId)}</a>
+        </Link>
       </h2>
       {dueDate && (
         <p>

@@ -40,8 +40,6 @@ const InvitationChildInvitations = ({ invitation, accessToken }) => {
     loadChildInvitations()
   }, [invitation])
 
-  const getTitle = () => `Child Invitations ${totalCount ? `(${totalCount})` : ''}`
-
   const renderChildInvitation = childInvitation => <ChildInvitationRow
     key={childInvitation.id}
     childInvitation={childInvitation}
@@ -49,7 +47,7 @@ const InvitationChildInvitations = ({ invitation, accessToken }) => {
 
   if (!childInvitations.length) return null
   return (
-    <EditorSection getTitle={getTitle}>
+    <EditorSection title={`Child Invitations ${totalCount ? `(${totalCount})` : ''}`}>
       <PaginatedList
         items={childInvitations}
         renderItem={renderChildInvitation}
