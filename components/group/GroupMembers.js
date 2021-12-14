@@ -247,14 +247,15 @@ const GroupMembers = ({ group, accessToken }) => {
   const [memberAnonIds, setMemberAnonIds] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const [jobId, setJobId] = useState(null)
+  const defaultGroupMembers = group.members.map(p => ({
+    id: p,
+    isDeleted: false,
+    isSelected: false,
+  }))
   const [groupMembers, setGroupMembers] = useReducer(
     // eslint-disable-next-line no-use-before-define
     groupMemberReducer,
-    group.members.map(p => ({
-      id: p,
-      isDeleted: false,
-      isSelected: false,
-    })),
+    defaultGroupMembers,
   )
   const [filteredMembers, setFilteredMembers] = useState(groupMembers)
 
@@ -308,6 +309,8 @@ const GroupMembers = ({ group, accessToken }) => {
             isSelected,
           }
         })
+      case 'INIT':
+        return defaultGroupMembers
       default:
         return state
     }
@@ -498,6 +501,10 @@ const GroupMembers = ({ group, accessToken }) => {
       ),
     )
   }, [currentPage, groupMembers])
+
+  useEffect(() => {
+    setGroupMembers({ type: 'INIT' })
+  }, [group.id])
 
   useEffect(() => {
     getMemberAnonIds()
