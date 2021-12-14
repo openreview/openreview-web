@@ -1,5 +1,6 @@
 /* globals promptError,promptMessage: false */
-import { useRef, useState } from 'react'
+
+import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import api from '../../lib/api-client'
 import { getGroupVersion } from '../../lib/utils'
@@ -15,7 +16,6 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
   const [showCodeEditor, setShowCodeEditor] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [modifiedWebCode, setModifiedWebCode] = useState(group.web)
-  const code = useRef(group.web ?? '')
 
   const handleUpdateCodeClick = async () => {
     try {
@@ -37,11 +37,16 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
     setIsSaving(false)
   }
 
+  useEffect(() => {
+    // Close code editor when changing groups
+    setShowCodeEditor(false)
+  }, [group.id])
+
   return (
     <EditorSection title="Group UI Code">
       {showCodeEditor && (
         <CodeEditor
-          code={code.current}
+          code={group.web}
           onChange={setModifiedWebCode}
           scrollIntoView
         />
@@ -52,7 +57,7 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
           <SpinnerButton
             type="primary"
             onClick={handleUpdateCodeClick}
-            disabled={code.current === modifiedWebCode || isSaving}
+            disabled={group.web === modifiedWebCode || isSaving}
             loading={isSaving}
           >
             {isSaving ? 'Saving' : 'Update Code'}
