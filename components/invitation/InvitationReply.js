@@ -96,7 +96,7 @@ const InvitationReply = ({
   }
 
   return (
-    <EditorSection getTitle={getTitle}>
+    <EditorSection title={getTitle()}>
       <CodeEditor code={replyString} onChange={setReplyString} isJson readOnly={readOnly} />
       {!readOnly && <button type="button" className="btn btn-sm btn-primary" onClick={() => saveInvitationReply()}>Save Invitation</button>}
     </EditorSection>

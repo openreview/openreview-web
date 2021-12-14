@@ -458,7 +458,7 @@ const InvitationGeneral = ({
   const [isEditMode, setIsEditMode] = useState(false)
 
   return (
-    <EditorSection getTitle={() => 'General Info'} classes="general">
+    <EditorSection title='General Info' classes="general">
       {isEditMode ? <InvitationGeneralEdit
         invitation={invitation}
         profileId={profileId}
