@@ -6,7 +6,6 @@ import PaginatedList from '../../PaginatedList'
 
 const GroupMembersInfo = ({ group }) => {
   const hasMembers = group.members?.length > 0
-  const getTitle = () => (hasMembers ? `Group Members (${group.members.length})` : 'Group Members')
   const [membersToDisplay, setMembersToDisplay] = useState(hasMembers ? group.members.slice(0, 15) : [])
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -15,7 +14,7 @@ const GroupMembersInfo = ({ group }) => {
   }
 
   return (
-    <EditorSection getTitle={getTitle} classes="members" >
+    <EditorSection title={hasMembers ? `Group Members (${group.members.length})` : 'Group Members'} classes="members" >
       {hasMembers ? (
         <PaginatedList
           items={membersToDisplay}

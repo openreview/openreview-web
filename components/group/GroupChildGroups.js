@@ -32,8 +32,6 @@ const GroupChildGroups = ({ groupId, accessToken }) => {
     }
   }
 
-  const getTitle = () => `Child Groups ${totalCount ? `(${totalCount})` : ''}`
-
   const renderChildGroup = childGroup => <ChildGroupRow
     key={childGroup.id}
     childGroup={childGroup}
@@ -46,7 +44,7 @@ const GroupChildGroups = ({ groupId, accessToken }) => {
 
   if (!childGroups.length) return null
   return (
-    <EditorSection getTitle={getTitle}>
+    <EditorSection title={`Child Groups ${totalCount ? `(${totalCount})` : ''}`}>
       <PaginatedList
         items={childGroups}
         renderItem={renderChildGroup}

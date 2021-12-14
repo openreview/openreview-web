@@ -40,8 +40,6 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
     }
   }
 
-  const getTitle = () => `Related Invitations ${totalCount ? `(${totalCount})` : ''}`
-
   const renderRelatedInvitation = invitation => <RelatedInvitationRow
     key={invitation.id}
     relatedInvitation={invitation}
@@ -54,7 +52,7 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
 
   if (!relatedInvitations.length) return null
   return (
-    <EditorSection getTitle={getTitle}>
+    <EditorSection title={`Related Invitations ${totalCount ? `(${totalCount})` : ''}`}>
       <PaginatedList
         items={relatedInvitations}
         renderItem={renderRelatedInvitation}

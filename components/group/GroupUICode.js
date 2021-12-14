@@ -35,7 +35,7 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
   }
 
   return (
-    <EditorSection getTitle={() => 'Group UI Code'}>
+    <EditorSection title={'Group UI Code'}>
       {showCodeEditor ? (
         <>
           {/* eslint-disable-next-line max-len */}

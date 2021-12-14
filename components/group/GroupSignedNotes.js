@@ -62,7 +62,7 @@ const GroupSignedNotes = ({ groupId, accessToken }) => {
   if (signedNotes.length) return null
 
   return (
-    <EditorSection getTitle={getTitle}>
+    <EditorSection title={`Signed Notes ${totalCount ? `(${totalCount})` : ''}`}>
       <PaginatedList
         items={signedNotes}
         renderItem={renderSignedNote}
