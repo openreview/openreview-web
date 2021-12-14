@@ -34,7 +34,7 @@ const GroupChildGroups = ({ groupId, accessToken }) => {
   }
 
   return (
-    <EditorSection title={`Child Groups ${totalCount ? `(${totalCount})` : ''}`}>
+    <EditorSection title={`Child Groups ${totalCount ? `(${totalCount})` : ''}`} className="children">
       <PaginatedList
         loadItems={loadChildGroups}
         emptyMessage="No child groups"

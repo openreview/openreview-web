@@ -39,7 +39,7 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
   }, [])
 
   return (
-    <EditorSection title={`Related Invitations ${totalCount ? `(${totalCount})` : ''}`}>
+    <EditorSection title={`Related Invitations ${totalCount ? `(${totalCount})` : ''}`} className="invitations">
       <PaginatedList
         ListItem={RelatedInvitationRow}
         loadItems={loadRelatedInvitations}
