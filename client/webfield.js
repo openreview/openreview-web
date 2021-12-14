@@ -175,8 +175,8 @@ module.exports = (function() {
     var errorText = getErrorFromJqXhr(jqXhr, textStatus);
     var errorName = jqXhr.responseJSON?.name || jqXhr.responseJSON?.errors?.[0]?.type;
     var errorDetails = jqXhr.responseJSON?.details || jqXhr.responseJSON?.errors?.[0];
-    var notSignatoryError = (errorName === 'notSignatory' || errorName === 'NotSignatoryError') && _.startsWith(errorDetails.user, 'guest_');
-    var forbiddenError = (errorName  === 'forbidden' || errorName === 'ForbiddenError') && _.startsWith(errorDetails.user, 'guest_');
+    var notSignatoryError = errorName === 'NotSignatoryError' && _.startsWith(errorDetails.user, 'guest_');
+    var forbiddenError = errorName === 'ForbiddenError' && _.startsWith(errorDetails.user, 'guest_');
 
     if (errorText === 'User does not exist') {
       location.reload(true);
@@ -184,14 +184,6 @@ module.exports = (function() {
       location.href = '/login?redirect=' + encodeURIComponent(
         location.pathname + location.search + location.hash
       );
-    } else if (errorName === 'AlreadyConfirmedError') {
-      promptError({
-        type: 'alreadyConfirmed',
-        path: errorDetails.alternate,
-        value: errorDetails.otherProfile,
-        value2: errorDetails.thisProfile,
-        user: errorDetails.user
-      });
     } else {
       promptError(errorText);
     }
@@ -201,16 +193,11 @@ module.exports = (function() {
 
   var getErrorFromJqXhr = function(jqXhr, textStatus) {
     if (textStatus === 'timeout') {
-      // If the request timed out, display a special message and don't call
-      // the onError callback to prevent it from chaining or not displaying the mesage.
+      // If the request timed out, display a special message
       return 'OpenReview is currently under heavy load. Please try again soon.';
     }
 
-    var error = jqXhr.responseJSON
-    // TODO: remove when migration to new error format is complete
-    if (error?.errors?.length > 0) return error.errors[0];
-
-    return error?.message || 'Something went wrong';
+    return jqXhr.responseJSON?.message || 'Something went wrong';
   };
 
   var setToken = function(newAccessToken) {

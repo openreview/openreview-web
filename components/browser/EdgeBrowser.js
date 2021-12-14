@@ -77,7 +77,7 @@ export default class EdgeBrowser extends React.Component {
           tailMap,
           loading: false,
         })
-      }).catch(error => promptError(error.details ?? error.message))
+      }).catch(error => promptError(error.message))
   }
 
   buildEntityMapFromInvitation(headOrTail) {

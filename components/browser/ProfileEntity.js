@@ -54,7 +54,8 @@ export default function ProfileEntity(props) {
   const handleClick = (e) => {
     if (!props.canTraverse) return
 
-    if (e.target.tagName === 'A' && e.target.className !== 'show-assignments') {
+    if ((e.target.tagName === 'A' && e.target.className !== 'show-assignments')
+      || (e.target.tagName === 'BUTTON' && e.target.className.includes('dropdown-toggle'))) {
       return
     }
 
@@ -95,7 +96,7 @@ export default function ProfileEntity(props) {
       }
       props.reloadColumnEntities()
     } catch (error) {
-      promptError(error.details ?? error.message)
+      promptError(error.message)
     }
   }
 
@@ -159,7 +160,7 @@ export default function ProfileEntity(props) {
       props.reloadColumnEntities()
       if (isInviteInvitation) promptMessage(`Invitation has been sent to ${body.tail} and it's waiting for the response.`)
     } catch (error) {
-      promptError(error.details ?? error.message)
+      promptError(error.message)
     }
   }
 
