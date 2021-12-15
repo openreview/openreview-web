@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
+import SpinnerButton from '../SpinnerButton'
 
 const CodeEditor = dynamic(() => import('../CodeEditor'))
 
@@ -12,8 +13,10 @@ const InvitationCode = ({
   const isV1Invitation = invitation.apiVersion === 1
   const [code, setCode] = useState(invitation[codeType])
   const [showEditor, setShowEditor] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
   const saveCode = async () => {
+    setIsSaving(true)
     try {
       const requestPath = isV1Invitation ? '/invitations' : '/invitations/edits'
       const requestBody = isV1Invitation
@@ -38,6 +41,7 @@ const InvitationCode = ({
     } catch (error) {
       promptError(error.message, { scrollToTop: false })
     }
+    setIsSaving(false)
   }
 
   const handleCancelClick = () => {
@@ -67,7 +71,7 @@ const InvitationCode = ({
           ? (
             <>
               <CodeEditor code={code} onChange={setCode} />
-              <button type="button" className="btn btn-sm btn-primary" onClick={() => saveCode()}>Update Code</button>
+              <SpinnerButton type="primary" onClick={saveCode} disabled={isSaving} loading={isSaving}>{isSaving ? 'Saving' : 'Update Code'}</SpinnerButton>
               <button type="button" className="btn btn-sm btn-default" onClick={() => handleCancelClick()}>Cancel</button>
             </>
           )
