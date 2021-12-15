@@ -11,13 +11,11 @@ const InvitationChildInvitations = ({ invitation, accessToken }) => {
   const [totalCount, setTotalCount] = useState(null)
 
   const ChildInvitationRow = ({ item: childInvitation }) => (
-    <li>
-      <Link href={`/invitation/edit?id=${childInvitation.id}`}>
-        <a>
-          {prettyId(childInvitation.id)}
-        </a>
-      </Link>
-    </li>
+    <Link href={`/invitation/edit?id=${childInvitation.id}`}>
+      <a>
+        {prettyId(childInvitation.id)}
+      </a>
+    </Link>
   )
 
   const loadChildInvitations = async (limit = 15, offset = 0) => {
