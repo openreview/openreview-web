@@ -61,7 +61,7 @@ const InvitationEdit = ({ appContext }) => {
     if (!invitation || !containerRef || clientJsLoading) return
 
     const editModeBannerDelay = document.querySelector('#flash-message-container.alert-success') ? 2500 : 0
-    const bannerTimeout = setTimeout(() => Webfield.editModeBanner(invitation.id, 'edit', true), editModeBannerDelay)
+    const bannerTimeout = setTimeout(() => Webfield.editModeBanner(invitation.id, 'edit'), editModeBannerDelay)
     // eslint-disable-next-line consistent-return
     return () => clearTimeout(bannerTimeout)
   }, [clientJsLoading, containerRef, invitation])

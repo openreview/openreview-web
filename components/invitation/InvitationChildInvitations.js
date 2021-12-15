@@ -9,10 +9,8 @@ import PaginatedList from '../PaginatedList'
 const InvitationChildInvitations = ({ invitation, accessToken }) => {
   const isV1Invitation = invitation.apiVersion === 1
   const [totalCount, setTotalCount] = useState(null)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [childInvitations, setChildInvitations] = useState([])
 
-  const ChildInvitationRow = ({ childInvitation }) => (
+  const ChildInvitationRow = ({ item: childInvitation }) => (
     <li>
       <Link href={`/invitation/edit?id=${childInvitation.id}`}>
         <a>
@@ -23,16 +21,15 @@ const InvitationChildInvitations = ({ invitation, accessToken }) => {
   )
 
   const loadChildInvitations = async (limit = 15, offset = 0) => {
-    try {
-      const result = await api.get('/invitations', {
-        super: invitation.id,
-        limit,
-        offset,
-      }, { accessToken, version: isV1Invitation ? 1 : 2 })
-      setTotalCount(result.count)
-      setChildInvitations(result.invitations)
-    } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+    const result = await api.get('/invitations', {
+      super: invitation.id,
+      limit,
+      offset,
+    }, { accessToken, version: isV1Invitation ? 1 : 2 })
+    setTotalCount(result.count)
+    return {
+      items: result.invitations,
+      count: result.count,
     }
   }
 
@@ -40,21 +37,13 @@ const InvitationChildInvitations = ({ invitation, accessToken }) => {
     loadChildInvitations()
   }, [invitation])
 
-  const renderChildInvitation = childInvitation => <ChildInvitationRow
-    key={childInvitation.id}
-    childInvitation={childInvitation}
-  />
-
-  if (!childInvitations.length) return null
   return (
-    <EditorSection title={`Child Invitations ${totalCount ? `(${totalCount})` : ''}`}>
+    <EditorSection title={`Child Invitations ${totalCount ? `(${totalCount})` : ''}`} classes="subinvitations">
       <PaginatedList
-        items={childInvitations}
-        renderItem={renderChildInvitation}
-        totalCount={totalCount}
+        ListItem={ChildInvitationRow}
         loadItems={loadChildInvitations}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
+        emptyMessage="No child invitation"
+
       />
     </EditorSection>
   )
