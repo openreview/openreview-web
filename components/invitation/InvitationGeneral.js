@@ -330,7 +330,7 @@ const InvitationGeneralEdit = ({
             <span className="info-title edit-title">Multi-Reply:</span>
             <div className="info-edit-control">
               <Dropdown
-                className="dropdown-select"
+                className="dropdown-select dropdown-sm"
                 placeholder="select whether to enable anonymous id"
                 options={trueFalseOptions}
                 onChange={e => setGeneralInfo({ type: 'multiReply', payload: e.value })}
@@ -356,7 +356,7 @@ const InvitationGeneralEdit = ({
             <span className="info-title edit-title">Hide Revisions:</span>
             <div className="info-edit-control">
               <Dropdown
-                className="dropdown-select"
+                className="dropdown-select dropdown-sm"
                 placeholder="select whether to hide revisions"
                 options={trueFalseOptions}
                 onChange={e => setGeneralInfo({ type: 'hideOriginalRevisions', payload: e.value })}
@@ -392,7 +392,7 @@ const InvitationGeneralEdit = ({
             <span className="info-title edit-title">Bulk:</span>
             <div className="info-edit-control">
               <Dropdown
-                className="dropdown-select"
+                className="dropdown-select dropdown-sm"
                 placeholder="select whether to bulk"
                 options={trueFalseOptions}
                 onChange={e => setGeneralInfo({ type: 'bulk', payload: e.value })}
