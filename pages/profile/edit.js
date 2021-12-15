@@ -54,8 +54,8 @@ export default function ProfileEdit({ appContext }) {
       throw new Error(`Note ${noteId} uses an unsupported invitation`)
     }
     const allAuthorIds = [
-      ...profile.emails?.filter(p => p.confirmed).map(p => p.email),
-      ...profile.names?.map(p => p.username).filter(p => p),
+      ...(profile.emails?.filter(p => p.confirmed).map(p => p.email) ?? []),
+      ...(profile.names?.map(p => p.username).filter(p => p) ?? []),
     ]
 
     const matchedIdx = authorIds.reduce((matchedIndex, authorId, index) => { // find all matched index of all author ids
