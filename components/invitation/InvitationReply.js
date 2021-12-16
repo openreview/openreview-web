@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import EditorSection from '../EditorSection'
+import SpinnerButton from '../SpinnerButton'
 
 const CodeEditor = dynamic(() => import('../CodeEditor'))
 
@@ -13,6 +14,7 @@ const InvitationReply = ({
 }) => {
   const isV1Invitation = invitation.apiVersion === 1
   const [replyString, setReplyString] = useState(JSON.stringify(invitation[replyField], undefined, 2))
+  const [isSaving, setIsSaving] = useState(false)
 
   const getTitle = () => {
     switch (replyField) {
@@ -79,6 +81,7 @@ const InvitationReply = ({
 
   const saveInvitationReply = async () => {
     try {
+      setIsSaving(true)
       const cleanReplyString = replyString.trim()
       const replyObj = JSON.parse(cleanReplyString.length ? cleanReplyString : '[]')
       const requestPath = isV1Invitation ? '/invitations' : '/invitations/edits'
@@ -93,12 +96,13 @@ const InvitationReply = ({
         promptError(error.message, { scrollToTop: false })
       }
     }
+    setIsSaving(false)
   }
 
   return (
     <EditorSection title={getTitle()}>
       <CodeEditor code={replyString} onChange={setReplyString} isJson readOnly={readOnly} />
-      {!readOnly && <button type="button" className="btn btn-sm btn-primary" onClick={() => saveInvitationReply()}>Save Invitation</button>}
+      {!readOnly && <SpinnerButton type="primary" onClick={saveInvitationReply} disabled={isSaving} loading={isSaving}>{isSaving ? 'Saving' : 'Save Invitation'}</SpinnerButton>}
     </EditorSection>
   )
 }
