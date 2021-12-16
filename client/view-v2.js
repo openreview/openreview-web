@@ -1293,8 +1293,9 @@ module.exports = (function() {
       var values = fieldDescription['values-dropdown'];
       var extraGroupsP = [];
       var regexIndex = _.findIndex(values, function(g) { return g.indexOf('.*') >=0; });
+      var regex = null;
       if (regexIndex >= 0) {
-        var regex = values[regexIndex];
+        regex = values[regexIndex];
         var result = await Webfield.get('/groups', { regex: regex })
         if (result.groups && result.groups.length) {
           var groups = result.groups.map(function(g) { return g.id; });
@@ -1305,8 +1306,14 @@ module.exports = (function() {
       }
 
       return setParentReaders(replyto, fieldDescription, 'values-dropdown', function (newFieldDescription) {
-        // when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
-        var replyValues = _.intersection(newFieldDescription['values-dropdown'], fieldDescription['values-dropdown']);
+        // Make sure the new parent readers belong to the current invitation available values
+        var invitationReaders = fieldDescription['values-dropdown'];
+        var replyValues = [];
+        newFieldDescription['values-dropdown'].forEach(function(valueReader) {
+          if (invitationReaders.includes(valueReader) || valueReader.match(regex)) {
+            replyValues.push(valueReader);
+          }
+        })
 
         // Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
         var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
