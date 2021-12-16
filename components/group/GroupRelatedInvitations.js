@@ -1,42 +1,37 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { getGroupVersion, prettyId } from '../../lib/utils'
-import api from '../../lib/api-client'
 import EditorSection from '../EditorSection'
 import PaginatedList from '../PaginatedList'
+import api from '../../lib/api-client'
+import { getGroupVersion, prettyId } from '../../lib/utils'
 
 const RelatedInvitationRow = ({ item }) => (
-    <Link href={`/invitation/edit?id=${item.id}`}>
-      <a>{prettyId(item.id)}</a>
-    </Link>
+  <Link href={`/invitation/edit?id=${item.id}`}>
+    <a>{prettyId(item.id)}</a>
+  </Link>
 )
 
 const GroupRelatedInvitations = ({ groupId, accessToken }) => {
   const [totalCount, setTotalCount] = useState(null)
-  const groupVersion = getGroupVersion(groupId)
+  const version = getGroupVersion(groupId)
 
-  const loadRelatedInvitations = async (limit = 15, offset = 0) => {
-    const result = await api.get(
-      '/invitations',
-      {
-        regex: `${groupId}/-/.*`,
-        expired: true,
-        type: 'all',
-        limit,
-        offset,
-      },
-      { accessToken, version: groupVersion },
-    )
-    setTotalCount(result.count)
+  const loadRelatedInvitations = async (limit, offset) => {
+    const result = await api.get('/invitations', {
+      regex: `${groupId}/-/.*`,
+      expired: true,
+      type: 'all',
+      limit,
+      offset,
+    }, { accessToken, version })
+
+    if (result.count !== totalCount) {
+      setTotalCount(result.count ?? 0)
+    }
     return {
       items: result.invitations,
       count: result.count,
     }
   }
-
-  useEffect(() => {
-    loadRelatedInvitations()
-  }, [])
 
   return (
     <EditorSection title={`Related Invitations ${totalCount ? `(${totalCount})` : ''}`} className="invitations">

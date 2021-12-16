@@ -1,23 +1,23 @@
-import Link from 'next/link'
-import { urlFromGroupId } from '../../../lib/utils'
 import EditorSection from '../../EditorSection'
 import PaginatedList from '../../PaginatedList'
+import { urlFromGroupId } from '../../../lib/utils'
 
 const GroupMembersInfo = ({ group }) => {
-  const hasMembers = group.members?.length > 0
-
   const loadMembers = (limit, offset) => ({
-    items: group.members.slice(offset, offset + limit),
+    items: group.members.slice(offset, offset + limit).map(member => ({
+      id: member,
+      title: member,
+      href: urlFromGroupId(member, true),
+    })),
     count: group.members.length,
   })
 
+  const memberCount = group.members?.length > 0 ? `(${group.members.length})` : ''
+
   return (
-    <EditorSection title={hasMembers ? `Group Members (${group.members.length})` : 'Group Members'} className="members" >
+    <EditorSection title={`Group Members ${memberCount}`} className="members" >
       <PaginatedList
         loadItems={loadMembers}
-        ListItem={({ item }) => <Link href={urlFromGroupId(item, true)}>
-          <a>{item}</a>
-        </Link>}
         emptyMessage="No members to display"
       />
     </EditorSection>

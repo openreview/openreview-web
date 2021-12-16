@@ -286,8 +286,11 @@ main.group, main.invitation {
       }
     }
 
-    ul.list-paginated > li > a {
-      line-height: 1.375rem;
+    ul.list-paginated > li {
+      padding-bottom: 4px;
+      &:last-child {
+        padding-bottom: 0;
+      }
     }
   }
 
@@ -487,7 +490,7 @@ main.group, main.invitation {
     }
   }
 
-  //new implementation
+  // new implementation
   section {
     margin-bottom: 1.75rem;
   }
@@ -497,37 +500,59 @@ main.group, main.invitation {
   }
 
   .info-container, .edit-container {
-    .row {
-      display: flex;
-      margin-bottom: .25rem;
+    .table-row {
+      clear: both;
     }
-    &__label {
+    .info-label {
+      float: left;
+      width: 125px;
+      margin-right: .5rem;
+      margin-bottom: .25rem;
       font-weight: 700;
-      width: 12%;
       text-align: right;
       white-space: nowrap;
-      margin-right: .5rem;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    &__content {
-      width: 88%;
+    .info-content {
+      float: left;
+      width: calc(100% - 135px);
     }
-    &__control {
-      width: 50%;
+    .input-sm {
+      margin-bottom: .25rem;
+      max-width: 450px;
+    }
+    .dropdown-select {
+      margin-bottom: .25rem;
+      max-width: 300px;
+    }
+    .dropdown-sm .dropdown-select__control, .dropdown-sm .dropdown-select__value-container {
+      padding-top: 0;
+      line-height: 1rem;
     }
   }
-
-  .edit-container__label {
-    margin-top: 5px;
+  .edit-container {
+    .info-label {
+      margin-top: .25rem;
+    }
+  }
+  @media #{constants.$phone-only} {
+    .info-container, .edit-container {
+      &__label {
+        width: 100px;
+      }
+      &__content {
+        width: calc(100% - 110px);
+      }
+    }
   }
 
   .members-container {
     padding-left: 0;
+
     .search-row {
       background-color: constants.$sandyBrown;
-      padding-top: .5rem;
-      padding-bottom: .5rem;
+      padding: .5rem;
       border: 1px solid rgba(0, 0, 0, 0.1);
       display: flex;
       justify-content: space-around;
@@ -535,17 +560,20 @@ main.group, main.invitation {
 
       button {
         height: 30px;
-        margin-left: .25rem;
+        line-height: 1rem;
+        min-width: auto;
         margin-right: .25rem;
+      }
+      button:last-child {
+        margin-right: 0;
       }
       .space-taker {
         flex-grow: 1;
       }
 
       .input-group {
-        flex-grow: 1;
-        max-width: 45%;
-        margin-left: .5rem;
+        flex-grow: 2;
+        margin-right: .5rem;
         white-space: nowrap;
 
         span {
@@ -558,7 +586,6 @@ main.group, main.invitation {
       }
     }
 
-
     .empty-message-row {
       border-bottom: 1px solid #ddd;
       padding: 6px 8px;
@@ -569,7 +596,7 @@ main.group, main.invitation {
 
     .member-row {
       &:hover {
-        background-color: constants.$backgroundGray;
+        background-color: #f5f5f5;
       }
       display: flex;
       justify-content: space-around;
@@ -579,10 +606,12 @@ main.group, main.invitation {
       align-items: center;
       input {
         margin: 0;
+        width: 14px;
+        height: 14px;
       }
       .member-id {
         flex-grow: 1;
-        margin-left: .5rem;
+        margin-left: 1rem;
         height: 100%;
       }
       .glyphicon {
@@ -590,6 +619,8 @@ main.group, main.invitation {
       }
       button {
         margin-left: .25rem;
+        padding-top: 1px;
+        padding-bottom: 1px;
       }
       &.deleted {
         background-color: rgba(221, 221, 221, 0.5);
@@ -599,6 +630,9 @@ main.group, main.invitation {
           font-style: italic;
         }
       }
+    }
+    .pagination-container {
+      margin-top: 1.25rem;
     }
   }
   section.members {

@@ -3,71 +3,82 @@
 
 import { useReducer, useState } from 'react'
 import Link from 'next/link'
+import Dropdown from '../Dropdown'
+import GroupIdList from './GroupIdList'
+import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
 import {
   formatDateTime, getGroupVersion, prettyId, urlFromGroupId,
 } from '../../lib/utils'
-import Dropdown from '../Dropdown'
-import GroupIdList from './GroupIdList'
-import EditorSection from '../EditorSection'
+
+const GroupTableRow = ({ label, children }) => (
+  <div className="table-row">
+    <div className="info-label">{label ? `${label}:` : ''}</div>
+    <div className="info-content">
+      {children}
+    </div>
+  </div>
+)
 
 export const GroupGeneralView = ({ group }) => {
   const groupParent = group.id.split('/').slice(0, -1).join('/')
+  const dateOptions = { month: 'long', timeZoneName: 'short' }
 
   return (
     <div className="info-container">
-      <div className="row">
-        <div className="info-container__label">Parent Group:</div>
-        <div><Link href={urlFromGroupId(groupParent, true)}><a>{prettyId(groupParent)}</a></Link></div>
-      </div>
-      <div className="row">
-        <div className="info-container__label">Readers:</div>
+      <GroupTableRow label="Parent Group">
+        <Link href={urlFromGroupId(groupParent, true)}>
+          <a>{prettyId(groupParent)}</a>
+        </Link>
+      </GroupTableRow>
+
+      <GroupTableRow label="Readers">
         <GroupIdList groupIds={group.readers} />
-      </div>
+      </GroupTableRow>
+
       {group.nonreaders?.length > 0 && (
-        <div className="row">
-          <div className="info-container__label">Non-readers:</div>
+        <GroupTableRow label="Non-readers">
           <GroupIdList groupIds={group.nonreaders} />
-        </div>
+        </GroupTableRow>
       )}
-      <div className="row">
-        <div className="info-container__label">Writers:</div>
+
+      <GroupTableRow label="Writers">
         <GroupIdList groupIds={group.writers} />
-      </div>
-      <div className="row">
-        <div className="info-container__label">Signatories:</div>
+      </GroupTableRow>
+
+      <GroupTableRow label="Signatories">
         <GroupIdList groupIds={group.signatories} />
-      </div>
-      <div className="row">
-        <div className="info-container__label">Signature:</div>
+      </GroupTableRow>
+
+      <GroupTableRow label="Signature">
         <GroupIdList groupIds={group.signatures} />
-      </div>
+      </GroupTableRow>
+
       {group.anonids && (
-        <>
-          <div className="row">
-            <div className="info-container__label">AnonymousId:</div>
-            True
-          </div>
-          {group.secret && (
-            <div className="row">
-              <div className="info-container__label">Secret:</div>
-              {group.secret}
-            </div>
-          )}
-          <div className="row">
-            <div className="info-container__label" title="deanonymizers">Deanonymizers:</div>
-            <GroupIdList key="deanonymizers" groupIds={group.deanonymizers} />
-          </div>
-        </>
+        <GroupTableRow label="AnonymousId">
+          <span>True</span>
+        </GroupTableRow>
       )}
-      <div className="row">
-        <div className="info-container__label">Created:</div>
-        {formatDateTime(group.cdate, { month: 'long', timeZoneName: 'short' }) ?? formatDateTime(group.tcdate, { month: 'long', timeZoneName: 'short' })}
-      </div>
-      <div className="row">
-        <div className="info-container__label">Last Modified:</div>
-        {formatDateTime(group.mdate, { month: 'long', timeZoneName: 'short' }) ?? formatDateTime(group.tmdate, { month: 'long', timeZoneName: 'short' })}
-      </div>
+
+      {(group.anonids && group.secret) && (
+        <GroupTableRow label="Secret">
+          <span>{group.secret}</span>
+        </GroupTableRow>
+      )}
+
+      {group.anonids && (
+        <GroupTableRow label="Deanonymizers">
+          <GroupIdList groupIds={group.deanonymizers} />
+        </GroupTableRow>
+      )}
+
+      <GroupTableRow label="Created">
+        <span>{formatDateTime(group.cdate ?? group.tcdate, dateOptions)}</span>
+      </GroupTableRow>
+
+      <GroupTableRow label="Last Modified">
+        <span>{formatDateTime(group.mdate ?? group.tmdate, dateOptions)}</span>
+      </GroupTableRow>
     </div>
   )
 }
@@ -94,60 +105,64 @@ const GroupGeneralEdit = ({
 
   return (
     <div className="edit-container">
-      <div className="row">
-        <div className="edit-container__label">Readers:</div>
-        <div className="edit-container__control">
-          <input className="form-control input-sm" value={generalInfo.readers} onChange={e => setGeneralInfo({ type: 'readers', value: e.target.value })} />
-        </div>
-      </div>
-      <div className="row">
-        <div className="edit-container__label">Non-Readers:</div>
-        <div className="edit-container__control">
-          <input className="form-control input-sm" value={generalInfo.nonreaders} onChange={e => setGeneralInfo({ type: 'nonreaders', value: e.target.value })} />
-        </div>
-      </div>
-      <div className="row">
-        <div className="edit-container__label">Writers:</div>
-        <div className="edit-container__control">
-          <input className="form-control input-sm" value={generalInfo.writers} onChange={e => setGeneralInfo({ type: 'writers', value: e.target.value })} />
-        </div>
-      </div>
-      <div className="row">
-        <div className="edit-container__label">Signatories:</div>
-        <div className="edit-container__control">
-          <input className="form-control input-sm" value={generalInfo.signatories} onChange={e => setGeneralInfo({ type: 'signatories', value: e.target.value })} />
-        </div>
-      </div>
+      <GroupTableRow label="Readers">
+        <input
+          className="form-control input-sm"
+          value={generalInfo.readers}
+          onChange={e => setGeneralInfo({ type: 'readers', value: e.target.value })}
+        />
+      </GroupTableRow>
+
+      <GroupTableRow label="Non-readers">
+        <input
+          className="form-control input-sm"
+          value={generalInfo.nonreaders}
+          onChange={e => setGeneralInfo({ type: 'nonreaders', value: e.target.value })}
+        />
+      </GroupTableRow>
+
+      <GroupTableRow label="Writers">
+        <input
+          className="form-control input-sm"
+          value={generalInfo.writers}
+          onChange={e => setGeneralInfo({ type: 'writers', value: e.target.value })}
+        />
+      </GroupTableRow>
+
+      <GroupTableRow label="Signatories">
+        <input
+          className="form-control input-sm"
+          value={generalInfo.signatories}
+          onChange={e => setGeneralInfo({ type: 'signatories', value: e.target.value })}
+        />
+      </GroupTableRow>
+
       {isSuperUser && (
-        <div className="row">
-          <div className="edit-container__label">AnonymousId:</div>
-          <div className="edit-container__control">
-            <Dropdown
-              className="dropdown-select dropdown-sm"
-              placeholder="select whether to enable anonymous id"
-              options={anonymousIdOptions}
-              onChange={e => setGeneralInfo({ type: 'anonids', value: e.value })}
-              value={generalInfo.anonids ? { value: true, label: 'True' } : { value: false, label: 'False' }}
-            />
-          </div>
-        </div>
-      )}
-      {isSuperUser && (
-        <div className="row">
-          <div className="edit-container__label">Deanonymizers:</div>
-          <div className="edit-container__control">
-            <input className="form-control input-sm" value={generalInfo.deanonymizers} onChange={e => setGeneralInfo({ type: 'deanonymizers', value: e.target.value })} />
-          </div>
-        </div>
+        <GroupTableRow label="AnonymousId">
+          <Dropdown
+            className="dropdown-select dropdown-sm"
+            placeholder="select whether to enable anonymous id"
+            options={anonymousIdOptions}
+            onChange={e => setGeneralInfo({ type: 'anonids', value: e.value })}
+            value={generalInfo.anonids ? { value: true, label: 'True' } : { value: false, label: 'False' }}
+          />
+        </GroupTableRow>
       )}
 
-      <div className="row">
-        <div className="edit-container__label" />
-        <div className="edit-container__control">
-          <button type="button" className="btn btn-sm btn-primary" onClick={() => saveGeneralInfo(generalInfo)}>Save Group</button>
-          <button type="button" className="btn btn-sm btn-default ml-1" onClick={() => setEdit(false)}>Cancel</button>
-        </div>
-      </div>
+      {isSuperUser && (
+        <GroupTableRow label="Deanonymizers">
+          <input className="form-control input-sm" value={generalInfo.deanonymizers} onChange={e => setGeneralInfo({ type: 'deanonymizers', value: e.target.value })} />
+        </GroupTableRow>
+      )}
+
+      <GroupTableRow label="">
+        <button type="button" className="btn btn-sm btn-primary" onClick={() => saveGeneralInfo(generalInfo)}>
+          Save Group
+        </button>
+        <button type="button" className="btn btn-sm btn-default ml-1" onClick={() => setEdit(false)}>
+          Cancel
+        </button>
+      </GroupTableRow>
     </div>
   )
 }

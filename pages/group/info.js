@@ -83,15 +83,16 @@ const GroupInfo = ({ appContext }) => {
         <title key="title">{`${group ? prettyId(group.id) : 'Group Info'} | OpenReview`}</title>
       </Head>
 
+      <div id="header">
+        <h1>{prettyId(query?.id)}</h1>
+      </div>
+
       {(clientJsLoading || !group) && (
         <LoadingSpinner />
       )}
 
-      <div id="header">
-        <h1>{prettyId(query?.id)}</h1>
-      </div>
       {group && (
-        <>
+        <div>
           <GroupGeneralInfo group={group} />
           <GroupMembersInfo group={group} />
           <GroupSignedNotes
@@ -106,7 +107,7 @@ const GroupInfo = ({ appContext }) => {
             groupId={group.id}
             accessToken={accessToken}
           />
-        </>
+        </div>
       )}
     </>
   )

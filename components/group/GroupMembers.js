@@ -3,14 +3,14 @@ import React, {
   useEffect, useReducer, useRef, useState,
 } from 'react'
 import Link from 'next/link'
-import api from '../../lib/api-client'
-import { getGroupVersion, prettyId, urlFromGroupId } from '../../lib/utils'
 import BasicModal from '../BasicModal'
 import MarkdownPreviewTab from '../MarkdownPreviewTab'
 import ProgressBar from '../ProgressBar'
 import PaginationLinks from '../PaginationLinks'
 import Icon from '../Icon'
 import EditorSection from '../EditorSection'
+import api from '../../lib/api-client'
+import { getGroupVersion, prettyId, urlFromGroupId } from '../../lib/utils'
 
 const MessageMemberModal = ({
   groupId,
@@ -334,7 +334,7 @@ const GroupMembers = ({ group, accessToken }) => {
     const groupMemberActive = groupMembers.filter(p => !p.isDeleted)
     const filteredMembersActive = filteredMembers.filter(p => !p.isDeleted)
     const isFiltered = filteredMembersActive.length !== groupMemberActive.length
-    return `Group Members (${groupMemberActive.length} total${isFiltered ? `,${filteredMembersActive.length} displayed` : ''}${selectedMembers.length ? `,${selectedMembers.length} selected` : ''})`
+    return `Group Members (${groupMemberActive.length} total${isFiltered ? `, ${filteredMembersActive.length} displayed` : ''}${selectedMembers.length ? `, ${selectedMembers.length} selected` : ''})`
   }
 
   const deleteMember = async (memberId) => {
@@ -450,7 +450,7 @@ const GroupMembers = ({ group, accessToken }) => {
     try {
       const selectedMemberIds = groupMembers.filter(p => p.isSelected).map(q => q.id)
       await navigator.clipboard.writeText(selectedMemberIds.join(','))
-      promptMessage(`${selectedMemberIds.length} ids copied to clipboard`, { scrollToTop: false })
+      promptMessage(`${selectedMemberIds.length} IDs copied to clipboard`, { scrollToTop: false })
     } catch (error) {
       promptError(error.message, { scrollToTop: false })
     }
@@ -546,10 +546,10 @@ const GroupMembers = ({ group, accessToken }) => {
             </button>
             {navigator.clipboard?.writeText && <button
               type="button"
-              className="btn btn-sm btn-primary"
+              className="btn btn-sm btn-primary hidden-sm hidden-xs"
               disabled={!groupMembers.some(p => p.isSelected)}
               onClick={handleCopySelectedButtonClick}
-              title="Copy member ids to clipboard when you need to duplicate group members"
+              title="Copy member IDs to clipboard when you need to duplicate group members"
               data-toggle="tooltip"
               data-placement="top"
             >
@@ -575,108 +575,94 @@ const GroupMembers = ({ group, accessToken }) => {
             </button>
           </div>
 
-          {showMembers ? (
-            <>
-              {displayedMembers.map((member) => {
-                // eslint-disable-next-line eqeqeq
-                const hasAnonId = memberAnonIds.find(p => p.member == member.id)
-                return (
-                  <React.Fragment key={member.id}>
-                    <div
-                      className={`member-row ${member.isDeleted ? 'deleted' : ''}`}
-                      key={member}
+          {showMembers ? displayedMembers.map((member) => {
+            const hasAnonId = memberAnonIds.find(p => p.member === member.id)
+            return (
+              <div
+                key={member.id}
+                className={`member-row ${member.isDeleted ? 'deleted' : ''}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={member.isSelected}
+                  disabled={member.isDeleted}
+                  onChange={(e) => {
+                    setGroupMembers({
+                      type: e.target.checked ? 'SELECT' : 'UNSELECT',
+                      payload: member.id,
+                    })
+                  }}
+                />
+                <span className="member-id" onClick={(e) => {
+                  if (e.currentTarget !== e.target) return
+                  setGroupMembers({
+                    type: 'INVERTSELECTION',
+                    payload: member.id,
+                  })
+                }}>
+                  <Link href={urlFromGroupId(member.id)}>
+                    <a>{member.id}</a>
+                  </Link>
+                  {hasAnonId && (
+                    <>
+                      {' | '}
+                      <Link href={urlFromGroupId(hasAnonId.anonId)}>
+                        <a>{prettyId(hasAnonId.anonId)}</a>
+                      </Link>
+                    </>
+                  )}
+                  {member.isDeleted && (
+                    <>
+                      {' '}
+                      {'(Deleted)'}
+                    </>
+                  )}
+                </span>
+                {member.isDeleted ? (
+                  <button
+                    type="button"
+                    className="btn btn-xs btn-primary"
+                    onClick={() => restoreMember(member.id)}
+                  >
+                    <Icon name="repeat" />
+                    Undo
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-xs btn-primary"
+                      onClick={() => messageMember([member.id])}
                     >
-                      <input
-                        type="checkbox"
-                        checked={member.isSelected}
-                        disabled={member.isDeleted}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setGroupMembers({
-                              type: 'SELECT',
-                              payload: member.id,
-                            })
-                          } else {
-                            setGroupMembers({
-                              type: 'UNSELECT',
-                              payload: member.id,
-                            })
-                          }
-                        }}
-                      />
-                      <span className="member-id" onClick={(e) => {
-                        if (e.currentTarget !== e.target) return
-                        setGroupMembers({
-                          type: 'INVERTSELECTION',
-                          payload: member.id,
-                        })
-                      }}>
-                        <Link href={urlFromGroupId(member.id)}>
-                          <a>{member.id}</a>
-                        </Link>
-                        {hasAnonId && (
-                          <>
-                            {' | '}
-                            <Link href={urlFromGroupId(hasAnonId.anonId)}>
-                              <a>{prettyId(hasAnonId.anonId)}</a>
-                            </Link>
-                          </>
-                        )}
-                        {member.isDeleted && (
-                          <>
-                            {' '}
-                            {'(Deleted)'}
-                          </>
-                        )}
-                      </span>
-                      {member.isDeleted ? (
-                        <button
-                          type="button"
-                          className="btn btn-xs btn-primary"
-                          onClick={() => restoreMember(member.id)}
-                        >
-                          <Icon name="repeat" />
-                          Undo
-                        </button>
-                      ) : (
-                        <>
-                          <button
-                            type="button"
-                            className="btn btn-xs btn-primary"
-                            onClick={() => messageMember([member.id])}
-                          >
-                            <Icon name="envelope" />
-                            Message
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-xs btn-primary"
-                            onClick={() => deleteMember(member.id)}
-                          >
-                            <Icon name="remove" />
-                            Remove
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </React.Fragment>
-                )
-              })}
-              <PaginationLinks
-                setCurrentPage={e => setCurrentPage(e)}
-                totalCount={filteredMembers.length}
-                itemsPerPage={membersPerPage}
-                currentPage={currentPage}
-                options={{ noScroll: true, noBottomMargin: true }}
-              />
-            </>
-          ) : (
+                      <Icon name="envelope" />
+                      Message
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-xs btn-primary"
+                      onClick={() => deleteMember(member.id)}
+                    >
+                      <Icon name="remove" />
+                      Remove
+                    </button>
+                  </>
+                )}
+              </div>
+            )
+          }) : (
             <div className="empty-message-row">
               {searchTerm
                 ? `No members matching the search "${searchTerm}" found. Click Add to Group above to add a new member.`
                 : 'No members to display'}
             </div>
           )}
+          <PaginationLinks
+            setCurrentPage={e => setCurrentPage(e)}
+            totalCount={filteredMembers.length}
+            itemsPerPage={membersPerPage}
+            currentPage={currentPage}
+            options={{ noScroll: true }}
+          />
         </div>
         <MessageMemberModal
           groupId={group.id}

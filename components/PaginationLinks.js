@@ -57,7 +57,7 @@ export default function PaginationLinks({
 
   return (
     <nav className="pagination-container text-center" aria-label="page navigation">
-      <ul className={`pagination${options.noBottomMargin ? ' mb-0' : ''}`}>
+      <ul className="pagination">
         {pageList.map((page) => {
           const classList = []
           if (page.disabled) classList.push('disabled')

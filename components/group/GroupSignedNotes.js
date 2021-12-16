@@ -1,60 +1,51 @@
 /* globals promptError: false */
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { getGroupVersion, prettyInvitationId } from '../../lib/utils'
-import api from '../../lib/api-client'
+import { useState } from 'react'
 import EditorSection from '../EditorSection'
 import PaginatedList from '../PaginatedList'
-
-const SignedNotesRow = ({ signedNote, version }) => {
-  const invitationId = version === 2 ? signedNote.invitations[0] : signedNote.invitation
-  const title = version === 2 ? signedNote.content?.title?.value : signedNote.content?.title
-  const user = version === 2 ? signedNote.content?.user?.value : signedNote.content?.user
-  return (
-    <Link
-      href={`/forum?id=${signedNote.forum}${signedNote.forum === signedNote.id ? '' : `&noteId=${signedNote.id}`}`}
-    >
-      <a>
-        {`${prettyInvitationId(invitationId)}: ${title ?? signedNote.forum}${user ? ` - ${user}` : ''}`}
-      </a>
-    </Link>
-  )
-}
+import api from '../../lib/api-client'
+import { getGroupVersion, prettyInvitationId } from '../../lib/utils'
 
 const GroupSignedNotes = ({ groupId, accessToken }) => {
   const [totalCount, setTotalCount] = useState(null)
-  const groupVersion = getGroupVersion(groupId)
+  const version = getGroupVersion(groupId)
 
-  const loadNotes = async (limit = 15, offset = 0) => {
-    // TODO: how signatures is passed to api may change
-    const result = await api.get(
-      '/notes',
-      { 'signatures[]': [groupId], limit, offset },
-      { accessToken, version: groupVersion },
-    )
-    setTotalCount(result.count)
+  const processNote = (note) => {
+    const invitationId = version === 2 ? note.invitations[0] : note.invitation
+    const title = version === 2 ? note.content?.title?.value : note.content?.title
+    const user = version === 2 ? note.content?.user?.value : note.content?.user
     return {
-      items: result.notes,
-      count: result.count,
+      id: note.id,
+      title: `${prettyInvitationId(invitationId)}: ${title ?? note.forum}${user ? ` - ${user}` : ''}`,
+      href: `/forum?id=${note.forum}${note.forum === note.id ? '' : `&noteId=${note.id}`}`,
     }
   }
 
-  const renderSignedNote = ({ item }) => (
-    <SignedNotesRow
-      signedNote={item}
-      version={groupVersion}
-    />
-  )
+  const loadNotes = async (limit, offset) => {
+    // TODO: how signatures is passed to api may change
+    const { notes, count } = await api.get('/notes', {
+      'signatures[]': [groupId],
+      limit,
+      offset,
+    }, { accessToken, version })
 
-  useEffect(() => {
-    loadNotes()
-  }, [])
+    let translatedNotes = []
+    if (notes?.length > 0) {
+      translatedNotes = notes.map(processNote)
+    }
+    if (count !== totalCount) {
+      setTotalCount(count ?? 0)
+    }
+
+    return {
+      items: translatedNotes,
+      count: count ?? 0,
+    }
+  }
 
   return (
     <EditorSection title={`Signed Notes ${totalCount ? `(${totalCount})` : ''}`} className="notes">
       <PaginatedList
-        ListItem={renderSignedNote}
         loadItems={loadNotes}
         emptyMessage="No signed notes"
       />
