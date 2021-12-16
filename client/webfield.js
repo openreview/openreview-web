@@ -2387,17 +2387,6 @@ module.exports = (function() {
     });
   };
 
-  var loadChildInvitations = function(invitationId) {
-    renderPaginatedList($('section.subinvitations'), {
-      templateName: 'partials/paginatedInvitationList',
-      loadItems: function(limit, offset) {
-        return get('/invitations', { super: invitationId, limit: limit, offset: offset })
-          .then(apiResponseHandler('invitations'));
-      },
-      renderItem: renderInvitationListItem
-    });
-  };
-
   var renderPaginatedList = function($container, options) {
     var defaults = {
       templateName: 'partials/paginatedGroupList',
@@ -2557,26 +2546,6 @@ module.exports = (function() {
     // Sort non-paper ids alphabetically
     otherIds.sort(function(a, b) { return a.id > b.id ? 1 : -1; });
     return otherIds.concat(_.flatten(_.compact(paperIds)));
-  };
-
-  var invitationInfo = function(invitation, options) {
-    var defaults = {
-      container: '#notes',
-      showAddForm: true
-    };
-    options = _.defaults(options, defaults);
-
-    var $container = $(options.container);
-    var parentGroupId = invitation.id.split('/-/')[0];
-
-    $container.empty().append(Handlebars.templates['partials/invitationInfo']({
-      invitation: invitation,
-      parentGroupId: parentGroupId,
-      replyJson: JSON.stringify(invitation.reply, undefined, 4),
-      options: { apiVersion: 1 }
-    }));
-
-    loadChildInvitations(invitation.id);
   };
 
   var userModerationQueue = function(options) {
@@ -2977,7 +2946,6 @@ module.exports = (function() {
       searchResults: searchResults,
       groupInfo: groupInfo,
       groupEditor: groupEditor,
-      invitationInfo: invitationInfo,
       userModerationQueue: userModerationQueue,
       spinner: loadingSpinner,
       errorMessage: errorMessage,

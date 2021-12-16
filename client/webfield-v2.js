@@ -1527,17 +1527,6 @@ module.exports = (function() {
     });
   };
 
-  var loadChildInvitations = function(invitationId) {
-    renderPaginatedList($('section.subinvitations'), {
-      templateName: 'partials/paginatedInvitationList',
-      loadItems: function(limit, offset) {
-        return get('/invitations', { super: invitationId, limit: limit, offset: offset })
-          .then(apiResponseHandler('invitations'));
-      },
-      renderItem: renderInvitationListItem
-    });
-  };
-
   var renderPaginatedList = function($container, options) {
     var defaults = {
       templateName: 'partials/paginatedGroupList',
@@ -1655,27 +1644,6 @@ module.exports = (function() {
     });
 
     return false;
-  };
-
-  var invitationInfo = function(invitation, options) {
-    var defaults = {
-      container: '#notes',
-    };
-    options = _.defaults(options, defaults);
-
-    var $container = $(options.container);
-    var parentGroupId = invitation.id.split('/-/')[0];
-    var replyField = !_.isEmpty(invitation.edge) ? 'edge' : 'edit';
-
-    $container.empty().append(Handlebars.templates['partials/invitationInfo']({
-      invitation: invitation,
-      parentGroupId: parentGroupId,
-      replyField: replyField,
-      replyJson: JSON.stringify(invitation[replyField], undefined, 4),
-      options: { apiVersion: 2 }
-    }));
-
-    loadChildInvitations(invitation.id);
   };
 
   var searchSubmissions = function(groupId, term, options) {
@@ -2526,7 +2494,6 @@ module.exports = (function() {
     ui: {
       groupInfo: groupInfo,
       groupEditor: groupEditor,
-      invitationInfo: invitationInfo,
       renderInvitationButton: renderInvitationButton,
       renderTable: renderTable,
       renderTasks: renderTasks,

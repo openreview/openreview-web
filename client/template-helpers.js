@@ -967,6 +967,7 @@ Handlebars.registerHelper('gt', function(a, b, options) {
   return options.inverse(this);
 });
 
+//TODO - remove together with group editor
 /**
  * Block helper that renders the block if an array has the
  * given `value`. Optionally specify an inverse block to render
@@ -997,6 +998,7 @@ Handlebars.registerHelper('inArray', function(array, value, options) {
   return options.inverse(this);
 });
 
+//TODO - seems this is not in used
 Handlebars.registerHelper('debug', function(optionalValue) {
   console.log('Current Context');
   console.log('====================');
@@ -1017,6 +1019,7 @@ Handlebars.registerHelper('canUnlink', function(value, options) {
   return options.inverse(this);
 });
 
+//TODO - remove together with group editor
 Handlebars.registerHelper('getAnonId', function(varName,memberId,memberAnonIdMap,options){
   if(!options.data.root){
     options.data.root={}
@@ -1041,7 +1044,6 @@ Handlebars.registerPartial('taskList', Handlebars.templates['partials/taskList']
 Handlebars.registerPartial('groupMembersTable', Handlebars.templates['partials/groupMembersTable']);
 Handlebars.registerPartial('groupMembersTableRow', Handlebars.templates['partials/groupMembersTableRow']);
 Handlebars.registerPartial('groupInfoTable', Handlebars.templates['partials/groupInfoTable']);
-Handlebars.registerPartial('invitationInfoTable', Handlebars.templates['partials/invitationInfoTable']);
 Handlebars.registerPartial('configurationNotes', Handlebars.templates['partials/configurationNotes']);
 
 Handlebars.registerPartial('spinner', Handlebars.templates.spinner);
