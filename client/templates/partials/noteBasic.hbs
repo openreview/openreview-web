@@ -17,12 +17,6 @@
   {{#if content.html}}
     <a href="{{content.html}}" class="html-link" title="Open Website" target="_blank"><img src="/images/html_icon_blue.svg"></a>
   {{/if}}{{/if}}
-  {{!-- unlink dblp publication button in profile page --}}
-  {{#if options.showUnlinkPublicationButton}}
-    {{#canUnlink invitation}}
-      <span class="unlink-publication glyphicon glyphicon-minus-sign" role="button" aria-label="unlink this publication from your profile" tabindex="0"></span>
-    {{/canUnlink}}
-  {{/if}}
 </h4>
 
 {{#if details.forumContent}}{{#isnt id forum}}

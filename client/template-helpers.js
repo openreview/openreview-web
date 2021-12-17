@@ -1009,14 +1009,6 @@ Handlebars.registerHelper('debug', function(optionalValue) {
   }
 });
 
-Handlebars.registerHelper('canUnlink', function(value, options) {
-  const invitationsAllowUnlink = ["dblp.org/-/record", "OpenReview.net/Archive/-/Imported_Record", "OpenReview.net/Archive/-/Direct_Upload"]
-  if (invitationsAllowUnlink.includes(value)) {
-    return options.fn(this);
-  }
-  return options.inverse(this);
-});
-
 Handlebars.registerHelper('getAnonId', function(varName,memberId,memberAnonIdMap,options){
   if(!options.data.root){
     options.data.root={}
@@ -1042,14 +1034,5 @@ Handlebars.registerPartial('groupMembersTable', Handlebars.templates['partials/g
 Handlebars.registerPartial('groupMembersTableRow', Handlebars.templates['partials/groupMembersTableRow']);
 Handlebars.registerPartial('groupInfoTable', Handlebars.templates['partials/groupInfoTable']);
 Handlebars.registerPartial('invitationInfoTable', Handlebars.templates['partials/invitationInfoTable']);
-Handlebars.registerPartial('configurationNotes', Handlebars.templates['partials/configurationNotes']);
 
 Handlebars.registerPartial('spinner', Handlebars.templates.spinner);
-
-Handlebars.registerPartial('profileExpertise', Handlebars.templates['partials/merge/profileExpertise']);
-Handlebars.registerPartial('profileHistory', Handlebars.templates['partials/merge/profileHistory']);
-Handlebars.registerPartial('profileNames', Handlebars.templates['partials/merge/profileNames']);
-Handlebars.registerPartial('profileRelations', Handlebars.templates['partials/merge/profileRelations']);
-Handlebars.registerPartial('profileStandardField', Handlebars.templates['partials/merge/profileStandardField']);
-Handlebars.registerPartial('profilePublications', Handlebars.templates['partials/merge/profilePublications']);
-Handlebars.registerPartial('signatureTooltip', Handlebars.templates['partials/signatureTooltip']);
