@@ -2869,6 +2869,7 @@ module.exports = (function() {
       getAssignedInvitations: getAssignedInvitations,
       getGroup: getGroup,
       getAll: getAll,
+      get: get
 
     },
 
