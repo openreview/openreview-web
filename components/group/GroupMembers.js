@@ -3,6 +3,7 @@ import React, {
   useEffect, useReducer, useRef, useState,
 } from 'react'
 import Link from 'next/link'
+import copy from 'copy-to-clipboard'
 import BasicModal from '../BasicModal'
 import MarkdownPreviewTab from '../MarkdownPreviewTab'
 import ProgressBar from '../ProgressBar'
@@ -447,12 +448,12 @@ const GroupMembers = ({ group, accessToken }) => {
   }
 
   const handleCopySelectedButtonClick = async () => {
-    try {
-      const selectedMemberIds = groupMembers.filter(p => p.isSelected).map(q => q.id)
-      await navigator.clipboard.writeText(selectedMemberIds.join(','))
+    const selectedMemberIds = groupMembers.filter(p => p.isSelected).map(q => q.id)
+    const success = copy(selectedMemberIds.join(','))
+    if (success) {
       promptMessage(`${selectedMemberIds.length} IDs copied to clipboard`, { scrollToTop: false })
-    } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+    } else {
+      promptError('Could not copy selected member IDs to clipboard', { scrollToTop: false })
     }
   }
 
@@ -544,17 +545,17 @@ const GroupMembers = ({ group, accessToken }) => {
             >
               {isAllFilterdSelected ? 'Deselect All' : 'Select All'}
             </button>
-            {navigator.clipboard?.writeText && <button
+            <button
               type="button"
               className="btn btn-sm btn-primary hidden-sm hidden-xs"
               disabled={!groupMembers.some(p => p.isSelected)}
               onClick={handleCopySelectedButtonClick}
-              title="Copy member IDs to clipboard when you need to duplicate group members"
+              title="Copy member IDs to clipboard. Useful for adding group members to other groups"
               data-toggle="tooltip"
               data-placement="top"
             >
-              Copy Selected Id
-            </button>}
+              Copy Selected
+            </button>
             <button
               type="button"
               className="btn btn-sm btn-primary"
