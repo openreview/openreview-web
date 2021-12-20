@@ -2850,6 +2850,24 @@ module.exports = (function() {
     });
   }
 
+  var getInvitationId = function(venueId, number, name, options) {
+    var defaults = {
+      submissionGroupName: 'Paper',
+    };
+    options = _.defaults(options, defaults);
+
+    if (options.prefix) {
+      return venueId + '/' + options.submissionGroupName + number + '/' + options.prefix + '/-/' + name;
+    }
+    return venueId + '/' + options.submissionGroupName + number + '/-/' + name;
+  }
+
+  var getRepliesfromSubmission = function(venueId, submission, name, options) {
+    return submission.details.directReplies.filter(function(reply) {
+      return reply.invitations.indexOf(getInvitationId(venueId, submission.number, name, options)) >= 0;
+    });
+  }
+
   return {
     get: get,
     post: post,
@@ -2889,7 +2907,9 @@ module.exports = (function() {
     },
     utils: {
       getPaperNumbersfromGroups: getPaperNumbersfromGroups,
-      getNumberfromGroup: getNumberfromGroup
+      getNumberfromGroup: getNumberfromGroup,
+      getInvitationId: getInvitationId,
+      getRepliesfromSubmission: getRepliesfromSubmission
     }
   };
 }());
