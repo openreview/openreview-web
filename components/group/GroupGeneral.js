@@ -99,6 +99,7 @@ const GroupGeneralEdit = ({
     nonreaders: group.nonreaders?.join(', '),
     writers: group.writers?.join(', '),
     signatories: group.signatories?.join(', '),
+    signatures: group.signatures?.join(', '),
     anonids: group.anonids,
     deanonymizers: group.deanonymizers?.join(', '),
   })
@@ -134,6 +135,13 @@ const GroupGeneralEdit = ({
           className="form-control input-sm"
           value={generalInfo.signatories}
           onChange={e => setGeneralInfo({ type: 'signatories', value: e.target.value })}
+        />
+      </GroupTableRow>
+      <GroupTableRow label="Signature">
+        <input
+          className="form-control input-sm"
+          value={generalInfo.signatures}
+          onChange={e => setGeneralInfo({ type: 'signatures', value: e.target.value })}
         />
       </GroupTableRow>
 
@@ -186,6 +194,7 @@ const GroupGeneral = ({
         nonreaders: convertInfoToArray(generalInfo.nonreaders),
         writers: convertInfoToArray(generalInfo.writers),
         signatories: convertInfoToArray(generalInfo.signatories),
+        signatures: convertInfoToArray(generalInfo.signatures),
         anonids: generalInfo.anonids,
         deanonymizers: convertInfoToArray(generalInfo.deanonymizers),
       }
