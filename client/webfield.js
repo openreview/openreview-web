@@ -495,6 +495,28 @@ module.exports = (function() {
     $container.append(linksHtml);
   };
 
+  var accordion = function(contentArr, options) {
+    var defaults = {
+      html: true,
+      id: 'accordion-' + Math.floor(Math.random() * 1000),
+      collapsed: true,
+      extraClasses: '',
+      container: '#notes'
+    };
+    options = _.defaults(options, defaults);
+
+    if (!contentArr || !contentArr.length) {
+      return;
+    }
+
+    var accordionHtml = Handlebars.templates['partials/accordion']({
+      sections: contentArr,
+      options: options
+    });
+    var $container = $(options.container);
+    $container.append(accordionHtml);
+  };
+
   var invitationButtonAndNoteEditor = function(invitationData, user, options) {
     var defaults = {
       container: '#invitation',
@@ -3133,6 +3155,7 @@ module.exports = (function() {
       header: basicHeader,
       venueHeader: venueHeader,
       linksList: linksList,
+      accordion: accordion,
       submissionButton: invitationButtonAndNoteEditor,
       submissionList: submissionList,
       taskList: taskList,
