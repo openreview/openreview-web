@@ -64,7 +64,12 @@ const InvitationEdit = ({ appContext }) => {
     const editModeBannerDelay = document.querySelector('#flash-message-container.alert-success') ? 2500 : 0
     const bannerTimeout = setTimeout(() => Webfield.editModeBanner(invitation.id, 'edit'), editModeBannerDelay)
     // eslint-disable-next-line consistent-return
-    return () => clearTimeout(bannerTimeout)
+    return () => {
+      clearTimeout(bannerTimeout)
+      if (document.querySelector('#flash-message-container .profile-flash-message')) {
+        document.getElementById('flash-message-container').style.display = 'none'
+      }
+    }
   }, [clientJsLoading, containerRef, invitation])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
