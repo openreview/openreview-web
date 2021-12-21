@@ -3,6 +3,7 @@ import { EditorState, basicSetup } from '@codemirror/basic-setup'
 import { Compartment } from '@codemirror/state'
 import { EditorView, keymap } from '@codemirror/view'
 import { defaultKeymap, indentWithTab } from '@codemirror/commands'
+import { defaultHighlightStyle, classHighlightStyle } from "@codemirror/highlight"
 import { javascript, esLint } from '@codemirror/lang-javascript'
 import { python } from '@codemirror/lang-python'
 import { json, jsonParseLinter } from '@codemirror/lang-json'
@@ -17,7 +18,7 @@ const CodeEditor = ({
   const lint = new Compartment()
   const language = new Compartment()
   const languageRef = useRef(null)
-  // const getLint
+
   const getLanguage = () => {
     if (isJson) {
       languageRef.current = 'json'
@@ -28,7 +29,12 @@ const CodeEditor = ({
       return [language.of(python())]
     }
     languageRef.current = 'javascript'
-    return [lint.of(linter(esLint(new Linter()))), language.of(javascript())]
+    return [
+      lint.of(linter(esLint(new Linter()))),
+      defaultHighlightStyle.extension,
+      classHighlightStyle.extension,
+      language.of(javascript()),
+    ]
   }
 
   const setLanguage = EditorState.transactionExtender.of((tr) => {
@@ -66,16 +72,23 @@ const CodeEditor = ({
   })
 
   useEffect(() => {
-    // eslint-disable-next-line max-len
-    const extensions = [basicSetup, keymap.of([defaultKeymap, indentWithTab]), ...getLanguage(), setLanguage, setLint, EditorView.theme({
-      '&': {
-        minHeight,
-        maxHeight,
-        border: '1px solid #eee',
-        fontFamily: 'Monaco, Menlo, "Ubuntu Mono", Consolas',
-        fontSize: '13px',
-      },
-    })]
+    const extensions = [
+      basicSetup,
+      keymap.of([defaultKeymap, indentWithTab]),
+      ...getLanguage(),
+      setLanguage,
+      setLint,
+      EditorView.theme({
+        '&': {
+          minHeight,
+          maxHeight,
+          border: '1px solid #eee',
+          fontFamily: 'Monaco, Menlo, "Ubuntu Mono", Consolas',
+          fontSize: '13px',
+        },
+      }),
+    ]
+
     if (wrap) extensions.push(EditorView.lineWrapping)
     if (readOnly) extensions.push(EditorView.editable.of(false))
     if (onChange && typeof onChange === 'function') {

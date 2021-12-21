@@ -1337,3 +1337,13 @@ header, #header {
     padding: 0.375rem 0.75rem;
   }
 }
+
+// CodeMirror highlighting
+.cm-editor div.cm-line {
+  span.cmt-comment {
+    color: #164;
+  }
+  span.cmt-number {
+    color: #a11;
+  }
+}
