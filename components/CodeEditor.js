@@ -3,7 +3,7 @@ import { EditorState, basicSetup } from '@codemirror/basic-setup'
 import { Compartment } from '@codemirror/state'
 import { EditorView, keymap } from '@codemirror/view'
 import { defaultKeymap, indentWithTab } from '@codemirror/commands'
-import { defaultHighlightStyle, classHighlightStyle } from "@codemirror/highlight"
+import { defaultHighlightStyle, classHighlightStyle } from '@codemirror/highlight'
 import { javascript, esLint } from '@codemirror/lang-javascript'
 import { python } from '@codemirror/lang-python'
 import { json, jsonParseLinter } from '@codemirror/lang-json'
