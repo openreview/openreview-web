@@ -2869,26 +2869,29 @@ module.exports = (function() {
   }
 
   return {
+    // Deprecated: All API functions have been moved to Webfield.api
     get: get,
     post: post,
     put: put,
     delete: xhrDelete,
     getAll: getAll,
-    setToken: setToken,
     sendFile: sendFile,
+    setToken: setToken,
     getErrorFromJqXhr: Webfield.getErrorFromJqXhr,
 
     api: {
-      // Aliases
+      get: get,
+      post: post,
+      put: put,
+      delete: xhrDelete,
+      getAll: getAll,
       getInvitation: getInvitation,
       getSubmissions: getSubmissions,
       getAllSubmissions: getAllSubmissions,
       getGroupsByNumber: getGroupsByNumber,
       getAssignedInvitations: getAssignedInvitations,
       getGroup: getGroup,
-      getAll: getAll,
-      get: get
-
+      sendFile: sendFile,
     },
 
     ui: {
@@ -2905,6 +2908,7 @@ module.exports = (function() {
       errorMessage: Webfield.ui.errorMessage,
       done: Webfield.ui.done
     },
+
     utils: {
       getPaperNumbersfromGroups: getPaperNumbersfromGroups,
       getNumberfromGroup: getNumberfromGroup,
