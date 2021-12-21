@@ -140,7 +140,7 @@ const RelationsSection = ({
         return state.map((p) => {
           const recordCopy = { ...p }
           if (p.key === action.data.key) {
-            recordCopy.readers = action.data.value
+            recordCopy.readers = action.data.value?.length ? action.data.value : ['everyone']
           }
           return recordCopy
         })
@@ -184,7 +184,7 @@ const RelationsSection = ({
           email: '',
           start: '',
           end: '',
-          readers: [],
+          readers: ['everyone'],
         }]
       case removeRelationType:
         return state.length > 1 ? state.filter(p => p.key !== action.data.key) : [{
@@ -194,7 +194,7 @@ const RelationsSection = ({
           email: '',
           start: '',
           end: '',
-          readers: [],
+          readers: ['everyone'],
         }]
       default:
         return state
@@ -212,7 +212,7 @@ const RelationsSection = ({
         email: '',
         start: '',
         end: '',
-        readers: [],
+        readers: ['everyone'],
       })),
   )
 
