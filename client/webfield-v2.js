@@ -2850,26 +2850,48 @@ module.exports = (function() {
     });
   }
 
+  var getInvitationId = function(venueId, number, name, options) {
+    var defaults = {
+      submissionGroupName: 'Paper',
+    };
+    options = _.defaults(options, defaults);
+
+    if (options.prefix) {
+      return venueId + '/' + options.submissionGroupName + number + '/' + options.prefix + '/-/' + name;
+    }
+    return venueId + '/' + options.submissionGroupName + number + '/-/' + name;
+  }
+
+  var getRepliesfromSubmission = function(venueId, submission, name, options) {
+    return submission.details.directReplies.filter(function(reply) {
+      return reply.invitations.indexOf(getInvitationId(venueId, submission.number, name, options)) >= 0;
+    });
+  }
+
   return {
+    // Deprecated: All API functions have been moved to Webfield.api
     get: get,
     post: post,
     put: put,
     delete: xhrDelete,
     getAll: getAll,
-    setToken: setToken,
     sendFile: sendFile,
+    setToken: setToken,
     getErrorFromJqXhr: Webfield.getErrorFromJqXhr,
 
     api: {
-      // Aliases
+      get: get,
+      post: post,
+      put: put,
+      delete: xhrDelete,
+      getAll: getAll,
       getInvitation: getInvitation,
       getSubmissions: getSubmissions,
       getAllSubmissions: getAllSubmissions,
       getGroupsByNumber: getGroupsByNumber,
       getAssignedInvitations: getAssignedInvitations,
       getGroup: getGroup,
-      getAll: getAll,
-
+      sendFile: sendFile,
     },
 
     ui: {
@@ -2886,9 +2908,12 @@ module.exports = (function() {
       errorMessage: Webfield.ui.errorMessage,
       done: Webfield.ui.done
     },
+
     utils: {
       getPaperNumbersfromGroups: getPaperNumbersfromGroups,
-      getNumberfromGroup: getNumberfromGroup
+      getNumberfromGroup: getNumberfromGroup,
+      getInvitationId: getInvitationId,
+      getRepliesfromSubmission: getRepliesfromSubmission
     }
   };
 }());

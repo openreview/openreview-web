@@ -33,16 +33,20 @@ const ImportedPublicationsSection = ({ profileId, updatePublicationIdsToUnlink, 
   }
 
   const loadPublications = async () => {
-    const result = await api.get('/notes', {
-      'content.authorids': profileId,
-      details: 'invitation,original',
-      sort: 'tmdate:desc',
-      offset: (pageNumber - 1) * pageSize,
-      limit: pageSize,
-      invitations: ['dblp.org/-/record', 'OpenReview.net/Archive/-/Imported_Record', 'OpenReview.net/Archive/-/Direct_Upload'],
-    }, { accessToken, cache: false })
-    setPublications(result.notes)
-    setTotalCount(result.count)
+    try {
+      const result = await api.get('/notes', {
+        'content.authorids': profileId,
+        details: 'invitation,original',
+        sort: 'tmdate:desc',
+        offset: (pageNumber - 1) * pageSize,
+        limit: pageSize,
+        invitations: ['dblp.org/-/record', 'OpenReview.net/Archive/-/Imported_Record', 'OpenReview.net/Archive/-/Direct_Upload'],
+      }, { accessToken, cache: false })
+      setPublications(result.notes)
+      setTotalCount(result.count)
+    } catch (error) {
+      promptError(`${error.message} when loading your publications`)
+    }
   }
 
   useEffect(() => {
@@ -50,11 +54,7 @@ const ImportedPublicationsSection = ({ profileId, updatePublicationIdsToUnlink, 
   }, [publicationIdsToUnlink])
 
   useEffect(() => {
-    try {
-      loadPublications()
-    } catch (error) {
-      promptError(error.message)
-    }
+    loadPublications()
   }, [pageNumber, reRender])
 
   if (!publications.length) return null
