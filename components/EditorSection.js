@@ -1,6 +1,6 @@
-export default function EditorSection({ title, classes, children }) {
+export default function EditorSection({ title, className, children }) {
   return (
-    <section className={classes}>
+    <section className={className}>
       <h4>{title}</h4>
       {children}
     </section>
