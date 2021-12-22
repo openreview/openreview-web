@@ -2245,7 +2245,8 @@ module.exports = (function() {
       instructions: 'Instructions here',
       tabs: [],
       referrer: null,
-      showBanner: true
+      showBanner: true,
+      fullWidth: false,
     };
     options = _.defaults(options, defaults);
 
@@ -2258,7 +2259,7 @@ module.exports = (function() {
     }
 
     Webfield.ui.setup(container, venueId);
-    Webfield.ui.header(options.title, options.instructions);
+    Webfield.ui.header(options.title, options.instructions, { fullWidth: options.fullWidth });
 
     if (options.tabs.length) {
       renderTabPanel('#notes', options.tabs);
