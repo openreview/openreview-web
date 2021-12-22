@@ -390,6 +390,21 @@ templates['noteAreaChairs'] = template({"1":function(container,depth0,helpers,pa
 },"7":function(container,depth0,helpers,partials,data) {
     return "Area Chair";
 },"9":function(container,depth0,helpers,partials,data) {
+    var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "        <tr>\n          <td style=\"width: "
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"tableWidth") : depth0),{"name":"if","hash":{},"fn":container.program(10, data, 0),"inverse":container.program(12, data, 0),"data":data,"loc":{"start":{"line":10,"column":28},"end":{"line":10,"column":81}}})) != null ? stack1 : "")
+    + "\">\n            "
+    + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? lookupProperty(depth0,"areachair") : depth0)) != null ? lookupProperty(stack1,"name") : stack1), depth0))
+    + " "
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"areachair") : depth0)) != null ? lookupProperty(stack1,"email") : stack1),{"name":"if","hash":{},"fn":container.program(14, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":11,"column":31},"end":{"line":11,"column":114}}})) != null ? stack1 : "")
+    + "\n          </td>\n        </tr>\n";
+},"10":function(container,depth0,helpers,partials,data) {
     var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -397,10 +412,21 @@ templates['noteAreaChairs'] = template({"1":function(container,depth0,helpers,pa
         return undefined
     };
 
-  return container.escapeExpression(((helper = (helper = lookupProperty(helpers,"tableWidth") || (depth0 != null ? lookupProperty(depth0,"tableWidth") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"tableWidth","hash":{},"data":data,"loc":{"start":{"line":8,"column":44},"end":{"line":8,"column":58}}}) : helper)));
-},"11":function(container,depth0,helpers,partials,data) {
+  return container.escapeExpression(((helper = (helper = lookupProperty(helpers,"tableWidth") || (depth0 != null ? lookupProperty(depth0,"tableWidth") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"tableWidth","hash":{},"data":data,"loc":{"start":{"line":10,"column":46},"end":{"line":10,"column":60}}}) : helper)));
+},"12":function(container,depth0,helpers,partials,data) {
     return "320px;";
-},"13":function(container,depth0,helpers,partials,data,blockParams) {
+},"14":function(container,depth0,helpers,partials,data) {
+    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "<span class=\"text-muted\">("
+    + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? lookupProperty(depth0,"areachair") : depth0)) != null ? lookupProperty(stack1,"email") : stack1), depth0))
+    + ")</span>";
+},"16":function(container,depth0,helpers,partials,data,blockParams) {
     var stack1, alias1=container.lambda, alias2=container.escapeExpression, alias3=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -408,19 +434,19 @@ templates['noteAreaChairs'] = template({"1":function(container,depth0,helpers,pa
         return undefined
     };
 
-  return "      <tr>\n        <td>\n          Recommendation: "
+  return "        <tr>\n          <td>\n            Recommendation: "
     + alias2(alias1(((stack1 = ((stack1 = (depth0 != null ? lookupProperty(depth0,"metaReview") : depth0)) != null ? lookupProperty(stack1,"content") : stack1)) != null ? lookupProperty(stack1,"recommendation") : stack1), depth0))
     + "\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias3,(depth0 != null ? lookupProperty(depth0,"status") : depth0),{"name":"if","hash":{},"fn":container.program(14, data, 0, blockParams),"inverse":container.program(17, data, 0, blockParams),"data":data,"blockParams":blockParams,"loc":{"start":{"line":14,"column":10},"end":{"line":22,"column":17}}})) != null ? stack1 : "")
-    + "        </td>\n      </tr>\n\n      <tr>\n        <td>\n          <a href=\"/forum?id="
+    + ((stack1 = lookupProperty(helpers,"if").call(alias3,(depth0 != null ? lookupProperty(depth0,"status") : depth0),{"name":"if","hash":{},"fn":container.program(17, data, 0, blockParams),"inverse":container.program(20, data, 0, blockParams),"data":data,"blockParams":blockParams,"loc":{"start":{"line":19,"column":12},"end":{"line":27,"column":19}}})) != null ? stack1 : "")
+    + "          </td>\n        </tr>\n\n        <tr>\n          <td>\n            <a href=\"/forum?id="
     + alias2(alias1(((stack1 = (depth0 != null ? lookupProperty(depth0,"metaReview") : depth0)) != null ? lookupProperty(stack1,"forum") : stack1), depth0))
     + "&noteId="
     + alias2(alias1(((stack1 = (depth0 != null ? lookupProperty(depth0,"metaReview") : depth0)) != null ? lookupProperty(stack1,"id") : stack1), depth0))
-    + ((stack1 = lookupProperty(helpers,"if").call(alias3,(depth0 != null ? lookupProperty(depth0,"referrer") : depth0),{"name":"if","hash":{},"fn":container.program(20, data, 0, blockParams),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":28,"column":74},"end":{"line":28,"column":119}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias3,(depth0 != null ? lookupProperty(depth0,"referrer") : depth0),{"name":"if","hash":{},"fn":container.program(23, data, 0, blockParams),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":33,"column":76},"end":{"line":33,"column":121}}})) != null ? stack1 : "")
     + "\" target=\"_blank\">Read "
-    + ((stack1 = lookupProperty(helpers,"if").call(alias3,(depth0 != null ? lookupProperty(depth0,"metaReviewName") : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0, blockParams),"inverse":container.program(3, data, 0, blockParams),"data":data,"blockParams":blockParams,"loc":{"start":{"line":28,"column":142},"end":{"line":28,"column":208}}})) != null ? stack1 : "")
-    + "</a>\n        </td>\n      </tr>\n";
-},"14":function(container,depth0,helpers,partials,data,blockParams) {
+    + ((stack1 = lookupProperty(helpers,"if").call(alias3,(depth0 != null ? lookupProperty(depth0,"metaReviewName") : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0, blockParams),"inverse":container.program(3, data, 0, blockParams),"data":data,"blockParams":blockParams,"loc":{"start":{"line":33,"column":144},"end":{"line":33,"column":210}}})) != null ? stack1 : "")
+    + "</a>\n          </td>\n        </tr>\n";
+},"17":function(container,depth0,helpers,partials,data,blockParams) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -428,16 +454,16 @@ templates['noteAreaChairs'] = template({"1":function(container,depth0,helpers,pa
         return undefined
     };
 
-  return ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"status") : depth0),{"name":"each","hash":{},"fn":container.program(15, data, 2, blockParams),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":15,"column":12},"end":{"line":18,"column":21}}})) != null ? stack1 : "");
-},"15":function(container,depth0,helpers,partials,data,blockParams) {
+  return ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"status") : depth0),{"name":"each","hash":{},"fn":container.program(18, data, 2, blockParams),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":20,"column":14},"end":{"line":23,"column":23}}})) != null ? stack1 : "");
+},"18":function(container,depth0,helpers,partials,data,blockParams) {
     var alias1=container.lambda, alias2=container.escapeExpression;
 
-  return "              <br>\n              "
+  return "                <br>\n                "
     + alias2(alias1(blockParams[0][1], depth0))
     + ": "
     + alias2(alias1(blockParams[0][0], depth0))
     + "\n";
-},"17":function(container,depth0,helpers,partials,data) {
+},"20":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -445,10 +471,10 @@ templates['noteAreaChairs'] = template({"1":function(container,depth0,helpers,pa
         return undefined
     };
 
-  return "            <!-- Deprecated -->\n            "
-    + ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = ((stack1 = (depth0 != null ? lookupProperty(depth0,"metaReview") : depth0)) != null ? lookupProperty(stack1,"content") : stack1)) != null ? lookupProperty(stack1,"format") : stack1),{"name":"if","hash":{},"fn":container.program(18, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":21,"column":12},"end":{"line":21,"column":91}}})) != null ? stack1 : "")
+  return "              <!-- Deprecated -->\n              "
+    + ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = ((stack1 = (depth0 != null ? lookupProperty(depth0,"metaReview") : depth0)) != null ? lookupProperty(stack1,"content") : stack1)) != null ? lookupProperty(stack1,"format") : stack1),{"name":"if","hash":{},"fn":container.program(21, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":26,"column":14},"end":{"line":26,"column":93}}})) != null ? stack1 : "")
     + "\n";
-},"18":function(container,depth0,helpers,partials,data) {
+},"21":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -458,7 +484,7 @@ templates['noteAreaChairs'] = template({"1":function(container,depth0,helpers,pa
 
   return "/ Format: "
     + container.escapeExpression(container.lambda(((stack1 = ((stack1 = (depth0 != null ? lookupProperty(depth0,"metaReview") : depth0)) != null ? lookupProperty(stack1,"content") : stack1)) != null ? lookupProperty(stack1,"format") : stack1), depth0));
-},"20":function(container,depth0,helpers,partials,data) {
+},"23":function(container,depth0,helpers,partials,data) {
     var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -467,8 +493,8 @@ templates['noteAreaChairs'] = template({"1":function(container,depth0,helpers,pa
     };
 
   return "&referrer="
-    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"referrer") || (depth0 != null ? lookupProperty(depth0,"referrer") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"referrer","hash":{},"data":data,"loc":{"start":{"line":28,"column":100},"end":{"line":28,"column":112}}}) : helper)));
-},"22":function(container,depth0,helpers,partials,data) {
+    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"referrer") || (depth0 != null ? lookupProperty(depth0,"referrer") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"referrer","hash":{},"data":data,"loc":{"start":{"line":33,"column":102},"end":{"line":33,"column":114}}}) : helper)));
+},"25":function(container,depth0,helpers,partials,data) {
     var stack1, alias1=container.lambda, alias2=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -477,13 +503,13 @@ templates['noteAreaChairs'] = template({"1":function(container,depth0,helpers,pa
     };
 
   return "    <strong>Senior Area Chair:</strong>\n    <table class=\"table table-condensed table-minimal\">\n      <tbody>\n        <tr>\n          <td style=\"width: "
-    + ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"tableWidth") : depth0),{"name":"if","hash":{},"fn":container.program(9, data, 0),"inverse":container.program(11, data, 0),"data":data,"loc":{"start":{"line":39,"column":28},"end":{"line":39,"column":81}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"tableWidth") : depth0),{"name":"if","hash":{},"fn":container.program(10, data, 0),"inverse":container.program(12, data, 0),"data":data,"loc":{"start":{"line":45,"column":28},"end":{"line":45,"column":81}}})) != null ? stack1 : "")
     + "\">"
     + alias2(alias1(((stack1 = (depth0 != null ? lookupProperty(depth0,"seniorAreaChair") : depth0)) != null ? lookupProperty(stack1,"name") : stack1), depth0))
     + " <span class=\"text-muted\">("
     + alias2(alias1(((stack1 = (depth0 != null ? lookupProperty(depth0,"seniorAreaChair") : depth0)) != null ? lookupProperty(stack1,"email") : stack1), depth0))
     + ")</span></td>\n        </tr>\n      </tbody>\n    </table>\n";
-},"24":function(container,depth0,helpers,partials,data,blockParams,depths) {
+},"27":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -492,12 +518,12 @@ templates['noteAreaChairs'] = template({"1":function(container,depth0,helpers,pa
     };
 
   return "      <br>\n      <a href=\""
-    + alias4(((helper = (helper = lookupProperty(helpers,"url") || (depth0 != null ? lookupProperty(depth0,"url") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"url","hash":{},"data":data,"loc":{"start":{"line":48,"column":15},"end":{"line":48,"column":22}}}) : helper)))
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depths[1] != null ? lookupProperty(depths[1],"referrer") : depths[1]),{"name":"if","hash":{},"fn":container.program(25, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":48,"column":22},"end":{"line":48,"column":73}}})) != null ? stack1 : "")
+    + alias4(((helper = (helper = lookupProperty(helpers,"url") || (depth0 != null ? lookupProperty(depth0,"url") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"url","hash":{},"data":data,"loc":{"start":{"line":54,"column":15},"end":{"line":54,"column":22}}}) : helper)))
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depths[1] != null ? lookupProperty(depths[1],"referrer") : depths[1]),{"name":"if","hash":{},"fn":container.program(28, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":54,"column":22},"end":{"line":54,"column":73}}})) != null ? stack1 : "")
     + "\" target=\"_blank\">"
-    + alias4(((helper = (helper = lookupProperty(helpers,"name") || (depth0 != null ? lookupProperty(depth0,"name") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"name","hash":{},"data":data,"loc":{"start":{"line":48,"column":91},"end":{"line":48,"column":99}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"name") || (depth0 != null ? lookupProperty(depth0,"name") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"name","hash":{},"data":data,"loc":{"start":{"line":54,"column":91},"end":{"line":54,"column":99}}}) : helper)))
     + "</a>\n";
-},"25":function(container,depth0,helpers,partials,data,blockParams,depths) {
+},"28":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -508,7 +534,7 @@ templates['noteAreaChairs'] = template({"1":function(container,depth0,helpers,pa
   return "&referrer="
     + container.escapeExpression(container.lambda((depths[1] != null ? lookupProperty(depths[1],"referrer") : depths[1]), depth0));
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data,blockParams,depths) {
-    var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.escapeExpression, alias3=container.lambda, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+    var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
         }
@@ -516,23 +542,20 @@ templates['noteAreaChairs'] = template({"1":function(container,depth0,helpers,pa
     };
 
   return "<div class=\"arechair-progress\">\n  <h4>"
-    + alias2(((helper = (helper = lookupProperty(helpers,"numMetaReview") || (depth0 != null ? lookupProperty(depth0,"numMetaReview") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(alias1,{"name":"numMetaReview","hash":{},"data":data,"blockParams":blockParams,"loc":{"start":{"line":2,"column":6},"end":{"line":2,"column":23}}}) : helper)))
+    + alias3(((helper = (helper = lookupProperty(helpers,"numMetaReview") || (depth0 != null ? lookupProperty(depth0,"numMetaReview") : depth0)) != null ? helper : alias2),(typeof helper === "function" ? helper.call(alias1,{"name":"numMetaReview","hash":{},"data":data,"blockParams":blockParams,"loc":{"start":{"line":2,"column":6},"end":{"line":2,"column":23}}}) : helper)))
     + " "
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"metaReviewName") : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0, blockParams, depths),"inverse":container.program(3, data, 0, blockParams, depths),"data":data,"blockParams":blockParams,"loc":{"start":{"line":2,"column":24},"end":{"line":2,"column":90}}})) != null ? stack1 : "")
     + " Submitted</h4>\n\n  <strong>"
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"committeeName") : depth0),{"name":"if","hash":{},"fn":container.program(5, data, 0, blockParams, depths),"inverse":container.program(7, data, 0, blockParams, depths),"data":data,"blockParams":blockParams,"loc":{"start":{"line":4,"column":10},"end":{"line":4,"column":73}}})) != null ? stack1 : "")
-    + ":</strong>\n  <table class=\"table table-condensed table-minimal\">\n    <tbody>\n      <tr>\n        <td style=\"width: "
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"tableWidth") : depth0),{"name":"if","hash":{},"fn":container.program(9, data, 0, blockParams, depths),"inverse":container.program(11, data, 0, blockParams, depths),"data":data,"blockParams":blockParams,"loc":{"start":{"line":8,"column":26},"end":{"line":8,"column":79}}})) != null ? stack1 : "")
-    + "\">"
-    + alias2(alias3(((stack1 = (depth0 != null ? lookupProperty(depth0,"areachair") : depth0)) != null ? lookupProperty(stack1,"name") : stack1), depth0))
-    + " <span class=\"text-muted\">("
-    + alias2(alias3(((stack1 = (depth0 != null ? lookupProperty(depth0,"areachair") : depth0)) != null ? lookupProperty(stack1,"email") : stack1), depth0))
-    + ")</span></td>\n      </tr>\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"metaReview") : depth0),{"name":"if","hash":{},"fn":container.program(13, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":10,"column":6},"end":{"line":31,"column":13}}})) != null ? stack1 : "")
-    + "    </tbody>\n  </table>\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"seniorAreaChair") : depth0),{"name":"if","hash":{},"fn":container.program(22, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":34,"column":2},"end":{"line":43,"column":9}}})) != null ? stack1 : "")
+    + ":</strong>\n  <table class=\"table table-condensed table-minimal\">\n    <tbody>\n      "
+    + alias3((lookupProperty(helpers,"debug")||(depth0 && lookupProperty(depth0,"debug"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"areachair") : depth0),{"name":"debug","hash":{},"data":data,"blockParams":blockParams,"loc":{"start":{"line":7,"column":6},"end":{"line":7,"column":25}}}))
+    + "\n"
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"areachair") : depth0),{"name":"if","hash":{},"fn":container.program(9, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":8,"column":6},"end":{"line":14,"column":13}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"metaReview") : depth0),{"name":"if","hash":{},"fn":container.program(16, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":15,"column":6},"end":{"line":36,"column":13}}})) != null ? stack1 : "")
+    + "    </tbody>\n  </table>\n\n"
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"seniorAreaChair") : depth0),{"name":"if","hash":{},"fn":container.program(25, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":40,"column":2},"end":{"line":49,"column":9}}})) != null ? stack1 : "")
     + "\n  <div>\n"
-    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"actions") : depth0),{"name":"each","hash":{},"fn":container.program(24, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":46,"column":4},"end":{"line":49,"column":13}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"actions") : depth0),{"name":"each","hash":{},"fn":container.program(27, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":52,"column":4},"end":{"line":55,"column":13}}})) != null ? stack1 : "")
     + "  </div>\n</div>\n";
 },"useData":true,"useDepths":true,"useBlockParams":true});
 templates['noteMetaReviewStatus'] = template({"1":function(container,depth0,helpers,partials,data) {
