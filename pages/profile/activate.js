@@ -84,15 +84,17 @@ const ActivateProfile = ({ appContext }) => {
         </h5>
       </header>
 
-      {profile ? <ProfileEditor
-        loadedProfile={profile}
-        submitButtonText="Register for OpenReview"
-        submitHandler={saveProfile}
-        hideCancelButton
-        hideDblpButton
-        hidePublicationEditor
-        loading={loading}
-      /> : <LoadingSpinner inline />}
+      {profile ? (
+        <ProfileEditor
+          loadedProfile={profile}
+          submitButtonText="Register for OpenReview"
+          submitHandler={saveProfile}
+          hideCancelButton
+          hideDblpButton
+          hidePublicationEditor
+          loading={loading}
+        />
+      ) : <LoadingSpinner inline />}
     </div>
   )
 }

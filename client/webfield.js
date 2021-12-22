@@ -416,14 +416,6 @@ module.exports = (function() {
     return '';
   };
 
-  var defaultEmptyMessage = function(groupId) {
-    return [
-      'var container = $(\'#group-container\').length ? $(\'#group-container\') : $(\'#invitation-container\');',
-      'Webfield.ui.setup(container, \'' + groupId + '\');',
-      'Webfield.ui.header(\'' + view.prettyId(groupId) + '\').append(\'<p><em>Nothing to display</em></p>\');',
-    ].join('\n');
-  };
-
   var setup = function(container, groupId) {
     $(container).empty().append(
       '<div id="header"></div>',
@@ -3169,7 +3161,6 @@ module.exports = (function() {
       invitationEditor: invitationEditor,
       spinner: loadingSpinner,
       errorMessage: errorMessage,
-      defaultEmptyMessage: defaultEmptyMessage,
       done: done
     }
   };
