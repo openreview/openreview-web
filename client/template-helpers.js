@@ -22,32 +22,12 @@ Handlebars.registerHelper('toLowerCase', function(value) {
   return (value && _.isString(value)) ? value.toLowerCase() : '';
 });
 
-Handlebars.registerHelper('encodeURI', function(value) {
-  return (value && _.isString(value)) ? encodeURIComponent(value) : '';
-});
-
 Handlebars.registerHelper('upperFirst', function(value) {
   return (value && _.isString(value)) ? _.upperFirst(value) : '';
 });
 
-Handlebars.registerHelper('kebabCase', function(value) {
-  return (value && _.isString(value)) ? _.kebabCase(value) : '';
-});
-
-Handlebars.registerHelper('round', function(value, precision) {
-  return (value && _.isFinite(value)) ? _.round(value, precision) : '';
-});
-
-Handlebars.registerHelper('startsWith', function(string, val) {
-  return _.startsWith(string, val);
-});
-
 Handlebars.registerHelper('isEqual', function(a, b) {
   return _.isEqual(a, b);
-});
-
-Handlebars.registerHelper('isString', function(value) {
-  return _.isString(value);
 });
 
 Handlebars.registerHelper('join', function(val, delimiter, start, end) {
@@ -94,33 +74,6 @@ Handlebars.registerHelper('prettyField', function(fieldNameStr) {
   return view.prettyField(fieldNameStr);
 });
 
-Handlebars.registerHelper('prettyContentValue', view.prettyContentValue);
-
-Handlebars.registerHelper('prettyScoreName', function(fieldNameStr) {
-  if (typeof fieldNameStr !== 'string') {
-    return '';
-  }
-
-  var prettyStr = fieldNameStr.split('_').join(' ');
-  if (prettyStr === 'tpms score') {
-    return 'TPMS score';
-  }
-  return prettyStr.charAt(0).toUpperCase() + prettyStr.substring(1);
-});
-
-Handlebars.registerHelper('prettyList', function(idArr) {
-  if (!_.isArray(idArr) || !idArr.length) {
-    return '';
-  }
-
-  var prettyArr = idArr.map(function(id) { return view.prettyId(id); });
-  if (prettyArr.length === 1) {
-    return prettyArr[0];
-  } else {
-    return prettyArr.slice(0, -1).join(',') + ' and ' + prettyArr.slice(-1);
-  }
-});
-
 Handlebars.registerHelper('pdfUrl', function(note, isReference) {
   if (!note.content) {
     return '';
@@ -158,16 +111,6 @@ Handlebars.registerHelper('formattedDate', function(modifiedDate, trueModifiedDa
 
 Handlebars.registerHelper('noteTitle', function(invitation, signatures) {
   return view.generateNoteTitle(invitation, signatures);
-});
-
-Handlebars.registerHelper('standardDate', function(timestamp) {
-  var dateSettings = {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  };
-
-  return new Date(timestamp).toLocaleDateString('en-GB', dateSettings);
 });
 
 Handlebars.registerHelper('dateTime', function(timestamp) {
@@ -567,29 +510,6 @@ Handlebars.registerHelper('tagWidgets', function(noteTags, noteTagInvitations, t
   return new Handlebars.SafeString(widgetHtml);
 });
 
-Handlebars.registerHelper('recommendWidget', function(tagInvitation, userTag) {
-  tagInvitation = tagInvitation || {};
-  userTag = userTag || {};
-
-  var tagObj = {
-    id: userTag.id || null,
-    invitationId: tagInvitation.id || null,
-    value: userTag.tag || null,
-    signatures: userTag.signatures || [],
-    options: ['-2', '-1', '0', '+1', '+2'] // TODO: specify these in the invitation
-  };
-  var label = tagInvitation.reply.content.tag.description || view.prettyInvitationId(tagInvitation.id);
-
-  var html = Handlebars.templates.tagWidget_radio({  // jshint ignore:line
-    tag: tagObj,
-    options: {
-      label: label
-    }
-  });
-
-  return new Handlebars.SafeString(html);
-});
-
 function singleTagWidget(userTags, tagInvitation) {
   var userTag = (userTags && userTags.length && userTags[0]) || {};
   tagInvitation = tagInvitation || {};
@@ -829,57 +749,6 @@ Handlebars.registerHelper('timezoneDropdown', function(options) {
   return new Handlebars.SafeString(output);
 });
 
-// Matching Browser
-Handlebars.registerHelper('authorsList', function(authors) {
-  var output = '';
-  if (!authors || !authors.length) {
-    return output;
-  }
-
-  var name = authors[0];
-  output += name;
-
-  if (authors.length > 1) {
-    output += (', ' + authors[1]);
-  }
-
-  if (authors.length > 2) {
-    output += ', <a href="#" class="more-authors">+ '+ (authors.length - 1) +' More</a>';
-
-    var moreNames = [];
-    for (var i = 2; i < authors.length; i++) {
-      name = authors[i];
-      moreNames.push(name);
-    }
-    output += '<span style="display: none;">'+ moreNames.join(', ') +'</span>';
-  }
-
-  return new Handlebars.SafeString(output);
-});
-
-Handlebars.registerHelper('edgeBrowserUrl', function(configNoteId, configNoteContent) {
-  // For matches utilizing the new edge system
-  if (configNoteContent.hasOwnProperty('scores_specification')) {
-    var browseInvitations = Object.keys(configNoteContent.scores_specification);
-    var referrerText = 'all assignments for ' + view.prettyId(configNoteContent.match_group);
-    var referrerUrl = '/assignments?group=' + configNoteContent.match_group;
-    var assignmentLabel = encodeURIComponent(configNoteContent.title)
-
-    return '/edges/browse' +
-      '?traverse=' + configNoteContent.assignment_invitation + ',label:' + assignmentLabel +
-      '&edit=' + configNoteContent.assignment_invitation + ',label:' + assignmentLabel +
-      '&browse=' + configNoteContent.aggregate_score_invitation + ',label:' + assignmentLabel +
-      ';' + browseInvitations.join(';') +
-      ';' + configNoteContent.conflicts_invitation +
-      (configNoteContent.custom_max_papers_invitation ? ';' + configNoteContent.custom_max_papers_invitation + ',head:ignore' : '') +
-      (configNoteContent.custom_load_invitation ? ';' + configNoteContent.custom_load_invitation + ',head:ignore' : '') +
-      '&referrer=' + encodeURIComponent('[' + referrerText + '](' + referrerUrl + ')');
-  }
-
-  // For old matches using metadata notes
-  return '/assignments/browse?id=' + configNoteId;
-});
-
 
 /**
  * @name .inflect
@@ -967,48 +836,6 @@ Handlebars.registerHelper('gt', function(a, b, options) {
   return options.inverse(this);
 });
 
-/**
- * Block helper that renders the block if an array has the
- * given `value`. Optionally specify an inverse block to render
- * when the array does not have the given value.
- *
- * Given the array `['a', 'b', 'c']`:
- *
- * ```handlebars
- * {{#inArray array "d"}}
- *   foo
- * {{else}}
- *   bar
- * {{/inArray}}
- * ```
- *
- * @name .inArray
- * @param {Array} `array`
- * @param {any} `value`
- * @param {Object} `options`
- * @return {String}
- * @block
- * @api public
- */
-Handlebars.registerHelper('inArray', function(array, value, options) {
-  if (_.includes(array, value)) {
-    return options.fn(this);
-  }
-  return options.inverse(this);
-});
-
-Handlebars.registerHelper('debug', function(optionalValue) {
-  console.log('Current Context');
-  console.log('====================');
-  console.log(this);
-
-  if (optionalValue) {
-    console.log('Value');
-    console.log('====================');
-    console.log(optionalValue);
-  }
-});
-
 Handlebars.registerHelper('canUnlink', function(value, options) {
   const invitationsAllowUnlink = ["dblp.org/-/record", "OpenReview.net/Archive/-/Imported_Record", "OpenReview.net/Archive/-/Direct_Upload"]
   if (invitationsAllowUnlink.includes(value)) {
@@ -1038,11 +865,7 @@ Handlebars.registerPartial('activityList', Handlebars.templates['partials/activi
 Handlebars.registerPartial('noteTask', Handlebars.templates['partials/noteTask']);
 Handlebars.registerPartial('taskList', Handlebars.templates['partials/taskList']);
 
-Handlebars.registerPartial('groupMembersTable', Handlebars.templates['partials/groupMembersTable']);
-Handlebars.registerPartial('groupMembersTableRow', Handlebars.templates['partials/groupMembersTableRow']);
-Handlebars.registerPartial('groupInfoTable', Handlebars.templates['partials/groupInfoTable']);
 Handlebars.registerPartial('invitationInfoTable', Handlebars.templates['partials/invitationInfoTable']);
-Handlebars.registerPartial('configurationNotes', Handlebars.templates['partials/configurationNotes']);
 
 Handlebars.registerPartial('spinner', Handlebars.templates.spinner);
 
@@ -1050,6 +873,5 @@ Handlebars.registerPartial('profileExpertise', Handlebars.templates['partials/me
 Handlebars.registerPartial('profileHistory', Handlebars.templates['partials/merge/profileHistory']);
 Handlebars.registerPartial('profileNames', Handlebars.templates['partials/merge/profileNames']);
 Handlebars.registerPartial('profileRelations', Handlebars.templates['partials/merge/profileRelations']);
-Handlebars.registerPartial('profileStandardField', Handlebars.templates['partials/merge/profileStandardField']);
 Handlebars.registerPartial('profilePublications', Handlebars.templates['partials/merge/profilePublications']);
 Handlebars.registerPartial('signatureTooltip', Handlebars.templates['partials/signatureTooltip']);
