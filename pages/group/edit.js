@@ -1,16 +1,15 @@
 /* globals Webfield: false */
-/* globals Webfield2: false */
 
 import { useEffect, useState, useRef } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
-import WebfieldContainer from '../../components/WebfieldContainer'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import GroupEditor from '../../components/group/GroupEditor'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
+import { getGroupVersion, prettyId } from '../../lib/utils'
 import { isSuperUser } from '../../lib/auth'
 
 export default function GroupEdit({ appContext }) {
@@ -25,10 +24,10 @@ export default function GroupEdit({ appContext }) {
 
   const loadGroup = async (id) => {
     try {
-      const { groups } = await api.get('/groups', { id }, { accessToken })
+      const { groups } = await api.get('/groups', { id }, { accessToken, version: getGroupVersion(id) })
       if (groups?.length > 0) {
         if (groups[0].details?.writable) {
-          setGroup({ ...groups[0], web: null, apiVersion: id.startsWith('.') ? 2 : 1 })
+          setGroup(groups[0])
         } else {
           // User is a reader, not a writer of the group, so redirect to info mode
           router.replace(`/group/info?id=${id}`)
@@ -65,16 +64,8 @@ export default function GroupEdit({ appContext }) {
   useEffect(() => {
     if (!group || !containerRef || clientJsLoading) return
 
-    Webfield.editModeBanner(group.id, 'edit')
-
-    const webfieldEditorFn = group.apiVersion === 2
-      ? Webfield2.ui.groupEditor
-      : Webfield.ui.groupEditor
-
-    webfieldEditorFn(group, {
-      container: containerRef.current,
-      isSuperUser: isSuperUser(user),
-    })
+    const editModeBannerDelay = document.querySelector('#flash-message-container.alert-success') ? 2500 : 0
+    setTimeout(() => Webfield.editModeBanner(group.id, 'edit'), editModeBannerDelay)
 
     // eslint-disable-next-line consistent-return
     return () => {
@@ -93,17 +84,20 @@ export default function GroupEdit({ appContext }) {
         <title key="title">{`Edit ${group ? prettyId(group.id) : 'Group'} | OpenReview`}</title>
       </Head>
 
+      <div id="header">
+        <h1>{prettyId(query?.id)}</h1>
+      </div>
+
       {(clientJsLoading || !group) && (
         <LoadingSpinner />
       )}
 
-      <WebfieldContainer id="group-container">
-        <div id="header">
-          <h1>{prettyId(query?.id)}</h1>
-        </div>
-
-        <div id="notes" ref={containerRef} />
-      </WebfieldContainer>
+      <GroupEditor
+        group={group}
+        isSuperUser={isSuperUser(user)}
+        accessToken={accessToken}
+        reloadGroup={() => loadGroup(group.id)}
+      />
     </>
   )
 }
