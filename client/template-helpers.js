@@ -46,6 +46,10 @@ Handlebars.registerHelper('isEqual', function(a, b) {
   return _.isEqual(a, b);
 });
 
+Handlebars.registerHelper('isEmpty', function(obj) {
+  return _.isEmpty(obj);
+});
+
 Handlebars.registerHelper('isString', function(value) {
   return _.isString(value);
 });
