@@ -91,7 +91,7 @@ const InvitationInfo = ({ appContext }) => {
 
       {invitation && (
         <>
-          <EditorSection title="General Info" classes="general">
+          <EditorSection title="General Info" className="general">
             <InvitationGeneralView invitation={invitation} showEditButton={false} />
           </EditorSection>
           <InvitationReply

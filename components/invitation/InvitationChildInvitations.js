@@ -36,7 +36,7 @@ const InvitationChildInvitations = ({ invitation, accessToken }) => {
   }, [invitation])
 
   return (
-    <EditorSection title={`Child Invitations ${totalCount ? `(${totalCount})` : ''}`} classes="subinvitations">
+    <EditorSection title={`Child Invitations ${totalCount ? `(${totalCount})` : ''}`} className="subinvitations">
       <PaginatedList
         ListItem={ChildInvitationRow}
         loadItems={loadChildInvitations}
