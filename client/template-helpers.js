@@ -836,6 +836,18 @@ Handlebars.registerHelper('gt', function(a, b, options) {
   return options.inverse(this);
 });
 
+Handlebars.registerHelper('debug', function(optionalValue) {
+  console.log('Current Context');
+  console.log('====================');
+  console.log(this);
+
+  if (optionalValue) {
+    console.log('Value');
+    console.log('====================');
+    console.log(optionalValue);
+  }
+});
+
 Handlebars.registerHelper('getAnonId', function(varName,memberId,memberAnonIdMap,options){
   if(!options.data.root){
     options.data.root={}
