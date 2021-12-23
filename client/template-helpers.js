@@ -998,7 +998,6 @@ Handlebars.registerHelper('inArray', function(array, value, options) {
   return options.inverse(this);
 });
 
-//TODO - seems this is not in used
 Handlebars.registerHelper('debug', function(optionalValue) {
   console.log('Current Context');
   console.log('====================');
