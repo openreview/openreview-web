@@ -565,7 +565,7 @@ module.exports = (function() {
 
   var mkHoverItem = function(content, resultText, removable, title, required) {
     var cssClass = title ? 'hover_title' : 'hover_item';
-    var $hoverItem = $('<div>', { class: cssClass + (removable ? ' removable_item' : '') });
+    var $hoverItem = $('<div>', { class: cssClass + (removable ? ' removable_item' : ''), translate: 'no' });
     if (_.isString(resultText) && resultText.length > 0) {
       var $hoverResult = $('<div>', {class: 'hover_result'}).text(resultText).hide();
       $hoverItem.append($hoverResult).hover(function() {
@@ -579,7 +579,7 @@ module.exports = (function() {
     if (_.isString(content)) {
       content = content.replace(/\{(\S+)\}/g, '<em>$1</em>'); // todo remove brackets
     }
-    var $hoverTarget = $('<div>', {class: 'hover_target'}).append(content);
+    var $hoverTarget = $('<div>', {class: 'hover_target', translate: 'no'}).append(content);
 
     if (required) {
       $hoverTarget.prepend($('<span>',{text: '*', class: 'required_field'}));
