@@ -4,10 +4,8 @@
 import { useEffect, useState, useContext } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import omit from 'lodash/omit'
 import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import LegacyProfileEditor from '../../components/LegacyProfileEditor'
 import ProfileEditor from '../../components/profile/ProfileEditor'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
@@ -27,7 +25,7 @@ const ActivateProfile = ({ appContext }) => {
     try {
       const apiRes = await api.get(`/activatable/${token}`)
 
-      setProfile(formatProfileData(apiRes.profile, false, process.env.USE_NEW_PROFILE_PAGE))
+      setProfile(formatProfileData(apiRes.profile, false, true))
       setActivateToken(token)
     } catch (error) {
       promptError(error.message)
@@ -36,13 +34,10 @@ const ActivateProfile = ({ appContext }) => {
   }
 
   const saveProfile = async (newProfileData) => {
-    const dataToSubmit = process.env.USE_NEW_PROFILE_PAGE ? {
+    const dataToSubmit = {
       id: profile.id,
       content: newProfileData,
       signatures: [profile.id],
-    } : {
-      ...newProfileData,
-      content: omit(newProfileData.content, ['publicationIdsToUnlink']),
     }
     try {
       const { user, token } = await api.put(`/activate/${activateToken}`, dataToSubmit)
@@ -58,33 +53,6 @@ const ActivateProfile = ({ appContext }) => {
       promptError(error.message)
     }
     setLoading(false)
-  }
-
-  const renderProfileEditor = () => {
-    if (process.env.USE_NEW_PROFILE_PAGE) {
-      return (
-        <ProfileEditor
-          loadedProfile={profile}
-          submitButtonText="Register for OpenReview"
-          submitHandler={saveProfile}
-          hideCancelButton
-          hideDblpButton
-          hidePublicationEditor
-          loading={loading}
-        />
-      )
-    }
-    return (
-      <LegacyProfileEditor
-        profile={profile}
-        onSubmit={saveProfile}
-        submitButtonText="Register for OpenReview"
-        hideCancelButton
-        hideDblpButton
-        hidePublicationEditor
-      />
-
-    )
   }
 
   useEffect(() => {
@@ -116,9 +84,17 @@ const ActivateProfile = ({ appContext }) => {
         </h5>
       </header>
 
-      {profile ? renderProfileEditor() : (
-        <LoadingSpinner inline />
-      )}
+      {profile ? (
+        <ProfileEditor
+          loadedProfile={profile}
+          submitButtonText="Register for OpenReview"
+          submitHandler={saveProfile}
+          hideCancelButton
+          hideDblpButton
+          hidePublicationEditor
+          loading={loading}
+        />
+      ) : <LoadingSpinner inline />}
     </div>
   )
 }
