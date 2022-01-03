@@ -2125,6 +2125,7 @@ module.exports = (function() {
   var getGroupsByNumber = function(venueId, roleName, options) {
     var defaults = {
       numberToken: 'Paper',
+      withProfiles: false,
     };
     options = _.defaults(options, defaults);
 
@@ -2141,29 +2142,62 @@ module.exports = (function() {
     .then(function(groups) {
       var paperGroups = [];
       var anonPaperGroups = [];
+      var memberIds = [];
       groups.forEach(function(group) {
         if (group.id.endsWith('/' + roleName)) {
           paperGroups.push(group);
+          memberIds = memberIds.concat(group.members);
         } else if (_.includes(group.id, '/' + anonRoleName)) {
           anonPaperGroups.push(group);
         }
       });
-      var groupsByNumber = {};
-      paperGroups.forEach(function(group) {
-        var number = getNumberfromGroup(group.id, numberToken);
-        var memberGroups = [];
-        group.members.forEach(function(member) {
-          var anonGroup = anonPaperGroups.find(function(anonGroup) {
-            return anonGroup.id.startsWith(venueId + '/' + numberToken + number) && anonGroup.members[0] == member;
-          })
-          memberGroups.push({
-            id: member,
-            anonId: anonGroup && getNumberfromGroup(anonGroup.id, anonRoleName)
-          })
-        });
-        groupsByNumber[number] = memberGroups;
-      })
-      return groupsByNumber;
+
+      var profileP = $.Deferred().resolve({ profiles: [] });
+      if (options.withProfiles) {
+        profileP = post('/profiles/search', { ids: _.uniq(memberIds) });
+      }
+
+      return profileP
+      .then(function(result) {
+        var profilesById = _.keyBy(result.profiles, 'id');
+        var groupsByNumber = {};
+        paperGroups.forEach(function(group) {
+          var number = getNumberfromGroup(group.id, numberToken);
+          var memberGroups = [];
+          group.members.forEach(function(member) {
+            var anonGroup = anonPaperGroups.find(function(anonGroup) {
+              return anonGroup.id.startsWith(venueId + '/' + numberToken + number) && anonGroup.members[0] == member;
+            })
+            var profile = profilesById[member];
+            var profileInfo = {
+              id: member,
+              name: member.indexOf('~') === 0 ? view.prettyId(member) : member,
+              email: member,
+              allEmails: [member],
+              allNames: [member]
+            };
+            if (profile) {
+              profileInfo = {
+                id: profile.id,
+                name: view.prettyId((_.find(profile.content.names, ['preferred', true]) || _.first(profile.content.names)).username),
+                allNames: _.map(_.filter(profile.content.names, function(name) { return name.username; }), 'username'),
+                email: profile.content.preferredEmail || profile.content.emailsConfirmed[0],
+                allEmails: profile.content.emailsConfirmed,
+                affiliation: profile.content.history && profile.content.history[0]
+              };
+            }
+            memberGroups.push({
+              id: member,
+              anonId: anonGroup && getNumberfromGroup(anonGroup.id, anonRoleName),
+              name: profileInfo.name,
+              email: profileInfo.email
+            })
+          });
+          groupsByNumber[number] = memberGroups;
+        })
+        return groupsByNumber;
+
+      });
     })
   };
 
