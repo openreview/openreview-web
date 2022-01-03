@@ -149,7 +149,7 @@ const NamesSection = ({ profileNames, updateNames }) => {
               />
             </div>
             <div className="col-md-2 names__value">
-              <div className="names__tilde-id">
+              <div className="names__tilde-id" translate="no">
                 {p.username}
                 <span data-toggle="tooltip" data-placement="top" title={p.altUsernames.join(', ')}>
                   {`${p.altUsernames.length > 0 ? `+${p.altUsernames.length} more` : ''}`}
