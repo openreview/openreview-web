@@ -18,7 +18,7 @@ export default function EditEdgeToggle({
 }) {
   const [loading, setLoading] = useState(false)
 
-  const addOrRemoveEdge = (e) => {
+  const addOrRemoveEdge = async (e) => {
     if (shouldDisableControl) {
       e.stopPropagation()
       return
@@ -26,9 +26,9 @@ export default function EditEdgeToggle({
     setLoading(true)
     if (existingEdge) {
       e.stopPropagation()
-      removeEdge()
+      await removeEdge()
     } else {
-      addEdge({
+      await addEdge({
         e,
         existingEdge,
         editEdgeTemplate: isTraverseEdge ? traverseEdgeTemplate : editEdgeTemplate,
@@ -36,6 +36,7 @@ export default function EditEdgeToggle({
         isTraverseEdge,
       })
     }
+    setLoading(false)
   }
 
   const getExistingEdgeLabel = () => {

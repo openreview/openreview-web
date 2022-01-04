@@ -84,7 +84,7 @@ export const NoteV2 = ({ note, options }) => {
         <div className="note-parent-title">
           <Icon name="share-alt" />
           <strong>
-            {note.forumContent.title || 'No Title'}
+            {note.forumContent.title?.value || 'No Title'}
           </strong>
         </div>
       )}
