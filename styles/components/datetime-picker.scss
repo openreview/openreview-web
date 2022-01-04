@@ -357,10 +357,6 @@ $input-placeholder-color: hsv(0, 0, 75%);
     padding: 10px 0;
   }
 
-  .rc-picker-dropdown-hidden {
-    display: none;
-  }
-
   // Panel
   $arrow-size: 10px;
 
@@ -378,6 +374,10 @@ $input-placeholder-color: hsv(0, 0, 75%);
       transform: rotate(-45deg);
     }
   }
+}
+
+.rc-picker-dropdown-hidden {
+  display: none;
 }
 
 .rc-picker-panel-container {
