@@ -248,7 +248,7 @@ module.exports = (function() {
     var noteNumbersStr = noteNumbers.join(',');
     var query = {
       invitation: invitationId,
-      details: 'directReplies',
+      details: 'replies',
       sort: options.sort
     }
     if (noteNumbersStr) {
@@ -2898,7 +2898,7 @@ module.exports = (function() {
   }
 
   var getRepliesfromSubmission = function(venueId, submission, name, options) {
-    return submission.details.directReplies.filter(function(reply) {
+    return submission.details.replies.filter(function(reply) {
       return reply.invitations.indexOf(getInvitationId(venueId, submission.number, name, options)) >= 0;
     });
   }
