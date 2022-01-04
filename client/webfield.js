@@ -431,11 +431,17 @@ module.exports = (function() {
   var basicHeader = function(title, instructions, options) {
     var defaults = {
       container: '#header',
-      underline: false
+      underline: false,
+      fullWidth: false,
     };
     options = _.defaults(options, defaults);
+    console.log(options.fullWidth)
 
     var $container = $(options.container);
+    if (options.fullWidth) {
+      $container.append('<div class="container"></div>');
+      $container = $container.children('.container');
+    }
     $container.html('<h1>' + title + '</h1>');
 
     if (instructions) {

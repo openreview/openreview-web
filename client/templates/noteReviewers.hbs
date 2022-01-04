@@ -1,9 +1,9 @@
 <div id="{{paperNumber}}-reviewer-progress" class="reviewer-progress" data-paper-forum="{{noteId}}">
   <h4>{{numSubmittedReviews}} of {{numReviewers}} Reviews Submitted</h4>
 
-  {{#if reviewers}}
+  {{#unless (isEmpty reviewers)}}
     <a href="#{{noteId}}-reviewers" class="collapse-btn{{#unless expandReviewerList}} collapsed{{/unless}}" role="button" data-toggle="collapse" aria-expanded="{{#if expandReviewerList}}true{{else}}false{{/if}}">{{#if expandReviewerList}}Hide reviewers{{else}}Show reviewers{{/if}}</a>
-  {{/if}}
+  {{/unless}}
   <div id="{{noteId}}-reviewers" class="collapse{{#if expandReviewerList}} in{{/if}}">
     <table class="table table-condensed table-minimal">
       <tbody>
