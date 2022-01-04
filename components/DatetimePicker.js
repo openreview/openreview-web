@@ -23,14 +23,19 @@ const DatetimePicker = ({ existingValue, onChange, timeZone }) => {
       showSecond: false,
     }}
     locale={locale}
-    format="YYYY-MM-DD HH:mm"
+    format="YYYY-MM-DD hh:mm A"
     value={value}
     onOk={handleOkClick}
     onChange={(date) => {
       setValue(date)
-      if (!date) onChange(null)
+      if (!date) {
+        onChange(null)
+        return
+      }
+      onChange(date.tz(timeZone ?? getDefaultTimezone().value, true).valueOf())
     }}
     placeholder="Select datetime"
+    use12Hours
     autoFocus
     allowClear
   />
