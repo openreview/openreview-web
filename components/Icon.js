@@ -1,5 +1,5 @@
 const Icon = ({
-  name, tooltip, extraClasses = '', onClick,
+  name, tooltip, extraClasses = '',
 }) => (
   <span
     className={`glyphicon glyphicon-${name} ${extraClasses}`}
@@ -7,7 +7,6 @@ const Icon = ({
     data-placement={tooltip ? 'top' : null}
     title={tooltip || null}
     aria-hidden="true"
-    onClick={onClick}
   />
 )
 

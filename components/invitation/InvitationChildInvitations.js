@@ -40,7 +40,7 @@ const InvitationChildInvitations = ({ invitation, accessToken }) => {
       <PaginatedList
         ListItem={ChildInvitationRow}
         loadItems={loadChildInvitations}
-        emptyMessage="No child invitation"
+        emptyMessage="No child invitations"
 
       />
     </EditorSection>

@@ -16,9 +16,6 @@ const InvitationEditor = ({
   if (!invitation) return null
   return (
     <>
-      <div id="header">
-        <h1>{prettyId(invitation.id)}</h1>
-      </div>
       <InvitationGeneral
         invitation={invitation}
         profileId={profileId}

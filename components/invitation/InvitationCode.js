@@ -66,17 +66,34 @@ const InvitationCode = ({
   return (
     <section>
       <h4>{getTitle()}</h4>
-      {
-        showEditor
-          ? (
-            <>
-              <CodeEditor code={code} onChange={setCode} />
-              <SpinnerButton type="primary" onClick={saveCode} disabled={isSaving} loading={isSaving}>{isSaving ? 'Saving' : 'Update Code'}</SpinnerButton>
-              <button type="button" className="btn btn-sm btn-default" onClick={() => handleCancelClick()}>Cancel</button>
-            </>
-          )
-          : <button type="button" className="btn btn-sm btn-primary" onClick={() => setShowEditor(true)}>Show Code Editor</button>
-      }
+      {showEditor ? (
+        <>
+          <CodeEditor code={code} onChange={setCode} />
+          <SpinnerButton
+            type='primary'
+            onClick={saveCode}
+            disabled={isSaving}
+            loading={isSaving}
+          >
+            {isSaving ? 'Saving' : 'Update Code'}
+          </SpinnerButton>
+          <button
+            type='button'
+            className='btn btn-sm btn-default'
+            onClick={() => handleCancelClick()}
+          >
+            Cancel
+          </button>
+        </>
+      ) : (
+        <button
+          type='button'
+          className='btn btn-sm btn-primary'
+          onClick={() => setShowEditor(true)}
+        >
+          Show Code Editor
+        </button>
+      )}
     </section>
   )
 }

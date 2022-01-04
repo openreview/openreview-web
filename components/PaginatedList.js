@@ -13,7 +13,7 @@ function DefaultListItem({ item }) {
 }
 
 export default function PaginatedList({
-  loadItems, ListItem, emptyMessage, itemsPerPage = 15, className = '',
+  loadItems, ListItem, emptyMessage, itemsPerPage = 15, className,
 }) {
   const [listItems, setListItems] = useState(null)
   const [totalCount, setTotalCount] = useState(null)

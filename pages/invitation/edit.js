@@ -79,6 +79,10 @@ const InvitationEdit = ({ appContext }) => {
         <title key="title">{`Edit ${invitation ? prettyId(invitation.id) : 'Invitation'} | OpenReview`}</title>
       </Head>
 
+      <div id="header">
+        <h1>{prettyId(invitation?.id)}</h1>
+      </div>
+
       {(clientJsLoading || !invitation) && (
         <LoadingSpinner />
       )}

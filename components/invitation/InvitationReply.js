@@ -101,8 +101,22 @@ const InvitationReply = ({
 
   return (
     <EditorSection title={getTitle()}>
-      <CodeEditor code={replyString} onChange={setReplyString} isJson readOnly={readOnly} />
-      {!readOnly && <SpinnerButton type="primary" onClick={saveInvitationReply} disabled={isSaving} loading={isSaving}>{isSaving ? 'Saving' : 'Save Invitation'}</SpinnerButton>}
+      <CodeEditor
+        code={replyString}
+        onChange={setReplyString}
+        isJson
+        readOnly={readOnly}
+      />
+      {!readOnly && (
+        <SpinnerButton
+          type='primary'
+          onClick={saveInvitationReply}
+          disabled={isSaving}
+          loading={isSaving}
+        >
+          {isSaving ? 'Saving' : 'Save Invitation'}
+        </SpinnerButton>
+      )}
     </EditorSection>
   )
 }
