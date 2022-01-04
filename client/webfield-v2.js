@@ -248,7 +248,7 @@ module.exports = (function() {
     var noteNumbersStr = noteNumbers.join(',');
     var query = {
       invitation: invitationId,
-      details: 'directReplies',
+      details: 'replies',
       sort: options.sort
     }
     if (noteNumbersStr) {
@@ -2279,7 +2279,8 @@ module.exports = (function() {
       instructions: 'Instructions here',
       tabs: [],
       referrer: null,
-      showBanner: true
+      showBanner: true,
+      fullWidth: false,
     };
     options = _.defaults(options, defaults);
 
@@ -2292,7 +2293,7 @@ module.exports = (function() {
     }
 
     Webfield.ui.setup(container, venueId);
-    Webfield.ui.header(options.title, options.instructions);
+    Webfield.ui.header(options.title, options.instructions, { fullWidth: options.fullWidth });
 
     if (options.tabs.length) {
       renderTabPanel('#notes', options.tabs);
@@ -2897,7 +2898,7 @@ module.exports = (function() {
   }
 
   var getRepliesfromSubmission = function(venueId, submission, name, options) {
-    return submission.details.directReplies.filter(function(reply) {
+    return submission.details.replies.filter(function(reply) {
       return reply.invitations.indexOf(getInvitationId(venueId, submission.number, name, options)) >= 0;
     });
   }
