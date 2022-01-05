@@ -153,7 +153,7 @@ For more details on the difference between OpenReview's TeX support and other sy
   }, {
     q: 'What is my profile ID, and where can I find it?',
     id: 'question-profile-id',
-    a: `Your OpenReview profile ID is a unique string made up of a tilde concatenated with your full name and a number, for example ∼First_Last1. If you go to your OpenReview profile, your ID will be at the end of the url (for example, openreview.net/profile?id=∼Your_Id1)`,
+    a: 'Your OpenReview profile ID is a unique string made up of a tilde concatenated with your full name and a number, for example ∼First_Last1. If you go to your OpenReview profile, your ID will be at the end of the url (for example, openreview.net/profile?id=∼Your_Id1)',
   },
   {
     q: 'How do I enter institution data to my profile?',
