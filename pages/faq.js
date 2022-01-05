@@ -374,7 +374,7 @@ Note that assigning an area chair using python does not send an email to that us
   },
   {
     q: 'How can I automatically assign Reviewers/ACs to papers?',
-    id: 'question-edge-browswer',
+    id: 'question-edge-browser',
     a: `#### Running Automatic Paper Matching
 
 In order to automatically assign Reviewers and Area Chairs, you must:
