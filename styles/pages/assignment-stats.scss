@@ -92,4 +92,41 @@ main.assignment-stats {
     }
   }
 
+  //----------------------------- new implementation -----------------------------//
+  .header {
+    display: flex;
+    align-items: center;
+    margin-top: 1rem;
+    margin-bottom: 2.5rem;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: normal;
+      line-height: 34px;
+      margin: 0;
+    }
+
+    .action-dropdown{
+      min-width: 20%;
+    }
+  }
+
+  .basic-stats {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+
+    .stat-scalar {
+      width: 22%;
+      margin:.5rem;
+
+      .stat-name {
+        max-height: 60px;
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+      }
+    }
+  }
 }
