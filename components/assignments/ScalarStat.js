@@ -1,11 +1,12 @@
-const ScalarStat = ({ value, name }) => {
-  const abc = 123
-  return (
-    <div className="stat-scalar">
-      <div className="stat-val">{value}</div>
-      <div className="stat-name">{name}</div>
-    </div>
-  )
-}
+import LoadingSpinner from '../LoadingSpinner'
+
+const ScalarStat = ({ value, name }) => (
+  <div className="stat-scalar">
+    {typeof value === 'undefined'
+      ? <LoadingSpinner inline text={null} />
+      : <div className="stat-val">{value}</div>}
+    <div className="stat-name">{name}</div>
+  </div>
+)
 
 export default ScalarStat
