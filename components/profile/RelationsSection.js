@@ -204,7 +204,12 @@ const RelationsSection = ({
   const [relations, setRelation] = useReducer(
     relationReducer,
     profileRelation?.length > 0
-      ? profileRelation?.map(p => ({ ...p, key: p.key ?? nanoid() }))
+      ? profileRelation?.map(p => ({
+        ...p,
+        ...(p.start && { start: Number.isNaN(Number(p.start)) ? null : Number(p.start) }),
+        ...(p.end && { end: Number.isNaN(Number(p.end)) ? null : Number(p.end) }),
+        key: p.key ?? nanoid(),
+      }))
       : [...Array(3).keys()].map(() => ({
         key: nanoid(),
         relation: '',
