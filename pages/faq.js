@@ -482,7 +482,7 @@ Running the paper matching setup should output a comment on your venue request p
 
 You can confirm that the affinity scores were computed by checking if an invitation for the scores was created: https://api.openreview.net/edges?invitation=your/venue/id/role/-/Affinity_Score. 
 
-After you compute the scores by running Paper Matching Setup, a link for 'Paper Assignments' should appear on your Program Chair console. From there, you should be able to use the edge browser to automatically make assignments: https://openreview.net/faq#question-edge-browswer. All members of a group must have OpenReview profiles in order for the automatic assignment algorithm to run. Any members without profiles must be removed from the group before moving onto the next step. 
+After you compute the scores by running Paper Matching Setup, a link for 'Paper Assignments' should appear on your Program Chair console. From there, you should be able to use the edge browser to automatically make assignments: https://openreview.net/faq#question-edge-browser. All members of a group must have OpenReview profiles in order for the automatic assignment algorithm to run. Any members without profiles must be removed from the group before moving onto the next step. 
 
     `,
   },
