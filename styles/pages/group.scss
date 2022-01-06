@@ -205,6 +205,9 @@ main.group, main.invitation {
     }
     ul.list-unstyled {
       margin-top: .25rem;
+      &.mt-0 {
+        margin-top: 0;
+      }
     }
     table.table-minimal {
       margin-top: .25rem;
@@ -216,7 +219,7 @@ main.group, main.invitation {
     .input-assign-reviewer {
       height: 26px;
       width: 240px;
-      margin-right: 0.2rem;
+      margin-right: 0.25rem;
       font-size: 0.75rem;
     }
     .dropdown_content_assign_reviewer {
@@ -286,8 +289,11 @@ main.group, main.invitation {
       }
     }
 
-    ul.list-paginated > li > a {
-      line-height: 1.375rem;
+    ul.list-paginated > li {
+      padding-bottom: 4px;
+      &:last-child {
+        padding-bottom: 0;
+      }
     }
   }
 
@@ -342,7 +348,7 @@ main.group, main.invitation {
     }
     dd {
       margin-left: 120px;
-      margin-bottom: .2rem;
+      margin-bottom: .25rem;
     }
   }
 
@@ -485,5 +491,168 @@ main.group, main.invitation {
       border-top: 1px solid constants.$backgroundGray;
       border-bottom: 1px solid constants.$backgroundGray;
     }
+  }
+
+  // new implementation
+  section {
+    margin-bottom: 1.75rem;
+  }
+
+  h4 {
+    margin-bottom: 1rem;
+  }
+
+  .info-container, .edit-container {
+    .table-row {
+      clear: both;
+    }
+    .info-label {
+      float: left;
+      width: 125px;
+      margin-right: .5rem;
+      margin-bottom: .25rem;
+      font-weight: 700;
+      text-align: right;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .info-content {
+      float: left;
+      width: calc(100% - 135px);
+    }
+    .input-sm {
+      margin-bottom: .25rem;
+      max-width: 450px;
+    }
+    .dropdown-select {
+      margin-bottom: .25rem;
+      max-width: 300px;
+    }
+    .dropdown-sm .dropdown-select__control, .dropdown-sm .dropdown-select__value-container {
+      padding-top: 0;
+      line-height: 1rem;
+    }
+  }
+  .edit-container {
+    .info-label {
+      margin-top: .25rem;
+    }
+  }
+  @media #{constants.$phone-only} {
+    .info-container, .edit-container {
+      &__label {
+        width: 100px;
+      }
+      &__content {
+        width: calc(100% - 110px);
+      }
+    }
+  }
+
+  .members-container {
+    padding-left: 0;
+
+    .search-row {
+      background-color: constants.$sandyBrown;
+      padding: .5rem;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+
+      button {
+        height: 30px;
+        line-height: 1rem;
+        min-width: auto;
+        margin-right: .25rem;
+      }
+      button:last-child {
+        margin-right: 0;
+      }
+      .space-taker {
+        flex-grow: 1;
+      }
+
+      .input-group {
+        flex-grow: 2;
+        margin-right: .5rem;
+        white-space: nowrap;
+
+        span {
+          margin-left: -3rem;
+          margin-top: 5px;
+          padding-left: 1.5rem;
+          z-index: 3;
+          color: constants.$subtleGray;
+        }
+      }
+    }
+
+    .empty-message-row {
+      border-bottom: 1px solid #ddd;
+      padding: 6px 8px;
+      font-style: italic;
+      color: constants.$subtleGray;
+      overflow-wrap: break-word;
+    }
+
+    .member-row {
+      &:hover {
+        background-color: #f5f5f5;
+      }
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #ddd;
+      padding: 6px 8px;
+      align-items: center;
+      input {
+        margin: 0;
+        width: 14px;
+        height: 14px;
+      }
+      .member-id {
+        flex-grow: 1;
+        margin-left: 1rem;
+        height: 100%;
+      }
+      .glyphicon {
+        margin-right: .25rem;
+      }
+      button {
+        margin-left: .25rem;
+        padding-top: 1px;
+        padding-bottom: 1px;
+      }
+      &.deleted {
+        background-color: rgba(221, 221, 221, 0.5);
+        .member-id,a{
+          opacity: .5;
+          color: rgba(51, 51, 51, 1);
+          font-style: italic;
+        }
+      }
+    }
+    .pagination-container {
+      margin-top: 1.25rem;
+    }
+  }
+  section.members {
+    textarea {
+      width: 100%;
+    }
+    .receiver-list {
+      max-height: 150px;
+      overflow-y: scroll;
+    }
+  }
+
+  .spinner-small {
+    width: 40px;
+  }
+
+  .save-button-wrapper {
+    display: flex;
   }
 }

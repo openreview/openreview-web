@@ -42,7 +42,7 @@ const MessageRow = ({ message }) => (
         <div className="email-sent pull-right">
           Sent:
           {' '}
-          <span>{formatTimestamp(message.timestamp * 1000)}</span>
+          <span>{formatTimestamp((message.timestamp * 1000) || message.cdate)}</span>
         </div>
       </div>
 

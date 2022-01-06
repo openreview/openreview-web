@@ -181,8 +181,8 @@ module.exports = (function() {
     var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
     var errorName = jqXhr.responseJSON?.name || jqXhr.responseJSON?.errors?.[0]?.type;
     var errorDetails = jqXhr.responseJSON?.details || jqXhr.responseJSON?.errors?.[0];
-    var notSignatoryError = (errorName === 'notSignatory' || errorName === 'NotSignatoryError') && _.startsWith(errorDetails.user, 'guest_');
-    var forbiddenError = (errorName  === 'forbidden' || errorName === 'ForbiddenError') && _.startsWith(errorDetails.user, 'guest_');
+    var notSignatoryError = errorName === 'NotSignatoryError' && _.startsWith(errorDetails.user, 'guest_');
+    var forbiddenError = errorName === 'ForbiddenError' && _.startsWith(errorDetails.user, 'guest_');
 
     if (errorText === 'User does not exist') {
       location.reload(true);
@@ -190,14 +190,6 @@ module.exports = (function() {
       location.href = '/login?redirect=' + encodeURIComponent(
         location.pathname + location.search + location.hash
       );
-    } else if (errorName === 'AlreadyConfirmedError') {
-      promptError({
-        type: 'alreadyConfirmed',
-        path: errorDetails.alternate,
-        value: errorDetails.otherProfile,
-        value2: errorDetails.thisProfile,
-        user: errorDetails.user
-      });
     } else {
       promptError(errorText);
     }
@@ -256,7 +248,7 @@ module.exports = (function() {
     var noteNumbersStr = noteNumbers.join(',');
     var query = {
       invitation: invitationId,
-      details: 'directReplies',
+      details: 'replies',
       sort: options.sort
     }
     if (noteNumbersStr) {
@@ -337,7 +329,8 @@ module.exports = (function() {
       reminderOptions: {
         container: 'a.send-reminder-link',
         defaultSubject: 'Reminder',
-        defaultBody: 'This is a reminder to please submit your review. \n\n Thank you,\n'
+        defaultBody: 'This is a reminder to please submit your review. \n\n Thank you,\n',
+        menu: []
       },
       postRenderTable: function() {},
     };
@@ -394,6 +387,102 @@ module.exports = (function() {
           $msgReviewerButton.attr('disabled', true);
         }
       });
+
+      $container.on('click', '#div-msg-reviewers a', function(e) {
+        var filter = $(this)[0].id;
+        $('#message-reviewers-modal').remove();
+
+        var defaultBody = options.reminderOptions.defaultBody;
+
+        var modalHtml = Handlebars.templates.messageReviewersModalFewerOptions({
+          filter: filter,
+          defaultSubject: options.reminderOptions.defaultSubject,
+          defaultBody: defaultBody,
+        });
+        $('body').append(modalHtml);
+
+        $('#message-reviewers-modal .btn-primary.step-1').on('click', sendReviewerReminderEmailsStep1);
+        $('#message-reviewers-modal .btn-primary.step-2').on('click', sendReviewerReminderEmailsStep2);
+        $('#message-reviewers-modal form').on('submit', sendReviewerReminderEmailsStep1);
+
+        $('#message-reviewers-modal').modal();
+
+        return false;
+      });
+
+      var sendReviewerReminderEmailsStep1 = function(e) {
+        var subject = $('#message-reviewers-modal input[name="subject"]').val().trim();
+        var messageContent = $('#message-reviewers-modal textarea[name="message"]').val().trim();
+        var filter  = $(this)[0].dataset['filter'];
+
+        var menuOption = options.reminderOptions.menu.find(function(menu) { return ('msg-' + menu.id) == filter; });
+        if (!menuOption) {
+          return false;
+        }
+        var users = menuOption.getUsers();
+        var messages = [];
+        var count = 0;
+        var userCounts = Object.create(null);
+
+        users.forEach(function(user) {
+          if (user.groups && user.groups.length) {
+            var groupIds = [];
+            user.groups.forEach(function(group) {
+              groupIds.push(group.id);
+              if (group.id in userCounts) {
+                userCounts[group.id].count++;
+              } else {
+                userCounts[group.id] = {
+                  name: group.name,
+                  email: group.email,
+                  count: 1
+                };
+              }
+            });
+            messages.push({
+              groups: groupIds,
+              message: messageContent,
+              subject: subject,
+              forumUrl: user.forumUrl
+            })
+            count += groupIds.length;
+          }
+        })
+
+        localStorage.setItem('messages', JSON.stringify(messages));
+        localStorage.setItem('messageCount', count);
+
+        // Show step 2
+        var namesHtml = _.flatMap(userCounts, function(obj) {
+          var text = obj.name + ' <span>&lt;' + obj.email + '&gt;</span>';
+          if (obj.count > 1) {
+            text += ' (&times;' + obj.count + ')';
+          }
+          return text;
+        }).join(', ');
+        $('#message-reviewers-modal .reviewer-list').html(namesHtml);
+        $('#message-reviewers-modal .num-reviewers').text(count);
+        $('#message-reviewers-modal .step-1').hide();
+        $('#message-reviewers-modal .step-2').show();
+
+        return false;
+      };
+
+      var sendReviewerReminderEmailsStep2 = function(e) {
+        var reviewerMessages = localStorage.getItem('messages');
+        var messageCount = localStorage.getItem('messageCount');
+        if (!reviewerMessages || !messageCount) {
+          $('#message-reviewers-modal').modal('hide');
+          promptError('Could not send emails at this time. Please refresh the page and try again.');
+        }
+        JSON.parse(reviewerMessages).forEach(postReviewerEmails);
+
+        localStorage.removeItem('messages');
+        localStorage.removeItem('messageCount');
+
+        $('#message-reviewers-modal').modal('hide');
+        promptMessage('Successfully sent ' + messageCount + ' emails');
+      };
 
       $container.on('click', options.reminderOptions.container, function(e) {
         var $link = $(this);
@@ -458,6 +547,23 @@ module.exports = (function() {
       return;
     }
 
+    var reminderMenuHtml = '';
+    if (options.reminderOptions.menu && options.reminderOptions.menu.length) {
+      var optionsHtml = '';
+      options.reminderOptions.menu.forEach(function(menu) {
+        optionsHtml = optionsHtml + '<li><a id="msg-' + menu.id + '">' + menu.name + '</a></li>'
+      })
+      reminderMenuHtml = '<div id="div-msg-reviewers" class="btn-group" role="group">' +
+      '<button id="message-reviewers-btn" type="button" class="btn btn-icon dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Select papers to message corresponding reviewers" >' +
+        '<span class="glyphicon glyphicon-envelope"></span> &nbsp;Message ' +
+        '<span class="caret"></span>' +
+      '</button>' +
+      '<ul class="dropdown-menu" aria-labelledby="grp-msg-reviewers-btn">' +
+      optionsHtml +
+      '</ul>' +
+      '</div>';
+    }
+
     if (options.sortOptions) {
       var order = 'desc';
       var sortOptionHtml = Object.keys(options.sortOptions).map(function(option) {
@@ -469,19 +575,7 @@ module.exports = (function() {
       '<input id="form-search-' + containerId + '" type="text" class="form-search form-control" class="form-control" placeholder="Enter search term or type + to start a query and press enter" style="width:440px; margin-right: 1.5rem; line-height: 34px;">' : '';
 
       var sortBarHtml = '<form class="form-inline search-form clearfix" role="search">' +
-        // Don't show this for now
-        // '<div id="div-msg-reviewers" class="btn-group" role="group">' +
-        //   '<button id="message-reviewers-btn" type="button" class="btn btn-icon dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Select papers to message corresponding reviewers" disabled="disabled">' +
-        //     '<span class="glyphicon glyphicon-envelope"></span> &nbsp;Message ' +
-        //     '<span class="caret"></span>' +
-        //   '</button>' +
-        //   '<ul class="dropdown-menu" aria-labelledby="grp-msg-reviewers-btn">' +
-        //     '<li><a id="msg-all-reviewers">All Reviewers of selected papers</a></li>' +
-        //     '<li><a id="msg-submitted-reviewers">Reviewers of selected papers with submitted reviews</a></li>' +
-        //     '<li><a id="msg-unsubmitted-reviewers">Reviewers of selected papers with unsubmitted reviews</a></li>' +
-        //   '</ul>' +
-        // '</div>' +
-        // '<div class="btn-group"><button class="btn btn-export-data" type="button">Export</button></div>' +
+        reminderMenuHtml +
         '<div class="pull-right">' +
           searchHtml +
           '<strong>Sort By:</strong> ' +
@@ -2031,6 +2125,7 @@ module.exports = (function() {
   var getGroupsByNumber = function(venueId, roleName, options) {
     var defaults = {
       numberToken: 'Paper',
+      withProfiles: false,
     };
     options = _.defaults(options, defaults);
 
@@ -2047,29 +2142,62 @@ module.exports = (function() {
     .then(function(groups) {
       var paperGroups = [];
       var anonPaperGroups = [];
+      var memberIds = [];
       groups.forEach(function(group) {
         if (group.id.endsWith('/' + roleName)) {
           paperGroups.push(group);
+          memberIds = memberIds.concat(group.members);
         } else if (_.includes(group.id, '/' + anonRoleName)) {
           anonPaperGroups.push(group);
         }
       });
-      var groupsByNumber = {};
-      paperGroups.forEach(function(group) {
-        var number = getNumberfromGroup(group.id, numberToken);
-        var memberGroups = [];
-        group.members.forEach(function(member) {
-          var anonGroup = anonPaperGroups.find(function(anonGroup) {
-            return anonGroup.id.startsWith(venueId + '/' + numberToken + number) && anonGroup.members[0] == member;
-          })
-          memberGroups.push({
-            id: member,
-            anonId: anonGroup && getNumberfromGroup(anonGroup.id, anonRoleName)
-          })
-        });
-        groupsByNumber[number] = memberGroups;
-      })
-      return groupsByNumber;
+
+      var profileP = $.Deferred().resolve({ profiles: [] });
+      if (options.withProfiles) {
+        profileP = post('/profiles/search', { ids: _.uniq(memberIds) });
+      }
+
+      return profileP
+      .then(function(result) {
+        var profilesById = _.keyBy(result.profiles, 'id');
+        var groupsByNumber = {};
+        paperGroups.forEach(function(group) {
+          var number = getNumberfromGroup(group.id, numberToken);
+          var memberGroups = [];
+          group.members.forEach(function(member) {
+            var anonGroup = anonPaperGroups.find(function(anonGroup) {
+              return anonGroup.id.startsWith(venueId + '/' + numberToken + number) && anonGroup.members[0] == member;
+            })
+            var profile = profilesById[member];
+            var profileInfo = {
+              id: member,
+              name: member.indexOf('~') === 0 ? view.prettyId(member) : member,
+              email: member,
+              allEmails: [member],
+              allNames: [member]
+            };
+            if (profile) {
+              profileInfo = {
+                id: profile.id,
+                name: view.prettyId((_.find(profile.content.names, ['preferred', true]) || _.first(profile.content.names)).username),
+                allNames: _.map(_.filter(profile.content.names, function(name) { return name.username; }), 'username'),
+                email: profile.content.preferredEmail || profile.content.emailsConfirmed[0],
+                allEmails: profile.content.emailsConfirmed,
+                affiliation: profile.content.history && profile.content.history[0]
+              };
+            }
+            memberGroups.push({
+              id: member,
+              anonId: anonGroup && getNumberfromGroup(anonGroup.id, anonRoleName),
+              name: profileInfo.name,
+              email: profileInfo.email
+            })
+          });
+          groupsByNumber[number] = memberGroups;
+        })
+        return groupsByNumber;
+
+      });
     })
   };
 
@@ -2151,7 +2279,8 @@ module.exports = (function() {
       instructions: 'Instructions here',
       tabs: [],
       referrer: null,
-      showBanner: true
+      showBanner: true,
+      fullWidth: false,
     };
     options = _.defaults(options, defaults);
 
@@ -2164,7 +2293,7 @@ module.exports = (function() {
     }
 
     Webfield.ui.setup(container, venueId);
-    Webfield.ui.header(options.title, options.instructions);
+    Webfield.ui.header(options.title, options.instructions, { fullWidth: options.fullWidth });
 
     if (options.tabs.length) {
       renderTabPanel('#notes', options.tabs);
@@ -2756,25 +2885,48 @@ module.exports = (function() {
     });
   }
 
+  var getInvitationId = function(venueId, number, name, options) {
+    var defaults = {
+      submissionGroupName: 'Paper',
+    };
+    options = _.defaults(options, defaults);
+
+    if (options.prefix) {
+      return venueId + '/' + options.submissionGroupName + number + '/' + options.prefix + '/-/' + name;
+    }
+    return venueId + '/' + options.submissionGroupName + number + '/-/' + name;
+  }
+
+  var getRepliesfromSubmission = function(venueId, submission, name, options) {
+    return submission.details.replies.filter(function(reply) {
+      return reply.invitations.indexOf(getInvitationId(venueId, submission.number, name, options)) >= 0;
+    });
+  }
+
   return {
+    // Deprecated: All API functions have been moved to Webfield.api
     get: get,
     post: post,
     put: put,
     delete: xhrDelete,
     getAll: getAll,
-    setToken: setToken,
     sendFile: sendFile,
+    setToken: setToken,
     getErrorFromJqXhr: Webfield.getErrorFromJqXhr,
 
     api: {
-      // Aliases
+      get: get,
+      post: post,
+      put: put,
+      delete: xhrDelete,
+      getAll: getAll,
       getInvitation: getInvitation,
       getSubmissions: getSubmissions,
       getAllSubmissions: getAllSubmissions,
       getGroupsByNumber: getGroupsByNumber,
       getAssignedInvitations: getAssignedInvitations,
       getGroup: getGroup,
-
+      sendFile: sendFile,
     },
 
     ui: {
@@ -2791,9 +2943,12 @@ module.exports = (function() {
       errorMessage: Webfield.ui.errorMessage,
       done: Webfield.ui.done
     },
+
     utils: {
       getPaperNumbersfromGroups: getPaperNumbersfromGroups,
-      getNumberfromGroup: getNumberfromGroup
+      getNumberfromGroup: getNumberfromGroup,
+      getInvitationId: getInvitationId,
+      getRepliesfromSubmission: getRepliesfromSubmission
     }
   };
 }());

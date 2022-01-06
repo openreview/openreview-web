@@ -8,7 +8,6 @@ import get from 'lodash/get'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ProfileEditor from '../../components/profile/ProfileEditor'
-import ProfileEditLegacy from '../../components/profile/ProfileEditLegacy'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -54,8 +53,8 @@ export default function ProfileEdit({ appContext }) {
       throw new Error(`Note ${noteId} uses an unsupported invitation`)
     }
     const allAuthorIds = [
-      ...profile.emails?.filter(p => p.confirmed).map(p => p.email),
-      ...profile.names?.map(p => p.username).filter(p => p),
+      ...(profile.emails?.filter(p => p.confirmed).map(p => p.email) ?? []),
+      ...(profile.names?.map(p => p.username).filter(p => p) ?? []),
     ]
 
     const matchedIdx = authorIds.reduce((matchedIndex, authorId, index) => { // find all matched index of all author ids
@@ -109,8 +108,6 @@ export default function ProfileEdit({ appContext }) {
     loadProfile()
     setBannerContent(viewProfileLink())
   }, [accessToken])
-
-  if (!process.env.USE_NEW_PROFILE_PAGE) return <ProfileEditLegacy appContext={appContext} />
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
 

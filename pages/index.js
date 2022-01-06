@@ -7,6 +7,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { prettyId, formatTimestamp } from '../lib/utils'
+import ErrorAlert from '../components/ErrorAlert'
 
 export default function Home() {
   const [venues, setVenues] = useState({
@@ -26,13 +27,15 @@ export default function Home() {
       'groupId',
     ).sort((a, b) => a.dueDate - b.dueDate)
 
+    const sortAlpha = arr => arr.sort((a, b) => prettyId(a.groupId).localeCompare(prettyId(b.groupId)))
+
     const loadVenues = async () => {
       try {
         const [userVenues, activeVenues, openVenues, allVenues] = await Promise.all([
           user ? api.get('/groups', { member: user.id, web: true }).then(apiRes => (apiRes.groups || [])) : Promise.resolve([]),
           api.get('/groups', { id: 'active_venues' }).then(formatGroupResults),
           api.getCombined('/invitations', { invitee: '~', pastdue: false }).then(formatInvitationResults),
-          api.get('/groups', { id: 'host' }).then(formatGroupResults),
+          api.get('/groups', { id: 'host' }).then(formatGroupResults).then(sortAlpha),
         ])
         const activeAndOpenVenues = activeVenues.concat(openVenues)
         const filteredUserVenues = userVenues
@@ -59,6 +62,10 @@ export default function Home() {
         <title key="title">Venues | OpenReview</title>
       </Head>
 
+      {error && (
+        <ErrorAlert error={error} />
+      )}
+
       {venues.user?.length > 0 ? (
         // Logged in view
         <div className="row hidden-xs">
@@ -82,10 +89,15 @@ export default function Home() {
               venues={venues.open}
               maxVisible={9}
             />
+          </div>
+
+          <div className="col-xs-12">
             <VenueSection
               title="All Venues"
               name="all venues"
               venues={venues.all}
+              maxVisible={1000}
+              listType="horizontal"
             />
           </div>
         </div>
@@ -98,11 +110,6 @@ export default function Home() {
               name="active venues"
               venues={venues.active}
             />
-            <VenueSection
-              title="All Venues"
-              name="all venues"
-              venues={venues.all}
-            />
           </div>
 
           <div className="col-xs-12 col-sm-6">
@@ -111,6 +118,16 @@ export default function Home() {
               name="open venues"
               venues={venues.open}
               maxVisible={9}
+            />
+          </div>
+
+          <div className="col-xs-12">
+            <VenueSection
+              title="All Venues"
+              name="all venues"
+              venues={venues.all}
+              maxVisible={1000}
+              listType="horizontal"
             />
           </div>
         </div>
@@ -145,6 +162,8 @@ export default function Home() {
             name="all venues"
             id="all-venues-mobile"
             venues={venues.all}
+            maxVisible={100}
+            listType="horizontal"
           />
         </div>
       </div>
@@ -154,7 +173,7 @@ export default function Home() {
 Home.bodyClass = 'home'
 
 function VenueSection({
-  title, name, id, venues, maxVisible,
+  title, name, id, venues, maxVisible, listType,
 }) {
   const containerId = id || name.toLowerCase().split(' ').join('-')
 
@@ -162,12 +181,14 @@ function VenueSection({
     <section id={containerId}>
       <h1>{title}</h1>
       <hr className="small" />
-      <VenueList name={name} venues={venues} maxVisible={maxVisible} />
+      <VenueList name={name} venues={venues} maxVisible={maxVisible} listType={listType} />
     </section>
   )
 }
 
-function VenueList({ name, venues, maxVisible = 14 }) {
+function VenueList({
+  name, venues, maxVisible = 14, listType = 'vertical',
+}) {
   const [expanded, setExpanded] = useState(false)
 
   if (!venues) {
@@ -185,15 +206,22 @@ function VenueList({ name, venues, maxVisible = 14 }) {
 
   return (
     <div>
-      <ul className="conferences list-unstyled">
-        {venues.map((venue, i) => (
-          <VenueListItem
-            key={`${name}-${venue.groupId}`}
-            groupId={venue.groupId}
-            dueDate={venue.dueDate}
-            hidden={!expanded && i > maxVisible}
-          />
-        ))}
+      <ul className={`conferences list-${listType === 'vertical' ? 'unstyled' : 'inline'}`}>
+        {venues.map((venue, i) => {
+          const isLeadingVenue = name === 'all venues'
+            // eslint-disable-next-line max-len
+            ? prettyId(venue.groupId).charAt(0).toLowerCase() !== prettyId(venues[i - 1]?.groupId)?.charAt(0)?.toLowerCase()
+            : false
+          return (
+            <VenueListItem
+              key={`${name}-${venue.groupId}`}
+              groupId={venue.groupId}
+              dueDate={venue.dueDate}
+              hidden={!expanded && i > maxVisible}
+              isLeadingVenue={isLeadingVenue}
+            />
+          )
+        })}
       </ul>
 
       {venues.length > maxVisible && (
@@ -205,13 +233,17 @@ function VenueList({ name, venues, maxVisible = 14 }) {
   )
 }
 
-function VenueListItem({ groupId, dueDate, hidden }) {
+function VenueListItem({
+  groupId, dueDate, hidden, isLeadingVenue = false,
+}) {
   const styles = hidden ? { display: 'none' } : {}
 
   return (
     <li style={styles}>
       <h2>
-        <Link href={`/group?id=${groupId}&referrer=${encodeURIComponent('[Homepage](/)')}`}><a>{prettyId(groupId)}</a></Link>
+        <Link href={`/group?id=${groupId}&referrer=${encodeURIComponent('[Homepage](/)')}`}>
+          <a className={`${isLeadingVenue ? 'leading-venue' : ''}`}>{prettyId(groupId)}</a>
+        </Link>
       </h2>
       {dueDate && (
         <p>

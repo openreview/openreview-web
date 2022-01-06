@@ -47,3 +47,15 @@
     background: rgba(55, 11, 7, 0.1); // orRed
   }
 }
+
+.dropdown-sm .dropdown-select {
+  &__control, &__value-container {
+    min-height: unset;
+    height: 30px;
+    line-height: 1.5;
+    font-size: .75rem;
+  }
+  &__indicators, &__option {
+    height: 28px;
+  }
+}

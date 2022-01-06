@@ -97,7 +97,6 @@ export default function Dropdown(props) {
       className="dropdown-select"
       classNamePrefix="dropdown-select"
       theme={customTheme}
-      // eslint-disable-next-line react/destructuring-assignment
       ref={props.selectRef}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}

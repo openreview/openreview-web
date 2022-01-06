@@ -43,7 +43,10 @@ const ForumPage = ({ forumNote, query, appContext }) => {
     if (query.referrer) {
       setBannerContent(referrerLink(query.referrer))
     } else {
-      const groupId = content.venueid || noteInvitation.split('/-/')[0]
+      // For now, v2 notes should always use the group from the first invitation, not venueid
+      const groupId = (forumNote.version === 2 || !content.venueid)
+        ? noteInvitation.split('/-/')[0]
+        : content.venueid
       setBannerContent(venueHomepageLink(groupId))
     }
   }, [forumNote, query])
@@ -155,7 +158,7 @@ ForumPage.getInitialProps = async (ctx) => {
     }
     return { forumNote: note, query: ctx.query }
   } catch (error) {
-    if (error.name === 'forbidden' || error.name === 'ForbiddenError') {
+    if (error.name === 'ForbiddenError') {
       const redirect = await shouldRedirect(ctx.query.id)
       if (redirect) {
         return redirectForum(redirect.id)

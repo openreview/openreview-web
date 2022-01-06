@@ -61,4 +61,27 @@ main.home {
       }
     }
   }
+
+  #all-venues, #all-venues-mobile {
+    ul.list-inline {
+      margin-left: -.75rem;
+      margin-right: -.75rem;
+      li {
+        padding-left: .75rem;
+        padding-right: .75rem;
+      }
+    }
+    h2 {
+      font-size: 1.25rem;
+      margin-top: 0;
+      margin-bottom: .75rem;
+    }
+    .leading-venue {
+      display: inline-block;
+      &:first-letter {
+        color: constants.$orRed;
+        font-weight: bold;
+      }
+    }
+  }
 }
