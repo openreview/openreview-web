@@ -2940,7 +2940,6 @@ module.exports = (function() {
       renderSubmissionList: renderSubmissionList,
       setup: setup,
       submissionList: submissionList,
-      taskList: newTaskList,
       errorMessage: Webfield.ui.errorMessage,
       done: Webfield.ui.done
     },
