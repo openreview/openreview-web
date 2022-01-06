@@ -266,6 +266,29 @@ main.group, main.invitation {
     }
   }
 
+  .console-table .eic-task-list {
+    .note {
+      background-color: transparent;
+      margin: 0;
+      padding-left: 0;
+      padding-right: 0;
+      &:first-child {
+        padding-top: 0;
+      }
+
+      h4 {
+        margin-bottom: .25rem;
+        font-size: .875rem;
+      }
+      span.duedate.warning, span.duedate.expired {
+        margin-left: 0;
+      }
+      p.mb-0 {
+        font-size: .75rem;
+      }
+    }
+  }
+
   // Edit and Info Mode
   section {
     &.general, &.members, &.children, &.invitations, &.messages,

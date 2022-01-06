@@ -2899,7 +2899,7 @@ module.exports = (function() {
 
   var getRepliesfromSubmission = function(venueId, submission, name, options) {
     return submission.details.replies.filter(function(reply) {
-      return reply.invitations.indexOf(getInvitationId(venueId, submission.number, name, options)) >= 0;
+      return reply.invitations.includes(getInvitationId(venueId, submission.number, name, options));
     });
   }
 
@@ -2940,6 +2940,7 @@ module.exports = (function() {
       renderSubmissionList: renderSubmissionList,
       setup: setup,
       submissionList: submissionList,
+      taskList: newTaskList,
       errorMessage: Webfield.ui.errorMessage,
       done: Webfield.ui.done
     },
