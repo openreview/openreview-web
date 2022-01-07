@@ -435,7 +435,6 @@ module.exports = (function() {
       fullWidth: false,
     };
     options = _.defaults(options, defaults);
-    console.log(options.fullWidth)
 
     var $container = $(options.container);
     if (options.fullWidth) {
