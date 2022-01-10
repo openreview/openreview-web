@@ -453,12 +453,11 @@ export default function Column(props) {
     }
 
     if (startInvitation) {
-      console.log('startInvitation', startInvitation)
       if (startInvitation.id === 'staticList') {
         let idsToInclude = []
         if (startInvitation.query.storageKey) {
           const rawData = window.localStorage.getItem(startInvitation.query.storageKey)
-          window.localStorage.removeItem(startInvitation.query.key)
+          window.localStorage.removeItem(startInvitation.query.storageKey)
           try {
             idsToInclude = JSON.parse(rawData).data
           } catch (error) {

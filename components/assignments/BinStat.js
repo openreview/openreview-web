@@ -107,7 +107,6 @@ ${customMaxPapersInvitation ? `;${customMaxPapersInvitation},head:ignore` : ''}\
 ${customLoadInvitation ? `;${customLoadInvitation},headLignore` : ''}\
 &maxColumns=3\
 &referrer=${encodeURIComponent(`[${referrerText}](/assignments/stats?id=${configNoteId})`)}`
-        // console.log('edgeBrowserUrl', edgeBrowserUrl)
         router.push(edgeBrowserUrl)
       })
     }

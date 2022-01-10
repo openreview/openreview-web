@@ -294,7 +294,6 @@ const AssignmentStats = ({ appContext }) => {
       max: groupCountPerPaperDataList.filter(Number.isFinite).reduce((a, b) => Math.max(a, b), 0),
       xLabel: 'Number of Users',
       yLabel: 'Number of Papers',
-      section: 'assignment-dist',
       type: 'paper',
       interactiveData: groupCountPerPaperList,
     }
@@ -312,7 +311,6 @@ const AssignmentStats = ({ appContext }) => {
       max: paperCountPerGroupDataList.filter(Number.isFinite).reduce((a, b) => Math.max(a, b), 0),
       xLabel: 'Number of Papers',
       yLabel: 'Number of Users',
-      section: 'assignment-dist',
       type: 'reviewer',
       interactiveData: paperCountPerGroupList,
     }
@@ -328,7 +326,6 @@ const AssignmentStats = ({ appContext }) => {
       binCount: 50,
       xLabel: 'Score',
       yLabel: 'Number of Assignments',
-      section: 'assignment-dist',
       type: 'paper',
       fullWidth: true,
       interactiveData: allScoresList,
@@ -351,7 +348,6 @@ const AssignmentStats = ({ appContext }) => {
       binCount: 20,
       xLabel: 'Mean Score',
       yLabel: 'Number of Papers',
-      section: 'assignment-dist',
       type: 'paper',
       interactiveData: meanScorePerPaperList,
     }
@@ -373,7 +369,6 @@ const AssignmentStats = ({ appContext }) => {
       binCount: 20,
       xLabel: 'Mean Score',
       yLabel: 'Number of Users',
-      section: 'assignment-dist',
       type: 'reviewer',
       interactiveData: meanScorePerGroupList,
     }
@@ -394,7 +389,6 @@ const AssignmentStats = ({ appContext }) => {
         max: recomNumDataPerPaperList.map(p => p.num).filter(Number.isFinite).reduce((a, b) => Math.max(a, b), 0),
         xLabel: 'Number of Users',
         yLabel: 'Number of Papers',
-        section: 'recommendation-dist',
         type: 'paper',
       }
 
@@ -407,7 +401,6 @@ const AssignmentStats = ({ appContext }) => {
         max: 10,
         xLabel: 'Recommendation value',
         yLabel: 'Number of Recommendations',
-        section: 'recommendation-dist',
         type: 'recommendation',
       }
     }
@@ -428,7 +421,6 @@ const AssignmentStats = ({ appContext }) => {
           yLabel: 'Number of Users',
           type: 'reviewer',
           interactiveData: numDataPerGroupList,
-          section: 'bid-dist',
         },
       ]
     }))
@@ -455,7 +447,6 @@ const AssignmentStats = ({ appContext }) => {
   }, [matchLists])
 
   useEffect(() => {
-    console.log('query', query)
     if (!accessToken || !query) return
 
     if (!query.id) {
