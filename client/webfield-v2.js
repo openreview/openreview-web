@@ -856,7 +856,9 @@ module.exports = (function() {
     }).fail(function(jqXhr, textStatus, errorThrown) {
       console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus);
       console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2));
-      if(fieldName) $(`input.form-control.note_content_value_input.note_${fieldName}`).val('');
+      if (fieldName) {
+        $('input.form-control.note_content_value_input.note_' + fieldName).val('');
+      }
     });
   };
 
