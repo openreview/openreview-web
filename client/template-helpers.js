@@ -30,6 +30,10 @@ Handlebars.registerHelper('isEqual', function(a, b) {
   return _.isEqual(a, b);
 });
 
+Handlebars.registerHelper('isEmpty', function(obj) {
+  return _.isEmpty(obj);
+});
+
 Handlebars.registerHelper('join', function(val, delimiter, start, end) {
   var arr = [].concat(val);
   delimiter = typeof delimiter === 'string' ? delimiter : ', ';

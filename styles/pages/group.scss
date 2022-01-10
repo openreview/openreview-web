@@ -205,6 +205,9 @@ main.group, main.invitation {
     }
     ul.list-unstyled {
       margin-top: .25rem;
+      &.mt-0 {
+        margin-top: 0;
+      }
     }
     table.table-minimal {
       margin-top: .25rem;
@@ -260,6 +263,29 @@ main.group, main.invitation {
     }
     .row-4 {
       width: auto;
+    }
+  }
+
+  .console-table .eic-task-list {
+    .note {
+      background-color: transparent;
+      margin: 0;
+      padding-left: 0;
+      padding-right: 0;
+      &:first-child {
+        padding-top: 0;
+      }
+
+      h4 {
+        margin-bottom: .25rem;
+        font-size: .875rem;
+      }
+      span.duedate.warning, span.duedate.expired {
+        margin-left: 0;
+      }
+      p.mb-0 {
+        font-size: .75rem;
+      }
     }
   }
 

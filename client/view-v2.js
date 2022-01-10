@@ -1046,7 +1046,7 @@ module.exports = (function() {
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return Webfield2.sendFile('/attachment', data).then(function(result) {
+          return Webfield2.sendFile('/attachment', data, undefined, fieldName).then(function(result) {
             content[0][fieldName] = result.url;
             view.updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, content[0][fieldName]);
           });
@@ -1520,7 +1520,7 @@ module.exports = (function() {
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
-          return Webfield2.sendFile('/attachment', data).then(function(result) {
+          return Webfield2.sendFile('/attachment', data, undefined, fieldName).then(function(result) {
             content[0][fieldName] = result.url;
             view.updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, content[0][fieldName]);
           });

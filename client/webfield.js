@@ -204,7 +204,7 @@ module.exports = (function() {
     token = newAccessToken;
   };
 
-  var sendFile = function(url, data, contentType) {
+  var sendFile = function(url, data, contentType, fieldName) {
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
@@ -223,6 +223,9 @@ module.exports = (function() {
     }).fail(function(jqXhr, textStatus, errorThrown) {
       console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus);
       console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2));
+      if (fieldName) {
+        $('input.form-control.note_content_value_input.note_' + fieldName).val('');
+      }
     });
   };
 
@@ -431,11 +434,16 @@ module.exports = (function() {
   var basicHeader = function(title, instructions, options) {
     var defaults = {
       container: '#header',
-      underline: false
+      underline: false,
+      fullWidth: false,
     };
     options = _.defaults(options, defaults);
 
     var $container = $(options.container);
+    if (options.fullWidth) {
+      $container.append('<div class="container"></div>');
+      $container = $container.children('.container');
+    }
     $container.html('<h1>' + title + '</h1>');
 
     if (instructions) {
