@@ -14,9 +14,9 @@ const userBRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =>
 
 // #region long repeated selectors
 const errorMessageSelector = Selector('#flash-message-container', { visibilityCheck: true }).find('span.important_message')
-const editFirstNameInputSelector = Selector('input:not([readonly]).first_name')
-const editMiddleNameInputSelector = Selector('input:not([readonly]).middle_name')
-const editLastNameInputSelector = Selector('input:not([readonly]).last_name')
+const editFirstNameInputSelector = Selector('input:not([readonly]).first-name')
+const editMiddleNameInputSelector = Selector('input:not([readonly]).middle-name')
+const editLastNameInputSelector = Selector('input:not([readonly]).last-name')
 const nameSectionPlusIconSelector = Selector('section').nth(0).find('.glyphicon-plus-sign')
 const emailSectionPlusIconSelector = Selector('section').nth(2).find('.glyphicon-plus-sign')
 const editEmailInputSelector = Selector('input:not([readonly]).email')
@@ -24,14 +24,14 @@ const emailConfirmButtons = Selector('section').nth(2).find('button').withText('
 const emailRemoveButtons = Selector('section').nth(2).find('button').withText('Remove')
 const pageHeader = Selector('div.title-container').find('h1')
 const profileViewEmail = Selector('section.emails').find('span')
-const addDBLPPaperToProfileButton = Selector('button#show-dblp-import-modal')
+const addDBLPPaperToProfileButton = Selector('button.personal-links__adddblpbtn')
 const persistentUrlInput = Selector('div.persistent-url-input').find('input')
 const showPapersButton = Selector('div.persistent-url-input').find('button').withText('Show Papers')
 const dblpImportModalCancelButton = Selector('div.modal-footer').find('button').withText('Cancel')
 const dblpImportModalAddToProfileBtn = Selector('div.modal-footer').find('button').withText('Add to Your Profile')
 const dblpImportModalSelectCount = Selector('div.modal-footer').find('div.selected-count')
 const saveProfileButton = Selector('button').withText('Save Profile Changes')
-const nameMakePreferredButton = Selector('#names_table').find('button.preferred_button').filterVisible().nth(0)
+const nameMakePreferredButton = Selector('div.container.names').find('button.preferred_button').filterVisible().nth(0)
 // #endregion
 
 fixture`Profile page`
@@ -53,7 +53,7 @@ test('user open own profile', async (t) => {
     .click(Selector('a').withText('Edit Profile'))
     .expect(Selector('h1').withText('Edit Profile').exists).ok()
     .expect(Selector('#or-banner').find('a').innerText).eql('View Profile')
-    .expect(Selector('#show-dblp-import-modal').getAttribute('disabled')).eql('disabled')
+    .expect(addDBLPPaperToProfileButton.hasAttribute('disabled')).ok()
     .expect(Selector('ul.submissions-list').exists).notOk() // show imported papers only
     .expect(saveProfileButton.exists).ok()
     // make some changes and save
@@ -67,11 +67,11 @@ test('user open own profile', async (t) => {
     // add a email
     .click(emailSectionPlusIconSelector)
     .typeText(editEmailInputSelector, 'a@aa.')
-    .expect(emailConfirmButtons.visible).notOk() // should have no visible buttons when email is invalid
-    .expect(emailRemoveButtons.visible).notOk()
+    .expect(emailConfirmButtons.exists).notOk() // should have no buttons when email is invalid
+    .expect(emailRemoveButtons.exists).notOk()
     .typeText(editEmailInputSelector, 'a@aa.com', { replace: true })
-    .expect(emailConfirmButtons.nth(1).visible).ok() // should show buttons when added email(index 1) is valid
-    .expect(emailRemoveButtons.nth(1).visible).ok()
+    .expect(emailConfirmButtons.nth(0).visible).ok() // should show buttons when added email is valid
+    .expect(emailRemoveButtons.nth(0).visible).ok()
     .click(Selector('button').withText('Confirm').filterVisible())
     .expect(errorMessageSelector.innerText).eql('A confirmation email has been sent to a@aa.com')
     .click(Selector('button').withText('Remove').filterVisible())
@@ -80,12 +80,12 @@ test('user open own profile', async (t) => {
   const messages = await getMessages({ to: 'a@aa.com', subject: 'OpenReview Account Linking' }, superUserToken)
   await t.expect(messages[0].content.text).contains('Click on the link below to confirm that <a href="mailto:a@aa.com">a@aa.com</a> and <a href="mailto:a@a.com">a@a.com</a> both belong to the same person')
     // personal links
-    .expect(Selector('#show-dblp-import-modal').getAttribute('disabled')).eql('disabled')
+    .expect(addDBLPPaperToProfileButton.hasAttribute('disabled')).ok()
     .typeText(Selector('#dblp_url'), 'test')
-    .expect(Selector('#show-dblp-import-modal').getAttribute('disabled')).eql(null) // button is enabled
+    .expect(addDBLPPaperToProfileButton.hasAttribute('disabled')).notOk() // button is enabled
     // save
     .click(saveProfileButton)
-    .expect(errorMessageSelector.innerText).eql('test is not a valid URL')
+    .expect(errorMessageSelector.innerText).eql('The value test in dblp is invalid. Expected value: should include https://dblp.org, https://dblp.uni-trier.de, https://dblp2.uni-trier.de, https://dblp.dagstuhl.de, uni-trier.de')
     .selectText(Selector('#dblp_url'))
     .pressKey('delete')
     .click(saveProfileButton)
@@ -142,7 +142,7 @@ test('unlink paper', async (t) => {
     .expect(Selector('ul.submissions-list').find('div.note').count).eql(2) // profile view has the 2 papers imported
     .click(Selector('a').withText('Edit Profile'))
     .click(Selector('ul.submissions-list').find('.glyphicon-minus-sign').nth(1)) // unlink 2nd paper
-    .expect(Selector('ul.submissions-list').find('li.unlinked-publication').count).eql(1)
+    .expect(Selector('ul.submissions-list').find('div.unlinked-publication').count).eql(1)
     .expect(Selector('ul.submissions-list').find('.glyphicon-minus-sign').count).eql(1)
     .expect(Selector('ul.submissions-list').find('.glyphicon-repeat').count).eql(1)
     .click(Selector('ul.submissions-list').find('.glyphicon-repeat').nth(0)) // relink
@@ -243,7 +243,7 @@ test.skip('#2143 date validation', async (t) => {
   await t.useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     // modify history start date with invalid value
-    .typeText(Selector('#history_table').find('input.start').nth(0), '-2e-5', { replace: true, paste: true })
+    .typeText(Selector('div.history').find('input.start').nth(0), '-2e-5', { replace: true, paste: true })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText).notEql('Your profile information has been successfully updated') // should not save successfully
 })
@@ -286,7 +286,7 @@ test('#160 allow user to overwrite last/middle/first name to be lowercase', asyn
 test('fail before 2099', async (t) => {
   await t.useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .typeText(Selector('#history_table').find('input.end'), `${new Date().getFullYear() + 10}`, { replace: true }) // to fail in 2090, update validation regex
+    .typeText(Selector('div.history').find('input').nth(2), `${new Date().getFullYear() + 10}`, { replace: true }) // to fail in 2090, update validation regex
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText).eql('Your profile information has been successfully updated')
     .wait(5000)

@@ -175,8 +175,8 @@ module.exports = (function() {
     var errorText = getErrorFromJqXhr(jqXhr, textStatus);
     var errorName = jqXhr.responseJSON?.name || jqXhr.responseJSON?.errors?.[0]?.type;
     var errorDetails = jqXhr.responseJSON?.details || jqXhr.responseJSON?.errors?.[0];
-    var notSignatoryError = (errorName === 'notSignatory' || errorName === 'NotSignatoryError') && _.startsWith(errorDetails.user, 'guest_');
-    var forbiddenError = (errorName  === 'forbidden' || errorName === 'ForbiddenError') && _.startsWith(errorDetails.user, 'guest_');
+    var notSignatoryError = errorName === 'NotSignatoryError' && _.startsWith(errorDetails.user, 'guest_');
+    var forbiddenError = errorName === 'ForbiddenError' && _.startsWith(errorDetails.user, 'guest_');
 
     if (errorText === 'User does not exist') {
       location.reload(true);
@@ -184,14 +184,6 @@ module.exports = (function() {
       location.href = '/login?redirect=' + encodeURIComponent(
         location.pathname + location.search + location.hash
       );
-    } else if (errorName === 'AlreadyConfirmedError') {
-      promptError({
-        type: 'alreadyConfirmed',
-        path: errorDetails.alternate,
-        value: errorDetails.otherProfile,
-        value2: errorDetails.thisProfile,
-        user: errorDetails.user
-      });
     } else {
       promptError(errorText);
     }
@@ -201,16 +193,11 @@ module.exports = (function() {
 
   var getErrorFromJqXhr = function(jqXhr, textStatus) {
     if (textStatus === 'timeout') {
-      // If the request timed out, display a special message and don't call
-      // the onError callback to prevent it from chaining or not displaying the mesage.
+      // If the request timed out, display a special message
       return 'OpenReview is currently under heavy load. Please try again soon.';
     }
 
-    var error = jqXhr.responseJSON
-    // TODO: remove when migration to new error format is complete
-    if (error?.errors?.length > 0) return error.errors[0];
-
-    return error?.message || 'Something went wrong';
+    return jqXhr.responseJSON?.message || 'Something went wrong';
   };
 
   var setToken = function(newAccessToken) {
@@ -430,14 +417,6 @@ module.exports = (function() {
     return '';
   };
 
-  var defaultEmptyMessage = function(groupId) {
-    return [
-      'var container = $(\'#group-container\').length ? $(\'#group-container\') : $(\'#invitation-container\');',
-      'Webfield.ui.setup(container, \'' + groupId + '\');',
-      'Webfield.ui.header(\'' + view.prettyId(groupId) + '\').append(\'<p><em>Nothing to display</em></p>\');',
-    ].join('\n');
-  };
-
   var setup = function(container, groupId) {
     $(container).empty().append(
       '<div id="header"></div>',
@@ -453,11 +432,16 @@ module.exports = (function() {
   var basicHeader = function(title, instructions, options) {
     var defaults = {
       container: '#header',
-      underline: false
+      underline: false,
+      fullWidth: false,
     };
     options = _.defaults(options, defaults);
 
     var $container = $(options.container);
+    if (options.fullWidth) {
+      $container.append('<div class="container"></div>');
+      $container = $container.children('.container');
+    }
     $container.html('<h1>' + title + '</h1>');
 
     if (instructions) {
@@ -1468,7 +1452,9 @@ module.exports = (function() {
           showHeader: false,
           showFooter: false
         }));
-        $('#note-editor-modal').modal('show');
+        $('#note-editor-modal').on('hidden.bs.modal', function() {
+          $('#note-editor-modal').find('div.note_editor.panel').remove();
+        });
 
         view.mkNoteEditor(existingNote, invitationObj, user, {
           onNoteEdited: function(result) {
@@ -1518,6 +1504,7 @@ module.exports = (function() {
               '</button>',
               $editor
             );
+            $('#note-editor-modal').modal('show');
           }
         });
       });
@@ -2916,144 +2903,6 @@ module.exports = (function() {
     });
   };
 
-  var userModerationQueue = function(options) {
-    var defaults = {
-      container: '#notes',
-      title: 'New Profiles Pending Moderation',
-      onlyModeration: true,
-      pageSize: 15
-    };
-    options = _.defaults(options, defaults);
-
-    var $container = $(options.container).eq(0);
-
-    var loadProfiles = function(offset) {
-      offset = offset || 0;
-      var needsModerationQuery = options.onlyModeration ? { needsModeration: true } : {};
-      return get('/profiles', Object.assign(needsModerationQuery, {
-        sort: 'tcdate:desc',
-        limit: options.pageSize,
-        offset: offset
-      }))
-        .then(function(result) {
-          if (!result || !result.profiles) {
-            return $.Deferred.reject();
-          }
-          return {
-            profiles: result.profiles,
-            totalCount: result.count,
-            offset: offset
-          };
-        })
-        .fail(showLoadingError);
-    };
-
-    var renderList = function(apiResult) {
-      var pageNum = Math.floor(apiResult.offset / options.pageSize) + 1;
-      $container.html(Handlebars.templates['partials/userModerationQueue']({
-        title: options.title,
-        profiles: apiResult.profiles,
-        isModerationQueue: options.onlyModeration,
-        totalCount: apiResult.totalCount,
-        pageSize: options.pageSize,
-        pageNum: pageNum
-      }));
-    };
-
-    var initializeModal = function() {
-      var formHtml = [
-        '<form method="POST">',
-          '<div class="form-group">',
-            '<label for="message">Reason for Rejection:</label>',
-            '<textarea name="message" class="form-control" rows="5" required></textarea>',
-          '</div>',
-        '</form>'
-      ].join('');
-
-      $(document.body).append(Handlebars.templates.genericModal({
-        id: 'rejection-message-modal',
-        showHeader: false,
-        showFooter: true,
-        body: formHtml
-      }));
-    };
-
-    var showLoadingError = function() {
-      $container.html('<div class="alert alert-danger"><strong>Error:</strong> ' +
-        'Could not load profiles. Please reload the page and try again"</div>');
-    };
-
-    var registerEventHandlers = function() {
-      $container.on('click', '.accept-profile', function() {
-        var $row = $(this).closest('li');
-        postModerationDecision($row.data('id'), true).then(function() {
-          promptMessage($row.find('.col-name').text() + ' is now active', { scrollToTop: false });
-          $row.fadeOut('fast');
-        });
-      });
-
-      $container.on('click', '.reject-profile', function() {
-        $('#rejection-message-modal form').data('profileId', $(this).closest('li').data('id'));
-        $('#rejection-message-modal textarea').val('');
-        $('#rejection-message-modal').modal('show');
-      });
-
-      $container.on('click', '.delete-profile', function() {
-        console.warn('Deleting profiles is not currently possible from the UI');
-      });
-
-      $container.off('click', 'ul.pagination > li > a').on('click', 'ul.pagination > li > a', function() {
-        var $target = $(this).parent();
-        if ($target.hasClass('disabled') || $target.hasClass('active')) {
-          return false;
-        }
-        var newPageNum = parseInt($target.data('pageNumber'), 10);
-        if (isNaN(newPageNum)) {
-          return false;
-        }
-
-        var newOffset = (newPageNum - 1) * options.pageSize;
-        loadProfiles(newOffset).then(renderList);
-        return false;
-      });
-
-      $('#rejection-message-modal form').on('submit', function() {
-        var profileId = $(this).data('profileId');
-        var $row = $('.profiles-list').find('li[data-id="' + profileId + '"]');
-        var name = $row.find('.col-name').text();
-        var message = $(this).find('textarea').val().trim();
-        if (!message) {
-          return false;
-        }
-
-        postModerationDecision(profileId, false, message).then(function() {
-          promptMessage(name + ' has been rejected', { scrollToTop: false });
-          $row.fadeOut();
-        });
-
-        $('#rejection-message-modal').modal('hide');
-        return false;
-      });
-
-      $('#rejection-message-modal .modal-footer .btn-primary').on('click', function() {
-        $('#rejection-message-modal form').submit();
-      });
-    };
-
-    var postModerationDecision = function(profileId, decision, rejectionMessage) {
-      return post('/activate/moderate', {
-        id: profileId,
-        activate: decision,
-        reason: rejectionMessage
-      });
-    };
-
-    loadProfiles()
-      .then(renderList)
-      .then(initializeModal)
-      .then(registerEventHandlers);
-  };
-
   // Deprecated
   var taskList = function(notePairs, tagInvitations, options) {
     var taskDefaults = {
@@ -3316,10 +3165,8 @@ module.exports = (function() {
       groupEditor: groupEditor,
       invitationInfo: invitationInfo,
       invitationEditor: invitationEditor,
-      userModerationQueue: userModerationQueue,
       spinner: loadingSpinner,
       errorMessage: errorMessage,
-      defaultEmptyMessage: defaultEmptyMessage,
       done: done
     }
   };

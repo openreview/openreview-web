@@ -10,8 +10,6 @@ import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 import { formatTasksData } from '../lib/utils'
 
-import '../styles/pages/tasks.less'
-
 const Tasks = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
   const [groupedTasks, setGroupedTasks] = useState(null)

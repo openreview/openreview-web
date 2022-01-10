@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import Link from 'next/link'
 
 const Privacy = () => (
   <div>
@@ -93,7 +94,7 @@ const Privacy = () => (
         <p>
           If you have any questions about this Privacy Policy, please
           {' '}
-          <a href="/contact">contact us</a>
+          <Link href="/contact"><a>contact us</a></Link>
           .
         </p>
         <br />

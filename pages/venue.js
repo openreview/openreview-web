@@ -11,8 +11,6 @@ import Accordion from '../components/Accordion'
 import { referrerLink } from '../lib/banner-links'
 import { auth } from '../lib/auth'
 
-// Page Styles
-import '../styles/pages/venue.less'
 import VenueDetails from '../components/VenueDetails'
 
 function VenuesList({ filteredVenues }) {
@@ -144,7 +142,7 @@ Venue.getInitialProps = async (ctx) => {
     }
     return { venueSeries, venuesGroupedByYear }
   } catch (error) {
-    if (error.name === 'forbidden' || error.name === 'ForbiddenError') {
+    if (error.name === 'ForbiddenError') {
       if (!token) {
         if (ctx.req) {
           ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()

@@ -5,14 +5,15 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import WebfieldContainer from '../../components/WebfieldContainer'
 import useQuery from '../../hooks/useQuery'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
-
-// Page Styles
-import '../../styles/pages/group.less'
+import GroupGeneralInfo from '../../components/group/info/GroupGeneralInfo'
+import GroupMembersInfo from '../../components/group/info/GroupMembersInfo'
+import GroupSignedNotes from '../../components/group/GroupSignedNotes'
+import GroupChildGroups from '../../components/group/GroupChildGroups'
+import GroupRelatedInvitations from '../../components/group/GroupRelatedInvitations'
 
 const GroupInfo = ({ appContext }) => {
   const { accessToken, userLoading } = useUser()
@@ -32,7 +33,7 @@ const GroupInfo = ({ appContext }) => {
         setError({ statusCode: 404, message: 'Group not found' })
       }
     } catch (apiError) {
-      if (apiError.name === 'forbidden' || apiError.name === 'ForbiddenError') {
+      if (apiError.name === 'ForbiddenError') {
         if (!accessToken) {
           router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
         } else {
@@ -52,7 +53,6 @@ const GroupInfo = ({ appContext }) => {
     } else if (group.web) {
       Webfield.editModeBanner(group.id, 'info')
     }
-    Webfield.ui.groupInfo(group, { container: containerRef.current })
 
     // eslint-disable-next-line consistent-return
     return () => {
@@ -83,17 +83,32 @@ const GroupInfo = ({ appContext }) => {
         <title key="title">{`${group ? prettyId(group.id) : 'Group Info'} | OpenReview`}</title>
       </Head>
 
+      <div id="header">
+        <h1>{prettyId(query?.id)}</h1>
+      </div>
+
       {(clientJsLoading || !group) && (
         <LoadingSpinner />
       )}
 
-      <WebfieldContainer id="group-container">
-        <div id="header">
-          <h1>{prettyId(query?.id)}</h1>
+      {group && (
+        <div>
+          <GroupGeneralInfo group={group} />
+          <GroupMembersInfo group={group} />
+          <GroupSignedNotes
+            groupId={group.id}
+            accessToken={accessToken}
+          />
+          <GroupChildGroups
+            groupId={group.id}
+            accessToken={accessToken}
+          />
+          <GroupRelatedInvitations
+            groupId={group.id}
+            accessToken={accessToken}
+          />
         </div>
-
-        <div id="notes" ref={containerRef} />
-      </WebfieldContainer>
+      )}
     </>
   )
 }

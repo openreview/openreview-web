@@ -916,20 +916,21 @@ module.exports = (function() {
   };
 
   const showConfirmDeleteModal = (note, noteTitle, $editSignaturesDropdown, $editReaders) => {
+    const actionText = note.ddate ? 'Restore' : 'Delete';
     $('#confirm-delete-modal').remove();
 
     $('#content').append(Handlebars.templates.genericModal({
       id: 'confirm-delete-modal',
       showHeader: true,
-      title: 'Delete Note',
-      body: '<p class="mb-4">Are you sure you want to delete "' +
-        noteTitle + '" by ' + view.prettyId(note.signatures[0]) + '? The deleted note will ' +
-        'be updated with the signature you choose below.</p>',
+      title: `${actionText} Note`,
+      body: `<p class="mb-4">Are you sure you want to ${actionText.toLowerCase()}
+        ${noteTitle} by ${view.prettyId(note.signatures[0])}? The ${actionText.toLowerCase()}ed note will
+        be updated with the signature you choose below.</p>`,
       showFooter: true,
-      primaryButtonText: 'Delete'
+      primaryButtonText: actionText
     }));
 
-    $editReaders.addClass('note_editor ml-0 mr-0 mb-2');
+    $editReaders?.addClass('note_editor ml-0 mr-0 mb-2');
     $editSignaturesDropdown.addClass('note_editor ml-0 mr-0 mb-2');
     $('#confirm-delete-modal .modal-body').append($editReaders, $editSignaturesDropdown);
 
@@ -1070,17 +1071,18 @@ module.exports = (function() {
 
       var saveNote = function(formContent, invitation) {
         const editToPost = constructEdit({ formData: formContent, invitationObj: invitation });
-        Webfield2.post('/notes/edits', editToPost, { handleError: false }).then(function(result) {
+        Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(function(result) {
           if (params.onNoteCreated) {
             params.onNoteCreated(result);
           }
           $noteEditor.remove();
           view.clearAutosaveData(autosaveStorageKeys);
-        }, function(error) {
+        }, function(jqXhr, textStatus) {
+          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
           if (params.onError) {
-            params.onError([error]);
+            params.onError([errorText]);
           } else {
-            promptError(error);
+            promptError(errorText);
           }
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
           $cancelButton.prop({ disabled: false });
@@ -1291,8 +1293,9 @@ module.exports = (function() {
       var values = fieldDescription['values-dropdown'];
       var extraGroupsP = [];
       var regexIndex = _.findIndex(values, function(g) { return g.indexOf('.*') >=0; });
+      var regex = null;
       if (regexIndex >= 0) {
-        var regex = values[regexIndex];
+        regex = values[regexIndex];
         var result = await Webfield.get('/groups', { regex: regex })
         if (result.groups && result.groups.length) {
           var groups = result.groups.map(function(g) { return g.id; });
@@ -1303,8 +1306,14 @@ module.exports = (function() {
       }
 
       return setParentReaders(replyto, fieldDescription, 'values-dropdown', function (newFieldDescription) {
-        // when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
-        var replyValues = _.intersection(newFieldDescription['values-dropdown'], fieldDescription['values-dropdown']);
+        // Make sure the new parent readers belong to the current invitation available values
+        var invitationReaders = fieldDescription['values-dropdown'];
+        var replyValues = [];
+        newFieldDescription['values-dropdown'].forEach(function(valueReader) {
+          if (invitationReaders.includes(valueReader) || valueReader.match(regex)) {
+            replyValues.push(valueReader);
+          }
+        })
 
         // Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
         var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
@@ -1334,6 +1343,9 @@ module.exports = (function() {
       });
     } else if (_.has(fieldDescription, 'values')) {
       return setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
+        if (fieldDescription.values?.[0] === "${{note.replyto}.readers}") {
+          fieldDescription.values = newFieldDescription.values;
+        }
         var subsetReaders = fieldDescription.values.every(function (val) {
           var found = newFieldDescription.values.indexOf(val) !== -1;
           if (!found && val.includes('/Reviewer_')) {
@@ -1532,20 +1544,27 @@ module.exports = (function() {
       });
 
       var saveNote = function (formContent, existingNote, invitation) {
-        const editToPost = constructEdit({ formData: formContent, noteObj: existingNote, invitationObj: invitation });
-        Webfield2.post('/notes/edits', editToPost, { handleError: false }).then(function() {
-          if (params.onNoteEdited) {
-            Webfield2.get('/notes', { id: note.id }).then(function (result) {
-              params.onNoteEdited(result);
-            })
+        const editToPost = params.isEdit
+          ? constructUpdatedEdit(params.editToUpdate, invitation, formContent)
+          : constructEdit({ formData: formContent, noteObj: existingNote, invitationObj: invitation });
+        Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(function() {
+          if (params.onNoteEdited ) {
+            if (params.isEdit) {
+              params.onNoteEdited();
+            } else {
+              Webfield2.get('/notes', { id: note.id }).then(function (result) {
+                params.onNoteEdited(result);
+              })
+            }
           }
           $noteEditor.remove();
           view.clearAutosaveData(autosaveStorageKeys);
-        }, function(error) {
+        }, function(jqXhr, textStatus) {
+          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
           if (params.onError) {
-            params.onError([error]);
+            params.onError([errorText]);
           } else {
-            promptError(error);
+            promptError(errorText);
           }
           $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
           $cancelButton.prop({ disabled: false });
@@ -1693,6 +1712,40 @@ module.exports = (function() {
     return result
   }
 
+  constructUpdatedEdit = (edit, invitation, formContent) => {
+    const shouldSetValue = (fieldPath)=>{
+      const field = _.get(invitation, fieldPath)
+      if (!field || field?.value || field?.values) return false
+      return true
+    }
+
+    const editToPost = {}
+    Object.keys(invitation.edit).forEach((p) => {
+      editToPost[p] = edit[p]
+    })
+    editToPost.id = edit.id
+    editToPost.invitation = edit.invitation
+    if (shouldSetValue('edit.readers')) editToPost.readers = formContent.editReaderValues
+    if (shouldSetValue('edit.signatures')) editToPost.signatures = formContent.editSignatureInputValues
+    const editNote = {}
+    Object.keys(invitation.edit.note).forEach((p) => {
+      editNote[p] = edit.note[p]
+    })
+
+    if (invitation.edit.note?.content) {
+      editNote.content = Object.entries(invitation.edit.note.content).reduce((acc, [fieldName, fieldValue]) => {
+        acc[fieldName] = {
+          value: formContent[fieldName],
+          ...(shouldSetValue(`edit.note.content.${fieldName}.readers`) && { readers: edit.note?.content?.[fieldName]?.readers }),
+        }
+        return acc
+      }, {})
+    }
+    editToPost.note = editNote
+
+    return editToPost
+  }
+
   const validate = (invitation, formContent, readersWidget) => {
     const errorList = [];
     const invitationEditContent = invitation.edit?.note?.content;
@@ -1750,7 +1803,6 @@ module.exports = (function() {
     mkNewNoteEditor: mkNewNoteEditor,
     mkNoteEditor: mkNoteEditor,
     mkNotePanel: mkNotePanel,
-    // deleteOrRestoreNote: deleteOrRestoreNote,
   };
 
 }());

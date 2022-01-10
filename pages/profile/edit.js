@@ -5,25 +5,21 @@ import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import get from 'lodash/get'
-import omit from 'lodash/omit'
-import LegacyProfileEditor from '../../components/LegacyProfileEditor'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import DblpImportModal from '../../components/DblpImportModal'
+import ProfileEditor from '../../components/profile/ProfileEditor'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { formatProfileData } from '../../lib/profiles'
 import { viewProfileLink } from '../../lib/banner-links'
-
-// Page Styles
-import '../../styles/pages/profile-edit.less'
+import { formatProfileData } from '../../lib/profiles'
 
 export default function ProfileEdit({ appContext }) {
   const { accessToken } = useLoginRedirect()
   const { updateUserName } = useUser()
-  const [profile, setProfile] = useState(null)
   const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [profile, setProfile] = useState(null)
   const router = useRouter()
   const { setBannerContent } = appContext
 
@@ -31,7 +27,8 @@ export default function ProfileEdit({ appContext }) {
     try {
       const { profiles } = await api.get('/profiles', {}, { accessToken })
       if (profiles?.length > 0) {
-        setProfile(formatProfileData(profiles[0]))
+        const formattedProfile = formatProfileData(profiles[0], false, true)
+        setProfile(formattedProfile)
       } else {
         setError({ statusCode: 404, message: 'Profile not found' })
       }
@@ -56,8 +53,8 @@ export default function ProfileEdit({ appContext }) {
       throw new Error(`Note ${noteId} uses an unsupported invitation`)
     }
     const allAuthorIds = [
-      ...profile.emails?.filter(p => p.confirmed).map(p => p.email),
-      ...profile.names?.map(p => p.username).filter(p => p),
+      ...(profile.emails?.filter(p => p.confirmed).map(p => p.email) ?? []),
+      ...(profile.names?.map(p => p.username).filter(p => p) ?? []),
     ]
 
     const matchedIdx = authorIds.reduce((matchedIndex, authorId, index) => { // find all matched index of all author ids
@@ -83,15 +80,12 @@ export default function ProfileEdit({ appContext }) {
     return api.post('/notes', updateAuthorIdsObject, { accessToken })
   }
 
-  const saveProfile = async (newProfileData, done) => {
-    // Save profile handler
-    const { publicationIdsToUnlink } = newProfileData.content
+  const saveProfile = async (profileContent, publicationIdsToUnlink) => {
+    setLoading(true)
     const dataToSubmit = {
-      id: newProfileData.id,
-      content: omit(newProfileData.content, [
-        'preferredName', 'currentInstitution', 'options', 'publicationIdsToUnlink',
-      ]),
-      signatures: [newProfileData.id],
+      id: profile.id,
+      content: profileContent,
+      signatures: [profile.id],
     }
     try {
       const apiRes = await api.post('/profiles', dataToSubmit, { accessToken })
@@ -105,20 +99,14 @@ export default function ProfileEdit({ appContext }) {
       router.push('/profile')
     } catch (apiError) {
       promptError(apiError.message)
-      done()
     }
-  }
-
-  const returnToProfilePage = () => {
-    router.push('/profile').then(() => window.scrollTo(0, 0))
+    setLoading(false)
   }
 
   useEffect(() => {
     if (!accessToken) return
-
-    setBannerContent(viewProfileLink())
-
     loadProfile()
+    setBannerContent(viewProfileLink())
   }, [accessToken])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
@@ -135,19 +123,11 @@ export default function ProfileEdit({ appContext }) {
         <h1>Edit Profile</h1>
       </header>
 
-      <LegacyProfileEditor
-        profile={profile}
-        onSubmit={saveProfile}
-        onCancel={returnToProfilePage}
-        submitButtonText="Save Profile Changes"
-      />
-
-      <DblpImportModal
-        profileId={profile.id}
-        profileNames={profile.names.map(name => (
-          name.middle ? `${name.first} ${name.middle} ${name.last}` : `${name.first} ${name.last}`
-        ))}
-        email={profile.preferredEmail}
+      <ProfileEditor
+        loadedProfile={profile}
+        submitHandler={saveProfile}
+        cancelHandler={() => router.push('/profile').then(() => window.scrollTo(0, 0))}
+        loading={loading}
       />
     </div>
   )

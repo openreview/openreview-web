@@ -1,17 +1,14 @@
 import Alert from './Alert'
 import Icon from './Icon'
-import { translateErrorDetails } from '../lib/utils'
 
 function ErrorAlert({ error }) {
-  const errorMessage = (error.details && error.legacy) ? translateErrorDetails(error.details) : error.message
-
   return (
     <Alert color="danger">
       <Icon name="exclamation-sign" />
       {' '}
       <strong>Error:</strong>
       {' '}
-      {errorMessage}
+      {error.message}
     </Alert>
   )
 }

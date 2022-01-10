@@ -13,8 +13,6 @@ import {
   prettyField, prettyContentValue, formatTimestamp, noteContentDiff, editNoteContentDiff,
 } from '../../lib/utils'
 
-import '../../styles/pages/revisions-compare.less'
-
 const CompareRevisions = ({ appContext }) => {
   const [references, setReferences] = useState(null)
   const [draftableUrl, setDraftableUrl] = useState('')
@@ -157,7 +155,7 @@ const CompareRevisions = ({ appContext }) => {
   }, [references])
 
   if (error) {
-    return <ErrorDisplay statusCode={error.status} message={error.message} details={error.details} />
+    return <ErrorDisplay statusCode={error.status} message={error.message} />
   }
   return (
     <>

@@ -93,7 +93,7 @@ test('request a new activation link', async (t) => {
     .expect(messageSelector.innerText)
     .eql('A confirmation email with the subject "OpenReview signup confirmation" has been sent to melisa@test.com. Please click the link in this email to confirm your email address and complete registration.')
 
-  await new Promise(r => setTimeout(r, 2000))
+  await new Promise((r) => { setTimeout(r, 2000) })
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages({ to: 'melisa@test.com', subject: 'OpenReview signup confirmation' }, superUserToken)
@@ -168,10 +168,12 @@ fixture`Activate`
 
 test('update profile', async (t) => {
   await t
-    .typeText(Selector('#homepage_url'), 'http://homepage.do')
-    .typeText(Selector('input').withAttribute('placeholder', 'Choose a position or type a new one'), 'MS student')
-    .typeText(Selector('input').withAttribute('placeholder', 'Choose a domain or type a new one'), 'umass.edu')
-    .typeText(Selector('input').withAttribute('class', 'form-control institution_name'), 'University of Massachusetts, Amherst')
+    .typeText(Selector('input.personal-links__input').nth(0), 'http://homepage.do')
+    .click(Selector('input.position-dropdown__placeholder').nth(0))
+    .pressKey('M S space s t u d e n t tab')
+    .click(Selector('input.institution-dropdown__placeholder').nth(0))
+    .click(Selector('div.institution-dropdown__option').nth(0))
+    .pressKey('tab')
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messagePanelSelector.exists).ok()
     .expect(messageSelector.innerText)
@@ -249,17 +251,11 @@ test('add alternate email', async (t) => {
     .click(Selector('a').withAttribute('href', '/profile/edit'))
     .expect(Selector('h4').withText('Emails').exists)
     .ok()
-    .click(Selector('div').withAttribute('class', 'profile-edit-container').child('section').nth(2)
-      .child('div'))
-    .expect(Selector('#emails_table').child('tbody').child('tr').count)
-    .eql(2)
-    .typeText(Selector('#emails_table').child('tbody').child('tr').nth(1)
-      .child('td')
-      .child('input'), 'melisa@alternate.com')
-    .click(Selector('#emails_table').child('tbody').child('tr').nth(1)
-      .child('td')
-      .nth(1)
-      .child('button'))
+    .click(Selector('div').withAttribute('class', 'profile-edit-container').child('section').nth(2).find('span.glyphicon')) // add button
+    .expect(Selector('div.container.emails').child('div.row').count).eql(2)
+    .typeText(Selector('div.container.emails').child('div.row').nth(1)
+      .find('input'), 'melisa@alternate.com')
+    .click(Selector('div.container.emails').find('button.confirm-button'))
     .expect(messagePanelSelector.exists)
     .ok()
     .expect(messageSelector.innerText)

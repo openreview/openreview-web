@@ -1,9 +1,6 @@
 import Head from 'next/head'
 import Link from 'next/link'
 
-// Page Styles
-import '../styles/pages/sponsors.less'
-
 function Sponsor({ name, image, link }) {
   return (
     <a href={link} target="_blank" rel="noreferrer">

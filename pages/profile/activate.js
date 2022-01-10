@@ -4,20 +4,17 @@
 import { useEffect, useState, useContext } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import omit from 'lodash/omit'
-import useQuery from '../../hooks/useQuery'
 import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import LegacyProfileEditor from '../../components/LegacyProfileEditor'
+import ProfileEditor from '../../components/profile/ProfileEditor'
+import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { formatProfileData } from '../../lib/profiles'
-
-// Page Styles
-import '../../styles/pages/profile-edit.less'
 
 const ActivateProfile = ({ appContext }) => {
   const [activateToken, setActivateToken] = useState('')
   const [profile, setProfile] = useState(null)
+  const [loading, setLoading] = useState(false)
   const { loginUser } = useContext(UserContext)
   const query = useQuery()
   const router = useRouter()
@@ -27,7 +24,8 @@ const ActivateProfile = ({ appContext }) => {
   const loadActivatableProfile = async (token) => {
     try {
       const apiRes = await api.get(`/activatable/${token}`)
-      setProfile(formatProfileData(apiRes.profile))
+
+      setProfile(formatProfileData(apiRes.profile, false, true))
       setActivateToken(token)
     } catch (error) {
       promptError(error.message)
@@ -35,12 +33,12 @@ const ActivateProfile = ({ appContext }) => {
     }
   }
 
-  const saveProfile = async (newProfileData, done) => {
+  const saveProfile = async (newProfileData) => {
     const dataToSubmit = {
-      ...newProfileData,
-      content: omit(newProfileData.content, ['publicationIdsToUnlink']),
+      id: profile.id,
+      content: newProfileData,
+      signatures: [profile.id],
     }
-
     try {
       const { user, token } = await api.put(`/activate/${activateToken}`, dataToSubmit)
       if (token) {
@@ -53,8 +51,8 @@ const ActivateProfile = ({ appContext }) => {
       }
     } catch (error) {
       promptError(error.message)
-      done()
     }
+    setLoading(false)
   }
 
   useEffect(() => {
@@ -87,17 +85,16 @@ const ActivateProfile = ({ appContext }) => {
       </header>
 
       {profile ? (
-        <LegacyProfileEditor
-          profile={profile}
-          onSubmit={saveProfile}
+        <ProfileEditor
+          loadedProfile={profile}
           submitButtonText="Register for OpenReview"
+          submitHandler={saveProfile}
           hideCancelButton
           hideDblpButton
           hidePublicationEditor
+          loading={loading}
         />
-      ) : (
-        <LoadingSpinner inline />
-      )}
+      ) : <LoadingSpinner inline />}
     </div>
   )
 }

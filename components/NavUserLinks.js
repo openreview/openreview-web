@@ -29,7 +29,10 @@ const NavUserLinks = () => {
     const routesToSkipRedirection = [
       '/', '/login', '/confirm', '/logout', '/signup', '/404', '/profile/activate', '/reset', '/user/password',
     ]
-    if (routesToSkipRedirection.includes(router.pathname)) return
+    if (routesToSkipRedirection.includes(router.pathname)) {
+      setLoginPath('/login')
+      return
+    }
 
     setLoginPath(`/login?redirect=${encodeURIComponent(router.asPath)}&noprompt=true`)
   }, [user, userLoading, router.asPath])
@@ -78,6 +81,7 @@ const NavUserLinks = () => {
           </li>
           <li role="separator" className="divider hidden-xs" />
           <li>
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a href="/logout" onClick={handleLogout}>Logout</a>
           </li>
         </ul>

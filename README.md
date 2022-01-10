@@ -89,7 +89,7 @@ npm run test -- -f "Invitation page"
 Any option supported by the TestCafe CLI can be passed in after the "`--`", a full
 list of flags can be found in the [TestCafe docs](https://devexpress.github.io/testcafe/documentation/reference/command-line-interface.html#-f-name---fixture-name).
 
-Note that you may need to run the spcial setup test before running specific tests
+Note that you may need to run the special setup test before running specific tests
 if the test data has not already been generated:
 
 ```bash

@@ -77,7 +77,7 @@ export default class EdgeBrowser extends React.Component {
           tailMap,
           loading: false,
         })
-      }).catch(error => promptError(error.details ?? error.message))
+      }).catch(error => promptError(error.message))
   }
 
   buildEntityMapFromInvitation(headOrTail) {
@@ -90,8 +90,9 @@ export default class EdgeBrowser extends React.Component {
       group: '/groups',
       tag: '/tags',
     }
-    const mainResultsP = api.getAll(apiUrlMap[invReplyObj.type],
-      requestParams, { accessToken: this.accessToken, version: this.version })
+    const mainResultsP = api.getAll(apiUrlMap[invReplyObj.type], requestParams, {
+      accessToken: this.accessToken, version: this.version,
+    })
 
     // Get all head or tail objects referenced by the start parameter edge
     // invitation. Note: currently startInvitation has to have the same head
@@ -105,8 +106,9 @@ export default class EdgeBrowser extends React.Component {
       if (startInv.type === 'note') {
         startRequestParams.invitation = startInv.query.invitation
       }
-      startResultsP = api.getAll(apiUrlMap[startInv.type],
-        startRequestParams, { accessToken: this.accessToken, version: this.version })
+      startResultsP = api.getAll(apiUrlMap[startInv.type], startRequestParams, {
+        accessToken: this.accessToken, version: this.version,
+      })
     } else {
       startResultsP = Promise.resolve([])
     }

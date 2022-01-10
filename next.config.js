@@ -1,9 +1,10 @@
-const withLess = require('@zeit/next-less')
 const nextBuildId = require('next-build-id')
 
-// Without CSS Modules, with PostCSS
-module.exports = withLess({
-  import: true,
+module.exports = {
+  swcMinify: false,
+  eslint: {
+    dirs: ['pages', 'components', 'hooks', 'lib', 'tests'],
+  },
   env: {
     IS_PRODUCTION: process.env.NODE_ENV === 'production',
     IS_STAGING: process.env.NODE_ENV === 'staging',
@@ -15,4 +16,4 @@ module.exports = withLess({
   },
   generateBuildId: () => nextBuildId({ dir: __dirname, describe: true }),
   poweredByHeader: false,
-})
+}

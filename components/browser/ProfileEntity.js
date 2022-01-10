@@ -14,6 +14,15 @@ import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import ScoresList from './ScoresList'
 
 export default function ProfileEntity(props) {
+  const {
+    editInvitations,
+    availableSignaturesInvitationMap,
+    traverseInvitation,
+    browseInvitations,
+    version,
+  } = useContext(EdgeBrowserContext)
+  const { user, accessToken } = useContext(UserContext)
+
   if (!props.profile || !props.profile.content) {
     return null
   }
@@ -28,14 +37,6 @@ export default function ProfileEntity(props) {
     browseEdges,
     traverseEdgesCount,
   } = props.profile
-  const {
-    editInvitations,
-    availableSignaturesInvitationMap,
-    traverseInvitation,
-    browseInvitations,
-    version,
-  } = useContext(EdgeBrowserContext)
-  const { user, accessToken } = useContext(UserContext)
 
   const metadata = props.profile.metadata || {}
   const extraClasses = []
@@ -53,7 +54,8 @@ export default function ProfileEntity(props) {
   const handleClick = (e) => {
     if (!props.canTraverse) return
 
-    if (e.target.tagName === 'A' && e.target.className !== 'show-assignments') {
+    if ((e.target.tagName === 'A' && e.target.className !== 'show-assignments')
+      || (e.target.tagName === 'BUTTON' && e.target.className.includes('dropdown-toggle'))) {
       return
     }
 
@@ -89,12 +91,12 @@ export default function ProfileEntity(props) {
       const result = await api.post('/edges', body, { accessToken, version })
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
-      } else {
-        if (isCustomLoadInvitation) props.updateChildColumn(props.columnIndex, null)
-        props.reloadColumnEntities()
+      } else if (isCustomLoadInvitation) {
+        props.updateChildColumn(props.columnIndex, null)
       }
+      props.reloadColumnEntities()
     } catch (error) {
-      promptError(error.details ?? error.message)
+      promptError(error.message)
     }
   }
 
@@ -152,13 +154,13 @@ export default function ProfileEntity(props) {
       const result = await api.post('/edges', body, { accessToken, version })
       if (isTraverseInvitation) {
         props.addEdgeToEntity(id, result)
-      } else {
-        if (isCustomLoadInvitation) props.updateChildColumn(props.columnIndex, updatedEdgeFields?.weight)
-        props.reloadColumnEntities()
+      } else if (isCustomLoadInvitation) {
+        props.updateChildColumn(props.columnIndex, updatedEdgeFields?.weight)
       }
+      props.reloadColumnEntities()
       if (isInviteInvitation) promptMessage(`Invitation has been sent to ${body.tail} and it's waiting for the response.`)
     } catch (error) {
-      promptError(error.details ?? error.message)
+      promptError(error.message)
     }
   }
 

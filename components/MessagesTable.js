@@ -3,8 +3,6 @@
 import Table from './Table'
 import { formatTimestamp } from '../lib/utils'
 
-import '../styles/components/messages-table.less'
-
 const MessageRow = ({ message }) => (
   <tr>
     <td>
@@ -44,7 +42,7 @@ const MessageRow = ({ message }) => (
         <div className="email-sent pull-right">
           Sent:
           {' '}
-          <span>{formatTimestamp(message.timestamp * 1000)}</span>
+          <span>{formatTimestamp((message.timestamp * 1000) || message.cdate)}</span>
         </div>
       </div>
 

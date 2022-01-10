@@ -8,15 +8,18 @@ import api from '../../lib/api-client'
 import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 
-// Page Styles
-import '../../styles/pages/group.less'
+const fullWidthGroups = ['.TMLR/Editors_In_Chief']
 
 const Group = ({ groupId, webfieldCode, appContext }) => {
-  const { setBannerHidden, clientJsLoading } = appContext
+  const { setBannerHidden, clientJsLoading, setLayoutOptions } = appContext
   const groupTitle = prettyId(groupId)
 
   useEffect(() => {
     setBannerHidden(true)
+
+    if (fullWidthGroups.includes(groupId)) {
+      setLayoutOptions({ fullWidth: true, minimalFooter: true })
+    }
   }, [groupId])
 
   useEffect(() => {
@@ -137,7 +140,7 @@ $(function() {
       query: ctx.query,
     }
   } catch (error) {
-    if (error.name === 'forbidden' || error.name === 'ForbiddenError') {
+    if (error.name === 'ForbiddenError') {
       if (!token) {
         if (ctx.req) {
           ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()

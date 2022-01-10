@@ -15,9 +15,6 @@ import api from '../../lib/api-client'
 import { isSuperUser } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 
-// Page Styles
-import '../../styles/pages/invitation.less'
-
 const InvitationEdit = ({ appContext }) => {
   const query = useQuery()
   const router = useRouter()
@@ -45,7 +42,7 @@ const InvitationEdit = ({ appContext }) => {
         setError({ statusCode: 404, message: 'Invitation not found' })
       }
     } catch (apiError) {
-      if (apiError.name === 'forbidden' || apiError.name === 'ForbiddenError') {
+      if (apiError.name === 'ForbiddenError') {
         setError({ statusCode: 403, message: 'You don\'t have permission to read this invitation' })
       } else {
         setError({ statusCode: apiError.status, message: apiError.message })

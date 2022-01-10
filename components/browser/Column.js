@@ -221,6 +221,7 @@ export default function Column(props) {
       entityName = prettyInvitationId(startInvitation.id)
     }
     if (isLoadMoreButton) return pluralizeString(entityName).toLowerCase()
+    if (entityName === 'staticList') return 'Search list...'
     return `Search all ${pluralizeString(entityName).toLowerCase()}...`
   }
 
@@ -423,7 +424,7 @@ export default function Column(props) {
           '/edges',
           buildQuery(invitation.id, { ...invitation.query, details: detailsParam }, sort),
           { accessToken, version },
-        ).catch(error => promptError(error.details ?? error.message)),
+        ).catch(error => promptError(error.message)),
       })
     }
   }
@@ -511,7 +512,7 @@ export default function Column(props) {
           })
           setItems(colItems)
         })
-        .catch(error => promptError(error.details ?? error.message))
+        .catch(error => promptError(error.message))
       return
     }
 
@@ -569,24 +570,20 @@ export default function Column(props) {
           if (entityType === 'profile') {
             const hasInviteInvitation = editInvitations.some(p => p[type]?.query?.['value-regex'])
             const hasProposedAssignmentInvitation = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
-            if (hasInviteInvitation || hasProposedAssignmentInvitation) {
-              itemToAdd = {
-                id: headOrTailId,
-                content: {
-                  name: { first: prettyId(headOrTailId), middle: '', last: '' },
-                  email: headOrTailId,
-                  title: '',
-                  expertise: [],
-                  isInvitedProfile: true,
-                },
-                searchText: headOrTailId,
-                traverseEdgesCount: traverseEdges.filter(p => p[type] === headOrTailId).length,
-              }
-            } else {
-              // eslint-disable-next-line no-console
-              console.warn(`${headOrTailId} not found in global entity map`)
-              return
+            itemToAdd = {
+              id: headOrTailId,
+              content: {
+                name: { first: prettyId(headOrTailId), middle: '', last: '' },
+                email: headOrTailId,
+                title: '',
+                expertise: [],
+                isInvitedProfile: hasInviteInvitation || hasProposedAssignmentInvitation,
+              },
+              searchText: headOrTailId,
+              traverseEdgesCount: traverseEdges.filter(p => p[type] === headOrTailId).length,
             }
+            // eslint-disable-next-line no-console
+            console.warn(`${headOrTailId} not found in global entity map`)
           } else {
             // eslint-disable-next-line no-console
             console.warn(`${headOrTailId} not found in global entity map`)
@@ -791,10 +788,10 @@ export default function Column(props) {
 
     // Update global head and tail maps
     const incr = modifiedExistingEdge ? 0 : 1
-    const newCount1 = altGlobalEntityMap[parentId]?.traverseEdgesCount + incr
+    const newCount1 = (altGlobalEntityMap[parentId]?.traverseEdgesCount ?? 0) + incr
     props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', newCount1)
 
-    const newCount2 = globalEntityMap[id]?.traverseEdgesCount + incr
+    const newCount2 = (globalEntityMap[id]?.traverseEdgesCount ?? 0) + incr
     props.updateGlobalEntityMap(type, id, 'traverseEdgesCount', newCount2)
   }
 
@@ -832,10 +829,10 @@ export default function Column(props) {
     }
 
     // Update global head and tail maps
-    const newCount1 = altGlobalEntityMap[parentId]?.traverseEdgesCount - 1
+    const newCount1 = (altGlobalEntityMap[parentId]?.traverseEdgesCount ?? 0) - 1
     props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', newCount1)
 
-    const newCount2 = globalEntityMap[id]?.traverseEdgesCount - 1
+    const newCount2 = (globalEntityMap[id]?.traverseEdgesCount ?? 0) - 1
     props.updateGlobalEntityMap(type, id, 'traverseEdgesCount', newCount2)
   }
 
