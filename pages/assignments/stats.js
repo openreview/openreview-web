@@ -1,3 +1,4 @@
+/* globals promptError: false */
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -75,8 +76,8 @@ const AssignmentStats = ({ appContext }) => {
   const loadMatchingDataFromEdges = async () => {
     const noteContent = assignmentConfigNote.content
     const paperInvitationElements = noteContent.paper_invitation.split('&')
-    // #region get Papers
-    let papers = []
+
+    let papersP = Promise.resolve([])
     if (paperInvitationElements[0].includes('/-/')) {
       const getNotesArgs = {
         invitation: paperInvitationElements[0],
@@ -85,19 +86,13 @@ const AssignmentStats = ({ appContext }) => {
         const filterElements = filter.split('=')
         getNotesArgs[filterElements[0]] = filterElements[1]
       })
-      papers = await api.getAll('/notes', getNotesArgs, { accessToken, resultsKey: 'notes' })
+      papersP = api.getAll('/notes', getNotesArgs, { accessToken, resultsKey: 'notes' })
     } else {
-      const result = await api.get('/groups', { id: paperInvitationElements[0] }, { accessToken })
-      papers = result?.groups?.[0]?.members.map(p => ({ id: p }))
+      papersP = api.get('/groups', { id: paperInvitationElements[0] }, { accessToken })
     }
-    // #endregion
 
-    // #region get Users
-    const result = await api.get('/groups', { id: noteContent.match_group }, { accessToken })
-    const users = result?.groups?.[0]?.members
-    // #endregion
+    const usersP = api.get('/groups', { id: noteContent.match_group }, { accessToken })
 
-    // #region get Assignments
     const queryParams = noteContent.status === 'Deployed' && noteContent.deployed_assignment_invitation
       ? {
         invitation: noteContent.deployed_assignment_invitation,
@@ -110,99 +105,117 @@ const AssignmentStats = ({ appContext }) => {
         groupBy: 'head',
         select: 'tail,weight',
       }
-    const assignments = await api.getAll('/edges', queryParams, { accessToken, resultsKey: 'groupedEdges' })
-    // #endregion
+    const assignmentsP = api.getAll('/edges', queryParams, { accessToken, resultsKey: 'groupedEdges' })
 
-    // #region get Bids
     const bidInvitation = Object.keys(noteContent.scores_specification ?? {}).find(p => p.endsWith('Bid'))
-    const bids = bidInvitation
-      ? await api.getAll('/edges', { invitation: bidInvitation, groupBy: 'head', select: 'tail,label' }, { accessToken, resultsKey: 'groupedEdges' })
-      : []
-    // #endregion
+    const bidsP = bidInvitation
+      ? api.getAll('/edges', { invitation: bidInvitation, groupBy: 'head', select: 'tail,label' }, { accessToken, resultsKey: 'groupedEdges' })
+      : Promise.resolve([])
 
-    // #region get Recommendations
     const recommendationInvitation = Object.keys(noteContent.scores_specification ?? {}).find(p => p.endsWith('Recommendation'))
-    const recommendations = recommendationInvitation
-      ? await api.getAll('/edges', { invitation: recommendationInvitation, groupBy: 'head', select: 'tail,weight' }, { accessToken, resultsKey: 'groupedEdges' })
-      : []
-    // #endregion
+    const recommendationsP = recommendationInvitation
+      ? api.getAll('/edges', { invitation: recommendationInvitation, groupBy: 'head', select: 'tail,weight' }, { accessToken, resultsKey: 'groupedEdges' })
+      : Promise.resolve([])
 
-    // #region compute data
-    const paperIds = {}
-    const userIds = {}
-    const bidDict = {}
-    papers.forEach((note) => {
-      paperIds[note.id] = note
-    })
-    users.forEach((member) => {
-      userIds[member] = member
-    })
-    bids.forEach((groupedEdge) => {
-      const paperId = groupedEdge.id.head
-      bidDict[paperId] = {}
-      groupedEdge.values.forEach((value) => {
-        if (paperId in paperIds) {
-          bidDict[paperId][value.tail] = value.label
+    await Promise.allSettled([papersP, usersP, assignmentsP, bidsP, recommendationsP]).then(
+      (results) => {
+        const failedRequest = results.find(p => p.status !== 'fulfilled')
+        if (failedRequest) {
+          promptError(failedRequest.reason?.message)
+          return
         }
-      })
-    })
 
-    const recommendationDict = {}
-    recommendations.forEach((groupedEdge) => {
-      const paperId = groupedEdge.id.head
-      recommendationDict[paperId] = {}
-      groupedEdge.values.forEach((value) => {
-        if (paperId in paperIds) {
-          recommendationDict[paperId][value.tail] = value.weight
-        }
-      })
-    })
-
-    const usersWithAssignments = new Set()
-    const papersWithAssignments = new Set()
-    const assignmentMap = assignments.flatMap((groupedEdge) => {
-      const paperId = groupedEdge.id.head
-      const paperBids = bidDict[paperId] || {}
-
-      const paperRecommendations = recommendationDict[paperId] || {}
-      const validGroupEdges = groupedEdge.values.filter(value => (paperId in paperIds) && (value.tail in userIds))
-      return validGroupEdges.map((value) => {
-        const otherScores = { bid: 'No Bid' }
-        if (value.tail in paperBids) {
-          otherScores.bid = paperBids[value.tail]
-        }
-        if (value.tail in paperRecommendations) {
-          otherScores.recommendation = paperRecommendations[value.tail]
+        let papers = []
+        if (paperInvitationElements[0].includes('/-/')) {
+          papers = results[0].value
         } else {
-          otherScores.recommendation = 0
+          papers = results[0].value?.groups?.[0]?.members.map(p => ({ id: p }))
         }
-        papersWithAssignments.add(paperId)
-        usersWithAssignments.add(value.tail)
-        return {
-          groupId: value.tail,
-          paperId,
-          score: value.weight,
-          otherScores,
-        }
-      })
-    })
 
-    const unassignedPapersList = []
-    Object.keys(paperIds).forEach((paperId) => {
-      if (!papersWithAssignments.has(paperId)) {
-        unassignedPapersList.push(paperId)
-      }
-    })
+        const users = results[1].value?.groups?.[0]?.members
+        const assignments = results[2].value
+        const bids = results[3].value
+        const recommendations = results[4].value
 
-    const unassignedUsersList = []
-    Object.keys(userIds).forEach((user) => {
-      if (!usersWithAssignments.has(user)) {
-        unassignedUsersList.push(user)
-      }
-    })
-    // #endregion
+        // #region compute data
+        const paperIds = {}
+        const userIds = {}
+        const bidDict = {}
 
-    setMatchLists([assignmentMap, unassignedPapersList, unassignedUsersList])
+        papers.forEach((note) => {
+          paperIds[note.id] = note
+        })
+        users.forEach((member) => {
+          userIds[member] = member
+        })
+        bids.forEach((groupedEdge) => {
+          const paperId = groupedEdge.id.head
+          bidDict[paperId] = {}
+          groupedEdge.values.forEach((value) => {
+            if (paperId in paperIds) {
+              bidDict[paperId][value.tail] = value.label
+            }
+          })
+        })
+
+        const recommendationDict = {}
+        recommendations.forEach((groupedEdge) => {
+          const paperId = groupedEdge.id.head
+          recommendationDict[paperId] = {}
+          groupedEdge.values.forEach((value) => {
+            if (paperId in paperIds) {
+              recommendationDict[paperId][value.tail] = value.weight
+            }
+          })
+        })
+
+        const usersWithAssignments = new Set()
+        const papersWithAssignments = new Set()
+        const assignmentMap = assignments.flatMap((groupedEdge) => {
+          const paperId = groupedEdge.id.head
+          const paperBids = bidDict[paperId] || {}
+
+          const paperRecommendations = recommendationDict[paperId] || {}
+          const validGroupEdges = groupedEdge.values.filter(value => (paperId in paperIds) && (value.tail in userIds))
+          return validGroupEdges.map((value) => {
+            const otherScores = { bid: 'No Bid' }
+            if (value.tail in paperBids) {
+              otherScores.bid = paperBids[value.tail]
+            }
+            if (value.tail in paperRecommendations) {
+              otherScores.recommendation = paperRecommendations[value.tail]
+            } else {
+              otherScores.recommendation = 0
+            }
+            papersWithAssignments.add(paperId)
+            usersWithAssignments.add(value.tail)
+            return {
+              groupId: value.tail,
+              paperId,
+              score: value.weight,
+              otherScores,
+            }
+          })
+        })
+
+        const unassignedPapersList = []
+        Object.keys(paperIds).forEach((paperId) => {
+          if (!papersWithAssignments.has(paperId)) {
+            unassignedPapersList.push(paperId)
+          }
+        })
+
+        const unassignedUsersList = []
+        Object.keys(userIds).forEach((user) => {
+          if (!usersWithAssignments.has(user)) {
+            unassignedUsersList.push(user)
+          }
+        })
+        // #endregion
+
+        setMatchLists([assignmentMap, unassignedPapersList, unassignedUsersList])
+      },
+    )
   }
 
   const loadMatchingDataFromNotes = async () => {
