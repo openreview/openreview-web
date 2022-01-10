@@ -453,6 +453,7 @@ export default function Column(props) {
     }
 
     if (startInvitation) {
+      console.log('startInvitation', startInvitation)
       if (startInvitation.id === 'staticList') {
         let idsToInclude = []
         if (startInvitation.query.storageKey) {
