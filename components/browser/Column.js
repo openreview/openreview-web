@@ -221,6 +221,7 @@ export default function Column(props) {
       entityName = prettyInvitationId(startInvitation.id)
     }
     if (isLoadMoreButton) return pluralizeString(entityName).toLowerCase()
+    if (entityName === 'staticList') return 'Search list...'
     return `Search all ${pluralizeString(entityName).toLowerCase()}...`
   }
 
