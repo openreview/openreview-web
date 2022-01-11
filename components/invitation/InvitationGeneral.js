@@ -226,6 +226,7 @@ const InvitationGeneralEdit = ({
       duedateTimezone,
       expDateTimezone,
       apiVersion,
+      rdate,
       ...rest
     } = generalInfo
     return {

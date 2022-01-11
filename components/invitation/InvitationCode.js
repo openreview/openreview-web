@@ -24,6 +24,7 @@ const InvitationCode = ({
           ...invitation,
           [codeType]: code,
           apiVersion: undefined,
+          rdate: undefined,
         }
         : {
           invitation: {

@@ -13,7 +13,7 @@ const InvitationReply = ({
   invitation, profileId, accessToken, loadInvitation, replyField, readOnly = false,
 }) => {
   const isV1Invitation = invitation.apiVersion === 1
-  const [replyString, setReplyString] = useState(JSON.stringify(invitation[replyField], undefined, 2))
+  const [replyString, setReplyString] = useState(invitation[replyField] ? JSON.stringify(invitation[replyField], undefined, 2) : '[]')
   const [isSaving, setIsSaving] = useState(false)
 
   const getTitle = () => {
@@ -32,6 +32,7 @@ const InvitationReply = ({
         ...invitation,
         reply: replyObj,
         apiVersion: undefined,
+        rdate: undefined,
       }
       case 'edge': return {
         invitation: {
@@ -47,6 +48,7 @@ const InvitationReply = ({
         ...invitation,
         replyForumViews: replyObj,
         apiVersion: undefined,
+        rdate: undefined,
       } : {
         invitation: {
           id: invitation.id,
