@@ -151,6 +151,11 @@ For more details on the difference between OpenReview's TeX support and other sy
 
   If your profile contains a confirmed email or a name that does not belong to you, please contact the OpenReview team by emailing info@openreview.net.`,
   }, {
+    q: 'What is my profile ID, and where can I find it?',
+    id: 'question-profile-id',
+    a: 'Your OpenReview profile ID is a unique string made up of a tilde concatenated with your full name and a number, for example ∼First_Last1. If you go to your OpenReview profile, your ID will be at the end of the url (for example, openreview.net/profile?id=∼Your_Id1)',
+  },
+  {
     q: 'How do I enter institution data to my profile?',
     id: 'question-institution-relations',
     a: `You must enter at least one position under 'Education & Career History' for your profile to be saved. You can choose one position from the dropdown, which includes the most commonly used ones. If none of the posiions in the dropdown reflect the position you are entering, you can type your own. Next, please enter a valid institution name (e.g., University of Massachusettss, Amherst) and domain (e.g., umass.edu) from the dropdown or type in if not present. You can leave the 'End' field empty if you are currently in that position, or you can enter when you are expected to leave that position.
@@ -369,7 +374,7 @@ Note that assigning an area chair using python does not send an email to that us
   },
   {
     q: 'How can I automatically assign Reviewers/ACs to papers?',
-    id: 'question-edge-browswer',
+    id: 'question-edge-browser',
     a: `#### Running Automatic Paper Matching
 
 In order to automatically assign Reviewers and Area Chairs, you must:
@@ -477,7 +482,7 @@ Running the paper matching setup should output a comment on your venue request p
 
 You can confirm that the affinity scores were computed by checking if an invitation for the scores was created: https://api.openreview.net/edges?invitation=your/venue/id/role/-/Affinity_Score. 
 
-After you compute the scores by running Paper Matching Setup, a link for 'Paper Assignments' should appear on your Program Chair console. From there, you should be able to use the edge browser to automatically make assignments: https://openreview.net/faq#question-edge-browswer. All members of a group must have OpenReview profiles in order for the automatic assignment algorithm to run. Any members without profiles must be removed from the group before moving onto the next step. 
+After you compute the scores by running Paper Matching Setup, a link for 'Paper Assignments' should appear on your Program Chair console. From there, you should be able to use the edge browser to automatically make assignments: https://openreview.net/faq#question-edge-browser. All members of a group must have OpenReview profiles in order for the automatic assignment algorithm to run. Any members without profiles must be removed from the group before moving onto the next step. 
 
     `,
   },
