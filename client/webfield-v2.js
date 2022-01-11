@@ -704,6 +704,19 @@ module.exports = (function() {
     registerHelpers();
   };
 
+  var getDueDateStatus = function(date) {
+    var day = 24 * 60 * 60 * 1000;
+    var diff = Date.now() - date.getTime();
+
+    if (diff > 0) {
+      return 'expired';
+    }
+    if (diff > -3 * day) {
+      return 'warning';
+    }
+    return '';
+  };
+
   var newTaskList = function(invitations, options) {
     var taskDefaults = {
       container: '#notes',
@@ -716,19 +729,6 @@ module.exports = (function() {
 
     var dateOptions = {
       hour: 'numeric', minute: 'numeric', day: '2-digit', month: 'short', year: 'numeric', timeZoneName: 'long'
-    };
-
-    var getDueDateStatus = function(date) {
-      var day = 24 * 60 * 60 * 1000;
-      var diff = Date.now() - date.getTime();
-
-      if (diff > 0) {
-        return 'expired';
-      }
-      if (diff > -3 * day) {
-        return 'warning';
-      }
-      return '';
     };
 
     var allInvitations = invitations.sort(function(a, b) {
@@ -779,6 +779,47 @@ module.exports = (function() {
     $container.append(taskListHtml);
   };
 
+  // Used by TMLR Journal consoles
+  var eicTaskList = function(invitations, forumId, options) {
+    var defaults = {
+      referrer: ''
+    };
+    options = _.defaults(options, defaults);
+
+    invitations = invitations || [];
+
+    // Order by duedate
+    invitations.sort(function(a, b) { return a.duedate - b.duedate; });
+
+    var formattedInvitations = invitations.map(function(inv) {
+      var duedate = new Date(inv.duedate);
+      inv.dueDateStr = duedate.toLocaleDateString('en-GB', {
+        hour: 'numeric', minute: 'numeric', day: '2-digit', month: 'short', year: 'numeric', timeZoneName: 'long'
+      });
+      inv.dueDateStatus = getDueDateStatus(duedate);
+      inv.groupId = inv.id.split('/-/')[0];
+      inv.forumId = forumId;
+      return inv;
+    });
+
+    return (
+      (formattedInvitations.length > 0 ? '<h4>Tasks:</h4>' : '') +
+      '<ul class="list-unstyled submissions-list task-list eic-task-list mt-0 mb-0">' +
+        formattedInvitations.map(function(inv) {
+          return (
+            '<li class="note ' + (inv.complete ? 'completed' : '') + '">' +
+              '<h4><a href="/forum?id=' + inv.forumId + (inv.complete ? '' : '&invitationId=' + inv.id) + (options.referrer ? '&referrer=' + options.referrer : '') + '" target="_blank">' +
+                view.prettyInvitationId(inv.id) +
+              '</a></h4>' +
+              '<p class="mb-1"><span class="duedate ' + inv.dueDateStatus +'">Due: ' + inv.dueDateStr + '</span></p>' +
+              '<p class="mb-0">' + (inv.complete ? 'Complete' : 'Incomplete') + ', ' + inv.replies.length + ' ' + (inv.replies.length === 1 ? 'Reply' : 'Replies') + '</p>' +
+            '</li>'
+          );
+        }).join('\n') +
+      '</ul>'
+    );
+  };
+
   var renderTasks = function(container, invitations, options) {
     var defaults = {
       emptyMessage: 'No outstanding tasks for this venue'
@@ -796,7 +837,7 @@ module.exports = (function() {
     $('.tabs-container a[href="#' + container + '"]').parent().show();
   };
 
-  var sendFile = function(url, data, contentType) {
+  var sendFile = function(url, data, contentType, fieldName) {
     var baseUrl = window.OR_API_V2_URL ? window.OR_API_V2_URL : '';
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
     var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
@@ -815,6 +856,9 @@ module.exports = (function() {
     }).fail(function(jqXhr, textStatus, errorThrown) {
       console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus);
       console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2));
+      if (fieldName) {
+        $('input.form-control.note_content_value_input.note_' + fieldName).val('');
+      }
     });
   };
 
@@ -2518,7 +2562,7 @@ module.exports = (function() {
 
   var getRepliesfromSubmission = function(venueId, submission, name, options) {
     return submission.details.replies.filter(function(reply) {
-      return reply.invitations.indexOf(getInvitationId(venueId, submission.number, name, options)) >= 0;
+      return reply.invitations.includes(getInvitationId(venueId, submission.number, name, options));
     });
   }
 
@@ -2557,6 +2601,7 @@ module.exports = (function() {
       renderSubmissionList: renderSubmissionList,
       setup: setup,
       submissionList: submissionList,
+      eicTaskList: eicTaskList,
       errorMessage: Webfield.ui.errorMessage,
       done: Webfield.ui.done
     },
