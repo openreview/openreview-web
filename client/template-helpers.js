@@ -311,7 +311,7 @@ Handlebars.registerHelper('noteAuthorsV2', function (readers, content, signature
   if (
     content?.authorids?.readers &&
     !content.authorids.readers.includes('everyone') &&
-    !_.isEqual(readers?.sort(), content?.authorids?.readers?.sort())
+    !_.isEqual(readers?.sort(), content.authorids.readers.sort())
   ) {
     // note reader and author reader are not the same
     privateLabel = true
