@@ -40,6 +40,7 @@ const InvitationEditor = ({
         // eslint-disable-next-line no-nested-ternary
         replyField="replyForumViews"
       />
+      <InvitationChildInvitations invitation={invitation} />
       <InvitationCode
         invitation={invitation}
         profileId={profileId}
@@ -69,7 +70,6 @@ const InvitationEditor = ({
           </>
         )
       }
-      <InvitationChildInvitations invitation={invitation} />
     </>
   )
 }

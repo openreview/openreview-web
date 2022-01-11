@@ -83,8 +83,11 @@ main.invitation {
   .info-content{
     width:88%;
   }
-  .info-edit-control{
+  .info-edit-control {
     width:50%;
+    input[type=number] {
+      width:100px;
+    }
   }
   .spinner-small {
     width: 40px;
