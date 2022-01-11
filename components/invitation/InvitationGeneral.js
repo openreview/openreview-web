@@ -412,7 +412,7 @@ const InvitationGeneralEdit = ({
         <div className="info-edit-control">
           <div className="d-flex">
             <DatetimePicker existingValue={generalInfo.cdate} timeZone={generalInfo.activationDateTimezone} onChange={e => setGeneralInfo({ type: 'cdate', payload: e })} />
-            <TimezoneDropdown className="timezone-dropdown" value={generalInfo.activationDateTimezone} onChange={e => setGeneralInfo({ type: 'activationDateTimezone', payload: e.value })} />
+            <TimezoneDropdown className="timezone-dropdown dropdown-sm" value={generalInfo.activationDateTimezone} onChange={e => setGeneralInfo({ type: 'activationDateTimezone', payload: e.value })} />
           </div>
         </div>
       </div>
@@ -421,7 +421,7 @@ const InvitationGeneralEdit = ({
         <div className="info-edit-control">
           <div className="d-flex">
             <DatetimePicker existingValue={generalInfo.duedate} timeZone={generalInfo.duedateTimezone} onChange={e => setGeneralInfo({ type: 'duedate', payload: e })} />
-            <TimezoneDropdown className="timezone-dropdown" value={generalInfo.duedateTimezone} onChange={e => setGeneralInfo({ type: 'duedateTimezone', payload: e.value })} />
+            <TimezoneDropdown className="timezone-dropdown dropdown-sm" value={generalInfo.duedateTimezone} onChange={e => setGeneralInfo({ type: 'duedateTimezone', payload: e.value })} />
           </div>
         </div>
       </div>
@@ -430,7 +430,7 @@ const InvitationGeneralEdit = ({
         <div className="info-edit-control">
           <div className="d-flex">
             <DatetimePicker existingValue={generalInfo.expdate} timeZone={generalInfo.expDateTimezone} onChange={e => setGeneralInfo({ type: 'expdate', payload: e })} />
-            <TimezoneDropdown className="timezone-dropdown" value={generalInfo.expDateTimezone} onChange={e => setGeneralInfo({ type: 'expDateTimezone', payload: e.value })} />
+            <TimezoneDropdown className="timezone-dropdown dropdown-sm" value={generalInfo.expDateTimezone} onChange={e => setGeneralInfo({ type: 'expDateTimezone', payload: e.value })} />
           </div>
         </div>
       </div>

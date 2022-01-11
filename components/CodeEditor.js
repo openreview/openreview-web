@@ -113,7 +113,7 @@ const CodeEditor = ({
   }, [])
 
   return (
-    <div ref={containerRef} />
+    <div className='code-editor' ref={containerRef} />
   )
 }
 

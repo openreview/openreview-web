@@ -102,7 +102,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
 
   &.rc-picker-cell-selected {
     color: #fff;
-    background: constants.$orRed;
+    background: #4d8093;
   }
 
   .rc-picker-cell-inner {
@@ -121,7 +121,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
     transition: background 0.3s, border 0.3s;
 
     &:hover {
-      background: rgba(55, 11, 7, 0.1);;
+      background: rgba(55, 11, 7, 0.1);
     }
   }
 
@@ -153,7 +153,19 @@ $input-placeholder-color: hsv(0, 0, 75%);
 
 .rc-picker-now {
   cursor: pointer;
-  text-align: left;
+  background-color: #4d8093;
+  border: 2px solid #3f6978;
+  font-weight: bold;
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  text-align: center;
+  min-width: 5rem;
+  border-radius: 3px;
+  padding: 1px 6px;
+
+  .rc-picker-now-btn {
+    color:white;
+  }
 }
 
 .rc-picker-ok {
@@ -185,7 +197,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
   .rc-picker-week-panel-row {
     &:hover {
       .rc-picker-cell {
-        background: red;
+        background: #4d8093;
       }
     }
 
@@ -209,7 +221,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
 
   .rc-picker-cell:hover > .rc-picker-cell-inner,
   .rc-picker-cell-selected > .rc-picker-cell-inner {
-    background: constants.$orRed;
+    background: #4d8093;
   }
 }
 
@@ -251,7 +263,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
 
     .rc-picker-time-panel-cell-selected {
       color: #fff;
-      background: constants.$orRed;
+      background: #4d8093;
     }
 
     .rc-picker-time-panel-column-active {
@@ -328,7 +340,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
     outline: none;
     padding: 0.375rem 0.75rem;
     line-height: 1.5;
-    height: 30px;
+    height: 26px;
   }
 }
 
@@ -351,7 +363,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
 // ======================= Dropdown =======================
 .rc-picker-dropdown {
   position: absolute;
-  box-shadow: 0 0 1px red;
+  box-shadow: 0 0 1px #659aae;
 
   .rc-picker-dropdown-range {
     padding: 10px 0;
