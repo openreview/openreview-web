@@ -100,6 +100,12 @@ const InvitationInfo = ({ appContext }) => {
             replyField={invitation.apiVersion === 1 ? 'reply' : (invitation.edge ? 'edge' : 'edit')}
             readOnly={true}
           />
+          <InvitationReply
+            invitation={invitation}
+            // eslint-disable-next-line no-nested-ternary
+            replyField="replyForumViews"
+            readOnly={true}
+          />
         </>
       )}
     </>
