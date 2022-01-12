@@ -6,7 +6,11 @@ import Router from 'next/router'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
 import {
-  auth, getTokenPayload, setAuthCookie, removeAuthCookie, cookieExpiration,
+  auth,
+  getTokenPayload,
+  setAuthCookie,
+  removeAuthCookie,
+  cookieExpiration,
 } from '../lib/auth'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 import mathjaxConfig from '../lib/mathjax-config'
@@ -47,7 +51,11 @@ export default class OpenReviewApp extends App {
   }
 
   loginUser(authenticatedUser, userAccessToken, redirectPath = '/') {
-    this.setState({ user: authenticatedUser, accessToken: userAccessToken, logoutRedirect: false })
+    this.setState({
+      user: authenticatedUser,
+      accessToken: userAccessToken,
+      logoutRedirect: false,
+    })
     setAuthCookie(userAccessToken)
 
     // Need pass new accessToken to Webfield so legacy ajax functions work
@@ -55,7 +63,9 @@ export default class OpenReviewApp extends App {
     window.Webfield2.setToken(userAccessToken)
 
     const timeToExpiration = cookieExpiration - 1000
-    this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
+    this.logoutTimer = setTimeout(() => {
+      this.logoutUser(null)
+    }, timeToExpiration)
 
     Router.push(redirectPath)
   }
@@ -64,7 +74,11 @@ export default class OpenReviewApp extends App {
     const { user: authenticatedUser, exp: tokenExpiration } = getTokenPayload(userAccessToken)
     if (!authenticatedUser) return
 
-    this.setState({ user: authenticatedUser, accessToken: userAccessToken, logoutRedirect: false })
+    this.setState({
+      user: authenticatedUser,
+      accessToken: userAccessToken,
+      logoutRedirect: false,
+    })
 
     if (!setCookie) return
     setAuthCookie(userAccessToken)
@@ -74,7 +88,9 @@ export default class OpenReviewApp extends App {
     window.Webfield2.setToken(userAccessToken)
 
     const timeToExpiration = tokenExpiration * 1000 - Date.now() - 1000
-    this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
+    this.logoutTimer = setTimeout(() => {
+      this.logoutUser(null)
+    }, timeToExpiration)
   }
 
   logoutUser(redirectPath = '/') {
@@ -96,7 +112,10 @@ export default class OpenReviewApp extends App {
       user: {
         ...state.user,
         profile: {
-          ...state.user.profile, first, middle, last,
+          ...state.user.profile,
+          first,
+          middle,
+          last,
         },
       },
     }))
@@ -187,7 +206,9 @@ export default class OpenReviewApp extends App {
 
       // Automatically log the user out slightly before the token is set to expire
       const timeToExpiration = expiration - Date.now() - 1000
-      this.logoutTimer = setTimeout(() => { this.logoutUser(null) }, timeToExpiration)
+      this.logoutTimer = setTimeout(() => {
+        this.logoutUser(null)
+      }, timeToExpiration)
     } else {
       this.setState({ userLoading: false })
     }
@@ -309,9 +330,7 @@ export default class OpenReviewApp extends App {
 
 // Send page page performace information to Google Analytics. For more info see:
 // https://nextjs.org/docs/advanced-features/measuring-performance
-export function reportWebVitals({
-  id, name, label, value,
-}) {
+export function reportWebVitals({ id, name, label, value }) {
   if (process.env.IS_PRODUCTION || process.env.IS_STAGING) {
     window.gtag('event', name, {
       event_category: label === 'web-vital' ? 'Web Vitals' : 'Next.js Metrics',
