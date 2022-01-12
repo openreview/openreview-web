@@ -447,9 +447,20 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
       var url = valueString.startsWith('https://openreview.net') ? valueString.replace('https://openreview.net', '') : valueString
       valueString = `<a href="${url}" target="_blank" rel="nofollow noreferrer">${url}</a>`;
     } else if (profileRegex.test(valueString)){
-      valueString = `<a href="/profile?id=${valueString}" target="_blank">${view.prettyId(valueString)}</a>`
+      valueString = valueString.replaceAll(profileRegex, p=>`<a href="/profile?id=${p}" target="_blank">${view.prettyId(p)}</a>`);
     } else {
       valueString = Handlebars.Utils.escapeExpression(valueString);
+    }
+
+    if (
+      noteObj.version === 2 &&
+      noteObj.content[fieldName]?.readers &&
+      !noteObj.content[fieldName].readers.includes('everyone') &&
+      !_.isEqual(noteObj.readers?.sort(), noteObj.content[fieldName].readers.sort())
+    ) {
+      var tooltip = `privately revealed to ${noteObj.content[fieldName].readers.map(p =>view.prettyId(p)).join(', ')}`
+      var privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
+      valueString = `${privateLabel} ${valueString}`
     }
 
     contents.push({
