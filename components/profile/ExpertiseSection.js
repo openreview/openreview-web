@@ -67,7 +67,13 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
   const [expertises, setExpertises] = useReducer(
     expertiseReducer,
     profileExpertises?.length > 0
-      ? profileExpertises?.map(p => ({ ...p, key: nanoid(), keyWordsValue: p.keywords.join(',') }))
+      ? profileExpertises?.map(p => ({
+        ...p,
+        ...(p.start && { start: Number.isNaN(Number(p.start)) ? null : Number(p.start) }),
+        ...(p.end && { end: Number.isNaN(Number(p.end)) ? null : Number(p.end) }),
+        key: nanoid(),
+        keyWordsValue: p.keywords.join(','),
+      }))
       : [...Array(3).keys()].map(() => ({
         keywords: [],
         keyWordsValue: '', // the value for input
