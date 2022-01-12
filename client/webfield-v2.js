@@ -240,19 +240,21 @@ module.exports = (function() {
 
   var getAllSubmissions = function(invitationId, options) {
     var defaults = {
-      numbers: [],
+      numbers: null,
       sort: 'number:desc'
     };
     options = _.defaults(options, defaults);
-    var noteNumbers = options.numbers;
-    var noteNumbersStr = noteNumbers.join(',');
     var query = {
       invitation: invitationId,
       details: 'replies',
       sort: options.sort
     }
-    if (noteNumbersStr) {
-      query.number = noteNumbersStr;
+
+    if (Array.isArray(options.numbers)) {
+      if (!options.numbers.length) {
+        return [];
+      }
+      query.number = options.numbers.join(',');
     }
 
     return getAll('/notes', query);
