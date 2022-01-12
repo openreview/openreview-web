@@ -240,6 +240,7 @@ module.exports = (function() {
 
   var getAllSubmissions = function(invitationId, options) {
     var defaults = {
+      numbers: null,
       sort: 'number:desc'
     };
     options = _.defaults(options, defaults);
@@ -249,7 +250,7 @@ module.exports = (function() {
       sort: options.sort
     }
 
-    if (options.numbers) {
+    if (Array.isArray(options.numbers)) {
       if (!options.numbers.length) {
         return [];
       }
