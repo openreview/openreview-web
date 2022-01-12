@@ -447,7 +447,7 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
       var url = valueString.startsWith('https://openreview.net') ? valueString.replace('https://openreview.net', '') : valueString
       valueString = `<a href="${url}" target="_blank" rel="nofollow noreferrer">${url}</a>`;
     } else if (profileRegex.test(valueString)){
-      valueString = valueString.replaceAll(profileRegex, p=>`<a href="/profile?id=${p}" target="_blank">${view.prettyId(p)}</a>`);
+      valueString = valueString.replace(profileRegex, p => `<a href="/profile?id=${p}" target="_blank">${view.prettyId(p)}</a>`);
     } else {
       valueString = Handlebars.Utils.escapeExpression(valueString);
     }
