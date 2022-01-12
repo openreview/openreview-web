@@ -1,6 +1,7 @@
 {
-  "extends": ["next", "prettier"],
+  "extends": ["airbnb-base", "next", "prettier"],
   "rules": {
+    "semi": ["error", "never"],
     "no-unused-vars": "off",
     "prefer-destructuring": ["error", { "object": true, "array": false }],
     "arrow-parens": [2, "as-needed", { "requireForBlockBody": true }],
