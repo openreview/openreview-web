@@ -208,7 +208,6 @@ export default function Forum({ forumNote, clientJsLoading }) {
     const navBarHeight = 63
     const y = el.getBoundingClientRect().top + window.pageYOffset - navBarHeight
 
-    // TODO: provide alternate scroll for IE11
     window.scrollTo({ top: y, behavior: 'smooth' })
   }
 

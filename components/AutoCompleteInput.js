@@ -6,7 +6,7 @@ import Router from 'next/router'
 import { debounce } from 'lodash'
 import Icon from './Icon'
 import api from '../lib/api-client'
-import { getTitleObjects, getTokenObjects } from '../client/search'
+import { getTitleObjects, getTokenObjects } from '../lib/utils'
 
 const AutoCompleteInput = () => {
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
@@ -66,6 +66,7 @@ const AutoCompleteInput = () => {
         setAutoCompleteItems([...tokenObjects, ...titleObjects])
       }
     } catch (error) {
+      console.log(error)
       promptError(`There was an error while searching for "${term}".`)
     }
   }

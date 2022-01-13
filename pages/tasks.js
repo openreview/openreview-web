@@ -56,7 +56,7 @@ const Tasks = ({ appContext }) => {
     const commonQueryParam = {
       invitee: true, duedate: true, details: 'repliedTags', version: 1, // version:1 works only for v2 calls, added here for simplicity
     }
-    const commonOption = { accessToken, cachePolicy: 'no-ie' }
+    const commonOption = { accessToken }
 
     const invitationPromises = [
       api.getCombined('/invitations', { ...commonQueryParam, replyto: true, details: 'replytoNote,repliedNotes' }, null, commonOption).then(addPropertyToInvitations('noteInvitation')),
