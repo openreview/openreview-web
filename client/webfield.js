@@ -298,6 +298,10 @@ module.exports = (function() {
       searchParams.venue = options.venue;
     }
 
+    if (options.venueid) {
+      searchParams.venueid = options.venueid;
+    }
+
     return get('/notes/search', searchParams)
       .then(function(result) {
         return result.notes;
@@ -378,7 +382,12 @@ module.exports = (function() {
         searchParams.term += ' ' + searchParams.subject;
         searchParams.term = searchParams.term.trim();
       }
-      return searchSubmissions(groupId, searchParams.term, {pageSize: searchParams.pageSize, invitation: searchParams.invitation, venue: searchParams.venue})
+      return searchSubmissions(groupId, searchParams.term, {
+        pageSize: searchParams.pageSize,
+        invitation: searchParams.invitation,
+        venue: searchParams.venue,
+        venueid: searchParams.venueid
+      })
         .then(searchParams.onResults);
     }
   };
@@ -925,6 +934,7 @@ module.exports = (function() {
                 pageSize: options.search.pageSize,
                 invitation: options.search.invitation,
                 venue: options.search.venue,
+                venueid: options.search.venueid,
                 onResults: options.search.onResults,
                 localSearch: options.search.localSearch
               });
@@ -953,6 +963,7 @@ module.exports = (function() {
                 subject: selectedSubject,
                 invitation: options.search.invitation,
                 venue: options.search.venue,
+                venueid: options.search.venueid,
                 onResults: options.search.onResults,
                 localSearch: options.search.localSearch
               });
@@ -987,6 +998,7 @@ module.exports = (function() {
               subject: selectedSubject,
               invitation: options.search.invitation,
               venue: options.search.venue,
+              venueid: options.search.venueid,
               onResults: options.search.onResults,
               localSearch: options.search.localSearch
             });
@@ -1025,6 +1037,7 @@ module.exports = (function() {
                 pageSize: options.search.pageSize,
                 invitation: options.search.invitation,
                 venue: options.search.venue,
+                venueid: options.search.venueid,
                 onResults: options.search.onResults,
                 localSearch: options.search.localSearch
               }, extraParams));
