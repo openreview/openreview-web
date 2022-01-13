@@ -240,19 +240,21 @@ module.exports = (function() {
 
   var getAllSubmissions = function(invitationId, options) {
     var defaults = {
-      numbers: [],
+      numbers: null,
       sort: 'number:desc'
     };
     options = _.defaults(options, defaults);
-    var noteNumbers = options.numbers;
-    var noteNumbersStr = noteNumbers.join(',');
     var query = {
       invitation: invitationId,
       details: 'replies',
       sort: options.sort
     }
-    if (noteNumbersStr) {
-      query.number = noteNumbersStr;
+
+    if (Array.isArray(options.numbers)) {
+      if (!options.numbers.length) {
+        return [];
+      }
+      query.number = options.numbers.join(',');
     }
 
     return getAll('/notes', query);
@@ -1362,11 +1364,13 @@ module.exports = (function() {
     });
   };
 
-  var searchSubmissions = function(groupId, term, options) {
+  var searchSubmissions = function(term, options) {
     var defaults = {
       pageSize: 100,
       offset: 0,
-      invitation: null
+      invitation: null,
+      venue: null,
+      venueid: null
     };
     options = _.assign(defaults, options);
 
@@ -1375,13 +1379,20 @@ module.exports = (function() {
       type: 'terms',
       content: 'all',
       source: 'forum',
-      group: groupId,
       limit: options.pageSize,
       offset: options.offset
     };
 
     if (options.invitation) {
       searchParams.invitation = options.invitation;
+    }
+
+    if (options.venueid) {
+      searchParams.venueid = options.venueid;
+    }
+
+    if (options.venue) {
+      searchParams.venue = options.venue;
     }
 
     return get('/notes/search', searchParams)
@@ -1452,7 +1463,12 @@ module.exports = (function() {
         searchParams.term += ' ' + searchParams.subject;
         searchParams.term = searchParams.term.trim();
       }
-      return searchSubmissions(groupId, searchParams.term, {pageSize: searchParams.pageSize, invitation: searchParams.invitation})
+      return searchSubmissions(searchParams.term, {
+        pageSize: searchParams.pageSize,
+        invitation: searchParams.invitation,
+        venue: searchParams.venue,
+        venueid: searchParams.venueid
+      })
         .then(searchParams.onResults);
     }
   };
@@ -1644,6 +1660,8 @@ module.exports = (function() {
         enabled: true,
         localSearch: true,
         invitation: null,
+        venue: null,
+        venueid: null,
         subjectAreas: null,
         subjectAreaDropdown: 'advanced',
         pageSize: 1000,
@@ -1743,6 +1761,8 @@ module.exports = (function() {
                 term: term,
                 pageSize: options.search.pageSize,
                 invitation: options.search.invitation,
+                venue: options.search.venue,
+                venueid: options.search.venueid,
                 onResults: options.search.onResults,
                 localSearch: options.search.localSearch
               });
@@ -1770,6 +1790,8 @@ module.exports = (function() {
                 pageSize: options.search.pageSize,
                 subject: selectedSubject,
                 invitation: options.search.invitation,
+                venue: options.search.venue,
+                venueid: options.search.venueid,
                 onResults: options.search.onResults,
                 localSearch: options.search.localSearch
               });
@@ -1803,6 +1825,8 @@ module.exports = (function() {
               pageSize: options.search.pageSize,
               subject: selectedSubject,
               invitation: options.search.invitation,
+              venue: options.search.venue,
+              venueid: options.search.venueid,
               onResults: options.search.onResults,
               localSearch: options.search.localSearch
             });
@@ -1840,6 +1864,8 @@ module.exports = (function() {
                 term: term,
                 pageSize: options.search.pageSize,
                 invitation: options.search.invitation,
+                venue: options.search.venue,
+                venueid: options.search.venueid,
                 onResults: options.search.onResults,
                 localSearch: options.search.localSearch
               }, extraParams));
@@ -2197,6 +2223,8 @@ module.exports = (function() {
         enabled: true,
         localSearch: false,
         invitation: invitation,
+        venue: options.query['content.venue'],
+        venueid: options.query['content.venueid'],
         onResults: function(searchResults) {
           Webfield.ui.searchResults(searchResults, searchResultsListOptions);
         },

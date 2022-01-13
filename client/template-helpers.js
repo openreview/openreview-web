@@ -251,8 +251,13 @@ Handlebars.registerHelper('noteAuthorsV2', function (readers, content, signature
   var html = '';
   var privateLabel = false;
 
-  if (!_.isEqual(readers?.sort(), content?.authorids?.readers?.sort())) { // note reader and author are not the same
-    privateLabel = true;
+  if (
+    content?.authorids?.readers &&
+    !content.authorids.readers.includes('everyone') &&
+    !_.isEqual(readers?.sort(), content.authorids.readers.sort())
+  ) {
+    // note reader and author reader are not the same
+    privateLabel = true
   }
 
   var authors = content?.authors?.value;
