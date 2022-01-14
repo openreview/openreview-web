@@ -296,10 +296,8 @@ module.exports = (function() {
 
     var filterInviteeAndNumbers = function(inv) {
       var number = getNumberfromInvitation(inv.id, options.submissionGroupName);
-      if (number && options.numbers) {
-        return options.numbers.includes(number) && _.some(inv.invitees, function(invitee) { return invitee.indexOf(roleName) !== -1; });
-      }
-      return _.some(inv.invitees, function(invitee) { return invitee.indexOf(roleName) !== -1; });
+      var invMatchesNumber = !(number && options.numbers) || options.numbers.includes(number)
+      return _.some(inv.invitees, function(invitee) { return invitee.includes(roleName) }) && invMatchesNumber;
     };
 
     return $.when(
