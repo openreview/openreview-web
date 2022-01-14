@@ -1,6 +1,3 @@
-/**
- * Changes: none
- */
 Handlebars.registerHelper('truncate', function(str, len) {
   str = Handlebars.Utils.escapeExpression(str);
 
@@ -674,33 +671,11 @@ Handlebars.registerHelper('forumReadersIcon', function(readersArr) {
   return new Handlebars.SafeString(readersHtml);
 });
 
-var urlFromGroupId = function(groupId, editMode) {
-  var commonGroups = ['everyone', '(anonymous)', '(guest)'];
-  if (!groupId || commonGroups.indexOf(groupId) !== -1) {
-    return '';
-  } else if (groupId.indexOf('~') === 0) {
-    return '/profile?id=' + groupId;
-  } else if (groupId.indexOf('@') !== -1) {
-    return '/profile?email=' + groupId;
+Handlebars.registerHelper('getAnonId', function(varName, memberId, memberAnonIdMap, options) {
+  if (!options.data.root) {
+    options.data.root = {};
   }
-  return '/group' + (editMode ? '/edit' : '') + '?id=' + groupId;
-};
-
-Handlebars.registerHelper('groupUrl', urlFromGroupId);
-
-Handlebars.registerHelper('groupIdList', function(groupIds) {
-  if (!_.isArray(groupIds)) {
-    return '';
-  }
-
-  var commonGroups = ['everyone', '(anonymous)', '(guest)', '~', '~Super_User1'];
-  var linksHtml = groupIds.map(function(groupId) {
-    return commonGroups.indexOf(groupId) === -1 ?
-      '<a href="' + urlFromGroupId(groupId) + '" target="_blank">' + view.prettyId(groupId) + '</a>' :
-      view.prettyId(groupId);
-  }).join(', ');
-
-  return new Handlebars.SafeString(linksHtml);
+  options.data.root[varName] = memberAnonIdMap.get(memberId);
 });
 
 Handlebars.registerHelper('pagination', function(totalNotes, notesPerPage, pageNum, baseUrl) {
@@ -708,69 +683,6 @@ Handlebars.registerHelper('pagination', function(totalNotes, notesPerPage, pageN
     totalNotes, notesPerPage, pageNum, baseUrl
   ));
 });
-
-Handlebars.registerHelper('timezoneDropdown', function(options) {
-  var allTimezones = [
-    { name: '(GMT -12:00) Eniwetok, Kwajalein', value: 'Etc/GMT+12'},
-    { name: '(GMT -11:00) Midway Island, Samoa', value: 'Pacific/Samoa'},
-    { name: '(GMT -10:00) Hawaii', value: 'Etc/GMT+10'},
-    { name: '(GMT -9:00) Alaska', value: 'Etc/GMT+9'},
-    { name: '(GMT -8:00) Pacific Time (US &amp; Canada)', value: 'Etc/GMT+8'},
-    { name: '(GMT -7:00) Mountain Time (US &amp; Canada)', value: 'Etc/GMT+7'},
-    { name: '(GMT -6:00) Central Time (US &amp; Canada), Mexico City', value: 'Etc/GMT+6'},
-    { name: '(GMT -5:00) Eastern Time (US &amp; Canada), Bogota, Lima', value: 'Etc/GMT+5'},
-    { name: '(GMT -4:30) Caracas', value: 'America/Caracas'},
-    { name: '(GMT -4:00) Atlantic Time (Canada), Puerto Rico, La Paz', value: 'Etc/GMT+4'},
-    { name: '(GMT -3:30) Newfoundland', value: 'Canada/Newfoundland'},
-    { name: '(GMT -3:00) Brazil, Buenos Aires, Georgetown', value: 'America/Argentina/Buenos_Aires'},
-    { name: '(GMT -2:00) Mid-Atlantic', value: 'Etc/GMT+2'},
-    { name: '(GMT -1:00) Azores, Cape Verde Islands', value: 'Atlantic/Azores'},
-    { name: '(GMT) Western Europe Time, London, Lisbon, Casablanca', value: 'UTC'},
-    { name: '(GMT +1:00) Brussels, Copenhagen, Madrid, Paris', value: 'Europe/Paris'},
-    { name: '(GMT +2:00) Kaliningrad, South Africa', value: 'Europe/Kaliningrad'},
-    { name: '(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburg', value: 'Europe/Moscow'},
-    { name: '(GMT +3:30) Tehran', value: 'Asia/Tehran'},
-    { name: '(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi', value: 'Asia/Muscat'},
-    { name: '(GMT +4:30) Kabul', value: 'Asia/Kabul'},
-    { name: '(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent', value: 'Asia/Yekaterinburg'},
-    { name: '(GMT +5:30) Bombay, Calcutta, Madras, New Delhi', value: 'Asia/Calcutta'},
-    { name: '(GMT +5:45) Kathmandu, Pokhara', value: 'Asia/Kathmandu'},
-    { name: '(GMT +6:00) Almaty, Dhaka, Colombo', value: 'Asia/Dhaka'},
-    { name: '(GMT +6:30) Yangon, Mandalay', value: 'Asia/Yangon'},
-    { name: '(GMT +7:00) Bangkok, Hanoi, Jakarta', value: 'Asia/Bangkok'},
-    { name: '(GMT +8:00) Beijing, Perth, Singapore, Hong Kong', value: 'Asia/Hong_Kong'},
-    { name: '(GMT +8:45) Eucla', value: 'Australia/Eucla'},
-    { name: '(GMT +9:00) Tokyo, Seoul, Osaka, Sapporo, Yakutsk', value: 'Asia/Tokyo'},
-    { name: '(GMT +9:30) Adelaide, Darwin', value: 'Australia/Adelaide'},
-    { name: '(GMT +10:00) Eastern Australia, Guam, Vladivostok', value: 'Pacific/Guam'},
-    { name: '(GMT +10:30) Lord Howe Island', value: 'Australia/Lord_Howe'},
-    { name: '(GMT +11:00) Magadan, Solomon Islands, New Caledonia', value: 'Asia/Magadan'},
-    { name: '(GMT +11:30) Norfolk Island', value: 'Pacific/Norfolk'},
-    { name: '(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka', value: 'Pacific/Fiji'},
-    { name: '(GMT +12:45) Chatham Islands', value: 'Pacific/Chatham'},
-    { name: '(GMT +13:00) Apia, Nukualofa', value: 'Pacific/Apia'},
-    { name: '(GMT +14:00) Line Islands, Tokelau', value: 'Etc/GMT-14'}
-  ];
-
-  var offsetMinutes = (new Date()).getTimezoneOffset();
-  var sign = offsetMinutes > 0 ? '-' : '+';
-  var formattedMinutes = offsetMinutes % 60 ? offsetMinutes % 60 + '' : '00';
-  var userOffsetStr = offsetMinutes === 0 ?
-    '(GMT)' :
-    '(GMT ' + sign + Math.floor(offsetMinutes / 60) + ':' + formattedMinutes + ')';
-
-  var optionsHtml = allTimezones.map(function(tz) {
-    var selected = _.startsWith(tz.name, userOffsetStr) ? 'selected data-user-default="true"' : '';
-    return '<option value="' + tz.value + '" ' + selected + '>' + tz.name + '</option>';
-  }).join('\n');
-  var nameAttr = options.hash.name ? ' name="' + options.hash.name + '"' : '';
-  var output = '<select' + nameAttr + ' class="form-control ' + options.hash.class + '">' +
-    optionsHtml +
-    '</select>';
-
-  return new Handlebars.SafeString(output);
-});
-
 
 /**
  * @name .inflect
@@ -835,29 +747,6 @@ Handlebars.registerHelper('isnt', function(a, b, options) {
   return options.inverse(this);
 });
 
-/**
- * Block helper that renders a block if `a` is **greater than** `b`.
- *
- * If an inverse block is specified it will be rendered when falsy.
- * You may optionally use the `compare=""` hash argument for the
- * second value.
- *
- * @param {String} `a`
- * @param {String} `b`
- * @param {Object} `options` Handlebars provided options object
- * @return {String} Block, or inverse block if specified and falsey.
- */
-Handlebars.registerHelper('gt', function(a, b, options) {
-  if (arguments.length === 2) {
-    options = b;
-    b = options.hash.compare;
-  }
-  if (a > b) {
-    return options.fn(this);
-  }
-  return options.inverse(this);
-});
-
 Handlebars.registerHelper('debug', function(optionalValue) {
   console.log('Current Context');
   console.log('====================');
@@ -869,13 +758,6 @@ Handlebars.registerHelper('debug', function(optionalValue) {
     console.log(optionalValue);
   }
 });
-
-Handlebars.registerHelper('getAnonId', function(varName,memberId,memberAnonIdMap,options){
-  if(!options.data.root){
-    options.data.root={}
-  }
-  options.data.root[varName]=memberAnonIdMap.get(memberId)
-})
 
 // Register Handlebars partials
 Handlebars.registerPartial('noteContent', Handlebars.templates['partials/noteContent']);

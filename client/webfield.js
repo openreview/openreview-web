@@ -778,52 +778,6 @@ module.exports = (function() {
     }
   }
 
-  // Deprecated
-  var invitationForm = function(invitationData, user, options) {
-    var defaults = {
-      container: '#invitation',
-      largeLabel: true,
-      onNoteCreated: function() { console.warn('onNoteCreated option is required'); },
-    };
-    options = _.assign(defaults, options);
-
-    var $container = $(options.container);
-    view.mkNewNoteEditor(invitationData, null, null, user, {
-      onCompleted: function($editor) {
-        if (!$editor) return;
-        $editor.hide();
-        $editor.children().eq(3).hide();
-        $editor.children().eq(4).hide();
-        $container.append($editor);
-        $editor.slideDown();
-      },
-      onNoteCreated: options.onNoteCreated
-    });
-  };
-
-  // Deprecated
-  var singleNote = function(note, options) {
-    var defaults = {
-      container: '#notes',
-      displayOptions: defaultDisplayOptions,
-      fadeIn: true,
-      forumDate: '1234',
-      creationDate: 'abcd',
-    };
-    options = _.defaultsDeep(options, defaults);
-
-    var $container = $(options.container);
-
-    $container.append(Handlebars.templates['components/singleNote']({
-      note: note,
-      options: options.displayOptions,
-      forumDate: options.forumDate,
-      creationDate: options.creationDate
-    }));
-
-    return $container;
-  };
-
   var submissionList = function(notes, options) {
     var defaults = {
       heading: 'Submitted Papers',
