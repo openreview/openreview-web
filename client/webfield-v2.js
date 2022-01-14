@@ -296,7 +296,7 @@ module.exports = (function() {
 
     var filterInviteeAndNumbers = function(inv) {
       var number = getNumberfromInvitation(inv.id, options.submissionGroupName);
-      if (options.numbers) {
+      if (number && options.numbers) {
         return options.numbers.includes(number) && _.some(inv.invitees, function(invitee) { return invitee.indexOf(roleName) !== -1; });
       }
       return _.some(inv.invitees, function(invitee) { return invitee.indexOf(roleName) !== -1; });
