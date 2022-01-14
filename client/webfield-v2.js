@@ -260,7 +260,12 @@ module.exports = (function() {
     return getAll('/notes', query);
   };
 
-  var getAssignedInvitations = function(venueId, roleName) {
+  var getAssignedInvitations = function(venueId, roleName, options) {
+    var defaults = {
+      submissionGroupName: 'Paper',
+      numbers: null
+    };
+    options = _.defaults(options, defaults);
     var invitationsP = getAll('/invitations', {
       regex: venueId + '/.*',
       invitee: true,
@@ -289,8 +294,10 @@ module.exports = (function() {
       version: '1' //TODO: remove when the task view supports V2
     });
 
-    var filterInvitee = function(inv) {
-      return _.some(inv.invitees, function(invitee) { return invitee.indexOf(roleName) !== -1; });
+    var filterInviteeAndNumbers = function(inv) {
+      var number = getNumberfromInvitation(inv.id, options.submissionGroupName);
+      var invMatchesNumber = !(number && options.numbers) || options.numbers.includes(number)
+      return _.some(inv.invitees, function(invitee) { return invitee.includes(roleName) }) && invMatchesNumber;
     };
 
     return $.when(
@@ -299,7 +306,7 @@ module.exports = (function() {
       tagInvitationsP
     ).then(function(noteInvitations, edgeInvitations, tagInvitations) {
       var invitations = noteInvitations.concat(edgeInvitations).concat(tagInvitations);
-      return _.filter(invitations, filterInvitee);
+      return _.filter(invitations, filterInviteeAndNumbers);
     });
   };
 
@@ -314,6 +321,11 @@ module.exports = (function() {
     } else {
       return null;
     }
+  };
+
+  var getNumberfromInvitation = function(invitationId, name) {
+    var tokens = invitationId.split('/-/');
+    return getNumberfromGroup(tokens[0], name);
   };
 
   var getPaperNumbersfromGroups = function(groups) {
