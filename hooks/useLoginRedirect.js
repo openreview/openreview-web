@@ -5,9 +5,7 @@ import useUser from './useUser'
 // Returns the user object and accessToken if the user is logged in, or if not
 // redirects the user to /login with the redirect param set.
 export default function useLoginRedirect() {
-  const {
-    user, accessToken, userLoading, logoutRedirect,
-  } = useUser()
+  const { user, accessToken, userLoading, logoutRedirect } = useUser()
   const router = useRouter()
 
   useEffect(() => {

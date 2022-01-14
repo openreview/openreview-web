@@ -570,7 +570,11 @@ module.exports = (function() {
       }
 
       let privateLabel = null
-      if (note.content[fieldName]?.readers && !_.isEqual(note.readers?.sort(), note.content[fieldName].readers.sort())) {
+      if (
+        note.content[fieldName]?.readers &&
+        !note.content[fieldName].readers.includes('everyone') &&
+        !_.isEqual(note.readers?.sort(), note.content[fieldName].readers.sort())
+      ) {
         var tooltip = `privately revealed to ${note.content[fieldName].readers.map(p =>view.prettyId(p)).join(', ')}`
         privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
       }
