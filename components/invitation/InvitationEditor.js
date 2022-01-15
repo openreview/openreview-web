@@ -1,21 +1,24 @@
-/* globals promptError,promptMessage,moment: false */
+/* globals promptMessage: false */
+/* globals promptError: false */
+
 import { nanoid } from 'nanoid'
 import React from 'react'
-import { prettyId } from '../../lib/utils'
-import { isSuperUser } from '../../lib/auth'
 import InvitationGeneral from './InvitationGeneral'
 import InvitationReply from './InvitationReply'
 import InvitationCode from './InvitationCode'
 import InvitationChildInvitations from './InvitationChildInvitations'
+import { isSuperUser } from '../../lib/auth'
 
 const InvitationEditor = ({
   invitation, user, accessToken, loadInvitation,
 }) => {
   const profileId = user?.profile?.id
   const showProcessEditor = invitation?.apiVersion === 2 || isSuperUser(user)
+
   if (!invitation) return null
+
   return (
-    <>
+    <div>
       <InvitationGeneral
         invitation={invitation}
         profileId={profileId}
@@ -37,10 +40,11 @@ const InvitationEditor = ({
         profileId={profileId}
         accessToken={accessToken}
         loadInvitation={loadInvitation}
-        // eslint-disable-next-line no-nested-ternary
         replyField="replyForumViews"
       />
-      <InvitationChildInvitations invitation={invitation} />
+      <InvitationChildInvitations
+        invitation={invitation}
+      />
       <InvitationCode
         invitation={invitation}
         profileId={profileId}
@@ -48,29 +52,25 @@ const InvitationEditor = ({
         loadInvitation={loadInvitation}
         codeType="web"
       />
-      {
-        showProcessEditor
-        && (
-          <>
-            <InvitationCode
-              invitation={invitation}
-              profileId={profileId}
-              accessToken={accessToken}
-              loadInvitation={loadInvitation}
-              codeType="process"
-            />
-            <InvitationCode
-              invitation={invitation}
-              profileId={profileId}
-              accessToken={accessToken}
-              loadInvitation={loadInvitation}
-              codeType="preprocess"
-            />
-
-          </>
-        )
-      }
-    </>
+      {showProcessEditor && (
+        <InvitationCode
+          invitation={invitation}
+          profileId={profileId}
+          accessToken={accessToken}
+          loadInvitation={loadInvitation}
+          codeType="process"
+        />
+      )}
+      {showProcessEditor && (
+        <InvitationCode
+          invitation={invitation}
+          profileId={profileId}
+          accessToken={accessToken}
+          loadInvitation={loadInvitation}
+          codeType="preprocess"
+        />
+      )}
+    </div>
   )
 }
 

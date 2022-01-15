@@ -1,47 +1,50 @@
-/* globals promptError,promptMessage: false */
+/* globals promptMessage: false */
+/* globals promptError: false */
+
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { prettyId } from '../../lib/utils'
-import api from '../../lib/api-client'
 import EditorSection from '../EditorSection'
 import PaginatedList from '../PaginatedList'
+import api from '../../lib/api-client'
+import { prettyId } from '../../lib/utils'
 
 const InvitationChildInvitations = ({ invitation, accessToken }) => {
-  const isV1Invitation = invitation.apiVersion === 1
   const [totalCount, setTotalCount] = useState(null)
 
-  const ChildInvitationRow = ({ item: childInvitation }) => (
-    <Link href={`/invitation/edit?id=${childInvitation.id}`}>
-      <a>
-        {prettyId(childInvitation.id)}
-      </a>
-    </Link>
-  )
-
-  const loadChildInvitations = async (limit = 15, offset = 0) => {
-    const result = await api.get('/invitations', {
+  const loadChildInvitations = async (limit, offset) => {
+    const { invitations, count } = await api.get('/invitations', {
       super: invitation.id,
       limit,
       offset,
-    }, { accessToken, version: isV1Invitation ? 1 : 2 })
-    setTotalCount(result.count)
+    }, { accessToken, version: invitation.apiVersion })
+
+    let translatedInvitations = []
+    if (invitations?.length > 0) {
+      translatedInvitations = invitations.map(inv => ({
+        id: inv.id,
+        title: prettyId(inv.id),
+        href: `/invitation/edit?id=${inv.id}`,
+      }))
+    }
+    if (count !== totalCount) {
+      setTotalCount(count ?? 0)
+    }
+
     return {
-      items: result.invitations,
-      count: result.count,
+      items: translatedInvitations,
+      count: count ?? 0,
     }
   }
 
   useEffect(() => {
-    loadChildInvitations()
+    loadChildInvitations(15, 0)
   }, [invitation])
 
   return (
     <EditorSection title={`Child Invitations ${totalCount ? `(${totalCount})` : ''}`} className="subinvitations">
       <PaginatedList
-        ListItem={ChildInvitationRow}
         loadItems={loadChildInvitations}
         emptyMessage="No child invitations"
-
+        itemsPerPage={15}
       />
     </EditorSection>
   )

@@ -1,9 +1,12 @@
-/* globals promptError,promptMessage: false */
-import dynamic from 'next/dynamic'
+/* globals promptMessage: false */
+/* globals promptError: false */
+
 import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
+import EditorSection from '../EditorSection'
+import SpinnerButton from '../SpinnerButton'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
-import SpinnerButton from '../SpinnerButton'
 
 const CodeEditor = dynamic(() => import('../CodeEditor'))
 
@@ -15,33 +18,40 @@ const InvitationCode = ({
   const [showEditor, setShowEditor] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
+  const titleMap = {
+    web: 'Invitation UI Code',
+    process: 'Process Function Code',
+    preprocess: 'PreProcess Function Code',
+  }
+  const sectionTitle = titleMap[codeType] || 'Code'
+
   const saveCode = async () => {
     setIsSaving(true)
+
     try {
       const requestPath = isV1Invitation ? '/invitations' : '/invitations/edits'
-      const requestBody = isV1Invitation
-        ? {
-          ...invitation,
+      const requestBody = isV1Invitation ? {
+        ...invitation,
+        [codeType]: code,
+        apiVersion: undefined,
+        rdate: undefined,
+      } : {
+        invitation: {
+          id: invitation.id,
+          signatures: invitation.signatures,
           [codeType]: code,
-          apiVersion: undefined,
-          rdate: undefined,
-        }
-        : {
-          invitation: {
-            id: invitation.id,
-            signatures: invitation.signatures,
-            [codeType]: code,
-          },
-          readers: [profileId],
-          writers: [profileId],
-          signatures: [profileId],
-        }
+        },
+        readers: [profileId],
+        writers: [profileId],
+        signatures: [profileId],
+      }
       await api.post(requestPath, requestBody, { accessToken, version: isV1Invitation ? 1 : 2 })
-      promptMessage(`Code for '${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      promptMessage(`Code for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
       loadInvitation(invitation.id)
     } catch (error) {
       promptError(error.message, { scrollToTop: false })
     }
+
     setIsSaving(false)
   }
 
@@ -50,28 +60,21 @@ const InvitationCode = ({
     setShowEditor(false)
   }
 
-  const getTitle = () => {
-    switch (codeType) {
-      case 'web': return 'Invitation UI Code'
-      case 'process': return 'Process Function Code'
-      case 'preprocess': return 'PreProcess Function Code'
-      default: return 'Code'
-    }
-  }
-
   useEffect(() => {
     setCode(invitation[codeType])
     setShowEditor(false)
   }, [invitation.id])
 
   return (
-    <section>
-      <h4>{getTitle()}</h4>
+    <EditorSection title={sectionTitle}>
+      {showEditor && (
+        <CodeEditor code={code} onChange={setCode} />
+      )}
+
       {showEditor ? (
-        <>
-          <CodeEditor code={code} onChange={setCode} />
+        <div className="mt-2">
           <SpinnerButton
-            type='primary'
+            type="primary"
             onClick={saveCode}
             disabled={isSaving}
             loading={isSaving}
@@ -79,23 +82,25 @@ const InvitationCode = ({
             {isSaving ? 'Saving' : 'Update Code'}
           </SpinnerButton>
           <button
-            type='button'
-            className='btn btn-sm btn-default'
+            type="button"
+            className="btn btn-sm btn-default"
             onClick={() => handleCancelClick()}
           >
             Cancel
           </button>
-        </>
+        </div>
       ) : (
-        <button
-          type='button'
-          className='btn btn-sm btn-primary'
-          onClick={() => setShowEditor(true)}
-        >
-          Show Code Editor
-        </button>
+        <div>
+          <button
+            type="button"
+            className="btn btn-sm btn-primary"
+            onClick={() => setShowEditor(true)}
+          >
+            Show Code Editor
+          </button>
+        </div>
       )}
-    </section>
+    </EditorSection>
   )
 }
 

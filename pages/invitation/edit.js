@@ -1,8 +1,8 @@
-/* eslint-disable global-require */
 /* globals Webfield: false */
+
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import InvitationEditor from '../../components/invitation/InvitationEditor'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -19,7 +19,6 @@ const InvitationEdit = ({ appContext }) => {
 
   const [error, setError] = useState(null)
   const [invitation, setInvitation] = useState(null)
-  const containerRef = useRef(null)
 
   // Try loading invitation from v1 API first and if not found load from v2
   const loadInvitation = async (invitationId) => {
@@ -58,10 +57,11 @@ const InvitationEdit = ({ appContext }) => {
   }, [user, query])
 
   useEffect(() => {
-    if (!invitation || !containerRef || clientJsLoading) return
+    if (!invitation || clientJsLoading) return
 
     const editModeBannerDelay = document.querySelector('#flash-message-container.alert-success') ? 2500 : 0
     const bannerTimeout = setTimeout(() => Webfield.editModeBanner(invitation.id, 'edit'), editModeBannerDelay)
+
     // eslint-disable-next-line consistent-return
     return () => {
       clearTimeout(bannerTimeout)
@@ -69,7 +69,7 @@ const InvitationEdit = ({ appContext }) => {
         document.getElementById('flash-message-container').style.display = 'none'
       }
     }
-  }, [clientJsLoading, containerRef, invitation])
+  }, [clientJsLoading, invitation])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
 
