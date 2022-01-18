@@ -65,7 +65,7 @@ jobs:
       - name: Checkout OpenReview API
         uses: actions/checkout@v2
         with:
-          repository: openreview/openreview
+          repository: openreview/openreview-api-v1
           token: ${{ secrets.OPENREVIEW_ACCESS_TOKEN }}
           path: openreview-api
       - name: Cache OpenReview API
