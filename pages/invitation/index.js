@@ -23,10 +23,6 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
   useEffect(() => {
     if (clientJsLoading) return
 
-    window.moment = require('moment')
-    require('moment-timezone')
-    window.datetimepicker = require('../../client/bootstrap-datetimepicker-4.17.47.min')
-
     const script = document.createElement('script')
     script.innerHTML = webfieldCode
     document.body.appendChild(script)

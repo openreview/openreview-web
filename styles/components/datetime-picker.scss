@@ -1,0 +1,401 @@
+@use "../utils/constants";
+@use 'sass:math';
+
+$background-color: #fffaf4;
+$input-placeholder-color: hsv(0, 0, 75%);
+
+@mixin placeholder($color: $input-placeholder-color){
+  &::-moz-placeholder {
+    opacity: 1;
+  }
+
+  &::placeholder {
+    color: $color;
+  }
+
+  &:placeholder-shown {
+    text-overflow: ellipsis;
+  }
+}
+
+.rc-picker {
+  display: inline-flex;
+  width: 50%;
+  margin-right: .5rem;
+}
+
+.rc-picker-panel {
+  border: 1px solid #666;
+  background: $background-color;
+  display: inline-block;
+  vertical-align: top;
+}
+
+// ===================== Shared Panel =====================
+.rc-picker-decade-panel,
+.rc-picker-year-panel,
+.rc-picker-month-panel,
+.rc-picker-week-panel,
+.rc-picker-date-panel,
+.rc-picker-time-panel {
+  display: flex;
+  flex-direction: column;
+
+  table {
+    text-align: center;
+    border-collapse: collapse;
+  }
+}
+
+// Header
+.rc-picker-header {
+  display: flex;
+
+  > * {
+    flex: none;
+  }
+
+  .rc-picker-header-next-btn,
+  .rc-picker-header-prev-btn,
+  .rc-picker-header-super-next-btn,
+  .rc-picker-header-super-prev-btn {
+    padding: 0;
+    color: #00000040;
+    line-height: 40px;
+    background: 0 0;
+    border: 0;
+    cursor: pointer;
+    transition: color .3s;
+    min-width: 1.6em;
+    font-size: 14px;
+
+  }
+
+  .rc-picker-header-view {
+    flex: auto;
+    text-align: center;
+    font-weight: 500;
+    line-height: 40px;
+    background-color: $background-color;
+
+
+    > button {
+      &:not(:first-child) {
+        margin-left: 8px;
+      }
+      padding: 0;
+      color: #00000040;
+      line-height: 40px;
+      background: 0 0;
+      border: 0;
+      cursor: pointer;
+      transition: color .3s;
+    }
+  }
+}
+
+// Content
+.rc-picker-cell {
+  .rc-picker-cell-disabled {
+    opacity: 0.2;
+  }
+
+  &.rc-picker-cell-selected {
+    color: #fff;
+    background: #4d8093;
+  }
+
+  .rc-picker-cell-inner {
+    font-size: 14px;
+    width: 36px;
+    height: 30px;
+    line-height: 22px;
+    display: table-cell;
+    box-sizing: border-box;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    outline: none;
+    border: none;
+    transition: background 0.3s, border 0.3s;
+
+    &:hover {
+      background: rgba(55, 11, 7, 0.1);
+    }
+  }
+
+  .rc-picker-cell-in-view {
+
+    font-weight: 400;
+  }
+}
+
+.rc-picker-footer {
+  width: min-content;
+  min-width: 100%;
+  line-height: 38px;
+  text-align: center;
+  border-top: 1px solid #aaa;
+  border-bottom: 1px solid transparent;
+}
+
+.rc-picker-ranges {
+  margin-bottom: 0;
+  padding: 4px 12px;
+  overflow: hidden;
+  line-height: 34px;
+  text-align: left;
+  list-style: none;
+  >li {
+    display: inline-block;
+  }
+}
+
+.rc-picker-now {
+  cursor: pointer;
+  background-color: #4d8093;
+  border: 2px solid #3f6978;
+  font-weight: bold;
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  text-align: center;
+  min-width: 5rem;
+  border-radius: 3px;
+  padding: 1px 6px;
+
+  .rc-picker-now-btn {
+    color:white;
+  }
+}
+
+.rc-picker-ok {
+  float: right;
+  color: #fff;
+
+   button {
+    background-color: #4d8093;
+    border: 2px solid #3f6978;
+    font-weight: bold;
+    font-size: .75rem;
+    line-height: 1.125rem;
+    text-align: center;
+    min-width: 5rem;
+    border-radius: 3px
+   }
+}
+
+// ================== Year & Month Panel ==================
+.rc-picker-year-panel,
+.rc-picker-month-panel {
+  .rc-picker-cell-inner {
+    width: 80px;
+  }
+}
+
+// ====================== Week Panel ======================
+.rc-picker-week-panel {
+  .rc-picker-week-panel-row {
+    &:hover {
+      .rc-picker-cell {
+        background: #4d8093;
+      }
+    }
+
+    .rc-picker-week-panel-row-selected {
+      .rc-picker-cell {
+        background: rgba(0, 0, 255, 0.3);
+      }
+    }
+  }
+
+  .rc-picker-cell,
+  .rc-picker-cell-inner {
+    width: 20px;
+  }
+
+  .rc-picker-cell-week {
+    font-size: 12px;
+    color: #999;
+    font-weight: bold;
+  }
+
+  .rc-picker-cell:hover > .rc-picker-cell-inner,
+  .rc-picker-cell-selected > .rc-picker-cell-inner {
+    background: #4d8093;
+  }
+}
+
+// ====================== Date Panel ======================
+.rc-picker-date-panel {
+  width: 280px;
+  .rc-picker-body {
+    padding: 8px 12px;
+  }
+  .rc-picker-content {
+    text-align: center;
+    width: 252px;
+  }
+  .rc-picker-cell-inner {
+    width: 24px;
+  }
+}
+
+// ====================== Time Panel ======================
+.rc-picker-time-panel {
+  width: auto;
+
+  .rc-picker-content {
+    display: flex;
+    min-width: 24px;
+    font-weight: 400;
+    max-height: 200px;
+  }
+
+  .rc-picker-time-panel-column {
+    flex: 1 0 auto;
+    width: 56px;
+    margin: 0;
+    padding: 0;
+    overflow-y: hidden;
+    text-align: left;
+    list-style: none;
+    transition: background .3s;
+
+    .rc-picker-time-panel-cell-selected {
+      color: #fff;
+      background: #4d8093;
+    }
+
+    .rc-picker-time-panel-column-active {
+      background: rgba(0, 0, 255, 0.1);
+    }
+
+    &:hover {
+      overflow-y: auto;
+    }
+
+    > li {
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+
+      .rc-picker-time-panel-cell-inner {
+        display: block;
+        width: 100%;
+        height: 28px;
+        margin: 0;
+        padding: 0 0 0 14px;
+        line-height: 28px;
+        border-radius: 0;
+        cursor: pointer;
+        transition: background .3s;
+
+        .rc-picker-panel-rtl & {
+          padding: 0 12px 0 0;
+          text-align: right;
+        }
+      }
+    }
+  }
+}
+
+// ====================== Date Time =======================
+.rc-picker-datetime-panel {
+  display: flex;
+
+  .rc-picker-time-panel {
+    border-left: 1px solid #999;
+  }
+
+  .rc-picker-date-panel,
+  .rc-picker-time-panel {
+    transition: opacity 0.3s;
+  }
+
+  // Keyboard
+  .rc-picker-datetime-panel-active {
+    .rc-picker-date-panel,
+    .rc-picker-time-panel {
+      opacity: 0.3;
+
+      .rc-picker-time-panel-active {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+// ======================== Input =========================
+.rc-picker-input {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+  border: 2px solid #659aae;
+  border-radius: 0;
+
+  input {
+    width: 100%;
+    background-color: $background-color;
+    border: none!important;
+    outline: none;
+    padding: 0.375rem 0.75rem;
+    font-size: .75rem;
+    height: 26px;
+  }
+}
+
+.rc-picker-clear {
+  position: absolute;
+  right: 4px;
+  top: -3px;
+  cursor: pointer;
+
+  .rc-picker-rtl & {
+    right: auto;
+    left: 4px;
+  }
+
+  .rc-picker-clear-btn::before {
+    font-size: 22px;
+    content: '×';
+  }
+}
+
+// ======================= Dropdown =======================
+.rc-picker-dropdown {
+  position: absolute;
+  box-shadow: 0 0 1px #659aae;
+
+  .rc-picker-dropdown-range {
+    padding: 10px 0;
+  }
+
+  // Panel
+  $arrow-size: 10px;
+
+  .rc-picker-dropdown-placement-topLeft,
+  .rc-picker-dropdown-placement-topRight {
+    .rc-picker-range-arrow {
+      bottom: math.div($arrow-size, 2) + 1px;
+      transform: rotate(135deg);
+    }
+  }
+  .rc-picker-dropdown-placement-bottomLeft,
+  .rc-picker-dropdown-placement-bottomright {
+    .rc-picker-range-arrow {
+      top: math.div($arrow-size, 2) + 1px;
+      transform: rotate(-45deg);
+    }
+  }
+}
+
+.rc-picker-dropdown-hidden {
+  display: none;
+}
+
+.rc-picker-panel-container {
+  display: inline-block;
+  vertical-align: top;
+  transition: margin 0.3s;
+}
