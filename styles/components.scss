@@ -14,7 +14,7 @@
 @import "components/autocomplete-input";
 @import "components/legacy-forum";
 @import "components/legacy-profile-editor";
-@import "vendor/bootstrap-datetimepicker";
+@import "components/datetime-picker";
 
 // Tab navigation
 .nav-tabs {
@@ -1157,32 +1157,6 @@ table.table-minimal {
   }
   .search-container {
     width: 100%;
-  }
-}
-
-// Date picker widget
-.bootstrap-datetimepicker-widget {
-  .timepicker-picker {
-    a.btn {
-      background: transparent;
-      .glyphicon {
-        color: constants.$mediumBlue;
-      }
-    }
-    button {
-      height: auto;
-      min-width: 0;
-    }
-  }
-  li.picker-switch.accordion-toggle {
-    a {
-      display: block;
-      padding: 0;
-    }
-    span {
-      margin: 0;
-      margin-bottom: 1px;
-    }
   }
 }
 

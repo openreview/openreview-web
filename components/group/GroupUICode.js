@@ -68,7 +68,7 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
         </div>
       ) : (
         <div>
-          <button type="button" className="btn btn-primary" onClick={() => setShowCodeEditor(true)}>
+          <button type="button" className="btn btn-sm btn-primary" onClick={() => setShowCodeEditor(true)}>
             Show Code Editor
           </button>
         </div>

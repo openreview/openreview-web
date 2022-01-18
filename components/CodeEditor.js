@@ -29,6 +29,7 @@ const CodeEditor = ({
       return [language.of(python())]
     }
     languageRef.current = 'javascript'
+
     return [
       lint.of(linter(esLint(new Linter()))),
       defaultHighlightStyle.extension,
@@ -113,7 +114,7 @@ const CodeEditor = ({
   }, [])
 
   return (
-    <div ref={containerRef} />
+    <div className="code-editor" ref={containerRef} />
   )
 }
 
