@@ -4,7 +4,7 @@ export default function SpinnerButton({
   return (
     <button
       type="button"
-      className={`btn btn-${type}`}
+      className={`btn btn-sm btn-${type}`}
       onClick={onClick}
       disabled={disabled}
     >

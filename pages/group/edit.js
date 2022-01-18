@@ -1,6 +1,6 @@
 /* globals Webfield: false */
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
@@ -16,7 +16,6 @@ export default function GroupEdit({ appContext }) {
   const { accessToken, userLoading, user } = useLoginRedirect()
   const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
-  const containerRef = useRef(null)
 
   const router = useRouter()
   const query = useQuery()
@@ -62,7 +61,7 @@ export default function GroupEdit({ appContext }) {
   }, [userLoading, query])
 
   useEffect(() => {
-    if (!group || !containerRef || clientJsLoading) return
+    if (!group || clientJsLoading) return
 
     const editModeBannerDelay = document.querySelector('#flash-message-container.alert-success') ? 2500 : 0
     setTimeout(() => Webfield.editModeBanner(group.id, 'edit'), editModeBannerDelay)
@@ -74,7 +73,7 @@ export default function GroupEdit({ appContext }) {
         document.getElementById('flash-message-container').style.display = 'none'
       }
     }
-  }, [clientJsLoading, containerRef, group])
+  }, [clientJsLoading, group])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
 

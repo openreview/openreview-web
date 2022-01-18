@@ -51,7 +51,7 @@
 .dropdown-sm .dropdown-select {
   &__control, &__value-container {
     min-height: unset;
-    height: 30px;
+    max-height: 30px;
     line-height: 1.5;
     font-size: .75rem;
   }
