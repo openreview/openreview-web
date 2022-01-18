@@ -2,7 +2,6 @@
 /* globals promptError: false */
 
 import React from 'react'
-import { nanoid } from 'nanoid'
 import InvitationGeneral from './InvitationGeneral'
 import InvitationReply from './InvitationReply'
 import InvitationCode from './InvitationCode'
@@ -26,7 +25,7 @@ const InvitationEditor = ({
         loadInvitation={loadInvitation}
       />
       <InvitationReply
-        key={nanoid()}
+        key={`${invitation.id}-edit`}
         invitation={invitation}
         profileId={profileId}
         accessToken={accessToken}
@@ -35,7 +34,7 @@ const InvitationEditor = ({
         replyField={invitation.apiVersion === 1 ? 'reply' : (invitation.edge ? 'edge' : 'edit')}
       />
       <InvitationReply
-        key={nanoid()}
+        key={`${invitation.id}-replyForumViews`}
         invitation={invitation}
         profileId={profileId}
         accessToken={accessToken}

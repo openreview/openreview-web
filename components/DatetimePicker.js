@@ -17,27 +17,30 @@ const DatetimePicker = ({ existingValue, onChange, timeZone }) => {
     onChange(e.tz(timeZone ?? getDefaultTimezone().value, true).valueOf())
   }
 
-  return <Picker
-    generateConfig={dayjsGenerator}
-    showTime={{
-      showSecond: false,
-    }}
-    locale={locale}
-    format="YYYY-MM-DD hh:mm A"
-    value={value}
-    onOk={handleOkClick}
-    onChange={(date) => {
-      setValue(date)
-      if (!date) {
-        onChange(null)
-        return
-      }
-      onChange(date.tz(timeZone ?? getDefaultTimezone().value, true).valueOf())
-    }}
-    placeholder="Select datetime"
-    use12Hours
-    autoFocus
-    allowClear
-  />
+  const handleChange = (date) => {
+    setValue(date)
+    if (!date) {
+      onChange(null)
+      return
+    }
+    onChange(date.tz(timeZone ?? getDefaultTimezone().value, true).valueOf())
+  }
+
+  return (
+    <Picker
+      generateConfig={dayjsGenerator}
+      showTime={{ showSecond: false }}
+      locale={locale}
+      format="YYYY-MM-DD hh:mm A"
+      value={value}
+      onOk={handleOkClick}
+      onChange={handleChange}
+      placeholder="Select datetime"
+      use12Hours
+      autoFocus
+      allowClear
+    />
+  )
 }
+
 export default DatetimePicker
