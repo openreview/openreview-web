@@ -1,6 +1,4 @@
-const Icon = ({
-  name, tooltip, extraClasses = '',
-}) => (
+const Icon = ({ name, tooltip, extraClasses = '' }) => (
   <span
     className={`glyphicon glyphicon-${name} ${extraClasses}`}
     data-toggle={tooltip ? 'tooltip' : null}

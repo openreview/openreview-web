@@ -18,6 +18,7 @@ const CodeEditor = ({
   const lint = new Compartment()
   const language = new Compartment()
   const languageRef = useRef(null)
+
   const getLanguage = () => {
     if (isJson) {
       languageRef.current = 'json'
@@ -113,7 +114,7 @@ const CodeEditor = ({
   }, [])
 
   return (
-    <div className='code-editor' ref={containerRef} />
+    <div className="code-editor" ref={containerRef} />
   )
 }
 

@@ -1,14 +1,16 @@
 /* globals promptError,promptMessage: false */
+
 import React, { useReducer, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import timezone from 'dayjs/plugin/timezone'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import SpinnerButton from '../SpinnerButton'
+import EditorSection from '../EditorSection'
+import GroupIdList from '../group/GroupIdList'
 import api from '../../lib/api-client'
 import { formatDateTime, getDefaultTimezone, prettyId, urlFromGroupId } from '../../lib/utils'
-import LoadingSpinner from '../LoadingSpinner'
-import EditorSection from '../EditorSection'
 
 dayjs.extend(timezone)
 dayjs.extend(utc)
@@ -19,46 +21,14 @@ const TimezoneDropdown = dynamic(() =>
   import('../Dropdown').then(mod => mod.TimezoneDropdown)
 )
 
-const GroupIdList = ({ groupIds }) => {
-  const commonGroups = ['everyone', '(anonymous)', '(guest)', '~', '~Super_User1']
-  if (!Array.isArray(groupIds)) return ''
-
-  return (
-    <div className="info-content">
-      {groupIds.map((groupId, index) => {
-        if (commonGroups.includes(groupId)) {
-          return (
-            // eslint-disable-next-line react/no-array-index-key
-            <React.Fragment key={index}>
-              {index > 0 && <>,&nbsp;</>}
-              {prettyId(groupId)}
-            </React.Fragment>
-          )
-        }
-        return (
-          // eslint-disable-next-line react/no-array-index-key
-          <React.Fragment key={index}>
-            {index > 0 && <>,&nbsp;</>}
-            <Link href={urlFromGroupId(groupId)}>
-              <a>{prettyId(groupId)}</a>
-            </Link>
-          </React.Fragment>
-        )
-      })}
-    </div>
-  )
-}
-
 export const InvitationGeneralView = ({
-  invitation,
-  showEditButton = true,
-  setIsEditMode,
+  invitation, showEditButton = true, setIsEditMode,
 }) => {
   const parentGroupId = invitation.id.split('/-/')[0]
   const isV1Invitation = invitation.apiVersion === 1
 
   return (
-    <>
+    <div>
       {isV1Invitation && invitation.super && (
         <div className="row d-flex">
           <span className="info-title">Super Invitation:</span>
@@ -75,26 +45,36 @@ export const InvitationGeneralView = ({
       </div>
       <div className="row d-flex">
         <span className="info-title">Readers:</span>
-        <GroupIdList groupIds={invitation.readers} />
+        <div>
+          <GroupIdList groupIds={invitation.readers} />
+        </div>
       </div>
       {invitation.nonreaders?.length > 0 && (
         <div className="row d-flex">
           <span className="info-title">Non-readers:</span>
-          <GroupIdList groupIds={invitation.nonreaders} />
+          <div>
+            <GroupIdList groupIds={invitation.nonreaders} />
+          </div>
         </div>
       )}
       <div className="row d-flex">
         <span className="info-title">Writers:</span>
-        <GroupIdList groupIds={invitation.writers} />
+        <div>
+          <GroupIdList groupIds={invitation.writers} />
+        </div>
       </div>
       <div className="row d-flex">
         <span className="info-title">Invitees:</span>
-        <GroupIdList groupIds={invitation.invitees} />
+        <div>
+          <GroupIdList groupIds={invitation.invitees} />
+        </div>
       </div>
       {invitation.noninvitees?.length > 0 && (
         <div className="row d-flex">
           <span className="info-title">Non-Invitees:</span>
-          <GroupIdList groupIds={invitation.noninvitees} />
+          <div>
+            <GroupIdList groupIds={invitation.noninvitees} />
+          </div>
         </div>
       )}
       {isV1Invitation && invitation.final?.length > 0 && (
@@ -141,7 +121,9 @@ export const InvitationGeneralView = ({
       )}
       <div className="row d-flex">
         <span className="info-title">Signature:</span>
-        <GroupIdList groupIds={invitation.signatures} />
+        <div>
+          <GroupIdList groupIds={invitation.signatures} />
+        </div>
       </div>
       <div className="row d-flex">
         <span className="info-title">Creation Date:</span>
@@ -181,7 +163,7 @@ export const InvitationGeneralView = ({
           Edit General Info
         </button>
       )}
-    </>
+    </div>
   )
 }
 
@@ -316,7 +298,7 @@ const InvitationGeneralEdit = ({
   }
 
   return (
-    <>
+    <div>
       {isV1Invitation && (
         <div className="row d-flex">
           <span className="info-title edit-title">Super Invitation:</span>
@@ -551,23 +533,18 @@ const InvitationGeneralEdit = ({
           />
         </div>
       </div>
+
       <div className="row d-flex">
         <span className="info-title edit-title" />
-        <button
-          type="button"
-          className="btn btn-sm btn-primary"
+        <SpinnerButton
+          type="primary"
           onClick={() => saveGeneralInfo()}
           disabled={isSaving}
+          loading={isSaving}
         >
-          {isSaving ? (
-            <div className="save-button-wrapper">
-              Saving
-              <LoadingSpinner inline text="" extraClass="spinner-small" />
-            </div>
-          ) : (
-            <>Save Invitation</>
-          )}
-        </button>
+          {isSaving ? 'Saving' : 'Save Invitation'}
+        </SpinnerButton>
+
         <button
           type="button"
           className="btn btn-sm btn-default"
@@ -576,7 +553,7 @@ const InvitationGeneralEdit = ({
           Cancel
         </button>
       </div>
-    </>
+    </div>
   )
 }
 

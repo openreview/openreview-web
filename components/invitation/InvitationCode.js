@@ -21,7 +21,7 @@ const InvitationCode = ({
   const titleMap = {
     web: 'Invitation UI Code',
     process: 'Process Function Code',
-    preprocess: 'PreProcess Function Code',
+    preprocess: 'Preprocess Function Code',
   }
   const sectionTitle = titleMap[codeType] || 'Code'
 

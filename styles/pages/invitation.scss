@@ -76,6 +76,7 @@ main.invitation {
     margin-right: .5rem;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex-shrink: 0;
     &.edit-title {
       margin-top: 5px;
     }

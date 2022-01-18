@@ -1,7 +1,7 @@
 @use "../utils/constants";
 @use 'sass:math';
-$background-color: #fffaf4;
 
+$background-color: #fffaf4;
 $input-placeholder-color: hsv(0, 0, 75%);
 
 @mixin placeholder($color: $input-placeholder-color){
@@ -136,6 +136,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
   min-width: 100%;
   line-height: 38px;
   text-align: center;
+  border-top: 1px solid #aaa;
   border-bottom: 1px solid transparent;
 }
 
@@ -335,11 +336,11 @@ $input-placeholder-color: hsv(0, 0, 75%);
 
   input {
     width: 100%;
-    background-color: #fffaf4;
+    background-color: $background-color;
     border: none!important;
     outline: none;
     padding: 0.375rem 0.75rem;
-    line-height: 1.5;
+    font-size: .75rem;
     height: 26px;
   }
 }
@@ -347,7 +348,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
 .rc-picker-clear {
   position: absolute;
   right: 4px;
-  top: 0;
+  top: -3px;
   cursor: pointer;
 
   .rc-picker-rtl & {
@@ -355,7 +356,8 @@ $input-placeholder-color: hsv(0, 0, 75%);
     left: 4px;
   }
 
-  .rc-picker-clear-btn::after {
+  .rc-picker-clear-btn::before {
+    font-size: 22px;
     content: '×';
   }
 }

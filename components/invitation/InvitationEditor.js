@@ -1,8 +1,8 @@
 /* globals promptMessage: false */
 /* globals promptError: false */
 
-import { nanoid } from 'nanoid'
 import React from 'react'
+import { nanoid } from 'nanoid'
 import InvitationGeneral from './InvitationGeneral'
 import InvitationReply from './InvitationReply'
 import InvitationCode from './InvitationCode'
