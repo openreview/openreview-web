@@ -49,24 +49,42 @@ const Tasks = ({ appContext }) => {
 
     setBannerHidden(true)
 
-    const addPropertyToInvitations = propertyName => apiRes => (
-      apiRes.invitations.map(inv => ({ ...inv, [propertyName]: true }))
-    )
+    const addPropertyToInvitations = (propertyName) => (apiRes) =>
+      apiRes.invitations.map((inv) => ({ ...inv, [propertyName]: true }))
 
     const commonQueryParam = {
-      invitee: true, duedate: true, details: 'repliedTags', version: 1, // version:1 works only for v2 calls, added here for simplicity
+      invitee: true,
+      duedate: true,
+      details: 'repliedTags',
+      version: 1, // version:1 works only for v2 calls, added here for simplicity
     }
     const commonOption = { accessToken }
 
     const invitationPromises = [
-      api.getCombined('/invitations', { ...commonQueryParam, replyto: true, details: 'replytoNote,repliedNotes' }, null, commonOption).then(addPropertyToInvitations('noteInvitation')),
-      api.getCombined('/invitations', { ...commonQueryParam, type: 'tags' }, null, commonOption).then(addPropertyToInvitations('tagInvitation')),
-      api.getCombined('/invitations', { ...commonQueryParam, type: 'edges', details: 'repliedEdges' }, null, commonOption).then(addPropertyToInvitations('tagInvitation')),
+      api
+        .getCombined(
+          '/invitations',
+          { ...commonQueryParam, replyto: true, details: 'replytoNote,repliedNotes' },
+          null,
+          commonOption
+        )
+        .then(addPropertyToInvitations('noteInvitation')),
+      api
+        .getCombined('/invitations', { ...commonQueryParam, type: 'tags' }, null, commonOption)
+        .then(addPropertyToInvitations('tagInvitation')),
+      api
+        .getCombined(
+          '/invitations',
+          { ...commonQueryParam, type: 'edges', details: 'repliedEdges' },
+          null,
+          commonOption
+        )
+        .then(addPropertyToInvitations('tagInvitation')),
     ]
 
     Promise.all(invitationPromises)
-      .then(allInvitations => setGroupedTasks(formatTasksData(allInvitations)))
-      .catch(apiError => setError(apiError))
+      .then((allInvitations) => setGroupedTasks(formatTasksData(allInvitations)))
+      .catch((apiError) => setError(apiError))
   }, [accessToken])
 
   useEffect(() => {
@@ -82,9 +100,11 @@ const Tasks = ({ appContext }) => {
       referrer: encodeURIComponent('[Tasks](/tasks)'),
       emptyMessage: 'No current pending or completed tasks',
     }
-    $(tasksRef.current).empty().append(
-      Handlebars.templates.groupedTaskList({ groupedInvitations: groupedTasks, taskOptions }),
-    )
+    $(tasksRef.current)
+      .empty()
+      .append(
+        Handlebars.templates.groupedTaskList({ groupedInvitations: groupedTasks, taskOptions })
+      )
 
     registerEventHandlers()
   }, [groupedTasks])
@@ -99,12 +119,8 @@ const Tasks = ({ appContext }) => {
         <h1>Tasks</h1>
       </header>
 
-      {!error && !groupedTasks && (
-        <LoadingSpinner />
-      )}
-      {error && (
-        <ErrorAlert error={error} />
-      )}
+      {!error && !groupedTasks && <LoadingSpinner />}
+      {error && <ErrorAlert error={error} />}
       <WebfieldContainer ref={tasksRef} />
     </div>
   )

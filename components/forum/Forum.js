@@ -33,7 +33,11 @@ export default function Forum({ forumNote, clientJsLoading }) {
   const [sort, setSort] = useState('date-desc')
   const [filterOptions, setFilterOptions] = useState(null)
   const [selectedFilters, setSelectedFilters] = useState({
-    invitations: null, signatures: null, keywords: null, readers: null, excludedReaders: null,
+    invitations: null,
+    signatures: null,
+    keywords: null,
+    readers: null,
+    excludedReaders: null,
   })
   const [activeInvitation, setActiveInvitation] = useState(null)
   const router = useRouter()
@@ -44,7 +48,10 @@ export default function Forum({ forumNote, clientJsLoading }) {
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
 
   const numRepliesHidden = displayOptionsMap
-    ? Object.values(displayOptionsMap).reduce((count, opt) => count + ((opt.hidden || opt.collapsed) ? 1 : 0), 0)
+    ? Object.values(displayOptionsMap).reduce(
+        (count, opt) => count + (opt.hidden || opt.collapsed ? 1 : 0),
+        0
+      )
     : 0
 
   // API helper functions
@@ -52,16 +59,18 @@ export default function Forum({ forumNote, clientJsLoading }) {
     if (!forumId) return Promise.resolve([])
 
     const extraParams = includeTags ? { tags: true } : { details: 'repliedNotes' }
-    return api.get('/invitations', { replyForum: forumId, ...extraParams }, { accessToken })
+    return api
+      .get('/invitations', { replyForum: forumId, ...extraParams }, { accessToken })
       .then(({ invitations }) => {
         if (!invitations?.length) return []
 
         return invitations.map((inv) => {
           // Check if invitation does not have multiReply prop OR invitation is set to multiReply
           // but it is not false OR there have not been any replies to the invitation yet
-          const repliesAvailable = !has(inv, 'multiReply')
-            || inv.multiReply !== false
-            || isEmpty(inv.details?.repliedNotes)
+          const repliesAvailable =
+            !has(inv, 'multiReply') ||
+            inv.multiReply !== false ||
+            isEmpty(inv.details?.repliedNotes)
           return {
             ...inv,
             process: null,
@@ -74,10 +83,15 @@ export default function Forum({ forumNote, clientJsLoading }) {
   const getNotesByForumId = (forumId) => {
     if (!forumId) return Promise.resolve([])
 
-    return api.get('/notes', {
-      forum: forumId,
-      details: 'writable,revisions,original,overwriting,invitation,tags',
-    }, { accessToken })
+    return api
+      .get(
+        '/notes',
+        {
+          forum: forumId,
+          details: 'writable,revisions,original,overwriting,invitation,tags',
+        },
+        { accessToken }
+      )
       .then(({ notes }) => (notes?.length > 0 ? notes : []))
   }
 
@@ -92,7 +106,12 @@ export default function Forum({ forumNote, clientJsLoading }) {
     // Find invitations that apply to all notes
     const commonInvitations = invitations.filter((invitation) => {
       const invReply = invitation.reply
-      return !invReply.replyto && !invReply.referent && !invReply.referentInvitation && !invReply.invitation
+      return (
+        !invReply.replyto &&
+        !invReply.referent &&
+        !invReply.referentInvitation &&
+        !invReply.invitation
+      )
     })
 
     // Process notes
@@ -106,8 +125,9 @@ export default function Forum({ forumNote, clientJsLoading }) {
     notes.forEach((note) => {
       const noteInvitations = invitations.filter((invitation) => {
         // Check if invitation is replying to this note
-        const isInvitationRelated = invitation.reply.replyto === note.id
-          || invitation.reply.invitation === note.invitation
+        const isInvitationRelated =
+          invitation.reply.replyto === note.id ||
+          invitation.reply.invitation === note.invitation
         return isInvitationRelated && invitation.details.repliesAvailable
       })
 
@@ -115,8 +135,9 @@ export default function Forum({ forumNote, clientJsLoading }) {
 
       const referenceInvitations = invitations.filter((invitation) => {
         // Check if invitation is replying to this note
-        const isInvitationRelated = invitation.reply.referent === note.id
-          || invitation.reply.referentInvitation === note.invitation
+        const isInvitationRelated =
+          invitation.reply.referent === note.id ||
+          invitation.reply.referentInvitation === note.invitation
         return isInvitationRelated && invitation.details.repliesAvailable
       })
 
@@ -145,7 +166,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
       // Populate filter options
       invitationIds.add(note.invitation.replace(numberWildcard, '$1.*'))
       signatureGroupIds.add(note.signatures[0])
-      note.readers.forEach(rId => readerGroupIds.add(rId))
+      note.readers.forEach((rId) => readerGroupIds.add(rId))
     })
 
     setReplyNoteMap(replyMap)
@@ -215,7 +236,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
     if (activeInvitation && activeInvitation.id !== invitation.id) {
       promptError(
         'There is currently another editor pane open on the page. Please submit your changes or click Cancel before continuing',
-        { scrollToTop: false },
+        { scrollToTop: false }
       )
     } else {
       setActiveInvitation(activeInvitation ? null : invitation)
@@ -227,10 +248,13 @@ export default function Forum({ forumNote, clientJsLoading }) {
     const currentNote = replyNoteMap[noteId] ?? {}
     setReplyNoteMap({
       ...replyNoteMap,
-      [noteId]: formatNote({
-        ...currentNote,
-        ...newNote,
-      }, replyInvitations),
+      [noteId]: formatNote(
+        {
+          ...currentNote,
+          ...newNote,
+        },
+        replyInvitations
+      ),
     })
 
     if (isEmpty(currentNote)) {
@@ -266,7 +290,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
       const [_, tabId] = url.split('#')
       if (!tabId || !replyForumViews) return
 
-      const tab = replyForumViews.find(view => view.id === tabId)
+      const tab = replyForumViews.find((view) => view.id === tabId)
       if (!tab) return
 
       setSelectedFilters({
@@ -314,19 +338,24 @@ export default function Forum({ forumNote, clientJsLoading }) {
     let orderedNotes = []
     if (layout === 0) {
       // Linear view
-      orderedNotes = Object.keys(replyNoteMap).sort(selectedSortFn).map(noteId => ({
-        id: noteId,
-        replies: [],
-      }))
+      orderedNotes = Object.keys(replyNoteMap)
+        .sort(selectedSortFn)
+        .map((noteId) => ({
+          id: noteId,
+          replies: [],
+        }))
     } else if (layout === 1 || layout === 2) {
       // Threaded view
       // TODO: Nested view
       const getAllReplies = (noteId) => {
         if (!parentMap[noteId]) return []
-        return parentMap[noteId].reduce((replies, childId) => replies.concat(childId, getAllReplies(childId)), [])
+        return parentMap[noteId].reduce(
+          (replies, childId) => replies.concat(childId, getAllReplies(childId)),
+          []
+        )
       }
 
-      orderedNotes = (parentMap[id] ?? []).sort(selectedSortFn).map(noteId => ({
+      orderedNotes = (parentMap[id] ?? []).sort(selectedSortFn).map((noteId) => ({
         id: noteId,
         replies: getAllReplies(noteId).sort(leastRecentComp),
       }))
@@ -346,28 +375,32 @@ export default function Forum({ forumNote, clientJsLoading }) {
     const newDisplayOptions = {}
     const checkGroupMatch = (groupId, replyGroup) => {
       if (groupId.includes('.*')) {
-        return (new RegExp(groupId)).test(replyGroup)
+        return new RegExp(groupId).test(replyGroup)
       }
       return groupId === replyGroup
     }
-    const checkSignaturesMatch = (selectedSignatures, replySignature) => (
-      selectedSignatures.some(sig => checkGroupMatch(sig, replySignature))
-    )
-    const checkReadersMatch = (selectedReaders, replyReaders) => (
-      selectedReaders.every(reader => replyReaders.some(replyReader => checkGroupMatch(reader, replyReader)))
-    )
-    const checkExReadersMatch = (selectedReaders, replyReaders) => (
-      selectedReaders.some(reader => replyReaders.some(replyReader => checkGroupMatch(reader, replyReader)))
-    )
+    const checkSignaturesMatch = (selectedSignatures, replySignature) =>
+      selectedSignatures.some((sig) => checkGroupMatch(sig, replySignature))
+    const checkReadersMatch = (selectedReaders, replyReaders) =>
+      selectedReaders.every((reader) =>
+        replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
+      )
+    const checkExReadersMatch = (selectedReaders, replyReaders) =>
+      selectedReaders.some((reader) =>
+        replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
+      )
 
     Object.values(replyNoteMap).forEach((note) => {
-      const isVisible = (
-        (!selectedFilters.invitations || selectedFilters.invitations.includes(note.invitation))
-        && (!selectedFilters.signatures || checkSignaturesMatch(selectedFilters.signatures, note.signatures[0]))
-        && (!selectedFilters.keywords || note.searchText.includes(selectedFilters.keywords[0]))
-        && (!selectedFilters.readers || checkReadersMatch(selectedFilters.readers, note.readers))
-        && (!selectedFilters.excludedReaders || !checkExReadersMatch(selectedFilters.excludedReaders, note.readers))
-      )
+      const isVisible =
+        (!selectedFilters.invitations ||
+          selectedFilters.invitations.includes(note.invitation)) &&
+        (!selectedFilters.signatures ||
+          checkSignaturesMatch(selectedFilters.signatures, note.signatures[0])) &&
+        (!selectedFilters.keywords || note.searchText.includes(selectedFilters.keywords[0])) &&
+        (!selectedFilters.readers ||
+          checkReadersMatch(selectedFilters.readers, note.readers)) &&
+        (!selectedFilters.excludedReaders ||
+          !checkExReadersMatch(selectedFilters.excludedReaders, note.readers))
       const currentOptions = displayOptionsMap[note.id]
       newDisplayOptions[note.id] = {
         ...currentOptions,
@@ -378,7 +411,9 @@ export default function Forum({ forumNote, clientJsLoading }) {
 
     orderedReplies.forEach((note) => {
       const { hidden } = newDisplayOptions[note.id]
-      const someChildrenVisible = note.replies.some(childId => !newDisplayOptions[childId].hidden)
+      const someChildrenVisible = note.replies.some(
+        (childId) => !newDisplayOptions[childId].hidden
+      )
       if (hidden && someChildrenVisible) {
         newDisplayOptions[note.id].hidden = false
         newDisplayOptions[note.id].collapsed = true
@@ -427,20 +462,19 @@ export default function Forum({ forumNote, clientJsLoading }) {
 
   return (
     <div className="forum-container">
-      <ForumNote
-        note={parentNote}
-        updateNote={setParentNote}
-      />
+      <ForumNote note={parentNote} updateNote={setParentNote} />
 
       {parentNote.replyInvitations?.length > 0 && (
         <div className="invitations-container">
           <div className="invitation-buttons">
             <span className="hint">Add:</span>
-            {parentNote.replyInvitations.map(invitation => (
+            {parentNote.replyInvitations.map((invitation) => (
               <button
                 key={invitation.id}
                 type="button"
-                className={`btn btn-xs ${activeInvitation?.id === invitation.id ? 'active' : ''}`}
+                className={`btn btn-xs ${
+                  activeInvitation?.id === invitation.id ? 'active' : ''
+                }`}
                 onClick={() => openNoteEditor(invitation)}
               >
                 {prettyInvitationId(invitation.id)}
@@ -452,8 +486,12 @@ export default function Forum({ forumNote, clientJsLoading }) {
             forumId={id}
             invitation={activeInvitation}
             onNoteCreated={addTopLevelReply}
-            onNoteCancelled={() => { setActiveInvitation(null) }}
-            onError={() => { setActiveInvitation(null) }}
+            onNoteCancelled={() => {
+              setActiveInvitation(null)
+            }}
+            onError={() => {
+              setActiveInvitation(null)
+            }}
           />
 
           <hr />
@@ -462,9 +500,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
 
       {repliesLoaded && (
         <div className="filters-container mt-3">
-          {replyForumViews && (
-            <FilterTabs forumViews={replyForumViews} />
-          )}
+          {replyForumViews && <FilterTabs forumViews={replyForumViews} />}
 
           {filterOptions && (
             <FilterForm
@@ -489,17 +525,22 @@ export default function Forum({ forumNote, clientJsLoading }) {
           <div id="forum-replies">
             <ForumReplyContext.Provider
               value={{
-                forumId: id, displayOptionsMap, setCollapsed, setContentExpanded,
+                forumId: id,
+                displayOptionsMap,
+                setCollapsed,
+                setContentExpanded,
               }}
             >
-              {repliesLoaded ? orderedReplies.map(reply => (
-                <ForumReply
-                  key={reply.id}
-                  note={replyNoteMap[reply.id]}
-                  replies={reply.replies.map(childId => replyNoteMap[childId])}
-                  updateNote={updateReplyNote}
-                />
-              )) : (
+              {repliesLoaded ? (
+                orderedReplies.map((reply) => (
+                  <ForumReply
+                    key={reply.id}
+                    note={replyNoteMap[reply.id]}
+                    replies={reply.replies.map((childId) => replyNoteMap[childId])}
+                    updateNote={updateReplyNote}
+                  />
+                ))
+              ) : (
                 <LoadingSpinner inline />
               )}
             </ForumReplyContext.Provider>

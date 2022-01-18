@@ -48,15 +48,25 @@ const AutoCompleteInput = () => {
   }, [])
 
   const delaySearch = useCallback(
-    debounce(term => setSearchTerm(term), 300),
-    [],
+    debounce((term) => setSearchTerm(term), 300),
+    []
   )
 
   const searchByTerm = async (term) => {
     try {
-      const { notes } = await api.getCombined('/notes/search', {
-        term, type: 'prefix', content: 'all', group: 'all', source: 'all', limit: 10,
-      }, null, { resultsKey: 'notes' })
+      const { notes } = await api.getCombined(
+        '/notes/search',
+        {
+          term,
+          type: 'prefix',
+          content: 'all',
+          group: 'all',
+          source: 'all',
+          limit: 10,
+        },
+        null,
+        { resultsKey: 'notes' }
+      )
       if (cancelRequest) return
       const tokenObjects = getTokenObjects(notes, term)
       const titleObjects = getTitleObjects(notes, term)
@@ -74,13 +84,17 @@ const AutoCompleteInput = () => {
   const itemClickHandler = (item) => {
     setAutoCompleteItems([])
     if (item.section === 'titles') {
-      const query = item.forum === item.id ? { id: item.forum } : { id: item.forum, noteId: item.id }
+      const query =
+        item.forum === item.id ? { id: item.forum } : { id: item.forum, noteId: item.id }
       Router.push({ pathname: '/forum', query })
     } else if (item.value.startsWith('~')) {
       Router.push({ pathname: '/profile', query: { id: item.value } })
     } else {
       // eslint-disable-next-line object-curly-newline
-      Router.push({ pathname: '/search', query: { term: item.value, content: 'all', group: 'all', source: 'all' } })
+      Router.push({
+        pathname: '/search',
+        query: { term: item.value, content: 'all', group: 'all', source: 'all' },
+      })
     }
   }
 
@@ -95,19 +109,25 @@ const AutoCompleteInput = () => {
 
     let newHoverIndexValue = null
     if (e.key === 'ArrowDown') {
-      if (hoverIndex === null || hoverIndex === autoCompleteItems.length - 1) { // initial
+      if (hoverIndex === null || hoverIndex === autoCompleteItems.length - 1) {
+        // initial
         newHoverIndexValue = 0
-      } else if (autoCompleteItems[hoverIndex + 1] === null) { // corssing section
+      } else if (autoCompleteItems[hoverIndex + 1] === null) {
+        // corssing section
         newHoverIndexValue = hoverIndex + 2
-      } else { // normal
+      } else {
+        // normal
         newHoverIndexValue = hoverIndex + 1
       }
     } else if (e.key === 'ArrowUp') {
-      if (hoverIndex === null || hoverIndex === 0) { // initial
+      if (hoverIndex === null || hoverIndex === 0) {
+        // initial
         newHoverIndexValue = autoCompleteItems.length - 1
-      } else if (autoCompleteItems[hoverIndex - 1] === null) { // corssing section
+      } else if (autoCompleteItems[hoverIndex - 1] === null) {
+        // corssing section
         newHoverIndexValue = hoverIndex - 2
-      } else { // normal
+      } else {
+        // normal
         newHoverIndexValue = hoverIndex - 1
       }
     }
@@ -130,8 +150,11 @@ const AutoCompleteInput = () => {
           placeholder="Search OpenReview..."
           autoComplete="off"
           autoCorrect="off"
-          onChange={(e) => { setImmediateSearchTerm(e.target.value); delaySearch(e.target.value) }}
-          onKeyDown={e => keyDownHandler(e)}
+          onChange={(e) => {
+            setImmediateSearchTerm(e.target.value)
+            delaySearch(e.target.value)
+          }}
+          onKeyDown={(e) => keyDownHandler(e)}
         />
         <Icon name="search" extraClasses="form-control-feedback" />
       </div>
@@ -147,13 +170,21 @@ const AutoCompleteInput = () => {
                 className="menuItem ui-menu-item"
                 role="presentation"
                 onClick={() => itemClickHandler(item)}
-                ref={(element) => { autoCompleteItemsRef.current[index] = element }}
+                ref={(element) => {
+                  autoCompleteItemsRef.current[index] = element
+                }}
               >
                 {/* eslint-disable-next-line react/no-danger */}
-                <div className={`ui-menu-item-wrapper ${activeClass}`} dangerouslySetInnerHTML={{ __html: item.label }} />
+                <div
+                  className={`ui-menu-item-wrapper ${activeClass}`}
+                  dangerouslySetInnerHTML={{ __html: item.label }}
+                />
                 {item.subtitle && (
                   // eslint-disable-next-line react/no-danger
-                  <div className={`authlist ui-menu-item-wrapper ${activeClass}`} dangerouslySetInnerHTML={{ __html: item.subtitle }} />
+                  <div
+                    className={`authlist ui-menu-item-wrapper ${activeClass}`}
+                    dangerouslySetInnerHTML={{ __html: item.subtitle }}
+                  />
                 )}
               </li>
             ) : (
