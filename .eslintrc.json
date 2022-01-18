@@ -1,26 +1,30 @@
 {
-  "extends": ["airbnb-base", "next"],
+  "extends": ["airbnb-base", "next", "prettier"],
   "rules": {
     "semi": ["error", "never"],
-    "no-unused-vars": ["off"],
+    "no-unused-vars": "off",
     "prefer-destructuring": ["error", { "object": true, "array": false }],
     "arrow-parens": [2, "as-needed", { "requireForBlockBody": true }],
-    "max-len": ["error", {
-      "code": 120,
-      "ignoreStrings": true,
-      "ignoreTemplateLiterals": true,
-      "ignoreRegExpLiterals": true
-    }],
-    "function-paren-newline": "off",
+    "max-len": [
+      "error",
+      {
+        "code": 120,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true,
+        "ignoreRegExpLiterals": true
+      }
+    ],
     "react-hooks/exhaustive-deps": "off",
     "jsx-a11y/label-has-associated-control": ["error", { "assert": "either" }],
     "jsx-a11y/click-events-have-key-events": 0,
-    "jsx-a11y/anchor-is-valid": ["error", {
-      "components": ["Link"],
-      "specialLink": ["hrefLeft", "hrefRight"],
-      "aspects": ["invalidHref", "preferButton"]
-    }],
-    "import/no-extraneous-dependencies": ["error", { "packageDir": "./" }],
+    "jsx-a11y/anchor-is-valid": [
+      "error",
+      {
+        "components": ["Link"],
+        "specialLink": ["hrefLeft", "hrefRight"],
+        "aspects": ["invalidHref", "preferButton"]
+      }
+    ],
     "@next/next/no-img-element": "off"
   }
 }

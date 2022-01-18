@@ -1,12 +1,13 @@
 /* globals Webfield: false */
-/* globals Webfield2: false */
 
 import { useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import WebfieldContainer from '../../components/WebfieldContainer'
+import EditorSection from '../../components/EditorSection'
+import { InvitationGeneralView } from '../../components/invitation/InvitationGeneral'
+import InvitationReply from '../../components/invitation/InvitationReply'
 import useQuery from '../../hooks/useQuery'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -67,14 +68,6 @@ const InvitationInfo = ({ appContext }) => {
       Webfield.editModeBanner(invitation.id, 'info')
     }
 
-    const webfieldInfoFn = invitation.apiVersion === 2
-      ? Webfield2.ui.invitationInfo
-      : Webfield.ui.invitationInfo
-
-    webfieldInfoFn(invitation, {
-      container: containerRef.current,
-    })
-
     // eslint-disable-next-line consistent-return
     return () => {
       // Hide edit mode banner
@@ -85,23 +78,44 @@ const InvitationInfo = ({ appContext }) => {
   }, [clientJsLoading, containerRef, invitation])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
+
   return (
     <>
       <Head>
         <title key="title">{`${invitation ? prettyId(invitation.id) : 'Invitation Info'} | OpenReview`}</title>
       </Head>
 
+      <div id="header">
+        <h1>{prettyId(invitation?.id)}</h1>
+      </div>
+
       {(clientJsLoading || !invitation) && (
         <LoadingSpinner />
       )}
 
-      <WebfieldContainer id="group-container">
-        <div id="header">
-          <h1>{prettyId(query?.id)}</h1>
-        </div>
+      {invitation && (
+        <div>
+          <EditorSection title="General Info" className="general">
+            <InvitationGeneralView
+              invitation={invitation}
+              showEditButton={false}
+            />
+          </EditorSection>
 
-        <div id="notes" ref={containerRef} />
-      </WebfieldContainer>
+          <InvitationReply
+            invitation={invitation}
+            // eslint-disable-next-line no-nested-ternary
+            replyField={invitation.apiVersion === 1 ? 'reply' : (invitation.edge ? 'edge' : 'edit')}
+            readOnly={true}
+          />
+
+          <InvitationReply
+            invitation={invitation}
+            replyField="replyForumViews"
+            readOnly={true}
+          />
+        </div>
+      )}
     </>
   )
 }
