@@ -22,24 +22,8 @@ Handlebars.registerHelper('toLowerCase', function(value) {
   return (value && _.isString(value)) ? value.toLowerCase() : '';
 });
 
-Handlebars.registerHelper('encodeURI', function(value) {
-  return (value && _.isString(value)) ? encodeURIComponent(value) : '';
-});
-
 Handlebars.registerHelper('upperFirst', function(value) {
   return (value && _.isString(value)) ? _.upperFirst(value) : '';
-});
-
-Handlebars.registerHelper('kebabCase', function(value) {
-  return (value && _.isString(value)) ? _.kebabCase(value) : '';
-});
-
-Handlebars.registerHelper('round', function(value, precision) {
-  return (value && _.isFinite(value)) ? _.round(value, precision) : '';
-});
-
-Handlebars.registerHelper('startsWith', function(string, val) {
-  return _.startsWith(string, val);
 });
 
 Handlebars.registerHelper('isEqual', function(a, b) {
@@ -48,10 +32,6 @@ Handlebars.registerHelper('isEqual', function(a, b) {
 
 Handlebars.registerHelper('isEmpty', function(obj) {
   return _.isEmpty(obj);
-});
-
-Handlebars.registerHelper('isString', function(value) {
-  return _.isString(value);
 });
 
 Handlebars.registerHelper('join', function(val, delimiter, start, end) {
@@ -98,33 +78,6 @@ Handlebars.registerHelper('prettyField', function(fieldNameStr) {
   return view.prettyField(fieldNameStr);
 });
 
-Handlebars.registerHelper('prettyContentValue', view.prettyContentValue);
-
-Handlebars.registerHelper('prettyScoreName', function(fieldNameStr) {
-  if (typeof fieldNameStr !== 'string') {
-    return '';
-  }
-
-  var prettyStr = fieldNameStr.split('_').join(' ');
-  if (prettyStr === 'tpms score') {
-    return 'TPMS score';
-  }
-  return prettyStr.charAt(0).toUpperCase() + prettyStr.substring(1);
-});
-
-Handlebars.registerHelper('prettyList', function(idArr) {
-  if (!_.isArray(idArr) || !idArr.length) {
-    return '';
-  }
-
-  var prettyArr = idArr.map(function(id) { return view.prettyId(id); });
-  if (prettyArr.length === 1) {
-    return prettyArr[0];
-  } else {
-    return prettyArr.slice(0, -1).join(',') + ' and ' + prettyArr.slice(-1);
-  }
-});
-
 Handlebars.registerHelper('pdfUrl', function(note, isReference) {
   if (!note.content) {
     return '';
@@ -162,16 +115,6 @@ Handlebars.registerHelper('formattedDate', function(modifiedDate, trueModifiedDa
 
 Handlebars.registerHelper('noteTitle', function(invitation, signatures) {
   return view.generateNoteTitle(invitation, signatures);
-});
-
-Handlebars.registerHelper('standardDate', function(timestamp) {
-  var dateSettings = {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  };
-
-  return new Date(timestamp).toLocaleDateString('en-GB', dateSettings);
 });
 
 Handlebars.registerHelper('dateTime', function(timestamp) {
@@ -437,7 +380,7 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
     }
 
     var urlRegex = /^(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*)?$/i;
-
+    var profileRegex = /\B~[^\d\s]+\_[^\d\s]+[0-9]+/ig;
     // Build download links or render markdown if enabled
     if (valueString.indexOf('/attachment/') === 0) {
       valueString = view.mkDownloadLink(noteObj.id, fieldName, valueString);
@@ -446,8 +389,21 @@ Handlebars.registerHelper('noteContentCollapsible', function(noteObj, options) {
     } else if (urlRegex.test(valueString)) {
       var url = valueString.startsWith('https://openreview.net') ? valueString.replace('https://openreview.net', '') : valueString
       valueString = `<a href="${url}" target="_blank" rel="nofollow noreferrer">${url}</a>`;
+    } else if (profileRegex.test(valueString)){
+      valueString = valueString.replace(profileRegex, p => `<a href="/profile?id=${p}" target="_blank">${view.prettyId(p)}</a>`);
     } else {
       valueString = Handlebars.Utils.escapeExpression(valueString);
+    }
+
+    if (
+      noteObj.version === 2 &&
+      noteObj.content[fieldName]?.readers &&
+      !noteObj.content[fieldName].readers.includes('everyone') &&
+      !_.isEqual(noteObj.readers?.sort(), noteObj.content[fieldName].readers.sort())
+    ) {
+      var tooltip = `privately revealed to ${noteObj.content[fieldName].readers.map(p =>view.prettyId(p)).join(', ')}`
+      var privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
+      valueString = `${privateLabel} ${valueString}`
     }
 
     contents.push({
@@ -574,29 +530,6 @@ Handlebars.registerHelper('tagWidgets', function(noteTags, noteTagInvitations, t
       '</div>';
   }
   return new Handlebars.SafeString(widgetHtml);
-});
-
-Handlebars.registerHelper('recommendWidget', function(tagInvitation, userTag) {
-  tagInvitation = tagInvitation || {};
-  userTag = userTag || {};
-
-  var tagObj = {
-    id: userTag.id || null,
-    invitationId: tagInvitation.id || null,
-    value: userTag.tag || null,
-    signatures: userTag.signatures || [],
-    options: ['-2', '-1', '0', '+1', '+2'] // TODO: specify these in the invitation
-  };
-  var label = tagInvitation.reply.content.tag.description || view.prettyInvitationId(tagInvitation.id);
-
-  var html = Handlebars.templates.tagWidget_radio({  // jshint ignore:line
-    tag: tagObj,
-    options: {
-      label: label
-    }
-  });
-
-  return new Handlebars.SafeString(html);
 });
 
 function singleTagWidget(userTags, tagInvitation) {
@@ -838,57 +771,6 @@ Handlebars.registerHelper('timezoneDropdown', function(options) {
   return new Handlebars.SafeString(output);
 });
 
-// Matching Browser
-Handlebars.registerHelper('authorsList', function(authors) {
-  var output = '';
-  if (!authors || !authors.length) {
-    return output;
-  }
-
-  var name = authors[0];
-  output += name;
-
-  if (authors.length > 1) {
-    output += (', ' + authors[1]);
-  }
-
-  if (authors.length > 2) {
-    output += ', <a href="#" class="more-authors">+ '+ (authors.length - 1) +' More</a>';
-
-    var moreNames = [];
-    for (var i = 2; i < authors.length; i++) {
-      name = authors[i];
-      moreNames.push(name);
-    }
-    output += '<span style="display: none;">'+ moreNames.join(', ') +'</span>';
-  }
-
-  return new Handlebars.SafeString(output);
-});
-
-Handlebars.registerHelper('edgeBrowserUrl', function(configNoteId, configNoteContent) {
-  // For matches utilizing the new edge system
-  if (configNoteContent.hasOwnProperty('scores_specification')) {
-    var browseInvitations = Object.keys(configNoteContent.scores_specification);
-    var referrerText = 'all assignments for ' + view.prettyId(configNoteContent.match_group);
-    var referrerUrl = '/assignments?group=' + configNoteContent.match_group;
-    var assignmentLabel = encodeURIComponent(configNoteContent.title)
-
-    return '/edges/browse' +
-      '?traverse=' + configNoteContent.assignment_invitation + ',label:' + assignmentLabel +
-      '&edit=' + configNoteContent.assignment_invitation + ',label:' + assignmentLabel +
-      '&browse=' + configNoteContent.aggregate_score_invitation + ',label:' + assignmentLabel +
-      ';' + browseInvitations.join(';') +
-      ';' + configNoteContent.conflicts_invitation +
-      (configNoteContent.custom_max_papers_invitation ? ';' + configNoteContent.custom_max_papers_invitation + ',head:ignore' : '') +
-      (configNoteContent.custom_load_invitation ? ';' + configNoteContent.custom_load_invitation + ',head:ignore' : '') +
-      '&referrer=' + encodeURIComponent('[' + referrerText + '](' + referrerUrl + ')');
-  }
-
-  // For old matches using metadata notes
-  return '/assignments/browse?id=' + configNoteId;
-});
-
 
 /**
  * @name .inflect
@@ -976,36 +858,6 @@ Handlebars.registerHelper('gt', function(a, b, options) {
   return options.inverse(this);
 });
 
-/**
- * Block helper that renders the block if an array has the
- * given `value`. Optionally specify an inverse block to render
- * when the array does not have the given value.
- *
- * Given the array `['a', 'b', 'c']`:
- *
- * ```handlebars
- * {{#inArray array "d"}}
- *   foo
- * {{else}}
- *   bar
- * {{/inArray}}
- * ```
- *
- * @name .inArray
- * @param {Array} `array`
- * @param {any} `value`
- * @param {Object} `options`
- * @return {String}
- * @block
- * @api public
- */
-Handlebars.registerHelper('inArray', function(array, value, options) {
-  if (_.includes(array, value)) {
-    return options.fn(this);
-  }
-  return options.inverse(this);
-});
-
 Handlebars.registerHelper('debug', function(optionalValue) {
   console.log('Current Context');
   console.log('====================');
@@ -1039,9 +891,6 @@ Handlebars.registerPartial('activityList', Handlebars.templates['partials/activi
 Handlebars.registerPartial('noteTask', Handlebars.templates['partials/noteTask']);
 Handlebars.registerPartial('taskList', Handlebars.templates['partials/taskList']);
 
-Handlebars.registerPartial('groupMembersTable', Handlebars.templates['partials/groupMembersTable']);
-Handlebars.registerPartial('groupMembersTableRow', Handlebars.templates['partials/groupMembersTableRow']);
-Handlebars.registerPartial('groupInfoTable', Handlebars.templates['partials/groupInfoTable']);
 Handlebars.registerPartial('invitationInfoTable', Handlebars.templates['partials/invitationInfoTable']);
 
 Handlebars.registerPartial('spinner', Handlebars.templates.spinner);

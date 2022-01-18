@@ -1,0 +1,6 @@
+/node_modules
+/videos
+/.next
+
+/client
+/public/error-styles.css

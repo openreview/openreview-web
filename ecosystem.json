@@ -1,5 +1,5 @@
 {
-  "apps" : [
+  "apps": [
     {
       "name": "openreview-web",
       "script": "/home/openreview/deploy/openreview-web/current/node_modules/.bin/next",
@@ -13,7 +13,7 @@
       "error_file": "/home/openreview/logs/openreview-web-error.log",
       "out_file": "/home/openreview/logs/openreview-web-out.log",
       "log_date_format": "YYYY-MM-DD HH:mm Z",
-      "env" : {
+      "env": {
         "NODE_ENV": "development",
         "NEXT_PORT": 3030
       },
