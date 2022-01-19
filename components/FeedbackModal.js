@@ -7,8 +7,7 @@ import ErrorAlert from './ErrorAlert'
 import api from '../lib/api-client'
 
 export default function FeedbackModal() {
-  const defaultText = 'Enter your feedback below and we\'ll get back to you as soon as possible.'
-  const [text, setText] = useState(defaultText)
+  const [text, setText] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const formRef = useRef(null)
@@ -16,7 +15,7 @@ export default function FeedbackModal() {
 
   const resetForm = () => {
     setError(null)
-    setText(defaultText)
+    setText(null)
     formRef.current.reset()
   }
 
@@ -56,7 +55,17 @@ export default function FeedbackModal() {
       primaryButtonDisabled={submitting}
       onClose={resetForm}
     >
-      <p>{text}</p>
+      {text ? (
+        <p>{text}</p>
+      ) : (
+        <p>
+          Enter your feedback below and we&apos;ll get back to you as soon as possible.
+          To submit a bug report or feature request, you can use the official OpenReview GitHub repository:
+          <br />
+          <a href="https://github.com/openreview/openreview/issues/new/choose" target="_blank" rel="noreferrer">Report an issue</a>
+        </p>
+      )}
+
       {error && (
         <ErrorAlert error={error} />
       )}
