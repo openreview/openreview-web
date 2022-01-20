@@ -1,7 +1,6 @@
-@use "../utils/constants";
+@use '../utils/constants';
 
 main.assignment-stats {
-
   header {
     margin-top: 1rem;
     margin-bottom: 2.5rem;
@@ -30,12 +29,12 @@ main.assignment-stats {
   }
 
   #stats-container-basic {
-    margin-right: -.5rem;
-    margin-left: -.5rem;
+    margin-right: -0.5rem;
+    margin-left: -0.5rem;
 
     & > div {
-      padding-left: .5rem;
-      padding-right: .5rem;
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
     }
   }
 
@@ -79,7 +78,7 @@ main.assignment-stats {
 
     .stat-name {
       color: constants.$darkBlue;
-      font-size: .875rem;
+      font-size: 0.875rem;
     }
   }
 
@@ -88,7 +87,7 @@ main.assignment-stats {
 
     .stat-name {
       color: constants.$darkBlue;
-      font-size: .875rem;
+      font-size: 0.875rem;
     }
   }
 
@@ -109,9 +108,9 @@ main.assignment-stats {
       min-width: 80%;
     }
 
-    .action-dropdown{
+    .action-dropdown {
       min-width: 50%;
-      margin-top: .5rem;
+      margin-top: 0.5rem;
     }
   }
 
@@ -121,8 +120,8 @@ main.assignment-stats {
     flex-wrap: wrap;
 
     .stat-scalar {
-      width: 22%;
-      margin:.5rem;
+      width: calc(25% - 1rem);
+      margin: 0.5rem;
 
       .stat-name {
         max-height: 60px;
@@ -151,12 +150,12 @@ main.assignment-stats {
     .bin-container {
       display: flex;
       flex-direction: column;
-      width: 45%;
-      margin:.5rem;
+      width: calc(50% - 1rem);
+      margin: 0.5rem;
       max-height: 500px;
 
       &.full-width {
-        width:90%;
+        width: 100%;
       }
     }
     .spinner-container {
@@ -172,19 +171,28 @@ main.assignment-stats {
     .basic-stats {
       justify-content: center;
       .stat-scalar {
-        width: 80%;
+        width: 100%;
       }
     }
     .dist-stats > .bin-container {
       width: 100%;
+
+      .stat-name {
+        font-size: 0.85rem;
+      }
+    }
+    .dist-stats > .bin-container.full-width {
+      .stat-name {
+        font-size: 1.75rem;
+      }
     }
   }
   @media #{constants.$tablet-only} {
     .basic-stats > .stat-scalar {
-      width: 45%;
+      width: calc(50% - 1rem);
     }
     .dist-stats > .bin-container {
-      width: 85%;
+      width: 100%;
     }
   }
   @media #{constants.$desktop} {
