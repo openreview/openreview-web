@@ -1138,6 +1138,7 @@ module.exports = (function() {
       buildEditor(editReaders, editSignatures, noteReaders, noteSignatures);
     } catch (error) {
       console.error(error);
+      if (error === 'no_results') error = 'You do not have permission to create a note'
       if (params.onError) {
         params.onError([error]);
       } else {
