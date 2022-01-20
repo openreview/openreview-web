@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { groupBy, floor, ceil } from 'lodash'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
@@ -14,6 +13,24 @@ import { referrerLink } from '../../lib/banner-links'
 import Dropdown from '../../components/Dropdown'
 import ScalarStat from '../../components/assignments/ScalarStat'
 import HistogramStat from '../../components/assignments/HistogramStat'
+import {
+  getAssignmentMap,
+  getDistributionPapersByUserCount,
+  getMeanFinalScore,
+  getMeanGroupCountPerPaper,
+  getMeanPaperCountPerGroup,
+  getPaperCount,
+  getUnassignedPapersList,
+  getUnassignedUsersList,
+  getUserCount,
+  getDistributionUsersByPaperCount,
+  getDistributionAssignmentByScore,
+  getDistributionPapersByMeanScore,
+  getDistributionUsersByMeanScore,
+  getDistributionRecomGroupCountPerPaper,
+  getDistributionRecomGroupCountPerWeight,
+  getNumDataPerGroupDataByBidScore,
+} from '../../lib/assignment-stats-utils'
 
 const AssignmentStats = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
@@ -163,83 +180,11 @@ const AssignmentStats = ({ appContext }) => {
         const bids = results[3].value
         const recommendations = results[4].value
 
-        // #region compute data
-        const paperIds = {}
-        const userIds = {}
-        const bidDict = {}
+        const { assignmentMap, usersWithAssignments, papersWithAssignments } =
+          getAssignmentMap(assignments, bids, recommendations, papers, users)
 
-        papers.forEach((note) => {
-          paperIds[note.id] = note
-        })
-        users.forEach((member) => {
-          userIds[member] = member
-        })
-        bids.forEach((groupedEdge) => {
-          const paperId = groupedEdge.id.head
-          bidDict[paperId] = {}
-          groupedEdge.values.forEach((value) => {
-            if (paperId in paperIds) {
-              bidDict[paperId][value.tail] = value.label
-            }
-          })
-        })
-
-        const recommendationDict = {}
-        recommendations.forEach((groupedEdge) => {
-          const paperId = groupedEdge.id.head
-          recommendationDict[paperId] = {}
-          groupedEdge.values.forEach((value) => {
-            if (paperId in paperIds) {
-              recommendationDict[paperId][value.tail] = value.weight
-            }
-          })
-        })
-
-        const usersWithAssignments = new Set()
-        const papersWithAssignments = new Set()
-        const assignmentMap = assignments.flatMap((groupedEdge) => {
-          const paperId = groupedEdge.id.head
-          const paperBids = bidDict[paperId] || {}
-
-          const paperRecommendations = recommendationDict[paperId] || {}
-          const validGroupEdges = groupedEdge.values.filter(
-            (value) => paperId in paperIds && value.tail in userIds
-          )
-          return validGroupEdges.map((value) => {
-            const otherScores = { bid: 'No Bid' }
-            if (value.tail in paperBids) {
-              otherScores.bid = paperBids[value.tail]
-            }
-            if (value.tail in paperRecommendations) {
-              otherScores.recommendation = paperRecommendations[value.tail]
-            } else {
-              otherScores.recommendation = 0
-            }
-            papersWithAssignments.add(paperId)
-            usersWithAssignments.add(value.tail)
-            return {
-              groupId: value.tail,
-              paperId,
-              score: value.weight,
-              otherScores,
-            }
-          })
-        })
-
-        const unassignedPapersList = []
-        Object.keys(paperIds).forEach((paperId) => {
-          if (!papersWithAssignments.has(paperId)) {
-            unassignedPapersList.push(paperId)
-          }
-        })
-
-        const unassignedUsersList = []
-        Object.keys(userIds).forEach((user) => {
-          if (!usersWithAssignments.has(user)) {
-            unassignedUsersList.push(user)
-          }
-        })
-        // #endregion
+        const unassignedPapersList = getUnassignedPapersList(papers, papersWithAssignments)
+        const unassignedUsersList = getUnassignedUsersList(users, usersWithAssignments)
 
         setMatchLists([assignmentMap, unassignedPapersList, unassignedUsersList])
       }
@@ -287,260 +232,41 @@ const AssignmentStats = ({ appContext }) => {
 
   useEffect(() => {
     if (!matchLists) return
-    const paperMap = groupBy(matchLists[0], (match) => match.paperId) ?? {}
-    const papersWithoutAssignments = matchLists?.[1] ?? []
-    const paperCount = `${Object.keys(paperMap).length + papersWithoutAssignments.length} / ${
-      Object.keys(paperMap ?? {}).length
-    }`
-
-    const groupMap = groupBy(matchLists[0], (match) => match.groupId)
-    const usersWithoutAssignments = matchLists?.[2] ?? []
-    const userCount = `${Object.keys(groupMap).length + usersWithoutAssignments.length} / ${
-      Object.keys(groupMap ?? {}).length
-    }`
-
-    const meanFinalScore =
-      matchLists[0].length === 0
-        ? '-'
-        : (
-            Math.round(
-              (matchLists[0].map((p) => p.score ?? 0).reduce((a, b) => a + b, 0) * 100) /
-                matchLists[0].length
-            ) / 100
-          ).toFixed(2)
-
-    const meanGroupCountPerPaper =
-      Object.values(paperMap).length === 0
-        ? '-'
-        : (
-            Math.round(
-              (Object.values(paperMap ?? {})
-                .map((p) => p.length)
-                .reduce((a, b) => a + b, 0) *
-                100) /
-                Object.values(paperMap ?? {}).length
-            ) / 100
-          ).toFixed(2)
-
-    const meanPaperCountPerGroup =
-      Object.values(groupMap).length === 0
-        ? '-'
-        : (
-            Math.round(
-              (Object.values(groupMap ?? {})
-                .map((p) => p.length)
-                .reduce((a, b) => a + b, 0) *
-                100) /
-                Object.values(groupMap ?? {}).length
-            ) / 100
-          ).toFixed(2)
-
-    let groupCountPerPaperList = Object.entries(paperMap).map(([paperId, matches]) => ({
-      num: matches.length,
-      data: paperId,
-    }))
-    const papersWithoutAssignmentsList = papersWithoutAssignments.map((paperId) => ({
-      num: 0,
-      data: paperId,
-    }))
-    groupCountPerPaperList = groupCountPerPaperList.concat(papersWithoutAssignmentsList)
-    const groupCountPerPaperDataList = groupCountPerPaperList.map((p) => p.num)
-    const distributionPapersByUserCount = {
-      tag: 'discrete',
-      data: groupCountPerPaperDataList,
-      name: 'Distribution of Papers by Number of Users',
-      min: 0,
-      max: groupCountPerPaperDataList
-        .filter(Number.isFinite)
-        .reduce((a, b) => Math.max(a, b), 0),
-      xLabel: 'Number of Users',
-      yLabel: 'Number of Papers',
-      type: 'paper',
-      interactiveData: groupCountPerPaperList,
-    }
-
-    let paperCountPerGroupList = Object.entries(groupMap).map(([p, matches]) => ({
-      num: matches.length,
-      data: p,
-    }))
-    const usersWithoutAssignmentsList = usersWithoutAssignments.map((p) => ({
-      num: 0,
-      data: p,
-    }))
-    paperCountPerGroupList = paperCountPerGroupList.concat(usersWithoutAssignmentsList)
-    const paperCountPerGroupDataList = paperCountPerGroupList.map((p) => p.num)
-    const distributionUsersByPaperCount = {
-      tag: 'discrete',
-      data: paperCountPerGroupDataList,
-      name: 'Distribution of Users by Number of Papers',
-      min: 0,
-      max: paperCountPerGroupDataList
-        .filter(Number.isFinite)
-        .reduce((a, b) => Math.max(a, b), 0),
-      xLabel: 'Number of Papers',
-      yLabel: 'Number of Users',
-      type: 'reviewer',
-      interactiveData: paperCountPerGroupList,
-    }
-
-    const allScoresList = matchLists[0].map((match) => ({
-      num: match.score,
-      data: match.paperId,
-    }))
-    const allScoresDataList = allScoresList.map((p) => p.num)
-    const distributionAssignmentByScore = {
-      tag: 'continuous',
-      data: allScoresDataList,
-      name: 'Distribution of Assignments by Scores',
-      min: floor(
-        allScoresDataList.filter(Number.isFinite).reduce((a, b) => Math.min(a, b), 0),
-        1
-      ),
-      max: ceil(
-        1.1 * allScoresDataList.filter(Number.isFinite).reduce((a, b) => Math.max(a, b), 0),
-        1
-      ),
-      binCount: 50,
-      xLabel: 'Score',
-      yLabel: 'Number of Assignments',
-      type: 'paper',
-      fullWidth: true,
-      interactiveData: allScoresList,
-    }
-
-    let meanScorePerPaperList = Object.entries(paperMap).map(([paperId, matches]) => ({
-      num:
-        matches
-          .map((p) => p.score)
-          .filter(Number.isFinite)
-          .reduce((a, b) => a + b, 0) / matches.length,
-      data: paperId,
-    }))
-    meanScorePerPaperList = meanScorePerPaperList.concat(papersWithoutAssignmentsList)
-    const meanScorePerPaperDataList = meanScorePerPaperList.map((p) => p.num)
-    const distributionPapersByMeanScore = {
-      tag: 'continuous',
-      data: meanScorePerPaperDataList,
-      name: 'Distribution of Number of Papers by Mean Scores',
-      min: 0,
-      max:
-        1.1 *
-        meanScorePerPaperDataList.filter(Number.isFinite).reduce((a, b) => Math.max(a, b), 0),
-      binCount: 20,
-      xLabel: 'Mean Score',
-      yLabel: 'Number of Papers',
-      type: 'paper',
-      interactiveData: meanScorePerPaperList,
-    }
-
-    let meanScorePerGroupList = Object.entries(groupMap).map(([p, matches]) => ({
-      num:
-        matches
-          .map((q) => q.score)
-          .filter(Number.isFinite)
-          .reduce((a, b) => a + b, 0) / matches.length,
-      data: p,
-    }))
-    meanScorePerGroupList = meanScorePerGroupList.concat(usersWithoutAssignmentsList)
-    const meanScorePerGroupDataList = meanScorePerGroupList.map((p) => p.num)
-    const distributionUsersByMeanScore = {
-      tag: 'continuous',
-      data: meanScorePerGroupDataList,
-      name: 'Distribution of Number of Users by Mean Scores',
-      min: 0,
-      max:
-        1.1 *
-        meanScorePerGroupDataList.filter(Number.isFinite).reduce((a, b) => Math.max(a, b), 0),
-      binCount: 20,
-      xLabel: 'Mean Score',
-      yLabel: 'Number of Users',
-      type: 'reviewer',
-      interactiveData: meanScorePerGroupList,
-    }
-
-    if (showRecommendationDistribution) {
-      const recomNumDataPerPaperList = Object.entries(paperMap).map(([paperId, matches]) => ({
-        num: matches.filter((p) => p.otherScores.recommendation > 0).length,
-        data: paperId,
-      }))
-      const distributionRecomGroupCountPerPaper = {
-        tag: 'discrete',
-        data: recomNumDataPerPaperList.map((p) => p.num),
-        interactiveData: recomNumDataPerPaperList,
-        name: 'Distribution of Number of Recommended Users per Paper',
-        min: 0,
-        max: recomNumDataPerPaperList
-          .map((p) => p.num)
-          .filter(Number.isFinite)
-          .reduce((a, b) => Math.max(a, b), 0),
-        xLabel: 'Number of Users',
-        yLabel: 'Number of Papers',
-        type: 'paper',
-      }
-
-      const recommendationWeights = matchLists[0].map((p) => p.otherScores.recommendation)
-      const distributionRecomGroupCountPerWeight = {
-        tag: 'discrete',
-        data: recommendationWeights,
-        name: 'Distribution of Number of Recommendations per value',
-        min: 0,
-        max: 10,
-        xLabel: 'Recommendation value',
-        yLabel: 'Number of Recommendations',
-        type: 'recommendation',
-      }
-    }
-
-    const bidValues = [
-      ...new Set(matchLists[0].flatMap((p) => p.otherScores.bid ?? [])),
-    ].sort()
-    const numDataPerGroupDataByBidScore = Object.fromEntries(
-      bidValues.map((bidVal) => {
-        const numDataPerGroupList = Object.entries(groupMap).map(([p, matches]) => ({
-          num: matches.filter((q) => q.otherScores.bid === bidVal).length,
-          data: p,
-        }))
-        return [
-          `distributionPaperCountPerGroup-bid-${bidVal
-            .toString()
-            .replace('.', '_')
-            .replace(' ', '_')}`,
-          {
-            tag: 'discrete',
-            data: numDataPerGroupList.map((p) => p.num),
-            name: `Distribution of Number of Papers per User with Bid of ${bidVal}`,
-            min: 0,
-            max: numDataPerGroupList
-              .map((p) => p.num)
-              .filter(Number.isFinite)
-              .reduce((a, b) => Math.max(a, b), 0),
-            xLabel: `Number of Papers with Bid = ${bidVal}`,
-            yLabel: 'Number of Users',
-            type: 'reviewer',
-            interactiveData: numDataPerGroupList,
-          },
-        ]
-      })
-    )
 
     setValues({
-      paperCount,
-      userCount,
-      meanFinalScore,
-      meanGroupCountPerPaper,
-      meanPaperCountPerGroup,
-      distributionPapersByUserCount,
-      distributionUsersByPaperCount,
-      distributionAssignmentByScore,
-      distributionPapersByMeanScore,
-      distributionUsersByMeanScore,
+      paperCount: getPaperCount(matchLists[0], matchLists[1]),
+      userCount: getUserCount(matchLists[0], matchLists[2]),
+      meanFinalScore: getMeanFinalScore(matchLists[0]),
+      meanGroupCountPerPaper: getMeanGroupCountPerPaper(matchLists[0]),
+      meanPaperCountPerGroup: getMeanPaperCountPerGroup(matchLists[0]),
+      distributionPapersByUserCount: getDistributionPapersByUserCount(
+        matchLists[0],
+        matchLists[1]
+      ),
+      distributionUsersByPaperCount: getDistributionUsersByPaperCount(
+        matchLists[0],
+        matchLists[2]
+      ),
+      distributionAssignmentByScore: getDistributionAssignmentByScore(matchLists[0]),
+      distributionPapersByMeanScore: getDistributionPapersByMeanScore(
+        matchLists[0],
+        matchLists[1]
+      ),
+      distributionUsersByMeanScore: getDistributionUsersByMeanScore(
+        matchLists[0],
+        matchLists[2]
+      ),
       ...(showRecommendationDistribution && {
         // eslint-disable-next-line no-undef
-        distributionRecomGroupCountPerPaper,
+        distributionRecomGroupCountPerPaper: getDistributionRecomGroupCountPerPaper(
+          matchLists[0]
+        ),
         // eslint-disable-next-line no-undef
-        distributionRecomGroupCountPerWeight,
+        distributionRecomGroupCountPerWeight: getDistributionRecomGroupCountPerWeight(
+          matchLists[0]
+        ),
       }),
-      ...numDataPerGroupDataByBidScore,
+      ...getNumDataPerGroupDataByBidScore(matchLists[0]),
     })
   }, [matchLists])
 
