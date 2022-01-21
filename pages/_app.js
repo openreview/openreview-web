@@ -11,6 +11,7 @@ import {
   removeAuthCookie,
   cookieExpiration,
 } from '../lib/auth'
+import api from '../lib/api-client'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 import mathjaxConfig from '../lib/mathjax-config'
 
@@ -41,6 +42,7 @@ export default class OpenReviewApp extends App {
     this.loginUser = this.loginUser.bind(this)
     this.loginUserWithToken = this.loginUserWithToken.bind(this)
     this.logoutUser = this.logoutUser.bind(this)
+    this.refreshToken = this.refreshToken.bind(this)
     this.updateUserName = this.updateUserName.bind(this)
     this.setBannerHidden = this.setBannerHidden.bind(this)
     this.setBannerContent = this.setBannerContent.bind(this)
@@ -61,12 +63,15 @@ export default class OpenReviewApp extends App {
     window.Webfield.setToken(userAccessToken)
     window.Webfield2.setToken(userAccessToken)
 
-    const timeToExpiration = cookieExpiration - 1000
+    // Automatically refresh the accessToken 1m before it's set to expire
+    const timeToExpiration = cookieExpiration - 60000
     this.logoutTimer = setTimeout(() => {
-      this.logoutUser(null)
+      this.refreshToken()
     }, timeToExpiration)
 
-    Router.push(redirectPath)
+    if (redirectPath) {
+      Router.push(redirectPath)
+    }
   }
 
   loginUserWithToken(userAccessToken, setCookie = true) {
@@ -103,6 +108,15 @@ export default class OpenReviewApp extends App {
 
     if (redirectPath) {
       Router.push(redirectPath)
+    }
+  }
+
+  async refreshToken() {
+    try {
+      const { token, user } = await api.post('refreshToken')
+      this.loginUser(user, token, null)
+    } catch (error) {
+      this.logoutUser()
     }
   }
 
@@ -203,10 +217,10 @@ export default class OpenReviewApp extends App {
     if (user) {
       this.setState({ user, accessToken: token, userLoading: false })
 
-      // Automatically log the user out slightly before the token is set to expire
-      const timeToExpiration = expiration - Date.now() - 1000
+      // Automatically refresh the accessToken 1m before it's set to expire
+      const timeToExpiration = expiration - Date.now() - 60000
       this.logoutTimer = setTimeout(() => {
-        this.logoutUser(null)
+        this.refreshToken()
       }, timeToExpiration)
     } else {
       this.setState({ userLoading: false })
@@ -297,6 +311,7 @@ export default class OpenReviewApp extends App {
       loginUser: this.loginUser,
       loginUserWithToken: this.loginUserWithToken,
       logoutUser: this.logoutUser,
+      refreshToken: this.refreshToken,
       logoutRedirect: this.state.logoutRedirect,
       updateUserName: this.updateUserName,
     }
