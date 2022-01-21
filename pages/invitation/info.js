@@ -22,13 +22,18 @@ const InvitationInfo = ({ appContext }) => {
   const containerRef = useRef(null)
   const { setBannerHidden, clientJsLoading } = appContext
 
+  const isMetaInvitation = invitation?.edit === true
+
   // Try loading invitation from v1 API first and if not found load from v2
   const loadInvitation = async (invitationId) => {
     try {
       const invitationObj = await api.getInvitationById(invitationId, accessToken)
       if (invitationObj) {
         setInvitation({
-          ...invitationObj, web: null, process: null, preprocess: null,
+          ...invitationObj,
+          web: null,
+          process: null,
+          preprocess: null,
         })
       } else {
         setError({ statusCode: 404, message: 'Invitation not found' })
@@ -38,7 +43,10 @@ const InvitationInfo = ({ appContext }) => {
         if (!accessToken) {
           router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
         } else {
-          setError({ statusCode: 403, message: 'You don\'t have permission to read this invitation' })
+          setError({
+            statusCode: 403,
+            message: "You don't have permission to read this invitation",
+          })
         }
       } else {
         setError({ statusCode: apiError.status, message: apiError.message })
@@ -82,38 +90,41 @@ const InvitationInfo = ({ appContext }) => {
   return (
     <>
       <Head>
-        <title key="title">{`${invitation ? prettyId(invitation.id) : 'Invitation Info'} | OpenReview`}</title>
+        <title key="title">{`${
+          invitation ? prettyId(invitation.id) : 'Invitation Info'
+        } | OpenReview`}</title>
       </Head>
 
       <div id="header">
-        <h1>{prettyId(invitation?.id)}</h1>
+        <h1>{`${prettyId(invitation?.id)}${isMetaInvitation ? ' (Meta)' : ''}`}</h1>
       </div>
 
-      {(clientJsLoading || !invitation) && (
-        <LoadingSpinner />
-      )}
+      {(clientJsLoading || !invitation) && <LoadingSpinner />}
 
       {invitation && (
         <div>
           <EditorSection title="General Info" className="general">
-            <InvitationGeneralView
-              invitation={invitation}
-              showEditButton={false}
-            />
+            <InvitationGeneralView invitation={invitation} showEditButton={false} />
           </EditorSection>
 
-          <InvitationReply
-            invitation={invitation}
-            // eslint-disable-next-line no-nested-ternary
-            replyField={invitation.apiVersion === 1 ? 'reply' : (invitation.edge ? 'edge' : 'edit')}
-            readOnly={true}
-          />
+          {!isMetaInvitation && (
+            <>
+              <InvitationReply
+                invitation={invitation}
+                // eslint-disable-next-line no-nested-ternary
+                replyField={
+                  invitation.apiVersion === 1 ? 'reply' : invitation.edge ? 'edge' : 'edit'
+                }
+                readOnly={true}
+              />
 
-          <InvitationReply
-            invitation={invitation}
-            replyField="replyForumViews"
-            readOnly={true}
-          />
+              <InvitationReply
+                invitation={invitation}
+                replyField="replyForumViews"
+                readOnly={true}
+              />
+            </>
+          )}
         </div>
       )}
     </>

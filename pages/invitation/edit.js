@@ -20,10 +20,14 @@ const InvitationEdit = ({ appContext }) => {
   const [error, setError] = useState(null)
   const [invitation, setInvitation] = useState(null)
 
+  const isMetaInvitation = invitation?.edit === true
+
   // Try loading invitation from v1 API first and if not found load from v2
   const loadInvitation = async (invitationId) => {
     try {
-      const invitationObj = await api.getInvitationById(invitationId, accessToken)
+      const invitationObj = await api.getInvitationById(invitationId, accessToken, {
+        details: 'writable', // TODO,repliedInvitations',
+      })
       if (invitationObj) {
         if (invitationObj.details?.writable) {
           setInvitation(invitationObj)
@@ -36,7 +40,10 @@ const InvitationEdit = ({ appContext }) => {
       }
     } catch (apiError) {
       if (apiError.name === 'ForbiddenError') {
-        setError({ statusCode: 403, message: 'You don\'t have permission to read this invitation' })
+        setError({
+          statusCode: 403,
+          message: "You don't have permission to read this invitation",
+        })
       } else {
         setError({ statusCode: apiError.status, message: apiError.message })
       }
@@ -59,8 +66,15 @@ const InvitationEdit = ({ appContext }) => {
   useEffect(() => {
     if (!invitation || clientJsLoading) return
 
-    const editModeBannerDelay = document.querySelector('#flash-message-container.alert-success') ? 2500 : 0
-    const bannerTimeout = setTimeout(() => Webfield.editModeBanner(invitation.id, 'edit'), editModeBannerDelay)
+    const editModeBannerDelay = document.querySelector(
+      '#flash-message-container.alert-success'
+    )
+      ? 2500
+      : 0
+    const bannerTimeout = setTimeout(
+      () => Webfield.editModeBanner(invitation.id, 'edit'),
+      editModeBannerDelay
+    )
 
     // eslint-disable-next-line consistent-return
     return () => {
@@ -76,19 +90,20 @@ const InvitationEdit = ({ appContext }) => {
   return (
     <>
       <Head>
-        <title key="title">{`Edit ${invitation ? prettyId(invitation.id) : 'Invitation'} | OpenReview`}</title>
+        <title key="title">{`Edit ${
+          invitation ? prettyId(invitation.id) : 'Invitation'
+        } | OpenReview`}</title>
       </Head>
 
       <div id="header">
-        <h1>{prettyId(invitation?.id)}</h1>
+        <h1>{`${prettyId(invitation?.id)}${isMetaInvitation ? ' (Meta)' : ''}`}</h1>
       </div>
 
-      {(clientJsLoading || !invitation) && (
-        <LoadingSpinner />
-      )}
+      {(clientJsLoading || !invitation) && <LoadingSpinner />}
 
       <InvitationEditor
         invitation={invitation}
+        isMetaInvitation={isMetaInvitation}
         user={user}
         accessToken={accessToken}
         loadInvitation={loadInvitation}
