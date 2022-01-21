@@ -27,6 +27,7 @@ const InvitationEdit = ({ appContext }) => {
     try {
       const invitationObj = await api.getInvitationById(invitationId, accessToken, {
         details: 'writable', // TODO,repliedInvitations',
+        expired: true,
       })
       if (invitationObj) {
         if (invitationObj.details?.writable) {
