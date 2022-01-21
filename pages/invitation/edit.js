@@ -22,6 +22,20 @@ const InvitationEdit = ({ appContext }) => {
 
   const isMetaInvitation = invitation?.edit === true
 
+  const getHeaderText = () => {
+    if (!invitation) return ''
+    let type = ''
+    if (isMetaInvitation) {
+      type = '(Meta Invitation)'
+    } else if (invitation.edit?.invitation) {
+      type = '(Invitation of Invitation)'
+    } else if (invitation.edit?.note) {
+      type = '(Invitation of Note)'
+    }
+
+    return `${prettyId(invitation?.id)} ${type}`
+  }
+
   // Try loading invitation from v1 API first and if not found load from v2
   const loadInvitation = async (invitationId) => {
     try {
@@ -97,7 +111,7 @@ const InvitationEdit = ({ appContext }) => {
       </Head>
 
       <div id="header">
-        <h1>{`${prettyId(invitation?.id)}${isMetaInvitation ? ' (Meta)' : ''}`}</h1>
+        <h1>{getHeaderText()}</h1>
       </div>
 
       {(clientJsLoading || !invitation) && <LoadingSpinner />}

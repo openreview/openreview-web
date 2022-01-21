@@ -96,7 +96,7 @@ const InvitationInfo = ({ appContext }) => {
       </Head>
 
       <div id="header">
-        <h1>{`${prettyId(invitation?.id)}${isMetaInvitation ? ' (Meta)' : ''}`}</h1>
+        <h1>{prettyId(invitation?.id)}</h1>
       </div>
 
       {(clientJsLoading || !invitation) && <LoadingSpinner />}
