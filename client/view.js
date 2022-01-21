@@ -953,7 +953,7 @@ module.exports = (function() {
           $searchResults.append(createSearchResultRow(profile));
         });
         $searchResults.append($('<div>', { class: 'text-center' }).append('<span class="hint">Click the + button of the profile you wish to add to the authors list</span>'))
-      } else {
+      } else if (options.allowUserDefined) {
         $noResults.show();
       }
       // No profiles were found using the email and now if the fields are valid, the user can add directly a person
