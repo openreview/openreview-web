@@ -1,4 +1,5 @@
 /* eslint-disable import/no-extraneous-dependencies */
+
 import { useEffect, useRef } from 'react'
 import { select } from 'd3-selection'
 import { scaleLinear } from 'd3-scale'
@@ -14,19 +15,65 @@ const HistogramStat = ({ id, stats, edgeBrowserUrlParams }) => {
   const svgRef = useRef(null)
   const router = useRouter()
 
-  const {
-    browseInvitations,
-    editInvitation,
-    conflictsInvitation,
-    customMaxPapersInvitation,
-    customLoadInvitation,
-    aggregateScoreInvitation,
-    assignmentLabel,
-    referrerText,
-    configNoteId,
-  } = edgeBrowserUrlParams
+  const goToEdgeBrowser = (e, d) => {
+    let dataList = []
+    if (stats.tag === 'discrete') {
+      const num = Math.floor(d[0])
+      dataList = stats.interactiveData
+        .filter((p) => p.num === num)
+        .map((q) => q.data)
+        .sort()
+    } else {
+      dataList = [
+        ...new Set(
+          stats.interactiveData
+            .filter((p) => p.num >= d.x0 && p.num < d.x1)
+            .map((q) => q.data)
+        ),
+      ]
+    }
+
+    const localStorageKey = stats.tag === 'discrete'
+      ? `${id}-x-${d[0]}`
+      : `${id}-x-${d.x0}-to-${d.x1}`
+    window.localStorage.setItem(
+      localStorageKey,
+      JSON.stringify({
+        type: stats.type,
+        data: dataList,
+      })
+    )
+
+    const {
+      browseInvitations,
+      editInvitation,
+      conflictsInvitation,
+      customMaxPapersInvitation,
+      customLoadInvitation,
+      aggregateScoreInvitation,
+      assignmentLabel,
+      referrerText,
+      configNoteId,
+    } = edgeBrowserUrlParams
+    const type = stats.type === 'reviewer' ? 'type:tail' : 'type:head'
+    const edgeBrowserUrl = `/edges/browse?\
+start=staticList,${type},storageKey:${localStorageKey}\
+&traverse=${editInvitation}\
+&edit=${editInvitation}\
+&browse=${aggregateScoreInvitation},label:${assignmentLabel};\
+${browseInvitations.join(';')};\
+${conflictsInvitation}\
+${customMaxPapersInvitation ? `;${customMaxPapersInvitation},head:ignore` : ''}\
+${customLoadInvitation ? `;${customLoadInvitation},head:ignore` : ''}\
+&maxColumns=3\
+&referrer=${encodeURIComponent(`[${referrerText}](/assignments/stats?id=${configNoteId})`)}`
+
+    router.push(edgeBrowserUrl)
+  }
+
   const draw = () => {
     if (!stats) return
+
     const margin = {
       top: 40,
       right: 10,
@@ -109,52 +156,11 @@ const HistogramStat = ({ id, stats, edgeBrowserUrlParams }) => {
         .attr('height', (d) => (d.length === 0 ? 0 : height))
         .attr('class', 'hover-bar clickable')
 
-      hoverRect.on('click', (e, d) => {
-        let dataList = []
-        if (stats.tag === 'discrete') {
-          const num = Math.floor(d[0])
-          dataList = stats.interactiveData
-            .filter((p) => p.num === num)
-            .map((q) => q.data)
-            .sort()
-        } else {
-          dataList = [
-            ...new Set(
-              stats.interactiveData
-                .filter((p) => p.num >= d.x0 && p.num < d.x1)
-                .map((q) => q.data)
-            ),
-          ]
-        }
-        const localStorageKey =
-          stats.tag === 'discrete' ? `${id}-x-${d[0]}` : `${id}-x-${d.x0}-to-${d.x1}`
-        window.localStorage.setItem(
-          localStorageKey,
-          JSON.stringify({
-            type: stats.type,
-            data: dataList,
-          })
-        )
-        const edgeBrowserUrl = `/edges/browse?\
-start=staticList,${
-          stats.type === 'reviewer' ? 'type:tail' : 'type:head'
-        },storageKey:${localStorageKey}\
-&traverse=${editInvitation}\
-&edit=${editInvitation}\
-&browse=${aggregateScoreInvitation},label:${assignmentLabel};\
-${browseInvitations.join(';')};\
-${conflictsInvitation}\
-${customMaxPapersInvitation ? `;${customMaxPapersInvitation},head:ignore` : ''}\
-${customLoadInvitation ? `;${customLoadInvitation},headLignore` : ''}\
-&maxColumns=3\
-&referrer=${encodeURIComponent(`[${referrerText}](/assignments/stats?id=${configNoteId})`)}`
-        router.push(edgeBrowserUrl)
-      })
+      hoverRect.on('click', goToEdgeBrowser)
     }
 
     // #region X Axis
     const xAxisTickCount = stats.tag === 'discrete' ? Math.round(xmax - xmin) : binCount
-
     const xAxisTickFontSize = stats.tag === 'continuous' ? '0.5rem' : ''
 
     svg
@@ -191,6 +197,7 @@ ${customLoadInvitation ? `;${customLoadInvitation},headLignore` : ''}\
   })
 
   if (!stats) return <LoadingSpinner inline text={null} />
+
   return (
     <div className={`bin-container${stats.fullWidth ? ' full-width' : ''}`} ref={containerRef}>
       <svg ref={svgRef} className="stat-bin" />
