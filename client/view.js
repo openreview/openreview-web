@@ -910,9 +910,6 @@ module.exports = (function() {
     };
 
     var $addDirectlyButton = $('<button id="add-directly" class="btn btn-xs"><span class="glyphicon glyphicon-plus"></span></button>').on('click', addDirectly).hide();
-    if (!options.allowUserDefined) {
-      $addDirectlyButton.hide();
-    }
 
     var $spinner = $([
       '<div class="spinner-small spinner-search">',
@@ -964,7 +961,7 @@ module.exports = (function() {
       var email = _.trim($emailSearch.val());
       var first = _.trim($firstNameSearch.val());
       var last = _.trim($lastNameSearch.val());
-      if (emailResponse && !emailResponse.count && isValidEmail(email) && isValidName(first, last)) {
+      if (options.allowUserDefined && emailResponse && !emailResponse.count && isValidEmail(email) && isValidName(first, last)) {
         $addDirectlyButton.show();
       }
     };
