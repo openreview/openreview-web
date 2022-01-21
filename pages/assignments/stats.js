@@ -4,15 +4,15 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import Dropdown from '../../components/Dropdown'
+import ScalarStat from '../../components/assignments/ScalarStat'
+import HistogramStat from '../../components/assignments/HistogramStat'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { prettyId, getGroupIdfromInvitation } from '../../lib/utils'
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
 import { referrerLink } from '../../lib/banner-links'
-import Dropdown from '../../components/Dropdown'
-import ScalarStat from '../../components/assignments/ScalarStat'
-import HistogramStat from '../../components/assignments/HistogramStat'
 import {
   getAssignmentMap,
   getDistributionPapersByUserCount,
@@ -222,6 +222,7 @@ const AssignmentStats = ({ appContext }) => {
 
   useEffect(() => {
     if (!assignmentConfigNote) return
+
     const useEdges = !!assignmentConfigNote.content.scores_specification
     if (useEdges) {
       loadMatchingDataFromEdges()
@@ -257,11 +258,9 @@ const AssignmentStats = ({ appContext }) => {
         matchLists[2]
       ),
       ...(showRecommendationDistribution && {
-        // eslint-disable-next-line no-undef
         distributionRecomGroupCountPerPaper: getDistributionRecomGroupCountPerPaper(
           matchLists[0]
         ),
-        // eslint-disable-next-line no-undef
         distributionRecomGroupCountPerWeight: getDistributionRecomGroupCountPerWeight(
           matchLists[0]
         ),
@@ -406,14 +405,13 @@ const AssignmentStats = ({ appContext }) => {
       <div>
         <h3 className="section-header">Bid Distributions</h3>
         <div className="dist-stats">
-          {Object.entries(values)
-            .filter(([key, _]) => key.startsWith('distributionPaperCountPerGroup-bid-'))
-            // eslint-disable-next-line max-len
-            .map(([key, value]) => (
+          {Object.keys(values)
+            .filter((key) => key.startsWith('distributionPaperCountPerGroup-bid-'))
+            .map((key) => (
               <HistogramStat
                 id={key}
                 key={key}
-                stats={value}
+                stats={values[key]}
                 edgeBrowserUrlParams={edgeBrowserUrlParams}
               />
             ))}
