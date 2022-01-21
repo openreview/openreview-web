@@ -2,6 +2,8 @@
 
 import App from 'next/app'
 import Router from 'next/router'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
 import {
@@ -245,8 +247,8 @@ export default class OpenReviewApp extends App {
     require('bootstrap')
     window._ = require('lodash')
     window.Handlebars = require('handlebars/runtime')
-    window.marked = require('marked')
-    window.DOMPurify = require('dompurify')
+    window.marked = marked
+    window.DOMPurify = DOMPurify
     window.MathJax = mathjaxConfig
 
     // MathJax has to be loaded asynchronously from the CDN after the config file loads
