@@ -75,7 +75,7 @@ ${customLoadInvitation ? `;${customLoadInvitation},head:ignore` : ''}\
     if (!stats) return
 
     const margin = {
-      top: 40,
+      top: 45,
       right: 10,
       bottom: 40,
       left: 50,
@@ -88,9 +88,10 @@ ${customLoadInvitation ? `;${customLoadInvitation},head:ignore` : ''}\
       .append('text')
       .attr('class', 'stat-name')
       .attr('x', '55%')
-      .attr('y', 20)
+      .attr('y', 15)
       .attr('text-anchor', 'middle')
       .text(stats.name)
+      .style('font-size', '1rem')
     svg = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
     const binCount = stats.binCount ?? 20
     const xAxisBarLabelFontStyle =
