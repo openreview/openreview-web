@@ -97,7 +97,7 @@ main.assignment-stats {
     align-items: center;
     margin-top: 1rem;
     margin-bottom: 2.5rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 
     h1 {
       font-size: 2rem;
@@ -109,8 +109,8 @@ main.assignment-stats {
     }
 
     .action-dropdown {
-      min-width: 50%;
-      margin-top: 0.5rem;
+      width: 100px;
+      flex-grow: 0;
     }
   }
 
@@ -193,17 +193,6 @@ main.assignment-stats {
     }
     .dist-stats > .bin-container {
       width: 100%;
-    }
-  }
-  @media #{constants.$desktop} {
-    .header {
-      flex-wrap: nowrap;
-      h1 {
-        flex-grow: 0;
-      }
-      .action-dropdown {
-        min-width: 20%;
-      }
     }
   }
 }

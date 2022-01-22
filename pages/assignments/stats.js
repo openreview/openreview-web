@@ -1,10 +1,9 @@
 /* globals promptError: false */
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
-import { useRouter } from 'next/router'
+import Link from 'next/link'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import Dropdown from '../../components/Dropdown'
 import ScalarStat from '../../components/assignments/ScalarStat'
 import HistogramStat from '../../components/assignments/HistogramStat'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
@@ -40,46 +39,28 @@ const AssignmentStats = ({ appContext }) => {
   const [groupId, setGroupId] = useState(null)
   const [error, setError] = useState(null)
   const query = useQuery()
-  const router = useRouter()
   const { setBannerContent } = appContext
 
-  const edgeBrowserUrlParams = assignmentConfigNote
-    ? {
-        browseInvitations: Object.keys(
-          assignmentConfigNote.content?.scores_specification ?? {}
-        ),
-        editInvitation:
-          assignmentConfigNote.content?.status === 'Deployed' &&
-          assignmentConfigNote.content?.deployed_assignment_invitation
-            ? assignmentConfigNote.content?.deployed_assignment_invitation
-            : `${
-                assignmentConfigNote.content?.assignment_invitation
-              },label:${encodeURIComponent(assignmentConfigNote.content?.title)}`,
-        conflictsInvitation: assignmentConfigNote.content?.conflicts_invitation,
-        customMaxPapersInvitation: assignmentConfigNote.content?.custom_max_papers_invitation,
-        customLoadInvitation: assignmentConfigNote.content?.custom_load_invitation,
-        aggregateScoreInvitation: assignmentConfigNote.content?.aggregate_score_invitation,
-        assignmentLabel: encodeURIComponent(assignmentConfigNote.content?.title),
-        referrerText: `${prettyId(assignmentConfigNote.content?.title)} Statistics`,
-        configNoteId: assignmentConfigNote.id,
-      }
-    : {}
-
-  const showRecommendationDistribution =
-    matchLists?.[0]
-      ?.map((p) => p?.otherScores?.recommendation)
-      ?.filter(Number.isFinite)
-      ?.reduce((a, b) => a + b, 0) > 0
-
-  const actionOptions = [{ value: 'browserAssignments', label: 'Browse Assignments' }]
-
-  const handleActionChange = (option) => {
-    switch (option.value) {
-      case 'browserAssignments':
-        router.push(getEdgeBrowserUrl(assignmentConfigNote.content))
-        break
-      default:
-        break
+  let edgeBrowserUrlParams = {}
+  if (assignmentConfigNote?.content) {
+    edgeBrowserUrlParams = {
+      browseInvitations: Object.keys(
+        assignmentConfigNote.content.scores_specification ?? {}
+      ),
+      editInvitation:
+        assignmentConfigNote.content.status === 'Deployed' &&
+        assignmentConfigNote.content.deployed_assignment_invitation
+          ? assignmentConfigNote.content.deployed_assignment_invitation
+          : `${
+              assignmentConfigNote.content.assignment_invitation
+            },label:${encodeURIComponent(assignmentConfigNote.content.title)}`,
+      conflictsInvitation: assignmentConfigNote.content.conflicts_invitation,
+      customMaxPapersInvitation: assignmentConfigNote.content.custom_max_papers_invitation,
+      customLoadInvitation: assignmentConfigNote.content.custom_load_invitation,
+      aggregateScoreInvitation: assignmentConfigNote.content.aggregate_score_invitation,
+      assignmentLabel: encodeURIComponent(assignmentConfigNote.content.title),
+      referrerText: `${prettyId(assignmentConfigNote.content.title)} Statistics`,
+      configNoteId: assignmentConfigNote.id,
     }
   }
 
@@ -234,6 +215,11 @@ const AssignmentStats = ({ appContext }) => {
   useEffect(() => {
     if (!matchLists) return
 
+    const showRecommendationDistribution = matchLists[0]
+      .map((p) => p?.otherScores?.recommendation)
+      .filter(Number.isFinite)
+      .reduce((a, b) => a + b, 0) > 0
+
     setValues({
       paperCount: getPaperCount(matchLists[0], matchLists[1]),
       userCount: getUserCount(matchLists[0], matchLists[2]),
@@ -305,12 +291,31 @@ const AssignmentStats = ({ appContext }) => {
 
       <div className="header">
         <h1>{`Assignment Statistics – ${assignmentConfigNote.content.title}`}</h1>
-        <Dropdown
-          placeholder="Actions"
-          className="action-dropdown"
-          options={actionOptions}
-          onChange={handleActionChange}
-        />
+
+        <div className="action-dropdown text-right">
+          <div className="btn-group">
+            <button
+              type="button"
+              className="btn btn-default dropdown-toggle"
+              data-toggle="dropdown"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              Actions
+              {' '}
+              <span className="caret" />
+            </button>
+            <ul className="dropdown-menu dropdown-align-right">
+              {assignmentConfigNote && (
+                <li>
+                  <Link href={getEdgeBrowserUrl(assignmentConfigNote.content)}>
+                    <a >Browse Assignments</a>
+                  </Link>
+                </li>
+              )}
+            </ul>
+          </div>
+        </div>
       </div>
 
       <div className="basic-stats">
@@ -370,33 +375,18 @@ const AssignmentStats = ({ appContext }) => {
           />
         </div>
       </div>
-      {showRecommendationDistribution && (
+      {values.distributionRecomGroupCountPerPaper && (
         <div>
           <h3 className="section-header">Recommendation Distributions</h3>
           <div className="dist-stats">
             <HistogramStat
-              id="distributionPapersByUserCount"
-              stats={values.distributionPapersByUserCount}
+              id="distributionRecomGroupCountPerPaper"
+              stats={values.distributionRecomGroupCountPerPaper}
               edgeBrowserUrlParams={edgeBrowserUrlParams}
             />
             <HistogramStat
-              id="distributionUsersByPaperCount"
-              stats={values.distributionUsersByPaperCount}
-              edgeBrowserUrlParams={edgeBrowserUrlParams}
-            />
-            <HistogramStat
-              id="distributionAssignmentByScore"
-              stats={values.distributionAssignmentByScore}
-              edgeBrowserUrlParams={edgeBrowserUrlParams}
-            />
-            <HistogramStat
-              id="distributionPapersByMeanScore"
-              stats={values.distributionPapersByMeanScore}
-              edgeBrowserUrlParams={edgeBrowserUrlParams}
-            />
-            <HistogramStat
-              id="distributionUsersByMeanScore"
-              stats={values.distributionUsersByMeanScore}
+              id="distributionRecomGroupCountPerWeight"
+              stats={values.distributionRecomGroupCountPerWeight}
               edgeBrowserUrlParams={edgeBrowserUrlParams}
             />
           </div>
