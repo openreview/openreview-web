@@ -4,7 +4,7 @@
     "semi": ["error", "never"],
     "no-unused-vars": "off",
     "prefer-destructuring": ["error", { "object": true, "array": false }],
-    "arrow-parens": [2, "as-needed", { "requireForBlockBody": true }],
+    "arrow-parens": "off",
     "max-len": [
       "error",
       {
