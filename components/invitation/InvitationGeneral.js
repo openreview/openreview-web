@@ -10,7 +10,13 @@ import SpinnerButton from '../SpinnerButton'
 import EditorSection from '../EditorSection'
 import GroupIdList, { InvitationIdList } from '../group/GroupIdList'
 import api from '../../lib/api-client'
-import { formatDateTime, getDefaultTimezone, prettyId, urlFromGroupId } from '../../lib/utils'
+import {
+  formatDateTime,
+  getDefaultTimezone,
+  getMetaInvitationId,
+  prettyId,
+  urlFromGroupId,
+} from '../../lib/utils'
 
 dayjs.extend(timezone)
 dayjs.extend(utc)
@@ -257,7 +263,6 @@ const InvitationGeneralEdit = ({
   }
 
   const constructInvitationEditToPost = async () => {
-    const metaInvitationId = '.TMLR/-/Edit'
     const invitationEdit = {
       invitation: {
         id: generalInfo.id,
@@ -287,7 +292,7 @@ const InvitationGeneralEdit = ({
       readers: [profileId],
       writers: [profileId],
       signatures: [profileId],
-      invitations: metaInvitationId,
+      invitations: getMetaInvitationId(invitation),
     }
     return invitationEdit
   }
