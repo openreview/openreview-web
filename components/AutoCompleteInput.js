@@ -76,7 +76,6 @@ const AutoCompleteInput = () => {
         setAutoCompleteItems([...tokenObjects, ...titleObjects])
       }
     } catch (error) {
-      console.log(error)
       promptError(`There was an error while searching for "${term}".`)
     }
   }
