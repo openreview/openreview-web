@@ -1,18 +1,22 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
+import dynamic from 'next/dynamic'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import WebfieldContainer from '../../components/WebfieldContainer'
 import withError from '../../components/withError'
 import api from '../../lib/api-client'
 import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
+import { generateWebfieldCode, parseComponentCode } from '../../lib/webfield-utils'
 
 const fullWidthGroups = ['.TMLR/Editors_In_Chief']
 
-const Group = ({ groupId, webfieldCode, appContext }) => {
+const Group = ({ groupId, webfieldCode, componentObj, appContext }) => {
   const { setBannerHidden, clientJsLoading, setLayoutOptions } = appContext
   const groupTitle = prettyId(groupId)
+  const [GroupComponent, setGroupComponent] = useState(null)
+  const [groupComponentProps, setGroupComponentProps] = useState({})
 
   useEffect(() => {
     setBannerHidden(true)
@@ -23,7 +27,8 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
   }, [groupId])
 
   useEffect(() => {
-    if (clientJsLoading) return
+    if (clientJsLoading || !webfieldCode) return
+
     const script = document.createElement('script')
     script.innerHTML = webfieldCode
     document.body.appendChild(script)
@@ -39,6 +44,29 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
     }
   }, [clientJsLoading, webfieldCode])
 
+  useEffect(() => {
+    if (!componentObj) return
+
+    setGroupComponent(dynamic(
+      () => import(`../../components/Group/${componentObj.component}`),
+      { loading: () => <p>Loading...</p> }
+    ))
+
+    const componentProps = {}
+    Object.keys(componentObj.properties).forEach((propName) => {
+      const prop = componentObj.properties[propName]
+      if (typeof prop === 'object' && prop.component && prop.properties) {
+        const Sub = dynamic(
+          () => import(`../../components/Group/${prop.component}`)
+        )
+        componentProps[propName] = <Sub {...prop.properties} />
+      } else {
+        componentProps[propName] = prop
+      }
+    })
+    setGroupComponentProps(componentProps)
+  }, [componentObj])
+
   return (
     <>
       <Head>
@@ -52,7 +80,14 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
         <LoadingSpinner />
       )}
 
-      <WebfieldContainer id="group-container" />
+      {webfieldCode && (
+        <WebfieldContainer id="group-container" />
+      )}
+      {GroupComponent && groupComponentProps && (
+        <div id="group-container">
+          <GroupComponent {...groupComponentProps } />
+        </div>
+      )}
     </>
   )
 }
@@ -76,45 +111,6 @@ Group.getInitialProps = async (ctx) => {
     redirectToEditOrInfoMode(ctx.query.mode)
   }
 
-  const generateWebfieldCode = (group, user) => {
-    const webfieldCode = group.web || `
-Webfield.ui.setup($('#group-container'), '${group.id}');
-Webfield.ui.header('${prettyId(group.id)}')
-  .append('<p><em>Nothing to display</em></p>');`
-
-    const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
-    const groupObjSlim = { id: group.id }
-    return `// Webfield Code for ${groupObjSlim.id}
-window.user = ${JSON.stringify(userOrGuest)};
-$(function() {
-  var args = ${JSON.stringify(ctx.query)};
-  var group = ${JSON.stringify(groupObjSlim)};
-  var document = null;
-  var window = null;
-
-  // TODO: remove these vars when all old webfields have been archived
-  var model = {
-    tokenPayload: function() {
-      return { user: user }
-    }
-  };
-  var controller = {
-    get: Webfield.get,
-    addHandler: function(name, funcMap) {
-      Object.values(funcMap).forEach(function(func) {
-        func();
-      });
-    },
-  };
-
-  $('#group-container').empty();
-  ${group.details?.writable ? 'Webfield.editModeBanner(group.id, args.mode);' : ''}
-
-  ${webfieldCode}
-});
-//# sourceURL=webfieldCode.js`
-  }
-
   const { user, token } = auth(ctx)
   try {
     const { groups } = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
@@ -134,9 +130,18 @@ $(function() {
       }
     }
 
+    let webfieldCode
+    let componentObj
+    if (group.component) {
+      componentObj = parseComponentCode(group, user, ctx.query)
+    } else {
+      webfieldCode = generateWebfieldCode(group, user, ctx.query)
+    }
+
     return {
       groupId: group.id,
-      webfieldCode: generateWebfieldCode(group, user, ctx.query.mode),
+      webfieldCode,
+      componentObj,
       query: ctx.query,
     }
   } catch (error) {
