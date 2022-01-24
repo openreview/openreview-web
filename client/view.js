@@ -907,6 +907,7 @@ module.exports = (function() {
       var $fullName = getNameFromInput($firstNameSearch.val(), $middleNameSearch.val(), $lastNameSearch.val());
       var $emails = $('<span>').append(_.trim($emailSearch.val()));
       $authors.append(createAuthorRow($fullName, $emails));
+      $searchResults.empty();
     };
 
     var $addDirectlyButton = $('<button id="add-directly" class="btn btn-xs"><span class="glyphicon glyphicon-plus"></span></button>').on('click', addDirectly).hide();
