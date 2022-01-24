@@ -1,7 +1,6 @@
 @use "../utils/constants";
 
 main.assignment-stats {
-
   header {
     margin-top: 1rem;
     margin-bottom: 2.5rem;
@@ -30,12 +29,12 @@ main.assignment-stats {
   }
 
   #stats-container-basic {
-    margin-right: -.5rem;
-    margin-left: -.5rem;
+    margin-right: -0.5rem;
+    margin-left: -0.5rem;
 
     & > div {
-      padding-left: .5rem;
-      padding-right: .5rem;
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
     }
   }
 
@@ -79,7 +78,7 @@ main.assignment-stats {
 
     .stat-name {
       color: constants.$darkBlue;
-      font-size: .875rem;
+      font-size: 0.875rem;
     }
   }
 
@@ -88,8 +87,112 @@ main.assignment-stats {
 
     .stat-name {
       color: constants.$darkBlue;
-      font-size: .875rem;
+      font-size: 0.875rem;
     }
   }
 
+  //----------------------------- new implementation -----------------------------//
+  .header {
+    display: flex;
+    align-items: center;
+    margin-top: 1rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: nowrap;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: normal;
+      line-height: 34px;
+      margin: 0;
+      flex-grow: 1;
+      min-width: 80%;
+    }
+
+    .action-dropdown {
+      width: 100px;
+      flex-grow: 0;
+    }
+  }
+
+  .basic-stats {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+
+    .stat-scalar {
+      width: calc(25% - 1rem);
+      margin: 0.5rem;
+
+      .stat-name {
+        max-height: 60px;
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+      }
+    }
+  }
+
+  .section-header {
+    text-align: center;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.25rem;
+  }
+
+  .dist-stats {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+
+    .bin-container {
+      display: flex;
+      flex-direction: column;
+      width: calc(50% - 1rem);
+      margin: 0.5rem;
+      max-height: 500px;
+
+      &.full-width {
+        width: 100%;
+      }
+    }
+    .spinner-container {
+      min-width: 45%;
+      height: 500px;
+    }
+    .stat-name {
+      text-align: center;
+    }
+  }
+
+  @media #{constants.$phone-only} {
+    .basic-stats {
+      justify-content: center;
+      .stat-scalar {
+        width: 100%;
+      }
+    }
+    .dist-stats > .bin-container {
+      width: 100%;
+
+      .stat-name {
+        font-size: 0.85rem;
+      }
+    }
+    .dist-stats > .bin-container.full-width {
+      .stat-name {
+        font-size: 1.75rem;
+      }
+    }
+  }
+  @media #{constants.$tablet-only} {
+    .basic-stats > .stat-scalar {
+      width: calc(50% - 1rem);
+    }
+    .dist-stats > .bin-container {
+      width: 100%;
+    }
+  }
 }
