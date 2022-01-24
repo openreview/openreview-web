@@ -111,8 +111,8 @@ const InvitationInfo = ({ appContext }) => {
             <>
               <InvitationReply
                 invitation={invitation}
-                // eslint-disable-next-line no-nested-ternary
                 replyField={
+                  // eslint-disable-next-line no-nested-ternary
                   invitation.apiVersion === 1 ? 'reply' : invitation.edge ? 'edge' : 'edit'
                 }
                 readOnly={true}

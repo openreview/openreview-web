@@ -36,8 +36,8 @@ const InvitationEditor = ({
             profileId={profileId}
             accessToken={accessToken}
             loadInvitation={loadInvitation}
-            // eslint-disable-next-line no-nested-ternary
             replyField={
+              // eslint-disable-next-line no-nested-ternary
               invitation.apiVersion === 1 ? 'reply' : invitation.edge ? 'edge' : 'edit'
             }
           />
