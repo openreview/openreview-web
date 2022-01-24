@@ -118,7 +118,23 @@ export default class OpenReviewApp extends App {
       const { token, user } = await api.post('refreshToken')
       this.loginUser(user, token, null)
     } catch (error) {
-      this.logoutUser()
+      // If multiple instances of the OpenReview app are running, in some cases
+      // they can all try to refresh the token at the same time, leading to an error.
+      if (error.name === 'BlacklistedError') {
+        window.location.reload()
+      } else {
+        this.logoutUser()
+      }
+    }
+  }
+
+  static async attemptRefresh() {
+    try {
+      const { token, user } = await api.post('refreshToken')
+      const expiration = Date.now() + cookieExpiration
+      return { user, token, expiration }
+    } catch (error) {
+      return { user: null }
     }
   }
 
@@ -215,7 +231,13 @@ export default class OpenReviewApp extends App {
 
   componentDidMount() {
     // Load user state from auth cookie
-    const { user, token, expiration } = auth()
+    let { user, token, expiration } = auth()
+
+    // Access token may be expired, but refresh token is valid for 7 days
+    if (!user) {
+      ({ user, token, expiration } = OpenReviewApp.attemptRefresh())
+    }
+
     if (user) {
       this.setState({ user, accessToken: token, userLoading: false })
 
