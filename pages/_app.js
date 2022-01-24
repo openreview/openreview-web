@@ -39,7 +39,7 @@ export default class OpenReviewApp extends App {
     }
     this.shouldResetBanner = false
     this.shouldResetLayout = false
-    this.logoutTimer = null
+    this.refreshTimer = null
 
     this.loginUser = this.loginUser.bind(this)
     this.loginUserWithToken = this.loginUserWithToken.bind(this)
@@ -67,7 +67,7 @@ export default class OpenReviewApp extends App {
 
     // Automatically refresh the accessToken 1m before it's set to expire
     const timeToExpiration = cookieExpiration - 60000
-    this.logoutTimer = setTimeout(() => {
+    this.refreshTimer = setTimeout(() => {
       this.refreshToken()
     }, timeToExpiration)
 
@@ -93,9 +93,9 @@ export default class OpenReviewApp extends App {
     window.Webfield.setToken(userAccessToken)
     window.Webfield2.setToken(userAccessToken)
 
-    const timeToExpiration = tokenExpiration * 1000 - Date.now() - 1000
-    this.logoutTimer = setTimeout(() => {
-      this.logoutUser(null)
+    const timeToExpiration = tokenExpiration * 1000 - Date.now() - 60000
+    this.refreshTimer = setTimeout(() => {
+      this.refreshToken()
     }, timeToExpiration)
   }
 
@@ -106,7 +106,7 @@ export default class OpenReviewApp extends App {
     window.Webfield.setToken(null)
     window.Webfield2.setToken(null)
 
-    clearTimeout(this.logoutTimer)
+    clearTimeout(this.refreshTimer)
 
     if (redirectPath) {
       Router.push(redirectPath)
@@ -221,7 +221,7 @@ export default class OpenReviewApp extends App {
 
       // Automatically refresh the accessToken 1m before it's set to expire
       const timeToExpiration = expiration - Date.now() - 60000
-      this.logoutTimer = setTimeout(() => {
+      this.refreshTimer = setTimeout(() => {
         this.refreshToken()
       }, timeToExpiration)
     } else {
