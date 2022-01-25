@@ -133,7 +133,7 @@ export default class OpenReviewApp extends App {
   }
 
   setLayoutOptions(options) {
-    this.setState(previous => ({
+    this.setState((previous) => ({
       layoutOptions: { ...previous.layoutOptions, ...options },
     }))
     this.shouldResetLayout = false
@@ -247,7 +247,22 @@ export default class OpenReviewApp extends App {
     require('bootstrap')
     window._ = require('lodash')
     window.Handlebars = require('handlebars/runtime')
-    window.marked = marked
+    window.marked = (src, opt, callback) => {
+      try {
+        return marked(src, opt, callback)
+      } catch (error) {
+        promptError(
+          error.message?.includes(`Cannot read properties of undefined (reading 'trim')`)
+            ? 'Some markdowns are not rendered correctly'
+            : error.message
+        )
+      }
+      return `There's an error rendering the content. Please contact support.`
+    }
+    Object.keys(marked).forEach((key) => {
+      window.marked[key] = marked[key]
+    })
+
     window.DOMPurify = DOMPurify
     window.MathJax = mathjaxConfig
 
