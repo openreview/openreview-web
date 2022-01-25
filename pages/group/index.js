@@ -48,8 +48,7 @@ const Group = ({ groupId, webfieldCode, componentObj, appContext }) => {
     if (!componentObj) return
 
     setGroupComponent(dynamic(
-      () => import(`../../components/Group/${componentObj.component}`),
-      { loading: () => <p>Loading...</p> }
+      () => import(`../../components/Group/${componentObj.component}`)
     ))
 
     const componentProps = {}
@@ -76,17 +75,16 @@ const Group = ({ groupId, webfieldCode, componentObj, appContext }) => {
         <meta property="og:description" key="og:description" content={`Welcome to the OpenReview homepage for ${groupTitle}`} />
       </Head>
 
-      {clientJsLoading && (
-        <LoadingSpinner />
-      )}
-
       {webfieldCode && (
         <WebfieldContainer id="group-container" />
       )}
-      {GroupComponent && groupComponentProps && (
+
+      {(GroupComponent && groupComponentProps && !webfieldCode) ? (
         <div id="group-container">
           <GroupComponent {...groupComponentProps } />
         </div>
+      ) : (
+        <LoadingSpinner />
       )}
     </>
   )
@@ -119,7 +117,7 @@ Group.getInitialProps = async (ctx) => {
       return { statusCode: 404, message: `The Group ${ctx.query.id} was not found` }
     }
 
-    if (!group.web) {
+    if (!group.web && !group.webComponent) {
       redirectToEditOrInfoMode('info')
     }
     // Old HTML webfields are no longer supported
@@ -132,7 +130,7 @@ Group.getInitialProps = async (ctx) => {
 
     let webfieldCode
     let componentObj
-    if (group.component) {
+    if (group.webComponent) {
       componentObj = parseComponentCode(group, user, ctx.query)
     } else {
       webfieldCode = generateWebfieldCode(group, user, ctx.query)

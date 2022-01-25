@@ -2,29 +2,30 @@
 
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import api from '../../lib/api-client'
-import { getGroupVersion } from '../../lib/utils'
+import upperFirst from 'lodash/upperFirst'
 import EditorSection from '../EditorSection'
 import LoadingSpinner from '../LoadingSpinner'
 import SpinnerButton from '../SpinnerButton'
+import api from '../../lib/api-client'
+import { getGroupVersion } from '../../lib/utils'
 
 const CodeEditor = dynamic(() => import('../CodeEditor'), {
   loading: () => <LoadingSpinner inline/>,
 })
 
-const GroupUICode = ({ group, accessToken, reloadGroup }) => {
+const GroupUICode = ({ group, fieldName, accessToken, reloadGroup }) => {
   const [showCodeEditor, setShowCodeEditor] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [modifiedWebCode, setModifiedWebCode] = useState(group.web)
+  const [modifiedWebCode, setModifiedWebCode] = useState(group[fieldName] ?? '')
 
   const handleUpdateCodeClick = async () => {
     try {
       setIsSaving(true)
       const groupToPost = {
         ...group,
-        web: modifiedWebCode.trim() ? modifiedWebCode.trim() : null,
+        [fieldName]: modifiedWebCode.trim() ? modifiedWebCode.trim() : null,
       }
-      const result = await api.post('/groups', groupToPost, {
+      await api.post('/groups', groupToPost, {
         accessToken,
         version: getGroupVersion(group.id),
       })
@@ -40,13 +41,13 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
   useEffect(() => {
     // Close code editor when changing groups
     setShowCodeEditor(false)
-  }, [group.id])
+  }, [group.id, fieldName])
 
   return (
-    <EditorSection title="Group UI Code">
+    <EditorSection title={`${upperFirst(fieldName)} Code`}>
       {showCodeEditor && (
         <CodeEditor
-          code={group.web}
+          code={group[fieldName]}
           onChange={setModifiedWebCode}
           scrollIntoView
         />
@@ -57,7 +58,7 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
           <SpinnerButton
             type="primary"
             onClick={handleUpdateCodeClick}
-            disabled={group.web === modifiedWebCode || isSaving}
+            disabled={group[fieldName] === modifiedWebCode || isSaving}
             loading={isSaving}
           >
             {isSaving ? 'Saving' : 'Update Code'}

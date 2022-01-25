@@ -36,6 +36,13 @@ const GroupEditor = ({
       />
       <GroupUICode
         group={group}
+        fieldName="web"
+        accessToken={accessToken}
+        reloadGroup={reloadGroup}
+      />
+      <GroupUICode
+        group={group}
+        fieldName="webComponent"
         accessToken={accessToken}
         reloadGroup={reloadGroup}
       />
