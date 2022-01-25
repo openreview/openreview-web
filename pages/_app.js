@@ -1,4 +1,5 @@
 /* eslint-disable global-require */
+/* globals promptError: false */
 
 import App from 'next/app'
 import Router from 'next/router'
