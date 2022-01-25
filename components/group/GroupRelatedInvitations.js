@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import Link from 'next/link'
 import EditorSection from '../EditorSection'
 import PaginatedList from '../PaginatedList'
@@ -16,13 +16,17 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
   const version = getGroupVersion(groupId)
 
   const loadRelatedInvitations = async (limit, offset) => {
-    const result = await api.get('/invitations', {
-      regex: `${groupId}/-/.*`,
-      expired: true,
-      type: 'all',
-      limit,
-      offset,
-    }, { accessToken, version })
+    const result = await api.get(
+      '/invitations',
+      {
+        regex: `${groupId}/-/.*`,
+        expired: true,
+        type: 'all',
+        limit,
+        offset,
+      },
+      { accessToken, version }
+    )
 
     if (result.count !== totalCount) {
       setTotalCount(result.count ?? 0)
@@ -33,11 +37,16 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
     }
   }
 
+  const loadItems = useCallback(loadRelatedInvitations, [groupId, accessToken])
+
   return (
-    <EditorSection title={`Related Invitations ${totalCount ? `(${totalCount})` : ''}`} className="invitations">
+    <EditorSection
+      title={`Related Invitations ${totalCount ? `(${totalCount})` : ''}`}
+      className="invitations"
+    >
       <PaginatedList
         ListItem={RelatedInvitationRow}
-        loadItems={loadRelatedInvitations}
+        loadItems={loadItems}
         emptyMessage="No related invitations"
       />
     </EditorSection>
