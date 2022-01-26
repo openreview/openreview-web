@@ -389,20 +389,29 @@ module.exports = (function() {
         }
       });
 
-      $container.on('change', '#select-all-papers', function(e) {
+      $container.on('change', '.select-all-papers', function(e) {
         var $superCheckBox = $(this);
-        var $allPaperCheckBoxes = $('input.select-note-reviewers');
-        var $msgReviewerButton = $('#message-reviewers-btn');
-        if ($superCheckBox[0].checked === true) {
+        var $allPaperCheckBoxes = $container.find('input.select-note-reviewers');
+        var $messageBtn = $container.find('.message-reviewers-btn');
+        if ($superCheckBox.prop('checked')) {
           $allPaperCheckBoxes.prop('checked', true);
-          $msgReviewerButton.attr('disabled', false);
+          $messageBtn.attr('disabled', false);
         } else {
           $allPaperCheckBoxes.prop('checked', false);
-          $msgReviewerButton.attr('disabled', true);
+          $messageBtn.attr('disabled', true);
         }
       });
 
-      $container.on('click', '#div-msg-reviewers a', function(e) {
+      $container.on('change', '.select-note-reviewers', function(e) {
+        var $messageBtn = $container.find('.message-reviewers-btn');
+        if ($container.find('input.select-note-reviewers:checked').length > 0) {
+          $messageBtn.attr('disabled', false);
+        } else {
+          $messageBtn.attr('disabled', true);
+        }
+      });
+
+      $container.on('click', '.msg-reviewers-container a', function(e) {
         var filter = $(this)[0].id;
         $('#message-reviewers-modal').remove();
 
@@ -429,17 +438,23 @@ module.exports = (function() {
         var messageContent = $('#message-reviewers-modal textarea[name="message"]').val().trim();
         var filter  = $(this)[0].dataset['filter'];
 
-        var menuOption = options.reminderOptions.menu.find(function(menu) { return ('msg-' + menu.id) == filter; });
+        var menuOption = options.reminderOptions.menu.find(function(menu) {
+          return 'msg-' + menu.id === filter;
+        });
         if (!menuOption) {
           return false;
         }
-        var users = menuOption.getUsers();
+
+        var selectedIds = $container.find('input.select-note-reviewers:checked').map(function() {
+          return $(this).data('noteId');
+        }).get();
+        var users = menuOption.getUsers(selectedIds);
         var messages = [];
         var count = 0;
         var userCounts = Object.create(null);
 
         users.forEach(function(user) {
-          if (user.groups && user.groups.length) {
+          if (user.groups?.length > 0) {
             var groupIds = [];
             user.groups.forEach(function(group) {
               groupIds.push(group.id);
@@ -461,7 +476,7 @@ module.exports = (function() {
             })
             count += groupIds.length;
           }
-        })
+        });
 
         localStorage.setItem('messages', JSON.stringify(messages));
         localStorage.setItem('messageCount', count);
@@ -567,9 +582,10 @@ module.exports = (function() {
       options.reminderOptions.menu.forEach(function(menu) {
         optionsHtml = optionsHtml + '<li><a id="msg-' + menu.id + '">' + menu.name + '</a></li>'
       })
-      reminderMenuHtml = '<div id="div-msg-reviewers" class="btn-group" role="group">' +
-      '<button id="message-reviewers-btn" type="button" class="btn btn-icon dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Select papers to message corresponding reviewers" >' +
-        '<span class="glyphicon glyphicon-envelope"></span> &nbsp;Message ' +
+      reminderMenuHtml = '<div class="btn-group msg-reviewers-container" role="group">' +
+      '<button type="button" class="message-reviewers-btn btn btn-icon dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Select papers to message corresponding reviewers" disabled>' +
+        '<span class="glyphicon glyphicon-envelope"></span>' +
+        ' &nbsp;Message&nbsp; ' +
         '<span class="caret"></span>' +
       '</button>' +
       '<ul class="dropdown-menu" aria-labelledby="grp-msg-reviewers-btn">' +
@@ -802,14 +818,21 @@ module.exports = (function() {
 
     invitations = invitations || [];
 
+    var dateFormatOptions = {
+      hour: 'numeric', minute: 'numeric', day: '2-digit', month: 'short', year: 'numeric', timeZoneName: 'long'
+    };
+
     // Order by duedate
     invitations.sort(function(a, b) { return a.duedate - b.duedate; });
 
     var formattedInvitations = invitations.map(function(inv) {
+      if (inv.cdate > Date.now()) {
+        var startDate = new Date(inv.cdate);
+        inv.startDateStr = startDate.toLocaleDateString('en-GB', dateFormatOptions);
+      }
+
       var duedate = new Date(inv.duedate);
-      inv.dueDateStr = duedate.toLocaleDateString('en-GB', {
-        hour: 'numeric', minute: 'numeric', day: '2-digit', month: 'short', year: 'numeric', timeZoneName: 'long'
-      });
+      inv.dueDateStr = duedate.toLocaleDateString('en-GB', dateFormatOptions);
       inv.dueDateStatus = getDueDateStatus(duedate);
       inv.groupId = inv.id.split('/-/')[0];
       inv.forumId = forumId;
@@ -825,6 +848,7 @@ module.exports = (function() {
               '<h4><a href="/forum?id=' + inv.forumId + (inv.complete ? '' : '&invitationId=' + inv.id) + (options.referrer ? '&referrer=' + options.referrer : '') + '" target="_blank">' +
                 view.prettyInvitationId(inv.id) +
               '</a></h4>' +
+              (inv.startDateStr ? '<p class="mb-1"><span class="duedate">Start: ' + inv.startDateStr + '</span></p>' : '') +
               '<p class="mb-1"><span class="duedate ' + inv.dueDateStatus +'">Due: ' + inv.dueDateStr + '</span></p>' +
               '<p class="mb-0">' + (inv.complete ? 'Complete' : 'Incomplete') + ', ' + inv.replies.length + ' ' + (inv.replies.length === 1 ? 'Reply' : 'Replies') + '</p>' +
             '</li>'
@@ -1029,7 +1053,7 @@ module.exports = (function() {
           var memberGroups = [];
           group.members.forEach(function(member) {
             var anonGroup = anonPaperGroups.find(function(anonGroup) {
-              return anonGroup.id.startsWith(venueId + '/' + numberToken + number) && anonGroup.members[0] == member;
+              return anonGroup.id.startsWith(venueId + '/' + numberToken + number) && anonGroup.members[0] === member;
             })
             var profile = profilesById[member];
             var profileInfo = {
