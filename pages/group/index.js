@@ -75,16 +75,16 @@ const Group = ({ groupId, webfieldCode, componentObj, appContext }) => {
         <meta property="og:description" key="og:description" content={`Welcome to the OpenReview homepage for ${groupTitle}`} />
       </Head>
 
-      {webfieldCode && (
+      {webfieldCode ? (
         <WebfieldContainer id="group-container" />
-      )}
-
-      {(GroupComponent && groupComponentProps && !webfieldCode) ? (
-        <div id="group-container">
-          <GroupComponent {...groupComponentProps } />
-        </div>
       ) : (
-        <LoadingSpinner />
+        <div id="group-container">
+          {(GroupComponent && groupComponentProps) ? (
+            <GroupComponent {...groupComponentProps } />
+          ) : (
+            <LoadingSpinner />
+          )}
+        </div>
       )}
     </>
   )
