@@ -390,10 +390,9 @@ module.exports = (function() {
       });
 
       $container.on('change', '.select-all-papers', function(e) {
-        var $superCheckBox = $(this);
         var $allPaperCheckBoxes = $container.find('input.select-note-reviewers');
         var $messageBtn = $container.find('.message-reviewers-btn');
-        if ($superCheckBox.prop('checked')) {
+        if ($(this).prop('checked')) {
           $allPaperCheckBoxes.prop('checked', true);
           $messageBtn.attr('disabled', false);
         } else {
@@ -404,10 +403,19 @@ module.exports = (function() {
 
       $container.on('change', '.select-note-reviewers', function(e) {
         var $messageBtn = $container.find('.message-reviewers-btn');
-        if ($container.find('input.select-note-reviewers:checked').length > 0) {
+        var $checkboxes = $container.find('input.select-note-reviewers');
+        var $selectedCheckboxes = $checkboxes.filter(':checked');
+        if ($selectedCheckboxes.length > 0) {
           $messageBtn.attr('disabled', false);
         } else {
           $messageBtn.attr('disabled', true);
+        }
+
+        var $superCheckbox = $container.find('.select-all-papers');
+        if ($checkboxes.length === $selectedCheckboxes.length) {
+          $superCheckbox.prop('checked', true);
+        } else {
+          $superCheckbox.prop('checked', false);
         }
       });
 
