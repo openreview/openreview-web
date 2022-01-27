@@ -16,9 +16,7 @@ export default function BasicHeader({ title, instructions, options = {} }) {
     <header className={options.fullWidth ? 'container' : null}>
       <h1>{title}</h1>
 
-      <div className="description">
-        <p dangerouslySetInnerHTML={{ __html: instructionHtml }} />
-      </div>
+      <div className="description" dangerouslySetInnerHTML={{ __html: instructionHtml }} />
 
       {options.underline && (
         <hr className="spacer" />
