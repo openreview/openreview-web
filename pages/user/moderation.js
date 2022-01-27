@@ -82,7 +82,7 @@ const UserModerationQueue = ({
           withBlocked: onlyModeration ? undefined : true,
           ...filters,
         },
-        { accessToken }
+        { accessToken, cachePolicy: 'no-cache' }
       )
       setTotalCount(result.count ?? 0)
       setProfiles(result.profiles ?? [])
