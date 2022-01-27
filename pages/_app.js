@@ -1,5 +1,4 @@
 /* eslint-disable global-require */
-/* globals promptError: false */
 
 import App from 'next/app'
 import Router from 'next/router'
@@ -248,22 +247,7 @@ export default class OpenReviewApp extends App {
     require('bootstrap')
     window._ = require('lodash')
     window.Handlebars = require('handlebars/runtime')
-    window.marked = (src, opt, callback) => {
-      try {
-        return marked(src, opt, callback)
-      } catch (error) {
-        promptError(
-          error.message?.includes(`Cannot read properties of undefined (reading 'trim')`)
-            ? 'Some markdowns are not rendered correctly'
-            : error.message
-        )
-      }
-      return `There's an error rendering the content. Please contact support.`
-    }
-    Object.keys(marked).forEach((key) => {
-      window.marked[key] = marked[key]
-    })
-
+    window.marked = marked
     window.DOMPurify = DOMPurify
     window.MathJax = mathjaxConfig
 
