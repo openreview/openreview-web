@@ -54,11 +54,10 @@ const Group = ({ groupId, webfieldCode, componentObj, appContext }) => {
     const componentProps = {}
     Object.keys(componentObj.properties).forEach((propName) => {
       const prop = componentObj.properties[propName]
-      if (typeof prop === 'object' && prop.component && prop.properties) {
-        const Sub = dynamic(
+      if (typeof prop === 'object' && prop.component) {
+        componentProps[propName] = dynamic(
           () => import(`../../components/Group/${prop.component}`)
         )
-        componentProps[propName] = <Sub {...prop.properties} />
       } else {
         componentProps[propName] = prop
       }
