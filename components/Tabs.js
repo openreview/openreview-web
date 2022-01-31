@@ -10,6 +10,7 @@ const Tabs = ({
   const [activeTabIndex, setActiveTabIndex] = useState(defaultActiveTabIndex)
 
   useEffect(() => {
+    if (!resetTabIndex) return
     resetTabIndex.current = () => setActiveTabIndex(defaultActiveTabIndex)
   }, [])
 
@@ -23,7 +24,7 @@ const Tabs = ({
             className={index === activeTabIndex ? 'active' : ''}
           >
             <a
-              href={`#${tabName}`}
+              data-target={`#${tabName}`}
               aria-controls={tabName}
               role="tab"
               onClick={() => setActiveTabIndex(index)}

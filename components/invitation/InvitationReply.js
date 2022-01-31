@@ -7,10 +7,16 @@ import CodeEditor from '../CodeEditor'
 import SpinnerButton from '../SpinnerButton'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
+import Tabs from '../Tabs'
 
 // Used for both reply/edit and reply forum views
 const InvitationReply = ({
-  invitation, profileId, accessToken, loadInvitation, replyField, readOnly = false,
+  invitation,
+  profileId,
+  accessToken,
+  loadInvitation,
+  replyField,
+  readOnly = false,
 }) => {
   const [replyString, setReplyString] = useState(
     invitation[replyField] ? JSON.stringify(invitation[replyField], undefined, 2) : '[]'
@@ -96,7 +102,8 @@ const InvitationReply = ({
       const requestPath = isV1Invitation ? '/invitations' : '/invitations/edits'
       const requestBody = getRequestBody(replyObj)
       await api.post(requestPath, requestBody, {
-        accessToken, version: isV1Invitation ? 1 : 2,
+        accessToken,
+        version: isV1Invitation ? 1 : 2,
       })
       promptMessage(`Settings for '${prettyId(invitation.id)} updated`, { scrollToTop: false })
       loadInvitation(invitation.id)
@@ -112,12 +119,7 @@ const InvitationReply = ({
 
   return (
     <EditorSection title={sectionTitle}>
-      <CodeEditor
-        code={replyString}
-        onChange={setReplyString}
-        readOnly={readOnly}
-        isJson
-      />
+      <CodeEditor code={replyString} onChange={setReplyString} readOnly={readOnly} isJson />
 
       {!readOnly && (
         <div className="mt-2">
@@ -135,4 +137,78 @@ const InvitationReply = ({
   )
 }
 
+// for v1 invitations only
+export const InvitationReplyWithPreview = ({
+  invitation,
+  accessToken,
+  loadInvitation,
+  replyField,
+  readOnly = false,
+}) => {
+  const [replyString, setReplyString] = useState(
+    invitation[replyField] ? JSON.stringify(invitation[replyField], undefined, 2) : '[]'
+  )
+  const [isSaving, setIsSaving] = useState(false)
+
+  const getRequestBody = (replyObj) => {
+    return {
+      ...invitation,
+      reply: replyObj,
+      apiVersion: undefined,
+      rdate: undefined,
+    }
+  }
+
+  const saveInvitationReply = async () => {
+    try {
+      setIsSaving(true)
+      const cleanReplyString = replyString.trim()
+      const replyObj = JSON.parse(cleanReplyString.length ? cleanReplyString : '[]')
+      const requestBody = getRequestBody(replyObj)
+      await api.post('/invitations', requestBody, {
+        accessToken,
+        version: 1,
+      })
+      promptMessage(`Settings for '${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      loadInvitation(invitation.id)
+    } catch (error) {
+      let { message } = error
+      if (error instanceof SyntaxError) {
+        message = `Reply content is not valid JSON - ${error.message}. Make sure all quotes and brackets match.`
+      }
+      promptError(message, { scrollToTop: false })
+    }
+    setIsSaving(false)
+  }
+
+  return (
+    <EditorSection title="Reply Parameters">
+      <Tabs
+        tabNames={['Reply Object', 'Preview']}
+        tabContents={[
+          <CodeEditor
+            code={replyString}
+            onChange={setReplyString}
+            readOnly={readOnly}
+            isJson
+          />,
+          ,
+        ]}
+      />
+
+      {!readOnly && (
+        <div className="mt-2">
+          <SpinnerButton
+            type="primary"
+            onClick={saveInvitationReply}
+            disabled={isSaving}
+            loading={isSaving}
+          >
+            {isSaving ? 'Saving' : 'Save Invitation'}
+          </SpinnerButton>
+        </div>
+      )}
+    </EditorSection>
+  )
+}
 export default InvitationReply

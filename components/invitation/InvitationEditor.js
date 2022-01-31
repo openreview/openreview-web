@@ -3,14 +3,13 @@
 
 import React from 'react'
 import InvitationGeneral from './InvitationGeneral'
-import InvitationReply from './InvitationReply'
+import InvitationReply, { InvitationReplyWithPreview } from './InvitationReply'
 import InvitationCode from './InvitationCode'
 import InvitationChildInvitations from './InvitationChildInvitations'
 import { isSuperUser } from '../../lib/auth'
+import Tabs from '../Tabs'
 
-const InvitationEditor = ({
-  invitation, user, accessToken, loadInvitation,
-}) => {
+const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => {
   const profileId = user?.profile?.id
   const showProcessEditor = invitation?.apiVersion === 2 || isSuperUser(user)
 
@@ -24,15 +23,23 @@ const InvitationEditor = ({
         accessToken={accessToken}
         loadInvitation={loadInvitation}
       />
-      <InvitationReply
-        key={`${invitation.id}-edit`}
-        invitation={invitation}
-        profileId={profileId}
-        accessToken={accessToken}
-        loadInvitation={loadInvitation}
-        // eslint-disable-next-line no-nested-ternary
-        replyField={invitation.apiVersion === 1 ? 'reply' : (invitation.edge ? 'edge' : 'edit')}
-      />
+      {invitation.apiVersion === 1 ? (
+        <InvitationReplyWithPreview
+          key={`${invitation.id}-edit`}
+          invitation={invitation}
+          accessToken={accessToken}
+          loadInvitation={loadInvitation}
+        />
+      ) : (
+        <InvitationReply
+          key={`${invitation.id}-edit`}
+          invitation={invitation}
+          profileId={profileId}
+          accessToken={accessToken}
+          loadInvitation={loadInvitation}
+          replyField={invitation.edge ? 'edge' : 'edit'}
+        />
+      )}
       <InvitationReply
         key={`${invitation.id}-replyForumViews`}
         invitation={invitation}
@@ -41,9 +48,7 @@ const InvitationEditor = ({
         loadInvitation={loadInvitation}
         replyField="replyForumViews"
       />
-      <InvitationChildInvitations
-        invitation={invitation}
-      />
+      <InvitationChildInvitations invitation={invitation} />
       <InvitationCode
         invitation={invitation}
         profileId={profileId}
