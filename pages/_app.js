@@ -162,7 +162,7 @@ export default class OpenReviewApp extends App {
   }
 
   setLayoutOptions(options) {
-    this.setState(previous => ({
+    this.setState((previous) => ({
       layoutOptions: { ...previous.layoutOptions, ...options },
     }))
     this.shouldResetLayout = false
