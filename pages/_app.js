@@ -13,7 +13,6 @@ import {
   removeAuthCookie,
   cookieExpiration,
 } from '../lib/auth'
-import api from '../lib/api-client'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 import mathjaxConfig from '../lib/mathjax-config'
 
@@ -39,12 +38,11 @@ export default class OpenReviewApp extends App {
     }
     this.shouldResetBanner = false
     this.shouldResetLayout = false
-    this.refreshTimer = null
+    this.logoutTimer = null
 
     this.loginUser = this.loginUser.bind(this)
     this.loginUserWithToken = this.loginUserWithToken.bind(this)
     this.logoutUser = this.logoutUser.bind(this)
-    this.refreshToken = this.refreshToken.bind(this)
     this.updateUserName = this.updateUserName.bind(this)
     this.setBannerHidden = this.setBannerHidden.bind(this)
     this.setBannerContent = this.setBannerContent.bind(this)
@@ -59,24 +57,22 @@ export default class OpenReviewApp extends App {
       accessToken: userAccessToken,
       logoutRedirect: false,
     })
+    setAuthCookie(userAccessToken)
 
     // Need pass new accessToken to Webfield so legacy ajax functions work
     window.Webfield.setToken(userAccessToken)
     window.Webfield2.setToken(userAccessToken)
 
-    // Automatically refresh the accessToken 1m before it's set to expire
-    const timeToExpiration = cookieExpiration - 60000
-    this.refreshTimer = setTimeout(() => {
-      this.refreshToken()
+    const timeToExpiration = cookieExpiration - 1000
+    this.logoutTimer = setTimeout(() => {
+      this.logoutUser(null)
     }, timeToExpiration)
 
-    if (redirectPath) {
-      Router.push(redirectPath)
-    }
+    Router.push(redirectPath)
   }
 
   loginUserWithToken(userAccessToken, setCookie = true) {
-    const { user: authenticatedUser, expiration: tokenExpiration } = getTokenPayload(userAccessToken)
+    const { user: authenticatedUser, exp: tokenExpiration } = getTokenPayload(userAccessToken)
     if (!authenticatedUser) return
 
     this.setState({
@@ -92,9 +88,9 @@ export default class OpenReviewApp extends App {
     window.Webfield.setToken(userAccessToken)
     window.Webfield2.setToken(userAccessToken)
 
-    const timeToExpiration = tokenExpiration * 1000 - Date.now() - 60000
-    this.refreshTimer = setTimeout(() => {
-      this.refreshToken()
+    const timeToExpiration = tokenExpiration * 1000 - Date.now() - 1000
+    this.logoutTimer = setTimeout(() => {
+      this.logoutUser(null)
     }, timeToExpiration)
   }
 
@@ -105,35 +101,10 @@ export default class OpenReviewApp extends App {
     window.Webfield.setToken(null)
     window.Webfield2.setToken(null)
 
-    clearTimeout(this.refreshTimer)
+    clearTimeout(this.logoutTimer)
 
     if (redirectPath) {
       Router.push(redirectPath)
-    }
-  }
-
-  async refreshToken() {
-    try {
-      const { token, user } = await api.post('refreshToken')
-      this.loginUser(user, token, null)
-    } catch (error) {
-      // If multiple instances of the OpenReview app are running, in some cases
-      // they can all try to refresh the token at the same time, leading to an error.
-      if (error.name === 'BlacklistedError') {
-        window.location.reload()
-      } else {
-        this.logoutUser()
-      }
-    }
-  }
-
-  static async attemptRefresh() {
-    try {
-      const { token, user } = await api.post('refreshToken', {}, { ignoreErrors: ['TokenError'] })
-      const expiration = Date.now() + cookieExpiration
-      return { user, token, expiration }
-    } catch (error) {
-      return { user: null }
     }
   }
 
@@ -229,29 +200,18 @@ export default class OpenReviewApp extends App {
   }
 
   componentDidMount() {
-    const setUserState = ({ user, token, expiration }) => {
-      if (!user) {
-        this.setState({ userLoading: false })
-        return
-      }
-
+    // Load user state from auth cookie
+    const { user, token, expiration } = auth()
+    if (user) {
       this.setState({ user, accessToken: token, userLoading: false })
 
-      // Automatically refresh the accessToken 1m before it's set to expire
-      const timeToExpiration = expiration - Date.now() - 60000
-      this.refreshTimer = setTimeout(() => {
-        this.refreshToken()
+      // Automatically log the user out slightly before the token is set to expire
+      const timeToExpiration = expiration - Date.now() - 1000
+      this.logoutTimer = setTimeout(() => {
+        this.logoutUser(null)
       }, timeToExpiration)
-    }
-
-    // Load user state from auth cookie
-    const authCookieData = auth()
-
-    // Access token may be expired, but refresh token is valid for 6 more days
-    if (!authCookieData.user) {
-      OpenReviewApp.attemptRefresh().then(setUserState)
     } else {
-      setUserState(authCookieData)
+      this.setState({ userLoading: false })
     }
 
     // When the user logs out in another tab, trigger logout for this app
@@ -315,20 +275,14 @@ export default class OpenReviewApp extends App {
     // Set required constants
     window.OR_API_URL = process.env.API_URL
     window.OR_API_V2_URL = process.env.API_V2_URL
+    window.Webfield.setToken(token)
+    window.Webfield2.setToken(token)
 
     this.setState({ clientJsLoading: false })
 
     // Register route change handlers
     Router.events.on('routeChangeStart', this.onRouteChangeStart)
     Router.events.on('routeChangeComplete', this.onRouteChangeComplete)
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    // When all legacy JS code is loaded, set the tokens for the Webfield modules
-    if (prevState.clientJsLoading && !this.state.clientJsLoading && this.state.accessToken) {
-      window.Webfield.setToken(this.state.accessToken)
-      window.Webfield2.setToken(this.state.accessToken)
-    }
   }
 
   componentWillUnmount() {
@@ -345,7 +299,6 @@ export default class OpenReviewApp extends App {
       loginUser: this.loginUser,
       loginUserWithToken: this.loginUserWithToken,
       logoutUser: this.logoutUser,
-      refreshToken: this.refreshToken,
       logoutRedirect: this.state.logoutRedirect,
       updateUserName: this.updateUserName,
     }

@@ -52,33 +52,34 @@ const Tasks = ({ appContext }) => {
     const addPropertyToInvitations = (propertyName) => (apiRes) =>
       apiRes.invitations.map((inv) => ({ ...inv, [propertyName]: true }))
 
-    const commonParams = {
+    const commonQueryParam = {
       invitee: true,
       duedate: true,
       details: 'repliedTags',
       version: 1, // version:1 works only for v2 calls, added here for simplicity
     }
-    const commonOptions = { accessToken, cache: false }
+    const commonOption = { accessToken }
 
     const invitationPromises = [
-      api.getCombined(
-        '/invitations',
-        { ...commonParams, replyto: true, details: 'replytoNote,repliedNotes' },
-        null,
-        commonOptions
-      ).then(addPropertyToInvitations('noteInvitation')),
-      api.getCombined(
-        '/invitations',
-        { ...commonParams, type: 'tags' },
-        null,
-        commonOptions
-      ).then(addPropertyToInvitations('tagInvitation')),
-      api.getCombined(
-        '/invitations',
-        { ...commonParams, type: 'edges', details: 'repliedEdges' },
-        null,
-        commonOptions
-      ).then(addPropertyToInvitations('tagInvitation')),
+      api
+        .getCombined(
+          '/invitations',
+          { ...commonQueryParam, replyto: true, details: 'replytoNote,repliedNotes' },
+          null,
+          commonOption
+        )
+        .then(addPropertyToInvitations('noteInvitation')),
+      api
+        .getCombined('/invitations', { ...commonQueryParam, type: 'tags' }, null, commonOption)
+        .then(addPropertyToInvitations('tagInvitation')),
+      api
+        .getCombined(
+          '/invitations',
+          { ...commonQueryParam, type: 'edges', details: 'repliedEdges' },
+          null,
+          commonOption
+        )
+        .then(addPropertyToInvitations('tagInvitation')),
     ]
 
     Promise.all(invitationPromises)
