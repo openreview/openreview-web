@@ -907,12 +907,10 @@ module.exports = (function() {
       var $fullName = getNameFromInput($firstNameSearch.val(), $middleNameSearch.val(), $lastNameSearch.val());
       var $emails = $('<span>').append(_.trim($emailSearch.val()));
       $authors.append(createAuthorRow($fullName, $emails));
+      $searchResults.empty();
     };
 
     var $addDirectlyButton = $('<button id="add-directly" class="btn btn-xs"><span class="glyphicon glyphicon-plus"></span></button>').on('click', addDirectly).hide();
-    if (!options.allowUserDefined) {
-      $addDirectlyButton.hide();
-    }
 
     var $spinner = $([
       '<div class="spinner-small spinner-search">',
@@ -956,7 +954,7 @@ module.exports = (function() {
           $searchResults.append(createSearchResultRow(profile));
         });
         $searchResults.append($('<div>', { class: 'text-center' }).append('<span class="hint">Click the + button of the profile you wish to add to the authors list</span>'))
-      } else {
+      } else if (options.allowUserDefined) {
         $noResults.show();
       }
       // No profiles were found using the email and now if the fields are valid, the user can add directly a person
@@ -964,7 +962,7 @@ module.exports = (function() {
       var email = _.trim($emailSearch.val());
       var first = _.trim($firstNameSearch.val());
       var last = _.trim($lastNameSearch.val());
-      if (emailResponse && !emailResponse.count && isValidEmail(email) && isValidName(first, last)) {
+      if (options.allowUserDefined && emailResponse && !emailResponse.count && isValidEmail(email) && isValidName(first, last)) {
         $addDirectlyButton.show();
       }
     };
