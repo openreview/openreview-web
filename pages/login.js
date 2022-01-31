@@ -24,7 +24,7 @@ const LoginForm = () => {
 
     try {
       const { user, token } = await api.post('/login', { id: email, password })
-      loginUser(user, token, query?.redirect ?? '/')
+      loginUser(user, token, query?.redirect)
     } catch (error) {
       setLoginError(error)
       promptError(error.message)
