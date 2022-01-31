@@ -423,7 +423,14 @@ module.exports = (function() {
         var filter = $(this)[0].id;
         $('#message-reviewers-modal').remove();
 
-        var defaultBody = options.reminderOptions.defaultBody;
+        var menuOption = options.reminderOptions.menu.find(function(menu) {
+          return 'msg-' + menu.id === filter;
+        });
+        if (!menuOption) {
+          return false;
+        }
+
+        var defaultBody = menuOption.messageBody || options.reminderOptions.defaultBody;
 
         var modalHtml = Handlebars.templates.messageReviewersModalFewerOptions({
           filter: filter,
@@ -561,7 +568,7 @@ module.exports = (function() {
 
       var postReviewerEmails = function(postData) {
         postData.message = postData.message.replace(
-          '{{submit_review_link}}',
+          '{{forumUrl}}',
           postData.forumUrl
         );
 
