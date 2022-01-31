@@ -742,7 +742,8 @@ table.table-minimal {
 }
 
 // Note editor
-.note_editor {
+.note_editor,
+.note_editor_preview {
   > .row,
   > .note_content_section > .row {
     margin-top: 1em;

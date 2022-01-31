@@ -1,4 +1,4 @@
-@use "../pages/group.scss";
+@use '../pages/group.scss';
 
 main.invitation {
   // See group.scss for shared styles
@@ -16,7 +16,7 @@ main.invitation {
         margin-right: 0;
       }
       label {
-        margin-right: .5rem;
+        margin-right: 0.5rem;
       }
       .search-content {
         input {
@@ -26,7 +26,8 @@ main.invitation {
       .subject-area {
         margin-left: 1rem;
 
-        input, .dropdown_content {
+        input,
+        .dropdown_content {
           width: 350px;
         }
       }
@@ -63,7 +64,7 @@ main.invitation {
     margin-bottom: 1.75rem;
   }
   .row {
-    margin-bottom: .25rem;
+    margin-bottom: 0.25rem;
   }
   .d-flex {
     display: flex;
@@ -73,7 +74,7 @@ main.invitation {
     width: 12%;
     text-align: right;
     white-space: nowrap;
-    margin-right: .5rem;
+    margin-right: 0.5rem;
     overflow: hidden;
     text-overflow: ellipsis;
     flex-shrink: 0;
@@ -81,13 +82,13 @@ main.invitation {
       margin-top: 5px;
     }
   }
-  .info-content{
-    width:88%;
+  .info-content {
+    width: 88%;
   }
   .info-edit-control {
-    width:50%;
-    input[type=number] {
-      width:100px;
+    width: 50%;
+    input[type='number'] {
+      width: 100px;
     }
   }
   .spinner-small {
@@ -96,15 +97,49 @@ main.invitation {
   .save-button-wrapper {
     display: flex;
   }
-  button{
-    margin-top: .75rem;
-    margin-right: .5rem;
+  button {
+    margin-top: 0.75rem;
+    margin-right: 0.5rem;
   }
   .timezone-dropdown {
     width: 100%;
-    .dropdown-select__option,.dropdown-select__menu,.dropdown-select__menu-list {
+    .dropdown-select__option,
+    .dropdown-select__menu,
+    .dropdown-select__menu-list {
       width: 450px;
       overflow-x: hidden;
+    }
+  }
+  .reply-preview {
+    div[role='tablist'] {
+      margin-top: 1rem;
+    }
+    .code-editor {
+      margin-top: 0;
+    }
+    .tab-pane {
+      padding: 0;
+      min-height: 200px;
+
+      .note_editor_preview {
+        button {
+          margin-top: 0;
+        }
+        margin-top: -1px;
+
+        .note_content_title {
+          display: none;
+        }
+        hr {
+          display: none;
+        }
+        .note_content_section > hr {
+          display: block;
+        }
+        .hint {
+          margin-bottom: 0.25rem;
+        }
+      }
     }
   }
 }

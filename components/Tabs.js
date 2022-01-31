@@ -5,6 +5,7 @@ const Tabs = ({
   className,
   tabNames,
   tabContents,
+  tabEvents,
   resetTabIndex,
 }) => {
   const [activeTabIndex, setActiveTabIndex] = useState(defaultActiveTabIndex)
@@ -27,7 +28,12 @@ const Tabs = ({
               data-target={`#${tabName}`}
               aria-controls={tabName}
               role="tab"
-              onClick={() => setActiveTabIndex(index)}
+              onClick={() => {
+                setActiveTabIndex(index)
+                if (tabEvents?.[index]) {
+                  tabEvents[index]()
+                }
+              }}
             >
               {tabName}
             </a>

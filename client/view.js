@@ -1726,8 +1726,8 @@ module.exports = (function() {
   };
 
   var orderCache =  {};
-  var order = function(replyContent, invitationId) {
-    if (invitationId && orderCache[invitationId]) {
+  var order = function(replyContent, invitationId, useOrderCache) {
+    if (invitationId && orderCache[invitationId] && useOrderCache) {
       return orderCache[invitationId];
     }
 
@@ -3012,13 +3012,13 @@ module.exports = (function() {
   };
 
   var mkNewNoteEditor = function(invitation, forum, replyto, user, options) {
-
     var params = _.assign({
       onNoteCreated: null,
       onCompleted: null,
       onNoteCancelled: null,
       onValidate: null,
-      onError: null
+      onError: null,
+      isPreview: false,
     }, options);
 
     if ($('.note_editor.panel').length) {
@@ -3030,9 +3030,11 @@ module.exports = (function() {
       return;
     }
 
-    var contentOrder = order(invitation.reply.content, invitation.id);
+    var useOrderCache = params.isPreview?false:true;
+    var contentOrder = order(invitation.reply.content, invitation.id ,useOrderCache);
     var $contentMap = _.reduce(contentOrder, function(ret, k) {
-      ret[k] = mkComposerInput(k, invitation.reply.content[k], invitation.reply.content[k].default || '', { useDefaults: true, user: user });
+      console.log('k,invitation.reply.content[k]', k, invitation.reply.content[k]);
+      ret[k] = mkComposerInput(k, invitation.reply.content[k], invitation.reply.content[k]?.default || '', { useDefaults: true, user: user });
       return ret;
     }, {});
 
@@ -3181,7 +3183,7 @@ module.exports = (function() {
         _.values($contentMap),
         readers,
         signatures,
-        $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
+        !params.isPreview && $('<div>', { class: 'row' }).append($submitButton, $cancelButton)
       );
       $noteEditor.data('invitationId', invitation.id);
 
@@ -3203,10 +3205,10 @@ module.exports = (function() {
     };
 
     buildReaders(invitation.reply.readers, [], parentId, function (readers, error) {
-      if (error) {
+      if (error && !params.isPreview) {
         return handleError(error);
       }
-      buildSignatures(invitation.reply.signatures, invitation.reply.signatures.default || [], user).then(function (signatures) {
+      buildSignatures(invitation.reply.signatures, invitation.reply.signatures?.default || [], user).then(function (signatures) {
         buildEditor(readers, signatures);
       }).fail(function(error) {
         error = error === 'no_results' ?

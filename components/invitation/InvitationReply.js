@@ -8,6 +8,7 @@ import SpinnerButton from '../SpinnerButton'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import Tabs from '../Tabs'
+import useUser from '../../hooks/useUser'
 
 // Used for both reply/edit and reply forum views
 const InvitationReply = ({
@@ -142,29 +143,35 @@ export const InvitationReplyWithPreview = ({
   invitation,
   accessToken,
   loadInvitation,
-  replyField,
   readOnly = false,
 }) => {
   const [replyString, setReplyString] = useState(
-    invitation[replyField] ? JSON.stringify(invitation[replyField], undefined, 2) : '[]'
+    invitation.reply ? JSON.stringify(invitation.reply, undefined, 2) : '[]'
   )
   const [isSaving, setIsSaving] = useState(false)
+  const { user } = useUser()
+  const [previewContent, setPreivewContent] = useState(null)
 
-  const getRequestBody = (replyObj) => {
-    return {
-      ...invitation,
-      reply: replyObj,
-      apiVersion: undefined,
-      rdate: undefined,
+  const getRequestBody = () => {
+    try {
+      const cleanReplyString = replyString.trim()
+      const replyObj = JSON.parse(cleanReplyString.length ? cleanReplyString : '[]')
+      return {
+        ...invitation,
+        reply: replyObj,
+        apiVersion: undefined,
+        rdate: undefined,
+      }
+    } catch (error) {
+      promptError(`Reply content is not valid JSON - ${error.message}.`)
     }
+    return {}
   }
 
   const saveInvitationReply = async () => {
     try {
       setIsSaving(true)
-      const cleanReplyString = replyString.trim()
-      const replyObj = JSON.parse(cleanReplyString.length ? cleanReplyString : '[]')
-      const requestBody = getRequestBody(replyObj)
+      const requestBody = getRequestBody()
       await api.post('/invitations', requestBody, {
         accessToken,
         version: 1,
@@ -181,8 +188,23 @@ export const InvitationReplyWithPreview = ({
     setIsSaving(false)
   }
 
+  const generateReplyPreview = () => {
+    const invitationToPreview = getRequestBody()
+    if (!invitationToPreview?.reply?.content) {
+      setPreivewContent('Nothing to preview')
+      return
+    }
+    view.mkNewNoteEditor(invitationToPreview, null, null, user, {
+      isPreview: true,
+      onCompleted: (editor) => {
+        console.log('editor', editor)
+        setPreivewContent(editor.html())
+      },
+    })
+  }
+
   return (
-    <EditorSection title="Reply Parameters">
+    <EditorSection title="Reply Parameters" className="reply-preview">
       <Tabs
         tabNames={['Reply Object', 'Preview']}
         tabContents={[
@@ -192,10 +214,13 @@ export const InvitationReplyWithPreview = ({
             readOnly={readOnly}
             isJson
           />,
-          ,
+          <div
+            className="note_editor_preview"
+            dangerouslySetInnerHTML={{ __html: previewContent }}
+          />,
         ]}
+        tabEvents={[null, generateReplyPreview]}
       />
-
       {!readOnly && (
         <div className="mt-2">
           <SpinnerButton
