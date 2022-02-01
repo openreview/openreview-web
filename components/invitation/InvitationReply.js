@@ -1,5 +1,4 @@
-/* globals promptMessage: false */
-/* globals promptError: false */
+/* globals promptError,promptMessage,view: false */
 
 import { useState } from 'react'
 import EditorSection from '../EditorSection'
@@ -197,7 +196,6 @@ export const InvitationReplyWithPreview = ({
     view.mkNewNoteEditor(invitationToPreview, null, null, user, {
       isPreview: true,
       onCompleted: (editor) => {
-        console.log('editor', editor)
         setPreivewContent(editor.html())
       },
     })
@@ -208,12 +206,14 @@ export const InvitationReplyWithPreview = ({
       <Tabs
         tabNames={['Reply Object', 'Preview']}
         tabContents={[
+          // eslint-disable-next-line react/jsx-key
           <CodeEditor
             code={replyString}
             onChange={setReplyString}
             readOnly={readOnly}
             isJson
           />,
+          // eslint-disable-next-line react/jsx-key
           <div
             className="note_editor_preview"
             dangerouslySetInnerHTML={{ __html: previewContent }}

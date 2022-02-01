@@ -12,6 +12,7 @@ const Tabs = ({
 
   useEffect(() => {
     if (!resetTabIndex) return
+    // eslint-disable-next-line no-param-reassign
     resetTabIndex.current = () => setActiveTabIndex(defaultActiveTabIndex)
   }, [])
 
@@ -24,6 +25,7 @@ const Tabs = ({
             key={index}
             className={index === activeTabIndex ? 'active' : ''}
           >
+            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a
               data-target={`#${tabName}`}
               aria-controls={tabName}

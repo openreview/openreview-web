@@ -13,6 +13,7 @@ const MarkdownPreviewTab = ({
   const [sanitizedHtml, setSanitizedHtml] = useState('')
   const tabNames = [firstTab, secondTab]
   const tabContents = [
+    // eslint-disable-next-line react/jsx-key
     <textarea
       className="form-control"
       rows="6"
@@ -21,6 +22,7 @@ const MarkdownPreviewTab = ({
       required
       onChange={(e) => onValueChanged(e.target.value)}
     />,
+    // eslint-disable-next-line react/jsx-key
     <div className="preview" dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />,
   ]
 
