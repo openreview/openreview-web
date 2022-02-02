@@ -353,13 +353,15 @@ export default function ProfileEntity(props) {
                   {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
                   {props.traverseLabel} ({props.profile.traverseEdgesCount}) &raquo;
                 </a>
-              ) : (
-                <>
+              ) : props.showCounter &&
+                (
+                  <>
                   <span>{`${props.traverseLabel}:`}</span>
                   {' '}
                   <span>{props.profile.traverseEdgesCount}</span>
-                </>
-              )}
+                  </>
+                )
+              }
             </li>
           </ul>
         </div>

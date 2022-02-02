@@ -321,13 +321,15 @@ export default function NoteEntity(props) {
                   {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
                   {props.traverseLabel} ({props.note.traverseEdgesCount}) &raquo;
                 </a>
-              ) : (
+              ) : props.showCounter &&
+              (
                 <>
-                  <span>{`${props.traverseLabel}:`}</span>
-                  {' '}
-                  <span>{props.note.traverseEdgesCount}</span>
+                <span>{`${props.traverseLabel}:`}</span>
+                {' '}
+                <span>{props.profile.traverseEdgesCount}</span>
                 </>
-              )}
+              )
+            }
             </li>
           </ul>
         </div>
