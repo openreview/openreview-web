@@ -3,13 +3,16 @@
 
 import { useState, useEffect } from 'react'
 import union from 'lodash/union'
-import {
-  prettyField, prettyContentValue, orderReplyFields, prettyId,
-} from '../lib/utils'
+import { prettyField, prettyContentValue, orderReplyFields, prettyId } from '../lib/utils'
 import Icon from './Icon'
 
 function NoteContent({
-  id, content, invitation, omit = [], include = [], isReference = false,
+  id,
+  content,
+  invitation,
+  omit = [],
+  include = [],
+  isReference = false,
 }) {
   const contentKeys = Object.keys(content)
   const contentOrder = invitation
@@ -17,9 +20,21 @@ function NoteContent({
     : contentKeys
 
   const omittedFields = [
-    'title', 'authors', 'author_emails', 'authorids', 'pdf',
-    'verdict', 'paperhash', 'ee', 'html', 'year', 'venue', 'venueid',
-  ].concat(omit).filter(field => !include.includes(field))
+    'title',
+    'authors',
+    'author_emails',
+    'authorids',
+    'pdf',
+    'verdict',
+    'paperhash',
+    'ee',
+    'html',
+    'year',
+    'venue',
+    'venueid',
+  ]
+    .concat(omit)
+    .filter((field) => !include.includes(field))
 
   return (
     <ul className="list-unstyled note-content">
@@ -33,14 +48,21 @@ function NoteContent({
 
         return (
           <li key={fieldName}>
-            <NoteContentField name={fieldName} />
-            {' '}
+            <NoteContentField name={fieldName} />{' '}
             {fieldValue.startsWith('/attachment/') ? (
               <span className="note-content-value">
-                <DownloadLink noteId={id} fieldName={fieldName} fieldValue={fieldValue} isReference={isReference} />
+                <DownloadLink
+                  noteId={id}
+                  fieldName={fieldName}
+                  fieldValue={fieldValue}
+                  isReference={isReference}
+                />
               </span>
             ) : (
-              <NoteContentValue content={fieldValue} enableMarkdown={invitationField.markdown} />
+              <NoteContentValue
+                content={fieldValue}
+                enableMarkdown={invitationField.markdown}
+              />
             )}
           </li>
         )
@@ -50,12 +72,7 @@ function NoteContent({
 }
 
 function NoteContentField({ name }) {
-  return (
-    <strong className="note-content-field">
-      {prettyField(name)}
-      :
-    </strong>
-  )
+  return <strong className="note-content-field">{prettyField(name)}:</strong>
 }
 
 function NoteContentValue({ content = '', enableMarkdown }) {
@@ -67,45 +84,69 @@ function NoteContentValue({ content = '', enableMarkdown }) {
     }
   }, [])
 
-  return (enableMarkdown && sanitizedHtml) ? (
+  return enableMarkdown && sanitizedHtml ? (
     // eslint-disable-next-line react/no-danger
-    <div className="note-content-value markdown-rendered" dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+    <div
+      className="note-content-value markdown-rendered"
+      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+    />
   ) : (
-    <span className="note-content-value">
-      {content}
-    </span>
+    <span className="note-content-value">{content}</span>
   )
 }
 
-function DownloadLink({
-  noteId, fieldName, fieldValue, isReference, isV2 = false,
-}) {
+function DownloadLink({ noteId, fieldName, fieldValue, isReference, isV2 = false }) {
   const fileExtension = fieldValue.split('.').pop()
-  const urlPath = isReference ? `${isV2 ? '/notes/edits/attachment' : '/references/attachment'}` : '/attachment'
+  const urlPath = isReference
+    ? `${isV2 ? '/notes/edits/attachment' : '/references/attachment'}`
+    : '/attachment'
   const href = `${urlPath}?id=${noteId}&name=${fieldName}`
 
   return (
     // eslint-disable-next-line react/jsx-no-target-blank
-    <a href={href} className="attachment-download-link" title={`Download ${prettyField(fieldName)}`} target="_blank">
-      <Icon name="download-alt" />
-      {' '}
-      {fileExtension}
+    <a
+      href={href}
+      className="attachment-download-link"
+      title={`Download ${prettyField(fieldName)}`}
+      target="_blank"
+    >
+      <Icon name="download-alt" /> {fileExtension}
     </a>
   )
 }
 
 export const NoteContentV2 = ({
-  id, content, omit = [], include = [], isEdit = false, presentation, noteReaders,
+  id,
+  content,
+  omit = [],
+  include = [],
+  isEdit = false,
+  presentation,
+  noteReaders,
 }) => {
+  console.log('content', content)
   const contentKeys = Object.keys(content)
   const contentOrder = presentation
-    ? Object.values(presentation).sort((a, b) => (a?.order ?? 999) - (b?.order ?? 999)).map(p => p.name)
+    ? Object.values(presentation)
+        .sort((a, b) => (a?.order ?? 999) - (b?.order ?? 999))
+        .map((p) => p.name)
     : contentKeys
 
   const omittedFields = [
-    'title', 'authors', 'authorids', 'pdf',
-    'verdict', 'paperhash', 'ee', 'html', 'year', 'venue', 'venueid',
-  ].concat(omit).filter(field => !include.includes(field))
+    'title',
+    'authors',
+    'authorids',
+    'pdf',
+    'verdict',
+    'paperhash',
+    'ee',
+    'html',
+    'year',
+    'venue',
+    'venueid',
+  ]
+    .concat(omit)
+    .filter((field) => !include.includes(field))
 
   return (
     <ul className="list-unstyled note-content">
@@ -114,25 +155,33 @@ export const NoteContentV2 = ({
 
         const fieldValue = prettyContentValue(content[fieldName]?.value)
         if (!fieldValue) return null
-        const enableMarkdown = presentation?.find(p => p.name === fieldName)?.markdown
+        const enableMarkdown = presentation?.find((p) => p.name === fieldName)?.markdown
         const fieldReaders = content[fieldName]?.readers?.sort()
-        const showPrivateIcon = fieldReaders && noteReaders && !fieldReaders.every((p, i) => p === noteReaders[i])
+        const showPrivateIcon =
+          fieldReaders && noteReaders && !fieldReaders.every((p, i) => p === noteReaders[i])
 
         return (
           <li key={fieldName}>
-            <NoteContentField name={fieldName} />
-            {' '}
+            <NoteContentField name={fieldName} />{' '}
             {showPrivateIcon && (
               <Icon
                 name="eye-open"
                 extraClasses="private-contents-icon"
-                tooltip={`privately revealed to ${fieldReaders.map(p => prettyId(p)).join(', ')}`}
+                tooltip={`privately revealed to ${fieldReaders
+                  .map((p) => prettyId(p))
+                  .join(', ')}`}
               />
             )}
             {fieldValue.startsWith('/attachment/') ? (
               <span className="note-content-value">
                 {/* eslint-disable-next-line max-len */}
-                <DownloadLink noteId={id} fieldName={fieldName} fieldValue={fieldValue} isReference={isEdit} isV2 />
+                <DownloadLink
+                  noteId={id}
+                  fieldName={fieldName}
+                  fieldValue={fieldValue}
+                  isReference={isEdit}
+                  isV2
+                />
               </span>
             ) : (
               <NoteContentValue content={fieldValue} enableMarkdown={enableMarkdown} />
