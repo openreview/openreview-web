@@ -216,9 +216,9 @@ templates['groupedTaskList'] = template({"1":function(container,depth0,helpers,p
     + "</ul>\n";
 },"usePartial":true,"useData":true,"useDepths":true,"useBlockParams":true});
 templates['invitationButton'] = template({"1":function(container,depth0,helpers,partials,data) {
-    return "    <strong class=\"item hint\">New:</strong>\n";
+    return "    <strong class=\"item hint\">Add:</strong>\n";
 },"3":function(container,depth0,helpers,partials,data) {
-    return "    <span class=\"item hint\">New:</span>\n";
+    return "    <span class=\"item hint\">Add:</span>\n";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
