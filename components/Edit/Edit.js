@@ -1,11 +1,9 @@
 import { forumDate } from '../../lib/utils'
-import Icon from '../Icon'
 import { NoteContentV2 } from '../NoteContent'
-import { EditTitle } from './EditTitle'
+import EditTitle from './EditTitle'
 import EditValue from './EditValue'
 
 const Edit = ({ edit, options }) => {
-  const privatelyRevealed = !edit.readers.includes('everyone')
   return (
     <div className={`edit ${options.extraClasses ?? ''}`}>
       <EditTitle invitation={edit.invitations[0]} signatures={edit.signatures} />
@@ -18,15 +16,6 @@ const Edit = ({ edit, options }) => {
             edit.mdate,
             edit.tmdate,
             edit.content?.year?.value
-          )}
-        </li>
-        <li>
-          {privatelyRevealed && (
-            <Icon
-              name="eye-open"
-              extraClasses="note-visible-icon"
-              tooltip="Privately revealed to you"
-            />
           )}
         </li>
       </ul>
