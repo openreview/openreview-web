@@ -7,7 +7,7 @@ import EditValue from './EditValue'
 const Edit = ({ edit, options }) => {
   const privatelyRevealed = !edit.readers.includes('everyone')
   return (
-    <div className="edit">
+    <div className={`edit ${options.extraClasses ?? ''}`}>
       <EditTitle invitation={edit.invitations[0]} signatures={edit.signatures} />
 
       <ul className="edit_meta_info list-inline">

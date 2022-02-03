@@ -241,7 +241,8 @@ main.revisions {
     color: constants.$subtleGray;
   }
 
-  .note-trashed {
+  .note-trashed,
+  .edit-trashed {
     opacity: 0.35;
     pointer-events: none;
   }

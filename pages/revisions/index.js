@@ -323,7 +323,7 @@ const RevisionsList = ({
                     isReference: true,
                     pdfLink: true,
                     htmlLink: true,
-                    ...(reference.ddate && { extraClasses: 'note-trashed' }),
+                    ...(reference.ddate && { extraClasses: 'edit-trashed' }),
                   }}
                 />
               </div>
