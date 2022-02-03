@@ -14,7 +14,7 @@ import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { buildNoteTitle, prettyId } from '../../lib/utils'
 import { forumLink } from '../../lib/banner-links'
-import Edit from '../../components/Edit'
+import Edit from '../../components/Edit/Edit'
 
 const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreEdit }) => {
   const [signature, setSignature] = useState(null)
@@ -320,7 +320,6 @@ const RevisionsList = ({
                   edit={reference}
                   options={{
                     showContents: true,
-                    showPrivateIcon: true,
                     isReference: true,
                     pdfLink: true,
                     htmlLink: true,
