@@ -1,4 +1,6 @@
 @use '../pages/group.scss';
+@use '../utils/mixins';
+@use '../utils/constants';
 
 main.invitation {
   // See group.scss for shared styles
@@ -113,6 +115,13 @@ main.invitation {
   .reply-preview {
     div[role='tablist'] {
       margin-top: 1rem;
+      a[data-target='#Reply'] {
+        background-color: constants.$backgroundWhite;
+        border: 1px solid #ddd;
+      }
+      a[data-target='#Preview'] {
+        background-color: constants.$sandyBrown;
+      }
     }
     .code-editor {
       margin-top: 0;
@@ -122,13 +131,18 @@ main.invitation {
       min-height: 200px;
 
       .note_editor_preview {
+        @include mixins.well;
+
         button {
           margin-top: 0;
         }
         margin-top: -1px;
 
         .note_content_title {
-          display: none;
+          font-size: 1.125rem;
+          line-height: 1.125rem;
+          margin-top: 0;
+          margin-bottom: 0.5rem;
         }
         hr {
           display: none;

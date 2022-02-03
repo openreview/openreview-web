@@ -204,7 +204,7 @@ export const InvitationReplyWithPreview = ({
   return (
     <EditorSection title="Reply Parameters" className="reply-preview">
       <Tabs
-        tabNames={['Reply Object', 'Preview']}
+        tabNames={['Reply', 'Preview']}
         tabContents={[
           // eslint-disable-next-line react/jsx-key
           <CodeEditor

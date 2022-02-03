@@ -3031,7 +3031,6 @@ module.exports = (function() {
     var useOrderCache = params.isPreview?false:true;
     var contentOrder = order(invitation.reply.content, invitation.id ,useOrderCache);
     var $contentMap = _.reduce(contentOrder, function(ret, k) {
-      console.log('k,invitation.reply.content[k]', k, invitation.reply.content[k]);
       ret[k] = mkComposerInput(k, invitation.reply.content[k], invitation.reply.content[k]?.default || '', { useDefaults: true, user: user });
       return ret;
     }, {});
