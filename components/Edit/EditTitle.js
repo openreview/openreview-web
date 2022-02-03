@@ -1,5 +1,7 @@
 import { buildNoteTitle } from '../../lib/utils'
 
-export const EditTitle = ({ invitation, signatures }) => {
-  return <h4>{buildNoteTitle(invitation, signatures)}</h4>
-}
+const EditTitle = ({ invitation, signatures }) => (
+  <h4>{buildNoteTitle(invitation, signatures)}</h4>
+)
+
+export default EditTitle
