@@ -4,6 +4,7 @@ import { NoteAuthorsV2 } from './NoteAuthors'
 import { NoteContentV2 } from './NoteContent'
 import NoteReaders from './NoteReaders'
 import { NoteTitleV2 } from './NoteTitle'
+
 const Edit = ({ edit, options }) => {
   const privatelyRevealed = options.showPrivateIcon && !edit.readers.includes('everyone')
   return (

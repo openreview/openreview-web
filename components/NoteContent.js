@@ -124,7 +124,6 @@ export const NoteContentV2 = ({
   presentation,
   noteReaders,
 }) => {
-  console.log('content', content)
   const contentKeys = Object.keys(content)
   const contentOrder = presentation
     ? Object.values(presentation)

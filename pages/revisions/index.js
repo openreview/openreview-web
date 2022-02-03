@@ -316,7 +316,6 @@ const RevisionsList = ({
           {reference.note ? (
             <>
               <div className="col-sm-9">
-                {console.log('reference', reference)}
                 <Edit
                   edit={reference}
                   options={{
@@ -328,18 +327,6 @@ const RevisionsList = ({
                     ...(reference.ddate && { extraClasses: 'note-trashed' }),
                   }}
                 />
-                {/* <NoteV2
-                  note={{ ...reference, content: reference.note.content }}
-                  invitation={invitation}
-                  options={{
-                    showContents: true,
-                    showPrivateIcon: true,
-                    isReference: true,
-                    pdfLink: true,
-                    htmlLink: true,
-                    ...(reference.ddate && { extraClasses: 'note-trashed' }),
-                  }}
-                /> */}
               </div>
 
               {reference.details?.writable && (
