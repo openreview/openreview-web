@@ -67,8 +67,8 @@ const NamesSection = ({ profileNames, updateNames }) => {
     setNames({ addNewName: true, data: newNameRow })
   }
 
-  // eslint-disable-next-line no-shadow
   const getTildUserName = useCallback(
+    // eslint-disable-next-line no-shadow
     debounce(async (field, targetValue, key, names) => {
       try {
         const tildeUsername = await api.get('/tildeusername', {
