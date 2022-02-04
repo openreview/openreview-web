@@ -5,17 +5,24 @@ import debounce from 'lodash/debounce'
 import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import api from '../../lib/api-client'
+import { clearMessage } from '../../lib/utils'
 
-const NamesButton = ({
-  newRow, readonly, preferred, handleRemove, handleMakePreferred,
-}) => {
+const NamesButton = ({ newRow, readonly, preferred, handleRemove, handleMakePreferred }) => {
   if (!newRow && readonly) {
     if (preferred) {
       return <div className="preferred hint">(Preferred Name)</div>
     }
-    return <button type="button" className="btn preferred_button" onClick={handleMakePreferred}>Make Preferred</button>
+    return (
+      <button type="button" className="btn preferred_button" onClick={handleMakePreferred}>
+        Make Preferred
+      </button>
+    )
   }
-  return <button type="button" className="btn remove_button" onClick={handleRemove}>Remove</button>
+  return (
+    <button type="button" className="btn remove_button" onClick={handleRemove}>
+      Remove
+    </button>
+  )
 }
 
 const NamesSection = ({ profileNames, updateNames }) => {
@@ -29,7 +36,7 @@ const NamesSection = ({ profileNames, updateNames }) => {
       })
     }
     if (action.removeName) {
-      return names.filter(name => name.key !== action.data.key)
+      return names.filter((name) => name.key !== action.data.key)
     }
     if (action.setPreferred) {
       return names.map((name) => {
@@ -40,7 +47,10 @@ const NamesSection = ({ profileNames, updateNames }) => {
     }
     return names
   }
-  const [names, setNames] = useReducer(namesReducer, profileNames?.map(p => ({ ...p, key: nanoid() })) ?? [])
+  const [names, setNames] = useReducer(
+    namesReducer,
+    profileNames?.map((p) => ({ ...p, key: nanoid() })) ?? []
+  )
   const isMobile = !useBreakpoint('lg')
 
   const handleAddName = () => {
@@ -58,28 +68,38 @@ const NamesSection = ({ profileNames, updateNames }) => {
   }
 
   // eslint-disable-next-line no-shadow
-  const getTildUserName = useCallback(debounce(async (field, targetValue, key, names) => {
-    try {
-      const tildeUsername = await api.get('/tildeusername', {
-        first: field === 'first' ? targetValue : names.find(name => name.key === key)?.first,
-        middle: field === 'middle' ? targetValue : names.find(name => name.key === key)?.middle,
-        last: field === 'last' ? targetValue : names.find(name => name.key === key)?.last,
-      })
-      setNames({ updateName: true, data: { key, field: 'username', value: tildeUsername.username } })
-    } catch (error) {
-      promptError(error.message, { scrollToTop: false })
-    }
-  }, 800), [])
+  const getTildUserName = useCallback(
+    debounce(async (field, targetValue, key, names) => {
+      try {
+        const tildeUsername = await api.get('/tildeusername', {
+          first:
+            field === 'first' ? targetValue : names.find((name) => name.key === key)?.first,
+          middle:
+            field === 'middle' ? targetValue : names.find((name) => name.key === key)?.middle,
+          last: field === 'last' ? targetValue : names.find((name) => name.key === key)?.last,
+        })
+        setNames({
+          updateName: true,
+          data: { key, field: 'username', value: tildeUsername.username },
+        })
+      } catch (error) {
+        promptError(error.message, { scrollToTop: false })
+      }
+    }, 800),
+    []
+  )
 
   const handleUpdateName = async (key, field, targetValue) => {
     // eslint-disable-next-line no-param-reassign
     if (targetValue.length === 1) targetValue = targetValue.toUpperCase()
     const update = { updateName: true, data: { key, field, value: targetValue } }
     setNames(update)
+    clearMessage()
     getTildUserName(field, targetValue, key, names)
   }
 
   const handleRemoveName = (key) => {
+    clearMessage()
     setNames({ removeName: true, data: { key } })
   }
 
@@ -97,9 +117,7 @@ const NamesSection = ({ profileNames, updateNames }) => {
         <div className="row">
           <div className="small-heading col-md-2">First</div>
           <div className="small-heading col-md-2">
-            Middle
-            {' '}
-            <span className="hint">(optional)</span>
+            Middle <span className="hint">(optional)</span>
           </div>
           <div className="small-heading col-md-2">Last</div>
           <div className="small-heading col-md-2" />
@@ -116,18 +134,22 @@ const NamesSection = ({ profileNames, updateNames }) => {
               {isMobile && <div className="small-heading col-md-2">First</div>}
               <input
                 type="text"
-                className={`form-control first-name ${profileNames.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+                className={`form-control first-name ${
+                  profileNames.find((q) => q.key === p.key)?.valid === false
+                    ? 'invalid-value'
+                    : ''
+                }`}
                 value={p.first}
                 readOnly={!p.newRow && p.username}
-                onChange={(e) => { handleUpdateName(p.key, 'first', e.target.value) }}
+                onChange={(e) => {
+                  handleUpdateName(p.key, 'first', e.target.value)
+                }}
               />
             </div>
             <div className="col-md-2 names__value">
               {isMobile && (
                 <div className="small-heading col-md-2">
-                  Middle
-                  {' '}
-                  <span className="hint">(optional)</span>
+                  Middle <span className="hint">(optional)</span>
                 </div>
               )}
               <input
@@ -135,23 +157,35 @@ const NamesSection = ({ profileNames, updateNames }) => {
                 className="form-control middle-name"
                 value={p.middle}
                 readOnly={!p.newRow && p.username}
-                onChange={(e) => { handleUpdateName(p.key, 'middle', e.target.value) }}
+                onChange={(e) => {
+                  handleUpdateName(p.key, 'middle', e.target.value)
+                }}
               />
             </div>
             <div className="col-md-2 names__value">
               {isMobile && <div className="small-heading col-md-2">Last</div>}
               <input
                 type="text"
-                className={`form-control last-name ${profileNames.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+                className={`form-control last-name ${
+                  profileNames.find((q) => q.key === p.key)?.valid === false
+                    ? 'invalid-value'
+                    : ''
+                }`}
                 value={p.last}
                 readOnly={!p.newRow && p.username}
-                onChange={(e) => { handleUpdateName(p.key, 'last', e.target.value) }}
+                onChange={(e) => {
+                  handleUpdateName(p.key, 'last', e.target.value)
+                }}
               />
             </div>
             <div className="col-md-2 names__value">
               <div className="names__tilde-id" translate="no">
                 {p.username}
-                <span data-toggle="tooltip" data-placement="top" title={p.altUsernames.join(', ')}>
+                <span
+                  data-toggle="tooltip"
+                  data-placement="top"
+                  title={p.altUsernames.join(', ')}
+                >
                   {`${p.altUsernames.length > 0 ? `+${p.altUsernames.length} more` : ''}`}
                 </span>
               </div>
