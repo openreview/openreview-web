@@ -40,7 +40,7 @@ const InvitationEdit = ({ appContext }) => {
   const loadInvitation = async (invitationId) => {
     try {
       const invitationObj = await api.getInvitationById(invitationId, accessToken, {
-        details: 'writable', // TODO,repliedInvitations',
+        details: 'writable,writableWith',
         expired: true,
       })
       if (invitationObj) {
