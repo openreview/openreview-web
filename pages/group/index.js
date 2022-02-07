@@ -17,7 +17,7 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
   useEffect(() => {
     setBannerHidden(true)
 
-    if (fullWidthGroups.includes(groupId)) {
+    if (groupId.endsWith('Editors_In_Chief') || groupId.endsWith('Action_Editors')) {
       setLayoutOptions({ fullWidth: true, minimalFooter: true })
     }
   }, [groupId])
