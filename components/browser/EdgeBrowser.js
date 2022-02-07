@@ -20,6 +20,7 @@ export default class EdgeBrowser extends React.Component {
     this.browseInvitations = props.browseInvitations
     this.hideInvitation = props.hideInvitations[0]
     this.maxColumns = props.maxColumns
+    this.showCounter = props.showCounter
 
     let initialColumn
     if (this.startInvitation) {
@@ -349,6 +350,7 @@ export default class EdgeBrowser extends React.Component {
               addNewColumn={this.addNewColumn(i)}
               loading={this.state.loading}
               finalColumn={i + 1 === this.maxColumns}
+              showCounter={this.showCounter}
               parentColumnEntityType={this.state.columns[i - 1]?.entityType} // to decide whether number can be used
               parentContent={column.parentContent}
               parentTraverseCount={column.parentTraverseCount}
