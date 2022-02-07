@@ -3210,7 +3210,7 @@ module.exports = (function() {
       if (error && !params.isPreview) {
         return handleError(error);
       }
-      buildSignatures(invitation.reply.signatures, invitation.reply.signatures?.default || [], user).then(function (signatures) {
+      buildSignatures(invitation.reply.signatures, invitation.reply.signatures?.default || [], user, 'signatures' ,params).then(function (signatures) {
         buildEditor(readers, signatures);
       }).fail(function(error) {
         error = error === 'no_results' ?
@@ -3218,10 +3218,10 @@ module.exports = (function() {
           error;
         handleError(error);
       });
-    });
+    }, params);
   };
 
-  function buildReaders(fieldDescription, fieldValue, replyto, done) {
+  function buildReaders(fieldDescription, fieldValue, replyto, done, params ={}) {
     if (!fieldDescription) {
       done(undefined, 'Invitation is missing readers');
       return;
@@ -3386,13 +3386,13 @@ module.exports = (function() {
           });
         });
     } else {
-      var $readers = mkComposerInput('readers', fieldDescription, fieldValue);
+      var $readers = mkComposerInput('readers', fieldDescription, fieldValue,{isPreview:params.isPreview});
       $readers.find('.small_heading').prepend(requiredText);
       done($readers);
     }
   }
 
-  function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures') {
+  function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures', params={}) {
 
     var $signatures;
     if (_.has(fieldDescription, 'values-regex')) {
@@ -3444,7 +3444,7 @@ module.exports = (function() {
       }
 
     } else {
-      $signatures = mkComposerInput(headingText, fieldDescription, fieldValue);
+      $signatures = mkComposerInput(headingText, fieldDescription, fieldValue, {isPreview:params.isPreview});
       return $.Deferred().resolve($signatures);
     }
 
