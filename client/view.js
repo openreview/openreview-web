@@ -1365,6 +1365,11 @@ module.exports = (function() {
       contentInputResult = mkAttachmentSection(fieldName, fieldDescription, fieldValue);
     }
 
+    if(params?.isPreview){
+      if(contentInputResult) return contentInputResult
+      promptError(`${fieldName} can't be rendered`)
+      return $('<div class="alert alert-danger">').text(`Error: ${fieldName} can't be rendered`)
+    }
     return contentInputResult;
   };
 
@@ -3031,7 +3036,7 @@ module.exports = (function() {
     var useOrderCache = params.isPreview?false:true;
     var contentOrder = order(invitation.reply.content, invitation.id ,useOrderCache);
     var $contentMap = _.reduce(contentOrder, function(ret, k) {
-      ret[k] = mkComposerInput(k, invitation.reply.content[k], invitation.reply.content[k]?.default || '', { useDefaults: true, user: user });
+      ret[k] = mkComposerInput(k, invitation.reply.content[k], invitation.reply.content[k]?.default || '', { useDefaults: true, user: user, isPreview: params.isPreview });
       return ret;
     }, {});
 
