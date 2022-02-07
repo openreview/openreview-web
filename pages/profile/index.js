@@ -17,28 +17,22 @@ import { prettyList } from '../../lib/utils'
 import { auth } from '../../lib/auth'
 import { editProfileLink } from '../../lib/banner-links'
 
-const ProfileSection = ({
-  name, title, instructions, actionLink, children,
-}) => (
+const ProfileSection = ({ name, title, instructions, actionLink, children }) => (
   <section className={name}>
     <h4>{title}</h4>
-    <p className="instructions">
-      {instructions}
-    </p>
-    <div className="section-content">
-      {children}
-    </div>
+    <p className="instructions">{instructions}</p>
+    <div className="section-content">{children}</div>
     {actionLink && (
       <ul className="actions list-inline">
-        <li><a className="suggest">{actionLink}</a></li>
+        <li>
+          <a className="suggest">{actionLink}</a>
+        </li>
       </ul>
     )}
   </section>
 )
 
-const ProfileItem = ({
-  itemMeta, className = '', editBadgeDiv = false, children,
-}) => {
+const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
   if (!itemMeta) {
     return (
       <div className={className}>
@@ -49,51 +43,49 @@ const ProfileItem = ({
   }
 
   const editBadge = itemMeta.signatures && (
-    <Icon name="info-sign" extraClasses="edit-badge" tooltip={`Edited by ${prettyList(itemMeta.signatures)}`} />
+    <Icon
+      name="info-sign"
+      extraClasses="edit-badge"
+      tooltip={`Edited by ${prettyList(itemMeta.signatures)}`}
+    />
   )
   return (
     <div className={`${className}${itemMeta.confirmed ? ' edit-confirmed' : ''}`}>
-      {children}
-      {' '}
-      {editBadgeDiv ? <div className="edited">{editBadge}</div> : editBadge}
+      {children} {editBadgeDiv ? <div className="edited">{editBadge}</div> : editBadge}
     </div>
   )
 }
 
 const ProfileName = ({ name }) => (
   <ProfileItem itemMeta={name.meta}>
-    <span>{name.first}</span>
-    {' '}
-    <span>{name.middle}</span>
-    {' '}
-    <span>{name.last}</span>
-    {' '}
+    <span>{name.first}</span> <span>{name.middle}</span> <span>{name.last}</span>{' '}
     {name.preferred && <small>(Preferred)</small>}
   </ProfileItem>
 )
 
 const ProfileEmail = ({ email, publicProfile }) => (
   <ProfileItem itemMeta={email.meta}>
-    <span>{email.email}</span>
-    {' '}
-    {!publicProfile && email.confirmed && <small>(Confirmed)</small>}
-    {' '}
+    <span>{email.email}</span>{' '}
+    {!publicProfile && email.confirmed && <small>(Confirmed)</small>}{' '}
     {!publicProfile && email.preferred && <small>(Preferred)</small>}
   </ProfileItem>
 )
 
 const ProfileLink = ({ link }) => (
   <ProfileItem itemMeta={link.meta}>
-    <a href={link.url} target="_blank" rel="noopener noreferrer">{link.name}</a>
+    <a href={link.url} target="_blank" rel="noopener noreferrer">
+      {link.name}
+    </a>
   </ProfileItem>
 )
 
 const ProfileHistory = ({ history }) => (
   <ProfileItem className="table-row" itemMeta={history.meta} editBadgeDiv>
-    <div className="position"><strong>{history.position}</strong></div>
+    <div className="position">
+      <strong>{history.position}</strong>
+    </div>
     <div className="institution">
-      {history.institution.name}
-      {' '}
+      {history.institution.name}{' '}
       {history.institution.domain && <small>{`(${history.institution.domain})`}</small>}
     </div>
     <div className="timeframe">
@@ -108,9 +100,15 @@ const ProfileHistory = ({ history }) => (
 
 const ProfileRelation = ({ relation }) => (
   <ProfileItem className="table-row" itemMeta={relation.meta} editBadgeDiv>
-    <div><strong>{relation.relation}</strong></div>
-    <div><span>{relation.name}</span></div>
-    <div><small>{relation.email}</small></div>
+    <div>
+      <strong>{relation.relation}</strong>
+    </div>
+    <div>
+      <span>{relation.name}</span>
+    </div>
+    <div>
+      <small>{relation.email}</small>
+    </div>
     <div>
       <em>
         {relation.start}
@@ -120,7 +118,11 @@ const ProfileRelation = ({ relation }) => (
     </div>
     <div className="relation-visible">
       {relation.readers && !relation.readers.includes('everyone') && (
-        <Icon name="eye-close" extraClasses="relation-visible-icon" tooltip="Privately revealed to you" />
+        <Icon
+          name="eye-close"
+          extraClasses="relation-visible-icon"
+          tooltip="Privately revealed to you"
+        />
       )}
     </div>
   </ProfileItem>
@@ -128,7 +130,9 @@ const ProfileRelation = ({ relation }) => (
 
 const ProfileExpertise = ({ expertise }) => (
   <ProfileItem className="table-row" itemMeta={expertise.meta} editBadgeDiv>
-    <div><span>{expertise.keywords.join(', ')}</span></div>
+    <div>
+      <span>{expertise.keywords.join(', ')}</span>
+    </div>
     <div>
       <em>
         {expertise.start}
@@ -139,19 +143,22 @@ const ProfileExpertise = ({ expertise }) => (
   </ProfileItem>
 )
 
-const RecentPublications = ({
-  profileId, publications, count, loading,
-}) => {
+const RecentPublications = ({ profileId, publications, count, loading, preferredName }) => {
   const displayOptions = {
     pdfLink: false,
     htmlLink: false,
     showContents: false,
     showPrivateIcon: true,
+    referrer: `[profile of ${preferredName}](/profile?id=${profileId})`,
   }
   const numPublicationsToShow = 10
 
   if (loading) {
-    return <p className="loading-message"><em>Loading...</em></p>
+    return (
+      <p className="loading-message">
+        <em>Loading...</em>
+      </p>
+    )
   }
 
   return publications.length > 0 ? (
@@ -162,7 +169,9 @@ const RecentPublications = ({
       />
 
       {count > numPublicationsToShow && (
-        <Link href={`/search?term=${profileId}&content=authors&group=all&source=forum&sort=cdate:desc`}>
+        <Link
+          href={`/search?term=${profileId}&content=authors&group=all&source=forum&sort=cdate:desc`}
+        >
           {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
           <a>View all {count} publications</a>
         </Link>
@@ -178,11 +187,22 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
   const numCoAuthorsToShow = 25
 
   const authorLink = ({ name, id, email }) => {
-    if (id) return <Link href={`/profile?id=${id}`}><a>{name}</a></Link>
+    if (id)
+      return (
+        <Link href={`/profile?id=${id}`}>
+          <a>{name}</a>
+        </Link>
+      )
     if (email) {
-      return email.startsWith('https://dblp.org')
-        ? <a href={email} target="_blank" rel="noopener noreferrer">{name}</a>
-        : <Link href={`/profile?email=${email}`}><a>{name}</a></Link>
+      return email.startsWith('https://dblp.org') ? (
+        <a href={email} target="_blank" rel="noopener noreferrer">
+          {name}
+        </a>
+      ) : (
+        <Link href={`/profile?email=${email}`}>
+          <a>{name}</a>
+        </Link>
+      )
     }
     return <span>{name}</span>
   }
@@ -199,20 +219,26 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
   }, [coAuthors])
 
   if (loading) {
-    return <p className="loading-message"><em>Loading...</em></p>
+    return (
+      <p className="loading-message">
+        <em>Loading...</em>
+      </p>
+    )
   }
 
   return visibleCoAuthors.length > 0 ? (
     <>
       <ul className="list-unstyled">
-        {visibleCoAuthors.map(author => (
+        {visibleCoAuthors.map((author) => (
           <li key={`${author.name}${author.id || author.email}`}>{authorLink(author)}</li>
         ))}
       </ul>
 
       {coAuthors.length > visibleCoAuthors.length && (
         // eslint-disable-next-line react/jsx-one-expression-per-line, jsx-a11y/anchor-is-valid
-        <a href="#" onClick={handleViewAllClick} role="button">View all {coAuthors.length} co-authors</a>
+        <a href="#" onClick={handleViewAllClick} role="button">
+          View all {coAuthors.length} co-authors
+        </a>
       )}
     </>
   ) : (
@@ -229,8 +255,11 @@ const Profile = ({ profile, publicProfile, appContext }) => {
   const profileQuery = useQuery()
   const { setBannerHidden, setBannerContent } = appContext
 
-  const uniqueNames = profile.names.filter(name => !name.duplicate)
-  const sortedNames = [...uniqueNames.filter(p => p.preferred), ...uniqueNames.filter(p => !p.preferred)]
+  const uniqueNames = profile.names.filter((name) => !name.duplicate)
+  const sortedNames = [
+    ...uniqueNames.filter((p) => p.preferred),
+    ...uniqueNames.filter((p) => !p.preferred),
+  ]
 
   const loadPublications = async () => {
     let apiRes
@@ -261,7 +290,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
     if (userLoading || !profileQuery) return
 
     // Always show user's preferred username in the URL
-    if (profileQuery.email || (profileQuery.id !== profile.preferredId)) {
+    if (profileQuery.email || profileQuery.id !== profile.preferredId) {
       router.replace(`/profile?id=${profile.preferredId}`, undefined, { shallow: true })
       return
     }
@@ -302,11 +331,14 @@ const Profile = ({ profile, publicProfile, appContext }) => {
             actionLink="Suggest Name"
           >
             <div className="list-compact">
-              {
-                sortedNames
-                  .map(name => <ProfileName key={name.username || (name.first + name.last)} name={name} />)
-                  .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)
-              }
+              {sortedNames
+                .map((name) => (
+                  <ProfileName key={name.username || name.first + name.last} name={name} />
+                ))
+                .reduce(
+                  (accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]),
+                  null
+                )}
             </div>
           </ProfileSection>
 
@@ -320,11 +352,19 @@ const Profile = ({ profile, publicProfile, appContext }) => {
             actionLink="Suggest Email"
           >
             <div className="list-compact">
-              {profile.emails.filter(email => !email.hidden)
-                .map(email => (
-                  <ProfileEmail key={email.email} email={email} publicProfile={publicProfile} />
+              {profile.emails
+                .filter((email) => !email.hidden)
+                .map((email) => (
+                  <ProfileEmail
+                    key={email.email}
+                    email={email}
+                    publicProfile={publicProfile}
+                  />
                 ))
-                .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+                .reduce(
+                  (accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]),
+                  null
+                )}
             </div>
           </ProfileSection>
 
@@ -334,7 +374,9 @@ const Profile = ({ profile, publicProfile, appContext }) => {
             instructions="Add links to your profiles on other sites. (Optional)"
             actionLink="Suggest URL"
           >
-            {profile.links.map(link => <ProfileLink key={link.name} link={link} />)}
+            {profile.links.map((link) => (
+              <ProfileLink key={link.name} link={link} />
+            ))}
           </ProfileSection>
 
           <ProfileSection
@@ -345,12 +387,19 @@ const Profile = ({ profile, publicProfile, appContext }) => {
               For ongoing positions, leave the end field blank."
             actionLink="Suggest Position"
           >
-            {profile.history?.length > 0 ? profile.history.map(history => (
-              <ProfileHistory
-                key={history.institution.name + (history.position || random(1, 100)) + (history.start || '') + (history.end || '')}
-                history={history}
-              />
-            )) : (
+            {profile.history?.length > 0 ? (
+              profile.history.map((history) => (
+                <ProfileHistory
+                  key={
+                    history.institution.name +
+                    (history.position || random(1, 100)) +
+                    (history.start || '') +
+                    (history.end || '')
+                  }
+                  history={history}
+                />
+              ))
+            ) : (
               <p className="empty-message">No history added</p>
             )}
           </ProfileSection>
@@ -362,12 +411,20 @@ const Profile = ({ profile, publicProfile, appContext }) => {
               included when detecting conflicts of interest."
             actionLink="Suggest Relation"
           >
-            {profile.relations?.length > 0 ? profile.relations.map(relation => (
-              <ProfileRelation
-                key={relation.relation + relation.name + relation.email + relation.start + relation.end}
-                relation={relation}
-              />
-            )) : (
+            {profile.relations?.length > 0 ? (
+              profile.relations.map((relation) => (
+                <ProfileRelation
+                  key={
+                    relation.relation +
+                    relation.name +
+                    relation.email +
+                    relation.start +
+                    relation.end
+                  }
+                  relation={relation}
+                />
+              ))
+            ) : (
               <p className="empty-message">No relations added</p>
             )}
           </ProfileSection>
@@ -381,33 +438,30 @@ const Profile = ({ profile, publicProfile, appContext }) => {
               dependency parsing"
             actionLink="Suggest Expertise"
           >
-            {profile.expertise?.length > 0 ? profile.expertise.map(expertise => (
-              <ProfileExpertise key={expertise.keywords.toString()} expertise={expertise} />
-            )) : (
+            {profile.expertise?.length > 0 ? (
+              profile.expertise.map((expertise) => (
+                <ProfileExpertise key={expertise.keywords.toString()} expertise={expertise} />
+              ))
+            ) : (
               <p className="empty-message">No areas of expertise listed</p>
             )}
           </ProfileSection>
-
         </div>
 
         <aside className="col-md-12 col-lg-4">
-
           <ProfileSection name="publications" title="Recent Publications">
             <RecentPublications
               profileId={profile.preferredId}
               publications={publications}
               count={count}
               loading={!publications}
+              preferredName={profile.preferredName}
             />
           </ProfileSection>
 
           <ProfileSection name="coauthors" title="Co-Authors">
-            <CoAuthorsList
-              coAuthors={coAuthors}
-              loading={!publications}
-            />
+            <CoAuthorsList coAuthors={coAuthors} loading={!publications} />
           </ProfileSection>
-
         </aside>
       </div>
     </div>
@@ -431,11 +485,13 @@ Profile.getInitialProps = async (ctx) => {
   }
 
   // Don't use query params if this is user's own profile
-  if (user && (
-    (profileQuery.id && user.profile.usernames.includes(profileQuery.id))
-    || (profileQuery.email && user.profile.emails.includes(profileQuery.email))
-    || (profileQuery.id === '' || profileQuery.email === '')
-  )) {
+  if (
+    user &&
+    ((profileQuery.id && user.profile.usernames.includes(profileQuery.id)) ||
+      (profileQuery.email && user.profile.emails.includes(profileQuery.email)) ||
+      profileQuery.id === '' ||
+      profileQuery.email === '')
+  ) {
     profileQuery = {}
   }
 
@@ -451,7 +507,9 @@ Profile.getInitialProps = async (ctx) => {
   if (!profile) {
     return {
       statusCode: 404,
-      message: `The user ${profileQuery.id || profileQuery.email} has not set up an OpenReview profile yet`,
+      message: `The user ${
+        profileQuery.id || profileQuery.email
+      } has not set up an OpenReview profile yet`,
     }
   }
 
