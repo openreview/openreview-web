@@ -1,7 +1,5 @@
 /* globals DOMPurify,marked,$,promptError,promptMessage: false */
-import React, {
-  useEffect, useReducer, useRef, useState,
-} from 'react'
+import React, { useEffect, useReducer, useRef, useState } from 'react'
 import Link from 'next/link'
 import copy from 'copy-to-clipboard'
 import BasicModal from '../BasicModal'
@@ -11,14 +9,9 @@ import PaginationLinks from '../PaginationLinks'
 import Icon from '../Icon'
 import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
-import { getGroupVersion, prettyId, urlFromGroupId } from '../../lib/utils'
+import { prettyId, urlFromGroupId } from '../../lib/utils'
 
-const MessageMemberModal = ({
-  groupId,
-  membersToMessage,
-  accessToken,
-  setJobId,
-}) => {
+const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }) => {
   const [subject, setSubject] = useState(`Message to ${prettyId(groupId)}`)
   const [message, setMessage] = useState('')
   const [error, setError] = useState(null)
@@ -36,13 +29,15 @@ const MessageMemberModal = ({
             parentGroup: groupId,
             useJob: true,
           },
-          { accessToken },
+          { accessToken }
         )
         setJobId(result.jobId)
         setSubject(`Message to ${prettyId(groupId)}`)
         setMessage('')
         // Save the timestamp in the local storage (used in PC console)
-        membersToMessage.forEach(member => localStorage.setItem(`${groupId}|${member}`, Date.now()))
+        membersToMessage.forEach((member) =>
+          localStorage.setItem(`${groupId}|${member}`, Date.now())
+        )
         $('#message-group-members').modal('hide')
         return
       } catch (e) {
@@ -65,9 +60,7 @@ const MessageMemberModal = ({
       Your message will be sent via email to the following ${membersToMessage?.length} group member(s):`}
       </p>
       <div className="well receiver-list">
-        {membersToMessage
-          .map(p => (p.includes('@') ? p : prettyId(p)))
-          ?.join(', ')}
+        {membersToMessage.map((p) => (p.includes('@') ? p : prettyId(p)))?.join(', ')}
       </div>
       <div id="message-group-members-form">
         <div className="form-group">
@@ -79,7 +72,7 @@ const MessageMemberModal = ({
             placeholder="Subject"
             value={subject}
             required
-            onChange={e => setSubject(e.target.value)}
+            onChange={(e) => setSubject(e.target.value)}
           />
         </div>
 
@@ -93,8 +86,8 @@ const MessageMemberModal = ({
           </p>
           <p className="hint">
             {/* eslint-disable-next-line max-len */}
-            You can use markdown syntax to compose email in HTML format. User
-            the Preview tab to see how your email will look.
+            You can use markdown syntax to compose email in HTML format. User the Preview tab
+            to see how your email will look.
           </p>
           <MarkdownPreviewTab
             value={message}
@@ -109,14 +102,7 @@ const MessageMemberModal = ({
 
 const StatusMessage = ({ statusParam }) => {
   if (!statusParam.status) return null
-  const {
-    status,
-    sent,
-    totalSent,
-    queued,
-    totalQueued,
-    isQueuing,
-  } = statusParam
+  const { status, sent, totalSent, queued, totalQueued, isQueuing } = statusParam
   if (status.status === 'ok') {
     return (
       <>
@@ -125,9 +111,8 @@ const StatusMessage = ({ statusParam }) => {
         <br />
         <em>
           {/* eslint-disable-next-line max-len */}
-          Note: The number of emails sent may not exactly match the number of
-          users you selected if multiple IDs belonging to the same user were
-          included.
+          Note: The number of emails sent may not exactly match the number of users you
+          selected if multiple IDs belonging to the same user were included.
         </em>
       </>
     )
@@ -135,17 +120,13 @@ const StatusMessage = ({ statusParam }) => {
   if (isQueuing) {
     return (
       <>
-        <strong>Queuing emails:</strong>
-        {' '}
-        {`${queued} / ${totalQueued} complete`}
+        <strong>Queuing emails:</strong> {`${queued} / ${totalQueued} complete`}
       </>
     )
   }
   return (
     <>
-      <strong>Sending emails:</strong>
-      {' '}
-      {`${sent} / ${totalSent} complete`}
+      <strong>Sending emails:</strong> {`${sent} / ${totalSent} complete`}
     </>
   )
 }
@@ -161,18 +142,14 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
   const getJobStatus = async () => {
     if (retryCount > 5 || statusObj.status?.status === 'ok') return
     try {
-      const result = await api.get(
-        '/logs/process',
-        { id: jobId },
-        { accessToken },
-      )
+      const result = await api.get('/logs/process', { id: jobId }, { accessToken })
       if (!result.logs?.length) {
         setErrorText(
-          'Error: Email progress could not be loaded. See link below for more details.',
+          'Error: Email progress could not be loaded. See link below for more details.'
         )
         setVariant('danger')
         setNow(100)
-        setRetryCount(count => count + 1)
+        setRetryCount((count) => count + 1)
         return
       }
       const status = result.logs[0]
@@ -184,16 +161,14 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
       }
       const queued = status.progress.groupsProcessed[0]
       const totalQueued = status.progress.groupsProcessed[1]
-      const sent = status.progress.emailsProcessed
-        ? status.progress.emailsProcessed[0]
-        : 0
+      const sent = status.progress.emailsProcessed ? status.progress.emailsProcessed[0] : 0
       const totalSent = status.progress.emailsProcessed
         ? status.progress.emailsProcessed[1]
         : 0
       const isQueuing = queued < totalQueued
       const percentComplete = Math.round(
         (isQueuing ? queued / totalQueued : sent / totalSent) * 100,
-        2,
+        2
       )
       setStatusObj({
         status,
@@ -206,7 +181,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
       setNow(percentComplete)
     } catch (error) {
       promptError(error.message)
-      setRetryCount(count => count + 1)
+      setRetryCount((count) => count + 1)
     }
   }
 
@@ -242,13 +217,13 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
   )
 }
 
-const GroupMembers = ({ group, accessToken }) => {
+const GroupMembers = ({ group, accessToken, reloadGroup }) => {
   const membersPerPage = 15
   const [searchTerm, setSearchTerm] = useState('')
   const [memberAnonIds, setMemberAnonIds] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const [jobId, setJobId] = useState(null)
-  const defaultGroupMembers = group.members.map(p => ({
+  const defaultGroupMembers = group.members.map((p) => ({
     id: p,
     isDeleted: false,
     isSelected: false,
@@ -256,55 +231,62 @@ const GroupMembers = ({ group, accessToken }) => {
   const [groupMembers, setGroupMembers] = useReducer(
     // eslint-disable-next-line no-use-before-define
     groupMemberReducer,
-    defaultGroupMembers,
+    defaultGroupMembers
   )
   const [filteredMembers, setFilteredMembers] = useState(groupMembers)
 
   function groupMemberReducer(state, action) {
     switch (action.type) {
       case 'SELECT':
-        return state.map(p => (p.id === action.payload ? { ...p, isSelected: true } : p))
+        return state.map((p) => (p.id === action.payload ? { ...p, isSelected: true } : p))
       case 'UNSELECT':
-        return state.map(p => (p.id === action.payload ? { ...p, isSelected: false } : p))
+        return state.map((p) => (p.id === action.payload ? { ...p, isSelected: false } : p))
       case 'INVERTSELECTION':
-        return state.map(p => (p.id === action.payload ? { ...p, isSelected: !p.isSelected } : p))
+        return state.map((p) =>
+          p.id === action.payload ? { ...p, isSelected: !p.isSelected } : p
+        )
       case 'DELETE':
-        return state.map(p => (action.payload.includes(p.id)
-          ? { ...p, isDeleted: true, isSelected: false }
-          : {
-            ...p,
-            isSelected: action.payload.length === 1 ? p.isSelected : false,
-          }))
+        return state.map((p) =>
+          action.payload.includes(p.id)
+            ? { ...p, isDeleted: true, isSelected: false }
+            : {
+                ...p,
+                isSelected: action.payload.length === 1 ? p.isSelected : false,
+              }
+        )
       case 'ADD':
         // eslint-disable-next-line no-use-before-define
         setCurrentPage(1)
         return [
-          ...action.payload.newMembers?.map(p => ({
+          ...(action.payload.newMembers?.map((p) => ({
             id: p,
             isSelected: false,
             isDeleted: false,
-          })) ?? [],
-          ...state.map(p => ({
+          })) ?? []),
+          ...state.map((p) => ({
             ...p,
             isSelected: false,
-            isDeleted: action.payload.existingDeleted.includes(p.id)
-              ? false
-              : p.isDeleted,
+            isDeleted: action.payload.existingDeleted.includes(p.id) ? false : p.isDeleted,
           })),
         ]
       case 'RESTORE':
-        return state.map(p => (action.payload.includes(p.id) ? { ...p, isDeleted: false } : p))
+        return state.map((p) =>
+          action.payload.includes(p.id) ? { ...p, isDeleted: false } : p
+        )
       case 'SELECTDESELECTALL':
         // eslint-disable-next-line no-case-declarations
-        const filterdMembers = state.filter(p => p.id.toLowerCase().includes(searchTerm.trim().toLowerCase()))
+        const filterdMembers = state.filter((p) =>
+          p.id.toLowerCase().includes(searchTerm.trim().toLowerCase())
+        )
         // eslint-disable-next-line no-case-declarations
         const allSelected = filterdMembers
-          .filter(p => !p.isDeleted)
-          .every(p => p.isSelected)
+          .filter((p) => !p.isDeleted)
+          .every((p) => p.isSelected)
         return state.map((p) => {
-          const isSelected = filterdMembers.find(q => q.id === p.id) && !p.isDeleted
-            ? !allSelected
-            : p.isSelected
+          const isSelected =
+            filterdMembers.find((q) => q.id === p.id) && !p.isDeleted
+              ? !allSelected
+              : p.isSelected
           return {
             ...p,
             isSelected,
@@ -322,20 +304,23 @@ const GroupMembers = ({ group, accessToken }) => {
   const [displayedMembers, setDisplayedMembers] = useState(
     filteredMembers.length > membersPerPage
       ? filteredMembers.slice(0, membersPerPage)
-      : filteredMembers,
+      : filteredMembers
   )
   const showMembers = filteredMembers?.length > 0
-  const isAllFilterdSelected = filteredMembers
-    .filter(p => !p.isDeleted).length && filteredMembers.filter(p => !p.isDeleted).every(p => p.isSelected)
-  const isFilteredEmpty = filteredMembers.filter(p => !p.isDeleted).length === 0
+  const isAllFilterdSelected =
+    filteredMembers.filter((p) => !p.isDeleted).length &&
+    filteredMembers.filter((p) => !p.isDeleted).every((p) => p.isSelected)
+  const isFilteredEmpty = filteredMembers.filter((p) => !p.isDeleted).length === 0
 
   const getTitle = () => {
     if (filteredMembers.length <= 3) return 'Group Members'
-    const selectedMembers = groupMembers.filter(p => p.isSelected)
-    const groupMemberActive = groupMembers.filter(p => !p.isDeleted)
-    const filteredMembersActive = filteredMembers.filter(p => !p.isDeleted)
+    const selectedMembers = groupMembers.filter((p) => p.isSelected)
+    const groupMemberActive = groupMembers.filter((p) => !p.isDeleted)
+    const filteredMembersActive = filteredMembers.filter((p) => !p.isDeleted)
     const isFiltered = filteredMembersActive.length !== groupMemberActive.length
-    return `Group Members (${groupMemberActive.length} total${isFiltered ? `, ${filteredMembersActive.length} displayed` : ''}${selectedMembers.length ? `, ${selectedMembers.length} selected` : ''})`
+    return `Group Members (${groupMemberActive.length} total${
+      isFiltered ? `, ${filteredMembersActive.length} displayed` : ''
+    }${selectedMembers.length ? `, ${selectedMembers.length} selected` : ''})`
   }
 
   const deleteMember = async (memberId) => {
@@ -343,9 +328,10 @@ const GroupMembers = ({ group, accessToken }) => {
       await api.delete(
         '/groups/members',
         { id: group.id, members: [memberId] },
-        { accessToken, version: getGroupVersion(group.id) },
+        { accessToken }
       )
       setGroupMembers({ type: 'DELETE', payload: [memberId] })
+      reloadGroup()
     } catch (error) {
       promptError(error.message)
     }
@@ -353,12 +339,9 @@ const GroupMembers = ({ group, accessToken }) => {
 
   const restoreMember = async (memberId) => {
     try {
-      await api.put(
-        '/groups/members',
-        { id: group.id, members: [memberId] },
-        { accessToken, version: getGroupVersion(group.id) },
-      )
+      await api.put('/groups/members', { id: group.id, members: [memberId] }, { accessToken })
       setGroupMembers({ type: 'RESTORE', payload: [memberId] })
+      reloadGroup()
     } catch (error) {
       promptError(error.message)
     }
@@ -379,38 +362,32 @@ const GroupMembers = ({ group, accessToken }) => {
       return
     }
     // could be new member, existing deleted member or existing active member
-    const newMembers = membersToAdd.filter(
-      p => !groupMembers.find(q => q.id === p),
-    )
+    const newMembers = membersToAdd.filter((p) => !groupMembers.find((q) => q.id === p))
     const existingDeleted = membersToAdd.filter(
-      p => groupMembers.find(q => q.id === p)?.isDeleted,
+      (p) => groupMembers.find((q) => q.id === p)?.isDeleted
     )
     const existingActive = membersToAdd.filter(
-      p => groupMembers.find(q => q.id === p)
-        && !groupMembers.find(q => q.id === p).isDeleted,
+      (p) =>
+        groupMembers.find((q) => q.id === p) && !groupMembers.find((q) => q.id === p).isDeleted
     )
 
     const newMembersMessage = newMembers.length
-      ? `${newMembers.length} new member${
-        newMembers.length > 1 ? 's' : ''
-      } added`
+      ? `${newMembers.length} new member${newMembers.length > 1 ? 's' : ''} added`
       : 'No new member to add.'
     const existingDeletedMessage = existingDeleted.length
       ? `${existingDeleted.length} previously deleted member${
-        existingDeleted.length > 1 ? 's' : ''
-      } restored.`
+          existingDeleted.length > 1 ? 's' : ''
+        } restored.`
       : ''
     const existingActiveMessage = existingActive.length
-      ? `${existingActive.length} member${
-        existingActive.length > 1 ? 's' : ''
-      } already exist.`
+      ? `${existingActive.length} member${existingActive.length > 1 ? 's' : ''} already exist.`
       : ''
 
     try {
       await api.put(
         '/groups/members',
         { id: group.id, members: [...newMembers, ...existingDeleted] },
-        { accessToken, version: getGroupVersion(group.id) },
+        { accessToken }
       )
       setSearchTerm('')
       setGroupMembers({
@@ -420,38 +397,41 @@ const GroupMembers = ({ group, accessToken }) => {
       // eslint-disable-next-line no-use-before-define
       getMemberAnonIds()
       promptMessage(
-        `${newMembersMessage} ${existingDeletedMessage} ${existingActiveMessage}`, { scrollToTop: false },
+        `${newMembersMessage} ${existingDeletedMessage} ${existingActiveMessage}`,
+        { scrollToTop: false }
       )
+      reloadGroup()
     } catch (error) {
       promptError(error.message)
     }
   }
 
   const handleRemoveSelectedButtonClick = async () => {
-    if (!groupMembers.some(p => p.isSelected)) {
+    if (!groupMembers.some((p) => p.isSelected)) {
       promptMessage('No member is selected')
       return
     }
-    const membersToRemove = groupMembers
-      .filter(p => p.isSelected)
-      .map(p => p.id)
+    const membersToRemove = groupMembers.filter((p) => p.isSelected).map((p) => p.id)
     try {
       await api.delete(
         '/groups/members',
         { id: group.id, members: membersToRemove },
-        { accessToken, version: getGroupVersion(group.id) },
+        { accessToken }
       )
       setGroupMembers({ type: 'DELETE', payload: membersToRemove })
+      reloadGroup()
     } catch (error) {
       promptError(error.message)
     }
   }
 
   const handleCopySelectedButtonClick = async () => {
-    const selectedMemberIds = groupMembers.filter(p => p.isSelected).map(q => q.id)
+    const selectedMemberIds = groupMembers.filter((p) => p.isSelected).map((q) => q.id)
     const success = copy(selectedMemberIds.join(','))
     if (success) {
-      promptMessage(`${selectedMemberIds.length} IDs copied to clipboard`, { scrollToTop: false })
+      promptMessage(`${selectedMemberIds.length} IDs copied to clipboard`, {
+        scrollToTop: false,
+      })
     } else {
       promptError('Could not copy selected member IDs to clipboard', { scrollToTop: false })
     }
@@ -462,14 +442,8 @@ const GroupMembers = ({ group, accessToken }) => {
       const anonGroupRegex = group.id.endsWith('s')
         ? `${group.id.slice(0, -1)}_`
         : `${group.id}_`
-      const result = await api.get(
-        `/groups?regex=${anonGroupRegex}`,
-        {},
-        { accessToken, version: getGroupVersion(group.id) },
-      )
-      setMemberAnonIds(
-        result.groups.map(p => ({ member: p.members, anonId: p.id })),
-      )
+      const result = await api.get(`/groups?regex=${anonGroupRegex}`, {}, { accessToken })
+      setMemberAnonIds(result.groups.map((p) => ({ member: p.members, anonId: p.id })))
     } catch (error) {
       promptError(error.message)
     }
@@ -482,24 +456,25 @@ const GroupMembers = ({ group, accessToken }) => {
   }
 
   useEffect(() => {
-    const filterResult = groupMembers.filter(p => p.id.toLowerCase().includes(searchTerm.trim().toLowerCase()))
+    const filterResult = groupMembers.filter((p) =>
+      p.id.toLowerCase().includes(searchTerm.trim().toLowerCase())
+    )
     setFilteredMembers(filterResult)
     setDisplayedMembers(
       filterResult.length > membersPerPage
         ? filterResult.slice(0, membersPerPage)
-        : filterResult,
+        : filterResult
     )
     setCurrentPage(1)
   }, [searchTerm])
 
   useEffect(() => {
-    const filterResult = groupMembers.filter(p => p.id.toLowerCase().includes(searchTerm.trim().toLowerCase()))
+    const filterResult = groupMembers.filter((p) =>
+      p.id.toLowerCase().includes(searchTerm.trim().toLowerCase())
+    )
     setFilteredMembers(filterResult)
     setDisplayedMembers(
-      filterResult.slice(
-        (currentPage - 1) * membersPerPage,
-        currentPage * membersPerPage,
-      ),
+      filterResult.slice((currentPage - 1) * membersPerPage, currentPage * membersPerPage)
     )
   }, [currentPage, groupMembers])
 
@@ -522,16 +497,13 @@ const GroupMembers = ({ group, accessToken }) => {
                 className="form-control input-sm"
                 placeholder="e.g. ~Jane_Doe1, jane@example.com, abc.com/2018/Conf/Authors"
                 value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <button
               type="button"
               className="btn btn-sm btn-primary mr-3 search-button"
-              disabled={
-                !searchTerm.trim()
-                || groupMembers.find(p => p.id === searchTerm)
-              }
+              disabled={!searchTerm.trim() || groupMembers.find((p) => p.id === searchTerm)}
               onClick={() => handleAddButtonClick(searchTerm)}
             >
               Add to Group
@@ -548,7 +520,7 @@ const GroupMembers = ({ group, accessToken }) => {
             <button
               type="button"
               className="btn btn-sm btn-primary hidden-sm hidden-xs"
-              disabled={!groupMembers.some(p => p.isSelected)}
+              disabled={!groupMembers.some((p) => p.isSelected)}
               onClick={handleCopySelectedButtonClick}
               title="Copy member IDs to clipboard. Useful for adding group members to other groups"
               data-toggle="tooltip"
@@ -559,98 +531,98 @@ const GroupMembers = ({ group, accessToken }) => {
             <button
               type="button"
               className="btn btn-sm btn-primary"
-              disabled={!groupMembers.some(p => p.isSelected)}
-              onClick={() => messageMember(
-                groupMembers.filter(p => p.isSelected)?.map(q => q.id),
-              )}
+              disabled={!groupMembers.some((p) => p.isSelected)}
+              onClick={() =>
+                messageMember(groupMembers.filter((p) => p.isSelected)?.map((q) => q.id))
+              }
             >
               Message Selected
             </button>
             <button
               type="button"
               className="btn btn-sm btn-primary"
-              disabled={!groupMembers.some(p => p.isSelected)}
+              disabled={!groupMembers.some((p) => p.isSelected)}
               onClick={() => handleRemoveSelectedButtonClick()}
             >
               Remove Selected
             </button>
           </div>
 
-          {showMembers ? displayedMembers.map((member) => {
-            const hasAnonId = memberAnonIds.find(p => p.member === member.id)
-            return (
-              <div
-                key={member.id}
-                className={`member-row ${member.isDeleted ? 'deleted' : ''}`}
-              >
-                <input
-                  type="checkbox"
-                  checked={member.isSelected}
-                  disabled={member.isDeleted}
-                  onChange={(e) => {
-                    setGroupMembers({
-                      type: e.target.checked ? 'SELECT' : 'UNSELECT',
-                      payload: member.id,
-                    })
-                  }}
-                />
-                <span className="member-id" onClick={(e) => {
-                  if (e.currentTarget !== e.target) return
-                  setGroupMembers({
-                    type: 'INVERTSELECTION',
-                    payload: member.id,
-                  })
-                }}>
-                  <Link href={urlFromGroupId(member.id)}>
-                    <a>{member.id}</a>
-                  </Link>
-                  {hasAnonId && (
-                    <>
-                      {' | '}
-                      <Link href={urlFromGroupId(hasAnonId.anonId)}>
-                        <a>{prettyId(hasAnonId.anonId)}</a>
-                      </Link>
-                    </>
-                  )}
-                  {member.isDeleted && (
-                    <>
-                      {' '}
-                      {'(Deleted)'}
-                    </>
-                  )}
-                </span>
-                {member.isDeleted ? (
-                  <button
-                    type="button"
-                    className="btn btn-xs btn-primary"
-                    onClick={() => restoreMember(member.id)}
+          {showMembers ? (
+            displayedMembers.map((member) => {
+              const hasAnonId = memberAnonIds.find((p) => p.member === member.id)
+              return (
+                <div
+                  key={member.id}
+                  className={`member-row ${member.isDeleted ? 'deleted' : ''}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={member.isSelected}
+                    disabled={member.isDeleted}
+                    onChange={(e) => {
+                      setGroupMembers({
+                        type: e.target.checked ? 'SELECT' : 'UNSELECT',
+                        payload: member.id,
+                      })
+                    }}
+                  />
+                  <span
+                    className="member-id"
+                    onClick={(e) => {
+                      if (e.currentTarget !== e.target) return
+                      setGroupMembers({
+                        type: 'INVERTSELECTION',
+                        payload: member.id,
+                      })
+                    }}
                   >
-                    <Icon name="repeat" />
-                    Undo
-                  </button>
-                ) : (
-                  <>
+                    <Link href={urlFromGroupId(member.id)}>
+                      <a>{member.id}</a>
+                    </Link>
+                    {hasAnonId && (
+                      <>
+                        {' | '}
+                        <Link href={urlFromGroupId(hasAnonId.anonId)}>
+                          <a>{prettyId(hasAnonId.anonId)}</a>
+                        </Link>
+                      </>
+                    )}
+                    {member.isDeleted && <> {'(Deleted)'}</>}
+                  </span>
+                  {member.isDeleted ? (
                     <button
                       type="button"
                       className="btn btn-xs btn-primary"
-                      onClick={() => messageMember([member.id])}
+                      onClick={() => restoreMember(member.id)}
                     >
-                      <Icon name="envelope" />
-                      Message
+                      <Icon name="repeat" />
+                      Undo
                     </button>
-                    <button
-                      type="button"
-                      className="btn btn-xs btn-primary"
-                      onClick={() => deleteMember(member.id)}
-                    >
-                      <Icon name="remove" />
-                      Remove
-                    </button>
-                  </>
-                )}
-              </div>
-            )
-          }) : (
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className="btn btn-xs btn-primary"
+                        onClick={() => messageMember([member.id])}
+                      >
+                        <Icon name="envelope" />
+                        Message
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-xs btn-primary"
+                        onClick={() => deleteMember(member.id)}
+                      >
+                        <Icon name="remove" />
+                        Remove
+                      </button>
+                    </>
+                  )}
+                </div>
+              )
+            })
+          ) : (
             <div className="empty-message-row">
               {searchTerm
                 ? `No members matching the search "${searchTerm}" found. Click Add to Group above to add a new member.`
@@ -658,7 +630,7 @@ const GroupMembers = ({ group, accessToken }) => {
             </div>
           )}
           <PaginationLinks
-            setCurrentPage={e => setCurrentPage(e)}
+            setCurrentPage={(e) => setCurrentPage(e)}
             totalCount={filteredMembers.length}
             itemsPerPage={membersPerPage}
             currentPage={currentPage}
@@ -669,14 +641,10 @@ const GroupMembers = ({ group, accessToken }) => {
           groupId={group.id}
           membersToMessage={memberToMessage}
           accessToken={accessToken}
-          setJobId={id => setJobId(id)}
+          setJobId={(id) => setJobId(id)}
         />
       </EditorSection>
-      <GroupMessages
-        jobId={jobId}
-        accessToken={accessToken}
-        groupId={group.id}
-      />
+      <GroupMessages jobId={jobId} accessToken={accessToken} groupId={group.id} />
     </>
   )
 }
