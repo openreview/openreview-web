@@ -217,7 +217,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
   )
 }
 
-const GroupMembers = ({ group, accessToken }) => {
+const GroupMembers = ({ group, accessToken, reloadGroup }) => {
   const membersPerPage = 15
   const [searchTerm, setSearchTerm] = useState('')
   const [memberAnonIds, setMemberAnonIds] = useState([])
@@ -331,6 +331,7 @@ const GroupMembers = ({ group, accessToken }) => {
         { accessToken }
       )
       setGroupMembers({ type: 'DELETE', payload: [memberId] })
+      reloadGroup()
     } catch (error) {
       promptError(error.message)
     }
@@ -340,6 +341,7 @@ const GroupMembers = ({ group, accessToken }) => {
     try {
       await api.put('/groups/members', { id: group.id, members: [memberId] }, { accessToken })
       setGroupMembers({ type: 'RESTORE', payload: [memberId] })
+      reloadGroup()
     } catch (error) {
       promptError(error.message)
     }
@@ -398,6 +400,7 @@ const GroupMembers = ({ group, accessToken }) => {
         `${newMembersMessage} ${existingDeletedMessage} ${existingActiveMessage}`,
         { scrollToTop: false }
       )
+      reloadGroup()
     } catch (error) {
       promptError(error.message)
     }
@@ -416,6 +419,7 @@ const GroupMembers = ({ group, accessToken }) => {
         { accessToken }
       )
       setGroupMembers({ type: 'DELETE', payload: membersToRemove })
+      reloadGroup()
     } catch (error) {
       promptError(error.message)
     }
