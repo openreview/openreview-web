@@ -7,16 +7,12 @@ import Dropdown from '../Dropdown'
 import GroupIdList from './GroupIdList'
 import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
-import {
-  formatDateTime, getGroupVersion, prettyId, urlFromGroupId,
-} from '../../lib/utils'
+import { formatDateTime, prettyId, urlFromGroupId } from '../../lib/utils'
 
 const GroupTableRow = ({ label, children }) => (
   <div className="table-row">
     <div className="info-label">{label ? `${label}:` : ''}</div>
-    <div className="info-content">
-      {children}
-    </div>
+    <div className="info-content">{children}</div>
   </div>
 )
 
@@ -60,7 +56,7 @@ export const GroupGeneralView = ({ group }) => {
         </GroupTableRow>
       )}
 
-      {(group.anonids && group.secret) && (
+      {group.anonids && group.secret && (
         <GroupTableRow label="Secret">
           <span>{group.secret}</span>
         </GroupTableRow>
@@ -83,9 +79,7 @@ export const GroupGeneralView = ({ group }) => {
   )
 }
 
-const GroupGeneralEdit = ({
-  group, isSuperUser, setEdit, saveGeneralInfo,
-}) => {
+const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
   const anonymousIdOptions = [
     { value: true, label: 'True' },
     { value: false, label: 'False' },
@@ -110,7 +104,7 @@ const GroupGeneralEdit = ({
         <input
           className="form-control input-sm"
           value={generalInfo.readers}
-          onChange={e => setGeneralInfo({ type: 'readers', value: e.target.value })}
+          onChange={(e) => setGeneralInfo({ type: 'readers', value: e.target.value })}
         />
       </GroupTableRow>
 
@@ -118,7 +112,7 @@ const GroupGeneralEdit = ({
         <input
           className="form-control input-sm"
           value={generalInfo.nonreaders}
-          onChange={e => setGeneralInfo({ type: 'nonreaders', value: e.target.value })}
+          onChange={(e) => setGeneralInfo({ type: 'nonreaders', value: e.target.value })}
         />
       </GroupTableRow>
 
@@ -126,7 +120,7 @@ const GroupGeneralEdit = ({
         <input
           className="form-control input-sm"
           value={generalInfo.writers}
-          onChange={e => setGeneralInfo({ type: 'writers', value: e.target.value })}
+          onChange={(e) => setGeneralInfo({ type: 'writers', value: e.target.value })}
         />
       </GroupTableRow>
 
@@ -134,14 +128,14 @@ const GroupGeneralEdit = ({
         <input
           className="form-control input-sm"
           value={generalInfo.signatories}
-          onChange={e => setGeneralInfo({ type: 'signatories', value: e.target.value })}
+          onChange={(e) => setGeneralInfo({ type: 'signatories', value: e.target.value })}
         />
       </GroupTableRow>
       <GroupTableRow label="Signature">
         <input
           className="form-control input-sm"
           value={generalInfo.signatures}
-          onChange={e => setGeneralInfo({ type: 'signatures', value: e.target.value })}
+          onChange={(e) => setGeneralInfo({ type: 'signatures', value: e.target.value })}
         />
       </GroupTableRow>
 
@@ -151,23 +145,39 @@ const GroupGeneralEdit = ({
             className="dropdown-select dropdown-sm"
             placeholder="select whether to enable anonymous id"
             options={anonymousIdOptions}
-            onChange={e => setGeneralInfo({ type: 'anonids', value: e.value })}
-            value={generalInfo.anonids ? { value: true, label: 'True' } : { value: false, label: 'False' }}
+            onChange={(e) => setGeneralInfo({ type: 'anonids', value: e.value })}
+            value={
+              generalInfo.anonids
+                ? { value: true, label: 'True' }
+                : { value: false, label: 'False' }
+            }
           />
         </GroupTableRow>
       )}
 
       {isSuperUser && (
         <GroupTableRow label="Deanonymizers">
-          <input className="form-control input-sm" value={generalInfo.deanonymizers} onChange={e => setGeneralInfo({ type: 'deanonymizers', value: e.target.value })} />
+          <input
+            className="form-control input-sm"
+            value={generalInfo.deanonymizers}
+            onChange={(e) => setGeneralInfo({ type: 'deanonymizers', value: e.target.value })}
+          />
         </GroupTableRow>
       )}
 
       <GroupTableRow label="">
-        <button type="button" className="btn btn-sm btn-primary" onClick={() => saveGeneralInfo(generalInfo)}>
+        <button
+          type="button"
+          className="btn btn-sm btn-primary"
+          onClick={() => saveGeneralInfo(generalInfo)}
+        >
           Save Group
         </button>
-        <button type="button" className="btn btn-sm btn-default ml-1" onClick={() => setEdit(false)}>
+        <button
+          type="button"
+          className="btn btn-sm btn-default ml-1"
+          onClick={() => setEdit(false)}
+        >
           Cancel
         </button>
       </GroupTableRow>
@@ -175,15 +185,14 @@ const GroupGeneralEdit = ({
   )
 }
 
-const GroupGeneral = ({
-  group, isSuperUser, accessToken, reloadGroup,
-}) => {
+const GroupGeneral = ({ group, isSuperUser, accessToken, reloadGroup }) => {
   const [edit, setEdit] = useState(false)
 
-  const convertInfoToArray = value => value?.split(',').flatMap((p) => {
-    const trimmedP = p.trim()
-    return trimmedP || []
-  })
+  const convertInfoToArray = (value) =>
+    value?.split(',').flatMap((p) => {
+      const trimmedP = p.trim()
+      return trimmedP || []
+    })
 
   const saveGeneralInfo = async (generalInfo) => {
     try {
@@ -198,7 +207,7 @@ const GroupGeneral = ({
         anonids: generalInfo.anonids,
         deanonymizers: convertInfoToArray(generalInfo.deanonymizers),
       }
-      await api.post('/groups', resultToPost, { accessToken, version: getGroupVersion(group.id) })
+      await api.post('/groups', resultToPost, { accessToken })
       promptMessage(`Settings for ${prettyId(group.id)} updated`, { scrollToTop: false })
       await reloadGroup()
       setEdit(false)
@@ -208,18 +217,22 @@ const GroupGeneral = ({
   }
 
   return (
-    <EditorSection title="General Info" className="general" >
+    <EditorSection title="General Info" className="general">
       {edit ? (
         <GroupGeneralEdit
           group={group}
           isSuperUser={isSuperUser}
-          setEdit={value => setEdit(value)}
+          setEdit={(value) => setEdit(value)}
           saveGeneralInfo={saveGeneralInfo}
         />
       ) : (
         <>
           <GroupGeneralView group={group} />
-          <button type="button" className="btn btn-sm btn-primary edit-group-info" onClick={() => setEdit(true)}>
+          <button
+            type="button"
+            className="btn btn-sm btn-primary edit-group-info"
+            onClick={() => setEdit(true)}
+          >
             Edit General Info
           </button>
         </>
