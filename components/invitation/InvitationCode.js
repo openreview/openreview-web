@@ -28,6 +28,8 @@ const InvitationCode = ({ invitation, profileId, accessToken, loadInvitation, co
 
     try {
       const requestPath = isV1Invitation ? '/invitations' : '/invitations/edits'
+      const metaInvitationId = getMetaInvitationId(invitation)
+      if (!metaInvitationId) throw new Error('No meta invitation found')
       const requestBody = isV1Invitation
         ? {
             ...invitation,
@@ -44,7 +46,7 @@ const InvitationCode = ({ invitation, profileId, accessToken, loadInvitation, co
             readers: [profileId],
             writers: [profileId],
             signatures: [profileId],
-            invitations: getMetaInvitationId(invitation),
+            invitations: metaInvitationId,
           }
       await api.post(requestPath, requestBody, {
         accessToken,

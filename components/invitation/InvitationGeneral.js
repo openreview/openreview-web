@@ -304,6 +304,8 @@ const InvitationGeneralEdit = ({
       const requestBody = isV1Invitation
         ? await constructInvitationToPost()
         : await constructInvitationEditToPost()
+      if (!isV1Invitation && !requestBody.invitations)
+        throw new Error('No meta invitation found')
       await api.post(requestPath, requestBody, { accessToken, version: invitation.apiVersion })
       promptMessage(`Settings for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
       setIsEditMode(false)
