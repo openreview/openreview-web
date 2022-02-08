@@ -10,7 +10,14 @@ import { getMetaInvitationId, prettyId } from '../../lib/utils'
 
 const CodeEditor = dynamic(() => import('../CodeEditor'))
 
-const InvitationCode = ({ invitation, profileId, accessToken, loadInvitation, codeType }) => {
+const InvitationCode = ({
+  invitation,
+  profileId,
+  accessToken,
+  loadInvitation,
+  codeType,
+  isMetaInvitation,
+}) => {
   const isV1Invitation = invitation.apiVersion === 1
   const [code, setCode] = useState(invitation[codeType])
   const [showEditor, setShowEditor] = useState(false)
@@ -29,7 +36,8 @@ const InvitationCode = ({ invitation, profileId, accessToken, loadInvitation, co
     try {
       const requestPath = isV1Invitation ? '/invitations' : '/invitations/edits'
       const metaInvitationId = getMetaInvitationId(invitation)
-      if (!metaInvitationId) throw new Error('No meta invitation found')
+      if (!isV1Invitation && !isMetaInvitation && !metaInvitationId)
+        throw new Error('No meta invitation found')
       const requestBody = isV1Invitation
         ? {
             ...invitation,
@@ -42,11 +50,12 @@ const InvitationCode = ({ invitation, profileId, accessToken, loadInvitation, co
               id: invitation.id,
               signatures: invitation.signatures,
               [codeType]: code,
+              ...(isMetaInvitation && { edit: true }),
             },
             readers: [profileId],
             writers: [profileId],
             signatures: [profileId],
-            invitations: metaInvitationId,
+            ...(!isMetaInvitation && { invitations: metaInvitationId }),
           }
       await api.post(requestPath, requestBody, {
         accessToken,

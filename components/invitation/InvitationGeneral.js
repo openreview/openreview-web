@@ -31,6 +31,7 @@ export const InvitationGeneralView = ({
   invitation,
   showEditButton = true,
   setIsEditMode,
+  isMetaInvitation,
 }) => {
   const parentGroupId = invitation.id.split('/-/')[0]
   const isV1Invitation = invitation.apiVersion === 1
@@ -117,13 +118,13 @@ export const InvitationGeneralView = ({
           {invitation.hideOriginalRevisions?.toString()}
         </div>
       )}
-      {!isV1Invitation && (
+      {!isV1Invitation && !isMetaInvitation && (
         <div className="row d-flex">
           <span className="info-title">Max Replies:</span>
           {invitation.maxReplies}
         </div>
       )}
-      {!isV1Invitation && (
+      {!isV1Invitation && !isMetaInvitation && (
         <div className="row d-flex">
           <span className="info-title">Min Replies:</span>
           {invitation.minReplies}
@@ -189,6 +190,7 @@ const InvitationGeneralEdit = ({
   accessToken,
   loadInvitation,
   setIsEditMode,
+  isMetaInvitation,
 }) => {
   const isV1Invitation = invitation.apiVersion === 1
   const trueFalseOptions = [
@@ -278,22 +280,28 @@ const InvitationGeneralEdit = ({
           ? null
           : parseInt(generalInfo.expdate, 10),
         invitees: stringToArray(generalInfo.invitees),
-        maxReplies: Number.isNaN(Number(generalInfo.maxReplies))
-          ? null
-          : Number(generalInfo.maxReplies),
-        minReplies: Number.isNaN(Number(generalInfo.minReplies))
-          ? null
-          : Number(generalInfo.minReplies),
+        ...(!isMetaInvitation && {
+          maxReplies: Number.isNaN(Number(generalInfo.maxReplies))
+            ? null
+            : Number(generalInfo.maxReplies),
+        }),
+        ...(!isMetaInvitation && {
+          minReplies: Number.isNaN(Number(generalInfo.minReplies))
+            ? null
+            : Number(generalInfo.minReplies),
+        }),
         noninvitees: stringToArray(generalInfo.noninvitees),
         nonreaders: stringToArray(generalInfo.nonreaders),
         readers: stringToArray(generalInfo.readers),
         writers: stringToArray(generalInfo.writers),
+        ...(isMetaInvitation && { edit: true }),
       },
       readers: [profileId],
       writers: [profileId],
       signatures: [profileId],
-      invitations: getMetaInvitationId(invitation),
+      ...(!isMetaInvitation && { invitations: getMetaInvitationId(invitation) }),
     }
+    console.log('invitationEdit', invitationEdit)
     return invitationEdit
   }
 
@@ -304,7 +312,7 @@ const InvitationGeneralEdit = ({
       const requestBody = isV1Invitation
         ? await constructInvitationToPost()
         : await constructInvitationEditToPost()
-      if (!isV1Invitation && !requestBody.invitations)
+      if (!isV1Invitation && !isMetaInvitation && !requestBody.invitations)
         throw new Error('No meta invitation found')
       await api.post(requestPath, requestBody, { accessToken, version: invitation.apiVersion })
       promptMessage(`Settings for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
@@ -445,7 +453,7 @@ const InvitationGeneralEdit = ({
           </div>
         </div>
       )}
-      {!isV1Invitation && (
+      {!isV1Invitation && !isMetaInvitation && (
         <div className="row d-flex">
           <span className="info-title edit-title">Max Replies:</span>
           <div className="info-edit-control">
@@ -458,7 +466,7 @@ const InvitationGeneralEdit = ({
           </div>
         </div>
       )}
-      {!isV1Invitation && (
+      {!isV1Invitation && !isMetaInvitation && (
         <div className="row d-flex">
           <span className="info-title edit-title">Min Replies:</span>
           <div className="info-edit-control">
@@ -576,7 +584,13 @@ const InvitationGeneralEdit = ({
   )
 }
 
-const InvitationGeneral = ({ invitation, profileId, accessToken, loadInvitation }) => {
+const InvitationGeneral = ({
+  invitation,
+  profileId,
+  accessToken,
+  loadInvitation,
+  isMetaInvitation,
+}) => {
   const [isEditMode, setIsEditMode] = useState(false)
 
   return (
@@ -588,11 +602,13 @@ const InvitationGeneral = ({ invitation, profileId, accessToken, loadInvitation 
           accessToken={accessToken}
           loadInvitation={loadInvitation}
           setIsEditMode={setIsEditMode}
+          isMetaInvitation={isMetaInvitation}
         />
       ) : (
         <InvitationGeneralView
           invitation={invitation}
           setIsEditMode={() => setIsEditMode(true)}
+          isMetaInvitation={isMetaInvitation}
         />
       )}
     </EditorSection>

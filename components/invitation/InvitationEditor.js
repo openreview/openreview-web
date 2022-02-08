@@ -27,6 +27,7 @@ const InvitationEditor = ({
         profileId={profileId}
         accessToken={accessToken}
         loadInvitation={loadInvitation}
+        isMetaInvitation={isMetaInvitation}
       />
       {!isMetaInvitation && (
         <>
@@ -58,6 +59,7 @@ const InvitationEditor = ({
         accessToken={accessToken}
         loadInvitation={loadInvitation}
         codeType="web"
+        isMetaInvitation={isMetaInvitation}
       />
       {showProcessEditor && (
         <InvitationCode
@@ -66,6 +68,7 @@ const InvitationEditor = ({
           accessToken={accessToken}
           loadInvitation={loadInvitation}
           codeType="process"
+          isMetaInvitation={isMetaInvitation}
         />
       )}
       {showProcessEditor && (
@@ -75,6 +78,7 @@ const InvitationEditor = ({
           accessToken={accessToken}
           loadInvitation={loadInvitation}
           codeType="preprocess"
+          isMetaInvitation={isMetaInvitation}
         />
       )}
     </div>
