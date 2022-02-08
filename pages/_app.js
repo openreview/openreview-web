@@ -70,6 +70,9 @@ export default class OpenReviewApp extends App {
       this.refreshToken()
     }, timeToExpiration)
 
+    // Set flag for token refresh
+    window.localStorage.setItem('openreview.lastLogin', Date.now())
+
     if (redirectPath) {
       Router.push(redirectPath)
     }
@@ -107,6 +110,8 @@ export default class OpenReviewApp extends App {
 
     clearTimeout(this.refreshTimer)
 
+    window.localStorage.removeItem('openreview.lastLogin')
+
     if (redirectPath) {
       Router.push(redirectPath)
     }
@@ -119,10 +124,10 @@ export default class OpenReviewApp extends App {
     } catch (error) {
       // If multiple instances of the OpenReview app are running, in some cases
       // they can all try to refresh the token at the same time, leading to an error.
-      if (error.name === 'BlacklistedError') {
+      if (error.name === 'TokenExpiredError') {
         window.location.reload()
       } else {
-        this.logoutUser()
+        this.logoutUser(null)
       }
     }
   }
@@ -133,6 +138,7 @@ export default class OpenReviewApp extends App {
       const expiration = Date.now() + cookieExpiration
       return { user, token, expiration }
     } catch (error) {
+      window.localStorage.removeItem('openreview.lastLogin')
       return { user: null }
     }
   }
@@ -248,7 +254,8 @@ export default class OpenReviewApp extends App {
     const authCookieData = auth()
 
     // Access token may be expired, but refresh token is valid for 6 more days
-    if (!authCookieData.user) {
+    const refreshFlag = Number(window.localStorage.getItem('openreview.lastLogin') || 0)
+    if (!authCookieData.user && refreshFlag && refreshFlag + 6 * 24 * 60 * 60 * 1000 > Date.now()) {
       OpenReviewApp.attemptRefresh().then(setUserState)
     } else {
       setUserState(authCookieData)
