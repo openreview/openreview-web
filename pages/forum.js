@@ -29,12 +29,22 @@ const ForumPage = ({ forumNote, query, appContext }) => {
   }
 
   const truncatedTitle = truncate(content.title, { length: 70, separator: /,? +/ })
-  const truncatedAbstract = truncate(content['TL;DR'] || content.abstract, { length: 200, separator: /,? +/ })
-  const authors = (Array.isArray(content.authors) || typeof content.authors === 'string')
-    ? [content.authors].flat()
-    : []
-  const creationDate = new Date(forumNote.cdate || forumNote.tcdate || Date.now()).toISOString().slice(0, 10).replace(/-/g, '/')
-  const modificationDate = new Date(forumNote.tmdate || Date.now()).toISOString().slice(0, 10).replace(/-/g, '/')
+  const truncatedAbstract = truncate(content['TL;DR'] || content.abstract, {
+    length: 200,
+    separator: /,? +/,
+  })
+  const authors =
+    Array.isArray(content.authors) || typeof content.authors === 'string'
+      ? [content.authors].flat()
+      : []
+  const creationDate = new Date(forumNote.cdate || forumNote.tcdate || Date.now())
+    .toISOString()
+    .slice(0, 10)
+    .replace(/-/g, '/')
+  const modificationDate = new Date(forumNote.tmdate || Date.now())
+    .toISOString()
+    .slice(0, 10)
+    .replace(/-/g, '/')
   // eslint-disable-next-line no-underscore-dangle
   const conferenceName = getConferenceName(content._bibtex)
 
@@ -44,9 +54,10 @@ const ForumPage = ({ forumNote, query, appContext }) => {
       setBannerContent(referrerLink(query.referrer))
     } else {
       // For now, v2 notes should always use the group from the first invitation, not venueid
-      const groupId = (forumNote.version === 2 || !content.venueid)
-        ? noteInvitation.split('/-/')[0]
-        : content.venueid
+      const groupId =
+        forumNote.version === 2 || !content.venueid
+          ? noteInvitation.split('/-/')[0]
+          : content.venueid
       setBannerContent(venueHomepageLink(groupId))
     }
   }, [forumNote, query])
@@ -67,16 +78,17 @@ const ForumPage = ({ forumNote, query, appContext }) => {
           <meta name="robots" content="noindex" />
         ) : (
           <>
-            {content.title && (
-              <meta name="citation_title" content={content.title} />
-            )}
-            {authors.map(author => (
+            {content.title && <meta name="citation_title" content={content.title} />}
+            {authors.map((author) => (
               <meta key={author} name="citation_author" content={author} />
             ))}
             <meta name="citation_publication_date" content={creationDate} />
             <meta name="citation_online_date" content={modificationDate} />
             {content.pdf && (
-              <meta name="citation_pdf_url" content={`https://openreview.net/pdf?id=${forumNote.id}`} />
+              <meta
+                name="citation_pdf_url"
+                content={`https://openreview.net/pdf?id=${forumNote.id}`}
+              />
             )}
             {conferenceName && (
               <meta name="citation_conference_title" content={conferenceName} />
@@ -112,7 +124,11 @@ ForumPage.getInitialProps = async (ctx) => {
   const { token } = auth(ctx)
   const shouldRedirect = async (noteId) => {
     // if it is the original of a blind submission, do redirection
-    const blindNotesResult = await api.get('/notes', { original: noteId }, { accessToken: token })
+    const blindNotesResult = await api.get(
+      '/notes',
+      { original: noteId },
+      { accessToken: token }
+    )
 
     // if no blind submission found return the current forum
     if (blindNotesResult.notes?.length) {
@@ -125,14 +141,17 @@ ForumPage.getInitialProps = async (ctx) => {
     if (ctx.req) {
       ctx.res.writeHead(302, { Location: `/forum?id=${encodeURIComponent(forumId)}` }).end()
     } else {
-      Router.replace(`/forum?id=${forumId}`)
+      Router.replace(
+        `/forum?id=${forumId}${ctx.query?.referrer ? `&referrer=${ctx.query.referrer}` : ''}`
+      )
     }
     return {}
   }
 
   try {
     const note = await api.getNoteById(ctx.query.id, token, {
-      trash: true, details: 'original,invitation,replyCount,writable,presentation',
+      trash: true,
+      details: 'original,invitation,replyCount,writable,presentation',
     })
 
     if (note?.version === 2) {
@@ -166,13 +185,15 @@ ForumPage.getInitialProps = async (ctx) => {
 
       if (!token) {
         if (ctx.req) {
-          ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
+          ctx.res
+            .writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` })
+            .end()
         } else {
           Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
         }
         return {}
       }
-      return { statusCode: 403, message: 'You don\'t have permission to read this forum' }
+      return { statusCode: 403, message: "You don't have permission to read this forum" }
     }
     return { statusCode: error.status || 500, message: error.message }
   }
