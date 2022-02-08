@@ -1,23 +1,26 @@
-import { useState } from 'react'
-import { getGroupVersion, prettyId, urlFromGroupId } from '../../lib/utils'
+import { useCallback, useState } from 'react'
+import { prettyId, urlFromGroupId } from '../../lib/utils'
 import api from '../../lib/api-client'
 import EditorSection from '../EditorSection'
 import PaginatedList from '../PaginatedList'
 
 const GroupChildGroups = ({ groupId, accessToken }) => {
   const [totalCount, setTotalCount] = useState(0)
-  const version = getGroupVersion(groupId)
 
   const loadChildGroups = async (limit, offset) => {
-    const { groups, count } = await api.get('/groups', {
-      regex: `${groupId}/[^/]+$`,
-      limit,
-      offset,
-    }, { accessToken, version })
+    const { groups, count } = await api.get(
+      '/groups',
+      {
+        regex: `${groupId}/[^/]+$`,
+        limit,
+        offset,
+      },
+      { accessToken }
+    )
 
     let translatedGroups = []
     if (groups?.length > 0) {
-      translatedGroups = groups.map(group => ({
+      translatedGroups = groups.map((group) => ({
         id: group.id,
         title: prettyId(group.id),
         href: urlFromGroupId(group.id, true),
@@ -33,13 +36,14 @@ const GroupChildGroups = ({ groupId, accessToken }) => {
     }
   }
 
+  const loadItems = useCallback(loadChildGroups, [groupId, accessToken])
+
   return (
-    <EditorSection title={`Child Groups ${totalCount ? `(${totalCount})` : ''}`} className="children">
-      <PaginatedList
-        loadItems={loadChildGroups}
-        emptyMessage="No child groups"
-        itemsPerPage={15}
-      />
+    <EditorSection
+      title={`Child Groups ${totalCount ? `(${totalCount})` : ''}`}
+      className="children"
+    >
+      <PaginatedList loadItems={loadItems} emptyMessage="No child groups" itemsPerPage={15} />
     </EditorSection>
   )
 }
