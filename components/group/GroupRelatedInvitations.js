@@ -3,7 +3,7 @@ import Link from 'next/link'
 import EditorSection from '../EditorSection'
 import PaginatedList from '../PaginatedList'
 import api from '../../lib/api-client'
-import { getGroupVersion, prettyId } from '../../lib/utils'
+import { prettyId } from '../../lib/utils'
 
 const RelatedInvitationRow = ({ item }) => (
   <Link href={`/invitation/edit?id=${item.id}`}>
@@ -13,10 +13,9 @@ const RelatedInvitationRow = ({ item }) => (
 
 const GroupRelatedInvitations = ({ groupId, accessToken }) => {
   const [totalCount, setTotalCount] = useState(null)
-  const version = getGroupVersion(groupId)
 
   const loadRelatedInvitations = async (limit, offset) => {
-    const result = await api.get(
+    const result = await api.getCombined(
       '/invitations',
       {
         regex: `${groupId}/-/.*`,
@@ -25,7 +24,8 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
         limit,
         offset,
       },
-      { accessToken, version }
+      null,
+      { accessToken }
     )
 
     if (result.count !== totalCount) {

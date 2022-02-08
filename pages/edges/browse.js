@@ -18,6 +18,7 @@ const Browse = ({ appContext }) => {
   const [invitations, setInvitations] = useState(null)
   const [titleInvitation, setTitleInvitation] = useState(null)
   const [maxColumns, setMaxColumns] = useState(-1)
+  const [showCounter, setShowCounter] = useState(true)
   const [error, setError] = useState(null)
   const query = useQuery()
   const { setBannerHidden, setBannerContent, setLayoutOptions } = appContext
@@ -70,6 +71,7 @@ const Browse = ({ appContext }) => {
     // Use the first traverse invitation as the main group ID
     setTitleInvitation(traverseInvitations[0])
     setMaxColumns(Math.max(Number.parseInt(query.maxColumns, 10), -1) || -1)
+    setShowCounter(query.showCounter ? query.showCounter === 'true' : true)
 
     const apiVersion = Number.parseInt(query.version, 10)
     setVersion(apiVersion)
@@ -176,6 +178,7 @@ const Browse = ({ appContext }) => {
           browseInvitations={invitations.browseInvitations}
           hideInvitations={invitations.hideInvitations}
           maxColumns={maxColumns}
+          showCounter={showCounter}
           userInfo={{ userId: user?.id, accessToken }}
         />
       ) : (

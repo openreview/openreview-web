@@ -42,6 +42,7 @@ export default function PaginatedList({
   useEffect(() => {
     // Reset page when loading function changes
     setPage(1)
+    setListItems(null)
   }, [loadItems])
 
   if (!listItems) return <LoadingSpinner inline />
