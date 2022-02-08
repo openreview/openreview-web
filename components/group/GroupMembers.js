@@ -9,7 +9,7 @@ import PaginationLinks from '../PaginationLinks'
 import Icon from '../Icon'
 import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
-import { getGroupVersion, prettyId, urlFromGroupId } from '../../lib/utils'
+import { prettyId, urlFromGroupId } from '../../lib/utils'
 
 const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }) => {
   const [subject, setSubject] = useState(`Message to ${prettyId(groupId)}`)
@@ -328,7 +328,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
       await api.delete(
         '/groups/members',
         { id: group.id, members: [memberId] },
-        { accessToken, version: getGroupVersion(group.id) }
+        { accessToken }
       )
       setGroupMembers({ type: 'DELETE', payload: [memberId] })
       reloadGroup()
@@ -339,11 +339,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
 
   const restoreMember = async (memberId) => {
     try {
-      await api.put(
-        '/groups/members',
-        { id: group.id, members: [memberId] },
-        { accessToken, version: getGroupVersion(group.id) }
-      )
+      await api.put('/groups/members', { id: group.id, members: [memberId] }, { accessToken })
       setGroupMembers({ type: 'RESTORE', payload: [memberId] })
       reloadGroup()
     } catch (error) {
@@ -391,7 +387,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
       await api.put(
         '/groups/members',
         { id: group.id, members: [...newMembers, ...existingDeleted] },
-        { accessToken, version: getGroupVersion(group.id) }
+        { accessToken }
       )
       setSearchTerm('')
       setGroupMembers({
@@ -420,7 +416,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
       await api.delete(
         '/groups/members',
         { id: group.id, members: membersToRemove },
-        { accessToken, version: getGroupVersion(group.id) }
+        { accessToken }
       )
       setGroupMembers({ type: 'DELETE', payload: membersToRemove })
       reloadGroup()
@@ -446,11 +442,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
       const anonGroupRegex = group.id.endsWith('s')
         ? `${group.id.slice(0, -1)}_`
         : `${group.id}_`
-      const result = await api.get(
-        `/groups?regex=${anonGroupRegex}`,
-        {},
-        { accessToken, version: getGroupVersion(group.id) }
-      )
+      const result = await api.get(`/groups?regex=${anonGroupRegex}`, {}, { accessToken })
       setMemberAnonIds(result.groups.map((p) => ({ member: p.members, anonId: p.id })))
     } catch (error) {
       promptError(error.message)

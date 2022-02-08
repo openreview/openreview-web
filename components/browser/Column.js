@@ -191,7 +191,11 @@ export default function Column(props) {
       || startInvitation.query.head || startInvitation.query.storageKey
     if (parentIdToShow === user.profile?.id) parentIdToShow = user.profile.preferredId
     // eslint-disable-next-line react/jsx-one-expression-per-line
-    return <p>{invitationNamePlural} for <strong>{prettyId(parentIdToShow)}</strong></p>
+    if (parentIdToShow) {
+      return <p>{invitationNamePlural} for <strong>{prettyId(parentIdToShow)}</strong></p>
+    }
+
+    return <p>Items</p>
   }
 
   const getColumnDescription = () => {
@@ -902,6 +906,7 @@ export default function Column(props) {
               removeEdgeFromEntity={removeEdgeFromEntity}
               setSelectedItemId={setSelectedItemId}
               canTraverse={!props.finalColumn}
+              showCounter={props.showCounter}
               showHiddenItems={false}
               columnType={type} // head/tail
               parentInfo={{
