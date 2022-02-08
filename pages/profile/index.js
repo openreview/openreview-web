@@ -149,7 +149,7 @@ const RecentPublications = ({ profileId, publications, count, loading, preferred
     htmlLink: false,
     showContents: false,
     showPrivateIcon: true,
-    referrer: `[profile of ${preferredName}](/profile?id=${profileId})`,
+    referrer: `[the profile of ${preferredName}](/profile?id=${profileId})`,
   }
   const numPublicationsToShow = 10
 
