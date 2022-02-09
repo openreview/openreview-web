@@ -16,9 +16,7 @@ import api from '../../lib/api-client'
 import { buildNoteTitle, prettyId } from '../../lib/utils'
 import { forumLink } from '../../lib/banner-links'
 
-const ConfirmDeleteRestoreModal = ({
-  editInfo, user, accessToken, deleteRestoreEdit,
-}) => {
+const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreEdit }) => {
   const [signature, setSignature] = useState(null)
   const [signatureDropdownOptions, setSignatureDropdownOptions] = useState([])
   const { edit, invitation } = editInfo ?? {}
@@ -29,15 +27,22 @@ const ConfirmDeleteRestoreModal = ({
     if (!edit || !invitation) return
 
     const getAllSignatures = async () => {
-      const result = await api.get('/groups', { regex: invitation.edit.signatures['values-regex'], signatory: user.id }, { accessToken })
-      setSignatureDropdownOptions(result.groups.flatMap((p, i) => {
-        if (result.groups.findIndex(q => q.id === p.id) === i) {
-          return {
-            value: p.id, label: prettyId(p.id),
+      const result = await api.get(
+        '/groups',
+        { regex: invitation.edit.signatures['values-regex'], signatory: user.id },
+        { accessToken }
+      )
+      setSignatureDropdownOptions(
+        result.groups.flatMap((p, i) => {
+          if (result.groups.findIndex((q) => q.id === p.id) === i) {
+            return {
+              value: p.id,
+              label: prettyId(p.id),
+            }
           }
-        }
-        return []
-      }))
+          return []
+        })
+      )
     }
 
     if (invitation.edit?.signatures?.['values-regex']) {
@@ -64,24 +69,36 @@ const ConfirmDeleteRestoreModal = ({
       title={`${edit.ddate ? 'Restore' : 'Delete'} Edit`}
       primaryButtonText={`${edit.ddate ? 'Restore' : 'Delete'}`}
       primaryButtonDisabled={showSignatureDropdown && !signature}
-      onPrimaryButtonClick={() => { deleteRestoreEdit(edit, invitation, signature) }}
+      onPrimaryButtonClick={() => {
+        deleteRestoreEdit(edit, invitation, signature)
+      }}
     >
       <p className="mb-4">
         {/* eslint-disable-next-line react/destructuring-assignment */}
-        {`Are you sure you want to ${edit.ddate ? 'restore' : 'delete'} "${edit.note.content.title?.value || buildNoteTitle(invitation.id, edit.signatures)}" by ${view.prettyId(edit.signatures[0])}?
-        ${showSignatureDropdown ? 'The deleted edit will be updated with the signature you choose below.' : ''}`}
+        {`Are you sure you want to ${edit.ddate ? 'restore' : 'delete'} "${
+          edit.note.content.title?.value || buildNoteTitle(invitation.id, edit.signatures)
+        }" by ${view.prettyId(edit.signatures[0])}?
+        ${
+          showSignatureDropdown
+            ? 'The deleted edit will be updated with the signature you choose below.'
+            : ''
+        }`}
       </p>
       {showSignatureDropdown && (
         <div className="row">
           <div className="col-sm-2">
-            <span className="signature-dropdown-label">{`${isSignatureRequired ? '* ' : ''}Signature`}</span>
+            <span className="signature-dropdown-label">{`${
+              isSignatureRequired ? '* ' : ''
+            }Signature`}</span>
           </div>
           <div className="col-sm-10">
             <Dropdown
               options={signatureDropdownOptions}
               placeholder="Signature"
               value={signature ? { value: signature, label: prettyId(signature) } : null}
-              onChange={(e) => { setSignature(e.value) }}
+              onChange={(e) => {
+                setSignature(e.value)
+              }}
             />
           </div>
         </div>
@@ -91,7 +108,13 @@ const ConfirmDeleteRestoreModal = ({
 }
 
 const RevisionsList = ({
-  revisions, user, selectedIndexes, setSelectedIndexes, accessToken, loadEdits, isNoteWritable,
+  revisions,
+  user,
+  selectedIndexes,
+  setSelectedIndexes,
+  accessToken,
+  loadEdits,
+  isNoteWritable,
 }) => {
   const router = useRouter()
   const [editToDeleteRestore, setEditToDeleteRestore] = useState(null)
@@ -100,18 +123,20 @@ const RevisionsList = ({
     if (checked) {
       setSelectedIndexes([...selectedIndexes, idx].sort((a, b) => a - b))
     } else {
-      setSelectedIndexes(selectedIndexes.filter(existingIdx => existingIdx !== idx))
+      setSelectedIndexes(selectedIndexes.filter((existingIdx) => existingIdx !== idx))
     }
   }
 
   const showEditorModal = (note, invitation, editorOptions) => {
     $('#note-editor-modal').remove()
-    $('body').append(Handlebars.templates.genericModal({
-      id: 'note-editor-modal',
-      extraClasses: 'modal-lg',
-      showHeader: false,
-      showFooter: false,
-    }))
+    $('body').append(
+      Handlebars.templates.genericModal({
+        id: 'note-editor-modal',
+        extraClasses: 'modal-lg',
+        showHeader: false,
+        showFooter: false,
+      })
+    )
     $('#note-editor-modal').modal('show')
 
     // Tell the note editor to submit both the referent and the note id so that
@@ -128,7 +153,9 @@ const RevisionsList = ({
       onError: (errors) => {
         $('#note-editor-modal .modal-body .alert-danger').remove()
 
-        $('#note-editor-modal .modal-body').prepend('<div class="alert alert-danger"><strong>Error:</strong> </div>')
+        $('#note-editor-modal .modal-body').prepend(
+          '<div class="alert alert-danger"><strong>Error:</strong> </div>'
+        )
         let errorText = 'Could not save note'
         if (errors && errors.length) {
           errorText = window.translateErrorMessage(errors[0])
@@ -141,6 +168,9 @@ const RevisionsList = ({
       },
       onCompleted: (editor) => {
         $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append(editor)
+        $('#note-editor-modal').on('hidden.bs.modal', () => {
+          $('#note-editor-modal').find('div.note_editor.panel').remove()
+        })
       },
     })
   }
@@ -149,30 +179,36 @@ const RevisionsList = ({
     if (!revisionInvitation && note.details) {
       note.details.originalWritable = false
     }
-    if (note.details && typeof note.details.writable === 'undefined' && note.details.originalWritable) {
+    if (
+      note.details &&
+      typeof note.details.writable === 'undefined' &&
+      note.details.originalWritable
+    ) {
       note.details.writable = true
     }
 
-    return view.mkNotePanel(note, {
-      invitation: revisionInvitation,
-      withContent: true,
-      withReplyCount: false,
-      withRevisionsLink: false,
-      isReference: true,
-      withModificationDate: true,
-      withDateTime: true,
-      withBibtexLink: false,
-      user,
-      onEditRequested: (inv, options) => {
-        const noteToShow = options.original ? note.details.original : note
-        const editorOptions = options.original ? { fullNote: note } : {}
-        showEditorModal(noteToShow, revisionInvitation, editorOptions)
-      },
-      onTrashedOrRestored: () => {
-        $(`#note_${note.id}`).closest('.row').remove()
-        promptMessage('Revision deleted')
-      },
-    }).removeClass('panel')
+    return view
+      .mkNotePanel(note, {
+        invitation: revisionInvitation,
+        withContent: true,
+        withReplyCount: false,
+        withRevisionsLink: false,
+        isReference: true,
+        withModificationDate: true,
+        withDateTime: true,
+        withBibtexLink: false,
+        user,
+        onEditRequested: (inv, options) => {
+          const noteToShow = options.original ? note.details.original : note
+          const editorOptions = options.original ? { fullNote: note } : {}
+          showEditorModal(noteToShow, revisionInvitation, editorOptions)
+        },
+        onTrashedOrRestored: () => {
+          $(`#note_${note.id}`).closest('.row').remove()
+          promptMessage('Revision deleted')
+        },
+      })
+      .removeClass('panel')
   }
 
   const deleteRestoreEdit = async (edit, invitation, signature) => {
@@ -200,12 +236,14 @@ const RevisionsList = ({
 
   const editEdit = (edit, invitation) => {
     $('#edit-edit-modal').remove()
-    $('body').append(Handlebars.templates.genericModal({
-      id: 'edit-edit-modal',
-      extraClasses: 'modal-lg',
-      showHeader: false,
-      showFooter: false,
-    }))
+    $('body').append(
+      Handlebars.templates.genericModal({
+        id: 'edit-edit-modal',
+        extraClasses: 'modal-lg',
+        showHeader: false,
+        showFooter: false,
+      })
+    )
     $('#edit-edit-modal').modal('show')
     view2.mkNoteEditor(edit.note, invitation, user, {
       isEdit: true,
@@ -222,12 +260,19 @@ const RevisionsList = ({
       onError: (errors) => {
         $('#edit-edit-modal .modal-body .alert-danger').remove()
 
-        $('#edit-edit-modal .modal-body').prepend('<div class="alert alert-danger"><strong>Error:</strong> </div>')
-        $('#edit-edit-modal .modal-body .alert-danger').append(errors.length ? errors[0] : 'Could not save edit')
+        $('#edit-edit-modal .modal-body').prepend(
+          '<div class="alert alert-danger"><strong>Error:</strong> </div>'
+        )
+        $('#edit-edit-modal .modal-body .alert-danger').append(
+          errors.length ? errors[0] : 'Could not save edit'
+        )
         $('#edit-edit-modal').animate({ scrollTop: 0 }, 400)
       },
       onCompleted: (editor) => {
         $('#edit-edit-modal .modal-body').empty().addClass('legacy-styles').append(editor)
+        $('#edit-edit-modal').on('hidden.bs.modal', () => {
+          $('#edit-edit-modal').find('div.note_editor.panel').remove()
+        })
       },
     })
   }
@@ -253,7 +298,9 @@ const RevisionsList = ({
   if (!revisions) return <LoadingSpinner />
 
   return (
-    <div className={`references-list submissions-list ${selectedIndexes ? '' : 'hide-sidebar'}`}>
+    <div
+      className={`references-list submissions-list ${selectedIndexes ? '' : 'hide-sidebar'}`}
+    >
       {selectedIndexes && (
         <div className="alert alert-warning">
           To view a full comparison, select two revisions by checking the corresponding
@@ -268,7 +315,7 @@ const RevisionsList = ({
               <input
                 type="checkbox"
                 checked={(selectedIndexes && selectedIndexes.includes(index)) || false}
-                onChange={e => toggleSelected(index, e.target.checked)}
+                onChange={(e) => toggleSelected(index, e.target.checked)}
               />
             </label>
           </div>
@@ -284,7 +331,7 @@ const RevisionsList = ({
                     isReference: true,
                     pdfLink: true,
                     htmlLink: true,
-                    ...reference.ddate && { extraClasses: 'note-trashed' },
+                    ...(reference.ddate && { extraClasses: 'note-trashed' }),
                   }}
                 />
               </div>
@@ -295,20 +342,34 @@ const RevisionsList = ({
                     <RestoreButton
                       onClick={() => setEditToDeleteRestore({ edit: reference, invitation })}
                       disableButton={!isNoteWritable}
-                      disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
+                      disableReason={
+                        !isNoteWritable
+                          ? 'You are writer of the edit but not writer of the note'
+                          : null
+                      }
                     />
                   ) : (
                     <>
                       <EditButton
                         onClick={() => editEdit(reference, invitation)}
                         disableButton={!isNoteWritable}
-                        disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
+                        disableReason={
+                          !isNoteWritable
+                            ? 'You are writer of the edit but not writer of the note'
+                            : null
+                        }
                       />
                       {invitation.edit.ddate && (
                         <TrashButton
-                          onClick={() => setEditToDeleteRestore({ edit: reference, invitation })}
+                          onClick={() =>
+                            setEditToDeleteRestore({ edit: reference, invitation })
+                          }
                           disableButton={!isNoteWritable}
-                          disableReason={!isNoteWritable ? 'You are writer of the edit but not writer of the note' : null}
+                          disableReason={
+                            !isNoteWritable
+                              ? 'You are writer of the edit but not writer of the note'
+                              : null
+                          }
                         />
                       )}
                     </>
@@ -364,42 +425,71 @@ const Revisions = ({ appContext }) => {
     const leftId = revisions[selectedIndexes[1]][0].id
     const rightId = revisions[selectedIndexes[0]][0].id
     if (isEditRevisions) {
-      const hasPdf = revisions[selectedIndexes[0]][0].note.content?.pdf?.value
-        && revisions[selectedIndexes[1]][0].note.content?.pdf?.value
-      router.push(`/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${hasPdf ? '&pdf=true' : ''}${isEditRevisions ? '&version=2' : ''}`)
+      const hasPdf =
+        revisions[selectedIndexes[0]][0].note.content?.pdf?.value &&
+        revisions[selectedIndexes[1]][0].note.content?.pdf?.value
+      router.push(
+        `/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${
+          hasPdf ? '&pdf=true' : ''
+        }${isEditRevisions ? '&version=2' : ''}`
+      )
       return
     }
-    const hasPdf = revisions[selectedIndexes[0]][0].content.pdf && revisions[selectedIndexes[1]][0].content.pdf
-    router.push(`/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${hasPdf ? '&pdf=true' : ''}`)
+    const hasPdf =
+      revisions[selectedIndexes[0]][0].content.pdf &&
+      revisions[selectedIndexes[1]][0].content.pdf
+    router.push(
+      `/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${
+        hasPdf ? '&pdf=true' : ''
+      }`
+    )
   }
 
   const loadRevisions = async () => {
     let apiRes
     try {
-      apiRes = await api.get('/references', {
-        referent: query.id, original: true, trash: true,
-      }, { accessToken })
+      apiRes = await api.get(
+        '/references',
+        {
+          referent: query.id,
+          original: true,
+          trash: true,
+        },
+        { accessToken }
+      )
     } catch (apiError) {
       setError(apiError)
       return
     }
 
     const references = apiRes.references || []
-    const invitationIds = Array.from(new Set(references.map(reference => (
-      reference.details?.original?.invitation || reference.invitation
-    ))))
+    const invitationIds = Array.from(
+      new Set(
+        references.map(
+          (reference) => reference.details?.original?.invitation || reference.invitation
+        )
+      )
+    )
 
     try {
-      const { invitations } = await api.get('/invitations', { ids: invitationIds, expired: true })
+      const { invitations } = await api.get('/invitations', {
+        ids: invitationIds,
+        expired: true,
+      })
 
       if (invitations?.length > 0) {
-        setRevisions(references.map((reference) => {
-          const invId = (reference.details && reference.details.original)
-            ? reference.details.original.invitation
-            : reference.invitation
-          const referenceInvitation = invitations.find(invitation => invitation.id === invId)
-          return [reference, referenceInvitation]
-        }))
+        setRevisions(
+          references.map((reference) => {
+            const invId =
+              reference.details && reference.details.original
+                ? reference.details.original.invitation
+                : reference.invitation
+            const referenceInvitation = invitations.find(
+              (invitation) => invitation.id === invId
+            )
+            return [reference, referenceInvitation]
+          })
+        )
       } else {
         setRevisions([])
       }
@@ -410,29 +500,40 @@ const Revisions = ({ appContext }) => {
   const loadEdits = async () => {
     let apiRes
     try {
-      apiRes = await api.get('/notes/edits', {
-        'note.id': query.id,
-        sort: 'tcdate',
-        details: 'writable',
-        trash: true,
-      }, { accessToken, version: 2 })
+      apiRes = await api.get(
+        '/notes/edits',
+        {
+          'note.id': query.id,
+          sort: 'tcdate',
+          details: 'writable',
+          trash: true,
+        },
+        { accessToken, version: 2 }
+      )
     } catch (apiError) {
       setError(apiError)
       return
     }
     // eslint-disable-next-line max-len
-    const edits = apiRes.edits.map(edit => ({ ...edit, invitations: [edit.invitation] })) || [] // for reusing mkNotePanel
-    const invitationIds = Array.from(new Set(edits.map(edit => edit.invitation)))
+    const edits =
+      apiRes.edits.map((edit) => ({ ...edit, invitations: [edit.invitation] })) || [] // for reusing mkNotePanel
+    const invitationIds = Array.from(new Set(edits.map((edit) => edit.invitation)))
 
     try {
-      const { invitations } = await api.get('/invitations', { ids: invitationIds, expired: true }, { accessToken, version: 2 })
+      const { invitations } = await api.get(
+        '/invitations',
+        { ids: invitationIds, expired: true },
+        { accessToken, version: 2 }
+      )
 
       if (invitations?.length > 0) {
-        setRevisions(edits.map((edit) => {
-          const invId = edit.invitation
-          const editInvitation = invitations.find(invitation => invitation.id === invId)
-          return [edit, editInvitation]
-        }))
+        setRevisions(
+          edits.map((edit) => {
+            const invId = edit.invitation
+            const editInvitation = invitations.find((invitation) => invitation.id === invId)
+            return [edit, editInvitation]
+          })
+        )
       } else {
         setRevisions([])
       }
