@@ -246,6 +246,7 @@ const InvitationGeneralEdit = ({
       noninvitees: stringToArray(generalInfo.noninvitees),
       final: stringToArray(generalInfo.final),
       taskCompletionCount: Number(generalInfo.taskCompletionCount),
+      signatures: stringToArray(generalInfo.signatures),
     }
   }
 
