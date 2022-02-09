@@ -3,8 +3,11 @@ import { nanoid } from 'nanoid'
 import dynamic from 'next/dynamic'
 import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
+import { getStartEndYear } from '../../lib/utils'
 
-const CreatableDropdown = dynamic(() => import('../Dropdown').then(mod => mod.CreatableDropdown))
+const CreatableDropdown = dynamic(() =>
+  import('../Dropdown').then((mod) => mod.CreatableDropdown)
+)
 const MultiSelectorDropdown = dynamic(() => import('../MultiSelectorDropdown'))
 // #region action type constants
 const relationType = 'updateRelation'
@@ -18,20 +21,26 @@ const removeRelationType = 'removeRelation'
 // #endregion
 
 const RelationRow = ({
-  relation, setRelation, profileRelation, relationOptions, relationReaderOptions, isMobile,
+  relation,
+  setRelation,
+  profileRelation,
+  relationOptions,
+  relationReaderOptions,
+  isMobile,
 }) => {
   const relationPlaceholder = 'Choose or type a relation'
   const [relationClicked, setRelationClicked] = useState(false)
 
   const getReaderText = (selectedValues) => {
-    if (!selectedValues || !selectedValues.length || selectedValues.includes('everyone')) return 'everyone'
+    if (!selectedValues || !selectedValues.length || selectedValues.includes('everyone'))
+      return 'everyone'
     return selectedValues.join(',')
   }
 
   return (
     <div className="row">
       <div className="col-md-2 relation__value">
-        {isMobile && <div className="small-heading col-md-2">Relation</div> }
+        {isMobile && <div className="small-heading col-md-2">Relation</div>}
         {relationClicked ? (
           <CreatableDropdown
             autofocus
@@ -42,17 +51,27 @@ const RelationRow = ({
             isClearable
             classNamePrefix="relation-dropdown"
             placeholder={relationPlaceholder}
-            defaultValue={relation.relation ? { value: relation.relation, label: relation.relation } : null}
+            defaultValue={
+              relation.relation ? { value: relation.relation, label: relation.relation } : null
+            }
             // eslint-disable-next-line max-len
-            onChange={(e) => { setRelation({ type: relationType, data: { value: e ? e.value : '', key: relation.key } }); if (e) setRelationClicked(false) }}
+            onChange={(e) => {
+              setRelation({
+                type: relationType,
+                data: { value: e ? e.value : '', key: relation.key },
+              })
+              if (e) setRelationClicked(false)
+            }}
             options={relationOptions}
             styles={{
               control: (provided, state) => ({
                 ...provided,
-                borderColor: state.selectProps.isInvalid ? '#8c1b13!important' : provided.borderColor,
+                borderColor: state.selectProps.isInvalid
+                  ? '#8c1b13!important'
+                  : provided.borderColor,
               }),
             }}
-            isInvalid={profileRelation?.find(q => q.key === relation.key)?.valid === false}
+            isInvalid={profileRelation?.find((q) => q.key === relation.key)?.valid === false}
           />
         ) : (
           <input
@@ -61,56 +80,97 @@ const RelationRow = ({
             value={relation.relation}
             onClick={() => setRelationClicked(true)}
             onFocus={() => setRelationClicked(true)}
-            onChange={() => { }}
+            onChange={() => {}}
           />
         )}
       </div>
       <div className="col-md-3 relation__value">
-        {isMobile && <div className="small-heading col-md-3">Name</div> }
+        {isMobile && <div className="small-heading col-md-3">Name</div>}
         <input
-          className={`form-control ${profileRelation?.find(q => q.key === relation.key)?.valid === false ? 'invalid-value' : ''}`}
+          className={`form-control ${
+            profileRelation?.find((q) => q.key === relation.key)?.valid === false
+              ? 'invalid-value'
+              : ''
+          }`}
           value={relation.name ?? ''}
-          onChange={e => setRelation({ type: nameType, data: { value: e.target.value, key: relation.key } })}
+          onChange={(e) =>
+            setRelation({ type: nameType, data: { value: e.target.value, key: relation.key } })
+          }
         />
       </div>
       <div className="col-md-3 relation__value">
-        {isMobile && <div className="small-heading col-md-3">Email</div> }
+        {isMobile && <div className="small-heading col-md-3">Email</div>}
         <input
-          className={`form-control ${profileRelation?.find(q => q.key === relation.key)?.valid === false ? 'invalid-value' : ''}`}
+          className={`form-control ${
+            profileRelation?.find((q) => q.key === relation.key)?.valid === false
+              ? 'invalid-value'
+              : ''
+          }`}
           value={relation.email ?? ''}
-          onChange={e => setRelation({ type: emailType, data: { value: e.target.value, key: relation.key } })}
+          onChange={(e) =>
+            setRelation({
+              type: emailType,
+              data: { value: e.target.value, key: relation.key },
+            })
+          }
         />
       </div>
       <div className="col-md-1 relation__value">
-        {isMobile && <div className="small-heading col-md-1">Start</div> }
+        {isMobile && <div className="small-heading col-md-1">Start</div>}
         <input
-          className={`form-control ${profileRelation?.find(q => q.key === relation.key)?.valid === false ? 'invalid-value' : ''}`}
+          className={`form-control ${
+            profileRelation?.find((q) => q.key === relation.key)?.valid === false
+              ? 'invalid-value'
+              : ''
+          }`}
           value={relation.start ?? ''}
           placeholder="year"
-          onChange={e => setRelation({ type: startType, data: { value: e.target.value, key: relation.key } })}
+          onChange={(e) =>
+            setRelation({
+              type: startType,
+              data: { value: e.target.value, key: relation.key },
+            })
+          }
         />
       </div>
       <div className="col-md-1 relation__value">
-        {isMobile && <div className="small-heading col-md-1">End</div> }
+        {isMobile && <div className="small-heading col-md-1">End</div>}
         <input
-          className={`form-control ${profileRelation?.find(q => q.key === relation.key)?.valid === false ? 'invalid-value' : ''}`}
+          className={`form-control ${
+            profileRelation?.find((q) => q.key === relation.key)?.valid === false
+              ? 'invalid-value'
+              : ''
+          }`}
           value={relation.end ?? ''}
           placeholder="year"
-          onChange={e => setRelation({ type: endType, data: { value: e.target.value, key: relation.key } })}
+          onChange={(e) =>
+            setRelation({ type: endType, data: { value: e.target.value, key: relation.key } })
+          }
         />
       </div>
       <div className="col-md-1 relation__value additional-width-col">
-        {isMobile && <div className="small-heading col-md-1">Visible to</div> }
+        {isMobile && <div className="small-heading col-md-1">Visible to</div>}
         <MultiSelectorDropdown
-          extraClass={`relation__multiple-select${isMobile ? ' relation__multiple-select-mobile' : ''}`}
+          extraClass={`relation__multiple-select${
+            isMobile ? ' relation__multiple-select-mobile' : ''
+          }`}
           options={relationReaderOptions}
           selectedValues={relation.readers}
-          setSelectedValues={values => setRelation({ type: readersType, data: { value: values, key: relation.key } })}
+          setSelectedValues={(values) =>
+            setRelation({ type: readersType, data: { value: values, key: relation.key } })
+          }
           displayTextFn={getReaderText}
         />
       </div>
       <div className="col-md-1 relation__value fixed-width-col">
-        <div role="button" aria-label="remove relation" tabIndex={0} onClick={() => setRelation({ type: removeRelationType, data: { key: relation.key } })}>
+        <div
+          role="button"
+          aria-label="remove relation"
+          tabIndex={0}
+          onClick={() =>
+            setRelation({ type: removeRelationType, data: { key: relation.key } })
+          }
+        >
           <Icon name="minus-sign" tooltip="remove relation" />
         </div>
       </div>
@@ -125,8 +185,8 @@ const RelationsSection = ({
   updateRelations,
 }) => {
   const isMobile = !useBreakpoint('lg')
-  const relationOptions = prefixedRelations?.map(p => ({ value: p, label: p })) ?? []
-  const relationReaderOptions = relationReaders?.map(p => ({ value: p, label: p })) ?? []
+  const relationOptions = prefixedRelations?.map((p) => ({ value: p, label: p })) ?? []
+  const relationReaderOptions = relationReaders?.map((p) => ({ value: p, label: p })) ?? []
 
   const relationReducer = (state, action) => {
     switch (action.type) {
@@ -177,25 +237,32 @@ const RelationsSection = ({
           return recordCopy
         })
       case addRelationType:
-        return [...state, {
-          key: nanoid(),
-          relation: '',
-          name: '',
-          email: '',
-          start: '',
-          end: '',
-          readers: ['everyone'],
-        }]
+        return [
+          ...state,
+          {
+            key: nanoid(),
+            relation: '',
+            name: '',
+            email: '',
+            start: '',
+            end: '',
+            readers: ['everyone'],
+          },
+        ]
       case removeRelationType:
-        return state.length > 1 ? state.filter(p => p.key !== action.data.key) : [{
-          key: nanoid(),
-          relation: '',
-          name: '',
-          email: '',
-          start: '',
-          end: '',
-          readers: ['everyone'],
-        }]
+        return state.length > 1
+          ? state.filter((p) => p.key !== action.data.key)
+          : [
+              {
+                key: nanoid(),
+                relation: '',
+                name: '',
+                email: '',
+                start: '',
+                end: '',
+                readers: ['everyone'],
+              },
+            ]
       default:
         return state
     }
@@ -204,21 +271,21 @@ const RelationsSection = ({
   const [relations, setRelation] = useReducer(
     relationReducer,
     profileRelation?.length > 0
-      ? profileRelation?.map(p => ({
-        ...p,
-        ...(p.start && { start: Number.isNaN(Number(p.start)) ? null : Number(p.start) }),
-        ...(p.end && { end: Number.isNaN(Number(p.end)) ? null : Number(p.end) }),
-        key: p.key ?? nanoid(),
-      }))
+      ? profileRelation?.map((p) => ({
+          ...p,
+          start: getStartEndYear(p.start),
+          end: getStartEndYear(p.end),
+          key: p.key ?? nanoid(),
+        }))
       : [...Array(3).keys()].map(() => ({
-        key: nanoid(),
-        relation: '',
-        name: '',
-        email: '',
-        start: '',
-        end: '',
-        readers: ['everyone'],
-      })),
+          key: nanoid(),
+          relation: '',
+          name: '',
+          email: '',
+          start: '',
+          end: '',
+          readers: ['everyone'],
+        }))
   )
 
   useEffect(() => {
@@ -237,7 +304,7 @@ const RelationsSection = ({
           <div className="small-heading col-md-1">Visible to</div>
         </div>
       )}
-      {relations.map(relation => (
+      {relations.map((relation) => (
         <RelationRow
           key={relation.key}
           relation={relation}
@@ -249,7 +316,12 @@ const RelationsSection = ({
         />
       ))}
       <div className="row">
-        <div role="button" aria-label="add another relation" tabIndex={0} onClick={() => setRelation({ type: addRelationType })}>
+        <div
+          role="button"
+          aria-label="add another relation"
+          tabIndex={0}
+          onClick={() => setRelation({ type: addRelationType })}
+        >
           <Icon name="plus-sign" tooltip="add another relation" />
         </div>
       </div>
