@@ -4,20 +4,20 @@ import { useState } from 'react'
 import EditorSection from '../EditorSection'
 import CodeEditor from '../CodeEditor'
 import SpinnerButton from '../SpinnerButton'
-import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
 import Tabs from '../Tabs'
 import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { prettyId } from '../../lib/utils'
 
 // Used for both reply/edit and reply forum views
-const InvitationReply = ({
+export default function InvitationReply({
   invitation,
   profileId,
   accessToken,
   loadInvitation,
   replyField,
   readOnly = false,
-}) => {
+}) {
   const [replyString, setReplyString] = useState(
     invitation[replyField] ? JSON.stringify(invitation[replyField], undefined, 2) : '[]'
   )
@@ -138,18 +138,13 @@ const InvitationReply = ({
 }
 
 // for v1 invitations only
-export const InvitationReplyWithPreview = ({
-  invitation,
-  accessToken,
-  loadInvitation,
-  readOnly = false,
-}) => {
+export function InvitationReplyWithPreview({ invitation, accessToken, loadInvitation }) {
   const [replyString, setReplyString] = useState(
     invitation.reply ? JSON.stringify(invitation.reply, undefined, 2) : '[]'
   )
   const [isSaving, setIsSaving] = useState(false)
-  const { user } = useUser()
   const [previewContent, setPreivewContent] = useState(null)
+  const { user } = useUser()
 
   const getRequestBody = () => {
     try {
@@ -210,7 +205,7 @@ export const InvitationReplyWithPreview = ({
           <CodeEditor
             code={replyString}
             onChange={setReplyString}
-            readOnly={readOnly}
+            readOnly={false}
             isJson
           />,
           // eslint-disable-next-line react/jsx-key
@@ -221,19 +216,17 @@ export const InvitationReplyWithPreview = ({
         ]}
         tabEvents={[null, generateReplyPreview]}
       />
-      {!readOnly && (
-        <div className="mt-2">
-          <SpinnerButton
-            type="primary"
-            onClick={saveInvitationReply}
-            disabled={isSaving}
-            loading={isSaving}
-          >
-            {isSaving ? 'Saving' : 'Save Invitation'}
-          </SpinnerButton>
-        </div>
-      )}
+
+      <div className="mt-2">
+        <SpinnerButton
+          type="primary"
+          onClick={saveInvitationReply}
+          disabled={isSaving}
+          loading={isSaving}
+        >
+          {isSaving ? 'Saving' : 'Save Invitation'}
+        </SpinnerButton>
+      </div>
     </EditorSection>
   )
 }
-export default InvitationReply

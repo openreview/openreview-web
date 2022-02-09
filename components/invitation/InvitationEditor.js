@@ -7,7 +7,6 @@ import InvitationReply, { InvitationReplyWithPreview } from './InvitationReply'
 import InvitationCode from './InvitationCode'
 import InvitationChildInvitations from './InvitationChildInvitations'
 import { isSuperUser } from '../../lib/auth'
-import Tabs from '../Tabs'
 
 const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => {
   const profileId = user?.profile?.id
