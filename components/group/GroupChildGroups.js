@@ -1,12 +1,11 @@
 import { useCallback, useState } from 'react'
-import { getGroupVersion, prettyId, urlFromGroupId } from '../../lib/utils'
+import { prettyId, urlFromGroupId } from '../../lib/utils'
 import api from '../../lib/api-client'
 import EditorSection from '../EditorSection'
 import PaginatedList from '../PaginatedList'
 
 const GroupChildGroups = ({ groupId, accessToken }) => {
   const [totalCount, setTotalCount] = useState(0)
-  const version = getGroupVersion(groupId)
 
   const loadChildGroups = async (limit, offset) => {
     const { groups, count } = await api.get(
@@ -16,7 +15,7 @@ const GroupChildGroups = ({ groupId, accessToken }) => {
         limit,
         offset,
       },
-      { accessToken, version }
+      { accessToken }
     )
 
     let translatedGroups = []

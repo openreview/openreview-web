@@ -9,7 +9,7 @@ import GroupEditor from '../../components/group/GroupEditor'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { getGroupVersion, prettyId } from '../../lib/utils'
+import { prettyId } from '../../lib/utils'
 import { isSuperUser } from '../../lib/auth'
 
 export default function GroupEdit({ appContext }) {
@@ -23,7 +23,7 @@ export default function GroupEdit({ appContext }) {
 
   const loadGroup = async (id) => {
     try {
-      const { groups } = await api.get('/groups', { id }, { accessToken, version: getGroupVersion(id) })
+      const { groups } = await api.get('/groups', { id }, { accessToken })
       if (groups?.length > 0) {
         if (groups[0].details?.writable) {
           setGroup(groups[0])
@@ -39,7 +39,10 @@ export default function GroupEdit({ appContext }) {
         if (!accessToken) {
           router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
         } else {
-          setError({ statusCode: 403, message: 'You don\'t have permission to read this group' })
+          setError({
+            statusCode: 403,
+            message: "You don't have permission to read this group",
+          })
         }
         return
       }
@@ -63,7 +66,11 @@ export default function GroupEdit({ appContext }) {
   useEffect(() => {
     if (!group || clientJsLoading) return
 
-    const editModeBannerDelay = document.querySelector('#flash-message-container.alert-success') ? 2500 : 0
+    const editModeBannerDelay = document.querySelector(
+      '#flash-message-container.alert-success'
+    )
+      ? 2500
+      : 0
     setTimeout(() => Webfield.editModeBanner(group.id, 'edit'), editModeBannerDelay)
 
     // eslint-disable-next-line consistent-return
@@ -80,16 +87,16 @@ export default function GroupEdit({ appContext }) {
   return (
     <>
       <Head>
-        <title key="title">{`Edit ${group ? prettyId(group.id) : 'Group'} | OpenReview`}</title>
+        <title key="title">{`Edit ${
+          group ? prettyId(group.id) : 'Group'
+        } | OpenReview`}</title>
       </Head>
 
       <div id="header">
         <h1>{prettyId(query?.id)}</h1>
       </div>
 
-      {(clientJsLoading || !group) && (
-        <LoadingSpinner />
-      )}
+      {(clientJsLoading || !group) && <LoadingSpinner />}
 
       <GroupEditor
         group={group}

@@ -8,8 +8,6 @@ import api from '../../lib/api-client'
 import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 
-const fullWidthGroups = ['.TMLR/Editors_In_Chief']
-
 const Group = ({ groupId, webfieldCode, appContext }) => {
   const { setBannerHidden, clientJsLoading, setLayoutOptions } = appContext
   const groupTitle = prettyId(groupId)
@@ -17,7 +15,7 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
   useEffect(() => {
     setBannerHidden(true)
 
-    if (fullWidthGroups.includes(groupId)) {
+    if (groupId.endsWith('Editors_In_Chief') || groupId.endsWith('Action_Editors')) {
       setLayoutOptions({ fullWidth: true, minimalFooter: true })
     }
   }, [groupId])

@@ -168,6 +168,9 @@ const RevisionsList = ({
       },
       onCompleted: (editor) => {
         $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append(editor)
+        $('#note-editor-modal').on('hidden.bs.modal', () => {
+          $('#note-editor-modal').find('div.note_editor.panel').remove()
+        })
       },
     })
   }
@@ -267,6 +270,9 @@ const RevisionsList = ({
       },
       onCompleted: (editor) => {
         $('#edit-edit-modal .modal-body').empty().addClass('legacy-styles').append(editor)
+        $('#edit-edit-modal').on('hidden.bs.modal', () => {
+          $('#edit-edit-modal').find('div.note_editor.panel').remove()
+        })
       },
     })
   }
