@@ -1,11 +1,10 @@
-/* globals promptError: false */
+/* globals promptError,clearMessage: false */
 import { useCallback, useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
 import debounce from 'lodash/debounce'
 import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import api from '../../lib/api-client'
-import { clearMessage } from '../../lib/utils'
 
 const NamesButton = ({ newRow, readonly, preferred, handleRemove, handleMakePreferred }) => {
   if (!newRow && readonly) {

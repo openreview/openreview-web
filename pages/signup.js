@@ -1,5 +1,4 @@
-/* globals promptError: false */
-/* globals $: false */
+/* globals promptError,$,clearMessage: false */
 
 import { useState, useEffect, useCallback, useContext, createContext } from 'react'
 import Head from 'next/head'
@@ -10,7 +9,7 @@ import UserContext from '../components/UserContext'
 import NoteList from '../components/NoteList'
 import BasicModal from '../components/BasicModal'
 import api from '../lib/api-client'
-import { clearMessage, isValidEmail, isValidPassword } from '../lib/utils'
+import { isValidEmail, isValidPassword } from '../lib/utils'
 
 const LoadingContext = createContext()
 
