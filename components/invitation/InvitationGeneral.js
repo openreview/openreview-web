@@ -236,6 +236,7 @@ const InvitationGeneralEdit = ({
     activationDateTimezone: getDefaultTimezone().value,
     duedateTimezone: getDefaultTimezone().value,
     expDateTimezone: getDefaultTimezone().value,
+    signatures: invitation.signatures?.join(', '),
   })
 
   // eslint-disable-next-line arrow-body-style
@@ -261,6 +262,7 @@ const InvitationGeneralEdit = ({
       noninvitees: stringToArray(generalInfo.noninvitees),
       final: stringToArray(generalInfo.final),
       taskCompletionCount: Number(generalInfo.taskCompletionCount),
+      signatures: stringToArray(generalInfo.signatures),
     }
   }
 
@@ -268,7 +270,7 @@ const InvitationGeneralEdit = ({
     const invitationEdit = {
       invitation: {
         id: generalInfo.id,
-        signatures: generalInfo.signatures,
+        signatures: stringToArray(generalInfo.signatures),
         bulk: generalInfo.bulk,
         cdate: Number.isNaN(parseInt(generalInfo.cdate, 10))
           ? null
@@ -550,7 +552,7 @@ const InvitationGeneralEdit = ({
         <div className="info-edit-control">
           <input
             className="form-control input-sm"
-            value={generalInfo.signatures?.join(', ')}
+            value={generalInfo.signatures}
             onChange={(e) => setGeneralInfo({ type: 'signatures', payload: e.target.value })}
           />
         </div>
