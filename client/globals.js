@@ -120,7 +120,7 @@ window.generalPrompt = function(type, content, options) {
   }
   $outer.find('.alert-content').empty()
   $outer.find('.alert-content').append(msgHtml);
-  $outer.slideDown();
+  options.slideFast ? $outer.slideDown({easing:'linear', duration:100}) : $outer.slideDown();
 
   if (options.scrollToTop && window.scrollY > 0) {
     $('html, body').animate({ scrollTop: 0 }, 400);

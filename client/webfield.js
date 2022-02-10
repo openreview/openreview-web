@@ -1832,7 +1832,15 @@ module.exports = (function() {
       buttonText + ' ' + _.upperFirst(pageType) +
       '</a></span>';
 
-    generalPrompt('info', messageHtml, { html: true, noTimeout: true, overlay: false, scrollToTop: false });
+    var options = {
+      html: true,
+      noTimeout: true,
+      overlay: false,
+      scrollToTop: false
+    }
+    if ( mode === 'edit' ) options.slideFast = true;
+
+    generalPrompt('info', messageHtml, options);
   };
 
   var done = function(options) {
