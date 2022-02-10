@@ -24,6 +24,9 @@
             </a>
           {{/if}}
           <span class="duedate {{dueDateStatus}}">Due: {{dueDateStr}}</span>
+          {{#unless completed}}
+            <span class="glyphicon glyphicon-trash mark-complete" title="Remove this task from my list" data-id={{id}}></span>
+          {{/unless}}
         </h4>
         {{#if details.replytoNote.content.title}}
           <div class="parent-title">

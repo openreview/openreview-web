@@ -1712,6 +1712,7 @@ module.exports = (function() {
       return a.duedate - b.duedate;
     });
 
+    var invitationIdsMarkedCompleted = window.localStorage.getItem('openreview.completedTasks')
     allInvitations.forEach(function(inv) {
       var duedate = new Date(inv.duedate);
       inv.dueDateStr = duedate.toLocaleDateString('en-GB', dateOptions);
@@ -1755,6 +1756,7 @@ module.exports = (function() {
           }
         }
       }
+      if(invitationIdsMarkedCompleted?.includes(inv.id)) inv.completed=true
     });
 
     temporaryMarkExpertiseCompleted(allInvitations);
@@ -1764,7 +1766,15 @@ module.exports = (function() {
       invitations: allInvitations,
       taskOptions: options
     });
-
+    $container.on('click','.mark-complete',function() {
+     const invitationId = $(this).data('id');
+     let existingCompletedIds = window.localStorage.getItem('openreview.completedTasks');
+     existingCompletedIds = existingCompletedIds ? existingCompletedIds.split(',') : [];
+     if(existingCompletedIds.includes(invitationId)) return;
+     existingCompletedIds.push(invitationId);
+     window.localStorage.setItem('openreview.completedTasks',existingCompletedIds);
+     window.location.reload();
+    })
     $container.append(taskListHtml);
   };
 
