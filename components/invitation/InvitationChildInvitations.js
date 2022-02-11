@@ -14,7 +14,7 @@ const InvitationChildInvitations = ({ invitation, accessToken }) => {
     const { invitations, count } = await api.get(
       '/invitations',
       {
-        invitation: invitation.id,
+        [invitation.apiVersion === 2 ? 'invitation' : 'super']: invitation.id,
         limit,
         offset,
       },
