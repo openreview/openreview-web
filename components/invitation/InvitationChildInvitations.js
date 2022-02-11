@@ -11,15 +11,19 @@ const InvitationChildInvitations = ({ invitation, accessToken }) => {
   const [totalCount, setTotalCount] = useState(null)
 
   const loadChildInvitations = async (limit, offset) => {
-    const { invitations, count } = await api.get('/invitations', {
-      super: invitation.id,
-      limit,
-      offset,
-    }, { accessToken, version: invitation.apiVersion })
+    const { invitations, count } = await api.get(
+      '/invitations',
+      {
+        invitation: invitation.id,
+        limit,
+        offset,
+      },
+      { accessToken, version: invitation.apiVersion }
+    )
 
     let translatedInvitations = []
     if (invitations?.length > 0) {
-      translatedInvitations = invitations.map(inv => ({
+      translatedInvitations = invitations.map((inv) => ({
         id: inv.id,
         title: prettyId(inv.id),
         href: `/invitation/edit?id=${inv.id}`,
@@ -40,7 +44,10 @@ const InvitationChildInvitations = ({ invitation, accessToken }) => {
   }, [invitation])
 
   return (
-    <EditorSection title={`Child Invitations ${totalCount ? `(${totalCount})` : ''}`} className="subinvitations">
+    <EditorSection
+      title={`Child Invitations ${totalCount ? `(${totalCount})` : ''}`}
+      className="subinvitations"
+    >
       <PaginatedList
         loadItems={loadChildInvitations}
         emptyMessage="No child invitations"
