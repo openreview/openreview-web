@@ -1,14 +1,15 @@
-@use "../utils/constants";
-@use "../utils/mixins";
+@use '../utils/constants';
+@use '../utils/mixins';
 
-main.group, main.invitation {
-
-  #header, header {
+main.group,
+main.invitation {
+  #header,
+  header {
     // Venue header
     margin-bottom: 1.5rem;
 
     h1 + h3 {
-      margin-top: -.25rem;
+      margin-top: -0.25rem;
     }
     h3 {
       line-height: 1.875rem;
@@ -26,7 +27,7 @@ main.group, main.invitation {
       }
     }
     .glyphicon {
-      padding-right: .125rem;
+      padding-right: 0.125rem;
     }
     .pad-left {
       padding-left: 1.25rem;
@@ -53,7 +54,7 @@ main.group, main.invitation {
       }
       h4 > span {
         display: block;
-        margin-bottom: 5px
+        margin-bottom: 5px;
       }
       h4 > span:last-child {
         margin-bottom: 0;
@@ -84,7 +85,7 @@ main.group, main.invitation {
         display: block;
       }
       .hint {
-        margin-bottom: .25rem;
+        margin-bottom: 0.25rem;
       }
     }
   }
@@ -93,8 +94,8 @@ main.group, main.invitation {
     margin-bottom: 30px;
 
     hr {
-      margin-bottom: .625rem;
-      margin-top: .625rem;
+      margin-bottom: 0.625rem;
+      margin-top: 0.625rem;
 
       &.spacer {
         margin-top: 1.5rem;
@@ -116,9 +117,9 @@ main.group, main.invitation {
     }
 
     .private-contents-icon {
-      font-size: .75rem;
-      margin-right: .25rem;
-      margin-left: .25rem;
+      font-size: 0.75rem;
+      margin-right: 0.25rem;
+      margin-left: 0.25rem;
       line-height: normal;
       color: constants.$subtleGray;
     }
@@ -139,7 +140,7 @@ main.group, main.invitation {
   }
 
   .item {
-    padding-right: .5rem;
+    padding-right: 0.5rem;
     vertical-align: middle;
   }
 
@@ -149,23 +150,23 @@ main.group, main.invitation {
     border-left: 1px solid #ddd;
     border-right: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
-    padding: .75rem 1rem;
+    padding: 0.75rem 1rem;
 
     strong {
-      padding-right: .25rem;
+      padding-right: 0.25rem;
     }
     select {
       width: 330px;
-      margin-right: .5rem;
+      margin-right: 0.5rem;
     }
     .btn {
-      margin-right: .25rem;
+      margin-right: 0.25rem;
     }
     input.invalid-value {
       border-color: constants.$orRed;
     }
     .tooltip {
-      width:300px;
+      width: 300px;
     }
     .tooltip-arrow {
       left: 20%;
@@ -184,41 +185,42 @@ main.group, main.invitation {
     margin-bottom: 0;
   }
 
-  .console-table, .ac-console-table {
+  .console-table,
+  .ac-console-table {
     h4 {
-      margin-bottom: .5rem;
+      margin-bottom: 0.5rem;
     }
     .note-number {
       font-size: 1rem;
     }
     .note-authors {
-      margin-bottom: .5rem;
+      margin-bottom: 0.5rem;
     }
     .note-contents-toggle {
-      font-size: .875rem;
+      font-size: 0.875rem;
     }
     .note-contents-collapse {
       border-left: 0;
     }
     .note-content {
-      font-size: .75rem;
+      font-size: 0.75rem;
       max-width: 850px;
       strong {
-        padding-right: .25rem;
+        padding-right: 0.25rem;
         color: constants.$orRed;
       }
       li {
-        padding: .125rem 0;
+        padding: 0.125rem 0;
       }
     }
     ul.list-unstyled {
-      margin-top: .25rem;
+      margin-top: 0.25rem;
       &.mt-0 {
         margin-top: 0;
       }
     }
     table.table-minimal {
-      margin-top: .25rem;
+      margin-top: 0.25rem;
       margin-bottom: 2px;
     }
     .btn-assign-reviewer {
@@ -256,6 +258,24 @@ main.group, main.invitation {
     }
   }
 
+  .eic-console-table {
+    .row-0 {
+      width: 4%;
+    }
+    .row-1 {
+      width: 23%;
+    }
+    .row-2 {
+      width: 36%;
+    }
+    .row-3 {
+      width: 10%;
+    }
+    .row-4 {
+      width: 27%;
+    }
+  }
+
   .ac-console-table {
     .row-0 {
       width: 35px;
@@ -285,22 +305,33 @@ main.group, main.invitation {
       }
 
       h4 {
-        margin-bottom: .25rem;
-        font-size: .875rem;
+        margin-bottom: 0.25rem;
+        font-size: 0.875rem;
       }
-      span.duedate.warning, span.duedate.expired {
+      span.duedate.warning,
+      span.duedate.expired {
         margin-left: 0;
       }
       p.mb-0 {
-        font-size: .75rem;
+        font-size: 0.75rem;
       }
     }
   }
 
   // Edit and Info Mode
   section {
-    &.general, &.members, &.children, &.invitations, &.messages,
-    &.subinvitations, &.webfield, &.process, &.preprocess, &.reply, &.tabs, &.notes {
+    &.general,
+    &.members,
+    &.children,
+    &.invitations,
+    &.messages,
+    &.subinvitations,
+    &.webfield,
+    &.process,
+    &.preprocess,
+    &.reply,
+    &.tabs,
+    &.notes {
       margin-bottom: 1.75rem;
       h4 {
         margin-bottom: 1rem;
@@ -315,7 +346,7 @@ main.group, main.invitation {
         display: block;
       }
       ul.pagination {
-        margin-top: .5rem;
+        margin-top: 0.5rem;
         margin-bottom: 0;
       }
     }
@@ -330,7 +361,7 @@ main.group, main.invitation {
 
   .group-members-table {
     margin-top: -1rem;
-    margin-bottom: .25rem;
+    margin-bottom: 0.25rem;
 
     thead > tr > th {
       border-bottom: 0;
@@ -339,13 +370,13 @@ main.group, main.invitation {
       padding: 6px 8px;
     }
 
-    input[type="checkbox"] {
+    input[type='checkbox'] {
       vertical-align: top;
     }
 
     .empty-message {
-      margin-top: .5rem;
-      margin-bottom: .5rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
       color: #333;
     }
 
@@ -354,7 +385,7 @@ main.group, main.invitation {
     }
     tr.removed {
       background-color: #ddd;
-      opacity: .5;
+      opacity: 0.5;
     }
     td.action-links {
       padding-top: 4px;
@@ -379,12 +410,13 @@ main.group, main.invitation {
     }
     dd {
       margin-left: 120px;
-      margin-bottom: .25rem;
+      margin-bottom: 0.25rem;
     }
   }
 
-  .group-members-form, .group-info-form {
-    input[type="text"] {
+  .group-members-form,
+  .group-info-form {
+    input[type='text'] {
       width: 430px;
     }
     button {
@@ -404,9 +436,10 @@ main.group, main.invitation {
     overflow: hidden;
 
     .form-group.pull-left {
-      margin-left: .25rem;
+      margin-left: 0.25rem;
     }
-    input, select {
+    input,
+    select {
       margin-right: 0;
     }
     .select-all-members {
@@ -425,7 +458,7 @@ main.group, main.invitation {
       padding-top: 5px;
     }
     .form-group {
-      margin-bottom: .5rem;
+      margin-bottom: 0.5rem;
       &:last-child {
         margin-top: 1rem;
       }
@@ -433,13 +466,13 @@ main.group, main.invitation {
     select {
       width: 250px;
     }
-    input[type="checkbox"] {
+    input[type='checkbox'] {
       width: 1rem;
       height: 1rem;
-      margin-top: .5rem;
-      margin-bottom: .5rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
     }
-    input[type="number"] {
+    input[type='number'] {
       width: 100px;
     }
     .date {
@@ -454,7 +487,7 @@ main.group, main.invitation {
       select {
         width: 240px;
         vertical-align: bottom;
-        margin-left: .75rem;
+        margin-left: 0.75rem;
       }
     }
     .has-feedback .form-control {
@@ -462,42 +495,49 @@ main.group, main.invitation {
     }
   }
   .edit-group-info {
-    margin-top: .75rem;
+    margin-top: 0.75rem;
   }
 
-  #webfield-editor, #process-editor, #preprocess-editor {
+  #webfield-editor,
+  #process-editor,
+  #preprocess-editor {
     width: 100%;
     height: 600px;
     margin-bottom: 1rem;
     border: 1px solid #eee;
   }
 
-  section.webfield, section.process, section.preprocess {
+  section.webfield,
+  section.process,
+  section.preprocess {
     .alert {
       margin-top: 1rem;
-      margin-bottom: .5rem;
+      margin-bottom: 0.5rem;
     }
     .webfield-editor-container {
       margin-top: 1.125rem;
     }
   }
 
-  section.children, section.invitations {
+  section.children,
+  section.invitations {
     ul {
       ul {
         margin-bottom: 0;
       }
     }
     li.toggle-container {
-      padding: .25rem 0;
+      padding: 0.25rem 0;
     }
   }
 
-  section.reply, section.tabs {
-    textarea, .alert {
+  section.reply,
+  section.tabs {
+    textarea,
+    .alert {
       width: 100%;
       max-width: 800px;
-      margin-bottom: .5rem;
+      margin-bottom: 0.5rem;
     }
   }
 
@@ -533,15 +573,16 @@ main.group, main.invitation {
     margin-bottom: 1rem;
   }
 
-  .info-container, .edit-container {
+  .info-container,
+  .edit-container {
     .table-row {
       clear: both;
     }
     .info-label {
       float: left;
       width: 125px;
-      margin-right: .5rem;
-      margin-bottom: .25rem;
+      margin-right: 0.5rem;
+      margin-bottom: 0.25rem;
       font-weight: 700;
       text-align: right;
       white-space: nowrap;
@@ -553,25 +594,27 @@ main.group, main.invitation {
       width: calc(100% - 135px);
     }
     .input-sm {
-      margin-bottom: .25rem;
+      margin-bottom: 0.25rem;
       max-width: 450px;
     }
     .dropdown-select {
-      margin-bottom: .25rem;
+      margin-bottom: 0.25rem;
       max-width: 300px;
     }
-    .dropdown-sm .dropdown-select__control, .dropdown-sm .dropdown-select__value-container {
+    .dropdown-sm .dropdown-select__control,
+    .dropdown-sm .dropdown-select__value-container {
       padding-top: 0;
       line-height: 1rem;
     }
   }
   .edit-container {
     .info-label {
-      margin-top: .25rem;
+      margin-top: 0.25rem;
     }
   }
   @media #{constants.$phone-only} {
-    .info-container, .edit-container {
+    .info-container,
+    .edit-container {
       &__label {
         width: 100px;
       }
@@ -586,7 +629,7 @@ main.group, main.invitation {
 
     .search-row {
       background-color: constants.$sandyBrown;
-      padding: .5rem;
+      padding: 0.5rem;
       border: 1px solid rgba(0, 0, 0, 0.1);
       display: flex;
       justify-content: space-around;
@@ -596,7 +639,7 @@ main.group, main.invitation {
         height: 30px;
         line-height: 1rem;
         min-width: auto;
-        margin-right: .25rem;
+        margin-right: 0.25rem;
       }
       button:last-child {
         margin-right: 0;
@@ -607,7 +650,7 @@ main.group, main.invitation {
 
       .input-group {
         flex-grow: 2;
-        margin-right: .5rem;
+        margin-right: 0.5rem;
         white-space: nowrap;
 
         span {
@@ -649,17 +692,18 @@ main.group, main.invitation {
         height: 100%;
       }
       .glyphicon {
-        margin-right: .25rem;
+        margin-right: 0.25rem;
       }
       button {
-        margin-left: .25rem;
+        margin-left: 0.25rem;
         padding-top: 1px;
         padding-bottom: 1px;
       }
       &.deleted {
         background-color: rgba(221, 221, 221, 0.5);
-        .member-id,a{
-          opacity: .5;
+        .member-id,
+        a {
+          opacity: 0.5;
           color: rgba(51, 51, 51, 1);
           font-style: italic;
         }
