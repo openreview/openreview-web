@@ -3,8 +3,11 @@ import dynamic from 'next/dynamic'
 import { nanoid } from 'nanoid'
 import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
+import { getStartEndYear } from '../../lib/utils'
 
-const CreatableDropdown = dynamic(() => import('../Dropdown').then(mod => mod.CreatableDropdown))
+const CreatableDropdown = dynamic(() =>
+  import('../Dropdown').then((mod) => mod.CreatableDropdown)
+)
 
 const positionPlaceholder = 'Choose or type a position'
 const institutionPlaceholder = 'Choose or type an institution'
@@ -19,7 +22,13 @@ const removeHistoryType = 'removeHistory'
 // #endregion
 
 const EducationHisotryRow = ({
-  p, history, setHistory, profileHistory, positionOptions, institutionDomainOptions, isMobile,
+  p,
+  history,
+  setHistory,
+  profileHistory,
+  positionOptions,
+  institutionDomainOptions,
+  isMobile,
 }) => {
   const [isPositionClicked, setIsPositionClicked] = useState(false)
   const [isDomainClicked, setIsDomainClicked] = useState(false)
@@ -40,15 +49,23 @@ const EducationHisotryRow = ({
             placeholder={positionPlaceholder}
             defaultValue={p.position ? { value: p.position, label: p.position } : null}
             // eslint-disable-next-line max-len
-            onChange={(e) => { setHistory({ type: posititonType, data: { value: e ? e.value : '', key: p.key } }); if (e) setIsPositionClicked(false) }}
+            onChange={(e) => {
+              setHistory({
+                type: posititonType,
+                data: { value: e ? e.value : '', key: p.key },
+              })
+              if (e) setIsPositionClicked(false)
+            }}
             options={positionOptions}
             styles={{
               control: (provided, state) => ({
                 ...provided,
-                borderColor: state.selectProps.isInvalid ? '#8c1b13!important' : provided.borderColor,
+                borderColor: state.selectProps.isInvalid
+                  ? '#8c1b13!important'
+                  : provided.borderColor,
               }),
             }}
-            isInvalid={profileHistory?.find(q => q.key === p.key)?.valid === false}
+            isInvalid={profileHistory?.find((q) => q.key === p.key)?.valid === false}
           />
         ) : (
           <input
@@ -57,26 +74,38 @@ const EducationHisotryRow = ({
             value={p.position}
             onClick={() => setIsPositionClicked(true)}
             onFocus={() => setIsPositionClicked(true)}
-            onChange={() => { }}
+            onChange={() => {}}
           />
         )}
       </div>
       <div className="col-md-1 history__value">
         {isMobile && <div className="small-heading col-md-1">Start</div>}
         <input
-          className={`form-control ${profileHistory?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+          className={`form-control ${
+            profileHistory?.find((q) => q.key === p.key)?.valid === false
+              ? 'invalid-value'
+              : ''
+          }`}
           value={p.start ?? ''}
           placeholder="year"
-          onChange={e => setHistory({ type: startType, data: { value: e.target.value, key: p.key } })}
+          onChange={(e) =>
+            setHistory({ type: startType, data: { value: e.target.value, key: p.key } })
+          }
         />
       </div>
       <div className="col-md-1 history__value">
         {isMobile && <div className="small-heading col-md-1">End</div>}
         <input
-          className={`form-control ${profileHistory?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+          className={`form-control ${
+            profileHistory?.find((q) => q.key === p.key)?.valid === false
+              ? 'invalid-value'
+              : ''
+          }`}
           value={p.end ?? ''}
           placeholder="year"
-          onChange={e => setHistory({ type: endType, data: { value: e.target.value, key: p.key } })}
+          onChange={(e) =>
+            setHistory({ type: endType, data: { value: e.target.value, key: p.key } })
+          }
         />
       </div>
       <div className="col-md-3 history__value">
@@ -92,17 +121,29 @@ const EducationHisotryRow = ({
             classNamePrefix="institution-dropdown"
             placeholder={institutionPlaceholder}
             // eslint-disable-next-line max-len
-            defaultValue={p.institution?.domain ? { value: p.institution?.domain, label: p.institution?.domain } : null}
+            defaultValue={
+              p.institution?.domain
+                ? { value: p.institution?.domain, label: p.institution?.domain }
+                : null
+            }
             // eslint-disable-next-line max-len
-            onChange={(e) => { setHistory({ type: institutionDomainType, data: { value: e ? e.value : '', key: p.key } }); if (e) setIsDomainClicked(false) }}
+            onChange={(e) => {
+              setHistory({
+                type: institutionDomainType,
+                data: { value: e ? e.value : '', key: p.key },
+              })
+              if (e) setIsDomainClicked(false)
+            }}
             options={institutionDomainOptions}
             styles={{
               control: (provided, state) => ({
                 ...provided,
-                borderColor: state.selectProps.isInvalid ? '#8c1b13!important' : provided.borderColor,
+                borderColor: state.selectProps.isInvalid
+                  ? '#8c1b13!important'
+                  : provided.borderColor,
               }),
             }}
-            isInvalid={profileHistory?.find(q => q.key === p.key)?.valid === false}
+            isInvalid={profileHistory?.find((q) => q.key === p.key)?.valid === false}
           />
         ) : (
           <input
@@ -111,7 +152,7 @@ const EducationHisotryRow = ({
             value={p.institution?.domain}
             onClick={() => setIsDomainClicked(true)}
             onFocus={() => setIsDomainClicked(true)}
-            onChange={() => { }}
+            onChange={() => {}}
           />
         )}
       </div>
@@ -120,12 +161,22 @@ const EducationHisotryRow = ({
         <input
           className="form-control institution-name"
           value={p.institution?.name ?? ''}
-          onChange={e => setHistory({ type: institutionNameType, data: { value: e.target.value, key: p.key } })}
+          onChange={(e) =>
+            setHistory({
+              type: institutionNameType,
+              data: { value: e.target.value, key: p.key },
+            })
+          }
         />
       </div>
       <div className="col-md-1 history__value">
         {history.length > 1 && (
-          <div role="button" aria-label="remove history" tabIndex={0} onClick={() => setHistory({ type: removeHistoryType, data: { key: p.key } })}>
+          <div
+            role="button"
+            aria-label="remove history"
+            tabIndex={0}
+            onClick={() => setHistory({ type: removeHistoryType, data: { key: p.key } })}
+          >
             <Icon name="minus-sign" tooltip="remove history" />
           </div>
         )}
@@ -141,15 +192,19 @@ const EducationHistorySection = ({
   updateHistory,
 }) => {
   const isMobile = !useBreakpoint('lg')
-  const institutionDomainOptions = institutions?.flatMap(p => (p.id ? { value: p.id, label: p.id } : []))
-  const positionOptions = positions?.map(p => ({ value: p, label: p }))
+  const institutionDomainOptions = institutions?.flatMap((p) =>
+    p.id ? { value: p.id, label: p.id } : []
+  )
+  const positionOptions = positions?.map((p) => ({ value: p, label: p }))
 
   const getInstitutionName = (domain) => {
     if (!domain) return ''
-    const institution = institutions?.find(i => i.id === domain)
+    const institution = institutions?.find((i) => i.id === domain)
     if (!institution) return ''
-    const parentInstitution = institutions?.find(i => i.id === institution.parent)
-    return `${institution.fullname}${parentInstitution?.fullname ? `, ${parentInstitution.fullname}` : ''}`
+    const parentInstitution = institutions?.find((i) => i.id === institution.parent)
+    return `${institution.fullname}${
+      parentInstitution?.fullname ? `, ${parentInstitution.fullname}` : ''
+    }`
   }
 
   const historyReducer = (state, action) => {
@@ -200,7 +255,36 @@ const EducationHistorySection = ({
           return recordCopy
         })
       case addHistoryType:
-        return [...state, {
+        return [
+          ...state,
+          {
+            key: nanoid(),
+            position: '',
+            start: '',
+            end: '',
+            institution: {
+              domain: '',
+              name: '',
+            },
+          },
+        ]
+      case removeHistoryType:
+        return state.filter((p) => p.key !== action.data.key)
+      default:
+        return state
+    }
+  }
+
+  const [history, setHistory] = useReducer(
+    historyReducer,
+    profileHistory?.length > 0
+      ? profileHistory?.map((p) => ({
+          ...p,
+          start: getStartEndYear(p.start),
+          end: getStartEndYear(p.end),
+          key: nanoid(),
+        }))
+      : [...Array(3).keys()].map(() => ({
           key: nanoid(),
           position: '',
           start: '',
@@ -209,32 +293,8 @@ const EducationHistorySection = ({
             domain: '',
             name: '',
           },
-        }]
-      case removeHistoryType:
-        return state.filter(p => p.key !== action.data.key)
-      default:
-        return state
-    }
-  }
-
-  const [history, setHistory] = useReducer(historyReducer,
-    profileHistory?.length > 0
-      ? profileHistory?.map(p => ({
-        ...p,
-        ...(p.start && { start: Number.isNaN(Number(p.start)) ? null : Number(p.start) }),
-        ...(p.end && { end: Number.isNaN(Number(p.end)) ? null : Number(p.end) }),
-        key: nanoid(),
-      }))
-      : [...Array(3).keys()].map(() => ({
-        key: nanoid(),
-        position: '',
-        start: '',
-        end: '',
-        institution: {
-          domain: '',
-          name: '',
-        },
-      })))
+        }))
+  )
 
   useEffect(() => {
     updateHistory(history)
@@ -251,7 +311,7 @@ const EducationHistorySection = ({
           <div className="small-heading col-md-4">Institution Name</div>
         </div>
       )}
-      {history.map(p => (
+      {history.map((p) => (
         <EducationHisotryRow
           key={p.key}
           p={p}
@@ -264,7 +324,12 @@ const EducationHistorySection = ({
         />
       ))}
       <div className="row">
-        <div role="button" aria-label="add another history" tabIndex={0} onClick={() => setHistory({ type: addHistoryType })}>
+        <div
+          role="button"
+          aria-label="add another history"
+          tabIndex={0}
+          onClick={() => setHistory({ type: addHistoryType })}
+        >
           <Icon name="plus-sign" tooltip="add another history" />
         </div>
       </div>
