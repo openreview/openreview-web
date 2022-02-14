@@ -118,13 +118,13 @@ export const InvitationGeneralView = ({
           {invitation.hideOriginalRevisions?.toString()}
         </div>
       )}
-      {!isV1Invitation && (
+      {!isV1Invitation && !isMetaInvitation && (
         <div className="row d-flex">
           <span className="info-title">Max Replies:</span>
           {invitation.maxReplies}
         </div>
       )}
-      {!isV1Invitation && (
+      {!isV1Invitation && !isMetaInvitation && (
         <div className="row d-flex">
           <span className="info-title">Min Replies:</span>
           {invitation.minReplies}
@@ -282,12 +282,16 @@ const InvitationGeneralEdit = ({
           ? null
           : parseInt(generalInfo.expdate, 10),
         invitees: stringToArray(generalInfo.invitees),
-        maxReplies: Number.isNaN(Number(generalInfo.maxReplies))
-          ? null
-          : Number(generalInfo.maxReplies),
-        minReplies: Number.isNaN(Number(generalInfo.minReplies))
-          ? null
-          : Number(generalInfo.minReplies),
+        ...(!isMetaInvitation && {
+          maxReplies: Number.isNaN(Number(generalInfo.maxReplies))
+            ? null
+            : Number(generalInfo.maxReplies),
+        }),
+        ...(!isMetaInvitation && {
+          minReplies: Number.isNaN(Number(generalInfo.minReplies))
+            ? null
+            : Number(generalInfo.minReplies),
+        }),
         noninvitees: stringToArray(generalInfo.noninvitees),
         nonreaders: stringToArray(generalInfo.nonreaders),
         readers: stringToArray(generalInfo.readers),
@@ -450,7 +454,7 @@ const InvitationGeneralEdit = ({
           </div>
         </div>
       )}
-      {!isV1Invitation && (
+      {!isV1Invitation && !isMetaInvitation && (
         <div className="row d-flex">
           <span className="info-title edit-title">Max Replies:</span>
           <div className="info-edit-control">
@@ -463,7 +467,7 @@ const InvitationGeneralEdit = ({
           </div>
         </div>
       )}
-      {!isV1Invitation && (
+      {!isV1Invitation && !isMetaInvitation && (
         <div className="row d-flex">
           <span className="info-title edit-title">Min Replies:</span>
           <div className="info-edit-control">
