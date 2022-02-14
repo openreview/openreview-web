@@ -1,8 +1,6 @@
 /* globals typesetMathJax: false */
 
-import {
-  useState, useEffect, useContext, useRef,
-} from 'react'
+import { useState, useEffect, useContext, useRef } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import truncate from 'lodash/truncate'
@@ -19,14 +17,16 @@ import ErrorAlert from '../components/ErrorAlert'
 const FilterForm = ({ searchQuery }) => {
   const defaultOption = { value: 'all', label: 'all of OpenReview' }
   const [groupOptions, setGroupOptions] = useState([])
-  const selectedGroupOption = groupOptions.find(option => option.value === searchQuery.group) || defaultOption
+  const selectedGroupOption =
+    groupOptions.find((option) => option.value === searchQuery.group) || defaultOption
   const contentOptions = [
     { value: 'all', label: 'All Content' },
     { value: 'authors', label: 'Authors' },
     { value: 'tags', label: 'Tags' },
     { value: 'keywords', label: 'Keywords' },
   ]
-  const selectedContentOption = contentOptions.find(option => option.value === searchQuery.content) || contentOptions[0]
+  const selectedContentOption =
+    contentOptions.find((option) => option.value === searchQuery.content) || contentOptions[0]
   const sourceOptions = { all: 'All', forum: 'Papers Only', reply: 'Replies Only' }
   const router = useRouter()
 
@@ -40,8 +40,13 @@ const FilterForm = ({ searchQuery }) => {
       try {
         const { groups } = await api.get('/groups', { id: 'host' })
         if (groups?.length > 0) {
-          const members = groups[0].members.map(groupId => ({ value: groupId, label: prettyId(groupId) }))
-          setGroupOptions([defaultOption].concat(members))
+          const members = groups[0].members.map((groupId) => ({
+            value: groupId,
+            label: prettyId(groupId),
+          }))
+          setGroupOptions(
+            [defaultOption].concat(members.sort((a, b) => a.label.localeCompare(b.label)))
+          )
         } else {
           setGroupOptions([defaultOption])
         }
@@ -54,7 +59,7 @@ const FilterForm = ({ searchQuery }) => {
   }, [])
 
   return (
-    <form className="filter-form form-inline well" onSubmit={e => e.preventDefault()}>
+    <form className="filter-form form-inline well" onSubmit={(e) => e.preventDefault()}>
       <div className="form-group">
         <label htmlFor="search-content">Search over</label>
         <Dropdown
@@ -62,7 +67,7 @@ const FilterForm = ({ searchQuery }) => {
           className="search-content dropdown-select"
           options={contentOptions}
           value={selectedContentOption}
-          onChange={selectedOption => updateQuery('content', selectedOption.value)}
+          onChange={(selectedOption) => updateQuery('content', selectedOption.value)}
         />
       </div>
       <div className="form-group">
@@ -72,8 +77,15 @@ const FilterForm = ({ searchQuery }) => {
           className="search-group dropdown-select"
           options={groupOptions}
           value={selectedGroupOption}
-          onChange={selectedOption => updateQuery('group', selectedOption.value)}
+          onChange={(selectedOption) => updateQuery('group', selectedOption.value)}
           isSearchable
+          filterConfig={{
+            ignoreCase: true,
+            ignoreAccents: true,
+            trim: true,
+            matchFrom: 'start',
+            stringify: (option) => option.label,
+          }}
         />
       </div>
       <div className="form-group">
@@ -84,9 +96,8 @@ const FilterForm = ({ searchQuery }) => {
               name="source"
               value={val}
               checked={searchQuery.source === val}
-              onChange={e => updateQuery('source', e.target.value)}
-            />
-            {' '}
+              onChange={(e) => updateQuery('source', e.target.value)}
+            />{' '}
             {label}
           </label>
         ))}
@@ -114,14 +125,19 @@ const Search = ({ appContext }) => {
 
   const loadSearchResults = async () => {
     try {
-      const searchRes = await api.getCombined('/notes/search', {
-        term: query.term,
-        type: 'terms',
-        content: query.content || 'all',
-        group: query.group || 'all',
-        source: query.source || 'all',
-        limit: 1000,
-      }, null, { accessToken, resultsKey: 'notes', sort: 'none' })
+      const searchRes = await api.getCombined(
+        '/notes/search',
+        {
+          term: query.term,
+          type: 'terms',
+          content: query.content || 'all',
+          group: query.group || 'all',
+          source: query.source || 'all',
+          limit: 1000,
+        },
+        null,
+        { accessToken, resultsKey: 'notes', sort: 'none' }
+      )
 
       if (searchRes.notes) {
         setAllSearchResults({
@@ -129,7 +145,10 @@ const Search = ({ appContext }) => {
           count: searchRes.count > 1000 ? 1000 : searchRes.count,
         })
         setSearchResults({
-          notes: searchRes.notes.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize),
+          notes: searchRes.notes.slice(
+            pageSize * (page - 1),
+            pageSize * (page - 1) + pageSize
+          ),
           count: searchRes.count > 1000 ? 1000 : searchRes.count,
         })
         setError(null)
@@ -150,8 +169,9 @@ const Search = ({ appContext }) => {
       setError({ message: 'Missing search term or query' })
       return
     }
-    const queryDiff = Object.keys({ ...query, ...currentQuery.current })
-      .filter(p => query[p] !== currentQuery.current?.[p])
+    const queryDiff = Object.keys({ ...query, ...currentQuery.current }).filter(
+      (p) => query[p] !== currentQuery.current?.[p]
+    )
     if (queryDiff.length === 0) {
       currentQuery.current = query
       return
@@ -159,7 +179,10 @@ const Search = ({ appContext }) => {
     if (queryDiff.length === 1 && queryDiff[0] === 'page' && allSearchResults.notes?.length) {
       // if only page param is changed, load results from local state
       setSearchResults({
-        notes: allSearchResults.notes?.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize),
+        notes: allSearchResults.notes?.slice(
+          pageSize * (page - 1),
+          pageSize * (page - 1) + pageSize
+        ),
         count: allSearchResults?.count,
       })
     } else {
@@ -188,18 +211,13 @@ const Search = ({ appContext }) => {
 
       <div className="search-results">
         <h3>
-          {inflect(searchResults.count, 'result', 'results', true)}
-          {' '}
-          found for &quot;
+          {inflect(searchResults.count, 'result', 'results', true)} found for &quot;
           {truncate(query.term, { length: 200, separator: /,? +/ })}
           &quot;
         </h3>
         <hr className="small" />
 
-        <NoteList
-          notes={searchResults.notes}
-          displayOptions={displayOptions}
-        />
+        <NoteList notes={searchResults.notes} displayOptions={displayOptions} />
 
         <PaginationLinks
           currentPage={page}

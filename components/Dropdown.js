@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react'
-import Select, { components } from 'react-select'
+import Select, { components, createFilter } from 'react-select'
 import CreatableSelect from 'react-select/creatable'
 import List from 'rc-virtual-list'
 import { getDefaultTimezone, timezoneOptions } from '../lib/utils'
 
 // For more details see https://react-select.com/styles#overriding-the-theme
-const createCustomTheme = height => theme => ({
+const createCustomTheme = (height) => (theme) => ({
   ...theme,
   borderRadius: 0,
   colors: {
@@ -29,7 +29,7 @@ export const TimezoneDropdown = ({ className, onChange, value }) => {
       className={className}
       placeholder="Select a timezone"
       options={timezoneOptions}
-      value={timezoneOptions.find(p => p.value === value) ?? defaultValue}
+      value={timezoneOptions.find((p) => p.value === value) ?? defaultValue}
       onChange={onChange}
     />
   )
@@ -50,7 +50,7 @@ const CustomOption = ({ children, ...props }) => {
 
 const customMenuList = ({ children }) => (
   <List data={children} height={300} itemHeight={20} itemKey="key">
-    {option => <div className="item">{option}</div>}
+    {(option) => <div className="item">{option}</div>}
   </List>
 )
 
@@ -97,7 +97,7 @@ export const CreatableDropdown = (props) => {
     <CreatableSelect
       ref={dropdownRef}
       theme={customTheme}
-      formatCreateLabel={value => value}
+      formatCreateLabel={(value) => value}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
     />
@@ -105,14 +105,22 @@ export const CreatableDropdown = (props) => {
 }
 
 export default function Dropdown(props) {
-  // eslint-disable-next-line react/destructuring-assignment
   const customTheme = createCustomTheme(props.height)
+  const defaultFilterOption = {
+    ignoreCase: true,
+    ignoreAccents: true,
+    matchFrom: 'any',
+    stringify: (option) => `${option.label} ${option.value}`,
+    trim: true,
+  }
+  const filterOption = createFilter(props.filterConfig ?? defaultFilterOption)
   return (
     <Select
       className="dropdown-select"
       classNamePrefix="dropdown-select"
       theme={customTheme}
       ref={props.selectRef}
+      filterOption={filterOption}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
     />
