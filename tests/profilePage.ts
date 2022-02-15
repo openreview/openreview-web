@@ -163,6 +163,7 @@ test('check import history', async (t) => {
   const references = await getReferences({ referent: `${importedPaperId}` }, superUserToken)
   // shoud have 2 references: add paper and update authorid
   await t.expect(references.length).eql(2)
+    // eslint-disable-next-line max-len
     .expect(references[1].content.authorids.includes(userBAlternateId)).notOk() // 1st post of paper has all dblp authorid
     .expect(references[0].content.authorids.includes(userBAlternateId)).ok() // authorid is updated
 })
