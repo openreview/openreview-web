@@ -33,6 +33,7 @@ export default function EntityList(props) {
             isSelected={isSelected}
             setSelectedItemId={props.setSelectedItemId}
             canTraverse={props.canTraverse}
+            showCounter={props.showCounter}
             columnType={props.columnType}
             parentInfo={props.parentInfo}
             altGlobalEntityMap={props.altGlobalEntityMap}
@@ -52,6 +53,7 @@ export default function EntityList(props) {
             isSelected={isSelected}
             setSelectedItemId={props.setSelectedItemId}
             canTraverse={props.canTraverse}
+            showCounter={props.showCounter}
           />
         )
 
@@ -67,6 +69,7 @@ export default function EntityList(props) {
             isSelected={isSelected}
             setSelectedItemId={props.setSelectedItemId}
             canTraverse={props.canTraverse}
+            showCounter={props.showCounter}
             columnType={props.columnType}
             parentInfo={props.parentInfo}
             reloadColumnEntities={props.reloadColumnEntities}
@@ -87,6 +90,7 @@ export default function EntityList(props) {
             isSelected={isSelected}
             setSelectedItemId={props.setSelectedItemId}
             canTraverse={props.canTraverse}
+            showCounter={props.showCounter}
           />
         )
 

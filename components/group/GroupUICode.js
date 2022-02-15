@@ -3,13 +3,12 @@
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import api from '../../lib/api-client'
-import { getGroupVersion } from '../../lib/utils'
 import EditorSection from '../EditorSection'
 import LoadingSpinner from '../LoadingSpinner'
 import SpinnerButton from '../SpinnerButton'
 
 const CodeEditor = dynamic(() => import('../CodeEditor'), {
-  loading: () => <LoadingSpinner inline/>,
+  loading: () => <LoadingSpinner inline />,
 })
 
 const GroupUICode = ({ group, accessToken, reloadGroup }) => {
@@ -24,10 +23,7 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
         ...group,
         web: modifiedWebCode.trim() ? modifiedWebCode.trim() : null,
       }
-      const result = await api.post('/groups', groupToPost, {
-        accessToken,
-        version: getGroupVersion(group.id),
-      })
+      const result = await api.post('/groups', groupToPost, { accessToken })
       setShowCodeEditor(false)
       promptMessage(`UI code for ${group.id} has been updated`, { scrollToTop: false })
       reloadGroup()
@@ -45,11 +41,7 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
   return (
     <EditorSection title="Group UI Code">
       {showCodeEditor && (
-        <CodeEditor
-          code={group.web}
-          onChange={setModifiedWebCode}
-          scrollIntoView
-        />
+        <CodeEditor code={group.web} onChange={setModifiedWebCode} scrollIntoView />
       )}
 
       {showCodeEditor ? (
@@ -62,13 +54,21 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
           >
             {isSaving ? 'Saving' : 'Update Code'}
           </SpinnerButton>
-          <button type="button" className="btn btn-default ml-1" onClick={() => setShowCodeEditor(false)}>
+          <button
+            type="button"
+            className="btn btn-default ml-1"
+            onClick={() => setShowCodeEditor(false)}
+          >
             Cancel
           </button>
         </div>
       ) : (
         <div>
-          <button type="button" className="btn btn-sm btn-primary" onClick={() => setShowCodeEditor(true)}>
+          <button
+            type="button"
+            className="btn btn-sm btn-primary"
+            onClick={() => setShowCodeEditor(true)}
+          >
             Show Code Editor
           </button>
         </div>
