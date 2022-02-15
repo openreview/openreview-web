@@ -1,7 +1,7 @@
 /* globals promptMessage: false */
 /* globals promptError: false */
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import EditorSection from '../EditorSection'
 import PaginatedList from '../PaginatedList'
 import api from '../../lib/api-client'
@@ -17,6 +17,7 @@ const InvitationChildInvitations = ({ invitation, accessToken }) => {
         [invitation.apiVersion === 2 ? 'invitation' : 'super']: invitation.id,
         limit,
         offset,
+        expired: true,
       },
       { accessToken, version: invitation.apiVersion }
     )
@@ -39,9 +40,7 @@ const InvitationChildInvitations = ({ invitation, accessToken }) => {
     }
   }
 
-  useEffect(() => {
-    loadChildInvitations(15, 0)
-  }, [invitation])
+  const loadItems = useCallback(loadChildInvitations, [invitation, accessToken])
 
   return (
     <EditorSection
@@ -49,7 +48,7 @@ const InvitationChildInvitations = ({ invitation, accessToken }) => {
       className="subinvitations"
     >
       <PaginatedList
-        loadItems={loadChildInvitations}
+        loadItems={loadItems}
         emptyMessage="No child invitations"
         itemsPerPage={15}
       />
