@@ -840,7 +840,7 @@ module.exports = (function() {
     // Order by duedate
     invitations.sort(function(a, b) { return a.duedate - b.duedate; });
 
-    var formattedInvitations = invitations.map(function(inv) {
+    var formattedInvitations = invitations.forEach(function(inv) {
       if (inv.cdate > Date.now()) {
         var startDate = new Date(inv.cdate);
         inv.startDateStr = startDate.toLocaleDateString('en-GB', dateFormatOptions);
@@ -851,7 +851,6 @@ module.exports = (function() {
       inv.dueDateStatus = getDueDateStatus(duedate);
       inv.groupId = inv.id.split('/-/')[0];
       inv.forumId = forumId;
-      return inv;
     });
 
     return (
