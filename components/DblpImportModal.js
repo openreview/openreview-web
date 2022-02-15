@@ -124,7 +124,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
           title: p.formattedTitle,
           venue: p.venue,
         })),
-        profileId,
+        profileNames,
         accessToken
       )
       publicationsImportedByOtherProfiles.current = result.filter((p) => p)

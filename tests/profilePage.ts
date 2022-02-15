@@ -12,6 +12,8 @@ const userBRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =>
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
+const userBAlternateId = '~Di_Xu1'
+
 // #region long repeated selectors
 const errorMessageSelector = Selector('#flash-message-container', { visibilityCheck: true }).find('span.important_message')
 const editFirstNameInputSelector = Selector('input:not([readonly]).first-name')
@@ -161,8 +163,8 @@ test('check import history', async (t) => {
   const references = await getReferences({ referent: `${importedPaperId}` }, superUserToken)
   // shoud have 2 references: add paper and update authorid
   await t.expect(references.length).eql(2)
-    .expect(references[1].content.authorids.includes(userB.tildeId)).notOk() // 1st post of paper has all dblp authorid
-    .expect(references[0].content.authorids.includes(userB.tildeId)).ok() // authorid is updated
+    .expect(references[1].content.authorids.includes(userBAlternateId)).notOk() // 1st post of paper has all dblp authorid
+    .expect(references[0].content.authorids.includes(userBAlternateId)).ok() // authorid is updated
 })
 
 test('reimport unlinked paper and import all', async (t) => { // to trigger only authorid reference update
