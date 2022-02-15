@@ -113,16 +113,16 @@ export default function Dropdown(props) {
     stringify: (option) => `${option.label} ${option.value}`,
     trim: true,
   }
-  const filterOption = createFilter(props.filterConfig ?? defaultFilterOption)
+  const filterOption = createFilter(props.filterOption ?? defaultFilterOption)
   return (
     <Select
       className="dropdown-select"
       classNamePrefix="dropdown-select"
       theme={customTheme}
       ref={props.selectRef}
-      filterOption={filterOption}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
+      filterOption={filterOption}
     />
   )
 }

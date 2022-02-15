@@ -79,7 +79,7 @@ const FilterForm = ({ searchQuery }) => {
           value={selectedGroupOption}
           onChange={(selectedOption) => updateQuery('group', selectedOption.value)}
           isSearchable
-          filterConfig={{
+          filterOption={{
             ignoreCase: true,
             ignoreAccents: true,
             trim: true,
