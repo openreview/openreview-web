@@ -741,7 +741,7 @@ table.table-minimal {
   }
 }
 
-// Note editor
+// Note edito
 .note_editor,
 .note_editor_preview {
   > .row,
@@ -766,6 +766,7 @@ table.table-minimal {
     vertical-align: middle;
     width: 145px;
     margin-right: 0.25rem;
+    min-width: fit-content;
   }
   .required_field {
     vertical-align: top;
