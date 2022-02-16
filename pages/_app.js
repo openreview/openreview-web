@@ -120,7 +120,7 @@ export default class OpenReviewApp extends App {
 
   async refreshToken() {
     try {
-      const { token, user } = await api.post('refreshToken')
+      const { token, user } = await api.post('/refreshToken')
       this.loginUser(user, token, null)
     } catch (error) {
       // If multiple instances of the OpenReview app are running, in some cases
@@ -135,7 +135,7 @@ export default class OpenReviewApp extends App {
 
   static async attemptRefresh() {
     try {
-      const { token, user } = await api.post('refreshToken', {}, { ignoreErrors: ['TokenError'] })
+      const { token, user } = await api.post('/refreshToken', {}, { ignoreErrors: ['TokenError'] })
       const expiration = Date.now() + cookieExpiration
       return { user, token, expiration }
     } catch (error) {
