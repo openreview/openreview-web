@@ -12,6 +12,7 @@ import {
   setAuthCookie,
   removeAuthCookie,
   cookieExpiration,
+  refreshExpiration,
 } from '../lib/auth'
 import api from '../lib/api-client'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
@@ -255,7 +256,7 @@ export default class OpenReviewApp extends App {
 
     // Access token may be expired, but refresh token is valid for 6 more days
     const refreshFlag = Number(window.localStorage.getItem('openreview.lastLogin') || 0)
-    if (!authCookieData.user && refreshFlag && refreshFlag + 6 * 24 * 60 * 60 * 1000 > Date.now()) {
+    if (!authCookieData.user && refreshFlag && refreshFlag + refreshExpiration > Date.now()) {
       OpenReviewApp.attemptRefresh().then(setUserState)
     } else {
       setUserState(authCookieData)
