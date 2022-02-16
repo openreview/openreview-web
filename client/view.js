@@ -1365,7 +1365,7 @@ module.exports = (function() {
       contentInputResult = mkAttachmentSection(fieldName, fieldDescription, fieldValue);
     }
 
-    if(params?.isPreview){
+    if(params?.isPreview && fieldDescription){
       if(contentInputResult) return contentInputResult
       promptError(`${fieldName} can't be rendered`)
       return $('<div class="alert alert-danger">').text(`Error: ${fieldName} can't be rendered`)
