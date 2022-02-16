@@ -1367,7 +1367,6 @@ module.exports = (function() {
 
     if(params?.isPreview && fieldDescription){
       if(contentInputResult) return contentInputResult
-      promptError(`${fieldName} can't be rendered`)
       return $('<div class="alert alert-danger">').text(`Error: ${fieldName} can't be rendered`)
     }
     return contentInputResult;
@@ -3193,6 +3192,10 @@ module.exports = (function() {
       var autosaveStorageKeys = setupAutosaveHandlers($noteEditor, user, replyto + '|new', invitation.id);
 
       if (params.onCompleted) {
+        if(params.isPreview && $noteEditor.children('div.alert.alert-danger').length) {
+          params.onCompleted($('<ul>').append($noteEditor.children('div.alert.alert-danger')));
+          return
+        }
         params.onCompleted($noteEditor);
       }
     }
