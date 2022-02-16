@@ -12,19 +12,23 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
     switch (type) {
       case 'gscholar': {
         const isValid = isValidURL(value) && value.startsWith('https://scholar.google')
-        if (!isValid) promptError(`${value} is not a valid Google Scholar URL`, { scrollToTop: false })
+        if (!isValid)
+          promptError(`${value} is not a valid Google Scholar URL`, { scrollToTop: false })
         setLinks({ type, data: { value, valid: isValid } })
         break
       }
       case 'semanticScholar': {
-        const isValid = isValidURL(value) && value.startsWith('https://www.semanticscholar.org')
-        if (!isValid) promptError(`${value} is not a valid Semantic Scholar URL`, { scrollToTop: false })
+        const isValid =
+          isValidURL(value) && value.startsWith('https://www.semanticscholar.org')
+        if (!isValid)
+          promptError(`${value} is not a valid Semantic Scholar URL`, { scrollToTop: false })
         setLinks({ type, data: { value, valid: isValid } })
         break
       }
       default: {
         const isValid = isValidURL(value)
-        if (!isValid) promptError(`${value} is not a valid ${type} URL`, { scrollToTop: false })
+        if (!isValid)
+          promptError(`${value} is not a valid ${type} URL`, { scrollToTop: false })
         setLinks({ type, data: { value, valid: isValid } })
       }
     }
@@ -32,16 +36,26 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
   return (
     <input
       id={`${type}_url`}
-      className={`form-control personal-links__input ${links[type]?.valid === false ? 'invalid-value' : ''}`}
+      className={`form-control personal-links__input ${
+        links[type]?.valid === false ? 'invalid-value' : ''
+      }`}
       value={links[type]?.value ?? ''}
-      onChange={(e) => { setLinks({ type, data: { value: e.target.value } }) }}
+      onChange={(e) => {
+        setLinks({ type, data: { value: e.target.value } })
+      }}
       onBlur={handleBlur}
     />
   )
 }
 
 const PersonalLinksSection = ({
-  profileLinks, updateLinks, profileId, names, preferredEmail, renderPublicationsEditor, hideDblpButton,
+  profileLinks,
+  updateLinks,
+  profileId,
+  names,
+  preferredEmail,
+  renderPublicationsEditor,
+  hideDblpButton,
 }) => {
   const linksReducer = (state, action) => ({
     ...state,
@@ -86,7 +100,11 @@ const PersonalLinksSection = ({
           <div className="small-heading">
             DBLP URL
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a className="personal-links__faqlink" href="/faq#question-dblp-import" target="_blank">
+            <a
+              className="personal-links__faqlink"
+              href="/faq#question-dblp-import"
+              target="_blank"
+            >
               <Icon name="info-sign" />
             </a>
           </div>
@@ -129,7 +147,11 @@ const PersonalLinksSection = ({
           <div className="small-heading">
             Semantic Scholar URL
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a className="personal-links__faqlink" href="/faq#question-semantic-scholar" target="_blank">
+            <a
+              className="personal-links__faqlink"
+              href="/faq#question-semantic-scholar"
+              target="_blank"
+            >
               <Icon name="info-sign" />
             </a>
           </div>
@@ -139,11 +161,10 @@ const PersonalLinksSection = ({
 
       <DblpImportModal
         profileId={profileId}
-        profileNames={names?.map(name => (
-          name.middle ? `${name.first} ${name.middle} ${name.last}` : `${name.first} ${name.last}`
-        ))}
-        email={preferredEmail}
-        updateDBLPUrl={(url) => { setLinks({ type: 'dblp', data: { value: url } }) }}
+        profileNames={names?.filter((p) => !p.newRow)}
+        updateDBLPUrl={(url) => {
+          setLinks({ type: 'dblp', data: { value: url } })
+        }}
       />
     </div>
   )
