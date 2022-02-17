@@ -532,9 +532,11 @@ module.exports = (function() {
       authorText = note.signatures.map(function(signature) {
         var signatureGroup = note.details?.signatures?.find(p => p.id === signature)
         var signatureLink = prettyProfileLink(signature,view.prettyId(signature), 'signatures');
-        if (signatureGroup && !signatureGroup.readers?.includes('everyone')) {
+        if (signatureGroup) {
           var tooltip = `Privately revealed to ${signatureGroup.readers?.map(p => view.prettyId(p)).join(', ')}`
           privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
+          readerEveryoneLabel = `<span class="private-contents-icon glyphicon glyphicon-globe" title="Publicly revealed to everyone" data-toggle="tooltip" data-placement="bottom"/>`
+          if(signatureGroup.readers?.includes('everyone')) return `${signatureLink} ${readerEveryoneLabel} ${signatureGroup.members.map(q=>prettyProfileLink(q,view.prettyId(q))).join(', ')}`
           return `${signatureLink} ${privateLabel} ${signatureGroup.members.map(q=>prettyProfileLink(q,view.prettyId(q))).join(', ')}`
         }
         return signatureLink;
