@@ -6,11 +6,16 @@ import EditorSection from '../EditorSection'
 import CodeEditor from '../CodeEditor'
 import SpinnerButton from '../SpinnerButton'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
+import { getMetaInvitationId, prettyId } from '../../lib/utils'
 
 // Used for both reply/edit and reply forum views
 const InvitationReply = ({
-  invitation, profileId, accessToken, loadInvitation, replyField, readOnly = false,
+  invitation,
+  profileId,
+  accessToken,
+  loadInvitation,
+  replyField,
+  readOnly = false,
 }) => {
   const [replyString, setReplyString] = useState(
     invitation[replyField] ? JSON.stringify(invitation[replyField], undefined, 2) : '[]'
@@ -27,6 +32,7 @@ const InvitationReply = ({
   const sectionTitle = titleMap[replyField] || replyField
 
   const getRequestBody = (replyObj) => {
+    const metaInvitationId = getMetaInvitationId(invitation)
     switch (replyField) {
       case 'reply':
         return {
@@ -36,6 +42,7 @@ const InvitationReply = ({
           rdate: undefined,
         }
       case 'edge':
+        if (!metaInvitationId) throw new Error('No meta invitation found')
         return {
           invitation: {
             id: invitation.id,
@@ -45,43 +52,42 @@ const InvitationReply = ({
           readers: [profileId],
           writers: [profileId],
           signatures: [profileId],
+          invitations: metaInvitationId,
         }
       case 'replyForumViews':
-        return isV1Invitation
-          ? {
-              ...invitation,
-              replyForumViews: replyObj,
-              apiVersion: undefined,
-              rdate: undefined,
-            }
-          : {
-              invitation: {
-                id: invitation.id,
-                signatures: invitation.signatures,
-                replyForumViews: replyObj,
-              },
-              readers: [profileId],
-              writers: [profileId],
-              signatures: [profileId],
-            }
+        if (isV1Invitation)
+          return {
+            ...invitation,
+            replyForumViews: replyObj,
+            apiVersion: undefined,
+            rdate: undefined,
+          }
+        if (!metaInvitationId) throw new Error('No meta invitation found')
+        return {
+          invitation: {
+            id: invitation.id,
+            signatures: invitation.signatures,
+            replyForumViews: replyObj,
+          },
+          readers: [profileId],
+          writers: [profileId],
+          signatures: [profileId],
+          invitations: metaInvitationId,
+        }
       case 'edit':
+        if (!metaInvitationId) throw new Error('No meta invitation found')
         return {
           invitation: {
             id: invitation.id,
             signatures: invitation.signatures,
             edit: {
-              note: {
-                signatures: null,
-                readers: null,
-                writers: null,
-                content: invitation.edit.note.content,
-              },
               ...replyObj,
             },
           },
           readers: [profileId],
           writers: [profileId],
           signatures: [profileId],
+          invitations: metaInvitationId,
         }
       default:
         return null
@@ -96,7 +102,8 @@ const InvitationReply = ({
       const requestPath = isV1Invitation ? '/invitations' : '/invitations/edits'
       const requestBody = getRequestBody(replyObj)
       await api.post(requestPath, requestBody, {
-        accessToken, version: isV1Invitation ? 1 : 2,
+        accessToken,
+        version: isV1Invitation ? 1 : 2,
       })
       promptMessage(`Settings for '${prettyId(invitation.id)} updated`, { scrollToTop: false })
       loadInvitation(invitation.id)
@@ -112,12 +119,7 @@ const InvitationReply = ({
 
   return (
     <EditorSection title={sectionTitle}>
-      <CodeEditor
-        code={replyString}
-        onChange={setReplyString}
-        readOnly={readOnly}
-        isJson
-      />
+      <CodeEditor code={replyString} onChange={setReplyString} readOnly={readOnly} isJson />
 
       {!readOnly && (
         <div className="mt-2">
