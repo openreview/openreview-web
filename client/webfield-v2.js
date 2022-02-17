@@ -840,7 +840,7 @@ module.exports = (function() {
     // Order by duedate
     invitations.sort(function(a, b) { return a.duedate - b.duedate; });
 
-    var formattedInvitations = invitations.forEach(function(inv) {
+    invitations.forEach(function(inv) {
       if (inv.cdate > Date.now()) {
         var startDate = new Date(inv.cdate);
         inv.startDateStr = startDate.toLocaleDateString('en-GB', dateFormatOptions);
@@ -853,21 +853,30 @@ module.exports = (function() {
       inv.forumId = forumId;
     });
 
+    var renderTaskItem = function(inv) {
+      return (
+        '<li class="note ' + (inv.complete ? 'completed' : '') + '">' +
+          '<h4><a href="/forum?id=' + inv.forumId + (inv.complete ? '' : '&invitationId=' + inv.id) + (options.referrer ? '&referrer=' + options.referrer : '') + '" target="_blank">' +
+            view.prettyInvitationId(inv.id) +
+          '</a></h4>' +
+          (inv.startDateStr ? '<p class="mb-1"><span class="duedate">Start: ' + inv.startDateStr + '</span></p>' : '') +
+          '<p class="mb-1"><span class="duedate ' + inv.dueDateStatus +'">Due: ' + inv.dueDateStr + '</span></p>' +
+          '<p class="mb-0">' + (inv.complete ? 'Complete' : 'Incomplete') + ', ' + inv.replies.length + ' ' + (inv.replies.length === 1 ? 'Reply' : 'Replies') + '</p>' +
+        '</li>'
+      );
+    };
+
+    var incompleteInvitations = invitations.filter((inv) => !inv.complete);
+    var completedInvitations = invitations.filter((inv) => inv.complete);
+
     return (
-      (formattedInvitations.length > 0 ? '<h4>Tasks:</h4>' : '') +
+      (invitations.length > 0 ? '<h4>Tasks:</h4>' : '') +
       '<ul class="list-unstyled submissions-list task-list eic-task-list mt-0 mb-0">' +
-        formattedInvitations.map(function(inv) {
-          return (
-            '<li class="note ' + (inv.complete ? 'completed' : '') + '">' +
-              '<h4><a href="/forum?id=' + inv.forumId + (inv.complete ? '' : '&invitationId=' + inv.id) + (options.referrer ? '&referrer=' + options.referrer : '') + '" target="_blank">' +
-                view.prettyInvitationId(inv.id) +
-              '</a></h4>' +
-              (inv.startDateStr ? '<p class="mb-1"><span class="duedate">Start: ' + inv.startDateStr + '</span></p>' : '') +
-              '<p class="mb-1"><span class="duedate ' + inv.dueDateStatus +'">Due: ' + inv.dueDateStr + '</span></p>' +
-              '<p class="mb-0">' + (inv.complete ? 'Complete' : 'Incomplete') + ', ' + inv.replies.length + ' ' + (inv.replies.length === 1 ? 'Reply' : 'Replies') + '</p>' +
-            '</li>'
-          );
-        }).join('\n') +
+        incompleteInvitations.map(renderTaskItem).join('\n') +
+      '</ul>' +
+      (incompleteInvitations.length > 0 && completedInvitations.length > 0 ? '<hr class="small" style="margin-top: 0.5rem;">' : '') +
+      '<ul class="list-unstyled submissions-list task-list eic-task-list mt-0 mb-0">' +
+        completedInvitations.map(renderTaskItem).join('\n') +
       '</ul>'
     );
   };
