@@ -80,7 +80,7 @@ const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }
           <label htmlFor="message">Email Body</label>
           <p className="hint">
             {`Hint: You can personalize emails using template variables. The text
-            {{ firstname }} and {{ fullname }}
+            {{firstname}} and {{fullname}}
             will automatically be replaced with the recipient's first or full name if they have an OpenReview profile.
             If a profile isn't found their email address will be used instead.`}
           </p>
