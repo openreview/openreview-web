@@ -9,7 +9,11 @@ import InvitationChildInvitations from './InvitationChildInvitations'
 import { isSuperUser } from '../../lib/auth'
 
 const InvitationEditor = ({
-  invitation, user, accessToken, loadInvitation,
+  invitation,
+  isMetaInvitation,
+  user,
+  accessToken,
+  loadInvitation,
 }) => {
   const profileId = user?.profile?.id
   const showProcessEditor = invitation?.apiVersion === 2 || isSuperUser(user)
@@ -23,33 +27,39 @@ const InvitationEditor = ({
         profileId={profileId}
         accessToken={accessToken}
         loadInvitation={loadInvitation}
+        isMetaInvitation={isMetaInvitation}
       />
-      <InvitationReply
-        key={`${invitation.id}-edit`}
-        invitation={invitation}
-        profileId={profileId}
-        accessToken={accessToken}
-        loadInvitation={loadInvitation}
-        // eslint-disable-next-line no-nested-ternary
-        replyField={invitation.apiVersion === 1 ? 'reply' : (invitation.edge ? 'edge' : 'edit')}
-      />
-      <InvitationReply
-        key={`${invitation.id}-replyForumViews`}
-        invitation={invitation}
-        profileId={profileId}
-        accessToken={accessToken}
-        loadInvitation={loadInvitation}
-        replyField="replyForumViews"
-      />
-      <InvitationChildInvitations
-        invitation={invitation}
-      />
+      {!isMetaInvitation && (
+        <>
+          <InvitationReply
+            key={`${invitation.id}-edit`}
+            invitation={invitation}
+            profileId={profileId}
+            accessToken={accessToken}
+            loadInvitation={loadInvitation}
+            replyField={
+              // eslint-disable-next-line no-nested-ternary
+              invitation.apiVersion === 1 ? 'reply' : invitation.edge ? 'edge' : 'edit'
+            }
+          />
+          <InvitationReply
+            key={`${invitation.id}-replyForumViews`}
+            invitation={invitation}
+            profileId={profileId}
+            accessToken={accessToken}
+            loadInvitation={loadInvitation}
+            replyField="replyForumViews"
+          />
+          <InvitationChildInvitations invitation={invitation} />
+        </>
+      )}
       <InvitationCode
         invitation={invitation}
         profileId={profileId}
         accessToken={accessToken}
         loadInvitation={loadInvitation}
         codeType="web"
+        isMetaInvitation={isMetaInvitation}
       />
       {showProcessEditor && (
         <InvitationCode
@@ -58,6 +68,7 @@ const InvitationEditor = ({
           accessToken={accessToken}
           loadInvitation={loadInvitation}
           codeType="process"
+          isMetaInvitation={isMetaInvitation}
         />
       )}
       {showProcessEditor && (
@@ -67,6 +78,7 @@ const InvitationEditor = ({
           accessToken={accessToken}
           loadInvitation={loadInvitation}
           codeType="preprocess"
+          isMetaInvitation={isMetaInvitation}
         />
       )}
     </div>

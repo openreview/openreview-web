@@ -6,12 +6,17 @@ import dynamic from 'next/dynamic'
 import EditorSection from '../EditorSection'
 import SpinnerButton from '../SpinnerButton'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
+import { getMetaInvitationId, prettyId } from '../../lib/utils'
 
 const CodeEditor = dynamic(() => import('../CodeEditor'))
 
 const InvitationCode = ({
-  invitation, profileId, accessToken, loadInvitation, codeType,
+  invitation,
+  profileId,
+  accessToken,
+  loadInvitation,
+  codeType,
+  isMetaInvitation,
 }) => {
   const isV1Invitation = invitation.apiVersion === 1
   const [code, setCode] = useState(invitation[codeType])
@@ -30,22 +35,32 @@ const InvitationCode = ({
 
     try {
       const requestPath = isV1Invitation ? '/invitations' : '/invitations/edits'
-      const requestBody = isV1Invitation ? {
-        ...invitation,
-        [codeType]: code,
-        apiVersion: undefined,
-        rdate: undefined,
-      } : {
-        invitation: {
-          id: invitation.id,
-          signatures: invitation.signatures,
-          [codeType]: code,
-        },
-        readers: [profileId],
-        writers: [profileId],
-        signatures: [profileId],
-      }
-      await api.post(requestPath, requestBody, { accessToken, version: isV1Invitation ? 1 : 2 })
+      const metaInvitationId = getMetaInvitationId(invitation)
+      if (!isV1Invitation && !isMetaInvitation && !metaInvitationId)
+        throw new Error('No meta invitation found')
+      const requestBody = isV1Invitation
+        ? {
+            ...invitation,
+            [codeType]: code,
+            apiVersion: undefined,
+            rdate: undefined,
+          }
+        : {
+            invitation: {
+              id: invitation.id,
+              signatures: invitation.signatures,
+              [codeType]: code,
+              ...(isMetaInvitation && { edit: true }),
+            },
+            readers: [profileId],
+            writers: [profileId],
+            signatures: [profileId],
+            ...(!isMetaInvitation && { invitations: metaInvitationId }),
+          }
+      await api.post(requestPath, requestBody, {
+        accessToken,
+        version: isV1Invitation ? 1 : 2,
+      })
       promptMessage(`Code for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
       loadInvitation(invitation.id)
     } catch (error) {
@@ -67,9 +82,7 @@ const InvitationCode = ({
 
   return (
     <EditorSection title={sectionTitle}>
-      {showEditor && (
-        <CodeEditor code={code} onChange={setCode} />
-      )}
+      {showEditor && <CodeEditor code={code} onChange={setCode} />}
 
       {showEditor ? (
         <div className="mt-2">
