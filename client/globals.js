@@ -159,6 +159,10 @@ window.promptLogin = function(user) {
   }
 };
 
+window.clearMessage = function() {
+  $('#flash-message-container').slideUp();
+}
+
 // Global Event Handlers (index.js)
 // Flash message bar
 $('#flash-message-container button.close').on('click', function() {

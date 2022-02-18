@@ -1,9 +1,6 @@
-/* globals promptError: false */
-/* globals $: false */
+/* globals promptError,$,clearMessage: false */
 
-import {
-  useState, useEffect, useCallback, useContext, createContext,
-} from 'react'
+import { useState, useEffect, useCallback, useContext, createContext } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -26,42 +23,54 @@ const SignupForm = ({ setSignupConfirmation }) => {
   const [existingProfiles, setExistingProfiles] = useState([])
   const [isComposing, setIsComposing] = useState(false)
 
-  const getNewUsername = useCallback(debounce(async (first, middle, last) => {
-    try {
-      const { username } = await api.get('/tildeusername', { first, middle, last })
-      if (username) {
-        setNewUsername(username)
+  const getNewUsername = useCallback(
+    debounce(async (first, middle, last) => {
+      try {
+        const { username } = await api.get('/tildeusername', { first, middle, last })
+        if (username) {
+          setNewUsername(username)
+        }
+      } catch (apiError) {
+        setNewUsername('')
+        promptError(apiError.message)
       }
-    } catch (apiError) {
-      setNewUsername('')
-      promptError(apiError.message)
-    }
-  }, 500), [])
+    }, 500),
+    []
+  )
 
-  const getMatchingProfiles = useCallback(debounce(async (first, last) => {
-    try {
-      // Don't include middle name in profile search to find more results
-      const { profiles } = await api.get('/profiles', { first, last, limit: 50 })
-      if (profiles) {
-        setExistingProfiles(profiles.map(profile => ({
-          id: profile.id,
-          emails: profile.content?.emails || [],
-          emailsConfirmed: profile.content?.emailsConfirmed || [],
-          active: profile.active,
-          password: profile.password,
-        })))
+  const getMatchingProfiles = useCallback(
+    debounce(async (first, last) => {
+      try {
+        // Don't include middle name in profile search to find more results
+        const { profiles } = await api.get('/profiles', { first, last, limit: 50 })
+        if (profiles) {
+          setExistingProfiles(
+            profiles.map((profile) => ({
+              id: profile.id,
+              emails: profile.content?.emails || [],
+              emailsConfirmed: profile.content?.emailsConfirmed || [],
+              active: profile.active,
+              password: profile.password,
+            }))
+          )
+        }
+      } catch (error) {
+        setExistingProfiles([])
       }
-    } catch (error) {
-      setExistingProfiles([])
-    }
-  }, 300), [])
+    }, 300),
+    []
+  )
 
   const registerUser = async (registrationType, email, password, id) => {
     setLoading(true)
 
     let bodyData = {}
     if (registrationType === 'new') {
-      const name = { first: firstName.trim(), middle: middleName.trim(), last: lastName.trim() }
+      const name = {
+        first: firstName.trim(),
+        middle: middleName.trim(),
+        last: lastName.trim(),
+      }
       bodyData = { email, password, name }
     } else if (registrationType === 'claim') {
       bodyData = { id, email, password }
@@ -110,7 +119,9 @@ const SignupForm = ({ setSignupConfirmation }) => {
 
   const populateFeedbackForm = () => {
     $('#feedback-modal [name="subject"]').val('Merge Profiles')
-    $('#feedback-modal [name="message"]').val('Hi OpenReview,\n\nBelow are my profile e-mail addresses:\n<replace-me>@<some-domain.com>\n<replace-me>@<some-domain.com>\n\nThanks.')
+    $('#feedback-modal [name="message"]').val(
+      'Hi OpenReview,\n\nBelow are my profile e-mail addresses:\n<replace-me>@<some-domain.com>\n<replace-me>@<some-domain.com>\n\nThanks.'
+    )
   }
 
   useEffect(() => {
@@ -141,7 +152,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
 
   return (
     <div className="signup-form-container">
-      <form onSubmit={e => e.preventDefault()}>
+      <form onSubmit={(e) => e.preventDefault()}>
         <div className="row">
           <div className="form-group col-xs-12 col-sm-4">
             <label htmlFor="first-input">First</label>
@@ -150,9 +161,12 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="first-input"
               className="form-control"
               value={firstName}
-              onInput={e => setIsComposing(e.nativeEvent.isComposing)}
+              onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
               onCompositionEnd={() => setIsComposing(false)}
-              onChange={e => setFirstName(e.target.value)}
+              onChange={(e) => {
+                clearMessage()
+                setFirstName(e.target.value)
+              }}
               placeholder="First name"
               autoComplete="given-name"
             />
@@ -160,18 +174,19 @@ const SignupForm = ({ setSignupConfirmation }) => {
 
           <div className="form-group col-xs-12 col-sm-4">
             <label htmlFor="middle-input">
-              Middle
-              {' '}
-              <span className="hint">(optional)</span>
+              Middle <span className="hint">(optional)</span>
             </label>
             <input
               type="text"
               id="middle-input"
               className="form-control"
               value={middleName}
-              onInput={e => setIsComposing(e.nativeEvent.isComposing)}
+              onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
               onCompositionEnd={() => setIsComposing(false)}
-              onChange={e => setMiddleName(e.target.value)}
+              onChange={(e) => {
+                clearMessage()
+                setMiddleName(e.target.value)
+              }}
               placeholder="Middle name"
               autoComplete="additional-name"
             />
@@ -184,9 +199,12 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id="last-input"
               className="form-control"
               value={lastName}
-              onInput={e => setIsComposing(e.nativeEvent.isComposing)}
+              onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
               onCompositionEnd={() => setIsComposing(false)}
-              onChange={e => setLastName(e.target.value)}
+              onChange={(e) => {
+                clearMessage()
+                setLastName(e.target.value)
+              }}
               placeholder="Last name"
               autoComplete="family-name"
             />
@@ -204,7 +222,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
             : [...profile.emailsConfirmed, ...profile.emails]
 
           if (allEmails.length > 0) {
-            formComponents = Array.from(new Set(allEmails)).map(email => (
+            formComponents = Array.from(new Set(allEmails)).map((email) => (
               <ExistingProfileForm
                 key={`${profile.id} ${email}`}
                 id={profile.id}
@@ -218,22 +236,35 @@ const SignupForm = ({ setSignupConfirmation }) => {
             ))
           } else {
             formComponents = [
-              <ClaimProfileForm key={profile.id} id={profile.id} registerUser={registerUser} />,
+              <ClaimProfileForm
+                key={profile.id}
+                id={profile.id}
+                registerUser={registerUser}
+              />,
             ]
           }
           return formComponents.concat(<hr key={`${profile.id}-spacer`} className="spacer" />)
         })}
 
-        <NewProfileForm id={newUsername} registerUser={registerUser} nameConfirmed={nameConfirmed} />
+        <NewProfileForm
+          id={newUsername}
+          registerUser={registerUser}
+          nameConfirmed={nameConfirmed}
+        />
       </LoadingContext.Provider>
 
       {existingProfiles.length > 0 && (
         <p className="merge-message hint">
-          If two or more of the profiles above belong to you, please
-          {' '}
+          If two or more of the profiles above belong to you, please{' '}
           {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-          <a href="#" data-toggle="modal" data-target="#feedback-modal" onClick={populateFeedbackForm}>contact us</a>
-          {' '}
+          <a
+            href="#"
+            data-toggle="modal"
+            data-target="#feedback-modal"
+            onClick={populateFeedbackForm}
+          >
+            contact us
+          </a>{' '}
           and we will assist you in merging your profiles.
         </p>
       )}
@@ -253,7 +284,13 @@ const SignupForm = ({ setSignupConfirmation }) => {
 }
 
 const ExistingProfileForm = ({
-  id, obfuscatedEmail, hasPassword, isActive, registerUser, resetPassword, sendActivationLink,
+  id,
+  obfuscatedEmail,
+  hasPassword,
+  isActive,
+  registerUser,
+  resetPassword,
+  sendActivationLink,
 }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -299,11 +336,14 @@ const ExistingProfileForm = ({
         />
         {!passwordVisible && (
           <>
-            <button type="submit" className="btn">{buttonLabel}</button>
+            <button type="submit" className="btn">
+              {buttonLabel}
+            </button>
             <span className="new-username hint">
-              {usernameLabel}
-              {' '}
-              <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+              {usernameLabel}{' '}
+              <Link href={`/profile?id=${id}`}>
+                <a>{id}</a>
+              </Link>
             </span>
           </>
         )}
@@ -316,16 +356,17 @@ const ExistingProfileForm = ({
             placeholder={`Full email for ${obfuscatedEmail}`}
             value={email}
             maxLength={254}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
           />
           {hasPassword && (
             <>
               <SubmitButton disabled={!isValidEmail(email)}>{buttonLabel}</SubmitButton>
               <span className="new-username hint">
-                {usernameLabel}
-                {' '}
-                <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+                {usernameLabel}{' '}
+                <Link href={`/profile?id=${id}`}>
+                  <a>{id}</a>
+                </Link>
               </span>
             </>
           )}
@@ -339,7 +380,7 @@ const ExistingProfileForm = ({
               className="form-control"
               placeholder="New password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
               required
             />
@@ -350,7 +391,7 @@ const ExistingProfileForm = ({
               className="form-control"
               placeholder="Confirm new password"
               value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
             <SubmitButton
@@ -359,9 +400,10 @@ const ExistingProfileForm = ({
               {buttonLabel}
             </SubmitButton>
             <span className="new-username hint">
-              {usernameLabel}
-              {' '}
-              <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+              {usernameLabel}{' '}
+              <Link href={`/profile?id=${id}`}>
+                <a>{id}</a>
+              </Link>
             </span>
           </div>
         </>
@@ -391,7 +433,9 @@ const ClaimProfileForm = ({ id, registerUser }) => {
 
     if (!emailVisible) {
       if (!validateFullName()) {
-        promptError('Your name must match the name of the profile you are claiming', { scrollToTop: false })
+        promptError('Your name must match the name of the profile you are claiming', {
+          scrollToTop: false,
+        })
         return
       }
       setEmailVisible(true)
@@ -409,7 +453,9 @@ const ClaimProfileForm = ({ id, registerUser }) => {
   const loadRecentPublications = async () => {
     try {
       const { notes } = await api.get('/notes', {
-        'content.authorids': id, sort: 'cdate:desc', limit: 3,
+        'content.authorids': id,
+        sort: 'cdate:desc',
+        limit: 3,
       })
       setRecentPublications(notes || [])
     } catch (error) {
@@ -430,7 +476,10 @@ const ClaimProfileForm = ({ id, registerUser }) => {
   return (
     <form className="form-inline" onSubmit={handleSubmit}>
       {recentPublications && (
-        <NoteList notes={recentPublications} displayOptions={{ pdfLink: true, htmlLink: true }} />
+        <NoteList
+          notes={recentPublications}
+          displayOptions={{ pdfLink: true, htmlLink: true }}
+        />
       )}
 
       <div>
@@ -440,15 +489,18 @@ const ClaimProfileForm = ({ id, registerUser }) => {
           placeholder="Your full name"
           value={fullName}
           maxLength={254}
-          onChange={e => setFullName(e.target.value)}
+          onChange={(e) => setFullName(e.target.value)}
         />
         {!emailVisible && (
           <>
-            <button type="submit" className="btn" disabled={!fullName}>Claim Profile</button>
+            <button type="submit" className="btn" disabled={!fullName}>
+              Claim Profile
+            </button>
             <span className="new-username hint">
-              for
-              {' '}
-              <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+              for{' '}
+              <Link href={`/profile?id=${id}`}>
+                <a>{id}</a>
+              </Link>
             </span>
           </>
         )}
@@ -462,15 +514,18 @@ const ClaimProfileForm = ({ id, registerUser }) => {
             placeholder="Your email address"
             value={email}
             maxLength={254}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
           />
           {!passwordVisible && (
             <>
-              <button type="submit" className="btn" disabled={!isValidEmail(email)}>Claim Profile</button>
+              <button type="submit" className="btn" disabled={!isValidEmail(email)}>
+                Claim Profile
+              </button>
               <span className="new-username hint">
-                for
-                {' '}
-                <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+                for{' '}
+                <Link href={`/profile?id=${id}`}>
+                  <a>{id}</a>
+                </Link>
               </span>
             </>
           )}
@@ -485,7 +540,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
               className="form-control"
               placeholder="New password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
               required
             />
@@ -496,15 +551,18 @@ const ClaimProfileForm = ({ id, registerUser }) => {
               className="form-control"
               placeholder="Confirm new password"
               value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               autoComplete="new-password"
               required
             />
-            <SubmitButton disabled={!isValidPassword(password, confirmPassword)}>Claim Profile</SubmitButton>
+            <SubmitButton disabled={!isValidPassword(password, confirmPassword)}>
+              Claim Profile
+            </SubmitButton>
             <span className="new-username hint">
-              for
-              {' '}
-              <Link href={`/profile?id=${id}`}><a>{id}</a></Link>
+              for{' '}
+              <Link href={`/profile?id=${id}`}>
+                <a>{id}</a>
+              </Link>
             </span>
           </div>
         </>
@@ -551,15 +609,15 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
           placeholder="Email address"
           value={email}
           maxLength={254}
-          onChange={e => setEmail(e.target.value.trim())}
+          onChange={(e) => setEmail(e.target.value.trim())}
           autoComplete="email"
         />
         {!passwordVisible && (
-          <button type="submit" className="btn" disabled={!id || !isValidEmail(email)}>Sign Up</button>
+          <button type="submit" className="btn" disabled={!id || !isValidEmail(email)}>
+            Sign Up
+          </button>
         )}
-        {!passwordVisible && id && (
-          <span className="new-username hint">{`as ${id}`}</span>
-        )}
+        {!passwordVisible && id && <span className="new-username hint">{`as ${id}`}</span>}
       </div>
       {passwordVisible && (
         <>
@@ -569,7 +627,7 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
               className="form-control"
               placeholder="New password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
               required
             />
@@ -580,11 +638,13 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
               className="form-control"
               placeholder="Confirm new password"
               value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               autoComplete="new-password"
               required
             />
-            <SubmitButton disabled={!isValidPassword(password, confirmPassword)}>Sign Up</SubmitButton>
+            <SubmitButton disabled={!isValidPassword(password, confirmPassword)}>
+              Sign Up
+            </SubmitButton>
             {id && <span className="new-username hint">{`as ${id}`}</span>}
           </div>
         </>
@@ -598,8 +658,7 @@ const SubmitButton = ({ disabled, children }) => {
 
   return (
     <button type="submit" className="btn" disabled={disabled || loading}>
-      {children}
-      {' '}
+      {children}{' '}
       {loading && (
         <div className="spinner-small">
           <div className="rect1" />
@@ -612,9 +671,7 @@ const SubmitButton = ({ disabled, children }) => {
   )
 }
 
-const ConfirmNameModal = ({
-  firstName, middleName, lastName, newUsername, onConfirm,
-}) => {
+const ConfirmNameModal = ({ firstName, middleName, lastName, newUsername, onConfirm }) => {
   const [agreeTerms, setAgreeTerms] = useState(false)
   return (
     <BasicModal
@@ -626,37 +683,26 @@ const ConfirmNameModal = ({
       onClose={() => setAgreeTerms(false)}
     >
       <p className="mb-3">
-        You are registering with the first name
-        {' '}
-        <strong>{firstName}</strong>
-        {
-          middleName && (
-            <>
-              {', '}
-              middle name
-              {' '}
-              <strong>{middleName}</strong>
-            </>
-          )
-        }
-        {' '}
-        and last name
-        {' '}
-        <strong>{lastName}</strong>
+        You are registering with the first name <strong>{firstName}</strong>
+        {middleName && (
+          <>
+            {', '}
+            middle name <strong>{middleName}</strong>
+          </>
+        )}{' '}
+        and last name <strong>{lastName}</strong>
         {'. '}
-        On your OpenReview profile your name will appear as
-        {' '}
-        <strong>{`${firstName} ${lastName}`}</strong>
-        {' '}
-        and your username will be
-        {' '}
-        <strong>{newUsername}</strong>
-        .
+        On your OpenReview profile your name will appear as{' '}
+        <strong>{`${firstName} ${lastName}`}</strong> and your username will be{' '}
+        <strong>{newUsername}</strong>.
       </p>
       <div className="checkbox">
         <label>
-          <input type="checkbox" checked={agreeTerms} onChange={() => setAgreeTerms(value => !value)} />
-          {' '}
+          <input
+            type="checkbox"
+            checked={agreeTerms}
+            onChange={() => setAgreeTerms((value) => !value)}
+          />{' '}
           I confirm my name is correct.
         </label>
       </div>
@@ -672,8 +718,8 @@ const ConfirmationMessage = ({ registrationType, registeredEmail }) => {
         <p>
           An email with the subject &quot;OpenReview Password Reset&quot; has been sent to
           {'  '}
-          <span className="email">{registeredEmail}</span>
-          . Please follow the link in this email to reset your password.
+          <span className="email">{registeredEmail}</span>. Please follow the link in this
+          email to reset your password.
         </p>
       </div>
     )
@@ -683,19 +729,16 @@ const ConfirmationMessage = ({ registrationType, registeredEmail }) => {
     <div className="confirm-message col-sm-12 col-md-10 col-lg-8 col-md-offset-1 col-lg-offset-2">
       <h1>Thank You for Signing Up</h1>
       <p>
-        An email with the subject &quot;OpenReview signup confirmation&quot; has been
-        sent to your email
-        {' '}
-        <span className="email">{registeredEmail}</span>
-        . Please click the link in this email and follow the instructions to confirm
-        your email address and complete registration.
+        An email with the subject &quot;OpenReview signup confirmation&quot; has been sent to
+        your email <span className="email">{registeredEmail}</span>. Please click the link in
+        this email and follow the instructions to confirm your email address and complete
+        registration.
       </p>
       <p>
         <strong>
-          To ensure that you receive all emails from OpenReview, please add noreply@openreview.net
-          to your contacts list.
-        </strong>
-        {' '}
+          To ensure that you receive all emails from OpenReview, please add
+          noreply@openreview.net to your contacts list.
+        </strong>{' '}
         In some rare cases email providers may delay delivery for up to 8 hours. If you have
         not received the confirmation email by then, please contact us.
       </p>

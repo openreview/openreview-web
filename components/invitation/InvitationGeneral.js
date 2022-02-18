@@ -8,9 +8,15 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import SpinnerButton from '../SpinnerButton'
 import EditorSection from '../EditorSection'
-import GroupIdList from '../group/GroupIdList'
+import GroupIdList, { InvitationIdList } from '../group/GroupIdList'
 import api from '../../lib/api-client'
-import { formatDateTime, getDefaultTimezone, prettyId, urlFromGroupId } from '../../lib/utils'
+import {
+  formatDateTime,
+  getDefaultTimezone,
+  getMetaInvitationId,
+  prettyId,
+  urlFromGroupId,
+} from '../../lib/utils'
 
 dayjs.extend(timezone)
 dayjs.extend(utc)
@@ -18,11 +24,14 @@ dayjs.extend(utc)
 const DatetimePicker = dynamic(() => import('../DatetimePicker'))
 const Dropdown = dynamic(() => import('../Dropdown'))
 const TimezoneDropdown = dynamic(() =>
-  import('../Dropdown').then(mod => mod.TimezoneDropdown)
+  import('../Dropdown').then((mod) => mod.TimezoneDropdown)
 )
 
 export const InvitationGeneralView = ({
-  invitation, showEditButton = true, setIsEditMode,
+  invitation,
+  showEditButton = true,
+  setIsEditMode,
+  isMetaInvitation,
 }) => {
   const parentGroupId = invitation.id.split('/-/')[0]
   const isV1Invitation = invitation.apiVersion === 1
@@ -43,6 +52,14 @@ export const InvitationGeneralView = ({
           <a>{prettyId(parentGroupId)}</a>
         </Link>
       </div>
+      {!isV1Invitation && (
+        <div className="row d-flex">
+          <span className="info-title">Invitations:</span>
+          <div>
+            <InvitationIdList invitationIds={invitation.invitations} />
+          </div>
+        </div>
+      )}
       <div className="row d-flex">
         <span className="info-title">Readers:</span>
         <div>
@@ -101,13 +118,13 @@ export const InvitationGeneralView = ({
           {invitation.hideOriginalRevisions?.toString()}
         </div>
       )}
-      {!isV1Invitation && (
+      {!isV1Invitation && !isMetaInvitation && (
         <div className="row d-flex">
           <span className="info-title">Max Replies:</span>
           {invitation.maxReplies}
         </div>
       )}
-      {!isV1Invitation && (
+      {!isV1Invitation && !isMetaInvitation && (
         <div className="row d-flex">
           <span className="info-title">Min Replies:</span>
           {invitation.minReplies}
@@ -173,6 +190,7 @@ const InvitationGeneralEdit = ({
   accessToken,
   loadInvitation,
   setIsEditMode,
+  isMetaInvitation,
 }) => {
   const isV1Invitation = invitation.apiVersion === 1
   const trueFalseOptions = [
@@ -218,11 +236,12 @@ const InvitationGeneralEdit = ({
     activationDateTimezone: getDefaultTimezone().value,
     duedateTimezone: getDefaultTimezone().value,
     expDateTimezone: getDefaultTimezone().value,
+    signatures: invitation.signatures?.join(', '),
   })
 
   // eslint-disable-next-line arrow-body-style
   const stringToArray = (value) => {
-    return value?.split(',')?.flatMap(p => (p.trim() ? p.trim() : []))
+    return value?.split(',')?.flatMap((p) => (p.trim() ? p.trim() : []))
   }
 
   const constructInvitationToPost = async () => {
@@ -243,6 +262,7 @@ const InvitationGeneralEdit = ({
       noninvitees: stringToArray(generalInfo.noninvitees),
       final: stringToArray(generalInfo.final),
       taskCompletionCount: Number(generalInfo.taskCompletionCount),
+      signatures: stringToArray(generalInfo.signatures),
     }
   }
 
@@ -250,7 +270,7 @@ const InvitationGeneralEdit = ({
     const invitationEdit = {
       invitation: {
         id: generalInfo.id,
-        signatures: generalInfo.signatures,
+        signatures: stringToArray(generalInfo.signatures),
         bulk: generalInfo.bulk,
         cdate: Number.isNaN(parseInt(generalInfo.cdate, 10))
           ? null
@@ -262,20 +282,26 @@ const InvitationGeneralEdit = ({
           ? null
           : parseInt(generalInfo.expdate, 10),
         invitees: stringToArray(generalInfo.invitees),
-        maxReplies: Number.isNaN(Number(generalInfo.maxReplies))
-          ? null
-          : Number(generalInfo.maxReplies),
-        minReplies: Number.isNaN(Number(generalInfo.minReplies))
-          ? null
-          : Number(generalInfo.minReplies),
+        ...(!isMetaInvitation && {
+          maxReplies: Number.isNaN(Number(generalInfo.maxReplies))
+            ? null
+            : Number(generalInfo.maxReplies),
+        }),
+        ...(!isMetaInvitation && {
+          minReplies: Number.isNaN(Number(generalInfo.minReplies))
+            ? null
+            : Number(generalInfo.minReplies),
+        }),
         noninvitees: stringToArray(generalInfo.noninvitees),
         nonreaders: stringToArray(generalInfo.nonreaders),
         readers: stringToArray(generalInfo.readers),
         writers: stringToArray(generalInfo.writers),
+        ...(isMetaInvitation && { edit: true }),
       },
       readers: [profileId],
       writers: [profileId],
       signatures: [profileId],
+      ...(!isMetaInvitation && { invitations: getMetaInvitationId(invitation) }),
     }
     return invitationEdit
   }
@@ -287,8 +313,10 @@ const InvitationGeneralEdit = ({
       const requestBody = isV1Invitation
         ? await constructInvitationToPost()
         : await constructInvitationEditToPost()
+      if (!isV1Invitation && !isMetaInvitation && !requestBody.invitations)
+        throw new Error('No meta invitation found')
       await api.post(requestPath, requestBody, { accessToken, version: invitation.apiVersion })
-      promptMessage(`Settings for '${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      promptMessage(`Settings for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
       setIsEditMode(false)
       loadInvitation(invitation.id)
     } catch (error) {
@@ -306,7 +334,7 @@ const InvitationGeneralEdit = ({
             <input
               className="form-control input-sm"
               value={generalInfo.super}
-              onChange={e => setGeneralInfo({ type: 'super', payload: e.target.value })}
+              onChange={(e) => setGeneralInfo({ type: 'super', payload: e.target.value })}
             />
           </div>
         </div>
@@ -317,7 +345,7 @@ const InvitationGeneralEdit = ({
           <input
             className="form-control input-sm"
             value={generalInfo.readers}
-            onChange={e => setGeneralInfo({ type: 'readers', payload: e.target.value })}
+            onChange={(e) => setGeneralInfo({ type: 'readers', payload: e.target.value })}
           />
         </div>
       </div>
@@ -327,7 +355,7 @@ const InvitationGeneralEdit = ({
           <input
             className="form-control input-sm"
             value={generalInfo.nonreaders}
-            onChange={e => setGeneralInfo({ type: 'nonreaders', payload: e.target.value })}
+            onChange={(e) => setGeneralInfo({ type: 'nonreaders', payload: e.target.value })}
           />
         </div>
       </div>
@@ -337,7 +365,7 @@ const InvitationGeneralEdit = ({
           <input
             className="form-control input-sm"
             value={generalInfo.writers}
-            onChange={e => setGeneralInfo({ type: 'writers', payload: e.target.value })}
+            onChange={(e) => setGeneralInfo({ type: 'writers', payload: e.target.value })}
           />
         </div>
       </div>
@@ -347,7 +375,7 @@ const InvitationGeneralEdit = ({
           <input
             className="form-control input-sm"
             value={generalInfo.invitees}
-            onChange={e => setGeneralInfo({ type: 'invitees', payload: e.target.value })}
+            onChange={(e) => setGeneralInfo({ type: 'invitees', payload: e.target.value })}
           />
         </div>
       </div>
@@ -357,7 +385,7 @@ const InvitationGeneralEdit = ({
           <input
             className="form-control input-sm"
             value={generalInfo.noninvitees}
-            onChange={e => setGeneralInfo({ type: 'noninvitees', payload: e.target.value })}
+            onChange={(e) => setGeneralInfo({ type: 'noninvitees', payload: e.target.value })}
           />
         </div>
       </div>
@@ -368,7 +396,7 @@ const InvitationGeneralEdit = ({
             <input
               className="form-control input-sm"
               value={generalInfo.final}
-              onChange={e => setGeneralInfo({ type: 'final', payload: e.target.value })}
+              onChange={(e) => setGeneralInfo({ type: 'final', payload: e.target.value })}
             />
           </div>
         </div>
@@ -381,7 +409,7 @@ const InvitationGeneralEdit = ({
               className="dropdown-select dropdown-sm"
               placeholder="select whether to enable anonymous id"
               options={trueFalseOptions}
-              onChange={e => setGeneralInfo({ type: 'multiReply', payload: e.value })}
+              onChange={(e) => setGeneralInfo({ type: 'multiReply', payload: e.value })}
               value={
                 generalInfo.multiReply
                   ? { value: true, label: 'True' }
@@ -399,7 +427,7 @@ const InvitationGeneralEdit = ({
               type="number"
               className="form-control input-sm"
               value={generalInfo.taskCompletionCount}
-              onChange={e =>
+              onChange={(e) =>
                 setGeneralInfo({ type: 'taskCompletionCount', payload: e.target.value })
               }
             />
@@ -414,7 +442,7 @@ const InvitationGeneralEdit = ({
               className="dropdown-select dropdown-sm"
               placeholder="select whether to hide revisions"
               options={trueFalseOptions}
-              onChange={e =>
+              onChange={(e) =>
                 setGeneralInfo({ type: 'hideOriginalRevisions', payload: e.value })
               }
               value={
@@ -426,7 +454,7 @@ const InvitationGeneralEdit = ({
           </div>
         </div>
       )}
-      {!isV1Invitation && (
+      {!isV1Invitation && !isMetaInvitation && (
         <div className="row d-flex">
           <span className="info-title edit-title">Max Replies:</span>
           <div className="info-edit-control">
@@ -434,12 +462,12 @@ const InvitationGeneralEdit = ({
               type="number"
               className="form-control input-sm"
               value={generalInfo.maxReplies}
-              onChange={e => setGeneralInfo({ type: 'maxReplies', payload: e.target.value })}
+              onChange={(e) => setGeneralInfo({ type: 'maxReplies', payload: e.target.value })}
             />
           </div>
         </div>
       )}
-      {!isV1Invitation && (
+      {!isV1Invitation && !isMetaInvitation && (
         <div className="row d-flex">
           <span className="info-title edit-title">Min Replies:</span>
           <div className="info-edit-control">
@@ -447,7 +475,7 @@ const InvitationGeneralEdit = ({
               type="number"
               className="form-control input-sm"
               value={generalInfo.minReplies}
-              onChange={e => setGeneralInfo({ type: 'minReplies', payload: e.target.value })}
+              onChange={(e) => setGeneralInfo({ type: 'minReplies', payload: e.target.value })}
             />
           </div>
         </div>
@@ -460,7 +488,7 @@ const InvitationGeneralEdit = ({
               className="dropdown-select dropdown-sm"
               placeholder="select whether to bulk"
               options={trueFalseOptions}
-              onChange={e => setGeneralInfo({ type: 'bulk', payload: e.value })}
+              onChange={(e) => setGeneralInfo({ type: 'bulk', payload: e.value })}
               value={
                 generalInfo.bulk
                   ? { value: true, label: 'True' }
@@ -477,12 +505,12 @@ const InvitationGeneralEdit = ({
             <DatetimePicker
               existingValue={generalInfo.cdate}
               timeZone={generalInfo.activationDateTimezone}
-              onChange={e => setGeneralInfo({ type: 'cdate', payload: e })}
+              onChange={(e) => setGeneralInfo({ type: 'cdate', payload: e })}
             />
             <TimezoneDropdown
               className="timezone-dropdown dropdown-sm"
               value={generalInfo.activationDateTimezone}
-              onChange={e =>
+              onChange={(e) =>
                 setGeneralInfo({ type: 'activationDateTimezone', payload: e.value })
               }
             />
@@ -496,12 +524,12 @@ const InvitationGeneralEdit = ({
             <DatetimePicker
               existingValue={generalInfo.duedate}
               timeZone={generalInfo.duedateTimezone}
-              onChange={e => setGeneralInfo({ type: 'duedate', payload: e })}
+              onChange={(e) => setGeneralInfo({ type: 'duedate', payload: e })}
             />
             <TimezoneDropdown
               className="timezone-dropdown dropdown-sm"
               value={generalInfo.duedateTimezone}
-              onChange={e => setGeneralInfo({ type: 'duedateTimezone', payload: e.value })}
+              onChange={(e) => setGeneralInfo({ type: 'duedateTimezone', payload: e.value })}
             />
           </div>
         </div>
@@ -513,12 +541,12 @@ const InvitationGeneralEdit = ({
             <DatetimePicker
               existingValue={generalInfo.expdate}
               timeZone={generalInfo.expDateTimezone}
-              onChange={e => setGeneralInfo({ type: 'expdate', payload: e })}
+              onChange={(e) => setGeneralInfo({ type: 'expdate', payload: e })}
             />
             <TimezoneDropdown
               className="timezone-dropdown dropdown-sm"
               value={generalInfo.expDateTimezone}
-              onChange={e => setGeneralInfo({ type: 'expDateTimezone', payload: e.value })}
+              onChange={(e) => setGeneralInfo({ type: 'expDateTimezone', payload: e.value })}
             />
           </div>
         </div>
@@ -528,8 +556,8 @@ const InvitationGeneralEdit = ({
         <div className="info-edit-control">
           <input
             className="form-control input-sm"
-            value={generalInfo.signatures?.join(', ')}
-            onChange={e => setGeneralInfo({ type: 'signatures', payload: e.target.value })}
+            value={generalInfo.signatures}
+            onChange={(e) => setGeneralInfo({ type: 'signatures', payload: e.target.value })}
           />
         </div>
       </div>
@@ -557,7 +585,13 @@ const InvitationGeneralEdit = ({
   )
 }
 
-const InvitationGeneral = ({ invitation, profileId, accessToken, loadInvitation }) => {
+const InvitationGeneral = ({
+  invitation,
+  profileId,
+  accessToken,
+  loadInvitation,
+  isMetaInvitation,
+}) => {
   const [isEditMode, setIsEditMode] = useState(false)
 
   return (
@@ -569,11 +603,13 @@ const InvitationGeneral = ({ invitation, profileId, accessToken, loadInvitation 
           accessToken={accessToken}
           loadInvitation={loadInvitation}
           setIsEditMode={setIsEditMode}
+          isMetaInvitation={isMetaInvitation}
         />
       ) : (
         <InvitationGeneralView
           invitation={invitation}
           setIsEditMode={() => setIsEditMode(true)}
+          isMetaInvitation={isMetaInvitation}
         />
       )}
     </EditorSection>
