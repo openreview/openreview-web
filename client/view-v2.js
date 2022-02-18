@@ -524,7 +524,7 @@ module.exports = (function() {
       var showPrivateLabel = note.content?.authorids?.readers && !_.isEqual(note.readers?.sort(), note.content.authorids.readers?.sort())
       if (showPrivateLabel){
         var tooltip = `privately revealed to ${note.content?.authorids?.readers?.map(p =>view.prettyId(p)).join(', ')}`
-        privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
+        var privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
         authorText = `${authorText} ${privateLabel}`
       }
     } else {
@@ -534,9 +534,9 @@ module.exports = (function() {
         var signatureLink = prettyProfileLink(signature,view.prettyId(signature), 'signatures');
         if (signatureGroup) {
           var tooltip = `Privately revealed to ${signatureGroup.readers?.map(p => view.prettyId(p)).join(', ')}`
-          privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
-          readerEveryoneLabel = `<span class="private-contents-icon glyphicon glyphicon-globe" title="Publicly revealed to everyone" data-toggle="tooltip" data-placement="bottom"/>`
-          if(signatureGroup.readers?.includes('everyone')) return `${signatureLink} ${readerEveryoneLabel} ${signatureGroup.members.map(q=>prettyProfileLink(q,view.prettyId(q))).join(', ')}`
+          var privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
+          var readerEveryoneLabel = `<span class="private-contents-icon glyphicon glyphicon-globe" title="Publicly revealed to everyone" data-toggle="tooltip" data-placement="bottom"/>`
+          if (signatureGroup.readers?.includes('everyone')) return `${signatureLink} ${readerEveryoneLabel} ${signatureGroup.members.map(q=>prettyProfileLink(q,view.prettyId(q))).join(', ')}`
           return `${signatureLink} ${privateLabel} ${signatureGroup.members.map(q=>prettyProfileLink(q,view.prettyId(q))).join(', ')}`
         }
         return signatureLink;
