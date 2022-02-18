@@ -8,7 +8,13 @@ import InvitationCode from './InvitationCode'
 import InvitationChildInvitations from './InvitationChildInvitations'
 import { isSuperUser } from '../../lib/auth'
 
-const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => {
+const InvitationEditor = ({
+  invitation,
+  isMetaInvitation,
+  user,
+  accessToken,
+  loadInvitation,
+}) => {
   const profileId = user?.profile?.id
   const showProcessEditor = invitation?.apiVersion === 2 || isSuperUser(user)
 
@@ -21,39 +27,45 @@ const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => 
         profileId={profileId}
         accessToken={accessToken}
         loadInvitation={loadInvitation}
+        isMetaInvitation={isMetaInvitation}
       />
-      {invitation.apiVersion === 1 ? (
-        <InvitationReplyWithPreview
-          key={`${invitation.id}-edit`}
-          invitation={invitation}
-          accessToken={accessToken}
-          loadInvitation={loadInvitation}
-        />
-      ) : (
-        <InvitationReply
-          key={`${invitation.id}-edit`}
-          invitation={invitation}
-          profileId={profileId}
-          accessToken={accessToken}
-          loadInvitation={loadInvitation}
-          replyField={invitation.edge ? 'edge' : 'edit'}
-        />
+      {!isMetaInvitation && (
+        <>
+          {invitation.apiVersion === 1 ? (
+            <InvitationReplyWithPreview
+              key={`${invitation.id}-edit`}
+              invitation={invitation}
+              accessToken={accessToken}
+              loadInvitation={loadInvitation}
+            />
+          ) : (
+            <InvitationReply
+              key={`${invitation.id}-edit`}
+              invitation={invitation}
+              profileId={profileId}
+              accessToken={accessToken}
+              loadInvitation={loadInvitation}
+              replyField={invitation.edge ? 'edge' : 'edit'}
+            />
+          )}
+          <InvitationReply
+            key={`${invitation.id}-replyForumViews`}
+            invitation={invitation}
+            profileId={profileId}
+            accessToken={accessToken}
+            loadInvitation={loadInvitation}
+            replyField="replyForumViews"
+          />
+          <InvitationChildInvitations invitation={invitation} />
+        </>
       )}
-      <InvitationReply
-        key={`${invitation.id}-replyForumViews`}
-        invitation={invitation}
-        profileId={profileId}
-        accessToken={accessToken}
-        loadInvitation={loadInvitation}
-        replyField="replyForumViews"
-      />
-      <InvitationChildInvitations invitation={invitation} />
       <InvitationCode
         invitation={invitation}
         profileId={profileId}
         accessToken={accessToken}
         loadInvitation={loadInvitation}
         codeType="web"
+        isMetaInvitation={isMetaInvitation}
       />
       {showProcessEditor && (
         <InvitationCode
@@ -62,6 +74,7 @@ const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => 
           accessToken={accessToken}
           loadInvitation={loadInvitation}
           codeType="process"
+          isMetaInvitation={isMetaInvitation}
         />
       )}
       {showProcessEditor && (
@@ -71,6 +84,7 @@ const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => 
           accessToken={accessToken}
           loadInvitation={loadInvitation}
           codeType="preprocess"
+          isMetaInvitation={isMetaInvitation}
         />
       )}
     </div>

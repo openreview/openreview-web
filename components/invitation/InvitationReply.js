@@ -7,7 +7,7 @@ import SpinnerButton from '../SpinnerButton'
 import Tabs from '../Tabs'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
+import { getMetaInvitationId, prettyId } from '../../lib/utils'
 
 // Used for both reply/edit and reply forum views
 export default function InvitationReply({
@@ -33,6 +33,7 @@ export default function InvitationReply({
   const sectionTitle = titleMap[replyField] || replyField
 
   const getRequestBody = (replyObj) => {
+    const metaInvitationId = getMetaInvitationId(invitation)
     switch (replyField) {
       case 'reply':
         return {
@@ -42,6 +43,7 @@ export default function InvitationReply({
           rdate: undefined,
         }
       case 'edge':
+        if (!metaInvitationId) throw new Error('No meta invitation found')
         return {
           invitation: {
             id: invitation.id,
@@ -51,43 +53,42 @@ export default function InvitationReply({
           readers: [profileId],
           writers: [profileId],
           signatures: [profileId],
+          invitations: metaInvitationId,
         }
       case 'replyForumViews':
-        return isV1Invitation
-          ? {
-              ...invitation,
-              replyForumViews: replyObj,
-              apiVersion: undefined,
-              rdate: undefined,
-            }
-          : {
-              invitation: {
-                id: invitation.id,
-                signatures: invitation.signatures,
-                replyForumViews: replyObj,
-              },
-              readers: [profileId],
-              writers: [profileId],
-              signatures: [profileId],
-            }
+        if (isV1Invitation)
+          return {
+            ...invitation,
+            replyForumViews: replyObj,
+            apiVersion: undefined,
+            rdate: undefined,
+          }
+        if (!metaInvitationId) throw new Error('No meta invitation found')
+        return {
+          invitation: {
+            id: invitation.id,
+            signatures: invitation.signatures,
+            replyForumViews: replyObj,
+          },
+          readers: [profileId],
+          writers: [profileId],
+          signatures: [profileId],
+          invitations: metaInvitationId,
+        }
       case 'edit':
+        if (!metaInvitationId) throw new Error('No meta invitation found')
         return {
           invitation: {
             id: invitation.id,
             signatures: invitation.signatures,
             edit: {
-              note: {
-                signatures: null,
-                readers: null,
-                writers: null,
-                content: invitation.edit.note.content,
-              },
               ...replyObj,
             },
           },
           readers: [profileId],
           writers: [profileId],
           signatures: [profileId],
+          invitations: metaInvitationId,
         }
       default:
         return null
