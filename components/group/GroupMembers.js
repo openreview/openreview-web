@@ -15,7 +15,6 @@ const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }
   const [subject, setSubject] = useState(`Message to ${prettyId(groupId)}`)
   const [message, setMessage] = useState('')
   const [error, setError] = useState(null)
-  const resetTabIndex = useRef(null)
 
   const sendMessage = async () => {
     const sanitizedMessage = DOMPurify.sanitize(marked(message))
@@ -55,7 +54,6 @@ const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }
       onPrimaryButtonClick={sendMessage}
       onClose={() => {
         setMessage('')
-        resetTabIndex.current()
       }}
     >
       {error && <div className="alert alert-danger">{error}</div>}
@@ -97,7 +95,6 @@ const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }
             value={message}
             onValueChanged={setMessage}
             placeholder="Message"
-            resetTabIndex={resetTabIndex}
           />
         </div>
       </div>

@@ -1,61 +1,51 @@
-import { useEffect, useState } from 'react'
-
-const Tabs = ({
-  defaultActiveTabIndex = 0,
-  className,
-  tabNames,
-  tabContents,
-  tabEvents,
-  resetTabIndex,
-}) => {
-  const [activeTabIndex, setActiveTabIndex] = useState(defaultActiveTabIndex)
-
-  useEffect(() => {
-    if (!resetTabIndex) return
-    // eslint-disable-next-line no-param-reassign
-    resetTabIndex.current = () => setActiveTabIndex(defaultActiveTabIndex)
-  }, [])
-
+export function Tabs({ children, className }) {
   return (
-    <div className={className} role="tablist">
-      <ul className="nav nav-tabs">
-        {tabNames.map((tabName, index) => (
-          <li
-            role="presentation"
-            key={index}
-            className={index === activeTabIndex ? 'active' : ''}
-          >
-            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-            <a
-              data-target={`#${tabName}`}
-              aria-controls={tabName}
-              role="tab"
-              onClick={() => {
-                setActiveTabIndex(index)
-                if (tabEvents?.[index]) {
-                  tabEvents[index]()
-                }
-              }}
-            >
-              {tabName}
-            </a>
-          </li>
-        ))}
-      </ul>
-      <div className="tab-content">
-        {tabNames.map((tabName, index) => (
-          <div
-            key={index}
-            role="tabpanel"
-            className={`tab-pane ${index === activeTabIndex ? 'active' : ''}`}
-            id={tabName}
-          >
-            {tabContents[index]}
-          </div>
-        ))}
-      </div>
+    <div className={`tabs-container ${className || ''}`}>
+      {children}
     </div>
   )
 }
 
-export default Tabs
+export function TabList({ children }) {
+  return (
+    <div className="mobile-full-width">
+      <ul className="nav nav-tabs" role="tablist">
+        {children}
+      </ul>
+    </div>
+  )
+}
+
+export function Tab({ id, headingCount, active, children }) {
+  return (
+    <li role="presentation" className={active ? 'active' : null}>
+      <a href={`#${id}`} aria-controls={id} role="tab" data-toggle="tab" data-modify-history="true">
+        {children}
+        {' '}
+        {headingCount && (
+          <span className="badge">{headingCount}</span>
+        )}
+      </a>
+    </li>
+  )
+}
+
+export function TabPanels({ children }) {
+  return (
+    <div className="tab-content">
+      {children}
+    </div>
+  )
+}
+
+export function TabPanel({ id, active, className, children }) {
+  return (
+    <div
+      id={id}
+      className={`tab-pane fade ${className}} ${active ? 'active' : ''}`}
+      role="tabpanel"
+    >
+      {children}
+    </div>
+  )
+}
