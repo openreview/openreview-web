@@ -3496,7 +3496,7 @@ module.exports = (function() {
           : $.Deferred().resolve(note);
         var noteLatestNoteErrorMessage = 'This note has been edited since you opened it. Please refresh the page and try again.';
 
-        $.when(latestNotePromise).then(function(latestNote) {
+        latestNotePromise.then(function(latestNote) {
           if(!(latestNote.tmdate===note.tmdate)){
             params.onError?params.onError([noteLatestNoteErrorMessage]):promptError(noteLatestNoteErrorMessage);
             return
