@@ -60,6 +60,7 @@ export default class OpenReviewApp extends App {
       accessToken: userAccessToken,
       logoutRedirect: false,
     })
+    setAuthCookie(userAccessToken)
 
     // Need pass new accessToken to Webfield so legacy ajax functions work
     window.Webfield.setToken(userAccessToken)
