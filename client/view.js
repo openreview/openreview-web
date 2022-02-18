@@ -3490,10 +3490,13 @@ module.exports = (function() {
         var latestNotePromise = note.id
           ? Webfield.get("/notes", {
               id: note.id
-            }).then(function (result) {
-              return result.notes[0];
-            })
-          : $.Deferred().resolve(note);
+          }, {
+            handleErrors: false
+          }).then(function (result) {
+            return result.notes[0];
+          }, function () {
+            return $.Deferred().resolve(note);
+          }) : $.Deferred().resolve(note);
         var noteLatestNoteErrorMessage = 'This note has been edited since you opened it. Please refresh the page and try again.';
 
         latestNotePromise.then(function(latestNote) {

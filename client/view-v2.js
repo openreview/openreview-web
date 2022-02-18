@@ -1460,10 +1460,13 @@ module.exports = (function() {
         const latestNotePromise = note.id
           ? Webfield2.get("/notes", {
               id: note.id
-            }).then(function (result) {
-              return result.notes[0];
-            })
-          : $.Deferred().resolve(note);
+          }, {
+            handleErrors: false
+          }).then(function (result) {
+            return result.notes[0];
+          }, function () {
+            return $.Deferred().resolve(note);
+          }) : $.Deferred().resolve(note);
         const noteLatestNoteErrorMessage = 'This note has been edited since you opened it. Please refresh the page and try again.';
 
         latestNotePromise.then(function(latestNote) {
