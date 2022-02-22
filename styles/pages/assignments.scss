@@ -1,7 +1,6 @@
-@use "../utils/constants";
+@use '../utils/constants';
 
 main.assignments-list {
-
   header {
     margin-top: 1rem;
     margin-bottom: 2.5rem;
@@ -23,7 +22,7 @@ main.assignments-list {
   .assignments-table {
     margin-bottom: 2rem;
     .assignment-label {
-      overflow: hidden;
+      word-wrap: break-word;
     }
     .btn-link {
       text-align: left;
@@ -43,7 +42,7 @@ main.assignments-list {
       }
     }
     span.glyphicon {
-      padding-right: .5rem;
+      padding-right: 0.5rem;
     }
   }
 
@@ -59,9 +58,8 @@ main.assignments-list {
         font-size: 1.25rem;
         line-height: normal;
         font-weight: bold;
-        margin-bottom: .5rem;
+        margin-bottom: 0.5rem;
       }
     }
   }
-
 }
