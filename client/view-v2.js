@@ -160,89 +160,87 @@ module.exports = (function() {
     fieldValue = valueInNote || fieldDefault;  // These will always be mutually exclusive
 
     var $input;
-    if (_.has(fieldDescription.value, 'const') && fieldDescription.value.type === 'string') {
-      contentInputResult = valueInput($('<input>', {
-        type: 'text',
-        class: 'form-control note_content_value',
-        name: fieldName,
-        value: fieldDescription.value.const,
-        readonly: true
-      }), fieldName, fieldDescription);
-
-    } else if (_.has(fieldDescription.value, 'const') &&
-    (fieldDescription.value.type == 'string[]' || fieldDescription.value.type == 'group[]')) {
-      contentInputResult = view.mkDropdownAdder(
-        fieldName, fieldDescription.description, fieldDescription.value.const,
-        fieldValue, { hoverText: true, refreshData: false, required: !fieldDescription.value.optional }
-      );
-
-    } else if (_.has(fieldDescription.value, 'regex') && fieldDescription.value.type === 'string') {
-      var $inputGroup;
-      // Create a new regex that doesn't include min and max length
-      var regexStr = fieldDescription.value.regex;
-      var re = new RegExp('^' + regexStr.replace(/\{\d+,\d+\}\$$/, '') + '$');
-      var newlineMatch = '\n'.match(re);
-      if (newlineMatch && newlineMatch.length) {
-        $input = $('<textarea>', {
-          class: 'note_content_value form-control',
+    if (_.has(fieldDescription.value, 'const')) {
+      if (fieldDescription.value.type.endsWith('[]')) { //then treat as values
+        contentInputResult = view.mkDropdownAdder(
+          fieldName, fieldDescription.description, fieldDescription.value.const,
+          fieldValue, { hoverText: true, refreshData: false, required: !fieldDescription.value.optional }
+        );
+      } else { //treat as value
+        contentInputResult = valueInput($('<input>', {
+          type: 'text',
+          class: 'form-control note_content_value',
           name: fieldName,
-          text: fieldValue
-        });
-
-        if (fieldDescription.presentation?.markdown) {
-          $inputGroup = markdownInput($input, fieldName, fieldDescription);
+          value: fieldDescription.value.const,
+          readonly: true
+        }), fieldName, fieldDescription);
+      }
+    } else if (_.has(fieldDescription.value, 'regex')) {
+      if (fieldDescription.value.type.endsWith('[]')) { //then treat as values-regex
+        if (params && params.groups) {
+          var groupIds = _.map(params.groups, function (g) {
+            return g.id;
+          });
+          contentInputResult = view.mkDropdownAdder(
+            fieldName, fieldDescription.description, groupIds,
+            fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.optional }
+          );
         } else {
-          $inputGroup = valueInput($input, fieldName, fieldDescription);
+          $input = $('<input>', {
+            type: 'text',
+            class: 'form-control note_content_value',
+            name: fieldName,
+            value: fieldValue
+          });
+          $input.addClass('autosave-enabled');
+          contentInputResult = valueInput($input, fieldName, fieldDescription);
         }
+      } else { //then treat as value-regex
+        var $inputGroup;
+        // Create a new regex that doesn't include min and max length
+        var regexStr = fieldDescription.value.regex;
+        var re = new RegExp('^' + regexStr.replace(/\{\d+,\d+\}\$$/, '') + '$');
+        var newlineMatch = '\n'.match(re);
+        if (newlineMatch && newlineMatch.length) {
+          $input = $('<textarea>', {
+            class: 'note_content_value form-control',
+            name: fieldName,
+            text: fieldValue
+          });
 
-        if (!_.get(fieldDescription.presentation, 'hideCharCounter', false)) {
-          var lenMatches = _.get(fieldDescription.value, 'regex', '').match(/\{(\d+),(\d+)\}\$$/);
-          if (lenMatches) {
-            var minLen = parseInt(lenMatches[1], 10);
-            var maxLen = parseInt(lenMatches[2], 10);
-            minLen = (isNaN(minLen) || minLen < 0) ? 0 : minLen;
-            maxLen = (isNaN(maxLen) || maxLen < minLen) ? 0 : maxLen;
-            if (minLen || maxLen) {
-              $inputGroup.append(mkCharCouterWidget($input, minLen, maxLen));
-              if (fieldValue) {
-                $input.trigger('keyup');
+          if (fieldDescription.presentation?.markdown) {
+            $inputGroup = markdownInput($input, fieldName, fieldDescription);
+          } else {
+            $inputGroup = valueInput($input, fieldName, fieldDescription);
+          }
+
+          if (!_.get(fieldDescription.presentation, 'hideCharCounter', false)) {
+            var lenMatches = _.get(fieldDescription.value, 'regex', '').match(/\{(\d+),(\d+)\}\$$/);
+            if (lenMatches) {
+              var minLen = parseInt(lenMatches[1], 10);
+              var maxLen = parseInt(lenMatches[2], 10);
+              minLen = (isNaN(minLen) || minLen < 0) ? 0 : minLen;
+              maxLen = (isNaN(maxLen) || maxLen < minLen) ? 0 : maxLen;
+              if (minLen || maxLen) {
+                $inputGroup.append(mkCharCouterWidget($input, minLen, maxLen));
+                if (fieldValue) {
+                  $input.trigger('keyup');
+                }
               }
             }
           }
+        } else {
+          $input = $('<input>', {
+            type: 'text',
+            class: 'form-control note_content_value',
+            name: fieldName,
+            value: fieldValue
+          });
+          $inputGroup = valueInput($input, fieldName, fieldDescription); //input will probably be omitted field when rendered
         }
-      } else {
-        $input = $('<input>', {
-          type: 'text',
-          class: 'form-control note_content_value',
-          name: fieldName,
-          value: fieldValue
-        });
-        $inputGroup = valueInput($input, fieldName, fieldDescription); //input will probably be omitted field when rendered
-      }
-      $input.addClass('autosave-enabled');
-      contentInputResult = $inputGroup;
-
-    } else if (_.has(fieldDescription.value, 'regex') &&
-    (fieldDescription.value.type === 'string[]' || fieldDescription.value.type === 'group[]')) {
-      if (params && params.groups) {
-        var groupIds = _.map(params.groups, function (g) {
-          return g.id;
-        });
-        contentInputResult = view.mkDropdownAdder(
-          fieldName, fieldDescription.description, groupIds,
-          fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.optional }
-        );
-      } else {
-        $input = $('<input>', {
-          type: 'text',
-          class: 'form-control note_content_value',
-          name: fieldName,
-          value: fieldValue
-        });
         $input.addClass('autosave-enabled');
-        contentInputResult = valueInput($input, fieldName, fieldDescription);
+        contentInputResult = $inputGroup;
       }
-
     } else if (_.has(fieldDescription.value, 'value-dropdown')) {
       contentInputResult = view.mkDropdownList(
         fieldName, fieldDescription.description, fieldValue,
@@ -1755,6 +1753,7 @@ module.exports = (function() {
   const validate = (invitation, formContent, readersWidget) => {
     const errorList = [];
     const invitationEditContent = invitation.edit?.note?.content;
+    console.log(formContent);
 
     Object.keys(invitationEditContent).forEach(function(fieldName) {
       if (fieldName === 'pdf' && !invitationEditContent.pdf.value?.optional) {
