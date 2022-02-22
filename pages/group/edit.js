@@ -6,14 +6,14 @@ import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import GroupEditor from '../../components/group/GroupEditor'
-import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import { isSuperUser } from '../../lib/auth'
+import useUser from '../../hooks/useUser'
 
 export default function GroupEdit({ appContext }) {
-  const { accessToken, userLoading, user } = useLoginRedirect()
+  const { accessToken, userLoading, user } = useUser()
   const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
 
