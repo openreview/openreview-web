@@ -30,6 +30,7 @@ export default function ProfileEntity(props) {
   // Format profile data for rendering
   const {
     id,
+    email,
     content,
     editEdges,
     editEdgeTemplates,
@@ -393,6 +394,7 @@ export default function ProfileEntity(props) {
           </a>
         </h3>
 
+        <p onClick={(e) => e.stopPropagation()}>{content.email}</p>
         <p>{content.title}</p>
       </div>
 
@@ -429,14 +431,14 @@ export default function ProfileEntity(props) {
                   {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
                   {props.traverseLabel} ({props.profile.traverseEdgesCount}) &raquo;
                 </a>
-              ) : props.showCounter &&
-                (
+              ) : (
+                props.showCounter && (
                   <>
-                  <span>{`${props.traverseLabel}:`}</span>{' '}
-                  <span>{props.profile.traverseEdgesCount}</span>
+                    <span>{`${props.traverseLabel}:`}</span>{' '}
+                    <span>{props.profile.traverseEdgesCount}</span>
                   </>
                 )
-              }
+              )}
             </li>
           </ul>
         </div>
