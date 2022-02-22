@@ -260,7 +260,9 @@ export default class OpenReviewApp extends App {
     if (!authCookieData.user && refreshFlag && refreshFlag + refreshExpiration > Date.now()) {
       OpenReviewApp.attemptRefresh().then((refreshCookieData) => {
         setUserState(refreshCookieData)
-        setAuthCookie(refreshCookieData.token)
+        if (refreshCookieData.token) {
+          setAuthCookie(refreshCookieData.token)
+        }
       })
     } else {
       setUserState(authCookieData)
