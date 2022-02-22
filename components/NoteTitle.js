@@ -73,23 +73,18 @@ export const NoteTitleV2 = ({
   signatures,
   options = {},
 }) => {
-  const baseAttachmentPath = options.isReference ? '/notes/edits/attachment' : '/attachment'
   return (
     <h4>
-      {options.isReference ? (
+      <Link
+        href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}${
+          options.referrer ? `&referrer=${options.referrer}` : ''
+        }`}
+      >
         <a>{content.title?.value || buildNoteTitle(invitation, signatures)}</a>
-      ) : (
-        <Link
-          href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}${
-            options.referrer ? `&referrer=${options.referrer}` : ''
-          }`}
-        >
-          <a>{content.title?.value || buildNoteTitle(invitation, signatures)}</a>
-        </Link>
-      )}
+      </Link>
 
       {options.pdfLink && content.pdf?.value && (
-        <Link href={`${baseAttachmentPath}?id=${id}&name=pdf`}>
+        <Link href={`/attachment?id=${id}&name=pdf`}>
           <a className="pdf-link" title="Download PDF" target="_blank">
             <img src="/images/pdf_icon_blue.svg" alt="pdf icon" />
           </a>

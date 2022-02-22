@@ -5,7 +5,7 @@ import EditValue from './EditValue'
 
 const Edit = ({ edit, options }) => (
   <div className={`edit ${options.extraClasses ?? ''}`}>
-    <EditTitle invitation={edit.invitations[0]} signatures={edit.signatures} />
+    <EditTitle edit={edit} options={options} />
 
     <ul className="edit_meta_info list-inline">
       <li>
