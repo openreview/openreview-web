@@ -255,9 +255,9 @@ module.exports = (function() {
         fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.optional, alwaysHaveValues: fieldDescription.presentation?.default }
       );
 
-    } else if (_.has(fieldDescription.value, 'value-radio')) {
+    } else if (_.has(fieldDescription.value, 'enum') && (fieldDescription.presentation.input === 'radio')) {
       $input = $('<div>', { class: 'note_content_value value-radio-container' }).append(
-        _.map(fieldDescription.value['value-radio'], function (v) {
+        _.map(fieldDescription.value.enum, function (v) {
           return $('<div>', { class: 'radio' }).append(
             $('<label>').append(
               $('<input>', {
