@@ -258,7 +258,10 @@ export default class OpenReviewApp extends App {
     // Access token may be expired, but refresh token is valid for 6 more days
     const refreshFlag = Number(window.localStorage.getItem('openreview.lastLogin') || 0)
     if (!authCookieData.user && refreshFlag && refreshFlag + refreshExpiration > Date.now()) {
-      OpenReviewApp.attemptRefresh().then(setUserState)
+      OpenReviewApp.attemptRefresh().then((refreshCookieData) => {
+        setUserState(refreshCookieData)
+        setAuthCookie(refreshCookieData.token)
+      })
     } else {
       setUserState(authCookieData)
     }
