@@ -9,7 +9,7 @@ import EdgeBrowser from '../../components/browser/EdgeBrowser'
 import EdgeBrowserHeader from '../../components/browser/EdgeBrowserHeader'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import api from '../../lib/api-client'
-import { parseEdgeList, buildInvitationReplyArr, translateFieldSpec } from '../../lib/edge-utils'
+import { parseEdgeList, buildInvitationReplyArr, translateFieldSpec, translateSignatures } from '../../lib/edge-utils'
 import { referrerLink } from '../../lib/banner-links'
 
 const Browse = ({ appContext }) => {
@@ -109,7 +109,8 @@ const Browse = ({ appContext }) => {
 
           const readers = buildInvitationReplyArr(fullInvitation, 'readers', user.profile.id)
           const writers = buildInvitationReplyArr(fullInvitation, 'writers', user.profile.id) || readers
-          const signatures = apiVersion === 2 ? fullInvitation.edge?.signatures : fullInvitation.reply?.signatures
+          const signatures = translateSignatures(fullInvitation.edge?.signatures, apiVersion)
+          console.log('SIGNATURES', signatures)
           const nonreaders = buildInvitationReplyArr(fullInvitation, 'nonreaders', user.profile.id)
           Object.assign(invObj, {
             head: translateFieldSpec(fullInvitation, 'head', apiVersion),
@@ -137,6 +138,7 @@ const Browse = ({ appContext }) => {
         })
       })
       .catch((apiError) => {
+        console.log(apiError)
         if (typeof apiError === 'object' && apiError.name) {
           if (apiError.name === 'NotFoundError') {
             setError(notFoundError)
