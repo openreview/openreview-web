@@ -160,25 +160,26 @@ module.exports = (function() {
     fieldValue = valueInNote || fieldDefault;  // These will always be mutually exclusive
 
     var $input;
-    if (_.has(fieldDescription.value, 'value')) {
+    if (_.has(fieldDescription.value, 'const') && fieldDescription.value.type === 'string') {
       contentInputResult = valueInput($('<input>', {
         type: 'text',
         class: 'form-control note_content_value',
         name: fieldName,
-        value: fieldDescription.value.value,
+        value: fieldDescription.value.const,
         readonly: true
       }), fieldName, fieldDescription);
 
-    } else if (_.has(fieldDescription.value, 'values')) {
+    } else if (_.has(fieldDescription.value, 'const') &&
+    (fieldDescription.value.type == 'string[]' || fieldDescription.value.type == 'group[]')) {
       contentInputResult = view.mkDropdownAdder(
-        fieldName, fieldDescription.description, fieldDescription.value.values,
+        fieldName, fieldDescription.description, fieldDescription.value.const,
         fieldValue, { hoverText: true, refreshData: false, required: !fieldDescription.value.optional }
       );
 
-    } else if (_.has(fieldDescription.value, 'value-regex')) {
+    } else if (_.has(fieldDescription.value, 'regex') && fieldDescription.value.type === 'string') {
       var $inputGroup;
       // Create a new regex that doesn't include min and max length
-      var regexStr = fieldDescription.value['value-regex'];
+      var regexStr = fieldDescription.value.regex;
       var re = new RegExp('^' + regexStr.replace(/\{\d+,\d+\}\$$/, '') + '$');
       var newlineMatch = '\n'.match(re);
       if (newlineMatch && newlineMatch.length) {
@@ -195,7 +196,7 @@ module.exports = (function() {
         }
 
         if (!_.get(fieldDescription.presentation, 'hideCharCounter', false)) {
-          var lenMatches = _.get(fieldDescription.value, 'value-regex', '').match(/\{(\d+),(\d+)\}\$$/);
+          var lenMatches = _.get(fieldDescription.value, 'regex', '').match(/\{(\d+),(\d+)\}\$$/);
           if (lenMatches) {
             var minLen = parseInt(lenMatches[1], 10);
             var maxLen = parseInt(lenMatches[2], 10);
@@ -221,7 +222,8 @@ module.exports = (function() {
       $input.addClass('autosave-enabled');
       contentInputResult = $inputGroup;
 
-    } else if (_.has(fieldDescription.value, 'values-regex')) {
+    } else if (_.has(fieldDescription.value, 'regex') &&
+    (fieldDescription.value.type === 'string[]' || fieldDescription.value.type === 'group[]')) {
       if (params && params.groups) {
         var groupIds = _.map(params.groups, function (g) {
           return g.id;
@@ -964,7 +966,6 @@ module.exports = (function() {
       ret[k] = mkComposerInput(k, invitation.edit?.note?.content?.[k], invitation.edit?.note?.content?.[k]?.presentation?.default || '', { useDefaults: true, user: user});
       return ret;
     }, {});
-
     function buildEditor(editReaders, editSignatures, noteReaders, noteSignatures) {
       var $submitButton = $('<button class="btn btn-sm">Submit</button>');
       var $cancelButton = $('<button class="btn btn-sm">Cancel</button>');
@@ -1346,20 +1347,20 @@ module.exports = (function() {
         $readers.find('.small_heading').prepend(requiredText);
         done($readers);
       });
-    } else if (_.has(fieldDescription, 'values')) {
-      return setParentReaders(replyto, fieldDescription, 'values', function(newFieldDescription) {
-        if (fieldDescription.values?.[0] === "${{note.replyto}.readers}") {
-          fieldDescription.values = newFieldDescription.values;
+    } else if (_.has(fieldDescription, 'const') && (fieldDescription.type == 'string[]' || fieldDescription.type == 'group[]')) {
+      return setParentReaders(replyto, fieldDescription, 'const', function(newFieldDescription) {
+        if (fieldDescription.const?.[0] === "${{note.replyto}.readers}") {
+          fieldDescription.const = newFieldDescription.const;
         }
-        var subsetReaders = fieldDescription.values.every(function (val) {
-          var found = newFieldDescription.values.indexOf(val) !== -1;
+        var subsetReaders = fieldDescription.const.every(function (val) {
+          var found = newFieldDescription.const.indexOf(val) !== -1;
           if (!found && val.includes('/Reviewer_')) {
-            var hasReviewers = _.find(newFieldDescription.values, function(v) { return v.includes('/Reviewers')});
+            var hasReviewers = _.find(newFieldDescription.const, function(v) { return v.includes('/Reviewers')});
             return hasReviewers;
           }
           return found;
           })
-        if (_.isEqual(newFieldDescription.values, fieldDescription.values) || subsetReaders) {
+        if (_.isEqual(newFieldDescription.const, fieldDescription.const) || subsetReaders) {
           var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue); //for values, readers must match with invitation instead of parent invitation
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
