@@ -72,38 +72,36 @@ export const NoteTitleV2 = ({
   content = {},
   signatures,
   options = {},
-}) => {
-  return (
-    <h4>
-      <Link
-        href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}${
-          options.referrer ? `&referrer=${options.referrer}` : ''
-        }`}
-      >
-        <a>{content.title?.value || buildNoteTitle(invitation, signatures)}</a>
-      </Link>
+}) => (
+  <h4>
+    <Link
+      href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}${
+        options.referrer ? `&referrer=${options.referrer}` : ''
+      }`}
+    >
+      <a>{content.title?.value || buildNoteTitle(invitation, signatures)}</a>
+    </Link>
 
-      {options.pdfLink && content.pdf?.value && (
-        <Link href={`/attachment?id=${id}&name=pdf`}>
-          <a className="pdf-link" title="Download PDF" target="_blank">
-            <img src="/images/pdf_icon_blue.svg" alt="pdf icon" />
-          </a>
-        </Link>
-      )}
-
-      {options.htmlLink && content.html?.value && (
-        <a
-          href={content.html.value}
-          className="html-link"
-          title="Open Website"
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          <img src="/images/html_icon_blue.svg" alt="hmtl icon" />
+    {options.pdfLink && content.pdf?.value && (
+      <Link href={`/attachment?id=${id}&name=pdf`}>
+        <a className="pdf-link" title="Download PDF" target="_blank">
+          <img src="/images/pdf_icon_blue.svg" alt="pdf icon" />
         </a>
-      )}
-    </h4>
-  )
-}
+      </Link>
+    )}
+
+    {options.htmlLink && content.html?.value && (
+      <a
+        href={content.html.value}
+        className="html-link"
+        title="Open Website"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <img src="/images/html_icon_blue.svg" alt="hmtl icon" />
+      </a>
+    )}
+  </h4>
+)
 
 export default NoteTitle
