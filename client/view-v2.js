@@ -161,12 +161,14 @@ module.exports = (function() {
 
     var $input;
     if (_.has(fieldDescription.value, 'const')) {
-      if (fieldDescription.value.type.endsWith('[]')) { //then treat as values
+      if (Array.isArray(fieldDescription.value.const) || fieldDescription.value.type.endsWith('[]')) {
+        //then treat as values
         contentInputResult = view.mkDropdownAdder(
           fieldName, fieldDescription.description, fieldDescription.value.const,
           fieldValue, { hoverText: true, refreshData: false, required: !fieldDescription.value.optional }
         );
-      } else { //treat as value
+      } else {
+        //treat as value
         contentInputResult = valueInput($('<input>', {
           type: 'text',
           class: 'form-control note_content_value',
@@ -176,7 +178,8 @@ module.exports = (function() {
         }), fieldName, fieldDescription);
       }
     } else if (_.has(fieldDescription.value, 'regex')) {
-      if (fieldDescription.value.type.endsWith('[]')) { //then treat as values-regex
+      if (fieldDescription.value.type.endsWith('[]')) {
+        //then treat as values-regex
         if (params && params.groups) {
           var groupIds = _.map(params.groups, function (g) {
             return g.id;
@@ -195,7 +198,8 @@ module.exports = (function() {
           $input.addClass('autosave-enabled');
           contentInputResult = valueInput($input, fieldName, fieldDescription);
         }
-      } else { //then treat as value-regex
+      } else {
+        //then treat as value-regex
         var $inputGroup;
         // Create a new regex that doesn't include min and max length
         var regexStr = fieldDescription.value.regex;
@@ -241,61 +245,53 @@ module.exports = (function() {
         $input.addClass('autosave-enabled');
         contentInputResult = $inputGroup;
       }
-    } else if (_.has(fieldDescription.value, 'value-dropdown')) {
-      contentInputResult = view.mkDropdownList(
-        fieldName, fieldDescription.description, fieldValue,
-        fieldDescription.value['value-dropdown'], !fieldDescription.value.optional
-      );
+    } else if (_.has(fieldDescription.value, 'enum')) {
+      if (fieldDescription.presentation?.input === 'radio') {
+        $input = $('<div>', { class: 'note_content_value value-radio-container' }).append(
+          _.map(fieldDescription.value.enum, function (v) {
+            return $('<div>', { class: 'radio' }).append(
+              $('<label>').append(
+                $('<input>', {
+                  type: 'radio',
+                  name: fieldName,
+                  id: _.kebabCase(fieldName) + '-' + _.kebabCase(v),
+                  value: v,
+                  checked: fieldValue === v,
+                }),
+                v
+              )
+            );
+          })
+        );
+        contentInputResult = valueInput($input, fieldName, fieldDescription);
+      } else if (fieldDescription.presentation?.input === 'checkbox') {
+        var options = fieldDescription.value.type.endsWith('[]') ?
+          fieldDescription.value.enum :
+          [fieldDescription.value.enum];
+        var checkedValues = _.isArray(fieldValue) ? fieldValue : [fieldValue];
+        var requiredValues = fieldDescription.presentation?.default;
 
-    } else if (_.has(fieldDescription.value, 'values-dropdown')) {
-      contentInputResult = view.mkDropdownAdder(
-        fieldName, fieldDescription.description, fieldDescription.value['values-dropdown'],
-        fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.optional, alwaysHaveValues: fieldDescription.presentation?.default }
-      );
-
-    } else if (_.has(fieldDescription.value, 'enum') && (fieldDescription.presentation.input === 'radio')) {
-      $input = $('<div>', { class: 'note_content_value value-radio-container' }).append(
-        _.map(fieldDescription.value.enum, function (v) {
-          return $('<div>', { class: 'radio' }).append(
-            $('<label>').append(
-              $('<input>', {
-                type: 'radio',
-                name: fieldName,
-                id: _.kebabCase(fieldName) + '-' + _.kebabCase(v),
-                value: v,
-                checked: fieldValue === v,
-              }),
-              v
-            )
+        var checkboxes = _.map(options, function (option) {
+          var checked = _.includes(checkedValues, option) ? 'checked' : '';
+          var disabled = _.includes(requiredValues, option) ? 'disabled' : '';
+          return '<label class="checkbox-inline">' +
+            '<input type="checkbox" name="' + fieldName + '" value="' + option + '" ' + checked + ' ' + disabled + '> ' + (params.prettyId ? view.prettyId(option) : option) +
+            '</label>';
+        });
+        contentInputResult = valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
+      } else if (fieldDescription.presentation?.input === 'select' || !(_.has(fieldDescription.presentation, 'input'))) {
+        if (fieldDescription.value.type.endsWith('[]')) {
+          contentInputResult = view.mkDropdownAdder(
+            fieldName, fieldDescription.description, fieldDescription.value.enum,
+            fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.optional, alwaysHaveValues: fieldDescription.presentation?.default }
           );
-        })
-      );
-      contentInputResult = valueInput($input, fieldName, fieldDescription);
-
-    } else if (_.has(fieldDescription.value, 'value-checkbox') || _.has(fieldDescription.value, 'values-checkbox')) {
-      var options = _.has(fieldDescription.value, 'value-checkbox') ?
-        [fieldDescription.value['value-checkbox']] :
-        fieldDescription.value['values-checkbox'];
-      var checkedValues = _.isArray(fieldValue) ? fieldValue : [fieldValue];
-      var requiredValues = fieldDescription.presentation?.default;
-
-      var checkboxes = _.map(options, function (option) {
-        var checked = _.includes(checkedValues, option) ? 'checked' : '';
-        var disabled = _.includes(requiredValues, option) ? 'disabled' : '';
-        return '<label class="checkbox-inline">' +
-          '<input type="checkbox" name="' + fieldName + '" value="' + option + '" ' + checked + ' ' + disabled + '> ' + (params.prettyId ? view.prettyId(option) : option) +
-          '</label>';
-      });
-      contentInputResult = valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
-
-    } else if (_.has(fieldDescription.value, 'value-copied') || _.has(fieldDescription.value, 'values-copied')) {
-      contentInputResult = valueInput($('<input>', {
-        type: 'hidden',
-        class: 'note_content_value',
-        name: fieldName,
-        value: fieldDescription.value['value-copied'] || fieldDescription.value['values-copied']
-      }), fieldName, fieldDescription).css('display', 'none');
-
+        } else {
+          contentInputResult = view.mkDropdownList(
+            fieldName, fieldDescription.description, fieldValue,
+            fieldDescription.value.enum, !fieldDescription.value.optional
+          );
+        }
+      }
     } else if (_.has(fieldDescription.value, 'value-dict')) {
       contentInputResult = valueInput($('<textarea>', {
         class: 'note_content_value form-control',
