@@ -1,7 +1,7 @@
 /* globals promptMessage: false */
 /* globals promptError: false */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import EditorSection from '../EditorSection'
 import PaginatedList from '../PaginatedList'
 import api from '../../lib/api-client'

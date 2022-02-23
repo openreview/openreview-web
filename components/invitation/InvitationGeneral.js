@@ -15,6 +15,8 @@ import {
   getDefaultTimezone,
   getMetaInvitationId,
   prettyId,
+  stringToArray,
+  trueFalseOptions,
   urlFromGroupId,
 } from '../../lib/utils'
 
@@ -272,10 +274,6 @@ export const InvitationGeneralViewV2 = ({
 }
 
 const InvitationGeneralEdit = ({ invitation, accessToken, loadInvitation, setIsEditMode }) => {
-  const trueFalseOptions = [
-    { value: true, label: 'True' },
-    { value: false, label: 'False' },
-  ]
   const [isSaving, setIsSaving] = useState(false)
   const generalInfoReducer = (state, action) => {
     switch (action.type) {
@@ -317,11 +315,6 @@ const InvitationGeneralEdit = ({ invitation, accessToken, loadInvitation, setIsE
     expDateTimezone: getDefaultTimezone().value,
     signatures: invitation.signatures?.join(', '),
   })
-
-  // eslint-disable-next-line arrow-body-style
-  const stringToArray = (value) => {
-    return value?.split(',')?.flatMap((p) => (p.trim() ? p.trim() : []))
-  }
 
   const constructInvitationToPost = async () => {
     const {
@@ -575,10 +568,6 @@ const InvitationGeneralEditV2 = ({
   setIsEditMode,
   isMetaInvitation,
 }) => {
-  const trueFalseOptions = [
-    { value: true, label: 'True' },
-    { value: false, label: 'False' },
-  ]
   const [isSaving, setIsSaving] = useState(false)
   const generalInfoReducer = (state, action) => {
     switch (action.type) {
@@ -619,11 +608,6 @@ const InvitationGeneralEditV2 = ({
     expDateTimezone: getDefaultTimezone().value,
     signatures: invitation.signatures?.join(', '),
   })
-
-  // eslint-disable-next-line arrow-body-style
-  const stringToArray = (value) => {
-    return value?.split(',')?.flatMap((p) => (p.trim() ? p.trim() : []))
-  }
 
   const constructInvitationEditToPost = async () => {
     const invitationEdit = {

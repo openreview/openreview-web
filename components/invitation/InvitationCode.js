@@ -10,7 +10,7 @@ import { getMetaInvitationId, prettyId } from '../../lib/utils'
 
 const CodeEditor = dynamic(() => import('../CodeEditor'))
 
-const InvitationCode = ({ invitation, profileId, accessToken, loadInvitation, codeType }) => {
+const InvitationCode = ({ invitation, accessToken, loadInvitation, codeType }) => {
   const [code, setCode] = useState(invitation[codeType])
   const [showEditor, setShowEditor] = useState(false)
   const [isSaving, setIsSaving] = useState(false)

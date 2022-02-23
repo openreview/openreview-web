@@ -43,7 +43,6 @@ const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => 
       </>
       <InvitationCode
         invitation={invitation}
-        profileId={profileId}
         accessToken={accessToken}
         loadInvitation={loadInvitation}
         codeType="web"
@@ -51,7 +50,6 @@ const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => 
       {showProcessEditor && (
         <InvitationCode
           invitation={invitation}
-          profileId={profileId}
           accessToken={accessToken}
           loadInvitation={loadInvitation}
           codeType="process"
@@ -60,7 +58,6 @@ const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => 
       {showProcessEditor && (
         <InvitationCode
           invitation={invitation}
-          profileId={profileId}
           accessToken={accessToken}
           loadInvitation={loadInvitation}
           codeType="preprocess"
