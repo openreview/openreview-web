@@ -6,15 +6,15 @@ import { useEffect, useState } from 'react'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import InvitationEditor from '../../components/invitation/InvitationEditor'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
 const InvitationEdit = ({ appContext }) => {
   const query = useQuery()
   const router = useRouter()
-  const { user, accessToken } = useLoginRedirect()
+  const { user, accessToken, userLoading } = useUser()
   const { setBannerHidden, clientJsLoading } = appContext
 
   const [error, setError] = useState(null)
@@ -47,8 +47,12 @@ const InvitationEdit = ({ appContext }) => {
         if (invitationObj.details?.writable) {
           setInvitation(invitationObj)
         } else {
-          // User is a reader, not a writer of the invitation, so redirect to info mode
-          router.replace(`/invitation/info?id=${invitationObj.id}`)
+          if (!accessToken) {
+            router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
+          } else {
+            // User is a reader, not a writer of the invitation, so redirect to info mode
+            router.replace(`/invitation/info?id=${invitationObj.id}`)
+          }
         }
       } else {
         setError({ statusCode: 404, message: 'Invitation not found' })
@@ -66,7 +70,7 @@ const InvitationEdit = ({ appContext }) => {
   }
 
   useEffect(() => {
-    if (!user || !query) return
+    if (userLoading || !query) return
 
     setBannerHidden(true)
 
@@ -76,7 +80,7 @@ const InvitationEdit = ({ appContext }) => {
     }
 
     loadInvitation(query.id)
-  }, [user, query])
+  }, [userLoading, query])
 
   useEffect(() => {
     if (!invitation || clientJsLoading) return
