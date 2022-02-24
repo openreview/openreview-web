@@ -103,9 +103,11 @@ const Login = () => {
   // Effect should not run when user changes, otherwise the page will redirect
   // as soon as the login form is submitted
   useEffect(() => {
-    if (isReady && !userLoading && user) {
+    if (!isReady || userLoading) return
+
+    if (user) {
       replace(query.redirect || '/')
-    } else if (isReady && query.redirect && !query.noprompt) {
+    } else if (query.redirect && !query.noprompt) {
       promptMessage(`Please login to access ${truncate(query.redirect, { length: 100 })}`)
     }
   }, [isReady, query, userLoading])
