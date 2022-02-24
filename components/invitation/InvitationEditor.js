@@ -67,13 +67,13 @@ const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => 
   )
 }
 
-export const InvitationEditorV2 = (
+export const InvitationEditorV2 = ({
   invitation,
   isMetaInvitation,
   user,
   accessToken,
-  loadInvitation
-) => {
+  loadInvitation,
+}) => {
   const profileId = user?.profile?.id
 
   if (!invitation) return null
