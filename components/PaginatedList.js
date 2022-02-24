@@ -26,28 +26,28 @@ export default function PaginatedList({
 
   const itemComponent = typeof ListItem === 'function' ? ListItem : DefaultListItem
 
-  const fetchItems = async (limit, offset) => {
-    if (!typeof loadItems === 'function') return
-    try {
-      const { items, count } = await loadItems(limit, offset)
-      setListItems(items)
-      setTotalCount(count)
-    } catch (apiError) {
-      setError(apiError)
-    }
-  }
-
   useEffect(() => {
     // Reset page when loading function changes
     setPage(1)
     setListItems(null)
-    fetchItems(itemsPerPage, 0)
   }, [loadItems])
 
   useEffect(() => {
-    const offset = (page - 1) * itemsPerPage
-    fetchItems(itemsPerPage, offset)
-  }, [page, itemsPerPage])
+    const fetchItems = async (limit, offset) => {
+      try {
+        const { items, count } = await loadItems(limit, offset)
+        setListItems(items)
+        setTotalCount(count)
+      } catch (apiError) {
+        setError(apiError)
+      }
+    }
+
+    if (typeof loadItems === 'function') {
+      const offset = (page - 1) * itemsPerPage
+      fetchItems(itemsPerPage, offset)
+    }
+  }, [loadItems, page, itemsPerPage])
 
   if (!listItems) return <LoadingSpinner inline />
 
