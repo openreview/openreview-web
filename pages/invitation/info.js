@@ -138,7 +138,7 @@ const InvitationInfo = ({ appContext }) => {
       {invitation && (
         <div>
           <EditorSection title="General Info" className="general">
-            {invitaiton?.apiVersion === 1 ? (
+            {invitation?.apiVersion === 1 ? (
               <InvitationGeneralView invitation={invitation} showEditButton={false} />
             ) : (
               <InvitationGeneralViewV2 invitation={invitation} showEditButton={false} />
