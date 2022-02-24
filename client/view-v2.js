@@ -158,7 +158,6 @@ module.exports = (function() {
       _.get(fieldDescription.presentation, 'default', '') :
       '';
     fieldValue = valueInNote || fieldDefault;  // These will always be mutually exclusive
-
     var $input;
     if (_.has(fieldDescription.value, 'const')) {
       if (Array.isArray(fieldDescription.value.const) || fieldDescription.value.type.endsWith('[]')) {
@@ -835,7 +834,7 @@ module.exports = (function() {
       });
     };
 
-    const $editSignatures = await view.buildSignatures(invitation.edit.signatures, null, user, 'signature');
+    const $editSignatures = await buildSignatures(invitation.edit.signatures, null, user, 'signature');
     const $editReaders = await buildEditReaders(invitation.edit.readers, null);
 
     // If there's only 1 signature available don't show the modal
@@ -1442,7 +1441,7 @@ module.exports = (function() {
         $cancelButton.prop('disabled', true);
 
         const content = getContent(invitation, $contentMap);
-        const useEditSignature = invitation.edit.note?.signatures?.values=='${signatures}' // when note signature is edit signature, note reader should use edit signatures
+        const useEditSignature = invitation.edit.note?.signatures?.const=='${signatures}' // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
         const editReaderValues = getReaders(editReaders, invitation, editSignatureInputValues, true);
@@ -1581,7 +1580,7 @@ module.exports = (function() {
 
     try {
       const editReaders = await buildEditReaders(invitation.edit?.readers, null);
-      const editSignatures = await view.buildSignatures(invitation.edit?.signatures, null, user, 'signatures');
+      const editSignatures = await buildSignatures(invitation.edit?.signatures, null, user, 'signatures');
 
       const parentId = note.forum === note.replyto ? null : note.replyto;
       let noteReaders = null;
@@ -1595,7 +1594,7 @@ module.exports = (function() {
         }
         noteReaders = result;
       });
-      const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, null, user, 'signatures')
+      const noteSignatures = await buildSignatures(invitation.edit?.note?.signatures, null, user, 'signatures')
       buildEditor(editReaders, editSignatures, noteReaders, noteSignatures);
     } catch (error) {
       console.error(error);
@@ -1639,7 +1638,7 @@ module.exports = (function() {
     const { note: noteFields, ...otherFields } = invitationObj.edit
     // editToPost.readers/writers etc.
     Object.entries(otherFields).forEach(([field, value]) => {
-      if (value.value || value.values) return
+      if (value.const) return
       switch (field) {
         case 'readers':
           result[field] = formData?.editReaderValues ?? noteObj?.[field]
