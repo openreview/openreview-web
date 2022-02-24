@@ -27,13 +27,11 @@ export default function GroupEdit({ appContext }) {
       if (groups?.length > 0) {
         if (groups[0].details?.writable) {
           setGroup(groups[0])
+        } else if (!accessToken) {
+          router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
         } else {
-          if (!accessToken) {
-            router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
-          } else {
-            // User is a reader, not a writer of the group, so redirect to info mode
-            router.replace(`/group/info?id=${id}`)
-          }
+          // User is a reader, not a writer of the group, so redirect to info mode
+          router.replace(`/group/info?id=${id}`)
         }
       } else {
         setError({ statusCode: 404, message: 'Group not found' })

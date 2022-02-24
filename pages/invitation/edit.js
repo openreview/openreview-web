@@ -46,13 +46,11 @@ const InvitationEdit = ({ appContext }) => {
       if (invitationObj) {
         if (invitationObj.details?.writable) {
           setInvitation(invitationObj)
+        } else if (!accessToken) {
+          router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
         } else {
-          if (!accessToken) {
-            router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
-          } else {
-            // User is a reader, not a writer of the invitation, so redirect to info mode
-            router.replace(`/invitation/info?id=${invitationObj.id}`)
-          }
+          // User is a reader, not a writer of the invitation, so redirect to info mode
+          router.replace(`/invitation/info?id=${invitationObj.id}`)
         }
       } else {
         setError({ statusCode: 404, message: 'Invitation not found' })
