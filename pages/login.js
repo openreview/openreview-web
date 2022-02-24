@@ -35,8 +35,11 @@ const LoginForm = () => {
 
     try {
       await api.post('/activatable', { id: email })
-      promptMessage(`A confirmation email with the subject "OpenReview signup confirmation" has been sent to ${email}.
-        Please click the link in this email to confirm your email address and complete registration.`, { noTimeout: true })
+      promptMessage(
+        `A confirmation email with the subject "OpenReview signup confirmation" has been sent to ${email}.
+        Please click the link in this email to confirm your email address and complete registration.`,
+        { noTimeout: true }
+      )
     } catch (error) {
       setLoginError(error)
       promptError(error.message)
@@ -54,7 +57,7 @@ const LoginForm = () => {
           placeholder="Email"
           value={email}
           maxLength={254}
-          onChange={e => setEmail(e.target.value.trim())}
+          onChange={(e) => setEmail(e.target.value.trim())}
         />
       </div>
 
@@ -66,19 +69,27 @@ const LoginForm = () => {
           className={`form-control ${loginError ? 'form-invalid' : ''}`}
           placeholder="Password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
         />
       </div>
 
-      <button type="submit" className="btn btn-login" disabled={!isValidEmail(email) || !password}>
+      <button
+        type="submit"
+        className="btn btn-login"
+        disabled={!isValidEmail(email) || !password}
+      >
         Login to OpenReview
       </button>
 
       <p className="help-block">
-        <Link href="/reset"><a>Forgot your password?</a></Link>
+        <Link href="/reset">
+          <a>Forgot your password?</a>
+        </Link>
         <br />
         {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-        <a href="#" onClick={handleResendConfirmation}>Didn&apos;t receive email confirmation?</a>
+        <a href="#" onClick={handleResendConfirmation}>
+          Didn&apos;t receive email confirmation?
+        </a>
       </p>
     </form>
   )
