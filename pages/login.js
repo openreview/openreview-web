@@ -7,7 +7,6 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import truncate from 'lodash/truncate'
 import UserContext from '../components/UserContext'
-import useQuery from '../hooks/useQuery'
 import api from '../lib/api-client'
 import { isValidEmail } from '../lib/utils'
 
@@ -16,7 +15,7 @@ const LoginForm = () => {
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState(null)
   const { loginUser } = useContext(UserContext)
-  const query = useQuery()
+  const { query } = useRouter()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -24,7 +23,7 @@ const LoginForm = () => {
 
     try {
       const { user, token } = await api.post('/login', { id: email, password })
-      loginUser(user, token, query?.redirect ?? '/')
+      loginUser(user, token, query?.redirect || '/')
     } catch (error) {
       setLoginError(error)
       promptError(error.message)
@@ -43,12 +42,6 @@ const LoginForm = () => {
       promptError(error.message)
     }
   }
-
-  useEffect(() => {
-    if (query?.redirect && !query?.noprompt) {
-      promptMessage(`Please login to access ${truncate(query.redirect, { length: 100 })}`)
-    }
-  }, [query])
 
   return (
     <form onSubmit={handleSubmit}>
@@ -93,16 +86,18 @@ const LoginForm = () => {
 
 const Login = () => {
   const { user, userLoading } = useContext(UserContext)
-  const router = useRouter()
+  const { isReady, query, replace } = useRouter()
 
-  // Redirect user to the homepage if not logged in. Effect should only run when
-  // userLoading changes, otherwise the page will redirect as soon as the login
-  // form is submitted
+  // Redirect user to the specified page or the homepage if already logged in.
+  // Effect should not run when user changes, otherwise the page will redirect
+  // as soon as the login form is submitted
   useEffect(() => {
-    if (!userLoading && user) {
-      router.replace('/')
+    if (isReady && !userLoading && user) {
+      replace(query.redirect || '/')
+    } else if (isReady && query.redirect && !query.noprompt) {
+      promptMessage(`Please login to access ${truncate(query.redirect, { length: 100 })}`)
     }
-  }, [userLoading])
+  }, [isReady, query, userLoading])
 
   return (
     <div className="row">
