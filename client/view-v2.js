@@ -162,13 +162,13 @@ module.exports = (function() {
     var $input;
     if (_.has(fieldDescription.value, 'const')) {
       if (Array.isArray(fieldDescription.value.const) || fieldDescription.value.type.endsWith('[]')) {
-        //then treat as values
+        // then treat as values
         contentInputResult = view.mkDropdownAdder(
           fieldName, fieldDescription.description, fieldDescription.value.const,
           fieldValue, { hoverText: true, refreshData: false, required: !fieldDescription.value.optional }
         );
       } else {
-        //treat as value
+        // treat as value
         contentInputResult = valueInput($('<input>', {
           type: 'text',
           class: 'form-control note_content_value',
@@ -179,7 +179,7 @@ module.exports = (function() {
       }
     } else if (_.has(fieldDescription.value, 'regex')) {
       if (fieldDescription.value.type.endsWith('[]')) {
-        //then treat as values-regex
+        // then treat as values-regex
         if (params && params.groups) {
           var groupIds = _.map(params.groups, function (g) {
             return g.id;
@@ -199,7 +199,7 @@ module.exports = (function() {
           contentInputResult = valueInput($input, fieldName, fieldDescription);
         }
       } else {
-        //then treat as value-regex
+        // then treat as value-regex
         var $inputGroup;
         // Create a new regex that doesn't include min and max length
         var regexStr = fieldDescription.value.regex;
@@ -299,7 +299,7 @@ module.exports = (function() {
         text: fieldValue && JSON.stringify(fieldValue, undefined, 4)
       }), fieldName, fieldDescription);
 
-    } else if (_.has(fieldDescription.value, 'value-file')) {
+    } else if (fieldDescription.value.type === 'file') {
       contentInputResult = mkAttachmentSection(fieldName, fieldDescription, fieldValue);
     }
 
@@ -309,12 +309,9 @@ module.exports = (function() {
   const mkComposerInput = (fieldName, fieldDescription, fieldValue, params) => {
     let contentInputResult;
 
-    if (fieldName === 'pdf' && fieldDescription.value['value-regex']) {
-      contentInputResult = mkPdfSection(fieldDescription, fieldValue);
-
-    } else if (fieldName === 'authorids' && (
-      (_.has(fieldDescription.value, 'values-regex') && view.isTildeIdAllowed(fieldDescription.value['values-regex'])) ||
-      _.has(fieldDescription.value, 'values')
+    if (fieldName === 'authorids' && fieldDescription.value.type.endsWith('[]') && (
+      (_.has(fieldDescription.value, 'regex') && view.isTildeIdAllowed(fieldDescription.value['regex'])) ||
+      _.has(fieldDescription.value, 'const')
     )) {
       let authors;
       let authorids;
@@ -326,7 +323,7 @@ module.exports = (function() {
         authors = [userProfile.first + ' ' + userProfile.middle + ' ' + userProfile.last];
         authorids = [userProfile.preferredId];
       }
-      const invitationRegex = fieldDescription.value?.['values-regex'];
+      const invitationRegex = fieldDescription.value?.regex;
       // Enable allowUserDefined if the values-regex has '~.*|'
       // Don't enable adding or removing authors if invitation uses 'values' instead of values-regex
       contentInputResult = valueInput(
@@ -371,76 +368,16 @@ module.exports = (function() {
     );
   };
 
-  const mkPdfSection = (fieldDescription, fieldValue) => {
-    const order = fieldDescription.order;
-    const regexStr = fieldDescription.value['value-regex'];
-    const invitationFileTransfer = view.fileTransferByInvitation(regexStr);
-
-    if (invitationFileTransfer === 'upload') {
-      return mkFileRow(view.mkFileInput('pdf', 'file', order, regexStr), 'pdf', fieldDescription, fieldValue);
-
-    } else if (invitationFileTransfer === 'url') {
-      return mkFileRow(view.mkFileInput('pdf', 'text', order, regexStr), 'pdf', fieldDescription, fieldValue);
-
-    } else if (invitationFileTransfer === 'either') {
-      const $span = $('<div>', {class: 'item', style: 'width: 80%'});
-      const timestamp = Date.now();
-      const $radioItem = $('<div>', {class: 'item'}).append(
-        $('<div>').append(
-          $('<input>', {class: 'upload', type: 'radio', name: 'pdf_' + timestamp}).click(function() {
-            $span.html(view.mkFileInput('pdf', 'file', order, regexStr));
-          }),
-          $('<span>', {class: 'item', text: 'Upload PDF file'})
-        ),
-        $('<div>').append(
-          $('<input>', {class: 'url', type: 'radio', name: 'pdf_' + timestamp}).click(function() {
-            $span.html(view.mkFileInput('pdf', 'text', order, regexStr));
-          }),
-          $('<span>', {class: 'item', text: 'Enter URL'})
-        )
-      );
-      return mkFileRow([$radioItem, $span], 'pdf', fieldDescription, fieldValue);
-    }
-  };
-
   const mkAttachmentSection = (fieldName, fieldDescription, fieldValue) => {
     const order = fieldDescription.order;
-    const regexStr = fieldDescription.value?.['value-file']?.regex;
-    const mimeType = fieldDescription.value?.['value-file']?.mimetype;
-    const size = fieldDescription.value?.['value-file']?.size;
+    const regexStr = null
 
-    let invitationFileTransfer = 'url';
-    if (regexStr && (mimeType || size)) {
-      invitationFileTransfer = 'either';
-    } else if (!regexStr) {
-      invitationFileTransfer = 'upload';
-    }
+    return mkFileRow(view.mkFileInput(fieldName, 'file', order, regexStr), fieldName, fieldDescription, fieldValue);
+  };
 
-    if (invitationFileTransfer === 'upload') {
-      return mkFileRow(view.mkFileInput(fieldName, 'file', order, regexStr), fieldName, fieldDescription, fieldValue);
-
-    } else if (invitationFileTransfer === 'url') {
-      return mkFileRow(view.mkFileInput(fieldName, 'text', order, regexStr), fieldName, fieldDescription, fieldValue);
-
-    } else if (invitationFileTransfer === 'either') {
-      const $span = $('<div>', {class: 'item', style: 'width: 80%'});
-      const timestamp = Date.now();
-      const $radioItem = $('<div>', {class: 'item'}).append(
-        $('<div>').append(
-          $('<input>', { class: 'upload', type: 'radio', name: fieldName + '_' + timestamp }).click(() => {
-            $span.html(view.mkFileInput(fieldName, 'file', order, regexStr));
-          }),
-          $('<span>', {class: 'item', text: 'Upload file'})
-        ),
-        $('<div>').append(
-          $('<input>', { class: 'url', type: 'radio', name: fieldName + '_' + timestamp }).click(() => {
-            $span.html(view.mkFileInput(fieldName, 'text', order, regexStr));
-          }),
-          $('<span>', {class: 'item', text: 'Enter URL'})
-        )
-      );
-      return mkFileRow([$radioItem, $span], fieldName, fieldDescription, fieldValue);
-    }
+  var updateFileSection = function($fileSection, fieldName, fieldDescription, fieldValue) {
+    $fileSection.empty();
+    $fileSection.append(mkAttachmentSection(fieldName, fieldDescription, fieldValue).children());
   };
 
   var getTitleText = function(note, generatedTitleText) {
@@ -977,7 +914,7 @@ module.exports = (function() {
         ].join('\n'));
         $cancelButton.prop({ disabled: true });
 
-        var content = view.getContent(invitation, $contentMap);
+        var content = getContent(invitation, $contentMap);
         const useEditSignature = invitation.edit.note?.signatures?.values=='${signatures}' // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
@@ -1035,19 +972,13 @@ module.exports = (function() {
 
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
-          if (fieldName === 'pdf' && invitation.edit.note?.content?.pdf?.value?.['value-regex']) {
-            return Webfield2.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
-              content[0][fieldName] = result.url;
-              return view.updatePdfSection($contentMap.pdf, invitation.edit.note?.content?.pdf?.value, content[0][fieldName]);
-            });
-          }
           var data = new FormData();
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
           return Webfield2.sendFile('/attachment', data, undefined, fieldName).then(function(result) {
             content[0][fieldName] = result.url;
-            view.updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, content[0][fieldName]);
+            updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName], content[0][fieldName]);
           });
         });
 
@@ -1452,7 +1383,7 @@ module.exports = (function() {
         ].join('\n'));
         $cancelButton.prop('disabled', true);
 
-        const content = view.getContent(invitation, $contentMap);
+        const content = getContent(invitation, $contentMap);
         const useEditSignature = invitation.edit.note?.signatures?.values=='${signatures}' // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
@@ -1510,19 +1441,13 @@ module.exports = (function() {
 
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
-          if (fieldName === 'pdf' && invitation.edit.note?.content?.pdf?.value?.['value-regex']) {
-            return Webfield2.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
-              content[0][fieldName] = result.url;
-              return view.updatePdfSection($contentMap.pdf, invitation.edit.note?.content?.pdf?.value, content[0][fieldName]);
-            });
-          }
           var data = new FormData();
           data.append('invitationId', invitation.id);
           data.append('name', fieldName);
           data.append('file', files[fieldName]);
           return Webfield2.sendFile('/attachment', data, undefined, fieldName).then(function(result) {
             content[0][fieldName] = result.url;
-            view.updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, content[0][fieldName]);
+            updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName], content[0][fieldName]);
           });
         });
 
@@ -1749,7 +1674,6 @@ module.exports = (function() {
   const validate = (invitation, formContent, readersWidget) => {
     const errorList = [];
     const invitationEditContent = invitation.edit?.note?.content;
-    console.log(formContent);
 
     Object.keys(invitationEditContent).forEach(function(fieldName) {
       if (fieldName === 'pdf' && !invitationEditContent.pdf.value?.optional) {
@@ -1798,6 +1722,110 @@ module.exports = (function() {
     }
 
     return errorList;
+  };
+
+  var getContent = function(invitation, $contentMap) {
+    var files = {};
+    var errors = [];
+    var invitationContent = invitation.edit ? invitation.edit.note.content : invitation.reply.content
+    var content = _.reduce(invitationContent, function(ret, contentObjInInvitation, k) {
+      // Let the widget handle it :D and extract the data when we encouter authorids
+      const contentObj = invitation.edit ? contentObjInInvitation.value : contentObjInInvitation
+      if (contentObj.hidden && k === 'authors') {
+        return ret;
+      }
+      var $inputVal = $contentMap[k].find('.note_content_value[name="' + k + '"]');
+      var inputVal = $inputVal.val();
+
+      if (contentObj.hasOwnProperty('values-dropdown') || (contentObj.hasOwnProperty('values') && k !== 'authorids')) {
+        inputVal = idsFromListAdder($contentMap[k], ret);
+
+      } else if (k === 'authorids' && (
+        (contentObj['values-regex'] && isTildeIdAllowed(contentObj['values-regex'])) || contentObj['values']
+      )) {
+        ret.authorids = [];
+        ret.authors = [];
+        $contentMap.authorids.find('.author-row').each(function() {
+          var authoridStored = $(this).find('.author-fullname>a').data('tildeid')
+          var authorid = authoridStored ?? $(this).find('.author-fullname').text() // text() may add extra space
+          // If it does the field .author-fullname does not start with a tilde
+          // it means that the name was user defined and should be placed in the authors field
+          // Also the authorid would be the email
+          if (!_.startsWith(authorid, '~')) {
+            ret.authors.push(authorid);
+            authorid = $(this).find('.author-emails').text();
+          } else {
+            ret.authors.push(prettyId(authorid));
+          }
+          ret.authorids.push(authorid);
+        });
+        return ret;
+      } else if (contentObj.hasOwnProperty('value-dropdown')) {
+        var values = idsFromListAdder($contentMap[k], ret);
+        if (values && values.length) {
+          inputVal = values[0];
+        }
+      } else if (contentObj.hasOwnProperty('values-regex')) {
+        var inputArray = inputVal.split(',');
+        inputVal = _.filter(
+          _.map(inputArray, function(s) { return s.trim(); }),
+          function(e) { return !_.isEmpty(e); }
+        );
+
+      } else if (contentObj.hasOwnProperty('value-checkbox')) {
+        inputVal = $contentMap[k].find('.note_content_value input[type="checkbox"]').prop('checked') ?
+          contentObj['value-checkbox'] :
+          '';
+
+      } else if (contentObj.hasOwnProperty('values-checkbox')) {
+        inputVal = [];
+        $contentMap[k].find('.note_content_value input[type="checkbox"]').each(function(i) {
+          if ($(this).prop('checked')) {
+            inputVal.push($(this).val());
+          }
+        });
+
+      } else if (contentObj.hasOwnProperty('value-radio')) {
+        var $selection = $contentMap[k].find('.note_content_value input[type="radio"]:checked');
+        inputVal = $selection.length ? $selection.val() : '';
+
+      } else if (contentObj.hasOwnProperty('value-dict')) {
+        if (inputVal) {
+          var inputStr = _.map(inputVal.split('\n'), function(line) {
+            return line.trim();
+          }).join('');
+
+          try {
+            inputVal = JSON.parse(inputStr);
+          } catch (error) {
+            inputVal = null;
+            errors.push('Field ' + k + ' contains invalid JSON. Please make sure all quotes and brackets match.');
+          }
+        }
+
+      } else if (contentObj.type ==='file') {
+        var $fileSection = $contentMap[k];
+        var $fileInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '.') + '[type="file"]');
+        var file = $fileInput && $fileInput.val() ? $fileInput[0].files[0] : null;
+
+        // Check if there's a file. If the file has been removed by the
+        // user set inputVal to and empty string. This is for revisions.
+        if (file) {
+          inputVal = file.name;
+          files[k] = file;
+        } else if ($inputVal.data('fileRemoved')) {
+          ret[k] = ''
+        }
+      }
+
+      if (inputVal) {
+        ret[k] = inputVal;
+      }
+
+      return ret;
+    }, {});
+
+    return [content, files, errors];
   };
 
   return {
