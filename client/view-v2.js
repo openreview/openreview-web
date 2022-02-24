@@ -821,7 +821,7 @@ module.exports = (function() {
     var postUpdatedNote = function ($editSignatures, $editReaders) {
       const ddate = isDeleted ? null : Date.now();
       let editSignatureInputValues = view.idsFromListAdder($editSignatures, invitation.edit.signatures);
-      const editReaderValues = view.getReaders($editReaders, invitation, editSignatureInputValues, true);
+      const editReaderValues = getReaders($editReaders, invitation, editSignatureInputValues, true);
       if (!editSignatureInputValues || !editSignatureInputValues.length) {
         editSignatureInputValues = [user.profile.id];
       }
@@ -915,12 +915,12 @@ module.exports = (function() {
         $cancelButton.prop({ disabled: true });
 
         var content = getContent(invitation, $contentMap);
-        const useEditSignature = invitation.edit.note?.signatures?.values=='${signatures}' // when note signature is edit signature, note reader should use edit signatures
+        const useEditSignature = invitation.edit.note?.signatures?.const=='${signatures}' // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
-        const editReaderValues = view.getReaders(editReaders, invitation, editSignatureInputValues, true);
-        const noteReaderValues = view.getReaders(noteReaders, invitation, useEditSignature ? editSignatureInputValues : noteSignatureInputValues);
-        const editWriterValues = view.getWriters(invitation, editSignatureInputValues, user);
+        const editReaderValues = getReaders(editReaders, invitation, editSignatureInputValues, true);
+        const noteReaderValues = getReaders(noteReaders, invitation, useEditSignature ? editSignatureInputValues : noteSignatureInputValues);
+        const editWriterValues = getWriters(invitation, editSignatureInputValues, user);
         content[0].editSignatureInputValues = editSignatureInputValues;
         content[0].noteSignatureInputValues = noteSignatureInputValues;
         content[0].editReaderValues = editReaderValues;
@@ -1046,7 +1046,7 @@ module.exports = (function() {
 
     try {
       const editReaders = await buildEditReaders(invitation.edit?.readers, null);
-      const editSignatures = await view.buildSignatures(invitation.edit?.signatures, null, user, 'signatures');
+      const editSignatures = await buildSignatures(invitation.edit?.signatures, null, user, 'signatures');
 
       const parentId = forum === replyto ? null : replyto;
       let noteReaders = null;
@@ -1060,7 +1060,7 @@ module.exports = (function() {
         }
         noteReaders = result;
       });
-      const noteSignatures = await view.buildSignatures(invitation.edit?.note?.signatures, null, user, 'signatures')
+      const noteSignatures = await buildSignatures(invitation.edit?.note?.signatures, null, user, 'signatures')
       buildEditor(editReaders, editSignatures, noteReaders, noteSignatures);
     } catch (error) {
       console.error(error);
@@ -1272,7 +1272,7 @@ module.exports = (function() {
         $readers.find('.small_heading').prepend(requiredText);
         done($readers);
       });
-    } else if (_.has(fieldDescription, 'const') && (fieldDescription.type == 'string[]' || fieldDescription.type == 'group[]')) {
+    } else if (_.has(fieldDescription, 'const') && (Array.isArray(fieldDescription.const))) {
       return setParentReaders(replyto, fieldDescription, 'const', function(newFieldDescription) {
         if (fieldDescription.const?.[0] === "${{note.replyto}.readers}") {
           fieldDescription.const = newFieldDescription.const;
@@ -1337,6 +1337,64 @@ module.exports = (function() {
     }
   }
 
+  function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures') {
+
+    var $signatures;
+    if (_.has(fieldDescription, 'values-regex')) { //change for regex
+      var currentVal = fieldValue && fieldValue[0];
+
+      if (fieldDescription['values-regex'] === '~.*') {
+        if (user && user.profile) {
+          var prefId = user.profile.preferredId || user.profile.id;
+          $signatures = view.mkDropdownList(
+            headingText, fieldDescription.description, currentVal, [prefId], true
+          );
+          return $.Deferred().resolve($signatures);
+        } else {
+          return $.Deferred().reject('no_results');
+        }
+
+      } else {
+        if (!user) {
+          return $.Deferred().reject('no_results');
+        }
+
+        return Webfield.get('/groups', {
+          regex: fieldDescription['values-regex'], signatory: user.id
+        }, { handleErrors: false }).then(function(result) {
+          if (_.isEmpty(result.groups)) {
+            return $.Deferred().reject('no_results');
+          }
+
+          var uniquePrettyIds = {};
+          var dropdownListOptions = [];
+          var singleOption = result.groups.length == 1;
+          _.forEach(result.groups, function(group) {
+            var prettyGroupId = prettyId(group.id);
+            if (!(prettyGroupId in uniquePrettyIds)) {
+              dropdownListOptions.push({
+                id: group.id,
+                description: prettyGroupId + ((!singleOption && !group.id.startsWith('~') && group.members && group.members.length == 1) ? (' (' + prettyId(group.members[0]) + ')') : '')
+              });
+              uniquePrettyIds[prettyGroupId] = group.id;
+            }
+          });
+          $signatures = view.mkDropdownList(
+            headingText, fieldDescription.description, currentVal, dropdownListOptions, true
+          );
+          return $signatures;
+        }, function(jqXhr, textStatus) {
+          return Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+        });
+      }
+
+    } else {
+      $signatures = mkComposerInput(headingText, { value: fieldDescription }, fieldValue);
+      return $.Deferred().resolve($signatures);
+    }
+
+  }
+
   const mkNoteEditor = async (note, invitation, user, options) => {
     const params = {
       onNoteCreated: null,
@@ -1387,9 +1445,9 @@ module.exports = (function() {
         const useEditSignature = invitation.edit.note?.signatures?.values=='${signatures}' // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
-        const editReaderValues = view.getReaders(editReaders, invitation, editSignatureInputValues, true);
-        const noteReaderValues = view.getReaders(noteReaders, invitation, useEditSignature ? editSignatureInputValues : noteSignatureInputValues);
-        const editWriterValues = view.getWriters(invitation, editSignatureInputValues, user);
+        const editReaderValues = getReaders(editReaders, invitation, editSignatureInputValues, true);
+        const noteReaderValues = getReaders(noteReaders, invitation, useEditSignature ? editSignatureInputValues : noteSignatureInputValues);
+        const editWriterValues = getWriters(invitation, editSignatureInputValues, user);
         content[0].editSignatureInputValues = editSignatureInputValues;
         content[0].noteSignatureInputValues = noteSignatureInputValues;
         content[0].editReaderValues = editReaderValues;
@@ -1826,6 +1884,74 @@ module.exports = (function() {
     }, {});
 
     return [content, files, errors];
+  };
+
+  var getWriters = function(invitation, signatures, user) {
+    var writers = invitation.edit ? invitation.edit.writers : invitation.reply.writers
+
+    if (writers && _.has(writers, 'values')) {
+      return writers.values;
+    }
+
+    if (writers && _.has(writers, 'values-regex') && writers['values-regex'] === '~.*') {
+      return [user.profile.id];
+    }
+
+    return signatures;
+  };
+
+  var getReaders = function(widget, invitation, signatures, isEdit = false) {
+    var readers = invitation.edit ? (isEdit ? invitation.edit.readers : invitation.edit.note?.readers) : invitation.reply.readers
+    var inputValues = view.idsFromListAdder(widget, readers);
+
+    var invitationValues = [];
+    if (_.has(readers, 'values-dropdown')) {
+      invitationValues = readers['values-dropdown'].map(function(v) { return _.has(v, 'id') ? v.id : v; });
+    } else if (_.has(readers, 'value-dropdown-hierarchy')) {
+      invitationValues = readers['value-dropdown-hierarchy'];
+    } else if (_.has(readers, 'values-checkbox')) {
+      inputValues = [];
+      widget.find('.note_content_value input[type="checkbox"]').each(function(i) {
+        if ($(this).prop('checked')) {
+          inputValues.push($(this).val());
+        }
+      });
+      invitationValues = readers['values-checkbox'];
+    }
+
+    // Add signature if exists in the invitation readers list
+    if (signatures && signatures.length && !_.includes(inputValues, 'everyone')) {
+
+      var signatureId = signatures[0];
+
+      //Where the signature is an AnonReviewer and it is not selected in the readers value
+      var index = Math.max(signatureId.indexOf('AnonReviewer'), signatureId.indexOf('Reviewer_'));
+      if (index >= 0) {
+        var reviewersSubmittedId = signatureId.slice(0, index).concat('Reviewers/Submitted');
+        var reviewersId = signatureId.slice(0, index).concat('Reviewers');
+
+        if (_.isEmpty(_.intersection(inputValues, [signatureId, reviewersSubmittedId, reviewersId]))) {
+          if (_.includes(invitationValues, signatureId)) {
+            inputValues.push(signatureId);
+          } else if (_.includes(invitationValues, reviewersSubmittedId)) {
+            inputValues = _.union(inputValues, [reviewersSubmittedId]);
+          } else if (_.includes(invitationValues, reviewersId)) {
+            inputValues = _.union(inputValues, [reviewersId]);
+          }
+        }
+      } else {
+        var acIndex = Math.max(signatureId.indexOf('Area_Chair1'), signatureId.indexOf('Area_Chair_'));
+        if (acIndex >= 0) {
+          signatureId = signatureId.slice(0, acIndex).concat('Area_Chairs');
+        }
+
+        if (_.includes(invitationValues, signatureId)) {
+          inputValues = _.union(inputValues, [signatureId]);
+        }
+      }
+    }
+
+    return inputValues;
   };
 
   return {
