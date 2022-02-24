@@ -1727,11 +1727,11 @@ module.exports = (function() {
   var getContent = function(invitation, $contentMap) {
     var files = {};
     var errors = [];
-    var invitationContent = invitation.edit ? invitation.edit.note.content : invitation.reply.content
+    var invitationContent = invitation.edit.note.content;
     var content = _.reduce(invitationContent, function(ret, contentObjInInvitation, k) {
       // Let the widget handle it :D and extract the data when we encouter authorids
-      const contentObj = invitation.edit ? contentObjInInvitation.value : contentObjInInvitation
-      const presentationObj = contentObjInInvitation.presentation;
+      const contentObj = contentObjInInvitation.value;
+      const presentationObj = contentObjInInvitation.presentation || {};
       if (contentObj.hidden && k === 'authors') {
         return ret;
       }
