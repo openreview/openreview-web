@@ -33,9 +33,11 @@ export default function PaginatedList({
   }, [loadItems])
 
   useEffect(() => {
-    const fetchItems = async (limit, offset) => {
+    const fetchItems = async () => {
+      const offset = (page - 1) * itemsPerPage
+
       try {
-        const { items, count } = await loadItems(limit, offset)
+        const { items, count } = await loadItems(itemsPerPage, offset)
         setListItems(items)
         setTotalCount(count)
       } catch (apiError) {
@@ -44,8 +46,7 @@ export default function PaginatedList({
     }
 
     if (typeof loadItems === 'function') {
-      const offset = (page - 1) * itemsPerPage
-      fetchItems(itemsPerPage, offset)
+      fetchItems()
     }
   }, [loadItems, page, itemsPerPage])
 
