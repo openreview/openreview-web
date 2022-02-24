@@ -432,17 +432,17 @@ const Assignments = ({ appContext }) => {
       </header>
 
       <div className="row">
-        <div className="col-xs-12">
+        <div className="col-xs-12 horizontal-scroll">
           {assignmentNotes ? (
             <Table
               className="table-hover assignments-table"
               headings={[
                 { content: '#', width: '40px' },
-                { content: 'Title', width: '200px' },
-                { content: 'Created On', width: '200px' },
-                { content: 'Last Modified', width: '200px' },
-                { content: 'Status', width: '115px' },
-                { content: 'Parameters', width: '115px' },
+                { content: 'Title' },
+                { content: 'Created On', width: '185px' },
+                { content: 'Last Modified', width: '185px' },
+                { content: 'Status', width: '110px' },
+                { content: 'Parameters', width: '110px' },
                 { content: 'Actions', width: '175px' },
               ]}
             >
