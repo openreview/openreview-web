@@ -533,12 +533,12 @@ main.edge-browser {
 
       a {
         color: constants.$mediumBlue;
+        padding-right: .25rem;
         &:hover {
           color: #23527c;
         }
       }
       span {
-        padding-left: .25rem;
         font-size: .75rem;
       }
     }
