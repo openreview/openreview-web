@@ -537,6 +537,10 @@ main.edge-browser {
           color: #23527c;
         }
       }
+      span {
+        padding-left: .25rem;
+        font-size: .75rem;
+      }
     }
 
     p {
@@ -654,10 +658,6 @@ main.edge-browser {
     }
     &.unassigned {
       background-color: $vetoRed;
-    }
-    .reviewer-heading, .areachair-heading {
-      float: left;
-      width: calc(100% - 105px);
     }
   }
   .show-lock-break .entry-reviewer .reviewer-heading,

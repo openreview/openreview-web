@@ -392,9 +392,10 @@ export default function ProfileEntity(props) {
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
             {content.name.first} {content.name.middle} {content.name.last}
           </a>
+          {' '}
+          <span>({content.email})</span>
         </h3>
 
-        <p onClick={(e) => e.stopPropagation()}>{content.email}</p>
         <p>{content.title}</p>
       </div>
 
