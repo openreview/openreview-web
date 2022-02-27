@@ -41,6 +41,7 @@
     "nanoid": "^3.3.1",
     "next": "^12.1.0",
     "next-build-id": "^3.0.0",
+    "next-transpile-modules": "^9.0.0",
     "query-string": "^7.1.1",
     "rc-picker": "^2.6.4",
     "rc-virtual-list": "^3.4.2",
