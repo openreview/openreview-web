@@ -31,24 +31,24 @@
     "copy-to-clipboard": "^3.3.1",
     "d3": "^7.2.1",
     "dayjs": "^1.10.7",
-    "dompurify": "^2.3.4",
+    "dompurify": "^2.3.6",
     "eslint4b-prebuilt": "^6.7.2",
     "handlebars": "^4.7.7",
     "jquery": "^2.2.4",
     "jwt-decode": "^3.1.2",
     "lodash": "^4.17.21",
     "marked": "^4.0.12",
-    "nanoid": "^3.2.0",
+    "nanoid": "^3.3.1",
     "next": "^12.1.0",
     "next-build-id": "^3.0.0",
-    "query-string": "^7.1.0",
-    "rc-picker": "^2.6.1",
+    "query-string": "^7.1.1",
+    "rc-picker": "^2.6.4",
     "rc-virtual-list": "^3.4.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-select": "^5.2.2",
-    "sass": "^1.49.0",
-    "swr": "^1.1.2",
+    "sass": "^1.49.9",
+    "swr": "^1.2.2",
     "universal-cookie": "^4.0.4"
   },
   "devDependencies": {
@@ -61,6 +61,6 @@
     "eslint-plugin-import": "^2.25.4",
     "node-fetch": "^2.6.6",
     "prettier": "2.5.1",
-    "testcafe": "^1.18.3"
+    "testcafe": "^1.18.4"
   }
 }
