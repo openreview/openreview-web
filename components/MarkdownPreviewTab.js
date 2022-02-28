@@ -18,6 +18,7 @@ const MarkdownPreviewTab = ({
   useEffect(() => {
     if (!value) {
       setSanitizedHtml('Nothing to preview')
+      document.querySelector(`a[href="#${firstTabId}"]`).click()
       return
     }
     setSanitizedHtml(DOMPurify.sanitize(marked(value)))
