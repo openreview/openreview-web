@@ -6,13 +6,11 @@ import { useEffect, useState } from 'react'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import InvitationEditor from '../../components/invitation/InvitationEditor'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import useQuery from '../../hooks/useQuery'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
 const InvitationEdit = ({ appContext }) => {
-  const query = useQuery()
   const router = useRouter()
   const { user, accessToken, userLoading } = useUser()
   const { setBannerHidden, clientJsLoading } = appContext
@@ -57,10 +55,14 @@ const InvitationEdit = ({ appContext }) => {
       }
     } catch (apiError) {
       if (apiError.name === 'ForbiddenError') {
-        setError({
-          statusCode: 403,
-          message: "You don't have permission to read this invitation",
-        })
+        if (!accessToken) {
+          router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
+        } else {
+          setError({
+            statusCode: 403,
+            message: "You don't have permission to read this invitation",
+          })
+        }
       } else {
         setError({ statusCode: apiError.status, message: apiError.message })
       }
@@ -68,17 +70,17 @@ const InvitationEdit = ({ appContext }) => {
   }
 
   useEffect(() => {
-    if (userLoading || !query) return
+    if (userLoading || !router.isReady) return
 
     setBannerHidden(true)
 
-    if (!query.id) {
+    if (!router.query.id) {
       setError({ statusCode: 400, message: 'Missing required parameter id' })
       return
     }
 
-    loadInvitation(query.id)
-  }, [userLoading, query])
+    loadInvitation(router.query.id)
+  }, [userLoading, router.isReady, router.query])
 
   useEffect(() => {
     if (!invitation || clientJsLoading) return

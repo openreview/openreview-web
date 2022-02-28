@@ -6,7 +6,6 @@ import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import GroupEditor from '../../components/group/GroupEditor'
-import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import { isSuperUser } from '../../lib/auth'
@@ -18,7 +17,6 @@ export default function GroupEdit({ appContext }) {
   const [error, setError] = useState(null)
 
   const router = useRouter()
-  const query = useQuery()
   const { setBannerHidden, clientJsLoading } = appContext
 
   const loadGroup = async (id) => {
@@ -53,17 +51,17 @@ export default function GroupEdit({ appContext }) {
   }
 
   useEffect(() => {
-    if (userLoading || !query) return
+    if (userLoading || !router.isReady) return
 
     setBannerHidden(true)
 
-    if (!query.id) {
+    if (!router.query.id) {
       setError({ statusCode: 400, message: 'Missing required parameter id' })
       return
     }
 
-    loadGroup(query.id)
-  }, [userLoading, query])
+    loadGroup(router.query.id)
+  }, [userLoading, router.isReady, router.query])
 
   useEffect(() => {
     if (!group || clientJsLoading) return
@@ -95,7 +93,7 @@ export default function GroupEdit({ appContext }) {
       </Head>
 
       <div id="header">
-        <h1>{prettyId(query?.id)}</h1>
+        <h1>{prettyId(router.query.id)}</h1>
       </div>
 
       {(clientJsLoading || !group) && <LoadingSpinner />}
