@@ -1365,9 +1365,9 @@ module.exports = (function() {
       contentInputResult = mkAttachmentSection(fieldName, fieldDescription, fieldValue);
     }
 
-    if(params?.isPreview && fieldDescription){
-      if(contentInputResult) return contentInputResult
-      return $('<div class="alert alert-danger">').text(`Error: ${fieldName} can't be rendered`)
+    if (params?.isPreview && fieldDescription) {
+      if (contentInputResult) return contentInputResult
+      return $('<div class="alert alert-danger mt-3">').text(`Error: ${fieldName} can't be rendered`)
     }
     return contentInputResult;
   };
@@ -1728,8 +1728,8 @@ module.exports = (function() {
   };
 
   var orderCache =  {};
-  var order = function(replyContent, invitationId, useOrderCache) {
-    if (invitationId && orderCache[invitationId] && useOrderCache) {
+  var order = function(replyContent, invitationId, disableCache) {
+    if (invitationId && orderCache[invitationId] && !disableCache) {
       return orderCache[invitationId];
     }
 
@@ -3032,8 +3032,7 @@ module.exports = (function() {
       return;
     }
 
-    var useOrderCache = params.isPreview?false:true;
-    var contentOrder = order(invitation.reply.content, invitation.id ,useOrderCache);
+    var contentOrder = order(invitation.reply.content, invitation.id, params.isPreview);
     var $contentMap = _.reduce(contentOrder, function(ret, k) {
       ret[k] = mkComposerInput(k, invitation.reply.content[k], invitation.reply.content[k]?.default || '', { useDefaults: true, user: user, isPreview: params.isPreview });
       return ret;
@@ -3192,7 +3191,7 @@ module.exports = (function() {
       var autosaveStorageKeys = setupAutosaveHandlers($noteEditor, user, replyto + '|new', invitation.id);
 
       if (params.onCompleted) {
-        if(params.isPreview && $noteEditor.children('div.alert.alert-danger').length) {
+        if (params.isPreview && $noteEditor.children('div.alert.alert-danger').length) {
           params.onCompleted($('<ul>').append($noteEditor.children('div.alert.alert-danger')));
           return
         }
@@ -3213,7 +3212,7 @@ module.exports = (function() {
       if (error && !params.isPreview) {
         return handleError(error);
       }
-      buildSignatures(invitation.reply.signatures, invitation.reply.signatures?.default || [], user, 'signatures' ,params).then(function (signatures) {
+      buildSignatures(invitation.reply.signatures, invitation.reply.signatures?.default || [], user, 'signatures', params).then(function(signatures) {
         buildEditor(readers, signatures);
       }).fail(function(error) {
         error = error === 'no_results' ?
@@ -3224,7 +3223,7 @@ module.exports = (function() {
     }, params);
   };
 
-  function buildReaders(fieldDescription, fieldValue, replyto, done, params ={}) {
+  function buildReaders(fieldDescription, fieldValue, replyto, done, params = {}) {
     if (!fieldDescription) {
       done(undefined, 'Invitation is missing readers');
       return;
@@ -3389,13 +3388,13 @@ module.exports = (function() {
           });
         });
     } else {
-      var $readers = mkComposerInput('readers', fieldDescription, fieldValue,{isPreview:params.isPreview});
+      var $readers = mkComposerInput('readers', fieldDescription, fieldValue, { isPreview: params.isPreview });
       $readers.find('.small_heading').prepend(requiredText);
       done($readers);
     }
   }
 
-  function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures', params={}) {
+  function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures', params = {}) {
 
     var $signatures;
     if (_.has(fieldDescription, 'values-regex')) {
@@ -3447,7 +3446,7 @@ module.exports = (function() {
       }
 
     } else {
-      $signatures = mkComposerInput(headingText, fieldDescription, fieldValue, {isPreview:params.isPreview});
+      $signatures = mkComposerInput(headingText, fieldDescription, fieldValue, { isPreview: params.isPreview });
       return $.Deferred().resolve($signatures);
     }
 

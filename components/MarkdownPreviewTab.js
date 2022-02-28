@@ -26,14 +26,12 @@ const MarkdownPreviewTab = ({
   return (
     <Tabs className="markdown-preview">
       <TabList>
-        <Tab id={firstTabId} active>
-          {firstTab}
-        </Tab>
+        <Tab id={firstTabId} active>{firstTab}</Tab>
         <Tab id={secondTabId}>{secondTab}</Tab>
       </TabList>
 
       <TabPanels>
-        <TabPanel id={firstTabId} active>
+        <TabPanel id={firstTabId}>
           <textarea
             className="form-control"
             rows="6"

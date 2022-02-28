@@ -4,7 +4,7 @@ import { useState } from 'react'
 import EditorSection from '../EditorSection'
 import CodeEditor from '../CodeEditor'
 import SpinnerButton from '../SpinnerButton'
-import Tabs from '../Tabs'
+import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { getMetaInvitationId, prettyId } from '../../lib/utils'
@@ -111,7 +111,7 @@ export default function InvitationReply({
     } catch (error) {
       let { message } = error
       if (error instanceof SyntaxError) {
-        message = `Reply content is not valid JSON - ${error.message}. Make sure all quotes and brackets match.`
+        message = `Reply is not valid JSON: ${error.message}. Make sure all quotes and brackets match.`
       }
       promptError(message, { scrollToTop: false })
     }
@@ -158,7 +158,7 @@ export function InvitationReplyWithPreview({ invitation, accessToken, loadInvita
         rdate: undefined,
       }
     } catch (error) {
-      promptError(`Reply content is not valid JSON - ${error.message}.`)
+      promptError(`Reply is not valid JSON: ${error.message}.`, { scrollToTop: false })
     }
     return {}
   }
@@ -176,7 +176,7 @@ export function InvitationReplyWithPreview({ invitation, accessToken, loadInvita
     } catch (error) {
       let { message } = error
       if (error instanceof SyntaxError) {
-        message = `Reply content is not valid JSON - ${error.message}. Make sure all quotes and brackets match.`
+        message = `Reply is not valid JSON: ${error.message}. Make sure all quotes and brackets match.`
       }
       promptError(message, { scrollToTop: false })
     }
@@ -199,24 +199,29 @@ export function InvitationReplyWithPreview({ invitation, accessToken, loadInvita
 
   return (
     <EditorSection title="Reply Parameters" className="reply-preview">
-      <Tabs
-        tabNames={['Reply', 'Preview']}
-        tabContents={[
-          // eslint-disable-next-line react/jsx-key
-          <CodeEditor
-            code={replyString}
-            onChange={setReplyString}
-            readOnly={false}
-            isJson
-          />,
-          // eslint-disable-next-line react/jsx-key
-          <div
-            className="note_editor_preview"
-            dangerouslySetInnerHTML={{ __html: previewContent }}
-          />,
-        ]}
-        tabEvents={[null, generateReplyPreview]}
-      />
+      <Tabs>
+        <TabList>
+          <Tab id="reply" active>Reply</Tab>
+          <Tab id="preview" onClick={generateReplyPreview}>Preview</Tab>
+        </TabList>
+
+        <TabPanels>
+          <TabPanel id="reply">
+            <CodeEditor
+              code={replyString}
+              onChange={setReplyString}
+              readOnly={false}
+              isJson
+            />
+          </TabPanel>
+          <TabPanel id="preview">
+            <div
+              className="note-editor-preview"
+              dangerouslySetInnerHTML={{ __html: previewContent }}
+            />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
 
       <div className="mt-2">
         <SpinnerButton
