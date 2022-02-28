@@ -203,6 +203,8 @@ main.revisions {
   .meta_actions {
     float: right;
     margin-right: 0;
+    padding-left: 15px;
+    padding-right: 15px;
 
     button {
       margin-left: 0.25rem;
@@ -257,12 +259,12 @@ main.revisions {
   }
 
   .edit {
-    padding: 0rem 0.5rem 0rem 0.5rem;
-    margin-bottom: 1rem;
+    padding: 0;
+    margin-bottom: 1.25rem;
 
     h4 {
       color: constants.$darkBlue;
-      margin-bottom: 5px;
+      margin-bottom: .25rem;
     }
 
     .edit_meta_info {
@@ -273,16 +275,21 @@ main.revisions {
     }
 
     .edit_info {
+      margin-top: .5rem;
       margin-left: -0.5rem;
       margin-right: -0.5rem;
-      padding: 0.75rem 0.5rem 0.75rem 0.5rem;
+      padding: 0.5rem;
       background: rgba(0, 0, 0, 0.08);
 
       h4 {
-        font-size: 1rem;
+        font-size: .875rem;
         line-height: normal;
         font-weight: bold;
         margin-top: 0;
+        margin-bottom: 0.5rem;
+      }
+      hr.small {
+        margin-top: 0.5rem;
         margin-bottom: 0.5rem;
       }
       .line_heading {

@@ -36,6 +36,7 @@ const Edit = ({ edit, options }) => (
         noteReaders={edit.readers?.sort()}
       />
     )}
+
     <div className="edit_info">
       <h4>Edit Info</h4>
       <hr className="small" />
