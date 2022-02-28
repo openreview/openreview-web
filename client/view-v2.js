@@ -1798,8 +1798,8 @@ module.exports = (function() {
       if (contentObj.hasOwnProperty('values-dropdown') || (contentObj.hasOwnProperty('values') && k !== 'authorids')) {
         inputVal = idsFromListAdder($contentMap[k], ret);
 
-      } else if (k === 'authorids' && (
-        (contentObj['values-regex'] && isTildeIdAllowed(contentObj['values-regex'])) || contentObj['values']
+      } else if (k === 'authorids' && ( contentObj.type.endsWith('[]') &&
+        (contentObj['regex'] && view.isTildeIdAllowed(contentObj['regex'])) || contentObj['const']
       )) {
         ret.authorids = [];
         ret.authors = [];
@@ -1813,7 +1813,7 @@ module.exports = (function() {
             ret.authors.push(authorid);
             authorid = $(this).find('.author-emails').text();
           } else {
-            ret.authors.push(prettyId(authorid));
+            ret.authors.push(view.prettyId(authorid));
           }
           ret.authorids.push(authorid);
         });
