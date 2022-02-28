@@ -18,10 +18,12 @@ const useBreakpoint = (breakpoint) => {
       mediaQueryList?.matches ? setMatch(true) : setMatch(false)
     }
     setMatch(mediaQueryList?.matches)
+    // eslint-disable-next-line no-unused-expressions
     mediaQueryList.addEventListener
       ? mediaQueryList.addEventListener('change', handleMediaChange)
       : mediaQueryList.addListener(handleMediaChange)
     return () =>
+      // eslint-disable-next-line no-unused-expressions
       mediaQueryList.removeEventListener
         ? mediaQueryList.removeEventListener('change', handleMediaChange)
         : mediaQueryList.removeListener(handleMediaChange)
