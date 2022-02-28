@@ -1339,10 +1339,10 @@ module.exports = (function() {
   function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures') {
 
     var $signatures;
-    if (_.has(fieldDescription, 'values-regex')) { //change for regex
+    if (_.has(fieldDescription, 'regex')) { //change for regex
       var currentVal = fieldValue && fieldValue[0];
 
-      if (fieldDescription['values-regex'] === '~.*') {
+      if (fieldDescription['regex'] === '~.*') {
         if (user && user.profile) {
           var prefId = user.profile.preferredId || user.profile.id;
           $signatures = view.mkDropdownList(
@@ -1359,7 +1359,7 @@ module.exports = (function() {
         }
 
         return Webfield.get('/groups', {
-          regex: fieldDescription['values-regex'], signatory: user.id
+          regex: fieldDescription['regex'], signatory: user.id
         }, { handleErrors: false }).then(function(result) {
           if (_.isEmpty(result.groups)) {
             return $.Deferred().reject('no_results');
