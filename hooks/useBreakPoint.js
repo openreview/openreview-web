@@ -18,8 +18,13 @@ const useBreakpoint = (breakpoint) => {
       mediaQueryList?.matches ? setMatch(true) : setMatch(false)
     }
     setMatch(mediaQueryList?.matches)
-    mediaQueryList.addEventListener('change', handleMediaChange)
-    return () => mediaQueryList.removeEventListener('change', handleMediaChange)
+    mediaQueryList.addEventListener
+      ? mediaQueryList.addEventListener('change', handleMediaChange)
+      : mediaQueryList.addListener(handleMediaChange)
+    return () =>
+      mediaQueryList.removeEventListener
+        ? mediaQueryList.removeEventListener('change', handleMediaChange)
+        : mediaQueryList.removeListener(handleMediaChange)
   }, [breakpoint])
 
   return match
