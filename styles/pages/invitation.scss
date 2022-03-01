@@ -60,6 +60,10 @@ main.invitation {
 
   .code-editor {
     margin-top: 1rem;
+
+    .cm-editor {
+      border-color: #ddd;
+    }
   }
 
   section {
@@ -135,6 +139,7 @@ main.invitation {
 
       .note-editor-preview {
         @include mixins.well;
+        background-color: transparent;
         border-top: 0;
         padding-top: 1rem;
         padding-bottom: 1rem;
