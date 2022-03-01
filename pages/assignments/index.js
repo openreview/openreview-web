@@ -21,9 +21,7 @@ import { prettyId, formatDateTime, cloneAssignmentConfigNote } from '../../lib/u
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
-const ActionLink = ({
-  label, className, iconName, href, onClick, disabled,
-}) => {
+const ActionLink = ({ label, className, iconName, href, onClick, disabled }) => {
   if (href) {
     return (
       <Link href={href}>
@@ -49,8 +47,15 @@ const ActionLink = ({
 }
 
 const AssignmentRow = ({
-  note, configInvitation, handleEditConfiguration, handleViewConfiguration, handleCloneConfiguration,
-  handleRunMatcher, handleDeployMatcher, referrer, shouldRemoveDeployLink,
+  note,
+  configInvitation,
+  handleEditConfiguration,
+  handleViewConfiguration,
+  handleCloneConfiguration,
+  handleRunMatcher,
+  handleDeployMatcher,
+  referrer,
+  shouldRemoveDeployLink,
 }) => {
   const edgeBrowserUrl = getEdgeBrowserUrl(note.content)
   const edgeEditUrl = getEdgeBrowserUrl(note.content, { editable: true })
@@ -60,7 +65,7 @@ const AssignmentRow = ({
     <tr>
       <td>{note.number}</td>
 
-      <td className="assignment-label" style={{ overflow: 'hidden' }}>
+      <td className="assignment-label">
         <Link href={edgeBrowserUrl}>
           <a disabled={edgeBrowserUrl ? null : true}>
             {note.content.title ? note.content.title : note.content.label}
@@ -74,7 +79,12 @@ const AssignmentRow = ({
 
       <td>
         {['Error', 'No Solution', 'Deployment Error'].includes(status) ? (
-          <span className="assignment-status" data-toggle="tooltip" data-placement="top" title={errorMessage}>
+          <span
+            className="assignment-status"
+            data-toggle="tooltip"
+            data-placement="top"
+            title={errorMessage}
+          >
             {status}
           </span>
         ) : (
@@ -93,7 +103,11 @@ const AssignmentRow = ({
           label="Edit"
           iconName="pencil"
           onClick={() => handleEditConfiguration(note)}
-          disabled={['Running', 'Complete', 'Deploying', 'Deployed', 'Deployment Error'].includes(status) || !configInvitation}
+          disabled={
+            ['Running', 'Complete', 'Deploying', 'Deployed', 'Deployment Error'].includes(
+              status
+            ) || !configInvitation
+          }
         />
         <ActionLink
           label="Copy"
@@ -105,22 +119,48 @@ const AssignmentRow = ({
 
       <td className="assignment-actions">
         {['Initialized', 'Error', 'No Solution'].includes(status) && (
-          <ActionLink label="Run Matcher" iconName="cog" onClick={() => handleRunMatcher(note.id)} />
+          <ActionLink
+            label="Run Matcher"
+            iconName="cog"
+            onClick={() => handleRunMatcher(note.id)}
+          />
         )}
         {['Complete', 'Deploying', 'Deployment Error'].includes(status) && (
           <>
-            <ActionLink label="Browse Assignments" iconName="eye-open" href={edgeBrowserUrl} disabled={!edgeBrowserUrl} />
-            <ActionLink label="View Statistics" iconName="stats" href={`/assignments/stats?id=${note.id}&referrer=${referrer}`} />
+            <ActionLink
+              label="Browse Assignments"
+              iconName="eye-open"
+              href={edgeBrowserUrl}
+              disabled={!edgeBrowserUrl}
+            />
+            <ActionLink
+              label="View Statistics"
+              iconName="stats"
+              href={`/assignments/stats?id=${note.id}&referrer=${referrer}`}
+            />
           </>
         )}
         {['Deployed'].includes(status) && (
           <>
-            <ActionLink label="Edit Assignments " iconName="random" href={edgeEditUrl} disabled={!edgeEditUrl} />
-            <ActionLink label="View Statistics" iconName="stats" href={`/assignments/stats?id=${note.id}&referrer=${referrer}`} />
+            <ActionLink
+              label="Edit Assignments "
+              iconName="random"
+              href={edgeEditUrl}
+              disabled={!edgeEditUrl}
+            />
+            <ActionLink
+              label="View Statistics"
+              iconName="stats"
+              href={`/assignments/stats?id=${note.id}&referrer=${referrer}`}
+            />
           </>
         )}
         {['Complete', 'Deployment Error'].includes(status) && !shouldRemoveDeployLink && (
-          <ActionLink label="Deploy Assignment" iconName="share" onClick={() => handleDeployMatcher(note.id)} />
+          <ActionLink
+            label="Deploy Assignment"
+            iconName="share"
+            onClick={() => handleDeployMatcher(note.id)}
+          />
         )}
       </td>
     </tr>
@@ -136,14 +176,20 @@ const Assignments = ({ appContext }) => {
   const query = useQuery()
   const { setBannerContent } = appContext
 
-  const shouldRemoveDeployLink = assignmentNotes?.some(p => p?.content?.status === 'Deployed')
+  const shouldRemoveDeployLink = assignmentNotes?.some(
+    (p) => p?.content?.status === 'Deployed'
+  )
 
   // API functions
   const getAssignmentNotes = async () => {
     try {
-      const { notes } = await api.get('/notes', {
-        invitation: `${query.group}/-/Assignment_Configuration`,
-      }, { accessToken })
+      const { notes } = await api.get(
+        '/notes',
+        {
+          invitation: `${query.group}/-/Assignment_Configuration`,
+        },
+        { accessToken }
+      )
 
       setAssignmentNotes(notes || [])
     } catch (apiError) {
@@ -153,14 +199,21 @@ const Assignments = ({ appContext }) => {
 
   const getConfigInvitation = async () => {
     try {
-      const { invitations } = await api.get('/invitations', {
-        id: `${query.group}/-/Assignment_Configuration`,
-      }, { accessToken })
+      const { invitations } = await api.get(
+        '/invitations',
+        {
+          id: `${query.group}/-/Assignment_Configuration`,
+        },
+        { accessToken }
+      )
       if (invitations?.length > 0) {
         setConfigInvitation(invitations[0])
       }
     } catch (apiError) {
-      setError({ statusCode: 404, message: 'Could not list assignments. Invitation not found.' })
+      setError({
+        statusCode: 404,
+        message: 'Could not list assignments. Invitation not found.',
+      })
     }
   }
 
@@ -172,8 +225,12 @@ const Assignments = ({ appContext }) => {
 
   const appendEditorToModal = (editor) => {
     $('#note-editor-modal .modal-body').empty().addClass('legacy-styles').append(editor)
-    view.hideNoteEditorFields('#note-editor-modal', [ // To remove when all invitations have the following set to hidden true
-      'config_invitation', 'assignment_invitation', 'error_message', 'status',
+    view.hideNoteEditorFields('#note-editor-modal', [
+      // To remove when all invitations have the following set to hidden true
+      'config_invitation',
+      'assignment_invitation',
+      'error_message',
+      'status',
     ])
   }
 
@@ -190,8 +247,11 @@ const Assignments = ({ appContext }) => {
     }
 
     // Make sure an equal number of scores and weights are provided
-    if (configContent.scores_names && configContent.scores_weights
-      && configContent.scores_names.length !== configContent.scores_weights.length) {
+    if (
+      configContent.scores_names &&
+      configContent.scores_weights &&
+      configContent.scores_names.length !== configContent.scores_weights.length
+    ) {
       errorList.push('The scores and weights must have same number of values')
     }
 
@@ -200,11 +260,15 @@ const Assignments = ({ appContext }) => {
 
   const showDialogErrorMessage = (errors) => {
     $('#note-editor-modal .modal-body .alert-danger').remove()
-    $('#note-editor-modal .modal-body').prepend('<div class="alert alert-danger"><strong>Error:</strong> </div>')
+    $('#note-editor-modal .modal-body').prepend(
+      '<div class="alert alert-danger"><strong>Error:</strong> </div>'
+    )
     if (errors?.length > 0) {
       $('#note-editor-modal .modal-body .alert-danger').append(errors.join(', '))
     } else {
-      $('#note-editor-modal .modal-body .alert-danger').append('Could not save assignment config note')
+      $('#note-editor-modal .modal-body .alert-danger').append(
+        'Could not save assignment config note'
+      )
     }
     $('#note-editor-modal').animate({ scrollTop: 0 }, 400)
   }
@@ -214,12 +278,14 @@ const Assignments = ({ appContext }) => {
     if (!configInvitation) return
 
     $('#note-editor-modal').remove()
-    $('main').append(Handlebars.templates.genericModal({
-      id: 'note-editor-modal',
-      extraClasses: 'modal-lg',
-      showHeader: false,
-      showFooter: false,
-    }))
+    $('main').append(
+      Handlebars.templates.genericModal({
+        id: 'note-editor-modal',
+        extraClasses: 'modal-lg',
+        showHeader: false,
+        showFooter: false,
+      })
+    )
 
     $('#note-editor-modal').modal('show')
     view.mkNewNoteEditor(configInvitation, null, null, null, {
@@ -235,12 +301,14 @@ const Assignments = ({ appContext }) => {
     if (!configInvitation) return
 
     $('#note-editor-modal').remove()
-    $('main').append(Handlebars.templates.genericModal({
-      id: 'note-editor-modal',
-      extraClasses: 'modal-lg',
-      showHeader: false,
-      showFooter: false,
-    }))
+    $('main').append(
+      Handlebars.templates.genericModal({
+        id: 'note-editor-modal',
+        extraClasses: 'modal-lg',
+        showHeader: false,
+        showFooter: false,
+      })
+    )
     $('#note-editor-modal').modal('show')
 
     view.mkNoteEditor(note, configInvitation, null, {
@@ -256,12 +324,14 @@ const Assignments = ({ appContext }) => {
     if (!configInvitation) return
 
     $('#note-editor-modal').remove()
-    $('main').append(Handlebars.templates.genericModal({
-      id: 'note-editor-modal',
-      extraClasses: 'modal-lg',
-      showHeader: false,
-      showFooter: false,
-    }))
+    $('main').append(
+      Handlebars.templates.genericModal({
+        id: 'note-editor-modal',
+        extraClasses: 'modal-lg',
+        showHeader: false,
+        showFooter: false,
+      })
+    )
     $('#note-editor-modal').modal('show')
 
     const clone = cloneAssignmentConfigNote(note)
@@ -289,7 +359,9 @@ const Assignments = ({ appContext }) => {
   const handleRunMatcher = async (id) => {
     try {
       const apiRes = await api.post('/match', { configNoteId: id }, { accessToken })
-      promptMessage('Matching started. The status of the assignments will be updated when the matching process is complete')
+      promptMessage(
+        'Matching started. The status of the assignments will be updated when the matching process is complete'
+      )
     } catch (apiError) {
       promptError(apiError.message)
     }
@@ -309,7 +381,10 @@ const Assignments = ({ appContext }) => {
     if (!accessToken || !query) return
 
     if (!query.group) {
-      setError({ statusCode: 404, message: 'Could not list assignments. Missing parameter group.' })
+      setError({
+        statusCode: 404,
+        message: 'Could not list assignments. Missing parameter group.',
+      })
     }
 
     if (query.referrer) {
@@ -345,28 +420,33 @@ const Assignments = ({ appContext }) => {
           <h1>{`${prettyId(query?.group)} Assignments`}</h1>
         </div>
         <div className="col-xs-12 col-md-3 text-right">
-          <button type="button" className="btn" disabled={!configInvitation} onClick={handleNewConfiguration}>
+          <button
+            type="button"
+            className="btn"
+            disabled={!configInvitation}
+            onClick={handleNewConfiguration}
+          >
             New Assignment Configuration
           </button>
         </div>
       </header>
 
       <div className="row">
-        <div className="col-xs-12">
+        <div className="col-xs-12 horizontal-scroll">
           {assignmentNotes ? (
             <Table
               className="table-hover assignments-table"
               headings={[
                 { content: '#', width: '40px' },
                 { content: 'Title' },
-                { content: 'Created On', width: '200px' },
-                { content: 'Last Modified', width: '200px' },
-                { content: 'Status', width: '115px' },
-                { content: 'Parameters', width: '115px' },
+                { content: 'Created On', width: '185px' },
+                { content: 'Last Modified', width: '185px' },
+                { content: 'Status', width: '110px' },
+                { content: 'Parameters', width: '110px' },
                 { content: 'Actions', width: '175px' },
               ]}
             >
-              {assignmentNotes.map(assignmentNote => (
+              {assignmentNotes.map((assignmentNote) => (
                 <AssignmentRow
                   key={assignmentNote.id}
                   note={assignmentNote}
@@ -376,7 +456,11 @@ const Assignments = ({ appContext }) => {
                   handleCloneConfiguration={handleCloneConfiguration}
                   handleRunMatcher={handleRunMatcher}
                   handleDeployMatcher={handleDeployMatcher}
-                  referrer={encodeURIComponent(`[all assignments for ${prettyId(query?.group)}](/assignments?group=${query?.group})`)}
+                  referrer={encodeURIComponent(
+                    `[all assignments for ${prettyId(query?.group)}](/assignments?group=${
+                      query?.group
+                    })`
+                  )}
                   shouldRemoveDeployLink={shouldRemoveDeployLink}
                 />
               ))}
@@ -401,7 +485,11 @@ const Assignments = ({ appContext }) => {
         primaryButtonText={null}
       >
         {viewModalContent ? (
-          <NoteContent id={viewModalContent.id} content={viewModalContent.content} invitation={configInvitation} />
+          <NoteContent
+            id={viewModalContent.id}
+            content={viewModalContent.content}
+            invitation={configInvitation}
+          />
         ) : (
           <LoadingSpinner inline />
         )}
