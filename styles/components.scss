@@ -27,6 +27,7 @@
       border-bottom-color: constants.$backgroundGray;
       margin-right: 4px;
       padding: 0.625rem 1rem;
+      cursor: pointer;
 
       .badge {
         margin-left: 2px;
@@ -741,8 +742,9 @@ table.table-minimal {
   }
 }
 
-// Note editor
-.note_editor {
+// Note edito
+.note_editor,
+.note-editor-preview {
   > .row,
   > .note_content_section > .row {
     margin-top: 1em;
@@ -1338,6 +1340,7 @@ header,
     font-size: 0.75rem;
   }
   div.preview {
+    @include mixins.markdown-content-styles;
     height: 250px;
     overflow-y: scroll;
     padding: 0.375rem 0.75rem;
