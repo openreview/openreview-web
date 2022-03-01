@@ -264,9 +264,7 @@ module.exports = (function() {
         );
         contentInputResult = valueInput($input, fieldName, fieldDescription);
       } else if (fieldDescription.presentation?.input === 'checkbox') {
-        var options = fieldDescription.value.type.endsWith('[]') ?
-          fieldDescription.value.enum :
-          [fieldDescription.value.enum];
+        var options = fieldDescription.value.enum;
         var checkedValues = _.isArray(fieldValue) ? fieldValue : [fieldValue];
         var requiredValues = fieldDescription.presentation?.default;
 
@@ -315,8 +313,8 @@ module.exports = (function() {
       let authors;
       let authorids;
       if (params?.note) {
-        authors = params.note.content.authors?.value;
-        authorids = params.note.content.authorids?.value;
+        authors = params.note.content.authors?.const;
+        authorids = params.note.content.authorids?.const;
       } else if (params && params.user) {
         const userProfile = params.user.profile
         authors = [userProfile.first + ' ' + userProfile.middle + ' ' + userProfile.last];
@@ -1789,17 +1787,14 @@ module.exports = (function() {
       // Let the widget handle it :D and extract the data when we encouter authorids
       const contentObj = contentObjInInvitation.value;
       const presentationObj = contentObjInInvitation.presentation || {};
-      if (contentObj.hidden && k === 'authors') {
+      if (presentationObj.hidden && k === 'authors') {
         return ret;
       }
       var $inputVal = $contentMap[k].find('.note_content_value[name="' + k + '"]');
       var inputVal = $inputVal.val();
 
-      if (contentObj.hasOwnProperty('values-dropdown') || (contentObj.hasOwnProperty('values') && k !== 'authorids')) {
-        inputVal = idsFromListAdder($contentMap[k], ret);
-
-      } else if (k === 'authorids' && ( contentObj.type.endsWith('[]') &&
-        (contentObj['regex'] && view.isTildeIdAllowed(contentObj['regex'])) || contentObj['const']
+      if (k === 'authorids' &&
+        (contentObj.hasOwnProperty('regex') && view.isTildeIdAllowed(contentObj['regex']) || contentObj.hasOwnProperty('const')
       )) {
         ret.authorids = [];
         ret.authors = [];
@@ -1818,35 +1813,52 @@ module.exports = (function() {
           ret.authorids.push(authorid);
         });
         return ret;
-      } else if (contentObj.hasOwnProperty('value-dropdown')) {
-        var values = idsFromListAdder($contentMap[k], ret);
-        if (values && values.length) {
-          inputVal = values[0];
-        }
-      } else if (contentObj.hasOwnProperty('values-regex')) {
-        var inputArray = inputVal.split(',');
-        inputVal = _.filter(
-          _.map(inputArray, function(s) { return s.trim(); }),
-          function(e) { return !_.isEmpty(e); }
-        );
-
-      } else if (contentObj.hasOwnProperty('value-checkbox')) {
-        inputVal = $contentMap[k].find('.note_content_value input[type="checkbox"]').prop('checked') ?
-          contentObj['value-checkbox'] :
-          '';
-
-      } else if (contentObj.hasOwnProperty('values-checkbox')) {
-        inputVal = [];
-        $contentMap[k].find('.note_content_value input[type="checkbox"]').each(function(i) {
-          if ($(this).prop('checked')) {
-            inputVal.push($(this).val());
+      } else if (contentObj.hasOwnProperty('enum')) {
+        //value-radio
+        if (presentationObj.input === 'radio') {
+          var $selection = $contentMap[k].find('.note_content_value input[type="radio"]:checked');
+          inputVal = $selection.length ? $selection.val() : '';
+        } else if (presentationObj.input === 'checkbox') {
+          //values-checkbox
+          if (contentObj.type.endsWith('[]')) {
+            inputVal = [];
+            $contentMap[k].find('.note_content_value input[type="checkbox"]').each(function(i) {
+              if ($(this).prop('checked')) {
+                inputVal.push($(this).val());
+              }
+            });
+          } else {
+            //value-checkbox
+            inputVal = $contentMap[k].find('.note_content_value input[type="checkbox"]').prop('checked') ?
+                contentObj['enum'][0] :
+                '';
           }
-        });
-
-      } else if (contentObj.enum && presentationObj.input == 'radio') {
-        var $selection = $contentMap[k].find('.note_content_value input[type="radio"]:checked');
-        inputVal = $selection.length ? $selection.val() : '';
-
+        } else if (presentationObj.input === 'select' || !(_.has(presentationObj, 'input'))) {
+          //values-dropdown
+          if (contentObj.type.endsWith('[]')) {
+            inputVal = view.idsFromListAdder($contentMap[k], ret);
+          } else {
+            //value-dropdown
+            var values = view.idsFromListAdder($contentMap[k], ret);
+              if (values && values.length) {
+                inputVal = values[0];
+              }
+          }
+        }
+      } else if (contentObj.hasOwnProperty('const')) {
+        //values
+        if (contentObj.type.endsWith('[]') && k !== 'authorids') {
+          inputVal = view.idsFromListAdder($contentMap[k], ret);
+        }
+      } else if (contentObj.hasOwnProperty('regex')) {
+        //values-regex
+        if (contentObj.type.endsWith('[]')) {
+          var inputArray = inputVal.split(',');
+              inputVal = _.filter(
+                _.map(inputArray, function(s) { return s.trim(); }),
+                function(e) { return !_.isEmpty(e); }
+              );
+        }
       } else if (contentObj.hasOwnProperty('value-dict')) {
         if (inputVal) {
           var inputStr = _.map(inputVal.split('\n'), function(line) {
@@ -1860,7 +1872,6 @@ module.exports = (function() {
             errors.push('Field ' + k + ' contains invalid JSON. Please make sure all quotes and brackets match.');
           }
         }
-
       } else if (contentObj.type ==='file') {
         var $fileSection = $contentMap[k];
         var $fileInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '.') + '[type="file"]');
