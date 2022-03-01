@@ -7,7 +7,6 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import truncate from 'lodash/truncate'
 import UserContext from '../components/UserContext'
-import useQuery from '../hooks/useQuery'
 import api from '../lib/api-client'
 import { isValidEmail } from '../lib/utils'
 
@@ -16,7 +15,7 @@ const LoginForm = () => {
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState(null)
   const { loginUser } = useContext(UserContext)
-  const query = useQuery()
+  const { query } = useRouter()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -24,7 +23,7 @@ const LoginForm = () => {
 
     try {
       const { user, token } = await api.post('/login', { id: email, password })
-      loginUser(user, token, query?.redirect ?? '/')
+      loginUser(user, token, query?.redirect || '/')
     } catch (error) {
       setLoginError(error)
       promptError(error.message)
@@ -36,19 +35,16 @@ const LoginForm = () => {
 
     try {
       await api.post('/activatable', { id: email })
-      promptMessage(`A confirmation email with the subject "OpenReview signup confirmation" has been sent to ${email}.
-        Please click the link in this email to confirm your email address and complete registration.`, { noTimeout: true })
+      promptMessage(
+        `A confirmation email with the subject "OpenReview signup confirmation" has been sent to ${email}.
+        Please click the link in this email to confirm your email address and complete registration.`,
+        { noTimeout: true }
+      )
     } catch (error) {
       setLoginError(error)
       promptError(error.message)
     }
   }
-
-  useEffect(() => {
-    if (query?.redirect && !query?.noprompt) {
-      promptMessage(`Please login to access ${truncate(query.redirect, { length: 100 })}`)
-    }
-  }, [query])
 
   return (
     <form onSubmit={handleSubmit}>
@@ -61,7 +57,7 @@ const LoginForm = () => {
           placeholder="Email"
           value={email}
           maxLength={254}
-          onChange={e => setEmail(e.target.value.trim())}
+          onChange={(e) => setEmail(e.target.value.trim())}
         />
       </div>
 
@@ -73,19 +69,27 @@ const LoginForm = () => {
           className={`form-control ${loginError ? 'form-invalid' : ''}`}
           placeholder="Password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
         />
       </div>
 
-      <button type="submit" className="btn btn-login" disabled={!isValidEmail(email) || !password}>
+      <button
+        type="submit"
+        className="btn btn-login"
+        disabled={!isValidEmail(email) || !password}
+      >
         Login to OpenReview
       </button>
 
       <p className="help-block">
-        <Link href="/reset"><a>Forgot your password?</a></Link>
+        <Link href="/reset">
+          <a>Forgot your password?</a>
+        </Link>
         <br />
         {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-        <a href="#" onClick={handleResendConfirmation}>Didn&apos;t receive email confirmation?</a>
+        <a href="#" onClick={handleResendConfirmation}>
+          Didn&apos;t receive email confirmation?
+        </a>
       </p>
     </form>
   )
@@ -93,16 +97,20 @@ const LoginForm = () => {
 
 const Login = () => {
   const { user, userLoading } = useContext(UserContext)
-  const router = useRouter()
+  const { isReady, query, replace } = useRouter()
 
-  // Redirect user to the homepage if not logged in. Effect should only run when
-  // userLoading changes, otherwise the page will redirect as soon as the login
-  // form is submitted
+  // Redirect user to the specified page or the homepage if already logged in.
+  // Effect should not run when user changes, otherwise the page will redirect
+  // as soon as the login form is submitted
   useEffect(() => {
-    if (!userLoading && user) {
-      router.replace('/')
+    if (!isReady || userLoading) return
+
+    if (user) {
+      replace(query.redirect || '/')
+    } else if (query.redirect && !query.noprompt) {
+      promptMessage(`Please login to access ${truncate(query.redirect, { length: 100 })}`)
     }
-  }, [userLoading])
+  }, [isReady, query, userLoading])
 
   return (
     <div className="row">
