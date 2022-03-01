@@ -346,6 +346,17 @@ which will be displayed as:
     id: 'question-release-reviews-reviewers',
     a: 'On the request form for your venue, click on the ‘Review Stage’ button. Reviews can be released to all reviewers, to a paper\'s assigned reviewers, or to a paper\'s assigned reviewers who have already submitted their review.',
   }, {
+    q: 'How can I personalize the reminder emails being sent to users? What email template tags are available?',
+    id: 'email-template-tags',
+    a: `Email messages can be sent to users of your venue programmatically using the API or from certain pages like the Program Chair console. They can be personalized to include the recipients name or other information using email template tags.
+
+There are two types of email template tags: tags that are handled on the backend by the OpenReview API, and tags that are replaced on the frontend (in the browser). Backend tags can be used anywhere, including when sending messages directly using the API or via the openreview-py library, while frontend tags can only be used on specific pages, such as the Area Chair console and the Program Chair console.
+A list of all available tags is below:
+
+Backend tags: \`{{fullname}}\`, \`{{firstname}}\`
+
+Frontend tags: \`[[SUBMIT_REVIEW_LINK]]\``,
+  }, {
     q: 'How can I manually assign reviewers/ACs to papers?',
     id: 'question-manually-assign-reviewers',
     a: `**Reviewers:** If you did not specify you wanted to use the OpenReview matcher to assign reviewers to papers, you will be able to manually assign them using the PC console.
@@ -379,7 +390,7 @@ Note that assigning an area chair using python does not send an email to that us
 
 In order to automatically assign Reviewers and Area Chairs, you must:
 
-  1. Enable the 'Review' or 'Post Submission' stage from your venue request form. This can only be done AFTER the submission deadline has passed. 
+  1. Enable the 'Review' or 'Post Submission' stage from your venue request form. This can only be done AFTER the submission deadline has passed.
   2. Use the 'Paper Matching Setup' button on your venue request form to calculate affinity scores and conflicts: https://openreview.net/faq#question-paper-matching-setup
 
 After following these steps, you should see links for 'Assignment' in the 'Timeline' section of your Program Chair console.
@@ -468,21 +479,21 @@ The reviewer can then respond to the invitation. If you want to invite a reviewe
   {
     q: 'How can I calculate Affinity Scores and Conflicts?',
     id: 'question-paper-matching-setup',
-    a: `You can calculate affinity scores and conflicts for your venue using OpenReview's 'Paper Matching Setup' feature. Paper Matching Setup is enabled for any venue that selected an option for the 'Paper Matching' question on the venue request form and that has set a submission deadline. This feature allows Program Chairs to compute or upload affinity scores and/or compute conflicts. 
+    a: `You can calculate affinity scores and conflicts for your venue using OpenReview's 'Paper Matching Setup' feature. Paper Matching Setup is enabled for any venue that selected an option for the 'Paper Matching' question on the venue request form and that has set a submission deadline. This feature allows Program Chairs to compute or upload affinity scores and/or compute conflicts.
 
-You can find the 'Paper Matching Setup' button on your venue request form next to 'Remind Recruitment'. 
+You can find the 'Paper Matching Setup' button on your venue request form next to 'Remind Recruitment'.
 
-<img src="/images/faq-paper-matching-button.png" alt="Paper Matching Button" class="img-answer"/></br> 
+<img src="/images/faq-paper-matching-button.png" alt="Paper Matching Button" class="img-answer"/></br>
 
 Clicking it should bring up the following form. The 'Matching Group' is a dropdown menu of the groups you can use in the matcher (Reviewers, Area Chairs, Senior Area Chairs), depending on whichever you selected for your venue. You can select if you would like affinity scores and/or conflicts computed. Alternatively, you can compute and upload your own affinity scores using the OpenReview expertise API: https://github.com/openreview/openreview-expertise
 
 ![paper matching form](/images/faq-paper-matching-form.png)
 
-Running the paper matching setup should output a comment on your venue request page. If there were members missing profiles or publications, the message will identify them and say 'Affinity scores and/or conflicts could not be computed for these users. Please ask these users to sign up in OpenReview and upload their papers. Alternatively, you can remove these users from the Reviewers group.' This message does not mean that the process failed, but that those members were excluded from the calculations. You can run the Paper Matching Setup as many times as you want or until all users have completed profiles. 
+Running the paper matching setup should output a comment on your venue request page. If there were members missing profiles or publications, the message will identify them and say 'Affinity scores and/or conflicts could not be computed for these users. Please ask these users to sign up in OpenReview and upload their papers. Alternatively, you can remove these users from the Reviewers group.' This message does not mean that the process failed, but that those members were excluded from the calculations. You can run the Paper Matching Setup as many times as you want or until all users have completed profiles.
 
-You can confirm that the affinity scores were computed by checking if an invitation for the scores was created: https://api.openreview.net/edges?invitation=your/venue/id/role/-/Affinity_Score. 
+You can confirm that the affinity scores were computed by checking if an invitation for the scores was created: https://api.openreview.net/edges?invitation=your/venue/id/role/-/Affinity_Score.
 
-After you compute the scores by running Paper Matching Setup, a link for 'Paper Assignments' should appear on your Program Chair console. From there, you should be able to use the edge browser to automatically make assignments: https://openreview.net/faq#question-edge-browser. All members of a group must have OpenReview profiles in order for the automatic assignment algorithm to run. Any members without profiles must be removed from the group before moving onto the next step. 
+After you compute the scores by running Paper Matching Setup, a link for 'Paper Assignments' should appear on your Program Chair console. From there, you should be able to use the edge browser to automatically make assignments: https://openreview.net/faq#question-edge-browser. All members of a group must have OpenReview profiles in order for the automatic assignment algorithm to run. Any members without profiles must be removed from the group before moving onto the next step.
 
     `,
   },
