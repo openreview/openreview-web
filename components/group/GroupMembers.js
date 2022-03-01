@@ -52,7 +52,9 @@ const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }
       title="Message Group Members"
       primaryButtonText="Send Messages"
       onPrimaryButtonClick={sendMessage}
-      onClose={() => setMessage('')}
+      onClose={() => {
+        setMessage('')
+      }}
     >
       {error && <div className="alert alert-danger">{error}</div>}
       <p>

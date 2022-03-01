@@ -105,6 +105,7 @@ export default function ProfileEdit({ appContext }) {
 
   useEffect(() => {
     if (!accessToken) return
+
     loadProfile()
     setBannerContent(viewProfileLink())
   }, [accessToken])
