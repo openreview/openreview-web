@@ -1,22 +1,23 @@
-/* globals promptMessage: false */
-/* globals promptError: false */
+/* globals promptError,promptMessage,view: false */
 
 import { useState } from 'react'
 import EditorSection from '../EditorSection'
 import CodeEditor from '../CodeEditor'
 import SpinnerButton from '../SpinnerButton'
+import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { getMetaInvitationId, prettyId } from '../../lib/utils'
 
 // Used for both reply/edit and reply forum views
-const InvitationReply = ({
+export default function InvitationReply({
   invitation,
   profileId,
   accessToken,
   loadInvitation,
   replyField,
   readOnly = false,
-}) => {
+}) {
   const [replyString, setReplyString] = useState(
     invitation[replyField] ? JSON.stringify(invitation[replyField], undefined, 2) : '[]'
   )
@@ -110,7 +111,7 @@ const InvitationReply = ({
     } catch (error) {
       let { message } = error
       if (error instanceof SyntaxError) {
-        message = `Reply content is not valid JSON - ${error.message}. Make sure all quotes and brackets match.`
+        message = `Reply is not valid JSON: ${error.message}. Make sure all quotes and brackets match.`
       }
       promptError(message, { scrollToTop: false })
     }
@@ -137,4 +138,101 @@ const InvitationReply = ({
   )
 }
 
-export default InvitationReply
+// for v1 invitations only
+export function InvitationReplyWithPreview({ invitation, accessToken, loadInvitation }) {
+  const [replyString, setReplyString] = useState(
+    invitation.reply ? JSON.stringify(invitation.reply, undefined, 2) : '[]'
+  )
+  const [isSaving, setIsSaving] = useState(false)
+  const [previewContent, setPreivewContent] = useState(null)
+  const { user } = useUser()
+
+  const getRequestBody = () => {
+    try {
+      const cleanReplyString = replyString.trim()
+      const replyObj = JSON.parse(cleanReplyString.length ? cleanReplyString : '[]')
+      return {
+        ...invitation,
+        reply: replyObj,
+        apiVersion: undefined,
+        rdate: undefined,
+      }
+    } catch (error) {
+      promptError(`Reply is not valid JSON: ${error.message}.`, { scrollToTop: false })
+    }
+    return {}
+  }
+
+  const saveInvitationReply = async () => {
+    try {
+      setIsSaving(true)
+      const requestBody = getRequestBody()
+      await api.post('/invitations', requestBody, {
+        accessToken,
+        version: 1,
+      })
+      promptMessage(`Settings for '${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      loadInvitation(invitation.id)
+    } catch (error) {
+      let { message } = error
+      if (error instanceof SyntaxError) {
+        message = `Reply is not valid JSON: ${error.message}. Make sure all quotes and brackets match.`
+      }
+      promptError(message, { scrollToTop: false })
+    }
+    setIsSaving(false)
+  }
+
+  const generateReplyPreview = () => {
+    const invitationToPreview = getRequestBody()
+    if (!invitationToPreview?.reply?.content) {
+      setPreivewContent('Nothing to preview')
+      return
+    }
+    view.mkNewNoteEditor(invitationToPreview, null, null, user, {
+      isPreview: true,
+      onCompleted: (editor) => {
+        setPreivewContent(editor.html())
+      },
+    })
+  }
+
+  return (
+    <EditorSection title="Reply Parameters" className="reply-preview">
+      <Tabs>
+        <TabList>
+          <Tab id="reply" active>Reply</Tab>
+          <Tab id="preview" onClick={generateReplyPreview}>Preview</Tab>
+        </TabList>
+
+        <TabPanels>
+          <TabPanel id="reply">
+            <CodeEditor
+              code={replyString}
+              onChange={setReplyString}
+              readOnly={false}
+              isJson
+            />
+          </TabPanel>
+          <TabPanel id="preview">
+            <div
+              className="note-editor-preview"
+              dangerouslySetInnerHTML={{ __html: previewContent }}
+            />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+
+      <div className="mt-2">
+        <SpinnerButton
+          type="primary"
+          onClick={saveInvitationReply}
+          disabled={isSaving}
+          loading={isSaving}
+        >
+          {isSaving ? 'Saving' : 'Save Invitation'}
+        </SpinnerButton>
+      </div>
+    </EditorSection>
+  )
+}
