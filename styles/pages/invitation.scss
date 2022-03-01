@@ -1,4 +1,6 @@
-@use "../pages/group.scss";
+@use '../pages/group.scss';
+@use '../utils/mixins';
+@use '../utils/constants';
 
 main.invitation {
   // See group.scss for shared styles
@@ -16,7 +18,7 @@ main.invitation {
         margin-right: 0;
       }
       label {
-        margin-right: .5rem;
+        margin-right: 0.5rem;
       }
       .search-content {
         input {
@@ -26,7 +28,8 @@ main.invitation {
       .subject-area {
         margin-left: 1rem;
 
-        input, .dropdown_content {
+        input,
+        .dropdown_content {
           width: 350px;
         }
       }
@@ -57,13 +60,17 @@ main.invitation {
 
   .code-editor {
     margin-top: 1rem;
+
+    .cm-editor {
+      border-color: #ddd;
+    }
   }
 
   section {
     margin-bottom: 1.75rem;
   }
   .row {
-    margin-bottom: .25rem;
+    margin-bottom: 0.25rem;
   }
   .d-flex {
     display: flex;
@@ -73,7 +80,7 @@ main.invitation {
     width: 12%;
     text-align: right;
     white-space: nowrap;
-    margin-right: .5rem;
+    margin-right: 0.5rem;
     overflow: hidden;
     text-overflow: ellipsis;
     flex-shrink: 0;
@@ -81,13 +88,13 @@ main.invitation {
       margin-top: 5px;
     }
   }
-  .info-content{
-    width:88%;
+  .info-content {
+    width: 88%;
   }
   .info-edit-control {
-    width:50%;
-    input[type=number] {
-      width:100px;
+    width: 50%;
+    input[type='number'] {
+      width: 100px;
     }
   }
   .spinner-small {
@@ -96,15 +103,67 @@ main.invitation {
   .save-button-wrapper {
     display: flex;
   }
-  button{
-    margin-top: .75rem;
-    margin-right: .5rem;
+  button {
+    margin-top: 0.75rem;
+    margin-right: 0.5rem;
   }
   .timezone-dropdown {
     width: 100%;
-    .dropdown-select__option,.dropdown-select__menu,.dropdown-select__menu-list {
+    .dropdown-select__option,
+    .dropdown-select__menu,
+    .dropdown-select__menu-list {
       width: 450px;
       overflow-x: hidden;
+    }
+  }
+  .reply-preview {
+    div[role='tablist'] {
+      margin-top: 1rem;
+      a[data-target='#Reply'] {
+        background-color: constants.$backgroundWhite;
+        border: 1px solid #ddd;
+      }
+      a[data-target='#Preview'] {
+        background-color: constants.$sandyBrown;
+      }
+    }
+    .code-editor {
+      margin-top: 0;
+      .cm-editor {
+        border-top: 0;
+      }
+    }
+    .tab-pane {
+      padding: 0;
+      min-height: 200px;
+
+      .note-editor-preview {
+        @include mixins.well;
+        background-color: transparent;
+        border-top: 0;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+
+        button {
+          margin-top: 0;
+        }
+
+        .note_content_title {
+          font-size: 1.125rem;
+          line-height: 1.125rem;
+          margin-top: 0;
+          margin-bottom: 0.5rem;
+        }
+        hr {
+          display: none;
+        }
+        .note_content_section > hr {
+          display: block;
+        }
+        .hint {
+          margin-bottom: 0.25rem;
+        }
+      }
     }
   }
 }

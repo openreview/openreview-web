@@ -3,7 +3,7 @@
 
 import React from 'react'
 import InvitationGeneral, { InvitationGeneralV2 } from './InvitationGeneral'
-import InvitationReply, { InvitationReplyV2 } from './InvitationReply'
+import InvitationReply, { InvitationReplyWithPreview,InvitationReplyV2 } from './InvitationReply'
 import InvitationCode, { InvitationCodeV2 } from './InvitationCode'
 import InvitationChildInvitations, {
   InvitationChildInvitationsV2,
@@ -25,13 +25,12 @@ const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => 
         loadInvitation={loadInvitation}
       />
       <>
-        <InvitationReply
-          key={`${invitation.id}-edit`}
-          invitation={invitation}
-          accessToken={accessToken}
-          loadInvitation={loadInvitation}
-          replyField="reply"
-        />
+        <InvitationReplyWithPreview
+              key={`${invitation.id}-edit`}
+              invitation={invitation}
+              accessToken={accessToken}
+              loadInvitation={loadInvitation}
+            />
         <InvitationReply
           key={`${invitation.id}-replyForumViews`}
           invitation={invitation}
