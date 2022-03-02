@@ -1,17 +1,23 @@
-/* globals promptMessage: false */
-/* globals promptError: false */
+/* globals promptError,promptMessage,view: false */
 
 import { useState } from 'react'
 import EditorSection from '../EditorSection'
 import CodeEditor from '../CodeEditor'
 import SpinnerButton from '../SpinnerButton'
+import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
+import { getMetaInvitationId, prettyId } from '../../lib/utils'
 
 // Used for both reply/edit and reply forum views
-const InvitationReply = ({
-  invitation, profileId, accessToken, loadInvitation, replyField, readOnly = false,
-}) => {
+export default function InvitationReply({
+  invitation,
+  profileId,
+  accessToken,
+  loadInvitation,
+  replyField,
+  readOnly = false,
+}) {
   const [replyString, setReplyString] = useState(
     invitation[replyField] ? JSON.stringify(invitation[replyField], undefined, 2) : '[]'
   )
@@ -27,6 +33,7 @@ const InvitationReply = ({
   const sectionTitle = titleMap[replyField] || replyField
 
   const getRequestBody = (replyObj) => {
+    const metaInvitationId = getMetaInvitationId(invitation)
     switch (replyField) {
       case 'reply':
         return {
@@ -36,6 +43,7 @@ const InvitationReply = ({
           rdate: undefined,
         }
       case 'edge':
+        if (!metaInvitationId) throw new Error('No meta invitation found')
         return {
           invitation: {
             id: invitation.id,
@@ -45,43 +53,42 @@ const InvitationReply = ({
           readers: [profileId],
           writers: [profileId],
           signatures: [profileId],
+          invitations: metaInvitationId,
         }
       case 'replyForumViews':
-        return isV1Invitation
-          ? {
-              ...invitation,
-              replyForumViews: replyObj,
-              apiVersion: undefined,
-              rdate: undefined,
-            }
-          : {
-              invitation: {
-                id: invitation.id,
-                signatures: invitation.signatures,
-                replyForumViews: replyObj,
-              },
-              readers: [profileId],
-              writers: [profileId],
-              signatures: [profileId],
-            }
+        if (isV1Invitation)
+          return {
+            ...invitation,
+            replyForumViews: replyObj,
+            apiVersion: undefined,
+            rdate: undefined,
+          }
+        if (!metaInvitationId) throw new Error('No meta invitation found')
+        return {
+          invitation: {
+            id: invitation.id,
+            signatures: invitation.signatures,
+            replyForumViews: replyObj,
+          },
+          readers: [profileId],
+          writers: [profileId],
+          signatures: [profileId],
+          invitations: metaInvitationId,
+        }
       case 'edit':
+        if (!metaInvitationId) throw new Error('No meta invitation found')
         return {
           invitation: {
             id: invitation.id,
             signatures: invitation.signatures,
             edit: {
-              note: {
-                signatures: null,
-                readers: null,
-                writers: null,
-                content: invitation.edit.note.content,
-              },
               ...replyObj,
             },
           },
           readers: [profileId],
           writers: [profileId],
           signatures: [profileId],
+          invitations: metaInvitationId,
         }
       default:
         return null
@@ -96,14 +103,15 @@ const InvitationReply = ({
       const requestPath = isV1Invitation ? '/invitations' : '/invitations/edits'
       const requestBody = getRequestBody(replyObj)
       await api.post(requestPath, requestBody, {
-        accessToken, version: isV1Invitation ? 1 : 2,
+        accessToken,
+        version: isV1Invitation ? 1 : 2,
       })
       promptMessage(`Settings for '${prettyId(invitation.id)} updated`, { scrollToTop: false })
       loadInvitation(invitation.id)
     } catch (error) {
       let { message } = error
       if (error instanceof SyntaxError) {
-        message = `Reply content is not valid JSON - ${error.message}. Make sure all quotes and brackets match.`
+        message = `Reply is not valid JSON: ${error.message}. Make sure all quotes and brackets match.`
       }
       promptError(message, { scrollToTop: false })
     }
@@ -112,12 +120,7 @@ const InvitationReply = ({
 
   return (
     <EditorSection title={sectionTitle}>
-      <CodeEditor
-        code={replyString}
-        onChange={setReplyString}
-        readOnly={readOnly}
-        isJson
-      />
+      <CodeEditor code={replyString} onChange={setReplyString} readOnly={readOnly} isJson />
 
       {!readOnly && (
         <div className="mt-2">
@@ -135,4 +138,101 @@ const InvitationReply = ({
   )
 }
 
-export default InvitationReply
+// for v1 invitations only
+export function InvitationReplyWithPreview({ invitation, accessToken, loadInvitation }) {
+  const [replyString, setReplyString] = useState(
+    invitation.reply ? JSON.stringify(invitation.reply, undefined, 2) : '[]'
+  )
+  const [isSaving, setIsSaving] = useState(false)
+  const [previewContent, setPreivewContent] = useState(null)
+  const { user } = useUser()
+
+  const getRequestBody = () => {
+    try {
+      const cleanReplyString = replyString.trim()
+      const replyObj = JSON.parse(cleanReplyString.length ? cleanReplyString : '[]')
+      return {
+        ...invitation,
+        reply: replyObj,
+        apiVersion: undefined,
+        rdate: undefined,
+      }
+    } catch (error) {
+      promptError(`Reply is not valid JSON: ${error.message}.`, { scrollToTop: false })
+    }
+    return {}
+  }
+
+  const saveInvitationReply = async () => {
+    try {
+      setIsSaving(true)
+      const requestBody = getRequestBody()
+      await api.post('/invitations', requestBody, {
+        accessToken,
+        version: 1,
+      })
+      promptMessage(`Settings for '${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      loadInvitation(invitation.id)
+    } catch (error) {
+      let { message } = error
+      if (error instanceof SyntaxError) {
+        message = `Reply is not valid JSON: ${error.message}. Make sure all quotes and brackets match.`
+      }
+      promptError(message, { scrollToTop: false })
+    }
+    setIsSaving(false)
+  }
+
+  const generateReplyPreview = () => {
+    const invitationToPreview = getRequestBody()
+    if (!invitationToPreview?.reply?.content) {
+      setPreivewContent('Nothing to preview')
+      return
+    }
+    view.mkNewNoteEditor(invitationToPreview, null, null, user, {
+      isPreview: true,
+      onCompleted: (editor) => {
+        setPreivewContent(editor.html())
+      },
+    })
+  }
+
+  return (
+    <EditorSection title="Reply Parameters" className="reply-preview">
+      <Tabs>
+        <TabList>
+          <Tab id="reply" active>Reply</Tab>
+          <Tab id="preview" onClick={generateReplyPreview}>Preview</Tab>
+        </TabList>
+
+        <TabPanels>
+          <TabPanel id="reply">
+            <CodeEditor
+              code={replyString}
+              onChange={setReplyString}
+              readOnly={false}
+              isJson
+            />
+          </TabPanel>
+          <TabPanel id="preview">
+            <div
+              className="note-editor-preview"
+              dangerouslySetInnerHTML={{ __html: previewContent }}
+            />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+
+      <div className="mt-2">
+        <SpinnerButton
+          type="primary"
+          onClick={saveInvitationReply}
+          disabled={isSaving}
+          loading={isSaving}
+        >
+          {isSaving ? 'Saving' : 'Save Invitation'}
+        </SpinnerButton>
+      </div>
+    </EditorSection>
+  )
+}

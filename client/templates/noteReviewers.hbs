@@ -1,5 +1,6 @@
 <div id="{{paperNumber}}-reviewer-progress" class="reviewer-progress" data-paper-forum="{{noteId}}">
   <h4>{{numSubmittedReviews}} of {{numReviewers}} Reviews Submitted</h4>
+  {{#if numSubmittedRecommendations}}<h4>{{numSubmittedRecommendations}} of {{numReviewers}} Recommendations Submitted</h4>{{/if}}
 
   {{#if enableReviewerReassignment}}
     <a href="#{{noteId}}-reviewers" class="collapse-btn{{#unless expandReviewerList}} collapsed{{/unless}}" role="button" data-toggle="collapse" aria-expanded="{{#if expandReviewerList}}true{{else}}false{{/if}}">{{#if expandReviewerList}}Hide reviewers{{else}}Show reviewers{{/if}}</a>

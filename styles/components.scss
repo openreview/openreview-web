@@ -1,20 +1,20 @@
 // Global styles for Webfield components
 // Need to be imported in _app.js so they can be used on any page
 
-@use "utils/constants";
-@use "utils/mixins";
+@use 'utils/constants';
+@use 'utils/mixins';
 
-@import "components/nav";
-@import "components/footer";
-@import "components/forum-note";
-@import "components/note-content";
-@import "components/forum";
-@import "components/dropdown";
-@import "components/messages-table";
-@import "components/autocomplete-input";
-@import "components/legacy-forum";
-@import "components/legacy-profile-editor";
-@import "components/datetime-picker";
+@import 'components/nav';
+@import 'components/footer';
+@import 'components/forum-note';
+@import 'components/note-content';
+@import 'components/forum';
+@import 'components/dropdown';
+@import 'components/messages-table';
+@import 'components/autocomplete-input';
+@import 'components/legacy-forum';
+@import 'components/legacy-profile-editor';
+@import 'components/datetime-picker';
 
 // Tab navigation
 .nav-tabs {
@@ -26,7 +26,8 @@
       border-radius: 0;
       border-bottom-color: constants.$backgroundGray;
       margin-right: 4px;
-      padding: .625rem 1rem;
+      padding: 0.625rem 1rem;
+      cursor: pointer;
 
       .badge {
         margin-left: 2px;
@@ -35,12 +36,16 @@
     }
 
     &.active {
-      a, a:focus, a:hover {
+      a,
+      a:focus,
+      a:hover {
         background: constants.$backgroundWhite;
       }
     }
     &.loading {
-      a, a:focus, a:hover {
+      a,
+      a:focus,
+      a:hover {
         cursor: wait;
         color: constants.$subtleGray;
         background: lighten(constants.$sandyBrown, 3%);
@@ -64,14 +69,15 @@
 }
 .tab-content {
   > .tab-pane {
-    padding-top: .625rem;
+    padding-top: 0.625rem;
     padding-left: 1rem;
 
     &.horizontal-scroll {
       overflow-x: visible;
       overflow-y: visible;
 
-      form.search-form, .table-container {
+      form.search-form,
+      .table-container {
         min-width: 940px;
       }
     }
@@ -90,7 +96,7 @@
     width: 100%;
     height: 100%;
     background-color: constants.$backgroundWhite;
-    opacity: .45;
+    opacity: 0.45;
     z-index: 100;
   }
 }
@@ -108,7 +114,7 @@ table.table {
   table-layout: fixed;
 
   tbody {
-    font-size: .875rem;
+    font-size: 0.875rem;
   }
   h4 {
     margin-top: 0;
@@ -119,7 +125,7 @@ table.table-minimal {
   background-color: transparent;
 
   tbody {
-    font-size: .75rem;
+    font-size: 0.75rem;
   }
   tbody > tr > td {
     padding: 2px;
@@ -133,21 +139,23 @@ table.table-minimal {
 // Paper Notes List
 .submissions-list {
   .note {
-    padding: .375rem 0;
+    padding: 0.375rem 0;
 
     h4 {
       font-size: 1.125rem;
       line-height: 1.375rem;
       margin-top: 0;
-      margin-bottom: .125rem;
+      margin-bottom: 0.125rem;
 
-      .duedate, .completed-date {
-        padding-left: .5rem;
+      .duedate,
+      .completed-date {
+        padding-left: 0.5rem;
       }
     }
 
-    .pdf-link, .html-link {
-      font-size: .75rem;
+    .pdf-link,
+    .html-link {
+      font-size: 0.75rem;
       line-height: 1.125rem;
       margin-left: 1rem;
 
@@ -157,7 +165,7 @@ table.table-minimal {
         margin-top: -7px;
       }
       @media #{constants.$phone-only} {
-        margin-left: .5rem;
+        margin-left: 0.5rem;
         img {
           width: 18px;
           height: 18px;
@@ -166,24 +174,26 @@ table.table-minimal {
       }
     }
 
-    .unlink-publication, .relink-publication {
+    .unlink-publication,
+    .relink-publication {
       top: 3px;
       font-size: 1.125rem;
-      padding-left: .25rem;
+      padding-left: 0.25rem;
       cursor: pointer;
     }
 
-    .parent-title, .note-parent-title {
+    .parent-title,
+    .note-parent-title {
       color: constants.$subtleGray;
-      margin-bottom: .125rem;
+      margin-bottom: 0.125rem;
 
       .glyphicon {
-        font-size: .75rem;
+        font-size: 0.75rem;
         top: 1px;
         padding-right: 4px;
       }
       strong {
-        font-size: .875rem;
+        font-size: 0.875rem;
       }
       a {
         color: constants.$subtleGray;
@@ -192,7 +202,7 @@ table.table-minimal {
 
     .note-authors {
       color: constants.$darkBlue;
-      margin-bottom: .125rem;
+      margin-bottom: 0.125rem;
 
       a {
         color: constants.$darkBlue;
@@ -205,8 +215,8 @@ table.table-minimal {
     }
 
     .note-contents-collapse {
-      margin-top: .25rem;
-      margin-bottom: .25rem;
+      margin-top: 0.25rem;
+      margin-bottom: 0.25rem;
 
       // Overrides styles defined in legacy.scss
       border-left: 0;
@@ -215,18 +225,19 @@ table.table-minimal {
       }
     }
 
-    .note-contents-toggle, .note-tags-toggle {
-      font-size: .75rem;
+    .note-contents-toggle,
+    .note-tags-toggle {
+      font-size: 0.75rem;
     }
 
     .note-meta-info {
-      font-size: .75rem;
+      font-size: 0.75rem;
       line-height: 1.25rem;
       color: constants.$subtleGray;
-      margin-bottom: .125rem;
+      margin-bottom: 0.125rem;
 
       & > li {
-        padding-right: .75rem;
+        padding-right: 0.75rem;
         &:last-child {
           padding-right: 0;
         }
@@ -239,9 +250,9 @@ table.table-minimal {
         text-transform: uppercase;
       }
       .readers-icon {
-        font-size: .875rem;
-        padding-left: .25rem;
-        padding-right: .125rem;
+        font-size: 0.875rem;
+        padding-left: 0.25rem;
+        padding-right: 0.125rem;
       }
       .note-actions {
         display: inline-block;
@@ -258,31 +269,32 @@ table.table-minimal {
 
     .note-task {
       a {
-        font-size: .75rem;
+        font-size: 0.75rem;
         font-weight: bold;
         padding-right: 6px;
       }
     }
 
     .duedate {
-      font-size: .75rem;
+      font-size: 0.75rem;
       font-weight: normal;
       color: constants.$orRed;
 
-      &.warning, &.expired {
+      &.warning,
+      &.expired {
         padding: 0 4px;
-        margin-left: .5rem;
+        margin-left: 0.5rem;
         position: relative;
         top: -1px;
       }
       &.warning {
         background-color: constants.$sandyBrown;
-        border: 1px solid darken(constants.$sandyBrown, 5%)
+        border: 1px solid darken(constants.$sandyBrown, 5%);
       }
       &.expired {
         background-color: constants.$alertRed;
         border-color: #ebccd1;
-        border: 1px solid darken(constants.$alertRed, 5%)
+        border: 1px solid darken(constants.$alertRed, 5%);
       }
     }
 
@@ -301,11 +313,11 @@ table.table-minimal {
   }
 
   .note-content {
-    font-size: .75rem;
+    font-size: 0.75rem;
     max-width: 850px;
 
     strong {
-      padding-right: .25rem;
+      padding-right: 0.25rem;
       color: constants.$orRed;
     }
     .note-content-value {
@@ -316,8 +328,8 @@ table.table-minimal {
       }
     }
     li {
-      padding-bottom: .125rem;
-      padding-left: .75rem;
+      padding-bottom: 0.125rem;
+      padding-left: 0.75rem;
     }
     li:last-child {
       padding-bottom: 0;
@@ -340,7 +352,7 @@ table.table-minimal {
     }
 
     .completed-date {
-      font-size: .75rem;
+      font-size: 0.75rem;
       font-weight: normal;
       color: constants.$darkBlue;
     }
@@ -359,7 +371,7 @@ table.table-minimal {
 
     .parent-title {
       line-height: normal;
-      margin-bottom: .125rem;
+      margin-bottom: 0.125rem;
 
       .title {
         font-weight: normal;
@@ -380,10 +392,10 @@ table.table-minimal {
   .note {
     background: rgba(0, 0, 0, 0.04);
     padding: 0.25rem 0.5rem;
-    margin: .5rem 0rem;
+    margin: 0.5rem 0rem;
 
     &.trashed {
-      opacity: .6;
+      opacity: 0.6;
     }
 
     h4 {
@@ -402,8 +414,8 @@ table.table-minimal {
         padding-left: 0;
       }
       span.separator {
-        padding-left: .75rem;
-        padding-right: .75rem;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
       }
       span.readers-icon {
         padding-left: 0;
@@ -416,8 +428,8 @@ table.table-minimal {
   }
 
   .note-reply {
-    margin-top: .5rem;
-    margin-bottom: .25rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
     border-left: 3px solid #dddddd;
     padding-left: 1rem;
 
@@ -432,8 +444,8 @@ table.table-minimal {
 
   .activity-heading {
     border-bottom: 1px solid #ddd;
-    padding-bottom: .25rem;
-    margin-bottom: .25rem;
+    padding-bottom: 0.25rem;
+    margin-bottom: 0.25rem;
     color: constants.$subtleGray;
     overflow: hidden;
 
@@ -445,7 +457,7 @@ table.table-minimal {
         color: constants.$darkBlue;
       }
       span.readers {
-        padding-left: .5rem;
+        padding-left: 0.5rem;
       }
       a {
         font-weight: bold;
@@ -483,8 +495,9 @@ table.table-minimal {
 }
 
 // Mathjax
-.note_content_value, .note-content-value {
-  mjx-container[jax="CHTML"][display="true"] {
+.note_content_value,
+.note-content-value {
+  mjx-container[jax='CHTML'][display='true'] {
     overflow-x: scroll;
     margin-bottom: 0;
 
@@ -499,15 +512,15 @@ table.table-minimal {
 
 // Note search form used in notes list component
 .notes-search-form {
-  margin-top: .5rem;
-  margin-bottom: .75rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
 
   .form-group {
     margin-right: 1.25rem;
   }
 
   label {
-    margin-right: .25rem;
+    margin-right: 0.25rem;
     margin-bottom: 0;
     vertical-align: middle;
   }
@@ -564,13 +577,14 @@ table.table-minimal {
   margin-bottom: -4px;
 
   label {
-    font-size: .75rem;
+    font-size: 0.75rem;
     color: constants.$subtleGray;
     margin-top: 4px;
     margin-bottom: 4px;
   }
-  a, span {
-    font-size: .75rem;
+  a,
+  span {
+    font-size: 0.75rem;
   }
   .btn .caret {
     margin-left: 4px;
@@ -580,14 +594,15 @@ table.table-minimal {
     font-weight: normal;
     border-radius: 2px;
 
-    &:hover, &:focus {
+    &:hover,
+    &:focus {
       border-color: constants.$mediumBlue;
       text-decoration: none;
     }
   }
   input {
     padding: 2px 10px;
-    font-size: .75rem;
+    font-size: 0.75rem;
     border-width: 1px;
     border-radius: 2px;
     line-height: 18px;
@@ -600,7 +615,8 @@ table.table-minimal {
       color: constants.$mediumBlue;
       padding: 3px 16px;
 
-      &:focus, &:hover {
+      &:focus,
+      &:hover {
         background-color: constants.$mediumDarkBlue;
         color: #fff;
       }
@@ -613,7 +629,7 @@ table.table-minimal {
   }
 
   // Recommend widget
-  &[data-type="recommend"] {
+  &[data-type='recommend'] {
     label {
       padding-right: 8px;
     }
@@ -641,7 +657,7 @@ table.table-minimal {
       border-width: 1px;
       border-radius: 2px;
       width: 250px;
-      box-shadow: 0 6px 12px rgba(0,0,0,.175);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
 
       > div {
         font-size: 0.75rem;
@@ -656,7 +672,7 @@ table.table-minimal {
   }
 
   // Free text widget
-  &[data-type="text"] {
+  &[data-type='text'] {
     label {
       padding-right: 5px;
     }
@@ -674,7 +690,7 @@ table.table-minimal {
   }
 
   // Radio button widget
-  &[data-type="radio"] {
+  &[data-type='radio'] {
     margin-top: 0px;
     margin-bottom: 3px;
 
@@ -682,7 +698,7 @@ table.table-minimal {
       margin-left: 2px;
 
       &.disabled {
-        opacity: .65;
+        opacity: 0.65;
         label {
           color: constants.$mediumDarkBlue;
           cursor: not-allowed;
@@ -725,9 +741,11 @@ table.table-minimal {
   }
 }
 
-// Note editor
-.note_editor {
-  > .row, > .note_content_section > .row {
+// Note edito
+.note_editor,
+.note-editor-preview {
+  > .row,
+  > .note_content_section > .row {
     margin-top: 1em;
     margin-left: 0;
     margin-right: 0;
@@ -737,7 +755,8 @@ table.table-minimal {
     background: transparent;
     box-shadow: none;
   }
-  .small_heading, .line_heading {
+  .small_heading,
+  .line_heading {
     font-size: 1rem;
     font-weight: bold;
     color: constants.$orRed;
@@ -746,19 +765,20 @@ table.table-minimal {
     display: inline-block;
     vertical-align: middle;
     width: 145px;
-    margin-right: .25rem;
+    margin-right: 0.25rem;
+    min-width: fit-content;
   }
   .required_field {
     vertical-align: top;
-    font-size: .75rem;
+    font-size: 0.75rem;
     color: constants.$orRed;
-    margin-right: .25rem;
+    margin-right: 0.25rem;
   }
   .required_field + .line_heading {
     width: 134px;
   }
   .hint {
-    margin-bottom: .25rem;
+    margin-bottom: 0.25rem;
   }
   .item {
     display: inline-block;
@@ -772,42 +792,44 @@ table.table-minimal {
     line-height: normal;
     font-weight: bold;
     margin-top: 0;
-    margin-bottom: .5rem;
+    margin-bottom: 0.5rem;
   }
-  .note_content_value, .note_content_value_input {
+  .note_content_value,
+  .note_content_value_input {
     white-space: pre-wrap;
     font-weight: 400;
   }
   div.note_content_section {
     margin-top: 1rem;
-    margin-left: -.5rem;
-    margin-right: -.5rem;
-    padding: .75rem .5rem .75rem .5rem;
-    background: rgba(0,0,0,0.08);
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+    padding: 0.75rem 0.5rem 0.75rem 0.5rem;
+    background: rgba(0, 0, 0, 0.08);
 
     > h2 {
       font-size: 1rem;
       line-height: normal;
       font-weight: bold;
       margin-top: 0;
-      margin-bottom: .5rem;
+      margin-bottom: 0.5rem;
     }
     > hr.small {
       display: block;
     }
     > .row:last-child {
-      margin-bottom: .25rem;
+      margin-bottom: 0.25rem;
     }
   }
   textarea.note_content_value {
     height: 280px;
   }
-  input[type="file"] {
+  input[type='file'] {
     height: auto;
   }
-  input[type="radio"] {
-    &.upload, &.url {
-      margin-right: .5rem;
+  input[type='radio'] {
+    &.upload,
+    &.url {
+      margin-right: 0.5rem;
     }
   }
   .hover_title {
@@ -819,18 +841,18 @@ table.table-minimal {
     }
   }
   .hover_result {
-    font-size: .75rem;
+    font-size: 0.75rem;
     color: white;
     position: absolute;
     display: block;
     background-color: constants.$subtleGray;
-    padding: .25em .5em .25em .5em;
+    padding: 0.25em 0.5em 0.25em 0.5em;
     margin-top: -2rem;
     margin-left: -20px;
     z-index: 75;
   }
   .hover_result:after {
-    content: "";
+    content: '';
     padding: 0;
     position: absolute;
     border: solid transparent;
@@ -854,11 +876,12 @@ table.table-minimal {
     vertical-align: middle;
     padding: 2px 4px;
   }
-  .removable_item, .removable_pair {
+  .removable_item,
+  .removable_pair {
     margin-right: 0.75rem;
     line-height: 1.5rem;
 
-    &.disabled{
+    &.disabled {
       color: constants.$subtleGray;
       cursor: not-allowed;
       pointer-events: none;
@@ -869,7 +892,7 @@ table.table-minimal {
     margin-left: 0.25rem;
     cursor: pointer;
 
-    &.disabled{
+    &.disabled {
       color: constants.$subtleGray;
       cursor: not-allowed;
       pointer-events: none;
@@ -883,14 +906,17 @@ table.table-minimal {
   .hover_title + .dropdown {
     vertical-align: middle;
   }
-  .list_adder, .map_adder, .list_adder_list {
+  .list_adder,
+  .map_adder,
+  .list_adder_list {
     display: inline-block;
   }
   .char-counter {
     width: 80%;
-    margin-top: .25rem;
+    margin-top: 0.25rem;
 
-    &.warning, &.danger {
+    &.warning,
+    &.danger {
       border: 0;
       font-weight: bold;
     }
@@ -902,13 +928,14 @@ table.table-minimal {
     }
   }
   .row button {
-    margin-right: .25rem;
+    margin-right: 0.25rem;
   }
   @media #{constants.$phone-only} {
     .dropdown {
       width: 100%;
 
-      input, .dropdown_content {
+      input,
+      .dropdown_content {
         width: 100%;
       }
     }
@@ -932,7 +959,7 @@ table.table-minimal {
   }
 
   &.show-arrow input {
-    background: url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPScxLjEnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZycgeG1sbnM6eGxpbms9J2h0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsnIHdpZHRoPScyNCcgaGVpZ2h0PScyNCcgdmlld0JveD0nMCAwIDI0IDI0Jz48cGF0aCBmaWxsPScjNzc3JyBkPSdNNy40MDYgNy44MjhsNC41OTQgNC41OTQgNC41OTQtNC41OTQgMS40MDYgMS40MDYtNiA2LTYtNnonPjwvcGF0aD48L3N2Zz4=");
+    background: url('data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPScxLjEnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZycgeG1sbnM6eGxpbms9J2h0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsnIHdpZHRoPScyNCcgaGVpZ2h0PScyNCcgdmlld0JveD0nMCAwIDI0IDI0Jz48cGF0aCBmaWxsPScjNzc3JyBkPSdNNy40MDYgNy44MjhsNC41OTQgNC41OTQgNC41OTQtNC41OTQgMS40MDYgMS40MDYtNiA2LTYtNnonPjwvcGF0aD48L3N2Zz4=');
     background-position: 100% 70%;
     background-repeat: no-repeat;
     background-color: #fffaf4;
@@ -944,7 +971,7 @@ table.table-minimal {
 }
 .dropdown_content {
   position: absolute;
-  padding: .25rem 0px;
+  padding: 0.25rem 0px;
   height: 202px;
   width: 500px;
   border: 2px solid lighten(constants.$mediumBlue, 10%);
@@ -957,7 +984,7 @@ table.table-minimal {
   > div {
     cursor: pointer;
     color: constants.$subtleGray;
-    padding: 0.25rem .75rem;
+    padding: 0.25rem 0.75rem;
   }
   .active {
     background-color: constants.$mediumBlue;
@@ -967,13 +994,13 @@ table.table-minimal {
 }
 
 .markdown-preview-tabs {
-  margin-top: .5rem;
+  margin-top: 0.5rem;
   width: 80%;
 
   li > a {
-    padding-top: .5rem;
-    padding-bottom: .5rem;
-    font-size: .75rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-size: 0.75rem;
   }
 }
 .tab-content > .markdown-panel {
@@ -983,10 +1010,10 @@ table.table-minimal {
 .tab-content > .markdown-preview-panel {
   width: 80%;
   height: 280px;
-  font-size: .75rem;
+  font-size: 0.75rem;
   border: 1px solid #ddd;
   border-top: 0;
-  padding: .75rem 1rem;
+  padding: 0.75rem 1rem;
   background-color: constants.$backgroundWhite;
   overflow-y: scroll;
   overflow-x: hidden;
@@ -1004,11 +1031,11 @@ table.table-minimal {
 .moderation-container {
   .filter-form {
     display: flex;
-    margin-bottom: .75rem;
+    margin-bottom: 0.75rem;
 
     input {
       flex-grow: 1;
-      margin-right: .5rem;
+      margin-right: 0.5rem;
     }
   }
 
@@ -1017,7 +1044,7 @@ table.table-minimal {
     margin: 1.75rem auto;
     min-height: 100px;
 
-    ul.list-paginated > li.blocked{
+    ul.list-paginated > li.blocked {
       opacity: 0.5;
     }
 
@@ -1050,7 +1077,7 @@ table.table-minimal {
     .btn-xs {
       font-weight: normal;
     }
-    .btn-block-profile{
+    .btn-block-profile {
       min-width: 5.5rem;
     }
   }
@@ -1067,7 +1094,8 @@ table.table-minimal {
 
 // Profile Search Widget
 .search-profile {
-  .submission-authors, .search-results {
+  .submission-authors,
+  .search-results {
     .author-row {
       display: inline-flex;
       width: 96%;
@@ -1108,7 +1136,6 @@ table.table-minimal {
           margin-top: 0.25rem;
         }
       }
-
     }
   }
 
@@ -1121,7 +1148,7 @@ table.table-minimal {
       flex-grow: 1;
       white-space: pre-wrap;
       font-weight: 400;
-      margin-right: .5rem;
+      margin-right: 0.5rem;
 
       @media #{constants.$phone-only} {
         margin-bottom: 0.5rem;
@@ -1131,7 +1158,10 @@ table.table-minimal {
     .spinner-small.spinner-search {
       margin-top: 0.5rem;
       width: 15%;
-      .rect1, .rect2, .rect3, .rect4 {
+      .rect1,
+      .rect2,
+      .rect3,
+      .rect4 {
         background-color: #8c1b13;
       }
     }
@@ -1149,7 +1179,8 @@ table.table-minimal {
 
 .modal-body {
   .search-profile {
-    .submission-authors, .search-results {
+    .submission-authors,
+    .search-results {
       .author-row {
         width: 100%;
       }
@@ -1162,14 +1193,14 @@ table.table-minimal {
 
 // Multiselector
 .multiselector.dropdown {
-  margin: 0 .25rem;
+  margin: 0 0.25rem;
   display: inline-block;
 
   button {
     text-align: left;
-    line-height: .75rem;
+    line-height: 0.75rem;
     font-size: 0.875rem;
-    background: url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPScxLjEnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZycgeG1sbnM6eGxpbms9J2h0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsnIHdpZHRoPScyNCcgaGVpZ2h0PScyNCcgdmlld0JveD0nMCAwIDI0IDI0Jz48cGF0aCBmaWxsPScjNzc3JyBkPSdNNy40MDYgNy44MjhsNC41OTQgNC41OTQgNC41OTQtNC41OTQgMS40MDYgMS40MDYtNiA2LTYtNnonPjwvcGF0aD48L3N2Zz4=");
+    background: url('data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPScxLjEnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZycgeG1sbnM6eGxpbms9J2h0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsnIHdpZHRoPScyNCcgaGVpZ2h0PScyNCcgdmlld0JveD0nMCAwIDI0IDI0Jz48cGF0aCBmaWxsPScjNzc3JyBkPSdNNy40MDYgNy44MjhsNC41OTQgNC41OTQgNC41OTQtNC41OTQgMS40MDYgMS40MDYtNiA2LTYtNnonPjwvcGF0aD48L3N2Zz4=');
     background-position: 100% 70%;
     background-repeat: no-repeat;
     background-color: #fffaf4;
@@ -1180,7 +1211,7 @@ table.table-minimal {
     background-color: #eee;
   }
 
-  input[type=checkbox] {
+  input[type='checkbox'] {
     width: 14px;
     height: 14px;
     margin: 3px 8px 0 -20px;
@@ -1239,12 +1270,12 @@ table.table-minimal {
   }
   .panel-heading {
     background-color: transparent;
-    padding: .5rem;
+    padding: 0.5rem;
   }
   .panel-title {
-    font-size: .875rem;
+    font-size: 0.875rem;
     font-weight: bold;
-    margin-left: -.5rem;
+    margin-left: -0.5rem;
     a {
       color: constants.$mediumBlue;
       &:hover {
@@ -1252,11 +1283,11 @@ table.table-minimal {
       }
     }
     .glyphicon {
-      font-size: .75rem;
+      font-size: 0.75rem;
       top: 1px;
     }
     .collapse-btn {
-      padding-right: .25rem;
+      padding-right: 0.25rem;
       &:hover {
         text-decoration: none;
       }
@@ -1266,24 +1297,26 @@ table.table-minimal {
     }
   }
   .panel-body {
-    padding: .5rem;
+    padding: 0.5rem;
     padding-left: 1.25rem;
-    p:last-child, ul:last-child {
+    p:last-child,
+    ul:last-child {
       margin-bottom: 0;
     }
   }
-  &.panel-group .panel-heading+.panel-collapse>.panel-body {
+  &.panel-group .panel-heading + .panel-collapse > .panel-body {
     border-top: 0;
   }
   hr.webfield-accordion-divider {
-    margin-top: .5rem;
-    margin-bottom: .5rem
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
   }
 }
-header, #header {
+header,
+#header {
   .webfield-accordion {
     .panel-title {
-      font-size: .875rem;
+      font-size: 0.875rem;
       font-weight: bold;
 
       .glyphicon {
@@ -1296,17 +1329,18 @@ header, #header {
 // markdown preview tab
 .markdown-preview {
   textarea {
-    width: 100%!important;
-      min-height: 250px;
+    width: 100% !important;
+    min-height: 250px;
   }
   .tab-pane {
     padding: 0;
   }
   .nav-tabs {
-    font-size: .75rem;
+    font-size: 0.75rem;
   }
   div.preview {
-    height:250px;
+    @include mixins.markdown-content-styles;
+    height: 250px;
     overflow-y: scroll;
     padding: 0.375rem 0.75rem;
   }
