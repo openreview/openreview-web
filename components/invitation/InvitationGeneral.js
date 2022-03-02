@@ -316,7 +316,7 @@ const InvitationGeneralEdit = ({ invitation, accessToken, loadInvitation, setIsE
     signatures: invitation.signatures?.join(', '),
   })
 
-  const constructInvitationToPost = async () => {
+  const constructInvitationToPost = () => {
     const {
       activationDateTimezone,
       duedateTimezone,
@@ -339,11 +339,10 @@ const InvitationGeneralEdit = ({ invitation, accessToken, loadInvitation, setIsE
   }
 
   const saveGeneralInfo = async () => {
+    setIsSaving(true)
+    const requestBody = constructInvitationToPost()
     try {
-      setIsSaving(true)
-      const requestPath = '/invitations'
-      const requestBody = await constructInvitationToPost()
-      await api.post(requestPath, requestBody, { accessToken, version: 1 })
+      await api.post('/invitations', requestBody, { accessToken, version: 1 })
       promptMessage(`Settings for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
       setIsEditMode(false)
       loadInvitation(invitation.id)
@@ -430,7 +429,7 @@ const InvitationGeneralEdit = ({ invitation, accessToken, loadInvitation, setIsE
         <div className="info-edit-control">
           <Dropdown
             className="dropdown-select dropdown-sm"
-            placeholder="select whether to enable anonymous id"
+            placeholder="Enable anonymous IDs"
             options={trueFalseOptions}
             onChange={(e) => setGeneralInfo({ type: 'multiReply', payload: e.value })}
             value={
@@ -459,7 +458,7 @@ const InvitationGeneralEdit = ({ invitation, accessToken, loadInvitation, setIsE
         <div className="info-edit-control">
           <Dropdown
             className="dropdown-select dropdown-sm"
-            placeholder="select whether to hide revisions"
+            placeholder="Hide revisions"
             options={trueFalseOptions}
             onChange={(e) =>
               setGeneralInfo({ type: 'hideOriginalRevisions', payload: e.value })
@@ -609,7 +608,7 @@ const InvitationGeneralEditV2 = ({
     signatures: invitation.signatures?.join(', '),
   })
 
-  const constructInvitationEditToPost = async () => {
+  const constructInvitationEditToPost = () => {
     const invitationEdit = {
       invitation: {
         id: generalInfo.id,
@@ -650,13 +649,13 @@ const InvitationGeneralEditV2 = ({
   }
 
   const saveGeneralInfo = async () => {
+    setIsSaving(true)
+    const requestBody = constructInvitationEditToPost()
     try {
-      setIsSaving(true)
-      const requestPath = '/invitations/edits'
-      const requestBody = await constructInvitationEditToPost()
-      if (!isMetaInvitation && !requestBody.invitations)
+      if (!isMetaInvitation && !requestBody.invitations) {
         throw new Error('No meta invitation found')
-      await api.post(requestPath, requestBody, { accessToken, version: 2 })
+      }
+      await api.post('/invitations/edits', requestBody, { accessToken, version: 2 })
       promptMessage(`Settings for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
       setIsEditMode(false)
       loadInvitation(invitation.id)
@@ -749,7 +748,7 @@ const InvitationGeneralEditV2 = ({
         <div className="info-edit-control">
           <Dropdown
             className="dropdown-select dropdown-sm"
-            placeholder="select whether to bulk"
+            placeholder="Allow bulk updates"
             options={trueFalseOptions}
             onChange={(e) => setGeneralInfo({ type: 'bulk', payload: e.value })}
             value={
