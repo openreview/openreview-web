@@ -1,7 +1,8 @@
-import { prettyContentValue, prettyField, prettyList } from '../../lib/utils'
+import { prettyContentValue, prettyField, prettyId, prettyList } from '../../lib/utils'
+import Icon from '../Icon'
 import { DownloadLink, NoteContentValue } from '../NoteContent'
 
-export const EditContent = ({ edit }) => {
+const EditContent = ({ edit }) => {
   const noteContent = {
     ...edit?.note?.content,
     ...(edit?.note?.readers && {
@@ -31,7 +32,7 @@ export const EditContent = ({ edit }) => {
         const enableMarkdown = edit.details?.presentation?.find(
           (p) => p.name === fieldName
         )?.markdown
-        const fieldReaders = content[fieldName]?.readers?.sort()
+        const fieldReaders = noteContent[fieldName]?.readers?.sort()
         const showPrivateIcon =
           fieldReaders && edit.readers && !fieldReaders.every((p, i) => p === edit.readers[i])
 
@@ -66,3 +67,5 @@ export const EditContent = ({ edit }) => {
     </ul>
   )
 }
+
+export default EditContent

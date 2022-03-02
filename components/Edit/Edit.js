@@ -1,6 +1,5 @@
 import { forumDate, prettyList } from '../../lib/utils'
-import { NoteContentV2 } from '../NoteContent'
-import { EditContent } from './EditContent'
+import EditContent from './EditContent'
 import EditTitle from './EditTitle'
 import EditValue from './EditValue'
 
