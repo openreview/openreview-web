@@ -1,4 +1,4 @@
-import { forumDate } from '../../lib/utils'
+import { forumDate, prettyList } from '../../lib/utils'
 import { NoteContentV2 } from '../NoteContent'
 import EditTitle from './EditTitle'
 import EditValue from './EditValue'
@@ -24,25 +24,25 @@ const Edit = ({ edit, options }) => (
         id={edit.id}
         content={{
           ...edit?.note?.content,
-          ...(edit?.note?.readers && { 'Note readers': { value: edit.note.readers } }),
-          ...(edit?.note?.writers && { 'Note writers': { value: edit.note.writers } }),
+          ...(edit?.note?.readers && { Readers: { value: prettyList(edit.note.readers) } }),
+          ...(edit?.note?.writers && { Writers: { value: prettyList(edit.note.writers) } }),
           ...(edit?.note?.signatures && {
-            'Note signatures': { value: edit.note.signatures },
+            Signatures: { value: prettyList(edit.note.signatures) },
           }),
         }}
-        omit={options.omitFields}
         isEdit={options.isReference}
         presentation={edit.details?.presentation}
         noteReaders={edit.readers?.sort()}
+        include={Object.keys(edit.note?.content ?? {})}
       />
     )}
 
     <div className="edit_info">
       <h4>Edit Info</h4>
       <hr className="small" />
-      <EditValue name="Readers" value={edit.readers} />
-      <EditValue name="Writers" value={edit.writers} />
-      <EditValue name="Signatures" value={edit.signatures} />
+      <EditValue name="Readers" value={prettyList(edit.readers)} />
+      <EditValue name="Writers" value={prettyList(edit.writers)} />
+      <EditValue name="Signatures" value={prettyList(edit.signatures)} />
     </div>
   </div>
 )
