@@ -1340,7 +1340,7 @@ module.exports = (function() {
   function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures') {
 
     var $signatures;
-    if (_.has(fieldDescription, 'regex')) { //change for regex
+    if (_.has(fieldDescription, 'regex')) {
       var currentVal = fieldValue && fieldValue[0];
 
       if (fieldDescription['regex'] === '~.*') {
@@ -1922,11 +1922,11 @@ module.exports = (function() {
   var getWriters = function(invitation, signatures, user) {
     var writers = invitation.edit ? invitation.edit.writers : invitation.reply.writers
 
-    if (writers && _.has(writers, 'values')) {
-      return writers.values;
+    if (writers && _.has(writers, 'const')) {
+      return writers.const;
     }
 
-    if (writers && _.has(writers, 'values-regex') && writers['values-regex'] === '~.*') {
+    if (writers && _.has(writers, 'regex') && writers['regex'] === '~.*') {
       return [user.profile.id];
     }
 
