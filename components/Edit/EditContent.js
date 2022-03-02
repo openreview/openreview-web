@@ -14,11 +14,16 @@ export const EditContent = ({ edit }) => {
       Signatures: { value: prettyList(edit.note.signatures, 'long', 'unit') },
     }),
   }
-  const contentKeys = Object.keys(noteContent)
+
+  const contentOrder = edit.details?.presentation
+    ? Object.values(edit.details.presentation)
+        .sort((a, b) => (a?.order ?? 999) - (b?.order ?? 999))
+        .map((p) => p.name)
+    : Object.keys(noteContent)
 
   return (
     <ul className="list-unstyled note-content">
-      {contentKeys.map((fieldName) => {
+      {contentOrder.map((fieldName) => {
         if (fieldName.startsWith('_')) return null
 
         const fieldValue = prettyContentValue(noteContent[fieldName]?.value)
