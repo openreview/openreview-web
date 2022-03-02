@@ -83,8 +83,13 @@ const EditEdgeInviteEmail = ({
   if (!editInvitation || entityType !== 'profile') return null
   return (
     <div className="">
-      <form className="form-inline widget-invite-assignment">
-        {/* <label htmlFor="email-invite">Email/Profile: </label> */}
+      <form
+        className="form-inline widget-invite-assignment"
+        onSubmit={(e) => {
+          e.preventDefault()
+          handleInviteEmail()
+        }}
+      >
         <input
           type="email"
           id="email-invite"
@@ -93,17 +98,10 @@ const EditEdgeInviteEmail = ({
           placeholder={editInvitation[type].description}
           title={editInvitation[type].description}
           onChange={(e) => setEmailToInvite(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              handleInviteEmail()
-            }
-          }}
         />
         <button
-          type="button"
+          type="submit"
           className="btn btn-default btn-xs"
-          onClick={handleInviteEmail}
           disabled={shouldDisableSubmitBtn()}
         >
           {loading && <LoadingSpinner inline text="" extraClass="spinner-small" />}
