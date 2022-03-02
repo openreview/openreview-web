@@ -1677,7 +1677,7 @@ module.exports = (function() {
     const { content: contentFields, ...otherNoteFields } = noteFields
     // editToPost.note.id/ddate/reader/writers etc.
     Object.entries(otherNoteFields).forEach(([otherNoteField, value]) => {
-      if (value.value || value.values) return
+      if (value.const) return
       switch (otherNoteField) {
         case 'readers':
           note[otherNoteField] = formData?.noteReaderValues ?? noteObj?.[otherNoteField]
@@ -1693,14 +1693,14 @@ module.exports = (function() {
     // content fields
     Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
       if (valueObj = contentFieldValue.value) {
-        if (valueObj.value || valueObj.values) {
+        if (valueObj.const) {
           return
         } else {
           content[contentFieldName] = { value: formData?.[contentFieldName] ?? noteObj?.content?.[contentFieldName]?.value }
         }
       }
       if (fieldReader = contentFieldValue.readers) {
-        if (fieldReader.value || fieldReader.values) {
+        if (fieldReader.const) {
           return
         } else {
           content[contentFieldName].readers = noteObj?.content?.[contentFieldName]?.readers
