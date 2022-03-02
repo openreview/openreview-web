@@ -13,20 +13,20 @@ const useBreakpoint = (breakpoint) => {
   const [match, setMatch] = useState(true)
   useEffect(() => {
     const mediaQueryList = window.matchMedia(mediaQueries[breakpoint])
-    const handleMediaChange = (e) => {
-      // eslint-disable-next-line no-unused-expressions
-      mediaQueryList?.matches ? setMatch(true) : setMatch(false)
-    }
+    const handleMediaChange = () => setMatch(mediaQueryList.matches)
     setMatch(mediaQueryList?.matches)
-    // eslint-disable-next-line no-unused-expressions
-    mediaQueryList.addEventListener
-      ? mediaQueryList.addEventListener('change', handleMediaChange)
-      : mediaQueryList.addListener(handleMediaChange)
-    return () =>
-      // eslint-disable-next-line no-unused-expressions
-      mediaQueryList.removeEventListener
-        ? mediaQueryList.removeEventListener('change', handleMediaChange)
-        : mediaQueryList.removeListener(handleMediaChange)
+    if (mediaQueryList.addEventListener) {
+      mediaQueryList.addEventListener('change', handleMediaChange)
+    } else {
+      mediaQueryList.addListener(handleMediaChange)
+    }
+    return () => {
+      if (mediaQueryList.removeEventListener) {
+        mediaQueryList.removeEventListener('change', handleMediaChange)
+      } else {
+        mediaQueryList.removeListener(handleMediaChange)
+      }
+    }
   }, [breakpoint])
 
   return match
