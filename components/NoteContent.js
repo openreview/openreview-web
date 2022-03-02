@@ -75,7 +75,7 @@ function NoteContentField({ name }) {
   return <strong className="note-content-field">{prettyField(name)}:</strong>
 }
 
-function NoteContentValue({ content = '', enableMarkdown }) {
+export function NoteContentValue({ content = '', enableMarkdown }) {
   const [sanitizedHtml, setSanitizedHtml] = useState(null)
 
   useEffect(() => {
@@ -95,7 +95,7 @@ function NoteContentValue({ content = '', enableMarkdown }) {
   )
 }
 
-function DownloadLink({ noteId, fieldName, fieldValue, isReference, isV2 = false }) {
+export function DownloadLink({ noteId, fieldName, fieldValue, isReference, isV2 = false }) {
   const fileExtension = fieldValue.split('.').pop()
   const urlPath = isReference
     ? `${isV2 ? '/notes/edits/attachment' : '/references/attachment'}`

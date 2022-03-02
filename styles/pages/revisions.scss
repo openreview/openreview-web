@@ -260,11 +260,11 @@ main.revisions {
 
   .edit {
     padding: 0;
-    margin-bottom: 1.25rem;
+    margin-bottom: 2.25rem;
 
     h4 {
       color: constants.$darkBlue;
-      margin-bottom: .25rem;
+      margin-bottom: 0.25rem;
     }
 
     .edit_meta_info {
@@ -275,14 +275,14 @@ main.revisions {
     }
 
     .edit_info {
-      margin-top: .5rem;
+      margin-top: 0.5rem;
       margin-left: -0.5rem;
       margin-right: -0.5rem;
       padding: 0.5rem;
       background: rgba(0, 0, 0, 0.08);
 
       h4 {
-        font-size: .875rem;
+        font-size: 0.875rem;
         line-height: normal;
         font-weight: bold;
         margin-top: 0;

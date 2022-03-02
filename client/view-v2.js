@@ -1459,101 +1459,83 @@ module.exports = (function() {
         ].join('\n'));
         $cancelButton.prop('disabled', true);
 
-        const latestNotePromise = note.id
-          ? Webfield2.get("/notes", {
-              id: note.id
-          }, {
-            handleErrors: false
-          }).then(function (result) {
-            return result.notes[0];
-          }, function () {
-            return $.Deferred().resolve(note);
-          }) : $.Deferred().resolve(note);
-        const noteLatestNoteErrorMessage = 'This note has been edited since you opened it. Please refresh the page and try again.';
+        const content = view.getContent(invitation, $contentMap);
+        const useEditSignature = invitation.edit.note?.signatures?.values=='${signatures}' // when note signature is edit signature, note reader should use edit signatures
+        const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
+        const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
+        const editReaderValues = view.getReaders(editReaders, invitation, editSignatureInputValues, true);
+        const noteReaderValues = view.getReaders(noteReaders, invitation, useEditSignature ? editSignatureInputValues : noteSignatureInputValues);
+        const editWriterValues = view.getWriters(invitation, editSignatureInputValues, user);
+        content[0].editSignatureInputValues = editSignatureInputValues;
+        content[0].noteSignatureInputValues = noteSignatureInputValues;
+        content[0].editReaderValues = editReaderValues;
+        content[0].noteReaderValues = noteReaderValues;
+        content[0].editWriterValues = editWriterValues;
 
-        latestNotePromise.then(function(latestNote) {
-          if(!(latestNote.tmdate===note.tmdate)){
-            params.onError?params.onError([noteLatestNoteErrorMessage]):promptError(noteLatestNoteErrorMessage);
-            return
+        let errorList = content[2].concat(validate(invitation, content[0], noteReaders));
+        if (params.onValidate) {
+          errorList = errorList.concat(params.onValidate(invitation, content[0], note));
+        }
+
+        const files = content[1];
+
+        if (!_.isEmpty(errorList)) {
+          if (params.onError) {
+            params.onError(errorList);
+          } else {
+            promptError(errorList[0]);
           }
-          const content = view.getContent(invitation, $contentMap);
-          const useEditSignature = invitation.edit.note?.signatures?.values=='${signatures}' // when note signature is edit signature, note reader should use edit signatures
-          const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
-          const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
-          const editReaderValues = view.getReaders(editReaders, invitation, editSignatureInputValues, true);
-          const noteReaderValues = view.getReaders(noteReaders, invitation, useEditSignature ? editSignatureInputValues : noteSignatureInputValues);
-          const editWriterValues = view.getWriters(invitation, editSignatureInputValues, user);
-          content[0].editSignatureInputValues = editSignatureInputValues;
-          content[0].noteSignatureInputValues = noteSignatureInputValues;
-          content[0].editReaderValues = editReaderValues;
-          content[0].noteReaderValues = noteReaderValues;
-          content[0].editWriterValues = editWriterValues;
+          $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
+          $cancelButton.prop({ disabled: false });
+          return;
+        }
 
-          let errorList = content[2].concat(validate(invitation, content[0], noteReaders));
-          if (params.onValidate) {
-            errorList = errorList.concat(params.onValidate(invitation, content[0], note));
-          }
+        if (_.isEmpty(files)) {
+          return saveNote(content[0], note, invitation);
+        }
 
-          const files = content[1];
-
-          if (!_.isEmpty(errorList)) {
-            if (params.onError) {
-              params.onError(errorList);
-            } else {
-              promptError(errorList[0]);
-            }
-            $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
-            $cancelButton.prop({ disabled: false });
-            return;
+        var onError = function(e) {
+          var errorMsg;
+          if (e.responseJSON && e.responseJSON.message) {
+            errorMsg = e.responseJSON.message;
+          } else if (e.readyState === 0) {
+            errorMsg = 'There is an error with the network and the file could not be uploaded'
+          } else {
+            errorMsg = 'There was an error uploading the file';
           }
 
-          if (_.isEmpty(files)) {
-            return saveNote(content[0], note, invitation);
+          if (params.onError) {
+            params.onError([errorMsg]);
+          } else if (e.responseJSON && e.responseJSON.errors) {
+            promptError(e.responseJSON.errors[0]);
+          } else {
+            promptError(errorMsg);
           }
+          $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
+          $cancelButton.prop({ disabled: false });
+        };
 
-          var onError = function(e) {
-            var errorMsg;
-            if (e.responseJSON && e.responseJSON.message) {
-              errorMsg = e.responseJSON.message;
-            } else if (e.readyState === 0) {
-              errorMsg = 'There is an error with the network and the file could not be uploaded'
-            } else {
-              errorMsg = 'There was an error uploading the file';
-            }
-
-            if (params.onError) {
-              params.onError([errorMsg]);
-            } else if (e.responseJSON && e.responseJSON.errors) {
-              promptError(e.responseJSON.errors[0]);
-            } else {
-              promptError(errorMsg);
-            }
-            $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
-            $cancelButton.prop({ disabled: false });
-          };
-
-          var fieldNames = _.keys(files);
-          var promises = fieldNames.map(function(fieldName) {
-            if (fieldName === 'pdf' && invitation.edit.note?.content?.pdf?.value?.['value-regex']) {
-              return Webfield2.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
-                content[0][fieldName] = result.url;
-                return view.updatePdfSection($contentMap.pdf, invitation.edit.note?.content?.pdf?.value, content[0][fieldName]);
-              });
-            }
-            var data = new FormData();
-            data.append('invitationId', invitation.id);
-            data.append('name', fieldName);
-            data.append('file', files[fieldName]);
-            return Webfield2.sendFile('/attachment', data, undefined, fieldName).then(function(result) {
+        var fieldNames = _.keys(files);
+        var promises = fieldNames.map(function(fieldName) {
+          if (fieldName === 'pdf' && invitation.edit.note?.content?.pdf?.value?.['value-regex']) {
+            return Webfield2.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
               content[0][fieldName] = result.url;
-              view.updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, content[0][fieldName]);
+              return view.updatePdfSection($contentMap.pdf, invitation.edit.note?.content?.pdf?.value, content[0][fieldName]);
             });
+          }
+          var data = new FormData();
+          data.append('invitationId', invitation.id);
+          data.append('name', fieldName);
+          data.append('file', files[fieldName]);
+          return Webfield2.sendFile('/attachment', data, undefined, fieldName).then(function(result) {
+            content[0][fieldName] = result.url;
+            view.updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName]?.value, content[0][fieldName]);
           });
-
-          $.when.apply($, promises).then(function() {
-            saveNote(content[0], note, invitation);
-          }, onError);
         });
+
+        $.when.apply($, promises).then(function() {
+          saveNote(content[0], note, invitation);
+        }, onError);
       });
 
       $cancelButton.click(function() {

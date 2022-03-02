@@ -540,6 +540,14 @@ const Revisions = ({ appContext }) => {
     }
   }
 
+  const getPageTitle = () => {
+    if (referencesToLoad === 'revisions' || !revisions?.length) return 'Revision History'
+    const latestNoteTitle = revisions
+      .sort((p) => p[0].tcdate)
+      .find((q) => q[0].note?.content?.title)?.[0]?.note?.content?.title?.value
+    return `Revision History${latestNoteTitle ? ` of ${latestNoteTitle}` : ''}`
+  }
+
   useEffect(() => {
     if (userLoading || !query) return
     let note = null
@@ -552,7 +560,12 @@ const Revisions = ({ appContext }) => {
 
     const setBanner = async () => {
       try {
-        note = await api.getNoteById(noteId, accessToken, { details: 'writable' })
+        note = await api.getNoteById(
+          noteId,
+          accessToken,
+          { details: 'writable,forumContent' },
+          true
+        )
         if (note) {
           setBannerContent(forumLink(note))
         } else {
@@ -586,7 +599,7 @@ const Revisions = ({ appContext }) => {
       </Head>
 
       <header>
-        <h1>Revision History</h1>
+        <h1>{getPageTitle()}</h1>
         <div className="button-container">
           {selectedIndexes ? (
             <>
