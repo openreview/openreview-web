@@ -1758,14 +1758,8 @@ module.exports = (function() {
           errorList.push('Uploaded file must have .pdf extension');
         }
 
-        if (!formContent.pdf && invitationEditContent.pdf?.value?.['value-regex']) {
-          if (invitationEditContent.pdf?.value?.['value-regex'] === 'upload') {
-            errorList.push('You must provide a PDF (file upload)');
-          } else if (invitationEditContent.pdf?.value?.['value-regex'].includes('upload')) {
-            errorList.push('You must provide a PDF (either by URL or file upload)');
-          } else {
-            errorList.push('You must provide a PDF (URL)');
-          }
+        if (!formContent.pdf) {
+          errorList.push('You must provide a PDF (file upload)');
         }
       }
 
@@ -1779,20 +1773,8 @@ module.exports = (function() {
       }
     });
 
-    if (invitation.edit?.note?.readers?.hasOwnProperty('values-dropdown')) {
+    if (invitation.edit?.note?.readers?.hasOwnProperty('enum')) {
       var inputValues = view.idsFromListAdder(readersWidget, invitation.edit.note.readers);
-      if (!inputValues.length) {
-        errorList.push('Readers can not be empty. You must select at least one reader');
-      }
-    }
-
-    if (invitation.edit?.note?.readers?.hasOwnProperty('values-checkbox')) {
-      var inputValues = [];
-      readersWidget.find('.note_content_value input[type="checkbox"]').each(function(i) {
-        if ($(this).prop('checked')) {
-          inputValues.push($(this).val());
-        }
-      });
       if (!inputValues.length) {
         errorList.push('Readers can not be empty. You must select at least one reader');
       }
