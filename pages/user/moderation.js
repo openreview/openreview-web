@@ -265,14 +265,25 @@ const UserModerationQueue = ({
                       </button>
                     </>
                   ) : (
-                    <button
-                      type="button"
-                      className="btn btn-xs btn-block-profile"
-                      onClick={() => blockUnblockUser(profile)}
-                    >
-                      <Icon name={`${profile.block ? 'refresh' : 'ban-circle'}`} />{' '}
-                      {`${profile.block ? 'Unblock' : 'Block'}`}
-                    </button>
+                    <>
+                      {!profile.block && (
+                        <button
+                          type="button"
+                          className="btn btn-xs"
+                          onClick={() => showRejectionModal(profile.id)}
+                        >
+                          <Icon name="remove-circle" /> Reject
+                        </button>
+                      )}{' '}
+                      <button
+                        type="button"
+                        className="btn btn-xs btn-block-profile"
+                        onClick={() => blockUnblockUser(profile)}
+                      >
+                        <Icon name={`${profile.block ? 'refresh' : 'ban-circle'}`} />{' '}
+                        {`${profile.block ? 'Unblock' : 'Block'}`}
+                      </button>
+                    </>
                   )}
                 </span>
               </li>
@@ -316,29 +327,24 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser }) => {
     'Please go back to the sign up page, enter the same name and email, click the Resend Activation button and complete the missing data.'
   const rejectionReasons = [
     {
+      value: 'inaccessibleHomepage',
+      label: 'Inaccessible Homepage',
+      rejectionText: `A valid Homepage is required. The homepage url provided in your profile is not accessible.\n\n${instructionText}`,
+    },
+    {
+      value: 'imPersonalHomepage',
+      label: 'Impersonal Homepage',
+      rejectionText: `The homepage url provided in your profile is not a personal page.\n\n${instructionText}`,
+    },
+    {
       value: 'invalidHomepageAndEmail',
       label: 'Invalid Homepage + Missing Institution Email',
-      rejectionText: `A valid Homepage and institutional email is required.\n\n${instructionText}`,
+      rejectionText: `A valid Homepage and institutional email matching your latest career/education history is required.\n\n${instructionText}`,
     },
     {
       value: 'invalidEmail',
       label: 'Missing Institution Email',
       rejectionText: `An Institution email is required.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidHomepage',
-      label: 'Invalid Homepage',
-      rejectionText: `A valid Homepage is required.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidName',
-      label: 'Invalid Name',
-      rejectionText: `A valid name is required.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidHistory',
-      label: 'Missing Latest Career/Education history',
-      rejectionText: `Latest Career/Education history is missing. The info is used for conflict of interest detection.\n\n${instructionText}`,
     },
   ]
 
