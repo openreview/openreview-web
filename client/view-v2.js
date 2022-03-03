@@ -551,7 +551,7 @@ module.exports = (function() {
     }
 
     var contentKeys = Object.keys(note.content ?? {});
-    const contentOrder = note.details?.presentation
+    const contentOrder = note.details?.presentation?.length
       ? Object.values(note.details?.presentation ?? {}).sort((a, b) => a?.order - b?.order).map(p => p.name)
       : contentKeys
 
