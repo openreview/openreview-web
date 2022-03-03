@@ -296,7 +296,7 @@ module.exports = (function() {
         text: fieldValue && JSON.stringify(fieldValue, undefined, 4)
       }), fieldName, fieldDescription);
 
-    } else if (fieldDescription.value.type === 'file') {
+    } else if (fieldDescription.value?.type === 'file') {
       contentInputResult = mkAttachmentSection(fieldName, fieldDescription, fieldValue);
     }
 
@@ -306,7 +306,7 @@ module.exports = (function() {
   const mkComposerInput = (fieldName, fieldDescription, fieldValue, params) => {
     let contentInputResult;
 
-    if (fieldName === 'authorids' && fieldDescription.value.type.endsWith('[]') && (
+    if (fieldName === 'authorids' && fieldDescription.value?.type.endsWith('[]') && (
       (_.has(fieldDescription.value, 'regex') && view.isTildeIdAllowed(fieldDescription.value['regex'])) ||
       _.has(fieldDescription.value, 'const')
     )) {
