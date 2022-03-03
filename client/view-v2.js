@@ -1169,8 +1169,8 @@ module.exports = (function() {
       }
     };
 
-    if (_.has(fieldDescription, 'values-regex')) {
-      return Webfield2.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
+    if (_.has(fieldDescription, 'regex')) {
+      return Webfield2.get('/groups', { regex: fieldDescription.regex }, { handleErrors: false })
       .then(function(result) {
         if (_.isEmpty(result.groups)) {
           done(undefined, 'You do not have permission to create a note');
@@ -1192,8 +1192,8 @@ module.exports = (function() {
         var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
         done(undefined, errorText);
       });
-    } else if (_.has(fieldDescription, 'values-dropdown')) {
-      var values = fieldDescription['values-dropdown'];
+    } else if (_.has(fieldDescription, 'enum') && Array.isArray(fieldDescription.enum)) {
+      var values = fieldDescription.enum;
       var extraGroupsP = [];
       var regexIndex = _.findIndex(values, function(g) { return g.indexOf('.*') >=0; });
       var regex = null;
@@ -1202,17 +1202,17 @@ module.exports = (function() {
         var result = await Webfield.get('/groups', { regex: regex })
         if (result.groups && result.groups.length) {
           var groups = result.groups.map(function(g) { return g.id; });
-          fieldDescription['values-dropdown'] = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
+          fieldDescription.enum = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
         } else {
-          fieldDescription['values-dropdown'].splice(regexIndex, 1);
+          fieldDescription.enum.splice(regexIndex, 1);
         }
       }
 
-      return setParentReaders(replyto, fieldDescription, 'values-dropdown', function (newFieldDescription) {
+      return setParentReaders(replyto, fieldDescription, 'enum', function (newFieldDescription) {
         // Make sure the new parent readers belong to the current invitation available values
-        var invitationReaders = fieldDescription['values-dropdown'];
+        var invitationReaders = fieldDescription.enum;
         var replyValues = [];
-        newFieldDescription['values-dropdown'].forEach(function(valueReader) {
+        newFieldDescription.enum.forEach(function(valueReader) {
           if (invitationReaders.includes(valueReader) || valueReader.match(regex)) {
             replyValues.push(valueReader);
           }
@@ -1222,15 +1222,15 @@ module.exports = (function() {
         var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
         var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_');  });
         if (hasReviewers && !hasAnonReviewers) {
-          fieldDescription['values-dropdown'].forEach(function(value) {
+          fieldDescription.enum.forEach(function(value) {
             if (value.includes('AnonReviewer') || value.includes('Reviewer_')) {
               replyValues.push(value);
             }
           });
         }
 
-        newFieldDescription['values-dropdown'] = replyValues;
-        if (_.difference(newFieldDescription.default, newFieldDescription['values-dropdown']).length !== 0) { //invitation default is not in list of possible values
+        newFieldDescription.enum = replyValues;
+        if (_.difference(newFieldDescription.default, newFieldDescription.enum).length !== 0) { //invitation default is not in list of possible values
           done(undefined, 'Default reader is not in the list of readers');
         }
         var $readers = mkComposerInput('readers', { value: newFieldDescription }, fieldValue);
@@ -1238,12 +1238,6 @@ module.exports = (function() {
         done($readers);
       });
 
-    } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
-      return setParentReaders(replyto, fieldDescription, 'value-dropdown-hierarchy', function(newFieldDescription) {
-        var $readers = mkComposerInput('readers', { value: newFieldDescription }, fieldValue);
-        $readers.find('.small_heading').prepend(requiredText);
-        done($readers);
-      });
     } else if (_.has(fieldDescription, 'const') && Array.isArray(fieldDescription.const)) {
       return setParentReaders(replyto, fieldDescription, 'const', function(newFieldDescription) {
         if (fieldDescription.const?.[0] === "${{note.replyto}.readers}") {
@@ -1264,43 +1258,6 @@ module.exports = (function() {
         } else {
           done(undefined, 'Can not create note, readers must match parent note');
         }
-      });
-    } else if (_.has(fieldDescription, 'values-checkbox')) {
-      var initialValues = fieldDescription['values-checkbox'];
-      var promise = $.Deferred().resolve();
-      var index = _.findIndex(initialValues, function(g) { return g.indexOf('.*') >=0; });
-      if (index >= 0) {
-        var regexGroup = initialValues[index];
-        var result = await Webfield.get('/groups', { regex: regexGroup });
-        if (result.groups && result.groups.length) {
-          var groups = result.groups.map(function(g) { return g.id; });
-          fieldDescription['values-checkbox'] = initialValues.slice(0, index).concat(groups, initialValues.slice(index + 1));
-        } else {
-          fieldDescription['values-checkbox'].splice(index, 1);
-        }
-      }
-      return setParentReaders(replyto, fieldDescription, 'values-checkbox', function (newFieldDescription) {
-        // when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
-        var replyValues = _.intersection(newFieldDescription['values-checkbox'], fieldDescription['values-checkbox']);
-
-        // Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
-        var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
-        var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_'); });
-        if (hasReviewers && !hasAnonReviewers) {
-          fieldDescription['values-checkbox'].forEach(function(value) {
-            if (value.includes('AnonReviewer') || v.includes('/Reviewer_')) {
-              replyValues.push(value);
-            }
-          });
-        }
-
-        newFieldDescription['values-checkbox'] = replyValues;
-        if (_.difference(newFieldDescription.default, newFieldDescription['values-checkbox']).length !== 0) { //invitation default is not in list of possible values
-          done(undefined, 'Default reader is not in the list of readers');
-        }
-        var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue.length ? fieldValue : newFieldDescription.default, { prettyId: true});
-        $readers.find('.small_heading').prepend(requiredText);
-        done($readers);
       });
     } else {
       var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue);
