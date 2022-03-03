@@ -1192,7 +1192,7 @@ module.exports = (function() {
         var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
         done(undefined, errorText);
       });
-    } else if (_.has(fieldDescription, 'enum') && Array.isArray(fieldDescription.enum)) {
+    } else if (_.has(fieldDescription, 'enum')) {
       var values = fieldDescription.enum;
       var extraGroupsP = [];
       var regexIndex = _.findIndex(values, function(g) { return g.indexOf('.*') >=0; });
@@ -1238,7 +1238,7 @@ module.exports = (function() {
         done($readers);
       });
 
-    } else if (_.has(fieldDescription, 'const') && Array.isArray(fieldDescription.const)) {
+    } else if (_.has(fieldDescription, 'const')) {
       return setParentReaders(replyto, fieldDescription, 'const', function(newFieldDescription) {
         if (fieldDescription.const?.[0] === "${{note.replyto}.readers}") {
           fieldDescription.const = newFieldDescription.const;
@@ -1272,7 +1272,7 @@ module.exports = (function() {
     if (_.has(fieldDescription, 'regex')) {
       var currentVal = fieldValue && fieldValue[0];
 
-      if (fieldDescription['regex'] === '~.*') {
+      if (fieldDescription.regex === '~.*') {
         if (user && user.profile) {
           var prefId = user.profile.preferredId || user.profile.id;
           $signatures = view.mkDropdownList(
@@ -1289,7 +1289,7 @@ module.exports = (function() {
         }
 
         return Webfield.get('/groups', {
-          regex: fieldDescription['regex'], signatory: user.id
+          regex: fieldDescription.regex, signatory: user.id
         }, { handleErrors: false }).then(function(result) {
           if (_.isEmpty(result.groups)) {
             return $.Deferred().reject('no_results');
