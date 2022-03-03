@@ -307,7 +307,7 @@ module.exports = (function() {
     let contentInputResult;
 
     if (fieldName === 'authorids' && fieldDescription.value?.type.endsWith('[]') && (
-      (_.has(fieldDescription.value, 'regex') && view.isTildeIdAllowed(fieldDescription.value['regex'])) ||
+      (_.has(fieldDescription.value, 'regex') && view.isTildeIdAllowed(fieldDescription.value.regex)) ||
       _.has(fieldDescription.value, 'const')
     )) {
       let authors;
@@ -1727,7 +1727,7 @@ module.exports = (function() {
       var inputVal = $inputVal.val();
 
       if (k === 'authorids' &&
-        (contentObj.hasOwnProperty('regex') && view.isTildeIdAllowed(contentObj['regex']) || contentObj.hasOwnProperty('const')
+        (contentObj.hasOwnProperty('regex') && view.isTildeIdAllowed(contentObj.regex) || contentObj.hasOwnProperty('const')
       )) {
         ret.authorids = [];
         ret.authors = [];
@@ -1763,7 +1763,7 @@ module.exports = (function() {
           } else {
             //value-checkbox
             inputVal = $contentMap[k].find('.note_content_value input[type="checkbox"]').prop('checked') ?
-                contentObj['enum'][0] :
+                contentObj.enum[0] :
                 '';
           }
         } else if (presentationObj.input === 'select' || !(_.has(presentationObj, 'input'))) {
@@ -1837,7 +1837,7 @@ module.exports = (function() {
       return writers.const;
     }
 
-    if (writers && _.has(writers, 'regex') && writers['regex'] === '~.*') {
+    if (writers && _.has(writers, 'regex') && writers.regex === '~.*') {
       return [user.profile.id];
     }
 
