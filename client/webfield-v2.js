@@ -1451,8 +1451,8 @@ module.exports = (function() {
           _.find(allTagInvitations, ['id', tagInvitationId]) :
           _.find(options.displayOptions.edgeInvitations, ['id', tagInvitationId]);
 
-        if (_.has(tagInvitation, 'reply.' + fieldName + '.values')) {
-          return tagInvitation.reply[fieldName].values;
+        if (_.has(tagInvitation, 'reply.' + fieldName + '.const')) {
+          return tagInvitation.reply[fieldName].const;
         } else if (_.has(tagInvitation, 'reply.' + fieldName + '.values-copied')) {
           return _.compact(_.map(tagInvitation.reply[fieldName]['values-copied'], function(value) {
             if (value === '{signatures}') {
@@ -1463,8 +1463,8 @@ module.exports = (function() {
               return value;
             }
           }));
-        } else if (_.has(tagInvitation, 'reply.' + fieldName + '.values-regex')) {
-          return _.compact(_.map(tagInvitation.reply[fieldName]['values-regex'].split('|'), function(value) {
+        } else if (_.has(tagInvitation, 'reply.' + fieldName + '.regex')) {
+          return _.compact(_.map(tagInvitation.reply[fieldName].regex.split('|'), function(value) {
             if (value.indexOf('Paper.*') !== -1) {
               return value.replace('Paper.*', 'Paper' + paperNumber);
             } else {
@@ -1572,7 +1572,7 @@ module.exports = (function() {
 
         var readers = buildArray(tagInvitation, 'readers', $note.data('number'), isTagWidget);
 
-        var values = tagInvitation.reply.content.tag['values-dropdown'].map(function(v) {
+        var values = tagInvitation.reply.content.tag.enum.map(function(v) {
           return { id: v, description: v };
         });
         var filteredOptions = function(options, prefix) {
