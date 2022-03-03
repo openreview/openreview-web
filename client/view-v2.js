@@ -1370,11 +1370,11 @@ module.exports = (function() {
           var dropdownListOptions = [];
           var singleOption = result.groups.length == 1;
           _.forEach(result.groups, function(group) {
-            var prettyGroupId = prettyId(group.id);
+            var prettyGroupId = view.prettyId(group.id);
             if (!(prettyGroupId in uniquePrettyIds)) {
               dropdownListOptions.push({
                 id: group.id,
-                description: prettyGroupId + ((!singleOption && !group.id.startsWith('~') && group.members && group.members.length == 1) ? (' (' + prettyId(group.members[0]) + ')') : '')
+                description: prettyGroupId + ((!singleOption && !group.id.startsWith('~') && group.members && group.members.length == 1) ? (' (' + view.prettyId(group.members[0]) + ')') : '')
               });
               uniquePrettyIds[prettyGroupId] = group.id;
             }
@@ -1717,7 +1717,7 @@ module.exports = (function() {
   constructUpdatedEdit = (edit, invitation, formContent) => {
     const shouldSetValue = (fieldPath)=>{
       const field = _.get(invitation, fieldPath)
-      if (!field || field?.value || field?.values) return false
+      if (!field || field?.const) return false
       return true
     }
 
