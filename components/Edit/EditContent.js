@@ -16,11 +16,17 @@ const EditContent = ({ edit }) => {
     }),
   }
 
+  const contentKeys = Object.keys(noteContent)
   const contentOrder = edit.details?.presentation
-    ? Object.values(edit.details.presentation)
-        .sort((a, b) => (a?.order ?? 999) - (b?.order ?? 999))
-        .map((p) => p.name)
-    : Object.keys(noteContent)
+    ? [
+        ...new Set([
+          ...Object.values(edit.details.presentation)
+            .sort((a, b) => (a?.order ?? 999) - (b?.order ?? 999))
+            .map((p) => p.name),
+          ...contentKeys,
+        ]),
+      ]
+    : contentKeys
 
   return (
     <ul className="list-unstyled note-content">

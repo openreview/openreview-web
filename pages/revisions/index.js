@@ -500,7 +500,7 @@ const Revisions = ({ appContext }) => {
         {
           'note.id': query.id,
           sort: 'tcdate',
-          details: 'writable',
+          details: 'writable,presentation',
           trash: true,
         },
         { accessToken, version: 2 }
