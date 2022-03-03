@@ -1083,8 +1083,8 @@ module.exports = (function() {
 
     var requiredText = fieldDescription.optional ? null : $('<span>', { text: '*', class: 'required_field' });
 
-    if (_.has(fieldDescription, 'values-regex')) {
-      return Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
+    if (_.has(fieldDescription, 'regex')) {
+      return Webfield.get('/groups', { regex: fieldDescription['regex'] }, { handleErrors: false })
         .then(function (result) {
           if (_.isEmpty(result.groups)) {
             promptError('You do not have permission to create a note');
@@ -1106,8 +1106,8 @@ module.exports = (function() {
           var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
           promptError(errorText);
         });
-    } else if (_.has(fieldDescription, 'values-dropdown')) {
-      var values = fieldDescription['values-dropdown'];
+    } else if (_.has(fieldDescription, 'enum')) {
+      var values = fieldDescription['enum'];
       var extraGroupsP = $.Deferred().resolve([]);
       var regexIndex = _.findIndex(values, function (g) { return g.indexOf('.*') >= 0; });
       if (regexIndex >= 0) {
@@ -1116,9 +1116,9 @@ module.exports = (function() {
           .then(function (result) {
             if (result.groups && result.groups.length) {
               var groups = result.groups.map(function (g) { return g.id; });
-              fieldDescription['values-dropdown'] = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
+              fieldDescription['enum'] = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
             } else {
-              fieldDescription['values-dropdown'].splice(regexIndex, 1);
+              fieldDescription['enum'].splice(regexIndex, 1);
             }
             return result.groups;
           });
@@ -1130,34 +1130,6 @@ module.exports = (function() {
           return $readers;
         });
 
-    } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
-      var $readers = mkComposerInput('readers', { value: fieldDescription }, []);
-      $readers.find('.small_heading').prepend(requiredText);
-      return $readers;
-    // } else if (_.has(fieldDescription, 'values')) {
-    //   return null;
-    } else if (_.has(fieldDescription, 'values-checkbox')) {
-      var initialValues = fieldDescription['values-checkbox'];
-      var promise = $.Deferred().resolve();
-      var index = _.findIndex(initialValues, function (g) { return g.indexOf('.*') >= 0; });
-      if (index >= 0) {
-        var regexGroup = initialValues[index];
-        promise = Webfield.get('/groups', { regex: regexGroup })
-          .then(function (result) {
-            if (result.groups && result.groups.length) {
-              var groups = result.groups.map(function (g) { return g.id; });
-              fieldDescription['values-checkbox'] = initialValues.slice(0, index).concat(groups, initialValues.slice(index + 1));
-            } else {
-              fieldDescription['values-checkbox'].splice(index, 1);
-            }
-          });
-      }
-      return promise
-        .then(function () {
-          var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldDescription.default, { prettyId: true });
-          $readers.find('.small_heading').prepend(requiredText);
-          return $readers;
-        });
     } else {
       var $readers = mkComposerInput('readers', { value: fieldDescription }, []);
       $readers.find('.small_heading').prepend(requiredText);
