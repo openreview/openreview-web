@@ -1849,18 +1849,8 @@ module.exports = (function() {
     var inputValues = view.idsFromListAdder(widget, readers);
 
     var invitationValues = [];
-    if (_.has(readers, 'values-dropdown')) {
-      invitationValues = readers['values-dropdown'].map(function(v) { return _.has(v, 'id') ? v.id : v; });
-    } else if (_.has(readers, 'value-dropdown-hierarchy')) {
-      invitationValues = readers['value-dropdown-hierarchy'];
-    } else if (_.has(readers, 'values-checkbox')) {
-      inputValues = [];
-      widget.find('.note_content_value input[type="checkbox"]').each(function(i) {
-        if ($(this).prop('checked')) {
-          inputValues.push($(this).val());
-        }
-      });
-      invitationValues = readers['values-checkbox'];
+    if (_.has(readers, 'enum')) {
+      invitationValues = readers.enum.map(function(v) { return _.has(v, 'id') ? v.id : v; });
     }
 
     // Add signature if exists in the invitation readers list
