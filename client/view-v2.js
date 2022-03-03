@@ -1084,7 +1084,7 @@ module.exports = (function() {
     var requiredText = fieldDescription.optional ? null : $('<span>', { text: '*', class: 'required_field' });
 
     if (_.has(fieldDescription, 'regex')) {
-      return Webfield.get('/groups', { regex: fieldDescription['regex'] }, { handleErrors: false })
+      return Webfield.get('/groups', { regex: fieldDescription.regex }, { handleErrors: false })
         .then(function (result) {
           if (_.isEmpty(result.groups)) {
             promptError('You do not have permission to create a note');
@@ -1107,7 +1107,7 @@ module.exports = (function() {
           promptError(errorText);
         });
     } else if (_.has(fieldDescription, 'enum')) {
-      var values = fieldDescription['enum'];
+      var values = fieldDescription.enum;
       var extraGroupsP = $.Deferred().resolve([]);
       var regexIndex = _.findIndex(values, function (g) { return g.indexOf('.*') >= 0; });
       if (regexIndex >= 0) {
@@ -1116,9 +1116,9 @@ module.exports = (function() {
           .then(function (result) {
             if (result.groups && result.groups.length) {
               var groups = result.groups.map(function (g) { return g.id; });
-              fieldDescription['enum'] = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
+              fieldDescription.enum = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
             } else {
-              fieldDescription['enum'].splice(regexIndex, 1);
+              fieldDescription.enum.splice(regexIndex, 1);
             }
             return result.groups;
           });
