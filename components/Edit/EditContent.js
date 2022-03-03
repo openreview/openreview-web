@@ -1,6 +1,6 @@
 import { prettyContentValue, prettyField, prettyId, prettyList } from '../../lib/utils'
 import Icon from '../Icon'
-import { DownloadLink, NoteContentValue } from '../NoteContent'
+import EditContentValue from './EditContentValue'
 
 const EditContent = ({ edit }) => {
   const noteContent = {
@@ -48,19 +48,12 @@ const EditContent = ({ edit }) => {
                   .join(', ')}`}
               />
             )}
-            {fieldValue.startsWith('/attachment/') || fieldValue.startsWith('/pdf/') ? (
-              <span className="note-content-value">
-                <DownloadLink
-                  noteId={edit.id}
-                  fieldName={fieldName}
-                  fieldValue={fieldValue}
-                  isReference={true}
-                  isV2
-                />
-              </span>
-            ) : (
-              <NoteContentValue content={fieldValue} enableMarkdown={enableMarkdown} />
-            )}
+            <EditContentValue
+              editId={edit.id}
+              fieldName={fieldName}
+              fieldValue={fieldValue}
+              enableMarkdown={enableMarkdown}
+            />
           </li>
         )
       })}

@@ -326,9 +326,6 @@ const RevisionsList = ({
                   edit={reference}
                   options={{
                     showContents: true,
-                    isReference: true,
-                    pdfLink: true,
-                    htmlLink: true,
                     ...(reference.ddate && { extraClasses: 'edit-trashed' }),
                   }}
                 />
