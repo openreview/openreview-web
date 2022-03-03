@@ -277,7 +277,7 @@ module.exports = (function() {
         });
         contentInputResult = valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
       } else if (fieldDescription.presentation?.input === 'select' || !(_.has(fieldDescription.presentation, 'input'))) {
-        if (fieldDescription.value.type.endsWith('[]')) {
+        if (Array.isArray(fieldDescription.value.enum) || fieldDescription.value?.type.endsWith('[]')) {
           contentInputResult = view.mkDropdownAdder(
             fieldName, fieldDescription.description, fieldDescription.value.enum,
             fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.optional, alwaysHaveValues: fieldDescription.presentation?.default }
