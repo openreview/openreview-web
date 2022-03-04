@@ -9,7 +9,7 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 import WebfieldContainer from '../../components/WebfieldContainer'
 import withError from '../../components/withError'
 import api from '../../lib/api-client'
-import { auth, isSuperUser } from '../../lib/auth'
+import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 
 const Invitation = ({ invitationId, webfieldCode, appContext }) => {
