@@ -110,7 +110,6 @@ const Browse = ({ appContext }) => {
           const readers = buildInvitationReplyArr(fullInvitation, 'readers', user.profile.id)
           const writers = buildInvitationReplyArr(fullInvitation, 'writers', user.profile.id) || readers
           const signatures = translateSignatures(fullInvitation.edge?.signatures, apiVersion)
-          console.log('SIGNATURES', signatures)
           const nonreaders = buildInvitationReplyArr(fullInvitation, 'nonreaders', user.profile.id)
           Object.assign(invObj, {
             head: translateFieldSpec(fullInvitation, 'head', apiVersion),
@@ -138,7 +137,6 @@ const Browse = ({ appContext }) => {
         })
       })
       .catch((apiError) => {
-        console.log(apiError)
         if (typeof apiError === 'object' && apiError.name) {
           if (apiError.name === 'NotFoundError') {
             setError(notFoundError)
