@@ -240,7 +240,7 @@ test('#85 confirm profile email message', async (t) => {
     .click(Selector('button').withText('Confirm').filterVisible())
     .typeText(editEmailInputSelector, 'x@x.com', { replace: true })
     .click(Selector('button').withText('Confirm').filterVisible())
-    .expect(Selector('div.alert-content').innerText).contains('A confirmation email has been sent to x@x.com')
+    .expect(Selector('#flash-message-container').find('div.alert-content').innerText).contains('A confirmation email has been sent to x@x.com')
 })
 test.skip('#2143 date validation', async (t) => {
   await t.useRole(userBRole)
