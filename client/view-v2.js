@@ -552,7 +552,7 @@ module.exports = (function() {
 
     var contentKeys = Object.keys(note.content ?? {});
     const contentOrder = note.details?.presentation?.length
-      ? [...new Set([...note.details.presentation.sort((a, b) => a?.order - b?.order).map(p => p.name),...contentKeys])]
+      ? [...new Set([...note.details.presentation.map(p => p.name),...contentKeys])]
       : contentKeys
 
     var omittedContentFields = [
