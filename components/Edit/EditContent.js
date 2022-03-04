@@ -17,9 +17,7 @@ const EditContent = ({ edit }) => {
   }
 
   const contentOrder = edit.details?.presentation?.length
-    ? edit.details.presentation
-        .sort((a, b) => (a?.order ?? 999) - (b?.order ?? 999))
-        .map((p) => p.name)
+    ? edit.details.presentation.map((p) => p.name)
     : Object.keys(noteContent)
 
   return (
