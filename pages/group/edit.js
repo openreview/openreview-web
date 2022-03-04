@@ -58,7 +58,7 @@ export default function GroupEdit({ appContext }) {
     }
 
     loadGroup(router.query.id)
-  }, [router.isReady, userLoading, accessToken])
+  }, [router.isReady, router.query, userLoading, accessToken])
 
   useEffect(() => {
     if (!group) return

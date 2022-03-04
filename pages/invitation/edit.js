@@ -77,7 +77,7 @@ const InvitationEdit = ({ appContext }) => {
     }
 
     loadInvitation(router.query.id)
-  }, [userLoading, router.isReady, router.query])
+  }, [router.isReady, router.query, userLoading, accessToken])
 
   useEffect(() => {
     if (!invitation) return
