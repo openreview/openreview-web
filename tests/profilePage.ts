@@ -50,11 +50,11 @@ test('user open own profile', async (t) => {
     .click(Selector('button').withText('Login to OpenReview'))
     .click(Selector('a.dropdown-toggle'))
     .click(Selector('a').withText('Profile'))
-    .expect(Selector('#or-banner').find('a').innerText).eql('Edit Profile')
+    .expect(Selector('#edit-banner').find('a').innerText).eql('Edit Profile')
     // go to profile edit page
     .click(Selector('a').withText('Edit Profile'))
     .expect(Selector('h1').withText('Edit Profile').exists).ok()
-    .expect(Selector('#or-banner').find('a').innerText).eql('View Profile')
+    .expect(Selector('#edit-banner').find('a').innerText).eql('View Profile')
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled')).ok()
     .expect(Selector('ul.submissions-list').exists).notOk() // show imported papers only
     .expect(saveProfileButton.exists).ok()
