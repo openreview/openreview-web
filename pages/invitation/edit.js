@@ -2,7 +2,9 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import ErrorDisplay from '../../components/ErrorDisplay'
-import InvitationEditor from '../../components/invitation/InvitationEditor'
+import InvitationEditor, {
+  InvitationEditorV2,
+} from '../../components/invitation/InvitationEditor'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -109,13 +111,22 @@ const InvitationEdit = ({ appContext }) => {
 
       {!invitation && <LoadingSpinner />}
 
-      <InvitationEditor
-        invitation={invitation}
-        isMetaInvitation={isMetaInvitation}
-        user={user}
-        accessToken={accessToken}
-        loadInvitation={loadInvitation}
-      />
+      {invitation?.apiVersion === 1 ? (
+        <InvitationEditor
+          invitation={invitation}
+          user={user}
+          accessToken={accessToken}
+          loadInvitation={loadInvitation}
+        />
+      ) : (
+        <InvitationEditorV2
+          invitation={invitation}
+          isMetaInvitation={isMetaInvitation}
+          user={user}
+          accessToken={accessToken}
+          loadInvitation={loadInvitation}
+        />
+      )}
     </>
   )
 }

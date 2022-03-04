@@ -4,8 +4,13 @@ import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import EditorSection from '../../components/EditorSection'
-import { InvitationGeneralView } from '../../components/invitation/InvitationGeneral'
-import InvitationReply from '../../components/invitation/InvitationReply'
+import {
+  InvitationGeneralView,
+  InvitationGeneralViewV2,
+} from '../../components/invitation/InvitationGeneral'
+import InvitationReply, {
+  InvitationReplyV2,
+} from '../../components/invitation/InvitationReply'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
@@ -17,8 +22,6 @@ const InvitationInfo = ({ appContext }) => {
   const [invitation, setInvitation] = useState(null)
   const router = useRouter()
   const { setBannerHidden, setEditBanner } = appContext
-
-  const isMetaInvitation = invitation?.edit === true
 
   // Try loading invitation from v1 API first and if not found load from v2
   const loadInvitation = async (invitationId) => {
@@ -48,6 +51,43 @@ const InvitationInfo = ({ appContext }) => {
         setError({ statusCode: apiError.status, message: apiError.message })
       }
     }
+  }
+
+  const renderInvtationReply = () => {
+    if (invitation?.edit === true) return null
+
+    if (invitation?.apiVersion === 1) {
+      return (
+        <>
+          <InvitationReply
+            invitation={invitation}
+            replyField="reply"
+            readOnly={true}
+          />
+
+          <InvitationReply
+            invitation={invitation}
+            replyField="replyForumViews"
+            readOnly={true}
+          />
+        </>
+      )
+    }
+    return (
+      <>
+        <InvitationReplyV2
+          invitation={invitation}
+          replyField={invitation.edge ? 'edge' : 'edit'}
+          readOnly={true}
+        />
+
+        <InvitationReplyV2
+          invitation={invitation}
+          replyField="replyForumViews"
+          readOnly={true}
+        />
+      </>
+    )
   }
 
   useEffect(() => {
@@ -90,27 +130,14 @@ const InvitationInfo = ({ appContext }) => {
       {invitation ? (
         <div>
           <EditorSection title="General Info" className="general">
-            <InvitationGeneralView invitation={invitation} showEditButton={false} />
+            {invitation?.apiVersion === 1 ? (
+              <InvitationGeneralView invitation={invitation} showEditButton={false} />
+            ) : (
+              <InvitationGeneralViewV2 invitation={invitation} showEditButton={false} />
+            )}
           </EditorSection>
 
-          {!isMetaInvitation && (
-            <InvitationReply
-              invitation={invitation}
-              replyField={
-                // eslint-disable-next-line no-nested-ternary
-                invitation.apiVersion === 1 ? 'reply' : invitation.edge ? 'edge' : 'edit'
-              }
-              readOnly={true}
-            />
-          )}
-
-          {!isMetaInvitation && (
-            <InvitationReply
-              invitation={invitation}
-              replyField="replyForumViews"
-              readOnly={true}
-            />
-          )}
+          {renderInvtationReply()}
         </div>
       ) : (
         <LoadingSpinner />
