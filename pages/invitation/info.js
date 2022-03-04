@@ -1,6 +1,4 @@
-/* globals Webfield: false */
-
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
@@ -8,19 +6,17 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 import EditorSection from '../../components/EditorSection'
 import { InvitationGeneralView } from '../../components/invitation/InvitationGeneral'
 import InvitationReply from '../../components/invitation/InvitationReply'
-import useQuery from '../../hooks/useQuery'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
+import { invitationModeToggle } from '../../lib/banner-links'
 
 const InvitationInfo = ({ appContext }) => {
   const { accessToken, userLoading } = useUser()
   const [error, setError] = useState(null)
   const [invitation, setInvitation] = useState(null)
-  const query = useQuery()
   const router = useRouter()
-  const containerRef = useRef(null)
-  const { setBannerHidden, clientJsLoading } = appContext
+  const { setBannerHidden, setEditBanner } = appContext
 
   const isMetaInvitation = invitation?.edit === true
 
@@ -55,77 +51,69 @@ const InvitationInfo = ({ appContext }) => {
   }
 
   useEffect(() => {
-    if (userLoading || !query) return
+    if (!router.isReady || userLoading) return
 
     setBannerHidden(true)
 
-    if (!query.id) {
+    if (!router.query.id) {
       setError({ statusCode: 400, message: 'Missing required parameter id' })
       return
     }
 
-    loadInvitation(query.id)
-  }, [userLoading, query])
+    loadInvitation(router.query.id)
+  }, [router.isReady, userLoading, accessToken])
 
   useEffect(() => {
-    if (!invitation || !containerRef || clientJsLoading) return
+    if (!invitation) return
 
+    // Show edit mode banner
+    setBannerHidden(true)
     if (invitation.details?.writable) {
-      Webfield.editModeBanner(invitation.id, 'default')
-    } else if (invitation.web) {
-      Webfield.editModeBanner(invitation.id, 'info')
+      setEditBanner(invitationModeToggle('info', invitation.id))
     }
-
-    // eslint-disable-next-line consistent-return
-    return () => {
-      // Hide edit mode banner
-      if (document.querySelector('#flash-message-container .profile-flash-message')) {
-        document.getElementById('flash-message-container').style.display = 'none'
-      }
-    }
-  }, [clientJsLoading, containerRef, invitation])
+  }, [invitation])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
 
   return (
     <>
       <Head>
-        <title key="title">{`${
-          invitation ? prettyId(invitation.id) : 'Invitation Info'
-        } | OpenReview`}</title>
+        <title key="title">
+          {prettyId(invitation?.id)} Invitation Info | OpenReview
+        </title>
       </Head>
 
       <div id="header">
         <h1>{prettyId(invitation?.id)}</h1>
       </div>
 
-      {(clientJsLoading || !invitation) && <LoadingSpinner />}
-
-      {invitation && (
+      {invitation ? (
         <div>
           <EditorSection title="General Info" className="general">
             <InvitationGeneralView invitation={invitation} showEditButton={false} />
           </EditorSection>
 
           {!isMetaInvitation && (
-            <>
-              <InvitationReply
-                invitation={invitation}
-                replyField={
-                  // eslint-disable-next-line no-nested-ternary
-                  invitation.apiVersion === 1 ? 'reply' : invitation.edge ? 'edge' : 'edit'
-                }
-                readOnly={true}
-              />
+            <InvitationReply
+              invitation={invitation}
+              replyField={
+                // eslint-disable-next-line no-nested-ternary
+                invitation.apiVersion === 1 ? 'reply' : invitation.edge ? 'edge' : 'edit'
+              }
+              readOnly={true}
+            />
+          )}
 
-              <InvitationReply
-                invitation={invitation}
-                replyField="replyForumViews"
-                readOnly={true}
-              />
-            </>
+          {!isMetaInvitation && (
+            <InvitationReply
+              invitation={invitation}
+              replyField="replyForumViews"
+              readOnly={true}
+            />
           )}
         </div>
+      ) : (
+        <LoadingSpinner />
       )}
     </>
   )

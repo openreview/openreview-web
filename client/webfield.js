@@ -1821,20 +1821,6 @@ module.exports = (function() {
     }));
   };
 
-  var editModeBanner = function(groupOrInvitationId, mode) {
-    mode = mode || 'default';
-    var pageType = window.location.pathname.toLowerCase().indexOf('group') !== -1 ? 'group' : 'invitation';
-    var buttonText = mode === 'default' ? 'Edit' : 'View';
-    var buttonUrl = (mode === 'default' ? `/${pageType}/edit` : `/${pageType}`) + '?id=' + groupOrInvitationId;
-    var messageHtml = '<span class="important_message profile-flash-message">' +
-      'Currently showing ' + pageType + ' in ' + mode + ' mode &nbsp;' +
-      '<a href="' + buttonUrl + '" class="btn btn-xs btn-primary toggle-profile-mode">' +
-      buttonText + ' ' + _.upperFirst(pageType) +
-      '</a></span>';
-
-    generalPrompt('info', messageHtml, { html: true, noTimeout: true, overlay: false, scrollToTop: false });
-  };
-
   var done = function(options) {
     // Should be called after page is entirely finished rendering so that actions like registering
     // handlers and scrolling to anchors can be performed.
@@ -1883,7 +1869,6 @@ module.exports = (function() {
     getErrorFromJqXhr: getErrorFromJqXhr,
     setupAutoLoading: setupAutoLoading,
     disableAutoLoading: disableAutoLoading,
-    editModeBanner: editModeBanner,
     filterCollections: filterCollections,
     _registerActionButtonHandlers: _registerActionButtonHandlers,
     api: {

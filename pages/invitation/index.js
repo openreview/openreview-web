@@ -1,5 +1,3 @@
-/* eslint-disable global-require */
-
 import { useEffect } from 'react'
 import omit from 'lodash/omit'
 import without from 'lodash/without'
@@ -9,16 +7,21 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 import WebfieldContainer from '../../components/WebfieldContainer'
 import withError from '../../components/withError'
 import api from '../../lib/api-client'
-import { auth, isSuperUser } from '../../lib/auth'
+import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
+import { invitationModeToggle } from '../../lib/banner-links'
 
-const Invitation = ({ invitationId, webfieldCode, appContext }) => {
-  const { setBannerHidden, clientJsLoading } = appContext
+const Invitation = ({ invitationId, webfieldCode, writable, appContext }) => {
+  const { setBannerHidden, setEditBanner, clientJsLoading } = appContext
   const invitationTitle = prettyId(invitationId)
 
   useEffect(() => {
+    // Show edit banner
     setBannerHidden(true)
-  }, [invitationId])
+    if (writable) {
+      setEditBanner(invitationModeToggle('view', invitationId))
+    }
+  }, [invitationId, writable])
 
   useEffect(() => {
     if (clientJsLoading) return
@@ -30,11 +33,6 @@ const Invitation = ({ invitationId, webfieldCode, appContext }) => {
     // eslint-disable-next-line consistent-return
     return () => {
       document.body.removeChild(script)
-
-      // Hide edit mode banner
-      if (document.querySelector('#flash-message-container .profile-flash-message')) {
-        document.getElementById('flash-message-container').style.display = 'none'
-      }
     }
   }, [clientJsLoading, webfieldCode])
 
@@ -80,8 +78,6 @@ Invitation.getInitialProps = async (ctx) => {
   const generateWebfieldCode = (invitation, query) => {
     const invitationTitle = prettyId(invitation.id)
     const invitationObjSlim = omit(invitation, 'web', 'process', 'details', 'preprocess')
-    const isInvitationWritable = invitation.details && invitation.details.writable
-    const showModeBanner = isInvitationWritable
 
     const webfieldCode = invitation.web || `
 Webfield.ui.setup($('#invitation-container'), '${invitation.id}');
@@ -164,7 +160,6 @@ $(function() {
   var window = null;
 
   $('#invitation-container').empty();
-  ${showModeBanner ? 'Webfield.editModeBanner(invitation.id, args.mode);' : ''}
 
   ${noteEditorCode || webfieldCode}
 });
@@ -177,6 +172,7 @@ $(function() {
       return {
         invitationId: invitation.id,
         webfieldCode: generateWebfieldCode(invitation, ctx.query),
+        writable: invitation.details?.writable ?? false,
       }
     }
     return { statusCode: 404, message: `The Invitation ${ctx.query.id} was not found` }

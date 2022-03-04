@@ -1,15 +1,15 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 
 import { useState } from 'react'
-import _ from 'lodash'
+import zip from 'lodash/zip'
 
 export default function NoteAuthors({
   authors, authorIds, original, max,
 }) {
   const showOriginalAuthors = original && original.content
   const authorNameIdPairs = showOriginalAuthors
-    ? _.zip(original.content.authors, original.content.authorids)
-    : _.zip(authors, authorIds)
+    ? zip(original.content.authors, original.content.authorids)
+    : zip(authors, authorIds)
 
   const [isExpanded, setIsExpanded] = useState(false)
 

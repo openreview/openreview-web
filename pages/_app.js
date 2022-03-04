@@ -36,9 +36,11 @@ export default class OpenReviewApp extends App {
       logoutRedirect: false,
       bannerHidden: false,
       bannerContent: null,
+      editBannerContent: null,
       layoutOptions: { fullWidth: false, footerMinimal: false },
     }
     this.shouldResetBanner = false
+    this.shouldResetEditBanner = false
     this.shouldResetLayout = false
     this.refreshTimer = null
 
@@ -49,6 +51,7 @@ export default class OpenReviewApp extends App {
     this.updateUserName = this.updateUserName.bind(this)
     this.setBannerHidden = this.setBannerHidden.bind(this)
     this.setBannerContent = this.setBannerContent.bind(this)
+    this.setEditBanner = this.setEditBanner.bind(this)
     this.setLayoutOptions = this.setLayoutOptions.bind(this)
     this.onRouteChangeStart = this.onRouteChangeStart.bind(this)
     this.onRouteChangeComplete = this.onRouteChangeComplete.bind(this)
@@ -169,6 +172,11 @@ export default class OpenReviewApp extends App {
     this.shouldResetBanner = false
   }
 
+  setEditBanner(newContent) {
+    this.setState({ editBannerContent: newContent })
+    this.shouldResetEditBanner = false
+  }
+
   setLayoutOptions(options) {
     this.setState((previous) => ({
       layoutOptions: { ...previous.layoutOptions, ...options },
@@ -205,6 +213,7 @@ export default class OpenReviewApp extends App {
   onRouteChangeStart() {
     this.shouldResetBanner = true
     this.shouldResetLayout = true
+    this.shouldResetEditBanner = true
 
     // Close mobile nav menu if open
     if (document.getElementById('navbar')?.attributes['aria-expanded']?.value === 'true') {
@@ -224,6 +233,9 @@ export default class OpenReviewApp extends App {
       this.setState({
         layoutOptions: { fullWidth: false, footerMinimal: false },
       })
+    }
+    if (this.shouldResetEditBanner) {
+      this.setState({ editBannerContent: null })
     }
 
     // Track pageview in Google Analytics
@@ -367,6 +379,7 @@ export default class OpenReviewApp extends App {
       clientJsLoading: this.state.clientJsLoading,
       setBannerHidden: this.setBannerHidden,
       setBannerContent: this.setBannerContent,
+      setEditBanner: this.setEditBanner,
       setLayoutOptions: this.setLayoutOptions,
     }
 
@@ -380,6 +393,7 @@ export default class OpenReviewApp extends App {
           bodyClass={Component.bodyClass}
           bannerHidden={this.state.bannerHidden}
           bannerContent={this.state.bannerContent}
+          editBannerContent={this.state.editBannerContent}
           fullWidth={this.state.layoutOptions.fullWidth}
           minimalFooter={this.state.layoutOptions.minimalFooter}
         >
