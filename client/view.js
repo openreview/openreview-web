@@ -3986,6 +3986,7 @@ module.exports = (function() {
     clearAutosaveData: clearAutosaveData,
     updateFileSection: updateFileSection,
     updatePdfSection: updatePdfSection,
+    mkDropdownList: mkDropdownList
   };
 
 }());
