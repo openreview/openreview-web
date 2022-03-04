@@ -227,7 +227,7 @@ const UserModerationQueue = ({
                   </a>
                 </span>
                 <span className="col-email text-muted">{profile.content.preferredEmail}</span>
-                <span className="col-created">{formatDateTime(profile.tmdate)}</span>
+                <span className="col-created">{formatDateTime(profile.tcdate)}</span>
                 <span className="col-status">
                   <span className={`label label-${profile.password ? 'success' : 'danger'}`}>
                     password
@@ -266,7 +266,7 @@ const UserModerationQueue = ({
                     </>
                   ) : (
                     <>
-                      {!profile.block && (
+                      {!profile.block && profile.active && (
                         <button
                           type="button"
                           className="btn btn-xs"
