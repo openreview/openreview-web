@@ -533,9 +533,13 @@ main.edge-browser {
 
       a {
         color: constants.$mediumBlue;
+        padding-right: .25rem;
         &:hover {
           color: #23527c;
         }
+      }
+      span {
+        font-size: .75rem;
       }
     }
 
@@ -654,10 +658,6 @@ main.edge-browser {
     }
     &.unassigned {
       background-color: $vetoRed;
-    }
-    .reviewer-heading, .areachair-heading {
-      float: left;
-      width: calc(100% - 105px);
     }
   }
   .show-lock-break .entry-reviewer .reviewer-heading,

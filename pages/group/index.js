@@ -10,8 +10,6 @@ import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 import { generateWebfieldCode, parseComponentCode } from '../../lib/webfield-utils'
 
-const fullWidthGroups = ['.TMLR/Editors_In_Chief']
-
 const Group = ({ groupId, webfieldCode, componentObj, appContext }) => {
   const { setBannerHidden, clientJsLoading, setLayoutOptions } = appContext
   const groupTitle = prettyId(groupId)
@@ -21,7 +19,7 @@ const Group = ({ groupId, webfieldCode, componentObj, appContext }) => {
   useEffect(() => {
     setBannerHidden(true)
 
-    if (fullWidthGroups.includes(groupId)) {
+    if (groupId.endsWith('Editors_In_Chief') || groupId.endsWith('Action_Editors')) {
       setLayoutOptions({ fullWidth: true, minimalFooter: true })
     }
   }, [groupId])

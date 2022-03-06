@@ -9,7 +9,7 @@ import EdgeBrowser from '../../components/browser/EdgeBrowser'
 import EdgeBrowserHeader from '../../components/browser/EdgeBrowserHeader'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import api from '../../lib/api-client'
-import { parseEdgeList, buildInvitationReplyArr, translateFieldSpec } from '../../lib/edge-utils'
+import { parseEdgeList, buildInvitationReplyArr, translateFieldSpec, translateSignatures } from '../../lib/edge-utils'
 import { referrerLink } from '../../lib/banner-links'
 
 const Browse = ({ appContext }) => {
@@ -18,6 +18,7 @@ const Browse = ({ appContext }) => {
   const [invitations, setInvitations] = useState(null)
   const [titleInvitation, setTitleInvitation] = useState(null)
   const [maxColumns, setMaxColumns] = useState(-1)
+  const [showCounter, setShowCounter] = useState(true)
   const [error, setError] = useState(null)
   const query = useQuery()
   const { setBannerHidden, setBannerContent, setLayoutOptions } = appContext
@@ -70,6 +71,7 @@ const Browse = ({ appContext }) => {
     // Use the first traverse invitation as the main group ID
     setTitleInvitation(traverseInvitations[0])
     setMaxColumns(Math.max(Number.parseInt(query.maxColumns, 10), -1) || -1)
+    setShowCounter(query.showCounter ? query.showCounter === 'true' : true)
 
     const apiVersion = Number.parseInt(query.version, 10)
     setVersion(apiVersion)
@@ -107,7 +109,7 @@ const Browse = ({ appContext }) => {
 
           const readers = buildInvitationReplyArr(fullInvitation, 'readers', user.profile.id)
           const writers = buildInvitationReplyArr(fullInvitation, 'writers', user.profile.id) || readers
-          const signatures = apiVersion === 2 ? fullInvitation.edge?.signatures : fullInvitation.reply?.signatures
+          const signatures = translateSignatures(fullInvitation.edge?.signatures, apiVersion)
           const nonreaders = buildInvitationReplyArr(fullInvitation, 'nonreaders', user.profile.id)
           Object.assign(invObj, {
             head: translateFieldSpec(fullInvitation, 'head', apiVersion),
@@ -176,6 +178,7 @@ const Browse = ({ appContext }) => {
           browseInvitations={invitations.browseInvitations}
           hideInvitations={invitations.hideInvitations}
           maxColumns={maxColumns}
+          showCounter={showCounter}
           userInfo={{ userId: user?.id, accessToken }}
         />
       ) : (

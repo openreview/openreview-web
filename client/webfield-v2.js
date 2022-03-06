@@ -389,24 +389,48 @@ module.exports = (function() {
         }
       });
 
-      $container.on('change', '#select-all-papers', function(e) {
-        var $superCheckBox = $(this);
-        var $allPaperCheckBoxes = $('input.select-note-reviewers');
-        var $msgReviewerButton = $('#message-reviewers-btn');
-        if ($superCheckBox[0].checked === true) {
+      $container.on('change', '.select-all-papers', function(e) {
+        var $allPaperCheckBoxes = $container.find('input.select-note-reviewers');
+        var $messageBtn = $container.find('.message-reviewers-btn');
+        if ($(this).prop('checked')) {
           $allPaperCheckBoxes.prop('checked', true);
-          $msgReviewerButton.attr('disabled', false);
+          $messageBtn.attr('disabled', false);
         } else {
           $allPaperCheckBoxes.prop('checked', false);
-          $msgReviewerButton.attr('disabled', true);
+          $messageBtn.attr('disabled', true);
         }
       });
 
-      $container.on('click', '#div-msg-reviewers a', function(e) {
+      $container.on('change', '.select-note-reviewers', function(e) {
+        var $messageBtn = $container.find('.message-reviewers-btn');
+        var $checkboxes = $container.find('input.select-note-reviewers');
+        var $selectedCheckboxes = $checkboxes.filter(':checked');
+        if ($selectedCheckboxes.length > 0) {
+          $messageBtn.attr('disabled', false);
+        } else {
+          $messageBtn.attr('disabled', true);
+        }
+
+        var $superCheckbox = $container.find('.select-all-papers');
+        if ($checkboxes.length === $selectedCheckboxes.length) {
+          $superCheckbox.prop('checked', true);
+        } else {
+          $superCheckbox.prop('checked', false);
+        }
+      });
+
+      $container.on('click', '.msg-reviewers-container a', function(e) {
         var filter = $(this)[0].id;
         $('#message-reviewers-modal').remove();
 
-        var defaultBody = options.reminderOptions.defaultBody;
+        var menuOption = options.reminderOptions.menu.find(function(menu) {
+          return 'msg-' + menu.id === filter;
+        });
+        if (!menuOption) {
+          return false;
+        }
+
+        var defaultBody = menuOption.messageBody || options.reminderOptions.defaultBody;
 
         var modalHtml = Handlebars.templates.messageReviewersModalFewerOptions({
           filter: filter,
@@ -429,17 +453,23 @@ module.exports = (function() {
         var messageContent = $('#message-reviewers-modal textarea[name="message"]').val().trim();
         var filter  = $(this)[0].dataset['filter'];
 
-        var menuOption = options.reminderOptions.menu.find(function(menu) { return ('msg-' + menu.id) == filter; });
+        var menuOption = options.reminderOptions.menu.find(function(menu) {
+          return 'msg-' + menu.id === filter;
+        });
         if (!menuOption) {
           return false;
         }
-        var users = menuOption.getUsers();
+
+        var selectedIds = $container.find('input.select-note-reviewers:checked').map(function() {
+          return $(this).data('noteId');
+        }).get();
+        var users = menuOption.getUsers(selectedIds);
         var messages = [];
         var count = 0;
         var userCounts = Object.create(null);
 
         users.forEach(function(user) {
-          if (user.groups && user.groups.length) {
+          if (user.groups?.length > 0) {
             var groupIds = [];
             user.groups.forEach(function(group) {
               groupIds.push(group.id);
@@ -461,7 +491,7 @@ module.exports = (function() {
             })
             count += groupIds.length;
           }
-        })
+        });
 
         localStorage.setItem('messages', JSON.stringify(messages));
         localStorage.setItem('messageCount', count);
@@ -538,7 +568,7 @@ module.exports = (function() {
 
       var postReviewerEmails = function(postData) {
         postData.message = postData.message.replace(
-          '{{submit_review_link}}',
+          '{{forumUrl}}',
           postData.forumUrl
         );
 
@@ -567,9 +597,10 @@ module.exports = (function() {
       options.reminderOptions.menu.forEach(function(menu) {
         optionsHtml = optionsHtml + '<li><a id="msg-' + menu.id + '">' + menu.name + '</a></li>'
       })
-      reminderMenuHtml = '<div id="div-msg-reviewers" class="btn-group" role="group">' +
-      '<button id="message-reviewers-btn" type="button" class="btn btn-icon dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Select papers to message corresponding reviewers" >' +
-        '<span class="glyphicon glyphicon-envelope"></span> &nbsp;Message ' +
+      reminderMenuHtml = '<div class="btn-group msg-reviewers-container" role="group">' +
+      '<button type="button" class="message-reviewers-btn btn btn-icon dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Select papers to message corresponding reviewers" disabled>' +
+        '<span class="glyphicon glyphicon-envelope"></span>' +
+        ' &nbsp;Message&nbsp; ' +
         '<span class="caret"></span>' +
       '</button>' +
       '<ul class="dropdown-menu" aria-labelledby="grp-msg-reviewers-btn">' +
@@ -802,34 +833,50 @@ module.exports = (function() {
 
     invitations = invitations || [];
 
+    var dateFormatOptions = {
+      hour: 'numeric', minute: 'numeric', day: '2-digit', month: 'short', year: 'numeric', timeZoneName: 'long'
+    };
+
     // Order by duedate
     invitations.sort(function(a, b) { return a.duedate - b.duedate; });
 
-    var formattedInvitations = invitations.map(function(inv) {
+    invitations.forEach(function(inv) {
+      if (inv.cdate > Date.now()) {
+        var startDate = new Date(inv.cdate);
+        inv.startDateStr = startDate.toLocaleDateString('en-GB', dateFormatOptions);
+      }
+
       var duedate = new Date(inv.duedate);
-      inv.dueDateStr = duedate.toLocaleDateString('en-GB', {
-        hour: 'numeric', minute: 'numeric', day: '2-digit', month: 'short', year: 'numeric', timeZoneName: 'long'
-      });
+      inv.dueDateStr = duedate.toLocaleDateString('en-GB', dateFormatOptions);
       inv.dueDateStatus = getDueDateStatus(duedate);
       inv.groupId = inv.id.split('/-/')[0];
       inv.forumId = forumId;
-      return inv;
     });
 
+    var renderTaskItem = function(inv) {
+      return (
+        '<li class="note ' + (inv.complete ? 'completed' : '') + '">' +
+          '<h4><a href="/forum?id=' + inv.forumId + (inv.complete ? '' : '&invitationId=' + inv.id) + (options.referrer ? '&referrer=' + options.referrer : '') + '" target="_blank">' +
+            view.prettyInvitationId(inv.id) +
+          '</a></h4>' +
+          (inv.startDateStr ? '<p class="mb-1"><span class="duedate">Start: ' + inv.startDateStr + '</span></p>' : '') +
+          '<p class="mb-1"><span class="duedate ' + inv.dueDateStatus +'">Due: ' + inv.dueDateStr + '</span></p>' +
+          '<p class="mb-0">' + (inv.complete ? 'Complete' : 'Incomplete') + ', ' + inv.replies.length + ' ' + (inv.replies.length === 1 ? 'Reply' : 'Replies') + '</p>' +
+        '</li>'
+      );
+    };
+
+    var incompleteInvitations = invitations.filter((inv) => !inv.complete);
+    var completedInvitations = invitations.filter((inv) => inv.complete);
+
     return (
-      (formattedInvitations.length > 0 ? '<h4>Tasks:</h4>' : '') +
+      (invitations.length > 0 ? '<h4>Tasks:</h4>' : '') +
       '<ul class="list-unstyled submissions-list task-list eic-task-list mt-0 mb-0">' +
-        formattedInvitations.map(function(inv) {
-          return (
-            '<li class="note ' + (inv.complete ? 'completed' : '') + '">' +
-              '<h4><a href="/forum?id=' + inv.forumId + (inv.complete ? '' : '&invitationId=' + inv.id) + (options.referrer ? '&referrer=' + options.referrer : '') + '" target="_blank">' +
-                view.prettyInvitationId(inv.id) +
-              '</a></h4>' +
-              '<p class="mb-1"><span class="duedate ' + inv.dueDateStatus +'">Due: ' + inv.dueDateStr + '</span></p>' +
-              '<p class="mb-0">' + (inv.complete ? 'Complete' : 'Incomplete') + ', ' + inv.replies.length + ' ' + (inv.replies.length === 1 ? 'Reply' : 'Replies') + '</p>' +
-            '</li>'
-          );
-        }).join('\n') +
+        incompleteInvitations.map(renderTaskItem).join('\n') +
+      '</ul>' +
+      (incompleteInvitations.length > 0 && completedInvitations.length > 0 ? '<hr class="small" style="margin-top: 0.5rem;">' : '') +
+      '<ul class="list-unstyled submissions-list task-list eic-task-list mt-0 mb-0">' +
+        completedInvitations.map(renderTaskItem).join('\n') +
       '</ul>'
     );
   };
@@ -1029,7 +1076,7 @@ module.exports = (function() {
           var memberGroups = [];
           group.members.forEach(function(member) {
             var anonGroup = anonPaperGroups.find(function(anonGroup) {
-              return anonGroup.id.startsWith(venueId + '/' + numberToken + number) && anonGroup.members[0] == member;
+              return anonGroup.id.startsWith(venueId + '/' + numberToken + number) && anonGroup.members[0] === member;
             })
             var profile = profilesById[member];
             var profileInfo = {
@@ -1404,8 +1451,8 @@ module.exports = (function() {
           _.find(allTagInvitations, ['id', tagInvitationId]) :
           _.find(options.displayOptions.edgeInvitations, ['id', tagInvitationId]);
 
-        if (_.has(tagInvitation, 'reply.' + fieldName + '.values')) {
-          return tagInvitation.reply[fieldName].values;
+        if (_.has(tagInvitation, 'reply.' + fieldName + '.const')) {
+          return tagInvitation.reply[fieldName].const;
         } else if (_.has(tagInvitation, 'reply.' + fieldName + '.values-copied')) {
           return _.compact(_.map(tagInvitation.reply[fieldName]['values-copied'], function(value) {
             if (value === '{signatures}') {
@@ -1416,8 +1463,8 @@ module.exports = (function() {
               return value;
             }
           }));
-        } else if (_.has(tagInvitation, 'reply.' + fieldName + '.values-regex')) {
-          return _.compact(_.map(tagInvitation.reply[fieldName]['values-regex'].split('|'), function(value) {
+        } else if (_.has(tagInvitation, 'reply.' + fieldName + '.regex')) {
+          return _.compact(_.map(tagInvitation.reply[fieldName].regex.split('|'), function(value) {
             if (value.indexOf('Paper.*') !== -1) {
               return value.replace('Paper.*', 'Paper' + paperNumber);
             } else {
@@ -1525,7 +1572,7 @@ module.exports = (function() {
 
         var readers = buildArray(tagInvitation, 'readers', $note.data('number'), isTagWidget);
 
-        var values = tagInvitation.reply.content.tag['values-dropdown'].map(function(v) {
+        var values = tagInvitation.reply.content.tag.enum.map(function(v) {
           return { id: v, description: v };
         });
         var filteredOptions = function(options, prefix) {

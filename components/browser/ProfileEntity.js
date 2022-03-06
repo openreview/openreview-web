@@ -30,6 +30,7 @@ export default function ProfileEntity(props) {
   // Format profile data for rendering
   const {
     id,
+    email,
     content,
     editEdges,
     editEdgeTemplates,
@@ -40,9 +41,15 @@ export default function ProfileEntity(props) {
 
   const metadata = props.profile.metadata || {}
   const extraClasses = []
-  const defaultWeight = [...editInvitations, ...browseInvitations].find(p => p.id.includes('Custom_Max_Papers'))?.defaultWeight
-  const customLoad = [...browseEdges || [], ...editEdges || []].find(p => p.invitation.includes('Custom_Max_Papers'))?.weight ?? defaultWeight
-  const isInviteAcceptedProfile = editEdges?.find(p => p.invitation.includes('Invite_Assignment'))?.label === 'Accepted'
+  const defaultWeight = [...editInvitations, ...browseInvitations].find((p) =>
+    p.id.includes('Custom_Max_Papers')
+  )?.defaultWeight
+  const customLoad =
+    [...(browseEdges || []), ...(editEdges || [])].find((p) =>
+      p.invitation.includes('Custom_Max_Papers')
+    )?.weight ?? defaultWeight
+  const isInviteAcceptedProfile =
+    editEdges?.find((p) => p.invitation.includes('Invite_Assignment'))?.label === 'Accepted'
 
   if (metadata.isAssigned || metadata.isUserAssigned) extraClasses.push('is-assigned')
   if (metadata.hasConflict) extraClasses.push('has-conflict')
@@ -54,8 +61,10 @@ export default function ProfileEntity(props) {
   const handleClick = (e) => {
     if (!props.canTraverse) return
 
-    if ((e.target.tagName === 'A' && e.target.className !== 'show-assignments')
-      || (e.target.tagName === 'BUTTON' && e.target.className.includes('dropdown-toggle'))) {
+    if (
+      (e.target.tagName === 'A' && e.target.className !== 'show-assignments') ||
+      (e.target.tagName === 'BUTTON' && e.target.className.includes('dropdown-toggle'))
+    ) {
       return
     }
 
@@ -71,16 +80,25 @@ export default function ProfileEntity(props) {
     // TODO: allow ProfileItems to be head objects
     const editInvitation = isTraverseEdge
       ? traverseInvitation
-      : editInvitations.filter(p => p.id === editEdge.invitation)?.[0]
-    const signatures = getSignatures(editInvitation, availableSignaturesInvitationMap, props.parentInfo.number, user)
+      : editInvitations.filter((p) => p.id === editEdge.invitation)?.[0]
+    const signatures = getSignatures(
+      editInvitation,
+      availableSignaturesInvitationMap,
+      props.parentInfo.number,
+      user
+    )
     if (!signatures || signatures.length === 0) {
-      promptError('You don\'t have permission to edit this edge')
+      promptError("You don't have permission to edit this edge")
       return
     }
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     const isCustomLoadInvitation = editInvitation.id.includes('Custom_Max_Papers')
     const {
-      creationDate, modificationDate, name, writable, ...body // removed fields added for entity display
+      creationDate,
+      modificationDate,
+      name,
+      writable,
+      ...body // removed fields added for entity display
     } = {
       tail: id,
       ddate: Date.now(),
@@ -101,19 +119,24 @@ export default function ProfileEntity(props) {
   }
 
   // readers/nonreaders/writers
-  const getValues = value => getInterpolatedValues({
-    value,
-    columnType: props.columnType,
-    shouldReplaceHeadNumber: false,
-    paperNumber: null,
-    parentPaperNumber: props.parentInfo.number,
-    id,
-    parentId: props.parentInfo.id,
-    version,
-  })
+  const getValues = (value) =>
+    getInterpolatedValues({
+      value,
+      columnType: props.columnType,
+      shouldReplaceHeadNumber: false,
+      paperNumber: null,
+      parentPaperNumber: props.parentInfo.number,
+      id,
+      parentId: props.parentInfo.id,
+      version,
+    })
 
   const addEdge = async ({
-    e, existingEdge, editEdgeTemplate, updatedEdgeFields = {}, isTraverseEdge = false,
+    e,
+    existingEdge,
+    editEdgeTemplate,
+    updatedEdgeFields = {},
+    isTraverseEdge = false,
   }) => {
     if (e) {
       e.preventDefault()
@@ -123,22 +146,32 @@ export default function ProfileEntity(props) {
     // Create new edge
     const editInvitation = isTraverseEdge
       ? traverseInvitation
-      : editInvitations.filter(p => p.id === editEdgeTemplate.invitation)?.[0]
-    const isInviteInvitation = editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
+      : editInvitations.filter((p) => p.id === editEdgeTemplate.invitation)?.[0]
+    const isInviteInvitation =
+      editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     const isCustomLoadInvitation = editInvitation.id.includes('Custom_Max_Papers')
     const maxLoadInvitationHead = editInvitation.head?.query?.id
-    const signatures = getSignatures(editInvitation, availableSignaturesInvitationMap, props.parentInfo.number, user)
+    const signatures = getSignatures(
+      editInvitation,
+      availableSignaturesInvitationMap,
+      props.parentInfo.number,
+      user
+    )
     if (!signatures || signatures.length === 0) {
-      promptError('You don\'t have permission to edit this edge')
+      promptError("You don't have permission to edit this edge")
       return
     }
 
     const {
-      creationDate, modificationDate, name, writable, ...body // removed fields added for entity display
+      creationDate,
+      modificationDate,
+      name,
+      writable,
+      ...body // removed fields added for entity display
     } = {
       tail: id,
-      ...existingEdge ?? {
+      ...(existingEdge ?? {
         ...editEdgeTemplate,
         defaultWeight: undefined,
         head: maxLoadInvitationHead ?? editEdgeTemplate.head,
@@ -147,7 +180,7 @@ export default function ProfileEntity(props) {
         nonreaders: getValues(editInvitation.nonreaders),
         writers: getValues(editInvitation.writers),
         signatures,
-      },
+      }),
       ...updatedEdgeFields,
     }
     try {
@@ -158,31 +191,38 @@ export default function ProfileEntity(props) {
         props.updateChildColumn(props.columnIndex, updatedEdgeFields?.weight)
       }
       props.reloadColumnEntities()
-      if (isInviteInvitation) promptMessage(`Invitation has been sent to ${body.tail} and it's waiting for the response.`)
+      if (isInviteInvitation)
+        promptMessage(
+          `Invitation has been sent to ${body.tail} and it's waiting for the response.`
+        )
     } catch (error) {
       promptError(error.message)
     }
   }
 
   const renderEditEdgeWidget = ({ edge, invitation, isTraverseEdge = false }) => {
-    const isAssigned = (metadata.isAssigned || metadata.isUserAssigned)
-    const isInviteInvitation = invitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
+    const isAssigned = metadata.isAssigned || metadata.isUserAssigned
+    const isInviteInvitation =
+      invitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
     const isProposedAssignmentInvitation = invitation.id.includes('Proposed_Assignment')
     const isAssignmentInvitation = invitation.id.includes('/Assignment')
     const isCustomLoadInvitation = invitation.id.includes('Custom_Max_Papers')
-    const isReviewerAssignmentStage = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
-    const isEmergencyReviewerStage = editInvitations.some(p => p.id.includes('/Assignment'))
+    const isReviewerAssignmentStage = editInvitations.some((p) =>
+      p.id.includes('Proposed_Assignment')
+    )
+    const isEmergencyReviewerStage = editInvitations.some((p) => p.id.includes('/Assignment'))
     const isNotWritable = edge?.writable === false
 
     let disableControlReason = null
 
     // disable propose assignment when traverseEdgeCount>=custmom max paper in 1st stage
     if (
-      (
-        (isReviewerAssignmentStage && isProposedAssignmentInvitation)
-        || (isEmergencyReviewerStage && isAssignmentInvitation)
-      )
-      && customLoad && customLoad <= traverseEdgesCount && !edge) {
+      ((isReviewerAssignmentStage && isProposedAssignmentInvitation) ||
+        (isEmergencyReviewerStage && isAssignmentInvitation)) &&
+      Number.isInteger(customLoad) &&
+      customLoad <= traverseEdgesCount &&
+      !edge
+    ) {
       disableControlReason = 'Custom load has been reached'
     }
     // edit is not allowed if not writable
@@ -190,7 +230,12 @@ export default function ProfileEntity(props) {
       disableControlReason = 'You are not allowed to edit this edge'
     }
     // invited external reviewer and assigned should disabled invite assignment
-    if (content?.isInvitedProfile && isAssigned && isReviewerAssignmentStage && isInviteInvitation) {
+    if (
+      content?.isInvitedProfile &&
+      isAssigned &&
+      isReviewerAssignmentStage &&
+      isInviteInvitation
+    ) {
       disableControlReason = 'The reviewer has already been invited'
     }
 
@@ -204,17 +249,27 @@ export default function ProfileEntity(props) {
     if (isAssigned && content?.isInvitedProfile && isCustomLoadInvitation) return null
 
     // invited profile show only proposed/invite assignment widget
-    if (content?.isInvitedProfile && !isInviteAcceptedProfile
-      && !isAssigned && isReviewerAssignmentStage && !isInviteInvitation) return null
+    if (
+      content?.isInvitedProfile &&
+      !isInviteAcceptedProfile &&
+      !isAssigned &&
+      isReviewerAssignmentStage &&
+      !isInviteInvitation
+    )
+      return null
 
     // invited profile show only invite widget
-    if (content?.isInvitedProfile && isEmergencyReviewerStage && !isInviteInvitation) return null
+    if (content?.isInvitedProfile && isEmergencyReviewerStage && !isInviteInvitation)
+      return null
 
     const editEdgeDropdown = (type, controlType) => (
       <EditEdgeDropdown
         existingEdge={edge}
         // eslint-disable-next-line max-len
-        canAddEdge={editEdges?.filter(p => p?.invitation === invitation.id).length === 0 || invitation.multiReply} // no editedge or invitation allow multiple edges
+        canAddEdge={
+          editEdges?.filter((p) => p?.invitation === invitation.id).length === 0 ||
+          invitation.multiReply
+        } // no editedge or invitation allow multiple edges
         label={invitation.name}
         options={invitation?.[type]?.[controlType]}
         selected={edge?.[type]}
@@ -222,7 +277,7 @@ export default function ProfileEntity(props) {
         addEdge={addEdge}
         removeEdge={() => removeEdge(edge)}
         type={type} // label or weight
-        editEdgeTemplate={editEdgeTemplates?.find(p => p?.invitation === invitation.id)} // required for adding new
+        editEdgeTemplate={editEdgeTemplates?.find((p) => p?.invitation === invitation.id)} // required for adding new
       />
     )
     const editEdgeToggle = () => (
@@ -231,8 +286,11 @@ export default function ProfileEntity(props) {
         addEdge={addEdge}
         removeEdge={() => removeEdge(edge, isTraverseEdge)}
         // eslint-disable-next-line max-len
-        canAddEdge={editEdges?.filter(p => p?.invitation === invitation.id).length === 0 || invitation.multiReply} // no editedge or invitation allow multiple edges
-        editEdgeTemplate={editEdgeTemplates?.find(p => p?.invitation === invitation.id)} // required for adding new
+        canAddEdge={
+          editEdges?.filter((p) => p?.invitation === invitation.id).length === 0 ||
+          invitation.multiReply
+        } // no editedge or invitation allow multiple edges
+        editEdgeTemplate={editEdgeTemplates?.find((p) => p?.invitation === invitation.id)} // required for adding new
         isInviteInvitation={isInviteInvitation}
         shouldDisableControl={!!disableControlReason}
         disableControlReason={disableControlReason}
@@ -241,10 +299,13 @@ export default function ProfileEntity(props) {
         traverseEdgesCount={traverseEdgesCount}
       />
     )
-    const editEdgeTwoDropdowns = controlType => (
+    const editEdgeTwoDropdowns = (controlType) => (
       <EditEdgeTwoDropdowns
         // eslint-disable-next-line max-len
-        canAddEdge={editEdges?.filter(p => p?.invitation === invitation.id).length === 0 || invitation.multiReply} // no editedge or invitation allow multiple edges
+        canAddEdge={
+          editEdges?.filter((p) => p?.invitation === invitation.id).length === 0 ||
+          invitation.multiReply
+        } // no editedge or invitation allow multiple edges
         existingEdge={edge}
         editInvitation={invitation}
         label2="weight"
@@ -255,7 +316,7 @@ export default function ProfileEntity(props) {
         default=" "
         addEdge={addEdge}
         removeEdge={() => removeEdge(edge)}
-        editEdgeTemplate={editEdgeTemplates?.find(p => p?.invitation === invitation.id)} // required for adding new
+        editEdgeTemplate={editEdgeTemplates?.find((p) => p?.invitation === invitation.id)} // required for adding new
       />
     )
 
@@ -285,7 +346,11 @@ export default function ProfileEntity(props) {
     // existing
     if (props.profile.traverseEdge) {
       // eslint-disable-next-line max-len
-      if (!props.profile.traverseEdge?.writable || editInvitations.some(p => p.id === traverseInvitation.id)) return null
+      if (
+        !props.profile.traverseEdge?.writable ||
+        editInvitations.some((p) => p.id === traverseInvitation.id)
+      )
+        return null
       return renderEditEdgeWidget({
         edge: props.profile.traverseEdge,
         invitation: traverseInvitation,
@@ -293,12 +358,15 @@ export default function ProfileEntity(props) {
       })
     }
     // new only for external reviewer who has accepted
-    if (traverseInvitation.id.includes('/Assignment') && editEdges?.some(
-      p => editInvitations.find(
-        q => q.id === p.invitation,
-      )?.[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+' // invite invitation
-        && p.label === 'Accepted',
-    )
+    if (
+      traverseInvitation.id.includes('/Assignment') &&
+      editEdges?.some(
+        (p) =>
+          editInvitations.find((q) => q.id === p.invitation)?.[props.columnType]?.query?.[
+            'value-regex'
+          ] === '~.*|.+@.+' && // invite invitation
+          p.label === 'Accepted'
+      )
     ) {
       return renderEditEdgeWidget({
         invitation: traverseInvitation,
@@ -309,13 +377,23 @@ export default function ProfileEntity(props) {
 
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-    <li className={`entry entry-reviewer d-flex ${extraClasses.join(' ')}`} onClick={handleClick}>
+    <li
+      className={`entry entry-reviewer d-flex ${extraClasses.join(' ')}`}
+      onClick={handleClick}
+    >
       <div className="reviewer-heading">
         <h3>
-          <a href={`/profile?${id.startsWith('~') ? 'id' : 'email'}=${id}`} title={`Profile for ${id}`} target="_blank" rel="noreferrer">
+          <a
+            href={`/profile?${id.startsWith('~') ? 'id' : 'email'}=${id}`}
+            title={`Profile for ${id}`}
+            target="_blank"
+            rel="noreferrer"
+          >
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
             {content.name.first} {content.name.middle} {content.name.last}
           </a>
+          {' '}
+          <span>({content.email})</span>
         </h3>
 
         <p>{content.title}</p>
@@ -327,7 +405,8 @@ export default function ProfileEntity(props) {
         <React.Fragment key={index}>
           {renderEditEdgeWidget({
             edge: editEdge,
-            invitation: editInvitations.find(p => p.id === editEdge.invitation) ?? traverseInvitation,
+            invitation:
+              editInvitations.find((p) => p.id === editEdge.invitation) ?? traverseInvitation,
           })}
         </React.Fragment>
       ))}
@@ -354,11 +433,12 @@ export default function ProfileEntity(props) {
                   {props.traverseLabel} ({props.profile.traverseEdgesCount}) &raquo;
                 </a>
               ) : (
-                <>
-                  <span>{`${props.traverseLabel}:`}</span>
-                  {' '}
-                  <span>{props.profile.traverseEdgesCount}</span>
-                </>
+                props.showCounter && (
+                  <>
+                    <span>{`${props.traverseLabel}:`}</span>{' '}
+                    <span>{props.profile.traverseEdgesCount}</span>
+                  </>
+                )
               )}
             </li>
           </ul>

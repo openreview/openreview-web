@@ -7,10 +7,9 @@ import EditorSection from '../EditorSection'
 import LoadingSpinner from '../LoadingSpinner'
 import SpinnerButton from '../SpinnerButton'
 import api from '../../lib/api-client'
-import { getGroupVersion } from '../../lib/utils'
 
 const CodeEditor = dynamic(() => import('../CodeEditor'), {
-  loading: () => <LoadingSpinner inline/>,
+  loading: () => <LoadingSpinner inline />,
 })
 
 const GroupUICode = ({ group, fieldName, accessToken, reloadGroup }) => {
@@ -19,16 +18,13 @@ const GroupUICode = ({ group, fieldName, accessToken, reloadGroup }) => {
   const [modifiedWebCode, setModifiedWebCode] = useState(group[fieldName] ?? '')
 
   const handleUpdateCodeClick = async () => {
+    setIsSaving(true)
+    const groupToPost = {
+      ...group,
+      [fieldName]: modifiedWebCode.trim() || null,
+    }
     try {
-      setIsSaving(true)
-      const groupToPost = {
-        ...group,
-        [fieldName]: modifiedWebCode.trim() ? modifiedWebCode.trim() : null,
-      }
-      await api.post('/groups', groupToPost, {
-        accessToken,
-        version: getGroupVersion(group.id),
-      })
+      await api.post('/groups', groupToPost, { accessToken })
       setShowCodeEditor(false)
       promptMessage(`UI code for ${group.id} has been updated`, { scrollToTop: false })
       reloadGroup()
@@ -46,11 +42,7 @@ const GroupUICode = ({ group, fieldName, accessToken, reloadGroup }) => {
   return (
     <EditorSection title={`${upperFirst(fieldName)} Code`}>
       {showCodeEditor && (
-        <CodeEditor
-          code={group[fieldName]}
-          onChange={setModifiedWebCode}
-          scrollIntoView
-        />
+        <CodeEditor code={group[fieldName]} onChange={setModifiedWebCode} scrollIntoView />
       )}
 
       {showCodeEditor ? (
@@ -63,13 +55,21 @@ const GroupUICode = ({ group, fieldName, accessToken, reloadGroup }) => {
           >
             {isSaving ? 'Saving' : 'Update Code'}
           </SpinnerButton>
-          <button type="button" className="btn btn-default ml-1" onClick={() => setShowCodeEditor(false)}>
+          <button
+            type="button"
+            className="btn btn-default ml-1"
+            onClick={() => setShowCodeEditor(false)}
+          >
             Cancel
           </button>
         </div>
       ) : (
         <div>
-          <button type="button" className="btn btn-sm btn-primary" onClick={() => setShowCodeEditor(true)}>
+          <button
+            type="button"
+            className="btn btn-sm btn-primary"
+            onClick={() => setShowCodeEditor(true)}
+          >
             Show Code Editor
           </button>
         </div>

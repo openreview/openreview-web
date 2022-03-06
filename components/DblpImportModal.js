@@ -1,34 +1,34 @@
 /* globals $: false */
 
-import {
-  useState, useRef, useEffect, useContext,
-} from 'react'
+import { useState, useRef, useEffect, useContext } from 'react'
 import LoadingSpinner from './LoadingSpinner'
 import DblpPublicationTable from './DblpPublicationTable'
 import {
-  getDblpPublicationsFromXmlUrl, getAllPapersByGroupId, postOrUpdatePaper, getAllPapersImportedByOtherProfiles,
+  getDblpPublicationsFromXmlUrl,
+  getAllPapersByGroupId,
+  postOrUpdatePaper,
+  getAllPapersImportedByOtherProfiles,
 } from '../lib/profiles'
 import UserContext from './UserContext'
-import { deburrString, inflect } from '../lib/utils'
+import { deburrString, getNameString, inflect } from '../lib/utils'
 
 const ErrorMessage = ({ message, dblpNames, profileNames }) => {
   if (!dblpNames?.length) return <p>{message}</p>
   return (
     <>
       <p>
-        Your OpenReview profile must contain the
-        {' '}
-        <strong>EXACT</strong>
-        {' '}
-        name used in your DBLP papers.
+        Your OpenReview profile must contain the <strong>EXACT</strong> name used in your DBLP
+        papers.
       </p>
       {dblpNames.length >= 0 && (
         <>
           <p>Should any of the following names be added to your profile?</p>
           <ul>
-            {
-              dblpNames.map(name => <li key={name}><strong>{name}</strong></li>)
-            }
+            {dblpNames.map((name) => (
+              <li key={name}>
+                <strong>{name}</strong>
+              </li>
+            ))}
           </ul>
         </>
       )}
@@ -36,9 +36,9 @@ const ErrorMessage = ({ message, dblpNames, profileNames }) => {
         <>
           <p>Your current names are listed below:</p>
           <ul>
-            {
-              profileNames.map(name => <li key={name}>{name}</li>)
-            }
+            {profileNames.map((name) => (
+              <li key={name}>{getNameString(name)}</li>
+            ))}
           </ul>
         </>
       )}
@@ -46,9 +46,7 @@ const ErrorMessage = ({ message, dblpNames, profileNames }) => {
   )
 }
 
-export default function DblpImportModal({
-  profileId, profileNames, email, updateDBLPUrl,
-}) {
+export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl }) {
   const [dblpUrl, setDblpUrl] = useState('')
   const [dblpPersistentUrl, setDblpPersistentUrl] = useState('')
   const [message, setMessage] = useState('')
@@ -68,17 +66,24 @@ export default function DblpImportModal({
   const getExistingFromDblpPubs = (allDblpPubs) => {
     const existingPubsInAllDblpPubs = allDblpPubs.filter(
       // eslint-disable-next-line max-len
-      dblpPub => publicationsInOpenReview.current.find(orPub => orPub.title === dblpPub.formattedTitle && orPub.venue === dblpPub.venue),
+      (dblpPub) =>
+        publicationsInOpenReview.current.find(
+          (orPub) => orPub.title === dblpPub.formattedTitle && orPub.venue === dblpPub.venue
+        )
     )
     const associatedWithOtherProfilesPubsInAllDblpPubs = allDblpPubs.filter(
       // eslint-disable-next-line max-len
-      dblpPub => publicationsImportedByOtherProfiles.current.find(orPub => orPub.title === dblpPub.formattedTitle && orPub.venue === dblpPub.venue),
+      (dblpPub) =>
+        publicationsImportedByOtherProfiles.current.find(
+          (orPub) => orPub.title === dblpPub.formattedTitle && orPub.venue === dblpPub.venue
+        )
     )
     return {
       numExisting: existingPubsInAllDblpPubs.length,
       numAssociatedWithOtherProfile: associatedWithOtherProfilesPubsInAllDblpPubs.length,
-      noPubsToImport: allDblpPubs.length === (
-        existingPubsInAllDblpPubs.length + associatedWithOtherProfilesPubsInAllDblpPubs.length),
+      noPubsToImport:
+        allDblpPubs.length ===
+        existingPubsInAllDblpPubs.length + associatedWithOtherProfilesPubsInAllDblpPubs.length,
     }
   }
 
@@ -90,12 +95,17 @@ export default function DblpImportModal({
     if (isPersistentUrl) setDblpUrl(dblpPersistentUrl)
 
     try {
-      const { notes: allDblpPublications, possibleNames } = await getDblpPublicationsFromXmlUrl(`${url.trim()}.xml`, profileId)
-      if (!allDblpPublications.some(
-        pub => profileNames.some(
-          name => deburrString(pub.note.content.dblp, true).includes(deburrString(name, true)),
-        ),
-      )) {
+      const { notes: allDblpPublications, possibleNames } =
+        await getDblpPublicationsFromXmlUrl(`${url.trim()}.xml`, profileId)
+      if (
+        !allDblpPublications.some((pub) =>
+          profileNames.some((name) =>
+            deburrString(pub.note.content.dblp, true).includes(
+              deburrString(getNameString(name), true)
+            )
+          )
+        )
+      ) {
         dblpNames.current = possibleNames
         setMessage('notMatchError')
         setShowPersistentUrlInput(false)
@@ -107,26 +117,36 @@ export default function DblpImportModal({
 
       // contains id (for link) and title (for filtering) of existing publications in openreivew
       publicationsInOpenReview.current = await getAllPapersByGroupId(profileId, accessToken)
-      const result = await getAllPapersImportedByOtherProfiles(allDblpPublications.map(p => ({
-        authorIndex: p.authorIndex,
-        authorCount: p.authorCount,
-        title: p.formattedTitle,
-        venue: p.venue,
-      })), profileId, accessToken)
-      publicationsImportedByOtherProfiles.current = result.filter(p => p)
-      const {
-        numExisting,
-        numAssociatedWithOtherProfile,
-        noPubsToImport,
-      } = getExistingFromDblpPubs(allDblpPublications)
+      const result = await getAllPapersImportedByOtherProfiles(
+        allDblpPublications.map((p) => ({
+          authorIndex: p.authorIndex,
+          authorCount: p.authorCount,
+          title: p.formattedTitle,
+          venue: p.venue,
+        })),
+        profileNames,
+        accessToken
+      )
+      publicationsImportedByOtherProfiles.current = result.filter((p) => p)
+      const { numExisting, numAssociatedWithOtherProfile, noPubsToImport } =
+        getExistingFromDblpPubs(allDblpPublications)
       if (noPubsToImport) {
         setMessage(`All ${allDblpPublications.length} of the publications fetched from DBLP already
             exist in OpenReview.`)
       } else {
-        const newPubCount = allDblpPublications.length - numExisting - numAssociatedWithOtherProfile
-        setMessage(` We found ${allDblpPublications.length} publications on your DBLP home page,
+        const newPubCount =
+          allDblpPublications.length - numExisting - numAssociatedWithOtherProfile
+        setMessage(` We found ${
+          allDblpPublications.length
+        } publications on your DBLP home page,
           ${numExisting} of which already exist in OpenReview,
-          ${numAssociatedWithOtherProfile ? `${numAssociatedWithOtherProfile} of which ${numAssociatedWithOtherProfile === 1 ? 'is' : 'are'} associated with other profiles,` : ''}
+          ${
+            numAssociatedWithOtherProfile
+              ? `${numAssociatedWithOtherProfile} of which ${
+                  numAssociatedWithOtherProfile === 1 ? 'is' : 'are'
+                } associated with other profiles,`
+              : ''
+          }
           ${newPubCount} of which ${newPubCount === 1 ? 'is' : 'are'} new.
           Please select the new publications of which you are actually an author. Then click "Add to Your Profile" to import them.
           Then don't forget to "Save Profile Changes" at the bottom of the page.`)
@@ -149,9 +169,11 @@ export default function DblpImportModal({
     setIsSavingPublications(true)
 
     try {
-      await Promise.all(selectedPublications.map(index => postOrUpdatePaper(
-        publications[index], profileId, profileNames, accessToken,
-      )))
+      await Promise.all(
+        selectedPublications.map((index) =>
+          postOrUpdatePaper(publications[index], profileId, profileNames, accessToken)
+        )
+      )
 
       publicationsInOpenReview.current = await getAllPapersByGroupId(profileId)
       const { noPubsToImport: allExistInOpenReview } = getExistingFromDblpPubs(publications)
@@ -175,7 +197,9 @@ export default function DblpImportModal({
         }, 2000)
       }
     } catch (error) {
-      setMessage('An error occurred while importing your publications. Please try again later.')
+      setMessage(
+        'An error occurred while importing your publications. Please try again later.'
+      )
     }
 
     $(modalEl.current).find('.modal-body')[0].scrollTop = 0
@@ -216,9 +240,7 @@ export default function DblpImportModal({
                 <span aria-hidden="true">{'\u00D7'}</span>
               </button>
             )}
-            <h3 className="modal-title">
-              Import DBLP Publications
-            </h3>
+            <h3 className="modal-title">Import DBLP Publications</h3>
           </div>
 
           <div className={`modal-body ${isSavingPublications ? 'disable-scroll' : ''}`}>
@@ -238,9 +260,15 @@ export default function DblpImportModal({
                     className="form-control"
                     value={dblpPersistentUrl}
                     placeholder="DBLP.org Persistent URL"
-                    onChange={e => setDblpPersistentUrl(e.target.value.trim().endsWith('.html') ? e.target.value.trim().slice(0, -5) : e.target.value.trim())}
+                    onChange={(e) =>
+                      setDblpPersistentUrl(
+                        e.target.value.trim().endsWith('.html')
+                          ? e.target.value.trim().slice(0, -5)
+                          : e.target.value.trim()
+                      )
+                    }
                     maxLength={100}
-                    onKeyPress={e => handlePersistentUrlInputKeyPress(e)}
+                    onKeyPress={(e) => handlePersistentUrlInputKeyPress(e)}
                   />
                   <span className="input-group-btn">
                     <button
@@ -254,19 +282,20 @@ export default function DblpImportModal({
                   </span>
                 </div>
                 <div className="body-message">
-                  Retrieving papers from DBLP requires a &quot;Persistent DBLP URL.&quot; Unfortunately, DBLP does
-                  not provide this URL by default. You must obtain the persistent URL for your home page from DBLP
-                  by following the steps below:
+                  Retrieving papers from DBLP requires a &quot;Persistent DBLP URL.&quot;
+                  Unfortunately, DBLP does not provide this URL by default. You must obtain the
+                  persistent URL for your home page from DBLP by following the steps below:
                   <ol>
                     <li>
-                      Visit your DBLP home page:
-                      {' '}
-                      <a href={dblpUrl} target="_blank" rel="noreferrer">{dblpUrl}</a>
+                      Visit your DBLP home page:{' '}
+                      <a href={dblpUrl} target="_blank" rel="noreferrer">
+                        {dblpUrl}
+                      </a>
                     </li>
                     <li>
                       Hover over the share icon (
-                      <img src="/images/share_alt.svg" alt="share" />
-                      ) to the right of your name in the page heading
+                      <img src="/images/share_alt.svg" alt="share" />) to the right of your
+                      name in the page heading
                     </li>
                     <li>Copy the URL labeled &quot;persistent URL&quot; in the hover menu</li>
                   </ol>
@@ -275,14 +304,14 @@ export default function DblpImportModal({
               </form>
             )}
 
-            {isFetchingPublications && (
-              <LoadingSpinner inline />
-            )}
+            {isFetchingPublications && <LoadingSpinner inline />}
 
             <DblpPublicationTable
               dblpPublications={publications}
               orPublications={publicationsInOpenReview.current}
-              orPublicationsImportedByOtherProfile={publicationsImportedByOtherProfiles.current}
+              orPublicationsImportedByOtherProfile={
+                publicationsImportedByOtherProfiles.current
+              }
               selectedPublications={selectedPublications}
               setSelectedPublications={setSelectedPublications}
             />
@@ -298,15 +327,26 @@ export default function DblpImportModal({
             <div className="pull-left selected-count">
               {selectedPublications.length !== 0 && (
                 <strong>
-                  {inflect(selectedPublications.length, 'publication', 'publications', true)}
-                  {' '}
+                  {inflect(selectedPublications.length, 'publication', 'publications', true)}{' '}
                   selected
                 </strong>
               )}
             </div>
 
-            <button type="button" className="btn btn-default" data-dismiss="modal" disabled={isSavingPublications}>Cancel</button>
-            <button type="button" className="btn btn-primary" onClick={importSelectedPublications} disabled={!selectedPublications.length || isSavingPublications}>
+            <button
+              type="button"
+              className="btn btn-default"
+              data-dismiss="modal"
+              disabled={isSavingPublications}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={importSelectedPublications}
+              disabled={!selectedPublications.length || isSavingPublications}
+            >
               Add to Your Profile
               {isSavingPublications && (
                 <div className="spinner-small">

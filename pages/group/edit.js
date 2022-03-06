@@ -6,27 +6,27 @@ import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import GroupEditor from '../../components/group/GroupEditor'
-import useLoginRedirect from '../../hooks/useLoginRedirect'
-import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { getGroupVersion, prettyId } from '../../lib/utils'
+import { prettyId } from '../../lib/utils'
 import { isSuperUser } from '../../lib/auth'
+import useUser from '../../hooks/useUser'
 
 export default function GroupEdit({ appContext }) {
-  const { accessToken, userLoading, user } = useLoginRedirect()
+  const { accessToken, userLoading, user } = useUser()
   const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
 
   const router = useRouter()
-  const query = useQuery()
   const { setBannerHidden, clientJsLoading } = appContext
 
   const loadGroup = async (id) => {
     try {
-      const { groups } = await api.get('/groups', { id }, { accessToken, version: getGroupVersion(id) })
+      const { groups } = await api.get('/groups', { id }, { accessToken })
       if (groups?.length > 0) {
         if (groups[0].details?.writable) {
           setGroup(groups[0])
+        } else if (!accessToken) {
+          router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
         } else {
           // User is a reader, not a writer of the group, so redirect to info mode
           router.replace(`/group/info?id=${id}`)
@@ -39,7 +39,10 @@ export default function GroupEdit({ appContext }) {
         if (!accessToken) {
           router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
         } else {
-          setError({ statusCode: 403, message: 'You don\'t have permission to read this group' })
+          setError({
+            statusCode: 403,
+            message: "You don't have permission to read this group",
+          })
         }
         return
       }
@@ -48,22 +51,26 @@ export default function GroupEdit({ appContext }) {
   }
 
   useEffect(() => {
-    if (userLoading || !query) return
+    if (userLoading || !router.isReady) return
 
     setBannerHidden(true)
 
-    if (!query.id) {
+    if (!router.query.id) {
       setError({ statusCode: 400, message: 'Missing required parameter id' })
       return
     }
 
-    loadGroup(query.id)
-  }, [userLoading, query])
+    loadGroup(router.query.id)
+  }, [userLoading, router.isReady, router.query])
 
   useEffect(() => {
     if (!group || clientJsLoading) return
 
-    const editModeBannerDelay = document.querySelector('#flash-message-container.alert-success') ? 2500 : 0
+    const editModeBannerDelay = document.querySelector(
+      '#flash-message-container.alert-success'
+    )
+      ? 2500
+      : 0
     setTimeout(() => Webfield.editModeBanner(group.id, 'edit'), editModeBannerDelay)
 
     // eslint-disable-next-line consistent-return
@@ -80,16 +87,16 @@ export default function GroupEdit({ appContext }) {
   return (
     <>
       <Head>
-        <title key="title">{`Edit ${group ? prettyId(group.id) : 'Group'} | OpenReview`}</title>
+        <title key="title">{`Edit ${
+          group ? prettyId(group.id) : 'Group'
+        } | OpenReview`}</title>
       </Head>
 
       <div id="header">
-        <h1>{prettyId(query?.id)}</h1>
+        <h1>{prettyId(router.query.id)}</h1>
       </div>
 
-      {(clientJsLoading || !group) && (
-        <LoadingSpinner />
-      )}
+      {(clientJsLoading || !group) && <LoadingSpinner />}
 
       <GroupEditor
         group={group}

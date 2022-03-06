@@ -13,7 +13,11 @@ function DefaultListItem({ item }) {
 }
 
 export default function PaginatedList({
-  loadItems, ListItem, emptyMessage, itemsPerPage = 15, className,
+  loadItems,
+  ListItem,
+  emptyMessage,
+  itemsPerPage = 15,
+  className,
 }) {
   const [listItems, setListItems] = useState(null)
   const [totalCount, setTotalCount] = useState(null)
@@ -23,9 +27,17 @@ export default function PaginatedList({
   const itemComponent = typeof ListItem === 'function' ? ListItem : DefaultListItem
 
   useEffect(() => {
-    const fetchItems = async (limit, offset) => {
+    // Reset page when loading function changes
+    setPage(1)
+    setListItems(null)
+  }, [loadItems])
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      const offset = (page - 1) * itemsPerPage
+
       try {
-        const { items, count } = await loadItems(limit, offset)
+        const { items, count } = await loadItems(itemsPerPage, offset)
         setListItems(items)
         setTotalCount(count)
       } catch (apiError) {
@@ -34,15 +46,9 @@ export default function PaginatedList({
     }
 
     if (typeof loadItems === 'function') {
-      const offset = (page - 1) * itemsPerPage
-      fetchItems(itemsPerPage, offset)
+      fetchItems()
     }
   }, [loadItems, page, itemsPerPage])
-
-  useEffect(() => {
-    // Reset page when loading function changes
-    setPage(1)
-  }, [loadItems])
 
   if (!listItems) return <LoadingSpinner inline />
 

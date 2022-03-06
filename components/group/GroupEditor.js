@@ -5,9 +5,7 @@ import GroupChildGroups from './GroupChildGroups'
 import GroupRelatedInvitations from './GroupRelatedInvitations'
 import GroupUICode from './GroupUICode'
 
-const GroupEditor = ({
-  group, isSuperUser, accessToken, reloadGroup,
-}) => {
+const GroupEditor = ({ group, isSuperUser, accessToken, reloadGroup }) => {
   if (!group) return null
 
   return (
@@ -18,22 +16,10 @@ const GroupEditor = ({
         accessToken={accessToken}
         reloadGroup={reloadGroup}
       />
-      <GroupMembers
-        group={group}
-        accessToken={accessToken}
-      />
-      <GroupSignedNotes
-        groupId={group.id}
-        accessToken={accessToken}
-      />
-      <GroupChildGroups
-        groupId={group.id}
-        accessToken={accessToken}
-      />
-      <GroupRelatedInvitations
-        groupId={group.id}
-        accessToken={accessToken}
-      />
+      <GroupMembers group={group} accessToken={accessToken} />
+      <GroupSignedNotes groupId={group.id} accessToken={accessToken} />
+      <GroupChildGroups groupId={group.id} accessToken={accessToken} />
+      <GroupRelatedInvitations groupId={group.id} accessToken={accessToken} />
       <GroupUICode
         group={group}
         fieldName="web"

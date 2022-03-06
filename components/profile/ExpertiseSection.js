@@ -2,6 +2,7 @@ import { useEffect, useReducer } from 'react'
 import { nanoid } from 'nanoid'
 import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
+import { getStartEndYear } from '../../lib/utils'
 
 const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
   // #region action type constants
@@ -20,7 +21,7 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
           const recordCopy = { ...p }
           if (p.key === action.data.key) {
             recordCopy.keyWordsValue = action.data.value
-            recordCopy.keywords = action.data.value.split(',').map(q => q.trim())
+            recordCopy.keywords = action.data.value.split(',').map((q) => q.trim())
           }
           return recordCopy
         })
@@ -45,20 +46,27 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
           return recordCopy
         })
       case addExpertiseType:
-        return [...state, {
-          keywords: [],
-          keyWordsValue: '',
-          start: '',
-          end: '',
-          key: nanoid(),
-        }]
+        return [
+          ...state,
+          {
+            keywords: [],
+            keyWordsValue: '',
+            start: '',
+            end: '',
+            key: nanoid(),
+          },
+        ]
       case removeExpertiseType:
-        return state.length > 1 ? state.filter(p => p.key !== action.data.key) : [{
-          keywords: [],
-          start: '',
-          end: '',
-          key: nanoid(),
-        }]
+        return state.length > 1
+          ? state.filter((p) => p.key !== action.data.key)
+          : [
+              {
+                keywords: [],
+                start: '',
+                end: '',
+                key: nanoid(),
+              },
+            ]
       default:
         return state
     }
@@ -67,20 +75,20 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
   const [expertises, setExpertises] = useReducer(
     expertiseReducer,
     profileExpertises?.length > 0
-      ? profileExpertises?.map(p => ({
-        ...p,
-        ...(p.start && { start: Number.isNaN(Number(p.start)) ? null : Number(p.start) }),
-        ...(p.end && { end: Number.isNaN(Number(p.end)) ? null : Number(p.end) }),
-        key: nanoid(),
-        keyWordsValue: p.keywords.join(','),
-      }))
+      ? profileExpertises?.map((p) => ({
+          ...p,
+          start: getStartEndYear(p.start),
+          end: getStartEndYear(p.end),
+          key: nanoid(),
+          keyWordsValue: p.keywords.join(','),
+        }))
       : [...Array(3).keys()].map(() => ({
-        keywords: [],
-        keyWordsValue: '', // the value for input
-        start: '',
-        end: '',
-        key: nanoid(),
-      })),
+          keywords: [],
+          keyWordsValue: '', // the value for input
+          start: '',
+          end: '',
+          key: nanoid(),
+        }))
   )
 
   useEffect(() => {
@@ -96,43 +104,78 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
           <div className="small-heading col-md-1">End</div>
         </div>
       )}
-      {expertises.map(p => (
+      {expertises.map((p) => (
         <div className="row" key={p.key}>
           <div className="col-md-6 expertise__value">
-            {isMobile && <div className="small-heading col-md-6">Research areas of interest</div>}
+            {isMobile && (
+              <div className="small-heading col-md-6">Research areas of interest</div>
+            )}
             <input
-              className={`form-control ${profileExpertises?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+              className={`form-control ${
+                profileExpertises?.find((q) => q.key === p.key)?.valid === false
+                  ? 'invalid-value'
+                  : ''
+              }`}
               value={p.keyWordsValue}
-              onChange={e => setExpertises({ type: expertiseType, data: { value: e.target.value, key: p.key } })}
+              onChange={(e) =>
+                setExpertises({
+                  type: expertiseType,
+                  data: { value: e.target.value, key: p.key },
+                })
+              }
             />
           </div>
           <div className="col-md-1 expertise__value">
             {isMobile && <div className="small-heading col-md-1">Start</div>}
             <input
-              className={`form-control ${profileExpertises?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+              className={`form-control ${
+                profileExpertises?.find((q) => q.key === p.key)?.valid === false
+                  ? 'invalid-value'
+                  : ''
+              }`}
               placeholder="year"
               value={p.start ?? ''}
-              onChange={e => setExpertises({ type: startType, data: { value: e.target.value, key: p.key } })}
+              onChange={(e) =>
+                setExpertises({ type: startType, data: { value: e.target.value, key: p.key } })
+              }
             />
           </div>
           <div className="col-md-1 expertise__value">
             {isMobile && <div className="small-heading col-md-1">End</div>}
             <input
-              className={`form-control ${profileExpertises?.find(q => q.key === p.key)?.valid === false ? 'invalid-value' : ''}`}
+              className={`form-control ${
+                profileExpertises?.find((q) => q.key === p.key)?.valid === false
+                  ? 'invalid-value'
+                  : ''
+              }`}
               placeholder="year"
               value={p.end ?? ''}
-              onChange={e => setExpertises({ type: endType, data: { value: e.target.value, key: p.key } })}
+              onChange={(e) =>
+                setExpertises({ type: endType, data: { value: e.target.value, key: p.key } })
+              }
             />
           </div>
           <div className="col-md-1 relation__value">
-            <div role="button" aria-label="remove expertise" tabIndex={0} onClick={() => setExpertises({ type: removeExpertiseType, data: { key: p.key } })}>
+            <div
+              role="button"
+              aria-label="remove expertise"
+              tabIndex={0}
+              onClick={() =>
+                setExpertises({ type: removeExpertiseType, data: { key: p.key } })
+              }
+            >
               <Icon name="minus-sign" tooltip="remove expertise" />
             </div>
           </div>
         </div>
       ))}
       <div className="row">
-        <div role="button" aria-label="add another expertise" tabIndex={0} onClick={() => setExpertises({ type: addExpertiseType })}>
+        <div
+          role="button"
+          aria-label="add another expertise"
+          tabIndex={0}
+          onClick={() => setExpertises({ type: addExpertiseType })}
+        >
           <Icon name="plus-sign" tooltip="add another expertise" />
         </div>
       </div>
