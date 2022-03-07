@@ -66,16 +66,16 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
     var noteRecsP = $.when(notesP, invitationsP).then(function (notes, invitations) {
       var noteRecPs = _.map(notes, function (note) {
-        var deleteInvitation = invitations.filter(p => p.edit?.note?.id?.value === note.id || note.invitations.includes(p.edit?.note?.id?.["value-invitation"]))
+        var deleteInvitation = invitations.filter(p => p.edit?.note?.id?.const === note.id || note.invitations.includes(p.edit?.note?.id?.withInvitation))
           .find(p => p.edit?.note?.ddate)
         var isPureDeleteInvitation = !deleteInvitation?.edit?.note?.content // pure delete invitation should not be edit invitation
-        var editInvitations = invitations.filter(p => p.edit?.note?.id?.value === note.id || note.invitations.includes(p.edit?.note?.id?.["value-invitation"]))
+        var editInvitations = invitations.filter(p => p.edit?.note?.id?.const === note.id || note.invitations.includes(p.edit?.note?.id?.withInvitation))
         if (isPureDeleteInvitation) editInvitations = editInvitations.filter(p => p.id !== deleteInvitation?.id)
 
         var replyInvitations = invitations
           .filter(p => {
             const replyTo = p.edit?.note?.replyto
-            return replyTo && (replyTo.value === note.id || replyTo['with-forum'] === forumId || (replyTo['value-invitation'] && note.invitations.includes(replyTo['value-invitation'])))
+            return replyTo && (replyTo.const === note.id || replyTo.withForum === forumId || (replyTo.withInvitation && note.invitations.includes(replyTo.withInvitation)))
           })
           .filter(q => !q.maxReplies || q.details?.repliedNotes?.length < q.maxReplies) // maxNoteReplies
           // .filter(q => !q.maxReplies || q.details?.repliedEdits?.length < q.maxReplies) // maxEditReplies
