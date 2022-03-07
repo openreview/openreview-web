@@ -348,7 +348,7 @@ which will be displayed as:
   }, {
     q: 'How can I personalize the reminder emails being sent to users? What email template tags are available?',
     id: 'email-template-tags',
-    a: `Email messages can be sent to users of your venue programmatically using the API or from certain pages like the Program Chair console. They can be personalized to include the recipients name or other information using email template tags.
+    a: `Email messages can be sent to users of your venue programmatically using the API or from certain pages like the Program Chair console. They can be personalized to include the recipient's name or other information using email template tags.
 
 There are two types of email template tags: tags that are handled on the backend by the OpenReview API, and tags that are replaced on the frontend (in the browser). Backend tags can be used anywhere, including when sending messages directly using the API or via the openreview-py library, while frontend tags can only be used on specific pages, such as the Area Chair console and the Program Chair console.
 A list of all available tags is below:
