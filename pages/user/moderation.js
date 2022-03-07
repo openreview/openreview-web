@@ -342,6 +342,11 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser }) => {
       rejectionText: `A valid Homepage and institutional email matching your latest career/education history is required.\n\n${instructionText}`,
     },
     {
+      value: 'invalidName',
+      label: 'Invalid Name',
+      rejectionText: `A valid name is required, and must match the one listed on your provided personal homepages.\n\n${instructionText}`,
+    },
+    {
       value: 'invalidEmail',
       label: 'Missing Institution Email',
       rejectionText: `An Institution email is required.\n\n${instructionText}`,
