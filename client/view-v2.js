@@ -313,7 +313,6 @@ module.exports = (function() {
       let authors;
       let authorids;
       if (params?.note) {
-        console.log(params);
         authors = params.note.content.authors?.value;
         authorids = params.note.content.authorids?.value;
       } else if (params && params.user) {
