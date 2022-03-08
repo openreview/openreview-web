@@ -313,8 +313,8 @@ module.exports = (function() {
       let authors;
       let authorids;
       if (params?.note) {
-        authors = params.note.content.authors?.const;
-        authorids = params.note.content.authorids?.const;
+        authors = params.note.content.authors?.value;
+        authorids = params.note.content.authorids?.value;
       } else if (params && params.user) {
         const userProfile = params.user.profile
         authors = [userProfile.first + ' ' + userProfile.middle + ' ' + userProfile.last];
@@ -1304,64 +1304,6 @@ module.exports = (function() {
               dropdownListOptions.push({
                 id: group.id,
                 description: prettyGroupId + ((!singleOption && !group.id.startsWith('~') && group.members && group.members.length == 1) ? (' (' + view.prettyId(group.members[0]) + ')') : '')
-              });
-              uniquePrettyIds[prettyGroupId] = group.id;
-            }
-          });
-          $signatures = view.mkDropdownList(
-            headingText, fieldDescription.description, currentVal, dropdownListOptions, true
-          );
-          return $signatures;
-        }, function(jqXhr, textStatus) {
-          return Webfield.getErrorFromJqXhr(jqXhr, textStatus);
-        });
-      }
-
-    } else {
-      $signatures = mkComposerInput(headingText, { value: fieldDescription }, fieldValue);
-      return $.Deferred().resolve($signatures);
-    }
-
-  }
-
-  function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures') {
-
-    var $signatures;
-    if (_.has(fieldDescription, 'regex')) {
-      var currentVal = fieldValue && fieldValue[0];
-
-      if (fieldDescription['regex'] === '~.*') {
-        if (user && user.profile) {
-          var prefId = user.profile.preferredId || user.profile.id;
-          $signatures = view.mkDropdownList(
-            headingText, fieldDescription.description, currentVal, [prefId], true
-          );
-          return $.Deferred().resolve($signatures);
-        } else {
-          return $.Deferred().reject('no_results');
-        }
-
-      } else {
-        if (!user) {
-          return $.Deferred().reject('no_results');
-        }
-
-        return Webfield.get('/groups', {
-          regex: fieldDescription['regex'], signatory: user.id
-        }, { handleErrors: false }).then(function(result) {
-          if (_.isEmpty(result.groups)) {
-            return $.Deferred().reject('no_results');
-          }
-
-          var uniquePrettyIds = {};
-          var dropdownListOptions = [];
-          var singleOption = result.groups.length == 1;
-          _.forEach(result.groups, function(group) {
-            var prettyGroupId = prettyId(group.id);
-            if (!(prettyGroupId in uniquePrettyIds)) {
-              dropdownListOptions.push({
-                id: group.id,
-                description: prettyGroupId + ((!singleOption && !group.id.startsWith('~') && group.members && group.members.length == 1) ? (' (' + prettyId(group.members[0]) + ')') : '')
               });
               uniquePrettyIds[prettyGroupId] = group.id;
             }
