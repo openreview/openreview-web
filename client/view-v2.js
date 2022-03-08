@@ -277,7 +277,7 @@ module.exports = (function() {
         });
         contentInputResult = valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
       } else if (fieldDescription.presentation?.input === 'select' || !(_.has(fieldDescription.presentation, 'input'))) {
-        if (fieldDescription.value.type.endsWith('[]')) {
+        if (Array.isArray(fieldDescription.value.enum) || fieldDescription.value?.type.endsWith('[]')) {
           contentInputResult = view.mkDropdownAdder(
             fieldName, fieldDescription.description, fieldDescription.value.enum,
             fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.optional, alwaysHaveValues: fieldDescription.presentation?.default }
@@ -296,7 +296,7 @@ module.exports = (function() {
         text: fieldValue && JSON.stringify(fieldValue, undefined, 4)
       }), fieldName, fieldDescription);
 
-    } else if (fieldDescription.value.type === 'file') {
+    } else if (fieldDescription.value?.type === 'file') {
       contentInputResult = mkAttachmentSection(fieldName, fieldDescription, fieldValue);
     }
 
@@ -306,8 +306,8 @@ module.exports = (function() {
   const mkComposerInput = (fieldName, fieldDescription, fieldValue, params) => {
     let contentInputResult;
 
-    if (fieldName === 'authorids' && fieldDescription.value.type.endsWith('[]') && (
-      (_.has(fieldDescription.value, 'regex') && view.isTildeIdAllowed(fieldDescription.value['regex'])) ||
+    if (fieldName === 'authorids' && fieldDescription.value?.type.endsWith('[]') && (
+      (_.has(fieldDescription.value, 'regex') && view.isTildeIdAllowed(fieldDescription.value.regex)) ||
       _.has(fieldDescription.value, 'const')
     )) {
       let authors;
@@ -481,8 +481,8 @@ module.exports = (function() {
     }
 
     var contentKeys = Object.keys(note.content ?? {});
-    const contentOrder = note.details?.presentation
-      ? Object.values(note.details?.presentation ?? {}).sort((a, b) => a?.order - b?.order).map(p => p.name)
+    const contentOrder = note.details?.presentation?.length
+      ? [...new Set([...note.details.presentation.map(p => p.name),...contentKeys])]
       : contentKeys
 
     var omittedContentFields = [
@@ -1083,8 +1083,8 @@ module.exports = (function() {
 
     var requiredText = fieldDescription.optional ? null : $('<span>', { text: '*', class: 'required_field' });
 
-    if (_.has(fieldDescription, 'values-regex')) {
-      return Webfield.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
+    if (_.has(fieldDescription, 'regex')) {
+      return Webfield.get('/groups', { regex: fieldDescription.regex }, { handleErrors: false })
         .then(function (result) {
           if (_.isEmpty(result.groups)) {
             promptError('You do not have permission to create a note');
@@ -1106,8 +1106,8 @@ module.exports = (function() {
           var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
           promptError(errorText);
         });
-    } else if (_.has(fieldDescription, 'values-dropdown')) {
-      var values = fieldDescription['values-dropdown'];
+    } else if (_.has(fieldDescription, 'enum')) {
+      var values = fieldDescription.enum;
       var extraGroupsP = $.Deferred().resolve([]);
       var regexIndex = _.findIndex(values, function (g) { return g.indexOf('.*') >= 0; });
       if (regexIndex >= 0) {
@@ -1116,9 +1116,9 @@ module.exports = (function() {
           .then(function (result) {
             if (result.groups && result.groups.length) {
               var groups = result.groups.map(function (g) { return g.id; });
-              fieldDescription['values-dropdown'] = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
+              fieldDescription.enum = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
             } else {
-              fieldDescription['values-dropdown'].splice(regexIndex, 1);
+              fieldDescription.enum.splice(regexIndex, 1);
             }
             return result.groups;
           });
@@ -1130,34 +1130,6 @@ module.exports = (function() {
           return $readers;
         });
 
-    } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
-      var $readers = mkComposerInput('readers', { value: fieldDescription }, []);
-      $readers.find('.small_heading').prepend(requiredText);
-      return $readers;
-    // } else if (_.has(fieldDescription, 'values')) {
-    //   return null;
-    } else if (_.has(fieldDescription, 'values-checkbox')) {
-      var initialValues = fieldDescription['values-checkbox'];
-      var promise = $.Deferred().resolve();
-      var index = _.findIndex(initialValues, function (g) { return g.indexOf('.*') >= 0; });
-      if (index >= 0) {
-        var regexGroup = initialValues[index];
-        promise = Webfield.get('/groups', { regex: regexGroup })
-          .then(function (result) {
-            if (result.groups && result.groups.length) {
-              var groups = result.groups.map(function (g) { return g.id; });
-              fieldDescription['values-checkbox'] = initialValues.slice(0, index).concat(groups, initialValues.slice(index + 1));
-            } else {
-              fieldDescription['values-checkbox'].splice(index, 1);
-            }
-          });
-      }
-      return promise
-        .then(function () {
-          var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldDescription.default, { prettyId: true });
-          $readers.find('.small_heading').prepend(requiredText);
-          return $readers;
-        });
     } else {
       var $readers = mkComposerInput('readers', { value: fieldDescription }, []);
       $readers.find('.small_heading').prepend(requiredText);
@@ -1197,8 +1169,8 @@ module.exports = (function() {
       }
     };
 
-    if (_.has(fieldDescription, 'values-regex')) {
-      return Webfield2.get('/groups', { regex: fieldDescription['values-regex'] }, { handleErrors: false })
+    if (_.has(fieldDescription, 'regex')) {
+      return Webfield2.get('/groups', { regex: fieldDescription.regex }, { handleErrors: false })
       .then(function(result) {
         if (_.isEmpty(result.groups)) {
           done(undefined, 'You do not have permission to create a note');
@@ -1220,8 +1192,8 @@ module.exports = (function() {
         var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
         done(undefined, errorText);
       });
-    } else if (_.has(fieldDescription, 'values-dropdown')) {
-      var values = fieldDescription['values-dropdown'];
+    } else if (_.has(fieldDescription, 'enum')) {
+      var values = fieldDescription.enum;
       var extraGroupsP = [];
       var regexIndex = _.findIndex(values, function(g) { return g.indexOf('.*') >=0; });
       var regex = null;
@@ -1230,17 +1202,17 @@ module.exports = (function() {
         var result = await Webfield.get('/groups', { regex: regex })
         if (result.groups && result.groups.length) {
           var groups = result.groups.map(function(g) { return g.id; });
-          fieldDescription['values-dropdown'] = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
+          fieldDescription.enum = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
         } else {
-          fieldDescription['values-dropdown'].splice(regexIndex, 1);
+          fieldDescription.enum.splice(regexIndex, 1);
         }
       }
 
-      return setParentReaders(replyto, fieldDescription, 'values-dropdown', function (newFieldDescription) {
+      return setParentReaders(replyto, fieldDescription, 'enum', function (newFieldDescription) {
         // Make sure the new parent readers belong to the current invitation available values
-        var invitationReaders = fieldDescription['values-dropdown'];
+        var invitationReaders = fieldDescription.enum;
         var replyValues = [];
-        newFieldDescription['values-dropdown'].forEach(function(valueReader) {
+        newFieldDescription.enum.forEach(function(valueReader) {
           if (invitationReaders.includes(valueReader) || valueReader.match(regex)) {
             replyValues.push(valueReader);
           }
@@ -1250,15 +1222,15 @@ module.exports = (function() {
         var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
         var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_');  });
         if (hasReviewers && !hasAnonReviewers) {
-          fieldDescription['values-dropdown'].forEach(function(value) {
+          fieldDescription.enum.forEach(function(value) {
             if (value.includes('AnonReviewer') || value.includes('Reviewer_')) {
               replyValues.push(value);
             }
           });
         }
 
-        newFieldDescription['values-dropdown'] = replyValues;
-        if (_.difference(newFieldDescription.default, newFieldDescription['values-dropdown']).length !== 0) { //invitation default is not in list of possible values
+        newFieldDescription.enum = replyValues;
+        if (_.difference(newFieldDescription.default, newFieldDescription.enum).length !== 0) { //invitation default is not in list of possible values
           done(undefined, 'Default reader is not in the list of readers');
         }
         var $readers = mkComposerInput('readers', { value: newFieldDescription }, fieldValue);
@@ -1266,13 +1238,7 @@ module.exports = (function() {
         done($readers);
       });
 
-    } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
-      return setParentReaders(replyto, fieldDescription, 'value-dropdown-hierarchy', function(newFieldDescription) {
-        var $readers = mkComposerInput('readers', { value: newFieldDescription }, fieldValue);
-        $readers.find('.small_heading').prepend(requiredText);
-        done($readers);
-      });
-    } else if (_.has(fieldDescription, 'const') && Array.isArray(fieldDescription.const)) {
+    } else if (_.has(fieldDescription, 'const')) {
       return setParentReaders(replyto, fieldDescription, 'const', function(newFieldDescription) {
         if (fieldDescription.const?.[0] === "${{note.replyto}.readers}") {
           fieldDescription.const = newFieldDescription.const;
@@ -1293,48 +1259,69 @@ module.exports = (function() {
           done(undefined, 'Can not create note, readers must match parent note');
         }
       });
-    } else if (_.has(fieldDescription, 'values-checkbox')) {
-      var initialValues = fieldDescription['values-checkbox'];
-      var promise = $.Deferred().resolve();
-      var index = _.findIndex(initialValues, function(g) { return g.indexOf('.*') >=0; });
-      if (index >= 0) {
-        var regexGroup = initialValues[index];
-        var result = await Webfield.get('/groups', { regex: regexGroup });
-        if (result.groups && result.groups.length) {
-          var groups = result.groups.map(function(g) { return g.id; });
-          fieldDescription['values-checkbox'] = initialValues.slice(0, index).concat(groups, initialValues.slice(index + 1));
-        } else {
-          fieldDescription['values-checkbox'].splice(index, 1);
-        }
-      }
-      return setParentReaders(replyto, fieldDescription, 'values-checkbox', function (newFieldDescription) {
-        // when replying to a note with different invitation, parent readers may not be in reply's invitation's readers
-        var replyValues = _.intersection(newFieldDescription['values-checkbox'], fieldDescription['values-checkbox']);
-
-        // Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
-        var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
-        var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_'); });
-        if (hasReviewers && !hasAnonReviewers) {
-          fieldDescription['values-checkbox'].forEach(function(value) {
-            if (value.includes('AnonReviewer') || v.includes('/Reviewer_')) {
-              replyValues.push(value);
-            }
-          });
-        }
-
-        newFieldDescription['values-checkbox'] = replyValues;
-        if (_.difference(newFieldDescription.default, newFieldDescription['values-checkbox']).length !== 0) { //invitation default is not in list of possible values
-          done(undefined, 'Default reader is not in the list of readers');
-        }
-        var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue.length ? fieldValue : newFieldDescription.default, { prettyId: true});
-        $readers.find('.small_heading').prepend(requiredText);
-        done($readers);
-      });
     } else {
       var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue);
       $readers.find('.small_heading').prepend(requiredText);
       done($readers);
     }
+  }
+
+  function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures') {
+
+    var $signatures;
+    if (_.has(fieldDescription, 'regex')) {
+      var currentVal = fieldValue && fieldValue[0];
+
+      if (fieldDescription.regex === '~.*') {
+        if (user && user.profile) {
+          var prefId = user.profile.preferredId || user.profile.id;
+          $signatures = view.mkDropdownList(
+            headingText, fieldDescription.description, currentVal, [prefId], true
+          );
+          return $.Deferred().resolve($signatures);
+        } else {
+          return $.Deferred().reject('no_results');
+        }
+
+      } else {
+        if (!user) {
+          return $.Deferred().reject('no_results');
+        }
+
+        return Webfield.get('/groups', {
+          regex: fieldDescription.regex, signatory: user.id
+        }, { handleErrors: false }).then(function(result) {
+          if (_.isEmpty(result.groups)) {
+            return $.Deferred().reject('no_results');
+          }
+
+          var uniquePrettyIds = {};
+          var dropdownListOptions = [];
+          var singleOption = result.groups.length == 1;
+          _.forEach(result.groups, function(group) {
+            var prettyGroupId = view.prettyId(group.id);
+            if (!(prettyGroupId in uniquePrettyIds)) {
+              dropdownListOptions.push({
+                id: group.id,
+                description: prettyGroupId + ((!singleOption && !group.id.startsWith('~') && group.members && group.members.length == 1) ? (' (' + view.prettyId(group.members[0]) + ')') : '')
+              });
+              uniquePrettyIds[prettyGroupId] = group.id;
+            }
+          });
+          $signatures = view.mkDropdownList(
+            headingText, fieldDescription.description, currentVal, dropdownListOptions, true
+          );
+          return $signatures;
+        }, function(jqXhr, textStatus) {
+          return Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+        });
+      }
+
+    } else {
+      $signatures = mkComposerInput(headingText, { value: fieldDescription }, fieldValue);
+      return $.Deferred().resolve($signatures);
+    }
+
   }
 
   function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures') {
@@ -1717,7 +1704,7 @@ module.exports = (function() {
   constructUpdatedEdit = (edit, invitation, formContent) => {
     const shouldSetValue = (fieldPath)=>{
       const field = _.get(invitation, fieldPath)
-      if (!field || field?.value || field?.values) return false
+      if (!field || field?.const) return false
       return true
     }
 
@@ -1798,7 +1785,7 @@ module.exports = (function() {
       var inputVal = $inputVal.val();
 
       if (k === 'authorids' &&
-        (contentObj.hasOwnProperty('regex') && view.isTildeIdAllowed(contentObj['regex']) || contentObj.hasOwnProperty('const')
+        (contentObj.hasOwnProperty('regex') && view.isTildeIdAllowed(contentObj.regex) || contentObj.hasOwnProperty('const')
       )) {
         ret.authorids = [];
         ret.authors = [];
@@ -1834,7 +1821,7 @@ module.exports = (function() {
           } else {
             //value-checkbox
             inputVal = $contentMap[k].find('.note_content_value input[type="checkbox"]').prop('checked') ?
-                contentObj['enum'][0] :
+                contentObj.enum[0] :
                 '';
           }
         } else if (presentationObj.input === 'select' || !(_.has(presentationObj, 'input'))) {
@@ -1897,7 +1884,6 @@ module.exports = (function() {
 
       return ret;
     }, {});
-
     return [content, files, errors];
   };
 
@@ -1908,7 +1894,7 @@ module.exports = (function() {
       return writers.const;
     }
 
-    if (writers && _.has(writers, 'regex') && writers['regex'] === '~.*') {
+    if (writers && _.has(writers, 'regex') && writers.regex === '~.*') {
       return [user.profile.id];
     }
 
@@ -1920,18 +1906,8 @@ module.exports = (function() {
     var inputValues = view.idsFromListAdder(widget, readers);
 
     var invitationValues = [];
-    if (_.has(readers, 'values-dropdown')) {
-      invitationValues = readers['values-dropdown'].map(function(v) { return _.has(v, 'id') ? v.id : v; });
-    } else if (_.has(readers, 'value-dropdown-hierarchy')) {
-      invitationValues = readers['value-dropdown-hierarchy'];
-    } else if (_.has(readers, 'values-checkbox')) {
-      inputValues = [];
-      widget.find('.note_content_value input[type="checkbox"]').each(function(i) {
-        if ($(this).prop('checked')) {
-          inputValues.push($(this).val());
-        }
-      });
-      invitationValues = readers['values-checkbox'];
+    if (_.has(readers, 'enum')) {
+      invitationValues = readers.enum.map(function(v) { return _.has(v, 'id') ? v.id : v; });
     }
 
     // Add signature if exists in the invitation readers list
