@@ -4,6 +4,7 @@
 import { useEffect, useContext, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import { truncate } from 'lodash'
 import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorAlert from '../../components/ErrorAlert'
@@ -15,7 +16,6 @@ import api from '../../lib/api-client'
 import { buildNoteTitle, prettyId } from '../../lib/utils'
 import { forumLink } from '../../lib/banner-links'
 import Edit from '../../components/Edit/Edit'
-import { truncate } from 'lodash'
 
 const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreEdit }) => {
   const [signature, setSignature] = useState(null)
