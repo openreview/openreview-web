@@ -15,6 +15,7 @@ import api from '../../lib/api-client'
 import { buildNoteTitle, prettyId } from '../../lib/utils'
 import { forumLink } from '../../lib/banner-links'
 import Edit from '../../components/Edit/Edit'
+import { truncate } from 'lodash'
 
 const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreEdit }) => {
   const [signature, setSignature] = useState(null)
@@ -538,11 +539,19 @@ const Revisions = ({ appContext }) => {
   }
 
   const getPageTitle = () => {
-    if (referencesToLoad === 'revisions' || !revisions?.length) return 'Revision History'
-    const latestNoteTitle = revisions
-      .sort((p) => p[0].tcdate)
-      .find((q) => q[0].note?.content?.title)?.[0]?.note?.content?.title?.value
-    return `Revision History${latestNoteTitle ? ` of ${latestNoteTitle}` : ''}`
+    if (!revisions?.length) return 'Revision History'
+    let latestNoteTitle =
+      referencesToLoad === 'revisions'
+        ? revisions.sort((p) => p[0].tcdate).find((q) => q[0]?.content?.title)?.[0]?.content
+            ?.title
+        : revisions.sort((p) => p[0].tcdate).find((q) => q[0].note?.content?.title)?.[0]?.note
+            ?.content?.title?.value
+    latestNoteTitle = truncate(latestNoteTitle, {
+      length: 45,
+      omission: '...',
+      separator: ' ',
+    })
+    return `Revision History${latestNoteTitle ? ` for ${latestNoteTitle}` : ''}`
   }
 
   useEffect(() => {

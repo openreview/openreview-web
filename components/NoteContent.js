@@ -80,6 +80,7 @@ export function NoteContentValue({ content = '', enableMarkdown }) {
 
   useEffect(() => {
     if (enableMarkdown) {
+      console.log('marked', marked)
       setSanitizedHtml(DOMPurify.sanitize(marked(content)))
     }
   }, [])

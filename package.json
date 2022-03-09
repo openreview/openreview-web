@@ -27,6 +27,7 @@
     "@codemirror/lint": "^0.19.5",
     "@codemirror/state": "^0.19.9",
     "@codemirror/view": "^0.19.45",
+    "@formatjs/intl-listformat": "^6.5.2",
     "bootstrap": "^3.4.1",
     "copy-to-clipboard": "^3.3.1",
     "d3": "^7.2.1",

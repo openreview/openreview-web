@@ -1,11 +1,10 @@
-import { forumDate, prettyList } from '../../lib/utils'
+import { buildNoteTitle, forumDate, prettyList } from '../../lib/utils'
 import EditContent from './EditContent'
-import EditTitle from './EditTitle'
 import EditValue from './EditValue'
 
 const Edit = ({ edit, options }) => (
   <div className={`edit ${options.extraClasses ?? ''}`}>
-    <EditTitle edit={edit} />
+    <h4>{buildNoteTitle(edit.invitations[0], edit.signatures)}</h4>
 
     <ul className="edit_meta_info list-inline">
       <li>
