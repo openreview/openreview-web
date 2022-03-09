@@ -1,17 +1,13 @@
 /* globals promptError: false */
 /* eslint-disable react/destructuring-assignment */
 
-import {
-  useState, useEffect, useContext, useRef,
-} from 'react'
+import { useState, useEffect, useContext, useRef } from 'react'
 import _ from 'lodash'
 import Icon from '../Icon'
 import LoadingSpinner from '../LoadingSpinner'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EntityList from './EntityList'
-import {
-  prettyId, prettyInvitationId, pluralizeString,
-} from '../../lib/utils'
+import { prettyId, prettyInvitationId, pluralizeString } from '../../lib/utils'
 import EditEdgeInviteEmail from './EditEdgeInviteEmail'
 import { transformName } from '../../lib/edge-utils'
 import api from '../../lib/api-client'
@@ -32,13 +28,8 @@ export default function Column(props) {
     parentExistingLoad,
     shouldReloadEntities, // something non traverse changed in another column with same parent
   } = props
-  const {
-    traverseInvitation,
-    editInvitations,
-    browseInvitations,
-    hideInvitation,
-    version,
-  } = useContext(EdgeBrowserContext)
+  const { traverseInvitation, editInvitations, browseInvitations, hideInvitation, version } =
+    useContext(EdgeBrowserContext)
   const parent = parentId ? altGlobalEntityMap[parentId] : null
   const otherType = type === 'head' ? 'tail' : 'head'
   const colBodyEl = useRef(null)
@@ -46,10 +37,16 @@ export default function Column(props) {
   const [entityMapChanged, setEntityMapChanged] = useState(false)
   const { accessToken, user } = useUser()
 
-  const sortOptions = [{ key: traverseInvitation.id, value: 'default', text: transformName(prettyInvitationId(traverseInvitation.id)) }]
+  const sortOptions = [
+    {
+      key: traverseInvitation.id,
+      value: 'default',
+      text: transformName(prettyInvitationId(traverseInvitation.id)),
+    },
+  ]
   const editAndBrowserInvitations = [...editInvitations, ...browseInvitations]
   editAndBrowserInvitations.forEach((p) => {
-    if (!sortOptions.map(q => q.key).includes(p.id)) {
+    if (!sortOptions.map((q) => q.key).includes(p.id)) {
       sortOptions.push({
         key: p.id,
         value: p.id,
@@ -70,19 +67,20 @@ export default function Column(props) {
   const [search, setSearch] = useState({ term: '' })
 
   const showLoadMoreButton = numItemsToRender < filteredItems.length
-  const showHideQuotaReachedCheckbox = entityType === 'profile' && editAndBrowserInvitations.some(p => p.id.includes('Custom_Max_Papers'))
+  const showHideQuotaReachedCheckbox =
+    entityType === 'profile' &&
+    editAndBrowserInvitations.some((p) => p.id.includes('Custom_Max_Papers'))
 
   // Helpers
-  const formatEdge = edge => ({
+  const formatEdge = (edge) => ({
     id: edge.id,
     invitation: edge.invitation,
     name: transformName(edge.invitation.split('/').pop().replace(/_/g, ' ')),
     head: edge.head,
     tail: edge.tail,
     label: edge.label,
-    weight: (typeof edge.weight === 'number')
-      ? Math.round(edge.weight * 1000) / 1000
-      : edge.weight,
+    weight:
+      typeof edge.weight === 'number' ? Math.round(edge.weight * 1000) / 1000 : edge.weight,
     writers: edge.writers || [],
     readers: edge.readers || [],
     signatures: edge.signatures || [],
@@ -94,7 +92,8 @@ export default function Column(props) {
 
   const buildNewEditEdge = (editInvitation, entityId, weight = 0) => {
     if (!editInvitation) return null
-    const isInviteInvitation = editInvitation[otherType]?.query?.['value-regex'] === '~.*|.+@.+'
+    const isInviteInvitation =
+      editInvitation[otherType]?.query?.['value-regex'] === '~.*|.+@.+'
 
     return {
       invitation: editInvitation.id,
@@ -134,7 +133,11 @@ export default function Column(props) {
 
   const getColumnTitle = () => {
     if (props.title) {
-      return <p><strong>{props.title}</strong></p>
+      return (
+        <p>
+          <strong>{props.title}</strong>
+        </p>
+      )
     }
 
     // First column
@@ -158,41 +161,69 @@ export default function Column(props) {
         default:
           break
       }
-      const entityInvitationName = entityInvitation ? prettyId(entityInvitation) : pluralizeString(defautEntityName)
+      const entityInvitationName = entityInvitation
+        ? prettyId(entityInvitation)
+        : pluralizeString(defautEntityName)
       // eslint-disable-next-line react/jsx-one-expression-per-line
-      return <p><strong>All {entityInvitationName}</strong></p>
+      return (
+        <p>
+          <strong>All {entityInvitationName}</strong>
+        </p>
+      )
     }
 
     const invitationName = startInvitation ? startInvitation.name : traverseInvitation.name
     const transformedInvitationName = transformName(invitationName, false, true)
-    const invitationNamePlural = invitationName === transformedInvitationName
-      ? pluralizeString(invitationName) // not a special name
-      : transformedInvitationName // special name
+    const invitationNamePlural =
+      invitationName === transformedInvitationName
+        ? pluralizeString(invitationName) // not a special name
+        : transformedInvitationName // special name
 
     // Notes
     if (parent && parent.forum && parent.content) {
       const paperTitle = _.truncate(parent.content.title, {
-        length: 65, omission: '...', separator: ' ',
+        length: 65,
+        omission: '...',
+        separator: ' ',
       })
       const num = parent.number ? ` (#${parent.number})` : ''
       // eslint-disable-next-line react/jsx-one-expression-per-line
-      return <p>{invitationNamePlural} for <strong>{paperTitle}</strong>{num}</p>
+      return (
+        <p>
+          {invitationNamePlural} for <strong>{paperTitle}</strong>
+          {num}
+        </p>
+      )
     }
 
     // Profiles
     if (_.has(parent, 'content.name')) {
       const { name } = parent.content
       // eslint-disable-next-line react/jsx-one-expression-per-line
-      return <p>{invitationNamePlural} for <strong>{name.first} {name.middle} {name.last}</strong></p>
+      return (
+        <p>
+          {invitationNamePlural} for{' '}
+          <strong>
+            {name.first} {name.middle} {name.last}
+          </strong>
+        </p>
+      )
     }
 
     // Default
-    let parentIdToShow = parentId || startInvitation.query.tail
-      || startInvitation.query.head || startInvitation.query.storageKey
-    if (parentIdToShow === user.profile?.id) parentIdToShow = user.profile.preferredId
+    let parentIdToShow =
+      parentId ||
+      startInvitation.query.tail ||
+      startInvitation.query.head ||
+      startInvitation.query.storageKey
+    if (parentIdToShow === user?.profile?.id) parentIdToShow = user?.profile?.preferredId
     // eslint-disable-next-line react/jsx-one-expression-per-line
     if (parentIdToShow) {
-      return <p>{invitationNamePlural} for <strong>{prettyId(parentIdToShow)}</strong></p>
+      return (
+        <p>
+          {invitationNamePlural} for <strong>{prettyId(parentIdToShow)}</strong>
+        </p>
+      )
     }
 
     return <p>Items</p>
@@ -230,111 +261,136 @@ export default function Column(props) {
   }
 
   // Adds either a new browse edge or an edit edge to an item
-  const updateColumnItems = (fieldName, colItems, isHidden = false) => (edge) => {
-    const headOrTailId = edge[type]
-    const edgeFormatted = formatEdge(edge)
-    const existingItem = _.find(colItems, ['id', headOrTailId])
-    const hasConflict = edgeFormatted.name === 'Conflict' && edgeFormatted.weight === -1
+  const updateColumnItems =
+    (fieldName, colItems, isHidden = false) =>
+    (edge) => {
+      const headOrTailId = edge[type]
+      const edgeFormatted = formatEdge(edge)
+      const existingItem = _.find(colItems, ['id', headOrTailId])
+      const hasConflict = edgeFormatted.name === 'Conflict' && edgeFormatted.weight === -1
 
-    if (existingItem) {
-      if (isHidden) {
-        existingItem.metadata.isHidden = true
-        existingItem.browseEdges = []
+      if (existingItem) {
+        if (isHidden) {
+          existingItem.metadata.isHidden = true
+          existingItem.browseEdges = []
+        }
+        if (hasConflict) {
+          existingItem.metadata.hasConflict = true
+        }
+
+        if (_.isArray(existingItem[fieldName])) {
+          existingItem[fieldName].push(edgeFormatted)
+        } else {
+          existingItem[fieldName] = edgeFormatted
+        }
+
+        return
       }
-      if (hasConflict) {
-        existingItem.metadata.hasConflict = true
-      }
 
-      if (_.isArray(existingItem[fieldName])) {
-        existingItem[fieldName].push(edgeFormatted)
-      } else {
-        existingItem[fieldName] = edgeFormatted
-      }
+      let itemToAdd = globalEntityMap[headOrTailId]
+      if (!itemToAdd) {
+        // This mainly occurs when an affinity edge references a withdrawn paper
+        // and isn't usually a problem. Missing profile IDs sometimes occur if
+        // profiles get merged and the edges are not updated.
+        // eslint-disable-next-line no-console
+        console.warn(
+          `${headOrTailId} not found in global entity map. From ${edgeFormatted.name}`
+        )
 
-      return
-    }
-
-    let itemToAdd = globalEntityMap[headOrTailId]
-    if (!itemToAdd) {
-      // This mainly occurs when an affinity edge references a withdrawn paper
-      // and isn't usually a problem. Missing profile IDs sometimes occur if
-      // profiles get merged and the edges are not updated.
-      // eslint-disable-next-line no-console
-      console.warn(`${headOrTailId} not found in global entity map. From ${edgeFormatted.name}`)
-
-      if (fieldName === 'editEdges' && entityType === 'profile') {
-        const editInvitation = editInvitations.filter(p => p.id === edge.invitation)?.[0]
-        if (editInvitation[type]?.query?.['value-regex']) {
-          itemToAdd = {
-            id: headOrTailId,
-            content: {
-              name: { first: prettyId(headOrTailId), middle: '', last: '' },
-              email: headOrTailId,
-              title: '',
-              expertise: [],
-              isInvitedProfile: true,
-            },
-            searchText: headOrTailId,
-            traverseEdgesCount: 0,
+        if (fieldName === 'editEdges' && entityType === 'profile') {
+          const editInvitation = editInvitations.filter((p) => p.id === edge.invitation)?.[0]
+          if (editInvitation[type]?.query?.['value-regex']) {
+            itemToAdd = {
+              id: headOrTailId,
+              content: {
+                name: { first: prettyId(headOrTailId), middle: '', last: '' },
+                email: headOrTailId,
+                title: '',
+                expertise: [],
+                isInvitedProfile: true,
+              },
+              searchText: headOrTailId,
+              traverseEdgesCount: 0,
+            }
+          } else {
+            return
           }
         } else {
           return
         }
-      } else {
-        return
       }
-    }
-    const columnMetadata = type === 'head'
-      ? _.get(props.metadataMap, [headOrTailId, parentId], {})
-      : _.get(props.metadataMap, [parentId, headOrTailId], {})
-    const itemToAddFormatted = {
-      ...itemToAdd,
-      editEdges: [],
-      browseEdges: [],
-      metadata: {
-        ...columnMetadata,
-        isAssigned: false,
-        hasConflict,
-        isHidden,
-      },
-    }
-    if (_.isArray(itemToAddFormatted[fieldName])) {
-      itemToAddFormatted[fieldName].push(edgeFormatted)
-    } else {
-      itemToAddFormatted[fieldName] = edgeFormatted
-    }
+      const columnMetadata =
+        type === 'head'
+          ? _.get(props.metadataMap, [headOrTailId, parentId], {})
+          : _.get(props.metadataMap, [parentId, headOrTailId], {})
+      const itemToAddFormatted = {
+        ...itemToAdd,
+        editEdges: [],
+        browseEdges: [],
+        metadata: {
+          ...columnMetadata,
+          isAssigned: false,
+          hasConflict,
+          isHidden,
+        },
+      }
+      if (_.isArray(itemToAddFormatted[fieldName])) {
+        itemToAddFormatted[fieldName].push(edgeFormatted)
+      } else {
+        itemToAddFormatted[fieldName] = edgeFormatted
+      }
 
-    colItems.push(itemToAddFormatted)
-  }
+      colItems.push(itemToAddFormatted)
+    }
 
   // populate necessary info for items
   const appendEdgesInfo = ({
-    item, traverseEdges, hideEdges, browseEdgeGroups, editEdgeGroups,
+    item,
+    traverseEdges,
+    hideEdges,
+    browseEdgeGroups,
+    editEdgeGroups,
   }) => {
     const metadata = {}
-    if (traverseEdges.some(p => p[type] === item.id)) {
+    if (traverseEdges.some((p) => p[type] === item.id)) {
       metadata.isAssigned = true
     }
-    if (hideEdges.some(p => p[type] === item.id)) {
+    if (hideEdges.some((p) => p[type] === item.id)) {
       metadata.isHidden = true
     }
-    const allEdges = [...traverseEdges, ...hideEdges, ...browseEdgeGroups.flat(), ...editEdgeGroups.flat()]
-    if (allEdges.some((p) => {
-      const edgeFormatted = formatEdge(p)
-      return edgeFormatted.name === 'Conflict' && edgeFormatted.weight === -1
-    })) {
+    const allEdges = [
+      ...traverseEdges,
+      ...hideEdges,
+      ...browseEdgeGroups.flat(),
+      ...editEdgeGroups.flat(),
+    ]
+    if (
+      allEdges.some((p) => {
+        const edgeFormatted = formatEdge(p)
+        return edgeFormatted.name === 'Conflict' && edgeFormatted.weight === -1
+      })
+    ) {
       metadata.hasConflict = true
     }
-    const browseEdges = browseEdgeGroups.flat().filter(p => p[type] === item.id).map(q => formatEdge(q))
+    const browseEdges = browseEdgeGroups
+      .flat()
+      .filter((p) => p[type] === item.id)
+      .map((q) => formatEdge(q))
 
-    const hasAggregateScoreEdge = browseEdges.length && browseEdges[0].name === 'Aggregate_Score'
+    const hasAggregateScoreEdge =
+      browseEdges.length && browseEdges[0].name === 'Aggregate_Score'
     const edgeWeight = hasAggregateScoreEdge ? browseEdges[0].weight : 0
-    const editEdgeTemplates = editInvitations.map(p => buildNewEditEdge(p, item.id, edgeWeight))
+    const editEdgeTemplates = editInvitations.map((p) =>
+      buildNewEditEdge(p, item.id, edgeWeight)
+    )
     return {
       ...item,
       metadata,
       browseEdges,
-      editEdges: editEdgeGroups.flat().filter(p => p[type] === item.id).map(p => formatEdge(p)),
+      editEdges: editEdgeGroups
+        .flat()
+        .filter((p) => p[type] === item.id)
+        .map((p) => formatEdge(p)),
       editEdgeTemplates,
     }
   }
@@ -352,29 +408,38 @@ export default function Column(props) {
       return colItems
     }
 
-    const sortInvitation = [...editInvitations, ...browseInvitations].filter(p => p.id === columnSort)?.[0]
+    const sortInvitation = [...editInvitations, ...browseInvitations].filter(
+      (p) => p.id === columnSort
+    )?.[0]
     const sortLabels = sortInvitation.label?.['value-radio']
 
-    if (sortLabels) { // has no weight; construct label map then sort
+    if (sortLabels) {
+      // has no weight; construct label map then sort
       const sortLabelMap = _.fromPairs(_.zip(sortLabels, _.range(sortLabels.length, 0, -1)))
       // eslint-disable-next-line no-param-reassign
       return _.orderBy(
-        [...colItems].map(
-          p => (
-            {
-              ...p,
-              weight: sortLabelMap[
-                [...p.browseEdges, ...p.editEdges].find(q => q.invitation === columnSort)?.label] || 0,
-            }),
-        ),
+        [...colItems].map((p) => ({
+          ...p,
+          weight:
+            sortLabelMap[
+              [...p.browseEdges, ...p.editEdges].find((q) => q.invitation === columnSort)
+                ?.label
+            ] || 0,
+        })),
         ['weight'],
-        ['desc'],
+        ['desc']
       )
     }
 
     return [...colItems].sort((itemA, itemB) => {
-      const edgeA = _.find([...itemA.browseEdges, ...itemA.editEdges], ['invitation', columnSort])
-      const edgeB = _.find([...itemB.browseEdges, ...itemB.editEdges], ['invitation', columnSort])
+      const edgeA = _.find(
+        [...itemA.browseEdges, ...itemA.editEdges],
+        ['invitation', columnSort]
+      )
+      const edgeB = _.find(
+        [...itemB.browseEdges, ...itemB.editEdges],
+        ['invitation', columnSort]
+      )
 
       if (!edgeA && !edgeB) return 0
       if (!edgeA && edgeB) return 1
@@ -387,15 +452,18 @@ export default function Column(props) {
   }
 
   const sortEditEdges = (editEdges) => {
-    const editInvitationIds = editInvitations.map(p => p.id)
-    editEdges.sort((a, b) => editInvitationIds.indexOf(a.invitation) - editInvitationIds.indexOf(b.invitation))
+    const editInvitationIds = editInvitations.map((p) => p.id)
+    editEdges.sort(
+      (a, b) =>
+        editInvitationIds.indexOf(a.invitation) - editInvitationIds.indexOf(b.invitation)
+    )
     return editEdges
   }
 
   // column created by clicking invited reviewer is just globalentitymap
   // need to show entities with traverse invitation first
   const sortItemsByTraverseEdge = (colItems) => {
-    if (!colItems?.some(p => p?.metadata?.isAssigned)) return colItems // no traverse edge
+    if (!colItems?.some((p) => p?.metadata?.isAssigned)) return colItems // no traverse edge
     return colItems.sort((a, b) => {
       if (b?.metadata?.isAssigned && !a?.metadata?.isAssigned) return 1
       if (a?.metadata?.isAssigned && !b?.metadata?.isAssigned) return -1
@@ -403,20 +471,30 @@ export default function Column(props) {
     })
   }
 
-  const addToEdgesPromiseMap = (invitation, invitationType, edgesPromiseMap, getWritable = false, sort = true) => {
+  const addToEdgesPromiseMap = (
+    invitation,
+    invitationType,
+    edgesPromiseMap,
+    getWritable = false,
+    sort = true
+  ) => {
     if (!invitation) return
-    const existingIndex = edgesPromiseMap.findIndex( // unique by id and param
-      p => p.id === invitation.id
-        && p.getWritable === getWritable
-        && p.sort === sort
-        && _.isEqual(p.query, invitation.query),
+    const existingIndex = edgesPromiseMap.findIndex(
+      // unique by id and param
+      (p) =>
+        p.id === invitation.id &&
+        p.getWritable === getWritable &&
+        p.sort === sort &&
+        _.isEqual(p.query, invitation.query)
     )
     if (existingIndex >= 0) {
       edgesPromiseMap[existingIndex].invitations.push(invitationType)
     } else {
       // eslint-disable-next-line no-nested-ternary
       const detailsParam = getWritable
-        ? (invitation.query.details ? `${invitation.query.details},writable` : 'writable')
+        ? invitation.query.details
+          ? `${invitation.query.details},writable`
+          : 'writable'
         : invitation.query.details
       edgesPromiseMap.push({
         id: invitation.id,
@@ -424,20 +502,27 @@ export default function Column(props) {
         invitations: [invitationType],
         getWritable,
         sort,
-        promise: api.getAll(
-          '/edges',
-          buildQuery(invitation.id, { ...invitation.query, details: detailsParam }, sort),
-          { accessToken, version },
-        ).catch(error => promptError(error.message)),
+        promise: api
+          .getAll(
+            '/edges',
+            buildQuery(invitation.id, { ...invitation.query, details: detailsParam }, sort),
+            { accessToken, version }
+          )
+          .catch((error) => promptError(error.message)),
       })
     }
   }
 
   const filterQuotaReachedItems = (colItems) => {
     if (!hideQuotaReached) return colItems
-    const defaultQuota = [...browseInvitations, ...editInvitations].find(p => p.id.includes('Custom_Max_Papers'))?.defaultWeight
+    const defaultQuota = [...browseInvitations, ...editInvitations].find((p) =>
+      p.id.includes('Custom_Max_Papers')
+    )?.defaultWeight
     return colItems.filter((p) => {
-      const customLoad = [...p.browseEdges, ...p.editEdges].find(q => q?.invitation?.includes('Custom_Max_Papers'))?.weight ?? defaultQuota
+      const customLoad =
+        [...p.browseEdges, ...p.editEdges].find((q) =>
+          q?.invitation?.includes('Custom_Max_Papers')
+        )?.weight ?? defaultQuota
       if (customLoad === undefined) return true
       return p.traverseEdgesCount < customLoad
     })
@@ -472,17 +557,23 @@ export default function Column(props) {
           idsToInclude = startInvitation.query.ids.split(' ')
         }
 
-        setItems(idsToInclude.map(id => ({
-          ...globalEntityMap[id],
-          browseEdges: [],
-          metadata: {
-            isAssigned: false,
-          },
-        })))
+        setItems(
+          idsToInclude.map((id) => ({
+            ...globalEntityMap[id],
+            browseEdges: [],
+            metadata: {
+              isAssigned: false,
+            },
+          }))
+        )
         return
       }
 
-      api.getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false), { accessToken, version })
+      api
+        .getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false), {
+          accessToken,
+          version,
+        })
         .then((startEdges) => {
           if (!startEdges) {
             setItems([])
@@ -492,7 +583,7 @@ export default function Column(props) {
           const colItems = []
           const existingItems = new Set()
           // eslint-disable-next-line no-param-reassign
-          startEdges = _.orderBy(startEdges, p => p.weight ?? 0, ['desc'])
+          startEdges = _.orderBy(startEdges, (p) => p.weight ?? 0, ['desc'])
           startEdges.forEach((sEdge) => {
             const headOrTailId = sEdge[type]
             if (!globalEntityMap[headOrTailId]) {
@@ -516,40 +607,56 @@ export default function Column(props) {
           })
           setItems(colItems)
         })
-        .catch(error => promptError(error.message))
+        .catch((error) => promptError(error.message))
       return
     }
 
     const edgesPromiseMap = []
     addToEdgesPromiseMap(traverseInvitation, 'traverse', edgesPromiseMap, true, true) // traverse does not need to getWritable, this is for the case edit == traverse
-    editInvitations.forEach(editInvitation => addToEdgesPromiseMap(editInvitation, 'edit', edgesPromiseMap, true, false))
+    editInvitations.forEach((editInvitation) =>
+      addToEdgesPromiseMap(editInvitation, 'edit', edgesPromiseMap, true, false)
+    )
     addToEdgesPromiseMap(hideInvitation, 'hide', edgesPromiseMap, false, true)
-    browseInvitations.forEach(browseInvitation => addToEdgesPromiseMap(browseInvitation, 'browse', edgesPromiseMap, false, false))
+    browseInvitations.forEach((browseInvitation) =>
+      addToEdgesPromiseMap(browseInvitation, 'browse', edgesPromiseMap, false, false)
+    )
 
     // Load all edges related to parent and build lists of assigned items and
     // alternate items, adding edges to each cell
-    Promise.all(edgesPromiseMap.map(p => p.promise)).then((result) => {
-      let traverseEdges = result.find((p, i) => edgesPromiseMap.findIndex(q => q.invitations.includes('traverse')) === i) || []
-      const hideEdges = result.find((p, i) => edgesPromiseMap.findIndex(q => q.invitations.includes('hide')) === i) || []
-      const editEdgeGroups = result.filter(
-        (p, i) => edgesPromiseMap.map((q, j) => (q.invitations.includes('edit') ? j : -1)).filter(q => q !== -1) // index in edgesPromiseMap
-          .includes(i),
+    Promise.all(edgesPromiseMap.map((p) => p.promise)).then((result) => {
+      let traverseEdges =
+        result.find(
+          (p, i) => edgesPromiseMap.findIndex((q) => q.invitations.includes('traverse')) === i
+        ) || []
+      const hideEdges =
+        result.find(
+          (p, i) => edgesPromiseMap.findIndex((q) => q.invitations.includes('hide')) === i
+        ) || []
+      const editEdgeGroups = result.filter((p, i) =>
+        edgesPromiseMap
+          .map((q, j) => (q.invitations.includes('edit') ? j : -1))
+          .filter((q) => q !== -1) // index in edgesPromiseMap
+          .includes(i)
       )
-      const browseEdgeGroups = result.filter(
-        (p, i) => edgesPromiseMap.map((q, j) => (q.invitations.includes('browse') ? j : -1)).filter(q => q !== -1) // index in edgesPromiseMap
-          .includes(i),
+      const browseEdgeGroups = result.filter((p, i) =>
+        edgesPromiseMap
+          .map((q, j) => (q.invitations.includes('browse') ? j : -1))
+          .filter((q) => q !== -1) // index in edgesPromiseMap
+          .includes(i)
       )
       const colItems = []
       // if clicked on invite invitation profile entity
       // dispay full list of notes with meta/browseEdges/editEdges/editEdgeTemplates
       if (parentColumnEntityType === 'profile' && !altGlobalEntityMap[parentId]) {
-        const allItems = Object.values(globalEntityMap).map(p => appendEdgesInfo({
-          item: p,
-          traverseEdges,
-          hideEdges,
-          browseEdgeGroups,
-          editEdgeGroups,
-        }))
+        const allItems = Object.values(globalEntityMap).map((p) =>
+          appendEdgesInfo({
+            item: p,
+            traverseEdges,
+            hideEdges,
+            browseEdgeGroups,
+            editEdgeGroups,
+          })
+        )
         setItems(sortItemsByTraverseEdge(allItems))
         return
       }
@@ -558,12 +665,14 @@ export default function Column(props) {
       // and traverse is the default sort so must sort.
       const traverseLabels = traverseInvitation.label?.['value-radio']
       if (traverseLabels) {
-        const traverseLabelMap = _.fromPairs(_.zip(traverseLabels, _.range(traverseLabels.length, 0, -1)))
+        const traverseLabelMap = _.fromPairs(
+          _.zip(traverseLabels, _.range(traverseLabels.length, 0, -1))
+        )
         // eslint-disable-next-line no-param-reassign
         traverseEdges = _.orderBy(
-          traverseEdges.map(e => ({ ...e, weight: traverseLabelMap[e.label] || 0 })),
+          traverseEdges.map((e) => ({ ...e, weight: traverseLabelMap[e.label] || 0 })),
           ['weight'],
-          ['desc'],
+          ['desc']
         )
       }
 
@@ -572,8 +681,12 @@ export default function Column(props) {
         let itemToAdd = globalEntityMap[headOrTailId]
         if (!itemToAdd) {
           if (entityType === 'profile') {
-            const hasInviteInvitation = editInvitations.some(p => p[type]?.query?.['value-regex'])
-            const hasProposedAssignmentInvitation = editInvitations.some(p => p.id.includes('Proposed_Assignment'))
+            const hasInviteInvitation = editInvitations.some(
+              (p) => p[type]?.query?.['value-regex']
+            )
+            const hasProposedAssignmentInvitation = editInvitations.some((p) =>
+              p.id.includes('Proposed_Assignment')
+            )
             itemToAdd = {
               id: headOrTailId,
               content: {
@@ -584,7 +697,7 @@ export default function Column(props) {
                 isInvitedProfile: hasInviteInvitation || hasProposedAssignmentInvitation,
               },
               searchText: headOrTailId,
-              traverseEdgesCount: traverseEdges.filter(p => p[type] === headOrTailId).length,
+              traverseEdgesCount: traverseEdges.filter((p) => p[type] === headOrTailId).length,
             }
             // eslint-disable-next-line no-console
             console.warn(`${headOrTailId} not found in global entity map`)
@@ -594,9 +707,10 @@ export default function Column(props) {
             return
           }
         }
-        const columnMetadata = type === 'head'
-          ? _.get(props.metadataMap, [headOrTailId, parentId], {})
-          : _.get(props.metadataMap, [parentId, headOrTailId], {})
+        const columnMetadata =
+          type === 'head'
+            ? _.get(props.metadataMap, [headOrTailId, parentId], {})
+            : _.get(props.metadataMap, [parentId, headOrTailId], {})
         colItems.push({
           ...itemToAdd,
           browseEdges: [],
@@ -610,12 +724,19 @@ export default function Column(props) {
       })
 
       if (altGlobalEntityMap[parentId]?.traverseEdgesCount !== traverseEdges.length) {
-        props.updateGlobalEntityMap(otherType, parentId, 'traverseEdgesCount', traverseEdges.length) // other user has updated edge
+        props.updateGlobalEntityMap(
+          otherType,
+          parentId,
+          'traverseEdgesCount',
+          traverseEdges.length
+        ) // other user has updated edge
         setShouldUpdateItems(false) // avoid infinite update
       }
 
       // Add existing edit edges to items
-      editEdgeGroups.forEach(editEdge => editEdge?.forEach(updateColumnItems('editEdges', colItems)))
+      editEdgeGroups.forEach((editEdge) =>
+        editEdge?.forEach(updateColumnItems('editEdges', colItems))
+      )
 
       // Add all browse edges to items
       browseEdgeGroups.forEach((browseEdges, i) => {
@@ -629,7 +750,7 @@ export default function Column(props) {
         if (bidLabels) {
           const bidLabelMap = _.fromPairs(_.zip(bidLabels, _.range(bidLabels.length, 0, -1)))
           // eslint-disable-next-line no-param-reassign
-          browseEdges = browseEdges.map(e => ({ ...e, weight: bidLabelMap[e.label] || 0 }))
+          browseEdges = browseEdges.map((e) => ({ ...e, weight: bidLabelMap[e.label] || 0 }))
         }
         browseEdges.forEach(updateColumnItems('browseEdges', colItems))
       })
@@ -639,11 +760,13 @@ export default function Column(props) {
       // Add each editInvitation as a template so that new invitation can be added
       if (editInvitations.length) {
         colItems.forEach((item) => {
-          const hasAggregateScoreEdge = item.browseEdges.length && item.browseEdges[0].name === 'Aggregate_Score'
+          const hasAggregateScoreEdge =
+            item.browseEdges.length && item.browseEdges[0].name === 'Aggregate_Score'
           const edgeWeight = hasAggregateScoreEdge ? item.browseEdges[0].weight : 0
           // eslint-disable-next-line no-param-reassign
-          item.editEdgeTemplates = editInvitations.map(editInvitation => (
-            buildNewEditEdge(editInvitation, item.id, edgeWeight)))
+          item.editEdgeTemplates = editInvitations.map((editInvitation) =>
+            buildNewEditEdge(editInvitation, item.id, edgeWeight)
+          )
           // eslint-disable-next-line no-param-reassign
           item.traverseEdgeTemplate = buildNewEditEdge(traverseInvitation, item.id, 0)
         })
@@ -673,16 +796,16 @@ export default function Column(props) {
     const escapedTerm = _.escapeRegExp(search.term)
     let [preModifier, postModifier] = ['\\b', '']
     if (escapedTerm.startsWith('#')) {
-      [preModifier, postModifier] = ['^', '\\b']
+      ;[preModifier, postModifier] = ['^', '\\b']
     }
     const searchRegex = new RegExp(preModifier + escapedTerm + postModifier, 'mi')
 
     // Search existing items
-    const matchingItems = items.filter(item => item.searchText?.match(searchRegex))
+    const matchingItems = items.filter((item) => item.searchText?.match(searchRegex))
 
     // Search all other items that don't share edges with the parent entity
     if (parentId) {
-      const searchedIds = items.map(item => item.id)
+      const searchedIds = items.map((item) => item.id)
 
       Object.values(globalEntityMap).forEach((item) => {
         if (searchedIds.includes(item.id)) return
@@ -691,7 +814,9 @@ export default function Column(props) {
           matchingItems.push({
             ...item,
             // eslint-disable-next-line max-len
-            editEdgeTemplates: editInvitations.map(editInvitation => (buildNewEditEdge(editInvitation, item.id))),
+            editEdgeTemplates: editInvitations.map((editInvitation) =>
+              buildNewEditEdge(editInvitation, item.id)
+            ),
             editEdges: [],
             browseEdges: [],
             metadata: {
@@ -723,8 +848,10 @@ export default function Column(props) {
   }, [entityMapChanged])
 
   useEffect(() => {
-    if (!_.isEqual(globalEntityMap, entityMap.current.globalEntityMap)
-      && !_.isEqual(altGlobalEntityMap, entityMap.current.altGlobalEntityMap)) {
+    if (
+      !_.isEqual(globalEntityMap, entityMap.current.globalEntityMap) &&
+      !_.isEqual(altGlobalEntityMap, entityMap.current.altGlobalEntityMap)
+    ) {
       entityMap.current = { globalEntityMap, altGlobalEntityMap }
       setEntityMapChanged(true)
     }
@@ -739,11 +866,15 @@ export default function Column(props) {
     // controls the green background
     const isAddingTraverseEdge = formattedNewEdge.invitation === traverseInvitation.id
     // set to existing value if not adding traverse edge
-    const shouldUserBeAssigned = isAddingTraverseEdge ? true : items[entityIndex].metadata.isUserAssigned
+    const shouldUserBeAssigned = isAddingTraverseEdge
+      ? true
+      : items[entityIndex].metadata.isUserAssigned
 
     if (entityIndex > -1) {
       // Added (or modified) from existing list
-      const existingEditEdges = items[entityIndex].editEdges.filter(p => p.id === formattedNewEdge.id)
+      const existingEditEdges = items[entityIndex].editEdges.filter(
+        (p) => p.id === formattedNewEdge.id
+      )
       if (existingEditEdges.length) {
         modifiedExistingEdge = true
       }
@@ -751,7 +882,10 @@ export default function Column(props) {
       const itemToAdd = {
         ...items[entityIndex],
         editEdges: modifiedExistingEdge
-          ? sortEditEdges([...items[entityIndex].editEdges.filter(p => p.id !== formattedNewEdge.id), formattedNewEdge])
+          ? sortEditEdges([
+              ...items[entityIndex].editEdges.filter((p) => p.id !== formattedNewEdge.id),
+              formattedNewEdge,
+            ])
           : sortEditEdges([...items[entityIndex].editEdges, formattedNewEdge]),
         metadata: {
           ...items[entityIndex].metadata,
@@ -760,18 +894,16 @@ export default function Column(props) {
           isUserUnassigned: !shouldUserBeAssigned,
         },
       }
-      setItems([
-        ...items.slice(0, entityIndex),
-        itemToAdd,
-        ...items.slice(entityIndex + 1),
-      ])
+      setItems([...items.slice(0, entityIndex), itemToAdd, ...items.slice(entityIndex + 1)])
     } else {
       // Added from search
-      const editInvitation = editInvitations.filter(p => p.id === formattedNewEdge.invitation)[0]
+      const editInvitation = editInvitations.filter(
+        (p) => p.id === formattedNewEdge.invitation
+      )[0]
       const newItem = {
         ...globalEntityMap[id],
         editEdges: [buildNewEditEdge(editInvitation, id)],
-        editEdgeTemplates: editInvitations.map(p => (buildNewEditEdge(editInvitation, id))),
+        editEdgeTemplates: editInvitations.map((p) => buildNewEditEdge(editInvitation, id)),
         browseEdges: [],
         metadata: {
           isAssigned: true,
@@ -784,10 +916,16 @@ export default function Column(props) {
 
     if (type === 'head') {
       // eslint-disable-next-line max-len
-      props.updateMetadataMap(id, parentId, { isUserAssigned: shouldUserBeAssigned, isUserUnassigned: !shouldUserBeAssigned })
+      props.updateMetadataMap(id, parentId, {
+        isUserAssigned: shouldUserBeAssigned,
+        isUserUnassigned: !shouldUserBeAssigned,
+      })
     } else {
       // eslint-disable-next-line max-len
-      props.updateMetadataMap(parentId, id, { isUserAssigned: shouldUserBeAssigned, isUserUnassigned: !shouldUserBeAssigned })
+      props.updateMetadataMap(parentId, id, {
+        isUserAssigned: shouldUserBeAssigned,
+        isUserUnassigned: !shouldUserBeAssigned,
+      })
     }
 
     // Update global head and tail maps
@@ -808,11 +946,13 @@ export default function Column(props) {
     // controls the green background
     const isRemovingTraverseEdge = removedEdge.invitation === traverseInvitation.id
     // set to existing value if not deleting traverse edge
-    const shouldUserRemainAssigned = isRemovingTraverseEdge ? false : items[entityIndex].metadata.isUserAssigned
+    const shouldUserRemainAssigned = isRemovingTraverseEdge
+      ? false
+      : items[entityIndex].metadata.isUserAssigned
 
     const itemToAdd = {
       ...items[entityIndex],
-      editEdges: items[entityIndex].editEdges.filter(p => p.id !== removedEdge.id),
+      editEdges: items[entityIndex].editEdges.filter((p) => p.id !== removedEdge.id),
       metadata: {
         ...items[entityIndex].metadata,
         isAssigned: isRemovingTraverseEdge ? false : items[entityIndex].metadata.isAssigned,
@@ -820,11 +960,7 @@ export default function Column(props) {
         isUserUnassigned: !shouldUserRemainAssigned,
       },
     }
-    setItems([
-      ...items.slice(0, entityIndex),
-      itemToAdd,
-      ...items.slice(entityIndex + 1),
-    ])
+    setItems([...items.slice(0, entityIndex), itemToAdd, ...items.slice(entityIndex + 1)])
 
     if (type === 'head') {
       props.updateMetadataMap(id, parentId, { isUserAssigned: false, isUserUnassigned: true })
@@ -848,25 +984,31 @@ export default function Column(props) {
         {getColumnDescription()}
       </div>
       <div className="col-search">
-        <form role="search" onSubmit={e => e.preventDefault()}>
+        <form role="search" onSubmit={(e) => e.preventDefault()}>
           <div className="filter-container form-group has-feedback">
             <input
               type="text"
               className="form-control input-sm"
               placeholder={getPlaceholderText()}
               value={search.term}
-              onChange={e => setSearch({ term: e.target.value })}
+              onChange={(e) => setSearch({ term: e.target.value })}
               autoComplete="off"
               autoCorrect="off"
             />
-            <span className="glyphicon glyphicon-search form-control-feedback" aria-hidden="true" />
+            <span
+              className="glyphicon glyphicon-search form-control-feedback"
+              aria-hidden="true"
+            />
           </div>
           {parentId && (
             <div className="sort-container form-group">
               {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
               <label>Order By:</label>
-              <select className="form-control input-sm" onChange={e => setColumnSort(e.target.value)}>
-                {sortOptions.map(p => (
+              <select
+                className="form-control input-sm"
+                onChange={(e) => setColumnSort(e.target.value)}
+              >
+                {sortOptions.map((p) => (
                   <option key={p.key} value={p.value}>
                     {p.text}
                   </option>
@@ -877,12 +1019,14 @@ export default function Column(props) {
           {parentId && showHideQuotaReachedCheckbox && (
             <div className="checkbox">
               <label>
-                <input type="checkbox" checked={hideQuotaReached} onChange={(e) => { setHideQuotaReached(e.target.checked) }} />
-                {' '}
-                Only show
-                {' '}
-                {prettyId(traverseInvitation[type].query.group, true).toLowerCase()}
-                {' '}
+                <input
+                  type="checkbox"
+                  checked={hideQuotaReached}
+                  onChange={(e) => {
+                    setHideQuotaReached(e.target.checked)
+                  }}
+                />{' '}
+                Only show {prettyId(traverseInvitation[type].query.group, true).toLowerCase()}{' '}
                 with fewer than max assigned papers.
               </label>
             </div>
@@ -923,8 +1067,13 @@ export default function Column(props) {
               updateChildColumn={props.updateChildColumn}
               columnIndex={props.index}
             />
-            {showLoadMoreButton
-                && <button type="button" className="btn btn-default btn-xs ml-2 mt-2 mb-2" onClick={() => loadMoreItems()}>{`Load More ${getPlaceholderText(true)}`}</button>}
+            {showLoadMoreButton && (
+              <button
+                type="button"
+                className="btn btn-default btn-xs ml-2 mt-2 mb-2"
+                onClick={() => loadMoreItems()}
+              >{`Load More ${getPlaceholderText(true)}`}</button>
+            )}
             <EditEdgeInviteEmail
               type={type}
               otherType={otherType}
