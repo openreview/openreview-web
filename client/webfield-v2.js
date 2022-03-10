@@ -240,13 +240,14 @@ module.exports = (function() {
 
   var getAllSubmissions = function(invitationId, options) {
     var defaults = {
+      details: 'replies',
       numbers: null,
       sort: 'number:desc'
     };
     options = _.defaults(options, defaults);
     var query = {
       invitation: invitationId,
-      details: 'replies',
+      details: options.details,
       sort: options.sort
     }
 
