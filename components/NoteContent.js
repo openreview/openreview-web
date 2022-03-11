@@ -95,11 +95,11 @@ function DownloadLink({
 }
 
 export const NoteContentV2 = ({
-  id, content, omit = [], include = [], isEdit = false, presentation, noteReaders,
+  id, content, presentation, noteReaders, omit = [], include = [], isEdit = false,
 }) => {
   const contentKeys = Object.keys(content)
-  const contentOrder = presentation
-    ? Object.values(presentation).sort((a, b) => (a?.order ?? 999) - (b?.order ?? 999)).map(p => p.name)
+  const contentOrder = presentation?.length > 0
+    ? Array.from(new Set(presentation.map(p => p.name).concat(contentKeys)))
     : contentKeys
 
   const omittedFields = [
@@ -109,14 +109,15 @@ export const NoteContentV2 = ({
 
   return (
     <ul className="list-unstyled note-content">
-      {contentOrder.map((fieldName) => {
+      {contentOrder.map((fieldName, i) => {
         if (omittedFields.includes(fieldName) || fieldName.startsWith('_')) return null
 
         const fieldValue = prettyContentValue(content[fieldName]?.value)
         if (!fieldValue) return null
-        const enableMarkdown = presentation?.find(p => p.name === fieldName)?.markdown
+
+        const enableMarkdown = presentation?.[i]?.markdown
         const fieldReaders = content[fieldName]?.readers?.sort()
-        const showPrivateIcon = fieldReaders && noteReaders && !fieldReaders.every((p, i) => p === noteReaders[i])
+        const showPrivateIcon = fieldReaders && noteReaders && !fieldReaders.every((p, j) => p === noteReaders[j])
 
         return (
           <li key={fieldName}>

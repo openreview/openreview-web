@@ -1,16 +1,16 @@
 @use "../utils/constants";
 
 .forum-note {
-  &.editable:hover {
-    background-color: rgba(0, 0, 0, .04);
-    box-shadow: 0 0 1px 4px rgba(0, 0, 0, .04);
-  }
+  // &.editable:hover {
+  //   background-color: rgba(0, 0, 0, .04);
+  //   box-shadow: 0 0 1px 4px rgba(0, 0, 0, .04);
+  // }
 
   .forum-title {
     display: flex;
     justify-content: space-between;
     h2 {
-      font-size: 2rem;
+      font-size: 2.125rem;
       font-weight: bold;
       line-height: 2.5rem;
       letter-spacing: -.5px;

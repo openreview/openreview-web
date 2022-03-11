@@ -4,20 +4,19 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import NoteEditorForm from '../NoteEditorForm'
 import NoteAuthors from '../NoteAuthors'
-import NoteContent from '../NoteContent'
+import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
 
 function ForumNote({ note, updateNote }) {
   const {
-    id, content, details, signatures, referenceInvitations, originalInvitations, tagInvitations,
+    id, content, details, signatures, editInvitations, deleteInvitation, tagInvitations,
   } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
-  const canEdit = (details.original && details.originalWritable) || (!details.originalWritable && details.writable)
-  const showInvitationButtons = referenceInvitations?.length > 0 || originalInvitations?.length > 0
+  const showInvitationButtons = editInvitations?.length > 0 || deleteInvitation
   // eslint-disable-next-line no-underscore-dangle
-  const texDisabled = !!content._disableTexRendering
+  const texDisabled = !!content._disableTexRendering?.value
 
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeNote, setActiveNote] = useState(null)
@@ -75,17 +74,21 @@ function ForumNote({ note, updateNote }) {
   }
 
   return (
-    <div className={`forum-note ${pastDue ? 'trashed' : ''} ${texDisabled ? 'disable-tex-rendering' : ''} ${canEdit ? 'editable' : ''}`}>
+    <div className={`forum-note ${pastDue ? 'trashed' : ''} ${texDisabled ? 'disable-tex-rendering' : ''}`}>
       <ForumTitle
         id={id}
-        title={content.title}
-        pdf={content.pdf}
-        html={content.html || content.ee}
+        title={content.title?.value}
+        pdf={content.pdf?.value}
+        html={content.html?.value}
       />
 
       <div className="forum-authors mb-2">
         <h3>
-          <NoteAuthors authors={content.authors} authorIds={content.authorIds} signatures={signatures} />
+          <NoteAuthors
+            authors={content.authors?.value}
+            authorIds={content.authorids?.value}
+            signatures={signatures}
+          />
         </h3>
       </div>
 
@@ -94,28 +97,10 @@ function ForumNote({ note, updateNote }) {
 
         <div className="invitation-buttons">
           {showInvitationButtons && (
-            <span className="hint">Add:</span>
+            <span className="hint">Edit:</span>
           )}
-          {originalInvitations?.map((invitation) => {
-            let buttonText = prettyInvitationId(invitation.id)
-            let options = { original: true }
-            if (buttonText === 'Revision' && invitation.multiReply === false && invitation.details.repliedNotes?.length) {
-              buttonText = 'Edit Revision'
-              options = { revision: true }
-            }
-            return (
-              <button
-                key={invitation.id}
-                type="button"
-                className="btn btn-xs"
-                onClick={() => openNoteEditor(invitation, options)}
-              >
-                {buttonText}
-              </button>
-            )
-          })}
 
-          {referenceInvitations?.map(invitation => (
+          {editInvitations?.map(invitation => (
             <button
               key={invitation.id}
               type="button"
@@ -126,46 +111,23 @@ function ForumNote({ note, updateNote }) {
             </button>
           ))}
 
-          {canEdit && !pastDue && (
-            <>
-              <button
-                type="button"
-                className="btn btn-xs"
-                onClick={() => {
-                  const invitation = note.details.originalWritable
-                    ? note.details.originalInvitation
-                    : note.details.invitation
-                  const options = note.details.originalWritable ? { original: true } : {}
-                  openNoteEditor(invitation, options)
-                }}
-              >
-                <Icon name="edit" />
-              </button>
-              <button
-                type="button"
-                className="btn btn-xs"
-                onClick={() => {}}
-              >
-                <Icon name="trash" />
-              </button>
-            </>
-          )}
-          {canEdit && pastDue && (
+          {deleteInvitation && !pastDue && (
             <button
               type="button"
               className="btn btn-xs"
-              onClick={() => {}}
+              onClick={() => openNoteEditor(deleteInvitation)}
             >
-              Restore
+              <Icon name="trash" tooltip={prettyInvitationId(deleteInvitation)} />
             </button>
           )}
+
         </div>
       </div>
 
-      <NoteContent
+      <NoteContentV2
         id={id}
         content={content}
-        invitation={details.originalInvitation || details.invitation}
+        presentation={details.presentation}
       />
     </div>
   )
@@ -204,12 +166,12 @@ function ForumMeta({ note }) {
     <div className="forum-meta">
       <span className="date item">
         <Icon name="calendar" />
-        {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year)}
+        {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year?.value)}
       </span>
 
       <span className="item">
         <Icon name="folder-open" />
-        {note.content.venue || prettyId(note.invitation)}
+        {note.content.venueid?.value || prettyId(note.invitation)}
       </span>
 
       {note.readers && (
@@ -229,7 +191,7 @@ function ForumMeta({ note }) {
       )}
 
       {/* eslint-disable-next-line no-underscore-dangle */}
-      {note.content._bibtex && (
+      {note.content._bibtex?.value && (
         <span className="item">
           {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
           <a
@@ -237,7 +199,7 @@ function ForumMeta({ note }) {
             data-target="#bibtex-modal"
             data-toggle="modal"
             // eslint-disable-next-line no-underscore-dangle
-            data-bibtex={encodeURIComponent(note.content._bibtex)}
+            data-bibtex={encodeURIComponent(note.content._bibtex.value)}
           >
             Show BibTeX
           </a>

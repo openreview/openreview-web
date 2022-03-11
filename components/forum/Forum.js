@@ -44,7 +44,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
   const query = useQuery()
 
   const { id, details } = parentNote
-  const replyForumViews = details.invitation?.replyForumViews
+  const replyForumViews = details.invitation?.replyForumViews // TODO: get this from somewhere else
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
 
   const numRepliesHidden = displayOptionsMap
@@ -60,20 +60,19 @@ export default function Forum({ forumNote, clientJsLoading }) {
 
     const extraParams = includeTags ? { tags: true } : { details: 'repliedNotes' }
     return api
-      .get('/invitations', { replyForum: forumId, ...extraParams }, { accessToken })
+      .get('/invitations', { replyForum: forumId, ...extraParams }, { accessToken, version: 2 })
       .then(({ invitations }) => {
         if (!invitations?.length) return []
 
         return invitations.map((inv) => {
           // Check if invitation does not have multiReply prop OR invitation is set to multiReply
           // but it is not false OR there have not been any replies to the invitation yet
-          const repliesAvailable =
-            !has(inv, 'multiReply') ||
-            inv.multiReply !== false ||
-            isEmpty(inv.details?.repliedNotes)
+          const repliesAvailable = !inv.maxReplies
+            || inv.details?.repliedNotes?.length < inv.maxReplies
           return {
             ...inv,
             process: null,
+            preprocess: null,
             details: { repliesAvailable },
           }
         })
@@ -83,36 +82,29 @@ export default function Forum({ forumNote, clientJsLoading }) {
   const getNotesByForumId = (forumId) => {
     if (!forumId) return Promise.resolve([])
 
-    return api
-      .get(
-        '/notes',
-        {
-          forum: forumId,
-          details: 'writable,revisions,original,overwriting,invitation,tags',
-        },
-        { accessToken }
-      )
-      .then(({ notes }) => (notes?.length > 0 ? notes : []))
+    return api.get('/notes', {
+      forum: forumId,
+      details: 'replyCount,writable,presentation,signatures,revisions',
+    }, { accessToken, version: 2 })
+      .then(({ notes }) => {
+        if (!Array.isArray(notes)) return []
+
+        notes.forEach((note) => {
+          if (!note.replyto && note.id !== note.forum) {
+            // eslint-disable-next-line no-param-reassign
+            note.replyto = note.forum
+          }
+        })
+        return notes
+      })
   }
 
   const loadNotesAndInvitations = async () => {
-    const [notes, invitations, originalInvitations, tagInvitations] = await Promise.all([
+    const [notes, invitations, tagInvitations] = await Promise.all([
       getNotesByForumId(id),
       getInvitationsByReplyForum(id),
-      getInvitationsByReplyForum(details.original?.id),
       getInvitationsByReplyForum(id, true),
     ])
-
-    // Find invitations that apply to all notes
-    const commonInvitations = invitations.filter((invitation) => {
-      const invReply = invitation.reply
-      return (
-        !invReply.replyto &&
-        !invReply.referent &&
-        !invReply.referentInvitation &&
-        !invReply.invitation
-      )
-    })
 
     // Process notes
     const replyMap = {}
@@ -123,22 +115,26 @@ export default function Forum({ forumNote, clientJsLoading }) {
     const readerGroupIds = new Set()
     const numberWildcard = /(Reviewer|Area_Chair)(\d+)/g
     notes.forEach((note) => {
-      const noteInvitations = invitations.filter((invitation) => {
-        // Check if invitation is replying to this note
-        const isInvitationRelated =
-          invitation.reply.replyto === note.id ||
-          invitation.reply.invitation === note.invitation
-        return isInvitationRelated && invitation.details.repliesAvailable
-      })
+      const deleteInvitation = invitations.filter(p => (
+        p.edit?.note?.id?.const === note.id || note.invitations.includes(p.edit?.note?.id?.withInvitation)
+      )).find(p => p.edit?.note?.ddate)
+      // pure delete invitation should not be edit invitation
+      const isPureDeleteInvitation = !deleteInvitation?.edit?.note?.content
 
-      const replyInvitations = union(commonInvitations, noteInvitations)
+      let editInvitations = invitations.filter(p => (
+        p.edit?.note?.id?.const === note.id || note.invitations.includes(p.edit?.note?.id?.withInvitation)
+      ))
+      if (isPureDeleteInvitation) {
+        editInvitations = editInvitations.filter(p => p.id !== deleteInvitation?.id)
+      }
 
-      const referenceInvitations = invitations.filter((invitation) => {
-        // Check if invitation is replying to this note
-        const isInvitationRelated =
-          invitation.reply.referent === note.id ||
-          invitation.reply.referentInvitation === note.invitation
-        return isInvitationRelated && invitation.details.repliesAvailable
+      const replyInvitations = invitations.filter(p => {
+        const replyTo = p.edit?.note?.replyto
+        return replyTo && (
+          replyTo.const === note.id || replyTo.withForum === id || (
+            replyTo.withInvitation && note.invitations.includes(replyTo.withInvitation)
+          )
+        )
       })
 
       // Don't include forum note in replyMap
@@ -146,17 +142,24 @@ export default function Forum({ forumNote, clientJsLoading }) {
         setParentNote({
           ...note,
           details: { ...parentNote.details, ...note.details },
+          editInvitations,
+          deleteInvitation,
           replyInvitations,
-          referenceInvitations,
-          originalInvitations,
           tagInvitations,
         })
         return
       }
 
-      replyMap[note.id] = formatNote(note, null, replyInvitations, referenceInvitations)
+      replyMap[note.id] = formatNote(
+        note,
+        null,
+        editInvitations,
+        deleteInvitation,
+        replyInvitations
+      )
       displayOptions[note.id] = { collapsed: false, contentExpanded: false, hidden: false }
 
+      // Populate parent map
       const parentId = note.replyto || id
       if (!parentIdMap[parentId]) {
         parentIdMap[parentId] = []
@@ -164,8 +167,8 @@ export default function Forum({ forumNote, clientJsLoading }) {
       parentIdMap[parentId].push(note.id)
 
       // Populate filter options
-      invitationIds.add(note.invitation.replace(numberWildcard, '$1.*'))
-      signatureGroupIds.add(note.signatures[0])
+      note.invitations.forEach((noteInv) => invitationIds.add(noteInv.replace(numberWildcard, '$1.*')))
+      note.signatures.forEach((noteSig) => signatureGroupIds.add(noteSig))
       note.readers.forEach((rId) => readerGroupIds.add(rId))
     })
 
@@ -498,7 +501,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
         </div>
       )}
 
-      {repliesLoaded && (
+      {(repliesLoaded && orderedReplies.length > 0) && (
         <div className="filters-container mt-3">
           {replyForumViews && <FilterTabs forumViews={replyForumViews} />}
 

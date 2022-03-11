@@ -1,5 +1,5 @@
 /* globals $: false */
-/* globals view: false */
+/* globals view2: false */
 /* globals promptError: false */
 /* globals promptLogin: false */
 
@@ -59,7 +59,7 @@ export default function NoteEditorForm({
     setLoading(true)
 
     if (note) {
-      view.mkNoteEditor(note, invitation, user, {
+      view2.mkNoteEditor(note, invitation, user, {
         onNoteEdited,
         onNoteCancelled,
         onValidate,
@@ -67,7 +67,7 @@ export default function NoteEditorForm({
         onError: handleError,
       })
     } else {
-      view.mkNewNoteEditor(invitation, forumId, replyToId, user, {
+      view2.mkNewNoteEditor(invitation, forumId, replyToId, user, {
         onNoteCreated,
         onNoteCancelled,
         onValidate,
