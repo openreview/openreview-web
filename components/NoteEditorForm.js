@@ -32,6 +32,18 @@ export default function NoteEditorForm({
     }
   }
 
+  const handleCreated = (edit) => {
+    if (typeof onNoteCreated === 'function') {
+      onNoteCreated({ ...edit.note, invitations: [edit.invitation] })
+    }
+  }
+
+  const handleEdited = (edit) => {
+    if (typeof onNoteEdited === 'function') {
+      onNoteEdited({ ...edit.note, invitations: [edit.invitation] })
+    }
+  }
+
   const handleError = (errors) => {
     setLoading(false)
 
@@ -60,7 +72,7 @@ export default function NoteEditorForm({
 
     if (note) {
       view2.mkNoteEditor(note, invitation, user, {
-        onNoteEdited,
+        onNoteEdited: handleEdited,
         onNoteCancelled,
         onValidate,
         onCompleted: handleEditor,
@@ -68,7 +80,7 @@ export default function NoteEditorForm({
       })
     } else {
       view2.mkNewNoteEditor(invitation, forumId, replyToId, user, {
-        onNoteCreated,
+        onNoteCreated: handleCreated,
         onNoteCancelled,
         onValidate,
         onCompleted: handleEditor,

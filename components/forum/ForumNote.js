@@ -64,7 +64,13 @@ function ForumNote({ note, updateNote }) {
           note={activeNote}
           invitation={activeInvitation}
           onNoteEdited={(newNote) => {
-            updateNote({ ...note, content: { ...note.content, ...newNote.content } })
+            updateNote({
+              ...note,
+              content: {
+                ...note.content,
+                ...newNote.content
+              }
+            })
             closeNoteEditor()
           }}
           onNoteCancelled={closeNoteEditor}

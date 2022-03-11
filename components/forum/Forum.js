@@ -272,8 +272,11 @@ export default function Forum({ forumNote, clientJsLoading }) {
   }
 
   const addTopLevelReply = (note) => {
-    setActiveInvitation(null)
-    setReplyNoteMap({ ...replyNoteMap, [note.id]: formatNote(note, activeInvitation) })
+    console.log('addTopLevelReply', note)
+    setReplyNoteMap({
+      ...replyNoteMap,
+      [note.id]: formatNote(note, activeInvitation)
+    })
     setDisplayOptionsMap({
       ...displayOptionsMap,
       [note.id]: { collapsed: false, contentExpanded: false, hidden: false },
@@ -282,6 +285,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
       ...parentMap,
       [id]: [...parentMap[id], note.id],
     })
+    setActiveInvitation(null)
 
     scrollToElement('#forum-replies')
   }
@@ -486,6 +490,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
 
           <NoteEditorForm
             forumId={id}
+            replyToId={id}
             invitation={activeInvitation}
             onNoteCreated={addTopLevelReply}
             onNoteCancelled={() => {

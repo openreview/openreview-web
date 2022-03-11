@@ -18,13 +18,11 @@ export default function ForumReply({ note, replies, updateNote }) {
   const { forumId, displayOptionsMap, setCollapsed } = useContext(ForumReplyContext)
 
   const {
-    id, invitations, content, signatures, details, ddate,
+    id, invitations, content, signatures, ddate,
   } = note
   const pastDue = ddate && ddate < Date.now()
-  const canEdit = (details.original && details.originalWritable) || (!details.originalWritable && details.writable)
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
   const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
-  const showInvitationButtons = note.commonInvitations?.length > 0 || note.referenceInvitations?.length > 0
 
   if (collapsed) {
     // Collapsed reply
@@ -37,9 +35,9 @@ export default function ForumReply({ note, replies, updateNote }) {
       >
         <div className="heading">
           <h4 className="minimal-title">
-            {content.title ? (
+            {content.title?.value ? (
               <>
-                <strong>{content.title}</strong>
+                <strong>{content.title.value}</strong>
                 {' '}
                 &bull;
                 {' '}
@@ -73,7 +71,7 @@ export default function ForumReply({ note, replies, updateNote }) {
         setCollapsed={setCollapsed}
       >
         <NoteEditorForm
-          note={note.details.originalWritable ? note.details.original : note}
+          note={note}
           invitation={activeEditInvitation}
           onNoteEdited={(newNote) => {
             setActiveEditInvitation(null)
@@ -110,8 +108,8 @@ export default function ForumReply({ note, replies, updateNote }) {
     >
       <div className="heading">
         <h4>
-          {content.title ? (
-            <strong>{content.title}</strong>
+          {content.title?.value ? (
+            <strong>{content.title.value}</strong>
           ) : (
             <span>{buildNoteTitle(invitations[0], signatures)}</span>
           )}
@@ -119,7 +117,7 @@ export default function ForumReply({ note, replies, updateNote }) {
 
         <CopyLinkButton noteId={id} />
 
-        {note.referenceInvitations?.map(inv => (
+        {note.editIvitations?.map((inv) => (
           <button
             key={inv.id}
             type="button"
@@ -130,30 +128,16 @@ export default function ForumReply({ note, replies, updateNote }) {
           </button>
         ))}
 
-        {canEdit && !pastDue && (
-          <>
-            <button
-              type="button"
-              className="btn btn-xs"
-              onClick={() => {
-                const editInvitation = note.details.originalWritable
-                  ? note.details.originalInvitation
-                  : note.details.invitation
-                setActiveEditInvitation(editInvitation)
-              }}
-            >
-              <Icon name="edit" />
-            </button>
-            <button
-              type="button"
-              className="btn btn-xs"
-              onClick={() => {}}
-            >
-              <Icon name="trash" />
-            </button>
-          </>
+        {note.deleteInvitation && !pastDue && (
+          <button
+            type="button"
+            className="btn btn-xs"
+            onClick={() => {}}
+          >
+            <Icon name="trash" />
+          </button>
         )}
-        {canEdit && pastDue && (
+        {/* {canEdit && pastDue && (
           <button
             type="button"
             className="btn btn-xs"
@@ -161,7 +145,7 @@ export default function ForumReply({ note, replies, updateNote }) {
           >
             Restore
           </button>
-        )}
+        )} */}
       </div>
 
       <div className="subheading">
@@ -205,11 +189,11 @@ export default function ForumReply({ note, replies, updateNote }) {
         collapsed={!contentExpanded}
       />
 
-      {showInvitationButtons && (
+      {note.replyInvitations?.length > 0 && (
         <div className="invitations-container mt-2">
           <div className="invitation-buttons">
             <span className="hint">Add:</span>
-            {[...note.replyInvitations, ...note.commonInvitations].map(inv => (
+            {note.replyInvitations.map(inv => (
               <button
                 key={inv.id}
                 type="button"
@@ -227,7 +211,8 @@ export default function ForumReply({ note, replies, updateNote }) {
             replyToId={note.id}
             onNoteCreated={(newNote) => {
               setActiveEditInvitation(null)
-              updateNote(newNote, note.id, note.commonInvitations)
+              console.log(newNote)
+              updateNote(newNote, note.id, note.replyInvitations)
             }}
             onNoteCancelled={() => { setActiveInvitation(null) }}
             onError={() => { setActiveInvitation(null) }}
