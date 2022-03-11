@@ -2609,6 +2609,9 @@ module.exports = (function() {
     var tokens = id.split('/').slice(-2);
 
     tokens = tokens.map(function(token) {
+      if (token.startsWith('~')) {
+        token = prettyId(token);
+      }
       return token
         .replace(/^-$/g, '')       // remove dashes
         .replace(/_/g, ' ')        // replace undescores with spaces
