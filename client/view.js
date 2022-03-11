@@ -567,6 +567,11 @@ module.exports = (function() {
     var cssClass = title ? 'hover_title' : 'hover_item';
     var $hoverItem = $('<div>', { class: cssClass + (removable ? ' removable_item' : ''), translate: 'no' });
     if (_.isString(resultText) && resultText.length > 0) {
+      if (resultText.includes('${note.number}')) {
+        resultText = '"number" will be replaced by the paper number after the submission has been completed.';
+      } else if (resultText.includes('${signatures}')) {
+        resultText = 'This field will be automatically populated with the edit signature shown below.';
+      }
       var $hoverResult = $('<div>', {class: 'hover_result'}).text(resultText).hide();
       $hoverItem.append($hoverResult).hover(function() {
         $hoverResult.show();
