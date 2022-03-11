@@ -313,8 +313,8 @@ module.exports = (function() {
       let authors;
       let authorids;
       if (params?.note) {
-        authors = params.note.content.authors?.const;
-        authorids = params.note.content.authorids?.const;
+        authors = params.note.content.authors?.value;
+        authorids = params.note.content.authorids?.value;
       } else if (params && params.user) {
         const userProfile = params.user.profile
         authors = [userProfile.first + ' ' + userProfile.middle + ' ' + userProfile.last];
@@ -481,8 +481,8 @@ module.exports = (function() {
     }
 
     var contentKeys = Object.keys(note.content ?? {});
-    const contentOrder = note.details?.presentation
-      ? Object.values(note.details?.presentation ?? {}).sort((a, b) => a?.order - b?.order).map(p => p.name)
+    const contentOrder = note.details?.presentation?.length
+      ? [...new Set([...note.details.presentation.map(p => p.name),...contentKeys])]
       : contentKeys
 
     var omittedContentFields = [
@@ -1826,7 +1826,6 @@ module.exports = (function() {
 
       return ret;
     }, {});
-
     return [content, files, errors];
   };
 
