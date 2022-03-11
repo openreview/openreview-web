@@ -1586,7 +1586,7 @@ module.exports = (function() {
   // Private function that creates the input element for entering a pdf, and binds
   // the arxivAutofill callback if the pdf is the first field in the form.
   var mkFileInput = function(fieldName, type, order, regexStr) {
-    var $notePdf = $('<input>', {type: type, class: 'form-control note_content_value_input note_' + fieldName});
+    var $notePdf = $('<input>', {type: type, class: 'form-control note_content_value_input note_' + fieldName.replace(/\W/g,'_')});
     var $clearBtn = null;
 
     if (type === 'text' && order <= 1) {
@@ -2922,9 +2922,9 @@ module.exports = (function() {
 
       } else if (contentObj.hasOwnProperty('value-file') || (contentObj['value-regex'] && contentObj['value-regex'] === 'upload')) {
         var $fileSection = $contentMap[k];
-        var $fileInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '.') + '[type="file"]');
+        var $fileInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '_') + '[type="file"]');
         var file = $fileInput && $fileInput.val() ? $fileInput[0].files[0] : null;
-        var $textInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '.') + '[type="text"]');
+        var $textInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '_') + '[type="text"]');
         var url = $textInput && $textInput.val();
 
         // Check if there's a file. If not, check if there's a url and update ONLY if the new value
