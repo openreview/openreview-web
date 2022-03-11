@@ -265,6 +265,9 @@ main.forum {
         padding: 0 4px;
         border-radius: 2px;
       }
+      .highlight + .highlight {
+        margin-left: .25rem;
+      }
       .btn-link {
         padding: 0;
       }

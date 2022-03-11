@@ -4,9 +4,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import has from 'lodash/has'
 import isEmpty from 'lodash/isEmpty'
-import union from 'lodash/union'
+import intersection from 'lodash/intersection'
 
 import ForumNote from './ForumNote'
 import NoteEditorForm from '../NoteEditorForm'
@@ -113,7 +112,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
     const invitationIds = new Set()
     const signatureGroupIds = new Set()
     const readerGroupIds = new Set()
-    const numberWildcard = /(Reviewer|Area_Chair)(\d+)/g
+    const numberWildcard = /(Reviewer|Area_Chair)_(\w{4})/g
     notes.forEach((note) => {
       const deleteInvitation = invitations.filter(p => (
         p.edit?.note?.id?.const === note.id || note.invitations.includes(p.edit?.note?.id?.withInvitation)
@@ -396,7 +395,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
     Object.values(replyNoteMap).forEach((note) => {
       const isVisible =
         (!selectedFilters.invitations ||
-          selectedFilters.invitations.includes(note.invitation)) &&
+          intersection(selectedFilters.invitations, note.invitations).length > 0) &&
         (!selectedFilters.signatures ||
           checkSignaturesMatch(selectedFilters.signatures, note.signatures[0])) &&
         (!selectedFilters.keywords || note.searchText.includes(selectedFilters.keywords[0])) &&
