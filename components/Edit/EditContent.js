@@ -17,7 +17,12 @@ const EditContent = ({ edit }) => {
   }
 
   const contentOrder = edit.details?.presentation?.length
-    ? edit.details.presentation.map((p) => p.name)
+    ? [
+        ...edit.details.presentation.map((p) => p.name),
+        ...(noteContent.Readers ? ['Readers'] : []),
+        ...(noteContent.Writers ? ['Writers'] : []),
+        ...(noteContent.Signatures ? ['Signatures'] : []),
+      ]
     : Object.keys(noteContent)
 
   return (
