@@ -236,22 +236,27 @@ main.forum {
       }
     }
     .subheading {
+      padding-bottom: .125rem;
       strong {
         padding-right: .5rem;
       }
       > span {
         padding-left: .5rem;
         padding-right: .5rem;
+        font-size: .75rem;
+        line-height: 15px;
+        height: 16px;
+        display: inline-block;
       }
       .signatures, .invitation, .created-date, .readers {
         color: constants.$subtleGray;
         font-weight: 400;
-        font-size: .75rem;
       }
       .invitation {
         padding-left: 0;
       }
       .glyphicon {
+        font-size: 13px;
         padding-right: .25rem;
       }
       .highlight {

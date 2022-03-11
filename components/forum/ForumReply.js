@@ -3,7 +3,7 @@
 import { useContext, useState } from 'react'
 import Link from 'next/link'
 import copy from 'copy-to-clipboard'
-import NoteContent from '../NoteContent'
+import { NoteContentV2 } from '../NoteContent'
 import NoteEditorForm from '../NoteEditorForm'
 import ForumReplyContext from './ForumReplyContext'
 import {
@@ -18,7 +18,7 @@ export default function ForumReply({ note, replies, updateNote }) {
   const { forumId, displayOptionsMap, setCollapsed } = useContext(ForumReplyContext)
 
   const {
-    id, invitation, content, signatures, details, ddate,
+    id, invitations, content, signatures, details, ddate,
   } = note
   const pastDue = ddate && ddate < Date.now()
   const canEdit = (details.original && details.originalWritable) || (!details.originalWritable && details.writable)
@@ -50,7 +50,7 @@ export default function ForumReply({ note, replies, updateNote }) {
                 </span>
               </>
             ) : (
-              <span>{buildNoteTitle(invitation, signatures)}</span>
+              <span>{buildNoteTitle(invitations[0], signatures)}</span>
             )}
           </h4>
 
@@ -113,7 +113,7 @@ export default function ForumReply({ note, replies, updateNote }) {
           {content.title ? (
             <strong>{content.title}</strong>
           ) : (
-            <span>{buildNoteTitle(invitation, signatures)}</span>
+            <span>{buildNoteTitle(invitations[0], signatures)}</span>
           )}
         </h4>
 
@@ -165,15 +165,18 @@ export default function ForumReply({ note, replies, updateNote }) {
       </div>
 
       <div className="subheading">
-        <span
-          className="invitation highlight"
-          data-toggle="tooltip"
-          data-placement="top"
-          title="Reply type"
-          style={getInvitationColors(prettyInvitationId(invitation))}
-        >
-          {prettyInvitationId(invitation, true)}
-        </span>
+        {invitations.map((invitation) => (
+          <span
+            key={invitation.id}
+            className="invitation highlight"
+            data-toggle="tooltip"
+            data-placement="top"
+            title="Reply type"
+            style={getInvitationColors(prettyInvitationId(invitation))}
+          >
+            {prettyInvitationId(invitation, true)}
+          </span>
+        ))}
         <span className="signatures" data-toggle="tooltip" data-placement="top" title="Reply Author">
           <Icon name="pencil" />
           {signatures.map(signature => prettyId(signature, true)).join(', ')}
@@ -198,7 +201,7 @@ export default function ForumReply({ note, replies, updateNote }) {
       <NoteContentCollapsible
         id={note.id}
         content={note.content}
-        invitation={note.details?.invitation}
+        presentation={note.details?.presentation}
         collapsed={!contentExpanded}
       />
 
@@ -273,7 +276,7 @@ function CopyLinkButton({ noteId }) {
 }
 
 function NoteContentCollapsible({
-  id, content, invitation, collapsed,
+  id, content, presentation, collapsed,
 }) {
   return (
     <div
@@ -282,10 +285,10 @@ function NoteContentCollapsible({
       className={`note-content-container ${collapsed ? 'collapsed' : ''}`}
       onClick={e => e.currentTarget.classList.toggle('collapsed')}
     >
-      <NoteContent
+      <NoteContentV2
         id={id}
         content={content}
-        invitation={invitation}
+        presentation={presentation}
         include={['pdf', 'html']}
       />
       <div className="gradient-overlay">

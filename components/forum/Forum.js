@@ -130,7 +130,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
 
       const replyInvitations = invitations.filter(p => {
         const replyTo = p.edit?.note?.replyto
-        return replyTo && (
+        return p.details.repliesAvailable && replyTo && (
           replyTo.const === note.id || replyTo.withForum === id || (
             replyTo.withInvitation && note.invitations.includes(replyTo.withInvitation)
           )
