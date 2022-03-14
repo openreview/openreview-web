@@ -240,13 +240,14 @@ module.exports = (function() {
 
   var getAllSubmissions = function(invitationId, options) {
     var defaults = {
+      details: 'replies',
       numbers: null,
       sort: 'number:desc'
     };
     options = _.defaults(options, defaults);
     var query = {
       invitation: invitationId,
-      details: 'replies',
+      details: options.details,
       sort: options.sort
     }
 
@@ -297,7 +298,7 @@ module.exports = (function() {
     var filterInviteeAndNumbers = function(inv) {
       var number = getNumberfromInvitation(inv.id, options.submissionGroupName);
       var invMatchesNumber = !(number && options.numbers) || options.numbers.includes(number)
-      return _.some(inv.invitees, function(invitee) { return invitee.includes(roleName) }) && invMatchesNumber;
+      return (inv.id.includes(roleName) || _.some(inv.invitees, function(invitee) { return invitee.includes(roleName) })) && invMatchesNumber;
     };
 
     return $.when(

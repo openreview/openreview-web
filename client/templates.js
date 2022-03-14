@@ -86,7 +86,24 @@ templates['committeeSummary'] = template({"1":function(container,depth0,helpers,
   return "      Reviewer Assignments:\n      <a href=\""
     + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"edgeBrowserAssignmentUrl") || (depth0 != null ? lookupProperty(depth0,"edgeBrowserAssignmentUrl") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"edgeBrowserAssignmentUrl","hash":{},"data":data,"loc":{"start":{"line":27,"column":15},"end":{"line":27,"column":43}}}) : helper)))
     + "\" class=\"show-reviewer-assignments\" target=\"_blank\">View all</a>\n";
-},"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
+},"13":function(container,depth0,helpers,partials,data,blockParams) {
+    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"status") : depth0),{"name":"each","hash":{},"fn":container.program(14, data, 2, blockParams),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":31,"column":6},"end":{"line":34,"column":15}}})) != null ? stack1 : "");
+},"14":function(container,depth0,helpers,partials,data,blockParams) {
+    var alias1=container.lambda, alias2=container.escapeExpression;
+
+  return "        <br>\n        "
+    + alias2(alias1(blockParams[0][1], depth0))
+    + ": "
+    + alias2(alias1(blockParams[0][0], depth0))
+    + "\n";
+},"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data,blockParams) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -95,17 +112,19 @@ templates['committeeSummary'] = template({"1":function(container,depth0,helpers,
     };
 
   return "<div class=\"note\" data-id=\""
-    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"id") || (depth0 != null ? lookupProperty(depth0,"id") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(alias1,{"name":"id","hash":{},"data":data,"loc":{"start":{"line":1,"column":27},"end":{"line":1,"column":33}}}) : helper)))
+    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"id") || (depth0 != null ? lookupProperty(depth0,"id") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(alias1,{"name":"id","hash":{},"data":data,"blockParams":blockParams,"loc":{"start":{"line":1,"column":27},"end":{"line":1,"column":33}}}) : helper)))
     + "\">\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"name") : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.program(3, data, 0),"data":data,"loc":{"start":{"line":2,"column":2},"end":{"line":7,"column":9}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"name") : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0, blockParams),"inverse":container.program(3, data, 0, blockParams),"data":data,"blockParams":blockParams,"loc":{"start":{"line":2,"column":2},"end":{"line":7,"column":9}}})) != null ? stack1 : "")
     + "\n  <p>\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"showBids") : depth0),{"name":"if","hash":{},"fn":container.program(5, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":10,"column":4},"end":{"line":16,"column":11}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"showBids") : depth0),{"name":"if","hash":{},"fn":container.program(5, data, 0, blockParams),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":10,"column":4},"end":{"line":16,"column":11}}})) != null ? stack1 : "")
     + "\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"showRecommendations") : depth0),{"name":"if","hash":{},"fn":container.program(8, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":18,"column":4},"end":{"line":23,"column":11}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"showRecommendations") : depth0),{"name":"if","hash":{},"fn":container.program(8, data, 0, blockParams),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":18,"column":4},"end":{"line":23,"column":11}}})) != null ? stack1 : "")
     + "\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"edgeBrowserAssignmentUrl") : depth0),{"name":"if","hash":{},"fn":container.program(11, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":25,"column":4},"end":{"line":28,"column":11}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"edgeBrowserAssignmentUrl") : depth0),{"name":"if","hash":{},"fn":container.program(11, data, 0, blockParams),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":25,"column":4},"end":{"line":28,"column":11}}})) != null ? stack1 : "")
+    + "\n"
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"status") : depth0),{"name":"if","hash":{},"fn":container.program(13, data, 0, blockParams),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":30,"column":4},"end":{"line":35,"column":11}}})) != null ? stack1 : "")
     + "  </p>\n</div>\n";
-},"useData":true});
+},"useData":true,"useBlockParams":true});
 templates['genericModal'] = template({"1":function(container,depth0,helpers,partials,data) {
     var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -1391,7 +1410,20 @@ templates['notesAreaChairStatus'] = template({"1":function(container,depth0,help
     + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"papers") : depth0),{"name":"each","hash":{},"fn":container.program(5, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":7,"column":6},"end":{"line":32,"column":15}}})) != null ? stack1 : "")
     + "    </tbody>\n  </table>\n\n</div>\n";
 },"useData":true,"useDepths":true});
-templates['notesReviewerProgress'] = template({"1":function(container,depth0,helpers,partials,data,blockParams,depths) {
+templates['notesReviewerProgress'] = template({"1":function(container,depth0,helpers,partials,data) {
+    var helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "<h4>"
+    + alias4(((helper = (helper = lookupProperty(helpers,"numSubmittedRecommendations") || (depth0 != null ? lookupProperty(depth0,"numSubmittedRecommendations") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"numSubmittedRecommendations","hash":{},"data":data,"loc":{"start":{"line":3,"column":41},"end":{"line":3,"column":72}}}) : helper)))
+    + " of "
+    + alias4(((helper = (helper = lookupProperty(helpers,"numPapers") || (depth0 != null ? lookupProperty(depth0,"numPapers") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"numPapers","hash":{},"data":data,"loc":{"start":{"line":3,"column":76},"end":{"line":3,"column":89}}}) : helper)))
+    + " Recommendations Submitted</h4>";
+},"3":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var stack1, alias1=container.lambda, alias2=container.escapeExpression, alias3=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -1403,13 +1435,13 @@ templates['notesReviewerProgress'] = template({"1":function(container,depth0,hel
     + alias2(alias1(((stack1 = (depth0 != null ? lookupProperty(depth0,"note") : depth0)) != null ? lookupProperty(stack1,"number") : stack1), depth0))
     + ".</strong></td>\n          <td style=\"width: 300px;\"><a href=\"/forum?id="
     + alias2(alias1(((stack1 = (depth0 != null ? lookupProperty(depth0,"note") : depth0)) != null ? lookupProperty(stack1,"forum") : stack1), depth0))
-    + ((stack1 = lookupProperty(helpers,"if").call(alias3,(depths[1] != null ? lookupProperty(depths[1],"referrer") : depths[1]),{"name":"if","hash":{},"fn":container.program(2, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":10,"column":69},"end":{"line":10,"column":120}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias3,(depths[1] != null ? lookupProperty(depths[1],"referrer") : depths[1]),{"name":"if","hash":{},"fn":container.program(4, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":11,"column":69},"end":{"line":11,"column":120}}})) != null ? stack1 : "")
     + "\" target=\"_blank\">"
     + alias2(alias1(((stack1 = ((stack1 = (depth0 != null ? lookupProperty(depth0,"note") : depth0)) != null ? lookupProperty(stack1,"content") : stack1)) != null ? lookupProperty(stack1,"title") : stack1), depth0))
     + "</a></td>\n        </tr>\n        <tr>\n          <td style=\"width: 28px;\"></td>\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias3,(depth0 != null ? lookupProperty(depth0,"review") : depth0),{"name":"if","hash":{},"fn":container.program(4, data, 0, blockParams, depths),"inverse":container.program(10, data, 0, blockParams, depths),"data":data,"blockParams":blockParams,"loc":{"start":{"line":14,"column":10},"end":{"line":29,"column":17}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias3,(depth0 != null ? lookupProperty(depth0,"review") : depth0),{"name":"if","hash":{},"fn":container.program(6, data, 0, blockParams, depths),"inverse":container.program(12, data, 0, blockParams, depths),"data":data,"blockParams":blockParams,"loc":{"start":{"line":15,"column":10},"end":{"line":30,"column":17}}})) != null ? stack1 : "")
     + "        </tr>\n";
-},"2":function(container,depth0,helpers,partials,data,blockParams,depths) {
+},"4":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -1419,7 +1451,7 @@ templates['notesReviewerProgress'] = template({"1":function(container,depth0,hel
 
   return "&referrer="
     + container.escapeExpression(container.lambda((depths[1] != null ? lookupProperty(depths[1],"referrer") : depths[1]), depth0));
-},"4":function(container,depth0,helpers,partials,data,blockParams,depths) {
+},"6":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.lambda, alias3=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -1427,14 +1459,14 @@ templates['notesReviewerProgress'] = template({"1":function(container,depth0,hel
         return undefined
     };
 
-  return ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"review") : depth0)) != null ? lookupProperty(stack1,"status") : stack1),{"name":"if","hash":{},"fn":container.program(5, data, 0, blockParams, depths),"inverse":container.program(8, data, 0, blockParams, depths),"data":data,"blockParams":blockParams,"loc":{"start":{"line":15,"column":12},"end":{"line":23,"column":19}}})) != null ? stack1 : "")
+  return ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"review") : depth0)) != null ? lookupProperty(stack1,"status") : stack1),{"name":"if","hash":{},"fn":container.program(7, data, 0, blockParams, depths),"inverse":container.program(10, data, 0, blockParams, depths),"data":data,"blockParams":blockParams,"loc":{"start":{"line":16,"column":12},"end":{"line":24,"column":19}}})) != null ? stack1 : "")
     + "          <td>\n            <a href=\"/forum?id="
     + alias3(alias2(((stack1 = (depth0 != null ? lookupProperty(depth0,"review") : depth0)) != null ? lookupProperty(stack1,"forum") : stack1), depth0))
     + "&noteId="
     + alias3(alias2(((stack1 = (depth0 != null ? lookupProperty(depth0,"review") : depth0)) != null ? lookupProperty(stack1,"id") : stack1), depth0))
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depths[1] != null ? lookupProperty(depths[1],"referrer") : depths[1]),{"name":"if","hash":{},"fn":container.program(2, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":25,"column":68},"end":{"line":25,"column":119}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depths[1] != null ? lookupProperty(depths[1],"referrer") : depths[1]),{"name":"if","hash":{},"fn":container.program(4, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":26,"column":68},"end":{"line":26,"column":119}}})) != null ? stack1 : "")
     + "\" target=\"_blank\">Read Review</a>\n          </td>\n";
-},"5":function(container,depth0,helpers,partials,data,blockParams) {
+},"7":function(container,depth0,helpers,partials,data,blockParams) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -1443,9 +1475,9 @@ templates['notesReviewerProgress'] = template({"1":function(container,depth0,hel
     };
 
   return "              <td style=\"width: 300px;\">\n"
-    + ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"review") : depth0)) != null ? lookupProperty(stack1,"status") : stack1),{"name":"each","hash":{},"fn":container.program(6, data, 2, blockParams),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":17,"column":16},"end":{"line":19,"column":25}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = (depth0 != null ? lookupProperty(depth0,"review") : depth0)) != null ? lookupProperty(stack1,"status") : stack1),{"name":"each","hash":{},"fn":container.program(8, data, 2, blockParams),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":18,"column":16},"end":{"line":20,"column":25}}})) != null ? stack1 : "")
     + "              </td>\n";
-},"6":function(container,depth0,helpers,partials,data,blockParams) {
+},"8":function(container,depth0,helpers,partials,data,blockParams) {
     var alias1=container.lambda, alias2=container.escapeExpression;
 
   return "                  "
@@ -1453,7 +1485,7 @@ templates['notesReviewerProgress'] = template({"1":function(container,depth0,hel
     + ": "
     + alias2(alias1(blockParams[0][0], depth0))
     + " /\n";
-},"8":function(container,depth0,helpers,partials,data) {
+},"10":function(container,depth0,helpers,partials,data) {
     var stack1, alias1=container.lambda, alias2=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -1468,7 +1500,7 @@ templates['notesReviewerProgress'] = template({"1":function(container,depth0,hel
     + " / Review length: "
     + alias2(alias1(((stack1 = ((stack1 = ((stack1 = (depth0 != null ? lookupProperty(depth0,"review") : depth0)) != null ? lookupProperty(stack1,"content") : stack1)) != null ? lookupProperty(stack1,"review") : stack1)) != null ? lookupProperty(stack1,"length") : stack1), depth0))
     + "</td>\n";
-},"10":function(container,depth0,helpers,partials,data) {
+},"12":function(container,depth0,helpers,partials,data) {
     return "          <td style=\"width: 300px;\"></td>\n";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -1482,11 +1514,26 @@ templates['notesReviewerProgress'] = template({"1":function(container,depth0,hel
     + alias4(((helper = (helper = lookupProperty(helpers,"numCompletedReviews") || (depth0 != null ? lookupProperty(depth0,"numCompletedReviews") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"numCompletedReviews","hash":{},"data":data,"blockParams":blockParams,"loc":{"start":{"line":2,"column":6},"end":{"line":2,"column":29}}}) : helper)))
     + " of "
     + alias4(((helper = (helper = lookupProperty(helpers,"numPapers") || (depth0 != null ? lookupProperty(depth0,"numPapers") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"numPapers","hash":{},"data":data,"blockParams":blockParams,"loc":{"start":{"line":2,"column":33},"end":{"line":2,"column":46}}}) : helper)))
-    + " Reviews Submitted</h4>\n\n  <strong>Papers:</strong>\n  <table class=\"table table-condensed table-minimal\">\n    <tbody>\n"
-    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"papers") : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":7,"column":6},"end":{"line":31,"column":15}}})) != null ? stack1 : "")
+    + " Reviews Submitted</h4>\n  "
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"numSubmittedRecommendations") : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":3,"column":2},"end":{"line":3,"column":127}}})) != null ? stack1 : "")
+    + "\n\n  <strong>Papers:</strong>\n  <table class=\"table table-condensed table-minimal\">\n    <tbody>\n"
+    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"papers") : depth0),{"name":"each","hash":{},"fn":container.program(3, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":8,"column":6},"end":{"line":32,"column":15}}})) != null ? stack1 : "")
     + "    </tbody>\n  </table>\n\n</div>\n";
 },"useData":true,"useDepths":true,"useBlockParams":true});
 templates['notesReviewerStatus'] = template({"1":function(container,depth0,helpers,partials,data) {
+    var helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "<h4>"
+    + alias4(((helper = (helper = lookupProperty(helpers,"numSubmittedRecommendations") || (depth0 != null ? lookupProperty(depth0,"numSubmittedRecommendations") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"numSubmittedRecommendations","hash":{},"data":data,"loc":{"start":{"line":3,"column":41},"end":{"line":3,"column":72}}}) : helper)))
+    + " of "
+    + alias4(((helper = (helper = lookupProperty(helpers,"numPapers") || (depth0 != null ? lookupProperty(depth0,"numPapers") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"numPapers","hash":{},"data":data,"loc":{"start":{"line":3,"column":76},"end":{"line":3,"column":89}}}) : helper)))
+    + " Recommendations Submitted</h4>";
+},"3":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=container.escapeExpression, alias2=depth0 != null ? depth0 : (container.nullContext || {}), alias3=container.hooks.helperMissing, alias4="function", lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -1497,12 +1544,12 @@ templates['notesReviewerStatus'] = template({"1":function(container,depth0,helpe
   return "        <tr>\n          <td style=\"width: 28px;\"><strong>"
     + alias1(container.lambda(((stack1 = (depth0 != null ? lookupProperty(depth0,"note") : depth0)) != null ? lookupProperty(stack1,"number") : stack1), depth0))
     + ".</strong></td>\n          <td style=\"width: 280px;\"><strong>"
-    + alias1(((helper = (helper = lookupProperty(helpers,"numOfReviews") || (depth0 != null ? lookupProperty(depth0,"numOfReviews") : depth0)) != null ? helper : alias3),(typeof helper === alias4 ? helper.call(alias2,{"name":"numOfReviews","hash":{},"data":data,"loc":{"start":{"line":10,"column":44},"end":{"line":10,"column":60}}}) : helper)))
+    + alias1(((helper = (helper = lookupProperty(helpers,"numOfReviews") || (depth0 != null ? lookupProperty(depth0,"numOfReviews") : depth0)) != null ? helper : alias3),(typeof helper === alias4 ? helper.call(alias2,{"name":"numOfReviews","hash":{},"data":data,"loc":{"start":{"line":11,"column":44},"end":{"line":11,"column":60}}}) : helper)))
     + " of "
-    + alias1(((helper = (helper = lookupProperty(helpers,"numOfReviewers") || (depth0 != null ? lookupProperty(depth0,"numOfReviewers") : depth0)) != null ? helper : alias3),(typeof helper === alias4 ? helper.call(alias2,{"name":"numOfReviewers","hash":{},"data":data,"loc":{"start":{"line":10,"column":64},"end":{"line":10,"column":82}}}) : helper)))
+    + alias1(((helper = (helper = lookupProperty(helpers,"numOfReviewers") || (depth0 != null ? lookupProperty(depth0,"numOfReviewers") : depth0)) != null ? helper : alias3),(typeof helper === alias4 ? helper.call(alias2,{"name":"numOfReviewers","hash":{},"data":data,"loc":{"start":{"line":11,"column":64},"end":{"line":11,"column":82}}}) : helper)))
     + " Reviews Submitted </strong></td>\n        </tr>\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias2,(depth0 != null ? lookupProperty(depth0,"averageRating") : depth0),{"name":"if","hash":{},"fn":container.program(2, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":12,"column":8},"end":{"line":17,"column":15}}})) != null ? stack1 : "");
-},"2":function(container,depth0,helpers,partials,data) {
+    + ((stack1 = lookupProperty(helpers,"if").call(alias2,(depth0 != null ? lookupProperty(depth0,"averageRating") : depth0),{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":13,"column":8},"end":{"line":18,"column":15}}})) != null ? stack1 : "");
+},"4":function(container,depth0,helpers,partials,data) {
     var helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -1511,11 +1558,11 @@ templates['notesReviewerStatus'] = template({"1":function(container,depth0,helpe
     };
 
   return "          <tr>\n            <td style=\"width: 28px;\"></td>\n            <td style=\"width: 280px;\">Average Rating: "
-    + alias4(((helper = (helper = lookupProperty(helpers,"averageRating") || (depth0 != null ? lookupProperty(depth0,"averageRating") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"averageRating","hash":{},"data":data,"loc":{"start":{"line":15,"column":54},"end":{"line":15,"column":71}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"averageRating") || (depth0 != null ? lookupProperty(depth0,"averageRating") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"averageRating","hash":{},"data":data,"loc":{"start":{"line":16,"column":54},"end":{"line":16,"column":71}}}) : helper)))
     + " (Min: "
-    + alias4(((helper = (helper = lookupProperty(helpers,"minRating") || (depth0 != null ? lookupProperty(depth0,"minRating") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"minRating","hash":{},"data":data,"loc":{"start":{"line":15,"column":78},"end":{"line":15,"column":91}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"minRating") || (depth0 != null ? lookupProperty(depth0,"minRating") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"minRating","hash":{},"data":data,"loc":{"start":{"line":16,"column":78},"end":{"line":16,"column":91}}}) : helper)))
     + ", Max: "
-    + alias4(((helper = (helper = lookupProperty(helpers,"maxRating") || (depth0 != null ? lookupProperty(depth0,"maxRating") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"maxRating","hash":{},"data":data,"loc":{"start":{"line":15,"column":98},"end":{"line":15,"column":111}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"maxRating") || (depth0 != null ? lookupProperty(depth0,"maxRating") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"maxRating","hash":{},"data":data,"loc":{"start":{"line":16,"column":98},"end":{"line":16,"column":111}}}) : helper)))
     + ")</td>\n          </tr>\n";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -1529,8 +1576,10 @@ templates['notesReviewerStatus'] = template({"1":function(container,depth0,helpe
     + alias4(((helper = (helper = lookupProperty(helpers,"numCompletedReviews") || (depth0 != null ? lookupProperty(depth0,"numCompletedReviews") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"numCompletedReviews","hash":{},"data":data,"loc":{"start":{"line":2,"column":6},"end":{"line":2,"column":29}}}) : helper)))
     + " of "
     + alias4(((helper = (helper = lookupProperty(helpers,"numPapers") || (depth0 != null ? lookupProperty(depth0,"numPapers") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"numPapers","hash":{},"data":data,"loc":{"start":{"line":2,"column":33},"end":{"line":2,"column":46}}}) : helper)))
-    + " Reviews Completed</h4>\n\n  <strong>Papers:</strong>\n  <table class=\"table table-condensed table-minimal\">\n    <tbody>\n"
-    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"papers") : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":7,"column":6},"end":{"line":18,"column":15}}})) != null ? stack1 : "")
+    + " Reviews Completed</h4>\n  "
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"numSubmittedRecommendations") : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":3,"column":2},"end":{"line":3,"column":127}}})) != null ? stack1 : "")
+    + "\n\n  <strong>Papers:</strong>\n  <table class=\"table table-condensed table-minimal\">\n    <tbody>\n"
+    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"papers") : depth0),{"name":"each","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":8,"column":6},"end":{"line":19,"column":15}}})) != null ? stack1 : "")
     + "    </tbody>\n  </table>\n\n</div>\n";
 },"useData":true});
 templates['spinner'] = template({"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
