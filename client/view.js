@@ -567,6 +567,11 @@ module.exports = (function() {
     var cssClass = title ? 'hover_title' : 'hover_item';
     var $hoverItem = $('<div>', { class: cssClass + (removable ? ' removable_item' : ''), translate: 'no' });
     if (_.isString(resultText) && resultText.length > 0) {
+      if (resultText.includes('${note.number}')) {
+        resultText = '"number" will be replaced with the paper number after the submission has been completed.';
+      } else if (resultText.includes('${signatures}')) {
+        resultText = '"signatures" will be replaced with the edit signature shown below.';
+      }
       var $hoverResult = $('<div>', {class: 'hover_result'}).text(resultText).hide();
       $hoverItem.append($hoverResult).hover(function() {
         $hoverResult.show();
@@ -1581,7 +1586,7 @@ module.exports = (function() {
   // Private function that creates the input element for entering a pdf, and binds
   // the arxivAutofill callback if the pdf is the first field in the form.
   var mkFileInput = function(fieldName, type, order, regexStr) {
-    var $notePdf = $('<input>', {type: type, class: 'form-control note_content_value_input note_' + fieldName});
+    var $notePdf = $('<input>', {type: type, class: 'form-control note_content_value_input note_' + fieldName.replace(/\W/g,'_')});
     var $clearBtn = null;
 
     if (type === 'text' && order <= 1) {
@@ -2604,6 +2609,9 @@ module.exports = (function() {
     var tokens = id.split('/').slice(-2);
 
     tokens = tokens.map(function(token) {
+      if (token.startsWith('~')) {
+        token = prettyId(token);
+      }
       return token
         .replace(/^-$/g, '')       // remove dashes
         .replace(/_/g, ' ')        // replace undescores with spaces
@@ -2917,9 +2925,9 @@ module.exports = (function() {
 
       } else if (contentObj.hasOwnProperty('value-file') || (contentObj['value-regex'] && contentObj['value-regex'] === 'upload')) {
         var $fileSection = $contentMap[k];
-        var $fileInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '.') + '[type="file"]');
+        var $fileInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '_') + '[type="file"]');
         var file = $fileInput && $fileInput.val() ? $fileInput[0].files[0] : null;
-        var $textInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '.') + '[type="text"]');
+        var $textInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '_') + '[type="text"]');
         var url = $textInput && $textInput.val();
 
         // Check if there's a file. If not, check if there's a url and update ONLY if the new value

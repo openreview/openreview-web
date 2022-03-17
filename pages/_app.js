@@ -2,7 +2,6 @@
 
 import App from 'next/app'
 import Router from 'next/router'
-import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
@@ -84,7 +83,8 @@ export default class OpenReviewApp extends App {
   }
 
   loginUserWithToken(userAccessToken, setCookie = true) {
-    const { user: authenticatedUser, expiration: tokenExpiration } = getTokenPayload(userAccessToken)
+    const { user: authenticatedUser, expiration: tokenExpiration } =
+      getTokenPayload(userAccessToken)
     if (!authenticatedUser) return
 
     this.setState({
@@ -139,7 +139,11 @@ export default class OpenReviewApp extends App {
 
   static async attemptRefresh() {
     try {
-      const { token, user } = await api.post('/refreshToken', {}, { ignoreErrors: ['TokenError'] })
+      const { token, user } = await api.post(
+        '/refreshToken',
+        {},
+        { ignoreErrors: ['TokenError'] }
+      )
       const expiration = Date.now() + cookieExpiration
       return { user, token, expiration }
     } catch (error) {
@@ -313,6 +317,7 @@ export default class OpenReviewApp extends App {
     require('bootstrap')
     window._ = require('lodash')
     window.Handlebars = require('handlebars/runtime')
+    const { marked } = require('marked')
     window.marked = marked
     window.DOMPurify = DOMPurify
     window.MathJax = mathjaxConfig
