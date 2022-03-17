@@ -93,12 +93,12 @@ const InvitationInfo = ({ appContext }) => {
   useEffect(() => {
     if (!router.isReady || userLoading) return
 
-    setBannerHidden(true)
-
     if (!router.query.id) {
       setError({ statusCode: 400, message: 'Missing required parameter id' })
       return
     }
+
+    setBannerHidden(true)
 
     loadInvitation(router.query.id)
   }, [router.isReady, router.query, userLoading, accessToken])
@@ -107,11 +107,16 @@ const InvitationInfo = ({ appContext }) => {
     if (!invitation) return
 
     // Show edit mode banner
-    setBannerHidden(true)
     if (invitation.details?.writable) {
       setEditBanner(invitationModeToggle('info', invitation.id))
     }
   }, [invitation])
+
+  useEffect(() => {
+    if (!error) return
+
+    setBannerHidden(false)
+  }, [error])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
 

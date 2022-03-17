@@ -49,6 +49,8 @@ const GroupInfo = ({ appContext }) => {
       return
     }
 
+    setBannerHidden(true)
+
     loadGroup(router.query.id)
   }, [router.isReady, router.query, userLoading, accessToken])
 
@@ -56,11 +58,16 @@ const GroupInfo = ({ appContext }) => {
     if (!group) return
 
     // Show edit mode banner
-    setBannerHidden(true)
     if (group.details?.writable) {
       setEditBanner(groupModeToggle('info', group.id))
     }
   }, [group])
+
+  useEffect(() => {
+    if (!error) return
+
+    setBannerHidden(false)
+  }, [error])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
 

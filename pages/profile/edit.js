@@ -106,15 +106,18 @@ export default function ProfileEdit({ appContext }) {
   useEffect(() => {
     if (!accessToken) return
 
+    setBannerHidden(true)
+    setEditBanner(profileModeToggle('edit'))
+
     loadProfile()
   }, [accessToken])
 
   useEffect(() => {
-    if (!profile) return
+    if (!error) return
 
-    setBannerHidden(true)
-    setEditBanner(profileModeToggle('edit'))
-  }, [profile])
+    setBannerHidden(false)
+    setEditBanner(null)
+  }, [error])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
 

@@ -71,6 +71,7 @@ export default function GroupEdit({ appContext }) {
   useEffect(() => {
     if (!error) return
 
+    setBannerHidden(false)
     setEditBanner(null)
   }, [error])
 

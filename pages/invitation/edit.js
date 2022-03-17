@@ -92,6 +92,7 @@ const InvitationEdit = ({ appContext }) => {
   useEffect(() => {
     if (!error) return
 
+    setBannerHidden(false)
     setEditBanner(null)
   }, [error])
 
