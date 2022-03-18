@@ -115,7 +115,8 @@ main.invitation {
       overflow-x: hidden;
     }
   }
-  .reply-preview {
+  .reply-preview,
+  .tabs-container {
     div[role='tablist'] {
       margin-top: 1rem;
       a[data-target='#Reply'] {
@@ -163,6 +164,61 @@ main.invitation {
           margin-bottom: 0.25rem;
         }
       }
+    }
+  }
+
+  .dateprocess-editor {
+    margin-top: 1rem;
+    .glyphicon {
+      color: constants.$mediumBlue;
+      font-size: 1.25rem;
+      margin-right: 1rem;
+      margin-top: 0.25rem;
+    }
+    .code-editor {
+      margin-left: 2rem;
+      border-top: #ddd solid 1px;
+      margin-bottom: 1rem;
+    }
+    .dateprocess-row {
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 0.5rem;
+
+      .dropdown-select {
+        width: 10%;
+        align-self: start;
+        margin-right: 1rem;
+      }
+
+      .delay-input {
+        width: 50%;
+        margin-right: 1rem;
+      }
+
+      button {
+        margin-top: 0;
+        align-self: start;
+      }
+
+      .dates {
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+        margin-right: 1rem;
+        .date-row {
+          display: flex;
+          justify-content: flex-start;
+          margin-bottom: 0.5rem;
+          .glyphicon {
+            margin-left: 0.5rem;
+          }
+        }
+      }
+    }
+    .add-row {
+      display: flex;
+      justify-content: flex-start;
     }
   }
 }

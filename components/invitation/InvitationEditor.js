@@ -7,7 +7,10 @@ import InvitationReply, {
   InvitationReplyWithPreview,
   InvitationReplyV2,
 } from './InvitationReply'
-import InvitationCode, { InvitationCodeV2 } from './InvitationCode'
+import InvitationCode, {
+  InvitationCodeV2,
+  InvitationProcessFunctionsV2,
+} from './InvitationCode'
 import InvitationChildInvitations, {
   InvitationChildInvitationsV2,
 } from './InvitationChildInvitations'
@@ -116,20 +119,11 @@ export const InvitationEditorV2 = ({
         codeType="web"
         isMetaInvitation={isMetaInvitation}
       />
-      <InvitationCodeV2
+      <InvitationProcessFunctionsV2
         invitation={invitation}
         profileId={profileId}
         accessToken={accessToken}
         loadInvitation={loadInvitation}
-        codeType="process"
-        isMetaInvitation={isMetaInvitation}
-      />
-      <InvitationCodeV2
-        invitation={invitation}
-        profileId={profileId}
-        accessToken={accessToken}
-        loadInvitation={loadInvitation}
-        codeType="preprocess"
         isMetaInvitation={isMetaInvitation}
       />
     </div>
