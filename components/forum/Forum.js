@@ -272,7 +272,6 @@ export default function Forum({ forumNote, clientJsLoading }) {
   }
 
   const addTopLevelReply = (note) => {
-    console.log('addTopLevelReply', note)
     setReplyNoteMap({
       ...replyNoteMap,
       [note.id]: formatNote(note, activeInvitation)
@@ -496,8 +495,10 @@ export default function Forum({ forumNote, clientJsLoading }) {
             onNoteCancelled={() => {
               setActiveInvitation(null)
             }}
-            onError={() => {
-              setActiveInvitation(null)
+            onError={(isLoadingError) => {
+              if (isLoadingError) {
+                setActiveInvitation(null)
+              }
             }}
           />
 

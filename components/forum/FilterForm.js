@@ -117,7 +117,7 @@ export default function FilterForm({
             id="keyword-input"
             placeholder="Search..."
             defaultValue={selectedFilters.keywords ? selectedFilters.keywords[0] : ''}
-            onBlur={(e) => {
+            onChange={(e) => {
               updateFilters({
                 keywords: e.target.value ? [e.target.value.toLowerCase()] : null,
               })

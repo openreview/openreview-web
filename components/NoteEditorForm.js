@@ -21,7 +21,7 @@ export default function NoteEditorForm({
     setLoading(false)
 
     if (!$editor && typeof onError === 'function') {
-      onError()
+      onError(true)
       return
     }
 

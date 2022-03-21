@@ -86,6 +86,11 @@ export default function ForumReply({ note, replies, updateNote }) {
           onNoteCancelled={() => {
             setActiveEditInvitation(null)
           }}
+          onError={(isLoadingError) => {
+            if (isLoadingError) {
+              setActiveEditInvitation(null)
+            }
+          }}
         />
 
         {!allRepliesHidden && (
@@ -210,12 +215,15 @@ export default function ForumReply({ note, replies, updateNote }) {
             invitation={activeInvitation}
             replyToId={note.id}
             onNoteCreated={(newNote) => {
-              setActiveEditInvitation(null)
-              console.log(newNote)
+              setActiveInvitation(null)
               updateNote(newNote, note.id, note.replyInvitations)
             }}
             onNoteCancelled={() => { setActiveInvitation(null) }}
-            onError={() => { setActiveInvitation(null) }}
+            onError={(isLoadingError) => {
+              if (isLoadingError) {
+                setActiveInvitation(null)
+              }
+            }}
           />
         </div>
       )}

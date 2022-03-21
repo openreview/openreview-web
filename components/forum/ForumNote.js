@@ -74,6 +74,11 @@ function ForumNote({ note, updateNote }) {
             closeNoteEditor()
           }}
           onNoteCancelled={closeNoteEditor}
+          onError={(isLoadingError) => {
+            if (isLoadingError) {
+              setActiveInvitation(null)
+            }
+          }}
         />
       </div>
     )
@@ -177,7 +182,7 @@ function ForumMeta({ note }) {
 
       <span className="item">
         <Icon name="folder-open" />
-        {note.content.venueid?.value || prettyId(note.invitation)}
+        {prettyId(note.content.venueid?.value || note.invitations[0])}
       </span>
 
       {note.readers && (
