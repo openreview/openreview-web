@@ -26,5 +26,12 @@
       Reviewer Assignments:
       <a href="{{edgeBrowserAssignmentUrl}}" class="show-reviewer-assignments" target="_blank">View all</a>
     {{/if}}
+
+    {{#if status}}
+      {{#each status as |value name|}}
+        <br>
+        {{name}}: {{value}}
+      {{/each}}
+    {{/if}}
   </p>
 </div>

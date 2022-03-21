@@ -567,6 +567,11 @@ module.exports = (function() {
     var cssClass = title ? 'hover_title' : 'hover_item';
     var $hoverItem = $('<div>', { class: cssClass + (removable ? ' removable_item' : ''), translate: 'no' });
     if (_.isString(resultText) && resultText.length > 0) {
+      if (resultText.includes('${note.number}')) {
+        resultText = '"number" will be replaced with the paper number after the submission has been completed.';
+      } else if (resultText.includes('${signatures}')) {
+        resultText = '"signatures" will be replaced with the edit signature shown below.';
+      }
       var $hoverResult = $('<div>', {class: 'hover_result'}).text(resultText).hide();
       $hoverItem.append($hoverResult).hover(function() {
         $hoverResult.show();
@@ -2604,6 +2609,9 @@ module.exports = (function() {
     var tokens = id.split('/').slice(-2);
 
     tokens = tokens.map(function(token) {
+      if (token.startsWith('~')) {
+        token = prettyId(token);
+      }
       return token
         .replace(/^-$/g, '')       // remove dashes
         .replace(/_/g, ' ')        // replace undescores with spaces

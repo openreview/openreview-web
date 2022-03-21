@@ -4,7 +4,7 @@
 import { useEffect, useContext, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { NoteV2 } from '../../components/Note'
+import { truncate } from 'lodash'
 import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorAlert from '../../components/ErrorAlert'
@@ -15,6 +15,7 @@ import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { buildNoteTitle, prettyId } from '../../lib/utils'
 import { forumLink } from '../../lib/banner-links'
+import Edit from '../../components/Edit/Edit'
 
 const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreEdit }) => {
   const [signature, setSignature] = useState(null)
@@ -322,16 +323,11 @@ const RevisionsList = ({
           {reference.note ? (
             <>
               <div className="col-sm-9">
-                <NoteV2
-                  note={{ ...reference, content: reference.note.content }}
-                  invitation={invitation}
+                <Edit
+                  edit={reference}
                   options={{
                     showContents: true,
-                    showPrivateIcon: true,
-                    isReference: true,
-                    pdfLink: true,
-                    htmlLink: true,
-                    ...(reference.ddate && { extraClasses: 'note-trashed' }),
+                    ...(reference.ddate && { extraClasses: 'edit-trashed' }),
                   }}
                 />
               </div>
@@ -505,7 +501,7 @@ const Revisions = ({ appContext }) => {
         {
           'note.id': query.id,
           sort: 'tcdate',
-          details: 'writable',
+          details: 'writable,presentation',
           trash: true,
         },
         { accessToken, version: 2 }
@@ -542,6 +538,22 @@ const Revisions = ({ appContext }) => {
     }
   }
 
+  const getPageTitle = () => {
+    if (!revisions?.length) return 'Revision History'
+    let latestNoteTitle =
+      referencesToLoad === 'revisions'
+        ? revisions.sort((p) => p[0].tcdate).find((q) => q[0]?.content?.title)?.[0]?.content
+            ?.title
+        : revisions.sort((p) => p[0].tcdate).find((q) => q[0].note?.content?.title)?.[0]?.note
+            ?.content?.title?.value
+    latestNoteTitle = truncate(latestNoteTitle, {
+      length: 45,
+      omission: '...',
+      separator: ' ',
+    })
+    return `Revision History${latestNoteTitle ? ` for ${latestNoteTitle}` : ''}`
+  }
+
   useEffect(() => {
     if (userLoading || !query) return
     let note = null
@@ -554,7 +566,12 @@ const Revisions = ({ appContext }) => {
 
     const setBanner = async () => {
       try {
-        note = await api.getNoteById(noteId, accessToken, { details: 'writable' })
+        note = await api.getNoteById(
+          noteId,
+          accessToken,
+          { details: 'writable,forumContent' },
+          true
+        )
         if (note) {
           setBannerContent(forumLink(note))
         } else {
@@ -588,7 +605,7 @@ const Revisions = ({ appContext }) => {
       </Head>
 
       <header>
-        <h1>Revision History</h1>
+        <h1>{getPageTitle()}</h1>
         <div className="button-container">
           {selectedIndexes ? (
             <>
