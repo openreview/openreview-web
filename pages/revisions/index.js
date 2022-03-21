@@ -15,7 +15,7 @@ import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { buildNoteTitle, prettyId } from '../../lib/utils'
 import { forumLink } from '../../lib/banner-links'
-import Edit from '../../components/Edit/Edit'
+import Edit from '../../components/edit/Edit'
 
 const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreEdit }) => {
   const [signature, setSignature] = useState(null)

@@ -46,7 +46,7 @@ const Group = ({ groupId, webfieldCode, componentObj, appContext }) => {
     if (!componentObj) return
 
     setGroupComponent(dynamic(
-      () => import(`../../components/Group/${componentObj.component}`)
+      () => import(`../../components/group/${componentObj.component}`)
     ))
 
     const componentProps = {}
@@ -54,7 +54,7 @@ const Group = ({ groupId, webfieldCode, componentObj, appContext }) => {
       const prop = componentObj.properties[propName]
       if (typeof prop === 'object' && prop.component) {
         componentProps[propName] = dynamic(
-          () => import(`../../components/Group/${prop.component}`)
+          () => import(`../../components/group/${prop.component}`)
         )
       } else {
         componentProps[propName] = prop
