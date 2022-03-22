@@ -362,26 +362,27 @@ const DateProcessesEditor = ({
       const requestPath = '/invitations/edits'
       const metaInvitationId = getMetaInvitationId(invitation)
       if (!isMetaInvitation && !metaInvitationId) throw new Error('No meta invitation found')
+      const processesToPost = processes.flatMap((p) => {
+        if (
+          (p.type === 'delay' && p.delay.trim() === '') ||
+          (p.type === 'dates' && !p.dates.filter((q) => q.trim()).length)
+        )
+          return []
+        return {
+          script: p.script,
+          ...(p.type === 'dates' && {
+            dates: p.dates.filter((q) => q.trim().length > 0).map((r) => r.trim()),
+          }),
+          ...(p.type === 'delay' && {
+            delay: Number.isInteger(p.delay) ? p.delay : Number(p.delay.trim()),
+          }),
+        }
+      })
       const requestBody = {
         invitation: {
           id: invitation.id,
           signatures: invitation.signatures,
-          dateprocesses: processes.flatMap((p) => {
-            if (
-              (p.type === 'delay' && p.delay.trim() === '') ||
-              (p.type === 'dates' && !p.dates.filter((q) => q.trim()).length)
-            )
-              return []
-            return {
-              script: p.script,
-              ...(p.type === 'dates' && {
-                dates: p.dates.filter((q) => q.trim().length > 0).map((r) => r.trim()),
-              }),
-              ...(p.type === 'delay' && {
-                delay: Number.isInteger(p.delay) ? p.delay : Number(p.delay.trim()),
-              }),
-            }
-          }),
+          dateprocesses: processesToPost.length ? processesToPost : null,
           ...(isMetaInvitation && { edit: true }),
         },
         readers: [profileId],
@@ -508,7 +509,7 @@ const DateProcessesEditor = ({
           className="btn confirm-button"
           onClick={() => setProcesses({ type: 'ADD' })}
         >
-          Add another date process
+          Add a date process
         </button>
       </div>
       <div className="mt-2">
