@@ -6,7 +6,7 @@ import { scaleLinear } from 'd3-scale'
 import { bin } from 'd3-array'
 import { axisBottom, axisLeft } from 'd3-axis'
 import { format } from 'd3-format'
-import { floor } from 'lodash'
+import floor from 'lodash/floor'
 import { useRouter } from 'next/router'
 import LoadingSpinner from '../LoadingSpinner'
 

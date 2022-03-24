@@ -78,7 +78,7 @@ const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreE
         {/* eslint-disable-next-line react/destructuring-assignment */}
         {`Are you sure you want to ${edit.ddate ? 'restore' : 'delete'} "${
           edit.note.content.title?.value || buildNoteTitle(invitation.id, edit.signatures)
-        }" by ${view.prettyId(edit.signatures[0])}?
+        }" by ${prettyId(edit.signatures[0])}?
         ${
           showSignatureDropdown
             ? 'The deleted edit will be updated with the signature you choose below.'

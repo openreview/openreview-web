@@ -3,7 +3,7 @@
 // eslint-disable-next-line object-curly-newline
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Router from 'next/router'
-import { debounce } from 'lodash'
+import debounce from 'lodash/debounce'
 import Icon from './Icon'
 import api from '../lib/api-client'
 import { getTitleObjects, getTokenObjects } from '../lib/utils'

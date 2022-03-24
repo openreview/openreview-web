@@ -530,7 +530,7 @@ header {
 }
 
 // Flash message
-#flash-message-container {
+#flash-message-container, #edit-banner {
   padding: 12px 0;
   margin: 0;
   border-radius: 0;
@@ -571,8 +571,10 @@ header {
     width: 100%;
     z-index: 1030;
   }
-
-  .profile-flash-message {
+}
+#edit-banner {
+  .alert-content span {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     display: inline-block;
     height: 21px;
   }

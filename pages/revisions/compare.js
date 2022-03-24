@@ -136,6 +136,7 @@ const CompareRevisions = ({ appContext }) => {
     }
 
     setBanner()
+
     if (query.pdf) {
       loadComparison()
     } else if (query.version === '2') {
@@ -147,6 +148,7 @@ const CompareRevisions = ({ appContext }) => {
 
   useEffect(() => {
     if (!references) return
+
     const diffFn = query.version === '2' ? editNoteContentDiff : noteContentDiff
     const diff = diffFn(references[0], references[1])
     if (Object.keys(diff).length > 0) {
@@ -154,9 +156,14 @@ const CompareRevisions = ({ appContext }) => {
     }
   }, [references])
 
-  if (error) {
-    return <ErrorDisplay statusCode={error.status} message={error.message} />
-  }
+  useEffect(() => {
+    if (!error) return
+
+    setBannerContent(null)
+  }, [error])
+
+  if (error) return <ErrorDisplay statusCode={error.status} message={error.message} />
+
   return (
     <>
       <Head>
