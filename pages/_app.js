@@ -93,7 +93,7 @@ export default class OpenReviewApp extends App {
     if (!setCookie) return
     setAuthCookie(userAccessToken)
 
-    // Need pass new accessToken to Webfield so legacy ajax functions work
+    // Pass new accessToken to Webfield so legacy ajax functions work
     window.Webfield.setToken(userAccessToken)
     window.Webfield2.setToken(userAccessToken)
 
@@ -248,6 +248,10 @@ export default class OpenReviewApp extends App {
       }
 
       this.setState({ user, accessToken: token, userLoading: false })
+
+      // Pass accessToken to Webfield so legacy ajax functions work
+      window.Webfield.setToken(token)
+      window.Webfield2.setToken(token)
 
       // Automatically refresh the accessToken 1m before it's set to expire
       const timeToExpiration = expiration - Date.now() - 60000
