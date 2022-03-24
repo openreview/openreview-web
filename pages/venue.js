@@ -3,7 +3,7 @@
 import Head from 'next/head'
 import { useState, useEffect } from 'react'
 import Router from 'next/router'
-import { groupBy } from 'lodash'
+import groupBy from 'lodash/groupBy'
 import withError from '../components/withError'
 import api from '../lib/api-client'
 import LoadingSpinner from '../components/LoadingSpinner'

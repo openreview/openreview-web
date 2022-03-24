@@ -7,21 +7,27 @@ import withError from '../../components/withError'
 import api from '../../lib/api-client'
 import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
+import { groupModeToggle } from '../../lib/banner-links'
 
-const Group = ({ groupId, webfieldCode, appContext }) => {
-  const { setBannerHidden, clientJsLoading, setLayoutOptions } = appContext
+const Group = ({ groupId, webfieldCode, writable, appContext }) => {
+  const { setBannerHidden, setEditBanner, clientJsLoading, setLayoutOptions } = appContext
   const groupTitle = prettyId(groupId)
 
   useEffect(() => {
+    // Show edit banner
     setBannerHidden(true)
+    if (writable) {
+      setEditBanner(groupModeToggle('view', groupId))
+    }
 
     if (groupId.endsWith('Editors_In_Chief') || groupId.endsWith('Action_Editors')) {
       setLayoutOptions({ fullWidth: true, minimalFooter: true })
     }
-  }, [groupId])
+  }, [groupId, writable])
 
   useEffect(() => {
     if (clientJsLoading) return
+
     const script = document.createElement('script')
     script.innerHTML = webfieldCode
     document.body.appendChild(script)
@@ -29,11 +35,6 @@ const Group = ({ groupId, webfieldCode, appContext }) => {
     // eslint-disable-next-line consistent-return
     return () => {
       document.body.removeChild(script)
-
-      // Hide edit mode banner
-      if (document.querySelector('#flash-message-container .profile-flash-message')) {
-        document.getElementById('flash-message-container').style.display = 'none'
-      }
     }
   }, [clientJsLoading, webfieldCode])
 
@@ -106,7 +107,6 @@ $(function() {
   };
 
   $('#group-container').empty();
-  ${group.details?.writable ? 'Webfield.editModeBanner(group.id, args.mode);' : ''}
 
   ${webfieldCode}
 });
@@ -135,6 +135,7 @@ $(function() {
     return {
       groupId: group.id,
       webfieldCode: generateWebfieldCode(group, user, ctx.query.mode),
+      writable: group.details?.writable ?? false,
       query: ctx.query,
     }
   } catch (error) {
