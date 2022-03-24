@@ -364,7 +364,7 @@ const DateProcessesEditor = ({
       if (!isMetaInvitation && !metaInvitationId) throw new Error('No meta invitation found')
       const processesToPost = processes.flatMap((p) => {
         if (
-          (p.type === 'delay' && p.delay.trim() === '') ||
+          (p.type === 'delay' && typeof p === 'string' && p.delay.trim() === '') ||
           (p.type === 'dates' && !p.dates.filter((q) => q.trim()).length)
         )
           return []
