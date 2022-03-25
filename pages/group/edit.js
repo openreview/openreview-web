@@ -1,5 +1,3 @@
-/* globals Webfield: false */
-
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -9,6 +7,7 @@ import GroupEditor from '../../components/group/GroupEditor'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import { isSuperUser } from '../../lib/auth'
+import { groupModeToggle } from '../../lib/banner-links'
 import useUser from '../../hooks/useUser'
 
 export default function GroupEdit({ appContext }) {
@@ -17,7 +16,7 @@ export default function GroupEdit({ appContext }) {
   const [error, setError] = useState(null)
 
   const router = useRouter()
-  const { setBannerHidden, clientJsLoading } = appContext
+  const { setBannerHidden, setEditBanner } = appContext
 
   const loadGroup = async (id) => {
     try {
@@ -51,9 +50,7 @@ export default function GroupEdit({ appContext }) {
   }
 
   useEffect(() => {
-    if (userLoading || !router.isReady) return
-
-    setBannerHidden(true)
+    if (!router.isReady || userLoading) return
 
     if (!router.query.id) {
       setError({ statusCode: 400, message: 'Missing required parameter id' })
@@ -61,42 +58,38 @@ export default function GroupEdit({ appContext }) {
     }
 
     loadGroup(router.query.id)
-  }, [userLoading, router.isReady, router.query])
+  }, [router.isReady, router.query, userLoading, accessToken])
 
   useEffect(() => {
-    if (!group || clientJsLoading) return
+    if (!group) return
 
-    const editModeBannerDelay = document.querySelector(
-      '#flash-message-container.alert-success'
-    )
-      ? 2500
-      : 0
-    setTimeout(() => Webfield.editModeBanner(group.id, 'edit'), editModeBannerDelay)
+    // Show edit mode banner
+    setBannerHidden(true)
+    setEditBanner(groupModeToggle('edit', group.id))
+  }, [group])
 
-    // eslint-disable-next-line consistent-return
-    return () => {
-      // Hide edit mode banner
-      if (document.querySelector('#flash-message-container .profile-flash-message')) {
-        document.getElementById('flash-message-container').style.display = 'none'
-      }
-    }
-  }, [clientJsLoading, group])
+  useEffect(() => {
+    if (!error) return
+
+    setBannerHidden(false)
+    setEditBanner(null)
+  }, [error])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
 
   return (
     <>
       <Head>
-        <title key="title">{`Edit ${
-          group ? prettyId(group.id) : 'Group'
-        } | OpenReview`}</title>
+        <title key="title">
+          Edit {prettyId(group?.id)} Group | OpenReview
+        </title>
       </Head>
 
       <div id="header">
         <h1>{prettyId(router.query.id)}</h1>
       </div>
 
-      {(clientJsLoading || !group) && <LoadingSpinner />}
+      {!group && <LoadingSpinner />}
 
       <GroupEditor
         group={group}

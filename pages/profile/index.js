@@ -1,21 +1,20 @@
 /* globals $: false */
 
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import Router, { useRouter } from 'next/router'
 import pick from 'lodash/pick'
 import random from 'lodash/random'
-import UserContext from '../../components/UserContext'
 import NoteList from '../../components/NoteList'
 import Icon from '../../components/Icon'
 import withError from '../../components/withError'
-import useQuery from '../../hooks/useQuery'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
 import { prettyList } from '../../lib/utils'
 import { auth } from '../../lib/auth'
-import { editProfileLink } from '../../lib/banner-links'
+import { profileModeToggle } from '../../lib/banner-links'
 
 const ProfileSection = ({ name, title, instructions, actionLink, children }) => (
   <section className={name}>
@@ -250,10 +249,9 @@ const Profile = ({ profile, publicProfile, appContext }) => {
   const [publications, setPublications] = useState(null)
   const [count, setCount] = useState(0)
   const [coAuthors, setCoAuthors] = useState([])
-  const { accessToken, user, userLoading } = useContext(UserContext)
+  const { user, userLoading, accessToken } = useUser()
   const router = useRouter()
-  const profileQuery = useQuery()
-  const { setBannerHidden, setBannerContent } = appContext
+  const { setBannerHidden, setEditBanner } = appContext
 
   const uniqueNames = profile.names.filter((name) => !name.duplicate)
   const sortedNames = [
@@ -281,26 +279,22 @@ const Profile = ({ profile, publicProfile, appContext }) => {
   }
 
   useEffect(() => {
-    if (profileQuery) {
-      setBannerHidden(true)
-    }
-  }, [profileQuery])
-
-  useEffect(() => {
-    if (userLoading || !profileQuery) return
+    if (!router.isReady || userLoading) return
 
     // Always show user's preferred username in the URL
-    if (profileQuery.email || profileQuery.id !== profile.preferredId) {
+    if (router.query.email || router.query.id !== profile.preferredId) {
       router.replace(`/profile?id=${profile.preferredId}`, undefined, { shallow: true })
       return
     }
 
+    // Show edit banner if user is the owner of the profile
+    setBannerHidden(true)
     if (profile.id === user?.profile?.id) {
-      setBannerContent(editProfileLink())
+      setEditBanner(profileModeToggle('view'))
     }
 
     loadPublications()
-  }, [profile, profileQuery, user, userLoading, accessToken])
+  }, [router.isReady, router.query, userLoading, accessToken, profile])
 
   useEffect(() => {
     if (!publications) return

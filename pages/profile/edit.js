@@ -11,7 +11,7 @@ import ProfileEditor from '../../components/profile/ProfileEditor'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { viewProfileLink } from '../../lib/banner-links'
+import { profileModeToggle } from '../../lib/banner-links'
 import { formatProfileData } from '../../lib/profiles'
 
 export default function ProfileEdit({ appContext }) {
@@ -21,7 +21,7 @@ export default function ProfileEdit({ appContext }) {
   const [loading, setLoading] = useState(false)
   const [profile, setProfile] = useState(null)
   const router = useRouter()
-  const { setBannerContent } = appContext
+  const { setBannerHidden, setEditBanner } = appContext
 
   const loadProfile = async () => {
     try {
@@ -106,9 +106,18 @@ export default function ProfileEdit({ appContext }) {
   useEffect(() => {
     if (!accessToken) return
 
+    setBannerHidden(true)
+    setEditBanner(profileModeToggle('edit'))
+
     loadProfile()
-    setBannerContent(viewProfileLink())
   }, [accessToken])
+
+  useEffect(() => {
+    if (!error) return
+
+    setBannerHidden(false)
+    setEditBanner(null)
+  }, [error])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
 
