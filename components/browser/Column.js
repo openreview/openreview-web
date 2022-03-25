@@ -114,7 +114,6 @@ export default function Column(props) {
     const apiQuery = {
       invitation: invitationId,
       sort: shouldSort ? 'weight:desc' : undefined,
-      version,
     }
     if (parentId) {
       apiQuery[otherType] = parentId
