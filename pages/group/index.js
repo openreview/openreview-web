@@ -107,8 +107,9 @@ $(function() {
   };
 
   $('#group-container').empty();
-
-  ${webfieldCode}
+// START GROUP CODE
+${webfieldCode}
+// END GROUP CODE
 });
 //# sourceURL=webfieldCode.js`
   }

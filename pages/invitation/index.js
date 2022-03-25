@@ -161,7 +161,11 @@ $(function() {
 
   $('#invitation-container').empty();
 
-  ${noteEditorCode || webfieldCode}
+  ${noteEditorCode || `(function(note) {
+// START INVITATION CODE
+${webfieldCode}
+// END INVITATION CODE
+  })(null);`}
 });
 //# sourceURL=webfieldCode.js`
   }
