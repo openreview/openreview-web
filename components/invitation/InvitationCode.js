@@ -205,66 +205,61 @@ export const InvitationProcessFunctionsV2 = ({
   accessToken,
   loadInvitation,
   isMetaInvitation,
-}) => {
-  useEffect(() => {
-    $('[data-toggle="tooltip"]').tooltip({ container: 'body' })
-  }, [])
-  return (
-    <EditorSection title={'Process functions'}>
-      <Tabs>
-        <TabList>
-          <Tab id="process" active>
-            Process
-          </Tab>
-          <Tab id="preprocess">Pre Process</Tab>
-          <Tab id="dateprocesses">
-            Date Process{' '}
-            <Icon
-              name="info-sign"
-              tooltip="Use the form below to specify dates expression and delay of date processes, invitation properties can be references with #{}, e.g. #{duedate}"
-            />
-          </Tab>
-        </TabList>
+}) => (
+  <EditorSection title={'Process functions'}>
+    <Tabs>
+      <TabList>
+        <Tab id="process" active>
+          Process
+        </Tab>
+        <Tab id="preprocess">Pre Process</Tab>
+        <Tab id="dateprocesses">
+          Date Process{' '}
+          <Icon
+            name="info-sign"
+            tooltip="Use the form below to specify dates expression and delay of date processes, invitation properties can be references with #{}, e.g. #{duedate}"
+          />
+        </Tab>
+      </TabList>
 
-        <TabPanels>
-          <TabPanel id="process">
-            <InvitationCodeV2
-              invitation={invitation}
-              profileId={profileId}
-              accessToken={accessToken}
-              loadInvitation={loadInvitation}
-              codeType="process"
-              isMetaInvitation={isMetaInvitation}
-              alwaysShowEditor={true}
-              noTitle={true}
-            />
-          </TabPanel>
-          <TabPanel id="preprocess">
-            <InvitationCodeV2
-              invitation={invitation}
-              profileId={profileId}
-              accessToken={accessToken}
-              loadInvitation={loadInvitation}
-              codeType="preprocess"
-              isMetaInvitation={isMetaInvitation}
-              alwaysShowEditor={true}
-              noTitle={true}
-            />
-          </TabPanel>
-          <TabPanel id="dateprocesses">
-            <DateProcessesEditor
-              invitation={invitation}
-              profileId={profileId}
-              accessToken={accessToken}
-              loadInvitation={loadInvitation}
-              isMetaInvitation={isMetaInvitation}
-            />
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
-    </EditorSection>
-  )
-}
+      <TabPanels>
+        <TabPanel id="process">
+          <InvitationCodeV2
+            invitation={invitation}
+            profileId={profileId}
+            accessToken={accessToken}
+            loadInvitation={loadInvitation}
+            codeType="process"
+            isMetaInvitation={isMetaInvitation}
+            alwaysShowEditor={true}
+            noTitle={true}
+          />
+        </TabPanel>
+        <TabPanel id="preprocess">
+          <InvitationCodeV2
+            invitation={invitation}
+            profileId={profileId}
+            accessToken={accessToken}
+            loadInvitation={loadInvitation}
+            codeType="preprocess"
+            isMetaInvitation={isMetaInvitation}
+            alwaysShowEditor={true}
+            noTitle={true}
+          />
+        </TabPanel>
+        <TabPanel id="dateprocesses">
+          <DateProcessesEditor
+            invitation={invitation}
+            profileId={profileId}
+            accessToken={accessToken}
+            loadInvitation={loadInvitation}
+            isMetaInvitation={isMetaInvitation}
+          />
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
+  </EditorSection>
+)
 
 const DateProcessesEditor = ({
   invitation,
@@ -282,6 +277,7 @@ const DateProcessesEditor = ({
       case 'ADD':
         return [...state, { type: 'delay', delay: '', key: nanoid(), showScript: true }]
       case 'DELETE':
+        $('.tooltip').remove()
         return state.filter((p) => p.key !== action.payload)
       case 'SHOWHIDESCRIPT':
         return state.map((p) => {
@@ -316,6 +312,7 @@ const DateProcessesEditor = ({
           return p
         })
       case 'DELETEDATE':
+        $('.tooltip').remove()
         return state.map((p) => {
           if (p.key === action.payload.key) {
             const newDates = p.dates.filter((q, i) => i !== action.payload.index)
@@ -363,6 +360,10 @@ const DateProcessesEditor = ({
     })) ?? []
   )
   const [isSaving, setIsSaving] = useState(false)
+
+  useEffect(() => {
+    $('[data-toggle="tooltip"]').tooltip({ container: 'body' })
+  }, [processes])
 
   const saveCode = async () => {
     setIsSaving(true)
