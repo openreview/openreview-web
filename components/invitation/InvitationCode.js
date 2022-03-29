@@ -1,5 +1,4 @@
-/* globals promptMessage: false */
-/* globals promptError: false */
+/* globals promptMessage,promptError,$: false */
 
 import React, { useEffect, useReducer, useState } from 'react'
 import dynamic from 'next/dynamic'
