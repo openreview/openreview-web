@@ -1077,6 +1077,12 @@ module.exports = (function() {
           ddate = Date.now();
           $self.removeClass('active');
           $self.children('input').prop('checked', false);
+          $self.attr('disabled', true)
+          $self.attr("style", "pointer-events:none");
+          setTimeout(function() {
+            $self.attr('disabled', false)
+            $self.attr("style", "pointer-events:auto");
+          }, 1500)
           returnVal = false;
         }
 
