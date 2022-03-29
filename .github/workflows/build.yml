@@ -10,10 +10,10 @@ on:
     branches: [master]
   repository_dispatch:
     types: [openreview-api-updated]
-    
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true    
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -125,7 +125,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     steps:
       - name: Install Google Cloud
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0
         with:
           version: 'latest'
           project_id: ${{ secrets.GCP_PROJECT_ID }}

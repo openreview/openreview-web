@@ -1,5 +1,3 @@
-/* globals Webfield: false */
-
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
@@ -10,12 +8,13 @@ import InvitationEditor, {
 import LoadingSpinner from '../../components/LoadingSpinner'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
+import { invitationModeToggle } from '../../lib/banner-links'
 import { prettyId } from '../../lib/utils'
 
 const InvitationEdit = ({ appContext }) => {
   const router = useRouter()
   const { user, accessToken, userLoading } = useUser()
-  const { setBannerHidden, clientJsLoading } = appContext
+  const { setBannerHidden, setEditBanner } = appContext
 
   const [error, setError] = useState(null)
   const [invitation, setInvitation] = useState(null)
@@ -72,9 +71,7 @@ const InvitationEdit = ({ appContext }) => {
   }
 
   useEffect(() => {
-    if (userLoading || !router.isReady) return
-
-    setBannerHidden(true)
+    if (!router.isReady || userLoading) return
 
     if (!router.query.id) {
       setError({ statusCode: 400, message: 'Missing required parameter id' })
@@ -82,45 +79,38 @@ const InvitationEdit = ({ appContext }) => {
     }
 
     loadInvitation(router.query.id)
-  }, [userLoading, router.isReady, router.query])
+  }, [router.isReady, router.query, userLoading, accessToken])
 
   useEffect(() => {
-    if (!invitation || clientJsLoading) return
+    if (!invitation) return
 
-    const editModeBannerDelay = document.querySelector(
-      '#flash-message-container.alert-success'
-    )
-      ? 2500
-      : 0
-    const bannerTimeout = setTimeout(
-      () => Webfield.editModeBanner(invitation.id, 'edit'),
-      editModeBannerDelay
-    )
+    // Show edit mode banner
+    setBannerHidden(true)
+    setEditBanner(invitationModeToggle('edit', invitation.id))
+  }, [invitation])
 
-    // eslint-disable-next-line consistent-return
-    return () => {
-      clearTimeout(bannerTimeout)
-      if (document.querySelector('#flash-message-container .profile-flash-message')) {
-        document.getElementById('flash-message-container').style.display = 'none'
-      }
-    }
-  }, [clientJsLoading, invitation])
+  useEffect(() => {
+    if (!error) return
+
+    setBannerHidden(false)
+    setEditBanner(null)
+  }, [error])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
 
   return (
     <>
       <Head>
-        <title key="title">{`Edit ${
-          invitation ? prettyId(invitation.id) : 'Invitation'
-        } | OpenReview`}</title>
+        <title key="title">
+          Edit {prettyId(invitation?.id)} Invitation | OpenReview
+        </title>
       </Head>
 
       <div id="header">
         <h1>{getHeaderText()}</h1>
       </div>
 
-      {(clientJsLoading || !invitation) && <LoadingSpinner />}
+      {!invitation && <LoadingSpinner />}
 
       {invitation?.apiVersion === 1 ? (
         <InvitationEditor
