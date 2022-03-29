@@ -168,7 +168,6 @@ main.invitation {
   }
 
   .dateprocess-editor {
-    margin-top: 1rem;
     .glyphicon {
       color: constants.$mediumBlue;
       font-size: 1.25rem;
@@ -176,23 +175,23 @@ main.invitation {
       margin-top: 0.25rem;
     }
     .code-editor {
-      margin-left: 2rem;
       border-top: #ddd solid 1px;
       margin-bottom: 1rem;
     }
     .dateprocess-row {
+      margin-top: 1rem;
       display: flex;
-      justify-content: flex-start;
+      justify-content: space-between;
       margin-bottom: 0.5rem;
 
       .dropdown-select {
-        width: 10%;
+        min-width: 10%;
         align-self: start;
         margin-right: 1rem;
       }
 
       .delay-input {
-        width: 50%;
+        flex-grow: 1;
         margin-right: 1rem;
       }
 
@@ -202,7 +201,7 @@ main.invitation {
       }
 
       .dates {
-        width: 50%;
+        flex-grow: 1;
         display: flex;
         flex-direction: column;
         margin-right: 1rem;
@@ -219,6 +218,9 @@ main.invitation {
     .add-row {
       display: flex;
       justify-content: flex-start;
+    }
+    .empty-message {
+      color: constants.$subtleGray;
     }
   }
 }

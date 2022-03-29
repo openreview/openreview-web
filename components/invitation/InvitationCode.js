@@ -269,16 +269,14 @@ const DateProcessesEditor = ({
   const dateProcessesReducer = (state, action) => {
     switch (action.type) {
       case 'ADD':
-        return [
-          ...state.map((p) => ({ ...p, showScript: false })),
-          { type: 'delay', delay: '', key: nanoid(), showScript: true },
-        ]
+        return [...state, { type: 'delay', delay: '', key: nanoid(), showScript: true }]
       case 'DELETE':
         return state.filter((p) => p.key !== action.payload)
-      case 'SHOWSCRIPT':
-        return state.map((p) =>
-          p.key === action.payload ? { ...p, showScript: true } : { ...p, showScript: false }
-        )
+      case 'SHOWHIDESCRIPT':
+        return state.map((p) => {
+          if (p.key === action.payload) return { ...p, showScript: !p.showScript }
+          return p
+        })
       case 'UPDATETYPE':
         return state.map((p) => {
           if (p.key === action.payload.key) {
@@ -404,27 +402,39 @@ const DateProcessesEditor = ({
   }
   return (
     <div className="dateprocess-editor">
-      {processes.length > 0
-        ? processes.map((process, index) => (
-            <React.Fragment key={index}>
-              <div className="dateprocess-row">
-                <div
-                  role="button"
-                  onClick={() => setProcesses({ type: 'DELETE', payload: process.key })}
-                >
-                  <Icon name="minus-sign" tooltip="remove history" />
-                </div>
-                <Dropdown
-                  options={dateProcessTypeOptions}
-                  value={dateProcessTypeOptions.find((p) => p.value === process.type)}
-                  onChange={(option) => {
-                    setProcesses({
-                      type: 'UPDATETYPE',
-                      payload: { key: process.key, value: option.value },
-                    })
-                  }}
-                />
-                {process.type === 'delay' && (
+      {processes.length > 0 ? (
+        processes.map((process, index) => (
+          <React.Fragment key={index}>
+            {process.showScript && (
+              <CodeEditor
+                code={process.script}
+                onChange={(e) =>
+                  setProcesses({
+                    type: 'UPDATESCRIPT',
+                    payload: { key: process.key, value: e },
+                  })
+                }
+              />
+            )}
+            <div className="dateprocess-row">
+              <div
+                role="button"
+                onClick={() => setProcesses({ type: 'DELETE', payload: process.key })}
+              >
+                <Icon name="minus-sign" tooltip="remove this date process function" />
+              </div>
+              <Dropdown
+                options={dateProcessTypeOptions}
+                value={dateProcessTypeOptions.find((p) => p.value === process.type)}
+                onChange={(option) => {
+                  setProcesses({
+                    type: 'UPDATETYPE',
+                    payload: { key: process.key, value: option.value },
+                  })
+                }}
+              />
+              {process.type === 'delay' && (
+                <div className="dates">
                   <input
                     type="number"
                     placeholder="delay in ms"
@@ -437,72 +447,63 @@ const DateProcessesEditor = ({
                       })
                     }}
                   />
-                )}
-                {process.type === 'dates' && (
-                  <div className="dates">
-                    {process.dates?.map((date, i) => (
-                      <div className="date-row" key={i}>
-                        <input
-                          placeholder="date expression"
-                          className="form-control date-input"
-                          value={date}
-                          onChange={(e) => {
-                            setProcesses({
-                              type: 'UPDATEDATE',
-                              payload: { key: process.key, index: i, value: e.target.value },
-                            })
-                          }}
-                        />
-                        {process.dates?.length > 1 && (
-                          <div
-                            role="button"
-                            onClick={() =>
-                              setProcesses({
-                                type: 'DELETEDATE',
-                                payload: { key: process.key, index: i },
-                              })
-                            }
-                          >
-                            <Icon name="minus-sign" tooltip="remove execution date" />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                    <div
-                      role="button"
-                      onClick={() =>
-                        setProcesses({ type: 'ADDDATE', payload: { key: process.key } })
-                      }
-                    >
-                      <Icon name="plus-sign" tooltip="add another execution date" />
-                    </div>
-                  </div>
-                )}
-
-                {!process.showScript && (
-                  <button
-                    type="button"
-                    className="btn confirm-button"
-                    onClick={() => setProcesses({ type: 'SHOWSCRIPT', payload: process.key })}
-                  >
-                    Show Script
-                  </button>
-                )}
-              </div>
-              {process.showScript && (
-                <CodeEditor
-                  code={process.script}
-                  onChange={(e) =>
-                    setProcesses({
-                      type: 'UPDATESCRIPT',
-                      payload: { key: process.key, value: e },
-                    })
-                  }
-                />
+                </div>
               )}
-            </React.Fragment>
-          ))
-        : 'there are no date processes'}
+              {process.type === 'dates' && (
+                <div className="dates">
+                  {process.dates?.map((date, i) => (
+                    <div className="date-row" key={i}>
+                      <input
+                        placeholder="date expression"
+                        className="form-control date-input"
+                        value={date}
+                        onChange={(e) => {
+                          setProcesses({
+                            type: 'UPDATEDATE',
+                            payload: { key: process.key, index: i, value: e.target.value },
+                          })
+                        }}
+                      />
+                      {process.dates?.length > 1 && (
+                        <div
+                          role="button"
+                          onClick={() =>
+                            setProcesses({
+                              type: 'DELETEDATE',
+                              payload: { key: process.key, index: i },
+                            })
+                          }
+                        >
+                          <Icon name="minus-sign" tooltip="remove execution date" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  <div
+                    role="button"
+                    onClick={() =>
+                      setProcesses({ type: 'ADDDATE', payload: { key: process.key } })
+                    }
+                  >
+                    <Icon name="plus-sign" tooltip="add another execution date" />
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="button"
+                className="btn confirm-button"
+                onClick={() => setProcesses({ type: 'SHOWHIDESCRIPT', payload: process.key })}
+              >
+                {process.showScript ? 'Hide' : 'Show'} Script
+              </button>
+            </div>
+            <hr />
+          </React.Fragment>
+        ))
+      ) : (
+        <p className="empty-message">There are no date processes</p>
+      )}
       <div className="add-row">
         <button
           type="button"
