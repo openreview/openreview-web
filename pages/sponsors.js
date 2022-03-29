@@ -109,6 +109,7 @@ export async function getStaticProps() {
         gold: [
           { name: 'Facebook', image: 'facebook.png', link: 'https://research.facebook.com/' },
           { name: 'UMass IESL', image: 'umass_iesl2.png', link: 'http://www.iesl.cs.umass.edu/' },
+          { name: 'Alfred P. Sloan Foundation', image: 'sloan.png', link: 'https://sloan.org/' },
         ],
         silver: [
           { name: 'Amazon', image: 'amazon.png', link: 'https://www.amazon.science/' },
