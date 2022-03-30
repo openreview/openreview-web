@@ -175,6 +175,7 @@ main.invitation {
       margin-top: 0.25rem;
     }
     .code-editor {
+      margin-left: 5.5rem;
       border-top: #ddd solid 1px;
       margin-bottom: 1rem;
     }
@@ -195,9 +196,17 @@ main.invitation {
         margin-right: 1rem;
       }
 
+      input.invalid-value {
+        border-color: constants.$orRed;
+      }
+
       button {
         margin-top: 0;
         align-self: start;
+      }
+
+      .delete-button {
+        width: 5rem;
       }
 
       .dates {

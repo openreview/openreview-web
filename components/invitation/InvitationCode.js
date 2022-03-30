@@ -271,10 +271,27 @@ const DateProcessesEditor = ({
     { label: 'Dates', value: 'dates' },
     { label: 'Delay', value: 'delay' },
   ]
+
+  const isInvalidDate = (value, type) => {
+    if (type === 'delay') {
+      return isNaN(new Date(Date.now() + Number(value)))
+    }
+    if (type === 'dates') {
+      const invitationFieldRx = /#{(.*?)}/g
+      const matches = [...value.matchAll(invitationFieldRx)]
+
+      const hasInvalidField = matches.some((p) => !invitation[p[1]])
+      return hasInvalidField
+    }
+  }
+
   const dateProcessesReducer = (state, action) => {
     switch (action.type) {
       case 'ADD':
-        return [...state, { type: 'delay', delay: '', key: nanoid(), showScript: true }]
+        return [
+          ...state,
+          { type: 'delay', delay: '', key: nanoid(), showScript: true, valid: true },
+        ]
       case 'DELETE':
         $('.tooltip').remove()
         return state.filter((p) => p.key !== action.payload)
@@ -290,23 +307,29 @@ const DateProcessesEditor = ({
               ...p,
               showScript: true,
               type: action.payload.value,
-              ...(action.payload.value === 'dates' && { dates: [''], delay: undefined }),
+              ...(action.payload.value === 'dates' && {
+                dates: [{ value: '', valid: true }],
+                delay: undefined,
+              }),
               ...(action.payload.value === 'delay' && { dates: undefined, delay: '' }),
             }
           }
-          return { ...p, showScript: false }
+          return p
         })
       case 'UPDATEDELAY':
         return state.map((p) => {
           if (p.key === action.payload.key) {
-            return { ...p, delay: action.payload.value }
+            if (isInvalidDate(action.payload.value, p.type)) {
+              return { ...p, delay: action.payload.value, valid: false }
+            }
+            return { ...p, delay: action.payload.value, valid: true }
           }
           return p
         })
       case 'ADDDATE':
         return state.map((p) => {
           if (p.key === action.payload.key) {
-            return { ...p, dates: [...p.dates, ''] }
+            return { ...p, dates: [...p.dates, { value: '', valid: true }] }
           }
           return p
         })
@@ -317,7 +340,7 @@ const DateProcessesEditor = ({
             const newDates = p.dates.filter((q, i) => i !== action.payload.index)
             return {
               ...p,
-              dates: newDates.length === 0 ? [''] : newDates,
+              dates: newDates.length === 0 ? [{ value: '', valid: true }] : newDates,
             }
           }
           return p
@@ -328,9 +351,15 @@ const DateProcessesEditor = ({
             const newDates = p.dates.filter((d, i) => i !== action.payload.index)
             return {
               ...p,
-              dates: p.dates.map((q, i) =>
-                i === action.payload.index ? action.payload.value : q
-              ),
+              dates: p.dates.map((q, i) => {
+                if (i === action.payload.index) {
+                  if (isInvalidDate(action.payload.value, p.type)) {
+                    return { value: action.payload.value, valid: false }
+                  }
+                  return { value: action.payload.value, valid: true }
+                }
+                return q
+              }),
             }
           }
           return p
@@ -356,6 +385,7 @@ const DateProcessesEditor = ({
       key: nanoid(),
       showScript: false,
       type: p.delay !== undefined ? 'delay' : 'dates',
+      valid: true,
     })) ?? []
   )
   const [isSaving, setIsSaving] = useState(false)
@@ -374,13 +404,13 @@ const DateProcessesEditor = ({
       const processesToPost = processes.flatMap((p) => {
         if (
           (p.type === 'delay' && typeof p === 'string' && p.delay.trim() === '') ||
-          (p.type === 'dates' && !p.dates.filter((q) => q.trim()).length)
+          (p.type === 'dates' && !p.dates.filter((q) => q.value.trim()).length)
         )
           return []
         return {
           script: p.script,
           ...(p.type === 'dates' && {
-            dates: p.dates.filter((q) => q.trim().length > 0).map((r) => r.trim()),
+            dates: p.dates.filter((q) => q.value.trim().length > 0).map((r) => r.value.trim()),
           }),
           ...(p.type === 'delay' && {
             delay: Number.isInteger(p.delay) ? p.delay : Number(p.delay.trim()),
@@ -416,24 +446,14 @@ const DateProcessesEditor = ({
       {processes.length > 0 ? (
         processes.map((process, index) => (
           <React.Fragment key={index}>
-            {process.showScript && (
-              <CodeEditor
-                code={process.script}
-                onChange={(e) =>
-                  setProcesses({
-                    type: 'UPDATESCRIPT',
-                    payload: { key: process.key, value: e },
-                  })
-                }
-              />
-            )}
             <div className="dateprocess-row">
-              <div
-                role="button"
+              <button
+                type="button"
+                className="btn btn-sm delete-button"
                 onClick={() => setProcesses({ type: 'DELETE', payload: process.key })}
               >
-                <Icon name="minus-sign" tooltip="remove this date process function" />
-              </div>
+                Delete
+              </button>
               <Dropdown
                 options={dateProcessTypeOptions}
                 value={dateProcessTypeOptions.find((p) => p.value === process.type)}
@@ -449,7 +469,9 @@ const DateProcessesEditor = ({
                   <input
                     type="number"
                     placeholder="delay in ms"
-                    className="form-control delay-input"
+                    className={`form-control delay-input${
+                      process.valid ? '' : ' invalid-value'
+                    }`}
                     value={process.delay}
                     onChange={(e) => {
                       setProcesses({
@@ -466,8 +488,10 @@ const DateProcessesEditor = ({
                     <div className="date-row" key={i}>
                       <input
                         placeholder="date expression"
-                        className="form-control date-input"
-                        value={date}
+                        className={`form-control date-input${
+                          date.valid ? '' : ' invalid-value'
+                        }`}
+                        value={date.value}
                         onChange={(e) => {
                           setProcesses({
                             type: 'UPDATEDATE',
@@ -509,6 +533,17 @@ const DateProcessesEditor = ({
                 {process.showScript ? 'Hide' : 'Show'} Script
               </button>
             </div>
+            {process.showScript && (
+              <CodeEditor
+                code={process.script}
+                onChange={(e) =>
+                  setProcesses({
+                    type: 'UPDATESCRIPT',
+                    payload: { key: process.key, value: e },
+                  })
+                }
+              />
+            )}
             <hr />
           </React.Fragment>
         ))
