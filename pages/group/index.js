@@ -4,12 +4,14 @@ import Router from 'next/router'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import WebfieldContainer from '../../components/WebfieldContainer'
 import withError from '../../components/withError'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 import { groupModeToggle } from '../../lib/banner-links'
 
 const Group = ({ groupId, webfieldCode, writable, appContext }) => {
+  const { user, userLoading } = useUser()
   const { setBannerHidden, setEditBanner, clientJsLoading, setLayoutOptions } = appContext
   const groupTitle = prettyId(groupId)
 
@@ -26,7 +28,9 @@ const Group = ({ groupId, webfieldCode, writable, appContext }) => {
   }, [groupId, writable])
 
   useEffect(() => {
-    if (clientJsLoading) return
+    if (clientJsLoading || userLoading) return
+
+    window.user = user || { id: `guest_${Date.now()}`, profile: {}, isGuest: true }
 
     const script = document.createElement('script')
     script.innerHTML = webfieldCode
@@ -35,8 +39,9 @@ const Group = ({ groupId, webfieldCode, writable, appContext }) => {
     // eslint-disable-next-line consistent-return
     return () => {
       document.body.removeChild(script)
+      window.user = null
     }
-  }, [clientJsLoading, webfieldCode])
+  }, [clientJsLoading, userLoading, user?.id, webfieldCode])
 
   return (
     <>
@@ -75,16 +80,14 @@ Group.getInitialProps = async (ctx) => {
     redirectToEditOrInfoMode(ctx.query.mode)
   }
 
-  const generateWebfieldCode = (group, user) => {
+  const generateWebfieldCode = (group) => {
     const webfieldCode = group.web || `
 Webfield.ui.setup($('#group-container'), '${group.id}');
 Webfield.ui.header('${prettyId(group.id)}')
   .append('<p><em>Nothing to display</em></p>');`
 
-    const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
     const groupObjSlim = { id: group.id }
     return `// Webfield Code for ${groupObjSlim.id}
-window.user = ${JSON.stringify(userOrGuest)};
 $(function() {
   var args = ${JSON.stringify(ctx.query)};
   var group = ${JSON.stringify(groupObjSlim)};
@@ -114,7 +117,7 @@ ${webfieldCode}
 //# sourceURL=webfieldCode.js`
   }
 
-  const { user, token } = auth(ctx)
+  const { token } = auth(ctx)
   try {
     const { groups } = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
     const group = groups?.length > 0 ? groups[0] : null
@@ -135,7 +138,7 @@ ${webfieldCode}
 
     return {
       groupId: group.id,
-      webfieldCode: generateWebfieldCode(group, user, ctx.query.mode),
+      webfieldCode: generateWebfieldCode(group),
       writable: group.details?.writable ?? false,
       query: ctx.query,
     }
