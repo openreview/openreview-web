@@ -122,6 +122,7 @@ export default function ForumReply({ note, replies, updateNote }) {
 
         <CopyLinkButton noteId={id} />
 
+        {note.editIvitations?.length > 0 ? <span className="hint">Edit:</span> : null}
         {note.editIvitations?.map((inv) => (
           <button
             key={inv.id}
@@ -132,25 +133,15 @@ export default function ForumReply({ note, replies, updateNote }) {
             {prettyInvitationId(inv.id)}
           </button>
         ))}
-
-        {note.deleteInvitation && !pastDue && (
+        {note.deleteInvitation && (
           <button
             type="button"
             className="btn btn-xs"
-            onClick={() => {}}
+            onClick={() => setActiveEditInvitation(note.deleteInvitation)}
           >
-            <Icon name="trash" />
+            <Icon name={ddate ? 'repeat' : 'trash'} />
           </button>
         )}
-        {/* {canEdit && pastDue && (
-          <button
-            type="button"
-            className="btn btn-xs"
-            onClick={() => {}}
-          >
-            Restore
-          </button>
-        )} */}
       </div>
 
       <div className="subheading">
@@ -179,7 +170,8 @@ export default function ForumReply({ note, replies, updateNote }) {
           {note.readers.map(reader => prettyId(reader, true)).join(', ')}
         </span>
         {note.details.revisions && (
-          <span>
+          <span className="revisions">
+            <Icon name="duplicate" />
             <Link href={`/revisions?id=${note.id}`}>
               <a>Show Revisions</a>
             </Link>
