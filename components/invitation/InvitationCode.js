@@ -274,7 +274,7 @@ const DateProcessesEditor = ({
 
   const isInvalidDate = (value, type) => {
     if (type === 'delay') {
-      return isNaN(new Date(Date.now() + Number(value)))
+      return Number.isNaN(new Date(Date.now() + Number(value)))
     }
     if (type === 'dates') {
       const invitationFieldRx = /#{(.*?)}/g
@@ -283,6 +283,7 @@ const DateProcessesEditor = ({
       const hasInvalidField = matches.some((p) => !invitation[p[1]])
       return hasInvalidField
     }
+    return false
   }
 
   const dateProcessesReducer = (state, action) => {
