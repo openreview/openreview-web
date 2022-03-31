@@ -253,6 +253,38 @@ export default class OpenReviewApp extends App {
   }
 
   componentDidMount() {
+    // Load required vendor libraries
+    window.jQuery = require('jquery')
+    window.$ = window.jQuery
+    require('bootstrap')
+    window._ = require('lodash')
+    window.Handlebars = require('handlebars/runtime')
+    const { marked } = require('marked')
+    window.marked = marked
+    window.DOMPurify = DOMPurify
+    window.MathJax = mathjaxConfig
+
+    // Load legacy JS code
+    window.mkStateManager = require('../client/state-manager')
+    window.view = require('../client/view')
+    window.view2 = require('../client/view-v2')
+    window.Webfield = require('../client/webfield')
+    window.Webfield2 = require('../client/webfield-v2')
+    window.OpenBanner = this.getLegacyBannerObject()
+    require('../client/templates')
+    require('../client/template-helpers')
+    require('../client/globals')
+
+    // MathJax has to be loaded asynchronously from the CDN after the config file loads
+    const script = document.createElement('script')
+    script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-chtml-full.js'
+    script.async = true
+    script.crossOrigin = 'anonymous'
+    document.head.appendChild(script)
+
+    // Setup marked options and renderer overwrite
+    window.view.setupMarked()
+
     const setUserState = ({ user, token, expiration }) => {
       if (!user) {
         this.setState({ userLoading: false })
@@ -279,9 +311,16 @@ export default class OpenReviewApp extends App {
         if (refreshCookieData.token) {
           setAuthCookie(refreshCookieData.token)
         }
+
+        window.Webfield.setToken(refreshCookieData.token)
+        window.Webfield2.setToken(refreshCookieData.token)
+        this.setState({ clientJsLoading: false })
       })
     } else {
       setUserState(authCookieData)
+      window.Webfield.setToken(authCookieData.token)
+      window.Webfield2.setToken(authCookieData.token)
+      this.setState({ clientJsLoading: false })
     }
 
     // When the user logs out in another tab, trigger logout for this app
@@ -311,55 +350,13 @@ export default class OpenReviewApp extends App {
       reportError(description)
     })
 
-    // Load required vendor libraries
-    window.jQuery = require('jquery')
-    window.$ = window.jQuery
-    require('bootstrap')
-    window._ = require('lodash')
-    window.Handlebars = require('handlebars/runtime')
-    const { marked } = require('marked')
-    window.marked = marked
-    window.DOMPurify = DOMPurify
-    window.MathJax = mathjaxConfig
-
-    // MathJax has to be loaded asynchronously from the CDN after the config file loads
-    const script = document.createElement('script')
-    script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-chtml-full.js'
-    script.async = true
-    script.crossOrigin = 'anonymous'
-    document.head.appendChild(script)
-
-    // Load legacy JS code
-    window.mkStateManager = require('../client/state-manager')
-    window.view = require('../client/view')
-    window.view2 = require('../client/view-v2')
-    window.Webfield = require('../client/webfield')
-    window.Webfield2 = require('../client/webfield-v2')
-    window.OpenBanner = this.getLegacyBannerObject()
-    require('../client/templates')
-    require('../client/template-helpers')
-    require('../client/globals')
-
-    // setup marked options and renderer overwrite
-    window.view.setupMarked()
-
     // Set required constants
     window.OR_API_URL = process.env.API_URL
     window.OR_API_V2_URL = process.env.API_V2_URL
 
-    this.setState({ clientJsLoading: false })
-
     // Register route change handlers
     Router.events.on('routeChangeStart', this.onRouteChangeStart)
     Router.events.on('routeChangeComplete', this.onRouteChangeComplete)
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    // When all legacy JS code is loaded, set the tokens for the Webfield modules
-    if (prevState.clientJsLoading && !this.state.clientJsLoading && this.state.accessToken) {
-      window.Webfield.setToken(this.state.accessToken)
-      window.Webfield2.setToken(this.state.accessToken)
-    }
   }
 
   componentWillUnmount() {
