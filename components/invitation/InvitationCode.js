@@ -375,6 +375,31 @@ const DateProcessesEditor = ({
           }
           return p
         })
+      case 'INVALIDDELAY':
+        return state.map((p) => {
+          if (p.key === action.payload) {
+            return {
+              ...p,
+              valid: false,
+            }
+          }
+          return p
+        })
+      case 'INVALIDDATE':
+        return state.map((p) => {
+          if (p.key === action.payload.key) {
+            return {
+              ...p,
+              dates: p.dates.map((q, i) => {
+                if (i === action.payload.index) {
+                  return { ...q, valid: false }
+                }
+                return q
+              }),
+            }
+          }
+          return p
+        })
       default:
         return state
     }
@@ -387,6 +412,7 @@ const DateProcessesEditor = ({
       showScript: false,
       type: p.delay !== undefined ? 'delay' : 'dates',
       valid: true,
+      ...(p.dates && { dates: p.dates.map((d) => ({ value: d, valid: true })) }),
     })) ?? []
   )
   const [isSaving, setIsSaving] = useState(false)
@@ -403,11 +429,17 @@ const DateProcessesEditor = ({
       const metaInvitationId = getMetaInvitationId(invitation)
       if (!isMetaInvitation && !metaInvitationId) throw new Error('No meta invitation found')
       const processesToPost = processes.flatMap((p) => {
-        if (
-          (p.type === 'delay' && typeof p === 'string' && p.delay.trim() === '') ||
-          (p.type === 'dates' && !p.dates.filter((q) => q.value.trim()).length)
-        )
-          return []
+        if (p.type === 'delay' && typeof p.delay === 'string' && p.delay.trim() === '') {
+          setProcesses({ type: 'INVALIDDELAY', payload: p.key })
+          throw new Error("Delay value can't be empty")
+        }
+        if (p.type === 'dates' && p.dates.some((q) => !q.value.trim())) {
+          setProcesses({
+            type: 'INVALIDDATE',
+            payload: { key: p.key, index: p.dates.findIndex((q) => !q.value.trim()) },
+          })
+          throw new Error("Date value can't be empty")
+        }
         return {
           script: p.script,
           ...(p.type === 'dates' && {
