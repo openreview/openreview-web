@@ -176,7 +176,7 @@ const UserModerationQueue = ({
       <h4>
         {title} ({totalCount})
       </h4>
-      {profiles.length !== 0 && (
+      {profiles && profiles.length !== 0 && (
         <button className="btn btn-xs" onClick={() => setDescOrder((p) => !p)}>{`${
           descOrder ? 'New to old' : 'Old to new'
         }`}</button>
