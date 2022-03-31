@@ -23,7 +23,8 @@ export default function LegacyForumV2({
     // eslint-disable-next-line global-require
     const runForum = require('../../client/forum-v2')
     runForum(id, selectedNoteId, selectedInvitationId, user)
-  }, [clientJsLoading, user, JSON.stringify(authors), userLoading]) // authors is reset when clientJsLoading turns false
+    // authors resets when clientJsLoading turns false
+  }, [clientJsLoading, user?.id, JSON.stringify(authors), userLoading])
 
   return (
     <div className="forum-container">
