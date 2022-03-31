@@ -1045,6 +1045,11 @@ table.table-minimal {
     margin: 1.75rem auto;
     min-height: 100px;
 
+    h4 {
+      display: inline-block;
+      margin-right: 1rem;
+    }
+
     ul.list-paginated > li.blocked {
       opacity: 0.5;
     }
