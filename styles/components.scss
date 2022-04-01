@@ -1348,11 +1348,16 @@ header,
 }
 
 // CodeMirror highlighting
-.cm-editor div.cm-line {
-  span.cmt-comment {
-    color: #164;
-  }
-  span.cmt-number {
-    color: #a11;
+.cm-editor {
+  resize: vertical;
+  overflow: hidden;
+
+  div.cm-line {
+    span.cmt-comment {
+      color: #164;
+    }
+    span.cmt-number {
+      color: #a11;
+    }
   }
 }

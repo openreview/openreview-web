@@ -10,6 +10,7 @@ import { getMetaInvitationId, prettyId } from '../../lib/utils'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import Dropdown from '../Dropdown'
 import Icon from '../Icon'
+import { TrashButton } from '../IconButton'
 
 const CodeEditor = dynamic(() => import('../CodeEditor'))
 
@@ -480,13 +481,10 @@ const DateProcessesEditor = ({
         processes.map((process, index) => (
           <React.Fragment key={index}>
             <div className="dateprocess-row">
-              <button
-                type="button"
-                className="btn btn-sm delete-button"
+              <TrashButton
+                extraClasses="delete-button"
                 onClick={() => setProcesses({ type: 'DELETE', payload: process.key })}
-              >
-                Delete
-              </button>
+              />
               <Dropdown
                 options={dateProcessTypeOptions}
                 value={dateProcessTypeOptions.find((p) => p.value === process.type)}
@@ -560,7 +558,7 @@ const DateProcessesEditor = ({
 
               <button
                 type="button"
-                className="btn btn-sm confirm-button"
+                className="btn btn-sm showscript-button"
                 onClick={() => setProcesses({ type: 'SHOWHIDESCRIPT', payload: process.key })}
               >
                 {process.showScript ? 'Hide' : 'Show'} Script
@@ -575,6 +573,7 @@ const DateProcessesEditor = ({
                     payload: { key: process.key, value: e },
                   })
                 }
+                defaultToMinHeight
               />
             )}
             <hr />
