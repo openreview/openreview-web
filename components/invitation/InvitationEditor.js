@@ -7,14 +7,12 @@ import InvitationReply, {
   InvitationReplyWithPreview,
   InvitationReplyV2,
 } from './InvitationReply'
-import InvitationCode, {
-  InvitationCodeV2,
-  InvitationProcessFunctionsV2,
-} from './InvitationCode'
+import InvitationCode, { InvitationCodeV2 } from './InvitationCode'
 import InvitationChildInvitations, {
   InvitationChildInvitationsV2,
 } from './InvitationChildInvitations'
 import { isSuperUser } from '../../lib/auth'
+import InvitationProcessFunctionsV2 from './InvitationProcessFunctions'
 
 const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => {
   const profileId = user?.profile?.id
