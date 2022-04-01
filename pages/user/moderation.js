@@ -46,7 +46,7 @@ const Moderation = ({ appContext, accessToken }) => {
           title="New Profiles Pending Moderation"
           reload={reload}
           shouldReload={shouldReload}
-          showSortButton={true}
+          showSortButton
         />
       </div>
     </>
