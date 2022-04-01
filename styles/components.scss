@@ -1050,6 +1050,10 @@ table.table-minimal {
       margin-right: 1rem;
     }
 
+    .sort-button {
+      vertical-align: baseline;
+    }
+
     ul.list-paginated > li.blocked {
       opacity: 0.5;
     }

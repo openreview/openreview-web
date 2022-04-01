@@ -46,6 +46,7 @@ const Moderation = ({ appContext, accessToken }) => {
           title="New Profiles Pending Moderation"
           reload={reload}
           shouldReload={shouldReload}
+          showSortButton={true}
         />
       </div>
     </>
@@ -59,6 +60,7 @@ const UserModerationQueue = ({
   pageSize = 15,
   reload,
   shouldReload,
+  showSortButton = false,
 }) => {
   const [profiles, setProfiles] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
@@ -176,9 +178,9 @@ const UserModerationQueue = ({
       <h4>
         {title} ({totalCount})
       </h4>
-      {profiles && profiles.length !== 0 && (
-        <button className="btn btn-xs" onClick={() => setDescOrder((p) => !p)}>{`${
-          descOrder ? 'New to old' : 'Old to new'
+      {showSortButton && profiles && profiles.length !== 0 && (
+        <button className="btn btn-xs sort-button" onClick={() => setDescOrder((p) => !p)}>{`${
+          descOrder ? 'Sort: Newest First' : 'Sort: Oldest First'
         }`}</button>
       )}
 
