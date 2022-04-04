@@ -3504,16 +3504,16 @@ module.exports = (function() {
         $cancelButton.prop('disabled', true);
 
         var latestNotePromise = note.id
-          ? Webfield.get("/notes", {
+          ? Webfield.get(params.isReference?"/references":"/notes", {
               id: note.id
           }, {
             handleErrors: false
           }).then(function (result) {
-            return result.notes[0];
+            return result[params.isReference?"references":"notes"][0];
           }, function () {
             return $.Deferred().resolve(note);
           }) : $.Deferred().resolve(note);
-        var noteLatestNoteErrorMessage = 'This note has been edited since you opened it. Please refresh the page and try again.';
+        var noteLatestNoteErrorMessage = `This ${params.isReference?"reference":"note"} has been edited since you opened it. Please refresh the page and try again.`;
 
         latestNotePromise.then(function(latestNote) {
           if(!(latestNote.tmdate===note.tmdate)){
