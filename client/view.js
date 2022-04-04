@@ -3518,6 +3518,8 @@ module.exports = (function() {
         latestNotePromise.then(function(latestNote) {
           if(!(latestNote.tmdate===note.tmdate)){
             params.onError?params.onError([noteLatestNoteErrorMessage]):promptError(noteLatestNoteErrorMessage);
+            $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
+            $cancelButton.prop({ disabled: false });
             return
           }
           var content = getContent(invitation, $contentMap);
