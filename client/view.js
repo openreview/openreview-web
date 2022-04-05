@@ -3613,7 +3613,7 @@ module.exports = (function() {
             var chunkSize = 1024*1024; // 1MB
             var chunkCount = Math.ceil(file.size/chunkSize)
             var sendChunkPs = [...Array(chunkCount).keys()].map(chunkIndex=>{
-              var chunk = file.slice(chunkIndex*chunkSize, (chunkIndex+1)*chunkSize);
+              var chunk = file.slice(chunkIndex*chunkSize, (chunkIndex+1)*chunkSize,file.type);
               var data = new FormData();
               data.append('invitationId', invitation.id);
               data.append('name', fieldName);
