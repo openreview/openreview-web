@@ -3637,7 +3637,7 @@ module.exports = (function() {
               data.append('name', fieldName);
               data.append('chunkIndex', index);
               data.append('totalChunks',chunkCount)
-              data.append('file', chunk);
+              data.append('file', new File([chunk], 'some arbitrary name'));
               return Webfield.sendFileChunk(data, fieldName)
             }
 
