@@ -46,6 +46,7 @@ const Moderation = ({ appContext, accessToken }) => {
           title="New Profiles Pending Moderation"
           reload={reload}
           shouldReload={shouldReload}
+          showSortButton
         />
       </div>
     </>
@@ -59,6 +60,7 @@ const UserModerationQueue = ({
   pageSize = 15,
   reload,
   shouldReload,
+  showSortButton = false,
 }) => {
   const [profiles, setProfiles] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
@@ -66,6 +68,7 @@ const UserModerationQueue = ({
   const [filters, setFilters] = useState({})
   const [profileIdToReject, setProfileIdToReject] = useState(null)
   const [idsLoading, setIdsLoading] = useState([])
+  const [descOrder, setDescOrder] = useState(true)
   const modalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
 
   const getProfiles = async () => {
@@ -76,7 +79,7 @@ const UserModerationQueue = ({
         '/profiles',
         {
           ...queryOptions,
-          sort: 'tcdate:desc',
+          sort: `tcdate:${descOrder ? 'desc' : 'asc'}`,
           limit: pageSize,
           offset: (pageNumber - 1) * pageSize,
           withBlocked: onlyModeration ? undefined : true,
@@ -168,14 +171,18 @@ const UserModerationQueue = ({
 
   useEffect(() => {
     getProfiles()
-  }, [pageNumber, filters, shouldReload])
+  }, [pageNumber, filters, shouldReload, descOrder])
 
   return (
     <div className="profiles-list">
-      {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
       <h4>
         {title} ({totalCount})
       </h4>
+      {showSortButton && profiles && profiles.length !== 0 && (
+        <button className="btn btn-xs sort-button" onClick={() => setDescOrder((p) => !p)}>{`${
+          descOrder ? 'Sort: Newest First' : 'Sort: Oldest First'
+        }`}</button>
+      )}
 
       {!onlyModeration && (
         <form className="filter-form well mt-3" onSubmit={filterProfiles}>
@@ -222,7 +229,6 @@ const UserModerationQueue = ({
                     rel="noreferrer"
                     title={profile.id}
                   >
-                    {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
                     {name.first} {name.middle} {name.last}
                   </a>
                 </span>
@@ -334,7 +340,7 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser }) => {
     {
       value: 'imPersonalHomepage',
       label: 'Impersonal Homepage',
-      rejectionText: `The homepage url provided in your profile is not a personal page.\n\n${instructionText}`,
+      rejectionText: `The homepage url provided in your profile doesn't display your name so your identity can't be determined.\n\n${instructionText}`,
     },
     {
       value: 'invalidHomepageAndEmail',
