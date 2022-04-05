@@ -36,6 +36,7 @@ const Moderation = ({ appContext, accessToken }) => {
   }
 
   const enableDisableModeration = async () => {
+    // eslint-disable-next-line no-alert
     const result = window.confirm(`${moderationDisabled ? 'Enable' : 'Disable'} moderation?`)
     if (!result) return
     try {
