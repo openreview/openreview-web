@@ -3609,23 +3609,43 @@ module.exports = (function() {
             //   editNote.content[fieldName] = result.url;
             //   updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
             // });
+            // var file = files[fieldName];
+            // var chunkSize = 1024*1024; // 1MB
+            // var chunkCount = Math.ceil(file.size/chunkSize)
+            // var sendChunkPs = [...Array(chunkCount).keys()].map(chunkIndex=>{
+            //   var chunk = file.slice(chunkIndex*chunkSize, (chunkIndex+1)*chunkSize,file.type);
+            //   var data = new FormData();
+            //   data.append('invitationId', invitation.id);
+            //   data.append('name', fieldName);
+            //   data.append('chunkIndex', chunkIndex);
+            //   data.append('totalChunks',chunkCount)
+            //   data.append('file', chunk);
+            //   return Webfield.sendFileChunk(data, fieldName).then(function(result) {
+            //     editNote.content[fieldName] = result.url;
+            //     updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
+            //   });
+            // })
+            // return Promise.all(sendChunkPs);
             var file = files[fieldName];
             var chunkSize = 1024*1024; // 1MB
             var chunkCount = Math.ceil(file.size/chunkSize)
-            var sendChunkPs = [...Array(chunkCount).keys()].map(chunkIndex=>{
-              var chunk = file.slice(chunkIndex*chunkSize, (chunkIndex+1)*chunkSize,file.type);
+            var chunks = [...Array(chunkCount).keys()].map(chunkIndex=>file.slice(chunkIndex*chunkSize, (chunkIndex+1)*chunkSize,file.type))
+
+            var sendSingleChunk=function(chunk,index){
               var data = new FormData();
               data.append('invitationId', invitation.id);
               data.append('name', fieldName);
-              data.append('chunkIndex', chunkIndex);
+              data.append('chunkIndex', index);
               data.append('totalChunks',chunkCount)
               data.append('file', chunk);
-              return Webfield.sendFileChunk(data, fieldName).then(function(result) {
-                editNote.content[fieldName] = result.url;
-                updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
-              });
-            })
-            return Promise.all(sendChunkPs);
+              return Webfield.sendFileChunk(data, fieldName)
+            }
+
+            return chunks.reduce(
+              (oldPromises, currentChunk,i) =>
+              oldPromises.then(_ => sendSingleChunk(currentChunk,i)),
+              Promise.resolve()
+            )
           });
 
           $.when.apply($, promises).then(function() {
