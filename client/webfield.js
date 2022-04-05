@@ -229,6 +229,29 @@ module.exports = (function() {
     });
   };
 
+  var sendFileChunk = function(data,fieldName){
+    var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
+    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
+    var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
+    return $.ajax({
+      url: baseUrl + '/attachment/chunk',
+      type: 'put',
+      contentType: false,
+      processData: false,
+      data: data,
+      headers:  Object.assign(defaultHeaders, authHeaders),
+      xhrFields: {
+        withCredentials: true
+      }
+    }).fail(function(jqXhr, textStatus, errorThrown) {
+      console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus);
+      console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2));
+      if (fieldName) {
+        $('input.form-control.note_content_value_input.note_' + fieldName.replace(/\W/g, '_')).val('');
+      }
+    });
+  }
+
   // API Functions
   var getSubmissionInvitation = function(invitationId, options) {
     var defaults = {
@@ -1866,6 +1889,7 @@ module.exports = (function() {
     getAll: getAll,
     setToken: setToken,
     sendFile: sendFile,
+    sendFileChunk: sendFileChunk,
     getErrorFromJqXhr: getErrorFromJqXhr,
     setupAutoLoading: setupAutoLoading,
     disableAutoLoading: disableAutoLoading,

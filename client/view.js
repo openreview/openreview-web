@@ -3601,14 +3601,31 @@ module.exports = (function() {
                 return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, editNote.content.pdf);
               });
             }
-            var data = new FormData();
-            data.append('invitationId', invitation.id);
-            data.append('name', fieldName);
-            data.append('file', files[fieldName]);
-            return Webfield.sendFile('/attachment' , data, undefined, fieldName).then(function(result) {
-              editNote.content[fieldName] = result.url;
-              updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
-            });
+            // var data = new FormData();
+            // data.append('invitationId', invitation.id);
+            // data.append('name', fieldName);
+            // data.append('file', files[fieldName]);
+            // return Webfield.sendFile('/attachment' , data, undefined, fieldName).then(function(result) {
+            //   editNote.content[fieldName] = result.url;
+            //   updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
+            // });
+            var file = files[fieldName];
+            var chunkSize = 1024*1024; // 1MB
+            var chunkCount = Math.ceil(file.size/chunkSize)
+            var sendChunkPs = [...Array(chunkCount).keys()].map(chunkIndex=>{
+              var chunk = file.slice(chunkIndex*chunkSize, (chunkIndex+1)*chunkSize);
+              var data = new FormData();
+              data.append('invitationId', invitation.id);
+              data.append('name', fieldName);
+              data.append('chunkIndex', chunkIndex);
+              data.append('totalChunks',chunkCount)
+              data.append('file', chunk);
+              return Webfield.sendFileChunk(data, fieldName).then(function(result) {
+                editNote.content[fieldName] = result.url;
+                updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
+              });
+            })
+            return Promise.all(sendChunkPs);
           });
 
           $.when.apply($, promises).then(function() {
