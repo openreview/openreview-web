@@ -12,13 +12,50 @@ import api from '../../lib/api-client'
 import { prettyId, formatDateTime } from '../../lib/utils'
 import Dropdown from '../../components/Dropdown'
 import BasicModal from '../../components/BasicModal'
+import Accordion from '../../components/Accordion'
 
 const Moderation = ({ appContext, accessToken }) => {
   const { setBannerHidden } = appContext
   const [shouldReload, reload] = useReducer((p) => !p, true)
+  const [configNote, setConfigNote] = useState(null)
+
+  const moderationDisabled = configNote?.content?.moderate === 'No'
+
+  const getModerationStatus = async () => {
+    try {
+      const result = await api.get('/notes', {
+        invitation: 'OpenReview.net/Support/-/OpenReview_Config',
+      })
+      if (!result.notes?.length === 1) {
+        throw new Error('moderation config note is wrong')
+      }
+      setConfigNote(result.notes[0])
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const enableDisableModeration = async () => {
+    const result = window.confirm(`${moderationDisabled ? 'Enable' : 'Disable'} moderation?`)
+    if (!result) return
+    try {
+      await api.post(
+        '/notes',
+        {
+          ...configNote,
+          content: { ...configNote.content, moderate: moderationDisabled ? 'Yes' : 'No' },
+        },
+        { accessToken }
+      )
+      getModerationStatus()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
 
   useEffect(() => {
     setBannerHidden(true)
+    getModerationStatus()
   }, [])
 
   return (
@@ -29,9 +66,29 @@ const Moderation = ({ appContext, accessToken }) => {
 
       <header>
         <h1>User Moderation</h1>
-        <hr />
       </header>
 
+      {configNote && (
+        <Accordion
+          sections={[
+            {
+              heading: (
+                <span>
+                  Moderation status :{' '}
+                  <h4>{`${moderationDisabled ? 'Disabled' : 'Enabled'}`}</h4>
+                </span>
+              ),
+              body: (
+                <button
+                  className="btn btn-xs enable-moderation-button"
+                  onClick={enableDisableModeration}
+                >{`${moderationDisabled ? 'Enable' : 'Disable'}`}</button>
+              ),
+            },
+          ]}
+          options={{ extraClasses: 'moderation-status', collapsed: true }}
+        />
+      )}
       <div className="moderation-container">
         <UserModerationQueue
           accessToken={accessToken}

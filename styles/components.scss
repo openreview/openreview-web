@@ -1029,6 +1029,17 @@ table.table-minimal {
 }
 
 // User Moderation
+.moderation-status {
+  width: 1040px;
+  margin: 0 auto;
+  h4 {
+    display: inline;
+  }
+
+  .enable-moderation-button {
+    font-weight: normal;
+  }
+}
 .moderation-container {
   .filter-form {
     display: flex;
