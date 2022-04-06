@@ -8,11 +8,113 @@ import SpinnerButton from '../SpinnerButton'
 import api from '../../lib/api-client'
 import Dropdown from '../Dropdown'
 import Icon from '../Icon'
-import { TrashButton } from '../IconButton'
+import { AddButton, TrashButton } from '../IconButton'
 import { InvitationCodeV2 } from './InvitationCode'
 import { getMetaInvitationId, prettyId } from '../../lib/utils'
 
 const CodeEditor = dynamic(() => import('../CodeEditor'))
+
+const DateProcessRow = ({ process, setProcesses }) => {
+  const dateProcessTypeOptions = [
+    { label: 'Dates', value: 'dates' },
+    { label: 'Delay', value: 'delay' },
+  ]
+  return (
+    <>
+      <div className={`dateprocess-row${process.deleted ? ' deleted' : ''}`}>
+        <Dropdown
+          options={dateProcessTypeOptions}
+          value={dateProcessTypeOptions.find((p) => p.value === process.type)}
+          onChange={(option) => {
+            setProcesses({
+              type: 'UPDATETYPE',
+              payload: { key: process.key, value: option.value },
+            })
+          }}
+        />
+        {process.type === 'delay' && (
+          <div className="dates">
+            <input
+              type="number"
+              placeholder="delay in ms"
+              className={`form-control delay-input${process.valid ? '' : ' invalid-value'}`}
+              value={process.delay}
+              onChange={(e) => {
+                setProcesses({
+                  type: 'UPDATEDELAY',
+                  payload: { key: process.key, value: e.target.value },
+                })
+              }}
+            />
+          </div>
+        )}
+        {process.type === 'dates' && (
+          <div className="dates">
+            {process.dates?.map((date, i) => (
+              <div className="date-row" key={i}>
+                <input
+                  placeholder="date expression"
+                  className={`form-control date-input${date.valid ? '' : ' invalid-value'}`}
+                  value={date.value}
+                  onChange={(e) => {
+                    setProcesses({
+                      type: 'UPDATEDATE',
+                      payload: { key: process.key, index: i, value: e.target.value },
+                    })
+                  }}
+                />
+                {process.dates?.length > 1 && (
+                  <div
+                    role="button"
+                    onClick={() =>
+                      setProcesses({
+                        type: 'DELETEDATE',
+                        payload: { key: process.key, index: i },
+                      })
+                    }
+                  >
+                    <Icon name="minus-sign" tooltip="remove execution date" />
+                  </div>
+                )}
+              </div>
+            ))}
+            <div
+              role="button"
+              onClick={() => setProcesses({ type: 'ADDDATE', payload: { key: process.key } })}
+            >
+              <Icon name="plus-sign" tooltip="add another execution date" />
+            </div>
+          </div>
+        )}
+
+        <button
+          type="button"
+          className="btn btn-sm showscript-button"
+          onClick={() => setProcesses({ type: 'SHOWHIDESCRIPT', payload: process.key })}
+        >
+          {process.showScript ? 'Hide' : 'Show'} Script
+        </button>
+        <TrashButton
+          extraClasses="delete-button"
+          onClick={() => setProcesses({ type: 'DELETE', payload: process.key })}
+        />
+      </div>
+      {process.showScript && (
+        <CodeEditor
+          code={process.script}
+          onChange={(e) =>
+            setProcesses({
+              type: 'UPDATESCRIPT',
+              payload: { key: process.key, value: e },
+            })
+          }
+          defaultToMinHeight
+        />
+      )}
+      <hr />
+    </>
+  )
+}
 
 const DateProcessesEditor = ({
   invitation,
@@ -21,11 +123,6 @@ const DateProcessesEditor = ({
   loadInvitation,
   isMetaInvitation,
 }) => {
-  const dateProcessTypeOptions = [
-    { label: 'Dates', value: 'dates' },
-    { label: 'Delay', value: 'delay' },
-  ]
-
   const isInvalidDate = (value, type) => {
     if (type === 'delay') {
       return Number.isNaN(new Date(Date.now() + Number(value)))
@@ -44,8 +141,8 @@ const DateProcessesEditor = ({
     switch (action.type) {
       case 'ADD':
         return [
-          ...state,
           { type: 'delay', delay: '', key: nanoid(), showScript: true, valid: true },
+          ...state,
         ]
       case 'DELETE':
         $('.tooltip').remove()
@@ -228,122 +325,17 @@ const DateProcessesEditor = ({
 
     setIsSaving(false)
   }
+
   return (
     <div className="dateprocess-editor">
-      {processes.length > 0 ? (
-        processes.map((process, index) => (
-          <React.Fragment key={index}>
-            <div className="dateprocess-row">
-              <TrashButton
-                extraClasses="delete-button"
-                onClick={() => setProcesses({ type: 'DELETE', payload: process.key })}
-              />
-              <Dropdown
-                options={dateProcessTypeOptions}
-                value={dateProcessTypeOptions.find((p) => p.value === process.type)}
-                onChange={(option) => {
-                  setProcesses({
-                    type: 'UPDATETYPE',
-                    payload: { key: process.key, value: option.value },
-                  })
-                }}
-              />
-              {process.type === 'delay' && (
-                <div className="dates">
-                  <input
-                    type="number"
-                    placeholder="delay in ms"
-                    className={`form-control delay-input${
-                      process.valid ? '' : ' invalid-value'
-                    }`}
-                    value={process.delay}
-                    onChange={(e) => {
-                      setProcesses({
-                        type: 'UPDATEDELAY',
-                        payload: { key: process.key, value: e.target.value },
-                      })
-                    }}
-                  />
-                </div>
-              )}
-              {process.type === 'dates' && (
-                <div className="dates">
-                  {process.dates?.map((date, i) => (
-                    <div className="date-row" key={i}>
-                      <input
-                        placeholder="date expression"
-                        className={`form-control date-input${
-                          date.valid ? '' : ' invalid-value'
-                        }`}
-                        value={date.value}
-                        onChange={(e) => {
-                          setProcesses({
-                            type: 'UPDATEDATE',
-                            payload: { key: process.key, index: i, value: e.target.value },
-                          })
-                        }}
-                      />
-                      {process.dates?.length > 1 && (
-                        <div
-                          role="button"
-                          onClick={() =>
-                            setProcesses({
-                              type: 'DELETEDATE',
-                              payload: { key: process.key, index: i },
-                            })
-                          }
-                        >
-                          <Icon name="minus-sign" tooltip="remove execution date" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  <div
-                    role="button"
-                    onClick={() =>
-                      setProcesses({ type: 'ADDDATE', payload: { key: process.key } })
-                    }
-                  >
-                    <Icon name="plus-sign" tooltip="add another execution date" />
-                  </div>
-                </div>
-              )}
-
-              <button
-                type="button"
-                className="btn btn-sm showscript-button"
-                onClick={() => setProcesses({ type: 'SHOWHIDESCRIPT', payload: process.key })}
-              >
-                {process.showScript ? 'Hide' : 'Show'} Script
-              </button>
-            </div>
-            {process.showScript && (
-              <CodeEditor
-                code={process.script}
-                onChange={(e) =>
-                  setProcesses({
-                    type: 'UPDATESCRIPT',
-                    payload: { key: process.key, value: e },
-                  })
-                }
-                defaultToMinHeight
-              />
-            )}
-            <hr />
-          </React.Fragment>
-        ))
-      ) : (
-        <p className="empty-message">There are no date processes</p>
-      )}
+      {!processes.length > 0 && <p className="empty-message">There are no date processes</p>}
       <div className="add-row">
-        <button
-          type="button"
-          className="btn btn-sm confirm-button"
-          onClick={() => setProcesses({ type: 'ADD' })}
-        >
-          Add a date process
-        </button>
+        <AddButton onClick={() => setProcesses({ type: 'ADD' })} text="Add a date process" />
       </div>
+      {processes.length > 0 &&
+        processes.map((process, index) => (
+          <DateProcessRow key={process.key} process={process} setProcesses={setProcesses} />
+        ))}
       <div className="mt-2">
         <SpinnerButton
           type="primary"
@@ -351,7 +343,7 @@ const DateProcessesEditor = ({
           disabled={isSaving}
           loading={isSaving}
         >
-          {isSaving ? 'Saving' : 'Update Code'}
+          <Icon name="floppy-disk"></Icon> {isSaving ? 'Saving' : 'Save date processes'}
         </SpinnerButton>
       </div>
     </div>
@@ -368,10 +360,10 @@ const InvitationProcessFunctionsV2 = ({
   <EditorSection title={'Process functions'}>
     <Tabs>
       <TabList>
+        <Tab id="preprocess">Pre Process</Tab>
         <Tab id="process" active>
           Process
         </Tab>
-        <Tab id="preprocess">Pre Process</Tab>
         <Tab id="dateprocesses">
           Date Process{' '}
           <Icon
@@ -382,18 +374,6 @@ const InvitationProcessFunctionsV2 = ({
       </TabList>
 
       <TabPanels>
-        <TabPanel id="process">
-          <InvitationCodeV2
-            invitation={invitation}
-            profileId={profileId}
-            accessToken={accessToken}
-            loadInvitation={loadInvitation}
-            codeType="process"
-            isMetaInvitation={isMetaInvitation}
-            alwaysShowEditor={true}
-            noTitle={true}
-          />
-        </TabPanel>
         <TabPanel id="preprocess">
           <InvitationCodeV2
             invitation={invitation}
@@ -401,6 +381,18 @@ const InvitationProcessFunctionsV2 = ({
             accessToken={accessToken}
             loadInvitation={loadInvitation}
             codeType="preprocess"
+            isMetaInvitation={isMetaInvitation}
+            alwaysShowEditor={true}
+            noTitle={true}
+          />
+        </TabPanel>
+        <TabPanel id="process">
+          <InvitationCodeV2
+            invitation={invitation}
+            profileId={profileId}
+            accessToken={accessToken}
+            loadInvitation={loadInvitation}
+            codeType="process"
             isMetaInvitation={isMetaInvitation}
             alwaysShowEditor={true}
             noTitle={true}
