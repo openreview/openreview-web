@@ -210,7 +210,7 @@ test('setup AnotherTestVenue', async (t) => {
         'Reviewer Recommendation Scores'],
       'Author and Reviewer Anonymity': 'No anonymity',
       'Open Reviewing Policy': 'Submissions and reviews should both be private.',
-      submission_readers: 'Everyone (submissions are public)',
+      submission_readers: 'All program committee (all reviewers, all area chairs, all senior area chairs if applicable)',
       withdrawn_submissions_visibility: 'No, withdrawn submissions should not be made public.',
       withdrawn_submissions_author_anonymity: 'Yes, author identities of withdrawn submissions should be revealed.',
       email_pcs_for_withdrawn_submissions: 'Yes, email PCs.',
@@ -260,7 +260,7 @@ test('setup AnotherTestVenue', async (t) => {
   const { id: deletedNoteId } = await createNote(noteJson, hasTaskUserToken)
 
   const postSubmissionJson = {
-    content: { force: 'Yes', submission_readers: 'Assigned program committee (assigned reviewers, assigned area chairs, assigned senior area chairs if applicable)' },
+    content: { force: 'Yes', submission_readers: 'All program committee (all reviewers, all area chairs, all senior area chairs if applicable)' },
     forum: requestForumId,
     invitation: `openreview.net/Support/-/Request${number}/Post_Submission`,
     readers: ['AnotherTestVenue/2020/Conference/Program_Chairs', 'openreview.net/Support'],
