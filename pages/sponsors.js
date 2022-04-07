@@ -24,7 +24,7 @@ export default function Sponsors({ sponsors }) {
       </div>
 
       <div className="row">
-        <div className="col-xs-12 col-md-10 col-md-offset-1 sponsors-container">
+        <div className="col-xs-12 sponsors-container">
 
           <h2>Gold</h2>
           <div className="width-5 height-5">
@@ -108,7 +108,8 @@ export async function getStaticProps() {
       sponsors: {
         gold: [
           { name: 'Facebook', image: 'facebook.png', link: 'https://research.facebook.com/' },
-          { name: 'UMass IESL', image: 'umass_iesl2.png', link: 'http://www.iesl.cs.umass.edu/' },
+          { name: 'Alfred P. Sloan Foundation', image: 'sloan.png', link: 'https://sloan.org/' },
+          { name: 'UMass IESL', image: 'umass.png', link: 'http://www.iesl.cs.umass.edu/' },
         ],
         silver: [
           { name: 'Amazon', image: 'amazon.png', link: 'https://www.amazon.science/' },
