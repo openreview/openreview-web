@@ -27,14 +27,15 @@ const Moderation = ({ appContext, accessToken }) => {
 
   const getModerationStatus = async () => {
     try {
-      const result = await api.get('/notes', {
+      const { notes } = await api.get('/notes', {
         invitation: 'OpenReview.net/Support/-/OpenReview_Config',
         limit: 1,
       })
-      if (result?.count !== 1) {
-        throw new Error('Moderation config could not be loaded')
+      if (notes?.length > 0) {
+        setConfigNote(notes[0])
+      } else {
+        promptError('Moderation config could not be loaded')
       }
-      setConfigNote(result.notes[0])
     } catch (error) {
       promptError(error.message)
     }
@@ -44,6 +45,7 @@ const Moderation = ({ appContext, accessToken }) => {
     // eslint-disable-next-line no-alert
     const result = window.confirm(`${moderationDisabled ? 'Enable' : 'Disable'} moderation?`)
     if (!result) return
+
     try {
       await api.post(
         '/notes',
