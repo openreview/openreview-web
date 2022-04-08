@@ -317,7 +317,9 @@ const DateProcessesEditor = ({
         accessToken,
         version: 2,
       })
-      promptMessage(`Code for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      promptMessage(`Date processes for ${prettyId(invitation.id)} updated`, {
+        scrollToTop: false,
+      })
       loadInvitation(invitation.id)
     } catch (error) {
       promptError(error.message, { scrollToTop: false })
@@ -343,7 +345,7 @@ const DateProcessesEditor = ({
           disabled={isSaving}
           loading={isSaving}
         >
-          <Icon name="floppy-disk"></Icon> {isSaving ? 'Saving' : 'Save date processes'}
+          {isSaving ? 'Saving' : 'Save date processes'}
         </SpinnerButton>
       </div>
     </div>
