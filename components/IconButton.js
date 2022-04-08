@@ -29,6 +29,4 @@ export const RestoreButton = (props) => (
 // eslint-disable-next-line react/jsx-props-no-spreading
 export const EditButton = (props) => <IconButton name="edit" {...props} />
 
-export const AddButton = (props) => <IconButton name="plus" {...props} />
-
 export default IconButton

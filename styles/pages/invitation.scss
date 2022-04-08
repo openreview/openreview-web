@@ -172,7 +172,9 @@ main.invitation {
     .glyphicon-plus-sign {
       color: constants.$mediumBlue;
       font-size: 1.25rem;
-      margin-top: 0.25rem;
+    }
+    .glyphicon-minus-sign {
+      margin-top: 5px;
     }
     .code-editor {
       border-top: #ddd solid 1px;
@@ -182,7 +184,7 @@ main.invitation {
       margin-top: 1rem;
       display: flex;
       justify-content: space-between;
-      margin-bottom: 0.5rem;
+      margin-bottom: 1rem;
 
       .dropdown-select {
         min-width: 10%;
@@ -237,6 +239,12 @@ main.invitation {
     .add-row {
       display: flex;
       justify-content: flex-start;
+      button {
+        margin-top: 1rem;
+      }
+    }
+    .save-btn {
+      margin-top: 0;
     }
     .empty-message {
       color: constants.$subtleGray;
