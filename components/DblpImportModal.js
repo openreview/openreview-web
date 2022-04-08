@@ -56,6 +56,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
   const [selectedPublications, setSelectedPublications] = useState([])
   const [isSavingPublications, setIsSavingPublications] = useState(false)
   const [isFetchingPublications, setIsFetchingPublications] = useState(false)
+  const [hasError, setHasError] = useState(false)
   // user's existing publications in openreview (for filtering and constructing publication link)
   const publicationsInOpenReview = useRef([])
   const publicationsImportedByOtherProfiles = useRef([])
@@ -91,6 +92,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
     setMessage('Fetching publications from DBLP...')
     setIsFetchingPublications(true)
     setPublications([])
+    setHasError(false)
     dblpNames.current = null
     if (isPersistentUrl) setDblpUrl(dblpPersistentUrl)
 
@@ -117,7 +119,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
 
       // contains id (for link) and title (for filtering) of existing publications in openreivew
       publicationsInOpenReview.current = await getAllPapersByGroupId(profileId, accessToken)
-      const result = await getAllPapersImportedByOtherProfiles(
+      publicationsImportedByOtherProfiles.current = await getAllPapersImportedByOtherProfiles(
         allDblpPublications.map((p) => ({
           authorIndex: p.authorIndex,
           authorCount: p.authorCount,
@@ -127,7 +129,6 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
         profileNames,
         accessToken
       )
-      publicationsImportedByOtherProfiles.current = result.filter((p) => p)
       const { numExisting, numAssociatedWithOtherProfile, noPubsToImport } =
         getExistingFromDblpPubs(allDblpPublications)
       if (noPubsToImport) {
@@ -161,6 +162,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
         setMessage(error.message)
         setShowPersistentUrlInput(false)
       }
+      setHasError(true)
     }
     setIsFetchingPublications(false)
   }
@@ -345,7 +347,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
               type="button"
               className="btn btn-primary"
               onClick={importSelectedPublications}
-              disabled={!selectedPublications.length || isSavingPublications}
+              disabled={!selectedPublications.length || isSavingPublications || hasError}
             >
               Add to Your Profile
               {isSavingPublications && (
