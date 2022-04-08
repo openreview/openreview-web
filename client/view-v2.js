@@ -1370,7 +1370,11 @@ module.exports = (function() {
         ].join('\n'));
         $cancelButton.prop('disabled', true);
 
-        const content = getContent(invitation, $contentMap);
+        const noteEditObject = {
+          isEdit: params.isEdit,
+          ...(params.isEdit ? { edit: params.editToUpdate } : { note }),
+        };
+        const content = getContent(invitation, $contentMap, noteEditObject);
         const useEditSignature = (_.has(invitation.edit.note?.signatures, 'const')) &&
           invitation.edit.note?.signatures?.const[0] === '${signatures}' // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
@@ -1603,6 +1607,11 @@ module.exports = (function() {
     })
     // content fields
     Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
+      if (formData?.[contentFieldName] === null) {
+        // field is cleared
+        content[contentFieldName] = null;
+        return;
+      }
       if (valueObj = contentFieldValue.value) {
         if (valueObj.const) {
           return
@@ -1647,6 +1656,11 @@ module.exports = (function() {
 
     if (invitation.edit.note?.content) {
       editNote.content = Object.entries(invitation.edit.note.content).reduce((acc, [fieldName, fieldValue]) => {
+        if (formContent[fieldName] === null) {
+          // field is cleared
+          acc[fieldName] = null;
+          return acc;
+        }
         acc[fieldName] = {
           value: formContent[fieldName],
           ...(shouldSetValue(`edit.note.content.${fieldName}.readers`) && { readers: edit.note?.content?.[fieldName]?.readers }),
@@ -1694,7 +1708,7 @@ module.exports = (function() {
     return errorList;
   };
 
-  var getContent = function(invitation, $contentMap) {
+  var getContent = function(invitation, $contentMap, noteEditObj) {
     var files = {};
     var errors = [];
     var invitationContent = invitation.edit.note.content;
@@ -1799,6 +1813,15 @@ module.exports = (function() {
           files[k] = file;
         } else if ($inputVal.data('fileRemoved')) {
           ret[k] = ''
+        }
+      }
+
+      if (noteEditObj) {
+        var existingContent = noteEditObj.isEdit
+          ? noteEditObj.edit.note.content[k]
+          : noteEditObj.note.content[k];
+        if (inputVal === "" && existingContent?.value && existingContent.value !== inputVal) {
+          ret[k] = null;
         }
       }
 
