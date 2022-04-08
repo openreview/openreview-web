@@ -25,9 +25,10 @@ const Moderation = ({ appContext, accessToken }) => {
     try {
       const result = await api.get('/notes', {
         invitation: 'OpenReview.net/Support/-/OpenReview_Config',
+        limit: 1,
       })
-      if (!result.notes?.length === 1) {
-        throw new Error('moderation config note is wrong')
+      if (result?.count !== 1) {
+        throw new Error('Moderation config could not be loaded')
       }
       setConfigNote(result.notes[0])
     } catch (error) {
