@@ -1033,12 +1033,13 @@ table.table-minimal {
   width: 1040px;
   margin: 0 auto;
   h4 {
-    display: inline;
+    margin-right: 1rem;
   }
 
-  .enable-moderation-button {
-    font-weight: normal;
+  .dropdown-select {
+    align-self: center;
   }
+  display: flex;
 }
 .moderation-container {
   .filter-form {

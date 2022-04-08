@@ -12,7 +12,6 @@ import api from '../../lib/api-client'
 import { prettyId, formatDateTime } from '../../lib/utils'
 import Dropdown from '../../components/Dropdown'
 import BasicModal from '../../components/BasicModal'
-import Accordion from '../../components/Accordion'
 
 const Moderation = ({ appContext, accessToken }) => {
   const { setBannerHidden } = appContext
@@ -20,6 +19,11 @@ const Moderation = ({ appContext, accessToken }) => {
   const [configNote, setConfigNote] = useState(null)
 
   const moderationDisabled = configNote?.content?.moderate === 'No'
+
+  const moderationStatusOptions = [
+    { label: 'Enabled', value: 'enabled' },
+    { label: 'Disabled', value: 'disabled' },
+  ]
 
   const getModerationStatus = async () => {
     try {
@@ -71,25 +75,17 @@ const Moderation = ({ appContext, accessToken }) => {
       </header>
 
       {configNote && (
-        <Accordion
-          sections={[
-            {
-              heading: (
-                <span>
-                  Moderation status :{' '}
-                  <h4>{`${moderationDisabled ? 'Disabled' : 'Enabled'}`}</h4>
-                </span>
-              ),
-              body: (
-                <button
-                  className="btn btn-xs enable-moderation-button"
-                  onClick={enableDisableModeration}
-                >{`${moderationDisabled ? 'Enable' : 'Disable'}`}</button>
-              ),
-            },
-          ]}
-          options={{ extraClasses: 'moderation-status', collapsed: true }}
-        />
+        <div className="moderation-status">
+          <h4>Moderation Status:</h4>
+          <Dropdown
+            className="dropdown-select dropdown-sm"
+            options={moderationStatusOptions}
+            value={
+              moderationDisabled ? moderationStatusOptions[1] : moderationStatusOptions[0]
+            }
+            onChange={enableDisableModeration}
+          />
+        </div>
       )}
       <div className="moderation-container">
         <UserModerationQueue
@@ -449,6 +445,7 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser }) => {
             }}
             selectRef={selectRef}
             isClearable
+            menuIsOpen
           />
           <textarea
             name="message"
