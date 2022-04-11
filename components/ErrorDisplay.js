@@ -21,7 +21,7 @@ const ErrorDisplay = ({ statusCode, message }) => (
           <p className="error-help">
             <strong>
               Important: If this URL was sent to you in an email, then in order to access this
-              page you must first add that same email address to your OpenReview profile.
+              page the same email address must be added to your OpenReview profile and confirmed.
             </strong>
           </p>
           <p className="error-help">
@@ -29,7 +29,8 @@ const ErrorDisplay = ({ statusCode, message }) => (
             {' '}
             <Link href="/profile/edit"><a>Edit Profile page</a></Link>
             , click the + icon at the bottom of the Emails section and enter the new email
-            address. Then, click the Save Profile Changes button at the bottom of the page.
+            address. Then, click the Confirm button, check your email for the confirmation
+            message from OpenReview, and finally click the link to complete the confirmation.
           </p>
         </>
       )}
