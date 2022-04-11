@@ -1826,6 +1826,49 @@ module.exports = (function() {
     });
   }
 
+  var renderCustomQuotaWidget = function(container, customQuotaInvitation) {
+    var $tagWidget = view.mkTagInput(
+      '_',
+      {
+        'value-dropdown': customQuotaInvitation.edge.weight.enum
+      },
+      customQuotaInvitation.details.repliedEdges.map(function(e){ return { id: e.id, tag: e.weight }; }),
+      {
+        placeholder: customQuotaInvitation.edge.weight.presentation.default,
+        label: view.prettyInvitationId(customQuotaInvitation.id),
+        readOnly: false,
+        onChange: function(id, value, deleted, done) {
+          var body = {
+            head: customQuotaInvitation.edge.head.const,
+            tail: user.profile.id,
+            weight: parseInt(value),
+            signatures: [user.profile.id],
+            readers: customQuotaInvitation.edge.readers.const.map(function(r) { return r == '${tail}' ? user.profile.id : r; }),
+            writers: customQuotaInvitation.edge.writers.const.map(function(r) { return r == '${tail}' ? user.profile.id : r; }),
+            invitation: customQuotaInvitation.id,
+            ddate: deleted ? Date.now() : null
+          };
+          if (id) {
+            body.id = id;
+          }
+          $('.tag-widget button').attr('disabled', true);
+          Webfield2.post('/edges', body)
+            .then(function(result) {
+              done({
+                id: result.id,
+                tag: result.weight
+              });
+              $('.tag-widget button').attr('disabled', false);
+            })
+            .fail(function(error) {
+              promptError(error ? error : 'The specified tag could not be updated');
+            });
+        }
+      }
+    );
+    $(container).append($tagWidget);
+  }
+
   return {
     // Deprecated: All API functions have been moved to Webfield.api
     get: get,
@@ -1857,6 +1900,7 @@ module.exports = (function() {
       renderTable: renderTable,
       renderTasks: renderTasks,
       renderSubmissionList: renderSubmissionList,
+      renderCustomQuotaWidget: renderCustomQuotaWidget,
       setup: setup,
       submissionList: submissionList,
       eicTaskList: eicTaskList,
