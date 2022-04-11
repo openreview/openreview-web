@@ -20,11 +20,6 @@ const Moderation = ({ appContext, accessToken }) => {
 
   const moderationDisabled = configNote?.content?.moderate === 'No'
 
-  const moderationStatusOptions = [
-    { label: 'Enabled', value: 'enabled' },
-    { label: 'Disabled', value: 'disabled' },
-  ]
-
   const getModerationStatus = async () => {
     try {
       const { notes } = await api.get('/notes', {
@@ -74,21 +69,24 @@ const Moderation = ({ appContext, accessToken }) => {
 
       <header>
         <h1>User Moderation</h1>
+        <hr />
       </header>
 
       {configNote && (
         <div className="moderation-status">
           <h4>Moderation Status:</h4>
-          <Dropdown
-            className="dropdown-select dropdown-sm"
-            options={moderationStatusOptions}
-            value={
-              moderationDisabled ? moderationStatusOptions[1] : moderationStatusOptions[0]
-            }
+
+          <select
+            className="form-control input-sm"
+            value={moderationDisabled ? 'disabled' : 'enabled'}
             onChange={enableDisableModeration}
-          />
+          >
+            <option value="enabled">Enabled</option>
+            <option value="disabled">Disabled</option>
+          </select>
         </div>
       )}
+
       <div className="moderation-container">
         <UserModerationQueue
           accessToken={accessToken}
