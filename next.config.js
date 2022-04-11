@@ -14,7 +14,6 @@ module.exports = withTM({
     SUPER_USER: process.env.SUPER_USER,
     USE_DBLP_VENUES: process.env.USE_DBLP_VENUES === 'true',
     GA_PROPERTY_ID: process.env.GA_PROPERTY_ID,
-    DBLP_BATCH_SIZE: Number(process.env.DBLP_BATCH_SIZE),
   },
   generateBuildId: () => nextBuildId({ dir: __dirname, describe: true }),
   poweredByHeader: false,
