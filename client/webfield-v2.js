@@ -1826,37 +1826,46 @@ module.exports = (function() {
     });
   }
 
-  var renderCustomQuotaWidget = function(container, customQuotaInvitation) {
+  var renderEdgeWidget = function(container, invitation, options) {
+    var defaults = {
+      fieldName: 'weight',
+    };
+    options = _.defaults(options, defaults);
     var $tagWidget = view.mkTagInput(
       '_',
       {
-        'value-dropdown': customQuotaInvitation.edge.weight.enum
+        'value-dropdown': invitation.edge[options.fieldName].enum
       },
-      customQuotaInvitation.details.repliedEdges.map(function(e){ return { id: e.id, tag: e.weight }; }),
+      invitation.details.repliedEdges.map(function(e){ return { id: e.id, tag: e[options.fieldName] }; }),
       {
-        placeholder: customQuotaInvitation.edge.weight.presentation.default,
-        label: view.prettyInvitationId(customQuotaInvitation.id),
+        placeholder: invitation.edge[options.fieldName].presentation.default,
+        label: view.prettyInvitationId(invitation.id),
         readOnly: false,
         onChange: function(id, value, deleted, done) {
           var body = {
-            head: customQuotaInvitation.edge.head.const,
+            head: invitation.edge.head.const,
             tail: user.profile.id,
-            weight: parseInt(value),
             signatures: [user.profile.id],
-            readers: customQuotaInvitation.edge.readers.const.map(function(r) { return r == '${tail}' ? user.profile.id : r; }),
-            writers: customQuotaInvitation.edge.writers.const.map(function(r) { return r == '${tail}' ? user.profile.id : r; }),
-            invitation: customQuotaInvitation.id,
+            readers: invitation.edge.readers.const.map(function(r) { return r == '${tail}' ? user.profile.id : r; }),
+            writers: invitation.edge.writers.const.map(function(r) { return r == '${tail}' ? user.profile.id : r; }),
+            invitation: invitation.id,
             ddate: deleted ? Date.now() : null
           };
           if (id) {
             body.id = id;
+          }
+          if (options.fieldName == 'weight') {
+            body.weight = parseInt(value);
+          }
+          if (options.fieldName == 'label') {
+            body.label = value;
           }
           $('.tag-widget button').attr('disabled', true);
           Webfield2.post('/edges', body)
             .then(function(result) {
               done({
                 id: result.id,
-                tag: result.weight
+                tag: result[options.fieldName]
               });
               $('.tag-widget button').attr('disabled', false);
             })
@@ -1900,7 +1909,7 @@ module.exports = (function() {
       renderTable: renderTable,
       renderTasks: renderTasks,
       renderSubmissionList: renderSubmissionList,
-      renderCustomQuotaWidget: renderCustomQuotaWidget,
+      renderEdgeWidget: renderEdgeWidget,
       setup: setup,
       submissionList: submissionList,
       eicTaskList: eicTaskList,
