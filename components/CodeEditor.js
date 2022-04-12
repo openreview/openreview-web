@@ -11,7 +11,16 @@ import { linter } from '@codemirror/lint'
 import Linter from 'eslint4b-prebuilt'
 
 const CodeEditor = ({
-  code, minHeight = '200px', maxHeight = '600px', wrap = true, onChange = undefined, isJson = false, isPython = false, scrollIntoView = false, readOnly = false,
+  code,
+  minHeight = '200px',
+  maxHeight = '600px',
+  wrap = true,
+  onChange = undefined,
+  isJson = false,
+  isPython = false,
+  scrollIntoView = false,
+  readOnly = false,
+  defaultToMinHeight = false,
 }) => {
   const containerRef = useRef(null)
   const editorRef = useRef(null)
@@ -83,6 +92,7 @@ const CodeEditor = ({
         '&': {
           minHeight,
           maxHeight,
+          ...(defaultToMinHeight && { height: minHeight }),
           border: '1px solid #eee',
           fontFamily: 'Monaco, Menlo, "Ubuntu Mono", Consolas',
           fontSize: '13px',
@@ -93,10 +103,12 @@ const CodeEditor = ({
     if (wrap) extensions.push(EditorView.lineWrapping)
     if (readOnly) extensions.push(EditorView.editable.of(false))
     if (onChange && typeof onChange === 'function') {
-      extensions.push(EditorView.updateListener.of((view) => {
-        const value = view.state.doc.toString()
-        onChange(value)
-      }))
+      extensions.push(
+        EditorView.updateListener.of((view) => {
+          const value = view.state.doc.toString()
+          onChange(value)
+        })
+      )
     }
 
     const state = EditorState.create({
@@ -113,9 +125,7 @@ const CodeEditor = ({
     return () => editorRef.current?.destroy()
   }, [])
 
-  return (
-    <div className="code-editor" ref={containerRef} />
-  )
+  return <div className="code-editor" ref={containerRef} />
 }
 
 export default CodeEditor
