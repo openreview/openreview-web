@@ -1,7 +1,6 @@
-/* globals promptMessage: false */
-/* globals promptError: false */
+/* globals promptMessage,promptError,$: false */
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import EditorSection from '../EditorSection'
 import SpinnerButton from '../SpinnerButton'
@@ -100,9 +99,11 @@ export const InvitationCodeV2 = ({
   loadInvitation,
   codeType,
   isMetaInvitation,
+  alwaysShowEditor,
+  noTitle,
 }) => {
   const [code, setCode] = useState(invitation[codeType])
-  const [showEditor, setShowEditor] = useState(false)
+  const [showEditor, setShowEditor] = useState(alwaysShowEditor ?? false)
   const [isSaving, setIsSaving] = useState(false)
 
   const titleMap = {
@@ -151,11 +152,11 @@ export const InvitationCodeV2 = ({
 
   useEffect(() => {
     setCode(invitation[codeType])
-    setShowEditor(false)
+    setShowEditor(alwaysShowEditor ?? false)
   }, [invitation.id])
 
   return (
-    <EditorSection title={sectionTitle}>
+    <EditorSection title={noTitle ? null : sectionTitle}>
       {showEditor && <CodeEditor code={code} onChange={setCode} />}
 
       {showEditor ? (
@@ -168,13 +169,15 @@ export const InvitationCodeV2 = ({
           >
             {isSaving ? 'Saving' : 'Update Code'}
           </SpinnerButton>
-          <button
-            type="button"
-            className="btn btn-sm btn-default"
-            onClick={() => handleCancelClick()}
-          >
-            Cancel
-          </button>
+          {!alwaysShowEditor && (
+            <button
+              type="button"
+              className="btn btn-sm btn-default"
+              onClick={() => handleCancelClick()}
+            >
+              Cancel
+            </button>
+          )}
         </div>
       ) : (
         <div>

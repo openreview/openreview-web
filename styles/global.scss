@@ -282,6 +282,9 @@ hr {
 .btn-link .glyphicon {
   color: constants.$mediumDarkBlue;
 }
+.btn-xs .glyphicon {
+  top: 1px;
+}
 .trashed {
   opacity: 0.35;
 }

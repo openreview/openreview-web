@@ -12,6 +12,7 @@ import InvitationChildInvitations, {
   InvitationChildInvitationsV2,
 } from './InvitationChildInvitations'
 import { isSuperUser } from '../../lib/auth'
+import InvitationProcessFunctionsV2 from './InvitationProcessFunctions'
 
 const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => {
   const profileId = user?.profile?.id
@@ -116,20 +117,11 @@ export const InvitationEditorV2 = ({
         codeType="web"
         isMetaInvitation={isMetaInvitation}
       />
-      <InvitationCodeV2
+      <InvitationProcessFunctionsV2
         invitation={invitation}
         profileId={profileId}
         accessToken={accessToken}
         loadInvitation={loadInvitation}
-        codeType="process"
-        isMetaInvitation={isMetaInvitation}
-      />
-      <InvitationCodeV2
-        invitation={invitation}
-        profileId={profileId}
-        accessToken={accessToken}
-        loadInvitation={loadInvitation}
-        codeType="preprocess"
         isMetaInvitation={isMetaInvitation}
       />
     </div>
