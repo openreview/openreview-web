@@ -173,6 +173,7 @@ const RevisionsList = ({
           $('#note-editor-modal').find('div.note_editor.panel').remove()
         })
       },
+      isReference: true,
     })
   }
 

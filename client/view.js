@@ -3504,21 +3504,24 @@ module.exports = (function() {
         ].join('\n'));
         $cancelButton.prop('disabled', true);
 
+        var latestNotePath = params.isReference ? "references" : "notes";
         var latestNotePromise = note.id
-          ? Webfield.get("/notes", {
+          ? Webfield.get(`/${latestNotePath}`, {
               id: note.id
           }, {
             handleErrors: false
           }).then(function (result) {
-            return result.notes[0];
+            return result[latestNotePath][0];
           }, function () {
             return $.Deferred().resolve(note);
           }) : $.Deferred().resolve(note);
-        var noteLatestNoteErrorMessage = 'This note has been edited since you opened it. Please refresh the page and try again.';
+        var noteLatestNoteErrorMessage = `This ${latestNotePath.slice(0,-1)} has been edited since you opened it. Please refresh the page and try again.`;
 
         latestNotePromise.then(function(latestNote) {
           if(!(latestNote.tmdate===note.tmdate)){
             params.onError?params.onError([noteLatestNoteErrorMessage]):promptError(noteLatestNoteErrorMessage);
+            $submitButton.prop({ disabled: false }).find('.spinner-small').remove();
+            $cancelButton.prop({ disabled: false });
             return
           }
           var content = getContent(invitation, $contentMap);
