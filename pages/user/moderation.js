@@ -16,9 +16,49 @@ import BasicModal from '../../components/BasicModal'
 const Moderation = ({ appContext, accessToken }) => {
   const { setBannerHidden } = appContext
   const [shouldReload, reload] = useReducer((p) => !p, true)
+  const [configNote, setConfigNote] = useState(null)
+
+  const moderationDisabled = configNote?.content?.moderate === 'No'
+
+  const getModerationStatus = async () => {
+    try {
+      const { notes } = await api.get('/notes', {
+        invitation: 'OpenReview.net/Support/-/OpenReview_Config',
+        limit: 1,
+      })
+      if (notes?.length > 0) {
+        setConfigNote(notes[0])
+      } else {
+        promptError('Moderation config could not be loaded')
+      }
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const enableDisableModeration = async () => {
+    // eslint-disable-next-line no-alert
+    const result = window.confirm(`${moderationDisabled ? 'Enable' : 'Disable'} moderation?`)
+    if (!result) return
+
+    try {
+      await api.post(
+        '/notes',
+        {
+          ...configNote,
+          content: { ...configNote.content, moderate: moderationDisabled ? 'Yes' : 'No' },
+        },
+        { accessToken }
+      )
+      getModerationStatus()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
 
   useEffect(() => {
     setBannerHidden(true)
+    getModerationStatus()
   }, [])
 
   return (
@@ -31,6 +71,21 @@ const Moderation = ({ appContext, accessToken }) => {
         <h1>User Moderation</h1>
         <hr />
       </header>
+
+      {configNote && (
+        <div className="moderation-status">
+          <h4>Moderation Status:</h4>
+
+          <select
+            className="form-control input-sm"
+            value={moderationDisabled ? 'disabled' : 'enabled'}
+            onChange={enableDisableModeration}
+          >
+            <option value="enabled">Enabled</option>
+            <option value="disabled">Disabled</option>
+          </select>
+        </div>
+      )}
 
       <div className="moderation-container">
         <UserModerationQueue
@@ -390,6 +445,7 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser }) => {
             }}
             selectRef={selectRef}
             isClearable
+            menuIsOpen
           />
           <textarea
             name="message"
