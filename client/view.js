@@ -1602,7 +1602,7 @@ module.exports = (function() {
         });
     }
 
-    var $progressBar = $('<div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 45%"><span class="sr-only">45% Complete</span></div></div>').hide()
+    var $progressBar = $('<div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 0%"><span class="sr-only">0% Complete</span></div></div>').hide()
     return $clearBtn
       ? $('<div class="input-group file-input-group">').append($notePdf, $('<span class="input-group-btn">').append($clearBtn)).add($progressBar)
       : $notePdf
@@ -3605,19 +3605,10 @@ module.exports = (function() {
                 return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, editNote.content.pdf);
               });
             }
-            // var data = new FormData();
-            // data.append('invitationId', invitation.id);
-            // data.append('name', fieldName);
-            // data.append('file', files[fieldName]);
-            // return Webfield.sendFile('/attachment' , data, undefined, fieldName).then(function(result) {
-            //   editNote.content[fieldName] = result.url;
-            //   updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
-            // });
+            var $progressBar = $contentMap[fieldName].find('div.progress')
             var file = files[fieldName];
-            // var chunkSize = 1024*1024; // 1MB
-            // var chunkCount = Math.ceil(file.size/chunkSize)
-            var chunkCount = 10
-            var chunkSize = Math.floor(file.size/chunkCount)
+            var chunkSize = 1024*1024*10;
+            var chunkCount = Math.ceil(file.size/chunkSize)
             var sendChunkPs = [...Array(chunkCount).keys()].map(chunkIndex=>{
               var chunk = file.slice(chunkIndex*chunkSize, (chunkIndex+1)*chunkSize,file.type);
               var data = new FormData();
@@ -3632,14 +3623,13 @@ module.exports = (function() {
                   editNote.content[fieldName] = result.url;
                   updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
                 } else {
-                  var $progressBar = $contentMap[fieldName].find('div.progress')
-                  if($progressBar.is(":hidden")) $progressBar.show();
                   var results = Object.values(result)
                   var progress =`${results.filter(p=>p==='completed').length*100/results.length}%`
                   $progressBar.find('.progress-bar').css('width',progress)
                 }
               });
             })
+            $progressBar.show();
             return Promise.all(sendChunkPs);
           });
 

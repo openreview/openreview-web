@@ -381,6 +381,10 @@ textarea.form-control {
     border-color: lighten(constants.$mediumBlue, 10%);
     border-radius: 0;
   }
+  .progress {
+    border-radius: 0;
+    margin-bottom: 0;
+  }
 }
 .dropdown-menu {
   &.dropdown-align-right {
@@ -533,7 +537,8 @@ header {
 }
 
 // Flash message
-#flash-message-container, #edit-banner {
+#flash-message-container,
+#edit-banner {
   padding: 12px 0;
   margin: 0;
   border-radius: 0;
