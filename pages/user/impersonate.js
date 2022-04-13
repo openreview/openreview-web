@@ -9,29 +9,26 @@ import UserContext from '../../components/UserContext'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import api from '../../lib/api-client'
 
-const Impersonate = ({ accessToken }) => {
+const Impersonate = () => {
   const [userId, setUserId] = useState('')
   const [error, setError] = useState(null)
-  const { userLoading } = useLoginRedirect()
+  const { userLoading, accessToken } = useLoginRedirect()
   const { loginUser } = useContext(UserContext)
-
-  const impersonate = async (groupId) => {
-    try {
-      const { user, token } = await api.post('/impersonate', { groupId }, { accessToken })
-      loginUser(user, token, '/profile')
-    } catch (apiError) {
-      setError(apiError)
-    }
-  }
 
   const impersonateUser = async (e) => {
     e.preventDefault()
     setError(null)
 
-    if (userId.startsWith('~') || userId.includes('@')) {
-      impersonate(userId)
-    } else {
+    if (!userId.startsWith('~') && !userId.includes('@')) {
       setError({ message: 'Please enter a valid username or email' })
+      return
+    }
+
+    try {
+      const { user, token } = await api.post('/impersonate', { groupId: userId }, { accessToken })
+      loginUser(user, token, '/profile')
+    } catch (apiError) {
+      setError(apiError)
     }
   }
 
