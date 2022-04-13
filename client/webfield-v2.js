@@ -1871,6 +1871,7 @@ module.exports = (function() {
             })
             .fail(function(error) {
               promptError(error ? error : 'The specified tag could not be updated');
+              $('.tag-widget button').attr('disabled', false);
             });
         }
       }
