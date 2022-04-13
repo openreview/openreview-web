@@ -3,6 +3,7 @@
 /* globals promptMessage: false */
 /* eslint-disable react/destructuring-assignment */
 
+import { nanoid } from 'nanoid'
 import React, { useContext } from 'react'
 import api from '../../lib/api-client'
 import { getInterpolatedValues, getSignatures } from '../../lib/edge-utils'
@@ -35,10 +36,11 @@ export default function ProfileEntity(props) {
     editEdges,
     editEdgeTemplates,
     traverseEdgeTemplate,
-    browseEdges,
     traverseEdgesCount,
   } = props.profile
 
+  let browseEdges
+  ;({ browseEdges } = props.profile)
   const metadata = props.profile.metadata || {}
   const extraClasses = []
   const defaultWeight = [...editInvitations, ...browseInvitations].find((p) =>
@@ -48,6 +50,18 @@ export default function ProfileEntity(props) {
     [...(browseEdges || []), ...(editEdges || [])].find((p) =>
       p.invitation.includes('Custom_Max_Papers')
     )?.weight ?? defaultWeight
+  const defaultAssignmentAvailability = browseInvitations.find((p) =>
+    p.id.includes('Assignment_Availability')
+  )?.label?.default
+  if (
+    defaultAssignmentAvailability &&
+    !browseEdges.find((p) => p.invitation.includes('Assignment_Availability'))
+  )
+    browseEdges = browseEdges.concat({
+      id: nanoid(),
+      name: 'Assignment Availability',
+      label: defaultAssignmentAvailability,
+    })
   const isInviteAcceptedProfile =
     editEdges?.find((p) => p.invitation.includes('Invite_Assignment'))?.label === 'Accepted'
 
@@ -391,8 +405,7 @@ export default function ProfileEntity(props) {
           >
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
             {content.name.first} {content.name.middle} {content.name.last}
-          </a>
-          {' '}
+          </a>{' '}
           <span>({content.email})</span>
         </h3>
 
@@ -422,7 +435,7 @@ export default function ProfileEntity(props) {
       ))}
 
       <div>
-        <ScoresList edges={props.profile.browseEdges} />
+        <ScoresList edges={browseEdges} />
         <div className="action-links">
           <ul className="list-unstyled text-right">
             <li>
