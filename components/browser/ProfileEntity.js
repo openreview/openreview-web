@@ -20,6 +20,7 @@ export default function ProfileEntity(props) {
     availableSignaturesInvitationMap,
     traverseInvitation,
     browseInvitations,
+    ignoreHeadBrowseInvitations,
     version,
   } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
@@ -50,18 +51,18 @@ export default function ProfileEntity(props) {
     [...(browseEdges || []), ...(editEdges || [])].find((p) =>
       p.invitation.includes('Custom_Max_Papers')
     )?.weight ?? defaultWeight
-  const defaultAssignmentAvailability = browseInvitations.find((p) =>
-    p.id.includes('Assignment_Availability')
-  )?.label?.default
-  if (
-    defaultAssignmentAvailability &&
-    !browseEdges.find((p) => p.invitation.includes('Assignment_Availability'))
-  )
-    browseEdges = browseEdges.concat({
-      id: nanoid(),
-      name: 'Assignment Availability',
-      label: defaultAssignmentAvailability,
-    })
+
+  ignoreHeadBrowseInvitations.forEach((p) => {
+    if (!p.defaultLabel && !p.defaultWeight) return
+    if (!browseEdges?.find((q) => q.invitation === p.id)) {
+      browseEdges = browseEdges.concat({
+        id: nanoid(),
+        name: p.name,
+        label: p.defaultLabel,
+        weight: p.defaultWeight,
+      })
+    }
+  })
   const isInviteAcceptedProfile =
     editEdges?.find((p) => p.invitation.includes('Invite_Assignment'))?.label === 'Accepted'
 
