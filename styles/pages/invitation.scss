@@ -115,8 +115,7 @@ main.invitation {
       overflow-x: hidden;
     }
   }
-  .reply-preview,
-  .tabs-container {
+  .reply-preview .tabs-container {
     div[role='tablist'] {
       margin-top: 1rem;
       a[data-target='#Reply'] {
@@ -167,6 +166,18 @@ main.invitation {
     }
   }
 
+  section.process-functions {
+    .tabs-container .tab-pane {
+      padding: 0;
+    }
+    .code-editor {
+      margin-top: -1px;
+      z-index: 1;
+    }
+    ul.nav-tabs > li.active {
+      z-index: 10;
+    }
+  }
   .dateprocess-editor {
     .glyphicon-minus-sign,
     .glyphicon-plus-sign {
@@ -177,7 +188,7 @@ main.invitation {
       margin-top: 5px;
     }
     .code-editor {
-      border-top: #ddd solid 1px;
+      margin-top: 1rem;
       margin-bottom: 1rem;
     }
     .dateprocess-row {
