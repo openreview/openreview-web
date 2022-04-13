@@ -115,7 +115,8 @@ main.invitation {
       overflow-x: hidden;
     }
   }
-  .reply-preview {
+  .reply-preview,
+  .tabs-container {
     div[role='tablist'] {
       margin-top: 1rem;
       a[data-target='#Reply'] {
@@ -163,6 +164,90 @@ main.invitation {
           margin-bottom: 0.25rem;
         }
       }
+    }
+  }
+
+  .dateprocess-editor {
+    .glyphicon-minus-sign,
+    .glyphicon-plus-sign {
+      color: constants.$mediumBlue;
+      font-size: 1.25rem;
+    }
+    .glyphicon-minus-sign {
+      margin-top: 5px;
+    }
+    .code-editor {
+      border-top: #ddd solid 1px;
+      margin-bottom: 1rem;
+    }
+    .dateprocess-row {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+
+      .dropdown-select {
+        min-width: 10%;
+        align-self: start;
+        margin-right: 1rem;
+      }
+
+      .delay-input {
+        flex-grow: 1;
+      }
+
+      input.invalid-value {
+        border-color: constants.$orRed;
+      }
+
+      button {
+        margin-top: 0;
+        margin-left: 1rem;
+        margin-right: 0;
+        align-self: start;
+        height: 34px;
+      }
+
+      .dates {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        .date-row {
+          display: flex;
+          justify-content: flex-start;
+          margin-bottom: 0.5rem;
+          .glyphicon {
+            margin-left: 0.5rem;
+          }
+        }
+      }
+
+      &.deleted {
+        opacity: 0.5;
+        pointer-events: none;
+
+        button {
+          pointer-events: all;
+          cursor: pointer;
+
+          &.showscript-button {
+            pointer-events: none;
+          }
+        }
+      }
+    }
+    .add-row {
+      display: flex;
+      justify-content: flex-start;
+      button {
+        margin-top: 1rem;
+      }
+    }
+    .save-btn {
+      margin-top: 0;
+    }
+    .empty-message {
+      color: constants.$subtleGray;
     }
   }
 }

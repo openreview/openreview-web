@@ -28,7 +28,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         details: 'replyCount,writable,presentation,signatures,revisions'
       }, { handleErrors: false })
         .then(function(result) {
-          if (!result.notes || !result.notes.length) {
+          if (!result.notes) {
             location.href = '/';
             return;
           }

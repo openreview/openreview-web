@@ -6,12 +6,14 @@ import Router from 'next/router'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import WebfieldContainer from '../../components/WebfieldContainer'
 import withError from '../../components/withError'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 import { invitationModeToggle } from '../../lib/banner-links'
 
 const Invitation = ({ invitationId, webfieldCode, writable, appContext }) => {
+  const { user, userLoading } = useUser()
   const { setBannerHidden, setEditBanner, clientJsLoading } = appContext
   const invitationTitle = prettyId(invitationId)
 
@@ -24,7 +26,9 @@ const Invitation = ({ invitationId, webfieldCode, writable, appContext }) => {
   }, [invitationId, writable])
 
   useEffect(() => {
-    if (clientJsLoading) return
+    if (clientJsLoading || userLoading) return
+
+    window.user = user || { id: `guest_${Date.now()}`, profile: { id: 'guest' }, isGuest: true }
 
     const script = document.createElement('script')
     script.innerHTML = webfieldCode
@@ -33,8 +37,9 @@ const Invitation = ({ invitationId, webfieldCode, writable, appContext }) => {
     // eslint-disable-next-line consistent-return
     return () => {
       document.body.removeChild(script)
+      window.user = null
     }
-  }, [clientJsLoading, webfieldCode])
+  }, [clientJsLoading, userLoading, user?.id, webfieldCode])
 
   return (
     <>
@@ -73,7 +78,7 @@ Invitation.getInitialProps = async (ctx) => {
     redirectToEditOrInfoMode(ctx.query.mode)
   }
 
-  const { user, token: accessToken } = auth(ctx)
+  const { token: accessToken } = auth(ctx)
 
   const generateWebfieldCode = (invitation, query) => {
     const invitationTitle = prettyId(invitation.id)
@@ -144,24 +149,25 @@ ${invitation.apiVersion === 2 ? 'view2' : 'view'}.mkNoteEditor(
   }
 );`
 
-    const userOrGuest = user || { id: `guest_${Date.now()}`, isGuest: true }
     const noteContent = invitation.apiVersion === 2
       ? noteParams.reduce((acc, key) => { acc[key] = { value: query[key] }; return acc }, {})
       : noteParams.reduce((acc, key) => { acc[key] = query[key]; return acc }, {})
 
     return `// Webfield Code for ${invitation.id}
-window.user = ${JSON.stringify(userOrGuest)};
 $(function() {
   var args = ${JSON.stringify(query)};
   var invitation = ${JSON.stringify(invitationObjSlim)};
   var noteContent = ${JSON.stringify(noteContent)};
-  var user = ${JSON.stringify(userOrGuest)};
   var document = null;
   var window = null;
 
   $('#invitation-container').empty();
 
-  ${noteEditorCode || webfieldCode}
+  ${noteEditorCode || `(function(note) {
+// START INVITATION CODE
+${webfieldCode}
+// END INVITATION CODE
+  })(null);`}
 });
 //# sourceURL=webfieldCode.js`
   }

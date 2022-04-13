@@ -17,18 +17,15 @@
             <td style="width: 40px;"><strong>{{reviewerNum}}</strong></td>
             <td>
               {{user.name}} <span class="text-muted">({{user.email}})</span>
-              {{#if user.completedReview}}
-                {{#if user.status}}
-                  {{#each user.status as |value name|}}
-                    <br>
-                    {{name}}: {{value}}
-                  {{/each}}
-                {{else}}
-                  <!-- Deprecated -->
+              {{#if user.status}}
+                {{#each user.status as |value name|}}
                   <br>
-                  {{#if user.preliminary_rating}}Rating preliminary: {{user.preliminary_rating}}|final: {{user.rating}}{{else}}{{#if user.rating}}Rating: {{user.rating}}{{/if}}{{/if}}{{#if user.confidence}} / Confidence: {{user.confidence}}{{/if}}
-                  {{#if user.reviewLength}}<br>Review length: {{user.reviewLength}} / {{/if}}{{#if user.ranking}}Ranking: {{user.ranking}}{{/if}}
-                {{/if}}
+                  {{name}}: {{value}}
+                {{/each}}
+              {{/if}}
+              {{#if user.completedReview}}
+                {{#if user.preliminary_rating}}<br>Rating preliminary: {{user.preliminary_rating}}|final: {{user.rating}}{{else}}{{#if user.rating}}<br>Rating: {{user.rating}}{{/if}}{{/if}}{{#if user.confidence}} / Confidence: {{user.confidence}}{{/if}}
+                {{#if user.reviewLength}}<br>Review length: {{user.reviewLength}} / {{/if}}{{#if user.ranking}}Ranking: {{user.ranking}}{{/if}}
                 <br>
                 <a href="/forum?id={{user.forum}}&noteId={{user.note}}{{#if ../referrer}}&referrer={{../referrer}}{{/if}}" target="_blank">Read Review</a>
               {{else}}
