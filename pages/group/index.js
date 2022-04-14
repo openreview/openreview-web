@@ -30,7 +30,7 @@ const Group = ({ groupId, webfieldCode, writable, appContext }) => {
   useEffect(() => {
     if (clientJsLoading || userLoading) return
 
-    window.user = user || { id: `guest_${Date.now()}`, profile: {}, isGuest: true }
+    window.user = user || { id: `guest_${Date.now()}`, profile: { id: 'guest' }, isGuest: true }
 
     const script = document.createElement('script')
     script.innerHTML = webfieldCode
