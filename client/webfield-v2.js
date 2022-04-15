@@ -1826,6 +1826,59 @@ module.exports = (function() {
     });
   }
 
+  var renderEdgeWidget = function(container, invitation, options) {
+    var defaults = {
+      fieldName: 'weight',
+    };
+    options = _.defaults(options, defaults);
+    var $tagWidget = view.mkTagInput(
+      '_',
+      {
+        'value-dropdown': invitation.edge[options.fieldName].enum
+      },
+      invitation.details.repliedEdges.map(function(e){ return { id: e.id, tag: e[options.fieldName] }; }),
+      {
+        placeholder: invitation.edge[options.fieldName].presentation.default,
+        label: view.prettyInvitationId(invitation.id),
+        readOnly: false,
+        onChange: function(id, value, deleted, done) {
+          var body = {
+            head: invitation.edge.head.const,
+            tail: user.profile.id,
+            signatures: [user.profile.id],
+            readers: invitation.edge.readers.const.map(function(r) { return r == '${tail}' ? user.profile.id : r; }),
+            writers: invitation.edge.writers.const.map(function(r) { return r == '${tail}' ? user.profile.id : r; }),
+            invitation: invitation.id,
+            ddate: deleted ? Date.now() : null
+          };
+          if (id) {
+            body.id = id;
+          }
+          if (options.fieldName == 'weight') {
+            body.weight = parseInt(value);
+          }
+          if (options.fieldName == 'label') {
+            body.label = value;
+          }
+          $('.tag-widget button').attr('disabled', true);
+          Webfield2.post('/edges', body)
+            .then(function(result) {
+              done({
+                id: result.id,
+                tag: result[options.fieldName]
+              });
+              $('.tag-widget button').attr('disabled', false);
+            })
+            .fail(function(error) {
+              promptError(error ? error : 'The specified tag could not be updated');
+              $('.tag-widget button').attr('disabled', false);
+            });
+        }
+      }
+    );
+    $(container).append($tagWidget);
+  }
+
   return {
     // Deprecated: All API functions have been moved to Webfield.api
     get: get,
@@ -1857,6 +1910,7 @@ module.exports = (function() {
       renderTable: renderTable,
       renderTasks: renderTasks,
       renderSubmissionList: renderSubmissionList,
+      renderEdgeWidget: renderEdgeWidget,
       setup: setup,
       submissionList: submissionList,
       eicTaskList: eicTaskList,

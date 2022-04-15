@@ -445,7 +445,6 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser }) => {
             }}
             selectRef={selectRef}
             isClearable
-            menuIsOpen
           />
           <textarea
             name="message"
