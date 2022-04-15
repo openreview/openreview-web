@@ -78,7 +78,8 @@ export default class EdgeBrowser extends React.Component {
           tailMap,
           loading: false,
         })
-      }).catch(error => promptError(error.message))
+      })
+      .catch((error) => promptError(error.message))
   }
 
   buildEntityMapFromInvitation(headOrTail) {
@@ -92,7 +93,8 @@ export default class EdgeBrowser extends React.Component {
       tag: '/tags',
     }
     const mainResultsP = api.getAll(apiUrlMap[invReplyObj.type], requestParams, {
-      accessToken: this.accessToken, version: this.version,
+      accessToken: this.accessToken,
+      version: this.version,
     })
 
     // Get all head or tail objects referenced by the start parameter edge
@@ -100,15 +102,17 @@ export default class EdgeBrowser extends React.Component {
     // and tail types as traverseInvitation
     let startResultsP
     const startInv = this.startInvitation?.[headOrTail]
-    if (startInv && (
-      startInv.type !== invReplyObj.type || !_.isEqual(startInv.query, invReplyObj.query)
-    )) {
+    if (
+      startInv &&
+      (startInv.type !== invReplyObj.type || !_.isEqual(startInv.query, invReplyObj.query))
+    ) {
       const startRequestParams = startInv.query || {}
       if (startInv.type === 'note') {
         startRequestParams.invitation = startInv.query.invitation
       }
       startResultsP = api.getAll(apiUrlMap[startInv.type], startRequestParams, {
-        accessToken: this.accessToken, version: this.version,
+        accessToken: this.accessToken,
+        version: this.version,
       })
     } else {
       startResultsP = Promise.resolve([])
@@ -118,29 +122,36 @@ export default class EdgeBrowser extends React.Component {
     // profiles
     let initialKeysP
     if (invReplyObj.type === 'profile' && requestParams.group) {
-      initialKeysP = api.get('/groups', { id: requestParams.group }, { accessToken: this.accessToken, version: this.version })
-        .then(response => _.get(response, 'groups[0].members', []))
+      initialKeysP = api
+        .get(
+          '/groups',
+          { id: requestParams.group },
+          { accessToken: this.accessToken, version: this.version }
+        )
+        .then((response) => _.get(response, 'groups[0].members', []))
     } else {
       initialKeysP = Promise.resolve(null)
     }
 
-    const groupedEdgesP = api.getAll('/edges', {
-      invitation: this.traverseInvitation.id,
-      groupBy: headOrTail,
-      select: 'count',
-      ...this.traverseInvitation.query,
-    }, { accessToken: this.accessToken, version: this.version, resultsKey: 'groupedEdges' })
-      .then(results => _.keyBy(results, `id.${headOrTail}`))
+    const groupedEdgesP = api
+      .getAll(
+        '/edges',
+        {
+          invitation: this.traverseInvitation.id,
+          groupBy: headOrTail,
+          select: 'count',
+          ...this.traverseInvitation.query,
+        },
+        { accessToken: this.accessToken, version: this.version, resultsKey: 'groupedEdges' }
+      )
+      .then((results) => _.keyBy(results, `id.${headOrTail}`))
 
-    return Promise.all([
-      initialKeysP,
-      mainResultsP,
-      startResultsP,
-      groupedEdgesP,
-    ])
-      .then(([initialKeys, mainResults, startResults, groupedEdges]) => {
+    return Promise.all([initialKeysP, mainResultsP, startResultsP, groupedEdgesP]).then(
+      ([initialKeys, mainResults, startResults, groupedEdges]) => {
         const useInitialKeys = initialKeys && initialKeys.length
-        const entityMap = useInitialKeys ? _.fromPairs(initialKeys.map(key => [key, null])) : {}
+        const entityMap = useInitialKeys
+          ? _.fromPairs(initialKeys.map((key) => [key, null]))
+          : {}
 
         const buildEntityMap = (entity) => {
           if (useInitialKeys && entityMap[entity.id] === undefined) return
@@ -149,7 +160,11 @@ export default class EdgeBrowser extends React.Component {
           const entityType = invReplyObj.type
           entityMap[entity.id] = formatEntityContent(entity, entityType)
           entityMap[entity.id].searchText = buildSearchText(entity, entityType)
-          entityMap[entity.id].traverseEdgesCount = _.get(groupedEdges, [entity.id, 'count'], 0)
+          entityMap[entity.id].traverseEdgesCount = _.get(
+            groupedEdges,
+            [entity.id, 'count'],
+            0
+          )
         }
         mainResults.forEach(buildEntityMap)
         startResults.forEach(buildEntityMap)
@@ -177,7 +192,8 @@ export default class EdgeBrowser extends React.Component {
           })
         }
         return entityMap
-      })
+      }
+    )
   }
 
   addNewColumn(index) {
@@ -210,14 +226,17 @@ export default class EdgeBrowser extends React.Component {
         shouldReloadEntities: false,
       }
 
-      this.setState({
-        columns: [...this.state.columns.slice(0, index + 1), newCol],
-      }, () => {
-        // This relies on the experimental CSS property scroll-behavior for smooth scrolling
-        // For a more cross-browser compatible solution we could use:
-        // $(this.exploreInterfaceRef.current).animate({ scrollLeft: '+=800' }, 200)
-        this.exploreInterfaceRef.current.scrollLeft += 800
-      })
+      this.setState(
+        {
+          columns: [...this.state.columns.slice(0, index + 1), newCol],
+        },
+        () => {
+          // This relies on the experimental CSS property scroll-behavior for smooth scrolling
+          // For a more cross-browser compatible solution we could use:
+          // $(this.exploreInterfaceRef.current).animate({ scrollLeft: '+=800' }, 200)
+          this.exploreInterfaceRef.current.scrollLeft += 800
+        }
+      )
     }
   }
 
@@ -291,10 +310,17 @@ export default class EdgeBrowser extends React.Component {
     const editTranerseInvitations = [...this.editInvitations, this.traverseInvitation]
     editTranerseInvitations?.forEach(async (editInvitation) => {
       // this case is handled here to reduce num of calls to /groups,other cases handled at entity
-      if (editInvitation.signatures['values-regex'] && !editInvitation.signatures['values-regex']?.startsWith('~.*')) {
+      if (
+        editInvitation.signatures['values-regex'] &&
+        !editInvitation.signatures['values-regex']?.startsWith('~.*')
+      ) {
         if (editInvitation.signatures.default) {
           try {
-            const defaultLookupResult = await api.get('/groups', { regex: editInvitation.signatures.default, signatory: this.userId }, { accessToken: this.accessToken, version: this.version })
+            const defaultLookupResult = await api.get(
+              '/groups',
+              { regex: editInvitation.signatures.default, signatory: this.userId },
+              { accessToken: this.accessToken, version: this.version }
+            )
             if (defaultLookupResult.groups.length === 1) {
               editInvitationSignaturesMap.push({
                 invitation: editInvitation.id,
@@ -306,12 +332,19 @@ export default class EdgeBrowser extends React.Component {
             promptError(error.message)
           }
         }
-        const interpolatedSignature = editInvitation.signatures['values-regex'].replace(/{head\.number}/g, '.*')
+        const interpolatedSignature = editInvitation.signatures['values-regex'].replace(
+          /{head\.number}/g,
+          '.*'
+        )
         try {
-          const interpolatedLookupResult = await api.get('/groups', { regex: interpolatedSignature, signatory: this.userId }, { accessToken: this.accessToken, version: this.version })
+          const interpolatedLookupResult = await api.get(
+            '/groups',
+            { regex: interpolatedSignature, signatory: this.userId },
+            { accessToken: this.accessToken, version: this.version }
+          )
           editInvitationSignaturesMap.push({
             invitation: editInvitation.id,
-            signatures: interpolatedLookupResult.groups.map(group => group.id),
+            signatures: interpolatedLookupResult.groups.map((group) => group.id),
           })
         } catch (error) {
           promptError(error.message)
@@ -326,6 +359,9 @@ export default class EdgeBrowser extends React.Component {
       traverseInvitation: this.traverseInvitation,
       editInvitations: this.editInvitations,
       browseInvitations: this.browseInvitations,
+      ignoreHeadBrowseInvitations: this.browseInvitations?.filter(
+        (p) => p?.query?.head === 'ignore'
+      ),
       hideInvitation: this.hideInvitation,
       availableSignaturesInvitationMap: this.availableSignaturesInvitationMap,
       version: this.version,
@@ -333,7 +369,10 @@ export default class EdgeBrowser extends React.Component {
 
     return (
       <EdgeBrowserContext.Provider value={invitations}>
-        <div className={`row explore-interface expand-columns-${this.maxColumns}`} ref={this.exploreInterfaceRef}>
+        <div
+          className={`row explore-interface expand-columns-${this.maxColumns}`}
+          ref={this.exploreInterfaceRef}
+        >
           {this.state.columns.map((column, i) => (
             <Column
               // eslint-disable-next-line react/no-array-index-key
@@ -342,8 +381,12 @@ export default class EdgeBrowser extends React.Component {
               entityType={column.entityType}
               parentId={column.parentId}
               startInvitation={i === 0 ? this.startInvitation : null}
-              globalEntityMap={column.type === 'head' ? this.state.headMap : this.state.tailMap}
-              altGlobalEntityMap={column.type === 'head' ? this.state.tailMap : this.state.headMap}
+              globalEntityMap={
+                column.type === 'head' ? this.state.headMap : this.state.tailMap
+              }
+              altGlobalEntityMap={
+                column.type === 'head' ? this.state.tailMap : this.state.headMap
+              }
               updateGlobalEntityMap={this.updateGlobalEntityMap}
               metadataMap={this.state.metadataMap}
               updateMetadataMap={this.updateMetadataMap}
