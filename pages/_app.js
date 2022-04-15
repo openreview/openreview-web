@@ -126,10 +126,13 @@ export default class OpenReviewApp extends App {
   async refreshToken() {
     try {
       const { token, user } = await api.post('/refreshToken')
-      window.localStorage.setItem('openreview.lastRefresh', Date.now())
       this.loginUser(user, token, null)
     } catch (error) {
-      this.logoutUser(null)
+      if (error.name === 'TokenExpiredError') {
+        this.logoutUser(null)
+      } else {
+        Router.reload()
+      }
     }
   }
 
@@ -322,10 +325,6 @@ export default class OpenReviewApp extends App {
     window.addEventListener('storage', (e) => {
       if (e.key === 'openreview.lastLogout') {
         this.logoutUser(null)
-      } else if (e.key === 'openreview.lastRefresh') {
-        clearTimeout(this.refreshTimer)
-        const newCookieData = auth()
-        setUserState(newCookieData)
       }
     })
 
