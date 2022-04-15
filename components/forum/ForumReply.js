@@ -145,16 +145,16 @@ export default function ForumReply({ note, replies, updateNote }) {
       </div>
 
       <div className="subheading">
-        {invitations.map((invitation) => (
+        {invitations.map((invitationId) => (
           <span
-            key={invitation.id}
+            key={invitationId}
             className="invitation highlight"
             data-toggle="tooltip"
             data-placement="top"
             title="Reply type"
-            style={getInvitationColors(prettyInvitationId(invitation))}
+            style={getInvitationColors(prettyInvitationId(invitationId))}
           >
-            {prettyInvitationId(invitation, true)}
+            {prettyInvitationId(invitationId, true)}
           </span>
         ))}
         <span className="signatures" data-toggle="tooltip" data-placement="top" title="Reply Author">
