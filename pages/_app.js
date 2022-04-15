@@ -3,6 +3,7 @@
 import App from 'next/app'
 import Router from 'next/router'
 import DOMPurify from 'dompurify'
+import { nanoid } from 'nanoid'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
 import {
@@ -263,6 +264,7 @@ export default class OpenReviewApp extends App {
     window.marked = marked
     window.DOMPurify = DOMPurify
     window.MathJax = mathjaxConfig
+    window.nanoid = nanoid
 
     // Load legacy JS code
     window.mkStateManager = require('../client/state-manager')

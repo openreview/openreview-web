@@ -3137,17 +3137,36 @@ module.exports = (function() {
               return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, note.content.pdf);
             });
           }
-          var data = new FormData();
-          data.append('invitationId', invitation.id);
-          data.append('name', fieldName);
-          data.append('file', files[fieldName]);
-          return Webfield.sendFile('/attachment', data, undefined, fieldName).then(function (result) {
-            note.content[fieldName] = result.url;
-            updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], note.content[fieldName]);
-          });
+          var $progressBar = $contentMap[fieldName].find('div.progress')
+            var file = files[fieldName];
+            var chunkSize = 1024*1000*5; //5mb
+            var chunkCount = Math.ceil(file.size/chunkSize)
+            var clientUploadId = nanoid()
+            var sendChunkPs = [...Array(chunkCount).keys()].map(chunkIndex=>{
+              var chunk = file.slice(chunkIndex*chunkSize, (chunkIndex+1)*chunkSize,file.type);
+              var data = new FormData();
+              data.append('invitationId', invitation.id);
+              data.append('name', fieldName);
+              data.append('chunkIndex', chunkIndex+1);
+              data.append('totalChunks',chunkCount)
+              data.append('clientUploadId', clientUploadId)
+              data.append('file', chunk);
+              return Webfield.sendFileChunk(data, $progressBar)
+            })
+            $progressBar.show();
+            return Promise.all(sendChunkPs).then(function(results){
+              var url = results.find(p=>p.url)?.url
+              if(!url) throw new Error('No url is returned, file upload failed')
+              note.content[fieldName] = url;
+              updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], note.content[fieldName]);
+            }).catch(function(e){
+              sendChunkPs.forEach(p=>p.abort())
+              $progressBar.hide();
+              throw(e)
+            });
         });
 
-        $.when.apply($, promises).then(function() {
+        Promise.all(promises).then(function() {
           saveNote(note);
         }, onError);
       });
@@ -3611,6 +3630,7 @@ module.exports = (function() {
             var file = files[fieldName];
             var chunkSize = 1024*1000*5; //5mb
             var chunkCount = Math.ceil(file.size/chunkSize)
+            var clientUploadId = nanoid();
             var sendChunkPs = [...Array(chunkCount).keys()].map(chunkIndex=>{
               var chunk = file.slice(chunkIndex*chunkSize, (chunkIndex+1)*chunkSize,file.type);
               var data = new FormData();
@@ -3618,6 +3638,7 @@ module.exports = (function() {
               data.append('name', fieldName);
               data.append('chunkIndex', chunkIndex+1);
               data.append('totalChunks',chunkCount)
+              data.append('clientUploadId', clientUploadId)
               data.append('file', chunk);
               return Webfield.sendFileChunk(data, $progressBar)
             })
