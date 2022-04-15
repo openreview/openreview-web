@@ -1602,7 +1602,7 @@ module.exports = (function() {
         });
     }
 
-    var $progressBar = $('<div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 0%"><span class="sr-only">0% Complete</span></div></div>').hide()
+    var $progressBar = $('<div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 2%"/></div>').hide()
     return $clearBtn
       ? $('<div class="input-group file-input-group">').append($notePdf, $('<span class="input-group-btn">').append($clearBtn)).add($progressBar)
       : $notePdf
@@ -3582,7 +3582,9 @@ module.exports = (function() {
               errorMsg = e.responseJSON.message;
             } else if (e.readyState === 0) {
               errorMsg = 'There is an error with the network and the file could not be uploaded'
-            } else {
+            } else if (e.message) {
+              errorMsg = e.message;
+            }else {
               errorMsg = 'There was an error uploading the file';
             }
 
@@ -3607,7 +3609,7 @@ module.exports = (function() {
             }
             var $progressBar = $contentMap[fieldName].find('div.progress')
             var file = files[fieldName];
-            var chunkSize = 1024*1024*10;
+            var chunkSize = 1024*1000*5; //5mb
             var chunkCount = Math.ceil(file.size/chunkSize)
             var sendChunkPs = [...Array(chunkCount).keys()].map(chunkIndex=>{
               var chunk = file.slice(chunkIndex*chunkSize, (chunkIndex+1)*chunkSize,file.type);
@@ -3617,20 +3619,19 @@ module.exports = (function() {
               data.append('chunkIndex', chunkIndex+1);
               data.append('totalChunks',chunkCount)
               data.append('file', chunk);
-              return Webfield.sendFileChunk(data, fieldName).then(function(result) {
-                if(result.url){
-                  // upload completed
-                  editNote.content[fieldName] = result.url;
-                  updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
-                } else {
-                  var results = Object.values(result)
-                  var progress =`${results.filter(p=>p==='completed').length*100/results.length}%`
-                  $progressBar.find('.progress-bar').css('width',progress)
-                }
-              });
+              return Webfield.sendFileChunk(data, $progressBar)
             })
             $progressBar.show();
-            return Promise.all(sendChunkPs);
+            return Promise.all(sendChunkPs).then(function(results){
+              var url = results.find(p=>p.url)?.url
+              if(!url) throw new Error('No url is returned, file upload failed')
+              editNote.content[fieldName] = url;
+              updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
+            }).catch(function(e){
+              sendChunkPs.forEach(p=>p.abort())
+              $progressBar.hide();
+              throw(e)
+            });
           });
 
           Promise.all(promises).then(function() {
