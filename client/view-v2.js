@@ -955,6 +955,8 @@ module.exports = (function() {
             errorMsg = e.responseJSON.message;
           } else if (e.readyState === 0) {
             errorMsg = 'There is an error with the network and the file could not be uploaded'
+          } else if (e.message) {
+            errorMsg = e.message;
           } else {
             errorMsg = 'There was an error uploading the file';
           }
@@ -972,17 +974,36 @@ module.exports = (function() {
 
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
-          var data = new FormData();
-          data.append('invitationId', invitation.id);
-          data.append('name', fieldName);
-          data.append('file', files[fieldName]);
-          return Webfield2.sendFile('/attachment', data, undefined, fieldName).then(function(result) {
-            content[0][fieldName] = result.url;
-            updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName], content[0][fieldName]);
-          });
+          var $progressBar = $contentMap[fieldName].find('div.progress')
+            var file = files[fieldName];
+            var chunkSize = 1024*1000*5; //5mb
+            var chunkCount = Math.ceil(file.size/chunkSize)
+            var clientUploadId = nanoid();
+            var sendChunkPs = [...Array(chunkCount).keys()].map(chunkIndex=>{
+              var chunk = file.slice(chunkIndex*chunkSize, (chunkIndex+1)*chunkSize,file.type);
+              var data = new FormData();
+              data.append('invitationId', invitation.id);
+              data.append('name', fieldName);
+              data.append('chunkIndex', chunkIndex+1);
+              data.append('totalChunks',chunkCount)
+              data.append('clientUploadId', clientUploadId)
+              data.append('file', chunk);
+              return Webfield2.sendFileChunk(data, $progressBar)
+            })
+            $progressBar.show();
+            return Promise.all(sendChunkPs).then(function(results){
+              var url = results.find(p=>p.url)?.url
+              if(!url) throw new Error('No url is returned, file upload failed')
+              content[0][fieldName] = result.url;
+              updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName], content[0][fieldName]);
+            }).catch(function(e){
+              sendChunkPs.forEach(p=>p.abort())
+              $progressBar.hide();
+              throw(e)
+            });
         });
 
-        $.when.apply($, promises).then(function() {
+        Promise.all(promises).then(function() {
           saveNote(content[0], invitation);
         }, onError);
       });
@@ -1416,6 +1437,8 @@ module.exports = (function() {
             errorMsg = e.responseJSON.message;
           } else if (e.readyState === 0) {
             errorMsg = 'There is an error with the network and the file could not be uploaded'
+          } else if (e.message) {
+            errorMsg = e.message;
           } else {
             errorMsg = 'There was an error uploading the file';
           }
@@ -1433,17 +1456,36 @@ module.exports = (function() {
 
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
-          var data = new FormData();
-          data.append('invitationId', invitation.id);
-          data.append('name', fieldName);
-          data.append('file', files[fieldName]);
-          return Webfield2.sendFile('/attachment', data, undefined, fieldName).then(function(result) {
+          var $progressBar = $contentMap[fieldName].find('div.progress')
+          var file = files[fieldName];
+          var chunkSize = 1024*1000*5; //5mb
+          var chunkCount = Math.ceil(file.size/chunkSize)
+          var clientUploadId = nanoid();
+          var sendChunkPs = [...Array(chunkCount).keys()].map(chunkIndex=>{
+            var chunk = file.slice(chunkIndex*chunkSize, (chunkIndex+1)*chunkSize,file.type);
+            var data = new FormData();
+            data.append('invitationId', invitation.id);
+            data.append('name', fieldName);
+            data.append('chunkIndex', chunkIndex+1);
+            data.append('totalChunks',chunkCount)
+            data.append('clientUploadId', clientUploadId)
+            data.append('file', chunk);
+            return Webfield2.sendFileChunk(data, $progressBar)
+          })
+          $progressBar.show();
+          return Promise.all(sendChunkPs).then(function(results){
+            var url = results.find(p=>p.url)?.url
+            if(!url) throw new Error('No url is returned, file upload failed')
             content[0][fieldName] = result.url;
             updateFileSection($contentMap[fieldName], fieldName, invitation.edit.note?.content?.[fieldName], content[0][fieldName]);
+          }).catch(function(e){
+            sendChunkPs.forEach(p=>p.abort())
+            $progressBar.hide();
+            throw(e)
           });
         });
 
-        $.when.apply($, promises).then(function() {
+        Promise.all(promises).then(function() {
           saveNote(content[0], note, invitation);
         }, onError);
       });

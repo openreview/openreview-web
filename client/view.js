@@ -3114,6 +3114,8 @@ module.exports = (function() {
             errorMsg = e.responseJSON.message;
           } else if (e.readyState === 0) {
             errorMsg = 'There is an error with the network and the file could not be uploaded'
+          } else if (e.message) {
+            errorMsg = e.message;
           } else {
             errorMsg = 'There was an error uploading the file';
           }
