@@ -40,8 +40,7 @@ export default function ProfileEntity(props) {
     traverseEdgesCount,
   } = props.profile
 
-  let browseEdges
-  ;({ browseEdges } = props.profile)
+  let { browseEdges } = props.profile
   const metadata = props.profile.metadata || {}
   const extraClasses = []
   const defaultWeight = [...editInvitations, ...browseInvitations].find((p) =>
