@@ -4,6 +4,7 @@ import App from 'next/app'
 import Router from 'next/router'
 import DOMPurify from 'dompurify'
 import { nanoid } from 'nanoid'
+import random from 'lodash/random'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
 import {
@@ -47,7 +48,6 @@ export default class OpenReviewApp extends App {
     this.loginUser = this.loginUser.bind(this)
     this.loginUserWithToken = this.loginUserWithToken.bind(this)
     this.logoutUser = this.logoutUser.bind(this)
-    this.refreshToken = this.refreshToken.bind(this)
     this.updateUserName = this.updateUserName.bind(this)
     this.setBannerHidden = this.setBannerHidden.bind(this)
     this.setBannerContent = this.setBannerContent.bind(this)
@@ -69,8 +69,9 @@ export default class OpenReviewApp extends App {
     window.Webfield.setToken(userAccessToken)
     window.Webfield2.setToken(userAccessToken)
 
-    // Automatically refresh the accessToken 1m before it's set to expire
-    const timeToExpiration = cookieExpiration - 60000
+    // Automatically refresh the accessToken 1m before it's set to expire.
+    // Add randomness to prevent all open tabs from refreshing at the same time.
+    const timeToExpiration = cookieExpiration - 60000 - random(0, 15) * 1000
     this.refreshTimer = setTimeout(() => {
       this.refreshToken()
     }, timeToExpiration)
@@ -126,15 +127,10 @@ export default class OpenReviewApp extends App {
   async refreshToken() {
     try {
       const { token, user } = await api.post('/refreshToken')
+      window.localStorage.setItem('openreview.lastRefresh', Date.now())
       this.loginUser(user, token, null)
     } catch (error) {
-      // If multiple instances of the OpenReview app are running, in some cases
-      // they can all try to refresh the token at the same time, leading to an error.
-      if (error.name === 'TokenExpiredError') {
-        window.location.reload()
-      } else {
-        this.logoutUser(null)
-      }
+      this.logoutUser(null)
     }
   }
 
@@ -295,11 +291,15 @@ export default class OpenReviewApp extends App {
 
       this.setState({ user, accessToken: token, userLoading: false })
 
-      // Automatically refresh the accessToken 1m before it's set to expire
-      const timeToExpiration = expiration - Date.now() - 60000
+      // Automatically refresh the accessToken 1m before it's set to expire.
+      // Add randomness to prevent all open tabs from refreshing at the same time.
+      const timeToExpiration = expiration - Date.now() - 60000 - random(0, 15) * 1000
       this.refreshTimer = setTimeout(() => {
         this.refreshToken()
       }, timeToExpiration)
+
+      window.Webfield.setToken(token)
+      window.Webfield2.setToken(token)
     }
 
     // Load user state from auth cookie
@@ -313,15 +313,10 @@ export default class OpenReviewApp extends App {
         if (refreshCookieData.token) {
           setAuthCookie(refreshCookieData.token)
         }
-
-        window.Webfield.setToken(refreshCookieData.token)
-        window.Webfield2.setToken(refreshCookieData.token)
         this.setState({ clientJsLoading: false })
       })
     } else {
       setUserState(authCookieData)
-      window.Webfield.setToken(authCookieData.token)
-      window.Webfield2.setToken(authCookieData.token)
       this.setState({ clientJsLoading: false })
     }
 
@@ -329,6 +324,10 @@ export default class OpenReviewApp extends App {
     window.addEventListener('storage', (e) => {
       if (e.key === 'openreview.lastLogout') {
         this.logoutUser(null)
+      } else if (e.key === 'openreview.lastRefresh') {
+        clearTimeout(this.refreshTimer)
+        const newCookieData = auth()
+        setUserState(newCookieData)
       }
     })
 
@@ -375,7 +374,6 @@ export default class OpenReviewApp extends App {
       loginUser: this.loginUser,
       loginUserWithToken: this.loginUserWithToken,
       logoutUser: this.logoutUser,
-      refreshToken: this.refreshToken,
       logoutRedirect: this.state.logoutRedirect,
       updateUserName: this.updateUserName,
     }

@@ -3,6 +3,7 @@
 /* globals promptMessage: false */
 /* eslint-disable react/destructuring-assignment */
 
+import { nanoid } from 'nanoid'
 import React, { useContext } from 'react'
 import api from '../../lib/api-client'
 import { getInterpolatedValues, getSignatures } from '../../lib/edge-utils'
@@ -19,6 +20,7 @@ export default function ProfileEntity(props) {
     availableSignaturesInvitationMap,
     traverseInvitation,
     browseInvitations,
+    ignoreHeadBrowseInvitations,
     version,
   } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
@@ -35,10 +37,10 @@ export default function ProfileEntity(props) {
     editEdges,
     editEdgeTemplates,
     traverseEdgeTemplate,
-    browseEdges,
     traverseEdgesCount,
   } = props.profile
 
+  let { browseEdges } = props.profile
   const metadata = props.profile.metadata || {}
   const extraClasses = []
   const defaultWeight = [...editInvitations, ...browseInvitations].find((p) =>
@@ -48,6 +50,18 @@ export default function ProfileEntity(props) {
     [...(browseEdges || []), ...(editEdges || [])].find((p) =>
       p.invitation.includes('Custom_Max_Papers')
     )?.weight ?? defaultWeight
+
+  ignoreHeadBrowseInvitations.forEach((p) => {
+    if (!p.defaultLabel && !p.defaultWeight) return
+    if (!browseEdges?.find((q) => q.invitation === p.id)) {
+      browseEdges = browseEdges.concat({
+        id: nanoid(),
+        name: p.name,
+        label: p.defaultLabel,
+        weight: p.defaultWeight,
+      })
+    }
+  })
   const isInviteAcceptedProfile =
     editEdges?.find((p) => p.invitation.includes('Invite_Assignment'))?.label === 'Accepted'
 
@@ -391,8 +405,7 @@ export default function ProfileEntity(props) {
           >
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
             {content.name.first} {content.name.middle} {content.name.last}
-          </a>
-          {' '}
+          </a>{' '}
           <span>({content.email})</span>
         </h3>
 
@@ -422,7 +435,7 @@ export default function ProfileEntity(props) {
       ))}
 
       <div>
-        <ScoresList edges={props.profile.browseEdges} />
+        <ScoresList edges={browseEdges} />
         <div className="action-links">
           <ul className="list-unstyled text-right">
             <li>
