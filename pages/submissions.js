@@ -49,13 +49,20 @@ Submissions.getInitialProps = async (ctx) => {
 
   const currentPage = Math.max(parseInt(ctx.query.page, 10) || 1, 1)
   const notesPerPage = 25
-  const { notes, count } = await api.get('/notes', {
-    invitation: `${groupId}/.*/-/([Bb]lind_)?[Ss]ubmission`,
-    limit: notesPerPage,
-    offset: notesPerPage * (currentPage - 1),
-  }, { accessToken: token })
+  const { notes, count } = await api.get(
+    '/notes',
+    {
+      invitation: `${groupId}/.*/-/([Bb]lind_)?[Ss]ubmission`,
+      limit: notesPerPage,
+      offset: notesPerPage * (currentPage - 1),
+    },
+    { accessToken: token }
+  )
   if (!notes) {
-    return { statusCode: 400, message: 'Venue submissions unavailable. Please try again later' }
+    return {
+      statusCode: 400,
+      message: 'Venue submissions unavailable. Please try again later',
+    }
   }
 
   const pagination = {

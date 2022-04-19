@@ -28,7 +28,11 @@ const Invitation = ({ invitationId, webfieldCode, writable, appContext }) => {
   useEffect(() => {
     if (clientJsLoading || userLoading) return
 
-    window.user = user || { id: `guest_${Date.now()}`, profile: { id: 'guest' }, isGuest: true }
+    window.user = user || {
+      id: `guest_${Date.now()}`,
+      profile: { id: 'guest' },
+      isGuest: true,
+    }
 
     const script = document.createElement('script')
     script.innerHTML = webfieldCode
@@ -50,9 +54,7 @@ const Invitation = ({ invitationId, webfieldCode, writable, appContext }) => {
         <meta property="og:description" key="og:description" content="" />
       </Head>
 
-      {clientJsLoading && (
-        <LoadingSpinner />
-      )}
+      {clientJsLoading && <LoadingSpinner />}
 
       <WebfieldContainer id="invitation-container" />
     </>
@@ -84,13 +86,17 @@ Invitation.getInitialProps = async (ctx) => {
     const invitationTitle = prettyId(invitation.id)
     const invitationObjSlim = omit(invitation, 'web', 'process', 'details', 'preprocess')
 
-    const webfieldCode = invitation.web || `
+    const webfieldCode =
+      invitation.web ||
+      `
 Webfield.ui.setup($('#invitation-container'), '${invitation.id}');
 Webfield.ui.header('${prettyId(invitation.id)}')
   .append('<p><em>Nothing to display</em></p>');`
 
     const noteParams = without(Object.keys(query), 'id', 'mode', 'referrer', 't')
-    const noteEditorCode = noteParams.length && `
+    const noteEditorCode =
+      noteParams.length &&
+      `
 var runWebfield = function(note) {
   ${webfieldCode}
 };
@@ -149,9 +155,16 @@ ${invitation.apiVersion === 2 ? 'view2' : 'view'}.mkNoteEditor(
   }
 );`
 
-    const noteContent = invitation.apiVersion === 2
-      ? noteParams.reduce((acc, key) => { acc[key] = { value: query[key] }; return acc }, {})
-      : noteParams.reduce((acc, key) => { acc[key] = query[key]; return acc }, {})
+    const noteContent =
+      invitation.apiVersion === 2
+        ? noteParams.reduce((acc, key) => {
+            acc[key] = { value: query[key] }
+            return acc
+          }, {})
+        : noteParams.reduce((acc, key) => {
+            acc[key] = query[key]
+            return acc
+          }, {})
 
     return `// Webfield Code for ${invitation.id}
 $(function() {
@@ -163,11 +176,14 @@ $(function() {
 
   $('#invitation-container').empty();
 
-  ${noteEditorCode || `(function(note) {
+  ${
+    noteEditorCode ||
+    `(function(note) {
 // START INVITATION CODE
 ${webfieldCode}
 // END INVITATION CODE
-  })(null);`}
+  })(null);`
+  }
 });
 //# sourceURL=webfieldCode.js`
   }
@@ -186,13 +202,15 @@ ${webfieldCode}
     if (error.name === 'ForbiddenError') {
       if (!accessToken) {
         if (ctx.req) {
-          ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
+          ctx.res
+            .writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` })
+            .end()
         } else {
           Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
         }
         return {}
       }
-      return { statusCode: 403, message: 'You don\'t have permission to read this invitation' }
+      return { statusCode: 403, message: "You don't have permission to read this invitation" }
     }
     return { statusCode: error.status || 500, message: error.message }
   }

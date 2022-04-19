@@ -22,12 +22,12 @@ const statusOptions = [
   { label: 'Blocked', value: 'blocked' },
   { label: 'Deferred', value: 'deferred' },
 ]
-const statusOptionValues = statusOptions.map(o => o.value)
+const statusOptionValues = statusOptions.map((o) => o.value)
 
 const FilterForm = ({ searchQuery, loading }) => {
   const queryStatus = searchQuery?.status ?? []
   const queryStatutes = Array.isArray(queryStatus) ? queryStatus : [queryStatus]
-  const selectedStatuses = queryStatutes.filter(s => statusOptionValues.includes(s))
+  const selectedStatuses = queryStatutes.filter((s) => statusOptionValues.includes(s))
   const router = useRouter()
 
   useEffect(() => {
@@ -40,20 +40,24 @@ const FilterForm = ({ searchQuery, loading }) => {
   }
 
   return (
-    <form className="filter-controls form-inline well" onSubmit={e => e.preventDefault()}>
+    <form className="filter-controls form-inline well" onSubmit={(e) => e.preventDefault()}>
       <div className="form-group">
         <label htmlFor="status-search-dropdown">Status:</label>
         <MultiSelectorDropdown
           id="status-search-dropdown"
           options={statusOptions}
           selectedValues={selectedStatuses}
-          setSelectedValues={values => onFiltersChange('status', values)}
+          setSelectedValues={(values) => onFiltersChange('status', values)}
           disabled={loading}
         />
       </div>
       <div className="form-group">
         <label htmlFor="subject-search-input">Subject:</label>
-        <Icon name="info-sign" tooltip="When performing a regex search some special characters such as '[' need to be escaped. For example: \[ABC.*" extraClasses="mr-1" />
+        <Icon
+          name="info-sign"
+          tooltip="When performing a regex search some special characters such as '[' need to be escaped. For example: \[ABC.*"
+          extraClasses="mr-1"
+        />
         <input
           type="text"
           id="subject-search-input"
@@ -61,7 +65,7 @@ const FilterForm = ({ searchQuery, loading }) => {
           placeholder="Message subject"
           disabled={loading}
           defaultValue={searchQuery?.subject ?? ''}
-          onChange={e => onFiltersChange('subject', e.target.value)}
+          onChange={(e) => onFiltersChange('subject', e.target.value)}
         />
       </div>
       <div className="form-group">
@@ -73,7 +77,7 @@ const FilterForm = ({ searchQuery, loading }) => {
           placeholder="To address"
           disabled={loading}
           defaultValue={searchQuery?.to ?? ''}
-          onChange={e => onFiltersChange('to', e.target.value)}
+          onChange={(e) => onFiltersChange('to', e.target.value)}
         />
       </div>
       <div className="form-group">
@@ -85,7 +89,7 @@ const FilterForm = ({ searchQuery, loading }) => {
           placeholder="Parent group"
           disabled={loading}
           defaultValue={searchQuery?.parentGroup ?? ''}
-          onChange={e => onFiltersChange('parentGroup', e.target.value)}
+          onChange={(e) => onFiltersChange('parentGroup', e.target.value)}
         />
       </div>
       {loading && (
@@ -113,18 +117,22 @@ const Messages = ({ appContext }) => {
   const loadMessages = async () => {
     let validStatus
     if (Array.isArray(query.status)) {
-      validStatus = query.status?.filter(status => statusOptionValues.includes(status))
+      validStatus = query.status?.filter((status) => statusOptionValues.includes(status))
     } else if (statusOptionValues.includes(query.status)) {
       validStatus = query.status
     }
 
     try {
-      const apiRes = await api.get('/messages', {
-        ...query,
-        status: validStatus,
-        limit: pageSize,
-        offset: pageSize * (page - 1),
-      }, { accessToken })
+      const apiRes = await api.get(
+        '/messages',
+        {
+          ...query,
+          status: validStatus,
+          limit: pageSize,
+          offset: pageSize * (page - 1),
+        },
+        { accessToken }
+      )
 
       setMessages(apiRes.messages || [])
       setCount(apiRes.count || 0)
@@ -154,13 +162,9 @@ const Messages = ({ appContext }) => {
 
       <FilterForm searchQuery={query} />
 
-      {error && (
-        <ErrorAlert error={error} />
-      )}
+      {error && <ErrorAlert error={error} />}
 
-      {messages && (
-        <MessagesTable messages={messages} loading={userLoading} />
-      )}
+      {messages && <MessagesTable messages={messages} loading={userLoading} />}
 
       {messages && (
         <PaginationLinks
@@ -173,9 +177,7 @@ const Messages = ({ appContext }) => {
         />
       )}
 
-      {(!messages && !error) && (
-        <LoadingSpinner inline />
-      )}
+      {!messages && !error && <LoadingSpinner inline />}
     </div>
   )
 }

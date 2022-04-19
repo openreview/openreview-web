@@ -10,7 +10,11 @@ import ErrorDisplay from '../../components/ErrorDisplay'
 import api from '../../lib/api-client'
 import { forumLink } from '../../lib/banner-links'
 import {
-  prettyField, prettyContentValue, formatTimestamp, noteContentDiff, editNoteContentDiff,
+  prettyField,
+  prettyContentValue,
+  formatTimestamp,
+  noteContentDiff,
+  editNoteContentDiff,
 } from '../../lib/utils'
 
 const CompareRevisions = ({ appContext }) => {
@@ -37,13 +41,19 @@ const CompareRevisions = ({ appContext }) => {
 
   const loadReferences = async () => {
     try {
-      const apiRes = await api.get('/references', {
-        referent: query.id, original: true, trash: true,
-      }, { accessToken })
+      const apiRes = await api.get(
+        '/references',
+        {
+          referent: query.id,
+          original: true,
+          trash: true,
+        },
+        { accessToken }
+      )
 
       if (apiRes.references?.length > 1) {
-        const leftNote = apiRes.references.find(reference => reference.id === query.left)
-        const rightNote = apiRes.references.find(reference => reference.id === query.right)
+        const leftNote = apiRes.references.find((reference) => reference.id === query.left)
+        const rightNote = apiRes.references.find((reference) => reference.id === query.right)
         if (leftNote && rightNote) {
           setReferences([leftNote, rightNote])
           return
@@ -57,11 +67,15 @@ const CompareRevisions = ({ appContext }) => {
 
   const loadEdits = async () => {
     try {
-      const apiRes = await api.get('/notes/edits', { 'note.id': query.id, trash: true }, { accessToken, version: 2 })
+      const apiRes = await api.get(
+        '/notes/edits',
+        { 'note.id': query.id, trash: true },
+        { accessToken, version: 2 }
+      )
 
       if (apiRes.edits?.length > 1) {
-        const leftEdit = apiRes.edits.find(edit => edit.id === query.left)
-        const rightEdit = apiRes.edits.find(edit => edit.id === query.right)
+        const leftEdit = apiRes.edits.find((edit) => edit.id === query.left)
+        const rightEdit = apiRes.edits.find((edit) => edit.id === query.right)
         if (leftEdit && rightEdit) {
           setReferences([leftEdit, rightEdit])
           return
@@ -75,9 +89,15 @@ const CompareRevisions = ({ appContext }) => {
 
   const loadComparison = async () => {
     try {
-      const { leftNote, rightNote, viewerUrl } = await api.get('/pdf/compare', {
-        noteId: query.id, leftId: query.left, rightId: query.right,
-      }, { accessToken, version: query.version === '2' ? 2 : 1 })
+      const { leftNote, rightNote, viewerUrl } = await api.get(
+        '/pdf/compare',
+        {
+          noteId: query.id,
+          leftId: query.left,
+          rightId: query.right,
+        },
+        { accessToken, version: query.version === '2' ? 2 : 1 }
+      )
       setReferences([leftNote, rightNote])
       setDraftableUrl(viewerUrl)
     } catch (apiError) {
@@ -94,7 +114,8 @@ const CompareRevisions = ({ appContext }) => {
 
     return Object.entries(diff).map(([fieldName, fieldValue]) => {
       // eslint-disable-next-line no-param-reassign
-      if (fieldName.startsWith(prefixToRemove)) fieldName = fieldName.substring(prefixToRemove.length)
+      if (fieldName.startsWith(prefixToRemove))
+        fieldName = fieldName.substring(prefixToRemove.length)
       // eslint-disable-next-line no-param-reassign
       if (fieldName.endsWith('.value')) fieldName = fieldName.slice(0, -6)
       // eslint-disable-next-line no-param-reassign
@@ -186,14 +207,14 @@ const CompareRevisions = ({ appContext }) => {
               <thead>
                 <tr>
                   <th style={{ width: '50%' }}>
-                    Last Modified
-                    {' '}
-                    {formatTimestamp(references[0].mdate) || formatTimestamp(references[0].tmdate)}
+                    Last Modified{' '}
+                    {formatTimestamp(references[0].mdate) ||
+                      formatTimestamp(references[0].tmdate)}
                   </th>
                   <th style={{ width: '50%' }}>
-                    Last Modified
-                    {' '}
-                    {formatTimestamp(references[1].mdate) || formatTimestamp(references[1].tmdate)}
+                    Last Modified{' '}
+                    {formatTimestamp(references[1].mdate) ||
+                      formatTimestamp(references[1].tmdate)}
                   </th>
                 </tr>
               </thead>
@@ -201,13 +222,25 @@ const CompareRevisions = ({ appContext }) => {
               <tbody>
                 {query.version === '2' ? (
                   <>
-                    <tr><th colSpan="4" className="section-title">Edit Properties</th></tr>
+                    <tr>
+                      <th colSpan="4" className="section-title">
+                        Edit Properties
+                      </th>
+                    </tr>
                     {renderDiffSection(contentDiff?.edit, null, false)}
 
-                    <tr><th colSpan="4" className="section-title">Note Properties</th></tr>
+                    <tr>
+                      <th colSpan="4" className="section-title">
+                        Note Properties
+                      </th>
+                    </tr>
                     {renderDiffSection(contentDiff?.editNote, 'note.', false)}
 
-                    <tr><th colSpan="4" className="section-title">Note Content Properties</th></tr>
+                    <tr>
+                      <th colSpan="4" className="section-title">
+                        Note Content Properties
+                      </th>
+                    </tr>
                     {renderDiffSection(contentDiff?.editNoteContent, 'note.content.')}
                   </>
                 ) : (

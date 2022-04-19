@@ -1,7 +1,6 @@
-@use "../utils/constants";
+@use '../utils/constants';
 
 main.venue {
-
   .venues-list {
     margin-bottom: 1.5rem;
 
@@ -11,17 +10,16 @@ main.venue {
   }
 
   .h4 {
-    color: #777777
+    color: #777777;
   }
 
   .noteline {
     font-size: 1.25rem;
-    color:constants.$subtleGray
+    color: constants.$subtleGray;
   }
 
   .external-links {
     padding-right: 5px;
-    word-wrap: break-word
+    word-wrap: break-word;
   }
-
 }

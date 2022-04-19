@@ -11,7 +11,10 @@ import ErrorAlert from '../components/ErrorAlert'
 
 export default function Home() {
   const [venues, setVenues] = useState({
-    user: null, active: null, open: null, all: null,
+    user: null,
+    active: null,
+    open: null,
+    all: null,
   })
   const [error, setError] = useState(null)
   const { user, userLoading } = useUser()
@@ -19,28 +22,39 @@ export default function Home() {
   useEffect(() => {
     if (userLoading) return
 
-    const formatGroupResults = apiRes => (apiRes.groups?.[0]?.members || [])
-      .map(groupId => ({ groupId, dueDate: null }))
+    const formatGroupResults = (apiRes) =>
+      (apiRes.groups?.[0]?.members || []).map((groupId) => ({ groupId, dueDate: null }))
 
-    const formatInvitationResults = apiRes => uniqBy(
-      (apiRes.invitations || []).map(inv => ({ groupId: inv.id.split('/-/')[0], dueDate: inv.duedate })),
-      'groupId',
-    ).sort((a, b) => a.dueDate - b.dueDate)
+    const formatInvitationResults = (apiRes) =>
+      uniqBy(
+        (apiRes.invitations || []).map((inv) => ({
+          groupId: inv.id.split('/-/')[0],
+          dueDate: inv.duedate,
+        })),
+        'groupId'
+      ).sort((a, b) => a.dueDate - b.dueDate)
 
-    const sortAlpha = arr => arr.sort((a, b) => prettyId(a.groupId).localeCompare(prettyId(b.groupId)))
+    const sortAlpha = (arr) =>
+      arr.sort((a, b) => prettyId(a.groupId).localeCompare(prettyId(b.groupId)))
 
     const loadVenues = async () => {
       try {
         const [userVenues, activeVenues, openVenues, allVenues] = await Promise.all([
-          user ? api.get('/groups', { member: user.id, web: true }).then(apiRes => (apiRes.groups || [])) : Promise.resolve([]),
+          user
+            ? api
+                .get('/groups', { member: user.id, web: true })
+                .then((apiRes) => apiRes.groups || [])
+            : Promise.resolve([]),
           api.get('/groups', { id: 'active_venues' }).then(formatGroupResults),
-          api.getCombined('/invitations', { invitee: '~', pastdue: false }).then(formatInvitationResults),
+          api
+            .getCombined('/invitations', { invitee: '~', pastdue: false })
+            .then(formatInvitationResults),
           api.get('/groups', { id: 'host' }).then(formatGroupResults).then(sortAlpha),
         ])
         const activeAndOpenVenues = activeVenues.concat(openVenues)
         const filteredUserVenues = userVenues
-          .filter(group => activeAndOpenVenues.find(v => group.id.startsWith(v.groupId)))
-          .map(group => ({ groupId: group.id, dueDate: null }))
+          .filter((group) => activeAndOpenVenues.find((v) => group.id.startsWith(v.groupId)))
+          .map((group) => ({ groupId: group.id, dueDate: null }))
 
         setVenues({
           user: filteredUserVenues,
@@ -62,9 +76,7 @@ export default function Home() {
         <title key="title">Venues | OpenReview</title>
       </Head>
 
-      {error && (
-        <ErrorAlert error={error} />
-      )}
+      {error && <ErrorAlert error={error} />}
 
       {venues.user?.length > 0 ? (
         // Logged in view
@@ -75,11 +87,7 @@ export default function Home() {
               name="active consoles"
               venues={venues.user}
             />
-            <VenueSection
-              title="Active Venues"
-              name="active venues"
-              venues={venues.active}
-            />
+            <VenueSection title="Active Venues" name="active venues" venues={venues.active} />
           </div>
 
           <div className="col-xs-12 col-sm-6">
@@ -105,11 +113,7 @@ export default function Home() {
         // Logged out view
         <div className="row hidden-xs">
           <div className="col-xs-12 col-sm-6">
-            <VenueSection
-              title="Active Venues"
-              name="active venues"
-              venues={venues.active}
-            />
+            <VenueSection title="Active Venues" name="active venues" venues={venues.active} />
           </div>
 
           <div className="col-xs-12 col-sm-6">
@@ -172,9 +176,7 @@ export default function Home() {
 }
 Home.bodyClass = 'home'
 
-function VenueSection({
-  title, name, id, venues, maxVisible, listType,
-}) {
+function VenueSection({ title, name, id, venues, maxVisible, listType }) {
   const containerId = id || name.toLowerCase().split(' ').join('-')
 
   return (
@@ -186,9 +188,7 @@ function VenueSection({
   )
 }
 
-function VenueList({
-  name, venues, maxVisible = 14, listType = 'vertical',
-}) {
+function VenueList({ name, venues, maxVisible = 14, listType = 'vertical' }) {
   const [expanded, setExpanded] = useState(false)
 
   if (!venues) {
@@ -208,10 +208,14 @@ function VenueList({
     <div>
       <ul className={`conferences list-${listType === 'vertical' ? 'unstyled' : 'inline'}`}>
         {venues.map((venue, i) => {
-          const isLeadingVenue = name === 'all venues'
-            // eslint-disable-next-line max-len
-            ? prettyId(venue.groupId).charAt(0).toLowerCase() !== prettyId(venues[i - 1]?.groupId)?.charAt(0)?.toLowerCase()
-            : false
+          const isLeadingVenue =
+            name === 'all venues'
+              ? // eslint-disable-next-line max-len
+                prettyId(venue.groupId).charAt(0).toLowerCase() !==
+                prettyId(venues[i - 1]?.groupId)
+                  ?.charAt(0)
+                  ?.toLowerCase()
+              : false
           return (
             <VenueListItem
               key={`${name}-${venue.groupId}`}
@@ -225,7 +229,13 @@ function VenueList({
       </ul>
 
       {venues.length > maxVisible && (
-        <button type="button" className="btn-link" onClick={() => { setExpanded(!expanded) }}>
+        <button
+          type="button"
+          className="btn-link"
+          onClick={() => {
+            setExpanded(!expanded)
+          }}
+        >
           {expanded ? 'Show fewer venues' : `Show all ${venues.length} venues`}
         </button>
       )}
@@ -233,9 +243,7 @@ function VenueList({
   )
 }
 
-function VenueListItem({
-  groupId, dueDate, hidden, isLeadingVenue = false,
-}) {
+function VenueListItem({ groupId, dueDate, hidden, isLeadingVenue = false }) {
   const styles = hidden ? { display: 'none' } : {}
 
   return (
@@ -248,9 +256,7 @@ function VenueListItem({
       {dueDate && (
         <p>
           <Icon name="time" />
-          Due
-          {' '}
-          {formatTimestamp(dueDate)}
+          Due {formatTimestamp(dueDate)}
         </p>
       )}
     </li>

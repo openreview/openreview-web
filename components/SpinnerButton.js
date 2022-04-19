@@ -1,6 +1,4 @@
-export default function SpinnerButton({
-  type, onClick, disabled, loading, children,
-}) {
+export default function SpinnerButton({ type, onClick, disabled, loading, children }) {
   return (
     <button
       type="button"
@@ -8,8 +6,7 @@ export default function SpinnerButton({
       onClick={onClick}
       disabled={disabled}
     >
-      {children}
-      {' '}
+      {children}{' '}
       {loading && (
         <div className="spinner-small">
           <div className="rect1" />

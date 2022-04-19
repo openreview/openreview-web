@@ -27,7 +27,9 @@ const MarkdownPreviewTab = ({
   return (
     <Tabs className="markdown-preview">
       <TabList>
-        <Tab id={firstTabId} active>{firstTab}</Tab>
+        <Tab id={firstTabId} active>
+          {firstTab}
+        </Tab>
         <Tab id={secondTabId}>{secondTab}</Tab>
       </TabList>
 

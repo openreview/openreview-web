@@ -5,8 +5,7 @@ const EditValue = ({ name, value }) => {
   if (!Array.isArray(value)) {
     return (
       <div className={name}>
-        <span className="line_heading">{name}:</span>
-        {' '}
+        <span className="line_heading">{name}:</span>{' '}
         <span className="edit_value">{value}</span>
       </div>
     )
@@ -15,10 +14,8 @@ const EditValue = ({ name, value }) => {
   if (value.includes('everyone')) {
     return (
       <div className={name}>
-        <span className="line_heading">{name}</span>
-        {' '}
-        <Icon name="globe" extraClasses="readers-icon" />
-        {' '}
+        <span className="line_heading">{name}</span>{' '}
+        <Icon name="globe" extraClasses="readers-icon" />{' '}
         <span className="edit_value">Everyone</span>
       </div>
     )
@@ -26,8 +23,7 @@ const EditValue = ({ name, value }) => {
 
   return (
     <div className={name}>
-      <span className="line_heading">{name}:</span>
-      {' '}
+      <span className="line_heading">{name}:</span>{' '}
       <span className="edit_value">
         {value
           .map((p) => (

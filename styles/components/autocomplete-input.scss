@@ -1,4 +1,4 @@
-@use "../utils/constants";
+@use '../utils/constants';
 
 .ui-autocomplete {
   background: #fff;
@@ -16,7 +16,7 @@
 
 .ui-menu {
   .ui-menu-item-wrapper {
-    font-size: .75rem;
+    font-size: 0.75rem;
     padding: 4px 12px;
   }
   .ui-menu-item {
@@ -28,20 +28,22 @@
       color: #fff;
     }
     .authlist {
-      color:constants.$subtleGray;
-      font-size: .75rem;
+      color: constants.$subtleGray;
+      font-size: 0.75rem;
       font-style: italic;
       padding-top: 0;
       margin-top: -4px;
     }
-    .ui-state-hover, .ui-state-active {
+    .ui-state-hover,
+    .ui-state-active {
       background-color: constants.$mediumBlue;
       color: #fff;
       border: 0;
     }
   }
 
-  .ui-state-focus, .ui-state-active {
+  .ui-state-focus,
+  .ui-state-active {
     margin: 0;
   }
 

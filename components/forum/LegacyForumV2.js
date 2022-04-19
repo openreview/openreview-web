@@ -7,14 +7,18 @@ import { NoteContentV2 } from '../NoteContent'
 import { prettyId, inflect, forumDate } from '../../lib/utils'
 
 export default function LegacyForumV2({
-  forumNote, selectedNoteId, selectedInvitationId, clientJsLoading,
+  forumNote,
+  selectedNoteId,
+  selectedInvitationId,
+  clientJsLoading,
 }) {
   const { user, userLoading } = useContext(UserContext)
   const { id, content, details } = forumNote
 
-  const authors = Array.isArray(content.authors?.value) || typeof content.authors?.value === 'string'
-    ? [content.authors?.value].flat()
-    : []
+  const authors =
+    Array.isArray(content.authors?.value) || typeof content.authors?.value === 'string'
+      ? [content.authors?.value].flat()
+      : []
 
   // Load and execute legacy forum code
   useEffect(() => {
@@ -44,11 +48,7 @@ export default function LegacyForumV2({
 
         <ForumMeta note={forumNote} />
 
-        <NoteContentV2
-          id={id}
-          content={content}
-          presentation={details.presentation}
-        />
+        <NoteContentV2 id={id} content={content} presentation={details.presentation} />
 
         <ForumReplyCount count={details.replyCount} />
       </div>
@@ -62,21 +62,30 @@ export default function LegacyForumV2({
   )
 }
 
-const ForumTitle = ({
-  id, title, pdf, html,
-}) => (
+const ForumTitle = ({ id, title, pdf, html }) => (
   <div className="title_pdf_row">
     <h2 className="note_content_title citation_title">
       {title}
 
       {pdf && (
         // eslint-disable-next-line react/jsx-no-target-blank
-        <a className="note_content_pdf citation_pdf_url" href={`/pdf?id=${id}`} title="Download PDF" target="_blank">
+        <a
+          className="note_content_pdf citation_pdf_url"
+          href={`/pdf?id=${id}`}
+          title="Download PDF"
+          target="_blank"
+        >
           <img src="/images/pdf_icon_blue.svg" alt="Download PDF" />
         </a>
       )}
       {html && (
-        <a className="note_content_pdf html-link" href={html} title="Open Website" target="_blank" rel="noopener noreferrer">
+        <a
+          className="note_content_pdf html-link"
+          href={html}
+          title="Open Website"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <img src="/images/html_icon_blue.svg" alt="Open Website" />
         </a>
       )}
@@ -84,9 +93,7 @@ const ForumTitle = ({
   </div>
 )
 
-const ForumAuthors = ({
-  authors, authorIds, signatures, noteReaders,
-}) => (
+const ForumAuthors = ({ authors, authorIds, signatures, noteReaders }) => (
   <div className="meta_row">
     <h3 className="signatures author">
       <NoteAuthorsV2
@@ -109,9 +116,7 @@ const ForumMeta = ({ note }) => (
 
     {note.readers && (
       <span className="item">
-        Readers:
-        {' '}
-        <NoteReaders readers={note.readers} />
+        Readers: <NoteReaders readers={note.readers} />
       </span>
     )}
   </div>
@@ -119,6 +124,8 @@ const ForumMeta = ({ note }) => (
 
 const ForumReplyCount = ({ count }) => (
   <div className="reply_row clearfix">
-    <div className="item" id="reply_count">{inflect(count, 'Reply', 'Replies', true)}</div>
+    <div className="item" id="reply_count">
+      {inflect(count, 'Reply', 'Replies', true)}
+    </div>
   </div>
 )

@@ -20,9 +20,7 @@ const VenueItemDBLP = ({ venue }) => (
 const VenueItem = ({ id, name }) => (
   <h3>
     <Link href={`/submissions?venue=${id}`}>
-      <a title="View submissions for this venue">
-        {name}
-      </a>
+      <a title="View submissions for this venue">{name}</a>
     </Link>
   </h3>
 )
@@ -39,11 +37,11 @@ const Venues = ({ venues, pagination }) => (
     </header>
 
     <div className="groups">
-      {process.env.USE_DBLP_VENUES ? venues.map(venue => (
-        <VenueItemDBLP key={venue.id} venue={venue} />
-      )) : (
+      {process.env.USE_DBLP_VENUES ? (
+        venues.map((venue) => <VenueItemDBLP key={venue.id} venue={venue} />)
+      ) : (
         <ul className="list-unstyled venues-list">
-          {venues.map(group => (
+          {venues.map((group) => (
             <li key={group.id}>
               <VenueItem id={group.id} name={group.name} />
             </li>
@@ -69,11 +67,15 @@ Venues.getInitialProps = async (ctx) => {
     const notesPerPage = 25
 
     const { token } = auth(ctx)
-    const { venues, count } = await api.get('/venues', {
-      invitations: 'dblp.org/-/conference',
-      limit: notesPerPage,
-      offset: notesPerPage * (currentPage - 1),
-    }, { accessToken: token })
+    const { venues, count } = await api.get(
+      '/venues',
+      {
+        invitations: 'dblp.org/-/conference',
+        limit: notesPerPage,
+        offset: notesPerPage * (currentPage - 1),
+      },
+      { accessToken: token }
+    )
 
     if (!venues) {
       return {
@@ -90,8 +92,8 @@ Venues.getInitialProps = async (ctx) => {
     }
     return { venues, pagination }
 
-  // Post migration delete the entire else clause
-  // eslint-disable-next-line no-else-return
+    // Post migration delete the entire else clause
+    // eslint-disable-next-line no-else-return
   } else {
     const apiRes = await api.get('/groups', { id: 'host' })
     const group = apiRes.groups && apiRes.groups[0]
@@ -103,7 +105,7 @@ Venues.getInitialProps = async (ctx) => {
     }
 
     const venues = group.members
-      .map(id => ({ id, name: prettyId(id) }))
+      .map((id) => ({ id, name: prettyId(id) }))
       .sort((groupA, groupB) => {
         const nameA = groupA.name.toLowerCase()
         const nameB = groupB.name.toLowerCase()

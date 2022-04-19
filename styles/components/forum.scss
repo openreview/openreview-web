@@ -1,7 +1,6 @@
-@use "../utils/constants";
+@use '../utils/constants';
 
 main.forum {
-
   .tooltip .tooltip-inner {
     max-width: none;
     width: max-content;
@@ -9,17 +8,17 @@ main.forum {
 
   .invitations-container {
     .invitation-buttons {
-      text-align: right ;
+      text-align: right;
       margin-bottom: 1rem;
       button {
-        margin-left: .375rem;
+        margin-left: 0.375rem;
       }
     }
   }
 
   .note-editor-container {
-    background-color: rgba(0, 0, 0, .04);
-    padding: 0 .5rem .5rem .5rem;
+    background-color: rgba(0, 0, 0, 0.04);
+    padding: 0 0.5rem 0.5rem 0.5rem;
     margin-bottom: 1rem;
 
     .note_editor.panel {
@@ -31,18 +30,18 @@ main.forum {
       line-height: normal;
     }
     .required_field {
-      margin-top: .25rem;
-      margin-bottom: .75rem;
+      margin-top: 0.25rem;
+      margin-bottom: 0.75rem;
     }
   }
 
   hr {
-    margin: .25rem 0;
+    margin: 0.25rem 0;
   }
 
   .filter-controls {
     background: #f7f6f4;
-    padding: .5rem;
+    padding: 0.5rem;
     border: 1px solid #eee;
 
     & > div {
@@ -51,7 +50,7 @@ main.forum {
     }
 
     .form-group {
-      margin-right: .625rem;
+      margin-right: 0.625rem;
 
       &:last-child {
         margin-right: 0;
@@ -63,18 +62,19 @@ main.forum {
         }
       }
       label {
-        padding-right: .25rem;
+        padding-right: 0.25rem;
       }
       label.icon-label {
-        padding-right: .5rem;
+        padding-right: 0.5rem;
       }
-      select.form-control, input.form-control {
+      select.form-control,
+      input.form-control {
         width: 160px;
         height: 32px;
         padding: 0.25rem 0.75rem;
       }
       input.form-control {
-        padding-top: .125rem;
+        padding-top: 0.125rem;
       }
     }
 
@@ -96,7 +96,7 @@ main.forum {
     }
 
     .btn-group {
-      margin-right: .625rem;
+      margin-right: 0.625rem;
 
       &:last-child {
         margin-right: 0;
@@ -105,8 +105,8 @@ main.forum {
         min-width: 2.5rem;
       }
       label {
-        padding-right: .375rem;
-        padding-left: .375rem;
+        padding-right: 0.375rem;
+        padding-left: 0.375rem;
       }
       .btn.active {
         background-color: constants.$mediumBlue;
@@ -137,7 +137,7 @@ main.forum {
 
     .form-row {
       margin: 0;
-      margin-top: .5rem;
+      margin-top: 0.5rem;
     }
 
     .filter-count {
@@ -149,8 +149,8 @@ main.forum {
     margin-bottom: -1px;
 
     & > li > a {
-      padding-top: .375rem;
-      padding-bottom: .375rem;
+      padding-top: 0.375rem;
+      padding-bottom: 0.375rem;
       border-bottom-color: #eee;
     }
     & > li.active > a {
@@ -161,14 +161,14 @@ main.forum {
 
   #forum-replies {
     & > div {
-      margin-bottom: .75rem;
+      margin-bottom: 0.75rem;
     }
     & > div.controls {
       margin-bottom: 1.25rem;
     }
     .note:hover {
-      background-color: rgba(0, 0, 0, .04);
-      box-shadow: 0 0 1px 4px rgba(0, 0, 0, .04);
+      background-color: rgba(0, 0, 0, 0.04);
+      box-shadow: 0 0 1px 4px rgba(0, 0, 0, 0.04);
 
       .note-content-container.collapsed .gradient-overlay {
         background-color: #f5f3f0;
@@ -186,7 +186,7 @@ main.forum {
     }
     .note-editor-container {
       background-color: transparent;
-      padding: 0 .125rem .5rem .125rem;
+      padding: 0 0.125rem 0.5rem 0.125rem;
       margin-top: 1rem;
       margin-bottom: 0rem;
 
@@ -203,9 +203,9 @@ main.forum {
       color: constants.$darkBlue;
       line-height: 1.25rem;
       padding-top: 3px;
-      margin-bottom: .125rem;
+      margin-bottom: 0.125rem;
       margin-top: 0;
-      margin-right: .5rem;
+      margin-right: 0.5rem;
 
       &.minimal-title {
         .signatures {
@@ -237,22 +237,25 @@ main.forum {
     }
     .subheading {
       strong {
-        padding-right: .5rem;
+        padding-right: 0.5rem;
       }
       > span {
-        padding-left: .5rem;
-        padding-right: .5rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
       }
-      .signatures, .invitation, .created-date, .readers {
+      .signatures,
+      .invitation,
+      .created-date,
+      .readers {
         color: constants.$subtleGray;
         font-weight: 400;
-        font-size: .75rem;
+        font-size: 0.75rem;
       }
       .invitation {
         padding-left: 0;
       }
       .glyphicon {
-        padding-right: .25rem;
+        padding-right: 0.25rem;
       }
       .highlight {
         background-color: constants.$mediumBlue;
@@ -288,7 +291,7 @@ main.forum {
       }
       .gradient-overlay {
         a {
-          font-size: .75rem;
+          font-size: 0.75rem;
           display: none;
         }
       }
@@ -309,22 +312,21 @@ main.forum {
       font-weight: normal;
     }
     .note-replies {
-      margin-top: .75rem;
+      margin-top: 0.75rem;
       padding-left: 2.5rem;
       & > .note {
-        margin-bottom: .75rem;
+        margin-bottom: 0.75rem;
       }
       & > .note:last-child {
         margin-bottom: 0;
       }
     }
   }
-
 }
 
 #bibtex-modal {
   pre.bibtex-content {
-    font-size: .75rem;
+    font-size: 0.75rem;
   }
   em.instructions {
     color: constants.$subtleGray;

@@ -328,16 +328,23 @@ const DateProcessesEditor = ({
   return (
     <div className="dateprocess-editor">
       {processes.length === 0 && (
-        <p className="empty-message">There are no date processes associated with this invitation</p>
+        <p className="empty-message">
+          There are no date processes associated with this invitation
+        </p>
       )}
 
       <div className="add-row">
-        <IconButton name="plus" onClick={() => setProcesses({ type: 'ADD' })} text="Add Script" />
+        <IconButton
+          name="plus"
+          onClick={() => setProcesses({ type: 'ADD' })}
+          text="Add Script"
+        />
       </div>
 
-      {processes.length > 0 && processes.map((process) => (
-        <DateProcessRow key={process.key} process={process} setProcesses={setProcesses} />
-      ))}
+      {processes.length > 0 &&
+        processes.map((process) => (
+          <DateProcessRow key={process.key} process={process} setProcesses={setProcesses} />
+        ))}
 
       <div className="mt-4">
         <SpinnerButton

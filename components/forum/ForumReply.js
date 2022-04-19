@@ -6,9 +6,7 @@ import copy from 'copy-to-clipboard'
 import NoteContent from '../NoteContent'
 import NoteEditorForm from '../NoteEditorForm'
 import ForumReplyContext from './ForumReplyContext'
-import {
-  prettyId, prettyInvitationId, buildNoteTitle, forumDate,
-} from '../../lib/utils'
+import { prettyId, prettyInvitationId, buildNoteTitle, forumDate } from '../../lib/utils'
 import { getInvitationColors } from '../../lib/forum-utils'
 import Icon from '../Icon'
 
@@ -17,14 +15,15 @@ export default function ForumReply({ note, replies, updateNote }) {
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
   const { forumId, displayOptionsMap, setCollapsed } = useContext(ForumReplyContext)
 
-  const {
-    id, invitation, content, signatures, details, ddate,
-  } = note
+  const { id, invitation, content, signatures, details, ddate } = note
   const pastDue = ddate && ddate < Date.now()
-  const canEdit = (details.original && details.originalWritable) || (!details.originalWritable && details.writable)
+  const canEdit =
+    (details.original && details.originalWritable) ||
+    (!details.originalWritable && details.writable)
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
-  const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
-  const showInvitationButtons = note.commonInvitations?.length > 0 || note.referenceInvitations?.length > 0
+  const allRepliesHidden = replies.every((childNote) => displayOptionsMap[childNote.id].hidden)
+  const showInvitationButtons =
+    note.commonInvitations?.length > 0 || note.referenceInvitations?.length > 0
 
   if (collapsed) {
     // Collapsed reply
@@ -39,14 +38,9 @@ export default function ForumReply({ note, replies, updateNote }) {
           <h4 className="minimal-title">
             {content.title ? (
               <>
-                <strong>{content.title}</strong>
-                {' '}
-                &bull;
-                {' '}
+                <strong>{content.title}</strong> &bull;{' '}
                 <span className="signatures">
-                  by
-                  {' '}
-                  {signatures.map(signature => prettyId(signature, true)).join(', ')}
+                  by {signatures.map((signature) => prettyId(signature, true)).join(', ')}
                 </span>
               </>
             ) : (
@@ -57,9 +51,7 @@ export default function ForumReply({ note, replies, updateNote }) {
           <CopyLinkButton noteId={id} />
         </div>
 
-        {!allRepliesHidden && (
-          <NoteReplies replies={replies} updateNote={updateNote} />
-        )}
+        {!allRepliesHidden && <NoteReplies replies={replies} updateNote={updateNote} />}
       </ReplyContainer>
     )
   }
@@ -119,7 +111,7 @@ export default function ForumReply({ note, replies, updateNote }) {
 
         <CopyLinkButton noteId={id} />
 
-        {note.referenceInvitations?.map(inv => (
+        {note.referenceInvitations?.map((inv) => (
           <button
             key={inv.id}
             type="button"
@@ -144,21 +136,13 @@ export default function ForumReply({ note, replies, updateNote }) {
             >
               <Icon name="edit" />
             </button>
-            <button
-              type="button"
-              className="btn btn-xs"
-              onClick={() => {}}
-            >
+            <button type="button" className="btn btn-xs" onClick={() => {}}>
               <Icon name="trash" />
             </button>
           </>
         )}
         {canEdit && pastDue && (
-          <button
-            type="button"
-            className="btn btn-xs"
-            onClick={() => {}}
-          >
+          <button type="button" className="btn btn-xs" onClick={() => {}}>
             Restore
           </button>
         )}
@@ -174,17 +158,32 @@ export default function ForumReply({ note, replies, updateNote }) {
         >
           {prettyInvitationId(invitation, true)}
         </span>
-        <span className="signatures" data-toggle="tooltip" data-placement="top" title="Reply Author">
+        <span
+          className="signatures"
+          data-toggle="tooltip"
+          data-placement="top"
+          title="Reply Author"
+        >
           <Icon name="pencil" />
-          {signatures.map(signature => prettyId(signature, true)).join(', ')}
+          {signatures.map((signature) => prettyId(signature, true)).join(', ')}
         </span>
-        <span className="created-date" data-toggle="tooltip" data-placement="top" title="Date created">
+        <span
+          className="created-date"
+          data-toggle="tooltip"
+          data-placement="top"
+          title="Date created"
+        >
           <Icon name="calendar" />
           {forumDate(note.cdate, null, note.mdate, null)}
         </span>
-        <span className="readers" data-toggle="tooltip" data-placement="top" title="Visible to">
+        <span
+          className="readers"
+          data-toggle="tooltip"
+          data-placement="top"
+          title="Visible to"
+        >
           <Icon name="eye-open" />
-          {note.readers.map(reader => prettyId(reader, true)).join(', ')}
+          {note.readers.map((reader) => prettyId(reader, true)).join(', ')}
         </span>
         {note.details.revisions && (
           <span>
@@ -206,7 +205,7 @@ export default function ForumReply({ note, replies, updateNote }) {
         <div className="invitations-container mt-2">
           <div className="invitation-buttons">
             <span className="hint">Add:</span>
-            {[...note.replyInvitations, ...note.commonInvitations].map(inv => (
+            {[...note.replyInvitations, ...note.commonInvitations].map((inv) => (
               <button
                 key={inv.id}
                 type="button"
@@ -226,28 +225,30 @@ export default function ForumReply({ note, replies, updateNote }) {
               setActiveEditInvitation(null)
               updateNote(newNote, note.id, note.commonInvitations)
             }}
-            onNoteCancelled={() => { setActiveInvitation(null) }}
-            onError={() => { setActiveInvitation(null) }}
+            onNoteCancelled={() => {
+              setActiveInvitation(null)
+            }}
+            onError={() => {
+              setActiveInvitation(null)
+            }}
           />
         </div>
       )}
 
-      {!allRepliesHidden && (
-        <NoteReplies replies={replies} updateNote={updateNote} />
-      )}
+      {!allRepliesHidden && <NoteReplies replies={replies} updateNote={updateNote} />}
     </ReplyContainer>
   )
 }
 
-function ReplyContainer({
-  id, hidden, collapsed, setCollapsed, children,
-}) {
+function ReplyContainer({ id, hidden, collapsed, setCollapsed, children }) {
   return (
     <div className="note" style={hidden ? { display: 'none' } : {}} data-id={id}>
-      <button type="button" className="btn btn-link collapse-link" onClick={e => setCollapsed(id, !collapsed)}>
-        [
-        {collapsed ? '+' : '–'}
-        ]
+      <button
+        type="button"
+        className="btn btn-link collapse-link"
+        onClick={(e) => setCollapsed(id, !collapsed)}
+      >
+        [{collapsed ? '+' : '–'}]
       </button>
 
       {children}
@@ -272,15 +273,13 @@ function CopyLinkButton({ noteId }) {
   )
 }
 
-function NoteContentCollapsible({
-  id, content, invitation, collapsed,
-}) {
+function NoteContentCollapsible({ id, content, invitation, collapsed }) {
   return (
     <div
       role="button"
       tabIndex="0"
       className={`note-content-container ${collapsed ? 'collapsed' : ''}`}
-      onClick={e => e.currentTarget.classList.toggle('collapsed')}
+      onClick={(e) => e.currentTarget.classList.toggle('collapsed')}
     >
       <NoteContent
         id={id}
@@ -290,7 +289,9 @@ function NoteContentCollapsible({
       />
       <div className="gradient-overlay">
         {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-        <a href="#" onClick={e => e.preventDefault()}>Show more</a>
+        <a href="#" onClick={(e) => e.preventDefault()}>
+          Show more
+        </a>
       </div>
     </div>
   )
@@ -301,13 +302,8 @@ function NoteReplies({ replies, updateNote }) {
 
   return (
     <div className="note-replies">
-      {replies.map(childNote => (
-        <ForumReply
-          key={childNote.id}
-          note={childNote}
-          replies={[]}
-          updateNote={updateNote}
-        />
+      {replies.map((childNote) => (
+        <ForumReply key={childNote.id} note={childNote} replies={[]} updateNote={updateNote} />
       ))}
     </div>
   )

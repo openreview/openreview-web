@@ -9,7 +9,9 @@ const ProgressBar = ({
   variant = null,
 }) => {
   const [progress, setProgress] = useState(now)
-  const className = `progress-bar${striped ? ' progress-bar-striped' : ''}${animated ? ' active' : ''}${variant ? ` progress-bar-${variant}` : ''}`
+  const className = `progress-bar${striped ? ' progress-bar-striped' : ''}${
+    animated ? ' active' : ''
+  }${variant ? ` progress-bar-${variant}` : ''}`
 
   useEffect(() => {
     setProgress(now)

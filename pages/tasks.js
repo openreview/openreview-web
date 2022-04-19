@@ -61,24 +61,25 @@ const Tasks = ({ appContext }) => {
     const commonOptions = { accessToken, cache: false }
 
     const invitationPromises = [
-      api.getCombined(
-        '/invitations',
-        { ...commonParams, replyto: true, details: 'replytoNote,repliedNotes' },
-        null,
-        commonOptions
-      ).then(addPropertyToInvitations('noteInvitation')),
-      api.getCombined(
-        '/invitations',
-        { ...commonParams, type: 'tags' },
-        null,
-        commonOptions
-      ).then(addPropertyToInvitations('tagInvitation')),
-      api.getCombined(
-        '/invitations',
-        { ...commonParams, type: 'edges', details: 'repliedEdges' },
-        null,
-        commonOptions
-      ).then(addPropertyToInvitations('tagInvitation')),
+      api
+        .getCombined(
+          '/invitations',
+          { ...commonParams, replyto: true, details: 'replytoNote,repliedNotes' },
+          null,
+          commonOptions
+        )
+        .then(addPropertyToInvitations('noteInvitation')),
+      api
+        .getCombined('/invitations', { ...commonParams, type: 'tags' }, null, commonOptions)
+        .then(addPropertyToInvitations('tagInvitation')),
+      api
+        .getCombined(
+          '/invitations',
+          { ...commonParams, type: 'edges', details: 'repliedEdges' },
+          null,
+          commonOptions
+        )
+        .then(addPropertyToInvitations('tagInvitation')),
     ]
 
     Promise.all(invitationPromises)

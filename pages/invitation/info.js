@@ -59,11 +59,7 @@ const InvitationInfo = ({ appContext }) => {
     if (invitation?.apiVersion === 1) {
       return (
         <>
-          <InvitationReply
-            invitation={invitation}
-            replyField="reply"
-            readOnly={true}
-          />
+          <InvitationReply invitation={invitation} replyField="reply" readOnly={true} />
 
           <InvitationReply
             invitation={invitation}
@@ -123,9 +119,7 @@ const InvitationInfo = ({ appContext }) => {
   return (
     <>
       <Head>
-        <title key="title">
-          {prettyId(invitation?.id)} Invitation Info | OpenReview
-        </title>
+        <title key="title">{prettyId(invitation?.id)} Invitation Info | OpenReview</title>
       </Head>
 
       <div id="header">

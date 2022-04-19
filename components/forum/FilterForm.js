@@ -10,39 +10,48 @@ import { prettyId, prettyInvitationId, inflect } from '../../lib/utils'
 import { stringifyFilters } from '../../lib/forum-utils'
 
 export default function FilterForm({
-  forumId, selectedFilters, setSelectedFilters, filterOptions, sort, setSort,
-  layout, setLayout, setCollapseLevel, numReplies, numRepliesHidden,
+  forumId,
+  selectedFilters,
+  setSelectedFilters,
+  filterOptions,
+  sort,
+  setSort,
+  layout,
+  setLayout,
+  setCollapseLevel,
+  numReplies,
+  numRepliesHidden,
 }) {
   const [collapse, setCollapse] = useState(1)
 
   // Options for multiselect dropdown
-  const invDropdownFilterOptions = filterOptions.invitations.map(invitationId => ({
+  const invDropdownFilterOptions = filterOptions.invitations.map((invitationId) => ({
     value: invitationId,
     label: prettyInvitationId(invitationId),
     type: 'invitation',
   }))
-  const sigDropdownFilterOptions = filterOptions.signatures.map(groupId => ({
+  const sigDropdownFilterOptions = filterOptions.signatures.map((groupId) => ({
     value: groupId,
     label: prettyId(groupId, true),
     type: 'signature',
   }))
-  const readersToggleOptions = filterOptions.readers.map(groupId => ({
+  const readersToggleOptions = filterOptions.readers.map((groupId) => ({
     value: groupId,
     label: prettyId(groupId, true),
   }))
 
   // Selected options
-  const selectedInvitationOptions = invDropdownFilterOptions.filter(invOption => (
+  const selectedInvitationOptions = invDropdownFilterOptions.filter((invOption) =>
     selectedFilters.invitations?.includes(invOption.value)
-  ))
-  const selectedSginatureOptions = sigDropdownFilterOptions.filter(sigOption => (
+  )
+  const selectedSginatureOptions = sigDropdownFilterOptions.filter((sigOption) =>
     selectedFilters.signatures?.some((selectedSig) => {
       if (selectedSig.includes('.*')) {
-        return (new RegExp(selectedSig)).test(sigOption.value)
+        return new RegExp(selectedSig).test(sigOption.value)
       }
       return selectedSig === sigOption.value
     })
-  ))
+  )
 
   const updateFilters = (modifiedFilters) => {
     setSelectedFilters({
@@ -62,7 +71,11 @@ export default function FilterForm({
     if (selectedFilters.keywords) {
       urlParams.keywords = selectedFilters.keywords
     }
-    copy(`${window.location.origin}${window.location.pathname}?id=${forumId}&${stringify(urlParams)}`)
+    copy(
+      `${window.location.origin}${window.location.pathname}?id=${forumId}&${stringify(
+        urlParams
+      )}`
+    )
     promptMessage('Forum URL copied to clipboard', { scrollToTop: false })
   }
 
@@ -79,7 +92,10 @@ export default function FilterForm({
             isDisabled={!filterOptions}
             onChange={(selectedOptions) => {
               updateFilters({
-                invitations: selectedOptions.length === 0 ? null : selectedOptions.map(option => option.value),
+                invitations:
+                  selectedOptions.length === 0
+                    ? null
+                    : selectedOptions.map((option) => option.value),
               })
             }}
             placeholder="Filter by reply type..."
@@ -99,7 +115,10 @@ export default function FilterForm({
             isDisabled={!filterOptions}
             onChange={(selectedOptions) => {
               updateFilters({
-                signatures: selectedOptions.length === 0 ? null : selectedOptions.map(option => option.value),
+                signatures:
+                  selectedOptions.length === 0
+                    ? null
+                    : selectedOptions.map((option) => option.value),
               })
             }}
             placeholder="Filter by author..."
@@ -126,7 +145,14 @@ export default function FilterForm({
         </div>
 
         <div className="form-group">
-          <select id="sort-dropdown" className="form-control" value={sort} onChange={(e) => { setSort(e.target.value) }}>
+          <select
+            id="sort-dropdown"
+            className="form-control"
+            value={sort}
+            onChange={(e) => {
+              setSort(e.target.value)
+            }}
+          >
             <option value="date-desc">Sort: Newest First</option>
             <option value="date-asc">Sort: Oldest First</option>
             {/* <option value="tag-desc">Sort: Most Tagged</option> */}
@@ -135,11 +161,23 @@ export default function FilterForm({
 
         <div className="form-group">
           <div className="btn-group btn-group-sm" role="group" aria-label="nesting level">
-            <button type="button" className={`btn btn-default ${layout === 0 ? 'active' : ''}`} onClick={(e) => { setLayout(0) }}>
+            <button
+              type="button"
+              className={`btn btn-default ${layout === 0 ? 'active' : ''}`}
+              onClick={(e) => {
+                setLayout(0)
+              }}
+            >
               <Icon name="list" tooltip="Linear discussion" />
               <span className="sr-only">Linear</span>
             </button>
-            <button type="button" className={`btn btn-default ${layout === 1 ? 'active' : ''}`} onClick={(e) => { setLayout(1) }}>
+            <button
+              type="button"
+              className={`btn btn-default ${layout === 1 ? 'active' : ''}`}
+              onClick={(e) => {
+                setLayout(1)
+              }}
+            >
               <Icon name="align-left" tooltip="Threaded discussion" />
               <span className="sr-only">Threaded</span>
             </button>
@@ -157,22 +195,49 @@ export default function FilterForm({
           </div>
 
           <div className="btn-group btn-group-sm" role="group" aria-label="collapse level">
-            <button type="button" className={`btn btn-default ${collapse === 0 ? 'active' : ''}`} onClick={(e) => { setCollapse(0); setCollapseLevel(0) }}>
+            <button
+              type="button"
+              className={`btn btn-default ${collapse === 0 ? 'active' : ''}`}
+              onClick={(e) => {
+                setCollapse(0)
+                setCollapseLevel(0)
+              }}
+            >
               <Icon name="resize-small" tooltip="Collapse content" />
               <span className="sr-only">Collapsed</span>
             </button>
-            <button type="button" className={`btn btn-default ${collapse === 1 ? 'active' : ''}`} onClick={(e) => { setCollapse(1); setCollapseLevel(1) }}>
+            <button
+              type="button"
+              className={`btn btn-default ${collapse === 1 ? 'active' : ''}`}
+              onClick={(e) => {
+                setCollapse(1)
+                setCollapseLevel(1)
+              }}
+            >
               <Icon name="resize-full" tooltip="Partially expand content" />
               <span className="sr-only">Default</span>
             </button>
-            <button type="button" className={`btn btn-default ${collapse === 2 ? 'active' : ''}`} onClick={(e) => { setCollapse(2); setCollapseLevel(2) }}>
+            <button
+              type="button"
+              className={`btn btn-default ${collapse === 2 ? 'active' : ''}`}
+              onClick={(e) => {
+                setCollapse(2)
+                setCollapseLevel(2)
+              }}
+            >
               <Icon name="fullscreen" tooltip="Fully expand content" />
               <span className="sr-only">Expanded</span>
             </button>
           </div>
 
           <div className="btn-group btn-group-sm" role="group" aria-label="copy url">
-            <button type="button" className="btn btn-default" onClick={(e) => { copyFilterUrl() }}>
+            <button
+              type="button"
+              className="btn btn-default"
+              onClick={(e) => {
+                copyFilterUrl()
+              }}
+            >
               <Icon name="link" tooltip="Copy filter URL" />
               <span className="sr-only">Copy link</span>
             </button>
@@ -190,14 +255,17 @@ export default function FilterForm({
             name="readers-filter"
             className="readers-filter"
             options={readersToggleOptions}
-            values={[
-              selectedFilters.readers ?? [],
-              selectedFilters.excludedReaders ?? [],
-            ]}
+            values={[selectedFilters.readers ?? [], selectedFilters.excludedReaders ?? []]}
             onChange={([selectedOptions, unselectedOptions]) => {
               updateFilters({
-                readers: selectedOptions.length > 0 ? selectedOptions.map(option => option.value) : null,
-                excludedReaders: unselectedOptions.length > 0 ? unselectedOptions.map(option => option.value) : null,
+                readers:
+                  selectedOptions.length > 0
+                    ? selectedOptions.map((option) => option.value)
+                    : null,
+                excludedReaders:
+                  unselectedOptions.length > 0
+                    ? unselectedOptions.map((option) => option.value)
+                    : null,
               })
             }}
           />
@@ -206,7 +274,8 @@ export default function FilterForm({
         <div className="form-group">
           <em className="control-label filter-count">
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            {numReplies - numRepliesHidden} / {inflect(numReplies, 'reply', 'replies', true)} shown
+            {numReplies - numRepliesHidden} / {inflect(numReplies, 'reply', 'replies', true)}{' '}
+            shown
           </em>
         </div>
       </div>

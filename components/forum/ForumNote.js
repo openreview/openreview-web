@@ -10,12 +10,21 @@ import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
 
 function ForumNote({ note, updateNote }) {
   const {
-    id, content, details, signatures, referenceInvitations, originalInvitations, tagInvitations,
+    id,
+    content,
+    details,
+    signatures,
+    referenceInvitations,
+    originalInvitations,
+    tagInvitations,
   } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
-  const canEdit = (details.original && details.originalWritable) || (!details.originalWritable && details.writable)
-  const showInvitationButtons = referenceInvitations?.length > 0 || originalInvitations?.length > 0
+  const canEdit =
+    (details.original && details.originalWritable) ||
+    (!details.originalWritable && details.writable)
+  const showInvitationButtons =
+    referenceInvitations?.length > 0 || originalInvitations?.length > 0
   // eslint-disable-next-line no-underscore-dangle
   const texDisabled = !!content._disableTexRendering
 
@@ -26,7 +35,7 @@ function ForumNote({ note, updateNote }) {
     if (activeInvitation && activeInvitation.id !== invitation.id) {
       promptError(
         'There is currently another editor pane open on the page. Please submit your changes or click Cancel before continuing',
-        { scrollToTop: false },
+        { scrollToTop: false }
       )
       return
     }
@@ -75,7 +84,11 @@ function ForumNote({ note, updateNote }) {
   }
 
   return (
-    <div className={`forum-note ${pastDue ? 'trashed' : ''} ${texDisabled ? 'disable-tex-rendering' : ''} ${canEdit ? 'editable' : ''}`}>
+    <div
+      className={`forum-note ${pastDue ? 'trashed' : ''} ${
+        texDisabled ? 'disable-tex-rendering' : ''
+      } ${canEdit ? 'editable' : ''}`}
+    >
       <ForumTitle
         id={id}
         title={content.title}
@@ -85,7 +98,11 @@ function ForumNote({ note, updateNote }) {
 
       <div className="forum-authors mb-2">
         <h3>
-          <NoteAuthors authors={content.authors} authorIds={content.authorIds} signatures={signatures} />
+          <NoteAuthors
+            authors={content.authors}
+            authorIds={content.authorIds}
+            signatures={signatures}
+          />
         </h3>
       </div>
 
@@ -93,13 +110,15 @@ function ForumNote({ note, updateNote }) {
         <ForumMeta note={note} />
 
         <div className="invitation-buttons">
-          {showInvitationButtons && (
-            <span className="hint">Add:</span>
-          )}
+          {showInvitationButtons && <span className="hint">Add:</span>}
           {originalInvitations?.map((invitation) => {
             let buttonText = prettyInvitationId(invitation.id)
             let options = { original: true }
-            if (buttonText === 'Revision' && invitation.multiReply === false && invitation.details.repliedNotes?.length) {
+            if (
+              buttonText === 'Revision' &&
+              invitation.multiReply === false &&
+              invitation.details.repliedNotes?.length
+            ) {
               buttonText = 'Edit Revision'
               options = { revision: true }
             }
@@ -115,7 +134,7 @@ function ForumNote({ note, updateNote }) {
             )
           })}
 
-          {referenceInvitations?.map(invitation => (
+          {referenceInvitations?.map((invitation) => (
             <button
               key={invitation.id}
               type="button"
@@ -141,21 +160,13 @@ function ForumNote({ note, updateNote }) {
               >
                 <Icon name="edit" />
               </button>
-              <button
-                type="button"
-                className="btn btn-xs"
-                onClick={() => {}}
-              >
+              <button type="button" className="btn btn-xs" onClick={() => {}}>
                 <Icon name="trash" />
               </button>
             </>
           )}
           {canEdit && pastDue && (
-            <button
-              type="button"
-              className="btn btn-xs"
-              onClick={() => {}}
-            >
+            <button type="button" className="btn btn-xs" onClick={() => {}}>
               Restore
             </button>
           )}
@@ -171,19 +182,20 @@ function ForumNote({ note, updateNote }) {
   )
 }
 
-function ForumTitle({
-  id, title, pdf, html,
-}) {
+function ForumTitle({ id, title, pdf, html }) {
   return (
     <div className="forum-title mt-2 mb-2">
-      <h2 className="citation_title">
-        {title}
-      </h2>
+      <h2 className="citation_title">{title}</h2>
 
       {pdf && (
         <div className="forum-content-link">
           {/* eslint-disable-next-line react/jsx-no-target-blank */}
-          <a className="citation_pdf_url" href={`/pdf?id=${id}`} title="Download PDF" target="_blank">
+          <a
+            className="citation_pdf_url"
+            href={`/pdf?id=${id}`}
+            title="Download PDF"
+            target="_blank"
+          >
             <img src="/images/pdf_icon_blue.svg" alt="Download PDF" />
           </a>
         </div>
@@ -213,9 +225,14 @@ function ForumMeta({ note }) {
       </span>
 
       {note.readers && (
-        <span className="readers item" data-toggle="tooltip" data-placement="top" title={`Visible to ${note.readers.join(', ')}`}>
+        <span
+          className="readers item"
+          data-toggle="tooltip"
+          data-placement="top"
+          title={`Visible to ${note.readers.join(', ')}`}
+        >
           <Icon name="eye-open" />
-          {note.readers.map(reader => prettyId(reader, true)).join(', ')}
+          {note.readers.map((reader) => prettyId(reader, true)).join(', ')}
         </span>
       )}
 

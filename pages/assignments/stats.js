@@ -44,16 +44,14 @@ const AssignmentStats = ({ appContext }) => {
   let edgeBrowserUrlParams = {}
   if (assignmentConfigNote?.content) {
     edgeBrowserUrlParams = {
-      browseInvitations: Object.keys(
-        assignmentConfigNote.content.scores_specification ?? {}
-      ),
+      browseInvitations: Object.keys(assignmentConfigNote.content.scores_specification ?? {}),
       editInvitation:
         assignmentConfigNote.content.status === 'Deployed' &&
         assignmentConfigNote.content.deployed_assignment_invitation
           ? assignmentConfigNote.content.deployed_assignment_invitation
-          : `${
-              assignmentConfigNote.content.assignment_invitation
-            },label:${encodeURIComponent(assignmentConfigNote.content.title)}`,
+          : `${assignmentConfigNote.content.assignment_invitation},label:${encodeURIComponent(
+              assignmentConfigNote.content.title
+            )}`,
       conflictsInvitation: assignmentConfigNote.content.conflicts_invitation,
       customMaxPapersInvitation: assignmentConfigNote.content.custom_max_papers_invitation,
       customLoadInvitation: assignmentConfigNote.content.custom_load_invitation,
@@ -215,10 +213,11 @@ const AssignmentStats = ({ appContext }) => {
   useEffect(() => {
     if (!matchLists) return
 
-    const showRecommendationDistribution = matchLists[0]
-      .map((p) => p?.otherScores?.recommendation)
-      .filter(Number.isFinite)
-      .reduce((a, b) => a + b, 0) > 0
+    const showRecommendationDistribution =
+      matchLists[0]
+        .map((p) => p?.otherScores?.recommendation)
+        .filter(Number.isFinite)
+        .reduce((a, b) => a + b, 0) > 0
 
     setValues({
       paperCount: getPaperCount(matchLists[0], matchLists[1]),
@@ -301,15 +300,13 @@ const AssignmentStats = ({ appContext }) => {
               aria-haspopup="true"
               aria-expanded="false"
             >
-              Actions
-              {' '}
-              <span className="caret" />
+              Actions <span className="caret" />
             </button>
             <ul className="dropdown-menu dropdown-align-right">
               {assignmentConfigNote && (
                 <li>
                   <Link href={getEdgeBrowserUrl(assignmentConfigNote.content)}>
-                    <a >Browse Assignments</a>
+                    <a>Browse Assignments</a>
                   </Link>
                 </li>
               )}

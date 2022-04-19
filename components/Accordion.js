@@ -25,8 +25,7 @@ const SectionHeading = ({ id, heading, options }) => (
     <h4 className="panel-title">
       <SectionHeadingLink targetId={id} parentId={options.id}>
         <Icon name="triangle-bottom" />
-      </SectionHeadingLink>
-      {' '}
+      </SectionHeadingLink>{' '}
       <SectionHeadingLink targetId={id} parentId={options.id}>
         {heading}
       </SectionHeadingLink>
@@ -48,11 +47,7 @@ const SectionHeadingLink = ({ targetId, parentId, children }) => (
 )
 
 const SectionBody = ({ id, body, options }) => (
-  <div
-    id={id}
-    className="panel-collapse collapse"
-    role="tabpanel"
-  >
+  <div id={id} className="panel-collapse collapse" role="tabpanel">
     <div className="panel-body">
       {options.html ? (
         // eslint-disable-next-line react/no-danger
