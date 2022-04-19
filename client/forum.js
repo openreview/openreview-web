@@ -41,6 +41,9 @@ module.exports = function(forumId, noteId, invitationId, user) {
 
   var getNoteRecsP = function() {
     var onError = function() {
+      // Don't show error if user has already been redirected
+      if (window.location.pathname !== '/forum') return;
+
       $childrenAnchor.find('.spinner-container').fadeOut('fast');
       promptError('An error ocurred while loading the forum, please try again later');
     };
