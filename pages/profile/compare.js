@@ -485,8 +485,8 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     }
 
     if (toProfile.active === false && fromProfile.active === true) {
-      // eslint-disable-next-line no-alert
       if (
+        // eslint-disable-next-line no-alert
         window.confirm(
           'You are merging an active profile into an inactive profile. Are you sure you want to proceed?'
         )
