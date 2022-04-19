@@ -924,32 +924,6 @@ module.exports = (function() {
     });
   };
 
-  var sendFileChunk = function(data,$progressBar){
-    var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
-    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
-    return $.ajax({
-      url: baseUrl + '/attachment/chunk',
-      type: 'put',
-      contentType: false,
-      processData: false,
-      data: data,
-      headers:  Object.assign(defaultHeaders, authHeaders),
-      xhr: function(){
-        return new XMLHttpRequest();
-      },
-      xhrFields: {
-        withCredentials: true
-      },
-      success: function(result){
-        if(!result.url){
-          var progress =`${Object.values(result).filter(p=>p==='completed').length*100/Object.values(result).length}%`
-          $progressBar.find('.progress-bar').css('width',progress)
-        }
-      }
-    })
-  }
-
   var searchSubmissions = function(term, options) {
     var defaults = {
       pageSize: 100,
@@ -1876,7 +1850,6 @@ module.exports = (function() {
       getAssignedInvitations: getAssignedInvitations,
       getGroup: getGroup,
       sendFile: sendFile,
-      sendFileChunk: sendFileChunk,
     },
 
     ui: {
