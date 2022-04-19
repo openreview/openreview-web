@@ -447,7 +447,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
       }
 
       var filtersMap = sm.get('forumFiltersMap');
-      var newFilterObj = filtersMap[hash] || {};
+      var newFilterObj = filtersMap?.[hash] || {};
       setFilters(Object.assign({
         invitations: null, signatures: null, readers: null, 'excluded-readers': null,
       }, newFilterObj));
@@ -867,7 +867,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         $(this).removeClass('semi-active').addClass('active');
 
         var filtersMap = sm.get('forumFiltersMap');
-        var newFilterObj = filtersMap[location.hash] || {};
+        var newFilterObj = filtersMap?.[location.hash] || {};
         setFilters(Object.assign({
           invitations: null, signatures: null, readers: null, 'excluded-readers': null,
         }, newFilterObj));
