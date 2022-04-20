@@ -128,7 +128,7 @@ export default class OpenReviewApp extends App {
       const { token, user } = await api.post('/refreshToken')
       this.loginUser(user, token, null)
     } catch (error) {
-      if (error.name === 'TokenExpiredError') {
+      if (error.name === 'TokenExpiredError' || error.name === 'MissingTokenError') {
         this.logoutUser(null)
       } else {
         Router.reload()
@@ -138,11 +138,7 @@ export default class OpenReviewApp extends App {
 
   static async attemptRefresh() {
     try {
-      const { token, user } = await api.post(
-        '/refreshToken',
-        {},
-        { ignoreErrors: ['TokenError'] }
-      )
+      const { token, user } = await api.post('/refreshToken', {})
       const expiration = Date.now() + cookieExpiration
       return { user, token, expiration }
     } catch (error) {
