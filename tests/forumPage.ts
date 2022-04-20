@@ -227,7 +227,7 @@ test('#139 no id param should show an error message', async (t) => {
 
 test('get forum page from a request venue form and do not render any meta tag', async (t) => {
   const { superUserToken } = t.fixtureCtx
-  const notes = await getNotes({ invitation: 'openreview.net/Support/-/Request_Form' }, superUserToken)
+  const notes = await getNotes({ invitation: 'openreview.net/Support/-/Request_Form', sort: 'mdate:desc' }, superUserToken)
   const forum = notes[0].id
   await t
     .useRole(superUserRole)
