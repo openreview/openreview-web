@@ -1,12 +1,11 @@
-@use "../utils/constants";
+@use '../utils/constants';
 
 $lockGreen: #dff0d8;
 $vetoRed: #f2dede;
 $hoverColor: #f5f5f5;
-$conflictAssignedColor:#e9d7c7;
+$conflictAssignedColor: #e9d7c7;
 
 main.edge-browser {
-
   .explore-interface {
     display: flex;
     flex-direction: row;
@@ -48,7 +47,7 @@ main.edge-browser {
 
   .entry-list {
     margin-bottom: 0;
-    .tooltip-inner{
+    .tooltip-inner {
       word-break: break-word;
     }
   }
@@ -67,7 +66,7 @@ main.edge-browser {
     &.is-assigned {
       background-color: $lockGreen;
     }
-    &.has-conflict.is-assigned{
+    &.has-conflict.is-assigned {
       background-color: $conflictAssignedColor;
     }
     &.is-editable {
@@ -91,7 +90,7 @@ main.edge-browser {
         }
       }
       p {
-        margin-bottom: .25rem;
+        margin-bottom: 0.25rem;
       }
     }
     .edit-controls {
@@ -100,8 +99,8 @@ main.edge-browser {
         width: 100%;
         clear: both;
         text-align: left;
-        margin-bottom: .25rem;
-        margin-top: .25rem;
+        margin-bottom: 0.25rem;
+        margin-top: 0.25rem;
       }
       .btn-xs {
         border-width: 1px;
@@ -116,9 +115,9 @@ main.edge-browser {
         top: 1px;
       }
       label {
-        font-size: .75rem;
+        font-size: 0.75rem;
         font-weight: 400;
-        padding-right: .25rem;
+        padding-right: 0.25rem;
         margin-bottom: 0;
       }
       .edit-edge-dropdown {
@@ -134,60 +133,61 @@ main.edge-browser {
           display: inline-block;
           min-width: 15px;
         }
-        span.two-dropdowns-edge-label{
+        span.two-dropdowns-edge-label {
           display: inline-block;
           align-items: bottom;
           text-overflow: ellipsis;
           overflow: hidden;
           width: 80px;
         }
-        span.two-dropdowns-edge-weight{
+        span.two-dropdowns-edge-weight {
           display: inline-block;
           align-items: center;
           text-overflow: ellipsis;
           overflow: hidden;
           width: 20px;
         }
-        .flex-button{
+        .flex-button {
           align-items: center;
           min-height: 20px;
           display: flex;
         }
         span.caret {
-          margin-left: .25rem;
+          margin-left: 0.25rem;
         }
         .dropdown-menu {
           min-width: 80px;
 
           & > li > a {
-            font-size: .75rem;
+            font-size: 0.75rem;
             padding: 3px 10px;
           }
         }
       }
       .edit-edge-remove {
-        font-size: .75rem;
-        padding-left: .5rem;
-        padding-right: .5rem;
+        font-size: 0.75rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
       }
-      .edit-edge-toggle-description{
-          display: inline-block;
-          text-overflow: ellipsis;
-          overflow: hidden;
-          white-space: nowrap;
+      .edit-edge-toggle-description {
+        display: inline-block;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
       }
-      .edit-edge-toggle-btn{
+      .edit-edge-toggle-btn {
         vertical-align: super;
-        &.disable{
-          opacity: .5;
+        &.disable {
+          opacity: 0.5;
           cursor: no-drop;
         }
       }
-      .span-disabled{
+      .span-disabled {
         pointer-events: none;
       }
     }
-    .scores-list, .action-links {
+    .scores-list,
+    .action-links {
       float: left;
       width: 50%;
     }
@@ -199,7 +199,7 @@ main.edge-browser {
         font-weight: bold;
       }
     }
-    .d-flex{
+    .d-flex {
       display: flex;
       align-items: baseline;
     }
@@ -211,8 +211,8 @@ main.edge-browser {
 
   .entry-note {
     .note-authors {
-      margin-bottom: .25rem;
-      font-size: .75rem;
+      margin-bottom: 0.25rem;
+      font-size: 0.75rem;
       line-height: normal;
       a {
         color: constants.$darkBlue;
@@ -226,25 +226,25 @@ main.edge-browser {
     }
     .private-author-label {
       color: #777;
-      padding-left: .25rem;
+      padding-left: 0.25rem;
       font-style: italic;
     }
     .note-content {
       clear: both;
-      font-size: .75rem;
-      margin-bottom: .25rem;
+      font-size: 0.75rem;
+      margin-bottom: 0.25rem;
 
       .collapse {
-        margin-top: .25rem;
+        margin-top: 0.25rem;
       }
       ul.note-content-list {
         border-left: 2px solid #ddd;
-        padding-left: .5rem;
+        padding-left: 0.5rem;
         li {
           padding-left: 0;
         }
         li + li {
-          margin-top: .25rem;
+          margin-top: 0.25rem;
         }
         strong {
           color: constants.$orRed;
@@ -264,8 +264,8 @@ main.edge-browser {
       text-overflow: ellipsis;
 
       .edit-matching-name {
-        font-size: .75rem;
-        padding-left: .75rem;
+        font-size: 0.75rem;
+        padding-left: 0.75rem;
         font-weight: normal;
       }
     }
@@ -343,10 +343,11 @@ main.edge-browser {
       background: transparent;
     }
 
-    .head, .col-search {
+    .head,
+    .col-search {
       background-color: constants.$sandyBrown;
       border-bottom: 1px solid #ccc;
-      padding: .5rem;
+      padding: 0.5rem;
     }
 
     .head {
@@ -357,14 +358,14 @@ main.edge-browser {
         margin: 0;
       }
       p.description {
-        margin-top: .125rem;
-        font-size: .75rem;
+        margin-top: 0.125rem;
+        font-size: 0.75rem;
         line-height: normal;
         color: #777;
 
         span.glyphicon {
-          padding-right: .25rem;
-          font-size: .8rem;
+          padding-right: 0.25rem;
+          font-size: 0.8rem;
         }
       }
       .btn-default {
@@ -381,10 +382,10 @@ main.edge-browser {
         margin-bottom: 0;
       }
       .sort-container {
-        margin-top: .25rem;
+        margin-top: 0.25rem;
         label {
           display: inline-block;
-          font-size: .75rem;
+          font-size: 0.75rem;
           font-weight: 400;
           width: 60px;
           margin-bottom: 0;
@@ -396,10 +397,10 @@ main.edge-browser {
         }
       }
       div.checkbox {
-        margin-top: .25rem;
+        margin-top: 0.25rem;
         margin-bottom: 0;
         label {
-          font-size: .75rem;
+          font-size: 0.75rem;
         }
         input {
           margin-top: 2px;
@@ -413,7 +414,7 @@ main.edge-browser {
 
       &:focus {
         border-color: constants.$mediumBlue;
-        box-shadow: inset 0 1px 1px rgba(0, 0, 0, .01), 0 0 0 1px constants.$mediumBlue;
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.01), 0 0 0 1px constants.$mediumBlue;
       }
     }
 
@@ -426,7 +427,7 @@ main.edge-browser {
       .divider {
         margin: 0;
         padding: 8px;
-        font-size: .875rem;
+        font-size: 0.875rem;
         line-height: 1rem;
         color: constants.$orRed;
         background-color: constants.$sandyBrown;
@@ -455,10 +456,10 @@ main.edge-browser {
     }
 
     // Recommend widget
-    .tag-widget[data-type="radio"] {
+    .tag-widget[data-type='radio'] {
       .btn-group-xs {
         &.disabled {
-          opacity: .65;
+          opacity: 0.65;
           label {
             color: constants.$mediumDarkBlue;
             cursor: not-allowed;
@@ -507,7 +508,7 @@ main.edge-browser {
 
   .entry {
     border-bottom: 1px solid #ccc;
-    padding: .5rem;
+    padding: 0.5rem;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -526,26 +527,26 @@ main.edge-browser {
 
     h3 {
       margin-top: 1px;
-      margin-bottom: .125rem;
-      font-size: .875rem;
+      margin-bottom: 0.125rem;
+      font-size: 0.875rem;
       font-weight: bold;
       line-height: 1.125rem;
 
       a {
         color: constants.$mediumBlue;
-        padding-right: .25rem;
+        padding-right: 0.25rem;
         &:hover {
           color: #23527c;
         }
       }
       span {
-        font-size: .75rem;
+        font-size: 0.75rem;
       }
     }
 
     p {
       color: constants.$subtleGray;
-      font-size: .75rem;
+      font-size: 0.75rem;
       margin-bottom: 0;
     }
 
@@ -576,7 +577,8 @@ main.edge-browser {
         line-height: normal;
         outline: none;
       }
-      .btn:active, .btn:focus {
+      .btn:active,
+      .btn:focus {
         outline: none;
       }
       .btn-default:focus {
@@ -595,19 +597,23 @@ main.edge-browser {
       }
     }
 
-    .action-links ul, .scores-list ul {
+    .action-links ul,
+    .scores-list ul {
+      li {
+        white-space: nowrap;
+      }
       li > a {
-        font-size: .75rem;
+        font-size: 0.75rem;
       }
       li > span {
-        font-size: .75rem;
+        font-size: 0.75rem;
         color: #444;
       }
       li > strong {
-        font-size: .75rem;
+        font-size: 0.75rem;
       }
       li > em {
-        font-size: .75rem;
+        font-size: 0.75rem;
         color: #444;
       }
     }
@@ -646,9 +652,10 @@ main.edge-browser {
     float: left;
   }
 
-  .entry-reviewer, .entry-areachair {
+  .entry-reviewer,
+  .entry-areachair {
     &:after {
-      content: "";
+      content: '';
       display: table;
       clear: both;
     }
@@ -674,10 +681,10 @@ main.edge-browser {
       // margin-left: 0.5rem;
       margin-right: 0.5rem;
     }
-    .btn-xs{
+    .btn-xs {
       display: flex;
     }
-    .spinner-small{
+    .spinner-small {
       height: 15px;
       display: inline-block;
       width: 40px;
@@ -724,7 +731,10 @@ main.edge-browser {
     td {
       vertical-align: middle;
     }
-    td.locked, td.vetoed, td.none, td.conflict {
+    td.locked,
+    td.vetoed,
+    td.none,
+    td.conflict {
       text-align: center;
     }
     td.locked {
@@ -737,7 +747,13 @@ main.edge-browser {
       color: #888;
     }
     td.conflict {
-      background: repeating-linear-gradient(45deg, $vetoRed, $vetoRed 10px, $lockGreen 10px, $lockGreen 20px);
+      background: repeating-linear-gradient(
+        45deg,
+        $vetoRed,
+        $vetoRed 10px,
+        $lockGreen 10px,
+        $lockGreen 20px
+      );
       color: constants.$mediumBlue;
       &:hover {
         text-decoration: underline;
