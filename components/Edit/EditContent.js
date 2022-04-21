@@ -29,15 +29,31 @@ const EditContent = ({ edit }) => {
     <ul className="list-unstyled note-content">
       {contentOrder.map((fieldName) => {
         if (fieldName.startsWith('_')) return null
-
-        const fieldValue = prettyContentValue(noteContent[fieldName]?.value)
-        if (!fieldValue) return null
-        const enableMarkdown = edit.details?.presentation?.find(
-          (p) => p.name === fieldName
-        )?.markdown
         const fieldReaders = noteContent[fieldName]?.readers?.sort()
         const showPrivateIcon =
           fieldReaders && edit.readers && !fieldReaders.every((p, i) => p === edit.readers[i])
+        const fieldValue = prettyContentValue(noteContent[fieldName]?.value)
+        if (!fieldValue) {
+          if (!noteContent[fieldName]) return null
+          return (
+            <li key={fieldName}>
+              <strong className="note-content-field">{prettyField(fieldName)}:</strong>{' '}
+              {showPrivateIcon && (
+                <Icon
+                  name="eye-open"
+                  extraClasses="private-contents-icon"
+                  tooltip={`privately revealed to ${fieldReaders
+                    .map((p) => prettyId(p))
+                    .join(', ')}`}
+                />
+              )}
+              <span className="empty-value">(empty)</span>
+            </li>
+          )
+        }
+        const enableMarkdown = edit.details?.presentation?.find(
+          (p) => p.name === fieldName
+        )?.markdown
 
         return (
           <li key={fieldName}>
