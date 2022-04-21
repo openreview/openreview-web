@@ -6,7 +6,11 @@ import PaginationLinks from '../PaginationLinks'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 
-const ImportedPublicationsSection = ({ profileId, updatePublicationIdsToUnlink, reRender }) => {
+const ImportedPublicationsSection = ({
+  profileId,
+  updatePublicationIdsToUnlink,
+  reRender,
+}) => {
   const { accessToken } = useUser()
   const [publications, setPublications] = useState([])
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
@@ -16,9 +20,9 @@ const ImportedPublicationsSection = ({ profileId, updatePublicationIdsToUnlink, 
 
   const handleLinkUnlinkPublication = (id, isunlink = false) => {
     if (isunlink) {
-      setPublicationIdsToUnlink(p => [...p, id])
+      setPublicationIdsToUnlink((p) => [...p, id])
     } else {
-      setPublicationIdsToUnlink(p => p.filter(q => q !== id))
+      setPublicationIdsToUnlink((p) => p.filter((q) => q !== id))
     }
   }
 
@@ -34,14 +38,22 @@ const ImportedPublicationsSection = ({ profileId, updatePublicationIdsToUnlink, 
 
   const loadPublications = async () => {
     try {
-      const result = await api.get('/notes', {
-        'content.authorids': profileId,
-        details: 'invitation,original',
-        sort: 'tmdate:desc',
-        offset: (pageNumber - 1) * pageSize,
-        limit: pageSize,
-        invitations: ['dblp.org/-/record', 'OpenReview.net/Archive/-/Imported_Record', 'OpenReview.net/Archive/-/Direct_Upload'],
-      }, { accessToken, cache: false })
+      const result = await api.get(
+        '/notes',
+        {
+          'content.authorids': profileId,
+          details: 'invitation,original',
+          sort: 'tmdate:desc',
+          offset: (pageNumber - 1) * pageSize,
+          limit: pageSize,
+          invitations: [
+            'dblp.org/-/record',
+            'OpenReview.net/Archive/-/Imported_Record',
+            'OpenReview.net/Archive/-/Direct_Upload',
+          ],
+        },
+        { accessToken }
+      )
       setPublications(result.notes)
       setTotalCount(result.count)
     } catch (error) {
