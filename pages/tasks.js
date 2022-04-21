@@ -58,7 +58,7 @@ const Tasks = ({ appContext }) => {
       details: 'repliedTags',
       version: 1, // version:1 works only for v2 calls, added here for simplicity
     }
-    const commonOptions = { accessToken, cache: false }
+    const commonOptions = { accessToken }
 
     const invitationPromises = [
       api
