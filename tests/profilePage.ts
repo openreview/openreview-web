@@ -160,7 +160,7 @@ test('check import history', async (t) => {
   // should have only 1 note
   await t.expect(notes.length).eql(1)
   const importedPaperId = notes[0].id
-  const references = await getReferences({ referent: `${importedPaperId}` }, superUserToken)
+  const references = await getReferences({ referent: `${importedPaperId}`, sort: 'mdate' }, superUserToken)
   // shoud have 2 references: add paper and update authorid
   await t.expect(references.length).eql(2)
     // eslint-disable-next-line max-len
