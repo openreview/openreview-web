@@ -58,27 +58,28 @@ const Tasks = ({ appContext }) => {
       details: 'repliedTags',
       version: 1, // version:1 works only for v2 calls, added here for simplicity
     }
-    const commonOptions = { accessToken, cache: false }
+    const commonOptions = { accessToken }
 
     const invitationPromises = [
-      api.getCombined(
-        '/invitations',
-        { ...commonParams, replyto: true, details: 'replytoNote,repliedNotes' },
-        null,
-        commonOptions
-      ).then(addPropertyToInvitations('noteInvitation')),
-      api.getCombined(
-        '/invitations',
-        { ...commonParams, type: 'tags' },
-        null,
-        commonOptions
-      ).then(addPropertyToInvitations('tagInvitation')),
-      api.getCombined(
-        '/invitations',
-        { ...commonParams, type: 'edges', details: 'repliedEdges' },
-        null,
-        commonOptions
-      ).then(addPropertyToInvitations('tagInvitation')),
+      api
+        .getCombined(
+          '/invitations',
+          { ...commonParams, replyto: true, details: 'replytoNote,repliedNotes' },
+          null,
+          commonOptions
+        )
+        .then(addPropertyToInvitations('noteInvitation')),
+      api
+        .getCombined('/invitations', { ...commonParams, type: 'tags' }, null, commonOptions)
+        .then(addPropertyToInvitations('tagInvitation')),
+      api
+        .getCombined(
+          '/invitations',
+          { ...commonParams, type: 'edges', details: 'repliedEdges' },
+          null,
+          commonOptions
+        )
+        .then(addPropertyToInvitations('tagInvitation')),
     ]
 
     Promise.all(invitationPromises)
