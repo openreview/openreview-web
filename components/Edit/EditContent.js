@@ -33,8 +33,13 @@ const EditContent = ({ edit }) => {
         const showPrivateIcon =
           fieldReaders && edit.readers && !fieldReaders.every((p, i) => p === edit.readers[i])
         const fieldValue = prettyContentValue(noteContent[fieldName]?.value)
-        if (!fieldValue) {
-          if (!noteContent[fieldName]) return null
+        if (noteContent[fieldName] === undefined) return null // no such field
+        if (
+          noteContent[fieldName] === null ||
+          (noteContent[fieldName] instanceof Object && // {}/only readers
+            noteContent[fieldName].value === undefined) ||
+          (noteContent[fieldName] instanceof Object && noteContent[fieldName].value === null)
+        ) {
           return (
             <li key={fieldName}>
               <strong className="note-content-field">{prettyField(fieldName)}:</strong>{' '}
