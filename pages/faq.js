@@ -332,12 +332,22 @@ which will be displayed as:
   }, {
     q: 'How do I make submissions available before the submission deadline?',
     id: 'question-post-submission-button',
-    a: `On the request form for your venue, click on the ‘Post Submission’ button to make submissions available according to the settings selected in the fields ‘Author and Reviewer Anonymity’ and ‘Open Reviewing Policy’ of the venue request.
+    a: `On the request form for your venue, click on the ‘Post Submission’ button to make submissions available according to the settings selected in the fields ‘Author and Reviewer Anonymity’ and ‘Submission Readers’ of the venue request.
   This means that:
   - If submissions are double blind, blind copies of submissions will be created (make sure to select Force=True). You can also choose which fields are kept hidden (author names are automatically hidden).
-  - If submissions should be public, then they will be released to everyone.
-  - If submissions are private, then they will be released to the committee groups (senior area chairs, area chairs  and reviewers).`,
+  - If you select the option ‘Everyone (submissions are public)’ in ‘Submission Readers’, then all submissions will be public.
+  - If submissions should be private, then they can be released to the assigned program committee (only assigned reviewers, for example), to the entire program committee (all reviewers) or only to PCs and authors.`,
   }, {
+    q: 'How do I change who can access submissions after the submission deadline?',
+    id: 'question-submission-readers',
+    a: `At any point during your venue's worflow, you can click on the ‘Post Submission’ button and use the field ‘Submission Readers’ to change the readers for all submissions:
+  - **All program committee (all reviewers, all area chairs, all senior area chairs if applicable)**: all papers are private and released to all reviewer, all area chairs and all senior area chairs (if your venue has them)
+  - **Assigned program committee (assigned reviewers, assigned area chairs, assigned senior area chairs if applicable)**: all papers are provate and released to paper reviewers, paper area chairs and paper senior area chairs (if your venue has them)
+  - **Program chairs and paper authors only**: papers are private and released only to program chairs and paper authors
+  - **Everyone (submissions are public)**: papers are released to the public
+
+  You can use this field to change the submission readers as many times as needed.`,
+}, {
     q: 'How do I make reviews visible to authors?',
     id: 'question-release-reviews-authors',
     a: 'On the request form for your venue, click on the ‘Review Stage’ button. Select Yes under Release Reviews to Authors and then submit. This will immediately release any existing reviews to authors and make subsequent posted reviews readily available to authors.',
@@ -543,7 +553,7 @@ After you compute the scores by running Paper Matching Setup, a link for 'Paper 
   }, {
     q: 'How do I make submissions public after the decisions are made?',
     id: 'question-release-submissions',
-    a: 'Once decisions have been posted, you will see a ‘Post Decision Stage’ button on the request form for your venue. Click on this button to choose between releasing all papers or only accepted papers to the public.',
+    a: 'Once decisions have been posted, you will see a ‘Post Decision Stage’ button on the request form for your venue. Click on this button to choose who should have access to submissions.',
   }, {
     q: 'How do I release the identities of the authors of the accepted papers only?',
     id: 'question-release-author-names',
