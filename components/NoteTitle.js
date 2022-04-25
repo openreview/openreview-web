@@ -15,7 +15,7 @@ const NoteTitle = ({ id, forum, invitation, content, signatures, options = {} })
     ) : (
       <Link
         href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}${
-          options.referrer ? `&referrer=${options.referrer}` : ''
+          options.referrer ? `&referrer=${encodeURIComponent(options.referrer)}` : ''
         }`}
       >
         <a>{content.title || buildNoteTitle(invitation, signatures)}</a>
@@ -76,7 +76,7 @@ export const NoteTitleV2 = ({
   <h4>
     <Link
       href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}${
-        options.referrer ? `&referrer=${options.referrer}` : ''
+        options.referrer ? `&referrer=${encodeURIComponent(options.referrer)}` : ''
       }`}
     >
       <a>{content.title?.value || buildNoteTitle(invitation, signatures)}</a>
