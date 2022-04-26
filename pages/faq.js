@@ -336,13 +336,13 @@ which will be displayed as:
   This means that:
   - If submissions are double blind, blind copies of submissions will be created (make sure to select Force=True). You can also choose which fields are kept hidden (author names are automatically hidden).
   - If you select the option ‘Everyone (submissions are public)’ in ‘Submission Readers’, then all submissions will be public.
-  - If submissions should be private, then they can be released to the assigned program committee (only assigned reviewers, for example), to the entire program committee (all reviewers) or only to PCs and authors.`,
+  - If submissions should be private, then they can be released to the assigned program committee (only assigned reviewers, for example), to the entire program committee (all reviewers), or to PCs and authors only.`,
   }, {
     q: 'How do I change who can access submissions after the submission deadline?',
     id: 'question-submission-readers',
     a: `At any point during your venue's worflow, you can click on the ‘Post Submission’ button and use the field ‘Submission Readers’ to change the readers for all submissions:
-  - **All program committee (all reviewers, all area chairs, all senior area chairs if applicable)**: all papers are private and released to all reviewer, all area chairs and all senior area chairs (if your venue has them)
-  - **Assigned program committee (assigned reviewers, assigned area chairs, assigned senior area chairs if applicable)**: all papers are provate and released to paper reviewers, paper area chairs and paper senior area chairs (if your venue has them)
+  - **All program committee (all reviewers, all area chairs, all senior area chairs if applicable)**: all papers are private and only released to all reviewers, area chairs and senior area chairs (if your venue has them)
+  - **Assigned program committee (assigned reviewers, assigned area chairs, assigned senior area chairs if applicable)**: all papers are private and only released to each paper's assigned reviewers, area chairs and senior area chairs (if your venue has them)
   - **Program chairs and paper authors only**: papers are private and released only to program chairs and paper authors
   - **Everyone (submissions are public)**: papers are released to the public
 
