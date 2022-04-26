@@ -108,11 +108,11 @@ export default class OpenReviewApp extends App {
   }
 
   logoutUser(redirectPath = '/') {
-    this.setState({ user: null, accessToken: null, logoutRedirect: !!redirectPath })
-    removeAuthCookie()
-
     window.Webfield.setToken(null)
     window.Webfield2.setToken(null)
+
+    removeAuthCookie()
+    this.setState({ user: null, accessToken: null, logoutRedirect: !!redirectPath })
 
     clearTimeout(this.refreshTimer)
 

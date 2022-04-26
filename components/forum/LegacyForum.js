@@ -28,6 +28,7 @@ export default function LegacyForum({
     runForum(id, selectedNoteId, selectedInvitationId, user)
     // authors resets when clientJsLoading turns false
   }, [clientJsLoading, user?.id, JSON.stringify(authors), userLoading])
+
   return (
     <div className="forum-container">
       <div className="note">

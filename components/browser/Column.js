@@ -776,7 +776,8 @@ export default function Column(props) {
   }
 
   useEffect(() => {
-    if (!items || !items.length) {
+    if (!items) return
+    if (!items.length && !parentId) {
       return
     }
     // Reset column to show original items and no search heading
