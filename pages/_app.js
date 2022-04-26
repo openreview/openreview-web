@@ -288,15 +288,15 @@ export default class OpenReviewApp extends App {
 
       this.setState({ user, accessToken: token, userLoading: false })
 
+      window.Webfield.setToken(token)
+      window.Webfield2.setToken(token)
+
       // Automatically refresh the accessToken 1m before it's set to expire.
       // Add randomness to prevent all open tabs from refreshing at the same time.
       const timeToExpiration = expiration - Date.now() - 60000 - random(0, 5) * 1000
       this.refreshTimer = setTimeout(() => {
         this.refreshToken()
       }, timeToExpiration)
-
-      window.Webfield.setToken(token)
-      window.Webfield2.setToken(token)
     }
 
     // Load user state from auth cookie
@@ -304,7 +304,8 @@ export default class OpenReviewApp extends App {
 
     // Access token may be expired, but refresh token is valid for 6 more days
     const refreshFlag = Number(window.localStorage.getItem('openreview.lastLogin') || 0)
-    if (!authCookieData.user && refreshFlag && refreshFlag + refreshExpiration > Date.now()) {
+    if ((!authCookieData.user && refreshFlag && refreshFlag + refreshExpiration > Date.now())
+      || (authCookieData.expiration && authCookieData.expiration < Date.now() + 65000)) {
       OpenReviewApp.attemptRefresh().then((refreshCookieData) => {
         setUserState(refreshCookieData)
         if (refreshCookieData.token) {
