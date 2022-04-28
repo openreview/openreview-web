@@ -69,8 +69,8 @@ Then create a production build of the frontend using the proper value for the `$
 env var and start the Next.js server:
 
 ```bash
-SUPER_USER=openreview.net npm run build
-SUPER_USER=openreview.net npm run start
+SUPER_USER=openreview.net API_V2_URL= npm run build
+SUPER_USER=openreview.net API_V2_URL= npm run start
 ```
 
 Finally, run the tests:
