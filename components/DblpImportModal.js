@@ -1,6 +1,7 @@
 /* globals $: false */
 
 import { useState, useRef, useEffect, useContext } from 'react'
+import { nanoid } from 'nanoid'
 import LoadingSpinner from './LoadingSpinner'
 import DblpPublicationTable from './DblpPublicationTable'
 import {
@@ -11,7 +12,6 @@ import {
 } from '../lib/profiles'
 import UserContext from './UserContext'
 import { deburrString, getNameString, inflect } from '../lib/utils'
-import { nanoid } from 'nanoid'
 
 const ErrorMessage = ({ message, dblpNames, profileNames }) => {
   if (!dblpNames?.length) return <p>{message}</p>

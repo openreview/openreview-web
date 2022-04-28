@@ -46,23 +46,24 @@ const SectionHeadingLink = ({ targetId, parentId, children, collapsed }) => (
   </a>
 )
 
-const SectionBody = ({ id, body, options }) => (
-  <div
-    id={id}
-    className={`panel-collapse collapse${options.collapsed ? '' : ' in'}`}
-    role="tabpanel"
-  >
-    <div className="panel-body">
-      {options.html ? (
-        // eslint-disable-next-line react/no-danger
-        <div dangerouslySetInnerHTML={{ __html: body }} />
-      ) : options.noParagraph ? (
-        body
-      ) : (
-        <p>{body}</p>
-      )}
+const SectionBody = ({ id, body, options }) => {
+  const bodyToRender = options.noParagraph ? body : <p>{body}</p>
+  return (
+    <div
+      id={id}
+      className={`panel-collapse collapse${options.collapsed ? '' : ' in'}`}
+      role="tabpanel"
+    >
+      <div className="panel-body">
+        {options.html ? (
+          // eslint-disable-next-line react/no-danger
+          <div dangerouslySetInnerHTML={{ __html: body }} />
+        ) : (
+          bodyToRender
+        )}
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 export default Accordion

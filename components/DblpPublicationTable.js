@@ -1,6 +1,6 @@
+import { groupBy } from 'lodash'
 import Accordion from './Accordion'
 import Table from './Table'
-import { groupBy } from 'lodash'
 import { inflect } from '../lib/utils'
 
 export default function DblpPublicationTable({
@@ -91,8 +91,8 @@ export default function DblpPublicationTable({
             .reverse()
             .map((p) => {
               const publicationsOfYear = dblpPublicationsGroupedByYear[p]
-              const publicationsCouldImportOfYear = publicationsOfYear.filter((p) =>
-                pubsCouldImport.includes(p.key)
+              const publicationsCouldImportOfYear = publicationsOfYear.filter((q) =>
+                pubsCouldImport.includes(q.key)
               )
               return {
                 id: p,
@@ -104,8 +104,8 @@ export default function DblpPublicationTable({
                       onChange={(e) => toggleSelectYear(e, p)}
                       checked={
                         publicationsCouldImportOfYear.length &&
-                        publicationsCouldImportOfYear.every((p) =>
-                          selectedPublications.includes(p.key)
+                        publicationsCouldImportOfYear.every((r) =>
+                          selectedPublications.includes(r.key)
                         )
                       }
                       disabled={publicationsCouldImportOfYear.length === 0}
