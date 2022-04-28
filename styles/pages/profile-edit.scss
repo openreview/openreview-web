@@ -1,14 +1,13 @@
-@use "../utils/constants";
+@use '../utils/constants';
 
 main.profile-edit {
-
   header {
-    margin-top: .75rem;
+    margin-top: 0.75rem;
     margin-bottom: 1.5rem;
   }
 
   .small-heading {
-    font-size: .875rem;
+    font-size: 0.875rem;
     font-weight: bold;
     line-height: 1rem;
     color: constants.$darkBlue;
@@ -17,7 +16,7 @@ main.profile-edit {
   section .small-heading {
     padding-left: 0;
     padding-right: 0;
-    margin-bottom: .25rem;
+    margin-bottom: 0.25rem;
   }
 
   .hint {
@@ -29,10 +28,10 @@ main.profile-edit {
   }
 
   p.instructions {
-    font-size: .75rem;
+    font-size: 0.75rem;
     color: constants.$subtleGray;
     max-width: 800px;
-    margin-bottom: .5rem;
+    margin-bottom: 0.5rem;
   }
 
   .glyphicon {
@@ -54,28 +53,60 @@ main.profile-edit {
       max-height: 600px;
       overflow-y: auto;
     }
-    .publication-title {
-      color: constants.$darkBlue;
-      font-weight: bold;
-      .venue{
-        font-weight: lighter;
-        font-size: smaller;
-        font-style: italic;
-        margin-left: .25rem;
+    .publication-info {
+      display: flex;
+      margin-bottom: 0.5rem;
+      border-top: 1px solid #ddd;
+      padding-top: 0.25rem;
+      &:first-of-type {
+        border-top: none;
+      }
+
+      .publication-title {
+        color: constants.$darkBlue;
+        font-weight: bold;
+        .venue {
+          font-weight: lighter;
+          font-size: smaller;
+          font-style: italic;
+          margin-left: 0.25rem;
+        }
       }
     }
+
+    .webfield-accordion-divider {
+      margin: 0;
+    }
+
+    .panel-heading {
+      padding-bottom: 0;
+      .panel-title {
+        .collapse-btn,
+        .glyphicon {
+          color: constants.$darkBlue;
+        }
+      }
+
+      .year-checkbox {
+        vertical-align: text-top;
+      }
+    }
+    .panel-body {
+      padding-top: 0;
+    }
+
     .existing-publication-row {
       background-color: constants.$backgroundGray;
-      opacity: .5;
+      opacity: 0.5;
     }
-    .existing-different-profile-row{
-      opacity: .5;
+    .existing-different-profile-row {
+      opacity: 0.5;
     }
-    .different-profile-link{
+    .different-profile-link {
       color: grey;
     }
     .persistent-url-input {
-      margin-top: .25rem;
+      margin-top: 0.25rem;
       margin-bottom: 1rem;
     }
     .body-message {
@@ -95,7 +126,7 @@ main.profile-edit {
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(250, 250, 250, .65);
+      background: rgba(250, 250, 250, 0.65);
     }
   }
 
@@ -105,7 +136,7 @@ main.profile-edit {
 
   @media #{constants.$phone-only} {
     .row {
-      margin-bottom: .5rem;
+      margin-bottom: 0.5rem;
       &:last-child {
         margin-bottom: 0;
       }
@@ -146,7 +177,7 @@ main.profile-edit {
   .gender-dropdown {
     margin-top: 5px;
     margin-bottom: 5px;
-    &__control{
+    &__control {
       max-width: 500px;
       background-color: #fffaf4;
       border: 2px solid lighten(constants.$mediumBlue, 10%);
@@ -155,14 +186,14 @@ main.profile-edit {
     &__value-container {
       padding: 0;
     }
-    &__menu{
+    &__menu {
       max-width: 500px;
     }
 
     > div {
       cursor: pointer;
       color: constants.$subtleGray;
-      padding: 0.25rem .75rem;
+      padding: 0.25rem 0.75rem;
     }
     .active {
       background-color: constants.$mediumBlue;
@@ -180,11 +211,12 @@ main.profile-edit {
         text-overflow: ellipsis;
       }
     }
-    &__tilde-id, .preferred {
+    &__tilde-id,
+    .preferred {
       color: constants.$subtleGray;
-      font-size: .75rem;
-      margin-right: .5rem;
-      margin-top: .5rem;
+      font-size: 0.75rem;
+      margin-right: 0.5rem;
+      margin-top: 0.5rem;
       overflow-x: hidden;
       text-overflow: ellipsis;
     }
@@ -201,13 +233,13 @@ main.profile-edit {
     }
     &__preferred-text {
       white-space: nowrap;
-      margin-top: .5rem;
+      margin-top: 0.5rem;
     }
     &__confirmed-text {
-      margin-top: .5rem;
+      margin-top: 0.5rem;
     }
     .btn {
-      padding-right: .5rem;
+      padding-right: 0.5rem;
     }
   }
 
@@ -217,14 +249,14 @@ main.profile-edit {
     }
     &__column {
       padding-left: 0;
-      padding-right: .5rem;
+      padding-right: 0.5rem;
       margin-bottom: 10px;
       // width: auto;
     }
     &__faqlink {
-      padding-left: .25rem;
+      padding-left: 0.25rem;
       span {
-        font-size: .85rem;
+        font-size: 0.85rem;
       }
     }
   }
@@ -239,8 +271,8 @@ main.profile-edit {
       }
     }
     .glyphicon-minus-sign {
-      margin-top: .5rem;
-      top:0
+      margin-top: 0.5rem;
+      top: 0;
     }
   }
   .history-new {
@@ -248,7 +280,9 @@ main.profile-edit {
     padding-left: 15px;
   }
 
-  .position-dropdown, .institution-dropdown , .relation-dropdown {
+  .position-dropdown,
+  .institution-dropdown,
+  .relation-dropdown {
     margin-top: 5px;
     margin-bottom: 5px;
     &__control {
@@ -260,7 +294,7 @@ main.profile-edit {
     > div {
       cursor: pointer;
       color: constants.$subtleGray;
-      padding: 0.25rem .75rem;
+      padding: 0.25rem 0.75rem;
     }
     .active {
       background-color: constants.$mediumBlue;
@@ -281,7 +315,7 @@ main.profile-edit {
     }
     &__multiple-select {
       width: 100%;
-      margin-top:0!important;
+      margin-top: 0 !important;
       margin-left: 0;
       button {
         width: 100%;
@@ -290,7 +324,7 @@ main.profile-edit {
       }
       ul {
         width: 100%;
-        margin-top:0!important;
+        margin-top: 0 !important;
         right: 0;
         left: auto;
       }
@@ -298,17 +332,17 @@ main.profile-edit {
 
     &__multiple-select-mobile {
       ul.dropdown-menu {
-        width: 100%!important;
+        width: 100% !important;
       }
     }
 
     &__placeholder {
-      padding:1px 4px
+      padding: 1px 4px;
     }
 
     .glyphicon-minus-sign {
-      margin-top: .5rem;
-      top:0
+      margin-top: 0.5rem;
+      top: 0;
     }
   }
   .relation-new {
@@ -323,15 +357,15 @@ main.profile-edit {
       margin-bottom: 5px;
     }
     .glyphicon-minus-sign {
-      margin-top: .5rem;
-      top: 0
+      margin-top: 0.5rem;
+      top: 0;
     }
   }
 
   span.mirror {
-    transform: scale(-1,1);
-    margin-left: .25rem;
-    cursor: pointer!important;
+    transform: scale(-1, 1);
+    margin-left: 0.25rem;
+    cursor: pointer !important;
     pointer-events: all;
   }
 
@@ -353,7 +387,7 @@ main.profile-edit {
 
   .submit-button {
     display: flex;
-    margin-right: .25rem;
+    margin-right: 0.25rem;
     .spinner-small {
       width: 40px;
     }

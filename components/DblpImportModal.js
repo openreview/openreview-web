@@ -11,6 +11,7 @@ import {
 } from '../lib/profiles'
 import UserContext from './UserContext'
 import { deburrString, getNameString, inflect } from '../lib/utils'
+import { nanoid } from 'nanoid'
 
 const ErrorMessage = ({ message, dblpNames, profileNames }) => {
   if (!dblpNames?.length) return <p>{message}</p>
@@ -114,7 +115,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
         setIsFetchingPublications(false)
         return
       }
-      setPublications(allDblpPublications)
+      setPublications(allDblpPublications.map((p) => ({ ...p, key: nanoid() })))
       setMessage(`${allDblpPublications.length} publications fetched.`)
 
       // contains id (for link) and title (for filtering) of existing publications in openreivew
@@ -125,6 +126,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
           authorCount: p.authorCount,
           title: p.formattedTitle,
           venue: p.venue,
+          year: p.year,
         })),
         profileNames,
         accessToken
@@ -172,8 +174,13 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
 
     try {
       await Promise.all(
-        selectedPublications.map((index) =>
-          postOrUpdatePaper(publications[index], profileId, profileNames, accessToken)
+        selectedPublications.map((key) =>
+          postOrUpdatePaper(
+            publications.find((p) => p.key === key),
+            profileId,
+            profileNames,
+            accessToken
+          )
         )
       )
 
