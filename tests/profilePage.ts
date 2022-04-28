@@ -127,11 +127,18 @@ test('import paper from dblp', async (t) => {
     .expect(Selector('#dblp-import-modal').find('div.modal-body').innerText).contains('Please select the new publications of which you are actually an author.')
     // import 2 papers
     .expect(dblpImportModalAddToProfileBtn.hasAttribute('disabled')).ok()
-    .click(Selector('#dblp-import-modal').find('tr').withAttribute('class', undefined).nth(0).find('input'))
+    .click(Selector('#dblp-import-modal').find('div').withAttribute('class', 'publication-info').nth(0).find('input'))
     .expect(dblpImportModalSelectCount.innerText).eql('1 publication selected')
     .expect(dblpImportModalAddToProfileBtn.hasAttribute('disabled')).notOk()
-    .click(Selector('#dblp-import-modal').find('tr').withAttribute('class', undefined).nth(1).find('input'))
+    .click(Selector('#dblp-import-modal').find('div').withAttribute('class', 'publication-info').nth(1).find('input'))
     .expect(dblpImportModalSelectCount.innerText).eql('2 publications selected')
+    // test year checkbox
+    .click(Selector('#dblp-import-modal').find('div').withAttribute('class', 'publication-info').nth(0).find('input'))
+    .click(Selector('#dblp-import-modal').find('div').withAttribute('class', 'publication-info').nth(1).find('input'))
+    .click(Selector('#dblp-import-modal').find('h4.panel-title').nth(0).find('input').withAttribute('class', 'year-checkbox'))
+    .expect(dblpImportModalSelectCount.innerText).eql('3 publications selected')
+    .click(Selector('#dblp-import-modal').find('div').withAttribute('class', 'publication-info').nth(2).find('input'))
+
     .click(dblpImportModalAddToProfileBtn)
     .expect(Selector('#dblp-import-modal').find('.modal-body').find('p').innerText).contains('2 publications were successfully imported.')
     .click(Selector('#dblp-import-modal').find('span').withExactText('×'))
@@ -172,7 +179,7 @@ test('reimport unlinked paper and import all', async (t) => { // to trigger only
   await t.useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .click(addDBLPPaperToProfileButton)
-    .click(Selector('#dblp-import-modal').find('tr').withAttribute('class', undefined).nth(0).find('input'))
+    .click(Selector('#dblp-import-modal').find('div').withAttribute('class', 'publication-info').nth(0).find('input'))
     .click(dblpImportModalAddToProfileBtn)
     .click(dblpImportModalCancelButton)
     // import all
