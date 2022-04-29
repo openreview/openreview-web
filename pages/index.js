@@ -68,7 +68,7 @@ export default function Home() {
     }
 
     loadVenues()
-  }, [user, userLoading])
+  }, [user?.id, userLoading])
 
   return (
     <div className="homepage-container">
