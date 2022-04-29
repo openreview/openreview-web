@@ -3,15 +3,15 @@
 import Head from 'next/head'
 import { useState, useEffect } from 'react'
 import Router from 'next/router'
+import Link from 'next/link'
 import groupBy from 'lodash/groupBy'
 import withError from '../components/withError'
 import api from '../lib/api-client'
 import LoadingSpinner from '../components/LoadingSpinner'
 import Accordion from '../components/Accordion'
-import { referrerLink } from '../lib/banner-links'
 import { auth } from '../lib/auth'
-
-import VenueDetails from '../components/VenueDetails'
+import { referrerLink } from '../lib/banner-links'
+import { inflect, prettyId } from '../lib/utils'
 
 function VenuesList({ filteredVenues }) {
   return (
@@ -19,7 +19,11 @@ function VenuesList({ filteredVenues }) {
       <ul className="list-unstyled venues-list">
         {filteredVenues.map(venue => (
           <li className="mb-4" key={venue.id}>
-            <VenueDetails venue={venue} />
+            <Link href={`/submissions?venue=${venue.id}`}>
+              <a title="View submissions for this venue">
+                {prettyId(venue.id)}
+              </a>
+            </Link>
           </li>
         ))}
       </ul>
@@ -27,82 +31,60 @@ function VenuesList({ filteredVenues }) {
   )
 }
 
-function GroupHeading({ year, venuesGroupedByYear }) {
+function GroupHeading({ year, count }) {
   return (
     <>
       <span className="h3">{year}</span>
       {' '}
       <span className="h4">
-        (
-        {venuesGroupedByYear[year].length}
-        {' '}
-        {venuesGroupedByYear[year].length > 1 ? 'venues' : 'venue'}
-        )
+        {`(${count} ${inflect(count, 'venue', 'venues')})`}
       </span>
     </>
   )
 }
 
-function Venue({ venueSeries, venuesGroupedByYear, appContext }) {
+function Venue({ parent, venues, appContext }) {
   const [venuesByYear, setVenuesByYear] = useState(null)
-  const { clientJsLoading, setBannerContent } = appContext
+  const { setBannerContent } = appContext
 
   useEffect(() => {
-    if (clientJsLoading) return
     setBannerContent(referrerLink('[All Venues](/venues)'))
 
-    setVenuesByYear(Object.keys(venuesGroupedByYear).sort().reverse().map((year, index) => ({
+    const groupedVenues = groupBy(venues, (group) => {
+      const parts = group.id.split('/')
+      const firstPart = Number.parseInt(parts[1], 10)
+      return firstPart || null
+    })
+    setVenuesByYear(Object.keys(groupedVenues).sort().reverse().map((year) => ({
       id: year,
-      heading: <GroupHeading year={year} venuesGroupedByYear={venuesGroupedByYear} />,
-      body: <VenuesList filteredVenues={venuesGroupedByYear[year]} />,
+      heading: <GroupHeading year={year} count={groupedVenues[year].length} />,
+      body: <VenuesList filteredVenues={groupedVenues[year]} />,
     })))
-  }, [clientJsLoading])
+  }, [venues])
 
   useEffect(() => {
-    if (!venuesByYear) return
+    if (!venuesByYear || !window.location.hash) return
 
     // Scroll to and expand venue referenced in URL
-    if (window.location.hash) {
-      const $titleLink = $(`#questions .panel-title a[href="${window.location.hash}"]`).eq(0)
-      if ($titleLink.length) {
-        $titleLink.click()
+    const $titleLink = $(`#questions .panel-title a[href="${window.location.hash}"]`).eq(0)
+    if ($titleLink.length) {
+      $titleLink.trigger('click')
 
-        setTimeout(() => {
-          const scrollPos = $titleLink.closest('.panel-default').offset().top - 55
-          $('html, body').animate({ scrollTop: scrollPos }, 400)
-        }, 200)
-      }
+      setTimeout(() => {
+        const scrollPos = $titleLink.closest('.panel-default').offset().top - 55
+        $('html, body').animate({ scrollTop: scrollPos }, 400)
+      }, 200)
     }
   }, [venuesByYear])
 
   return (
     <>
       <Head>
-        <title key="title">Venue Directory | OpenReview</title>
+        <title key="title">Venues | OpenReview</title>
       </Head>
 
       <header className="clearfix">
-        <h1>{venueSeries.content.name}</h1>
-        {venueSeries.content.noteline && (
-          <p className="noteline">{venueSeries.content.noteline}</p>
-        )}
-        {venueSeries.content.external_links?.length > 0 && (
-          <>
-            <span className="external-links">External Links:</span>
-            {' '}
-            {venueSeries.content.external_links.map((el) => {
-              if (el.link && el.domain) {
-                return (
-                  <span className="external-links" key={el.link}>
-                    <a href={el.link}>{el.domain.toUpperCase()}</a>
-                  </span>
-                )
-              }
-              return null
-            }).filter(Boolean).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
-          </>
-        )}
-        <hr />
+        <h1>{prettyId(parent)}</h1>
       </header>
 
       <div className="row">
@@ -122,25 +104,21 @@ function Venue({ venueSeries, venuesGroupedByYear, appContext }) {
 }
 
 Venue.getInitialProps = async (ctx) => {
-  if (!process.env.USE_DBLP_VENUES) {
-    return { statusCode: 404, message: 'The page could not be found' }
+  if (!ctx.query.id) {
+    return { statusCode: 400, message: 'Missing required parameter id' }
   }
 
-  const venueSeriesRes = await api.get('/venues', { id: ctx.query.id })
-  const venueSeries = venueSeriesRes.venues?.length > 0 ? venueSeriesRes.venues[0] : null
+  const { token } = auth(ctx)
 
-  const { user, token } = auth(ctx)
   try {
-    const { venues } = await api.get('/venues', { 'content.parents': ctx.query.id }, { accessToken: token })
-    const venuesGroupedByYear = groupBy(venues, venue => venue.content.year)
-
-    if (!venuesGroupedByYear) {
+    const { groups } = await api.get('/groups', { parent: ctx.query.id, web: true }, { accessToken: token })
+    if (!groups) {
       return {
         statusCode: 400,
         message: 'Venues list unavailable. Please try again later',
       }
     }
-    return { venueSeries, venuesGroupedByYear }
+    return { parent: ctx.query.id, venues: groups }
   } catch (error) {
     if (error.name === 'ForbiddenError') {
       if (!token) {

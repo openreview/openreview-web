@@ -41,16 +41,32 @@ const Submissions = ({ groupId, notes, pagination }) => {
 }
 
 Submissions.getInitialProps = async (ctx) => {
-  const { token } = auth(ctx)
   const groupId = ctx.query.venue
   if (!groupId) {
     return { statusCode: 400, message: 'Missing required parameter venue' }
   }
 
+  const { token } = auth(ctx)
+
+  const getInvitationId = (idToTest) => api.get('/invitations', { id: idToTest }, { accessToken: token })
+    .then(res => res.invitations?.[0]?.id || null)
+    .catch(err => null)
+
+  const potentialIds = await Promise.all([
+    getInvitationId(`${groupId}/-/Blind_Submission`),
+    getInvitationId(`${groupId}/-/blind_submission`),
+    getInvitationId(`${groupId}/-/Submission`),
+    getInvitationId(`${groupId}/-/submission`),
+  ])
+  const invitationId = potentialIds.filter(Boolean)[0]
+  if (!invitationId) {
+    return { statusCode: 400, message: `No submission invitation found for venue ${groupId}` }
+  }
+
   const currentPage = Math.max(parseInt(ctx.query.page, 10) || 1, 1)
   const notesPerPage = 25
   const { notes, count } = await api.get('/notes', {
-    invitation: `${groupId}/.*/-/([Bb]lind_)?[Ss]ubmission`,
+    invitation: invitationId,
     limit: notesPerPage,
     offset: notesPerPage * (currentPage - 1),
   }, { accessToken: token })
