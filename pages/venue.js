@@ -1,13 +1,11 @@
 /* globals $: false */
 
 import Head from 'next/head'
-import { useState, useEffect } from 'react'
-import Router from 'next/router'
+import { useEffect } from 'react'
 import Link from 'next/link'
 import groupBy from 'lodash/groupBy'
 import withError from '../components/withError'
 import api from '../lib/api-client'
-import LoadingSpinner from '../components/LoadingSpinner'
 import Accordion from '../components/Accordion'
 import { auth } from '../lib/auth'
 import { referrerLink } from '../lib/banner-links'
@@ -43,24 +41,12 @@ function GroupHeading({ year, count }) {
   )
 }
 
-function Venue({ parent, venues, appContext }) {
-  const [venuesByYear, setVenuesByYear] = useState(null)
+function Venue({ hostGroup, venuesByYear, appContext }) {
   const { setBannerContent } = appContext
 
   useEffect(() => {
     setBannerContent(referrerLink('[All Venues](/venues)'))
-
-    const groupedVenues = groupBy(venues, (group) => {
-      const parts = group.id.split('/')
-      const firstPart = Number.parseInt(parts[1], 10)
-      return firstPart || null
-    })
-    setVenuesByYear(Object.keys(groupedVenues).sort().reverse().map((year) => ({
-      id: year,
-      heading: <GroupHeading year={year} count={groupedVenues[year].length} />,
-      body: <VenuesList filteredVenues={groupedVenues[year]} />,
-    })))
-  }, [venues])
+  }, [])
 
   useEffect(() => {
     if (!venuesByYear || !window.location.hash) return
@@ -84,18 +70,20 @@ function Venue({ parent, venues, appContext }) {
       </Head>
 
       <header className="clearfix">
-        <h1>{prettyId(parent)}</h1>
+        <h1>{prettyId(hostGroup.id)}</h1>
       </header>
 
       <div className="row">
         <div className="col-xs-12">
-          {venuesByYear ? (
+          {venuesByYear && (
             <Accordion
-              sections={venuesByYear}
+              sections={venuesByYear.map((obj) => ({
+                id: obj.year,
+                heading: <GroupHeading year={obj.year} count={obj.venues.length} />,
+                body: <VenuesList filteredVenues={obj.venues} />,
+              }))}
               options={{ id: 'venues', collapsed: true }}
             />
-          ) : (
-            <LoadingSpinner />
           )}
         </div>
       </div>
@@ -110,29 +98,29 @@ Venue.getInitialProps = async (ctx) => {
 
   const { token } = auth(ctx)
 
-  try {
-    const { groups } = await api.get('/groups', { parent: ctx.query.id, web: true }, { accessToken: token })
-    if (!groups) {
-      return {
-        statusCode: 400,
-        message: 'Venues list unavailable. Please try again later',
-      }
+  const [hostGroup, venues] = await Promise.all([
+    api.get('/groups', { id: ctx.query.id }, { accessToken: token }).then(res => res.groups?.[0]),
+    api.get('/groups', { host: ctx.query.id }, { accessToken: token }).then(res => res.groups)
+  ])
+
+  if (!hostGroup || !venues) {
+    return {
+      statusCode: 400,
+      message: `Venues list for ${ctx.query.id} is unavailable. Please try again later`,
     }
-    return { parent: ctx.query.id, venues: groups }
-  } catch (error) {
-    if (error.name === 'ForbiddenError') {
-      if (!token) {
-        if (ctx.req) {
-          ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
-        } else {
-          Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
-        }
-        return {}
-      }
-      return { statusCode: 403, message: 'You don\'t have permission to view this venue' }
-    }
-    return { statusCode: error.status || 500, message: error.message }
   }
+
+  const groupedVenues = groupBy(venues, (group) => {
+    const parts = group.id.split('/')
+    const firstPart = Number.parseInt(parts[1], 10)
+    return firstPart || null
+  })
+  const venuesByYear = Object.keys(groupedVenues).sort().reverse().map((year) => ({
+    year,
+    venues: groupedVenues[year],
+  }))
+
+  return { hostGroup, venuesByYear }
 }
 
 Venue.bodyClass = 'venue'
