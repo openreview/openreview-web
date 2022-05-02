@@ -308,5 +308,10 @@ main.revisions {
         font-size: 0.75rem;
       }
     }
+
+    .empty-value {
+      font-style: italic;
+      color: constants.$subtleGray;
+    }
   }
 }
