@@ -1,18 +1,43 @@
 import Head from 'next/head'
+import { useEffect } from 'react'
 import withError from '../components/withError'
 import NoteList from '../components/NoteList'
 import PaginationLinks from '../components/PaginationLinks'
 import api from '../lib/api-client'
+import { referrerLink } from '../lib/banner-links'
 import { prettyId } from '../lib/utils'
 import { auth } from '../lib/auth'
+import useUser from '../hooks/useUser'
 
-const Submissions = ({ groupId, notes, pagination }) => {
+const Submissions = ({ groupId, notes, pagination, appContext }) => {
+  const { userLoading, accessToken } = useUser()
+
   const title = `${prettyId(groupId)} Submissions`
   const displayOptions = {
     pdfLink: false,
     htmlLink: false,
     showContents: false,
   }
+  const { setBannerContent } = appContext
+
+  useEffect(() => {
+    if (userLoading) return
+
+    const getHostGroupId = async () => {
+      try {
+        const { groups } = await api.get('/groups', { id: groupId }, { accessToken })
+        return groups?.length > 0 ? groups[0].host : null
+      } catch (error) {
+        return null
+      }
+    }
+
+    getHostGroupId().then((hostGroupId) => {
+      if (hostGroupId) {
+        setBannerContent(referrerLink(`[${prettyId(hostGroupId)}](/venue?id=${hostGroupId})`))
+      }
+    })
+  }, [userLoading, groupId, notes])
 
   return (
     <div>

@@ -16,7 +16,7 @@ function VenuesList({ filteredVenues }) {
     <div className="groups">
       <ul className="list-unstyled venues-list">
         {filteredVenues.map(venue => (
-          <li className="mb-4" key={venue.id}>
+          <li key={venue.id}>
             <Link href={`/submissions?venue=${venue.id}`}>
               <a title="View submissions for this venue">
                 {prettyId(venue.id)}
@@ -82,7 +82,7 @@ function Venue({ hostGroup, venuesByYear, appContext }) {
                 heading: <GroupHeading year={obj.year} count={obj.venues.length} />,
                 body: <VenuesList filteredVenues={obj.venues} />,
               }))}
-              options={{ id: 'venues', collapsed: true }}
+              options={{ id: 'venues', collapsed: true, bodyContainer: 'div' }}
             />
           )}
         </div>
@@ -103,7 +103,7 @@ Venue.getInitialProps = async (ctx) => {
     api.get('/groups', { host: ctx.query.id }, { accessToken: token }).then(res => res.groups)
   ])
 
-  if (!hostGroup || !venues) {
+  if (!hostGroup || venues.length === 0) {
     return {
       statusCode: 400,
       message: `Venues list for ${ctx.query.id} is unavailable. Please try again later`,
@@ -111,14 +111,18 @@ Venue.getInitialProps = async (ctx) => {
   }
 
   const groupedVenues = groupBy(venues, (group) => {
-    const parts = group.id.split('/')
-    const firstPart = Number.parseInt(parts[1], 10)
-    return firstPart || null
+    const firstYear = group.id.split('/').slice(1, -1).find(part => Number.parseInt(part, 10))
+    return Number.parseInt(firstYear, 10) || 99999 // Use large number as default for sort order
   })
   const venuesByYear = Object.keys(groupedVenues).sort().reverse().map((year) => ({
     year,
     venues: groupedVenues[year],
   }))
+
+  const lastEntry = venuesByYear[venuesByYear.length - 1]
+  if (lastEntry.year === 99999) {
+    lastEntry.year = 'Other'
+  }
 
   return { hostGroup, venuesByYear }
 }
