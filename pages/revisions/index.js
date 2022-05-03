@@ -346,21 +346,10 @@ const RevisionsList = ({
                       }
                     />
                   ) : (
-                    <>
-                      <EditButton
-                        onClick={() => editEdit(reference, invitation)}
-                        disableButton={!isNoteWritable}
-                        disableReason={
-                          !isNoteWritable
-                            ? 'You are writer of the edit but not writer of the note'
-                            : null
-                        }
-                      />
-                      {invitation.edit.ddate && (
-                        <TrashButton
-                          onClick={() =>
-                            setEditToDeleteRestore({ edit: reference, invitation })
-                          }
+                    invitation.edit !== true && (
+                      <>
+                        <EditButton
+                          onClick={() => editEdit(reference, invitation)}
                           disableButton={!isNoteWritable}
                           disableReason={
                             !isNoteWritable
@@ -368,8 +357,21 @@ const RevisionsList = ({
                               : null
                           }
                         />
-                      )}
-                    </>
+                        {invitation.edit.ddate && (
+                          <TrashButton
+                            onClick={() =>
+                              setEditToDeleteRestore({ edit: reference, invitation })
+                            }
+                            disableButton={!isNoteWritable}
+                            disableReason={
+                              !isNoteWritable
+                                ? 'You are writer of the edit but not writer of the note'
+                                : null
+                            }
+                          />
+                        )}
+                      </>
+                    )
                   )}
                 </div>
               )}
