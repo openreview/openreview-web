@@ -73,7 +73,7 @@ Submissions.getInitialProps = async (ctx) => {
 
   const { token } = auth(ctx)
 
-  const getInvitationId = (idToTest) => api.get('/invitations', { id: idToTest }, { accessToken: token })
+  const getInvitationId = (idToTest) => api.get('/invitations', { id: idToTest, expired: true }, { accessToken: token })
     .then(res => res.invitations?.[0]?.id || null)
     .catch(err => null)
 
