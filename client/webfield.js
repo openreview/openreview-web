@@ -26,6 +26,11 @@ module.exports = (function() {
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
     var errorCallback = options.handleErrors ? jqErrorCallback : null;
 
+    // Remove properties causing errors in old webfields
+    if (queryObj?.noDetails) {
+      queryObj.noDetails = undefined;
+    }
+
     return $.ajax({
       dataType: 'json',
       type: 'get',
