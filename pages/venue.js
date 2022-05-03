@@ -75,7 +75,7 @@ function Venue({ hostGroup, venuesByYear, appContext }) {
 
       <div className="row">
         <div className="col-xs-12">
-          {venuesByYear && (
+          {venuesByYear?.length > 0 ? (
             <Accordion
               sections={venuesByYear.map((obj) => ({
                 id: obj.year,
@@ -84,6 +84,8 @@ function Venue({ hostGroup, venuesByYear, appContext }) {
               }))}
               options={{ id: 'venues', collapsed: true, bodyContainer: 'div' }}
             />
+          ) : (
+            <p className="mt-2 empty-message">No venues found for group {hostGroup.id}</p>
           )}
         </div>
       </div>
@@ -103,16 +105,21 @@ Venue.getInitialProps = async (ctx) => {
     api.get('/groups', { host: ctx.query.id }, { accessToken: token }).then(res => res.groups)
   ])
 
-  if (!hostGroup || venues.length === 0) {
+  if (!hostGroup) {
     return {
       statusCode: 400,
       message: `Venues list for ${ctx.query.id} is unavailable. Please try again later`,
     }
   }
+  if (venues.length === 0) {
+    return { hostGroup, venuesByYear: [] }
+  }
 
   const groupedVenues = groupBy(venues, (group) => {
-    const firstYear = group.id.split('/').slice(1, -1).find(part => Number.parseInt(part, 10))
-    return firstYear || 0 // Use small number as default to ensure it shows up last
+    // Assumes that the host group id is a prefix of the venue id
+    const firstYear = group.id.replace(hostGroup.id, '').split('/').slice(1).find(part => Number.parseInt(part, 10))
+    // Use small number as default to ensure it shows up last in the list
+    return firstYear || 0
   })
   const venuesByYear = Object.keys(groupedVenues).sort().reverse().map((year) => ({
     year,
