@@ -44,6 +44,11 @@ function GroupHeading({ year, count }) {
 function Venue({ hostGroup, venuesByYear, appContext }) {
   const { setBannerContent } = appContext
 
+  const descriptionRe = /^ {2}title: ["'](.+)["'], *$/mg
+  const groupDescription = hostGroup.web
+    ? descriptionRe.exec(hostGroup.web)?.[1] ?? ''
+    : ''
+
   useEffect(() => {
     setBannerContent(referrerLink('[All Venues](/venues)'))
   }, [])
@@ -70,7 +75,9 @@ function Venue({ hostGroup, venuesByYear, appContext }) {
       </Head>
 
       <header className="clearfix">
-        <h1>{prettyId(hostGroup.id)}</h1>
+        <h1 className="mb-4">
+          {groupDescription ? `${groupDescription} (${prettyId(hostGroup.id)})` : prettyId(hostGroup.id)}
+        </h1>
       </header>
 
       <div className="row">
