@@ -112,7 +112,7 @@ Venue.getInitialProps = async (ctx) => {
 
   const groupedVenues = groupBy(venues, (group) => {
     const firstYear = group.id.split('/').slice(1, -1).find(part => Number.parseInt(part, 10))
-    return Number.parseInt(firstYear, 10) || 99999 // Use large number as default for sort order
+    return firstYear || 0 // Use small number as default to ensure it shows up last
   })
   const venuesByYear = Object.keys(groupedVenues).sort().reverse().map((year) => ({
     year,
@@ -120,7 +120,7 @@ Venue.getInitialProps = async (ctx) => {
   }))
 
   const lastEntry = venuesByYear[venuesByYear.length - 1]
-  if (lastEntry.year === 99999) {
+  if (lastEntry.year === '0') {
     lastEntry.year = 'Other'
   }
 
