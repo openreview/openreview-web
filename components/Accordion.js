@@ -47,7 +47,16 @@ const SectionHeadingLink = ({ targetId, parentId, children, collapsed }) => (
 )
 
 const SectionBody = ({ id, body, options }) => {
-  const bodyToRender = options.noParagraph ? body : <p>{body}</p>
+  const renderBody = () => {
+    switch (options.bodyContainer) {
+      case 'div':
+        return <div>{body}</div>
+      case '':
+        return body
+      default:
+        return <p>{body}</p>
+    }
+  }
   return (
     <div
       id={id}
@@ -59,7 +68,7 @@ const SectionBody = ({ id, body, options }) => {
           // eslint-disable-next-line react/no-danger
           <div dangerouslySetInnerHTML={{ __html: body }} />
         ) : (
-          bodyToRender
+          renderBody()
         )}
       </div>
     </div>

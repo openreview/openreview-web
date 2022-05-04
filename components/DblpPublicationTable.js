@@ -157,7 +157,7 @@ export default function DblpPublicationTable({
                 ),
               }
             })}
-          options={{ id: 'dblp-papers', collapsed: false, html: false, noParagraph: true }}
+          options={{ id: 'dblp-papers', collapsed: false, html: false, bodyContainer: '' }}
         />
       </div>
     </>
