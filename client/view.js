@@ -1768,7 +1768,7 @@ module.exports = (function() {
     });
 
     return intermediate.replace(profileRegex, function(fullMatch, match) {
-      if (fullMatch !== match && fullMatch.charAt(0).match(/\S/) return fullMatch;
+      if (fullMatch !== match && fullMatch.charAt(0).match(/\S/)) return fullMatch;
       return ' <a href="/profile?id=' + match + '" target="_blank">' + prettyId(match) + '</a>';
     });
   };
