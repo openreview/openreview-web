@@ -53,8 +53,10 @@ const SectionBody = ({ id, body, options }) => (
       {options.html ? (
         // eslint-disable-next-line react/no-danger
         <div dangerouslySetInnerHTML={{ __html: body }} />
+      ) : options.bodyContainer === 'div' ? (
+        <div>{body}</div>
       ) : (
-        options.bodyContainer === 'div' ? <div>{body}</div> : <p>{body}</p>
+        <p>{body}</p>
       )}
     </div>
   </div>
