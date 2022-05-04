@@ -5,9 +5,7 @@ import Link from 'next/link'
 import { prettyId } from '../lib/utils'
 import Icon from './Icon'
 
-const NoteAuthors = ({
-  authors, authorIds, signatures, original,
-}) => {
+const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
   // Use original note authors if available
   let displayAuthors
   let displayAuthorIds
@@ -26,51 +24,71 @@ const NoteAuthors = ({
   if (displayAuthors?.length > 0) {
     authorsList = zip(displayAuthors, displayAuthorIds)
   } else if (signatures?.length > 0) {
-    authorsList = signatures.map(id => ([prettyId(id), id]))
+    authorsList = signatures.map((id) => [prettyId(id), id])
   } else {
     authorsList = []
   }
 
   // Make sure authors aren't repeated
-  authorsList = uniqBy(authorsList, authorInfo => `${authorInfo[0]} ${authorInfo[1]}`)
+  authorsList = uniqBy(authorsList, (authorInfo) => `${authorInfo[0]} ${authorInfo[1]}`)
 
-  const authorsLinks = authorsList.map(([author, authorId]) => {
-    if (!author) return null
-    if (!authorId) {
-      return <span key={author}>{author}</span>
-    }
+  const authorsLinks = authorsList
+    .map(([author, authorId]) => {
+      if (!author) return null
+      if (!authorId) {
+        return <span key={author}>{author}</span>
+      }
 
-    let param
-    if (authorId.indexOf('~') === 0) {
-      param = 'id'
-    } else if (authorId.includes('@')) {
-      param = 'email'
-    } else if (authorId.startsWith('https://dblp.org')) {
+      let param
+      if (authorId.indexOf('~') === 0) {
+        param = 'id'
+      } else if (authorId.includes('@')) {
+        param = 'email'
+      } else if (authorId.startsWith('https://dblp.org')) {
+        return (
+          <a
+            key={`${author} ${authorId}`}
+            href={authorId}
+            title={authorId}
+            data-toggle="tooltip"
+            data-placement="top"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {author}
+          </a>
+        )
+      } else {
+        return <span key={author}>{author}</span>
+      }
+
       return (
-        <a key={`${author} ${authorId}`} href={authorId} title={authorId} data-toggle="tooltip" data-placement="top" target="_blank" rel="noopener noreferrer">
-          {author}
-        </a>
+        <Link
+          key={`${author} ${authorId}`}
+          href={`/profile?${param}=${encodeURIComponent(authorId)}`}
+        >
+          <a
+            title={authorId}
+            data-toggle="tooltip"
+            data-placement="top"
+            onClick={() => $('div.tooltip[role="tooltip"]').remove()}
+          >
+            {author}
+          </a>
+        </Link>
       )
-    } else {
-      return <span key={author}>{author}</span>
-    }
+    })
+    .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)
 
-    return (
-      <Link key={`${author} ${authorId}`} href={`/profile?${param}=${encodeURIComponent(authorId)}`}>
-        <a title={authorId} data-toggle="tooltip" data-placement="top">
-          {author}
-        </a>
-      </Link>
-    )
-  }).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)
-
-  const privateLabel = <span key="private-author-label" className="private-author-label">(privately revealed to you)</span>
+  const privateLabel = (
+    <span key="private-author-label" className="private-author-label">
+      (privately revealed to you)
+    </span>
+  )
   return showPrivateLabel ? authorsLinks.concat([' ', privateLabel]) : authorsLinks
 }
 
-export const NoteAuthorsV2 = ({
-  authors, authorIds, signatures, noteReaders,
-}) => {
+export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) => {
   let showPrivateLabel = false
   if (authorIds?.readers && !isEqual(noteReaders?.sort(), authorIds?.readers?.sort())) {
     showPrivateLabel = true
@@ -80,45 +98,67 @@ export const NoteAuthorsV2 = ({
   if (authors?.value?.length > 0) {
     authorsList = zip(authors?.value, authorIds?.value || [])
   } else if (signatures?.length > 0) {
-    authorsList = signatures.map(id => ([prettyId(id), id]))
+    authorsList = signatures.map((id) => [prettyId(id), id])
   } else {
     authorsList = []
   }
 
   // Make sure authors aren't repeated
-  authorsList = uniqBy(authorsList, authorInfo => `${authorInfo[0]} ${authorInfo[1]}`)
+  authorsList = uniqBy(authorsList, (authorInfo) => `${authorInfo[0]} ${authorInfo[1]}`)
 
-  const authorsLinks = authorsList.map(([author, authorId]) => {
-    if (!author) return null
-    if (!authorId) {
-      return <span key={author}>{author}</span>
-    }
+  const authorsLinks = authorsList
+    .map(([author, authorId]) => {
+      if (!author) return null
+      if (!authorId) {
+        return <span key={author}>{author}</span>
+      }
 
-    let param
-    if (authorId.indexOf('~') === 0) {
-      param = 'id'
-    } else if (authorId.includes('@')) {
-      param = 'email'
-    } else if (authorId.startsWith('https://dblp.org')) {
+      let param
+      if (authorId.indexOf('~') === 0) {
+        param = 'id'
+      } else if (authorId.includes('@')) {
+        param = 'email'
+      } else if (authorId.startsWith('https://dblp.org')) {
+        return (
+          <a
+            key={`${author} ${authorId}`}
+            href={authorId}
+            title={authorId}
+            data-toggle="tooltip"
+            data-placement="top"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {author}
+          </a>
+        )
+      } else {
+        return <span key={author}>{author}</span>
+      }
+
       return (
-        <a key={`${author} ${authorId}`} href={authorId} title={authorId} data-toggle="tooltip" data-placement="top" target="_blank" rel="noopener noreferrer">
-          {author}
-        </a>
+        <Link
+          key={`${author} ${authorId}`}
+          href={`/profile?${param}=${encodeURIComponent(authorId)}`}
+        >
+          <a title={authorId} data-toggle="tooltip" data-placement="top">
+            {author}
+          </a>
+        </Link>
       )
-    } else {
-      return <span key={author}>{author}</span>
-    }
+    })
+    .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)
 
-    return (
-      <Link key={`${author} ${authorId}`} href={`/profile?${param}=${encodeURIComponent(authorId)}`}>
-        <a title={authorId} data-toggle="tooltip" data-placement="top">
-          {author}
-        </a>
-      </Link>
-    )
-  }).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)
-
-  const privateLabel = <Icon key="private-label" name="eye-open" extraClasses="private-contents-icon" tooltip={`privately revealed to ${authorIds?.readers?.map(p => prettyId(p)).join(', ')}`} />
+  const privateLabel = (
+    <Icon
+      key="private-label"
+      name="eye-open"
+      extraClasses="private-contents-icon"
+      tooltip={`privately revealed to ${authorIds?.readers
+        ?.map((p) => prettyId(p))
+        .join(', ')}`}
+    />
+  )
   return showPrivateLabel ? authorsLinks.concat([' ', privateLabel]) : authorsLinks
 }
 
