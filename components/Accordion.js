@@ -54,11 +54,12 @@ const SectionBody = ({ id, body, options }) => (
     role="tabpanel"
   >
     <div className="panel-body">
+      {/* eslint-disable-next-line no-nested-ternary */}
       {options.html ? (
         // eslint-disable-next-line react/no-danger
         <div dangerouslySetInnerHTML={{ __html: body }} />
       ) : (
-        <p>{body}</p>
+        options.bodyContainer === 'div' ? <div>{body}</div> : <p>{body}</p>
       )}
     </div>
   </div>

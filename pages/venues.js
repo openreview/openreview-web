@@ -19,8 +19,8 @@ const VenueItemDBLP = ({ venue }) => (
 // Post migration Delete this
 const VenueItem = ({ id, name }) => (
   <h3>
-    <Link href={`/submissions?venue=${id}`}>
-      <a title="View submissions for this venue">
+    <Link href={`/venue?id=${id}`}>
+      <a title={`View venues of ${name}`}>
         {name}
       </a>
     </Link>
@@ -93,8 +93,8 @@ Venues.getInitialProps = async (ctx) => {
   // Post migration delete the entire else clause
   // eslint-disable-next-line no-else-return
   } else {
-    const apiRes = await api.get('/groups', { id: 'host' })
-    const group = apiRes.groups && apiRes.groups[0]
+    const { groups } = await api.get('/groups', { id: 'host' })
+    const group = groups?.length > 0 ? groups[0] : null
     if (!group) {
       return {
         statusCode: 400,
@@ -102,19 +102,8 @@ Venues.getInitialProps = async (ctx) => {
       }
     }
 
-    const venues = group.members
-      .map(id => ({ id, name: prettyId(id) }))
-      .sort((groupA, groupB) => {
-        const nameA = groupA.name.toLowerCase()
-        const nameB = groupB.name.toLowerCase()
-        if (nameA < nameB) {
-          return -1
-        }
-        if (nameA > nameB) {
-          return 1
-        }
-        return 0
-      })
+    const venues = group.members.map(id => ({ id, name: prettyId(id) }))
+      .sort((a, b) => a.name.localeCompare(prettyId(b.name)))
 
     return { venues }
   }
