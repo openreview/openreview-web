@@ -2420,6 +2420,8 @@ module.exports = (function() {
     if (isDeleted) {
       // Restore deleted note
       newNote.ddate = null;
+      newNote.writers = getWriters(newNote.details.invitation, newNote.signatures, user);
+      newNote = getCopiedValues(newNote, newNote.details.invitation.reply);
       return Webfield.post('/notes', newNote, { handleErrors: false }).then(function(updatedNote) {
         onTrashedOrRestored(Object.assign(newNote, updatedNote));
       }, function(jqXhr, textStatus) {
@@ -2435,6 +2437,8 @@ module.exports = (function() {
       }
       newNote.signatures = newSignatures;
       newNote.ddate = Date.now();
+      newNote.writers = getWriters(newNote.details.invitation, newSignatures, user);
+      newNote = getCopiedValues(newNote, newNote.details.invitation.reply);
       Webfield.post('/notes', newNote, { handleErrors: false }).then(function(updatedNote) {
         onTrashedOrRestored(Object.assign(newNote, updatedNote));
       }, function(jqXhr, textStatus) {
