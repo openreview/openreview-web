@@ -1351,6 +1351,21 @@ header,
     }
   }
 }
+#venues.webfield-accordion {
+  .panel-title .glyphicon {
+    top: -3px;
+  }
+  span.h3 {
+    font-size: 1.75rem;
+    padding-right: .25rem;
+  }
+  span.h4 {
+    font-weight: normal;
+  }
+  .venues-list li + li {
+    margin-top: 0.5rem;
+  }
+}
 
 // markdown preview tab
 .markdown-preview {

@@ -49,11 +49,12 @@ const SectionHeadingLink = ({ targetId, parentId, children }) => (
 const SectionBody = ({ id, body, options }) => (
   <div id={id} className="panel-collapse collapse" role="tabpanel">
     <div className="panel-body">
+      {/* eslint-disable-next-line no-nested-ternary */}
       {options.html ? (
         // eslint-disable-next-line react/no-danger
         <div dangerouslySetInnerHTML={{ __html: body }} />
       ) : (
-        <p>{body}</p>
+        options.bodyContainer === 'div' ? <div>{body}</div> : <p>{body}</p>
       )}
     </div>
   </div>
