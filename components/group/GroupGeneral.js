@@ -68,6 +68,12 @@ export const GroupGeneralView = ({ group }) => {
         </GroupTableRow>
       )}
 
+      {group.host && (
+        <GroupTableRow label="Host">
+          <GroupIdList groupIds={[group.host]} />
+        </GroupTableRow>
+      )}
+
       <GroupTableRow label="Created">
         <span>{formatDateTime(group.cdate ?? group.tcdate, dateOptions)}</span>
       </GroupTableRow>
@@ -96,6 +102,7 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
     signatures: group.signatures?.join(', '),
     anonids: group.anonids,
     deanonymizers: group.deanonymizers?.join(', '),
+    host: group.host,
   })
 
   return (
@@ -161,6 +168,16 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
             className="form-control input-sm"
             value={generalInfo.deanonymizers}
             onChange={(e) => setGeneralInfo({ type: 'deanonymizers', value: e.target.value })}
+          />
+        </GroupTableRow>
+      )}
+
+      {isSuperUser && (
+        <GroupTableRow label="Host">
+          <input
+            className="form-control input-sm"
+            value={generalInfo.host}
+            onChange={(e) => setGeneralInfo({ type: 'host', value: e.target.value })}
           />
         </GroupTableRow>
       )}
