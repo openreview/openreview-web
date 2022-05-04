@@ -643,9 +643,13 @@ module.exports = (function() {
     var $contentSignatures = $('<span>', {class: 'signatures'}).html(authorText);
     var $contentAuthors = $('<div>', {class: 'meta_row'}).append($contentSignatures);
 
-    var $revisionsLink = (params.withRevisionsLink && details.revisions) ?
-      $('<a>', { class: 'note_content_pdf item', href: '/revisions?id=' + note.id, text: 'Show Revisions' }) :
-      null;
+    var $revisionsLink = params.withRevisionsLink
+      ? $("<a>", {
+          class: "note_content_pdf item",
+          href: "/revisions?id=" + note.id,
+          text: "Show Revisions",
+        })
+      : null;
 
     // Display modal showing full BibTeX reference. Click handler is definied in public/index.js
     var $bibtexLink = (note.content?._bibtex?.value && params.withBibtexLink) ?
