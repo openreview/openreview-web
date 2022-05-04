@@ -14,6 +14,8 @@ import PaginationLinks from '../components/PaginationLinks'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorAlert from '../components/ErrorAlert'
 
+const sourceOptions = { all: 'All', forum: 'Papers Only', reply: 'Replies Only' }
+
 const FilterForm = ({ searchQuery }) => {
   const defaultOption = { value: 'all', label: 'all of OpenReview' }
   const [groupOptions, setGroupOptions] = useState([])
@@ -27,7 +29,6 @@ const FilterForm = ({ searchQuery }) => {
   ]
   const selectedContentOption =
     contentOptions.find((option) => option.value === searchQuery.content) || contentOptions[0]
-  const sourceOptions = { all: 'All', forum: 'Papers Only', reply: 'Replies Only' }
   const router = useRouter()
 
   const updateQuery = (field, value) => {
@@ -132,7 +133,7 @@ const Search = ({ appContext }) => {
           type: 'terms',
           content: query.content || 'all',
           group: query.group || 'all',
-          source: query.source || 'all',
+          source: Object.keys(sourceOptions).includes(query.source) ? query.source : 'all',
           limit: 1000,
         },
         null,
