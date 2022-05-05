@@ -1,3 +1,4 @@
+/* globals $: false */
 import uniqBy from 'lodash/uniqBy'
 import isEqual from 'lodash/isEqual'
 import zip from 'lodash/zip'
@@ -71,7 +72,10 @@ const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
             title={authorId}
             data-toggle="tooltip"
             data-placement="top"
-            onClick={() => $('div.tooltip[role="tooltip"]').remove()}
+            onClick={() => {
+              $('[data-toggle="tooltip"]').tooltip('destroy')
+              $('[data-toggle="tooltip"]').tooltip('disable')
+            }}
           >
             {author}
           </a>
