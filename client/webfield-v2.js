@@ -855,7 +855,7 @@ module.exports = (function() {
     var renderTaskItem = function(inv) {
       return (
         '<li class="note ' + (inv.complete ? 'completed' : '') + '">' +
-          '<h4><a href="/forum?id=' + inv.forumId + (inv.complete ? '' : '&invitationId=' + inv.id) + (options.referrer ? '&referrer=' + options.referrer : '') + '" target="_blank">' +
+          '<h4><a href="/invitation/info?id=' + inv.id + (options.referrer ? '&referrer=' + options.referrer : '') + '" target="_blank">' +
             view.prettyInvitationId(inv.id) +
           '</a></h4>' +
           (inv.startDateStr ? '<p class="mb-1"><span class="duedate">Start: ' + inv.startDateStr + '</span></p>' : '') +
