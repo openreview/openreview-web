@@ -262,7 +262,6 @@ const Profile = ({ profile, publicProfile, appContext }) => {
   ]
 
   const loadPublications = async () => {
-    console.log('called')
     let apiRes
     const queryParam = {
       'content.authorids': profile.id,

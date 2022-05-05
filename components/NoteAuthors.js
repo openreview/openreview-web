@@ -69,6 +69,7 @@ const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
           href={`/profile?${param}=${encodeURIComponent(authorId)}`}
         >
           <a
+            href={`/profile?${param}=${encodeURIComponent(authorId)}`}
             title={authorId}
             data-toggle="tooltip"
             data-placement="top"
