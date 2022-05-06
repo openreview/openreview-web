@@ -3,7 +3,7 @@ import Icon from './Icon'
 const Accordion = ({ sections, options }) => (
   <div
     id={options.id}
-    className={`webfield-accordion panel-group ${options.extraClasses}`}
+    className={`webfield-accordion panel-group ${options.extraClasses ?? ''}`}
     role="tablist"
     aria-multiselectable="true"
   >

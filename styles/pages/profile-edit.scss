@@ -75,7 +75,9 @@ main.profile-edit {
         }
       }
     }
-
+    table.table {
+      margin-bottom: .5rem;
+    }
     .webfield-accordion-divider {
       margin: 0;
     }
@@ -83,6 +85,7 @@ main.profile-edit {
     .panel-heading {
       padding-bottom: 0;
       .panel-title {
+        font-size: 1rem;
         .collapse-btn,
         .glyphicon {
           color: constants.$darkBlue;
@@ -95,6 +98,7 @@ main.profile-edit {
     }
     .panel-body {
       padding-top: 0;
+      padding-left: 1.5rem;
     }
 
     .existing-publication-row {

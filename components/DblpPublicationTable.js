@@ -110,7 +110,7 @@ export default function DblpPublicationTable({
                       }
                       disabled={publicationsCouldImportOfYear.length === 0}
                     />
-                    {`${p} - ${inflect(
+                    {`${p} – ${inflect(
                       publicationsOfYear.length,
                       'publication',
                       'publications',
@@ -118,43 +118,39 @@ export default function DblpPublicationTable({
                     )}`}
                   </>
                 ),
-                body: (
-                  <>
-                    {publicationsOfYear.map((publication) => {
-                      const titleMatch = (orPub) =>
-                        orPub.title === publication.formattedTitle &&
-                        orPub.authorCount === publication.authorCount &&
-                        orPub.venue === publication.venue
-                      const existingPublication = orPublications.find(titleMatch)
-                      const existingPublicationOfOtherProfile =
-                        orPublicationsImportedByOtherProfile.find(titleMatch)
-                      // eslint-disable-next-line no-nested-ternary
-                      const category = existingPublication
-                        ? 'existing-publication'
-                        : existingPublicationOfOtherProfile
-                        ? 'existing-different-profile'
-                        : 'nonExisting'
+                body: publicationsOfYear.map((publication) => {
+                  const titleMatch = (orPub) =>
+                    orPub.title === publication.formattedTitle &&
+                    orPub.authorCount === publication.authorCount &&
+                    orPub.venue === publication.venue
+                  const existingPublication = orPublications.find(titleMatch)
+                  const existingPublicationOfOtherProfile =
+                    orPublicationsImportedByOtherProfile.find(titleMatch)
+                  // eslint-disable-next-line no-nested-ternary
+                  const category = existingPublication
+                    ? 'existing-publication'
+                    : existingPublicationOfOtherProfile
+                    ? 'existing-different-profile'
+                    : 'nonExisting'
 
-                      return (
-                        <DblpPublicationRow
-                          // eslint-disable-next-line react/no-array-index-key
-                          key={publication.key}
-                          title={publication.title}
-                          authors={publication.authorNames}
-                          openReviewId={
-                            existingPublication?.id ||
-                            existingPublicationOfOtherProfile?.noteId
-                          }
-                          selected={selectedPublications.includes(publication.key)}
-                          toggleSelected={selectPublication(publication.key)}
-                          otherProfileId={existingPublicationOfOtherProfile?.existingProfileId}
-                          category={category}
-                          venue={publication.venue}
-                        />
-                      )
-                    })}
-                  </>
-                ),
+                  return (
+                    <DblpPublicationRow
+                      // eslint-disable-next-line react/no-array-index-key
+                      key={publication.key}
+                      title={publication.title}
+                      authors={publication.authorNames}
+                      openReviewId={
+                        existingPublication?.id ||
+                        existingPublicationOfOtherProfile?.noteId
+                      }
+                      selected={selectedPublications.includes(publication.key)}
+                      toggleSelected={selectPublication(publication.key)}
+                      otherProfileId={existingPublicationOfOtherProfile?.existingProfileId}
+                      category={category}
+                      venue={publication.venue}
+                    />
+                  )
+                })
               }
             })}
           options={{ id: 'dblp-papers', collapsed: false, html: false, bodyContainer: '' }}
