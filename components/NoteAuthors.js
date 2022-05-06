@@ -68,16 +68,7 @@ const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
           key={`${author} ${authorId}`}
           href={`/profile?${param}=${encodeURIComponent(authorId)}`}
         >
-          <a
-            href={`/profile?${param}=${encodeURIComponent(authorId)}`}
-            title={authorId}
-            data-toggle="tooltip"
-            data-placement="top"
-            onClick={() => {
-              $('[data-toggle="tooltip"]').tooltip('destroy')
-              $('[data-toggle="tooltip"]').tooltip('disable')
-            }}
-          >
+          <a title={authorId} data-toggle="tooltip" data-placement="top">
             {author}
           </a>
         </Link>
