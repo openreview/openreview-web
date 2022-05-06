@@ -40,7 +40,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
             }
           });
 
-          return notes
+          return signatureProfilesP(notes)
         }, onError);
 
       invitationsP = Webfield2.get('/invitations', {
@@ -62,6 +62,98 @@ module.exports = function(forumId, noteId, invitationId, user) {
         .then(function(result) {
           return result.invitations || [];
         }, onError);
+    };
+
+    var signatureProfilesP = function signatureProfilesP(notes) {
+      var signatureMembers = new Set(
+        notes.reduce(function (acc, note) {
+          return acc.concat(
+            note.details.signatures.flatMap(function (p) {
+              return p.members;
+            })
+          );
+        }, [])
+      );
+      var ids = [];
+      var emails = [];
+      signatureMembers.forEach(function (p) {
+        return p.startsWith("~") ? ids.push(p) : emails.push(p);
+      });
+      return $.when(
+        ids.length
+          ? Webfield.get(
+              "/profiles",
+              {
+                ids: ids
+              },
+              {
+                handleErrors: false
+              }
+            )
+          : Promise.resolve([]),
+        emails.length
+          ? Webfield.get(
+              "/profiles",
+              {
+                emails: emails
+              },
+              {
+                handleErrors: false
+              }
+            )
+          : Promise.resolve([])
+      ).then(function (idsResult, emailsResult) {
+        notes.forEach(function (note) {
+          if (!note.details.signatures.length) return;
+          note.details.signatures.forEach(function (signature) {
+            signature.members = signature.members.map(function (member) {
+              var preferredUserName;
+
+              if (ids.includes(member)) {
+                var profile = idsResult.profiles.find(function (p) {
+                  return p.content.names.some(function (q) {
+                    return q.username === member;
+                  });
+                });
+
+                if (profile) {
+                  var preferredName = profile.content.names.find(function (t) {
+                    return t.preferred;
+                  });
+                  if (preferredName) {
+                    preferredUserName = preferredName.username;
+                  } else {
+                    var fistName = profile.content.names[0];
+                    preferredUserName = fistName.username || member;
+                  }
+                } else {
+                  preferredUserName = member;
+                }
+              } else {
+                var profile = emailsResult.profiles.find(function (p) {
+                  return p.email === member;
+                });
+
+                if (profile) {
+                  var preferredName = profile.content.names.find(function (t) {
+                    return t.preferred;
+                  });
+                  if (preferredName) {
+                    preferredUserName = preferredName.username;
+                  } else {
+                    var fistName = profile.content.names[0];
+                    preferredUserName = fistName.username || member;
+                  }
+                } else {
+                  preferredUserName = member;
+                }
+              }
+              return preferredUserName;
+            });
+          });
+        });
+        return notes;
+      }, onError);
     };
 
     var noteRecsP = $.when(notesP, invitationsP).then(function (notes, invitations) {
