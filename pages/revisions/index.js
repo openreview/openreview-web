@@ -587,7 +587,7 @@ const Revisions = ({ appContext }) => {
         setReferencesToLoad('revisions')
       } else {
         setBannerHidden(true)
-        setError({ message: 'Note is not found' })
+        setError({ message: `The note ${noteId} could not be found` })
       }
     }
     setBanner()
