@@ -84,10 +84,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
           ? Webfield.get(
               "/profiles",
               {
-                ids: ids
+                ids: ids,
               },
               {
-                handleErrors: false
+                handleErrors: false,
               }
             )
           : Promise.resolve([]),
@@ -95,10 +95,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
           ? Webfield.get(
               "/profiles",
               {
-                emails: emails
+                emails: emails,
               },
               {
-                handleErrors: false
+                handleErrors: false,
               }
             )
           : Promise.resolve([])
@@ -107,48 +107,19 @@ module.exports = function(forumId, noteId, invitationId, user) {
           if (!note.details.signatures.length) return;
           note.details.signatures.forEach(function (signature) {
             signature.members = signature.members.map(function (member) {
-              var preferredUserName;
-
+              var profile = null;
               if (ids.includes(member)) {
-                var profile = idsResult.profiles.find(function (p) {
+                profile = idsResult.profiles.find(function (p) {
                   return p.content.names.some(function (q) {
                     return q.username === member;
                   });
                 });
-
-                if (profile) {
-                  var preferredName = profile.content.names.find(function (t) {
-                    return t.preferred;
-                  });
-                  if (preferredName) {
-                    preferredUserName = preferredName.username;
-                  } else {
-                    var fistName = profile.content.names[0];
-                    preferredUserName = fistName.username || member;
-                  }
-                } else {
-                  preferredUserName = member;
-                }
               } else {
-                var profile = emailsResult.profiles.find(function (p) {
+                profile = emailsResult.profiles.find(function (p) {
                   return p.email === member;
                 });
-
-                if (profile) {
-                  var preferredName = profile.content.names.find(function (t) {
-                    return t.preferred;
-                  });
-                  if (preferredName) {
-                    preferredUserName = preferredName.username;
-                  } else {
-                    var fistName = profile.content.names[0];
-                    preferredUserName = fistName.username || member;
-                  }
-                } else {
-                  preferredUserName = member;
-                }
               }
-              return preferredUserName;
+              return getProfilePreferredId(profile) || member;
             });
           });
         });
@@ -1057,6 +1028,23 @@ module.exports = function(forumId, noteId, invitationId, user) {
   var replaceFilterWildcards = function(filterQuery, replyNote) {
     return filterQuery.replace(/\${note\.([\w.]+)}/g, (match, field) => _.get(replyNote, field, ''));
   }
+
+  // Extract preferred id from raw profile data returned by /profiles API
+  // Modified from lib/profiles.js
+  var getProfilePreferredId = function(profileData) {
+    if (_.isEmpty(profileData)) {
+      return null;
+    }
+
+    var prefName = _.first(profileData.content.names);
+
+    profileData.content.names.forEach(function (n, i) {
+      if (n.username && n.preferred) {
+        prefName = n;
+      }
+    });
+    return prefName.username;
+  };
 
   onTokenChange();
 };
