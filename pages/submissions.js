@@ -73,13 +73,15 @@ Submissions.getInitialProps = async (ctx) => {
 
   const { token } = auth(ctx)
 
-  const getInvitationId = (idToTest, apiVersion = 1) => api.get(
-    '/invitations',
-    { id: idToTest, expired: true },
-    { accessToken: token, version: apiVersion }
-  )
-    .then(res => res.invitations?.[0]?.id || null)
-    .catch(err => null)
+  const getInvitationId = (idToTest, apiVersion = 1) =>
+    api
+      .get(
+        '/invitations',
+        { id: idToTest, expired: true },
+        { accessToken: token, version: apiVersion }
+      )
+      .then((res) => res.invitations?.[0]?.id || null)
+      .catch((err) => null)
 
   let isV2Group = false
   const potentialIds = await Promise.all([
@@ -102,11 +104,15 @@ Submissions.getInitialProps = async (ctx) => {
 
   const currentPage = Math.max(parseInt(ctx.query.page, 10) || 1, 1)
   const notesPerPage = 25
-  const { notes, count } = await api.get('/notes', {
-    invitation: invitationId,
-    limit: notesPerPage,
-    offset: notesPerPage * (currentPage - 1),
-  }, { accessToken: token, version: isV2Group ? 2 : 1 })
+  const { notes, count } = await api.get(
+    '/notes',
+    {
+      invitation: invitationId,
+      limit: notesPerPage,
+      offset: notesPerPage * (currentPage - 1),
+    },
+    { accessToken: token, version: isV2Group ? 2 : 1 }
+  )
   if (!notes) {
     return {
       statusCode: 400,
