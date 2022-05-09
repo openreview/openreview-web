@@ -3136,32 +3136,6 @@ module.exports = (function() {
           $cancelButton.prop({ disabled: false });
         };
 
-        var getFileChunksP = function (
-          chunkSize,
-          chunkCount,
-          chunkIndexes,
-          file,
-          fieldName,
-          clientUploadId,
-          $progressBar
-        ) {
-          return chunkIndexes.map((chunkIndex) => {
-            var chunk = file.slice(
-              chunkIndex * chunkSize,
-              (chunkIndex + 1) * chunkSize,
-              file.type
-            );
-            var data = new FormData();
-            data.append("invitationId", invitation.id);
-            data.append("name", fieldName);
-            data.append("chunkIndex", chunkIndex + 1);
-            data.append("totalChunks", chunkCount);
-            data.append("clientUploadId", clientUploadId);
-            data.append("file", chunk);
-            return Webfield.sendFileChunk(data, $progressBar);
-          });
-        };
-
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
           if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
@@ -3177,66 +3151,51 @@ module.exports = (function() {
             var chunkSize = 1024 * 1000 * 5; //5mb
             var chunkCount = Math.ceil(file.size / chunkSize);
             var clientUploadId = nanoid();
-            var firstChunkP = getFileChunksP(
-              chunkSize,
-              chunkCount,
-              [0],
-              file,
-              fieldName,
-              clientUploadId,
-              $progressBar
-            )[0];
-            $progressBar.show();
-            return firstChunkP.then(
-              function (result) {
-                if (Math.ceil(file.size / chunkSize) === 1) {
-                  var url = result.url;
-                  if (!url) throw new Error("No URL returned, file upload failed");
-                  note.content[fieldName] = url;
-                  updateFileSection(
-                    $contentMap[fieldName],
-                    fieldName,
-                    invitation.reply.content[fieldName],
-                    note.content[fieldName]
-                  );
-                } else {
-                  var subsequentChunkPs = getFileChunksP(
-                    chunkSize,
-                    chunkCount,
-                    [...Array(chunkCount).keys()].slice(1),
-                    file,
-                    fieldName,
-                    clientUploadId,
-                    $progressBar
-                  );
-                  return Promise.all(subsequentChunkPs).then(
-                    function (results) {
-                      var url = results.find((p) => p.url)?.url;
-                      if (!url) {
-                        $progressBar.hide();
-                        throw new Error("No URL returned, file upload failed");
-                      }
-                      note.content[fieldName] = url;
-                      updateFileSection(
-                        $contentMap[fieldName],
-                        fieldName,
-                        invitation.reply.content[fieldName],
-                        note.content[fieldName]
-                      );
-                    },
-                    function (e) {
-                      subsequentChunkPs.forEach((p) => p.abort());
+            var chunks = _.keys(Array(chunkCount)).map((chunkIndex) => {
+              chunkIndex = Number(chunkIndex);
+              return file.slice(
+                chunkIndex * chunkSize,
+                (chunkIndex + 1) * chunkSize,
+                file.type
+              );
+            });
+            var sendSingleChunk = function (chunk, index) {
+              var data = new FormData();
+              data.append("invitationId", invitation.id);
+              data.append("name", fieldName);
+              data.append("chunkIndex", index + 1);
+              data.append("totalChunks", chunkCount);
+              data.append("clientUploadId", clientUploadId);
+              data.append("file", chunk);
+              console.log(chunk)
+              return Webfield.sendFileChunk(data, $progressBar).then(
+                function (result) {
+                  if (index + 1 === chunkCount) {
+                    if (!result.url) {
                       $progressBar.hide();
-                      throw e;
+                      throw new Error("No URL returned, file upload failed");
                     }
-                  );
+                    note.content[fieldName] = result.url;
+                    updateFileSection(
+                      $contentMap[fieldName],
+                      fieldName,
+                      invitation.reply.content[fieldName],
+                      note.content[fieldName]
+                    );
+                  }
+                },
+                function (e) {
+                  $progressBar.hide();
+                  onError(e);
                 }
-              },
-              function (e) {
-                $progressBar.hide();
-                onError(e);
-              }
-            );
+              );
+            };
+            $progressBar.show();
+            return chunks.reduce(function (oldPromises, currentChunk, i) {
+              return oldPromises.then(function (_) {
+                return sendSingleChunk(currentChunk, i);
+              });
+            }, Promise.resolve());
             //#endregion
           } else {
             var data = new FormData();
@@ -3713,32 +3672,6 @@ module.exports = (function() {
             $cancelButton.prop({ disabled: false });
           };
 
-          var getFileChunksP = function (
-            chunkSize,
-            chunkCount,
-            chunkIndexes,
-            file,
-            fieldName,
-            clientUploadId,
-            $progressBar
-          ) {
-            return chunkIndexes.map((chunkIndex) => {
-              var chunk = file.slice(
-                chunkIndex * chunkSize,
-                (chunkIndex + 1) * chunkSize,
-                file.type
-              );
-              var data = new FormData();
-              data.append("invitationId", invitation.id);
-              data.append("name", fieldName);
-              data.append("chunkIndex", chunkIndex + 1);
-              data.append("totalChunks", chunkCount);
-              data.append("clientUploadId", clientUploadId);
-              data.append("file", chunk);
-              return Webfield.sendFileChunk(data, $progressBar);
-            });
-          };
-
           var fieldNames = _.keys(files);
           var promises = fieldNames.map(function(fieldName) {
             if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
@@ -3754,66 +3687,50 @@ module.exports = (function() {
               var chunkSize = 1024 * 1000 * 5; //5mb
               var chunkCount = Math.ceil(file.size / chunkSize);
               var clientUploadId = nanoid();
-              var firstChunkP = getFileChunksP(
-                chunkSize,
-                chunkCount,
-                [0],
-                file,
-                fieldName,
-                clientUploadId,
-                $progressBar
-              )[0];
-              $progressBar.show();
-              return firstChunkP.then(
-                function (result) {
-                  if (Math.ceil(file.size / chunkSize) === 1) {
-                    var url = result.url;
-                    if (!url) throw new Error("No url is returned, file upload failed");
-                    editNote.content[fieldName] = url;
-                    updateFileSection(
-                      $contentMap[fieldName],
-                      fieldName,
-                      invitation.reply.content[fieldName],
-                      editNote.content[fieldName]
-                    );
-                  } else {
-                    var subsequentChunkPs = getFileChunksP(
-                      chunkSize,
-                      chunkCount,
-                      [...Array(chunkCount).keys()].slice(1),
-                      file,
-                      fieldName,
-                      clientUploadId,
-                      $progressBar
-                    );
-                    return Promise.all(subsequentChunkPs).then(
-                      function (results) {
-                        var url = results.find((p) => p.url)?.url;
-                        if (!url) {
-                          $progressBar.hide();
-                          throw new Error("No url is returned, file upload failed");
-                        }
-                        editNote.content[fieldName] = url;
-                        updateFileSection(
-                          $contentMap[fieldName],
-                          fieldName,
-                          invitation.reply.content[fieldName],
-                          editNote.content[fieldName]
-                        );
-                      },
-                      function (e) {
-                        subsequentChunkPs.forEach((p) => p.abort());
+              var chunks = _.keys(Array(chunkCount)).map((chunkIndex) => {
+                chunkIndex = Number(chunkIndex);
+                return file.slice(
+                  chunkIndex * chunkSize,
+                  (chunkIndex + 1) * chunkSize,
+                  file.type
+                );
+              });
+              var sendSingleChunk = function (chunk, index) {
+                var data = new FormData();
+                data.append("invitationId", invitation.id);
+                data.append("name", fieldName);
+                data.append("chunkIndex", index + 1);
+                data.append("totalChunks", chunkCount);
+                data.append("clientUploadId", clientUploadId);
+                data.append("file", chunk);
+                return Webfield.sendFileChunk(data, $progressBar).then(
+                  function (result) {
+                    if (index + 1 === chunkCount) {
+                      if (!result.url) {
                         $progressBar.hide();
-                        throw e;
+                        throw new Error("No URL returned, file upload failed");
                       }
-                    );
+                      editNote.content[fieldName] = result.url;
+                      updateFileSection(
+                        $contentMap[fieldName],
+                        fieldName,
+                        invitation.reply.content[fieldName],
+                        editNote.content[fieldName]
+                      );
+                    }
+                  },
+                  function (e) {
+                    $progressBar.hide();
+                    onError(e);
                   }
-                },
-                function (e) {
-                  $progressBar.hide();
-                  onError(e);
-                }
-              );
+                );
+              };
+              $progressBar.show();
+              return chunks.reduce(function (oldPromises, currentChunk, i) {
+                return oldPromises.then(function (_) {
+                  return sendSingleChunk(currentChunk, i);
+                });
+              }, Promise.resolve());
               //#endregion
             } else {
               var data = new FormData();

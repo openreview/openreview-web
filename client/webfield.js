@@ -243,16 +243,16 @@ module.exports = (function() {
       processData: false,
       data: data,
       headers:  Object.assign(defaultHeaders, authHeaders),
-      xhr: function(){
-        return new XMLHttpRequest();
-      },
       xhrFields: {
         withCredentials: true
       },
       success: function(result){
-        if(!result.url){
-          var progress =`${Object.values(result).filter(p=>p==='completed').length*100/Object.values(result).length}%`
-          $progressBar.find('.progress-bar').css('width',progress)
+        if (!result.url) {
+          var progress = `${(
+            (Object.values(result).filter((p) => p === "completed").length * 100) /
+            Object.values(result).length
+          ).toFixed(0)}%`;
+          $progressBar.find(".progress-bar").css("width", progress).text(progress);
         }
       }
     })
