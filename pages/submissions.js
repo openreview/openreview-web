@@ -73,17 +73,29 @@ Submissions.getInitialProps = async (ctx) => {
 
   const { token } = auth(ctx)
 
-  const getInvitationId = (idToTest) => api.get('/invitations', { id: idToTest, expired: true }, { accessToken: token })
+  const getInvitationId = (idToTest, apiVersion = 1) => api.get(
+    '/invitations',
+    { id: idToTest, expired: true },
+    { accessToken: token, version: apiVersion }
+  )
     .then(res => res.invitations?.[0]?.id || null)
     .catch(err => null)
 
+  let isV2Group = false
   const potentialIds = await Promise.all([
     getInvitationId(`${groupId}/-/Blind_Submission`),
     getInvitationId(`${groupId}/-/blind_submission`),
     getInvitationId(`${groupId}/-/Submission`),
     getInvitationId(`${groupId}/-/submission`),
   ])
-  const invitationId = potentialIds.filter(Boolean)[0]
+  let invitationId = potentialIds.filter(Boolean)[0]
+
+  // For now there is no way to know if a group is using the v2 API, so test if the invitation exists
+  if (!invitationId) {
+    invitationId = await getInvitationId(`${groupId}/-/Submission`, 2)
+    isV2Group = true
+  }
+
   if (!invitationId) {
     return { statusCode: 400, message: `No submission invitation found for venue ${groupId}` }
   }
@@ -94,7 +106,7 @@ Submissions.getInitialProps = async (ctx) => {
     invitation: invitationId,
     limit: notesPerPage,
     offset: notesPerPage * (currentPage - 1),
-  }, { accessToken: token })
+  }, { accessToken: token, version: isV2Group ? 2 : 1 })
   if (!notes) {
     return { statusCode: 400, message: 'Venue submissions unavailable. Please try again later' }
   }
