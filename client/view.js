@@ -3191,7 +3191,7 @@ module.exports = (function() {
               function (result) {
                 if (Math.ceil(file.size / chunkSize) === 1) {
                   var url = result.url;
-                  if (!url) throw new Error("No url is returned, file upload failed");
+                  if (!url) throw new Error("No URL returned, file upload failed");
                   note.content[fieldName] = url;
                   updateFileSection(
                     $contentMap[fieldName],
@@ -3214,7 +3214,7 @@ module.exports = (function() {
                       var url = results.find((p) => p.url)?.url;
                       if (!url) {
                         $progressBar.hide();
-                        throw new Error("No url is returned, file upload failed");
+                        throw new Error("No URL returned, file upload failed");
                       }
                       note.content[fieldName] = url;
                       updateFileSection(
