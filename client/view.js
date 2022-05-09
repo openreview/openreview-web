@@ -3170,21 +3170,23 @@ module.exports = (function() {
               return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, note.content.pdf);
             });
           }
-          var $progressBar = $contentMap[fieldName].find('div.progress')
-          var file = files[fieldName];
-          var chunkSize = 1024 * 1000 * 5; //5mb
-          var chunkCount = Math.ceil(file.size / chunkSize);
-          var clientUploadId = nanoid();
-          var firstChunkP = getFileChunksP(
-            chunkSize,
-            chunkCount,
-            [0],
-            file,
-            fieldName,
-            clientUploadId,
-            $progressBar
-          )[0];
-          $progressBar.show();
+          if (window.USE_PARALLEL_UPLOAD) {
+            //#region parallel upload
+            var $progressBar = $contentMap[fieldName].find("div.progress");
+            var file = files[fieldName];
+            var chunkSize = 1024 * 1000 * 5; //5mb
+            var chunkCount = Math.ceil(file.size / chunkSize);
+            var clientUploadId = nanoid();
+            var firstChunkP = getFileChunksP(
+              chunkSize,
+              chunkCount,
+              [0],
+              file,
+              fieldName,
+              clientUploadId,
+              $progressBar
+            )[0];
+            $progressBar.show();
             return firstChunkP.then(
               function (result) {
                 if (Math.ceil(file.size / chunkSize) === 1) {
@@ -3235,15 +3237,33 @@ module.exports = (function() {
                 onError(e);
               }
             );
-          });
-          Promise.all(promises).then(
-            function () {
-              saveNote(note);
-                        },
-            function (e) {
-              if (e) onError(e);
-            }
-          );
+            //#endregion
+          } else {
+            var data = new FormData();
+            data.append("invitationId", invitation.id);
+            data.append("name", fieldName);
+            data.append("file", files[fieldName]);
+            return Webfield.sendFile("/attachment", data, undefined, fieldName).then(
+              function (result) {
+                note.content[fieldName] = result.url;
+                updateFileSection(
+                  $contentMap[fieldName],
+                  fieldName,
+                  invitation.reply.content[fieldName],
+                  note.content[fieldName]
+                );
+              }
+            );
+          }
+        });
+        Promise.all(promises).then(
+          function () {
+            saveNote(note);
+          },
+          function (e) {
+            if (e) onError(e);
+          }
+        );
       });
 
       $cancelButton.click(function() {
@@ -3727,71 +3747,91 @@ module.exports = (function() {
                 return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, editNote.content.pdf);
               });
             }
-            var $progressBar = $contentMap[fieldName].find("div.progress");
-            var file = files[fieldName];
-            var chunkSize = 1024 * 1000 * 5; //5mb
-            var chunkCount = Math.ceil(file.size / chunkSize);
-            var clientUploadId = nanoid();
-            var firstChunkP = getFileChunksP(
-              chunkSize,
-              chunkCount,
-              [0],
-              file,
-              fieldName,
-              clientUploadId,
-              $progressBar
-            )[0];
-            $progressBar.show();
-            return firstChunkP.then(
-              function (result) {
-                if (Math.ceil(file.size / chunkSize) === 1) {
-                  var url = result.url;
-                  if (!url) throw new Error("No url is returned, file upload failed");
-                  editNote.content[fieldName] = url;
+            if (window.USE_PARALLEL_UPLOAD) {
+              //#region parallel upload
+              var $progressBar = $contentMap[fieldName].find("div.progress");
+              var file = files[fieldName];
+              var chunkSize = 1024 * 1000 * 5; //5mb
+              var chunkCount = Math.ceil(file.size / chunkSize);
+              var clientUploadId = nanoid();
+              var firstChunkP = getFileChunksP(
+                chunkSize,
+                chunkCount,
+                [0],
+                file,
+                fieldName,
+                clientUploadId,
+                $progressBar
+              )[0];
+              $progressBar.show();
+              return firstChunkP.then(
+                function (result) {
+                  if (Math.ceil(file.size / chunkSize) === 1) {
+                    var url = result.url;
+                    if (!url) throw new Error("No url is returned, file upload failed");
+                    editNote.content[fieldName] = url;
+                    updateFileSection(
+                      $contentMap[fieldName],
+                      fieldName,
+                      invitation.reply.content[fieldName],
+                      editNote.content[fieldName]
+                    );
+                  } else {
+                    var subsequentChunkPs = getFileChunksP(
+                      chunkSize,
+                      chunkCount,
+                      [...Array(chunkCount).keys()].slice(1),
+                      file,
+                      fieldName,
+                      clientUploadId,
+                      $progressBar
+                    );
+                    return Promise.all(subsequentChunkPs).then(
+                      function (results) {
+                        var url = results.find((p) => p.url)?.url;
+                        if (!url) {
+                          $progressBar.hide();
+                          throw new Error("No url is returned, file upload failed");
+                        }
+                        editNote.content[fieldName] = url;
+                        updateFileSection(
+                          $contentMap[fieldName],
+                          fieldName,
+                          invitation.reply.content[fieldName],
+                          editNote.content[fieldName]
+                        );
+                      },
+                      function (e) {
+                        subsequentChunkPs.forEach((p) => p.abort());
+                        $progressBar.hide();
+                        throw e;
+                      }
+                    );
+                  }
+                },
+                function (e) {
+                  $progressBar.hide();
+                  onError(e);
+                }
+              );
+              //#endregion
+            } else {
+              var data = new FormData();
+              data.append("invitationId", invitation.id);
+              data.append("name", fieldName);
+              data.append("file", files[fieldName]);
+              return Webfield.sendFile("/attachment", data, undefined, fieldName).then(
+                function (result) {
+                  editNote.content[fieldName] = result.url;
                   updateFileSection(
                     $contentMap[fieldName],
                     fieldName,
                     invitation.reply.content[fieldName],
                     editNote.content[fieldName]
                   );
-                } else {
-                  var subsequentChunkPs = getFileChunksP(
-                    chunkSize,
-                    chunkCount,
-                    [...Array(chunkCount).keys()].slice(1),
-                    file,
-                    fieldName,
-                    clientUploadId,
-                    $progressBar
-                  );
-                  return Promise.all(subsequentChunkPs).then(
-                    function (results) {
-                      var url = results.find((p) => p.url)?.url;
-                      if (!url) {
-                        $progressBar.hide();
-                        throw new Error("No url is returned, file upload failed");
-                      }
-                      editNote.content[fieldName] = url;
-                      updateFileSection(
-                        $contentMap[fieldName],
-                        fieldName,
-                        invitation.reply.content[fieldName],
-                        editNote.content[fieldName]
-                      );
-                    },
-                    function (e) {
-                      subsequentChunkPs.forEach((p) => p.abort());
-                      $progressBar.hide();
-                      throw e;
-                    }
-                  );
                 }
-              },
-              function (e) {
-                $progressBar.hide();
-                onError(e);
-              }
-            );
+              );
+            }
           });
           Promise.all(promises).then(
             function () {
