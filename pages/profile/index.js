@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Router, { useRouter } from 'next/router'
 import pick from 'lodash/pick'
 import random from 'lodash/random'
+import { nanoid } from 'nanoid'
 import NoteList from '../../components/NoteList'
 import Icon from '../../components/Icon'
 import withError from '../../components/withError'
@@ -163,6 +164,7 @@ const RecentPublications = ({ profileId, publications, count, loading, preferred
   return publications.length > 0 ? (
     <>
       <NoteList
+        key={nanoid()}
         notes={publications.slice(0, numPublicationsToShow)}
         displayOptions={displayOptions}
       />
@@ -275,6 +277,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
       setPublications(apiRes.notes)
       setCount(apiRes.count)
     }
+    $('[data-toggle="tooltip"]').tooltip('enable')
     $('[data-toggle="tooltip"]').tooltip({ container: 'body' })
   }
 
@@ -349,11 +352,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
               {profile.emails
                 .filter((email) => !email.hidden)
                 .map((email) => (
-                  <ProfileEmail
-                    key={email.email}
-                    email={email}
-                    publicProfile={publicProfile}
-                  />
+                  <ProfileEmail key={nanoid()} email={email} publicProfile={publicProfile} />
                 ))
                 .reduce(
                   (accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]),
