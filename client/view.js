@@ -3051,6 +3051,7 @@ module.exports = (function() {
       ret[k] = mkComposerInput(k, invitation.reply.content[k], invitation.reply.content[k]?.default || '', { useDefaults: true, user: user, isPreview: params.isPreview });
       return ret;
     }, {});
+    var uploadInProgressFields = [];
 
     function buildEditor(readers, signatures) {
       var $submitButton = $('<button class="btn btn-sm">Submit</button>');
@@ -3146,6 +3147,11 @@ module.exports = (function() {
           }
           if (window.USE_PARALLEL_UPLOAD) {
             //#region parallel upload
+            var uploadInProgressField = uploadInProgressFields.find(p=>p.fieldName===fieldName)
+              if(uploadInProgressField) {
+                uploadInProgressField.noteRef = note;
+                return uploadInProgressField.sendChunksPromiseRef
+              }
             var $progressBar = $contentMap[fieldName].find("div.progress");
             var file = files[fieldName];
             var chunkSize = 1024 * 1000 * 5; //5mb
@@ -3175,27 +3181,42 @@ module.exports = (function() {
                       $progressBar.hide();
                       throw new Error("No URL returned, file upload failed");
                     }
-                    note.content[fieldName] = result.url;
-                    updateFileSection(
-                      $contentMap[fieldName],
-                      fieldName,
-                      invitation.reply.content[fieldName],
-                      note.content[fieldName]
-                    );
+                    var uploadInProgressField = uploadInProgressFields.find(p=>p.fieldName===fieldName)
+                    if(uploadInProgressField){
+                      uploadInProgressField.noteRef.content[fieldName] = result.url;
+                      updateFileSection(
+                        $contentMap[fieldName],
+                        fieldName,
+                        invitation.reply.content[fieldName],
+                        uploadInProgressField.noteRef.content[fieldName]
+                      );
+                    } else {
+                      note.content[fieldName] = result.url;
+                      updateFileSection(
+                        $contentMap[fieldName],
+                        fieldName,
+                        invitation.reply.content[fieldName],
+                        note.content[fieldName]
+                      );
+                    }
+                    uploadInProgressFields=uploadInProgressFields.filter(p=>p.fieldName!==fieldName);
                   }
                 },
                 function (e) {
                   $progressBar.hide();
+                  uploadInProgressFields=uploadInProgressFields.filter(p=>p.fieldName!==fieldName);
                   onError(e);
                 }
               );
             };
             $progressBar.show();
-            return chunks.reduce(function (oldPromises, currentChunk, i) {
+            var sendChunksPromiseRef = chunks.reduce(function (oldPromises, currentChunk, i) {
               return oldPromises.then(function (_) {
                 return sendSingleChunk(currentChunk, i);
               });
             }, Promise.resolve());
+            uploadInProgressFields.push({["fieldName"]:fieldName,noteRef:note,promiseRef:sendChunksPromiseRef});
+            return sendChunksPromiseRef
             //#endregion
           } else {
             var data = new FormData();
@@ -3559,6 +3580,7 @@ module.exports = (function() {
       map[fieldName] = mkComposerInput(fieldName, invitation.reply.content[fieldName], fieldContent, { note: note, useDefaults: true });
       return map;
     }, {});
+    var uploadInProgressFields = [];
 
     function buildEditor(readers, signatures) {
       var $submitButton = $('<button class="btn btn-sm">Submit</button>');
@@ -3682,6 +3704,11 @@ module.exports = (function() {
             }
             if (window.USE_PARALLEL_UPLOAD) {
               //#region parallel upload
+              var uploadInProgressField = uploadInProgressFields.find(p=>p.fieldName===fieldName)
+              if(uploadInProgressField) {
+                uploadInProgressField.noteRef = editNote;
+                return uploadInProgressField.sendChunksPromiseRef
+              }
               var $progressBar = $contentMap[fieldName].find("div.progress");
               var file = files[fieldName];
               var chunkSize = 1024 * 1000 * 5; //5mb
@@ -3710,27 +3737,42 @@ module.exports = (function() {
                         $progressBar.hide();
                         throw new Error("No URL returned, file upload failed");
                       }
-                      editNote.content[fieldName] = result.url;
-                      updateFileSection(
-                        $contentMap[fieldName],
-                        fieldName,
-                        invitation.reply.content[fieldName],
-                        editNote.content[fieldName]
-                      );
+                      var uploadInProgressField = uploadInProgressFields.find(p=>p.fieldName===fieldName)
+                      if(uploadInProgressField){
+                        uploadInProgressField.noteRef.content[fieldName] = result.url;
+                        updateFileSection(
+                          $contentMap[fieldName],
+                          fieldName,
+                          invitation.reply.content[fieldName],
+                          uploadInProgressField.noteRef.content[fieldName]
+                        );
+                      } else {
+                        editNote.content[fieldName] = result.url;
+                        updateFileSection(
+                          $contentMap[fieldName],
+                          fieldName,
+                          invitation.reply.content[fieldName],
+                          editNote.content[fieldName]
+                        );
+                      }
+                      uploadInProgressFields=uploadInProgressFields.filter(p=>p.fieldName!==fieldName);
                     }
                   },
                   function (e) {
                     $progressBar.hide();
+                    uploadInProgressFields=uploadInProgressFields.filter(p=>p.fieldName!==fieldName);
                     onError(e);
                   }
                 );
               };
               $progressBar.show();
-              return chunks.reduce(function (oldPromises, currentChunk, i) {
+              var sendChunksPromiseRef = chunks.reduce(function (oldPromises, currentChunk, i) {
                 return oldPromises.then(function (_) {
                   return sendSingleChunk(currentChunk, i);
                 });
               }, Promise.resolve());
+              uploadInProgressFields.push({["fieldName"]:fieldName,noteRef:editNote,promiseRef:sendChunksPromiseRef});
+              return sendChunksPromiseRef
               //#endregion
             } else {
               var data = new FormData();
