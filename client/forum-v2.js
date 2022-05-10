@@ -65,50 +65,48 @@ module.exports = function(forumId, noteId, invitationId, user) {
     };
 
     var signatureProfilesP = function signatureProfilesP(notes) {
-      var signatureMembers = new Set(
-        notes.reduce(function (acc, note) {
-          return acc.concat(
-            note.details.signatures.flatMap(function (p) {
-              return p.members;
-            })
-          );
-        }, [])
-      );
-      var ids = [];
-      var emails = [];
-      signatureMembers.forEach(function (p) {
-        return p.startsWith("~") ? ids.push(p) : emails.push(p);
+      var ids = new Set();
+      var emails = new Set();
+      notes.forEach(function (note) {
+        note.details.signatures?.forEach(function (signature) {
+          signature.members?.forEach(function (member) {
+            if (member.startsWith("~")) {
+              ids.add(member);
+            } else {
+              emails.add(member);
+            }
+          });
+        });
       });
-      return $.when(
-        ids.length
-          ? Webfield.get(
-              "/profiles",
-              {
-                ids: ids,
-              },
-              {
-                handleErrors: false,
-              }
-            )
-          : Promise.resolve([]),
-        emails.length
-          ? Webfield.get(
-              "/profiles",
-              {
-                emails: emails,
-              },
-              {
-                handleErrors: false,
-              }
-            )
-          : Promise.resolve([])
-      ).then(function (idsResult, emailsResult) {
+      var idsP = ids.size
+        ? Webfield.get(
+            "/profiles",
+            {
+              ids: Array.from(ids),
+            },
+            {
+              handleErrors: false,
+            }
+          )
+        : Promise.resolve([]);
+      var emailsP = emails.size
+        ? Webfield.get(
+            "/profiles",
+            {
+              emails: Array.from(emails),
+            },
+            {
+              handleErrors: false,
+            }
+          )
+        : Promise.resolve([]);
+      return $.when(idsP, emailsP).then(function (idsResult, emailsResult) {
         notes.forEach(function (note) {
           if (!note.details.signatures.length) return;
           note.details.signatures.forEach(function (signature) {
             signature.members = signature.members.map(function (member) {
               var profile = null;
-              if (ids.includes(member)) {
+              if (ids.has(member)) {
                 profile = idsResult.profiles.find(function (p) {
                   return p.content.names.some(function (q) {
                     return q.username === member;
