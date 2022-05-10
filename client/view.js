@@ -3173,7 +3173,6 @@ module.exports = (function() {
               data.append("totalChunks", chunkCount);
               data.append("clientUploadId", clientUploadId);
               data.append("file", chunk);
-              console.log(chunk)
               return Webfield.sendFileChunk(data, $progressBar).then(
                 function (result) {
                   if (index + 1 === chunkCount) {
@@ -3181,7 +3180,9 @@ module.exports = (function() {
                       $progressBar.hide();
                       throw new Error("No URL returned, file upload failed");
                     }
-                    var uploadInProgressField = uploadInProgressFields.find(p=>p.fieldName===fieldName)
+                    var uploadInProgressField = uploadInProgressFields.find(
+                      (p) => p.fieldName === fieldName
+                    );
                     if(uploadInProgressField){
                       uploadInProgressField.noteRef.content[fieldName] = result.url;
                       updateFileSection(
@@ -3199,12 +3200,16 @@ module.exports = (function() {
                         note.content[fieldName]
                       );
                     }
-                    uploadInProgressFields=uploadInProgressFields.filter(p=>p.fieldName!==fieldName);
+                    uploadInProgressFields = uploadInProgressFields.filter(
+                      (p) => p.fieldName !== fieldName
+                    );
                   }
                 },
                 function (e) {
                   $progressBar.hide();
-                  uploadInProgressFields=uploadInProgressFields.filter(p=>p.fieldName!==fieldName);
+                  uploadInProgressFields = uploadInProgressFields.filter(
+                    (p) => p.fieldName !== fieldName
+                  );
                   onError(e);
                 }
               );
@@ -3215,7 +3220,11 @@ module.exports = (function() {
                 return sendSingleChunk(currentChunk, i);
               });
             }, Promise.resolve());
-            uploadInProgressFields.push({["fieldName"]:fieldName,noteRef:note,promiseRef:sendChunksPromiseRef});
+            uploadInProgressFields.push({
+              fieldName,
+              noteRef: note,
+              promiseRef: sendChunksPromiseRef,
+            });
             return sendChunksPromiseRef
             //#endregion
           } else {
@@ -3737,7 +3746,9 @@ module.exports = (function() {
                         $progressBar.hide();
                         throw new Error("No URL returned, file upload failed");
                       }
-                      var uploadInProgressField = uploadInProgressFields.find(p=>p.fieldName===fieldName)
+                      var uploadInProgressField = uploadInProgressFields.find(
+                        (p) => p.fieldName === fieldName
+                      );
                       if(uploadInProgressField){
                         uploadInProgressField.noteRef.content[fieldName] = result.url;
                         updateFileSection(
@@ -3755,12 +3766,16 @@ module.exports = (function() {
                           editNote.content[fieldName]
                         );
                       }
-                      uploadInProgressFields=uploadInProgressFields.filter(p=>p.fieldName!==fieldName);
+                      uploadInProgressFields = uploadInProgressFields.filter(
+                        (p) => p.fieldName !== fieldName
+                      );
                     }
                   },
                   function (e) {
                     $progressBar.hide();
-                    uploadInProgressFields=uploadInProgressFields.filter(p=>p.fieldName!==fieldName);
+                    uploadInProgressFields = uploadInProgressFields.filter(
+                      (p) => p.fieldName !== fieldName
+                    );
                     onError(e);
                   }
                 );
@@ -3771,7 +3786,11 @@ module.exports = (function() {
                   return sendSingleChunk(currentChunk, i);
                 });
               }, Promise.resolve());
-              uploadInProgressFields.push({["fieldName"]:fieldName,noteRef:editNote,promiseRef:sendChunksPromiseRef});
+              uploadInProgressFields.push({
+                fieldName,
+                noteRef: editNote,
+                promiseRef: sendChunksPromiseRef,
+              });
               return sendChunksPromiseRef
               //#endregion
             } else {
