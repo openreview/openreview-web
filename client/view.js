@@ -3157,8 +3157,7 @@ module.exports = (function() {
             var chunkSize = 1024 * 1000 * 5; //5mb
             var chunkCount = Math.ceil(file.size / chunkSize);
             var clientUploadId = nanoid();
-            var chunks = _.keys(Array(chunkCount)).map((chunkIndex) => {
-              chunkIndex = Number(chunkIndex);
+            var chunks = Array.from(new Array(chunkCount), (e, chunkIndex) => {
               return file.slice(
                 chunkIndex * chunkSize,
                 (chunkIndex + 1) * chunkSize,
@@ -3723,8 +3722,7 @@ module.exports = (function() {
               var chunkSize = 1024 * 1000 * 5; //5mb
               var chunkCount = Math.ceil(file.size / chunkSize);
               var clientUploadId = nanoid();
-              var chunks = _.keys(Array(chunkCount)).map((chunkIndex) => {
-                chunkIndex = Number(chunkIndex);
+              var chunks = Array.from(new Array(chunkCount), (e, chunkIndex) => {
                 return file.slice(
                   chunkIndex * chunkSize,
                   (chunkIndex + 1) * chunkSize,
