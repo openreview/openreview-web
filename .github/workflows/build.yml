@@ -87,6 +87,7 @@ jobs:
           mkdir files
           mkdir files/attachments
           mkdir files/pdfs
+          mkdir files/temp
       - name: Setup OpenReview API 2
         if: steps.cache-openreview-api.outputs.cache-hit != 'true'
         run: |
