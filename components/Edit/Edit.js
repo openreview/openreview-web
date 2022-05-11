@@ -13,7 +13,8 @@ const Edit = ({ edit, options }) => (
           edit.tcdate,
           edit.mdate,
           edit.tmdate,
-          edit.content?.year?.value
+          edit.content?.year?.value,
+          true
         )}
       </li>
     </ul>
