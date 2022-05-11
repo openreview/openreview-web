@@ -88,7 +88,7 @@ jobs:
           mkdir files/attachments
           mkdir files/pdfs
           mkdir files/temp
-      - name: Setup OpenReview API 2
+      - name: Install API Dependencies
         if: steps.cache-openreview-api.outputs.cache-hit != 'true'
         run: |
           cd openreview-api
