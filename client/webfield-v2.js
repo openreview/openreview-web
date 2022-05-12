@@ -486,7 +486,8 @@ module.exports = (function() {
               groups: groupIds,
               message: messageContent,
               subject: subject,
-              forumUrl: user.forumUrl
+              forumUrl: user.forumUrl,
+              replyTo: options.reminderOptions.replyTo
             })
             count += groupIds.length;
           }
@@ -538,6 +539,7 @@ module.exports = (function() {
             forumUrl: forumUrl,
             subject: $('#message-reviewers-modal input[name="subject"]').val().trim(),
             message: $('#message-reviewers-modal textarea[name="message"]').val().trim(),
+            replyTo: options.reminderOptions.replyTo
           };
 
           $('#message-reviewers-modal').modal('hide');
@@ -571,7 +573,7 @@ module.exports = (function() {
           postData.forumUrl
         );
 
-        return Webfield.post('/messages', _.pick(postData, ['groups', 'subject', 'message']))
+        return Webfield.post('/messages', _.pick(postData, ['groups', 'subject', 'message', 'replyTo']))
           .then(function(response) {
             // Save the timestamp in the local storage
             for (var i = 0; i < postData.groups.length; i++) {
@@ -855,7 +857,7 @@ module.exports = (function() {
     var renderTaskItem = function(inv) {
       return (
         '<li class="note ' + (inv.complete ? 'completed' : '') + '">' +
-          '<h4><a href="/forum?id=' + inv.forumId + (inv.complete ? '' : '&invitationId=' + inv.id) + (options.referrer ? '&referrer=' + options.referrer : '') + '" target="_blank">' +
+          '<h4><a href="/invitation/info?id=' + inv.id + (options.referrer ? '&referrer=' + options.referrer : '') + '" target="_blank">' +
             view.prettyInvitationId(inv.id) +
           '</a></h4>' +
           (inv.startDateStr ? '<p class="mb-1"><span class="duedate">Start: ' + inv.startDateStr + '</span></p>' : '') +
