@@ -1732,7 +1732,7 @@ module.exports = (function() {
     return readersHtml;
   };
 
-  var orderCache =  {};
+  var orderCache = {};
   var order = function(replyContent, invitationId, disableCache) {
     if (invitationId && orderCache[invitationId] && !disableCache) {
       return orderCache[invitationId];
@@ -1885,7 +1885,7 @@ module.exports = (function() {
   };
 
   var buildContent = function(note, params, additionalOmittedFields) {
-    if (!params.withContent || (note.ddate && note.ddate < Date.now())) {
+    if (!params?.withContent || (note.ddate && note.ddate < Date.now())) {
       return;
     }
 
@@ -2416,6 +2416,7 @@ module.exports = (function() {
 
   var deleteOrRestoreNote = function(note, noteTitle, user, onTrashedOrRestored) {
     var newNote = _.cloneDeep(note);
+    newNote.details = newNote.details || {};
     var isDeleted = newNote.ddate && newNote.ddate < Date.now();
 
     if (isDeleted) {
