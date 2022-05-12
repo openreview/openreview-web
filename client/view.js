@@ -3730,8 +3730,10 @@ module.exports = (function() {
       }
 
       $(this).on('keyup', _.throttle(function() {
-        localStorage.setItem(uniqueKey, $(this).val());
-        $noteEditor.data('hasUnsavedData', true);
+        try {
+          localStorage.setItem(uniqueKey, $(this).val());
+          $noteEditor.data('hasUnsavedData', true);
+        } catch {}
       }, 2000));
     });
 

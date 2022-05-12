@@ -493,8 +493,13 @@ module.exports = (function() {
           }
         });
 
-        localStorage.setItem('messages', JSON.stringify(messages));
-        localStorage.setItem('messageCount', count);
+        try {
+          localStorage.setItem('messages', JSON.stringify(messages));
+          localStorage.setItem('messageCount', count);
+        } catch (error) {
+          promptError('Too many messages. Please select a smaller number of users and try again.');
+          return false;
+        }
 
         // Show step 2
         var namesHtml = _.flatMap(userCounts, function(obj) {
@@ -578,7 +583,11 @@ module.exports = (function() {
             // Save the timestamp in the local storage
             for (var i = 0; i < postData.groups.length; i++) {
               var userId = postData.groups[i];
-              localStorage.setItem(postData.forumUrl + '|' + userId, Date.now());
+              try {
+                localStorage.setItem(postData.forumUrl + '|' + userId, Date.now());
+              } catch (error) {
+                console.warn(`Could not set timestamp for ${userId}`);
+              }
             }
           });
       };
