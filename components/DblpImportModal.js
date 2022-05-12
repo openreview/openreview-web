@@ -1,6 +1,7 @@
 /* globals $: false */
 
 import { useState, useRef, useEffect, useContext } from 'react'
+import { nanoid } from 'nanoid'
 import LoadingSpinner from './LoadingSpinner'
 import DblpPublicationTable from './DblpPublicationTable'
 import {
@@ -37,7 +38,7 @@ const ErrorMessage = ({ message, dblpNames, profileNames }) => {
           <p>Your current names are listed below:</p>
           <ul>
             {profileNames.map((name) => (
-              <li key={name}>{getNameString(name)}</li>
+              <li key={name.key}>{getNameString(name)}</li>
             ))}
           </ul>
         </>
@@ -56,6 +57,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
   const [selectedPublications, setSelectedPublications] = useState([])
   const [isSavingPublications, setIsSavingPublications] = useState(false)
   const [isFetchingPublications, setIsFetchingPublications] = useState(false)
+  const [hasError, setHasError] = useState(false)
   // user's existing publications in openreview (for filtering and constructing publication link)
   const publicationsInOpenReview = useRef([])
   const publicationsImportedByOtherProfiles = useRef([])
@@ -91,6 +93,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
     setMessage('Fetching publications from DBLP...')
     setIsFetchingPublications(true)
     setPublications([])
+    setHasError(false)
     dblpNames.current = null
     if (isPersistentUrl) setDblpUrl(dblpPersistentUrl)
 
@@ -112,22 +115,22 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
         setIsFetchingPublications(false)
         return
       }
-      setPublications(allDblpPublications)
+      setPublications(allDblpPublications.map((p) => ({ ...p, key: nanoid() })))
       setMessage(`${allDblpPublications.length} publications fetched.`)
 
       // contains id (for link) and title (for filtering) of existing publications in openreivew
       publicationsInOpenReview.current = await getAllPapersByGroupId(profileId, accessToken)
-      const result = await getAllPapersImportedByOtherProfiles(
+      publicationsImportedByOtherProfiles.current = await getAllPapersImportedByOtherProfiles(
         allDblpPublications.map((p) => ({
           authorIndex: p.authorIndex,
           authorCount: p.authorCount,
           title: p.formattedTitle,
           venue: p.venue,
+          year: p.year,
         })),
         profileNames,
         accessToken
       )
-      publicationsImportedByOtherProfiles.current = result.filter((p) => p)
       const { numExisting, numAssociatedWithOtherProfile, noPubsToImport } =
         getExistingFromDblpPubs(allDblpPublications)
       if (noPubsToImport) {
@@ -161,6 +164,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
         setMessage(error.message)
         setShowPersistentUrlInput(false)
       }
+      setHasError(true)
     }
     setIsFetchingPublications(false)
   }
@@ -170,8 +174,13 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
 
     try {
       await Promise.all(
-        selectedPublications.map((index) =>
-          postOrUpdatePaper(publications[index], profileId, profileNames, accessToken)
+        selectedPublications.map((key) =>
+          postOrUpdatePaper(
+            publications.find((p) => p.key === key),
+            profileId,
+            profileNames,
+            accessToken
+          )
         )
       )
 
@@ -345,7 +354,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
               type="button"
               className="btn btn-primary"
               onClick={importSelectedPublications}
-              disabled={!selectedPublications.length || isSavingPublications}
+              disabled={!selectedPublications.length || isSavingPublications || hasError}
             >
               Add to Your Profile
               {isSavingPublications && (
