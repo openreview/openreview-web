@@ -3,7 +3,7 @@ import Icon from './Icon'
 const Accordion = ({ sections, options }) => (
   <div
     id={options.id}
-    className={`webfield-accordion panel-group ${options.extraClasses}`}
+    className={`webfield-accordion panel-group ${options.extraClasses ?? ''}`}
     role="tablist"
     aria-multiselectable="true"
   >
@@ -23,21 +23,20 @@ const Accordion = ({ sections, options }) => (
 const SectionHeading = ({ id, heading, options }) => (
   <div className="panel-heading" role="tab">
     <h4 className="panel-title">
-      <SectionHeadingLink targetId={id} parentId={options.id}>
+      <SectionHeadingLink targetId={id} parentId={options.id} collapsed={options.collapsed}>
         <Icon name="triangle-bottom" />
-      </SectionHeadingLink>
-      {' '}
-      <SectionHeadingLink targetId={id} parentId={options.id}>
+      </SectionHeadingLink>{' '}
+      <SectionHeadingLink targetId={id} parentId={options.id} collapsed={options.collapsed}>
         {heading}
       </SectionHeadingLink>
     </h4>
   </div>
 )
 
-const SectionHeadingLink = ({ targetId, parentId, children }) => (
+const SectionHeadingLink = ({ targetId, parentId, children, collapsed }) => (
   <a
     href={`#${targetId}`}
-    className="collapse-btn collapsed"
+    className={`collapse-btn${collapsed ? ' collapsed' : ''}`}
     role="button"
     data-toggle="collapse"
     data-parent={parentId}
@@ -47,22 +46,33 @@ const SectionHeadingLink = ({ targetId, parentId, children }) => (
   </a>
 )
 
-const SectionBody = ({ id, body, options }) => (
-  <div
-    id={id}
-    className="panel-collapse collapse"
-    role="tabpanel"
-  >
-    <div className="panel-body">
-      {/* eslint-disable-next-line no-nested-ternary */}
-      {options.html ? (
-        // eslint-disable-next-line react/no-danger
-        <div dangerouslySetInnerHTML={{ __html: body }} />
-      ) : (
-        options.bodyContainer === 'div' ? <div>{body}</div> : <p>{body}</p>
-      )}
+const SectionBody = ({ id, body, options }) => {
+  const renderBody = () => {
+    switch (options.bodyContainer) {
+      case 'div':
+        return <div>{body}</div>
+      case '':
+        return body
+      default:
+        return <p>{body}</p>
+    }
+  }
+  return (
+    <div
+      id={id}
+      className={`panel-collapse collapse${options.collapsed ? '' : ' in'}`}
+      role="tabpanel"
+    >
+      <div className="panel-body">
+        {options.html ? (
+          // eslint-disable-next-line react/no-danger
+          <div dangerouslySetInnerHTML={{ __html: body }} />
+        ) : (
+          renderBody()
+        )}
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 export default Accordion
