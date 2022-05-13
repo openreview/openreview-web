@@ -232,6 +232,32 @@ module.exports = (function() {
     });
   };
 
+  var sendFileChunk = function(data,$progressBar){
+    var baseUrl = window.OR_API_URL ? window.OR_API_URL : '';
+    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
+    var authHeaders =  token ? { Authorization: 'Bearer ' + token } : {};
+    return $.ajax({
+      url: baseUrl + '/attachment/chunk',
+      type: 'put',
+      contentType: false,
+      processData: false,
+      data: data,
+      headers:  Object.assign(defaultHeaders, authHeaders),
+      xhrFields: {
+        withCredentials: true
+      },
+      success: function(result){
+        if (!result.url) {
+          var progress = `${(
+            (Object.values(result).filter((p) => p === "completed").length * 100) /
+            Object.values(result).length
+          ).toFixed(0)}%`;
+          $progressBar.find(".progress-bar").css("width", progress).text(progress);
+        }
+      }
+    })
+  }
+
   // API Functions
   var getSubmissionInvitation = function(invitationId, options) {
     var defaults = {
@@ -1869,6 +1895,7 @@ module.exports = (function() {
     getAll: getAll,
     setToken: setToken,
     sendFile: sendFile,
+    sendFileChunk: sendFileChunk,
     getErrorFromJqXhr: getErrorFromJqXhr,
     setupAutoLoading: setupAutoLoading,
     disableAutoLoading: disableAutoLoading,

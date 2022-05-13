@@ -1602,8 +1602,9 @@ module.exports = (function() {
         });
     }
 
+    var $progressBar = $('<div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 2%"/></div>').hide()
     return $clearBtn
-      ? $('<div class="input-group file-input-group">').append($notePdf, $('<span class="input-group-btn">').append($clearBtn))
+      ? $('<div class="input-group file-input-group">').append($notePdf, $('<span class="input-group-btn">').append($clearBtn)).add($progressBar)
       : $notePdf
   };
 
@@ -3050,6 +3051,7 @@ module.exports = (function() {
       ret[k] = mkComposerInput(k, invitation.reply.content[k], invitation.reply.content[k]?.default || '', { useDefaults: true, user: user, isPreview: params.isPreview });
       return ret;
     }, {});
+    var uploadInProgressFields = [];
 
     function buildEditor(readers, signatures) {
       var $submitButton = $('<button class="btn btn-sm">Submit</button>');
@@ -3118,6 +3120,8 @@ module.exports = (function() {
             errorMsg = e.responseJSON.message;
           } else if (e.readyState === 0) {
             errorMsg = 'There is an error with the network and the file could not be uploaded'
+          } else if (e.message) {
+            errorMsg = e.message;
           } else {
             errorMsg = 'There was an error uploading the file';
           }
@@ -3141,19 +3145,113 @@ module.exports = (function() {
               return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, note.content.pdf);
             });
           }
-          var data = new FormData();
-          data.append('invitationId', invitation.id);
-          data.append('name', fieldName);
-          data.append('file', files[fieldName]);
-          return Webfield.sendFile('/attachment', data, undefined, fieldName).then(function (result) {
-            note.content[fieldName] = result.url;
-            updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], note.content[fieldName]);
-          });
+          if (window.USE_PARALLEL_UPLOAD) {
+            //#region parallel upload
+            var uploadInProgressField = uploadInProgressFields.find(p=>p.fieldName===fieldName)
+              if(uploadInProgressField) {
+                uploadInProgressField.noteRef = note;
+                return uploadInProgressField.sendChunksPromiseRef
+              }
+            var $progressBar = $contentMap[fieldName].find("div.progress");
+            var file = files[fieldName];
+            var chunkSize = 1024 * 1000 * 5; //5mb
+            var chunkCount = Math.ceil(file.size / chunkSize);
+            var clientUploadId = nanoid();
+            var chunks = Array.from(new Array(chunkCount), (e, chunkIndex) => {
+              return file.slice(
+                chunkIndex * chunkSize,
+                (chunkIndex + 1) * chunkSize,
+                file.type
+              );
+            });
+            var sendSingleChunk = function (chunk, index) {
+              var data = new FormData();
+              data.append("invitationId", invitation.id);
+              data.append("name", fieldName);
+              data.append("chunkIndex", index + 1);
+              data.append("totalChunks", chunkCount);
+              data.append("clientUploadId", clientUploadId);
+              data.append("file", chunk);
+              return Webfield.sendFileChunk(data, $progressBar).then(
+                function (result) {
+                  if (index + 1 === chunkCount) {
+                    if (!result.url) {
+                      $progressBar.hide();
+                      throw new Error("No URL returned, file upload failed");
+                    }
+                    var uploadInProgressField = uploadInProgressFields.find(
+                      (p) => p.fieldName === fieldName
+                    );
+                    if(uploadInProgressField){
+                      uploadInProgressField.noteRef.content[fieldName] = result.url;
+                      updateFileSection(
+                        $contentMap[fieldName],
+                        fieldName,
+                        invitation.reply.content[fieldName],
+                        uploadInProgressField.noteRef.content[fieldName]
+                      );
+                    } else {
+                      note.content[fieldName] = result.url;
+                      updateFileSection(
+                        $contentMap[fieldName],
+                        fieldName,
+                        invitation.reply.content[fieldName],
+                        note.content[fieldName]
+                      );
+                    }
+                    uploadInProgressFields = uploadInProgressFields.filter(
+                      (p) => p.fieldName !== fieldName
+                    );
+                  }
+                },
+                function (e) {
+                  $progressBar.hide();
+                  uploadInProgressFields = uploadInProgressFields.filter(
+                    (p) => p.fieldName !== fieldName
+                  );
+                  onError(e);
+                }
+              );
+            };
+            $progressBar.show();
+            var sendChunksPromiseRef = chunks.reduce(function (oldPromises, currentChunk, i) {
+              return oldPromises.then(function (_) {
+                return sendSingleChunk(currentChunk, i);
+              });
+            }, Promise.resolve());
+            uploadInProgressFields.push({
+              fieldName,
+              noteRef: note,
+              promiseRef: sendChunksPromiseRef,
+            });
+            return sendChunksPromiseRef
+            //#endregion
+          } else {
+            var data = new FormData();
+            data.append("invitationId", invitation.id);
+            data.append("name", fieldName);
+            data.append("file", files[fieldName]);
+            return Webfield.sendFile("/attachment", data, undefined, fieldName).then(
+              function (result) {
+                note.content[fieldName] = result.url;
+                updateFileSection(
+                  $contentMap[fieldName],
+                  fieldName,
+                  invitation.reply.content[fieldName],
+                  note.content[fieldName]
+                );
+              }
+            );
+          }
         });
-
-        $.when.apply($, promises).then(function() {
-          saveNote(note);
-        }, onError);
+        Promise.all(promises).then(
+          function () {
+            saveNote(note);
+          },
+          function (e) {
+            if (e) onError(e);
+          }
+        );
       });
 
       $cancelButton.click(function() {
@@ -3490,6 +3588,7 @@ module.exports = (function() {
       map[fieldName] = mkComposerInput(fieldName, invitation.reply.content[fieldName], fieldContent, { note: note, useDefaults: true });
       return map;
     }, {});
+    var uploadInProgressFields = [];
 
     function buildEditor(readers, signatures) {
       var $submitButton = $('<button class="btn btn-sm">Submit</button>');
@@ -3586,7 +3685,9 @@ module.exports = (function() {
               errorMsg = e.responseJSON.message;
             } else if (e.readyState === 0) {
               errorMsg = 'There is an error with the network and the file could not be uploaded'
-            } else {
+            } else if (e.message) {
+              errorMsg = e.message;
+            }else {
               errorMsg = 'There was an error uploading the file';
             }
 
@@ -3609,19 +3710,113 @@ module.exports = (function() {
                 return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, editNote.content.pdf);
               });
             }
-            var data = new FormData();
-            data.append('invitationId', invitation.id);
-            data.append('name', fieldName);
-            data.append('file', files[fieldName]);
-            return Webfield.sendFile('/attachment' , data, undefined, fieldName).then(function(result) {
-              editNote.content[fieldName] = result.url;
-              updateFileSection($contentMap[fieldName], fieldName, invitation.reply.content[fieldName], editNote.content[fieldName]);
-            });
+            if (window.USE_PARALLEL_UPLOAD) {
+              //#region parallel upload
+              var uploadInProgressField = uploadInProgressFields.find(p=>p.fieldName===fieldName)
+              if(uploadInProgressField) {
+                uploadInProgressField.noteRef = editNote;
+                return uploadInProgressField.sendChunksPromiseRef
+              }
+              var $progressBar = $contentMap[fieldName].find("div.progress");
+              var file = files[fieldName];
+              var chunkSize = 1024 * 1000 * 5; //5mb
+              var chunkCount = Math.ceil(file.size / chunkSize);
+              var clientUploadId = nanoid();
+              var chunks = Array.from(new Array(chunkCount), (e, chunkIndex) => {
+                return file.slice(
+                  chunkIndex * chunkSize,
+                  (chunkIndex + 1) * chunkSize,
+                  file.type
+                );
+              });
+              var sendSingleChunk = function (chunk, index) {
+                var data = new FormData();
+                data.append("invitationId", invitation.id);
+                data.append("name", fieldName);
+                data.append("chunkIndex", index + 1);
+                data.append("totalChunks", chunkCount);
+                data.append("clientUploadId", clientUploadId);
+                data.append("file", chunk);
+                return Webfield.sendFileChunk(data, $progressBar).then(
+                  function (result) {
+                    if (index + 1 === chunkCount) {
+                      if (!result.url) {
+                        $progressBar.hide();
+                        throw new Error("No URL returned, file upload failed");
+                      }
+                      var uploadInProgressField = uploadInProgressFields.find(
+                        (p) => p.fieldName === fieldName
+                      );
+                      if(uploadInProgressField){
+                        uploadInProgressField.noteRef.content[fieldName] = result.url;
+                        updateFileSection(
+                          $contentMap[fieldName],
+                          fieldName,
+                          invitation.reply.content[fieldName],
+                          uploadInProgressField.noteRef.content[fieldName]
+                        );
+                      } else {
+                        editNote.content[fieldName] = result.url;
+                        updateFileSection(
+                          $contentMap[fieldName],
+                          fieldName,
+                          invitation.reply.content[fieldName],
+                          editNote.content[fieldName]
+                        );
+                      }
+                      uploadInProgressFields = uploadInProgressFields.filter(
+                        (p) => p.fieldName !== fieldName
+                      );
+                    }
+                  },
+                  function (e) {
+                    $progressBar.hide();
+                    uploadInProgressFields = uploadInProgressFields.filter(
+                      (p) => p.fieldName !== fieldName
+                    );
+                    onError(e);
+                  }
+                );
+              };
+              $progressBar.show();
+              var sendChunksPromiseRef = chunks.reduce(function (oldPromises, currentChunk, i) {
+                return oldPromises.then(function (_) {
+                  return sendSingleChunk(currentChunk, i);
+                });
+              }, Promise.resolve());
+              uploadInProgressFields.push({
+                fieldName,
+                noteRef: editNote,
+                promiseRef: sendChunksPromiseRef,
+              });
+              return sendChunksPromiseRef
+              //#endregion
+            } else {
+              var data = new FormData();
+              data.append("invitationId", invitation.id);
+              data.append("name", fieldName);
+              data.append("file", files[fieldName]);
+              return Webfield.sendFile("/attachment", data, undefined, fieldName).then(
+                function (result) {
+                  editNote.content[fieldName] = result.url;
+                  updateFileSection(
+                    $contentMap[fieldName],
+                    fieldName,
+                    invitation.reply.content[fieldName],
+                    editNote.content[fieldName]
+                  );
+                }
+              );
+            }
           });
-
-          $.when.apply($, promises).then(function() {
-            saveNote(editNote);
-          }, onError);
+          Promise.all(promises).then(
+            function () {
+              saveNote(editNote);
+            },
+            function (e) {
+              if (e) onError(e);
+            }
+          );
         });
       });
 
