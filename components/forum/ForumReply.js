@@ -169,14 +169,12 @@ export default function ForumReply({ note, replies, updateNote }) {
           <Icon name="eye-open" />
           {note.readers.map(reader => prettyId(reader, true)).join(', ')}
         </span>
-        {note.details.revisions && (
-          <span className="revisions">
-            <Icon name="duplicate" />
-            <Link href={`/revisions?id=${note.id}`}>
-              <a>Show Revisions</a>
-            </Link>
-          </span>
-        )}
+        <span className="revisions">
+          <Icon name="duplicate" />
+          <Link href={`/revisions?id=${note.id}`}>
+            <a>Revisions</a>
+          </Link>
+        </span>
       </div>
 
       <NoteContentCollapsible

@@ -192,14 +192,12 @@ function ForumMeta({ note }) {
         </span>
       )}
 
-      {note.details.revisions && (
-        <span className="item">
-          <Icon name="duplicate" />
-          <Link href={`/revisions?id=${note.id}`}>
-            <a>Revisions</a>
-          </Link>
-        </span>
-      )}
+      <span className="item">
+        <Icon name="duplicate" />
+        <Link href={`/revisions?id=${note.id}`}>
+          <a>Revisions</a>
+        </Link>
+      </span>
 
       {/* eslint-disable-next-line no-underscore-dangle */}
       {note.content._bibtex?.value && (
