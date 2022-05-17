@@ -6,7 +6,14 @@ import SpinnerButton from '../SpinnerButton'
 import Markdown from './Markdown'
 import VenueHeader from './VenueHeader'
 
-const DeclineForm = ({ declineMessage, allowReducedQuota, args, setDecision, invitation }) => {
+const DeclineForm = ({
+  declineMessage,
+  allowReducedQuota,
+  args,
+  setDecision,
+  invitation,
+  isV2Invitation,
+}) => {
   const [isSaving, setIsSaving] = useState(false)
   const [quota, setQuota] = useState(null)
   const router = useRouter()
@@ -22,7 +29,9 @@ const DeclineForm = ({ declineMessage, allowReducedQuota, args, setDecision, inv
         ...(withReducedQuota && { quota }),
       }
       const noteToPost = constructRecruitmentResponseNote(invitation, noteContent)
-      await api.post('/notes', noteToPost)
+      await api.post(isV2Invitation ? '/notes/edits' : '/notes', noteToPost, {
+        version: isV2Invitation ? 2 : 1,
+      })
       setIsSaving(false)
       if (withReducedQuota) {
         setDecision('accept')
@@ -80,6 +89,7 @@ const RecruitmentForm = ({
 }) => {
   const [decision, setDecision] = useState(null)
   const [isSaving, setIsSaving] = useState(false)
+  const isV2Invitation = invitation.apiVersion === 2
   const onAcceptClick = async () => {
     setIsSaving(true)
     try {
@@ -90,7 +100,9 @@ const RecruitmentForm = ({
         response: 'Yes',
       }
       const noteToPost = constructRecruitmentResponseNote(invitation, noteContent)
-      await api.post('/notes', noteToPost)
+      await api.post(isV2Invitation ? '/notes/edits' : '/notes', noteToPost, {
+        version: isV2Invitation ? 2 : 1,
+      })
       setIsSaving(false)
       setDecision('accept')
     } catch (error) {
@@ -112,6 +124,7 @@ const RecruitmentForm = ({
             args={args}
             setDecision={setDecision}
             invitation={invitation}
+            isV2Invitation={isV2Invitation}
           />
         )
       default:
