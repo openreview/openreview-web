@@ -1473,9 +1473,13 @@ module.exports = (function() {
             if (params.isEdit) {
               params.onNoteEdited();
             } else {
-              Webfield2.get('/notes', { id: note.id }).then(function (result) {
-                params.onNoteEdited(result);
-              })
+              if (note.id) { // recruitment invitation web may pass note without id
+                Webfield2.get('/notes', { id: note.id }).then(function (result) {
+                  params.onNoteEdited(result);
+                });
+              } else {
+                params.onNoteEdited();
+              }
             }
           }
           $noteEditor.remove();
