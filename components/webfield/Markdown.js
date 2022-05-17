@@ -1,3 +1,4 @@
+/* globals DOMPurify,marked: false */
 import { useEffect, useState } from 'react'
 
 const Markdown = ({ text }) => {

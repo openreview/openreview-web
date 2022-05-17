@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import omit from 'lodash/omit'
 import without from 'lodash/without'
 import Head from 'next/head'
 import Router from 'next/router'
+import dynamic from 'next/dynamic'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import WebfieldContainer from '../../components/WebfieldContainer'
 import withError from '../../components/withError'
@@ -11,9 +11,7 @@ import api from '../../lib/api-client'
 import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 import { invitationModeToggle } from '../../lib/banner-links'
-import { VenueHeader } from '../../components/webfield/VenueHeader'
 import { generateInvitationWebfieldCode, parseComponentCode } from '../../lib/webfield-utils'
-import dynamic from 'next/dynamic'
 
 const Invitation = ({ invitationId, webfieldCode, writable, componentObj, appContext }) => {
   const { user, userLoading } = useUser()

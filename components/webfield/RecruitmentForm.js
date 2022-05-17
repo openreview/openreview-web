@@ -1,3 +1,4 @@
+/* globals promptError: false */
 import { useRouter } from 'next/router'
 import { useState } from 'react'
 import api from '../../lib/api-client'
