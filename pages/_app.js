@@ -3,6 +3,7 @@
 import App from 'next/app'
 import Router from 'next/router'
 import DOMPurify from 'dompurify'
+import { nanoid } from 'nanoid'
 import random from 'lodash/random'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
@@ -258,6 +259,7 @@ export default class OpenReviewApp extends App {
     window.marked = marked
     window.DOMPurify = DOMPurify
     window.MathJax = mathjaxConfig
+    window.nanoid = nanoid
 
     // Load legacy JS code
     window.mkStateManager = require('../client/state-manager')
@@ -350,6 +352,7 @@ export default class OpenReviewApp extends App {
     // Set required constants
     window.OR_API_URL = process.env.API_URL
     window.OR_API_V2_URL = process.env.API_V2_URL
+    window.USE_PARALLEL_UPLOAD = process.env.USE_PARALLEL_UPLOAD
 
     // Register route change handlers
     Router.events.on('routeChangeStart', this.onRouteChangeStart)
