@@ -40,8 +40,11 @@ module.exports = function(forumId, noteId, invitationId, user) {
             }
           });
 
-          return signatureProfilesP(notes)
-        }, onError);
+          return notes
+        }, onError)
+          .then(function(notes) {
+            return addSignatureProfilesToNotes(notes);
+          }, onError);
 
       invitationsP = Webfield2.get('/invitations', {
         replyForum: forumId, details: 'repliedNotes,repliedEdits'
@@ -64,7 +67,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
         }, onError);
     };
 
-    var signatureProfilesP = function signatureProfilesP(notes) {
+    var addSignatureProfilesToNotes = function(notes) {
       var ids = new Set();
       var emails = new Set();
       notes.forEach(function (note) {
@@ -1034,13 +1037,11 @@ module.exports = function(forumId, noteId, invitationId, user) {
       return null;
     }
 
-    var prefName = _.first(profileData.content.names);
+    var prefName =
+      profileData.content.names.find(function (name) {
+        return name.username && name.preferred;
+      }) ?? _.first(profileData.content.names);
 
-    profileData.content.names.forEach(function (n, i) {
-      if (n.username && n.preferred) {
-        prefName = n;
-      }
-    });
     return prefName.username;
   };
 
