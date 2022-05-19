@@ -151,13 +151,16 @@ const UserModerationQueue = ({
 
   const filterProfiles = (e) => {
     e.preventDefault()
-    const newFilters = [...e.target.elements].reduce((obj, elem) => {
-      if (elem.name && elem.value) {
-        // eslint-disable-next-line no-param-reassign
-        obj[elem.name] = elem.value
+
+    const formData = new FormData(e.target)
+    const newFilters = {}
+    formData.forEach((value, name) => {
+      if (name === 'id' && value.includes('@')) {
+        newFilters.email = value.trim()
+      } else {
+        newFilters[name] = value.trim()
       }
-      return obj
-    }, {})
+    })
 
     setPageNumber(1)
     setFilters(newFilters)
@@ -263,7 +266,7 @@ const UserModerationQueue = ({
             type="text"
             name="id"
             className="form-control input-sm"
-            placeholder="Username"
+            placeholder="Username or Email"
           />
           <button type="submit" className="btn btn-xs">
             Search
