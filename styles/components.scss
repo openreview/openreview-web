@@ -1040,7 +1040,7 @@ table.table-minimal {
   }
   select {
     width: 140px;
-    line-height: .75rem;
+    line-height: 0.75rem;
     margin-top: 2px;
   }
 }
@@ -1357,7 +1357,7 @@ header,
   }
   span.h3 {
     font-size: 1.75rem;
-    padding-right: .25rem;
+    padding-right: 0.25rem;
   }
   span.h4 {
     font-weight: normal;
@@ -1401,3 +1401,21 @@ header,
     }
   }
 }
+
+// #region webfield react compoents
+// DropdownList
+.dropdown-list {
+  display: flex;
+
+  .line_heading {
+    max-width: 20%;
+    word-wrap: break-word;
+    width: unset;
+    align-self: center;
+  }
+
+  .dropdown-select {
+    flex-grow: 1;
+  }
+}
+// #endregion

@@ -121,7 +121,7 @@ Invitation.getInitialProps = async (ctx) => {
     if (invitation) {
       return {
         invitationId: invitation.id,
-        ...(invitation.webComponent
+        ...(invitation.web?.startsWith('// Webfield component')
           ? { componentObj: parseComponentCode(invitation, user, ctx.query) }
           : { webfieldCode: generateInvitationWebfieldCode(invitation, ctx.query) }),
         writable: invitation.details?.writable ?? false,
