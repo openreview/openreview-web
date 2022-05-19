@@ -38,5 +38,5 @@ test('send feedback as a guest user', async (t) => {
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages({ to: 'info@openreview.net' }, superUserToken)
-  await t.expect(messages[0].content.subject).contains('OpenReview Feedback: subject')
+  await t.expect(messages[messages.length - 1].content.subject).contains('OpenReview Feedback: subject')
 })
