@@ -1,3 +1,4 @@
+/* globals promptError: false */
 import { useEffect, useState } from 'react'
 import without from 'lodash/without'
 import Head from 'next/head'
