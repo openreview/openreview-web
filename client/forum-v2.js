@@ -41,7 +41,10 @@ module.exports = function(forumId, noteId, invitationId, user) {
           });
 
           return notes
-        }, onError);
+        }, onError)
+          .then(function(notes) {
+            return addSignatureProfilesToNotes(notes);
+          }, onError);
 
       invitationsP = Webfield2.get('/invitations', {
         replyForum: forumId, details: 'repliedNotes,repliedEdits'
@@ -62,6 +65,67 @@ module.exports = function(forumId, noteId, invitationId, user) {
         .then(function(result) {
           return result.invitations || [];
         }, onError);
+    };
+
+    var addSignatureProfilesToNotes = function(notes) {
+      var ids = new Set();
+      var emails = new Set();
+      notes.forEach(function (note) {
+        note.details.signatures?.forEach(function (signature) {
+          signature.members?.forEach(function (member) {
+            if (member.startsWith("~")) {
+              ids.add(member);
+            } else {
+              emails.add(member);
+            }
+          });
+        });
+      });
+      var idsP = ids.size
+        ? Webfield.get(
+            "/profiles",
+            {
+              ids: Array.from(ids),
+            },
+            {
+              handleErrors: false,
+            }
+          )
+        : Promise.resolve([]);
+      var emailsP = emails.size
+        ? Webfield.get(
+            "/profiles",
+            {
+              emails: Array.from(emails),
+            },
+            {
+              handleErrors: false,
+            }
+          )
+        : Promise.resolve([]);
+      return $.when(idsP, emailsP).then(function (idsResult, emailsResult) {
+        notes.forEach(function (note) {
+          if (!note.details.signatures.length) return;
+          note.details.signatures.forEach(function (signature) {
+            signature.members = signature.members.map(function (member) {
+              var profile = null;
+              if (ids.has(member)) {
+                profile = idsResult.profiles.find(function (p) {
+                  return p.content.names.some(function (q) {
+                    return q.username === member;
+                  });
+                });
+              } else {
+                profile = emailsResult.profiles.find(function (p) {
+                  return p.email === member;
+                });
+              }
+              return getProfilePreferredId(profile) || member;
+            });
+          });
+        });
+        return notes;
+      }, onError);
     };
 
     var noteRecsP = $.when(notesP, invitationsP).then(function (notes, invitations) {
@@ -965,6 +1029,21 @@ module.exports = function(forumId, noteId, invitationId, user) {
   var replaceFilterWildcards = function(filterQuery, replyNote) {
     return filterQuery.replace(/\${note\.([\w.]+)}/g, (match, field) => _.get(replyNote, field, ''));
   }
+
+  // Extract preferred id from raw profile data returned by /profiles API
+  // Modified from lib/profiles.js
+  var getProfilePreferredId = function(profileData) {
+    if (_.isEmpty(profileData)) {
+      return null;
+    }
+
+    var prefName =
+      profileData.content.names.find(function (name) {
+        return name.username && name.preferred;
+      }) ?? _.first(profileData.content.names);
+
+    return prefName.username;
+  };
 
   onTokenChange();
 };
