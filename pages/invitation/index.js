@@ -52,7 +52,11 @@ const Invitation = ({ invitationId, webfieldCode, writable, componentObj, appCon
     if (!componentObj) return
 
     setWebComponent(
-      dynamic(() => import(`../../components/webfield/${componentObj.component}`))
+      dynamic(() =>
+        import(`../../components/webfield/${componentObj.component}`).catch(() => {
+          promptError(`Error loading ${componentObj.component}`)
+        })
+      )
     )
 
     const componentProps = {}

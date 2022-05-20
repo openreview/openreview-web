@@ -75,7 +75,12 @@ const DeclineForm = ({
         )}
       </div>
       <div className="row">
-        <SpinnerButton onClick={onSubmit} loading={isSaving} disabled={isSaving || !quota}>
+        <SpinnerButton
+          type="primary"
+          onClick={onSubmit}
+          loading={isSaving}
+          disabled={isSaving || !quota}
+        >
           Accept with Reduced Quota
         </SpinnerButton>
       </div>
@@ -123,6 +128,7 @@ const RecruitmentForm = (props) => {
         return (
           <div className="row">
             <SpinnerButton
+              type="primary"
               onClick={() => onResponseClick('Yes')}
               loading={isSaving}
               disabled={isSaving}
@@ -130,6 +136,7 @@ const RecruitmentForm = (props) => {
               Accept
             </SpinnerButton>
             <SpinnerButton
+              type="primary"
               onClick={() => onResponseClick('No')}
               loading={isSaving}
               disabled={isSaving}
