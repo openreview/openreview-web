@@ -1,3 +1,4 @@
+/* globals $: false */
 import uniqBy from 'lodash/uniqBy'
 import isEqual from 'lodash/isEqual'
 import zip from 'lodash/zip'

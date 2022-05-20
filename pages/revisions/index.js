@@ -568,30 +568,27 @@ const Revisions = ({ appContext }) => {
     setParentNoteId(noteId)
 
     const setBanner = async () => {
-      try {
-        note = await api.getNoteById(
-          noteId,
-          accessToken,
-          { details: 'writable,forumContent' },
-          true
-        )
-        if (note) {
-          setBannerContent(forumLink(note))
-        } else {
-          setBannerHidden(true)
+      note = await api.getNoteById(
+        noteId,
+        accessToken,
+        { details: 'writable,forumContent' },
+        true
+      )
+      if (note) {
+        setBannerContent(forumLink(note))
+        if (note.version === 2) {
+          setIsEditRevisions(true)
+          setReferencesToLoad('edits')
+          if (note.details.writable) {
+            setIsNoteWritable(true)
+          }
+          return
         }
-      } catch (apiError) {
+        setReferencesToLoad('revisions')
+      } else {
         setBannerHidden(true)
+        setError({ message: `The note ${noteId} could not be found` })
       }
-      if (note.version === 2) {
-        setIsEditRevisions(true)
-        setReferencesToLoad('edits')
-        if (note.details.writable) {
-          setIsNoteWritable(true)
-        }
-        return
-      }
-      setReferencesToLoad('revisions')
     }
     setBanner()
   }, [userLoading, query, accessToken])

@@ -53,16 +53,54 @@ main.profile-edit {
       max-height: 600px;
       overflow-y: auto;
     }
-    .publication-title {
-      color: constants.$darkBlue;
-      font-weight: bold;
-      .venue {
-        font-weight: lighter;
-        font-size: smaller;
-        font-style: italic;
-        margin-left: 0.25rem;
+    .publication-info {
+      display: flex;
+      margin-bottom: 0.5rem;
+      border-top: 1px solid #ddd;
+      padding-top: 0.25rem;
+      padding-left: 0.25rem;
+      padding-right: 0.25rem;
+      &:first-of-type {
+        border-top: none;
+      }
+
+      .publication-title {
+        color: constants.$darkBlue;
+        font-weight: bold;
+        .venue {
+          font-weight: lighter;
+          font-size: smaller;
+          font-style: italic;
+          margin-left: 0.25rem;
+        }
       }
     }
+    table.table {
+      margin-bottom: 0.5rem;
+    }
+    .webfield-accordion-divider {
+      margin: 0;
+    }
+
+    .panel-heading {
+      padding-bottom: 0;
+      .panel-title {
+        font-size: 1rem;
+        .collapse-btn,
+        .glyphicon {
+          color: constants.$darkBlue;
+        }
+      }
+
+      .year-checkbox {
+        vertical-align: text-top;
+      }
+    }
+    .panel-body {
+      padding-top: 0;
+      padding-left: 1.5rem;
+    }
+
     .existing-publication-row {
       background-color: constants.$backgroundGray;
       opacity: 0.5;

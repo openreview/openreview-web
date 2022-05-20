@@ -33,13 +33,17 @@ const HistogramStat = ({ id, stats, edgeBrowserUrlParams }) => {
 
     const localStorageKey =
       stats.tag === 'discrete' ? `${id}-x-${d[0]}` : `${id}-x-${d.x0}-to-${d.x1}`
-    window.localStorage.setItem(
-      localStorageKey,
-      JSON.stringify({
-        type: stats.type,
-        data: dataList,
-      })
-    )
+    try {
+      window.localStorage.setItem(
+        localStorageKey,
+        JSON.stringify({
+          type: stats.type,
+          data: dataList,
+        })
+      )
+    } catch (error) {
+      return
+    }
 
     const {
       browseInvitations,

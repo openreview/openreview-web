@@ -382,6 +382,12 @@ textarea.form-control {
     border-radius: 0;
   }
 }
+.note_editor {
+  .progress {
+    border-radius: 0;
+    margin-bottom: 0;
+  }
+}
 .dropdown-menu {
   &.dropdown-align-right {
     left: auto;

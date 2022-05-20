@@ -35,9 +35,14 @@ const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }
         setSubject(`Message to ${prettyId(groupId)}`)
         setMessage('')
         // Save the timestamp in the local storage (used in PC console)
-        membersToMessage.forEach((member) =>
-          localStorage.setItem(`${groupId}|${member}`, Date.now())
-        )
+        membersToMessage.forEach((member) => {
+          try {
+            localStorage.setItem(`${groupId}|${member}`, Date.now())
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.warn(`Could not save timestamp for ${member}`)
+          }
+        })
         $('#message-group-members').modal('hide')
         return
       } catch (e) {
