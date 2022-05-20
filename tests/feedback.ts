@@ -37,6 +37,7 @@ test('send feedback as a guest user', async (t) => {
     .expect(textPanel.innerText).eql('Your feedback has been submitted. Thank you.')
 
   const { superUserToken } = t.fixtureCtx
-  const messages = await getMessages({ to: 'info@openreview.net' }, superUserToken)
-  await t.expect(messages[0].content.subject).contains('OpenReview Feedback: subject')
+  const messages = await getMessages({ subject: 'OpenReview Feedback: subject' }, superUserToken)
+  await t.expect(messages.length).eql(1)
+    .expect(messages[0].content.replyTo).eql('melisa@test.com')
 })
