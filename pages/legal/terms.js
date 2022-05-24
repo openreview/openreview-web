@@ -17,7 +17,7 @@ const Terms = () => (
 
     <div className="row">
       <div className="col-xs-12 col-md-10 col-md-offset-1">
-        <p className="text-muted">Last updated: March 1, 2017</p>
+        <p className="text-muted">Last updated: May 24, 2022</p>
         <p>
           Please read these Terms and Conditions (&quot;Terms&quot;, &quot;Terms and
           Conditions&quot;) carefully before using the https://openreview.net website (the
