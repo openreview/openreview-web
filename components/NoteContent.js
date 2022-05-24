@@ -78,20 +78,42 @@ function NoteContentField({ name }) {
 export function NoteContentValue({ content = '', enableMarkdown }) {
   const [sanitizedHtml, setSanitizedHtml] = useState(null)
 
+  const autoLinkContent = (value) => {
+    // Regex based on https://gist.github.com/dperini/729294 modified to not accept FTP urls
+    const urlRegex = /(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*[^.,()"'\s])?/ig
+    const profileRegex = /(?:.)?(~[^\d\s]+_[^\d\s]+[0-9]+)/ig
+
+    const intermediate = value.replace(urlRegex, (match) => {
+      const url = match.startsWith('https://openreview.net') ? match.replace('https://openreview.net', '') : match
+      return `<a href="${url}" target="_blank" rel="nofollow">${url}</a>`
+    })
+
+    return intermediate.replace(profileRegex, (fullMatch, match) => {
+      if (fullMatch !== match && fullMatch.charAt(0).match(/\S/)) return fullMatch
+      return ` <a href="/profile?id=${match}" target="_blank">${prettyId(match)}</a>`
+    })
+  }
+
   useEffect(() => {
     if (enableMarkdown) {
       setSanitizedHtml(DOMPurify.sanitize(marked(content)))
+    } else {
+      setSanitizedHtml(autoLinkContent(content))
     }
   }, [])
 
-  return enableMarkdown && sanitizedHtml ? (
-    // eslint-disable-next-line react/no-danger
+  if (!sanitizedHtml) return <span className="note-content-value" />
+
+  return enableMarkdown ? (
     <div
       className="note-content-value markdown-rendered"
       dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
     />
   ) : (
-    <span className="note-content-value">{content}</span>
+    <span
+      className="note-content-value"
+      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+    />
   )
 }
 

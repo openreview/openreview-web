@@ -145,24 +145,22 @@ export default function ForumReply({ note, replies, updateNote }) {
       </div>
 
       <div className="subheading">
-        {invitations.map((invitationId) => (
-          <span
-            key={invitationId}
-            className="invitation highlight"
-            data-toggle="tooltip"
-            data-placement="top"
-            title="Reply type"
-            style={getInvitationColors(prettyInvitationId(invitationId))}
-          >
-            {prettyInvitationId(invitationId, true)}
-          </span>
-        ))}
+        <span
+          key={invitations[0]}
+          className="invitation highlight"
+          data-toggle="tooltip"
+          data-placement="top"
+          title="Reply type"
+          style={getInvitationColors(prettyInvitationId(invitations[0]))}
+        >
+          {prettyInvitationId(invitations[0], true)}
+        </span>
         <span className="signatures">
           <Icon name="pencil" tooltip="Reply Author" />
           {signatures.map((signature) => {
             const signatureLink = signature.startsWith('~')
               ? <Link href={`/profile?id=${signature}`}><a>{prettyId(signature)}</a></Link>
-              : signature
+              : prettyId(signature)
             const signatureGroup = note.details?.signatures?.find(p => p.id === signature)
             if (signatureGroup) {
               let tooltip = `Privately revealed to ${signatureGroup.readers?.map(p => prettyId(p)).join(', ')}`
@@ -176,12 +174,10 @@ export default function ForumReply({ note, replies, updateNote }) {
                   {signatureLink}
                   {' '}
                   (
-                  {' '}
                   <Icon name={icon} tooltip={tooltip} />
                   {signatureGroup.members.map(q => (
                     <Link key={q} href={`/profile?id=${q}`}><a>{prettyId(q)}</a></Link>
                   )).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
-                  {' '}
                   )
                 </span>
               )
