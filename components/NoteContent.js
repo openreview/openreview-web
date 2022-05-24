@@ -37,7 +37,7 @@ function NoteContent({
     .filter((field) => !include.includes(field))
 
   return (
-    <ul className="list-unstyled note-content">
+    <div className="note-content">
       {contentOrder.map((fieldName) => {
         if (omittedFields.includes(fieldName) || fieldName.startsWith('_')) return null
 
@@ -47,7 +47,7 @@ function NoteContent({
         const invitationField = invitation?.reply?.content?.[fieldName] ?? {}
 
         return (
-          <li key={fieldName}>
+          <div key={fieldName}>
             <NoteContentField name={fieldName} />{' '}
             {fieldValue.startsWith('/attachment/') ? (
               <span className="note-content-value">
@@ -64,10 +64,10 @@ function NoteContent({
                 enableMarkdown={invitationField.markdown}
               />
             )}
-          </li>
+          </div>
         )
       })}
-    </ul>
+    </div>
   )
 }
 
@@ -147,7 +147,7 @@ export const NoteContentV2 = ({
     .filter((field) => !include.includes(field))
 
   return (
-    <ul className="list-unstyled note-content">
+    <div className="note-content">
       {contentOrder.map((fieldName, i) => {
         if (omittedFields.includes(fieldName) || fieldName.startsWith('_')) return null
 
@@ -160,7 +160,7 @@ export const NoteContentV2 = ({
           fieldReaders && noteReaders && !fieldReaders.every((p, j) => p === noteReaders[j])
 
         return (
-          <li key={fieldName}>
+          <div key={fieldName}>
             <NoteContentField name={fieldName} />{' '}
             {showPrivateIcon && (
               <Icon
@@ -185,10 +185,10 @@ export const NoteContentV2 = ({
             ) : (
               <NoteContentValue content={fieldValue} enableMarkdown={enableMarkdown} />
             )}
-          </li>
+          </div>
         )
       })}
-    </ul>
+    </div>
   )
 }
 

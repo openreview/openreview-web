@@ -156,7 +156,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
         deleteInvitation,
         replyInvitations
       )
-      displayOptions[note.id] = { collapsed: false, contentExpanded: false, hidden: false }
+      displayOptions[note.id] = { collapsed: false, contentExpanded: true, hidden: false }
 
       // Populate parent map
       const parentId = note.replyto || id
@@ -396,17 +396,21 @@ export default function Forum({ forumNote, clientJsLoading }) {
       )
 
     Object.values(replyNoteMap).forEach((note) => {
+      const keywordRegex = selectedFilters.keywords
+        ? new RegExp(`\\b${selectedFilters.keywords[0]}`, 'mi')
+        : null
       const isVisible =
         (!selectedFilters.invitations ||
           intersection(selectedFilters.invitations, note.invitations).length > 0) &&
         (!selectedFilters.signatures ||
           checkSignaturesMatch(selectedFilters.signatures, note.signatures[0])) &&
-        (!selectedFilters.keywords || note.searchText.includes(selectedFilters.keywords[0])) &&
+        (!selectedFilters.keywords || note.searchText.match(keywordRegex)) &&
         (!selectedFilters.readers ||
           checkReadersMatch(selectedFilters.readers, note.readers)) &&
         (!selectedFilters.excludedReaders ||
           !checkExReadersMatch(selectedFilters.excludedReaders, note.readers))
       const currentOptions = displayOptionsMap[note.id]
+
       newDisplayOptions[note.id] = {
         ...currentOptions,
         hidden: !isVisible,
@@ -501,14 +505,12 @@ export default function Forum({ forumNote, clientJsLoading }) {
               }
             }}
           />
-
-          <hr />
         </div>
       )}
 
       {(repliesLoaded && orderedReplies.length > 0) && (
         <div className="filters-container mt-3">
-          {replyForumViews && <FilterTabs forumViews={replyForumViews} />}
+          {replyForumViews && <FilterTabs forumId={id} forumViews={replyForumViews} />}
 
           {filterOptions && (
             <FilterForm

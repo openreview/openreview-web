@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import truncate from 'lodash/truncate'
 import findIndex from 'lodash/findIndex'
 
 export default function ToggleButtonGroup({
@@ -6,6 +7,7 @@ export default function ToggleButtonGroup({
 }) {
   const [optionStates, setOptionStates] = useState((new Array(options?.length || 0)).fill(0))
   const numStates = 3
+  const maxLabelLength = 20
 
   const onButtonClick = (e) => {
     const { value } = e.target
@@ -64,7 +66,11 @@ export default function ToggleButtonGroup({
               onChange={onButtonClick}
             />
             {' '}
-            {option.label}
+            {truncate(option.label, {
+              length: maxLabelLength,
+              omission: '...',
+              separator: ' ',
+            })}
           </label>
         )
       })}

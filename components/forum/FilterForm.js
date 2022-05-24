@@ -13,7 +13,8 @@ export default function FilterForm({
   forumId, selectedFilters, setSelectedFilters, filterOptions, sort, setSort,
   layout, setLayout, setCollapseLevel, numReplies, numRepliesHidden,
 }) {
-  const [collapse, setCollapse] = useState(1)
+  // Notes default to fully expanded
+  const [collapse, setCollapse] = useState(2)
 
   // Options for multiselect dropdown
   const invDropdownFilterOptions = filterOptions.invitations.map(invitationId => ({
@@ -115,7 +116,7 @@ export default function FilterForm({
             type="text"
             className="form-control"
             id="keyword-input"
-            placeholder="Search..."
+            placeholder="Search keywords..."
             defaultValue={selectedFilters.keywords ? selectedFilters.keywords[0] : ''}
             onChange={(e) => {
               updateFilters({

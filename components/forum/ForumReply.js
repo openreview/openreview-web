@@ -157,9 +157,37 @@ export default function ForumReply({ note, replies, updateNote }) {
             {prettyInvitationId(invitationId, true)}
           </span>
         ))}
-        <span className="signatures" data-toggle="tooltip" data-placement="top" title="Reply Author">
-          <Icon name="pencil" />
-          {signatures.map(signature => prettyId(signature, true)).join(', ')}
+        <span className="signatures">
+          <Icon name="pencil" tooltip="Reply Author" />
+          {signatures.map((signature) => {
+            const signatureLink = signature.startsWith('~')
+              ? <Link href={`/profile?id=${signature}`}><a>{prettyId(signature)}</a></Link>
+              : signature
+            const signatureGroup = note.details?.signatures?.find(p => p.id === signature)
+            if (signatureGroup) {
+              let tooltip = `Privately revealed to ${signatureGroup.readers?.map(p => prettyId(p)).join(', ')}`
+              let icon = 'eye-open'
+              if (signatureGroup.readers?.includes('everyone')) {
+                tooltip = 'Publicly revealed to everyone'
+                icon = 'globe'
+              }
+              return (
+                <span key={signature}>
+                  {signatureLink}
+                  {' '}
+                  (
+                  {' '}
+                  <Icon name={icon} tooltip={tooltip} />
+                  {signatureGroup.members.map(q => (
+                    <Link key={q} href={`/profile?id=${q}`}><a>{prettyId(q)}</a></Link>
+                  )).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+                  {' '}
+                  )
+                </span>
+              )
+            }
+            return <span key={signature}>{signatureLink}</span>
+          }).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
         </span>
         <span className="created-date" data-toggle="tooltip" data-placement="top" title="Date created">
           <Icon name="calendar" />
@@ -266,7 +294,6 @@ function NoteContentCollapsible({
       role="button"
       tabIndex="0"
       className={`note-content-container ${collapsed ? 'collapsed' : ''}`}
-      onClick={e => e.currentTarget.classList.toggle('collapsed')}
     >
       <NoteContentV2
         id={id}
@@ -274,10 +301,7 @@ function NoteContentCollapsible({
         presentation={presentation}
         include={['pdf', 'html']}
       />
-      <div className="gradient-overlay">
-        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-        <a href="#" onClick={e => e.preventDefault()}>Show more</a>
-      </div>
+      <div className="gradient-overlay" />
     </div>
   )
 }

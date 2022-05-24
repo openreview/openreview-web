@@ -202,6 +202,7 @@ function ForumMeta({ note }) {
       {/* eslint-disable-next-line no-underscore-dangle */}
       {note.content._bibtex?.value && (
         <span className="item">
+          <Icon name="bookmark" />
           {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
           <a
             href="#"
@@ -210,7 +211,7 @@ function ForumMeta({ note }) {
             // eslint-disable-next-line no-underscore-dangle
             data-bibtex={encodeURIComponent(note.content._bibtex.value)}
           >
-            Show BibTeX
+            BibTeX
           </a>
         </span>
       )}
