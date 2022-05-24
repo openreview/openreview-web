@@ -14,7 +14,6 @@ function ForumNote({ note, updateNote }) {
   } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
-  const showInvitationButtons = editInvitations?.length > 0 || deleteInvitation
   // eslint-disable-next-line no-underscore-dangle
   const texDisabled = !!content._disableTexRendering?.value
 
@@ -107,20 +106,32 @@ function ForumNote({ note, updateNote }) {
         <ForumMeta note={note} />
 
         <div className="invitation-buttons">
-          {showInvitationButtons && (
-            <span className="hint">Edit:</span>
+          {editInvitations?.length > 0 && (
+            <div className="btn-group">
+              <button
+                type="button"
+                className="btn btn-xs dropdown-toggle"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
+                Edit
+                &nbsp;
+                <span className="caret" />
+              </button>
+              <ul className="dropdown-menu">
+                {editInvitations?.map(invitation => (
+                  <li
+                    key={invitation.id}
+                    onClick={() => openNoteEditor(invitation)}
+                  >
+                    {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                    <a href="#">{prettyInvitationId(invitation.id)}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
-
-          {editInvitations?.map(invitation => (
-            <button
-              key={invitation.id}
-              type="button"
-              className="btn btn-xs"
-              onClick={() => openNoteEditor(invitation)}
-            >
-              {prettyInvitationId(invitation.id)}
-            </button>
-          ))}
 
           {deleteInvitation && !pastDue && (
             <button

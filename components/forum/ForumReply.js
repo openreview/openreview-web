@@ -122,17 +122,33 @@ export default function ForumReply({ note, replies, updateNote }) {
 
         <CopyLinkButton noteId={id} />
 
-        {note.editIvitations?.length > 0 ? <span className="hint">Edit:</span> : null}
-        {note.editIvitations?.map((inv) => (
-          <button
-            key={inv.id}
-            type="button"
-            className={`btn btn-xs ${activeEditInvitation?.id === inv.id ? 'active' : ''}`}
-            onClick={() => setActiveEditInvitation(inv)}
-          >
-            {prettyInvitationId(inv.id)}
-          </button>
-        ))}
+        {note.editInvitations?.length > 0 && (
+          <div className="btn-group">
+            <button
+              type="button"
+              className="btn btn-xs dropdown-toggle"
+              data-toggle="dropdown"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              Edit
+              &nbsp;
+              <span className="caret" />
+            </button>
+            <ul className="dropdown-menu">
+              {note.editInvitations?.map(invitation => (
+                <li
+                  key={invitation.id}
+                  onClick={() => setActiveEditInvitation(invitation)}
+                >
+                  {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                  <a href="#">{prettyInvitationId(invitation.id)}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {note.deleteInvitation && (
           <button
             type="button"
