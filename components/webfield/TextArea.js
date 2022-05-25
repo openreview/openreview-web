@@ -12,8 +12,8 @@ const CharCounter = ({ regex, contentLength, isV2Invitation }) => {
   if (lenMatches) {
     minLength = parseInt(lenMatches[1], 10)
     maxLength = parseInt(lenMatches[2], 10)
-    minLength = isNaN(minLength) || minLength < 0 ? 0 : minLength
-    maxLength = isNaN(maxLength) || maxLength < minLength ? 0 : maxLength
+    minLength = Number.isNaN(minLength) || minLength < 0 ? 0 : minLength
+    maxLength = Number.isNaN(maxLength) || maxLength < minLength ? 0 : maxLength
   }
 
   const getClassName = () => {
@@ -54,7 +54,8 @@ const MathJaxWarning = ({ content }) => {
   return (
     <div className="pull-right hint content-warning danger">
       <strong>
-        IMPORTANT: All uses of "\\" in LaTeX formulas should be replaced with "\\\\"
+        IMPORTANT: All uses of &quot;\\&quot; in LaTeX formulas should be replaced with
+        &quot;\\\\&quot;
       </strong>
       <br />
       <span>
@@ -70,7 +71,9 @@ const MathJaxWarning = ({ content }) => {
 export const TextArea = ({ field, onChange, value, user, invitation, note }) => {
   const fieldName = Object.keys(field)[0]
   const fieldDescription = field[fieldName].description
+  // eslint-disable-next-line prefer-destructuring
   const required = field[fieldName].required
+  // eslint-disable-next-line prefer-destructuring
   const scroll = field[fieldName].scroll
   const enableMarkdown = field[fieldName].markdown
   const enableAutoSave = field[fieldName].disableAutosave !== true
@@ -135,6 +138,7 @@ export const TextArea = ({ field, onChange, value, user, invitation, note }) => 
 export const TextAreaV2 = ({ field, onChange, value, user, invitation, note }) => {
   const fieldName = Object.keys(field)[0]
   const fieldDescription = field[fieldName].description
+  // eslint-disable-next-line prefer-destructuring
   const required = !field[fieldName].value?.optional
   const scroll = field[fieldName].presentation?.scroll
   const enableMarkdown = field[fieldName].presentation?.markdown

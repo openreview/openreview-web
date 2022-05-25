@@ -13,6 +13,7 @@ export const WebfieldWidget = (props) => {
 
   if (field[fieldName]['value-dropdown']) {
     return <DropdownList {...props} />
+    // eslint-disable-next-line no-else-return
   } else if (field[fieldName]['value-regex']) {
     return <TextArea {...props} />
   }

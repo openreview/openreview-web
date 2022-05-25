@@ -26,19 +26,18 @@ const DeclineForm = ({
   const [isSaving, setIsSaving] = useState(false)
   const isV2Invitation = invitation.apiVersion === 2
   const showReducedQuota = isV2Invitation
-    ? invitation.edit?.note?.content?.['reduced_quota']
-    : invitation.reply?.content?.['reduced_quota']
+    ? invitation.edit?.note?.content?.reduced_quota
+    : invitation.reply?.content?.reduced_quota
   const showComment = isV2Invitation
     ? invitation.edit?.note?.content?.comment
     : invitation.reply?.content?.comment
   const fieldsToRender = orderNoteInvitationFields(invitation, fieldsToHide)
 
-  const formDataReducer = (state, action) => {
-    return {
-      ...state,
-      [action.fieldName]: action.value,
-    }
-  }
+  const formDataReducer = (state, action) => ({
+    ...state,
+    [action.fieldName]: action.value,
+  })
+
   const [formData, setFormData] = useReducer(
     formDataReducer,
     fieldsToRender.reduce((acc, field) => {
@@ -73,23 +72,23 @@ const DeclineForm = ({
     }
   }
 
-  const renderField = (fieldName) => {
-    if (['reduced_quota', 'comment'].includes(fieldName)) {
+  const renderField = (fieldToRender) => {
+    if (['reduced_quota', 'comment'].includes(fieldToRender)) {
       return isV2Invitation ? (
         <WebfieldWidgetV2
-          field={{ [fieldName]: invitation.edit?.note?.content?.[fieldName] }}
+          field={{ [fieldToRender]: invitation.edit?.note?.content?.[fieldToRender] }}
           onChange={({ fieldName, value }) => setFormData({ fieldName, value })}
-          value={formData[fieldName]}
-          key={fieldName}
+          value={formData[fieldToRender]}
+          key={fieldToRender}
           user={user}
           invitation={invitation}
         />
       ) : (
         <WebfieldWidget
-          field={{ [fieldName]: invitation.reply?.content?.[fieldName] }}
+          field={{ [fieldToRender]: invitation.reply?.content?.[fieldToRender] }}
           onChange={({ fieldName, value }) => setFormData({ fieldName, value })}
-          value={formData[fieldName]}
-          key={fieldName}
+          value={formData[fieldToRender]}
+          key={fieldToRender}
           user={user}
           invitation={invitation}
         />
@@ -97,15 +96,15 @@ const DeclineForm = ({
     }
     return isV2Invitation ? (
       <ReadOnlyFieldV2
-        key={fieldName}
-        field={{ [fieldName]: invitation.edit?.note?.content?.[fieldName] }}
-        value={formData[fieldName]}
+        key={fieldToRender}
+        field={{ [fieldToRender]: invitation.edit?.note?.content?.[fieldToRender] }}
+        value={formData[fieldToRender]}
       />
     ) : (
       <ReadOnlyField
-        key={fieldName}
-        field={{ [fieldName]: invitation.reply?.content?.[fieldName] }}
-        value={formData[fieldName]}
+        key={fieldToRender}
+        field={{ [fieldToRender]: invitation.reply?.content?.[fieldToRender] }}
+        value={formData[fieldToRender]}
       />
     )
   }
@@ -119,7 +118,7 @@ const DeclineForm = ({
       {(showReducedQuota || showComment) && (
         <>
           <div className="row">
-            {fieldsToRender.map((fieldName) => renderField(fieldName))}
+            {fieldsToRender.map((fieldToRender) => renderField(fieldToRender))}
           </div>
           {showReducedQuota && (
             <div className="row">

@@ -1,4 +1,4 @@
-/* globals DOMPurify,marked: false */
+/* globals DOMPurify,marked,MathJax: false */
 
 import { useEffect, useState } from 'react'
 import kebabCase from 'lodash/kebabCase'
