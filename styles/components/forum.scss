@@ -82,6 +82,7 @@ main.forum {
       .dropdown-select__control {
         background-color: #fff;
         max-height: 32px;
+        font-size: .75rem;
       }
       .dropdown-select__value-container {
         max-height: 28px;
@@ -90,6 +91,18 @@ main.forum {
       .dropdown-select__menu {
         z-index: 10;
       }
+    }
+
+    #keyword-input {
+      font-size: .75rem;
+      &::placeholder {
+        color: hsl(0, 0%, 50%);
+        opacity: 1;
+      }
+    }
+
+    #sort-dropdown {
+      font-size: .75rem;
     }
 
     .btn-group {
@@ -138,7 +151,29 @@ main.forum {
     }
 
     .filter-count {
-      line-height: 32px;
+      line-height: 26px;
+    }
+
+    .icon-label {
+      line-height: 26px;
+      padding-right: .5rem;
+    }
+    .readers-filter-container {
+      margin-bottom: -.25rem;
+    }
+    .readers-filter {
+      display: block;
+
+      .btn {
+        font-weight: 400;
+        min-width: 4rem;
+        padding-top: .125rem;
+        padding-bottom: .125rem;
+        margin-bottom: .25rem;
+      }
+    }
+    .filtered-reply-count {
+      flex-shrink: 0;
     }
   }
 

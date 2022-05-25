@@ -149,7 +149,7 @@ export default function ForumReply({ note, replies, updateNote }) {
           </div>
         )}
 
-        {note.deleteInvitation && (
+        {note.deleteInvitation && !pastDue && (
           <button
             type="button"
             className="btn btn-xs"

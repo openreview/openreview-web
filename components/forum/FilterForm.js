@@ -182,11 +182,11 @@ export default function FilterForm({
       </div>
 
       <div className="form-row">
-        <div className="form-group">
-          {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-          <label className="control-label icon-label">
-            <Icon name="eye-open" tooltip="Visible to" />
-          </label>
+        {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+        <label className="control-label icon-label">
+          <Icon name="eye-open" tooltip="Visible to" />
+        </label>
+        <div className="form-group readers-filter-container">
           <ToggleButtonGroup
             name="readers-filter"
             className="readers-filter"
@@ -204,7 +204,7 @@ export default function FilterForm({
           />
         </div>
 
-        <div className="form-group">
+        <div className="form-group filtered-reply-count">
           <em className="control-label filter-count">
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
             {numReplies - numRepliesHidden} / {inflect(numReplies, 'reply', 'replies', true)} shown
