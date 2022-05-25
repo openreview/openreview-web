@@ -1,24 +1,51 @@
 /* globals promptError: false */
-import { useState } from 'react'
+import { useState, useReducer } from 'react'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { constructRecruitmentResponseNote } from '../../lib/webfield-utils'
+import { prettyField } from '../../lib/utils'
+import {
+  constructRecruitmentResponseNote,
+  orderNoteInvitationFields,
+} from '../../lib/webfield-utils'
 import SpinnerButton from '../SpinnerButton'
 import Markdown from './Markdown'
+import { ReadOnlyField, ReadOnlyFieldV2 } from './ReadOnlyField'
 import VenueHeader from './VenueHeader'
 import { WebfieldWidget, WebfieldWidgetV2 } from './WebfieldWidget'
 
+const fieldsToHide = ['id', 'title', 'user', 'key', 'response']
 const DeclineForm = ({
   declineMessage,
   quotaMessage,
-  allowReducedQuota,
   args,
   entity: invitation,
   responseNote,
   setDecision,
+  user,
 }) => {
   const [isSaving, setIsSaving] = useState(false)
-  const [quota, setQuota] = useState(null)
   const isV2Invitation = invitation.apiVersion === 2
+  const showReducedQuota = isV2Invitation
+    ? invitation.edit?.note?.content?.['reduced_quota']
+    : invitation.reply?.content?.['reduced_quota']
+  const showComment = isV2Invitation
+    ? invitation.edit?.note?.content?.comment
+    : invitation.reply?.content?.comment
+  const fieldsToRender = orderNoteInvitationFields(invitation, fieldsToHide)
+
+  const formDataReducer = (state, action) => {
+    return {
+      ...state,
+      [action.fieldName]: action.value,
+    }
+  }
+  const [formData, setFormData] = useReducer(
+    formDataReducer,
+    fieldsToRender.reduce((acc, field) => {
+      acc[field] = args[field]
+      return acc
+    }, {})
+  )
 
   const onSubmit = async () => {
     setIsSaving(true)
@@ -28,7 +55,7 @@ const DeclineForm = ({
         user: args.user,
         key: args.key,
         response: 'Yes',
-        quota,
+        ...formData,
       }
       const noteToPost = constructRecruitmentResponseNote(
         invitation,
@@ -46,44 +73,80 @@ const DeclineForm = ({
     }
   }
 
-  if (!allowReducedQuota)
-    return (
-      <div className="row">
-        <Markdown text={declineMessage} />
-      </div>
+  const renderField = (fieldName) => {
+    if (['reduced_quota', 'comment'].includes(fieldName)) {
+      return isV2Invitation ? (
+        <WebfieldWidgetV2
+          field={{ [fieldName]: invitation.edit?.note?.content?.[fieldName] }}
+          onChange={({ fieldName, value }) => setFormData({ fieldName, value })}
+          value={formData[fieldName]}
+          key={fieldName}
+          user={user}
+          invitation={invitation}
+        />
+      ) : (
+        <WebfieldWidget
+          field={{ [fieldName]: invitation.reply?.content?.[fieldName] }}
+          onChange={({ fieldName, value }) => setFormData({ fieldName, value })}
+          value={formData[fieldName]}
+          key={fieldName}
+          user={user}
+          invitation={invitation}
+        />
+      )
+    }
+    return isV2Invitation ? (
+      <ReadOnlyFieldV2
+        key={fieldName}
+        field={{ [fieldName]: invitation.edit?.note?.content?.[fieldName] }}
+        value={formData[fieldName]}
+      />
+    ) : (
+      <ReadOnlyField
+        key={fieldName}
+        field={{ [fieldName]: invitation.reply?.content?.[fieldName] }}
+        value={formData[fieldName]}
+      />
     )
+  }
 
   return (
     <>
       <div className="row">
         <Markdown text={declineMessage} />
-        <Markdown text={quotaMessage} />
+        {showReducedQuota && <Markdown text={quotaMessage} />}
       </div>
-      <div className="row">
-        {isV2Invitation ? (
-          <WebfieldWidgetV2
-            field={{ quota: invitation.edit?.note?.content?.quota }}
-            onChange={({ fieldName, value }) => setQuota(value)}
-            value={quota}
-          />
-        ) : (
-          <WebfieldWidget
-            field={{ quota: invitation.reply?.content?.quota }}
-            onChange={({ fieldName, value }) => setQuota(value)}
-            value={quota}
-          />
-        )}
-      </div>
-      <div className="row">
-        <SpinnerButton
-          type="primary"
-          onClick={onSubmit}
-          loading={isSaving}
-          disabled={isSaving || !quota}
-        >
-          Accept with Reduced Quota
-        </SpinnerButton>
-      </div>
+      {(showReducedQuota || showComment) && (
+        <>
+          <div className="row">
+            {fieldsToRender.map((fieldName) => renderField(fieldName))}
+          </div>
+          {showReducedQuota && (
+            <div className="row">
+              <SpinnerButton
+                type="primary"
+                onClick={onSubmit}
+                loading={isSaving}
+                disabled={isSaving || !formData.reduced_quota}
+              >
+                Accept with Reduced Quota
+              </SpinnerButton>
+            </div>
+          )}
+          {!showReducedQuota && showComment && (
+            <div className="row">
+              <SpinnerButton
+                type="primary"
+                onClick={onSubmit}
+                loading={isSaving}
+                disabled={isSaving || !formData.comment}
+              >
+                Submit
+              </SpinnerButton>
+            </div>
+          )}
+        </>
+      )}
     </>
   )
 }
@@ -92,6 +155,7 @@ const RecruitmentForm = (props) => {
   const [decision, setDecision] = useState(null)
   const [isSaving, setIsSaving] = useState(false)
   const [responseNote, setResponseNote] = useState(null)
+  const { user } = useUser()
   const { acceptMessage, header, entity: invitation, args } = props
   const isV2Invitation = invitation.apiVersion === 2
 
@@ -103,6 +167,9 @@ const RecruitmentForm = (props) => {
         user: args.user,
         key: args.key,
         response,
+        ...Object.fromEntries(
+          Object.entries(args ?? {}).filter(([key]) => !fieldsToHide.includes(key))
+        ),
       }
       const noteToPost = constructRecruitmentResponseNote(invitation, noteContent)
       const result = await api.post(isV2Invitation ? '/notes/edits' : '/notes', noteToPost, {
@@ -123,34 +190,51 @@ const RecruitmentForm = (props) => {
       case 'accept':
         return <Markdown text={acceptMessage} />
       case 'reject':
-        return <DeclineForm responseNote={responseNote} setDecision={setDecision} {...props} />
+        return (
+          <DeclineForm
+            responseNote={responseNote}
+            setDecision={setDecision}
+            user={user}
+            {...props}
+          />
+        )
       default:
         return (
-          <div className="row">
-            <SpinnerButton
-              type="primary"
-              onClick={() => onResponseClick('Yes')}
-              loading={isSaving}
-              disabled={isSaving}
-            >
-              Accept
-            </SpinnerButton>
-            <SpinnerButton
-              type="primary"
-              onClick={() => onResponseClick('No')}
-              loading={isSaving}
-              disabled={isSaving}
-            >
-              Reject
-            </SpinnerButton>
-          </div>
+          <>
+            {Object.keys(args ?? {}).map((key) => {
+              if (fieldsToHide.includes(key)) return null
+              return (
+                <div className="row" key={key}>
+                  <strong>{`${prettyField(key)}:`}</strong> <span>{args[key]}</span>
+                </div>
+              )
+            })}
+            <div className="row">
+              <SpinnerButton
+                type="primary"
+                onClick={() => onResponseClick('Yes')}
+                loading={isSaving}
+                disabled={isSaving}
+              >
+                Accept
+              </SpinnerButton>
+              <SpinnerButton
+                type="primary"
+                onClick={() => onResponseClick('No')}
+                loading={isSaving}
+                disabled={isSaving}
+              >
+                Reject
+              </SpinnerButton>
+            </div>
+          </>
         )
     }
   }
   return (
     <>
       <VenueHeader headerInfo={header} />
-      <div className="note_editor existing panel">{renderDecision()}</div>
+      <div className="note_editor">{renderDecision()}</div>
     </>
   )
 }

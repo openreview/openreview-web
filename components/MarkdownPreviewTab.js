@@ -10,6 +10,7 @@ const MarkdownPreviewTab = ({
   firstTab = 'Write',
   secondTab = 'Preview',
   placeholder = '',
+  textAreaClass = '',
 }) => {
   const [sanitizedHtml, setSanitizedHtml] = useState('')
   const firstTabId = kebabCase(firstTab)
@@ -27,14 +28,18 @@ const MarkdownPreviewTab = ({
   return (
     <Tabs className="markdown-preview">
       <TabList>
-        <Tab id={firstTabId} active>{firstTab}</Tab>
-        <Tab id={secondTabId}>{secondTab}</Tab>
+        <Tab id={firstTabId} active>
+          {firstTab}
+        </Tab>
+        <Tab id={secondTabId} onClick={() => MathJax.typesetPromise()}>
+          {secondTab}
+        </Tab>
       </TabList>
 
       <TabPanels>
         <TabPanel id={firstTabId}>
           <textarea
-            className="form-control"
+            className={`form-control ${textAreaClass}`}
             rows="6"
             placeholder={placeholder}
             value={value}

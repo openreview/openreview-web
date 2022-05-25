@@ -1,44 +1,33 @@
 import { prettyField } from '../../lib/utils'
-import Dropdown from '../Dropdown'
 
-export const DropdownList = ({ field, onChange, value }) => {
+export const ReadOnlyField = ({ field, value }) => {
   const fieldName = Object.keys(field)[0]
   const fieldDescription = field[fieldName].description
   // eslint-disable-next-line prefer-destructuring
   const required = field[fieldName].required
-  const options = field[fieldName]['value-dropdown'].map((p) => ({ label: p, value: p }))
-
   return (
-    <div className="dropdown-list">
+    <div className="readonly-field">
       {required && <span className="required_field">*</span>}
       <span className="line_heading" title={fieldDescription}>
         {prettyField(fieldName)}
       </span>
-      <Dropdown
-        options={options}
-        onChange={(e) => onChange({ fieldName, value: e.value })}
-        value={options.find((p) => p.value === value)}
-      />
+      <span className="line_value">{value ?? ''}</span>
     </div>
   )
 }
-export const DropdownListV2 = ({ field, onChange, value }) => {
+
+export const ReadOnlyFieldV2 = ({ field, value }) => {
   const fieldName = Object.keys(field)[0]
   const fieldDescription = field[fieldName].description
   const required = !field[fieldName].value?.optional
-  const options = field[fieldName].value?.enum?.map((p) => ({ label: p, value: p }))
 
   return (
-    <div className="dropdown-list">
+    <div className="readonly-field">
       {required && <span className="required_field">*</span>}
       <span className="line_heading" title={fieldDescription}>
         {prettyField(fieldName)}
       </span>
-      <Dropdown
-        options={options}
-        onChange={(e) => onChange({ fieldName, value: e.value })}
-        value={options.find((p) => p.value === value)}
-      />
+      <span className="line_value">{value ?? ''}</span>
     </div>
   )
 }
