@@ -34,7 +34,7 @@ const Terms = () => (
           disagree with any part of the terms then you may not access the Service.
         </p>
 
-        <h3>Global Access</h3>
+        <h3>Requirements for Global Access</h3>
         <p>
           By accessing or using the Service, you agree and represent to OpenReview.net that: i)
           you are not acting, directly or indirectly, on behalf of the Governments of Iran,
