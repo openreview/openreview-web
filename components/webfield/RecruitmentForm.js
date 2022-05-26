@@ -8,8 +8,8 @@ import {
   orderNoteInvitationFields,
 } from '../../lib/webfield-utils'
 import SpinnerButton from '../SpinnerButton'
-import Markdown from './Markdown'
-import { ReadOnlyField, ReadOnlyFieldV2 } from './ReadOnlyField'
+import Markdown from '../EditorComponents/Markdown'
+import { ReadOnlyField, ReadOnlyFieldV2 } from '../EditorComponents/ReadOnlyField'
 import VenueHeader from './VenueHeader'
 import { WebfieldWidget, WebfieldWidgetV2 } from './WebfieldWidget'
 

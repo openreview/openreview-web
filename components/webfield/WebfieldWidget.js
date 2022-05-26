@@ -1,11 +1,17 @@
 import dynamic from 'next/dynamic'
 
-const DropdownList = dynamic(() => import('./DropdownList').then((mod) => mod.DropdownList))
-const DropdownListV2 = dynamic(() =>
-  import('./DropdownList').then((mod) => mod.DropdownListV2)
+const DropdownList = dynamic(() =>
+  import('../EditorComponents/DropdownList').then((mod) => mod.DropdownList)
 )
-const TextArea = dynamic(() => import('./TextArea').then((mod) => mod.TextArea))
-const TextAreaV2 = dynamic(() => import('./TextArea').then((mod) => mod.TextAreaV2))
+const DropdownListV2 = dynamic(() =>
+  import('../EditorComponents/DropdownList').then((mod) => mod.DropdownListV2)
+)
+const TextArea = dynamic(() =>
+  import('../EditorComponents/TextArea').then((mod) => mod.TextArea)
+)
+const TextAreaV2 = dynamic(() =>
+  import('../EditorComponents/TextArea').then((mod) => mod.TextAreaV2)
+)
 
 export const WebfieldWidget = (props) => {
   const { field } = props
