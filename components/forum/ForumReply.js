@@ -1,4 +1,5 @@
 /* globals promptMessage: false */
+/* globals view2: false */
 
 import { useContext, useState } from 'react'
 import Link from 'next/link'
@@ -6,6 +7,7 @@ import copy from 'copy-to-clipboard'
 import { NoteContentV2 } from '../NoteContent'
 import NoteEditorForm from '../NoteEditorForm'
 import ForumReplyContext from './ForumReplyContext'
+import useUser from '../../hooks/useUser'
 import {
   prettyId, prettyInvitationId, buildNoteTitle, forumDate,
 } from '../../lib/utils'
@@ -16,13 +18,14 @@ export default function ForumReply({ note, replies, updateNote }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
   const { forumId, displayOptionsMap, setCollapsed } = useContext(ForumReplyContext)
+  const { user } = useUser()
 
   const {
     id, invitations, content, signatures, ddate,
   } = note
-  const pastDue = ddate && ddate < Date.now()
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
   const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
+  const generatedTitle = buildNoteTitle(invitations[0], signatures)
 
   if (collapsed) {
     // Collapsed reply
@@ -48,7 +51,7 @@ export default function ForumReply({ note, replies, updateNote }) {
                 </span>
               </>
             ) : (
-              <span>{buildNoteTitle(invitations[0], signatures)}</span>
+              <span>{generatedTitle}</span>
             )}
           </h4>
 
@@ -116,7 +119,7 @@ export default function ForumReply({ note, replies, updateNote }) {
           {content.title?.value ? (
             <strong>{content.title.value}</strong>
           ) : (
-            <span>{buildNoteTitle(invitations[0], signatures)}</span>
+            <span>{generatedTitle}</span>
           )}
         </h4>
 
@@ -149,11 +152,21 @@ export default function ForumReply({ note, replies, updateNote }) {
           </div>
         )}
 
-        {note.deleteInvitation && !pastDue && (
+        {note.deleteInvitation && (
           <button
             type="button"
             className="btn btn-xs"
-            onClick={() => setActiveEditInvitation(note.deleteInvitation)}
+            onClick={() => {
+              view2.deleteOrRestoreNote(
+                note,
+                note.deleteInvitation,
+                content.title?.value ? content.title.value : generatedTitle,
+                user,
+                (newNote) => {
+                  updateNote(newNote, note.id, note.replyInvitations)
+                }
+              )
+            }}
           >
             <Icon name={ddate ? 'repeat' : 'trash'} />
           </button>

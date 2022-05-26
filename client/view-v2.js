@@ -829,6 +829,7 @@ module.exports = (function() {
         editSignatureInputValues = [user.profile.id];
       }
       const editToPost = constructEdit({ formData: { editSignatureInputValues,editReaderValues }, noteObj: { ...note, ddate }, invitationObj: invitation })
+      console.log(editToPost)
       Webfield2.post('/notes/edits', editToPost, null).then(function () {
         // the return of the post is edit without updatednote
         // so get the updated note again
@@ -863,8 +864,8 @@ module.exports = (function() {
       id: 'confirm-delete-modal',
       showHeader: true,
       title: `${actionText} Note`,
-      body: `<p class="mb-4">Are you sure you want to ${actionText.toLowerCase()}
-        ${noteTitle} by ${view.prettyId(note.signatures[0])}? The ${actionText.toLowerCase()}ed note will
+      body: `<p class="mb-4">Are you sure you want to ${actionText.toLowerCase()} the note
+        "${noteTitle}" by ${view.prettyId(note.signatures[0])}? The ${actionText.toLowerCase()}d note will
         be updated with the signature you choose below.</p>`,
       showFooter: true,
       primaryButtonText: actionText
@@ -1904,6 +1905,7 @@ module.exports = (function() {
     mkNewNoteEditor: mkNewNoteEditor,
     mkNoteEditor: mkNoteEditor,
     mkNotePanel: mkNotePanel,
+    deleteOrRestoreNote: deleteOrRestoreNote,
   };
 
 }());
