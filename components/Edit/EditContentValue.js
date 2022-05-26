@@ -28,6 +28,10 @@ const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown }) => 
     )
   }
 
+  if (fieldName === '_bibtex') {
+    return <pre>{fieldValue}</pre>
+  }
+
   return <NoteContentValue content={fieldValue} enableMarkdown={enableMarkdown} />
 }
 
