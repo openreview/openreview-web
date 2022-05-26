@@ -13,7 +13,7 @@ import { ReadOnlyField, ReadOnlyFieldV2 } from './ReadOnlyField'
 import VenueHeader from './VenueHeader'
 import { WebfieldWidget, WebfieldWidgetV2 } from './WebfieldWidget'
 
-const fieldsToHide = ['id', 'title', 'user', 'key', 'response']
+const fieldsToHide = ['id', 'title', 'key', 'response']
 const DeclineForm = ({
   declineMessage,
   quotaMessage,
@@ -32,6 +32,7 @@ const DeclineForm = ({
     ? invitation.edit?.note?.content?.comment
     : invitation.reply?.content?.comment
   const fieldsToRender = orderNoteInvitationFields(invitation, fieldsToHide)
+  const [formSubmitted, setFormSubmitted] = useState(false)
 
   const formDataReducer = (state, action) => ({
     ...state,
@@ -46,14 +47,14 @@ const DeclineForm = ({
     }, {})
   )
 
-  const onSubmit = async () => {
+  const onSubmit = async (isAcceptResponse) => {
     setIsSaving(true)
     try {
       const noteContent = {
         title: 'Recruit response',
         user: args.user,
         key: args.key,
-        response: 'Yes',
+        response: isAcceptResponse ? 'Yes' : 'No',
         ...formData,
       }
       const noteToPost = constructRecruitmentResponseNote(
@@ -65,7 +66,8 @@ const DeclineForm = ({
         version: isV2Invitation ? 2 : 1,
       })
       setIsSaving(false)
-      setDecision('accept')
+      setFormSubmitted(true)
+      if (isAcceptResponse) setDecision('accept')
     } catch (error) {
       promptError(error.message)
       setIsSaving(false)
@@ -113,9 +115,9 @@ const DeclineForm = ({
     <>
       <div className="row">
         <Markdown text={declineMessage} />
-        {showReducedQuota && <Markdown text={quotaMessage} />}
+        {showReducedQuota && !formSubmitted && <Markdown text={quotaMessage} />}
       </div>
-      {(showReducedQuota || showComment) && (
+      {(showReducedQuota || showComment) && !formSubmitted && (
         <>
           <div className="row">
             {fieldsToRender.map((fieldToRender) => renderField(fieldToRender))}
@@ -124,23 +126,33 @@ const DeclineForm = ({
             <div className="row">
               <SpinnerButton
                 type="primary"
-                onClick={onSubmit}
+                onClick={() => onSubmit(true)}
                 loading={isSaving}
                 disabled={isSaving || !formData.reduced_quota}
               >
                 Accept with Reduced Quota
               </SpinnerButton>
+              {showComment && (
+                <SpinnerButton
+                  type="primary"
+                  onClick={() => onSubmit(false)}
+                  loading={isSaving}
+                  disabled={isSaving || !formData.comment}
+                >
+                  Submit Comment
+                </SpinnerButton>
+              )}
             </div>
           )}
           {!showReducedQuota && showComment && (
             <div className="row">
               <SpinnerButton
                 type="primary"
-                onClick={onSubmit}
+                onClick={() => onSubmit(false)}
                 loading={isSaving}
                 disabled={isSaving || !formData.comment}
               >
-                Submit
+                Submit Comment
               </SpinnerButton>
             </div>
           )}
@@ -157,17 +169,24 @@ const RecruitmentForm = (props) => {
   const { user } = useUser()
   const { acceptMessage, header, entity: invitation, args } = props
   const isV2Invitation = invitation.apiVersion === 2
+  const responseDescription = isV2Invitation
+    ? invitation.edit?.note?.content?.response?.description
+    : invitation.reply?.content?.response?.description
+  const invitationContentFields = isV2Invitation
+    ? Object.keys(invitation.edit?.note?.content)
+    : Object.keys(invitation.reply?.content)
 
   const onResponseClick = async (response) => {
     setIsSaving(true)
     try {
       const noteContent = {
         title: 'Recruit response',
-        user: args.user,
         key: args.key,
         response,
         ...Object.fromEntries(
-          Object.entries(args ?? {}).filter(([key]) => !fieldsToHide.includes(key))
+          Object.entries(args ?? {}).filter(
+            ([key]) => !fieldsToHide.includes(key) && invitationContentFields.includes(key)
+          )
         ),
       }
       const noteToPost = constructRecruitmentResponseNote(invitation, noteContent)
@@ -187,7 +206,22 @@ const RecruitmentForm = (props) => {
   const renderDecision = () => {
     switch (decision) {
       case 'accept':
-        return <Markdown text={acceptMessage} />
+        return (
+          <>
+            <div className="response-args-container">
+              {Object.keys(args ?? {}).map((key) => {
+                if (fieldsToHide.includes(key) || !invitationContentFields.includes(key))
+                  return null
+                return (
+                  <div className="response-args" key={key}>
+                    <strong>{`${prettyField(key)}:`}</strong> <span>{args[key]}</span>
+                  </div>
+                )
+              })}
+            </div>
+            <Markdown text={acceptMessage} />
+          </>
+        )
       case 'reject':
         return (
           <DeclineForm
@@ -199,21 +233,26 @@ const RecruitmentForm = (props) => {
         )
       default:
         return (
-          <>
-            {Object.keys(args ?? {}).map((key) => {
-              if (fieldsToHide.includes(key)) return null
-              return (
-                <div className="row" key={key}>
-                  <strong>{`${prettyField(key)}:`}</strong> <span>{args[key]}</span>
-                </div>
-              )
-            })}
-            <div className="row">
+          <div className="recruitment-form">
+            <Markdown text={responseDescription} />
+            <div className="response-args-container">
+              {Object.keys(args ?? {}).map((key) => {
+                if (fieldsToHide.includes(key) || !invitationContentFields.includes(key))
+                  return null
+                return (
+                  <div className="response-args" key={key}>
+                    <strong>{`${prettyField(key)}:`}</strong> <span>{args[key]}</span>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="response-buttons">
               <SpinnerButton
                 type="primary"
                 onClick={() => onResponseClick('Yes')}
                 loading={isSaving}
                 disabled={isSaving}
+                size="lg"
               >
                 Accept
               </SpinnerButton>
@@ -222,11 +261,12 @@ const RecruitmentForm = (props) => {
                 onClick={() => onResponseClick('No')}
                 loading={isSaving}
                 disabled={isSaving}
+                size="lg"
               >
                 Reject
               </SpinnerButton>
             </div>
-          </>
+          </div>
         )
     }
   }

@@ -1402,10 +1402,30 @@ header,
   }
 }
 
-// #region webfield react compoents
+// #region webfield react components
+//RecruitmentForm
+.recruitment-form {
+  .response-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 3rem;
+  }
+}
+
+.response-args-container {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  .response-args {
+    margin-bottom: 0.5rem;
+  }
+}
+
 // DropdownList
 .dropdown-list {
   display: flex;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  max-width: 50%;
 
   .line_heading {
     max-width: 20%;
@@ -1423,6 +1443,8 @@ header,
 .textarea {
   display: flex;
   flex-direction: column;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 
   .title,
   .description {
@@ -1460,6 +1482,9 @@ header,
 // ReadOnlyField
 .readonly-field {
   display: flex;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+
   .line_heading {
     width: unset;
   }
