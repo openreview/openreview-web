@@ -28,7 +28,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
   const [parentMap, setParentMap] = useState(null)
   const [displayOptionsMap, setDisplayOptionsMap] = useState(null)
   const [orderedReplies, setOrderedReplies] = useState(null)
-  const [layout, setLayout] = useState(1)
+  const [layout, setLayout] = useState(2)
   const [sort, setSort] = useState('date-desc')
   const [filterOptions, setFilterOptions] = useState(null)
   const [selectedFilters, setSelectedFilters] = useState({
@@ -341,7 +341,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
     const selectedSortFn = sort === 'date-desc' ? mostRecentComp : leastRecentComp
 
     let orderedNotes = []
-    if (layout === 0) {
+    if (layout === 1) {
       // Linear view
       orderedNotes = Object.keys(replyNoteMap)
         .sort(selectedSortFn)
@@ -349,9 +349,8 @@ export default function Forum({ forumNote, clientJsLoading }) {
           id: noteId,
           replies: [],
         }))
-    } else if (layout === 1 || layout === 2) {
+    } else if (layout === 2) {
       // Threaded view
-      // TODO: Nested view
       const getAllReplies = (noteId) => {
         if (!parentMap[noteId]) return []
         return parentMap[noteId].reduce(
@@ -364,6 +363,8 @@ export default function Forum({ forumNote, clientJsLoading }) {
         id: noteId,
         replies: getAllReplies(noteId).sort(leastRecentComp),
       }))
+    } else if (layout === 3) {
+      // TODO: Nested view
     }
     setOrderedReplies(orderedNotes)
 
@@ -463,7 +464,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
       setSort(query.sort)
     }
 
-    const layoutCode = parseInt(query.layout, 10)
+    const layoutCode = Number.parseInt(query.layout, 10)
     if (layoutCode) {
       setLayout(layoutCode)
     }

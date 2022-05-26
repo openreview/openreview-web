@@ -136,11 +136,11 @@ export default function FilterForm({
 
         <div className="form-group">
           <div className="btn-group btn-group-sm" role="group" aria-label="nesting level">
-            <button type="button" className={`btn btn-default ${layout === 0 ? 'active' : ''}`} onClick={(e) => { setLayout(0) }}>
+            <button type="button" className={`btn btn-default ${layout === 1 ? 'active' : ''}`} onClick={(e) => { setLayout(1) }}>
               <Icon name="list" tooltip="Linear discussion" />
               <span className="sr-only">Linear</span>
             </button>
-            <button type="button" className={`btn btn-default ${layout === 1 ? 'active' : ''}`} onClick={(e) => { setLayout(1) }}>
+            <button type="button" className={`btn btn-default ${layout === 2 ? 'active' : ''}`} onClick={(e) => { setLayout(2) }}>
               <Icon name="align-left" tooltip="Threaded discussion" />
               <span className="sr-only">Threaded</span>
             </button>
@@ -148,8 +148,8 @@ export default function FilterForm({
             {/*
             <button
               type="button"
-              className={`btn btn-default ${layout === 2 ? 'active' : ''}`}
-              onClick={(e) => { setLayout(2) }}
+              className={`btn btn-default ${layout === 3 ? 'active' : ''}`}
+              onClick={(e) => { setLayout(3) }}
             >
               <Icon name="indent-left" tooltip="Nested discussion" />
               <span className="sr-only">Nested</span>
