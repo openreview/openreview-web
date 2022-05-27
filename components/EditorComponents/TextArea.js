@@ -152,7 +152,6 @@ export const TextAreaV2 = () => {
   const required = !field[fieldName].value?.optional
   const scroll = field[fieldName].presentation?.scroll
   const enableMarkdown = field[fieldName].presentation?.markdown
-  const enableCharCounter = field[fieldName].presentation?.hideCharCounter !== true
 
   const [showCharCounter, setShowCharCounter] = useState(false)
 
@@ -196,7 +195,7 @@ export const TextAreaV2 = () => {
           ></textarea>
         )}
       </div>
-      {enableCharCounter && showCharCounter && (
+      {showCharCounter && (
         <CharCounter
           regex={field[fieldName]?.value?.regex}
           contentLength={value?.trim()?.length ?? 0}
