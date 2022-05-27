@@ -1,7 +1,10 @@
+import { useContext } from 'react'
 import { prettyField } from '../../lib/utils'
 import Dropdown from '../Dropdown'
+import { EditorComponentContext } from '../EditorComponentContext'
 
-export const DropdownList = ({ field, onChange, value }) => {
+export const DropdownList = () => {
+  const { field, onChange, value } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const fieldDescription = field[fieldName].description
   // eslint-disable-next-line prefer-destructuring
@@ -22,7 +25,8 @@ export const DropdownList = ({ field, onChange, value }) => {
     </div>
   )
 }
-export const DropdownListV2 = ({ field, onChange, value }) => {
+export const DropdownListV2 = () => {
+  const { field, onChange, value } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const fieldDescription = field[fieldName].description
   const required = !field[fieldName].value?.optional

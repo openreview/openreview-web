@@ -13,6 +13,7 @@ import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 import { invitationModeToggle } from '../../lib/banner-links'
 import { generateInvitationWebfieldCode, parseComponentCode } from '../../lib/webfield-utils'
+import { WebFieldContext } from '../../components/WebFieldContext'
 
 const Invitation = ({ invitationId, webfieldCode, writable, componentObj, appContext }) => {
   const { user, userLoading } = useUser()
@@ -86,13 +87,11 @@ const Invitation = ({ invitationId, webfieldCode, writable, componentObj, appCon
       {webfieldCode ? (
         <WebfieldContainer id="invitation-container" />
       ) : (
-        <div id="invitation-container">
-          {WebComponent && webComponentProps ? (
-            <WebComponent {...webComponentProps} />
-          ) : (
-            <LoadingSpinner />
-          )}
-        </div>
+        <WebFieldContext.Provider value={webComponentProps}>
+          <div id="invitation-container">
+            {WebComponent && webComponentProps ? <WebComponent /> : <LoadingSpinner />}
+          </div>
+        </WebFieldContext.Provider>
       )}
     </>
   )

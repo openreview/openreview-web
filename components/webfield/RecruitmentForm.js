@@ -1,5 +1,5 @@
 /* globals promptError: false */
-import { useState, useReducer } from 'react'
+import { useState, useReducer, useContext } from 'react'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyField } from '../../lib/utils'
@@ -12,17 +12,17 @@ import Markdown from '../EditorComponents/Markdown'
 import { ReadOnlyField, ReadOnlyFieldV2 } from '../EditorComponents/ReadOnlyField'
 import VenueHeader from './VenueHeader'
 import { WebfieldWidget, WebfieldWidgetV2 } from './WebfieldWidget'
+import { EditorComponentContext } from '../EditorComponentContext'
+import { WebFieldContext } from '../WebFieldContext'
 
 const fieldsToHide = ['id', 'title', 'key', 'response']
-const DeclineForm = ({
-  declineMessage,
-  quotaMessage,
-  args,
-  entity: invitation,
-  responseNote,
-  setDecision,
-  user,
-}) => {
+const DeclineForm = ({ responseNote, setDecision }) => {
+  const {
+    declineMessage,
+    quotaMessage,
+    args,
+    entity: invitation,
+  } = useContext(WebFieldContext)
   const [isSaving, setIsSaving] = useState(false)
   const isV2Invitation = invitation.apiVersion === 2
   const showReducedQuota = isV2Invitation
@@ -77,23 +77,31 @@ const DeclineForm = ({
   const renderField = (fieldToRender) => {
     if (['reduced_quota', 'comment'].includes(fieldToRender)) {
       return isV2Invitation ? (
-        <WebfieldWidgetV2
-          field={{ [fieldToRender]: invitation.edit?.note?.content?.[fieldToRender] }}
-          onChange={({ fieldName, value }) => setFormData({ fieldName, value })}
-          value={formData[fieldToRender]}
+        <EditorComponentContext.Provider
           key={fieldToRender}
-          user={user}
-          invitation={invitation}
-        />
+          value={{
+            field: { [fieldToRender]: invitation.edit?.note?.content?.[fieldToRender] },
+            onChange: ({ fieldName, value }) => setFormData({ fieldName, value }),
+            value: formData[fieldToRender],
+            key: fieldToRender,
+            isWebfield: true,
+          }}
+        >
+          <WebfieldWidgetV2 />
+        </EditorComponentContext.Provider>
       ) : (
-        <WebfieldWidget
-          field={{ [fieldToRender]: invitation.reply?.content?.[fieldToRender] }}
-          onChange={({ fieldName, value }) => setFormData({ fieldName, value })}
-          value={formData[fieldToRender]}
+        <EditorComponentContext.Provider
           key={fieldToRender}
-          user={user}
-          invitation={invitation}
-        />
+          value={{
+            field: { [fieldToRender]: invitation.reply?.content?.[fieldToRender] },
+            onChange: ({ fieldName, value }) => setFormData({ fieldName, value }),
+            value: formData[fieldToRender],
+            key: fieldToRender,
+            isWebfield: true,
+          }}
+        >
+          <WebfieldWidget />
+        </EditorComponentContext.Provider>
       )
     }
     return isV2Invitation ? (
@@ -167,7 +175,7 @@ const RecruitmentForm = (props) => {
   const [isSaving, setIsSaving] = useState(false)
   const [responseNote, setResponseNote] = useState(null)
   const { user } = useUser()
-  const { acceptMessage, header, entity: invitation, args } = props
+  const { acceptMessage, header, entity: invitation, args } = useContext(WebFieldContext)
   const isV2Invitation = invitation.apiVersion === 2
   const responseDescription = isV2Invitation
     ? invitation.edit?.note?.content?.response?.description
@@ -223,14 +231,7 @@ const RecruitmentForm = (props) => {
           </>
         )
       case 'reject':
-        return (
-          <DeclineForm
-            responseNote={responseNote}
-            setDecision={setDecision}
-            user={user}
-            {...props}
-          />
-        )
+        return <DeclineForm responseNote={responseNote} setDecision={setDecision} />
       default:
         return (
           <div className="recruitment-form">
