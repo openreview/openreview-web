@@ -1,7 +1,6 @@
 import { useContext, useEffect, useState } from 'react'
 import useUser from '../../hooks/useUser'
-import { prettyField } from '../../lib/utils'
-import { saveTextField } from '../../lib/webfield-utils'
+import { prettyField, saveTextField } from '../../lib/utils'
 import EditorComponentContext from '../EditorComponentContext'
 import MarkdownPreviewTab from '../MarkdownPreviewTab'
 import WebFieldContext from '../WebFieldContext'

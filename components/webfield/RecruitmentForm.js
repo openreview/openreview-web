@@ -2,11 +2,11 @@
 import { useState, useReducer, useContext } from 'react'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyField } from '../../lib/utils'
 import {
+  prettyField,
   constructRecruitmentResponseNote,
   orderNoteInvitationFields,
-} from '../../lib/webfield-utils'
+} from '../../lib/utils'
 import SpinnerButton from '../SpinnerButton'
 import Markdown from '../EditorComponents/Markdown'
 import { ReadOnlyField, ReadOnlyFieldV2 } from '../EditorComponents/ReadOnlyField'
