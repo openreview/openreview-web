@@ -12,8 +12,8 @@ import Markdown from '../EditorComponents/Markdown'
 import { ReadOnlyField, ReadOnlyFieldV2 } from '../EditorComponents/ReadOnlyField'
 import VenueHeader from './VenueHeader'
 import { WebfieldWidget, WebfieldWidgetV2 } from './WebfieldWidget'
-import { EditorComponentContext } from '../EditorComponentContext'
-import { WebFieldContext } from '../WebFieldContext'
+import EditorComponentContext from '../EditorComponentContext'
+import WebFieldContext from '../WebFieldContext'
 
 const fieldsToHide = ['id', 'title', 'key', 'response']
 const DeclineForm = ({ responseNote, setDecision }) => {

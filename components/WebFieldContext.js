@@ -1,3 +1,4 @@
 import { createContext } from 'react'
 
-export const WebFieldContext = createContext()
+const WebFieldContext = createContext()
+export default WebFieldContext

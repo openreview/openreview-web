@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic'
 import { useContext } from 'react'
-import { EditorComponentContext } from '../EditorComponentContext'
+import EditorComponentContext from '../EditorComponentContext'
 
 const DropdownList = dynamic(() =>
   import('../EditorComponents/DropdownList').then((mod) => mod.DropdownList)

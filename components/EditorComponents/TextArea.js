@@ -2,9 +2,9 @@ import { useContext, useEffect, useState } from 'react'
 import useUser from '../../hooks/useUser'
 import { prettyField } from '../../lib/utils'
 import { saveTextField } from '../../lib/webfield-utils'
-import { EditorComponentContext } from '../EditorComponentContext'
+import EditorComponentContext from '../EditorComponentContext'
 import MarkdownPreviewTab from '../MarkdownPreviewTab'
-import { WebFieldContext } from '../WebFieldContext'
+import WebFieldContext from '../WebFieldContext'
 
 const CharCounter = ({ regex, contentLength, isV2Invitation }) => {
   let minLength = null
@@ -73,7 +73,8 @@ const MathJaxWarning = ({ content }) => {
 
 export const TextArea = () => {
   const { field, onChange, value, isWebfield } = useContext(EditorComponentContext)
-  const { invitation, note } = isWebfield ? useContext(WebFieldContext) : {}
+  const webFieldContext = useContext(WebFieldContext)
+  const { invitation, note } = isWebfield ? webFieldContext : {}
   const { user } = useUser()
   const fieldName = Object.keys(field)[0]
   const fieldDescription = field[fieldName].description
@@ -143,7 +144,8 @@ export const TextArea = () => {
 
 export const TextAreaV2 = () => {
   const { field, onChange, value, isWebfield } = useContext(EditorComponentContext)
-  const { invitation, note } = isWebfield ? useContext(WebFieldContext) : {}
+  const webFieldContext = useContext(WebFieldContext)
+  const { invitation, note } = isWebfield ? webFieldContext : {}
   const { user } = useUser()
   const fieldName = Object.keys(field)[0]
   const fieldDescription = field[fieldName].description

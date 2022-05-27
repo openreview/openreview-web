@@ -13,7 +13,7 @@ import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 import { invitationModeToggle } from '../../lib/banner-links'
 import { generateInvitationWebfieldCode, parseComponentCode } from '../../lib/webfield-utils'
-import { WebFieldContext } from '../../components/WebFieldContext'
+import WebFieldContext from '../../components/WebFieldContext'
 
 const Invitation = ({ invitationId, webfieldCode, writable, componentObj, appContext }) => {
   const { user, userLoading } = useUser()

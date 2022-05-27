@@ -1,7 +1,7 @@
 import { useContext } from 'react'
 import { prettyField } from '../../lib/utils'
 import Dropdown from '../Dropdown'
-import { EditorComponentContext } from '../EditorComponentContext'
+import EditorComponentContext from '../EditorComponentContext'
 
 export const DropdownList = () => {
   const { field, onChange, value } = useContext(EditorComponentContext)
