@@ -1,5 +1,9 @@
 @use "../utils/constants";
 
+$gray1: #f7f6f4;
+$gray2: rgba(0, 0, 0, 0.04);
+$gray3: rgba(0, 0, 0, 0.05);
+
 main.forum {
 
   .tooltip .tooltip-inner {
@@ -41,7 +45,7 @@ main.forum {
   }
 
   .filter-controls {
-    background: #f7f6f4;
+    background: $gray1;
     padding: .5rem;
     border: 1px solid #eee;
 
@@ -186,25 +190,30 @@ main.forum {
       border-bottom-color: #eee;
     }
     & > li.active > a {
-      background-color: #f7f6f4;
-      border-color: #eee #eee #f7f6f4;
+      background-color: $gray1;
+      border-color: #eee #eee $gray1;
     }
   }
 
   #forum-replies {
+    background-color: $gray1;
+
     & > div {
-      margin-bottom: .75rem;
+      margin-bottom: 1rem;
     }
     & > div.controls {
       margin-bottom: 1.25rem;
     }
+    & > .note {
+      background-color: $gray2;
+      padding: .5rem;
+    }
     .note:hover {
-      background-color: rgba(0, 0, 0, .04);
-      box-shadow: 0 0 1px 4px rgba(0, 0, 0, .04);
-
-      .note-content-container.collapsed .gradient-overlay {
-        background-color: #f5f3f0;
-      }
+      // background-color: rgba(0, 0, 0, .04);
+      // box-shadow: 0 0 1px 4px rgba(0, 0, 0, .04);
+      // .note-content-container.collapsed .gradient-overlay {
+      //   background-color: #f5f3f0;
+      // }
       .heading .permalink-btn {
         opacity: 1;
       }
@@ -352,6 +361,8 @@ main.forum {
       margin-top: .75rem;
       padding-left: 2.5rem;
       & > .note {
+        background-color: $gray3;
+        padding: .5rem;
         margin-bottom: .75rem;
       }
       & > .note:last-child {
