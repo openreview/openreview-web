@@ -1,3 +1,4 @@
+import { FormData, fileFromSync } from 'node-fetch-cjs'
 import {
   createNote,
   createUser,
@@ -12,8 +13,6 @@ import {
   setupProfileViewEdit,
   setupRegister,
 } from './utils/api-helper'
-
-import { FormData, fileFromSync } from 'node-fetch-cjs'
 
 const waitForJobs = (noteId, superUserToken) =>
   new Promise((resolve, reject) => {
