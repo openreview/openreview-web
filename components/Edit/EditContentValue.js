@@ -16,15 +16,25 @@ const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown }) => 
   }
   if (fieldName === 'html') {
     return (
-      <a
-        href={fieldValue}
-        className="html-link"
-        title="Open Website"
-        rel="noopener noreferrer"
-        target="_blank"
-      >
-        <img src="/images/html_icon_blue.svg" alt="hmtl icon" />
-      </a>
+      <span className="note-content-value">
+        <a
+          href={fieldValue}
+          className="html-link"
+          title="Open Website"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <img src="/images/html_icon_blue.svg" alt="hmtl icon" />
+        </a>
+      </span>
+    )
+  }
+
+  if (fieldName === '_bibtex') {
+    return (
+      <div className="note-content-value">
+        <pre>{fieldValue}</pre>
+      </div>
     )
   }
 
