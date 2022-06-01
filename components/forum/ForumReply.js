@@ -326,7 +326,7 @@ function NoteContentCollapsible({
         presentation={presentation}
         include={['pdf', 'html']}
       />
-      <div className="gradient-overlay" />
+      {/* <div className="gradient-overlay" /> */}
     </div>
   )
 }

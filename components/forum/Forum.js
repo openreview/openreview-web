@@ -19,7 +19,7 @@ import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { prettyInvitationId } from '../../lib/utils'
-import { formatNote, parseFilterQuery, replaceFilterWildcards } from '../../lib/forum-utils'
+import { formatNote, getNoteInvitations, parseFilterQuery, replaceFilterWildcards } from '../../lib/forum-utils'
 
 export default function Forum({ forumNote, clientJsLoading }) {
   const { userLoading, accessToken } = useUser()
@@ -28,6 +28,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
   const [parentMap, setParentMap] = useState(null)
   const [displayOptionsMap, setDisplayOptionsMap] = useState(null)
   const [orderedReplies, setOrderedReplies] = useState(null)
+  const [allInvitations, setAllInvitations] = useState(null)
   const [layout, setLayout] = useState(2)
   const [sort, setSort] = useState('date-desc')
   const [filterOptions, setFilterOptions] = useState(null)
@@ -104,6 +105,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
       getInvitationsByReplyForum(id),
       getInvitationsByReplyForum(id, true),
     ])
+    setAllInvitations(invitations)
 
     // Process notes
     const replyMap = {}
@@ -114,27 +116,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
     const readerGroupIds = new Set()
     const numberWildcard = /(Reviewer|Area_Chair)_(\w{4})/g
     notes.forEach((note) => {
-      const deleteInvitation = invitations.filter(p => (
-        p.edit?.note?.id?.const === note.id || note.invitations.includes(p.edit?.note?.id?.withInvitation)
-      )).find(p => p.edit?.note?.ddate)
-      // pure delete invitation should not be edit invitation
-      const isPureDeleteInvitation = !deleteInvitation?.edit?.note?.content
-
-      let editInvitations = invitations.filter(p => (
-        p.edit?.note?.id?.const === note.id || note.invitations.includes(p.edit?.note?.id?.withInvitation)
-      ))
-      if (isPureDeleteInvitation) {
-        editInvitations = editInvitations.filter(p => p.id !== deleteInvitation?.id)
-      }
-
-      const replyInvitations = invitations.filter(p => {
-        const replyTo = p.edit?.note?.replyto
-        return p.details.repliesAvailable && replyTo && (
-          replyTo.const === note.id || replyTo.withForum === id || (
-            replyTo.withInvitation && note.invitations.includes(replyTo.withInvitation)
-          )
-        )
-      })
+      const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(invitations, note, id)
 
       // Don't include forum note in replyMap
       if (note.id === note.forum) {
@@ -272,9 +254,16 @@ export default function Forum({ forumNote, clientJsLoading }) {
   }
 
   const addTopLevelReply = (note) => {
+    const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(allInvitations, note, id)
     setReplyNoteMap({
       ...replyNoteMap,
-      [note.id]: formatNote(note, activeInvitation)
+      [note.id]: formatNote(
+        note,
+        activeInvitation,
+        editInvitations,
+        deleteInvitation,
+        replyInvitations
+      )
     })
     setDisplayOptionsMap({
       ...displayOptionsMap,
@@ -286,7 +275,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
     })
     setActiveInvitation(null)
 
-    scrollToElement('#forum-replies')
+    scrollToElement('forum-replies')
   }
 
   // Handle url hash changes

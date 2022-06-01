@@ -214,7 +214,7 @@ main.forum {
       // .note-content-container.collapsed .gradient-overlay {
       //   background-color: #f5f3f0;
       // }
-      .heading .permalink-btn {
+      & > .heading > .permalink-btn {
         opacity: 1;
       }
     }
