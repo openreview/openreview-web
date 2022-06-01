@@ -1908,12 +1908,16 @@ module.exports = (function() {
 
     var omittedContentFields = [
       'title', 'authors', 'author_emails', 'authorids', 'pdf',
-      'verdict', 'paperhash', 'ee', 'html', 'year', 'venue', 'venueid'
+      'verdict', 'paperhash', 'ee', 'html', 'year'
     ].concat(additionalOmittedFields || []);
 
     var $contents = [];
     contentOrder.forEach(function(fieldName) {
       if (omittedContentFields.includes(fieldName) || fieldName.startsWith('_')) {
+        return;
+      }
+
+      if (!params.isReference && ['venueid', 'venue'].includes(fieldName)) {
         return;
       }
 
