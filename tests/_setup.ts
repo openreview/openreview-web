@@ -1,5 +1,4 @@
 import { FormData, fileFromSync } from 'node-fetch-cjs'
-import api from '../lib/api-client'
 import {
   createNote,
   createUser,
@@ -10,6 +9,7 @@ import {
   hasNoTaskUser,
   conferenceGroupId,
   conferenceSubmissionInvitationId,
+  sendFile,
   setupProfileViewEdit,
   setupRegister,
 } from './utils/api-helper'
@@ -356,7 +356,7 @@ test('setup ICLR', async (t) => {
   data.set('name', 'pdf')
   data.set('file-upload', blob, 'paper.pdf', 'application/pdf')
 
-  const result = await api.sendFile(data, userToken)
+  const result = await sendFile(data, userToken)
 
   const noteJson = {
     invitation: 'ICLR.cc/2021/Conference/-/Submission',

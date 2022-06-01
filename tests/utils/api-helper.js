@@ -154,6 +154,10 @@ export function createNote(jsonToPost, userToken) {
   return api.post('/notes', jsonToPost, { accessToken: userToken })
 }
 
+export function sendFile(data, userToken) {
+  return api.put('/attachment', data, { accessToken: userToken, contentType: 'unset' })
+}
+
 export function getToken(id = superUserName, password = '1234') {
   return api.post('/login', { id, password }).then((apiRes) => apiRes.token)
 }
