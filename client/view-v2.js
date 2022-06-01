@@ -102,8 +102,6 @@ module.exports = (function() {
       default, // type: array,string
       hidden,
       scroll,
-      hideCharCounter,
-
     },
     order,
     description,
@@ -217,18 +215,16 @@ module.exports = (function() {
             $inputGroup = valueInput($input, fieldName, fieldDescription);
           }
 
-          if (!_.get(fieldDescription.presentation, 'hideCharCounter', false)) {
-            var lenMatches = _.get(fieldDescription.value, 'regex', '').match(/\{(\d+),(\d+)\}\$$/);
-            if (lenMatches) {
-              var minLen = parseInt(lenMatches[1], 10);
-              var maxLen = parseInt(lenMatches[2], 10);
-              minLen = (isNaN(minLen) || minLen < 0) ? 0 : minLen;
-              maxLen = (isNaN(maxLen) || maxLen < minLen) ? 0 : maxLen;
-              if (minLen || maxLen) {
-                $inputGroup.append(mkCharCouterWidget($input, minLen, maxLen));
-                if (fieldValue) {
-                  $input.trigger('keyup');
-                }
+          var lenMatches = _.get(fieldDescription.value, 'regex', '').match(/\{(\d+),(\d+)\}\$$/);
+          if (lenMatches) {
+            var minLen = parseInt(lenMatches[1], 10);
+            var maxLen = parseInt(lenMatches[2], 10);
+            minLen = (isNaN(minLen) || minLen < 0) ? 0 : minLen;
+            maxLen = (isNaN(maxLen) || maxLen < minLen) ? 0 : maxLen;
+            if (minLen || maxLen) {
+              $inputGroup.append(mkCharCouterWidget($input, minLen, maxLen));
+              if (fieldValue) {
+                $input.trigger('keyup');
               }
             }
           }
