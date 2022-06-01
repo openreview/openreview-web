@@ -1,7 +1,6 @@
 /* eslint-disable no-use-before-define */
 
-import { readFileSync } from 'fs'
-import fetch from 'node-fetch'
+import fetch from 'node-fetch-cjs'
 import { loadEnvConfig } from '@next/env'
 import api from '../../lib/api-client'
 
@@ -155,9 +154,8 @@ export function createNote(jsonToPost, userToken) {
   return api.post('/notes', jsonToPost, { accessToken: userToken })
 }
 
-export function sendFile(fileName, userToken) {
-  const readStream = readFileSync(`${__dirname}/data/${fileName}`)
-  return api.sendFile(readStream, userToken)
+export function sendFile(data, userToken) {
+  return api.put('/attachment', data, { accessToken: userToken, contentType: 'unset' })
 }
 
 export function getToken(id = superUserName, password = '1234') {

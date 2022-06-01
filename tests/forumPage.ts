@@ -1,4 +1,4 @@
-import fetch from 'node-fetch'
+import fetch from 'node-fetch-cjs'
 import { Selector, ClientFunction, Role } from 'testcafe'
 import { getToken, getNotes, createUser } from './utils/api-helper'
 

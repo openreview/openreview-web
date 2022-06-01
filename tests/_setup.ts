@@ -1,3 +1,4 @@
+import { FormData, fileFromSync } from 'node-fetch-cjs'
 import {
   createNote,
   createUser,
@@ -67,9 +68,8 @@ fixture`Setup data`.before(async (ctx) => {
 
 test('setup TestVenue', async (t) => {
   const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
-  const submissionDateString = `${submissionDate.getFullYear()}/${
-    submissionDate.getMonth() + 1
-  }/${submissionDate.getDate()}`
+  const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
+    }/${submissionDate.getDate()}`
   const { superUserToken } = t.fixtureCtx
   const requestVenueJson = {
     invitation: 'openreview.net/Support/-/Request_Form',
@@ -160,9 +160,8 @@ test('setup TestVenue', async (t) => {
   await waitForJobs(postSubmissionId, superUserToken)
 
   const reviewDeadline = new Date(Date.now() + 24 * 60 * 60 * 1000)
-  const reviewDeadlineString = `${reviewDeadline.getFullYear()}/${
-    reviewDeadline.getMonth() + 1
-  }/${reviewDeadline.getDate()}`
+  const reviewDeadlineString = `${reviewDeadline.getFullYear()}/${reviewDeadline.getMonth() + 1
+    }/${reviewDeadline.getDate()}`
   const reviewStageJson = {
     content: {
       review_deadline: reviewDeadlineString,
@@ -196,9 +195,8 @@ test('setup TestVenue', async (t) => {
 
 test('setup AnotherTestVenue', async (t) => {
   const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
-  const submissionDateString = `${submissionDate.getFullYear()}/${
-    submissionDate.getMonth() + 1
-  }/${submissionDate.getDate()}`
+  const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
+    }/${submissionDate.getDate()}`
   const { superUserToken } = t.fixtureCtx
 
   const requestVenueJson = {
@@ -295,9 +293,8 @@ test('setup AnotherTestVenue', async (t) => {
 
 test('setup ICLR', async (t) => {
   const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
-  const submissionDateString = `${submissionDate.getFullYear()}/${
-    submissionDate.getMonth() + 1
-  }/${submissionDate.getDate()}`
+  const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
+    }/${submissionDate.getDate()}`
   const { superUserToken } = t.fixtureCtx
 
   const requestVenueJson = {
@@ -353,8 +350,13 @@ test('setup ICLR', async (t) => {
   await waitForJobs(deployId, superUserToken)
 
   const userToken = await getToken('a@a.com')
+  const blob = fileFromSync(`${__dirname}/utils/data/paper.pdf`, 'application/pdf')
+  const data = new FormData()
+  data.set('invitationId', 'ICLR.cc/2021/Conference/-/Submission')
+  data.set('name', 'pdf')
+  data.set('file-upload', blob, 'paper.pdf', 'application/pdf')
 
-  const result = await sendFile('paper.pdf', userToken)
+  const result = await sendFile(data, userToken)
 
   const noteJson = {
     invitation: 'ICLR.cc/2021/Conference/-/Submission',

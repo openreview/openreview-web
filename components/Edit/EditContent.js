@@ -28,7 +28,6 @@ const EditContent = ({ edit }) => {
   return (
     <ul className="list-unstyled note-content">
       {contentOrder.map((fieldName) => {
-        if (fieldName.startsWith('_')) return null
         const fieldReaders = noteContent[fieldName]?.readers?.sort()
         const showPrivateIcon =
           fieldReaders && edit.readers && !fieldReaders.every((p, i) => p === edit.readers[i])

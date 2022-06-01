@@ -17,7 +17,7 @@ const Terms = () => (
 
     <div className="row">
       <div className="col-xs-12 col-md-10 col-md-offset-1">
-        <p className="text-muted">Last updated: March 1, 2017</p>
+        <p className="text-muted">Last updated: May 24, 2022</p>
         <p>
           Please read these Terms and Conditions (&quot;Terms&quot;, &quot;Terms and
           Conditions&quot;) carefully before using the https://openreview.net website (the
@@ -32,6 +32,24 @@ const Terms = () => (
         <p>
           By accessing or using the Service you agree to be bound by these Terms. If you
           disagree with any part of the terms then you may not access the Service.
+        </p>
+
+        <h3>Requirements for Global Access</h3>
+        <p>
+          By accessing or using the Service, you agree and represent to OpenReview.net that: i)
+          you are not acting, directly or indirectly, on behalf of the Governments of Iran,
+          Syria, Cuba, or any other jurisdiction subject to comprehensive economic sanctions by
+          the United States, or any political subdivision, agency or instrumentality thereof
+          (other than academic and research institutions whose primary function is research
+          and/or teaching and their personnel); (ii) you are not a person sanctioned under any
+          of the sanctions programs administered by the Office of Foreign Assets Control of the
+          United States Department of the Treasury (OFAC) and are not listed or identified on
+          the List of Specially Designated Nationals and Blocked Persons or other sanctions
+          lists administered by OFAC; and (iii) if you reside in or are a national of a
+          jurisdiction subject to comprehensive economic sanctions by the United States, you
+          are accessing or using the Service solely to access informational materials or engage
+          in publishing activities, as such terms are defined and authorized by general
+          licenses issued by OFAC.
         </p>
 
         <h3>Accounts</h3>
