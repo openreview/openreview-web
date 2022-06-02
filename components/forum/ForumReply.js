@@ -27,6 +27,16 @@ export default function ForumReply({ note, replies, updateNote }) {
   const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
   const generatedTitle = buildNoteTitle(invitations[0], signatures)
 
+  const scrollToNote = (noteId) => {
+    const el = document.querySelector(`.note[data-id="${noteId}"]`)
+    if (!el) return
+
+    const navBarHeight = 63
+    const y = el.getBoundingClientRect().top + window.pageYOffset - navBarHeight
+
+    window.scrollTo({ top: y, behavior: 'smooth' })
+  }
+
   if (collapsed) {
     // Collapsed reply
     return (
@@ -77,14 +87,9 @@ export default function ForumReply({ note, replies, updateNote }) {
           note={note}
           invitation={activeEditInvitation}
           onNoteEdited={(newNote) => {
+            updateNote(newNote)
             setActiveEditInvitation(null)
-            updateNote({
-              ...note,
-              content: {
-                ...note.content,
-                ...newNote.content,
-              },
-            })
+            scrollToNote(newNote.id)
           }}
           onNoteCancelled={() => {
             setActiveEditInvitation(null)
@@ -163,7 +168,8 @@ export default function ForumReply({ note, replies, updateNote }) {
                 content.title?.value ? content.title.value : generatedTitle,
                 user,
                 (newNote) => {
-                  updateNote(newNote, note.id, note.replyInvitations)
+                  updateNote(newNote)
+                  scrollToNote(newNote.id)
                 }
               )
             }}
@@ -258,8 +264,9 @@ export default function ForumReply({ note, replies, updateNote }) {
             invitation={activeInvitation}
             replyToId={note.id}
             onNoteCreated={(newNote) => {
+              updateNote(newNote)
               setActiveInvitation(null)
-              updateNote(newNote, note.id, note.replyInvitations)
+              scrollToNote(newNote.id)
             }}
             onNoteCancelled={() => { setActiveInvitation(null) }}
             onError={(isLoadingError) => {

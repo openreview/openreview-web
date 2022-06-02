@@ -1476,8 +1476,8 @@ module.exports = (function() {
             if (params.isEdit) {
               params.onNoteEdited();
             } else {
-              Webfield2.get('/notes', { id: edit.note.id, details: 'invitation,presentation' }).then(function(result) {
-                params.onNoteEdited(result.notes?.[0]);
+              Webfield2.get('/notes', { id: edit.note.id, details: 'invitation,presentation' }).then(function(noteRes) {
+                params.onNoteEdited(noteRes.notes?.[0]);
               });
             }
           }
