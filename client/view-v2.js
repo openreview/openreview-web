@@ -155,37 +155,35 @@ module.exports = (function() {
     };
 
     const fieldDefault = (params?.useDefaults) ?
-      _.get(fieldDescription.presentation, 'default', '') :
+      _.get(fieldDescription.value?.param, 'default', '') :
       '';
     fieldValue = valueInNote || fieldDefault;  // These will always be mutually exclusive
     var $input;
-    if (_.has(fieldDescription.value, 'const')) {
-      if (Array.isArray(fieldDescription.value.const) || fieldDescription.value.type.endsWith('[]')) {
+    if (Array.isArray(fieldDescription.value)) {
         // then treat as values
         contentInputResult = view.mkDropdownAdder(
-          fieldName, fieldDescription.description, fieldDescription.value.const,
-          fieldValue, { hoverText: true, refreshData: false, required: !fieldDescription.value.optional }
+          fieldName, 'This is a description', fieldDescription.value,
+          fieldValue, { hoverText: true, refreshData: false, required: !fieldDescription.value.param?.optional }
         );
-      } else {
-        // treat as value
-        contentInputResult = valueInput($('<input>', {
-          type: 'text',
-          class: 'form-control note_content_value',
-          name: fieldName,
-          value: fieldDescription.value.const,
-          readonly: true
-        }), fieldName, fieldDescription);
-      }
-    } else if (_.has(fieldDescription.value, 'regex')) {
-      if (fieldDescription.value.type.endsWith('[]')) {
+    } else if (typeof (fieldDescription.value) !== 'object') {
+      //treat as value
+      contentInputResult = valueInput($('<input>', {
+        type: 'text',
+        class: 'form-control note_content_value',
+        name: fieldName,
+        value: fieldDescription.value,
+        readonly: true
+      }), fieldName, fieldDescription);
+    } else if (_.has(fieldDescription.value.param, 'regex')) {
+      if (fieldDescription.type.endsWith('[]')) {
         // then treat as values-regex
         if (params && params.groups) {
           var groupIds = _.map(params.groups, function (g) {
             return g.id;
           });
           contentInputResult = view.mkDropdownAdder(
-            fieldName, fieldDescription.description, groupIds,
-            fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.optional }
+            fieldName, fieldDescription.value.param.description, groupIds,
+            fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.param.optional }
           );
         } else {
           $input = $('<input>', {
@@ -201,7 +199,7 @@ module.exports = (function() {
         // then treat as value-regex
         var $inputGroup;
         // Create a new regex that doesn't include min and max length
-        var regexStr = fieldDescription.value.regex;
+        var regexStr = fieldDescription.value.param.regex;
         var re = new RegExp('^' + regexStr.replace(/\{\d+,\d+\}\$$/, '') + '$');
         var newlineMatch = '\n'.match(re);
         if (newlineMatch && newlineMatch.length) {
@@ -211,14 +209,14 @@ module.exports = (function() {
             text: fieldValue
           });
 
-          if (fieldDescription.presentation?.markdown) {
+          if (fieldDescription.value.param.markdown) {
             $inputGroup = markdownInput($input, fieldName, fieldDescription);
           } else {
             $inputGroup = valueInput($input, fieldName, fieldDescription);
           }
 
-          if (!_.get(fieldDescription.presentation, 'hideCharCounter', false)) {
-            var lenMatches = _.get(fieldDescription.value, 'regex', '').match(/\{(\d+),(\d+)\}\$$/);
+          if (!_.get(fieldDescription.value.param, 'hideCharCounter', false)) {
+            var lenMatches = _.get(fieldDescription.value.param, 'regex', '').match(/\{(\d+),(\d+)\}\$$/);
             if (lenMatches) {
               var minLen = parseInt(lenMatches[1], 10);
               var maxLen = parseInt(lenMatches[2], 10);
@@ -306,9 +304,9 @@ module.exports = (function() {
   const mkComposerInput = (fieldName, fieldDescription, fieldValue, params) => {
     let contentInputResult;
 
-    if (fieldName === 'authorids' && fieldDescription.value?.type.endsWith('[]') && (
-      (_.has(fieldDescription.value, 'regex') && view.isTildeIdAllowed(fieldDescription.value.regex)) ||
-      _.has(fieldDescription.value, 'const')
+    if (fieldName === 'authorids' && fieldDescription.type.endsWith('[]') && (
+      (_.has(fieldDescription.param, 'regex') && view.isTildeIdAllowed(fieldDescription.value.param.regex))
+      // || _.has(fieldDescription.value, 'const')
     )) {
       let authors;
       let authorids;
@@ -320,7 +318,7 @@ module.exports = (function() {
         authors = [userProfile.first + ' ' + userProfile.middle + ' ' + userProfile.last];
         authorids = [userProfile.preferredId];
       }
-      const invitationRegex = fieldDescription.value?.regex;
+      const invitationRegex = fieldDescription.value.param.regex;
       // Enable allowUserDefined if the values-regex has '~.*|'
       // Don't enable adding or removing authors if invitation uses 'values' instead of values-regex
       contentInputResult = valueInput(
@@ -897,7 +895,7 @@ module.exports = (function() {
 
     var contentOrder = order(invitation.edit?.note?.content, invitation.id);
     var $contentMap = _.reduce(contentOrder, function(ret, k) {
-      ret[k] = mkComposerInput(k, invitation.edit?.note?.content?.[k], invitation.edit?.note?.content?.[k]?.presentation?.default || '', { useDefaults: true, user: user});
+      ret[k] = mkComposerInput(k, invitation.edit?.note?.content?.[k], invitation.edit?.note?.content?.[k]?.value?.param?.default || '', { useDefaults: true, user: user});
       return ret;
     }, {});
     function buildEditor(editReaders, editSignatures, noteReaders, noteSignatures) {
