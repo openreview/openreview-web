@@ -370,6 +370,12 @@ main.forum {
         margin-bottom: 0;
       }
     }
+    &.deleted > div {
+      opacity: .35;
+    }
+    &.deleted > div.note-replies {
+      opacity: 1;
+    }
   }
 
 }

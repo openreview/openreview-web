@@ -84,6 +84,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
 
     return api.get('/notes', {
       forum: forumId,
+      trash: true,
       details: 'replyCount,writable,presentation,signatures,revisions',
     }, { accessToken, version: 2 })
       .then(({ notes }) => {

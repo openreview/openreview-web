@@ -21,7 +21,7 @@ export default function ForumReply({ note, replies, updateNote }) {
   const { user } = useUser()
 
   const {
-    id, invitations, content, signatures, ddate,
+    invitations, content, signatures, ddate,
   } = note
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
   const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
@@ -44,6 +44,7 @@ export default function ForumReply({ note, replies, updateNote }) {
         id={note.id}
         hidden={hidden && allRepliesHidden}
         collapsed={collapsed}
+        deleted={!!ddate}
         setCollapsed={setCollapsed}
       >
         <div className="heading">
@@ -65,7 +66,7 @@ export default function ForumReply({ note, replies, updateNote }) {
             )}
           </h4>
 
-          <CopyLinkButton noteId={id} />
+          <CopyLinkButton noteId={note.id} />
         </div>
 
         {!allRepliesHidden && (
@@ -81,6 +82,7 @@ export default function ForumReply({ note, replies, updateNote }) {
         id={note.id}
         hidden={hidden && allRepliesHidden}
         collapsed={collapsed}
+        deleted={!!ddate}
         setCollapsed={setCollapsed}
       >
         <NoteEditorForm
@@ -117,6 +119,7 @@ export default function ForumReply({ note, replies, updateNote }) {
       id={note.id}
       hidden={hidden && allRepliesHidden}
       collapsed={collapsed}
+      deleted={!!ddate}
       setCollapsed={setCollapsed}
     >
       <div className="heading">
@@ -128,9 +131,9 @@ export default function ForumReply({ note, replies, updateNote }) {
           )}
         </h4>
 
-        <CopyLinkButton noteId={id} />
+        <CopyLinkButton noteId={note.id} />
 
-        {note.editInvitations?.length > 0 && (
+        {(note.editInvitations?.length > 0 && !ddate) && (
           <div className="btn-group">
             <button
               type="button"
@@ -241,9 +244,10 @@ export default function ForumReply({ note, replies, updateNote }) {
         content={note.content}
         presentation={note.details?.presentation}
         collapsed={!contentExpanded}
+        deleted={!!ddate}
       />
 
-      {note.replyInvitations?.length > 0 && (
+      {(note.replyInvitations?.length > 0 && !note.ddate) && (
         <div className="invitations-container mt-2">
           <div className="invitation-buttons">
             <span className="hint">Add:</span>
@@ -286,10 +290,10 @@ export default function ForumReply({ note, replies, updateNote }) {
 }
 
 function ReplyContainer({
-  id, hidden, collapsed, setCollapsed, children,
+  id, hidden, collapsed, deleted, setCollapsed, children,
 }) {
   return (
-    <div className="note" style={hidden ? { display: 'none' } : {}} data-id={id}>
+    <div className={`note ${deleted ? 'deleted' : ''}`} style={hidden ? { display: 'none' } : {}} data-id={id}>
       <button type="button" className="btn btn-link collapse-link" onClick={e => setCollapsed(id, !collapsed)}>
         [
         {collapsed ? '+' : '–'}
@@ -319,8 +323,18 @@ function CopyLinkButton({ noteId }) {
 }
 
 function NoteContentCollapsible({
-  id, content, presentation, collapsed,
+  id, content, presentation, collapsed, deleted
 }) {
+  if (deleted) {
+    return (
+      <div className="note-content-container">
+        <div className="note-content">
+          <em>[Deleted]</em>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div
       role="button"
