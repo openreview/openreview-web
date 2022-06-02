@@ -15,6 +15,14 @@ const TextAreaV2 = dynamic(() =>
   import('../EditorComponents/TextArea').then((mod) => mod.TextAreaV2)
 )
 
+const RadioButton = dynamic(() =>
+  import('../EditorComponents/RadioButton').then((mod) => mod.RadioButton)
+)
+
+const RadioButtonV2 = dynamic(() =>
+  import('../EditorComponents/RadioButton').then((mod) => mod.RadioButtonV2)
+)
+
 export const WebfieldWidget = () => {
   const { field } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
@@ -24,6 +32,8 @@ export const WebfieldWidget = () => {
     // eslint-disable-next-line no-else-return
   } else if (field[fieldName]['value-regex']) {
     return <TextArea />
+  } else if (field[fieldName]['value-radio']) {
+    return <RadioButton />
   }
   return null
 }
@@ -33,6 +43,9 @@ export const WebfieldWidgetV2 = () => {
   const fieldName = Object.keys(field)[0]
 
   if (field[fieldName].value?.enum) {
+    if (field[fieldName].presentation?.input === 'radio') {
+      return <RadioButtonV2 />
+    }
     if (field[fieldName].presentation?.input === 'select') {
       return <DropdownListV2 />
     }
