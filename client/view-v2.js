@@ -1008,7 +1008,9 @@ module.exports = (function() {
         const editToPost = constructEdit({ formData: formContent, invitationObj: invitation });
         Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(function(result) {
           if (params.onNoteCreated) {
-            params.onNoteCreated(result);
+            Webfield2.get('/notes', { id: result.note.id, details: 'invitation,presentation' }).then(function(noteRes) {
+              params.onNoteCreated(noteRes.notes?.[0]);
+            })
           }
           $noteEditor.remove();
           view.clearAutosaveData(autosaveStorageKeys);
@@ -1469,18 +1471,14 @@ module.exports = (function() {
         const editToPost = params.isEdit
           ? constructUpdatedEdit(params.editToUpdate, invitation, formContent)
           : constructEdit({ formData: formContent, noteObj: existingNote, invitationObj: invitation });
-        Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(function() {
-          if (params.onNoteEdited ) {
+        Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(function(edit) {
+          if (params.onNoteEdited) {
             if (params.isEdit) {
               params.onNoteEdited();
             } else {
-              if (note.id) { // recruitment invitation web may pass note without id
-                Webfield2.get('/notes', { id: note.id }).then(function (result) {
-                  params.onNoteEdited(result);
-                });
-              } else {
-                params.onNoteEdited();
-              }
+              Webfield2.get('/notes', { id: edit.note.id, details: 'invitation,presentation' }).then(function(result) {
+                params.onNoteEdited(result.notes?.[0]);
+              });
             }
           }
           $noteEditor.remove();
@@ -1772,15 +1770,15 @@ module.exports = (function() {
                 '';
           }
         } else if (presentationObj.input === 'select' || !(_.has(presentationObj, 'input'))) {
-          //values-dropdown
           if (contentObj.type.endsWith('[]')) {
+            //values-dropdown
             inputVal = view.idsFromListAdder($contentMap[k], ret);
           } else {
             //value-dropdown
             var values = view.idsFromListAdder($contentMap[k], ret);
-              if (values && values.length) {
-                inputVal = values[0];
-              }
+            if (values?.length > 0) {
+              inputVal = values[0];
+            }
           }
         }
       } else if (contentObj.hasOwnProperty('const')) {

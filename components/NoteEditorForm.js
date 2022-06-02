@@ -32,15 +32,15 @@ export default function NoteEditorForm({
     }
   }
 
-  const handleCreated = (edit) => {
+  const handleCreated = (newNote) => {
     if (typeof onNoteCreated === 'function') {
-      onNoteCreated({ ...edit.note, invitations: [edit.invitation] })
+      onNoteCreated(newNote)
     }
   }
 
-  const handleEdited = (edit) => {
+  const handleEdited = (updatedNote) => {
     if (typeof onNoteEdited === 'function') {
-      onNoteEdited({ ...edit.note, invitations: [edit.invitation] })
+      onNoteEdited(updatedNote)
     }
   }
 

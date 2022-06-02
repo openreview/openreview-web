@@ -206,16 +206,6 @@ export default function Forum({ forumNote, clientJsLoading }) {
     })
   }
 
-  const scrollToElement = (selector) => {
-    const el = document.getElementById(selector)
-    if (!el) return
-
-    const navBarHeight = 63
-    const y = el.getBoundingClientRect().top + window.pageYOffset - navBarHeight
-
-    window.scrollTo({ top: y, behavior: 'smooth' })
-  }
-
   const openNoteEditor = (invitation) => {
     if (activeInvitation && activeInvitation.id !== invitation.id) {
       promptError(
@@ -227,21 +217,25 @@ export default function Forum({ forumNote, clientJsLoading }) {
     }
   }
 
-  const updateReplyNote = (newNote, parentId, replyInvitations) => {
-    const noteId = newNote.id
-    const currentNote = replyNoteMap[noteId] ?? {}
+  // Add new reply note or update and existing reply note
+  const updateNote = (note) => {
+    const noteId = note.id
+    const parentId = note.replyto
+    const existingNote = replyNoteMap[noteId]
+    const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(allInvitations, note)
+
     setReplyNoteMap({
       ...replyNoteMap,
       [noteId]: formatNote(
-        {
-          ...currentNote,
-          ...newNote,
-        },
+        note,
+        null,
+        editInvitations,
+        deleteInvitation,
         replyInvitations
       ),
     })
 
-    if (isEmpty(currentNote)) {
+    if (isEmpty(existingNote)) {
       setDisplayOptionsMap({
         ...displayOptionsMap,
         [noteId]: { collapsed: false, contentExpanded: false, hidden: false },
@@ -253,29 +247,14 @@ export default function Forum({ forumNote, clientJsLoading }) {
     }
   }
 
-  const addTopLevelReply = (note) => {
-    const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(allInvitations, note, id)
-    setReplyNoteMap({
-      ...replyNoteMap,
-      [note.id]: formatNote(
-        note,
-        activeInvitation,
-        editInvitations,
-        deleteInvitation,
-        replyInvitations
-      )
-    })
-    setDisplayOptionsMap({
-      ...displayOptionsMap,
-      [note.id]: { collapsed: false, contentExpanded: false, hidden: false },
-    })
-    setParentMap({
-      ...parentMap,
-      [id]: [...parentMap[id], note.id],
-    })
-    setActiveInvitation(null)
+  const scrollToElement = (selector) => {
+    const el = document.getElementById(selector)
+    if (!el) return
 
-    scrollToElement('forum-replies')
+    const navBarHeight = 63
+    const y = el.getBoundingClientRect().top + window.pageYOffset - navBarHeight
+
+    window.scrollTo({ top: y, behavior: 'smooth' })
   }
 
   // Handle url hash changes
@@ -485,7 +464,11 @@ export default function Forum({ forumNote, clientJsLoading }) {
             forumId={id}
             replyToId={id}
             invitation={activeInvitation}
-            onNoteCreated={addTopLevelReply}
+            onNoteCreated={(note) => {
+              updateNote(note)
+              setActiveInvitation(null)
+              scrollToElement('forum-replies')
+            }}
             onNoteCancelled={() => {
               setActiveInvitation(null)
             }}
@@ -537,7 +520,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
                     key={reply.id}
                     note={replyNoteMap[reply.id]}
                     replies={reply.replies.map((childId) => replyNoteMap[childId])}
-                    updateNote={updateReplyNote}
+                    updateNote={updateNote}
                   />
                 ))
               ) : (
