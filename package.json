@@ -3,7 +3,7 @@
   "version": "1.4.5",
   "private": true,
   "scripts": {
-    "dev": "NODE_OPTIONS='--inspect' next dev --port $NEXT_PORT",
+    "dev": "NODE_OPTIONS='--inspect=0.0.0.0:9230' next dev --port $NEXT_PORT",
     "lint": "next lint",
     "build": "next build",
     "start": "next start --port $NEXT_PORT",
@@ -60,7 +60,7 @@
     "eslint-config-next": "^12.1.5",
     "eslint-config-prettier": "^8.4.0",
     "eslint-plugin-import": "^2.26.0",
-    "node-fetch": "^2.6.6",
+    "node-fetch-cjs": "^3.2.4",
     "prettier": "2.5.1",
     "testcafe": "^1.18.5"
   }

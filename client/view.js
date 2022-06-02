@@ -3138,12 +3138,6 @@ module.exports = (function() {
 
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
-          if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
-            return Webfield.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
-              note.content[fieldName] = result.url;
-              return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, note.content.pdf);
-            });
-          }
           if (window.USE_PARALLEL_UPLOAD) {
             //#region parallel upload
             var uploadInProgressField = uploadInProgressFields.find(p=>p.fieldName===fieldName)
@@ -3703,12 +3697,6 @@ module.exports = (function() {
 
           var fieldNames = _.keys(files);
           var promises = fieldNames.map(function(fieldName) {
-            if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
-              return Webfield.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
-                editNote.content[fieldName] = result.url;
-                return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, editNote.content.pdf);
-              });
-            }
             if (window.USE_PARALLEL_UPLOAD) {
               //#region parallel upload
               var uploadInProgressField = uploadInProgressFields.find(p=>p.fieldName===fieldName)
