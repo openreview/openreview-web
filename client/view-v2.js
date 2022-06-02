@@ -1,15 +1,15 @@
 module.exports = (function() {
   const valueInput = (contentInput, fieldName, fieldDescription) => {
     const $smallHeading = $('<div>', { text: view.prettyField(fieldName), class: 'small_heading' });
-    if (!fieldDescription.value.optional) {
+    if (!fieldDescription.value.param?.optional) {
       $smallHeading.prepend('<span class="required_field">*</span>');
     }
 
     let $description;
-    if (fieldDescription.presentation?.scroll) {
-      $description = $('<textarea class="form-control scroll-box" readonly>').text(fieldDescription.description);
+    if (fieldDescription.value.param?.scroll) {
+      $description = $('<textarea class="form-control scroll-box" readonly>').text(fieldDescription.value.param?.description);
     } else {
-      $description = $('<div class="hint disable-tex-rendering">').text(fieldDescription.description);
+      $description = $('<div class="hint disable-tex-rendering">').text(fieldDescription.value.param?.description);
     }
 
     const $row = $('<div>', { class: 'row' }).append(
@@ -242,10 +242,10 @@ module.exports = (function() {
         $input.addClass('autosave-enabled');
         contentInputResult = $inputGroup;
       }
-    } else if (_.has(fieldDescription.value, 'enum')) {
-      if (fieldDescription.presentation?.input === 'radio') {
+    } else if (_.has(fieldDescription.value.param, 'enum')) {
+      if (fieldDescription.value.param.input === 'radio') {
         $input = $('<div>', { class: 'note_content_value value-radio-container' }).append(
-          _.map(fieldDescription.value.enum, function (v) {
+          _.map(fieldDescription.value.param.enum, function (v) {
             return $('<div>', { class: 'radio' }).append(
               $('<label>').append(
                 $('<input>', {
@@ -294,7 +294,7 @@ module.exports = (function() {
         text: fieldValue && JSON.stringify(fieldValue, undefined, 4)
       }), fieldName, fieldDescription);
 
-    } else if (fieldDescription.value?.type === 'file') {
+    } else if (fieldDescription.type === 'file') {
       contentInputResult = mkAttachmentSection(fieldName, fieldDescription, fieldValue);
     }
 
@@ -305,7 +305,7 @@ module.exports = (function() {
     let contentInputResult;
 
     if (fieldName === 'authorids' && fieldDescription.type.endsWith('[]') && (
-      (_.has(fieldDescription.param, 'regex') && view.isTildeIdAllowed(fieldDescription.value.param.regex))
+      (_.has(fieldDescription.value.param, 'regex') && view.isTildeIdAllowed(fieldDescription.value.param.regex))
       // || _.has(fieldDescription.value, 'const')
     )) {
       let authors;
@@ -334,7 +334,7 @@ module.exports = (function() {
       contentInputResult = mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
     }
 
-    if (fieldDescription.presentation?.hidden === true) {
+    if (fieldDescription.value?.param?.hidden === true) {
       return contentInputResult.hide();
     }
     return contentInputResult;
@@ -343,7 +343,7 @@ module.exports = (function() {
   // Private helper function used by mkPdfSection and mkAttachmentSection
   const mkFileRow = ($widgets, fieldName, fieldDescription, fieldValue) => {
     const smallHeading = $('<div>', {text: view.prettyField(fieldName), class: 'small_heading'});
-    if (!fieldDescription.value.optional) {
+    if (!fieldDescription.value.param.optional) {
       const requiredText = $('<span>', {text: '*', class: 'required_field'});
       smallHeading.prepend(requiredText);
     }
@@ -356,7 +356,7 @@ module.exports = (function() {
 
     return $('<div>', {class: 'row'}).append(
       smallHeading,
-      $('<div>', {text: fieldDescription.description, class: 'hint'}),
+      $('<div>', {text: fieldDescription.value.param.description, class: 'hint'}),
       $noteContentVal,
       $widgets,
       $fieldValue
