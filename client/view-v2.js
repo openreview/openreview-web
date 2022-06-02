@@ -261,10 +261,10 @@ module.exports = (function() {
           })
         );
         contentInputResult = valueInput($input, fieldName, fieldDescription);
-      } else if (fieldDescription.presentation?.input === 'checkbox') {
-        var options = fieldDescription.value.enum;
+      } else if (fieldDescription.value.param.input === 'checkbox') {
+        var options = fieldDescription.value.param.enum;
         var checkedValues = _.isArray(fieldValue) ? fieldValue : [fieldValue];
-        var requiredValues = fieldDescription.presentation?.default;
+        var requiredValues = fieldDescription.value.param.default;
 
         var checkboxes = _.map(options, function (option) {
           var checked = _.includes(checkedValues, option) ? 'checked' : '';
@@ -274,16 +274,16 @@ module.exports = (function() {
             '</label>';
         });
         contentInputResult = valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
-      } else if (fieldDescription.presentation?.input === 'select' || !(_.has(fieldDescription.presentation, 'input'))) {
-        if (Array.isArray(fieldDescription.value.enum) || fieldDescription.value?.type.endsWith('[]')) {
+      } else if (fieldDescription.value.param.input === 'select' || !(_.has(fieldDescription.value.param, 'input'))) {
+        if (Array.isArray(fieldDescription.value.param.enum) || fieldDescription.value.param.type.endsWith('[]')) {
           contentInputResult = view.mkDropdownAdder(
-            fieldName, fieldDescription.description, fieldDescription.value.enum,
-            fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.optional, alwaysHaveValues: fieldDescription.presentation?.default }
+            fieldName, fieldDescription.value.param.description, fieldDescription.value.param.enum,
+            fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.param.optional, alwaysHaveValues: fieldDescription.value.param.default }
           );
         } else {
           contentInputResult = view.mkDropdownList(
-            fieldName, fieldDescription.description, fieldValue,
-            fieldDescription.value.enum, !fieldDescription.value.optional
+            fieldName, fieldDescription.value.param.description, fieldValue,
+            fieldDescription.value.param.enum, !fieldDescription.value.param.optional
           );
         }
       }
