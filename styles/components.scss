@@ -1412,6 +1412,16 @@ header,
   }
 }
 
+.decline-form {
+  .row {
+    margin: unset;
+  }
+  .reduced-quota-link {
+    font-weight: 700;
+    cursor: pointer;
+  }
+}
+
 .response-args-container {
   margin-top: 1rem;
   margin-bottom: 1rem;

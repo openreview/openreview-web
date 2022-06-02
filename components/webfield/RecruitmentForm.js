@@ -16,6 +16,46 @@ import EditorComponentContext from '../EditorComponentContext'
 import WebFieldContext from '../WebFieldContext'
 
 const fieldsToHide = ['id', 'title', 'key', 'response']
+const DeclineMessage = ({ declineMessage }) => (
+  <div className="row">
+    <Markdown text={declineMessage} />
+  </div>
+)
+const QuotaMessage = ({ quotaMessage }) => (
+  <div className="row">
+    <Markdown text={quotaMessage} />
+  </div>
+)
+const QuotaLink = ({ setStatus }) => (
+  <div className="row">
+    <p>
+      You can {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+      <a className="reduced-quota-link" onClick={() => setStatus('showQuota')}>
+        request a reduced load
+      </a>
+    </p>
+  </div>
+)
+const CommentField = ({ renderField }) => renderField('comment')
+const QuotaField = ({ renderField }) => renderField('reduced_quota')
+const ReadOnlyFields = ({ fieldsToRender, renderField }) => (
+  <div className="row">
+    {fieldsToRender.map((fieldToRender) => renderField(fieldToRender))}
+  </div>
+)
+const SubmitButton = ({ fieldRequired, onSubmit, isSaving }) => (
+  <div className="row">
+    <SpinnerButton
+      type="primary"
+      onClick={onSubmit}
+      loading={isSaving}
+      disabled={isSaving || !fieldRequired}
+    >
+      Submit
+    </SpinnerButton>
+  </div>
+)
+
 const DeclineForm = ({ responseNote, setDecision }) => {
   const {
     declineMessage,
@@ -25,14 +65,17 @@ const DeclineForm = ({ responseNote, setDecision }) => {
   } = useContext(WebFieldContext)
   const [isSaving, setIsSaving] = useState(false)
   const isV2Invitation = invitation.apiVersion === 2
-  const showReducedQuota = isV2Invitation
+  const hasQuotaField = isV2Invitation
     ? invitation.edit?.note?.content?.reduced_quota
     : invitation.reply?.content?.reduced_quota
-  const showComment = isV2Invitation
+  const hasCommentField = isV2Invitation
     ? invitation.edit?.note?.content?.comment
     : invitation.reply?.content?.comment
-  const fieldsToRender = orderNoteInvitationFields(invitation, fieldsToHide)
-  const [formSubmitted, setFormSubmitted] = useState(false)
+  const fieldsToRender = orderNoteInvitationFields(
+    invitation,
+    fieldsToHide.concat(['reduced_quota', 'comment'])
+  )
+  const [status, setStatus] = useState('init')
 
   const formDataReducer = (state, action) => ({
     ...state,
@@ -47,8 +90,9 @@ const DeclineForm = ({ responseNote, setDecision }) => {
     }, {})
   )
 
-  const onSubmit = async (isAcceptResponse) => {
+  const onSubmit = async () => {
     setIsSaving(true)
+    const isAcceptResponse = status === 'showQuota'
     try {
       const noteContent = {
         title: 'Recruit response',
@@ -66,8 +110,12 @@ const DeclineForm = ({ responseNote, setDecision }) => {
         version: isV2Invitation ? 2 : 1,
       })
       setIsSaving(false)
-      setFormSubmitted(true)
-      if (isAcceptResponse) setDecision('accept')
+
+      if (isAcceptResponse) {
+        setDecision('accept')
+      } else {
+        setStatus('commentSubmitted')
+      }
     } catch (error) {
       promptError(error.message)
       setIsSaving(false)
@@ -119,55 +167,64 @@ const DeclineForm = ({ responseNote, setDecision }) => {
     )
   }
 
-  return (
-    <>
-      <div className="row">
-        <Markdown text={declineMessage} />
-        {showReducedQuota && !formSubmitted && <Markdown text={quotaMessage} />}
-      </div>
-      {(showReducedQuota || showComment) && !formSubmitted && (
-        <>
-          <div className="row">
-            {fieldsToRender.map((fieldToRender) => renderField(fieldToRender))}
+  const renderPage = () => {
+    switch (status) {
+      case 'init':
+        return (
+          <div className="decline-form">
+            <DeclineMessage declineMessage={declineMessage} />
+            {hasQuotaField && (
+              <>
+                <QuotaMessage quotaMessage={quotaMessage} />
+                <QuotaLink setStatus={setStatus} />
+              </>
+            )}
+            {hasCommentField && (
+              <>
+                <ReadOnlyFields fieldsToRender={fieldsToRender} renderField={renderField} />
+                <CommentField renderField={renderField} />
+                <SubmitButton
+                  fieldRequired={formData.comment}
+                  onSubmit={onSubmit}
+                  isSaving={isSaving}
+                />
+              </>
+            )}
           </div>
-          {showReducedQuota && (
-            <div className="row">
-              <SpinnerButton
-                type="primary"
-                onClick={() => onSubmit(true)}
-                loading={isSaving}
-                disabled={isSaving || !formData.reduced_quota}
-              >
-                Accept with Reduced Quota
-              </SpinnerButton>
-              {showComment && (
-                <SpinnerButton
-                  type="primary"
-                  onClick={() => onSubmit(false)}
-                  loading={isSaving}
-                  disabled={isSaving || !formData.comment}
-                >
-                  Submit Comment
-                </SpinnerButton>
-              )}
-            </div>
-          )}
-          {!showReducedQuota && showComment && (
-            <div className="row">
-              <SpinnerButton
-                type="primary"
-                onClick={() => onSubmit(false)}
-                loading={isSaving}
-                disabled={isSaving || !formData.comment}
-              >
-                Submit Comment
-              </SpinnerButton>
-            </div>
-          )}
-        </>
-      )}
-    </>
-  )
+        )
+      case 'showQuota':
+        return (
+          <div className="decline-form">
+            <DeclineMessage declineMessage={declineMessage} />
+            {hasQuotaField && (
+              <>
+                <ReadOnlyFields fieldsToRender={fieldsToRender} renderField={renderField} />
+                <QuotaField renderField={renderField} />
+                <SubmitButton
+                  fieldRequired={formData.reduced_quota}
+                  onSubmit={onSubmit}
+                  isSaving={isSaving}
+                />
+              </>
+            )}
+          </div>
+        )
+      case 'commentSubmitted':
+        return (
+          <div className="decline-form">
+            <DeclineMessage declineMessage={declineMessage} />
+          </div>
+        )
+      default:
+        return (
+          <div className="decline-form">
+            <DeclineMessage declineMessage={declineMessage} />
+          </div>
+        )
+    }
+  }
+
+  return renderPage()
 }
 
 const RecruitmentForm = (props) => {
