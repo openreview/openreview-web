@@ -153,6 +153,16 @@ export default function Forum({ forumNote, clientJsLoading }) {
       note.readers.forEach((rId) => readerGroupIds.add(rId))
     })
 
+    // After replyMap is populated, go back through and add a parentTitle field
+    notes.forEach((note) => {
+      if (!note.replyto || note.replyto === note.forum) return
+
+      const replyToNote = replyMap[note.replyto]
+      if (!replyToNote) return
+
+      replyMap[note.id].parentTitle = replyToNote.content.title?.value || replyToNote.generatedTitle
+    })
+
     setReplyNoteMap(replyMap)
     setDisplayOptionsMap(displayOptions)
     setParentMap(parentIdMap)
@@ -522,6 +532,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
               value={{
                 forumId: id,
                 displayOptionsMap,
+                layout,
                 setCollapsed,
                 setContentExpanded,
               }}

@@ -4,20 +4,19 @@
 import { useContext, useState } from 'react'
 import Link from 'next/link'
 import copy from 'copy-to-clipboard'
+import truncate from 'lodash/truncate'
 import { NoteContentV2 } from '../NoteContent'
 import NoteEditorForm from '../NoteEditorForm'
 import ForumReplyContext from './ForumReplyContext'
 import useUser from '../../hooks/useUser'
-import {
-  prettyId, prettyInvitationId, buildNoteTitle, forumDate,
-} from '../../lib/utils'
+import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
 import { getInvitationColors } from '../../lib/forum-utils'
 import Icon from '../Icon'
 
 export default function ForumReply({ note, replies, updateNote }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
-  const { forumId, displayOptionsMap, setCollapsed } = useContext(ForumReplyContext)
+  const { forumId, displayOptionsMap, layout, setCollapsed } = useContext(ForumReplyContext)
   const { user } = useUser()
 
   const {
@@ -25,7 +24,6 @@ export default function ForumReply({ note, replies, updateNote }) {
   } = note
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
   const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
-  const generatedTitle = buildNoteTitle(invitations[0], signatures)
 
   const scrollToNote = (noteId) => {
     const el = document.querySelector(`.note[data-id="${noteId}"]`)
@@ -62,7 +60,7 @@ export default function ForumReply({ note, replies, updateNote }) {
                 </span>
               </>
             ) : (
-              <span>{generatedTitle}</span>
+              <span>{note.generatedTitle}</span>
             )}
           </h4>
 
@@ -122,12 +120,28 @@ export default function ForumReply({ note, replies, updateNote }) {
       deleted={!!ddate}
       setCollapsed={setCollapsed}
     >
+      {(layout === 1 && note.replyto !== forumId) && (
+        <div className="parent-title">
+          <h5 onClick={() => scrollToNote(note.replyto)}>
+            <Icon name="share-alt" />
+            {' '}
+            Replying to
+            {' '}
+            {truncate(note.parentTitle, {
+              length: 135,
+              omission: '...',
+              separator: ' ',
+            })}
+          </h5>
+        </div>
+      )}
+
       <div className="heading">
         <h4>
           {content.title?.value ? (
             <strong>{content.title.value}</strong>
           ) : (
-            <span>{generatedTitle}</span>
+            <span>{note.generatedTitle}</span>
           )}
         </h4>
 
@@ -168,7 +182,7 @@ export default function ForumReply({ note, replies, updateNote }) {
               view2.deleteOrRestoreNote(
                 note,
                 note.deleteInvitation,
-                content.title?.value ? content.title.value : generatedTitle,
+                content.title?.value ? content.title.value : note.generatedTitle,
                 user,
                 (newNote) => {
                   updateNote(newNote)
@@ -336,11 +350,7 @@ function NoteContentCollapsible({
   }
 
   return (
-    <div
-      role="button"
-      tabIndex="0"
-      className={`note-content-container ${collapsed ? 'collapsed' : ''}`}
-    >
+    <div className={`note-content-container ${collapsed ? 'collapsed' : ''}`}>
       <NoteContentV2
         id={id}
         content={content}

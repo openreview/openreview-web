@@ -277,6 +277,19 @@ main.forum {
         }
       }
     }
+    .parent-title {
+      h5 {
+        margin: 0;
+        margin-bottom: 0.125rem;
+        color: constants.$subtleGray;
+        line-height: normal;
+        font-style: italic;
+        cursor: pointer;
+        &:hover {
+          color: constants.$darkBlue;
+        }
+      }
+    }
     .subheading {
       padding-bottom: .125rem;
       strong {
