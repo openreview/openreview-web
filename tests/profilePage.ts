@@ -47,7 +47,10 @@ const dblpImportModalAddToProfileBtn = Selector('div.modal-footer')
   .withText('Add to Your Profile')
 const dblpImportModalSelectCount = Selector('div.modal-footer').find('div.selected-count')
 const saveProfileButton = Selector('button').withText('Save Profile Changes')
-const nameMakePreferredButton = Selector('div.container.names').find('button.preferred_button').filterVisible().nth(0)
+const nameMakePreferredButton = Selector('div.container.names')
+  .find('button.preferred_button')
+  .filterVisible()
+  .nth(0)
 const homepageUrlInput = Selector('input#homepage_url')
 // #endregion
 
@@ -481,10 +484,16 @@ test('fail before 2099', async (t) => {
     .wait(5000)
 })
 test('#1011 remove space in personal links', async (t) => {
-  await t.useRole(userBRole)
+  await t
+    .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .click(nameSectionPlusIconSelector)
     .typeText(homepageUrlInput, '   https://github.com/xkopenreview    ', { replace: true })
     .click(saveProfileButton)
-    .expect(Selector('a').withText('Homepage').withAttribute('href', 'https://github.com/xkopenreview').exists).ok()
+    .expect(
+      Selector('a')
+        .withText('Homepage')
+        .withAttribute('href', 'https://github.com/xkopenreview').exists
+    )
+    .ok()
 })
