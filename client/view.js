@@ -1908,7 +1908,7 @@ module.exports = (function() {
 
     var omittedContentFields = [
       'title', 'authors', 'author_emails', 'authorids', 'pdf',
-      'verdict', 'paperhash', 'ee', 'html', 'year',...!params.isReference?['venue', 'venueid']:[]
+      'verdict', 'paperhash', 'ee', 'html', 'year', ...(!params.isReference ? ['venue', 'venueid'] : [])
     ].concat(additionalOmittedFields || []);
 
     var $contents = [];
