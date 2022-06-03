@@ -85,7 +85,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
     return api.get('/notes', {
       forum: forumId,
       trash: true,
-      details: 'replyCount,writable,presentation,signatures,revisions',
+      details: 'replyCount,writable,signatures,invitation,presentation',
     }, { accessToken, version: 2 })
       .then(({ notes }) => {
         if (!Array.isArray(notes)) return []
@@ -117,13 +117,12 @@ export default function Forum({ forumNote, clientJsLoading }) {
     const readerGroupIds = new Set()
     const numberWildcard = /(Reviewer|Area_Chair)_(\w{4})/g
     notes.forEach((note) => {
-      const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(invitations, note, id)
+      const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(invitations, note)
 
       // Don't include forum note in replyMap
       if (note.id === note.forum) {
         setParentNote({
           ...note,
-          details: { ...parentNote.details, ...note.details },
           editInvitations,
           deleteInvitation,
           replyInvitations,
@@ -216,6 +215,18 @@ export default function Forum({ forumNote, clientJsLoading }) {
     } else {
       setActiveInvitation(activeInvitation ? null : invitation)
     }
+  }
+
+  // Update forum note after new edit
+  const updateParentNote = (note) => {
+    const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(allInvitations, note)
+
+    setParentNote({
+      ...note,
+      editInvitations,
+      deleteInvitation,
+      replyInvitations,
+    })
   }
 
   // Add new reply note or update and existing reply note
@@ -441,7 +452,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
 
   return (
     <div className="forum-container">
-      <ForumNote note={parentNote} updateNote={setParentNote} />
+      <ForumNote note={parentNote} updateNote={updateParentNote} />
 
       {parentNote.replyInvitations?.length > 0 && (
         <div className="invitations-container">

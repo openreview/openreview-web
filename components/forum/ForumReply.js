@@ -197,11 +197,11 @@ export default function ForumReply({ note, replies, updateNote }) {
           <Icon name="pencil" tooltip="Reply Author" />
           {signatures.map((signature) => {
             const signatureLink = signature.startsWith('~')
-              ? <Link href={`/profile?id=${signature}`}><a>{prettyId(signature)}</a></Link>
-              : prettyId(signature)
+              ? <Link href={`/profile?id=${signature}`}><a>{prettyId(signature, true)}</a></Link>
+              : prettyId(signature, true)
             const signatureGroup = note.details?.signatures?.find(p => p.id === signature)
             if (signatureGroup) {
-              let tooltip = `Privately revealed to ${signatureGroup.readers?.map(p => prettyId(p)).join(', ')}`
+              let tooltip = `Privately revealed to ${signatureGroup.readers?.map(p => prettyId(p, true)).join(', ')}`
               let icon = 'eye-open'
               if (signatureGroup.readers?.includes('everyone')) {
                 tooltip = 'Publicly revealed to everyone'
@@ -214,7 +214,7 @@ export default function ForumReply({ note, replies, updateNote }) {
                   (
                   <Icon name={icon} tooltip={tooltip} />
                   {signatureGroup.members.map(q => (
-                    <Link key={q} href={`/profile?id=${q}`}><a>{prettyId(q)}</a></Link>
+                    <Link key={q} href={`/profile?id=${q}`}><a>{prettyId(q, true)}</a></Link>
                   )).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
                   )
                 </span>
