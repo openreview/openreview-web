@@ -11,7 +11,7 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
     if (!value.trim()?.length) return
     switch (type) {
       case 'gscholar': {
-        const isValid = isValidURL(value) && value.startsWith('https://scholar.google')
+        const isValid = isValidURL(value.trim()) && value.startsWith('https://scholar.google')
         if (!isValid)
           promptError(`${value} is not a valid Google Scholar URL`, { scrollToTop: false })
         setLinks({ type, data: { value, valid: isValid } })
@@ -19,14 +19,14 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
       }
       case 'semanticScholar': {
         const isValid =
-          isValidURL(value) && value.startsWith('https://www.semanticscholar.org')
+          isValidURL(value.trim()) && value.startsWith('https://www.semanticscholar.org')
         if (!isValid)
           promptError(`${value} is not a valid Semantic Scholar URL`, { scrollToTop: false })
         setLinks({ type, data: { value, valid: isValid } })
         break
       }
       default: {
-        const isValid = isValidURL(value)
+        const isValid = isValidURL(value.trim())
         if (!isValid)
           promptError(`${value} is not a valid ${type} URL`, { scrollToTop: false })
         setLinks({ type, data: { value, valid: isValid } })
