@@ -17,28 +17,28 @@ import WebFieldContext from '../WebFieldContext'
 import { translateInvitationMessage } from '../../lib/webfield-utils'
 
 const fieldsToHide = ['id', 'title', 'key', 'response']
-const DeclineMessage = ({ declineMessage }) => (
+const DeclineMessage = ({ declineMessage, args }) => (
   <div className="row decline-message">
-    <Markdown text={declineMessage} />
+    <Markdown text={translateInvitationMessage(declineMessage, args)} />
   </div>
 )
-const QuotaMessage = ({ quotaMessage }) => (
+const ReducedLoadMessage = ({ reducedLoadMessage }) => (
   <div className="row">
-    <Markdown text={quotaMessage} />
+    <Markdown text={reducedLoadMessage} />
   </div>
 )
-const QuotaLink = ({ setStatus }) => (
+const ReducedLoadLink = ({ setStatus }) => (
   <div className="row">
     <p>
       You can {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-      <a className="reduced-quota-link" onClick={() => setStatus('showQuota')}>
+      <a className="reduced-load-link" onClick={() => setStatus('showReducedLoad')}>
         request a reduced load
       </a>
     </p>
   </div>
 )
 const CommentField = ({ renderField }) => renderField('comment')
-const QuotaField = ({ renderField }) => renderField('reduced_quota')
+const ReducedLoadField = ({ renderField }) => renderField('reduced_load')
 const ReadOnlyFields = ({ fieldsToRender, renderField }) => (
   <div className="row">
     {fieldsToRender.map((fieldToRender) => renderField(fieldToRender))}
@@ -60,21 +60,21 @@ const SubmitButton = ({ fieldRequired, onSubmit, isSaving }) => (
 const DeclineForm = ({ responseNote, setDecision }) => {
   const {
     declineMessage,
-    quotaMessage,
+    reducedLoadMessage,
     args,
     entity: invitation,
   } = useContext(WebFieldContext)
   const [isSaving, setIsSaving] = useState(false)
   const isV2Invitation = invitation.apiVersion === 2
-  const hasQuotaField = isV2Invitation
-    ? invitation.edit?.note?.content?.reduced_quota
-    : invitation.reply?.content?.reduced_quota
+  const hasReducedLoadField = isV2Invitation
+    ? invitation.edit?.note?.content?.reduced_load
+    : invitation.reply?.content?.reduced_load
   const hasCommentField = isV2Invitation
     ? invitation.edit?.note?.content?.comment
     : invitation.reply?.content?.comment
   const fieldsToRender = orderNoteInvitationFields(
     invitation,
-    fieldsToHide.concat(['reduced_quota', 'comment'])
+    fieldsToHide.concat(['reduced_load', 'comment'])
   )
   const [status, setStatus] = useState('init')
 
@@ -93,7 +93,7 @@ const DeclineForm = ({ responseNote, setDecision }) => {
 
   const onSubmit = async () => {
     setIsSaving(true)
-    const isAcceptResponse = status === 'showQuota'
+    const isAcceptResponse = status === 'showReducedLoad'
     try {
       const noteContent = {
         title: 'Recruit response',
@@ -124,7 +124,7 @@ const DeclineForm = ({ responseNote, setDecision }) => {
   }
 
   const renderField = (fieldToRender) => {
-    if (['reduced_quota', 'comment'].includes(fieldToRender)) {
+    if (['reduced_load', 'comment'].includes(fieldToRender)) {
       return isV2Invitation ? (
         <EditorComponentContext.Provider
           key={fieldToRender}
@@ -173,11 +173,11 @@ const DeclineForm = ({ responseNote, setDecision }) => {
       case 'init':
         return (
           <div className="decline-form">
-            <DeclineMessage declineMessage={declineMessage} />
-            {hasQuotaField && (
+            <DeclineMessage declineMessage={declineMessage} args={args} />
+            {hasReducedLoadField && (
               <>
-                <QuotaMessage quotaMessage={quotaMessage} />
-                <QuotaLink setStatus={setStatus} />
+                <ReducedLoadMessage reducedLoadMessage={reducedLoadMessage} />
+                <ReducedLoadLink setStatus={setStatus} />
               </>
             )}
             {hasCommentField && (
@@ -193,15 +193,15 @@ const DeclineForm = ({ responseNote, setDecision }) => {
             )}
           </div>
         )
-      case 'showQuota':
+      case 'showReducedLoad':
         return (
           <div className="decline-form">
-            {hasQuotaField && (
+            {hasReducedLoadField && (
               <>
-                <h4 className="quota-label">Select a reduced quota:</h4>
-                <QuotaField renderField={renderField} />
+                <h4 className="reduced-load-label">Select a reduced load:</h4>
+                <ReducedLoadField renderField={renderField} />
                 <SubmitButton
-                  fieldRequired={formData.reduced_quota}
+                  fieldRequired={formData.reduced_load}
                   onSubmit={onSubmit}
                   isSaving={isSaving}
                 />
@@ -212,7 +212,7 @@ const DeclineForm = ({ responseNote, setDecision }) => {
       case 'commentSubmitted':
         return (
           <div className="decline-form">
-            <DeclineMessage declineMessage={declineMessage} />
+            <DeclineMessage declineMessage={declineMessage} args={args} />
           </div>
         )
       default:
@@ -289,7 +289,7 @@ const RecruitmentForm = () => {
                 )
               })}
             </div>
-            <Markdown text={acceptMessage} />
+            <Markdown text={translateInvitationMessage(acceptMessage, args)} />
           </>
         )
       case 'reject':

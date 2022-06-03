@@ -1408,7 +1408,7 @@ header,
   .response-buttons {
     display: flex;
     justify-content: center;
-    margin-top: 3rem;
+    margin-top: 1rem;
   }
 }
 
@@ -1420,11 +1420,11 @@ header,
     margin-bottom: 1rem;
   }
 
-  .reduced-quota-link {
+  .reduced-load-link {
     font-weight: 700;
     cursor: pointer;
   }
-  .quota-label {
+  .reduced-load-label {
     color: constants.$darkBlue;
     margin-bottom: 1rem;
   }
