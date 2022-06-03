@@ -1416,9 +1416,17 @@ header,
   .row {
     margin: unset;
   }
+  .row.decline-message {
+    margin-bottom: 1rem;
+  }
+
   .reduced-quota-link {
     font-weight: 700;
     cursor: pointer;
+  }
+  .quota-label {
+    color: constants.$darkBlue;
+    margin-bottom: 1rem;
   }
 }
 

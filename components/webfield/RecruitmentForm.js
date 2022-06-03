@@ -17,7 +17,7 @@ import WebFieldContext from '../WebFieldContext'
 
 const fieldsToHide = ['id', 'title', 'key', 'response']
 const DeclineMessage = ({ declineMessage }) => (
-  <div className="row">
+  <div className="row decline-message">
     <Markdown text={declineMessage} />
   </div>
 )
@@ -195,10 +195,9 @@ const DeclineForm = ({ responseNote, setDecision }) => {
       case 'showQuota':
         return (
           <div className="decline-form">
-            <DeclineMessage declineMessage={declineMessage} />
             {hasQuotaField && (
               <>
-                <ReadOnlyFields fieldsToRender={fieldsToRender} renderField={renderField} />
+                <h4 className="quota-label">Select a reduced quota:</h4>
                 <QuotaField renderField={renderField} />
                 <SubmitButton
                   fieldRequired={formData.reduced_quota}
@@ -227,11 +226,10 @@ const DeclineForm = ({ responseNote, setDecision }) => {
   return renderPage()
 }
 
-const RecruitmentForm = (props) => {
+const RecruitmentForm = () => {
   const [decision, setDecision] = useState(null)
   const [isSaving, setIsSaving] = useState(false)
   const [responseNote, setResponseNote] = useState(null)
-  const { user } = useUser()
   const { acceptMessage, header, entity: invitation, args } = useContext(WebFieldContext)
   const isV2Invitation = invitation.apiVersion === 2
   const responseDescription = isV2Invitation
@@ -321,7 +319,7 @@ const RecruitmentForm = (props) => {
                 disabled={isSaving}
                 size="lg"
               >
-                Reject
+                Decline
               </SpinnerButton>
             </div>
           </div>
