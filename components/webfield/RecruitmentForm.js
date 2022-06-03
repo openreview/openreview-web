@@ -14,6 +14,7 @@ import VenueHeader from './VenueHeader'
 import { WebfieldWidget, WebfieldWidgetV2 } from './WebfieldWidget'
 import EditorComponentContext from '../EditorComponentContext'
 import WebFieldContext from '../WebFieldContext'
+import { translateInvitationMessage } from '../../lib/webfield-utils'
 
 const fieldsToHide = ['id', 'title', 'key', 'response']
 const DeclineMessage = ({ declineMessage }) => (
@@ -230,7 +231,13 @@ const RecruitmentForm = () => {
   const [decision, setDecision] = useState(null)
   const [isSaving, setIsSaving] = useState(false)
   const [responseNote, setResponseNote] = useState(null)
-  const { acceptMessage, header, entity: invitation, args } = useContext(WebFieldContext)
+  const {
+    acceptMessage,
+    header,
+    entity: invitation,
+    args,
+    invitationMessage,
+  } = useContext(WebFieldContext)
   const isV2Invitation = invitation.apiVersion === 2
   const responseDescription = isV2Invitation
     ? invitation.edit?.note?.content?.response?.description
@@ -290,18 +297,11 @@ const RecruitmentForm = () => {
       default:
         return (
           <div className="recruitment-form">
-            <Markdown text={responseDescription} />
-            <div className="response-args-container">
-              {Object.keys(args ?? {}).map((key) => {
-                if (fieldsToHide.includes(key) || !invitationContentFields.includes(key))
-                  return null
-                return (
-                  <div className="response-args" key={key}>
-                    <strong>{`${prettyField(key)}:`}</strong> <span>{args[key]}</span>
-                  </div>
-                )
-              })}
-            </div>
+            {invitationMessage ? (
+              <Markdown text={translateInvitationMessage(invitationMessage, args)} />
+            ) : (
+              <Markdown text={responseDescription} />
+            )}
             <div className="response-buttons">
               <SpinnerButton
                 type="primary"
