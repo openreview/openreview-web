@@ -1,11 +1,10 @@
 /* globals promptError: false */
 import { useState, useReducer, useContext } from 'react'
-import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import {
-  prettyField,
   constructRecruitmentResponseNote,
   orderNoteInvitationFields,
+  inflect,
 } from '../../lib/utils'
 import SpinnerButton from '../SpinnerButton'
 import Markdown from '../EditorComponents/Markdown'
@@ -39,11 +38,6 @@ const ReducedLoadLink = ({ setStatus }) => (
 )
 const CommentField = ({ renderField }) => renderField('comment')
 const ReducedLoadField = ({ renderField }) => renderField('reduced_load')
-const ReadOnlyFields = ({ fieldsToRender, renderField }) => (
-  <div className="row">
-    {fieldsToRender.map((fieldToRender) => renderField(fieldToRender))}
-  </div>
-)
 const SubmitButton = ({ fieldRequired, onSubmit, isSaving }) => (
   <div className="row">
     <SpinnerButton
@@ -57,7 +51,7 @@ const SubmitButton = ({ fieldRequired, onSubmit, isSaving }) => (
   </div>
 )
 
-const DeclineForm = ({ responseNote, setDecision }) => {
+const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
   const {
     declineMessage,
     reducedLoadMessage,
@@ -114,6 +108,7 @@ const DeclineForm = ({ responseNote, setDecision }) => {
 
       if (isAcceptResponse) {
         setDecision('accept')
+        setReducedLoad(Number(formData.reduced_load))
       } else {
         setStatus('commentSubmitted')
       }
@@ -182,7 +177,6 @@ const DeclineForm = ({ responseNote, setDecision }) => {
             )}
             {hasCommentField && (
               <>
-                <ReadOnlyFields fieldsToRender={fieldsToRender} renderField={renderField} />
                 <CommentField renderField={renderField} />
                 <SubmitButton
                   fieldRequired={formData.comment}
@@ -198,7 +192,10 @@ const DeclineForm = ({ responseNote, setDecision }) => {
           <div className="decline-form">
             {hasReducedLoadField && (
               <>
-                <h4 className="reduced-load-label">Select a reduced load:</h4>
+                <h4 className="reduced-load-label">
+                  Select a reduced load from the menu below and click on Submit to accept the
+                  invitation:
+                </h4>
                 <ReducedLoadField renderField={renderField} />
                 <SubmitButton
                   fieldRequired={formData.reduced_load}
@@ -231,6 +228,7 @@ const RecruitmentForm = () => {
   const [decision, setDecision] = useState(null)
   const [isSaving, setIsSaving] = useState(false)
   const [responseNote, setResponseNote] = useState(null)
+  const [reducedLoad, setReducedLoad] = useState(null)
   const {
     acceptMessage,
     header,
@@ -277,23 +275,26 @@ const RecruitmentForm = () => {
     switch (decision) {
       case 'accept':
         return (
-          <>
-            <div className="response-args-container">
-              {Object.keys(args ?? {}).map((key) => {
-                if (fieldsToHide.includes(key) || !invitationContentFields.includes(key))
-                  return null
-                return (
-                  <div className="response-args" key={key}>
-                    <strong>{`${prettyField(key)}:`}</strong> <span>{args[key]}</span>
-                  </div>
-                )
-              })}
-            </div>
+          <div className="accept-form">
+            {reducedLoad && (
+              <h4 className="reduced-load-message">{`You have requested a reduced load of ${inflect(
+                reducedLoad,
+                'paper',
+                'papers',
+                true
+              )}`}</h4>
+            )}
             <Markdown text={translateInvitationMessage(acceptMessage, args)} />
-          </>
+          </div>
         )
       case 'reject':
-        return <DeclineForm responseNote={responseNote} setDecision={setDecision} />
+        return (
+          <DeclineForm
+            responseNote={responseNote}
+            setDecision={setDecision}
+            setReducedLoad={setReducedLoad}
+          />
+        )
       default:
         return (
           <div className="recruitment-form">

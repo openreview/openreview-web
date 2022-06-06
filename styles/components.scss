@@ -1412,6 +1412,12 @@ header,
   }
 }
 
+.accept-form {
+  .reduced-load-message {
+    color: unset;
+  }
+}
+
 .decline-form {
   .row {
     margin: unset;
@@ -1427,14 +1433,6 @@ header,
   .reduced-load-label {
     color: constants.$darkBlue;
     margin-bottom: 1rem;
-  }
-}
-
-.response-args-container {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-  .response-args {
-    margin-bottom: 0.5rem;
   }
 }
 
