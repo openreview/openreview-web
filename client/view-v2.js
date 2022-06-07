@@ -21,15 +21,15 @@ module.exports = (function() {
 
   const markdownInput = ($contentInput, fieldName, fieldDescription) => {
     const $smallHeading = $('<div>', { text: view.prettyField(fieldName), class: 'small_heading' });
-    if (!fieldDescription.value.optional) {
+    if (!fieldDescription.value.param?.optional) {
       $smallHeading.prepend('<span class="required_field">*</span>');
     }
 
     let $description;
-    if (fieldDescription.presentation?.scroll) {
-      $description = $('<textarea class="form-control scroll-box" readonly>').text(fieldDescription.description);
+    if (fieldDescription.value.param?.scroll) {
+      $description = $('<textarea class="form-control scroll-box" readonly>').text(fieldDescription.value.param?.description);
     } else {
-      $description = $('<div class="hint disable-tex-rendering">').text(fieldDescription.description);
+      $description = $('<div class="hint disable-tex-rendering">').text(fieldDescription.value.param?.description);
     }
 
     // Display a warning when "\\" is detected in a MathJax block ($...$ or $$ ... $$)
@@ -165,7 +165,7 @@ module.exports = (function() {
           fieldName, 'This is a description', fieldDescription.value,
           fieldValue, { hoverText: true, refreshData: false, required: !fieldDescription.value.param?.optional }
         );
-    } else if (typeof (fieldDescription.value) !== 'object') {
+    } else if (!_.has(fieldDescription.value, 'param')) {
       //treat as value
       contentInputResult = valueInput($('<input>', {
         type: 'text',
@@ -306,7 +306,7 @@ module.exports = (function() {
 
     if (fieldName === 'authorids' && fieldDescription.type.endsWith('[]') && (
       (_.has(fieldDescription.value.param, 'regex') && view.isTildeIdAllowed(fieldDescription.value.param.regex))
-      // || _.has(fieldDescription.value, 'const')
+      || (Array.isArray(fieldDescription.value))
     )) {
       let authors;
       let authorids;
@@ -895,7 +895,7 @@ module.exports = (function() {
 
     var contentOrder = order(invitation.edit?.note?.content, invitation.id);
     var $contentMap = _.reduce(contentOrder, function(ret, k) {
-      ret[k] = mkComposerInput(k, invitation.edit?.note?.content?.[k], invitation.edit?.note?.content?.[k]?.value?.param?.default || '', { useDefaults: true, user: user});
+      ret[k] = mkComposerInput(k, invitation.edit?.note?.content?.[k], invitation.edit?.note?.content?.[k].value.param?.default || '', { useDefaults: true, user: user});
       return ret;
     }, {});
     function buildEditor(editReaders, editSignatures, noteReaders, noteSignatures) {
@@ -1684,7 +1684,7 @@ module.exports = (function() {
     const invitationEditContent = invitation.edit?.note?.content;
 
     Object.keys(invitationEditContent).forEach(function(fieldName) {
-      if (fieldName === 'pdf' && !invitationEditContent.pdf.value?.optional) {
+      if (fieldName === 'pdf' && !invitationEditContent.pdf.value.param?.optional) {
         if (formContent.pdf && !_.endsWith(formContent.pdf, '.pdf') && !_.startsWith(formContent.pdf, '/pdf') && !_.startsWith(formContent.pdf, 'http')) {
           errorList.push('Uploaded file must have .pdf extension');
         }
@@ -1694,7 +1694,7 @@ module.exports = (function() {
         }
       }
 
-      if (!invitationEditContent[fieldName].value?.optional && _.isEmpty(formContent[fieldName])) {
+      if (!invitationEditContent[fieldName].value.param?.optional && _.isEmpty(formContent[fieldName])) {
         errorList.push('Field missing: ' + view.prettyField(fieldName));
       }
 
@@ -1721,7 +1721,7 @@ module.exports = (function() {
     var content = _.reduce(invitationContent, function(ret, contentObjInInvitation, k) {
       // Let the widget handle it :D and extract the data when we encouter authorids
       const contentObj = contentObjInInvitation.value;
-      const presentationObj = contentObjInInvitation.presentation || {};
+      const presentationObj = contentObjInInvitation.value.param || {};
       if (presentationObj.hidden && k === 'authors') {
         return ret;
       }
@@ -1729,7 +1729,7 @@ module.exports = (function() {
       var inputVal = $inputVal.val();
 
       if (k === 'authorids' &&
-        (contentObj.hasOwnProperty('regex') && view.isTildeIdAllowed(contentObj.regex) || contentObj.hasOwnProperty('const')
+        (contentObj.param?.hasOwnProperty('regex') && view.isTildeIdAllowed(contentObj.param.regex) || Array.isArray(contentObj)
       )) {
         ret.authorids = [];
         ret.authors = [];
@@ -1748,14 +1748,14 @@ module.exports = (function() {
           ret.authorids.push(authorid);
         });
         return ret;
-      } else if (contentObj.hasOwnProperty('enum')) {
+      } else if (contentObj.param?.hasOwnProperty('enum')) {
         //value-radio
         if (presentationObj.input === 'radio') {
           var $selection = $contentMap[k].find('.note_content_value input[type="radio"]:checked');
           inputVal = $selection.length ? $selection.val() : '';
         } else if (presentationObj.input === 'checkbox') {
           //values-checkbox
-          if (contentObj.type.endsWith('[]')) {
+          if (contentObjInInvitation.type.endsWith('[]')) {
             inputVal = [];
             $contentMap[k].find('.note_content_value input[type="checkbox"]').each(function(i) {
               if ($(this).prop('checked')) {
@@ -1770,7 +1770,7 @@ module.exports = (function() {
           }
         } else if (presentationObj.input === 'select' || !(_.has(presentationObj, 'input'))) {
           //values-dropdown
-          if (contentObj.type.endsWith('[]')) {
+          if (contentObjInInvitation.type.endsWith('[]')) {
             inputVal = view.idsFromListAdder($contentMap[k], ret);
           } else {
             //value-dropdown
@@ -1780,21 +1780,21 @@ module.exports = (function() {
               }
           }
         }
-      } else if (contentObj.hasOwnProperty('const')) {
+      } else if (Array.isArray(contentObj)) {
         //values
-        if (contentObj.type.endsWith('[]') && k !== 'authorids') {
+        if (contentObjInInvitation.type.endsWith('[]') && k !== 'authorids') {
           inputVal = view.idsFromListAdder($contentMap[k], ret);
         }
-      } else if (contentObj.hasOwnProperty('regex')) {
+      } else if (contentObj.param?.hasOwnProperty('regex')) {
         //values-regex
-        if (contentObj.type.endsWith('[]')) {
+        if (contentObjInInvitation.type.endsWith('[]')) {
           var inputArray = inputVal.split(',');
               inputVal = _.filter(
                 _.map(inputArray, function(s) { return s.trim(); }),
                 function(e) { return !_.isEmpty(e); }
               );
         }
-      } else if (contentObj.hasOwnProperty('value-dict')) {
+      } else if (contentObj.param?.hasOwnProperty('value-dict')) {
         if (inputVal) {
           var inputStr = _.map(inputVal.split('\n'), function(line) {
             return line.trim();
@@ -1807,7 +1807,7 @@ module.exports = (function() {
             errors.push('Field ' + k + ' contains invalid JSON. Please make sure all quotes and brackets match.');
           }
         }
-      } else if (contentObj.type ==='file') {
+      } else if (contentObjInInvitation.type ==='file') {
         var $fileSection = $contentMap[k];
         var $fileInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '.') + '[type="file"]');
         var file = $fileInput && $fileInput.val() ? $fileInput[0].files[0] : null;
