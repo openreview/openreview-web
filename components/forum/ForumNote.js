@@ -47,13 +47,13 @@ function ForumNote({ note, updateNote }) {
     }
     setActiveNote(noteToEdit ?? note)
     setActiveInvitation(activeInvitation ? null : invitation)
-    window.scrollTo(0, 0)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const closeNoteEditor = () => {
     setActiveInvitation(null)
     setActiveNote(null)
-    window.scrollTo(0, 0)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   if (activeInvitation) {

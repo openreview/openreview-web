@@ -1,4 +1,5 @@
 /* globals promptMessage: false */
+/* globals promptError: false */
 /* globals view2: false */
 
 import { useContext, useState } from 'react'
@@ -33,6 +34,23 @@ export default function ForumReply({ note, replies, updateNote }) {
     const y = el.getBoundingClientRect().top + window.pageYOffset - navBarHeight
 
     window.scrollTo({ top: y, behavior: 'smooth' })
+  }
+
+  const openNoteEditor = (invitation, type) => {
+    if ((activeInvitation && activeInvitation.id !== invitation.id)
+      || (activeEditInvitation && activeEditInvitation.id !== invitation.id)) {
+      promptError(
+        'There is currently another editor pane open on the page. Please submit your changes or click Cancel before continuing',
+        { scrollToTop: false }
+      )
+      return
+    }
+
+    if (type === 'reply') {
+      setActiveInvitation(activeInvitation ? null : invitation)
+    } else if (type === 'edit') {
+      setActiveEditInvitation(activeInvitation ? null : invitation)
+    }
   }
 
   if (collapsed) {
@@ -89,6 +107,9 @@ export default function ForumReply({ note, replies, updateNote }) {
         <NoteEditorForm
           note={note}
           invitation={activeEditInvitation}
+          onLoad={() => {
+            scrollToNote(note.id)
+          }}
           onNoteEdited={(newNote) => {
             updateNote(newNote)
             setActiveEditInvitation(null)
@@ -96,6 +117,7 @@ export default function ForumReply({ note, replies, updateNote }) {
           }}
           onNoteCancelled={() => {
             setActiveEditInvitation(null)
+            scrollToNote(note.id)
           }}
           onError={(isLoadingError) => {
             if (isLoadingError) {
@@ -165,12 +187,17 @@ export default function ForumReply({ note, replies, updateNote }) {
             </button>
             <ul className="dropdown-menu">
               {note.editInvitations?.map(invitation => (
-                <li
-                  key={invitation.id}
-                  onClick={() => setActiveEditInvitation(invitation)}
-                >
+                <li key={invitation.id}>
                   {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                  <a href="#">{prettyInvitationId(invitation.id)}</a>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      openNoteEditor(invitation, 'edit')
+                    }}
+                  >
+                    {prettyInvitationId(invitation.id)}
+                  </a>
                 </li>
               ))}
             </ul>
@@ -274,7 +301,7 @@ export default function ForumReply({ note, replies, updateNote }) {
                 key={inv.id}
                 type="button"
                 className={`btn btn-xs ${activeInvitation?.id === inv.id ? 'active' : ''}`}
-                onClick={() => setActiveInvitation(inv)}
+                onClick={() => openNoteEditor(inv, 'reply')}
               >
                 {prettyInvitationId(inv.id)}
               </button>
@@ -285,12 +312,18 @@ export default function ForumReply({ note, replies, updateNote }) {
             forumId={forumId}
             invitation={activeInvitation}
             replyToId={note.id}
+            onLoad={() => {
+              scrollToNote(note.id)
+            }}
             onNoteCreated={(newNote) => {
               updateNote(newNote)
               setActiveInvitation(null)
               scrollToNote(newNote.id)
             }}
-            onNoteCancelled={() => { setActiveInvitation(null) }}
+            onNoteCancelled={() => {
+              setActiveInvitation(null)
+              scrollToNote(note.id)
+            }}
             onError={(isLoadingError) => {
               if (isLoadingError) {
                 setActiveInvitation(null)
