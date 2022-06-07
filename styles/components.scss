@@ -1409,6 +1409,14 @@ header,
     display: flex;
     justify-content: center;
     margin-top: 1rem;
+    .btn-lg {
+      font-size: 1.25rem;
+      line-height: 1.5rem;
+    }
+  }
+
+  h5 {
+    font-weight: bold;
   }
 }
 
@@ -1433,6 +1441,11 @@ header,
   .reduced-load-label {
     color: constants.$darkBlue;
     margin-bottom: 1rem;
+  }
+
+  textarea.note_content_value,
+  .note-editor-preview textarea.note_content_value {
+    height: 100px;
   }
 }
 
@@ -1461,6 +1474,10 @@ header,
   flex-direction: column;
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
+
+  textarea {
+    resize: vertical;
+  }
 
   .title,
   .description {

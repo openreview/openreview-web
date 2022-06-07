@@ -1,5 +1,5 @@
 /* globals promptError: false */
-import { useState, useReducer, useContext } from 'react'
+import { useState, useReducer, useContext, useEffect } from 'react'
 import api from '../../lib/api-client'
 import {
   constructRecruitmentResponseNote,
@@ -295,6 +295,13 @@ const RecruitmentForm = () => {
             setReducedLoad={setReducedLoad}
           />
         )
+      case 'error':
+        return (
+          <div className="alert alert-danger">
+            <strong>Error:</strong> The link is invalid, please refer back to recruitment
+            email.
+          </div>
+        )
       default:
         return (
           <div className="recruitment-form">
@@ -314,7 +321,7 @@ const RecruitmentForm = () => {
                 Accept
               </SpinnerButton>
               <SpinnerButton
-                type="primary"
+                type="default"
                 onClick={() => onResponseClick('No')}
                 loading={isSaving}
                 disabled={isSaving}
@@ -327,9 +334,16 @@ const RecruitmentForm = () => {
         )
     }
   }
+
+  useEffect(() => {
+    if (!['id', 'user', 'key'].every((p) => typeof args[p] === 'string')) {
+      setDecision('error')
+    }
+  }, [])
   return (
     <>
       <VenueHeader headerInfo={header} />
+      <br />
       <div className="note_editor">{renderDecision()}</div>
     </>
   )
