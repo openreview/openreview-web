@@ -257,6 +257,7 @@ export default function ForumReply({ note, replies, updateNote }) {
         id={note.id}
         content={note.content}
         presentation={note.details?.presentation}
+        noteReaders={note.readers}
         collapsed={!contentExpanded}
         deleted={!!ddate}
       />
@@ -337,7 +338,7 @@ function CopyLinkButton({ noteId }) {
 }
 
 function NoteContentCollapsible({
-  id, content, presentation, collapsed, deleted
+  id, content, presentation, noteReaders, collapsed, deleted
 }) {
   if (deleted) {
     return (
@@ -355,6 +356,7 @@ function NoteContentCollapsible({
         id={id}
         content={content}
         presentation={presentation}
+        noteReaders={noteReaders}
         include={['pdf', 'html']}
       />
       {/* <div className="gradient-overlay" /> */}

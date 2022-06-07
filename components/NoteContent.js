@@ -147,10 +147,9 @@ export const NoteContentV2 = ({
   isEdit = false,
 }) => {
   const contentKeys = Object.keys(content)
-  const contentOrder =
-    presentation?.length > 0
-      ? Array.from(new Set(presentation.map((p) => p.name).concat(contentKeys)))
-      : contentKeys
+  const contentOrder = presentation?.length > 0
+    ? Array.from(new Set(presentation.map((p) => p.name).concat(contentKeys)))
+    : contentKeys
 
   const omittedFields = [
     'title',
@@ -183,19 +182,20 @@ export const NoteContentV2 = ({
 
         return (
           <div key={fieldName}>
-            <NoteContentField name={fieldName} />{' '}
+            <NoteContentField name={fieldName} />
+            {' '}
             {showPrivateIcon && (
               <Icon
                 name="eye-open"
                 extraClasses="private-contents-icon"
-                tooltip={`privately revealed to ${fieldReaders
+                tooltip={`Privately revealed to ${fieldReaders
                   .map((p) => prettyId(p))
                   .join(', ')}`}
               />
             )}
+
             {fieldValue.startsWith('/attachment/') ? (
               <span className="note-content-value">
-                {/* eslint-disable-next-line max-len */}
                 <DownloadLink
                   noteId={id}
                   fieldName={fieldName}

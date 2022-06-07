@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import NoteEditorForm from '../NoteEditorForm'
-import NoteAuthors from '../NoteAuthors'
+import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
@@ -88,10 +88,11 @@ function ForumNote({ note, updateNote }) {
 
       <div className="forum-authors mb-2">
         <h3>
-          <NoteAuthors
-            authors={content.authors?.value}
-            authorIds={content.authorids?.value}
+          <NoteAuthorsV2
+            authors={content.authors}
+            authorIds={content.authorids}
             signatures={signatures}
+            noteReaders={note.readers}
           />
         </h3>
       </div>
@@ -144,6 +145,7 @@ function ForumNote({ note, updateNote }) {
         id={id}
         content={content}
         presentation={details.presentation}
+        noteReaders={note.readers}
       />
     </div>
   )

@@ -150,7 +150,7 @@ export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) =
       key="private-label"
       name="eye-open"
       extraClasses="private-contents-icon"
-      tooltip={`privately revealed to ${authorIds?.readers
+      tooltip={`Privately revealed to ${authorIds?.readers
         ?.map((p) => prettyId(p))
         .join(', ')}`}
     />
