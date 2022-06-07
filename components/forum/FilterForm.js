@@ -201,6 +201,7 @@ export default function FilterForm({
                 excludedReaders: unselectedOptions.length > 0 ? unselectedOptions.map(option => option.value) : null,
               })
             }}
+            includeReset
           />
         </div>
 

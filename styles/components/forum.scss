@@ -176,6 +176,9 @@ main.forum {
         padding-bottom: .125rem;
         margin-bottom: .25rem;
       }
+      .reset-btn {
+        min-width: 2.5rem;
+      }
     }
     .filtered-reply-count {
       flex-shrink: 0;

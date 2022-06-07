@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import truncate from 'lodash/truncate'
 import findIndex from 'lodash/findIndex'
+import Icon from '../Icon'
 
 export default function ToggleButtonGroup({
-  name, className, options, values, isDisabled, onChange,
+  name, className, options, values, isDisabled, onChange, includeReset
 }) {
   const [optionStates, setOptionStates] = useState((new Array(options?.length || 0)).fill(0))
   const numStates = 3
@@ -35,6 +36,12 @@ export default function ToggleButtonGroup({
       selectedOptions[groupIndex].push(option)
     })
     onChange(selectedOptions)
+  }
+
+  const onResetClick = () => {
+    setOptionStates((new Array(options?.length || 0)).fill(0))
+
+    onChange((new Array(numStates - 1)).fill([]))
   }
 
   useEffect(() => {
@@ -79,6 +86,19 @@ export default function ToggleButtonGroup({
           </label>
         )
       })}
+      {includeReset && (
+        <label className="btn btn-default reset-btn">
+          <input
+            type="checkbox"
+            name="reset"
+            value="reset"
+            checked={false}
+            onChange={onResetClick}
+          />
+          {' '}
+          <Icon name="remove" tooltip="Reset" />
+        </label>
+      )}
     </div>
   )
 }
