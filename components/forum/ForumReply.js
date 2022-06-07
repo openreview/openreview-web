@@ -62,6 +62,9 @@ export default function ForumReply({ note, replies, updateNote }) {
             ) : (
               <span>{note.generatedTitle}</span>
             )}
+            {ddate && (
+              <span className="signatures"> [Deleted]</span>
+            )}
           </h4>
 
           <CopyLinkButton noteId={note.id} />

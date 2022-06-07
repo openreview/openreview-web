@@ -49,7 +49,7 @@ export default function Forum({ forumNote, clientJsLoading }) {
 
   const numRepliesHidden = displayOptionsMap
     ? Object.values(displayOptionsMap).reduce(
-        (count, opt) => count + (opt.hidden || opt.collapsed ? 1 : 0),
+        (count, opt) => count + ((opt.hidden || opt.collapsed) ? 1 : 0),
         0
       )
     : 0

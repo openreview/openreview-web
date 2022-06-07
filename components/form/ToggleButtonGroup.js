@@ -14,6 +14,11 @@ export default function ToggleButtonGroup({
     const index = findIndex(options, option => option.value === value)
     const newOptionStates = [...optionStates]
     newOptionStates[index] = (newOptionStates[index] + 1) % numStates
+
+    // Special case for adding "everyone" to the list of excluded options
+    if (newOptionStates[index] === 2 && newOptionStates[0] !== 2) {
+      newOptionStates[0] = 2
+    }
     setOptionStates(newOptionStates)
 
     // Initialize empty arrays
