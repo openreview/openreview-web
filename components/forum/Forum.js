@@ -21,7 +21,7 @@ import api from '../../lib/api-client'
 import { prettyInvitationId } from '../../lib/utils'
 import { formatNote, getNoteInvitations, parseFilterQuery, replaceFilterWildcards } from '../../lib/forum-utils'
 
-export default function Forum({ forumNote, clientJsLoading }) {
+export default function Forum({ forumNote, selectedNoteId, selectedInvitationId, clientJsLoading }) {
   const { userLoading, accessToken } = useUser()
   const [parentNote, setParentNote] = useState(forumNote)
   const [replyNoteMap, setReplyNoteMap] = useState(null)

@@ -50,6 +50,11 @@ export default function FilterForm({
       ...selectedFilters,
       ...modifiedFilters,
     })
+
+    const activeTab = document.querySelector('.filter-tabs li.active')
+    if (activeTab) {
+      activeTab.classList.remove('active')
+    }
   }
 
   const copyFilterUrl = () => {
