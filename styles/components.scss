@@ -1413,6 +1413,11 @@ header,
       font-size: 1.25rem;
       line-height: 1.5rem;
     }
+    .decline-button {
+      .spinner-small > div {
+        background-color: constants.$mediumBlue;
+      }
+    }
   }
 
   h5 {

@@ -226,7 +226,6 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
 
 const RecruitmentForm = () => {
   const [decision, setDecision] = useState(null)
-  const [isSaving, setIsSaving] = useState(false)
   const [responseNote, setResponseNote] = useState(null)
   const [reducedLoad, setReducedLoad] = useState(null)
   const {
@@ -244,8 +243,17 @@ const RecruitmentForm = () => {
     ? Object.keys(invitation.edit?.note?.content)
     : Object.keys(invitation.reply?.content)
 
+  const defaultButtonState = [
+    { loading: false, disabled: false },
+    { loading: false, disabled: false },
+  ]
+  const [buttonStatus, setButtonStatus] = useState(defaultButtonState)
+
   const onResponseClick = async (response) => {
-    setIsSaving(true)
+    setButtonStatus([
+      { loading: response === 'Yes' ? true : false, disabled: true },
+      { loading: response === 'No' ? true : false, disabled: true },
+    ])
     try {
       const noteContent = {
         title: 'Recruit response',
@@ -262,11 +270,11 @@ const RecruitmentForm = () => {
         version: isV2Invitation ? 2 : 1,
       })
       setResponseNote(result)
-      setIsSaving(false)
+      setButtonStatus(defaultButtonState)
       setDecision(response === 'Yes' ? 'accept' : 'reject')
     } catch (error) {
       promptError(error.message)
-      setIsSaving(false)
+      setButtonStatus(defaultButtonState)
       setDecision(null)
     }
   }
@@ -314,21 +322,23 @@ const RecruitmentForm = () => {
               <SpinnerButton
                 type="primary"
                 onClick={() => onResponseClick('Yes')}
-                loading={isSaving}
-                disabled={isSaving}
+                loading={buttonStatus[0].loading}
+                disabled={buttonStatus[0].disabled}
                 size="lg"
               >
                 Accept
               </SpinnerButton>
-              <SpinnerButton
-                type="default"
-                onClick={() => onResponseClick('No')}
-                loading={isSaving}
-                disabled={isSaving}
-                size="lg"
-              >
-                Decline
-              </SpinnerButton>
+              <div className="decline-button">
+                <SpinnerButton
+                  type="default"
+                  onClick={() => onResponseClick('No')}
+                  loading={buttonStatus[1].loading}
+                  disabled={buttonStatus[1].disabled}
+                  size="lg"
+                >
+                  Decline
+                </SpinnerButton>
+              </div>
             </div>
           </div>
         )
