@@ -251,8 +251,8 @@ const RecruitmentForm = () => {
 
   const onResponseClick = async (response) => {
     setButtonStatus([
-      { loading: response === 'Yes' ? true : false, disabled: true },
-      { loading: response === 'No' ? true : false, disabled: true },
+      { loading: response === 'Yes', disabled: true },
+      { loading: response === 'No', disabled: true },
     ])
     try {
       const noteContent = {
