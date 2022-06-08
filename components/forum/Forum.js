@@ -270,7 +270,7 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
   }
 
   const scrollToElement = (selector) => {
-    const el = document.getElementById(selector)
+    const el = document.querySelector(selector)
     if (!el) return
 
     const navBarHeight = 63
@@ -358,9 +358,21 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
     }
     setOrderedReplies(orderedNotes)
 
+    // Do stuff that should happen after all replies are rendered
     setTimeout(() => {
       typesetMathJax()
+
       $('[data-toggle="tooltip"]').tooltip()
+
+      if (selectedNoteId) {
+        scrollToElement(`.note[data-id="${selectedNoteId}"]`)
+      }
+      if (selectedInvitationId) {
+        const button = document.querySelector(
+          `.note[data-id="${selectedNoteId}"] button[data-id="${selectedInvitationId}"]`
+        )
+        if (button) button.click()
+      }
     }, 200)
   }, [replyNoteMap, parentMap, layout])
 
@@ -489,7 +501,7 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
             onNoteCreated={(note) => {
               updateNote(note)
               setActiveInvitation(null)
-              scrollToElement('forum-replies')
+              scrollToElement('#forum-replies')
             }}
             onNoteCancelled={() => {
               setActiveInvitation(null)

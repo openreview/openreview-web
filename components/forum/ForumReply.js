@@ -301,6 +301,7 @@ export default function ForumReply({ note, replies, updateNote }) {
                 key={inv.id}
                 type="button"
                 className={`btn btn-xs ${activeInvitation?.id === inv.id ? 'active' : ''}`}
+                data-id={inv.id}
                 onClick={() => openNoteEditor(inv, 'reply')}
               >
                 {prettyInvitationId(inv.id)}
