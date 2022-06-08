@@ -164,15 +164,18 @@ export default function FilterForm({
 
           <div className="btn-group btn-group-sm" role="group" aria-label="collapse level">
             <button type="button" className={`btn btn-default ${collapse === 0 ? 'active' : ''}`} onClick={(e) => { setCollapse(0); setCollapseLevel(0) }}>
-              <Icon name="resize-small" tooltip="Collapse content" />
+              {/* <Icon name="resize-small" tooltip="Collapse content" /> */}
+              <span data-toggle="tooltip" title="Collapse content">−</span>
               <span className="sr-only">Collapsed</span>
             </button>
             <button type="button" className={`btn btn-default ${collapse === 1 ? 'active' : ''}`} onClick={(e) => { setCollapse(1); setCollapseLevel(1) }}>
-              <Icon name="resize-full" tooltip="Partially expand content" />
+              {/* <Icon name="resize-full" tooltip="Partially expand content" /> */}
+              <span data-toggle="tooltip" title="Partially expand content">＝</span>
               <span className="sr-only">Default</span>
             </button>
             <button type="button" className={`btn btn-default ${collapse === 2 ? 'active' : ''}`} onClick={(e) => { setCollapse(2); setCollapseLevel(2) }}>
-              <Icon name="fullscreen" tooltip="Fully expand content" />
+              {/* <Icon name="fullscreen" tooltip="Fully expand content" /> */}
+              <span data-toggle="tooltip" title="Fully expand content">≡</span>
               <span className="sr-only">Expanded</span>
             </button>
           </div>

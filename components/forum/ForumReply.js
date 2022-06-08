@@ -17,7 +17,7 @@ import Icon from '../Icon'
 export default function ForumReply({ note, replies, updateNote }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
-  const { forumId, displayOptionsMap, layout, setCollapsed } = useContext(ForumReplyContext)
+  const { forumId, displayOptionsMap, layout, setCollapsed, setContentExpanded } = useContext(ForumReplyContext)
   const { user } = useUser()
 
   const {
@@ -60,8 +60,10 @@ export default function ForumReply({ note, replies, updateNote }) {
         id={note.id}
         hidden={hidden && allRepliesHidden}
         collapsed={collapsed}
+        expanded={contentExpanded}
         deleted={!!ddate}
         setCollapsed={setCollapsed}
+        setContentExpanded={setContentExpanded}
       >
         <div className="heading">
           <h4 className="minimal-title">
@@ -101,8 +103,10 @@ export default function ForumReply({ note, replies, updateNote }) {
         id={note.id}
         hidden={hidden && allRepliesHidden}
         collapsed={collapsed}
+        expanded={contentExpanded}
         deleted={!!ddate}
         setCollapsed={setCollapsed}
+        setContentExpanded={setContentExpanded}
       >
         <NoteEditorForm
           note={note}
@@ -142,8 +146,10 @@ export default function ForumReply({ note, replies, updateNote }) {
       id={note.id}
       hidden={hidden && allRepliesHidden}
       collapsed={collapsed}
+      expanded={contentExpanded}
       deleted={!!ddate}
       setCollapsed={setCollapsed}
+      setContentExpanded={setContentExpanded}
     >
       {(layout === 1 && note.replyto !== forumId) && (
         <div className="parent-title">
@@ -342,15 +348,50 @@ export default function ForumReply({ note, replies, updateNote }) {
 }
 
 function ReplyContainer({
-  id, hidden, collapsed, deleted, setCollapsed, children,
+  id, hidden, collapsed, expanded, deleted, setCollapsed, setContentExpanded, children,
 }) {
   return (
     <div className={`note ${deleted ? 'deleted' : ''}`} style={hidden ? { display: 'none' } : {}} data-id={id}>
+      {/*
       <button type="button" className="btn btn-link collapse-link" onClick={e => setCollapsed(id, !collapsed)}>
         [
         {collapsed ? '+' : '–'}
         ]
       </button>
+      */}
+
+      <div className="btn-group-vertical btn-group-xs collapse-controls-v" role="group" aria-label="Collapse controls">
+        <button
+          type="button"
+          className={`btn btn-default ${collapsed ? 'active' : ''}`}
+          onClick={e => {
+            setCollapsed(id, true)
+            setContentExpanded(id, false)
+          }}
+        >
+          −
+        </button>
+        <button
+          type="button"
+          className={`btn btn-default ${(!collapsed && !expanded) ? 'active' : ''}`}
+          onClick={e => {
+            setCollapsed(id, false)
+            setContentExpanded(id, false)
+          }}
+        >
+          ＝
+        </button>
+        <button
+          type="button"
+          className={`btn btn-default ${expanded ? 'active' : ''}`}
+          onClick={(e) => {
+            setCollapsed(id, false)
+            setContentExpanded(id, true)
+          }}
+        >
+          ≡
+        </button>
+      </div>
 
       {children}
     </div>

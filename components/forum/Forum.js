@@ -187,33 +187,33 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
   }
 
   const setCollapsed = (noteId, newCollapsed) => {
-    setDisplayOptionsMap({
-      ...displayOptionsMap,
+    setDisplayOptionsMap((prevMap) => ({
+      ...prevMap,
       [noteId]: {
-        ...displayOptionsMap[noteId],
+        ...prevMap[noteId],
         collapsed: newCollapsed,
       },
-    })
+    }))
   }
 
   const setHidden = (noteId, newHidden) => {
-    setDisplayOptionsMap({
-      ...displayOptionsMap,
+    setDisplayOptionsMap((prevMap) => ({
+      ...prevMap,
       [noteId]: {
-        ...displayOptionsMap[noteId],
+        ...prevMap[noteId],
         hidden: newHidden,
       },
-    })
+    }))
   }
 
   const setContentExpanded = (noteId, newContentExpanded) => {
-    setDisplayOptionsMap({
-      ...displayOptionsMap,
+    setDisplayOptionsMap((prevMap) => ({
+      ...prevMap,
       [noteId]: {
-        ...displayOptionsMap[noteId],
-        hidden: newContentExpanded,
+        ...prevMap[noteId],
+        contentExpanded: newContentExpanded,
       },
-    })
+    }))
   }
 
   const openNoteEditor = (invitation) => {

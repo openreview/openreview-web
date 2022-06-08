@@ -294,7 +294,8 @@ main.forum {
       }
     }
     .subheading {
-      padding-bottom: .125rem;
+      margin-bottom: .25rem;
+
       strong {
         padding-right: .5rem;
       }
@@ -334,8 +335,8 @@ main.forum {
       position: relative;
 
       &.collapsed {
-        max-height: 150px;
         overflow: hidden;
+        max-height: 150px;
 
         .gradient-overlay {
           display: block;
@@ -362,6 +363,9 @@ main.forum {
         outline: none;
       }
     }
+    .note-content {
+      margin: 0;
+    }
     .collapse-link {
       border: none;
       padding: 0;
@@ -374,13 +378,41 @@ main.forum {
       position: absolute;
       font-weight: normal;
     }
+    .collapse-controls-v {
+      position: absolute;
+      left: -24px;
+      top: -2px;
+      & > .btn {
+        min-width: auto;
+        font-size: 12px;
+        line-height: 14px;
+        font-weight: normal;
+        padding: 0 3px;
+        border-width: 1px;
+        // background-color: $gray1;
+      }
+      & > .btn:first-child {
+        border-top-left-radius: 2px;
+        border-top-right-radius: 2px;
+      }
+      & > .btn:last-child {
+        border-bottom-left-radius: 2px;
+        border-bottom-right-radius: 2px;
+      }
+      .btn.active {
+        background-color: #4d8093;
+        color: #fff;
+        box-shadow: none;
+        border-color: #4d8093;
+      }
+    }
     .note-replies {
       margin-top: .75rem;
       padding-left: 2.5rem;
       & > .note {
-        background-color: $gray3;
+        background-color: $gray1;
         padding: .5rem;
-        margin-bottom: .75rem;
+        margin-bottom: .5rem;
       }
       & > .note:last-child {
         margin-bottom: 0;
