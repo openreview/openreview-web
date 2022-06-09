@@ -122,6 +122,7 @@ const UserModerationQueue = ({
   const [pageNumber, setPageNumber] = useState(1)
   const [filters, setFilters] = useState({})
   const [profileIdToReject, setProfileIdToReject] = useState(null)
+  const [signedNotesCount, setSignedNotesCount] = useState(0)
   const [idsLoading, setIdsLoading] = useState([])
   const [descOrder, setDescOrder] = useState(true)
   const modalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
@@ -182,8 +183,15 @@ const UserModerationQueue = ({
     }
   }
 
-  const showRejectionModal = (profileId) => {
+  const showRejectionModal = async (profileId) => {
+    if (!onlyModeration) {
+      const signedNotes = await api.getCombined('/notes', { signature: profileId }, null, {
+        accessToken,
+      })
+      setSignedNotesCount(signedNotes.count)
+    }
     setProfileIdToReject(profileId)
+
     $(`#${modalId}`).modal('show')
   }
 
@@ -207,11 +215,20 @@ const UserModerationQueue = ({
 
   const blockUnblockUser = async (profile) => {
     const actionIsBlock = !profile?.block
+    const signedNotes = !onlyModeration
+      ? await api.getCombined('/notes', { signature: profile.id }, null, {
+          accessToken,
+        })
+      : {}
     // eslint-disable-next-line no-alert
     const confirmResult = window.confirm(
       `Are you sure you want to ${actionIsBlock ? 'block' : 'unblock'} ${
         profile?.content?.names?.[0]?.first
-      } ${profile?.content?.names?.[0]?.last}?`
+      } ${profile?.content?.names?.[0]?.last}?${
+        !onlyModeration && actionIsBlock && signedNotes.count
+          ? `\n\nThere are ${signedNotes.count} notes signed by this profile.`
+          : ''
+      }`
     )
     if (confirmResult) {
       try {
@@ -378,12 +395,13 @@ const UserModerationQueue = ({
         id={modalId}
         profileIdToReject={profileIdToReject}
         rejectUser={rejectUser}
+        signedNotesCount={signedNotesCount}
       />
     </div>
   )
 }
 
-const RejectionModal = ({ id, profileIdToReject, rejectUser }) => {
+const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotesCount }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
   const selectRef = useRef(null)
 
@@ -428,38 +446,43 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser }) => {
         selectRef.current.clearValue()
       }}
     >
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-        }}
-      >
-        <div className="form-group form-rejection">
-          <label htmlFor="message" className="mb-1">
-            {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            Reason for rejecting {prettyId(profileIdToReject)}:
-          </label>
-          <Dropdown
-            name="rejection-reason"
-            instanceId="rejection-reason"
-            placeholder="Choose a common reject reason..."
-            options={rejectionReasons}
-            onChange={(p) => {
-              setRejectionMessage(p?.rejectionText || '')
-            }}
-            selectRef={selectRef}
-            isClearable
-          />
-          <textarea
-            name="message"
-            className="form-control mt-2"
-            rows="5"
-            value={rejectionMessage}
-            onChange={(e) => {
-              setRejectionMessage(e.target.value)
-            }}
-          />
-        </div>
-      </form>
+      <>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+          }}
+        >
+          <div className="form-group form-rejection">
+            <label htmlFor="message" className="mb-1">
+              {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+              Reason for rejecting {prettyId(profileIdToReject)}:
+            </label>
+            <Dropdown
+              name="rejection-reason"
+              instanceId="rejection-reason"
+              placeholder="Choose a common reject reason..."
+              options={rejectionReasons}
+              onChange={(p) => {
+                setRejectionMessage(p?.rejectionText || '')
+              }}
+              selectRef={selectRef}
+              isClearable
+            />
+            <textarea
+              name="message"
+              className="form-control mt-2"
+              rows="5"
+              value={rejectionMessage}
+              onChange={(e) => {
+                setRejectionMessage(e.target.value)
+              }}
+            />
+          </div>
+        </form>
+        {signedNotesCount > 0 && (
+          <h4>{`There are ${signedNotesCount} notes signed by this profile.`}</h4>
+        )}
+      </>
     </BasicModal>
   )
 }
