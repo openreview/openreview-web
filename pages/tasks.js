@@ -56,7 +56,6 @@ const Tasks = ({ appContext }) => {
       invitee: true,
       duedate: true,
       details: 'repliedTags',
-      version: 1, // version:1 works only for v2 calls, added here for simplicity
     }
     const commonOptions = { accessToken }
 
