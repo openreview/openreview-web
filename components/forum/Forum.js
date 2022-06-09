@@ -114,8 +114,9 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
     const parentIdMap = {}
     const invitationIds = new Set()
     const signatureGroupIds = new Set()
-    const readerGroupIds = new Set()
+    const readerGroupIds = new Set(['everyone'])
     const numberWildcard = /(Reviewer|Area_Chair)_(\w{4})/g
+    const usernameWildcard = /(~[^\d]+\d+)([/_])/g
     notes.forEach((note) => {
       const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(invitations, note)
 
@@ -148,7 +149,9 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
       parentIdMap[parentId].push(note.id)
 
       // Populate filter options
-      note.invitations.forEach((noteInv) => invitationIds.add(noteInv.replace(numberWildcard, '$1.*')))
+      note.invitations.forEach((noteInv) => invitationIds.add(
+        noteInv.replace(numberWildcard, '$1.*').replace(usernameWildcard, '.*$2')
+      ))
       note.signatures.forEach((noteSig) => signatureGroupIds.add(noteSig))
       note.readers.forEach((rId) => readerGroupIds.add(rId))
     })
@@ -260,7 +263,7 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
     if (isEmpty(existingNote)) {
       setDisplayOptionsMap({
         ...displayOptionsMap,
-        [noteId]: { collapsed: false, contentExpanded: false, hidden: false },
+        [noteId]: { collapsed: false, contentExpanded: true, hidden: false },
       })
       setParentMap({
         ...parentMap,
@@ -393,6 +396,7 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
       selectedReaders.every((reader) =>
         replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
       )
+    // This function is also used for matching invitations
     const checkExReadersMatch = (selectedReaders, replyReaders) =>
       selectedReaders.some((reader) =>
         replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
@@ -404,7 +408,7 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
         : null
       const isVisible =
         (!selectedFilters.invitations ||
-          intersection(selectedFilters.invitations, note.invitations).length > 0) &&
+          checkExReadersMatch(selectedFilters.invitations, note.invitations)) &&
         (!selectedFilters.signatures ||
           checkSignaturesMatch(selectedFilters.signatures, note.signatures[0])) &&
         (!selectedFilters.keywords || note.searchText.match(keywordRegex)) &&
