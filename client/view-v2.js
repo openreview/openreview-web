@@ -1271,10 +1271,10 @@ module.exports = (function() {
   function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures') {
 
     var $signatures;
-    if (_.has(fieldDescription, 'regex')) {
+    if (_.has(fieldDescription, 'param') && _.has(fieldDescription.param, 'regex')) {
       var currentVal = fieldValue && fieldValue[0];
 
-      if (fieldDescription.regex === '~.*') {
+      if (fieldDescription.param.regex === '~.*') {
         if (user && user.profile) {
           var prefId = user.profile.preferredId || user.profile.id;
           $signatures = view.mkDropdownList(
@@ -1843,11 +1843,11 @@ module.exports = (function() {
   var getWriters = function(invitation, signatures, user) {
     var writers = invitation.edit ? invitation.edit.writers : invitation.reply.writers
 
-    if (writers && _.has(writers, 'const')) {
-      return writers.const;
+    if (writers && Array.isArray(writers)) {
+      return writers;
     }
 
-    if (writers && _.has(writers, 'regex') && writers.regex === '~.*') {
+    if (writers && _.has(writers, 'param') && writers.param.regex === '~.*') {
       return [user.profile.id];
     }
 
