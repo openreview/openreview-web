@@ -7,9 +7,9 @@ module.exports = (function() {
 
     let $description;
     if (fieldDescription.value.param?.scroll) {
-      $description = $('<textarea class="form-control scroll-box" readonly>').text(fieldDescription.value.param?.description);
+      $description = $('<textarea class="form-control scroll-box" readonly>').text(fieldDescription.description);
     } else {
-      $description = $('<div class="hint disable-tex-rendering">').text(fieldDescription.value.param?.description);
+      $description = $('<div class="hint disable-tex-rendering">').text(fieldDescription.description);
     }
 
     const $row = $('<div>', { class: 'row' }).append(
@@ -27,9 +27,9 @@ module.exports = (function() {
 
     let $description;
     if (fieldDescription.value.param?.scroll) {
-      $description = $('<textarea class="form-control scroll-box" readonly>').text(fieldDescription.value.param?.description);
+      $description = $('<textarea class="form-control scroll-box" readonly>').text(fieldDescription.description);
     } else {
-      $description = $('<div class="hint disable-tex-rendering">').text(fieldDescription.value.param?.description);
+      $description = $('<div class="hint disable-tex-rendering">').text(fieldDescription.description);
     }
 
     // Display a warning when "\\" is detected in a MathJax block ($...$ or $$ ... $$)
@@ -162,7 +162,7 @@ module.exports = (function() {
     if (Array.isArray(fieldDescription.value)) {
         // then treat as values
         contentInputResult = view.mkDropdownAdder(
-          fieldName, 'This is a description', fieldDescription.value,
+          fieldName, fieldDescription.description, fieldDescription.value,
           fieldValue, { hoverText: true, refreshData: false, required: !fieldDescription.value.param?.optional }
         );
     } else if (!_.has(fieldDescription.value, 'param')) {
@@ -175,14 +175,14 @@ module.exports = (function() {
         readonly: true
       }), fieldName, fieldDescription);
     } else if (_.has(fieldDescription.value.param, 'regex')) {
-      if (fieldDescription.type.endsWith('[]')) {
+      if (!_.has(fieldDescription, 'type') || fieldDescription.type.endsWith('[]')) {
         // then treat as values-regex
         if (params && params.groups) {
           var groupIds = _.map(params.groups, function (g) {
             return g.id;
           });
           contentInputResult = view.mkDropdownAdder(
-            fieldName, fieldDescription.value.param.description, groupIds,
+            fieldName, fieldDescription.description, groupIds,
             fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.param.optional }
           );
         } else {
@@ -277,12 +277,12 @@ module.exports = (function() {
       } else if (fieldDescription.value.param.input === 'select' || !(_.has(fieldDescription.value.param, 'input'))) {
         if (Array.isArray(fieldDescription.value.param.enum) || fieldDescription.value.param.type.endsWith('[]')) {
           contentInputResult = view.mkDropdownAdder(
-            fieldName, fieldDescription.value.param.description, fieldDescription.value.param.enum,
+            fieldName, fieldDescription.description, fieldDescription.value.param.enum,
             fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.param.optional, alwaysHaveValues: fieldDescription.value.param.default }
           );
         } else {
           contentInputResult = view.mkDropdownList(
-            fieldName, fieldDescription.value.param.description, fieldValue,
+            fieldName, fieldDescription.description, fieldValue,
             fieldDescription.value.param.enum, !fieldDescription.value.param.optional
           );
         }
@@ -356,7 +356,7 @@ module.exports = (function() {
 
     return $('<div>', {class: 'row'}).append(
       smallHeading,
-      $('<div>', {text: fieldDescription.value.param.description, class: 'hint'}),
+      $('<div>', {text: fieldDescription.description, class: 'hint'}),
       $noteContentVal,
       $widgets,
       $fieldValue
