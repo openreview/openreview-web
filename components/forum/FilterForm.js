@@ -149,8 +149,6 @@ export default function FilterForm({
               <Icon name="align-left" tooltip="Threaded discussion" />
               <span className="sr-only">Threaded</span>
             </button>
-            {/* TODO: enable button when nested layout is implemented */}
-            {/*
             <button
               type="button"
               className={`btn btn-default ${layout === 3 ? 'active' : ''}`}
@@ -159,7 +157,6 @@ export default function FilterForm({
               <Icon name="indent-left" tooltip="Nested discussion" />
               <span className="sr-only">Nested</span>
             </button>
-            */}
           </div>
 
           <div className="btn-group btn-group-sm" role="group" aria-label="collapse level">
