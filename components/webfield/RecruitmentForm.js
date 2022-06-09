@@ -29,10 +29,9 @@ const ReducedLoadMessage = ({ reducedLoadMessage }) => (
 const ReducedLoadLink = ({ setStatus }) => (
   <div className="row">
     <p>
-      You can {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-      <a className="reduced-load-link" onClick={() => setStatus('showReducedLoad')}>
-        request a reduced load
-      </a>
+      <button type="button" className="btn-link reduced-load-link" onClick={() => setStatus('showReducedLoad')}>
+        Request a reduced load
+      </button>
     </p>
   </div>
 )
