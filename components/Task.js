@@ -145,7 +145,7 @@ const HeadingLink = ({ groupId, groupInfo }) => (
       true
     )}${
       groupInfo.numCompleted
-        ? `and ${inflect(groupInfo.numCompleted, 'completed task', 'completed tasks', true)}`
+        ? ` and ${inflect(groupInfo.numCompleted, 'completed task', 'completed tasks', true)}`
         : ''
     }`}</span>
   </div>
