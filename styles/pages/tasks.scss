@@ -1,7 +1,6 @@
-@use "../utils/constants";
+@use '../utils/constants';
 
 main.tasks {
-
   header {
     margin-bottom: 2rem;
   }
@@ -12,7 +11,7 @@ main.tasks {
     }
 
     .submissions-list {
-      margin-top: .5rem;
+      margin-top: 0.5rem;
       margin-bottom: 1.25rem;
       max-width: 900px;
     }
@@ -23,7 +22,7 @@ main.tasks {
 
     h2 {
       position: relative;
-      margin-bottom: .5rem;
+      margin-bottom: 0.5rem;
 
       a:hover {
         text-decoration: underline;
@@ -33,7 +32,7 @@ main.tasks {
         margin: 0;
         top: 12px;
         left: -24px;
-        font-size: .75rem;
+        font-size: 0.75rem;
       }
       a.collapse-btn {
         &.active span.glyphicon {
@@ -49,9 +48,31 @@ main.tasks {
     }
 
     hr {
-      margin-top: .75rem;
+      margin-top: 0.75rem;
       margin-bottom: 1.75rem;
     }
   }
 
+  // new-implementation
+  div#tasks {
+    padding-left: 0;
+
+    .heading-link {
+      display: inline-block;
+      vertical-align: middle;
+
+      .invitation-id {
+        color: constants.$mediumBlue;
+
+        &:hover {
+          color: constants.$mediumDarkBlue;
+          text-decoration: underline;
+        }
+      }
+
+      .task-count-message {
+        font-weight: normal;
+      }
+    }
+  }
 }

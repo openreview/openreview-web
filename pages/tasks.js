@@ -1,48 +1,17 @@
-/* globals $: false */
-/* globals Handlebars: false */
-
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import LoadingSpinner from '../components/LoadingSpinner'
-import WebfieldContainer from '../components/WebfieldContainer'
 import ErrorAlert from '../components/ErrorAlert'
 import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 import { formatTasksData } from '../lib/utils'
+import GroupedTaskList from '../components/Task'
 
 const Tasks = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
   const [groupedTasks, setGroupedTasks] = useState(null)
   const [error, setError] = useState(null)
-  const tasksRef = useRef(null)
   const { setBannerHidden } = appContext
-
-  const registerEventHandlers = () => {
-    $('[data-toggle="tooltip"]').tooltip()
-
-    const toggleLinkText = ($elem) => {
-      const $span = $elem.find('span')
-      if ($span.text() === 'Show') {
-        $span.text('Hide')
-      } else {
-        $span.text('Show')
-      }
-    }
-
-    $('a.collapse-btn').on('click', function onClick(e) {
-      $(this).toggleClass('active')
-      $(this).closest('li').find('.submissions-list').slideToggle()
-      toggleLinkText($(this).parent().next('a.show-tasks'))
-      return false
-    })
-
-    $('a.show-tasks').on('click', function onClick(e) {
-      $(this).closest('li').find('a.collapse-btn').toggleClass('active')
-      $(this).next('.submissions-list').slideToggle()
-      toggleLinkText($(this))
-      return false
-    })
-  }
 
   useEffect(() => {
     if (!accessToken) return
@@ -86,28 +55,6 @@ const Tasks = ({ appContext }) => {
       .catch((apiError) => setError(apiError))
   }, [accessToken])
 
-  useEffect(() => {
-    if (!groupedTasks) return
-
-    const taskOptions = {
-      showTasks: true,
-      pdfLink: true,
-      htmlLink: true,
-      replyCount: true,
-      showContents: true,
-      collapsed: true,
-      referrer: encodeURIComponent('[Tasks](/tasks)'),
-      emptyMessage: 'No current pending or completed tasks',
-    }
-    $(tasksRef.current)
-      .empty()
-      .append(
-        Handlebars.templates.groupedTaskList({ groupedInvitations: groupedTasks, taskOptions })
-      )
-
-    registerEventHandlers()
-  }, [groupedTasks])
-
   return (
     <div className="tasks-container">
       <Head>
@@ -120,7 +67,11 @@ const Tasks = ({ appContext }) => {
 
       {!error && !groupedTasks && <LoadingSpinner />}
       {error && <ErrorAlert error={error} />}
-      <WebfieldContainer ref={tasksRef} />
+      {Object.keys(groupedTasks ?? {}).length ? (
+        <GroupedTaskList groupedTasks={groupedTasks} />
+      ) : (
+        <p className="empty-message">No current pending or completed tasks</p>
+      )}
     </div>
   )
 }
