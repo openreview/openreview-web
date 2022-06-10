@@ -67,11 +67,12 @@ const Tasks = ({ appContext }) => {
 
       {!error && !groupedTasks && <LoadingSpinner />}
       {error && <ErrorAlert error={error} />}
-      {Object.keys(groupedTasks ?? {}).length ? (
-        <GroupedTaskList groupedTasks={groupedTasks} />
-      ) : (
-        <p className="empty-message">No current pending or completed tasks</p>
-      )}
+      {groupedTasks &&
+        (Object.keys(groupedTasks ?? {}).length ? (
+          <GroupedTaskList groupedTasks={groupedTasks} />
+        ) : (
+          <p className="empty-message">No current pending or completed tasks</p>
+        ))}
     </div>
   )
 }
