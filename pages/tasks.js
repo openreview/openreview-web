@@ -71,7 +71,7 @@ const Tasks = ({ appContext }) => {
         (Object.keys(groupedTasks ?? {}).length ? (
           <GroupedTaskList groupedTasks={groupedTasks} />
         ) : (
-          <p className="empty-message">No current pending or completed tasks</p>
+          <p className="empty-message">No current pending or completed tasks 123</p>
         ))}
     </div>
   )
