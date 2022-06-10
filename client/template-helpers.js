@@ -771,6 +771,5 @@ Handlebars.registerPartial('noteActivityV2', Handlebars.templates['partials/note
 Handlebars.registerPartial('activityList', Handlebars.templates['partials/activityList']);
 
 Handlebars.registerPartial('noteTask', Handlebars.templates['partials/noteTask']);
-Handlebars.registerPartial('taskList', Handlebars.templates['partials/taskList']);
 
 Handlebars.registerPartial('spinner', Handlebars.templates.spinner);
