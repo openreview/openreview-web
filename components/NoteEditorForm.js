@@ -51,13 +51,18 @@ export default function NoteEditorForm({
     if (err === 'You do not have permission to create a note' || !user) {
       promptLogin(user)
     } else if (err) {
-      promptError(err)
+      promptError(err, { scrollToTop: false })
     } else {
       promptError('An unknown error occurred. Please refresh the page and try again.')
     }
 
+    const loadingErrors = [
+      'Can not create note, readers must match parent note',
+      'Default reader is not in the list of readers',
+      'no_results'
+    ]
     if (typeof onError === 'function') {
-      onError()
+      onError(loadingErrors.includes(err))
     }
   }
 
