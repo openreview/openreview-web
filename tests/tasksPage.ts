@@ -15,8 +15,9 @@ test('should open tasks page and complete pending task', async (t) => {
   await t.useRole(hasTaskUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
     .click(Selector('a').withText('Tasks'))
-  const { error, log } = await t.getBrowserConsoleMessages();
-  console.log(error, log);
+  const { error, log } = await t.getBrowserConsoleMessages()
+  // eslint-disable-next-line no-console
+  console.log(error, log)
   await t
     // should see 1 task in testvenue 2020 conference
     .expect(Selector('div.tasks-container').find('ul.list-unstyled').nth(0).childElementCount).eql(1)

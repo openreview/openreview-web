@@ -70,6 +70,7 @@ const Tasks = ({ appContext }) => {
       {groupedTasks &&
         (Object.keys(groupedTasks).length ? (
           <>
+            {/* eslint-disable-next-line no-console */}
             {console.log(groupedTasks)}
             <GroupedTaskList groupedTasks={groupedTasks} />
           </>
