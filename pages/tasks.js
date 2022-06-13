@@ -69,11 +69,7 @@ const Tasks = ({ appContext }) => {
       {error && <ErrorAlert error={error} />}
       {groupedTasks &&
         (Object.keys(groupedTasks).length ? (
-          <>
-            {/* eslint-disable-next-line no-console */}
-            {console.log(groupedTasks)}
-            <GroupedTaskList groupedTasks={groupedTasks} />
-          </>
+          <GroupedTaskList groupedTasks={groupedTasks} />
         ) : (
           <p className="empty-message">No current pending or completed tasks</p>
         ))}
