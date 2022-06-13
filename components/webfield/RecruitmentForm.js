@@ -29,7 +29,11 @@ const ReducedLoadMessage = ({ reducedLoadMessage }) => (
 const ReducedLoadLink = ({ setStatus }) => (
   <div className="row">
     <p>
-      <button type="button" className="btn-link reduced-load-link" onClick={() => setStatus('showReducedLoad')}>
+      <button
+        type="button"
+        className="btn-link reduced-load-link"
+        onClick={() => setStatus('showReducedLoad')}
+      >
         Request a reduced load
       </button>
     </p>
@@ -37,7 +41,13 @@ const ReducedLoadLink = ({ setStatus }) => (
 )
 const CommentField = ({ renderField }) => renderField('comment')
 const ReducedLoadField = ({ renderField }) => renderField('reduced_load')
-const SubmitButton = ({ fieldRequired, onSubmit, isSaving }) => (
+const SubmitButton = ({
+  fieldRequired,
+  onSubmit,
+  onCancel,
+  isSaving,
+  showCancelButton = false,
+}) => (
   <div className="row">
     <SpinnerButton
       type="primary"
@@ -47,8 +57,50 @@ const SubmitButton = ({ fieldRequired, onSubmit, isSaving }) => (
     >
       Submit
     </SpinnerButton>
+    {showCancelButton && (
+      <button className="btn btn-default" onClick={onCancel} disabled={isSaving}>
+        Cancel
+      </button>
+    )}
   </div>
 )
+
+const ReducedLoadInfo = ({
+  hasReducedLoadField,
+  setFormData,
+  renderField,
+  formData,
+  onSubmit,
+  isSaving,
+  setStatus,
+}) => {
+  useEffect(() => {
+    setFormData('reset')
+  }, [])
+  return (
+    <div className="decline-form">
+      {hasReducedLoadField && (
+        <>
+          <h4 className="reduced-load-label">
+            Select a reduced load from the menu below and click on Submit to accept the
+            invitation:
+          </h4>
+          <ReducedLoadField renderField={renderField} />
+          <SubmitButton
+            fieldRequired={formData.reduced_load}
+            onSubmit={onSubmit}
+            onCancel={() => {
+              setFormData('reset')
+              setStatus('init')
+            }}
+            isSaving={isSaving}
+            showCancelButton={true}
+          />
+        </>
+      )}
+    </div>
+  )
+}
 
 const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
   const {
@@ -71,18 +123,20 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
   )
   const [status, setStatus] = useState('init')
 
-  const formDataReducer = (state, action) => ({
-    ...state,
-    [action.fieldName]: action.value,
-  })
+  const initialState = fieldsToRender.reduce((acc, field) => {
+    acc[field] = args[field]
+    return acc
+  }, {})
 
-  const [formData, setFormData] = useReducer(
-    formDataReducer,
-    fieldsToRender.reduce((acc, field) => {
-      acc[field] = args[field]
-      return acc
-    }, {})
-  )
+  const formDataReducer = (state, action) => {
+    if (action === 'reset') return initialState
+    return {
+      ...state,
+      [action.fieldName]: action.value,
+    }
+  }
+
+  const [formData, setFormData] = useReducer(formDataReducer, initialState)
 
   const onSubmit = async () => {
     setIsSaving(true)
@@ -188,22 +242,15 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
         )
       case 'showReducedLoad':
         return (
-          <div className="decline-form">
-            {hasReducedLoadField && (
-              <>
-                <h4 className="reduced-load-label">
-                  Select a reduced load from the menu below and click on Submit to accept the
-                  invitation:
-                </h4>
-                <ReducedLoadField renderField={renderField} />
-                <SubmitButton
-                  fieldRequired={formData.reduced_load}
-                  onSubmit={onSubmit}
-                  isSaving={isSaving}
-                />
-              </>
-            )}
-          </div>
+          <ReducedLoadInfo
+            renderField={renderField}
+            hasReducedLoadField={hasReducedLoadField}
+            setFormData={setFormData}
+            formData={formData}
+            onSubmit={onSubmit}
+            isSaving={isSaving}
+            setStatus={setStatus}
+          />
         )
       case 'commentSubmitted':
         return (
