@@ -77,6 +77,7 @@ const ReducedLoadInfo = ({
   useEffect(() => {
     setFormData('reset')
   }, [])
+
   return (
     <div className="decline-form">
       {hasReducedLoadField && (
