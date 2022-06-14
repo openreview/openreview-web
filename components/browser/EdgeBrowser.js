@@ -159,7 +159,7 @@ export default class EdgeBrowser extends React.Component {
 
           const entityType = invReplyObj.type
           entityMap[entity.id] = formatEntityContent(entity, entityType)
-          entityMap[entity.id].searchText = buildSearchText(entity, entityType)
+          entityMap[entity.id].searchText = buildSearchText(entity, entityType, this.version)
           entityMap[entity.id].traverseEdgesCount = _.get(
             groupedEdges,
             [entity.id, 'count'],
