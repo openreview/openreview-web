@@ -75,11 +75,11 @@ export default function FilterForm({
   return (
     <form className="form-inline filter-controls">
       <div>
-        <div className="form-group expand">
+        <div className="form-group">
           {/* For more customization examples see: https://codesandbox.io/s/v638kx67w7 */}
           <Dropdown
             name="filter-invitations"
-            className="replies-filter"
+            className="replies-filter invitations-filter"
             options={invDropdownFilterOptions}
             value={selectedInvitationOptions}
             isDisabled={!filterOptions}

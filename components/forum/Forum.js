@@ -5,7 +5,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
-import intersection from 'lodash/intersection'
 
 import ForumNote from './ForumNote'
 import NoteEditorForm from '../NoteEditorForm'
@@ -40,6 +39,7 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
     excludedReaders: null,
   })
   const [activeInvitation, setActiveInvitation] = useState(null)
+  const [scrolled, setScrolled] = useState(false)
   const router = useRouter()
   const query = useQuery()
 
@@ -230,6 +230,16 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
     }
   }
 
+  const scrollToElement = (selector) => {
+    const el = document.querySelector(selector)
+    if (!el) return
+
+    const navBarHeight = 63
+    const y = el.getBoundingClientRect().top + window.pageYOffset - navBarHeight
+
+    window.scrollTo({ top: y, behavior: 'smooth' })
+  }
+
   // Update forum note after new edit
   const updateParentNote = (note) => {
     const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(allInvitations, note)
@@ -270,16 +280,6 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
         [parentId]: parentMap[parentId] ? [...parentMap[parentId], noteId] : [noteId],
       })
     }
-  }
-
-  const scrollToElement = (selector) => {
-    const el = document.querySelector(selector)
-    if (!el) return
-
-    const navBarHeight = 63
-    const y = el.getBoundingClientRect().top + window.pageYOffset - navBarHeight
-
-    window.scrollTo({ top: y, behavior: 'smooth' })
   }
 
   // Handle url hash changes
@@ -330,8 +330,16 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
 
     const leastRecentComp = (a, b) => replyNoteMap[a].cdate - replyNoteMap[b].cdate
     const mostRecentComp = (a, b) => replyNoteMap[b].cdate - replyNoteMap[a].cdate
-
     const selectedSortFn = sort === 'date-desc' ? mostRecentComp : leastRecentComp
+
+    const getAllReplies = (noteId) => {
+      if (!parentMap[noteId]) return []
+
+      return parentMap[noteId].reduce(
+        (replies, childId) => replies.concat(childId, getAllReplies(childId)),
+        []
+      )
+    }
 
     let orderedNotes = []
     if (layout === 1) {
@@ -344,20 +352,25 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
         }))
     } else if (layout === 2) {
       // Threaded view
-      const getAllReplies = (noteId) => {
-        if (!parentMap[noteId]) return []
-        return parentMap[noteId].reduce(
-          (replies, childId) => replies.concat(childId, getAllReplies(childId)),
-          []
-        )
-      }
-
       orderedNotes = (parentMap[id] ?? []).sort(selectedSortFn).map((noteId) => ({
         id: noteId,
-        replies: getAllReplies(noteId).sort(leastRecentComp),
+        replies: getAllReplies(noteId).sort(leastRecentComp).map((noteId2) => ({
+          id: noteId2,
+          replies: []
+        })),
       }))
     } else if (layout === 3) {
-      // TODO: Nested view
+      // Partially Nested view
+      orderedNotes = (parentMap[id] ?? []).sort(selectedSortFn).map((noteId) => ({
+        id: noteId,
+        replies: (parentMap[noteId] ?? []).sort(selectedSortFn).map((noteId2) => ({
+          id: noteId2,
+          replies: getAllReplies(noteId2).sort(leastRecentComp).map((noteId3) => ({
+            id: noteId3,
+            replies: [],
+          })),
+        })),
+      }))
     }
     setOrderedReplies(orderedNotes)
 
@@ -367,14 +380,18 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
 
       $('[data-toggle="tooltip"]').tooltip()
 
-      if (selectedNoteId) {
+      // Scroll note and invitation specified in url
+      if (selectedNoteId && !scrolled) {
         scrollToElement(`.note[data-id="${selectedNoteId}"]`)
-      }
-      if (selectedInvitationId) {
-        const button = document.querySelector(
-          `.note[data-id="${selectedNoteId}"] button[data-id="${selectedInvitationId}"]`
-        )
-        if (button) button.click()
+
+        if (selectedInvitationId) {
+          const button = document.querySelector(
+            `.note[data-id="${selectedNoteId}"] button[data-id="${selectedInvitationId}"]`
+          )
+          if (button) button.click()
+        }
+
+        setScrolled(true)
       }
     }, 200)
   }, [replyNoteMap, parentMap, layout])
@@ -427,7 +444,11 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
 
     orderedReplies.forEach((note) => {
       const { hidden } = newDisplayOptions[note.id]
-      const someChildrenVisible = note.replies.some(
+      const allChildIds = note.replies.reduce(
+        (acc, reply) => acc.concat(reply.id, reply.replies.map((r) => r.id)),
+        []
+      )
+      const someChildrenVisible = allChildIds.some(
         (childId) => !newDisplayOptions[childId].hidden
       )
       if (hidden && someChildrenVisible) {
@@ -547,10 +568,12 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
             <ForumReplyContext.Provider
               value={{
                 forumId: id,
+                replyNoteMap,
                 displayOptionsMap,
                 layout,
                 setCollapsed,
                 setContentExpanded,
+                setHidden,
               }}
             >
               {repliesLoaded ? (
@@ -558,7 +581,9 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
                   <ForumReply
                     key={reply.id}
                     note={replyNoteMap[reply.id]}
-                    replies={reply.replies.map((childId) => replyNoteMap[childId])}
+                    replies={reply.replies}
+                    replyDepth={1}
+                    parentId={id}
                     updateNote={updateNote}
                   />
                 ))

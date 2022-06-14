@@ -56,13 +56,13 @@ export default function NoteEditorForm({
       promptError('An unknown error occurred. Please refresh the page and try again.')
     }
 
-    const loadingErrors = [
-      'Can not create note, readers must match parent note',
-      'Default reader is not in the list of readers',
-      'no_results'
-    ]
     if (typeof onError === 'function') {
-      onError(loadingErrors.includes(err))
+      const isLoadingError = [
+        'Can not create note, readers must match parent note',
+        'Default reader is not in the list of readers',
+        'no_results'
+      ].includes(err)
+      onError(isLoadingError)
     }
   }
 

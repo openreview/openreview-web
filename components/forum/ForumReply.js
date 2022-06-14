@@ -14,20 +14,21 @@ import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
 import { getInvitationColors } from '../../lib/forum-utils'
 import Icon from '../Icon'
 
-export default function ForumReply({ note, replies, updateNote }) {
+export default function ForumReply({ note, replies, replyDepth, parentId, updateNote }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
-  const { forumId, displayOptionsMap, layout, setCollapsed, setContentExpanded } = useContext(ForumReplyContext)
+  const { displayOptionsMap, layout, setCollapsed, setContentExpanded } = useContext(ForumReplyContext)
   const { user } = useUser()
 
   const {
     invitations, content, signatures, ddate,
   } = note
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
-  const allRepliesHidden = replies.every(childNote => displayOptionsMap[childNote.id].hidden)
+  const allChildIds = replies.reduce((acc, reply) => acc.concat(reply.id, reply.replies.map((r) => r.id)), [])
+  const allRepliesHidden = allChildIds.every((childId) => displayOptionsMap[childId].hidden)
 
-  const scrollToNote = (noteId) => {
-    const el = document.querySelector(`.note[data-id="${noteId}"]`)
+  const scrollToNote = (noteId, showEditor) => {
+    const el = document.querySelector(`.note[data-id="${noteId}"]${showEditor ? ' .invitation-buttons' : ''}`)
     if (!el) return
 
     const navBarHeight = 63
@@ -87,11 +88,11 @@ export default function ForumReply({ note, replies, updateNote }) {
             )}
           </h4>
 
-          <CopyLinkButton noteId={note.id} />
+          <CopyLinkButton forumId={note.forum} noteId={note.id} />
         </div>
 
         {!allRepliesHidden && (
-          <NoteReplies replies={replies} updateNote={updateNote} />
+          <NoteReplies replies={replies} replyDepth={replyDepth + 1} parentId={note.id} updateNote={updateNote} />
         )}
       </ReplyContainer>
     )
@@ -133,7 +134,7 @@ export default function ForumReply({ note, replies, updateNote }) {
         {!allRepliesHidden && (
           <>
             <hr />
-            <NoteReplies replies={replies} updateNote={updateNote} />
+            <NoteReplies replies={replies} replyDepth={replyDepth + 1} parentId={note.id} updateNote={updateNote} />
           </>
         )}
       </ReplyContainer>
@@ -151,7 +152,7 @@ export default function ForumReply({ note, replies, updateNote }) {
       setCollapsed={setCollapsed}
       setContentExpanded={setContentExpanded}
     >
-      {(layout === 1 && note.replyto !== forumId) && (
+      {(layout === replyDepth && note.replyto !== parentId) && (
         <div className="parent-title">
           <h5 onClick={() => scrollToNote(note.replyto)}>
             <Icon name="share-alt" />
@@ -176,7 +177,7 @@ export default function ForumReply({ note, replies, updateNote }) {
           )}
         </h4>
 
-        <CopyLinkButton noteId={note.id} />
+        <CopyLinkButton forumId={note.forum} noteId={note.id} />
 
         {(note.editInvitations?.length > 0 && !ddate) && (
           <div className="btn-group">
@@ -316,11 +317,11 @@ export default function ForumReply({ note, replies, updateNote }) {
           </div>
 
           <NoteEditorForm
-            forumId={forumId}
+            forumId={note.forum}
             invitation={activeInvitation}
             replyToId={note.id}
             onLoad={() => {
-              scrollToNote(note.id)
+              scrollToNote(note.id, true)
             }}
             onNoteCreated={(newNote) => {
               updateNote(newNote)
@@ -341,7 +342,7 @@ export default function ForumReply({ note, replies, updateNote }) {
       )}
 
       {!allRepliesHidden && (
-        <NoteReplies replies={replies} updateNote={updateNote} />
+        <NoteReplies replies={replies} replyDepth={replyDepth + 1} parentId={note.id} updateNote={updateNote} />
       )}
     </ReplyContainer>
   )
@@ -352,14 +353,6 @@ function ReplyContainer({
 }) {
   return (
     <div className={`note ${deleted ? 'deleted' : ''}`} style={hidden ? { display: 'none' } : {}} data-id={id}>
-      {/*
-      <button type="button" className="btn btn-link collapse-link" onClick={e => setCollapsed(id, !collapsed)}>
-        [
-        {collapsed ? '+' : '–'}
-        ]
-      </button>
-      */}
-
       <div className="btn-group-vertical btn-group-xs collapse-controls-v" role="group" aria-label="Collapse controls">
         <button
           type="button"
@@ -373,7 +366,7 @@ function ReplyContainer({
         </button>
         <button
           type="button"
-          className={`btn btn-default ${(!collapsed && !expanded) ? 'active' : ''}`}
+          className={`btn btn-default middle ${(!collapsed && !expanded) ? 'active' : ''}`}
           onClick={e => {
             setCollapsed(id, false)
             setContentExpanded(id, false)
@@ -383,7 +376,7 @@ function ReplyContainer({
         </button>
         <button
           type="button"
-          className={`btn btn-default ${expanded ? 'active' : ''}`}
+          className={`btn btn-default ${(!collapsed && expanded) ? 'active' : ''}`}
           onClick={(e) => {
             setCollapsed(id, false)
             setContentExpanded(id, true)
@@ -398,9 +391,7 @@ function ReplyContainer({
   )
 }
 
-function CopyLinkButton({ noteId }) {
-  const { forumId } = useContext(ForumReplyContext)
-
+function CopyLinkButton({ forumId, noteId }) {
   const copyNoteUrl = (e) => {
     if (!window.location) return
 
@@ -442,16 +433,20 @@ function NoteContentCollapsible({
   )
 }
 
-function NoteReplies({ replies, updateNote }) {
+function NoteReplies({ replies, replyDepth, parentId, updateNote }) {
+  const { replyNoteMap } = useContext(ForumReplyContext)
+
   if (!replies?.length) return null
 
   return (
     <div className="note-replies">
-      {replies.map(childNote => (
+      {replies.map((childNote) => (
         <ForumReply
           key={childNote.id}
-          note={childNote}
-          replies={[]}
+          note={replyNoteMap[childNote.id]}
+          replyDepth={replyDepth}
+          parentId={parentId}
+          replies={childNote.replies ?? []}
           updateNote={updateNote}
         />
       ))}

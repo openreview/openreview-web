@@ -96,6 +96,9 @@ main.forum {
         z-index: 10;
       }
     }
+    .invitations-filter {
+      width: 250px;
+    }
 
     #keyword-input {
       font-size: .75rem;
@@ -211,7 +214,6 @@ main.forum {
     & > .note {
       background-color: $gray1; // $gray2
       padding: .5rem;
-      border: 1px solid #eee;
     }
     .note:hover {
       // background-color: rgba(0, 0, 0, .04);
@@ -233,7 +235,7 @@ main.forum {
     .note-editor-container {
       background-color: transparent;
       padding: 0 .125rem .5rem .125rem;
-      margin-top: 1rem;
+      margin-top: .5rem;
       margin-bottom: 0rem;
 
       .note_content_title {
@@ -245,6 +247,9 @@ main.forum {
 
   .note {
     position: relative;
+    border: 1px solid #eee;
+    border-radius: 2px;
+
     h4 {
       color: constants.$darkBlue;
       line-height: 1.25rem;
@@ -337,7 +342,7 @@ main.forum {
 
       &.collapsed {
         overflow: hidden;
-        max-height: 150px;
+        max-height: 160px;
 
         .gradient-overlay {
           display: block;
@@ -391,6 +396,9 @@ main.forum {
         padding: 0 2px;
         border-width: 1px;
         // background-color: $gray1;
+        &.middle {
+          line-height: 14px;
+        }
       }
       & > .btn:first-child {
         border-top-left-radius: 2px;
@@ -414,6 +422,9 @@ main.forum {
         background-color: constants.$backgroundWhite; // $gray1;
         padding: .5rem;
         margin-bottom: .5rem;
+        .note-replies > .note {
+          background-color: $gray1;
+        }
       }
       & > .note:last-child {
         margin-bottom: 0;
