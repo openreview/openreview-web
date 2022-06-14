@@ -74,8 +74,8 @@ export default function FilterForm({
 
   return (
     <form className="form-inline filter-controls">
-      <div>
-        <div className="form-group">
+      <div className="wrap">
+        <div className="form-group expand">
           {/* For more customization examples see: https://codesandbox.io/s/v638kx67w7 */}
           <Dropdown
             name="filter-invitations"
@@ -96,7 +96,7 @@ export default function FilterForm({
           />
         </div>
 
-        <div className="form-group">
+        <div className="form-group expand">
           <Dropdown
             name="filter-signatures"
             className="replies-filter"
@@ -116,7 +116,7 @@ export default function FilterForm({
           />
         </div>
 
-        <div className="form-group">
+        <div className="form-group expand">
           <input
             type="text"
             className="form-control"
@@ -131,7 +131,7 @@ export default function FilterForm({
           />
         </div>
 
-        <div className="form-group">
+        <div className="form-group no-expand">
           <select id="sort-dropdown" className="form-control" value={sort} onChange={(e) => { setSort(e.target.value) }}>
             <option value="date-desc">Sort: Newest First</option>
             <option value="date-asc">Sort: Oldest First</option>
@@ -139,7 +139,7 @@ export default function FilterForm({
           </select>
         </div>
 
-        <div className="form-group">
+        <div className="form-group no-expand">
           <div className="btn-group btn-group-sm" role="group" aria-label="nesting level">
             <button type="button" className={`btn btn-default ${layout === 1 ? 'active' : ''}`} onClick={(e) => { setLayout(1) }}>
               <Icon name="list" tooltip="Linear discussion" />

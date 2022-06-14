@@ -53,6 +53,9 @@ main.forum {
       display: flex;
       justify-content: space-between;
     }
+    .wrap {
+      flex-wrap: wrap;
+    }
 
     .form-group {
       margin-right: .625rem;
@@ -66,6 +69,12 @@ main.forum {
           width: 100%;
         }
       }
+      &.no-expand {
+        flex-shrink: 0;
+        .replies-filter {
+          width: 100%;
+        }
+      }
       label {
         padding-right: .25rem;
       }
@@ -73,7 +82,8 @@ main.forum {
         padding-right: .5rem;
       }
       select.form-control, input.form-control {
-        width: 160px;
+        width: 100%;
+        min-width: 160px;
         height: 32px;
         padding: 0.25rem 0.75rem;
       }
@@ -124,6 +134,9 @@ main.forum {
       label {
         padding-right: .375rem;
         padding-left: .375rem;
+      }
+      .btn:hover {
+        background-color: $gray2;
       }
       .btn.active {
         background-color: constants.$mediumBlue;

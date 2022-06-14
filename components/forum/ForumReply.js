@@ -10,7 +10,7 @@ import { NoteContentV2 } from '../NoteContent'
 import NoteEditorForm from '../NoteEditorForm'
 import ForumReplyContext from './ForumReplyContext'
 import useUser from '../../hooks/useUser'
-import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
+import { prettyId, prettyInvitationId, forumDate, buildNoteTitle } from '../../lib/utils'
 import { getInvitationColors } from '../../lib/forum-utils'
 import Icon from '../Icon'
 
@@ -68,23 +68,18 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
       >
         <div className="heading">
           <h4 className="minimal-title">
-            {content.title?.value ? (
-              <>
-                <strong>{content.title.value}</strong>
-                {' '}
-                &bull;
-                {' '}
-                <span className="signatures">
-                  by
-                  {' '}
-                  {signatures.map(signature => prettyId(signature, true)).join(', ')}
-                </span>
-              </>
-            ) : (
-              <span>{note.generatedTitle}</span>
-            )}
+            <strong>{content.title?.value || buildNoteTitle(invitations[0])}</strong>
+            {' '}
+            &bull;
+            {' '}
+            <span className="signatures">
+              by
+              {' '}
+              {signatures.map(signature => prettyId(signature, true)).join(', ')}
+            </span>
+            {' '}
             {ddate && (
-              <span className="signatures"> [Deleted]</span>
+              <span className="signatures">[Deleted]</span>
             )}
           </h4>
 
