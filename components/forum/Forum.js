@@ -30,6 +30,7 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
   const [allInvitations, setAllInvitations] = useState(null)
   const [layout, setLayout] = useState(2)
   const [sort, setSort] = useState('date-desc')
+  const [defaultCollapseLevel, setDefaultCollapseLevel] = useState(2)
   const [filterOptions, setFilterOptions] = useState(null)
   const [selectedFilters, setSelectedFilters] = useState({
     invitations: null,
@@ -49,7 +50,7 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
 
   const numRepliesHidden = displayOptionsMap
     ? Object.values(displayOptionsMap).reduce(
-        (count, opt) => count + ((opt.hidden || opt.collapsed) ? 1 : 0),
+        (count, opt) => count + (opt.hidden ? 1 : 0),
         0
       )
     : 0
@@ -438,7 +439,8 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
       newDisplayOptions[note.id] = {
         ...currentOptions,
         hidden: !isVisible,
-        collapsed: !isVisible,
+        collapsed: defaultCollapseLevel === 0,
+        contentExpanded: defaultCollapseLevel === 2,
       }
     })
 
@@ -463,6 +465,20 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
       $('[data-toggle="tooltip"]').tooltip()
     }, 200)
   }, [replyNoteMap, orderedReplies, selectedFilters])
+
+  useEffect(() => {
+    if (!displayOptionsMap) return
+
+    const newDisplayOptions = {}
+    Object.keys(displayOptionsMap).forEach((noteId) => {
+      newDisplayOptions[noteId] = {
+        ...displayOptionsMap[noteId],
+        collapsed: defaultCollapseLevel === 0,
+        contentExpanded: defaultCollapseLevel === 2,
+      }
+    })
+    setDisplayOptionsMap(newDisplayOptions)
+  }, [defaultCollapseLevel])
 
   // Update sort order
   useEffect(() => {
@@ -554,7 +570,8 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
               setSort={setSort}
               layout={layout}
               setLayout={setLayout}
-              setCollapseLevel={setCollapseLevel}
+              defaultCollapseLevel={defaultCollapseLevel}
+              setDefaultCollapseLevel={setDefaultCollapseLevel}
               numReplies={details.replyCount}
               numRepliesHidden={numRepliesHidden}
             />

@@ -1,6 +1,5 @@
 /* globals promptMessage: false */
 
-import { useState } from 'react'
 import { stringify } from 'query-string'
 import copy from 'copy-to-clipboard'
 import Icon from '../Icon'
@@ -11,11 +10,9 @@ import { stringifyFilters } from '../../lib/forum-utils'
 
 export default function FilterForm({
   forumId, selectedFilters, setSelectedFilters, filterOptions, sort, setSort,
-  layout, setLayout, setCollapseLevel, numReplies, numRepliesHidden,
+  layout, setLayout, defaultCollapseLevel, setDefaultCollapseLevel, numReplies,
+  numRepliesHidden,
 }) {
-  // Notes default to fully expanded
-  const [collapse, setCollapse] = useState(2)
-
   // Options for multiselect dropdown
   const invDropdownFilterOptions = filterOptions.invitations.map(invitationId => ({
     value: invitationId,
@@ -160,18 +157,15 @@ export default function FilterForm({
           </div>
 
           <div className="btn-group btn-group-sm" role="group" aria-label="collapse level">
-            <button type="button" className={`btn btn-default ${collapse === 0 ? 'active' : ''}`} onClick={(e) => { setCollapse(0); setCollapseLevel(0) }}>
-              {/* <Icon name="resize-small" tooltip="Collapse content" /> */}
+            <button type="button" className={`btn btn-default ${defaultCollapseLevel === 0 ? 'active' : ''}`} onClick={(e) => { setDefaultCollapseLevel(0) }}>
               <span data-toggle="tooltip" title="Collapse content">−</span>
               <span className="sr-only">Collapsed</span>
             </button>
-            <button type="button" className={`btn btn-default ${collapse === 1 ? 'active' : ''}`} onClick={(e) => { setCollapse(1); setCollapseLevel(1) }}>
-              {/* <Icon name="resize-full" tooltip="Partially expand content" /> */}
+            <button type="button" className={`btn btn-default ${defaultCollapseLevel === 1 ? 'active' : ''}`} onClick={(e) => { setDefaultCollapseLevel(1) }}>
               <span data-toggle="tooltip" title="Partially expand content">＝</span>
               <span className="sr-only">Default</span>
             </button>
-            <button type="button" className={`btn btn-default ${collapse === 2 ? 'active' : ''}`} onClick={(e) => { setCollapse(2); setCollapseLevel(2) }}>
-              {/* <Icon name="fullscreen" tooltip="Fully expand content" /> */}
+            <button type="button" className={`btn btn-default ${defaultCollapseLevel === 2 ? 'active' : ''}`} onClick={(e) => { setDefaultCollapseLevel(2) }}>
               <span data-toggle="tooltip" title="Fully expand content">≡</span>
               <span className="sr-only">Expanded</span>
             </button>
@@ -186,7 +180,7 @@ export default function FilterForm({
         </div>
       </div>
 
-      <div className="form-row">
+      <div>
         {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
         <label className="control-label icon-label">
           <Icon name="eye-open" tooltip="Visible to" />

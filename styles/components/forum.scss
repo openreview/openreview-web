@@ -58,7 +58,8 @@ main.forum {
     }
 
     .form-group {
-      margin-right: .625rem;
+      margin-right: .5rem;
+      margin-bottom: .5rem;
 
       &:last-child {
         margin-right: 0;
@@ -123,7 +124,7 @@ main.forum {
     }
 
     .btn-group {
-      margin-right: .625rem;
+      margin-right: .5rem;
 
       &:last-child {
         margin-right: 0;
@@ -160,20 +161,12 @@ main.forum {
       border-color: lighten(constants.$mediumBlue, 10%);
       color: constants.$mediumDarkBlue;
     }
-
     .form-control {
       background-color: #fff;
     }
-
-    .form-row {
-      margin: 0;
-      margin-top: .5rem;
-    }
-
     .filter-count {
       line-height: 26px;
     }
-
     .icon-label {
       line-height: 26px;
       padding-right: .5rem;
