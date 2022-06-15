@@ -247,10 +247,10 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
               : prettyId(signature, true)
             const signatureGroup = note.details?.signatures?.find(p => p.id === signature)
             if (signatureGroup) {
-              let tooltip = `Privately revealed to ${signatureGroup.readers?.map(p => prettyId(p, true)).join(', ')}`
+              let tooltip = `Identities privately revealed to ${signatureGroup.readers?.map(p => prettyId(p, true)).join(', ')}`
               let icon = 'eye-open'
               if (signatureGroup.readers?.includes('everyone')) {
-                tooltip = 'Publicly revealed to everyone'
+                tooltip = 'Identities publicly revealed to everyone'
                 icon = 'globe'
               }
               return (
