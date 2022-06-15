@@ -404,7 +404,10 @@ const DateProcessesEditor = ({
           }),
           ...(p.type === 'cron' && {
             cron: p.cron,
-            dates: [p.startDate, p.endDate],
+            dates: [
+              p.startDate.trim().length > 0 ? p.startDate.trim() : null,
+              p.endDate.trim().length > 0 ? p.endDate.trim() : null,
+            ],
           }),
         }
       })
