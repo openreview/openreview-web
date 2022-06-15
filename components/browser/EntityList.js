@@ -10,12 +10,10 @@ export default function EntityList(props) {
   const { traverseInvitation } = useContext(EdgeBrowserContext)
   const traverseLabel = pluralizeString(traverseInvitation.name.split(' ').pop())
 
-  const {
-    heading, items, numItemsToRender, type,
-  } = props
+  const { heading, items, numItemsToRender, type } = props
 
   const renderEntity = (entity, index) => {
-    if ((entity.metadata && entity.metadata.isHidden) && !props.showHiddenItems) {
+    if (entity.metadata && entity.metadata.isHidden && !props.showHiddenItems) {
       return null
     }
 
@@ -38,6 +36,7 @@ export default function EntityList(props) {
             parentInfo={props.parentInfo}
             altGlobalEntityMap={props.altGlobalEntityMap}
             reloadColumnEntities={props.reloadColumnEntities}
+            venues={props.venues}
           />
         )
 
@@ -101,9 +100,7 @@ export default function EntityList(props) {
 
   return (
     <>
-      {heading && (
-        <h3 className="entry divider">{heading}</h3>
-      )}
+      {heading && <h3 className="entry divider">{heading}</h3>}
 
       {items?.length > 0 ? (
         <ul className={`list-unstyled entry-list ${!heading ? 'without-title' : ''}`}>

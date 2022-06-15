@@ -71,6 +71,8 @@ export default function Column(props) {
     entityType === 'profile' &&
     editAndBrowserInvitations.some((p) => p.id.includes('Custom_Max_Papers'))
 
+  const venues =
+    entityType === 'note' ? [...new Set(items?.map((p) => p.content?.venue))] : null
   // Helpers
   const formatEdge = (edge) => ({
     id: edge.id,
@@ -1066,6 +1068,7 @@ export default function Column(props) {
               reloadColumnEntities={() => props.reloadColumnEntities(props.index)}
               updateChildColumn={props.updateChildColumn}
               columnIndex={props.index}
+              venues={venues}
             />
             {showLoadMoreButton && (
               <button
