@@ -30,7 +30,11 @@ const Group = ({ groupId, webfieldCode, writable, appContext }) => {
   useEffect(() => {
     if (clientJsLoading || userLoading) return
 
-    window.user = user || { id: `guest_${Date.now()}`, profile: { id: 'guest' }, isGuest: true }
+    window.user = user || {
+      id: `guest_${Date.now()}`,
+      profile: { id: 'guest' },
+      isGuest: true,
+    }
 
     const script = document.createElement('script')
     script.innerHTML = webfieldCode
@@ -47,14 +51,19 @@ const Group = ({ groupId, webfieldCode, writable, appContext }) => {
     <>
       <Head>
         <title key="title">{`${groupTitle} | OpenReview`}</title>
-        <meta name="description" content={`Welcome to the OpenReview homepage for ${groupTitle}`} />
+        <meta
+          name="description"
+          content={`Welcome to the OpenReview homepage for ${groupTitle}`}
+        />
         <meta property="og:title" key="og:title" content={groupTitle} />
-        <meta property="og:description" key="og:description" content={`Welcome to the OpenReview homepage for ${groupTitle}`} />
+        <meta
+          property="og:description"
+          key="og:description"
+          content={`Welcome to the OpenReview homepage for ${groupTitle}`}
+        />
       </Head>
 
-      {clientJsLoading && (
-        <LoadingSpinner />
-      )}
+      {clientJsLoading && <LoadingSpinner />}
 
       <WebfieldContainer id="group-container" />
     </>
@@ -81,7 +90,9 @@ Group.getInitialProps = async (ctx) => {
   }
 
   const generateWebfieldCode = (group) => {
-    const webfieldCode = group.web || `
+    const webfieldCode =
+      group.web ||
+      `
 Webfield.ui.setup($('#group-container'), '${group.id}');
 Webfield.ui.header('${prettyId(group.id)}')
   .append('<p><em>Nothing to display</em></p>');`
@@ -132,7 +143,8 @@ ${webfieldCode}
     if (group.web?.includes('<script type="text/javascript">')) {
       return {
         statusCode: 400,
-        message: 'This group is no longer accessible. Please contact info@openreview.net if you require access.',
+        message:
+          'This group is no longer accessible. Please contact info@openreview.net if you require access.',
       }
     }
 
@@ -146,13 +158,15 @@ ${webfieldCode}
     if (error.name === 'ForbiddenError') {
       if (!token) {
         if (ctx.req) {
-          ctx.res.writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` }).end()
+          ctx.res
+            .writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` })
+            .end()
         } else {
           Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
         }
         return {}
       }
-      return { statusCode: 403, message: 'You don\'t have permission to read this group' }
+      return { statusCode: 403, message: "You don't have permission to read this group" }
     }
     return { statusCode: error.status || 500, message: error.message }
   }
