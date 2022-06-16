@@ -5,7 +5,7 @@ import ErrorAlert from '../components/ErrorAlert'
 import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 import { formatTasksData } from '../lib/utils'
-import GroupedTaskList from '../components/Task'
+import GroupedTaskList from '../components/GroupedTaskList'
 
 const Tasks = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()

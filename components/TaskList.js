@@ -1,37 +1,6 @@
 import Link from 'next/link'
-import { inflect, prettyId, prettyInvitationId } from '../lib/utils'
-import Accordion from './Accordion'
+import { prettyTasksInvitationId } from '../lib/utils'
 import Icon from './Icon'
-
-const prettyTasksInvitationId = (invitationId) => {
-  const entities = [
-    'Reviewers',
-    'Authors',
-    'Area_Chairs',
-    'Program_Chairs',
-    'Emergency_Reviewers',
-    'Senior_Area_Chairs',
-    'Action_Editors',
-  ]
-  let paperStr = ''
-  let entityStr = ''
-
-  const invMatches = invitationId.match(/\/(Paper\d+)\//)
-  if (invMatches) {
-    paperStr = invMatches[1]
-    const anonReviewerMatches = invitationId.match(/\/(AnonReviewer\d+|Reviewer_\w+)\//)
-    if (anonReviewerMatches) {
-      paperStr = `${paperStr} ${anonReviewerMatches[1].replace('_', ' ')}`
-    }
-  }
-
-  const groupSpecifier = invitationId.split('/-/')[0].split('/').pop()
-  if (entities.includes(groupSpecifier)) {
-    entityStr = groupSpecifier.replace(/_/g, ' ').slice(0, -1)
-  }
-
-  return `${paperStr} ${entityStr} ${prettyInvitationId(invitationId)}`
-}
 
 const TaskList = ({ invitations }) => {
   const referrer = encodeURIComponent('[Tasks](/tasks)')
@@ -131,39 +100,4 @@ const TaskList = ({ invitations }) => {
   )
 }
 
-const HeadingLink = ({ groupId, groupInfo }) => (
-  <div className="heading-link">
-    <Link href={`/group?id=${groupId}`} passHref>
-      <h2 onClick={(e) => e.stopPropagation()}>
-        <span className="invitation-id">{prettyId(groupId)} </span>
-      </h2>
-    </Link>
-    <span className="task-count-message">{`Show ${inflect(
-      groupInfo.numPending,
-      'pending task',
-      'pending tasks',
-      true
-    )}${
-      groupInfo.numCompleted
-        ? ` and ${inflect(groupInfo.numCompleted, 'completed task', 'completed tasks', true)}`
-        : ''
-    }`}</span>
-  </div>
-)
-
-const GroupedTaskList = ({ groupedTasks }) => (
-  <Accordion
-    sections={Object.keys(groupedTasks).map((groupId) => ({
-      heading: <HeadingLink groupId={groupId} groupInfo={groupedTasks[groupId]} />,
-      body: <TaskList invitations={groupedTasks[groupId].invitations} />,
-    }))}
-    options={{
-      id: 'tasks',
-      collapsed: true,
-      html: false,
-      bodyContainer: '',
-    }}
-  />
-)
-
-export default GroupedTaskList
+export default TaskList
