@@ -14,7 +14,7 @@ import ScoresList from './ScoresList'
 import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import api from '../../lib/api-client'
 import UserContext from '../UserContext'
-import { getInterpolatedValues, getSignatures, getVenueColor } from '../../lib/edge-utils'
+import { getInterpolatedValues, getSignatures } from '../../lib/edge-utils'
 
 export default function NoteEntity(props) {
   const { editInvitations, traverseInvitation, availableSignaturesInvitationMap, version } =
@@ -313,11 +313,7 @@ export default function NoteEntity(props) {
           original={original}
           max={4}
         />
-        {content.venue && (
-          <span className={`note-venue ${getVenueColor(props.venues, content.venue)}`}>
-            {content.venue}
-          </span>
-        )}
+        {content.venue && <span className="note-venue">{content.venue}</span>}
       </div>
 
       <NoteContent id={id} content={content} collapse />

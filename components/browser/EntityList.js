@@ -36,7 +36,6 @@ export default function EntityList(props) {
             parentInfo={props.parentInfo}
             altGlobalEntityMap={props.altGlobalEntityMap}
             reloadColumnEntities={props.reloadColumnEntities}
-            venues={props.venues}
           />
         )
 
