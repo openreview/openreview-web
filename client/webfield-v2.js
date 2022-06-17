@@ -338,6 +338,7 @@ module.exports = (function() {
       emptyMessage: 'No information to show at this time.',
       renders:[],
       headings: rows.length ? Object.keys(rows[0]) : [],
+      pageSize: null,
       extraClasses: '',
       reminderOptions: {
         container: 'a.send-reminder-link',
@@ -350,6 +351,7 @@ module.exports = (function() {
     options = _.defaults(options, defaults);
     var $container = $(container).empty();
     var containerId = container.slice(1);
+    var filteredRows = rows;
 
     var defaultRender = function(row) {
       var propertiesHtml = '';
@@ -359,7 +361,14 @@ module.exports = (function() {
       return '<div><table class="table table-condensed table-minimal"><tbody>' + propertiesHtml + '</tbody></table></div>';
     }
 
-    var render = function(rows, postRenderTable) {
+    var render = function(rows, pageNumber) {
+      var totalLength = rows.length;
+      var usePagination = options.pageSize && totalLength > options.pageSize;
+      if (usePagination) {
+        var offset = (pageNumber - 1) * options.pageSize;
+        rows = rows.slice(offset, offset + options.pageSize);
+      }
+
       var rowsHtml = rows.map(function(row) {
         return Object.values(row).map(function(cell, i) {
           var fn = options.renders[i] || defaultRender;
@@ -373,10 +382,21 @@ module.exports = (function() {
         extraClasses: options.extraClasses
       });
 
-      $('.table-container', container).remove();
-      $container.append(tableHtml);
+      var paginationHtml = null;
+      if (usePagination) {
+        paginationHtml = view.paginationLinks(totalLength, options.pageSize, pageNumber, null, { showCount: true });
+      }
 
-      postRenderTable();
+      $container.find('.table-container, .pagination-container').remove();
+      $container.append(tableHtml, paginationHtml);
+
+      if (paginationHtml) {
+        $('ul.pagination', $container).css({ marginTop: '2.5rem', marginBottom: '0' });
+      }
+
+      if (typeof options.postRenderTable === 'function') {
+        options.postRenderTable();
+      }
     }
 
     var registerHelpers = function() {
@@ -416,6 +436,25 @@ module.exports = (function() {
         } else {
           $superCheckbox.prop('checked', false);
         }
+      });
+
+      $container.on('click', 'ul.pagination > li > a', function(e) {
+        var $target = $(this).parent();
+        if ($target.hasClass('disabled') || $target.hasClass('active')) {
+          return;
+        }
+
+        var pageNumber = parseInt($target.data('pageNumber'), 10);
+        if (isNaN(pageNumber)) {
+          return;
+        }
+        render(filteredRows, pageNumber);
+
+        var scrollPos = $container.offset().top - 104;
+        $('html, body').animate({scrollTop: scrollPos}, 400);
+
+        $container.data('lastPageNum', pageNumber);
+        return false;
       });
 
       $container.on('click', '.msg-reviewers-container a', function(e) {
@@ -650,7 +689,8 @@ module.exports = (function() {
         if (switchOrder) {
           order = order === 'asc' ? 'desc' : 'asc';
         }
-        render(_.orderBy(rows, options.sortOptions[newOption], order), options.postRenderTable);
+        filteredRows = _.orderBy(rows, options.sortOptions[newOption], order);
+        render(filteredRows, 1);
       }
 
       $container.on('change', '#form-sort-' + containerId, function(e) {
@@ -663,11 +703,11 @@ module.exports = (function() {
     }
 
     if (options.searchProperties) {
-      var filterOperators = ['!=','>=','<=','>','<','=']; // sequence matters
+      var filterOperators = ['!=', '>=', '<=', '>', '<', '=']; // sequence matters
       var formSearchId = '#form-search-' + containerId;
       var defaultFields = options.searchProperties.default || [];
       var searchResults = function(searchText, isQueryMode) {
-        $('form-sort-' + containerId).val('Paper_Number');
+        $('#form-sort-' + containerId).val('Paper_Number');
 
         // Currently only searching on note title if exists
         var filterFunc = function(row) {
@@ -691,7 +731,7 @@ module.exports = (function() {
         } else {
           filteredRows = rows;
         }
-        render(filteredRows, options.postRenderTable);
+        render(filteredRows, 1);
       };
 
       $(formSearchId).on('keyup', function (e) {
@@ -755,7 +795,7 @@ module.exports = (function() {
       });
     }
 
-    render(rows, options.postRenderTable);
+    render(rows, 1);
     registerHelpers();
   };
 
