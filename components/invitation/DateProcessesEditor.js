@@ -222,21 +222,15 @@ const DateProcessesEditor = ({
               showScript: true,
               type: action.payload.value,
               ...(action.payload.value === 'dates' && {
-                dates: [{ value: '', valid: true }],
-                delay: undefined,
-                cron: undefined,
+                dates: p.dates ?? [{ value: '', valid: true }],
               }),
               ...(action.payload.value === 'delay' && {
-                dates: undefined,
-                delay: '',
-                cron: undefined,
+                delay: p.delay ?? '',
               }),
               ...(action.payload.value === 'cron' && {
-                dates: undefined,
-                delay: undefined,
-                cron: '',
-                startDate: '',
-                endDate: '',
+                cron: p.cron ?? '',
+                startDate: p.startDate ?? '',
+                endDate: p.endDate ?? '',
               }),
             }
           }
@@ -362,7 +356,7 @@ const DateProcessesEditor = ({
       type: getProcessType(p),
       valid: true,
       ...(p.dates && { dates: p.dates.map((d) => ({ value: d, valid: true })) }),
-      ...(p.cron && { startDate: p.dates?.[0] ?? '', endDate: p.dates?.[1] ?? '' }),
+      ...(p.cron && { startDate: p.startDate ?? '', endDate: p.endDate ?? '' }),
     })) ?? []
   )
   const [isSaving, setIsSaving] = useState(false)
@@ -404,10 +398,8 @@ const DateProcessesEditor = ({
           }),
           ...(p.type === 'cron' && {
             cron: p.cron,
-            dates: [
-              p.startDate.trim().length > 0 ? p.startDate.trim() : null,
-              p.endDate.trim().length > 0 ? p.endDate.trim() : null,
-            ],
+            startDate: p.startDate.trim().length > 0 ? p.startDate.trim() : null,
+            endDate: p.endDate.trim().length > 0 ? p.endDate.trim() : null,
           }),
         }
       })
