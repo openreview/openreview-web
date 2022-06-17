@@ -6,10 +6,6 @@ main.tasks {
   }
 
   .tasks-container {
-    & > div {
-      padding-left: 24px;
-    }
-
     .submissions-list {
       margin-top: 0.5rem;
       margin-bottom: 1.25rem;
@@ -21,23 +17,11 @@ main.tasks {
     }
 
     h2 {
-      position: relative;
       margin-bottom: 0.5rem;
+      margin-top: 0;
 
       a:hover {
         text-decoration: underline;
-      }
-      span.glyphicon {
-        position: absolute;
-        margin: 0;
-        top: 12px;
-        left: -24px;
-        font-size: 0.75rem;
-      }
-      a.collapse-btn {
-        &.active span.glyphicon {
-          transform: rotate(90deg);
-        }
       }
       span.badge {
         margin-left: 1rem;
@@ -46,17 +30,32 @@ main.tasks {
         background-color: constants.$orRed;
       }
     }
+    h4 {
+      position: relative;
+
+      a.collapse-btn {
+        &.active span.glyphicon {
+          transform: rotate(90deg);
+        }
+
+        span.glyphicon {
+          position: absolute;
+          margin: 0;
+          top: 12px;
+          left: -20px;
+          font-size: 0.75rem;
+        }
+      }
+    }
 
     hr {
       margin-top: 0.75rem;
-      margin-bottom: 1.75rem;
+      margin-bottom: 0.5rem;
     }
   }
 
   // new-implementation
-  div#tasks {
-    padding-left: 0;
-
+  #tasks {
     .heading-link {
       display: inline-block;
       vertical-align: middle;
