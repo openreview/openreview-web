@@ -287,13 +287,13 @@ export default function ProfileEditor({
         pick(p, ['relation', 'name', 'email', 'start', 'end', 'readers'])
       ),
       preferredEmail: profileContent.emails.find((p) => p.preferred)?.email,
-      homepage: profileContent.homepage?.value?.toLowerCase()?.trim(),
-      gscholar: profileContent.gscholar?.value?.toLowerCase()?.trim(),
-      dblp: profileContent.dblp?.value?.toLowerCase()?.trim(),
-      orcid: profileContent.orcid?.value?.toLowerCase()?.trim(),
-      wikipedia: profileContent.wikipedia?.value?.toLowerCase()?.trim(),
-      linkedin: profileContent.linkedin?.value?.toLowerCase()?.trim(),
-      semanticScholar: profileContent.semanticScholar?.value?.toLowerCase()?.trim(),
+      homepage: profileContent.homepage?.value?.trim(),
+      gscholar: profileContent.gscholar?.value?.trim(),
+      dblp: profileContent.dblp?.value?.trim(),
+      orcid: profileContent.orcid?.value?.trim(),
+      wikipedia: profileContent.wikipedia?.value?.trim(),
+      linkedin: profileContent.linkedin?.value?.trim(),
+      semanticScholar: profileContent.semanticScholar?.value?.trim(),
     }
     return { isValid: true, profileContent }
   }

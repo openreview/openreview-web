@@ -1900,6 +1900,7 @@ module.exports = (function() {
     mkNoteEditor: mkNoteEditor,
     mkNotePanel: mkNotePanel,
     deleteOrRestoreNote: deleteOrRestoreNote,
+    constructEdit:constructEdit,
   };
 
 }());
