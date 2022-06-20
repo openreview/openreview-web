@@ -178,62 +178,6 @@ templates['genericModal'] = template({"1":function(container,depth0,helpers,part
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"showFooter") : depth0),{"name":"if","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":15,"column":6},"end":{"line":20,"column":13}}})) != null ? stack1 : "")
     + "    </div>\n  </div>\n</div>\n";
 },"useData":true});
-templates['groupedTaskList'] = template({"1":function(container,depth0,helpers,partials,data,blockParams,depths) {
-    var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.escapeExpression, alias3=container.hooks.helperMissing, lookupProperty = container.lookupProperty || function(parent, propertyName) {
-        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
-          return parent[propertyName];
-        }
-        return undefined
-    };
-
-  return "    <li>\n      <h2>\n        <a class=\"collapse-btn "
-    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,((stack1 = (depths[1] != null ? lookupProperty(depths[1],"taskOptions") : depths[1])) != null ? lookupProperty(stack1,"collapsed") : stack1),{"name":"unless","hash":{},"fn":container.program(2, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":5,"column":31},"end":{"line":5,"column":84}}})) != null ? stack1 : "")
-    + "\" href=\"#\">\n          <span class=\"glyphicon glyphicon-triangle-right\"></span>\n        </a>\n        <a href=\"/group?id="
-    + alias2(container.lambda(blockParams[0][1], depth0))
-    + "\" title=\"View venue homepage\">\n          "
-    + alias2((lookupProperty(helpers,"prettyId")||(depth0 && lookupProperty(depth0,"prettyId"))||alias3).call(alias1,blockParams[0][1],{"name":"prettyId","hash":{},"data":data,"blockParams":blockParams,"loc":{"start":{"line":9,"column":10},"end":{"line":9,"column":30}}}))
-    + "\n        </a>\n      </h2>\n\n      <a href=\"#\" class=\"show-tasks\" role=\"button\">\n        <span>Show</span> "
-    + alias2((lookupProperty(helpers,"inflect")||(depth0 && lookupProperty(depth0,"inflect"))||alias3).call(alias1,((stack1 = blockParams[0][0]) != null ? lookupProperty(stack1,"numPending") : stack1),"pending task","pending tasks",true,{"name":"inflect","hash":{},"data":data,"blockParams":blockParams,"loc":{"start":{"line":14,"column":26},"end":{"line":14,"column":94}}}))
-    + "\n        "
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = blockParams[0][0]) != null ? lookupProperty(stack1,"numCompleted") : stack1),{"name":"if","hash":{},"fn":container.program(4, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":15,"column":8},"end":{"line":15,"column":123}}})) != null ? stack1 : "")
-    + "\n      </a>\n\n"
-    + ((stack1 = container.invokePartial(lookupProperty(partials,"taskList"),depth0,{"name":"taskList","hash":{"taskOptions":(depths[1] != null ? lookupProperty(depths[1],"taskOptions") : depths[1]),"invitations":((stack1 = blockParams[0][0]) != null ? lookupProperty(stack1,"invitations") : stack1)},"data":data,"blockParams":blockParams,"indent":"      ","helpers":helpers,"partials":partials,"decorators":container.decorators})) != null ? stack1 : "")
-    + "\n      <hr>\n    </li>\n";
-},"2":function(container,depth0,helpers,partials,data) {
-    return "active";
-},"4":function(container,depth0,helpers,partials,data,blockParams) {
-    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
-        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
-          return parent[propertyName];
-        }
-        return undefined
-    };
-
-  return "and "
-    + container.escapeExpression((lookupProperty(helpers,"inflect")||(depth0 && lookupProperty(depth0,"inflect"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = blockParams[1][0]) != null ? lookupProperty(stack1,"numCompleted") : stack1),"completed task","completed tasks",true,{"name":"inflect","hash":{},"data":data,"blockParams":blockParams,"loc":{"start":{"line":15,"column":42},"end":{"line":15,"column":116}}}));
-},"6":function(container,depth0,helpers,partials,data) {
-    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
-        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
-          return parent[propertyName];
-        }
-        return undefined
-    };
-
-  return "    <li>\n      <p class=\"empty-message\">"
-    + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? lookupProperty(depth0,"taskOptions") : depth0)) != null ? lookupProperty(stack1,"emptyMessage") : stack1), depth0))
-    + "</p>\n    </li>\n";
-},"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data,blockParams,depths) {
-    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
-        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
-          return parent[propertyName];
-        }
-        return undefined
-    };
-
-  return "<ul class=\"list-unstyled\">\n"
-    + ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"groupedInvitations") : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 2, blockParams, depths),"inverse":container.program(6, data, 0, blockParams, depths),"data":data,"blockParams":blockParams,"loc":{"start":{"line":2,"column":2},"end":{"line":26,"column":11}}})) != null ? stack1 : "")
-    + "</ul>\n";
-},"usePartial":true,"useData":true,"useDepths":true,"useBlockParams":true});
 templates['invitationButton'] = template({"1":function(container,depth0,helpers,partials,data) {
     return "    <strong class=\"item hint\">Add:</strong>\n";
 },"3":function(container,depth0,helpers,partials,data) {

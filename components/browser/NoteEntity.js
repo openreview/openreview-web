@@ -313,6 +313,7 @@ export default function NoteEntity(props) {
           original={original}
           max={4}
         />
+        {content.venue && <span className="note-venue">{content.venue}</span>}
       </div>
 
       <NoteContent id={id} content={content} collapse />
@@ -347,14 +348,14 @@ export default function NoteEntity(props) {
                   {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
                   {props.traverseLabel} ({props.note.traverseEdgesCount}) &raquo;
                 </a>
-              ) : props.showCounter &&
-              (
-                <>
-                  <span>{`${props.traverseLabel}:`}</span>{' '}
-                  <span>{props.note.traverseEdgesCount}</span>
-                </>
-              )
-            }
+              ) : (
+                props.showCounter && (
+                  <>
+                    <span>{`${props.traverseLabel}:`}</span>{' '}
+                    <span>{props.note.traverseEdgesCount}</span>
+                  </>
+                )
+              )}
             </li>
           </ul>
         </div>
