@@ -352,6 +352,7 @@ module.exports = (function() {
     var $container = $(container).empty();
     var containerId = container.slice(1);
     var filteredRows = rows;
+    var selectedIds = [];
 
     var defaultRender = function(row) {
       var propertiesHtml = '';
@@ -394,6 +395,13 @@ module.exports = (function() {
         $('ul.pagination', $container).css({ marginTop: '2.5rem', marginBottom: '0' });
       }
 
+      selectedIds.forEach(function(id) {
+        $container.find('input.select-note-reviewers[data-note-id="' + id + '"]').prop('checked', true);
+      });
+      if (selectedIds.length === filteredRows.length) {
+        $container.find('input.select-all-papers').prop('checked', true);
+      }
+
       if (typeof options.postRenderTable === 'function') {
         options.postRenderTable();
       }
@@ -413,25 +421,32 @@ module.exports = (function() {
         var $messageBtn = $container.find('.message-reviewers-btn');
         if ($(this).prop('checked')) {
           $allPaperCheckBoxes.prop('checked', true);
+          selectedIds = filteredRows.map(function(row) { return row.checked.noteId; });
           $messageBtn.attr('disabled', false);
         } else {
           $allPaperCheckBoxes.prop('checked', false);
+          selectedIds = [];
           $messageBtn.attr('disabled', true);
         }
       });
 
       $container.on('change', '.select-note-reviewers', function(e) {
+        var noteId = $(this).data('noteId');
+        if ($(this).prop('checked')) {
+          selectedIds = selectedIds.concat(noteId);
+        } else {
+          selectedIds = selectedIds.filter(function(id) { return id !== noteId; });
+        }
+
         var $messageBtn = $container.find('.message-reviewers-btn');
-        var $checkboxes = $container.find('input.select-note-reviewers');
-        var $selectedCheckboxes = $checkboxes.filter(':checked');
-        if ($selectedCheckboxes.length > 0) {
+        if (selectedIds.length > 0) {
           $messageBtn.attr('disabled', false);
         } else {
           $messageBtn.attr('disabled', true);
         }
 
         var $superCheckbox = $container.find('.select-all-papers');
-        if ($checkboxes.length === $selectedCheckboxes.length) {
+        if (selectedIds.length === filteredRows.length) {
           $superCheckbox.prop('checked', true);
         } else {
           $superCheckbox.prop('checked', false);
@@ -498,9 +513,6 @@ module.exports = (function() {
           return false;
         }
 
-        var selectedIds = $container.find('input.select-note-reviewers:checked').map(function() {
-          return $(this).data('noteId');
-        }).get();
         var users = menuOption.getUsers(selectedIds);
         var messages = [];
         var count = 0;
@@ -689,7 +701,7 @@ module.exports = (function() {
         if (switchOrder) {
           order = order === 'asc' ? 'desc' : 'asc';
         }
-        filteredRows = _.orderBy(rows, options.sortOptions[newOption], order);
+        filteredRows = _.orderBy(filteredRows, options.sortOptions[newOption], order);
         render(filteredRows, 1);
       }
 
@@ -722,15 +734,15 @@ module.exports = (function() {
         if (searchText) {
           if (isQueryMode) {
             var filterResult = Webfield.filterCollections(rows, searchText.slice(1), filterOperators, options.searchProperties, 'note.id')
+            if (filterResult.queryIsInvalid) $(formSearchId).addClass('invalid-value');
             filteredRows = filterResult.filteredRows;
-            queryIsInvalid = filterResult.queryIsInvalid;
-            if(queryIsInvalid) $(formSearchId).addClass('invalid-value')
           } else {
             filteredRows = _.filter(rows, filterFunc)
           }
         } else {
           filteredRows = rows;
         }
+        selectedIds = [];
         render(filteredRows, 1);
       };
 
