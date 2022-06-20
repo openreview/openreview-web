@@ -17,7 +17,7 @@ test('should open tasks page and complete pending task', async (t) => {
     .click(Selector('a').withText('Tasks'))
     // should see 1 task in testvenue 2020 conference
     .expect(Selector('div.tasks-container').find('ul.list-unstyled').nth(0).childElementCount).eql(1)
-    .click(Selector('a.show-tasks')) // perform the task
+    .click(Selector('span.task-count-message')) // perform the task
     .click(Selector('a').withText('Paper1 Official Review'))
     .typeText(Selector('input').withAttribute('name', 'title'), 'test title') // fill in comment title
     .typeText(Selector('textarea').withAttribute('name', 'review'), 'test comment') // fill in comment content
@@ -27,25 +27,25 @@ test('should open tasks page and complete pending task', async (t) => {
     .click(Selector('button').withText('Submit')) // submit
     // should see 0 pending task and 1 completed
     .click(Selector('a').withText('Tasks')) // go tasks page
-    .expect(Selector('a.show-tasks').innerText)
+    .expect(Selector('span.task-count-message').innerText)
     .eql('Show 0 pending tasks and 1 completed task')
 })
 
 test('task should change when note is deleted and restored', async (t) => {
   await t.useRole(hasTaskUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
-    .click(Selector('a.show-tasks'))
+    .click(Selector('span.task-count-message'))
     .click(Selector('a').withText('Paper1 Official Review')) // go to forum page
     .maximizeWindow()
     .click(Selector('#note_children').find('button.trash_button'))
     .click(Selector('a').withText('Tasks'))
-    .expect(Selector('a.show-tasks').innerText).eql('Show 1 pending task')
-    .click(Selector('a.show-tasks'))
+    .expect(Selector('span.task-count-message').innerText).eql('Show 1 pending task')
+    .click(Selector('span.task-count-message'))
     .click(Selector('a').withText('Paper1 Official Review'))
     .click(Selector('.note_editor').find('button').withText('Cancel')) // don't add new comment
     .click(Selector('button').withText('Restore'))
     .click(Selector('a').withText('Tasks'))
-    .expect(Selector('a.show-tasks').innerText).eql('Show 0 pending tasks and 1 completed task')
+    .expect(Selector('span.task-count-message').innerText).eql('Show 0 pending tasks and 1 completed task')
 })
 
 test('user with no tasks should see an empty tasks page', async (t) => {
@@ -64,7 +64,7 @@ test('user with no tasks should see an empty tasks page', async (t) => {
 test('should not show referrer banner after navigation', async (t) => {
   await t.useRole(hasTaskUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
-    .click(Selector('a.show-tasks'))
+    .click(Selector('span.task-count-message'))
     .click(Selector('a').withText('Paper1 Official Review')) // go to the actual forum page
     .expect(Selector('.banner').find('a').withText('Back to Tasks').exists).ok() // banner shows back to tasks
     .click(Selector('a.home.push-link')) // go to index page
