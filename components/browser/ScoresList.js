@@ -8,7 +8,12 @@ export default function ScoresList({ edges }) {
       <ul className="list-unstyled">
         {edges.map((e) => {
           const val =
-            e.name === 'Conflict' || e.name === 'Bid' || e.weight == null ? e.label : e.weight
+            e.name === 'Conflict' ||
+            e.name === 'Bid' ||
+            e.name === 'Invite Assignment' ||
+            e.weight == null
+              ? e.label
+              : e.weight
 
           return (
             <li key={e.id}>

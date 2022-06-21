@@ -1,4 +1,4 @@
-/* globals DOMPurify,marked: false */
+/* globals DOMPurify,marked,MathJax: false */
 
 import { useEffect, useState } from 'react'
 import kebabCase from 'lodash/kebabCase'
@@ -10,6 +10,7 @@ const MarkdownPreviewTab = ({
   firstTab = 'Write',
   secondTab = 'Preview',
   placeholder = '',
+  textAreaClass = '',
 }) => {
   const [sanitizedHtml, setSanitizedHtml] = useState('')
   const firstTabId = kebabCase(firstTab)
@@ -30,13 +31,15 @@ const MarkdownPreviewTab = ({
         <Tab id={firstTabId} active>
           {firstTab}
         </Tab>
-        <Tab id={secondTabId}>{secondTab}</Tab>
+        <Tab id={secondTabId} onClick={() => MathJax.typesetPromise()}>
+          {secondTab}
+        </Tab>
       </TabList>
 
       <TabPanels>
         <TabPanel id={firstTabId}>
           <textarea
-            className="form-control"
+            className={`form-control ${textAreaClass}`}
             rows="6"
             placeholder={placeholder}
             value={value}

@@ -313,6 +313,7 @@ export default function NoteEntity(props) {
           original={original}
           max={4}
         />
+        {content.venue && <span className="note-venue">{content.venue}</span>}
       </div>
 
       <NoteContent id={id} content={content} collapse />

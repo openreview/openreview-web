@@ -1,8 +1,15 @@
-export default function SpinnerButton({ type, onClick, disabled, loading, children }) {
+export default function SpinnerButton({
+  type,
+  onClick,
+  disabled,
+  loading,
+  children,
+  size = 'sm',
+}) {
   return (
     <button
       type="button"
-      className={`btn btn-sm btn-${type}`}
+      className={`btn btn-${size} btn-${type}`}
       onClick={onClick}
       disabled={disabled}
     >

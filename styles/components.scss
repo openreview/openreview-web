@@ -1401,3 +1401,135 @@ header,
     }
   }
 }
+
+// #region webfield react components
+//RecruitmentForm
+.recruitment-form {
+  .response-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+    .btn-lg {
+      font-size: 1.25rem;
+      line-height: 1.5rem;
+      width: 10rem;
+    }
+    .decline-button {
+      .spinner-small > div {
+        background-color: constants.$mediumBlue;
+      }
+    }
+  }
+
+  h5 {
+    font-weight: bold;
+  }
+}
+
+.accept-form {
+  .reduced-load-message {
+    color: unset;
+  }
+}
+
+.decline-form {
+  .row {
+    margin: unset;
+  }
+  .row.decline-message {
+    margin-bottom: 1rem;
+  }
+
+  .reduced-load-link {
+    font-weight: 700;
+    padding: 0;
+    margin: 0;
+  }
+  .reduced-load-label {
+    color: constants.$darkBlue;
+    margin-bottom: 1rem;
+  }
+
+  textarea.note_content_value,
+  .note-editor-preview textarea.note_content_value {
+    height: 100px;
+  }
+}
+
+// DropdownList
+.dropdown-list {
+  display: flex;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  max-width: 50%;
+
+  .line_heading {
+    max-width: 20%;
+    word-wrap: break-word;
+    width: unset;
+    align-self: center;
+  }
+
+  .dropdown-select {
+    flex-grow: 1;
+  }
+}
+
+// TextArea
+.textarea {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  textarea {
+    resize: vertical;
+  }
+
+  .title,
+  .description {
+    display: flex;
+  }
+
+  .content {
+    display: flex;
+    .markdown-preview {
+      flex-grow: 1;
+      margin-top: 0;
+    }
+  }
+
+  .counter-warning {
+    display: flex;
+
+    .char-counter {
+      width: 40%;
+      &.warning,
+      &.danger {
+        border: 0;
+        font-weight: bold;
+      }
+      &.warning {
+        color: constants.$darkBlue;
+      }
+      &.danger {
+        color: lighten(constants.$orRed, 20%);
+      }
+    }
+  }
+}
+
+// ReadOnlyField
+.readonly-field {
+  display: flex;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  .line_heading {
+    width: unset;
+  }
+  .line_value {
+    align-self: center;
+  }
+}
+// #endregion
