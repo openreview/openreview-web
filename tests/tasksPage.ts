@@ -18,7 +18,8 @@ test('should open tasks page and complete pending task', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
     .click(Selector('a').withText('Tasks'))
     // should see 1 task in testvenue 2020 conference
-    .expect(Selector('div.tasks-container').find('ul.list-unstyled').nth(0).childElementCount).eql(1)
+    .expect(Selector('div.tasks-container').find('ul.list-unstyled').nth(0).childElementCount)
+    .eql(1)
     .click(Selector('span.task-count-message')) // perform the task
     .click(Selector('a').withText('Paper1 Official Review'))
     .typeText(Selector('input').withAttribute('name', 'title'), 'test title') // fill in comment title
@@ -53,13 +54,15 @@ test('task should change when note is deleted and restored', async (t) => {
     .maximizeWindow()
     .click(Selector('#note_children').find('button.trash_button'))
     .click(Selector('a').withText('Tasks'))
-    .expect(Selector('span.task-count-message').innerText).eql('Show 1 pending task')
+    .expect(Selector('span.task-count-message').innerText)
+    .eql('Show 1 pending task')
     .click(Selector('span.task-count-message'))
     .click(Selector('a').withText('Paper1 Official Review'))
     .click(Selector('.note_editor').find('button').withText('Cancel')) // don't add new comment
     .click(Selector('button').withText('Restore'))
     .click(Selector('a').withText('Tasks'))
-    .expect(Selector('span.task-count-message').innerText).eql('Show 0 pending tasks and 1 completed task')
+    .expect(Selector('span.task-count-message').innerText)
+    .eql('Show 0 pending tasks and 1 completed task')
 })
 
 test('user with no tasks should see an empty tasks page', async (t) => {

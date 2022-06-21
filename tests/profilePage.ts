@@ -490,5 +490,10 @@ test('#1011 remove space in personal links', async (t) => {
     .click(nameSectionPlusIconSelector)
     .typeText(homepageUrlInput, '   https://github.com/xkOpenReview    ', { replace: true })
     .click(saveProfileButton)
-    .expect(Selector('a').withText('Homepage').withAttribute('href', 'https://github.com/xkOpenReview').exists).ok()
+    .expect(
+      Selector('a')
+        .withText('Homepage')
+        .withAttribute('href', 'https://github.com/xkOpenReview').exists
+    )
+    .ok()
 })
