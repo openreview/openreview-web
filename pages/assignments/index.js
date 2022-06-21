@@ -118,7 +118,7 @@ const AssignmentRow = ({
       </td>
 
       <td className="assignment-actions">
-        {['Initialized', 'Error', 'No Solution'].includes(status) && (
+        {['Initialized', 'Error', 'No Solution', 'Cancelled'].includes(status) && (
           <ActionLink
             label="Run Matcher"
             iconName="cog"
