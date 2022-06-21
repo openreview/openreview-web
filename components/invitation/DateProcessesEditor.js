@@ -14,6 +14,7 @@ const DateProcessRow = ({ process, setProcesses }) => {
   const dateProcessTypeOptions = [
     { label: 'Dates', value: 'dates' },
     { label: 'Delay', value: 'delay' },
+    { label: 'Cron', value: 'cron' },
   ]
   return (
     <>
@@ -79,6 +80,70 @@ const DateProcessRow = ({ process, setProcesses }) => {
               onClick={() => setProcesses({ type: 'ADDDATE', payload: { key: process.key } })}
             >
               <Icon name="plus-sign" tooltip="add another execution date" />
+            </div>
+          </div>
+        )}
+        {process.type === 'cron' && (
+          <div className="dates">
+            <div className="cron-expr">
+              <input
+                placeholder="cron expression"
+                className={`form-control${process.valid ? '' : ' invalid-value'}`}
+                value={process.cron}
+                onChange={(e) => {
+                  setProcesses({
+                    type: 'UPDATECRON',
+                    payload: {
+                      key: process.key,
+                      value: {
+                        cron: e.target.value,
+                        startDate: process.startDate,
+                        endDate: process.endDate,
+                      },
+                    },
+                  })
+                }}
+              />
+            </div>
+            <div className="cron-start">
+              <input
+                placeholder="start date expression"
+                className="form-control"
+                value={process.startDate}
+                onChange={(e) => {
+                  setProcesses({
+                    type: 'UPDATECRON',
+                    payload: {
+                      key: process.key,
+                      value: {
+                        cron: process.cron,
+                        startDate: e.target.value,
+                        endDate: process.endDate,
+                      },
+                    },
+                  })
+                }}
+              />
+            </div>
+            <div className="cron-end">
+              <input
+                placeholder="end date expression"
+                className="form-control"
+                value={process.endDate}
+                onChange={(e) => {
+                  setProcesses({
+                    type: 'UPDATECRON',
+                    payload: {
+                      key: process.key,
+                      value: {
+                        cron: process.cron,
+                        startDate: process.startDate,
+                        endDate: e.target.value,
+                      },
+                    },
+                  })
+                }}
+              />
             </div>
           </div>
         )}
@@ -157,10 +222,16 @@ const DateProcessesEditor = ({
               showScript: true,
               type: action.payload.value,
               ...(action.payload.value === 'dates' && {
-                dates: [{ value: '', valid: true }],
-                delay: undefined,
+                dates: p.dates ?? [{ value: '', valid: true }],
               }),
-              ...(action.payload.value === 'delay' && { dates: undefined, delay: '' }),
+              ...(action.payload.value === 'delay' && {
+                delay: p.delay ?? '',
+              }),
+              ...(action.payload.value === 'cron' && {
+                cron: p.cron ?? '',
+                startDate: p.startDate ?? '',
+                endDate: p.endDate ?? '',
+              }),
             }
           }
           return p
@@ -175,10 +246,17 @@ const DateProcessesEditor = ({
           }
           return p
         })
+      case 'UPDATECRON':
+        return state.map((p) => {
+          if (p.key === action.payload.key) {
+            return { ...p, ...action.payload.value, valid: true }
+          }
+          return p
+        })
       case 'ADDDATE':
         return state.map((p) => {
           if (p.key === action.payload.key) {
-            return { ...p, dates: [...p.dates, { value: '', valid: true }] }
+            return { ...p, dates: [...(p.dates ?? []), { value: '', valid: true }] }
           }
           return p
         })
@@ -248,19 +326,37 @@ const DateProcessesEditor = ({
           }
           return p
         })
+      case 'INVALIDCRON':
+        return state.map((p) => {
+          if (p.key === action.payload) {
+            return {
+              ...p,
+              valid: false,
+            }
+          }
+          return p
+        })
       default:
         return state
     }
   }
+
+  const getProcessType = (process) => {
+    if (process.delay) return 'delay'
+    if (process.cron) return 'cron'
+    return 'dates'
+  }
+
   const [processes, setProcesses] = useReducer(
     dateProcessesReducer,
     invitation.dateprocesses?.map((p) => ({
       ...p,
       key: nanoid(),
       showScript: false,
-      type: p.delay !== undefined ? 'delay' : 'dates',
+      type: getProcessType(p),
       valid: true,
       ...(p.dates && { dates: p.dates.map((d) => ({ value: d, valid: true })) }),
+      ...(p.cron && { startDate: p.startDate ?? '', endDate: p.endDate ?? '' }),
     })) ?? []
   )
   const [isSaving, setIsSaving] = useState(false)
@@ -288,6 +384,10 @@ const DateProcessesEditor = ({
           })
           throw new Error("Date value can't be empty")
         }
+        if (p.type === 'cron' && p.cron.trim() === '') {
+          setProcesses({ type: 'INVALIDCRON', payload: p.key })
+          throw new Error("Cron expression can't be empty")
+        }
         return {
           script: p.script,
           ...(p.type === 'dates' && {
@@ -295,6 +395,11 @@ const DateProcessesEditor = ({
           }),
           ...(p.type === 'delay' && {
             delay: Number.isInteger(p.delay) ? p.delay : Number(p.delay.trim()),
+          }),
+          ...(p.type === 'cron' && {
+            cron: p.cron,
+            startDate: p.startDate.trim().length > 0 ? p.startDate.trim() : null,
+            endDate: p.endDate.trim().length > 0 ? p.endDate.trim() : null,
           }),
         }
       })
@@ -328,16 +433,23 @@ const DateProcessesEditor = ({
   return (
     <div className="dateprocess-editor">
       {processes.length === 0 && (
-        <p className="empty-message">There are no date processes associated with this invitation</p>
+        <p className="empty-message">
+          There are no date processes associated with this invitation
+        </p>
       )}
 
       <div className="add-row">
-        <IconButton name="plus" onClick={() => setProcesses({ type: 'ADD' })} text="Add Script" />
+        <IconButton
+          name="plus"
+          onClick={() => setProcesses({ type: 'ADD' })}
+          text="Add Script"
+        />
       </div>
 
-      {processes.length > 0 && processes.map((process) => (
-        <DateProcessRow key={process.key} process={process} setProcesses={setProcesses} />
-      ))}
+      {processes.length > 0 &&
+        processes.map((process) => (
+          <DateProcessRow key={process.key} process={process} setProcesses={setProcesses} />
+        ))}
 
       <div className="mt-4">
         <SpinnerButton
