@@ -259,6 +259,10 @@ main.profile {
         }
         .note-authors {
           line-height: 1.125rem;
+          .tooltip-inner {
+            max-width: unset;
+            width: max-content;
+          }
         }
         .note-meta-info .readers {
           display: none;
