@@ -144,6 +144,7 @@ function ForumNote({ note, updateNote }) {
       <NoteContentV2
         id={id}
         content={content}
+        number={note.number}
         presentation={details.presentation}
         noteReaders={note.readers}
       />
@@ -189,7 +190,7 @@ function ForumMeta({ note }) {
 
       <span className="item">
         <Icon name="folder-open" />
-        {prettyId(note.content.venueid?.value || note.invitations[0])}
+        {note.content.venue?.value || prettyId(note.invitations[0])}
       </span>
 
       {note.readers && (

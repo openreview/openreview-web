@@ -140,6 +140,7 @@ export function DownloadLink({ noteId, fieldName, fieldValue, isReference, isV2 
 export const NoteContentV2 = ({
   id,
   content,
+  number,
   presentation,
   noteReaders,
   omit = [],
@@ -150,6 +151,10 @@ export const NoteContentV2 = ({
   const contentOrder = presentation?.length > 0
     ? Array.from(new Set(presentation.map((p) => p.name).concat(contentKeys)))
     : contentKeys
+
+  if (Number.isInteger(number)) {
+    contentOrder.push('Submission_Number')
+  }
 
   const omittedFields = [
     'title',
@@ -172,7 +177,7 @@ export const NoteContentV2 = ({
       {contentOrder.map((fieldName, i) => {
         if (omittedFields.includes(fieldName) || fieldName.startsWith('_')) return null
 
-        const fieldValue = prettyContentValue(content[fieldName]?.value)
+        const fieldValue = prettyContentValue(fieldName === 'Submission_Number' ? number : content[fieldName]?.value)
         if (!fieldValue) return null
 
         const enableMarkdown = presentation?.[i]?.markdown
