@@ -338,6 +338,7 @@ module.exports = (function() {
       emptyMessage: 'No information to show at this time.',
       renders:[],
       headings: rows.length ? Object.keys(rows[0]) : [],
+      pageSize: null,
       extraClasses: '',
       reminderOptions: {
         container: 'a.send-reminder-link',
@@ -350,6 +351,8 @@ module.exports = (function() {
     options = _.defaults(options, defaults);
     var $container = $(container).empty();
     var containerId = container.slice(1);
+    var filteredRows = rows;
+    var selectedIds = [];
 
     var defaultRender = function(row) {
       var propertiesHtml = '';
@@ -359,7 +362,14 @@ module.exports = (function() {
       return '<div><table class="table table-condensed table-minimal"><tbody>' + propertiesHtml + '</tbody></table></div>';
     }
 
-    var render = function(rows, postRenderTable) {
+    var render = function(rows, pageNumber) {
+      var totalLength = rows.length;
+      var usePagination = options.pageSize && totalLength > options.pageSize;
+      if (usePagination) {
+        var offset = (pageNumber - 1) * options.pageSize;
+        rows = rows.slice(offset, offset + options.pageSize);
+      }
+
       var rowsHtml = rows.map(function(row) {
         return Object.values(row).map(function(cell, i) {
           var fn = options.renders[i] || defaultRender;
@@ -373,10 +383,28 @@ module.exports = (function() {
         extraClasses: options.extraClasses
       });
 
-      $('.table-container', container).remove();
-      $container.append(tableHtml);
+      var paginationHtml = null;
+      if (usePagination) {
+        paginationHtml = view.paginationLinks(totalLength, options.pageSize, pageNumber, null, { showCount: true });
+      }
 
-      postRenderTable();
+      $container.find('.table-container, .pagination-container').remove();
+      $container.append(tableHtml, paginationHtml);
+
+      if (paginationHtml) {
+        $('ul.pagination', $container).css({ marginTop: '2.5rem', marginBottom: '0' });
+      }
+
+      selectedIds.forEach(function(id) {
+        $container.find('input.select-note-reviewers[data-note-id="' + id + '"]').prop('checked', true);
+      });
+      if (selectedIds.length === filteredRows.length) {
+        $container.find('input.select-all-papers').prop('checked', true);
+      }
+
+      if (typeof options.postRenderTable === 'function') {
+        options.postRenderTable();
+      }
     }
 
     var registerHelpers = function() {
@@ -393,29 +421,55 @@ module.exports = (function() {
         var $messageBtn = $container.find('.message-reviewers-btn');
         if ($(this).prop('checked')) {
           $allPaperCheckBoxes.prop('checked', true);
+          selectedIds = filteredRows.map(function(row) { return row.checked.noteId; });
           $messageBtn.attr('disabled', false);
         } else {
           $allPaperCheckBoxes.prop('checked', false);
+          selectedIds = [];
           $messageBtn.attr('disabled', true);
         }
       });
 
       $container.on('change', '.select-note-reviewers', function(e) {
+        var noteId = $(this).data('noteId');
+        if ($(this).prop('checked')) {
+          selectedIds = selectedIds.concat(noteId);
+        } else {
+          selectedIds = selectedIds.filter(function(id) { return id !== noteId; });
+        }
+
         var $messageBtn = $container.find('.message-reviewers-btn');
-        var $checkboxes = $container.find('input.select-note-reviewers');
-        var $selectedCheckboxes = $checkboxes.filter(':checked');
-        if ($selectedCheckboxes.length > 0) {
+        if (selectedIds.length > 0) {
           $messageBtn.attr('disabled', false);
         } else {
           $messageBtn.attr('disabled', true);
         }
 
         var $superCheckbox = $container.find('.select-all-papers');
-        if ($checkboxes.length === $selectedCheckboxes.length) {
+        if (selectedIds.length === filteredRows.length) {
           $superCheckbox.prop('checked', true);
         } else {
           $superCheckbox.prop('checked', false);
         }
+      });
+
+      $container.on('click', 'ul.pagination > li > a', function(e) {
+        var $target = $(this).parent();
+        if ($target.hasClass('disabled') || $target.hasClass('active')) {
+          return;
+        }
+
+        var pageNumber = parseInt($target.data('pageNumber'), 10);
+        if (isNaN(pageNumber)) {
+          return;
+        }
+        render(filteredRows, pageNumber);
+
+        var scrollPos = $container.offset().top - 104;
+        $('html, body').animate({scrollTop: scrollPos}, 400);
+
+        $container.data('lastPageNum', pageNumber);
+        return false;
       });
 
       $container.on('click', '.msg-reviewers-container a', function(e) {
@@ -459,9 +513,6 @@ module.exports = (function() {
           return false;
         }
 
-        var selectedIds = $container.find('input.select-note-reviewers:checked').map(function() {
-          return $(this).data('noteId');
-        }).get();
         var users = menuOption.getUsers(selectedIds);
         var messages = [];
         var count = 0;
@@ -650,7 +701,8 @@ module.exports = (function() {
         if (switchOrder) {
           order = order === 'asc' ? 'desc' : 'asc';
         }
-        render(_.orderBy(rows, options.sortOptions[newOption], order), options.postRenderTable);
+        filteredRows = _.orderBy(filteredRows, options.sortOptions[newOption], order);
+        render(filteredRows, 1);
       }
 
       $container.on('change', '#form-sort-' + containerId, function(e) {
@@ -663,11 +715,11 @@ module.exports = (function() {
     }
 
     if (options.searchProperties) {
-      var filterOperators = ['!=','>=','<=','>','<','=']; // sequence matters
+      var filterOperators = ['!=', '>=', '<=', '>', '<', '=']; // sequence matters
       var formSearchId = '#form-search-' + containerId;
       var defaultFields = options.searchProperties.default || [];
       var searchResults = function(searchText, isQueryMode) {
-        $('form-sort-' + containerId).val('Paper_Number');
+        $('#form-sort-' + containerId).val('Paper_Number');
 
         // Currently only searching on note title if exists
         var filterFunc = function(row) {
@@ -682,16 +734,16 @@ module.exports = (function() {
         if (searchText) {
           if (isQueryMode) {
             var filterResult = Webfield.filterCollections(rows, searchText.slice(1), filterOperators, options.searchProperties, 'note.id')
+            if (filterResult.queryIsInvalid) $(formSearchId).addClass('invalid-value');
             filteredRows = filterResult.filteredRows;
-            queryIsInvalid = filterResult.queryIsInvalid;
-            if(queryIsInvalid) $(formSearchId).addClass('invalid-value')
           } else {
             filteredRows = _.filter(rows, filterFunc)
           }
         } else {
           filteredRows = rows;
         }
-        render(filteredRows, options.postRenderTable);
+        selectedIds = [];
+        render(filteredRows, 1);
       };
 
       $(formSearchId).on('keyup', function (e) {
@@ -755,7 +807,7 @@ module.exports = (function() {
       });
     }
 
-    render(rows, options.postRenderTable);
+    render(rows, 1);
     registerHelpers();
   };
 
