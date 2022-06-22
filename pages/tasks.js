@@ -26,7 +26,7 @@ const Tasks = ({ appContext }) => {
       duedate: true,
       details: 'repliedTags',
     }
-    const commonOptions = { accessToken }
+    const commonOptions = { accessToken, includeVersion: true }
 
     const invitationPromises = [
       api
