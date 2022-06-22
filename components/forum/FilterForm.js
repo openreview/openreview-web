@@ -136,14 +136,22 @@ export default function FilterForm({
           </select>
         </div>
 
-        <div className="form-group no-expand">
+        <div className="form-group no-expand layout-buttons">
           <div className="btn-group btn-group-sm" role="group" aria-label="nesting level">
-            <button type="button" className={`btn btn-default ${layout === 1 ? 'active' : ''}`} onClick={(e) => { setLayout(1) }}>
-              <Icon name="list" tooltip="Linear discussion" />
+            <button
+              type="button"
+              className={`btn btn-default ${layout === 1 ? 'active' : ''}`}
+              onClick={(e) => { setLayout(1) }}
+            >
+              <img className="icon" src="/images/linear_icon.svg" alt="back arrow" data-toggle="tooltip" title="Linear discussion layout" />
               <span className="sr-only">Linear</span>
             </button>
-            <button type="button" className={`btn btn-default ${layout === 2 ? 'active' : ''}`} onClick={(e) => { setLayout(2) }}>
-              <Icon name="align-left" tooltip="Threaded discussion" />
+            <button
+              type="button"
+              className={`btn btn-default ${layout === 2 ? 'active' : ''}`}
+              onClick={(e) => { setLayout(2) }}
+            >
+              <img className="icon" src="/images/threaded_icon.svg" alt="back arrow" data-toggle="tooltip" title="Threaded discussion layout" />
               <span className="sr-only">Threaded</span>
             </button>
             <button
@@ -151,7 +159,7 @@ export default function FilterForm({
               className={`btn btn-default ${layout === 3 ? 'active' : ''}`}
               onClick={(e) => { setLayout(3) }}
             >
-              <Icon name="indent-left" tooltip="Nested discussion" />
+              <img className="icon" src="/images/nested_icon.svg" alt="back arrow" data-toggle="tooltip" title="Nested discussion layout" />
               <span className="sr-only">Nested</span>
             </button>
           </div>

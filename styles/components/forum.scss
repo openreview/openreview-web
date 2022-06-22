@@ -89,6 +89,16 @@ main.forum {
         padding: 0.25rem 0.75rem;
       }
     }
+    img.icon {
+      width: 16px;
+      color: constants.$mediumBlue;
+    }
+    .layout-buttons {
+      button {
+        padding-top: 4px;
+        padding-bottom: 6px;
+      }
+    }
 
     .replies-filter {
       width: 220px;
