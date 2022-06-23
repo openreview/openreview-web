@@ -291,6 +291,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         presentation={note.details?.presentation}
         noteReaders={note.readers}
         collapsed={!contentExpanded}
+        setContentExpanded={setContentExpanded}
         deleted={!!ddate}
       />
 
@@ -402,7 +403,7 @@ function CopyLinkButton({ forumId, noteId }) {
 }
 
 function NoteContentCollapsible({
-  id, content, presentation, noteReaders, collapsed, deleted
+  id, content, presentation, noteReaders, collapsed, deleted, setContentExpanded,
 }) {
   if (deleted) {
     return (
@@ -423,7 +424,11 @@ function NoteContentCollapsible({
         noteReaders={noteReaders}
         include={['pdf', 'html']}
       />
-      {/* <div className="gradient-overlay" /> */}
+      <div className="gradient-overlay">
+        {/* <button type="button" className="btn btn-lg btn-block btn-link" onClick={() => setContentExpanded(id, true)}>
+          Show more
+        </button> */}
+      </div>
     </div>
   )
 }

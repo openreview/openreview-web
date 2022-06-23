@@ -365,10 +365,10 @@ main.forum {
           position: absolute;
           left: 0;
           top: 130px;
-          height: 40px;
+          height: 45px;
           width: 100%;
-          // background-image: linear-gradient(to bottom, transparent 0%, constants.$backgroundWhite 100%);
-          background-color: constants.$backgroundWhite;
+          // background-color: constants.$backgroundWhite;
+          background-image: linear-gradient(to bottom, transparent 0%, constants.$backgroundWhite 80%);
           content: '';
           a {
             display: inline;
