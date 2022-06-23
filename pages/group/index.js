@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -9,9 +9,12 @@ import api from '../../lib/api-client'
 import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 import { groupModeToggle } from '../../lib/banner-links'
+import { generateGroupWebfieldCode } from '../../lib/webfield-utils'
 
-const Group = ({ groupId, webfieldCode, writable, appContext }) => {
+const Group = ({ groupId, webfieldCode, writable, componentObj, appContext }) => {
   const { user, userLoading } = useUser()
+  const [WebComponent, setWebComponent] = useState(null)
+  const [webComponentProps, setWebComponentProps] = useState({})
   const { setBannerHidden, setEditBanner, clientJsLoading, setLayoutOptions } = appContext
   const groupTitle = prettyId(groupId)
 
@@ -28,7 +31,7 @@ const Group = ({ groupId, webfieldCode, writable, appContext }) => {
   }, [groupId, writable])
 
   useEffect(() => {
-    if (clientJsLoading || userLoading) return
+    if (clientJsLoading || userLoading || !webfieldCode) return
 
     window.user = user || {
       id: `guest_${Date.now()}`,
@@ -47,6 +50,31 @@ const Group = ({ groupId, webfieldCode, writable, appContext }) => {
     }
   }, [clientJsLoading, userLoading, user?.id, webfieldCode])
 
+  useEffect(() => {
+    if (!componentObj) return
+
+    setWebComponent(
+      dynamic(() =>
+        import(`../../components/webfield/${componentObj.component}`).catch(() => {
+          promptError(`Error loading ${componentObj.component}`)
+        })
+      )
+    )
+
+    const componentProps = {}
+    Object.keys(componentObj.properties).forEach((propName) => {
+      const prop = componentObj.properties[propName]
+      if (typeof prop === 'object' && prop.component) {
+        componentProps[propName] = dynamic(() =>
+          import(`../../components/webfield/${prop.component}`)
+        )
+      } else {
+        componentProps[propName] = prop
+      }
+    })
+    setWebComponentProps(componentProps)
+  }, [componentObj])
+
   return (
     <>
       <Head>
@@ -63,9 +91,15 @@ const Group = ({ groupId, webfieldCode, writable, appContext }) => {
         />
       </Head>
 
-      {clientJsLoading && <LoadingSpinner />}
-
-      <WebfieldContainer id="group-container" />
+      {webfieldCode ? (
+        <WebfieldContainer id="group-container" />
+      ) : (
+        <WebFieldContext.Provider value={webComponentProps}>
+          <div id="group-container">
+            {WebComponent && webComponentProps ? <WebComponent /> : <LoadingSpinner />}
+          </div>
+        </WebFieldContext.Provider>
+      )}
     </>
   )
 }
@@ -89,46 +123,7 @@ Group.getInitialProps = async (ctx) => {
     redirectToEditOrInfoMode(ctx.query.mode)
   }
 
-  const generateWebfieldCode = (group) => {
-    const webfieldCode =
-      group.web ||
-      `
-Webfield.ui.setup($('#group-container'), '${group.id}');
-Webfield.ui.header('${prettyId(group.id)}')
-  .append('<p><em>Nothing to display</em></p>');`
-
-    const groupObjSlim = { id: group.id }
-    return `// Webfield Code for ${groupObjSlim.id}
-$(function() {
-  var args = ${JSON.stringify(ctx.query)};
-  var group = ${JSON.stringify(groupObjSlim)};
-  var document = null;
-  var window = null;
-
-  // TODO: remove these vars when all old webfields have been archived
-  var model = {
-    tokenPayload: function() {
-      return { user: user }
-    }
-  };
-  var controller = {
-    get: Webfield.get,
-    addHandler: function(name, funcMap) {
-      Object.values(funcMap).forEach(function(func) {
-        func();
-      });
-    },
-  };
-
-  $('#group-container').empty();
-// START GROUP CODE
-${webfieldCode}
-// END GROUP CODE
-});
-//# sourceURL=webfieldCode.js`
-  }
-
-  const { token } = auth(ctx)
+  const { token, user } = auth(ctx)
   try {
     const { groups } = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
     const group = groups?.length > 0 ? groups[0] : null
@@ -140,7 +135,7 @@ ${webfieldCode}
       redirectToEditOrInfoMode('info')
     }
     // Old HTML webfields are no longer supported
-    if (group.web?.includes('<script type="text/javascript">')) {
+    if (group.web.includes('<script type="text/javascript">')) {
       return {
         statusCode: 400,
         message:
@@ -150,7 +145,9 @@ ${webfieldCode}
 
     return {
       groupId: group.id,
-      webfieldCode: generateWebfieldCode(group),
+      ...(group.web.startsWith('// Webfield component')
+        ? { componentObj: parseComponentCode(group, user, ctx.query) }
+        : { webfieldCode: generateGroupWebfieldCode(group, ctx.query) }),
       writable: group.details?.writable ?? false,
       query: ctx.query,
     }
