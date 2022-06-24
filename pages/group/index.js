@@ -9,7 +9,9 @@ import api from '../../lib/api-client'
 import { auth } from '../../lib/auth'
 import { prettyId } from '../../lib/utils'
 import { groupModeToggle } from '../../lib/banner-links'
-import { generateGroupWebfieldCode } from '../../lib/webfield-utils'
+import { generateGroupWebfieldCode, parseComponentCode } from '../../lib/webfield-utils'
+import WebFieldContext from '../../components/WebFieldContext'
+import dynamic from 'next/dynamic'
 
 const Group = ({ groupId, webfieldCode, writable, componentObj, appContext }) => {
   const { user, userLoading } = useUser()
@@ -96,7 +98,11 @@ const Group = ({ groupId, webfieldCode, writable, componentObj, appContext }) =>
       ) : (
         <WebFieldContext.Provider value={webComponentProps}>
           <div id="group-container">
-            {WebComponent && webComponentProps ? <WebComponent /> : <LoadingSpinner />}
+            {WebComponent && webComponentProps ? (
+              <WebComponent appContext={appContext} />
+            ) : (
+              <LoadingSpinner />
+            )}
           </div>
         </WebFieldContext.Provider>
       )}
