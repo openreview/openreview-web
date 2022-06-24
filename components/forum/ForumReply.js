@@ -65,6 +65,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         deleted={!!ddate}
         setCollapsed={setCollapsed}
         setContentExpanded={setContentExpanded}
+        replyDepth={replyDepth}
       >
         <div className="heading">
           <h4 className="minimal-title">
@@ -103,6 +104,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         deleted={!!ddate}
         setCollapsed={setCollapsed}
         setContentExpanded={setContentExpanded}
+        replyDepth={replyDepth}
       >
         <NoteEditorForm
           note={note}
@@ -146,6 +148,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
       deleted={!!ddate}
       setCollapsed={setCollapsed}
       setContentExpanded={setContentExpanded}
+      replyDepth={replyDepth}
     >
       {(layout === replyDepth && note.replyto !== parentId) && (
         <div className="parent-title">
@@ -290,7 +293,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         content={note.content}
         presentation={note.details?.presentation}
         noteReaders={note.readers}
-        collapsed={!contentExpanded}
+        contentExpanded={contentExpanded}
         setContentExpanded={setContentExpanded}
         deleted={!!ddate}
       />
@@ -345,10 +348,14 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
 }
 
 function ReplyContainer({
-  id, hidden, collapsed, expanded, deleted, setCollapsed, setContentExpanded, children,
+  id, hidden, collapsed, expanded, deleted, setCollapsed, setContentExpanded, replyDepth, children,
 }) {
   return (
-    <div className={`note ${deleted ? 'deleted' : ''}`} style={hidden ? { display: 'none' } : {}} data-id={id}>
+    <div
+      className={`note ${deleted ? 'deleted' : ''} depth-${replyDepth % 2 === 0 ? 'even' : 'odd'}`}
+      style={hidden ? { display: 'none' } : {}}
+      data-id={id}
+    >
       <div className="btn-group-vertical btn-group-xs collapse-controls-v" role="group" aria-label="Collapse controls">
         <button
           type="button"
@@ -403,7 +410,7 @@ function CopyLinkButton({ forumId, noteId }) {
 }
 
 function NoteContentCollapsible({
-  id, content, presentation, noteReaders, collapsed, deleted, setContentExpanded,
+  id, content, presentation, noteReaders, contentExpanded, deleted, setContentExpanded,
 }) {
   if (deleted) {
     return (
@@ -416,7 +423,7 @@ function NoteContentCollapsible({
   }
 
   return (
-    <div className={`note-content-container ${collapsed ? 'collapsed' : ''}`}>
+    <div className={`note-content-container ${contentExpanded ? '' : 'collapsed'}`}>
       <NoteContentV2
         id={id}
         content={content}
@@ -424,11 +431,13 @@ function NoteContentCollapsible({
         noteReaders={noteReaders}
         include={['pdf', 'html']}
       />
-      <div className="gradient-overlay">
-        {/* <button type="button" className="btn btn-lg btn-block btn-link" onClick={() => setContentExpanded(id, true)}>
-          Show more
-        </button> */}
-      </div>
+      {!contentExpanded && (
+        <div className="gradient-overlay">
+          <button type="button" className="btn btn-block btn-link" onClick={() => setContentExpanded(id, true)}>
+            ≡ &nbsp;Show All
+          </button>
+        </div>
+      )}
     </div>
   )
 }

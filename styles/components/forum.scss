@@ -227,16 +227,7 @@ main.forum {
     & > div.controls {
       margin-bottom: 1.25rem;
     }
-    & > .note {
-      background-color: $gray1; // $gray2
-      padding: .5rem;
-    }
     .note:hover {
-      // background-color: rgba(0, 0, 0, .04);
-      // box-shadow: 0 0 1px 4px rgba(0, 0, 0, .04);
-      // .note-content-container.collapsed .gradient-overlay {
-      //   background-color: #f5f3f0;
-      // }
       & > .heading > .permalink-btn {
         opacity: 1;
       }
@@ -263,6 +254,7 @@ main.forum {
 
   .note {
     position: relative;
+    padding: .5rem;
     border: 1px solid #eee;
     border-radius: 2px;
 
@@ -359,30 +351,43 @@ main.forum {
       &.collapsed {
         overflow: hidden;
         max-height: 160px;
-
-        .gradient-overlay {
-          display: block;
-          position: absolute;
-          left: 0;
-          top: 130px;
-          height: 45px;
-          width: 100%;
-          // background-color: constants.$backgroundWhite;
-          background-image: linear-gradient(to bottom, transparent 0%, constants.$backgroundWhite 80%);
-          content: '';
-          a {
-            display: inline;
-          }
-        }
-      }
-      .gradient-overlay {
-        a {
-          font-size: .75rem;
-          display: none;
-        }
       }
       &:focus {
         outline: none;
+      }
+    }
+    .gradient-overlay {
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 95px;
+      height: 65px;
+      width: 100%;
+      background-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(247, 246, 241, 0.4) 25%,
+        $gray1 98%
+      );
+      content: "";
+      button {
+        display: none;
+        text-decoration: none;
+        border: 0;
+        background: transparent;
+        color: constants.$mediumBlue;
+        height: 100%;
+        padding-top: 2rem;
+        padding-bottom: 0;
+        text-shadow: 0px 0px 2px #fff;
+      }
+      button:active.focus,
+      button:active:focus,
+      button:focus {
+        box-shadow: none;
+      }
+      &:hover button {
+        display: block;
       }
     }
     .note-content {
@@ -411,7 +416,6 @@ main.forum {
         font-weight: normal;
         padding: 0 2px;
         border-width: 1px;
-        // background-color: $gray1;
         &.middle {
           line-height: 14px;
         }
@@ -435,12 +439,7 @@ main.forum {
       margin-top: .75rem;
       padding-left: 2.5rem;
       & > .note {
-        background-color: constants.$backgroundWhite; // $gray1;
-        padding: .5rem;
         margin-bottom: .5rem;
-        .note-replies > .note {
-          background-color: $gray1;
-        }
       }
       & > .note:last-child {
         margin-bottom: 0;
@@ -453,7 +452,20 @@ main.forum {
       opacity: 1;
     }
   }
-
+  .note.depth-odd {
+    background-color: $gray1;
+  }
+  .note.depth-even {
+    background-color: constants.$backgroundWhite;
+    & > .note-content-container > .gradient-overlay {
+      background-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(255, 253, 250, 0.4) 25%,
+        constants.$backgroundWhite 98%
+      );
+    }
+  }
 }
 
 #bibtex-modal {
