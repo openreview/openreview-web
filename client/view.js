@@ -3151,11 +3151,16 @@ module.exports = (function() {
             var chunkSize = 1024 * 1000 * 5; //5mb
             var chunkCount = Math.ceil(file.size / chunkSize);
             var clientUploadId = nanoid();
-            var chunks = Array.from(new Array(chunkCount), (e, chunkIndex) => {
-              return file.slice(
-                chunkIndex * chunkSize,
-                (chunkIndex + 1) * chunkSize,
-                file.type
+            var chunks = Array.from(new Array(chunkCount), function (e, chunkIndex) {
+              return new File(
+                [
+                  file.slice(
+                    chunkIndex * chunkSize,
+                    (chunkIndex + 1) * chunkSize,
+                    file.type
+                  )
+                ],
+                file.name
               );
             });
             var sendSingleChunk = function (chunk, index) {
@@ -3710,11 +3715,16 @@ module.exports = (function() {
               var chunkSize = 1024 * 1000 * 5; //5mb
               var chunkCount = Math.ceil(file.size / chunkSize);
               var clientUploadId = nanoid();
-              var chunks = Array.from(new Array(chunkCount), (e, chunkIndex) => {
-                return file.slice(
-                  chunkIndex * chunkSize,
-                  (chunkIndex + 1) * chunkSize,
-                  file.type
+              var chunks = Array.from(new Array(chunkCount), function (e, chunkIndex) {
+                return new File(
+                  [
+                    file.slice(
+                      chunkIndex * chunkSize,
+                      (chunkIndex + 1) * chunkSize,
+                      file.type
+                    )
+                  ],
+                  file.name
                 );
               });
               var sendSingleChunk = function (chunk, index) {

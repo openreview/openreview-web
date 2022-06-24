@@ -1569,6 +1569,7 @@ module.exports = (function() {
   };
 
   const constructEdit = ({ formData, noteObj, invitationObj }) => {
+    const fieldsToIgnoreConst = ['authors','authorids']
     if (!invitationObj.edit) return undefined;
     const result = {}
     const note = {}
@@ -1616,7 +1617,7 @@ module.exports = (function() {
         return;
       }
       if (valueObj = contentFieldValue.value) {
-        if (valueObj.const) {
+        if (valueObj.const && !fieldsToIgnoreConst.includes(contentFieldName)) {
           return
         } else {
           content[contentFieldName] = { value: formData?.[contentFieldName] ?? noteObj?.content?.[contentFieldName]?.value }
