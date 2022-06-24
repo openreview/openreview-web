@@ -12,6 +12,7 @@ import { getNotePdfUrl, prettyId } from '../../lib/utils'
 import NoteContentCollapsible from './NoteContentCollapsible'
 import Link from 'next/link'
 import { AuthorConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
+import TaskList from '../TaskList'
 
 const NoteSummary = ({ note, referrerUrl }) => {
   return (
@@ -53,10 +54,10 @@ const NoteSummary = ({ note, referrerUrl }) => {
   )
 }
 
-const ReviewSummary = ({ note, conferenceId, referrerUrl, officialReviewName }) => {
+const ReviewSummary = ({ note, conferenceId, referrerUrl }) => {
   const noteCompletedReviews =
     note.details.directReplies?.filter(
-      (p) => p.invitation === `${conferenceId}/Paper${note.number}/-/${officialReviewName}`
+      (p) => p.invitation === `${conferenceId}/Paper${note.number}/-/Official_Review`
     ) ?? []
   const ratings = []
   const confidences = []
@@ -118,7 +119,7 @@ const ReviewSummary = ({ note, conferenceId, referrerUrl, officialReviewName }) 
   )
 }
 
-const AuthorSubmissionRow = ({ note, conferenceId, officialReviewName }) => {
+const AuthorSubmissionRow = ({ note, conferenceId }) => {
   const referrerUrl = encodeURIComponent(
     `[Author Console](/group?id=${conferenceId}/Authors#your-submissions)`
   )
@@ -131,12 +132,7 @@ const AuthorSubmissionRow = ({ note, conferenceId, officialReviewName }) => {
         <NoteSummary note={note} referrerUrl={referrerUrl} />
       </td>
       <td>
-        <ReviewSummary
-          note={note}
-          conferenceId={conferenceId}
-          referrerUrl={referrerUrl}
-          officialReviewName={officialReviewName}
-        />
+        <ReviewSummary note={note} conferenceId={conferenceId} referrerUrl={referrerUrl} />
       </td>
       <td>
         <AuthorConsoleNoteMetaReviewStatus note={note} />
@@ -153,13 +149,12 @@ const AuthorConsole = ({ appContext }) => {
     submissionId,
     authorSubmissionField,
     blindSubmissionId,
-    officialReviewName,
   } = useContext(WebFieldContext)
   const { user, accessToken } = useUser()
   const router = useRouter()
   const query = useQuery()
   const [authorNotes, setAuthorNotes] = useState([])
-  const [invitations, setInvitations] = useState(null)
+  const [invitations, setInvitations] = useState([])
   const { setBannerContent } = appContext
   const wildcardInvitation = `${conferenceId}.*`
 
@@ -300,17 +295,20 @@ const AuthorConsole = ({ appContext }) => {
                 ]}
               >
                 {authorNotes.map((note) => (
-                  <AuthorSubmissionRow
-                    key={note.id}
-                    note={note}
-                    conferenceId={conferenceId}
-                    officialReviewName={officialReviewName}
-                  />
+                  <AuthorSubmissionRow key={note.id} note={note} conferenceId={conferenceId} />
                 ))}
               </Table>
             )}
           </TabPanel>
-          <TabPanel id="author-tasks">456</TabPanel>
+          <TabPanel id="author-tasks">
+            <TaskList
+              invitations={invitations}
+              emptyMessage="No outstanding tasks for this conference"
+              referrer={`${encodeURIComponent(
+                `[Author Console](/group?id=${conferenceId}/Authors'#author-tasks)`
+              )}&t=${Date.now()}`}
+            />
+          </TabPanel>
         </TabPanels>
       </Tabs>
     </>
