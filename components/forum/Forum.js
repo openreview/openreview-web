@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import Link from 'next/link'
 import isEmpty from 'lodash/isEmpty'
 
 import ForumNote from './ForumNote'
@@ -12,6 +13,7 @@ import FilterForm from './FilterForm'
 import FilterTabs from './FilterTabs'
 import ForumReply from './ForumReply'
 import LoadingSpinner from '../LoadingSpinner'
+import Icon from '../Icon'
 import ForumReplyContext from './ForumReplyContext'
 
 import useUser from '../../hooks/useUser'
@@ -558,6 +560,21 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
 
       {(repliesLoaded && orderedReplies.length > 0) && (
         <div className="filters-container mt-3">
+          {/* TODO: remove this message when new page is the default */}
+          <div id="tab-message" className="alert alert-warning">
+            <p>
+              <Icon name="exclamation-sign pr-1" />
+              {' '}
+              You are using a beta version of the forum page. Please submit any feedback to
+              {' '}
+              <a href="mailto:info@openreview.net?subject=New+Forum+Page+Feedback" target="_blank" rel="noreferrer">info@openreview.net</a>.
+              {' '}
+              To switch back to the old forum click here:
+              {' '}
+              <Link href={`/forum?id=${id}`}><a>View old forum &raquo;</a></Link>
+            </p>
+          </div>
+
           {replyForumViews && <FilterTabs forumId={id} forumViews={replyForumViews} />}
 
           {filterOptions && (
@@ -610,12 +627,6 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
             </ForumReplyContext.Provider>
           </div>
         </div>
-
-        {/*
-        <div className="col-md-2">
-          <FilterFormVertical />
-        </div>
-        */}
       </div>
     </div>
   )

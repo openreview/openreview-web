@@ -40,6 +40,14 @@ main.forum {
     }
   }
 
+  #tab-message {
+    margin: 1rem 0;
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+  }
+
   hr {
     margin: .25rem 0;
   }
