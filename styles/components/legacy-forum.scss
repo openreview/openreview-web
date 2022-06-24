@@ -129,6 +129,14 @@ main.legacy-forum {
       margin-bottom: 0;
     }
   }
+  #beta-message {
+    margin: 0.5rem 0;
+    margin-bottom: 1rem;
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+  }
 
   .tooltip .tooltip-inner {
     max-width: none;
