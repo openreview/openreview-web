@@ -1,5 +1,6 @@
 // modified from noteMetaReviewStatus.hbs handlebar template
-export const AuthorConsoleNoteMetaReviewStatus = ({ note }) => {
+// eslint-disable-next-line import/prefer-default-export
+export const AuthorConsoleNoteMetaReviewStatus = ({ note, conferenceId }) => {
   const decision = note.details?.directReplies?.find(
     (p) => p.invitation === `${conferenceId}/Paper${note.number}/-/Decision`
   )

@@ -1,6 +1,8 @@
+/* globals promptError: false */
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
+import dynamic from 'next/dynamic'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import WebfieldContainer from '../../components/WebfieldContainer'
 import withError from '../../components/withError'
@@ -11,7 +13,6 @@ import { prettyId } from '../../lib/utils'
 import { groupModeToggle } from '../../lib/banner-links'
 import { generateGroupWebfieldCode, parseComponentCode } from '../../lib/webfield-utils'
 import WebFieldContext from '../../components/WebFieldContext'
-import dynamic from 'next/dynamic'
 
 const Group = ({ groupId, webfieldCode, writable, componentObj, appContext }) => {
   const { user, userLoading } = useUser()

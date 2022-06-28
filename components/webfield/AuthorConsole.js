@@ -1,58 +1,100 @@
 import { useContext, useEffect, useState } from 'react'
-import WebFieldContext from '../WebFieldContext'
-import BasicHeader from './BasicHeader'
-import useUser from '../../hooks/useUser'
 import { useRouter } from 'next/router'
+import Link from 'next/link'
 import useQuery from '../../hooks/useQuery'
+import useUser from '../../hooks/useUser'
+import BasicHeader from './BasicHeader'
+import WebFieldContext from '../WebFieldContext'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import api from '../../lib/api-client'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 import Table from '../Table'
-import { getNotePdfUrl, prettyId } from '../../lib/utils'
-import NoteContentCollapsible from './NoteContentCollapsible'
-import Link from 'next/link'
+import { formatTasksData, getNotePdfUrl, prettyId } from '../../lib/utils'
+import { NoteContentCollapsible, NoteContentCollapsibleV2 } from './NoteContentCollapsible'
 import { AuthorConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import TaskList from '../TaskList'
 
-const NoteSummary = ({ note, referrerUrl }) => {
-  return (
-    <div id={`note-summary-${note.number}`} className="note">
-      <h4>
-        <a href={`/forum?id=${note.forum}&referrer=${referrerUrl}`} target="_blank">
-          {note.content?.title}
+const NoteSummary = ({ note, referrerUrl }) => (
+  <div id={`note-summary-${note.number}`} className="note">
+    <h4>
+      <a
+        href={`/forum?id=${note.forum}&referrer=${referrerUrl}`}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {note.content?.title}
+      </a>
+    </h4>
+    {note.content?.pdf && (
+      <div>
+        <a
+          href={getNotePdfUrl(note, false)}
+          className="attachment-download-link"
+          title="Download PDF"
+          target="_blank"
+          download={`${note.number}.pdf`}
+          rel="noreferrer"
+        >
+          <span className="glyphicon glyphicon-download-alt" aria-hidden="true"></span>{' '}
+          Download PDF
         </a>
-      </h4>
-      {note.content?.pdf && (
-        <div>
-          <a
-            href={getNotePdfUrl(note, false)}
-            className="attachment-download-link"
-            title="Download PDF"
-            target="_blank"
-            download={`${note.number}.pdf`}
-          >
-            <span className="glyphicon glyphicon-download-alt" aria-hidden="true"></span>{' '}
-            Download PDF
-          </a>
-        </div>
-      )}
-      {note.content?.authors && (
-        <div className="note-authors">{note.content.authors.join(', ')}</div>
-      )}
-      {note.content?.authorDomains && (
-        <div className="note-authors">{`Conflict Domains: ${note.content.authorDomains.join(
-          ', '
-        )}`}</div>
-      )}
+      </div>
+    )}
+    {note.content?.authors && (
+      <div className="note-authors">{note.content.authors.join(', ')}</div>
+    )}
+    {note.content?.authorDomains && (
+      <div className="note-authors">{`Conflict Domains: ${note.content.authorDomains.join(
+        ', '
+      )}`}</div>
+    )}
 
-      <NoteContentCollapsible
-        id={note.id}
-        content={note.content}
-        invitation={note.invitation}
-      />
-    </div>
-  )
-}
+    <NoteContentCollapsible id={note.id} content={note.content} invitation={note.invitation} />
+  </div>
+)
+
+const NoteSummaryV2 = ({ note, referrerUrl }) => (
+  <div id={`note-summary-${note.number}`} className="note">
+    <h4>
+      <a
+        href={`/forum?id=${note.forum}&referrer=${referrerUrl}`}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {note.content?.title?.value}
+      </a>
+    </h4>
+    {note.content?.pdf?.value && (
+      <div>
+        <a
+          href={getNotePdfUrl(note, false)}
+          className="attachment-download-link"
+          title="Download PDF"
+          target="_blank"
+          download={`${note.number}.pdf`}
+          rel="noreferrer"
+        >
+          <span className="glyphicon glyphicon-download-alt" aria-hidden="true"></span>{' '}
+          Download PDF
+        </a>
+      </div>
+    )}
+    {note.content?.authors?.value && (
+      <div className="note-authors">{note.content.authors.value.join(', ')}</div>
+    )}
+    {note.content?.authorDomains?.value && (
+      <div className="note-authors">{`Conflict Domains: ${note.content.authorDomains.value.join(
+        ', '
+      )}`}</div>
+    )}
+
+    <NoteContentCollapsibleV2
+      id={note.id}
+      content={note.content}
+      invitation={note.invitation}
+    />
+  </div>
+)
 
 const ReviewSummary = ({ note, conferenceId, referrerUrl }) => {
   const noteCompletedReviews =
@@ -96,7 +138,7 @@ const ReviewSummary = ({ note, conferenceId, referrerUrl }) => {
       <h4>{`${noteCompletedReviews.length} Reviews Submitted`}</h4>
       <ul className="list-unstyled">
         {noteCompletedReviews.map((review, index) => (
-          <li>
+          <li key={review.id}>
             <strong>{prettyId(review.signatures[0].split('/')?.pop())}:</strong> Rating:{' '}
             {ratings[index]} {confidences[index] ? `/ Confidence: ${confidences[index]}` : ''}
             <br />
@@ -119,7 +161,53 @@ const ReviewSummary = ({ note, conferenceId, referrerUrl }) => {
   )
 }
 
+const ReviewSummaryV2 = ({ note, conferenceId, referrerUrl }) => {
+  const reviews = note.details.replies.filter((reply) =>
+    reply.invitations.includes(`${conferenceId}/Paper${note.number}/-/Review`)
+  )
+  const recommendations = note.details.replies.filter((reply) =>
+    reply.invitations.includes(`${conferenceId}/Paper${note.number}/-/Official_Recommendation`)
+  )
+  const recommendationByReviewer = {}
+  recommendations.forEach((recommendation) => {
+    recommendationByReviewer[recommendation.signatures[0]] = recommendation
+  })
+  return (
+    <div className="reviewer-progress">
+      <h4>{`${reviews.length} Reviews Submitted / ${
+        Object.keys(recommendationByReviewer).length
+      } Recommendations`}</h4>
+      <ul className="list-unstyled">
+        {reviews.map((review) => {
+          const reviewerRecommendation = recommendationByReviewer[review.signatures[0]]
+          return (
+            <li key={review.id}>
+              <strong>{prettyId(review.signatures[0].split('/')?.pop())}</strong>{' '}
+              <Link
+                href={`/forum?id=${review.forum}&noteId=${review.id}&referrer=${referrerUrl}`}
+              >
+                <a>Review</a>
+              </Link>
+              {reviewerRecommendation && (
+                <>
+                  {'/ Recommendation:'}
+                  <Link
+                    href={`/forum?id=${reviewerRecommendation.forum}&noteId=${reviewerRecommendation.id}&referrer=${referrerUrl}`}
+                  >
+                    <a>Recommendation</a>
+                  </Link>
+                </>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
+
 const AuthorSubmissionRow = ({ note, conferenceId }) => {
+  const isV2Note = note.version === 2
   const referrerUrl = encodeURIComponent(
     `[Author Console](/group?id=${conferenceId}/Authors#your-submissions)`
   )
@@ -129,13 +217,21 @@ const AuthorSubmissionRow = ({ note, conferenceId }) => {
         <strong className="note-number">{note.number}</strong>
       </td>
       <td>
-        <NoteSummary note={note} referrerUrl={referrerUrl} />
+        {isV2Note ? (
+          <NoteSummaryV2 note={note} referrerUrl={referrerUrl} />
+        ) : (
+          <NoteSummary note={note} referrerUrl={referrerUrl} />
+        )}
       </td>
       <td>
-        <ReviewSummary note={note} conferenceId={conferenceId} referrerUrl={referrerUrl} />
+        {isV2Note ? (
+          <ReviewSummaryV2 note={note} conferenceId={conferenceId} referrerUrl={referrerUrl} />
+        ) : (
+          <ReviewSummary note={note} conferenceId={conferenceId} referrerUrl={referrerUrl} />
+        )}
       </td>
       <td>
-        <AuthorConsoleNoteMetaReviewStatus note={note} />
+        <AuthorConsoleNoteMetaReviewStatus note={note} conferenceId={conferenceId} />
       </td>
     </tr>
   )
@@ -145,6 +241,7 @@ const AuthorConsole = ({ appContext }) => {
   const {
     header,
     entity: group,
+    isV2Group,
     conferenceId,
     submissionId,
     authorSubmissionField,
@@ -157,6 +254,9 @@ const AuthorConsole = ({ appContext }) => {
   const [invitations, setInvitations] = useState([])
   const { setBannerContent } = appContext
   const wildcardInvitation = `${conferenceId}.*`
+  const wildcardInvitationV2 = `${conferenceId}/.*`
+
+  const formatInvitations = (allInvitations) => formatTasksData([allInvitations, [], []], true)
 
   const loadData = async () => {
     const notesP = api
@@ -180,26 +280,27 @@ const AuthorConsole = ({ appContext }) => {
         })
         if (blindNoteIds.length) {
           return api
-            .get('/notes', {
-              ids: blindNoteIds,
-              details: 'directReplies',
-              sort: 'number:asc',
-            })
-            .then((result) => {
-              return (result.notes || [])
+            .get(
+              '/notes',
+              {
+                ids: blindNoteIds,
+                details: 'directReplies',
+                sort: 'number:asc',
+              },
+              { accessToken }
+            )
+            .then((blindNotesResult) =>
+              (blindNotesResult.notes || [])
                 .filter((note) => note.invitation === blindSubmissionId)
                 .map((blindNote) => {
-                  var originalNote = originalNotes.find((p) => {
-                    return p.id == blindNote.original
-                  })
-                  blindNote.content.authors = originalNote.content.authors
-                  blindNote.content.authorids = originalNote.content.authorids
+                  const originalNote = originalNotes.find((p) => p.id === blindNote.original)
+                  blindNote.content.authors = originalNote.content.authors // eslint-disable-line no-param-reassign
+                  blindNote.content.authorids = originalNote.content.authorids // eslint-disable-line no-param-reassign
                   return blindNote
                 })
-            })
-        } else {
-          return originalNotes
+            )
         }
+        return originalNotes
       })
     const invitationsP = Promise.all([
       api.getAll(
@@ -236,16 +337,99 @@ const AuthorConsole = ({ appContext }) => {
         },
         { accessToken }
       ),
-    ]).then(([noteInvitations, edgeInvitations, tagInvitations]) => {
-      return noteInvitations
-        .concat(edgeInvitations)
-        .concat(tagInvitations)
+    ]).then(([noteInvitations, edgeInvitations, tagInvitations]) =>
+      noteInvitations
+        .map((inv) => ({ ...inv, noteInvitation: true }))
+        .concat(edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
+        .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
         .filter((p) => p.invitees?.indexOf('Authors') !== -1)
-    })
+    )
 
     const result = await Promise.all([notesP, invitationsP])
     setAuthorNotes(result[0])
-    setInvitations(result[1])
+    setInvitations(formatInvitations(result[1]))
+  }
+
+  const loadDataV2 = async () => {
+    const notesP = api.getAll(
+      '/notes',
+      {
+        'content.authorids': user.profile.id,
+        invitation: submissionId,
+        details: 'replies',
+        sort: 'number:asc',
+      },
+      { accessToken, version: 2 }
+    )
+    const invitationsP = Promise.all([
+      api.getAll(
+        '/invitations',
+        {
+          regex: wildcardInvitationV2,
+          invitee: true,
+          duedate: true,
+          replyto: true,
+          type: 'notes',
+          details: 'replytoNote,repliedNotes',
+        },
+        { accessToken, version: 2 }
+      ),
+      api.getAll(
+        '/invitations',
+        {
+          regex: wildcardInvitationV2,
+          invitee: true,
+          duedate: true,
+          type: 'edges',
+          details: 'repliedEdges',
+        },
+        { accessToken, version: 2 }
+      ),
+      api.getAll(
+        '/invitations',
+        {
+          regex: wildcardInvitationV2,
+          invitee: true,
+          duedate: true,
+          type: 'tags',
+          details: 'repliedTags',
+        },
+        { accessToken, version: 2 }
+      ),
+    ]).then(
+      ([noteInvitations, edgeInvitations, tagInvitations]) =>
+        noteInvitations
+          .concat(edgeInvitations)
+          .concat(tagInvitations)
+          .filter((p) => p.id.includs('Authors')) // TODO: number filtering logic
+    )
+    const groupedEdgesP = api
+      .get(
+        '/edges',
+        {
+          invitation: `${conferenceId}/Action_Editors/-/Recommendation`,
+          groupBy: 'head',
+        },
+        { accessToken, version: 2 }
+      )
+      .then((result) => result.groupedEdges)
+
+    const result = await Promise.all([notesP, invitationsP, groupedEdgesP])
+    const allInvitations = result[1]
+    // Add the assignment edges to each paper assignmnt invitation
+    result[0].forEach((note) => {
+      const paperRecommendationInvitation = allInvitations.find(
+        (p) => p.id === `${conferenceId}/Paper${note.number}/Action_Editors/-/Recommendation`
+      )
+      if (paperRecommendationInvitation) {
+        const foundEdges = result[2].find((p) => p.id.head == note.id) // eslint-disable-line eqeqeq
+        if (foundEdges) {
+          paperRecommendationInvitation.details.repliedEdges = foundEdges.values
+        }
+      }
+    })
+    setAuthorNotes(result[0])
+    setInvitations(formatInvitations(allInvitations))
   }
 
   useEffect(() => {
@@ -258,13 +442,13 @@ const AuthorConsole = ({ appContext }) => {
 
   useEffect(() => {
     if (!group) return
-    loadData()
+    isV2Group ? loadDataV2() : loadData() // eslint-disable-line no-unused-expressions
   }, [group])
 
   if (!user || !user.profile || user.profile.id === 'guest') {
     router.replace(
       `/login?redirect=${encodeURIComponent(
-        `${window.location.pathname}${location.search}${location.hash}`
+        `${window.location.pathname}${window.location.search}${window.location.hash}`
       )}`
     )
   }
