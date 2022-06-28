@@ -134,13 +134,14 @@ const ReviewSummary = ({ note, conferenceId, referrerUrl }) => {
   }
 
   return (
-    <div className="reviewer-progress">
+    <div className="author-console-reviewer-progress">
       <h4>{`${noteCompletedReviews.length} Reviews Submitted`}</h4>
       <ul className="list-unstyled">
         {noteCompletedReviews.map((review, index) => (
           <li key={review.id}>
             <strong>{prettyId(review.signatures[0].split('/')?.pop())}:</strong> Rating:{' '}
-            {ratings[index]} {confidences[index] ? `/ Confidence: ${confidences[index]}` : ''}
+            {review.content?.rating ?? 'N/A'}{' '}
+            {review.content?.confidence ? `/ Confidence: ${review.content.confidence}` : ''}
             <br />
             <Link
               href={`/forum?id=${review.forum}&noteId=${review.id}&referrer=${referrerUrl}`}
@@ -313,7 +314,7 @@ const AuthorConsole = ({ appContext }) => {
           type: 'notes',
           details: 'replytoNote,repliedNotes',
         },
-        { accessToken }
+        { accessToken, version: 1 }
       ),
       api.getAll(
         '/invitations',
@@ -324,7 +325,7 @@ const AuthorConsole = ({ appContext }) => {
           type: 'edges',
           details: 'repliedEdges',
         },
-        { accessToken }
+        { accessToken, version: 1 }
       ),
       api.getAll(
         '/invitations',
@@ -335,14 +336,14 @@ const AuthorConsole = ({ appContext }) => {
           type: 'tags',
           details: 'repliedTags',
         },
-        { accessToken }
+        { accessToken, version: 1 }
       ),
     ]).then(([noteInvitations, edgeInvitations, tagInvitations]) =>
       noteInvitations
         .map((inv) => ({ ...inv, noteInvitation: true }))
         .concat(edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
         .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
-        .filter((p) => p.invitees?.indexOf('Authors') !== -1)
+        .filter((p) => p.invitees?.some((q) => q.includes('Authors')))
     )
 
     const result = await Promise.all([notesP, invitationsP])
