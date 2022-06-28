@@ -96,10 +96,10 @@ const NoteSummaryV2 = ({ note, referrerUrl }) => (
   </div>
 )
 
-const ReviewSummary = ({ note, conferenceId, referrerUrl }) => {
+const ReviewSummary = ({ note, venueId, referrerUrl }) => {
   const noteCompletedReviews =
     note.details.directReplies?.filter(
-      (p) => p.invitation === `${conferenceId}/Paper${note.number}/-/Official_Review`
+      (p) => p.invitation === `${venueId}/Paper${note.number}/-/Official_Review`
     ) ?? []
   const ratings = []
   const confidences = []
@@ -162,12 +162,12 @@ const ReviewSummary = ({ note, conferenceId, referrerUrl }) => {
   )
 }
 
-const ReviewSummaryV2 = ({ note, conferenceId, referrerUrl }) => {
+const ReviewSummaryV2 = ({ note, venueId, referrerUrl }) => {
   const reviews = note.details.replies.filter((reply) =>
-    reply.invitations.includes(`${conferenceId}/Paper${note.number}/-/Review`)
+    reply.invitations.includes(`${venueId}/Paper${note.number}/-/Review`)
   )
   const recommendations = note.details.replies.filter((reply) =>
-    reply.invitations.includes(`${conferenceId}/Paper${note.number}/-/Official_Recommendation`)
+    reply.invitations.includes(`${venueId}/Paper${note.number}/-/Official_Recommendation`)
   )
   const recommendationByReviewer = {}
   recommendations.forEach((recommendation) => {
@@ -207,10 +207,10 @@ const ReviewSummaryV2 = ({ note, conferenceId, referrerUrl }) => {
   )
 }
 
-const AuthorSubmissionRow = ({ note, conferenceId }) => {
+const AuthorSubmissionRow = ({ note, venueId }) => {
   const isV2Note = note.version === 2
   const referrerUrl = encodeURIComponent(
-    `[Author Console](/group?id=${conferenceId}/Authors#your-submissions)`
+    `[Author Console](/group?id=${venueId}/Authors#your-submissions)`
   )
   return (
     <tr>
@@ -226,13 +226,13 @@ const AuthorSubmissionRow = ({ note, conferenceId }) => {
       </td>
       <td>
         {isV2Note ? (
-          <ReviewSummaryV2 note={note} conferenceId={conferenceId} referrerUrl={referrerUrl} />
+          <ReviewSummaryV2 note={note} venueId={venueId} referrerUrl={referrerUrl} />
         ) : (
-          <ReviewSummary note={note} conferenceId={conferenceId} referrerUrl={referrerUrl} />
+          <ReviewSummary note={note} venueId={venueId} referrerUrl={referrerUrl} />
         )}
       </td>
       <td>
-        <AuthorConsoleNoteMetaReviewStatus note={note} conferenceId={conferenceId} />
+        <AuthorConsoleNoteMetaReviewStatus note={note} venueId={venueId} />
       </td>
     </tr>
   )
@@ -243,7 +243,7 @@ const AuthorConsole = ({ appContext }) => {
     header,
     entity: group,
     isV2Group,
-    conferenceId,
+    venueId,
     submissionId,
     authorSubmissionField,
     blindSubmissionId,
@@ -254,8 +254,8 @@ const AuthorConsole = ({ appContext }) => {
   const [authorNotes, setAuthorNotes] = useState([])
   const [invitations, setInvitations] = useState([])
   const { setBannerContent } = appContext
-  const wildcardInvitation = `${conferenceId}.*`
-  const wildcardInvitationV2 = `${conferenceId}/.*`
+  const wildcardInvitation = `${venueId}.*`
+  const wildcardInvitationV2 = `${venueId}/.*`
 
   const formatInvitations = (allInvitations) => formatTasksData([allInvitations, [], []], true)
 
@@ -402,13 +402,13 @@ const AuthorConsole = ({ appContext }) => {
         noteInvitations
           .concat(edgeInvitations)
           .concat(tagInvitations)
-          .filter((p) => p.id.includs('Authors')) // TODO: number filtering logic
+          .filter((p) => p.id.includes('Authors')) // TODO: number filtering logic
     )
     const groupedEdgesP = api
       .get(
         '/edges',
         {
-          invitation: `${conferenceId}/Action_Editors/-/Recommendation`,
+          invitation: `${venueId}/Action_Editors/-/Recommendation`,
           groupBy: 'head',
         },
         { accessToken, version: 2 }
@@ -420,7 +420,7 @@ const AuthorConsole = ({ appContext }) => {
     // Add the assignment edges to each paper assignmnt invitation
     result[0].forEach((note) => {
       const paperRecommendationInvitation = allInvitations.find(
-        (p) => p.id === `${conferenceId}/Paper${note.number}/Action_Editors/-/Recommendation`
+        (p) => p.id === `${venueId}/Paper${note.number}/Action_Editors/-/Recommendation`
       )
       if (paperRecommendationInvitation) {
         const foundEdges = result[2].find((p) => p.id.head == note.id) // eslint-disable-line eqeqeq
@@ -437,7 +437,7 @@ const AuthorConsole = ({ appContext }) => {
     if (query.referrer) {
       setBannerContent(referrerLink(query.referrer))
     } else {
-      setBannerContent(venueHomepageLink(conferenceId))
+      setBannerContent(venueHomepageLink(venueId))
     }
   }, [group])
 
@@ -480,7 +480,7 @@ const AuthorConsole = ({ appContext }) => {
                 ]}
               >
                 {authorNotes.map((note) => (
-                  <AuthorSubmissionRow key={note.id} note={note} conferenceId={conferenceId} />
+                  <AuthorSubmissionRow key={note.id} note={note} venueId={venueId} />
                 ))}
               </Table>
             )}
@@ -490,7 +490,7 @@ const AuthorConsole = ({ appContext }) => {
               invitations={invitations}
               emptyMessage="No outstanding tasks for this conference"
               referrer={`${encodeURIComponent(
-                `[Author Console](/group?id=${conferenceId}/Authors'#author-tasks)`
+                `[Author Console](/group?id=${venueId}/Authors'#author-tasks)`
               )}&t=${Date.now()}`}
             />
           </TabPanel>
