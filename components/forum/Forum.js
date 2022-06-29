@@ -262,15 +262,20 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
     const existingNote = replyNoteMap[noteId]
     const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(allInvitations, note)
 
+    const formattedNote = formatNote(
+      note,
+      null,
+      editInvitations,
+      deleteInvitation,
+      replyInvitations
+    )
+    const replyToNote = replyNoteMap[parentId]
+    if (replyToNote) {
+      formattedNote.parentTitle = replyToNote.content.title?.value || replyToNote.generatedTitle
+    }
     setReplyNoteMap({
       ...replyNoteMap,
-      [noteId]: formatNote(
-        note,
-        null,
-        editInvitations,
-        deleteInvitation,
-        replyInvitations
-      ),
+      [noteId]: formattedNote
     })
 
     if (isEmpty(existingNote)) {
