@@ -517,6 +517,21 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
 
   return (
     <div className="forum-container">
+      {/* TODO: remove this message when new page is the default */}
+      <div id="tab-message" className="alert alert-warning">
+        <p>
+          <Icon name="exclamation-sign pr-1" />
+          {' '}
+          You are using a beta version of the forum page. Please submit any feedback to
+          {' '}
+          <a href="mailto:info@openreview.net?subject=New+Forum+Page+Feedback" target="_blank" rel="noreferrer">info@openreview.net</a>.
+          {' '}
+          To switch back to the old forum click here:
+          {' '}
+          <Link href={`/forum?id=${id}`}><a>View old forum &raquo;</a></Link>
+        </p>
+      </div>
+
       <ForumNote note={parentNote} updateNote={updateParentNote} />
 
       {parentNote.replyInvitations?.length > 0 && (
@@ -560,21 +575,6 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
 
       {(repliesLoaded && orderedReplies.length > 0) && (
         <div className="filters-container mt-3">
-          {/* TODO: remove this message when new page is the default */}
-          <div id="tab-message" className="alert alert-warning">
-            <p>
-              <Icon name="exclamation-sign pr-1" />
-              {' '}
-              You are using a beta version of the forum page. Please submit any feedback to
-              {' '}
-              <a href="mailto:info@openreview.net?subject=New+Forum+Page+Feedback" target="_blank" rel="noreferrer">info@openreview.net</a>.
-              {' '}
-              To switch back to the old forum click here:
-              {' '}
-              <Link href={`/forum?id=${id}`}><a>View old forum &raquo;</a></Link>
-            </p>
-          </div>
-
           {replyForumViews && <FilterTabs forumId={id} forumViews={replyForumViews} />}
 
           {filterOptions && (

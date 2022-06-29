@@ -604,8 +604,8 @@ module.exports = function(forumId, noteId, invitationId, user, isBetaUser) {
     }
 
     $content.removeClass('pre-rendered').empty().append(
-      $root,
       isBetaUser && '<div id="beta-message" class="alert alert-warning"></div>',
+      $root,
       $forumViewsTabs || '<hr class="small">',
       $forumFiltersRow,
       $forumViewsTabs && '<div id="tab-message" class="alert alert-warning"></div>',
@@ -616,7 +616,7 @@ module.exports = function(forumId, noteId, invitationId, user, isBetaUser) {
 
     if (isBetaUser) {
       $('#beta-message').html(
-        '<p><span class="glyphicon glyphicon-exclamation-sign pr-1 " aria-hidden="true"></span> OpenReview is testing a new version of this page and needs your feedback. To try the new forum click here: <a href="/forum?id=KKeCMim5VN">View new forum »</a></p>'
+        '<p><span class="glyphicon glyphicon-exclamation-sign pr-1 " aria-hidden="true"></span> OpenReview is testing a new version of this page and needs your feedback. To try the new forum click here: <a href="/forum-new?id=KKeCMim5VN">View new forum »</a></p>'
       ).show();
     }
 
