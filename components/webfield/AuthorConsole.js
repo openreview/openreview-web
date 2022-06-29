@@ -400,9 +400,12 @@ const AuthorConsole = ({ appContext }) => {
     ]).then(
       ([noteInvitations, edgeInvitations, tagInvitations]) =>
         noteInvitations
-          .concat(edgeInvitations)
-          .concat(tagInvitations)
-          .filter((p) => p.id.includes('Authors')) // TODO: number filtering logic
+          .map((inv) => ({ ...inv, noteInvitation: true }))
+          .concat(edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
+          .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
+          .filter(
+            (p) => p.id.includes('Authors') || p.invitees?.some((q) => q.includes('Authors'))
+          ) // TODO: number filtering logic
     )
     const groupedEdgesP = api
       .get(

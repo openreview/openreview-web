@@ -1,4 +1,4 @@
-/* globals promptError: false */
+/* globals promptError,typesetMathJax: false */
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
@@ -76,6 +76,7 @@ const Group = ({ groupId, webfieldCode, writable, componentObj, appContext }) =>
       }
     })
     setWebComponentProps(componentProps)
+    typesetMathJax()
   }, [componentObj])
 
   return (
