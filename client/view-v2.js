@@ -159,23 +159,26 @@ module.exports = (function() {
       '';
     fieldValue = valueInNote || fieldDefault;  // These will always be mutually exclusive
     var $input;
-    if (Array.isArray(fieldDescription.value)) {
-        // then treat as values
+
+    if (!_.has(fieldDescription.value, 'param') || _.has(fieldDescription.value.param, 'const')) {
+      if (Array.isArray(fieldDescription.value) || fieldDescription.param.type.endsWith('[]')){
+        //treat as values
         contentInputResult = view.mkDropdownAdder(
           fieldName, fieldDescription.description, fieldDescription.value,
           fieldValue, { hoverText: true, refreshData: false, required: !fieldDescription.value.param?.optional }
         );
-    } else if (!_.has(fieldDescription.value, 'param')) {
-      //treat as value
-      contentInputResult = valueInput($('<input>', {
-        type: 'text',
-        class: 'form-control note_content_value',
-        name: fieldName,
-        value: fieldDescription.value,
-        readonly: true
-      }), fieldName, fieldDescription);
+      } else {
+        //treat as value
+        contentInputResult = valueInput($('<input>', {
+          type: 'text',
+          class: 'form-control note_content_value',
+          name: fieldName,
+          value: fieldDescription.value,
+          readonly: true
+        }), fieldName, fieldDescription);
+      }
     } else if (_.has(fieldDescription.value.param, 'regex')) {
-      if (!_.has(fieldDescription, 'type') || fieldDescription.type.endsWith('[]')) {
+      if (!_.has(fieldDescription.value.param, 'type') || fieldDescription.value.param.type.endsWith('[]')) {
         // then treat as values-regex
         if (params && params.groups) {
           var groupIds = _.map(params.groups, function (g) {
@@ -244,6 +247,7 @@ module.exports = (function() {
       }
     } else if (_.has(fieldDescription.value.param, 'enum')) {
       if (fieldDescription.value.param.input === 'radio') {
+        //value-radio
         $input = $('<div>', { class: 'note_content_value value-radio-container' }).append(
           _.map(fieldDescription.value.param.enum, function (v) {
             return $('<div>', { class: 'radio' }).append(
@@ -276,11 +280,13 @@ module.exports = (function() {
         contentInputResult = valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
       } else if (fieldDescription.value.param.input === 'select' || !(_.has(fieldDescription.value.param, 'input'))) {
         if (Array.isArray(fieldDescription.value.param.enum) || fieldDescription.value.param.type.endsWith('[]')) {
+          //values-dropdown
           contentInputResult = view.mkDropdownAdder(
             fieldName, fieldDescription.description, fieldDescription.value.param.enum,
             fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.param.optional, alwaysHaveValues: fieldDescription.value.param.default }
           );
         } else {
+          //value-dropdown
           contentInputResult = view.mkDropdownList(
             fieldName, fieldDescription.description, fieldValue,
             fieldDescription.value.param.enum, !fieldDescription.value.param.optional
@@ -294,7 +300,7 @@ module.exports = (function() {
         text: fieldValue && JSON.stringify(fieldValue, undefined, 4)
       }), fieldName, fieldDescription);
 
-    } else if (fieldDescription.type === 'file') {
+    } else if (fieldDescription.value.param.type === 'file') {
       contentInputResult = mkAttachmentSection(fieldName, fieldDescription, fieldValue);
     }
 
@@ -304,7 +310,7 @@ module.exports = (function() {
   const mkComposerInput = (fieldName, fieldDescription, fieldValue, params) => {
     let contentInputResult;
 
-    if (fieldName === 'authorids' && fieldDescription.type.endsWith('[]') && (
+    if (fieldName === 'authorids' && fieldDescription.value?.param.type.endsWith('[]') && (
       (_.has(fieldDescription.value.param, 'regex') && view.isTildeIdAllowed(fieldDescription.value.param.regex))
       || (Array.isArray(fieldDescription.value))
     )) {
