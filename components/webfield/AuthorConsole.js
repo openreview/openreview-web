@@ -148,18 +148,16 @@ const ReviewSummaryV2 = ({ note, venueId, referrerUrl, submissionName, reviewNam
     <div className="reviewer-progress">
       <h4>{`${reviews.length} Reviews Submitted`}</h4>
       <ul className="list-unstyled">
-        {reviews.map((review) => {
-          return (
-            <li key={review.id}>
-              <strong>{prettyId(review.signatures[0].split('/')?.pop())}</strong>{' '}
-              <Link
-                href={`/forum?id=${review.forum}&noteId=${review.id}&referrer=${referrerUrl}`}
-              >
-                <a>Review</a>
-              </Link>
-            </li>
-          )
-        })}
+        {reviews.map((review) => (
+          <li key={review.id}>
+            <strong>{prettyId(review.signatures[0].split('/')?.pop())}</strong>{' '}
+            <Link
+              href={`/forum?id=${review.forum}&noteId=${review.id}&referrer=${referrerUrl}`}
+            >
+              <a>Review</a>
+            </Link>
+          </li>
+        ))}
       </ul>
     </div>
   )
