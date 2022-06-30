@@ -220,7 +220,7 @@ const AuthorSubmissionRow = ({
 }
 
 const AuthorConsole = ({ appContext }) => {
-  let header,
+  let header, // eslint-disable-line one-var
     group,
     venueId,
     isV2Group,
