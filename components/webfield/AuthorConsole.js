@@ -173,28 +173,15 @@ const ReviewSummary = ({
   )
 }
 
-const ReviewSummaryV2 = ({ note, venueId, referrerUrl, submissionName }) => {
+const ReviewSummaryV2 = ({ note, venueId, referrerUrl, submissionName, reviewName }) => {
   const reviews = note.details.replies.filter((reply) =>
-    reply.invitations.includes(`${venueId}/${submissionName}${note.number}/-/Review`)
+    reply.invitations.includes(`${venueId}/${submissionName}${note.number}/-/${reviewName}`)
   )
-  const recommendations = note.details.replies.filter((reply) =>
-    reply.invitations.includes(
-      `${venueId}/${submissionName}${note.number}/-/Official_Recommendation`
-    )
-  )
-  const recommendationByReviewer = {}
-  recommendations.forEach((recommendation) => {
-    recommendationByReviewer[recommendation.signatures[0]] = recommendation
-  })
   return (
     <div className="reviewer-progress">
-      <h4>{`${reviews.length} Reviews Submitted / ${
-        //-- no recommendation it's for TMLR only
-        Object.keys(recommendationByReviewer).length
-      } Recommendations`}</h4>
+      <h4>{`${reviews.length} Reviews Submitted`}</h4>
       <ul className="list-unstyled">
         {reviews.map((review) => {
-          const reviewerRecommendation = recommendationByReviewer[review.signatures[0]]
           return (
             <li key={review.id}>
               <strong>{prettyId(review.signatures[0].split('/')?.pop())}</strong>{' '}
@@ -203,16 +190,6 @@ const ReviewSummaryV2 = ({ note, venueId, referrerUrl, submissionName }) => {
               >
                 <a>Review</a>
               </Link>
-              {reviewerRecommendation && (
-                <>
-                  {'/ Recommendation:'}
-                  <Link
-                    href={`/forum?id=${reviewerRecommendation.forum}&noteId=${reviewerRecommendation.id}&referrer=${referrerUrl}`}
-                  >
-                    <a>Recommendation</a>
-                  </Link>
-                </>
-              )}
             </li>
           )
         })}
@@ -230,6 +207,7 @@ const AuthorSubmissionRow = ({
   reviewConfidenceName,
   submissionName,
   authorName,
+  reviewName,
 }) => {
   const isV2Note = note.version === 2
   const referrerUrl = encodeURIComponent(
@@ -254,6 +232,7 @@ const AuthorSubmissionRow = ({
             venueId={venueId}
             referrerUrl={referrerUrl}
             submissionName={submissionName}
+            reviewName={reviewName}
           />
         ) : (
           <ReviewSummary
@@ -294,6 +273,7 @@ const AuthorConsole = ({ appContext }) => {
     authorName,
     submissionName,
     wildcardInvitation,
+    reviewName,
   } = useContext(WebFieldContext)
   const { user, accessToken } = useUser()
   const router = useRouter()
@@ -452,34 +432,11 @@ const AuthorConsole = ({ appContext }) => {
             (p) => p.id.includes(authorName) || p.invitees?.some((q) => q.includes(authorName))
           ) // TODO: number filtering logic
     )
-    const groupedEdgesP = api
-      .get(
-        '/edges',
-        {
-          invitation: `${venueId}/Action_Editors/-/Recommendation`,
-          groupBy: 'head',
-        },
-        { accessToken, version: 2 }
-      )
-      .then((result) => result.groupedEdges)
 
-    const result = await Promise.all([notesP, invitationsP, groupedEdgesP])
-    const allInvitations = result[1] //-- TODO REMOVE paperRecommendation
-    // Add the assignment edges to each paper assignmnt invitation
-    result[0].forEach((note) => {
-      const paperRecommendationInvitation = allInvitations.find(
-        (p) =>
-          p.id === `${venueId}/${submissionName}${note.number}/Action_Editors/-/Recommendation`
-      )
-      if (paperRecommendationInvitation) {
-        const foundEdges = result[2].find((p) => p.id.head == note.id) // eslint-disable-line eqeqeq
-        if (foundEdges) {
-          paperRecommendationInvitation.details.repliedEdges = foundEdges.values
-        }
-      }
-    })
+    const result = await Promise.all([notesP, invitationsP])
+
     setAuthorNotes(result[0])
-    setInvitations(formatInvitations(allInvitations))
+    setInvitations(formatInvitations(result[1]))
   }
 
   useEffect(() => {
@@ -540,6 +497,7 @@ const AuthorConsole = ({ appContext }) => {
                       reviewConfidenceName={reviewConfidenceName}
                       submissionName={submissionName}
                       authorName={authorName}
+                      reviewName={reviewName}
                     />
                   ))}
                 </Table>
