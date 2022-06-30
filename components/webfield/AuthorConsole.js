@@ -237,6 +237,26 @@ const AuthorConsole = ({ appContext }) => {
     wildcardInvitation,
     reviewName
   const webFieldContext = useContext(WebFieldContext)
+  const { user, accessToken } = useUser()
+  const router = useRouter()
+  const query = useQuery()
+  const { setBannerContent } = appContext
+  const [authorNotes, setAuthorNotes] = useState([])
+  const [invitations, setInvitations] = useState([])
+
+  useEffect(() => {
+    if (query.referrer) {
+      setBannerContent(referrerLink(query.referrer))
+    } else {
+      setBannerContent(venueHomepageLink(venueId))
+    }
+  }, [group])
+
+  useEffect(() => {
+    if (!group) return
+    isV2Group ? loadDataV2() : loadData() // eslint-disable-line no-unused-expressions, no-use-before-define
+  }, [group])
+
   if (webFieldContext.isV2Group) {
     ;({
       header,
@@ -306,12 +326,6 @@ const AuthorConsole = ({ appContext }) => {
       return <ErrorDisplay statusCode="" message="web has missing config" />
     }
   }
-  const { user, accessToken } = useUser()
-  const router = useRouter()
-  const query = useQuery()
-  const [authorNotes, setAuthorNotes] = useState([])
-  const [invitations, setInvitations] = useState([])
-  const { setBannerContent } = appContext
 
   const formatInvitations = (allInvitations) => formatTasksData([allInvitations, [], []], true)
 
@@ -470,19 +484,6 @@ const AuthorConsole = ({ appContext }) => {
     setAuthorNotes(result[0])
     setInvitations(formatInvitations(result[1]))
   }
-
-  useEffect(() => {
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
-    } else {
-      setBannerContent(venueHomepageLink(venueId))
-    }
-  }, [group])
-
-  useEffect(() => {
-    if (!group) return
-    isV2Group ? loadDataV2() : loadData() // eslint-disable-line no-unused-expressions
-  }, [group])
 
   if (!user || !user.profile || user.profile.id === 'guest') {
     router.replace(
