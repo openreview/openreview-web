@@ -19,6 +19,10 @@ export default function ToggleButtonGroup({
     // Special case for adding "everyone" to the list of excluded options
     if (newOptionStates[index] === 2 && newOptionStates[0] !== 2) {
       newOptionStates[0] = 2
+    } else if (newOptionStates[index] === 0 && newOptionStates[0] === 2) {
+      if (newOptionStates.every((state, i) => i === 0 || state !== 2)) {
+        newOptionStates[0] = 0
+      }
     }
     setOptionStates(newOptionStates)
 
