@@ -13,6 +13,7 @@ import { formatTasksData, getNotePdfUrl, prettyId } from '../../lib/utils'
 import NoteContentCollapsible from './NoteContentCollapsible'
 import { AuthorConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import TaskList from '../TaskList'
+import ErrorDisplay from '../ErrorDisplay'
 
 const NoteSummary = ({ note, referrerUrl, isV2Note }) => {
   const titleValue = isV2Note ? note.content?.title?.value : note.content?.title
@@ -250,6 +251,23 @@ const AuthorConsole = ({ appContext }) => {
       decisionName,
       wildcardInvitation,
     } = webFieldContext)
+    if (
+      ![
+        header,
+        group,
+        isV2Group,
+        venueId,
+        submissionId,
+        authorSubmissionField,
+        submissionName,
+        authorName,
+        reviewName,
+        decisionName,
+        wildcardInvitation,
+      ].every((p) => p !== undefined)
+    ) {
+      return <ErrorDisplay statusCode="" message="web has missing config" />
+    }
   } else {
     ;({
       header,
@@ -267,6 +285,26 @@ const AuthorConsole = ({ appContext }) => {
       submissionName,
       wildcardInvitation,
     } = webFieldContext)
+    if (
+      ![
+        header,
+        group,
+        isV2Group,
+        venueId,
+        submissionId,
+        authorSubmissionField,
+        blindSubmissionId,
+        officialReviewName,
+        decisionName,
+        reviewRatingName,
+        reviewConfidenceName,
+        authorName,
+        submissionName,
+        wildcardInvitation,
+      ].every((p) => p !== undefined)
+    ) {
+      return <ErrorDisplay statusCode="" message="web has missing config" />
+    }
   }
   const { user, accessToken } = useUser()
   const router = useRouter()
