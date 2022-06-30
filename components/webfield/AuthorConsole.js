@@ -220,9 +220,8 @@ const AuthorSubmissionRow = ({
 }
 
 const AuthorConsole = ({ appContext }) => {
-  const {
-    header,
-    entity: group,
+  let header,
+    group,
     venueId,
     isV2Group,
     submissionId,
@@ -235,8 +234,40 @@ const AuthorConsole = ({ appContext }) => {
     authorName,
     submissionName,
     wildcardInvitation,
-    reviewName,
-  } = useContext(WebFieldContext)
+    reviewName
+  const webFieldContext = useContext(WebFieldContext)
+  if (webFieldContext.isV2Group) {
+    ;({
+      header,
+      entity: group,
+      isV2Group,
+      venueId,
+      submissionId,
+      authorSubmissionField,
+      submissionName,
+      authorName,
+      reviewName,
+      decisionName,
+      wildcardInvitation,
+    } = webFieldContext)
+  } else {
+    ;({
+      header,
+      entity: group,
+      isV2Group,
+      venueId,
+      submissionId,
+      authorSubmissionField,
+      blindSubmissionId,
+      officialReviewName,
+      decisionName,
+      reviewRatingName,
+      reviewConfidenceName,
+      authorName,
+      submissionName,
+      wildcardInvitation,
+    } = webFieldContext)
+  }
   const { user, accessToken } = useUser()
   const router = useRouter()
   const query = useQuery()
@@ -334,6 +365,7 @@ const AuthorConsole = ({ appContext }) => {
     )
 
     const result = await Promise.all([notesP, invitationsP])
+
     setAuthorNotes(result[0])
     setInvitations(formatInvitations(result[1]))
   }
