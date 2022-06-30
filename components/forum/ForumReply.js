@@ -246,7 +246,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
           <Icon name="pencil" tooltip="Reply Author" />
           {signatures.map((signature) => {
             const signatureLink = signature.startsWith('~')
-              ? <Link href={`/profile?id=${signature}`}><a>{prettyId(signature, true)}</a></Link>
+              ? <a href={`/profile?id=${signature}`} target="_blank" rel="noreferrer">{prettyId(signature, true)}</a>
               : prettyId(signature, true)
             const signatureGroup = note.details?.signatures?.find(p => p.id === signature)
             if (signatureGroup) {
@@ -263,7 +263,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
                   (
                   <Icon name={icon} tooltip={tooltip} />
                   {signatureGroup.members.map(q => (
-                    <Link key={q} href={`/profile?id=${q}`}><a>{prettyId(q, true)}</a></Link>
+                    <a key={q} href={`/profile?id=${q}`} target="_blank" rel="noreferrer">{prettyId(q, true)}</a>
                   )).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
                   )
                 </span>
