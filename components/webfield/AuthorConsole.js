@@ -10,91 +10,58 @@ import api from '../../lib/api-client'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 import Table from '../Table'
 import { formatTasksData, getNotePdfUrl, prettyId } from '../../lib/utils'
-import { NoteContentCollapsible, NoteContentCollapsibleV2 } from './NoteContentCollapsible'
+import NoteContentCollapsible from './NoteContentCollapsible'
 import { AuthorConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import TaskList from '../TaskList'
 
-const NoteSummary = ({ note, referrerUrl }) => (
-  <div className="note">
-    <h4>
-      <a
-        href={`/forum?id=${note.forum}&referrer=${referrerUrl}`}
-        target="_blank"
-        rel="noreferrer"
-      >
-        {note.content?.title}
-      </a>
-    </h4>
-    {note.content?.pdf && (
-      <div className="download-pdf-link">
+const NoteSummary = ({ note, referrerUrl, isV2Note }) => {
+  const titleValue = isV2Note ? note.content?.title?.value : note.content?.title
+  const pdfValue = isV2Note ? note.content?.pdf?.value : note.content?.pdf
+  const authorsValue = isV2Note ? note.content?.authors?.value : note.content?.authors
+  const authorDomainsValue = isV2Note
+    ? note.content?.authorDomains?.value
+    : note.content?.authorDomains
+  return (
+    <div className="note">
+      <h4>
         <a
-          href={getNotePdfUrl(note, false)}
-          className="attachment-download-link"
-          title="Download PDF"
+          href={`/forum?id=${note.forum}&referrer=${referrerUrl}`}
           target="_blank"
-          download={`${note.number}.pdf`}
           rel="noreferrer"
         >
-          <span className="glyphicon glyphicon-download-alt" aria-hidden="true"></span>{' '}
-          Download PDF
+          {titleValue}
         </a>
-      </div>
-    )}
-    {note.content?.authors && (
-      <div className="note-authors">{note.content.authors.join(', ')}</div>
-    )}
-    {note.content?.authorDomains && (
-      <div className="note-authors">{`Conflict Domains: ${note.content.authorDomains.join(
-        ', '
-      )}`}</div>
-    )}
+      </h4>
+      {pdfValue && (
+        <div className="download-pdf-link">
+          <a
+            href={getNotePdfUrl(note, false)}
+            className="attachment-download-link"
+            title="Download PDF"
+            target="_blank"
+            download={`${note.number}.pdf`}
+            rel="noreferrer"
+          >
+            <span className="glyphicon glyphicon-download-alt" aria-hidden="true"></span>{' '}
+            Download PDF
+          </a>
+        </div>
+      )}
+      {authorsValue && <div className="note-authors">{authorsValue.join(', ')}</div>}
+      {authorDomainsValue && (
+        <div className="note-authors">{`Conflict Domains: ${authorDomainsValue.join(
+          ', '
+        )}`}</div>
+      )}
 
-    <NoteContentCollapsible id={note.id} content={note.content} invitation={note.invitation} />
-  </div>
-)
-
-const NoteSummaryV2 = ({ note, referrerUrl }) => (
-  <div className="note">
-    <h4>
-      <a
-        href={`/forum?id=${note.forum}&referrer=${referrerUrl}`}
-        target="_blank"
-        rel="noreferrer"
-      >
-        {note.content?.title?.value}
-      </a>
-    </h4>
-    {note.content?.pdf?.value && (
-      <div className="download-pdf-link">
-        <a
-          href={getNotePdfUrl(note, false)}
-          className="attachment-download-link"
-          title="Download PDF"
-          target="_blank"
-          download={`${note.number}.pdf`}
-          rel="noreferrer"
-        >
-          <span className="glyphicon glyphicon-download-alt" aria-hidden="true"></span>{' '}
-          Download PDF
-        </a>
-      </div>
-    )}
-    {note.content?.authors?.value && (
-      <div className="note-authors">{note.content.authors.value.join(', ')}</div>
-    )}
-    {note.content?.authorDomains?.value && (
-      <div className="note-authors">{`Conflict Domains: ${note.content.authorDomains.value.join(
-        ', '
-      )}`}</div>
-    )}
-
-    <NoteContentCollapsibleV2
-      id={note.id}
-      content={note.content}
-      invitation={note.invitation}
-    />
-  </div>
-)
+      <NoteContentCollapsible
+        id={note.id}
+        content={note.content}
+        invitation={note.invitation}
+      />
+    </div>
+  )
+}
 
 const ReviewSummary = ({
   note,
@@ -219,11 +186,7 @@ const AuthorSubmissionRow = ({
         <strong className="note-number">{note.number}</strong>
       </td>
       <td>
-        {isV2Note ? (
-          <NoteSummaryV2 note={note} referrerUrl={referrerUrl} />
-        ) : (
-          <NoteSummary note={note} referrerUrl={referrerUrl} />
-        )}
+        <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={isV2Note} />
       </td>
       <td>
         {isV2Note ? (
@@ -251,6 +214,7 @@ const AuthorSubmissionRow = ({
           note={note}
           venueId={venueId}
           decisionName={decisionName}
+          submissionName={submissionName}
         />
       </td>
     </tr>

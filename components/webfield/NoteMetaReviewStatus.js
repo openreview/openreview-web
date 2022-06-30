@@ -1,9 +1,22 @@
 // modified from noteMetaReviewStatus.hbs handlebar template
 // eslint-disable-next-line import/prefer-default-export
-export const AuthorConsoleNoteMetaReviewStatus = ({ note, conferenceId, decisionName }) => {
-  const decision = note.details?.directReplies?.find(
-    (p) => p.invitation === `${conferenceId}/Paper${note.number}/-/${decisionName}`
-  )
+export const AuthorConsoleNoteMetaReviewStatus = ({
+  note,
+  venueId,
+  decisionName,
+  submissionName,
+}) => {
+  const isV2Note = note.version === 2
+  const decision = isV2Note
+    ? note.details.replies.filter((p) =>
+        p.invitations.includes(`${venueId}/${submissionName}${note.number}/-/${decisionName}`)
+      )?.[0]
+    : note.details?.directReplies?.find(
+        (p) => p.invitation === `${venueId}/${submissionName}${note.number}/-/${decisionName}`
+      )
+  const decisionContent = isV2Note
+    ? decision?.content?.recommendation?.value
+    : decision?.content?.decision
   if (!decision)
     return (
       <h4>
@@ -11,11 +24,11 @@ export const AuthorConsoleNoteMetaReviewStatus = ({ note, conferenceId, decision
       </h4>
     )
   return (
-    decision.content?.decision && (
+    decisionContent && (
       <div>
-        <h4>AC Recommendation:</h4>
+        <h4>Recommendation:</h4>
         <p>
-          <strong>{decision.content.decision}</strong>
+          <strong>{decisionContent}</strong>
         </p>
         <p>
           <a
