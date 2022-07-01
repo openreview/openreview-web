@@ -1,3 +1,4 @@
+/* globals typesetMathJax: false */
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
@@ -256,6 +257,10 @@ const AuthorConsole = ({ appContext }) => {
     if (!group) return
     isV2Group ? loadDataV2() : loadData() // eslint-disable-line no-unused-expressions, no-use-before-define
   }, [group])
+
+  useEffect(() => {
+    if (authorNotes) typesetMathJax()
+  }, [authorNotes])
 
   if (webFieldContext.isV2Group) {
     ;({
