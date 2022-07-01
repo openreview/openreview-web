@@ -210,8 +210,8 @@ export default class OpenReviewApp extends App {
     }
   }
 
-  onRouteChangeStart() {
-    this.shouldResetBanner = true
+  onRouteChangeStart(url) {
+    this.shouldResetBanner = url !== window.location.pathname
     this.shouldResetLayout = true
     this.shouldResetEditBanner = true
 
