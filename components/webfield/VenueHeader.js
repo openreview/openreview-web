@@ -1,4 +1,5 @@
 import Icon from '../Icon'
+import Markdown from '../EditorComponents/Markdown'
 
 const VenueHeader = ({ headerInfo }) => {
   if (!headerInfo) return null
@@ -79,7 +80,7 @@ const VenueHeader = ({ headerInfo }) => {
 
       <div className="description">
         {instructions ? (
-          { instructions }
+          <Markdown text={instructions} />
         ) : (
           <p className="no-margin">Please see the venue website for more information.</p>
         )}
