@@ -3996,12 +3996,8 @@ module.exports = (function() {
       var startCount = (pageNum - 1) * notesPerPage + 1;
       var endCount = (pageNum - 1) * notesPerPage + notesPerPage;
       if (endCount > totalNotes) endCount = totalNotes;
-      templateParams = {
-        ...templateParams,
-        startCount: startCount,
-        endCount: endCount,
-        totalNotes: totalNotes,
-      }
+      templateParams.countText = `Showing ${startCount}${notesPerPage === 1 ? "" : `-${endCount}`} of ${totalNotes}`;
+
     }
     return Handlebars.templates['partials/paginationLinks'](templateParams);
   };
