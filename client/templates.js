@@ -3678,19 +3678,15 @@ templates['partials/paginationLinks'] = template({"1":function(container,depth0,
 },"13":function(container,depth0,helpers,partials,data) {
     return "#";
 },"15":function(container,depth0,helpers,partials,data) {
-    var helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+    var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
         }
         return undefined
     };
 
-  return "    <span class=\"pagination-count\">Showing "
-    + alias4(((helper = (helper = lookupProperty(helpers,"startCount") || (depth0 != null ? lookupProperty(depth0,"startCount") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"startCount","hash":{},"data":data,"loc":{"start":{"line":14,"column":43},"end":{"line":14,"column":57}}}) : helper)))
-    + "-"
-    + alias4(((helper = (helper = lookupProperty(helpers,"endCount") || (depth0 != null ? lookupProperty(depth0,"endCount") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"endCount","hash":{},"data":data,"loc":{"start":{"line":14,"column":58},"end":{"line":14,"column":70}}}) : helper)))
-    + " of "
-    + alias4(((helper = (helper = lookupProperty(helpers,"totalNotes") || (depth0 != null ? lookupProperty(depth0,"totalNotes") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"totalNotes","hash":{},"data":data,"loc":{"start":{"line":14,"column":74},"end":{"line":14,"column":88}}}) : helper)))
+  return "    <span class=\"pagination-count\">"
+    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"countText") || (depth0 != null ? lookupProperty(depth0,"countText") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"countText","hash":{},"data":data,"loc":{"start":{"line":14,"column":35},"end":{"line":14,"column":48}}}) : helper)))
     + "</span>\n";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
