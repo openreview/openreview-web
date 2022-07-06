@@ -225,7 +225,7 @@ const AuthorConsole = ({ appContext }) => {
   let header, // eslint-disable-line one-var
     group,
     venueId,
-    isV2Group,
+    apiVersion,
     submissionId,
     authorSubmissionField,
     blindSubmissionId,
@@ -255,82 +255,12 @@ const AuthorConsole = ({ appContext }) => {
 
   useEffect(() => {
     if (!group) return
-    isV2Group ? loadDataV2() : loadData() // eslint-disable-line no-unused-expressions, no-use-before-define
+    apiVersion === 2 ? loadDataV2() : loadData() // eslint-disable-line no-unused-expressions, no-use-before-define
   }, [group])
 
   useEffect(() => {
     if (authorNotes) typesetMathJax()
   }, [authorNotes])
-
-  if (webFieldContext.isV2Group) {
-    ;({
-      header,
-      entity: group,
-      isV2Group,
-      venueId,
-      submissionId,
-      authorSubmissionField,
-      submissionName,
-      authorName,
-      reviewName,
-      decisionName,
-      wildcardInvitation,
-    } = webFieldContext)
-    if (
-      ![
-        header,
-        group,
-        isV2Group,
-        venueId,
-        submissionId,
-        authorSubmissionField,
-        submissionName,
-        authorName,
-        reviewName,
-        decisionName,
-        wildcardInvitation,
-      ].every((p) => p !== undefined)
-    ) {
-      return <ErrorDisplay statusCode="" message="web has missing config" />
-    }
-  } else {
-    ;({
-      header,
-      entity: group,
-      isV2Group,
-      venueId,
-      submissionId,
-      authorSubmissionField,
-      blindSubmissionId,
-      officialReviewName,
-      decisionName,
-      reviewRatingName,
-      reviewConfidenceName,
-      authorName,
-      submissionName,
-      wildcardInvitation,
-    } = webFieldContext)
-    if (
-      ![
-        header,
-        group,
-        isV2Group,
-        venueId,
-        submissionId,
-        authorSubmissionField,
-        blindSubmissionId,
-        officialReviewName,
-        decisionName,
-        reviewRatingName,
-        reviewConfidenceName,
-        authorName,
-        submissionName,
-        wildcardInvitation,
-      ].every((p) => p !== undefined)
-    ) {
-      return <ErrorDisplay statusCode="" message="web has missing config" />
-    }
-  }
 
   const formatInvitations = (allInvitations) => formatTasksData([allInvitations, [], []], true)
 
@@ -496,6 +426,76 @@ const AuthorConsole = ({ appContext }) => {
         `${window.location.pathname}${window.location.search}${window.location.hash}`
       )}`
     )
+  }
+
+  if (webFieldContext.apiVersion === 2) {
+    ;({
+      header,
+      entity: group,
+      apiVersion,
+      venueId,
+      submissionId,
+      authorSubmissionField,
+      submissionName,
+      authorName,
+      reviewName,
+      decisionName,
+      wildcardInvitation,
+    } = webFieldContext)
+    if (
+      ![
+        header,
+        group,
+        apiVersion,
+        venueId,
+        submissionId,
+        authorSubmissionField,
+        submissionName,
+        authorName,
+        reviewName,
+        decisionName,
+        wildcardInvitation,
+      ].every((p) => p !== undefined)
+    ) {
+      return <ErrorDisplay statusCode="" message="web has missing config" />
+    }
+  } else {
+    ;({
+      header,
+      entity: group,
+      apiVersion,
+      venueId,
+      submissionId,
+      authorSubmissionField,
+      blindSubmissionId,
+      officialReviewName,
+      decisionName,
+      reviewRatingName,
+      reviewConfidenceName,
+      authorName,
+      submissionName,
+      wildcardInvitation,
+    } = webFieldContext)
+    if (
+      ![
+        header,
+        group,
+        apiVersion,
+        venueId,
+        submissionId,
+        authorSubmissionField,
+        blindSubmissionId,
+        officialReviewName,
+        decisionName,
+        reviewRatingName,
+        reviewConfidenceName,
+        authorName,
+        submissionName,
+        wildcardInvitation,
+      ].every((p) => p !== undefined)
+    ) {
+      return <ErrorDisplay statusCode="" message="web has missing config" />
+    }
   }
 
   return (
