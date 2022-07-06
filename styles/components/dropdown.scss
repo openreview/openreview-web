@@ -30,22 +30,22 @@
   &__single-value {
     color: #555;
   }
+  .item {
+    display: inline-block;
+    margin: 0;
+    overflow: hidden;
+    line-height: 25px;
+    position: relative;
+
+    &:hover {
+      background: rgba(55, 11, 7, 0.1); // orRed
+    }
+  }
 }
+
 .form-group .dropdown-select {
   display: inline-block;
   vertical-align: middle;
-}
-
-.item {
-  display: inline-block;
-  margin: 0;
-  overflow: hidden;
-  line-height: 25px;
-  position: relative;
-
-  &:hover {
-    background: rgba(55, 11, 7, 0.1); // orRed
-  }
 }
 
 .dropdown-sm .dropdown-select {
