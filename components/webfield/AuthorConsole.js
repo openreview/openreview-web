@@ -202,12 +202,12 @@ const AuthorSubmissionRow = ({
 }
 
 const AuthorConsole = ({ appContext }) => {
-  let header, // eslint-disable-line one-var
-    group,
+  const {
+    header,
+    entity: group,
     apiVersion,
     venueId,
     submissionId,
-    blindSubmissionId,
     authorSubmissionField,
     officialReviewName,
     decisionName,
@@ -215,8 +215,10 @@ const AuthorConsole = ({ appContext }) => {
     reviewConfidenceName,
     authorName,
     submissionName,
-    wildcardInvitation
-  const webFieldContext = useContext(WebFieldContext)
+    wildcardInvitation,
+    blindSubmissionId, // for v1 only
+  } = useContext(WebFieldContext)
+
   const { user, accessToken } = useUser()
   const router = useRouter()
   const query = useQuery()
@@ -407,22 +409,6 @@ const AuthorConsole = ({ appContext }) => {
     )
   }
 
-  ;({
-    header,
-    entity: group,
-    apiVersion,
-    venueId,
-    submissionId,
-    authorSubmissionField,
-    officialReviewName,
-    decisionName,
-    reviewRatingName,
-    reviewConfidenceName,
-    authorName,
-    submissionName,
-    wildcardInvitation,
-    blindSubmissionId,
-  } = webFieldContext)
   if (
     ![
       header,
