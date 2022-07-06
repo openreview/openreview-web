@@ -73,19 +73,26 @@ const ReviewSummary = ({
   reviewRatingName,
   reviewConfidenceName,
   submissionName,
+  isV2Note,
 }) => {
-  const noteCompletedReviews =
-    note.details.directReplies?.filter(
-      (p) =>
-        p.invitation === `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
-    ) ?? []
+  const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
+  const noteCompletedReviews = isV2Note
+    ? note.details.replies.filter((reply) =>
+        reply.invitations.includes(officialReviewInvitationId)
+      ) ?? []
+    : note.details.directReplies?.filter((p) => p.invitation === officialReviewInvitationId) ??
+      []
   const ratings = []
   const confidences = []
   noteCompletedReviews.forEach((p) => {
     const ratingEx = /^(\d+): .*$/
-    const ratingMatch = p.content[reviewRatingName]?.match(ratingEx)
+    const ratingMatch = isV2Note
+      ? p.content[reviewRatingName]?.value?.match(ratingEx)
+      : p.content[reviewRatingName]?.match(ratingEx)
     ratings.push(ratingMatch ? parseInt(ratingMatch[1], 10) : null)
-    const confidenceMatch = p.content[reviewConfidenceName]?.match(ratingEx)
+    const confidenceMatch = isV2Note
+      ? p.content[reviewConfidenceName]?.value?.match(ratingEx)
+      : p.content[reviewConfidenceName]?.match(ratingEx)
     confidences.push(confidenceMatch ? parseInt(confidenceMatch[1], 10) : null)
   })
 
@@ -115,21 +122,27 @@ const ReviewSummary = ({
     <div className="author-console-reviewer-progress">
       <h4>{`${noteCompletedReviews.length} Reviews Submitted`}</h4>
       <ul className="list-unstyled">
-        {noteCompletedReviews.map((review) => (
-          <li key={review.id}>
-            <strong>{prettyId(review.signatures[0].split('/')?.pop())}:</strong> Rating:{' '}
-            {review.content?.[reviewRatingName] ?? 'N/A'}{' '}
-            {review.content?.[reviewConfidenceName]
-              ? `/ Confidence: ${review.content[reviewConfidenceName]}`
-              : ''}
-            <br />
-            <Link
-              href={`/forum?id=${review.forum}&noteId=${review.id}&referrer=${referrerUrl}`}
-            >
-              <a>Read Review</a>
-            </Link>
-          </li>
-        ))}
+        {noteCompletedReviews.map((review) => {
+          const reviewRatingValue = isV2Note
+            ? review.content?.[reviewRatingName]?.value
+            : review.content?.[reviewRatingName]
+          const reviewConfidenceValue = isV2Note
+            ? review.content?.[reviewConfidenceName]?.value
+            : review.content?.[reviewConfidenceName]
+          return (
+            <li key={review.id}>
+              <strong>{prettyId(review.signatures[0].split('/')?.pop())}:</strong> Rating:{' '}
+              {reviewRatingValue ?? 'N/A'}{' '}
+              {reviewConfidenceValue ? `/ Confidence: ${reviewConfidenceValue}` : ''}
+              <br />
+              <Link
+                href={`/forum?id=${review.forum}&noteId=${review.id}&referrer=${referrerUrl}`}
+              >
+                <a>Read Review</a>
+              </Link>
+            </li>
+          )
+        })}
       </ul>
       <div>
         <strong>Average Rating:</strong>
@@ -138,29 +151,6 @@ const ReviewSummary = ({
         <strong>Average Confidence:</strong>
         {`${averageConfidence} (Min: ${minConfidence}, Max: ${maxConfidence})`}
       </div>
-    </div>
-  )
-}
-
-const ReviewSummaryV2 = ({ note, venueId, referrerUrl, submissionName, reviewName }) => {
-  const reviews = note.details.replies.filter((reply) =>
-    reply.invitations.includes(`${venueId}/${submissionName}${note.number}/-/${reviewName}`)
-  )
-  return (
-    <div className="reviewer-progress">
-      <h4>{`${reviews.length} Reviews Submitted`}</h4>
-      <ul className="list-unstyled">
-        {reviews.map((review) => (
-          <li key={review.id}>
-            <strong>{prettyId(review.signatures[0].split('/')?.pop())}</strong>{' '}
-            <Link
-              href={`/forum?id=${review.forum}&noteId=${review.id}&referrer=${referrerUrl}`}
-            >
-              <a>Review</a>
-            </Link>
-          </li>
-        ))}
-      </ul>
     </div>
   )
 }
@@ -174,7 +164,6 @@ const AuthorSubmissionRow = ({
   reviewConfidenceName,
   submissionName,
   authorName,
-  reviewName,
 }) => {
   const isV2Note = note.version === 2
   const referrerUrl = encodeURIComponent(
@@ -189,25 +178,16 @@ const AuthorSubmissionRow = ({
         <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={isV2Note} />
       </td>
       <td>
-        {isV2Note ? (
-          <ReviewSummaryV2
-            note={note}
-            venueId={venueId}
-            referrerUrl={referrerUrl}
-            submissionName={submissionName}
-            reviewName={reviewName}
-          />
-        ) : (
-          <ReviewSummary
-            note={note}
-            venueId={venueId}
-            referrerUrl={referrerUrl}
-            officialReviewName={officialReviewName}
-            reviewRatingName={reviewRatingName}
-            reviewConfidenceName={reviewConfidenceName}
-            submissionName={submissionName}
-          />
-        )}
+        <ReviewSummary
+          note={note}
+          venueId={venueId}
+          referrerUrl={referrerUrl}
+          officialReviewName={officialReviewName}
+          reviewRatingName={reviewRatingName}
+          reviewConfidenceName={reviewConfidenceName}
+          submissionName={submissionName}
+          isV2Note={isV2Note}
+        />
       </td>
       <td>
         <AuthorConsoleNoteMetaReviewStatus
@@ -224,19 +204,18 @@ const AuthorSubmissionRow = ({
 const AuthorConsole = ({ appContext }) => {
   let header, // eslint-disable-line one-var
     group,
-    venueId,
     apiVersion,
+    venueId,
     submissionId,
-    authorSubmissionField,
     blindSubmissionId,
+    authorSubmissionField,
     officialReviewName,
     decisionName,
     reviewRatingName,
     reviewConfidenceName,
     authorName,
     submissionName,
-    wildcardInvitation,
-    reviewName
+    wildcardInvitation
   const webFieldContext = useContext(WebFieldContext)
   const { user, accessToken } = useUser()
   const router = useRouter()
@@ -428,46 +407,30 @@ const AuthorConsole = ({ appContext }) => {
     )
   }
 
-  if (webFieldContext.apiVersion === 2) {
-    ;({
+  ;({
+    header,
+    entity: group,
+    apiVersion,
+    venueId,
+    submissionId,
+    authorSubmissionField,
+    officialReviewName,
+    decisionName,
+    reviewRatingName,
+    reviewConfidenceName,
+    authorName,
+    submissionName,
+    wildcardInvitation,
+    blindSubmissionId,
+  } = webFieldContext)
+  if (
+    ![
       header,
-      entity: group,
+      group,
       apiVersion,
       venueId,
       submissionId,
       authorSubmissionField,
-      submissionName,
-      authorName,
-      reviewName,
-      decisionName,
-      wildcardInvitation,
-    } = webFieldContext)
-    if (
-      ![
-        header,
-        group,
-        apiVersion,
-        venueId,
-        submissionId,
-        authorSubmissionField,
-        submissionName,
-        authorName,
-        reviewName,
-        decisionName,
-        wildcardInvitation,
-      ].every((p) => p !== undefined)
-    ) {
-      return <ErrorDisplay statusCode="" message="web has missing config" />
-    }
-  } else {
-    ;({
-      header,
-      entity: group,
-      apiVersion,
-      venueId,
-      submissionId,
-      authorSubmissionField,
-      blindSubmissionId,
       officialReviewName,
       decisionName,
       reviewRatingName,
@@ -475,27 +438,9 @@ const AuthorConsole = ({ appContext }) => {
       authorName,
       submissionName,
       wildcardInvitation,
-    } = webFieldContext)
-    if (
-      ![
-        header,
-        group,
-        apiVersion,
-        venueId,
-        submissionId,
-        authorSubmissionField,
-        blindSubmissionId,
-        officialReviewName,
-        decisionName,
-        reviewRatingName,
-        reviewConfidenceName,
-        authorName,
-        submissionName,
-        wildcardInvitation,
-      ].every((p) => p !== undefined)
-    ) {
-      return <ErrorDisplay statusCode="" message="web has missing config" />
-    }
+    ].every((p) => p !== undefined || (apiVersion === 2 && blindSubmissionId === undefined))
+  ) {
+    return <ErrorDisplay statusCode="" message="web has missing config" />
   }
 
   return (
@@ -535,7 +480,6 @@ const AuthorConsole = ({ appContext }) => {
                       reviewConfidenceName={reviewConfidenceName}
                       submissionName={submissionName}
                       authorName={authorName}
-                      reviewName={reviewName}
                     />
                   ))}
                 </Table>
