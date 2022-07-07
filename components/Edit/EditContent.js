@@ -46,7 +46,7 @@ const EditContent = ({ edit }) => {
                 <Icon
                   name="eye-open"
                   extraClasses="private-contents-icon"
-                  tooltip={`Privately revealed to ${fieldReaders
+                  tooltip={`privately revealed to ${fieldReaders
                     .map((p) => prettyId(p))
                     .join(', ')}`}
                 />
@@ -66,7 +66,7 @@ const EditContent = ({ edit }) => {
               <Icon
                 name="eye-open"
                 extraClasses="private-contents-icon"
-                tooltip={`Privately revealed to ${fieldReaders
+                tooltip={`privately revealed to ${fieldReaders
                   .map((p) => prettyId(p))
                   .join(', ')}`}
               />

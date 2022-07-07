@@ -1,5 +1,5 @@
 /* globals $: false */
-/* globals view2: false */
+/* globals view: false */
 /* globals promptError: false */
 /* globals promptLogin: false */
 
@@ -21,7 +21,7 @@ export default function NoteEditorForm({
     setLoading(false)
 
     if (!$editor && typeof onError === 'function') {
-      onError(true)
+      onError()
       return
     }
 
@@ -32,18 +32,6 @@ export default function NoteEditorForm({
     }
   }
 
-  const handleCreated = (newNote) => {
-    if (typeof onNoteCreated === 'function') {
-      onNoteCreated(newNote)
-    }
-  }
-
-  const handleEdited = (updatedNote) => {
-    if (typeof onNoteEdited === 'function') {
-      onNoteEdited(updatedNote)
-    }
-  }
-
   const handleError = (errors) => {
     setLoading(false)
 
@@ -51,18 +39,13 @@ export default function NoteEditorForm({
     if (err === 'You do not have permission to create a note' || !user) {
       promptLogin(user)
     } else if (err) {
-      promptError(err, { scrollToTop: false })
+      promptError(err)
     } else {
       promptError('An unknown error occurred. Please refresh the page and try again.')
     }
 
     if (typeof onError === 'function') {
-      const isLoadingError = [
-        'Can not create note, readers must match parent note',
-        'Default reader is not in the list of readers',
-        'no_results'
-      ].includes(err)
-      onError(isLoadingError)
+      onError()
     }
   }
 
@@ -76,16 +59,16 @@ export default function NoteEditorForm({
     setLoading(true)
 
     if (note) {
-      view2.mkNoteEditor(note, invitation, user, {
-        onNoteEdited: handleEdited,
+      view.mkNoteEditor(note, invitation, user, {
+        onNoteEdited,
         onNoteCancelled,
         onValidate,
         onCompleted: handleEditor,
         onError: handleError,
       })
     } else {
-      view2.mkNewNoteEditor(invitation, forumId, replyToId, user, {
-        onNoteCreated: handleCreated,
+      view.mkNewNoteEditor(invitation, forumId, replyToId, user, {
+        onNoteCreated,
         onNoteCancelled,
         onValidate,
         onCompleted: handleEditor,

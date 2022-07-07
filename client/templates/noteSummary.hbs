@@ -1,7 +1,7 @@
 {{!-- Used by area chair console in status table --}}
 <div id="note-summary-{{number}}" class="note" data-id="{{id}}">
   <h4>
-    <a href="/forum{{#if useNewForumPage}}-new{{/if}}?id={{forum}}{{#if referrer}}&referrer={{referrer}}{{/if}}" target="_blank">{{content.title}}</a>
+    <a href="/forum?id={{forum}}{{#if referrer}}&referrer={{referrer}}{{/if}}" target="_blank">{{content.title}}</a>
   </h4>
   {{#if content.pdf}}
     <div style="margin-bottom: .5rem;">

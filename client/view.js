@@ -2620,8 +2620,7 @@ module.exports = (function() {
       return token
         .replace(/^-$/g, '')       // remove dashes
         .replace(/_/g, ' ')        // replace undescores with spaces
-        .replace(/\.\*/g, '')      // remove wildcards
-        .replace(/^.*[0-9]$/g, '') // remove tokens ending with a digit
+        .replace(/^.*[0-9]$/g, '')  // remove tokens ending with a digit
         .trim();
     }).filter(function(token) {
       return !!token;

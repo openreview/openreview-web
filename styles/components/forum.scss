@@ -1,9 +1,5 @@
 @use "../utils/constants";
 
-$gray1: #f7f6f4;
-$gray2: rgba(0, 0, 0, 0.04);
-$gray3: rgba(0, 0, 0, 0.05);
-
 main.forum {
 
   .tooltip .tooltip-inner {
@@ -40,20 +36,12 @@ main.forum {
     }
   }
 
-  #tab-message {
-    margin: 1rem 0;
-
-    p:last-child {
-      margin-bottom: 0;
-    }
-  }
-
   hr {
     margin: .25rem 0;
   }
 
   .filter-controls {
-    background: $gray1;
+    background: #f7f6f4;
     padding: .5rem;
     border: 1px solid #eee;
 
@@ -61,25 +49,15 @@ main.forum {
       display: flex;
       justify-content: space-between;
     }
-    .wrap {
-      flex-wrap: wrap;
-    }
 
     .form-group {
-      margin-right: .5rem;
-      margin-bottom: .5rem;
+      margin-right: .625rem;
 
       &:last-child {
         margin-right: 0;
       }
       &.expand {
         flex-grow: 1;
-        .replies-filter {
-          width: 100%;
-        }
-      }
-      &.no-expand {
-        flex-shrink: 0;
         .replies-filter {
           width: 100%;
         }
@@ -91,20 +69,12 @@ main.forum {
         padding-right: .5rem;
       }
       select.form-control, input.form-control {
-        width: 100%;
-        min-width: 160px;
+        width: 160px;
         height: 32px;
         padding: 0.25rem 0.75rem;
       }
-    }
-    img.icon {
-      width: 16px;
-      color: constants.$mediumBlue;
-    }
-    .layout-buttons {
-      button {
-        padding-top: 4px;
-        padding-bottom: 6px;
+      input.form-control {
+        padding-top: .125rem;
       }
     }
 
@@ -115,7 +85,6 @@ main.forum {
       .dropdown-select__control {
         background-color: #fff;
         max-height: 32px;
-        font-size: .75rem;
       }
       .dropdown-select__value-container {
         max-height: 28px;
@@ -125,24 +94,9 @@ main.forum {
         z-index: 10;
       }
     }
-    .invitations-filter {
-      width: 250px;
-    }
-
-    #keyword-input {
-      font-size: .75rem;
-      &::placeholder {
-        color: hsl(0, 0%, 50%);
-        opacity: 1;
-      }
-    }
-
-    #sort-dropdown {
-      font-size: .75rem;
-    }
 
     .btn-group {
-      margin-right: .5rem;
+      margin-right: .625rem;
 
       &:last-child {
         margin-right: 0;
@@ -153,9 +107,6 @@ main.forum {
       label {
         padding-right: .375rem;
         padding-left: .375rem;
-      }
-      .btn:hover {
-        background-color: $gray2;
       }
       .btn.active {
         background-color: constants.$mediumBlue;
@@ -179,36 +130,18 @@ main.forum {
       border-color: lighten(constants.$mediumBlue, 10%);
       color: constants.$mediumDarkBlue;
     }
+
     .form-control {
       background-color: #fff;
     }
-    .filter-count {
-      line-height: 26px;
-    }
-    .icon-label {
-      line-height: 26px;
-      padding-right: .5rem;
-    }
-    .readers-filter-container {
-      margin-bottom: -.25rem;
-      margin-right: auto;
-    }
-    .readers-filter {
-      display: block;
 
-      .btn {
-        font-weight: 400;
-        min-width: 4rem;
-        padding-top: .125rem;
-        padding-bottom: .125rem;
-        margin-bottom: .25rem;
-      }
-      .reset-btn {
-        min-width: 2.5rem;
-      }
+    .form-row {
+      margin: 0;
+      margin-top: .5rem;
     }
-    .filtered-reply-count {
-      flex-shrink: 0;
+
+    .filter-count {
+      line-height: 32px;
     }
   }
 
@@ -221,22 +154,26 @@ main.forum {
       border-bottom-color: #eee;
     }
     & > li.active > a {
-      background-color: $gray1;
-      border-color: #eee #eee $gray1;
+      background-color: #f7f6f4;
+      border-color: #eee #eee #f7f6f4;
     }
   }
 
   #forum-replies {
-    // background-color: $gray1;
-
     & > div {
-      margin-bottom: 1rem;
+      margin-bottom: .75rem;
     }
     & > div.controls {
       margin-bottom: 1.25rem;
     }
     .note:hover {
-      & > .heading > .permalink-btn {
+      background-color: rgba(0, 0, 0, .04);
+      box-shadow: 0 0 1px 4px rgba(0, 0, 0, .04);
+
+      .note-content-container.collapsed .gradient-overlay {
+        background-color: #f5f3f0;
+      }
+      .heading .permalink-btn {
         opacity: 1;
       }
     }
@@ -250,7 +187,7 @@ main.forum {
     .note-editor-container {
       background-color: transparent;
       padding: 0 .125rem .5rem .125rem;
-      margin-top: .5rem;
+      margin-top: 1rem;
       margin-bottom: 0rem;
 
       .note_content_title {
@@ -262,10 +199,6 @@ main.forum {
 
   .note {
     position: relative;
-    padding: .5rem;
-    border: 1px solid #eee;
-    border-radius: 2px;
-
     h4 {
       color: constants.$darkBlue;
       line-height: 1.25rem;
@@ -302,42 +235,23 @@ main.forum {
         }
       }
     }
-    .parent-title {
-      h5 {
-        margin: 0;
-        margin-bottom: 0.125rem;
-        color: constants.$subtleGray;
-        line-height: normal;
-        font-style: italic;
-        cursor: pointer;
-        &:hover {
-          color: constants.$darkBlue;
-        }
-      }
-    }
     .subheading {
-      margin-bottom: .25rem;
-
       strong {
         padding-right: .5rem;
       }
       > span {
         padding-left: .5rem;
         padding-right: .5rem;
-        font-size: .75rem;
-        line-height: 15px;
-        height: 16px;
-        display: inline-block;
       }
-      .signatures, .invitation, .created-date, .readers, .revisions {
+      .signatures, .invitation, .created-date, .readers {
         color: constants.$subtleGray;
         font-weight: 400;
+        font-size: .75rem;
       }
       .invitation {
         padding-left: 0;
       }
       .glyphicon {
-        font-size: 13px;
         padding-right: .25rem;
       }
       .highlight {
@@ -345,9 +259,6 @@ main.forum {
         color: #fff;
         padding: 0 4px;
         border-radius: 2px;
-      }
-      .highlight + .highlight, .tooltip + .highlight  {
-        margin-left: .25rem;
       }
       .btn-link {
         padding: 0;
@@ -357,49 +268,33 @@ main.forum {
       position: relative;
 
       &.collapsed {
+        max-height: 150px;
         overflow: hidden;
-        max-height: 160px;
+
+        .gradient-overlay {
+          display: block;
+          position: absolute;
+          left: 0;
+          top: 130px;
+          height: 40px;
+          width: 100%;
+          // background-image: linear-gradient(to bottom, transparent 0%, constants.$backgroundWhite 100%);
+          background-color: constants.$backgroundWhite;
+          content: '';
+          a {
+            display: inline;
+          }
+        }
+      }
+      .gradient-overlay {
+        a {
+          font-size: .75rem;
+          display: none;
+        }
       }
       &:focus {
         outline: none;
       }
-    }
-    .gradient-overlay {
-      display: block;
-      position: absolute;
-      left: 0;
-      top: 95px;
-      height: 65px;
-      width: 100%;
-      background-image: linear-gradient(
-        to bottom,
-        transparent 0%,
-        rgba(247, 246, 241, 0.4) 25%,
-        $gray1 98%
-      );
-      content: "";
-      button {
-        display: none;
-        text-decoration: none;
-        border: 0;
-        background: transparent;
-        color: constants.$mediumBlue;
-        height: 100%;
-        padding-top: 2rem;
-        padding-bottom: 0;
-        text-shadow: 0px 0px 2px #fff;
-      }
-      button:active.focus,
-      button:active:focus,
-      button:focus {
-        box-shadow: none;
-      }
-      &:hover button {
-        display: block;
-      }
-    }
-    .note-content {
-      margin: 0;
     }
     .collapse-link {
       border: none;
@@ -413,67 +308,18 @@ main.forum {
       position: absolute;
       font-weight: normal;
     }
-    .collapse-controls-v {
-      position: absolute;
-      left: -24px;
-      top: -1px;
-      & > .btn {
-        min-width: auto;
-        font-size: 12px;
-        line-height: 13px;
-        font-weight: normal;
-        padding: 0 2px;
-        border-width: 1px;
-        &.middle {
-          line-height: 14px;
-        }
-      }
-      & > .btn:first-child {
-        border-top-left-radius: 2px;
-        border-top-right-radius: 2px;
-      }
-      & > .btn:last-child {
-        border-bottom-left-radius: 2px;
-        border-bottom-right-radius: 2px;
-      }
-      .btn.active {
-        background-color: #4d8093;
-        color: #fff;
-        box-shadow: none;
-        border-color: #4d8093;
-      }
-    }
     .note-replies {
       margin-top: .75rem;
       padding-left: 2.5rem;
       & > .note {
-        margin-bottom: .5rem;
+        margin-bottom: .75rem;
       }
       & > .note:last-child {
         margin-bottom: 0;
       }
     }
-    &.deleted > div {
-      opacity: .35;
-    }
-    &.deleted > div.note-replies {
-      opacity: 1;
-    }
   }
-  .note.depth-odd {
-    background-color: $gray1;
-  }
-  .note.depth-even {
-    background-color: constants.$backgroundWhite;
-    & > .note-content-container > .gradient-overlay {
-      background-image: linear-gradient(
-        to bottom,
-        transparent 0%,
-        rgba(255, 253, 250, 0.4) 25%,
-        constants.$backgroundWhite 98%
-      );
-    }
-  }
+
 }
 
 #bibtex-modal {
