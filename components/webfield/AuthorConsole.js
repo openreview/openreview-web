@@ -326,9 +326,9 @@ const AuthorConsole = ({ appContext }) => {
       ),
     ]).then(([noteInvitations, edgeInvitations, tagInvitations]) =>
       noteInvitations
-        .map((inv) => ({ ...inv, noteInvitation: true }))
-        .concat(edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
-        .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
+        .map((inv) => ({ ...inv, noteInvitation: true, apiVersion: 1 }))
+        .concat(edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true, apiVersion: 1 })))
+        .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true, apiVersion: 1 })))
         .filter((p) => p.invitees?.some((q) => q.includes(authorName)))
     )
 
@@ -391,9 +391,13 @@ const AuthorConsole = ({ appContext }) => {
     ]).then(
       ([noteInvitations, edgeInvitations, tagInvitations]) =>
         noteInvitations
-          .map((inv) => ({ ...inv, noteInvitation: true }))
-          .concat(edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
-          .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
+          .map((inv) => ({ ...inv, noteInvitation: true, apiVersion: 2 }))
+          .concat(
+            edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true, apiVersion: 2 }))
+          )
+          .concat(
+            tagInvitations.map((inv) => ({ ...inv, tagInvitation: true, apiVersion: 2 }))
+          )
           .filter(
             (p) => p.id.includes(authorName) || p.invitees?.some((q) => q.includes(authorName))
           ) // TODO: number filtering logic
