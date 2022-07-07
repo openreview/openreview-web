@@ -527,9 +527,9 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
         <p>
           <Icon name="exclamation-sign pr-1" />
           {' '}
-          You are using a beta version of the forum page. Please submit any feedback to
+          You are using a beta version of the forum page. For more information, please read the
           {' '}
-          <a href="mailto:info@openreview.net?subject=New+Forum+Page+Feedback" target="_blank" rel="noreferrer">info@openreview.net</a>.
+          <a href="https://docs.openreview.net/getting-started/using-the-new-forum-page" target="_blank" rel="noreferrer">forum docs</a>.
           {' '}
           To switch back to the old forum click here:
           {' '}
