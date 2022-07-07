@@ -235,7 +235,7 @@ const AuthorConsole = ({ appContext }) => {
   }, [group])
 
   useEffect(() => {
-    if (!group) return
+    if (!group || !authorSubmissionField || !submissionId || !wildcardInvitation) return // won't return meaningful result
     apiVersion === 2 ? loadDataV2() : loadData() // eslint-disable-line no-unused-expressions, no-use-before-define
   }, [group])
 
@@ -433,13 +433,17 @@ const AuthorConsole = ({ appContext }) => {
       authorName,
       submissionName,
       wildcardInvitation,
-    }).find(([key, value]) => value === undefined)?.[0]) ||
+    }).filter(([key, value]) => value === undefined))?.length ||
     (apiVersion === 1 && blindSubmissionId === undefined)
   ) {
     return (
       <ErrorDisplay
         statusCode=""
-        message={`web has missing config: ${missingConfig ?? 'blindSubmissionId'}`}
+        message={`web has missing config: ${
+          missingConfig.length
+            ? missingConfig.map((p) => p[0]).join(' ,')
+            : 'blindSubmissionId'
+        }`}
       />
     )
   }
