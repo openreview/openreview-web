@@ -8,6 +8,10 @@ const Markdown = ({ text }) => {
       setSanitizedHtml(null)
       return
     }
+    if (text.startsWith('<')) {
+      setSanitizedHtml(DOMPurify.sanitize(text))
+      return
+    }
     setSanitizedHtml(DOMPurify.sanitize(marked(text)))
   }, [text])
 
