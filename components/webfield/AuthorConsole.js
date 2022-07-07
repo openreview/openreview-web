@@ -235,7 +235,7 @@ const AuthorConsole = ({ appContext }) => {
   }, [group])
 
   useEffect(() => {
-    if (!group || !authorSubmissionField || !submissionId || !wildcardInvitation) return // won't return meaningful result
+    if (!group || !authorSubmissionField || !submissionId || !wildcardInvitation) return
     apiVersion === 2 ? loadDataV2() : loadData() // eslint-disable-line no-unused-expressions, no-use-before-define
   }, [group])
 
