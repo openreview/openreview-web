@@ -401,9 +401,7 @@ const AuthorConsole = ({ appContext }) => {
     try {
       const result = await Promise.all([notesP, invitationsP])
 
-      setAuthorNotes(
-        result[0]?.filter((p) => p?.content?.venueid?.value === `${venueId}/Submitted`)
-      )
+      setAuthorNotes(result[0])
       setInvitations(formatInvitations(result[1]))
     } catch (error) {
       promptError(error.message)

@@ -19,13 +19,25 @@ export const AuthorConsoleNoteMetaReviewStatus = ({
     : decision?.content?.decision
   if (!decision)
     return (
-      <h4>
-        <strong>No Recommendation</strong>
-      </h4>
+      <>
+        {isV2Note && (
+          <h4>
+            <strong>{note.content?.venue?.value}</strong>
+          </h4>
+        )}
+        <h4>
+          <strong>No Recommendation</strong>
+        </h4>
+      </>
     )
   return (
     decisionContent && (
       <div>
+        {isV2Note && (
+          <h4>
+            <strong>{note.content?.venue?.value}</strong>
+          </h4>
+        )}
         <h4>Recommendation:</h4>
         <p>
           <strong>{decisionContent}</strong>
