@@ -1,4 +1,4 @@
-/* globals typesetMathJax: false */
+/* globals typesetMathJax,promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
@@ -332,10 +332,14 @@ const AuthorConsole = ({ appContext }) => {
         .filter((p) => p.invitees?.some((q) => q.includes(authorName)))
     )
 
-    const result = await Promise.all([notesP, invitationsP])
+    try {
+      const result = await Promise.all([notesP, invitationsP])
 
-    setAuthorNotes(result[0])
-    setInvitations(formatInvitations(result[1]))
+      setAuthorNotes(result[0])
+      setInvitations(formatInvitations(result[1]))
+    } catch (error) {
+      promptError(error.message)
+    }
   }
 
   const loadDataV2 = async () => {
@@ -394,11 +398,16 @@ const AuthorConsole = ({ appContext }) => {
             (p) => p.id.includes(authorName) || p.invitees?.some((q) => q.includes(authorName))
           ) // TODO: number filtering logic
     )
+    try {
+      const result = await Promise.all([notesP, invitationsP])
 
-    const result = await Promise.all([notesP, invitationsP])
-
-    setAuthorNotes(result[0])
-    setInvitations(formatInvitations(result[1]))
+      setAuthorNotes(
+        result[0]?.filter((p) => p?.content?.venueid?.value === `${venueId}/Submitted`)
+      )
+      setInvitations(formatInvitations(result[1]))
+    } catch (error) {
+      promptError(error.message)
+    }
   }
 
   if (!user || !user.profile || user.profile.id === 'guest') {
