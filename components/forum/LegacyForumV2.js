@@ -22,9 +22,12 @@ export default function LegacyForumV2({
   useEffect(() => {
     if (userLoading) return
 
-    api.get('/groups', { id: 'TMLR/Editors_In_Chief', select: 'members' })
+    const betaTestGroups = ['TMLR/Editors_In_Chief', 'TMLR/Action_Editors', 'TMLR/Reviewers', 'TMLR/Authors']
+    api.get('/groups', { ids: betaTestGroups, select: 'members' })
       .then(({ groups }) => {
-        const groupMembers = groups?.[0]?.members
+        const groupMembers = groups.length > 0
+          ? groups.reduce((acc, group) => [...acc, ...(group.members ?? [])], [])
+          : []
         if (groupMembers && user.profile.usernames.some((userId) => groupMembers.includes(userId))) {
           setIsBetaUser(true)
         } else {
