@@ -416,8 +416,10 @@ const AuthorConsole = ({ appContext }) => {
     )
   }
 
+  let missingConfig
   if (
-    ![
+    // eslint-disable-next-line no-cond-assign
+    (missingConfig = Object.entries({
       header,
       group,
       apiVersion,
@@ -431,9 +433,15 @@ const AuthorConsole = ({ appContext }) => {
       authorName,
       submissionName,
       wildcardInvitation,
-    ].every((p) => p !== undefined || (apiVersion === 2 && blindSubmissionId === undefined))
+    }).find(([key, value]) => value === undefined)?.[0]) ||
+    (apiVersion === 1 && blindSubmissionId === undefined)
   ) {
-    return <ErrorDisplay statusCode="" message="web has missing config" />
+    return (
+      <ErrorDisplay
+        statusCode=""
+        message={`web has missing config: ${missingConfig ?? 'blindSubmissionId'}`}
+      />
+    )
   }
 
   return (
