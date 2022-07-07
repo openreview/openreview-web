@@ -859,8 +859,8 @@ module.exports = (function() {
       id: 'confirm-delete-modal',
       showHeader: true,
       title: `${actionText} Note`,
-      body: `<p class="mb-4">Are you sure you want to ${actionText.toLowerCase()}
-        ${noteTitle} by ${view.prettyId(note.signatures[0])}? The ${actionText.toLowerCase()}ed note will
+      body: `<p class="mb-4">Are you sure you want to ${actionText.toLowerCase()} the note
+        "${noteTitle}" by ${view.prettyId(note.signatures[0])}? The ${actionText.toLowerCase()}d note will
         be updated with the signature you choose below.</p>`,
       showFooter: true,
       primaryButtonText: actionText
@@ -1003,7 +1003,11 @@ module.exports = (function() {
         const editToPost = constructEdit({ formData: formContent, invitationObj: invitation });
         Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(function(result) {
           if (params.onNoteCreated) {
-            params.onNoteCreated(result);
+            Webfield2.get('/notes', { id: result.note.id, details: 'invitation,presentation' }, { handleErrors: false }).then(function(noteRes) {
+              params.onNoteCreated(noteRes.notes?.[0]);
+            }, function() {
+              params.onNoteCreated(result);
+            });
           }
           $noteEditor.remove();
           view.clearAutosaveData(autosaveStorageKeys);
@@ -1464,18 +1468,16 @@ module.exports = (function() {
         const editToPost = params.isEdit
           ? constructUpdatedEdit(params.editToUpdate, invitation, formContent)
           : constructEdit({ formData: formContent, noteObj: existingNote, invitationObj: invitation });
-        Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(function() {
-          if (params.onNoteEdited ) {
+        Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(function(edit) {
+          if (params.onNoteEdited) {
             if (params.isEdit) {
               params.onNoteEdited();
             } else {
-              if (note.id) { // recruitment invitation web may pass note without id
-                Webfield2.get('/notes', { id: note.id }).then(function (result) {
-                  params.onNoteEdited(result);
-                });
-              } else {
+              Webfield2.get('/notes', { id: edit.note.id, details: 'invitation,presentation' }, { handleErrors: false }).then(function(noteRes) {
+                params.onNoteEdited(noteRes.notes?.[0]);
+              }, function() {
                 params.onNoteEdited();
-              }
+              });
             }
           }
           $noteEditor.remove();
@@ -1768,15 +1770,15 @@ module.exports = (function() {
                 '';
           }
         } else if (presentationObj.input === 'select' || !(_.has(presentationObj, 'input'))) {
-          //values-dropdown
           if (contentObj.type.endsWith('[]')) {
+            //values-dropdown
             inputVal = view.idsFromListAdder($contentMap[k], ret);
           } else {
             //value-dropdown
             var values = view.idsFromListAdder($contentMap[k], ret);
-              if (values && values.length) {
-                inputVal = values[0];
-              }
+            if (values?.length > 0) {
+              inputVal = values[0];
+            }
           }
         }
       } else if (contentObj.hasOwnProperty('const')) {
@@ -1901,6 +1903,7 @@ module.exports = (function() {
     mkNewNoteEditor: mkNewNoteEditor,
     mkNoteEditor: mkNoteEditor,
     mkNotePanel: mkNotePanel,
+    deleteOrRestoreNote: deleteOrRestoreNote,
     constructEdit:constructEdit,
   };
 
