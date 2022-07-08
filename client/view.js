@@ -1092,7 +1092,7 @@ module.exports = (function() {
             '<div class="pull-right content-warning danger">' +
               '<strong>IMPORTANT: All uses of "\\\\" in LaTeX formulas should be replaced with "\\\\\\\\"</strong>' +
               '<br><span>Learn more about adding LaTeX formulas to Markdown content here: ' +
-              '<a href="/faq#question-tex-differences" target="_blank">FAQ</a></span>' +
+              '<a href="https://docs.openreview.net/reference/openreview-tex/openreview-tex-support" target="_blank">FAQ</a></span>' +
             '</div>'
           );
         }
