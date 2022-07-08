@@ -1,21 +1,21 @@
 /* globals typesetMathJax,promptError: false */
+
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import useQuery from '../../hooks/useQuery'
-import useUser from '../../hooks/useUser'
-import BasicHeader from './BasicHeader'
 import WebFieldContext from '../WebFieldContext'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
-import api from '../../lib/api-client'
+import BasicHeader from './BasicHeader'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 import Table from '../Table'
-import { formatTasksData, prettyId } from '../../lib/utils'
-
 import { AuthorConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import TaskList from '../TaskList'
 import ErrorDisplay from '../ErrorDisplay'
 import NoteSummary from './NoteSummary'
+import useQuery from '../../hooks/useQuery'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { formatTasksData, prettyId } from '../../lib/utils'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
 const ReviewSummary = ({
   note,
@@ -170,7 +170,7 @@ const AuthorConsole = ({ appContext }) => {
     blindSubmissionId, // for v1 only
   } = useContext(WebFieldContext)
 
-  const { user, accessToken } = useUser()
+  const { user, userLoading, accessToken } = useUser()
   const router = useRouter()
   const query = useQuery()
   const { setBannerContent } = appContext
@@ -178,23 +178,6 @@ const AuthorConsole = ({ appContext }) => {
   const [invitations, setInvitations] = useState([])
 
   const wildcardInvitation = `${venueId}/.*`
-
-  useEffect(() => {
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
-    } else {
-      setBannerContent(venueHomepageLink(venueId))
-    }
-  }, [group])
-
-  useEffect(() => {
-    if (!group || !authorSubmissionField || !submissionId || !wildcardInvitation) return
-    apiVersion === 2 ? loadDataV2() : loadData() // eslint-disable-line no-unused-expressions, no-use-before-define
-  }, [group])
-
-  useEffect(() => {
-    if (authorNotes) typesetMathJax()
-  }, [authorNotes])
 
   const formatInvitations = (allInvitations) => formatTasksData([allInvitations, [], []], true)
 
@@ -365,41 +348,66 @@ const AuthorConsole = ({ appContext }) => {
     }
   }
 
-  if (!user || !user.profile || user.profile.id === 'guest') {
-    router.replace(
-      `/login?redirect=${encodeURIComponent(
-        `${window.location.pathname}${window.location.search}${window.location.hash}`
-      )}`
-    )
-  }
+  useEffect(() => {
+    if (!query) return
 
-  let missingConfig
-  if (
-    // eslint-disable-next-line no-cond-assign
-    (missingConfig = Object.entries({
-      header,
-      group,
-      apiVersion,
-      venueId,
-      submissionId,
-      authorSubmissionField,
-      officialReviewName,
-      decisionName,
-      reviewRatingName,
-      reviewConfidenceName,
-      authorName,
-      submissionName,
-    }).filter(([key, value]) => value === undefined))?.length ||
-    (apiVersion === 1 && blindSubmissionId === undefined)
-  ) {
+    if (query.referrer) {
+      setBannerContent(referrerLink(query.referrer))
+    } else {
+      setBannerContent(venueHomepageLink(venueId))
+    }
+  }, [query, venueId])
+
+  useEffect(() => {
+    if (!userLoading && (!user || !user.profile || user.profile.id === 'guest')) {
+      router.replace(
+        `/login?redirect=${encodeURIComponent(
+          `${window.location.pathname}${window.location.search}${window.location.hash}`
+        )}`
+      )
+    }
+  }, [user, userLoading])
+
+  useEffect(() => {
+    if (userLoading || !user || !group || !authorSubmissionField || !submissionId) return
+
+    if (apiVersion === 2) {
+      loadDataV2()
+    } else {
+      loadData()
+    }
+  }, [user, userLoading, group])
+
+  useEffect(() => {
+    if (authorNotes) {
+      typesetMathJax()
+    }
+  }, [authorNotes])
+
+  const missingConfig = Object.entries({
+    header,
+    group,
+    apiVersion,
+    venueId,
+    submissionId,
+    authorSubmissionField,
+    officialReviewName,
+    decisionName,
+    reviewRatingName,
+    reviewConfidenceName,
+    authorName,
+    submissionName,
+  }).filter(([key, value]) => value === undefined)
+  if (missingConfig?.length || (apiVersion === 1 && blindSubmissionId === undefined)) {
+    const errorMessage = `Author Console is missing required properties: ${
+      missingConfig.length
+        ? missingConfig.map((p) => p[0]).join(', ')
+        : 'blindSubmissionId'
+    }`
     return (
       <ErrorDisplay
         statusCode=""
-        message={`web has missing config: ${
-          missingConfig.length
-            ? missingConfig.map((p) => p[0]).join(' ,')
-            : 'blindSubmissionId'
-        }`}
+        message={errorMessage}
       />
     )
   }
