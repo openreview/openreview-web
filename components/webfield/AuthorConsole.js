@@ -97,11 +97,11 @@ const ReviewSummary = ({
         })}
       </ul>
       <div>
-        <strong>Average Rating:</strong>
-        {`${averageRating} (Min: ${minRating}, Max: ${maxRating})`}
+        <strong>Average Rating:</strong>{' '}
+        {averageRating} (Min: {minRating}, Max: {maxRating})
         <br />
-        <strong>Average Confidence:</strong>
-        {`${averageConfidence} (Min: ${minConfidence}, Max: ${maxConfidence})`}
+        <strong>Average Confidence:</strong>{' '}
+        {averageConfidence} (Min: {minConfidence}, Max: {maxConfidence})
       </div>
     </div>
   )
