@@ -66,6 +66,7 @@ const ReviewerConsole = ({ appContext }) => {
     blindSubmissionId,
     customLoadInvitation,
     reviewLoad,
+    customLoadOverride,
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
   const [customLoad, setCustomLoad] = useState(null)
@@ -255,7 +256,7 @@ const ReviewerConsole = ({ appContext }) => {
         getCustomLoadP,
         getAreaChairGroupsP,
       ]).then(([blindedNotes, officialReviews, invitations, customLoad, areaChairMap]) => {
-        setCustomLoad(customLoad)
+        setCustomLoad(customLoadOverride ?? customLoad)
       })
     } catch (error) {
       promptError(error.message)
