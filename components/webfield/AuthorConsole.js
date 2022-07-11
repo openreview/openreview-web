@@ -179,6 +179,15 @@ const AuthorConsole = ({ appContext }) => {
   const [invitations, setInvitations] = useState([])
 
   useEffect(() => {
+    if (!query) return
+    if (query.referrer) {
+      setBannerContent(referrerLink(query.referrer))
+    } else {
+      setBannerContent(venueHomepageLink(venueId))
+    }
+  }, [query, venueId])
+
+  useEffect(() => {
     if (query.referrer) {
       setBannerContent(referrerLink(query.referrer))
     } else {
