@@ -10,6 +10,19 @@ import NoteSummary from './NoteSummary'
 import useUser from '../../hooks/useUser'
 import { formatTasksData } from '../../lib/utils'
 
+const AreaChairInfo = ({ areaChairId }) => {
+  return (
+    <div className="note-area-chairs">
+      <p>
+        <strong>Area Chair:</strong>{' '}
+        <a href={`https://openreview.net/profile?id=${areaChairId}`} target="_blank">
+          prettyId(areaChairId)
+        </a>
+      </p>
+    </div>
+  )
+}
+
 const AssignedPaperRow = ({
   note,
   invitations,
@@ -72,10 +85,6 @@ const ReviewerConsole = ({ appContext }) => {
     customLoadOverride,
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
-  // const [customLoad, setCustomLoad] = useState(null)
-  // const [blindedNotes, setBlindedNotes] = useState([])
-  // const [invitations, setInvitations] = useState([])
-  // const [officialReviews, setOfficialReviews] = useState([])
   const wildcardInvitation = `${venueId}/.*`
   const customMaxPapersId = `${venueId}/${reviewerName}/-/Custom_Max_Papers`
   const [reviewerConsoleData, setReviewerConsoleData] = useState({})
