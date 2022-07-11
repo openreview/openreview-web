@@ -158,8 +158,6 @@ Group.getInitialProps = async (ctx) => {
       writable: group.details?.writable ?? false,
       query: ctx.query,
     }
-
-    delete result.componentObj?.properties?.entity?.members
     return result
   } catch (error) {
     if (error.name === 'ForbiddenError') {
