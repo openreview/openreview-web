@@ -8,6 +8,7 @@ import BasicHeader from './BasicHeader'
 import { ReviewerConsoleNoteReviewStatus } from './NoteReviewStatus'
 import NoteSummary from './NoteSummary'
 import useUser from '../../hooks/useUser'
+import { formatTasksData } from '../../lib/utils'
 
 const AssignedPaperRow = ({
   note,
@@ -22,7 +23,9 @@ const AssignedPaperRow = ({
     `[Reviewer Console](/group?id=${venueId}/${reviewerName}#assigned-papers)`
   )
   const officialReviewInvitaitonId = `${venueId}/Paper${note.number}/-/${officialReviewName}`
-  const officialReviewInvitation = invitations.find((p) => p.id === officialReviewInvitaitonId)
+  const officialReviewInvitation = invitations?.find(
+    (p) => p.id === officialReviewInvitaitonId
+  )
   const officialReview = officialReviews.find(
     (p) => p.invitation === officialReviewInvitaitonId
   )
@@ -42,9 +45,9 @@ const AssignedPaperRow = ({
               ? `/forum?id=${note.forum}&noteId=${officialReview.id}&referrer=${referrerUrl}`
               : null
           }
-          paperRating={officialReview.content[reviewRatingName]}
-          review={officialReview.content.review}
-          invitaitonUrl={
+          paperRating={officialReview?.content?.[reviewRatingName]}
+          review={officialReview?.content?.review}
+          invitationUrl={
             officialReviewInvitation
               ? `/forum?id=${note.forum}&noteId=${note.id}&invitationId=${officialReviewInvitation.id}&referrer=${referrerUrl}`
               : null
@@ -69,18 +72,20 @@ const ReviewerConsole = ({ appContext }) => {
     customLoadOverride,
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
-  const [customLoad, setCustomLoad] = useState(null)
-  const [blindedNotes, setBlindedNotes] = useState([])
-  const [invitations, setInvitations] = useState([])
-  const [officialReviews, setOfficialReviews] = useState([])
+  // const [customLoad, setCustomLoad] = useState(null)
+  // const [blindedNotes, setBlindedNotes] = useState([])
+  // const [invitations, setInvitations] = useState([])
+  // const [officialReviews, setOfficialReviews] = useState([])
   const wildcardInvitation = `${venueId}/.*`
   const customMaxPapersId = `${venueId}/${reviewerName}/-/Custom_Max_Papers`
+  const [reviewerConsoleData, setReviewerConsoleData] = useState({})
 
   const getNumberFromGroup = (groupId, name = 'Paper') => {
     const paper = groupId.split('/').find((p) => p.indexOf(name) === 0)
     return paper ? parseInt(paper.substring(name.length), 10) : null
   }
 
+  const formatInvitations = (allInvitations) => formatTasksData([allInvitations, [], []], true)
   const loadData = async () => {
     const userIds = [...user.profile.usernames, ...user.profile.emails]
 
@@ -103,7 +108,7 @@ const ReviewerConsole = ({ appContext }) => {
         .reduce((prev, curr) => {
           const num = getNumberFromGroup(curr.id)
           const anonGroup = anonGroups.find((p) =>
-            p.id.startsWith(`${venueId}/Paper/${num}/${singularName}_`)
+            p.id.startsWith(`${venueId}/Paper${num}/${singularName}_`)
           )
           return anonGroup ? { ...prev, [num]: anonGroup.id } : prev
         }, {})
@@ -186,9 +191,10 @@ const ReviewerConsole = ({ appContext }) => {
         edgeInvitationsP,
         tagInvitationsP,
       ]).then(([noteInvitations, edgeInvitations, tagInvitations]) => {
-        noteInvitations
-          .concat(edgeInvitations)
-          .concat(tagInvitations)
+        return noteInvitations
+          .map((p) => ({ ...p, noteInvitation: true, apiVersion: 1 }))
+          .concat(edgeInvitations.map((p) => ({ ...p, tagInvitation: true, apiVersion: 1 })))
+          .concat(tagInvitations.map((p) => ({ ...p, tagInvitation: true, apiVersion: 1 })))
           .filter((p) => p.invitees?.some((q) => q.indexOf(reviewerName) !== -1))
       })
       // #endregion
@@ -256,7 +262,12 @@ const ReviewerConsole = ({ appContext }) => {
         getCustomLoadP,
         getAreaChairGroupsP,
       ]).then(([blindedNotes, officialReviews, invitations, customLoad, areaChairMap]) => {
-        setCustomLoad(customLoadOverride ?? customLoad)
+        setReviewerConsoleData({
+          blindedNotes,
+          customLoad: customLoadOverride ?? customLoad,
+          invitations: formatInvitations(invitations),
+          officialReviews,
+        })
       })
     } catch (error) {
       promptError(error.message)
@@ -279,17 +290,17 @@ const ReviewerConsole = ({ appContext }) => {
   }, [user, userLoading, group])
 
   useEffect(() => {
-    if (blindedNotes) {
+    if (reviewerConsoleData.blindedNotes) {
       typesetMathJax()
     }
-  }, [blindedNotes])
+  }, [reviewerConsoleData.blindedNotes])
 
   return (
     <>
       <BasicHeader
         title={header?.title}
         instructions={header.instructions}
-        customLoad={customLoad}
+        customLoad={reviewerConsoleData.customLoad}
       />
       <Tabs>
         <TabList>
@@ -301,7 +312,7 @@ const ReviewerConsole = ({ appContext }) => {
 
         <TabPanels>
           <TabPanel id="assigned-papers">
-            {blindedNotes?.length === 0 ? (
+            {reviewerConsoleData.blindedNotes?.length === 0 ? (
               <p className="empty-message">
                 You have no assigned papers. Please check again after the paper assignment
                 process is complete.
@@ -311,22 +322,23 @@ const ReviewerConsole = ({ appContext }) => {
                 <Table
                   className="console-table table-striped"
                   headings={[
-                    { id: 'number', content: '#' },
-                    { id: 'summary', content: 'Paper Summary' },
-                    { id: 'ratings', content: 'Your Ratings' },
+                    { id: 'number', content: '#', width: '5%' },
+                    { id: 'summary', content: 'Paper Summary', width: '45%' },
+                    { id: 'ratings', content: 'Your Ratings', width: '50%' },
                   ]}
                 >
-                  {blindedNotes.map((note) => {
+                  {reviewerConsoleData.blindedNotes?.map((note) => {
                     const abc = 123
                     return (
                       <AssignedPaperRow
                         key={note.id}
                         note={note}
-                        invitations={invitations}
+                        invitations={reviewerConsoleData.invitations}
                         venueId={venueId}
                         reviewerName={reviewerName}
                         officialReviewName={officialReviewName}
                         reviewRatingName={reviewRatingName}
+                        officialReviews={reviewerConsoleData.officialReviews}
                       />
                     )
                   })}
@@ -336,7 +348,7 @@ const ReviewerConsole = ({ appContext }) => {
           </TabPanel>
           <TabPanel id="reviewer-tasks">
             <TaskList
-              invitations={invitations}
+              invitations={reviewerConsoleData.invitations}
               emptyMessage="No outstanding tasks for this conference"
               referrer={`${encodeURIComponent(
                 `[Reviewer Console](/group?id=${venueId}/${reviewerName}'#reviewer-tasks)`
