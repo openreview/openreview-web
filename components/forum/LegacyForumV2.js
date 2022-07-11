@@ -22,6 +22,11 @@ export default function LegacyForumV2({
   useEffect(() => {
     if (userLoading) return
 
+    if (!user) {
+      setIsBetaUser(false)
+      return
+    }
+
     const betaTestGroups = ['TMLR/Editors_In_Chief', 'TMLR/Action_Editors', 'TMLR/Reviewers', 'TMLR/Authors']
     api.get('/groups', { ids: betaTestGroups, select: 'members' })
       .then(({ groups }) => {
