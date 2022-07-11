@@ -152,9 +152,7 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
       parentIdMap[parentId].push(note.id)
 
       // Populate filter options
-      note.invitations.forEach((noteInv) => invitationIds.add(
-        noteInv.replace(numberWildcard, '$1.*').replace(usernameWildcard, '.*$2')
-      ))
+      invitationIds.add(note.invitations[0].replace(numberWildcard, '$1.*').replace(usernameWildcard, '.*$2'))
       note.signatures.forEach((noteSig) => signatureGroupIds.add(noteSig))
       note.readers.forEach((rId) => readerGroupIds.add(rId))
     })
