@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import api from '../../lib/api-client'
 import Table from '../Table'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
@@ -7,6 +7,7 @@ import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import { ReviewerConsoleNoteReviewStatus } from './NoteReviewStatus'
 import NoteSummary from './NoteSummary'
+import useUser from '../../hooks/useUser'
 
 const AssignedPaperRow = ({
   note,
@@ -59,7 +60,6 @@ const ReviewerConsole = ({ appContext }) => {
     header,
     entity: group,
     venueId,
-    authorName,
     reviewerName,
     officialReviewName,
     reviewRatingName,
@@ -67,7 +67,7 @@ const ReviewerConsole = ({ appContext }) => {
     customLoadInvitation,
     reviewLoad,
   } = useContext(WebFieldContext)
-  const { user, accessToken } = useUser()
+  const { user, accessToken, userLoading } = useUser()
   const [customLoad, setCustomLoad] = useState(null)
   const [blindedNotes, setBlindedNotes] = useState([])
   const [invitations, setInvitations] = useState([])
@@ -229,12 +229,34 @@ const ReviewerConsole = ({ appContext }) => {
             })
         })
       // #endregion
+
+      // #region get area chair groups
+      const getAreaChairGroupsP = api
+        .getAll(
+          '/groups',
+          {
+            regex: `${venueId}/Paper.*/Area_Chairs`,
+            select: 'id,members',
+          },
+          { accessToken, version: 1 }
+        )
+        .then((groups) => {
+          return groups.reduce((prev, curr) => {
+            const num = getNumberFromGroup(curr.id)
+            prev[num] = curr.members[0]
+          }, {})
+        })
+      // #endregion
+
       Promise.all([
         getBlindedNotesP,
         getOfficialReviewsPs,
         getAllInvitationsP,
         getCustomLoadP,
-      ]).then(([]) => {})
+        getAreaChairGroupsP,
+      ]).then(([blindedNotes, officialReviews, invitations, customLoad, areaChairMap]) => {
+        setCustomLoad(customLoad)
+      })
     } catch (error) {
       promptError(error.message)
     }
@@ -316,7 +338,7 @@ const ReviewerConsole = ({ appContext }) => {
               invitations={invitations}
               emptyMessage="No outstanding tasks for this conference"
               referrer={`${encodeURIComponent(
-                `[Author Console](/group?id=${venueId}/${authorName}'#author-tasks)`
+                `[Reviewer Console](/group?id=${venueId}/${reviewerName}'#reviewer-tasks)`
               )}&t=${Date.now()}`}
             />
           </TabPanel>
