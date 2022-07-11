@@ -2,9 +2,11 @@ import Link from 'next/link'
 import { prettyTasksInvitationId } from '../lib/utils'
 import Icon from './Icon'
 
-const TaskList = ({ invitations }) => {
-  const referrer = encodeURIComponent('[Tasks](/tasks)')
-
+const TaskList = ({
+  invitations,
+  emptyMessage = 'No current pending or completed tasks',
+  referrer = encodeURIComponent('[Tasks](/tasks)'),
+}) => {
   const renderInvitation = (invitation) => {
     const {
       tagInvitation,
@@ -96,7 +98,7 @@ const TaskList = ({ invitations }) => {
       ))}
     </ul>
   ) : (
-    <p className="empty-message">No current pending or completed tasks</p>
+    <p className="empty-message">{emptyMessage}</p>
   )
 }
 
