@@ -64,7 +64,8 @@ const ReviewerConsole = ({ appContext }) => {
     officialReviewName,
     reviewRatingName,
     blindSubmissionId,
-    customMaxPapersId,
+    customLoadInvitation,
+    reviewLoad,
   } = useContext(WebFieldContext)
   const { user, accessToken } = useUser()
   const [customLoad, setCustomLoad] = useState(null)
@@ -72,6 +73,7 @@ const ReviewerConsole = ({ appContext }) => {
   const [invitations, setInvitations] = useState([])
   const [officialReviews, setOfficialReviews] = useState([])
   const wildcardInvitation = `${venueId}/.*`
+  const customMaxPapersId = `${venueId}/${reviewerName}/-/Custom_Max_Papers`
 
   const getNumberFromGroup = (groupId, name = 'Paper') => {
     const paper = groupId.split('/').find((p) => p.indexOf(name) === 0)
@@ -191,18 +193,48 @@ const ReviewerConsole = ({ appContext }) => {
       // #endregion
 
       // #region get custom load
-      const getCustomLoadP = api.get(
-        '/edges',
-        {
-          invitation: customMaxPapersId,
-          tail: user.id,
-        },
-        { accessToken }
-      )
+      const getCustomLoadP = api
+        .get(
+          '/edges',
+          {
+            invitation: customMaxPapersId,
+            tail: user.id,
+          },
+          { accessToken }
+        )
+        .then((result) => {
+          if (result.edges?.length) return edges[0].weight
+          return api
+            .get(
+              '/notes',
+              {
+                invitation: customLoadInvitation,
+                select: 'content.reviewer_load,content.user,content.reduced_load',
+              },
+              { accessToken }
+            )
+            .then((result) => {
+              if (!result.notes?.length) return reviewLoad
+              if (result.notes.length === 1) {
+                return (
+                  result.notes[0].content.reviewer_load || result.notes[0].content.reduced_load
+                )
+              } else {
+                // If there is more than one there might be a Program Chair
+                const loads = result.notes.filter((p) => userIds.includes(note.content.user))
+                return loads.length
+                  ? loads[0].content.reviewer_load || loads[0].content.reduced_load
+                  : reviewLoad
+              }
+            })
+        })
       // #endregion
-      Promise.all([getBlindedNotesP, getOfficialReviewsPs, getAllInvitationsP]).then(
-        ([]) => {}
-      )
+      Promise.all([
+        getBlindedNotesP,
+        getOfficialReviewsPs,
+        getAllInvitationsP,
+        getCustomLoadP,
+      ]).then(([]) => {})
     } catch (error) {
       promptError(error.message)
     }
