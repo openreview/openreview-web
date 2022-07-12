@@ -740,6 +740,17 @@ table.table-minimal {
       }
     }
   }
+
+  &.reviewer-console {
+    display: flex;
+    label {
+      margin-right: 0.5rem;
+      align-self: center;
+    }
+    .ranking-dropdown {
+      flex-grow: 1;
+    }
+  }
 }
 
 // Note edito

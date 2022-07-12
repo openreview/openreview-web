@@ -8,7 +8,8 @@ import BasicHeader from './BasicHeader'
 import { ReviewerConsoleNoteReviewStatus } from './NoteReviewStatus'
 import NoteSummary from './NoteSummary'
 import useUser from '../../hooks/useUser'
-import { formatTasksData } from '../../lib/utils'
+import { formatTasksData, prettyInvitationId } from '../../lib/utils'
+import Dropdown from '../Dropdown'
 
 const AreaChairInfo = ({ areaChairId }) => {
   return (
@@ -23,6 +24,45 @@ const AreaChairInfo = ({ areaChairId }) => {
   )
 }
 
+const PaperRankingDropdown = ({
+  notesCount,
+  currentTagvalue,
+  existingPaperRankingTags,
+  paperRankingInvitation,
+}) => {
+  const noRankingText = 'No Ranking'
+  const allOptions = [{ label: noRankingText, value: noRankingText }].concat(
+    [...Array(notesCount).keys()].map((p) => {
+      const tagValue = `${p + 1} of ${notesCount}`
+      return { label: tagValue, value: tagValue }
+    })
+  )
+  const currentRanking = existingPaperRankingTags.flatMap((p) =>
+    !p.tag || p.tag === noRankingText ? [] : p.tag
+  )
+  const availableOptions = allOptions.filter((p) => !currentRanking.includes(p.value))
+
+  const getCurrentValue = () => {
+    const matchingOption = allOptions.find((p) => p.value === currentTagvalue)
+    if (matchingOption) return matchingOption
+    return currentTagvalue ? { label: currentTagvalue, value: currentTagvalue } : undefined
+  }
+
+  return (
+    <div className="tag-widget reviewer-console">
+      <label className="ranking-label">{prettyInvitationId(paperRankingInvitation.id)}</label>
+      <Dropdown
+        className="ranking-dropdown dropdown-sm"
+        options={availableOptions}
+        onChange={(e) => {
+          console.log(e.value)
+        }}
+        value={getCurrentValue()}
+      />
+    </div>
+  )
+}
+
 const AssignedPaperRow = ({
   note,
   invitations,
@@ -31,6 +71,9 @@ const AssignedPaperRow = ({
   reviewerName,
   officialReviewName,
   reviewRatingName,
+  paperRankingTags,
+  notesCount,
+  paperRankingId,
 }) => {
   const referrerUrl = encodeURIComponent(
     `[Reviewer Console](/group?id=${venueId}/${reviewerName}#assigned-papers)`
@@ -43,6 +86,8 @@ const AssignedPaperRow = ({
     (p) => p.invitation === officialReviewInvitaitonId
   )
   const isV2Note = note.version === 2
+  const currentTagvalue = paperRankingTags?.find((p) => p.forum === note.forum)?.tag
+  const paperRankingInvitation = invitations?.find((p) => p.id === paperRankingId)
   return (
     <tr>
       <td>
@@ -66,6 +111,14 @@ const AssignedPaperRow = ({
               : null
           }
         />
+        {paperRankingTags && (
+          <PaperRankingDropdown
+            notesCount={notesCount}
+            currentTagvalue={currentTagvalue}
+            existingPaperRankingTags={paperRankingTags}
+            paperRankingInvitation={paperRankingInvitation}
+          />
+        )}
       </td>
     </tr>
   )
@@ -82,12 +135,13 @@ const ReviewerConsole = ({ appContext }) => {
     blindSubmissionId,
     customLoadInvitation,
     reviewLoad,
-    customLoadOverride,
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
+  const [reviewerConsoleData, setReviewerConsoleData] = useState({})
+
   const wildcardInvitation = `${venueId}/.*`
   const customMaxPapersId = `${venueId}/${reviewerName}/-/Custom_Max_Papers`
-  const [reviewerConsoleData, setReviewerConsoleData] = useState({})
+  const paperRankingId = `${venueId}/${reviewerName}/-/Paper_Ranking`
 
   const getNumberFromGroup = (groupId, name = 'Paper') => {
     const paper = groupId.split('/').find((p) => p.indexOf(name) === 0)
@@ -106,23 +160,24 @@ const ReviewerConsole = ({ appContext }) => {
       const memberGroups = await api.getAll(
         '/groups',
         {
-          regex: wildcardInvitation,
+          regex: wildcardInvitation, // TODO: should this be `${venueId}/Paper.*`
           member: user.id,
         },
         { accessToken, version: 1 }
       )
-      const anonGroups = memberGroups.filter((p) => p.id.includes(`/${singularName}_`))
+      const anonGroups = memberGroups //memberGroups.filter((p) => p.id.includes(`/${singularName}_`))
       const groupByNumber = memberGroups
         .filter((p) => p.id.endsWith(`/${reviewerName}`))
         .reduce((prev, curr) => {
           const num = getNumberFromGroup(curr.id)
           const anonGroup = anonGroups.find((p) =>
-            p.id.startsWith(`${venueId}/Paper${num}/${singularName}_`)
+            // p.id.startsWith(`${venueId}/Paper${num}/${singularName}_`)
+            p.id.startsWith(`${venueId}/Paper${num}/AnonReviewer`)
           )
+          console.log('anonGroup', anonGroup)
           return anonGroup ? { ...prev, [num]: anonGroup.id } : prev
         }, {})
       //#endregion
-
       const noteNumbers = Object.keys(groupByNumber)
 
       // #region get blinded notes
@@ -133,9 +188,9 @@ const ReviewerConsole = ({ appContext }) => {
               {
                 invitation: blindSubmissionId,
                 number: noteNumbers.join(','),
-                select:
-                  'id,number,forum,content.title,content.authors,content.authorDomains,content.pdf',
-                details: 'invitation',
+                select: 'id,number,forum,content.title,content.authors,content.pdf',
+                details: 'invitation,directReplies', // TODO: filter directReplies where invitation is official review invitation and signature is in user's anon groups
+                // TODO: so that getOfficialReviewsPs can be removed
                 sort: 'number:asc',
               },
               { accessToken }
@@ -151,7 +206,10 @@ const ReviewerConsole = ({ appContext }) => {
               return api
                 .get(
                   '/notes',
-                  { invitation: `${venueId}/Paper${noteNumber}/-/${officialReviewName}` },
+                  {
+                    invitation: `${venueId}/Paper${noteNumber}/-/${officialReviewName}`,
+                    tauthor: true,
+                  },
                   { accessToken }
                 )
                 .then((result) => result.notes ?? [])
@@ -251,7 +309,7 @@ const ReviewerConsole = ({ appContext }) => {
         .getAll(
           '/groups',
           {
-            regex: `${venueId}/Paper.*/Area_Chairs`,
+            regex: `${venueId}/Paper.*/Area_Chairs`, // TODO: remove area chairs then filter for performance
             select: 'id,members',
           },
           { accessToken, version: 1 }
@@ -260,6 +318,7 @@ const ReviewerConsole = ({ appContext }) => {
           return groups.reduce((prev, curr) => {
             const num = getNumberFromGroup(curr.id)
             prev[num] = curr.members[0]
+            return prev
           }, {})
         })
       // #endregion
@@ -271,12 +330,34 @@ const ReviewerConsole = ({ appContext }) => {
         getCustomLoadP,
         getAreaChairGroupsP,
       ]).then(([blindedNotes, officialReviews, invitations, customLoad, areaChairMap]) => {
-        setReviewerConsoleData({
-          blindedNotes,
-          customLoad: customLoadOverride ?? customLoad,
-          invitations: formatInvitations(invitations),
-          officialReviews,
-        })
+        const paperRankingInvitation = invitations.find((p) => p.id === paperRankingId)
+        if (paperRankingInvitation) {
+          setReviewerConsoleData({
+            blindedNotes,
+            customLoad,
+            invitations: formatInvitations(invitations),
+            officialReviews,
+            paperRankingTags: paperRankingInvitation.details?.repliedTags ?? [],
+          })
+        } else {
+          return api
+            .get(
+              '/tags',
+              {
+                invitation: paperRankingId,
+              },
+              { accessToken }
+            )
+            .then((result) => {
+              setReviewerConsoleData({
+                blindedNotes,
+                customLoad,
+                invitations: formatInvitations(invitations),
+                officialReviews,
+                paperRankingTags: result.tags?.length ? result.tags : null,
+              })
+            })
+        }
       })
     } catch (error) {
       promptError(error.message)
@@ -348,6 +429,9 @@ const ReviewerConsole = ({ appContext }) => {
                         officialReviewName={officialReviewName}
                         reviewRatingName={reviewRatingName}
                         officialReviews={reviewerConsoleData.officialReviews}
+                        paperRankingTags={reviewerConsoleData.paperRankingTags}
+                        notesCount={reviewerConsoleData.blindedNotes.length}
+                        paperRankingId={paperRankingId}
                       />
                     )
                   })}

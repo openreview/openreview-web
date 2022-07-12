@@ -23,11 +23,11 @@ const BasicHeader = ({ title, instructions, customLoad, options }) => {
       {instructions && (
         <div className="description">
           <Markdown text={instructions} />
-          {customLoad && (
+          {customLoad && customLoad !== 0 ? (
             <p className="dark">
               You have agreed to review up to <strong>{`${customLoad} papers`}</strong>.
             </p>
-          )}
+          ) : null}
         </div>
       )}
       {options?.underline && <hr className="spacer" />}
