@@ -9,7 +9,7 @@
         <tr>
           <td style="width: 28px;"><strong>{{note.number}}.</strong></td>
           <td style="width: 214px;">
-            Recommendation: {{metaReview.content.recommendation}}
+            {{note.content.venue}} - {{metaReview.content.recommendation}}
             {{#if metaReview.content.format}}/ Format: {{metaReview.content.format}}{{/if}}
           </td>
         </tr>
@@ -22,7 +22,7 @@
         {{else}}
         <tr>
           <td style="width: 28px;"><strong>{{note.number}}.</strong></td>
-          <td style="width: 2140px;">{{#if ../metaReviewName}}{{../metaReviewName}}{{else}}Meta Review{{/if}} pending</td>
+          <td style="width: 214px;">{{note.content.venue}} - No {{#if ../metaReviewName}}{{../metaReviewName}}{{else}}Meta Review{{/if}}</td>
         </tr>
         <tr>
           <td style="width: 28px;"></td>

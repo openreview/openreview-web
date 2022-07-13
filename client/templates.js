@@ -786,9 +786,9 @@ templates['noteReviewers'] = template({"1":function(container,depth0,helpers,par
     + alias2(alias1(blockParams[0][1], depth0))
     + "</strong></td>\n            <td>\n              "
     + alias2(alias1(((stack1 = blockParams[0][0]) != null ? lookupProperty(stack1,"name") : stack1), depth0))
-    + " <span class=\"text-muted\">("
+    + " <span class=\"text-muted\">&lt;"
     + alias2(alias1(((stack1 = blockParams[0][0]) != null ? lookupProperty(stack1,"email") : stack1), depth0))
-    + ")</span>\n"
+    + "&gt;</span>\n"
     + ((stack1 = lookupProperty(helpers,"if").call(alias3,((stack1 = blockParams[0][0]) != null ? lookupProperty(stack1,"status") : stack1),{"name":"if","hash":{},"fn":container.program(20, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":20,"column":14},"end":{"line":25,"column":21}}})) != null ? stack1 : "")
     + ((stack1 = lookupProperty(helpers,"if").call(alias3,((stack1 = blockParams[0][0]) != null ? lookupProperty(stack1,"completedReview") : stack1),{"name":"if","hash":{},"fn":container.program(23, data, 0, blockParams, depths),"inverse":container.program(37, data, 0, blockParams, depths),"data":data,"blockParams":blockParams,"loc":{"start":{"line":26,"column":14},"end":{"line":41,"column":21}}})) != null ? stack1 : "")
     + ((stack1 = lookupProperty(helpers,"if").call(alias3,(depths[1] != null ? lookupProperty(depths[1],"showActivityModal") : depths[1]),{"name":"if","hash":{},"fn":container.program(44, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":42,"column":14},"end":{"line":45,"column":21}}})) != null ? stack1 : "")
@@ -1277,7 +1277,9 @@ templates['notesAreaChairStatus'] = template({"1":function(container,depth0,help
 
   return "        <tr>\n          <td style=\"width: 28px;\"><strong>"
     + alias2(alias1(((stack1 = (depth0 != null ? lookupProperty(depth0,"note") : depth0)) != null ? lookupProperty(stack1,"number") : stack1), depth0))
-    + ".</strong></td>\n          <td style=\"width: 214px;\">\n            Recommendation: "
+    + ".</strong></td>\n          <td style=\"width: 214px;\">\n            "
+    + alias2(alias1(((stack1 = ((stack1 = (depth0 != null ? lookupProperty(depth0,"note") : depth0)) != null ? lookupProperty(stack1,"content") : stack1)) != null ? lookupProperty(stack1,"venue") : stack1), depth0))
+    + " - "
     + alias2(alias1(((stack1 = ((stack1 = (depth0 != null ? lookupProperty(depth0,"metaReview") : depth0)) != null ? lookupProperty(stack1,"content") : stack1)) != null ? lookupProperty(stack1,"recommendation") : stack1), depth0))
     + "\n            "
     + ((stack1 = lookupProperty(helpers,"if").call(alias3,((stack1 = ((stack1 = (depth0 != null ? lookupProperty(depth0,"metaReview") : depth0)) != null ? lookupProperty(stack1,"content") : stack1)) != null ? lookupProperty(stack1,"format") : stack1),{"name":"if","hash":{},"fn":container.program(7, data, 0, blockParams, depths),"inverse":container.noop,"data":data,"loc":{"start":{"line":13,"column":12},"end":{"line":13,"column":91}}})) != null ? stack1 : "")
@@ -1319,7 +1321,7 @@ templates['notesAreaChairStatus'] = template({"1":function(container,depth0,help
 
   return container.escapeExpression(container.lambda((depths[1] != null ? lookupProperty(depths[1],"metaReviewName") : depths[1]), depth0));
 },"13":function(container,depth0,helpers,partials,data,blockParams,depths) {
-    var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+    var stack1, alias1=container.lambda, alias2=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
         }
@@ -1327,10 +1329,12 @@ templates['notesAreaChairStatus'] = template({"1":function(container,depth0,help
     };
 
   return "        <tr>\n          <td style=\"width: 28px;\"><strong>"
-    + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? lookupProperty(depth0,"note") : depth0)) != null ? lookupProperty(stack1,"number") : stack1), depth0))
-    + ".</strong></td>\n          <td style=\"width: 2140px;\">"
-    + ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),(depths[1] != null ? lookupProperty(depths[1],"metaReviewName") : depths[1]),{"name":"if","hash":{},"fn":container.program(11, data, 0, blockParams, depths),"inverse":container.program(3, data, 0, blockParams, depths),"data":data,"loc":{"start":{"line":25,"column":37},"end":{"line":25,"column":109}}})) != null ? stack1 : "")
-    + " pending</td>\n        </tr>\n        <tr>\n          <td style=\"width: 28px;\"></td>\n          <td></td>\n        </tr>\n";
+    + alias2(alias1(((stack1 = (depth0 != null ? lookupProperty(depth0,"note") : depth0)) != null ? lookupProperty(stack1,"number") : stack1), depth0))
+    + ".</strong></td>\n          <td style=\"width: 214px;\">"
+    + alias2(alias1(((stack1 = ((stack1 = (depth0 != null ? lookupProperty(depth0,"note") : depth0)) != null ? lookupProperty(stack1,"content") : stack1)) != null ? lookupProperty(stack1,"venue") : stack1), depth0))
+    + " - No "
+    + ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),(depths[1] != null ? lookupProperty(depths[1],"metaReviewName") : depths[1]),{"name":"if","hash":{},"fn":container.program(11, data, 0, blockParams, depths),"inverse":container.program(3, data, 0, blockParams, depths),"data":data,"loc":{"start":{"line":25,"column":64},"end":{"line":25,"column":136}}})) != null ? stack1 : "")
+    + "</td>\n        </tr>\n        <tr>\n          <td style=\"width: 28px;\"></td>\n          <td></td>\n        </tr>\n";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
