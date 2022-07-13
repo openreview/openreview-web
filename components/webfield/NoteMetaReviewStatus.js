@@ -7,13 +7,11 @@ export const AuthorConsoleNoteMetaReviewStatus = ({
   submissionName,
 }) => {
   const isV2Note = note.version === 2
-  const decision = isV2Note
-    ? note.details.replies.filter((p) =>
-        p.invitations.includes(`${venueId}/${submissionName}${note.number}/-/${decisionName}`)
-      )?.[0]
-    : note.details?.directReplies?.find(
-        (p) => p.invitation === `${venueId}/${submissionName}${note.number}/-/${decisionName}`
-      )
+  const decisionInvitationId = `${venueId}/${submissionName}${note.number}/-/${decisionName}`
+  const decisionLookupFn = isV2Note
+    ? (p) => p.invitations.includes(decisionInvitationId)
+    : (p) => p.invitation === decisionInvitationId
+  const decision = note.details?.directReplies?.find(decisionLookupFn)
   const decisionContent = isV2Note
     ? decision?.content?.recommendation?.value
     : decision?.content?.decision

@@ -1,21 +1,21 @@
 /* globals typesetMathJax,promptError: false */
+
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import useQuery from '../../hooks/useQuery'
-import useUser from '../../hooks/useUser'
-import BasicHeader from './BasicHeader'
 import WebFieldContext from '../WebFieldContext'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
-import api from '../../lib/api-client'
+import BasicHeader from './BasicHeader'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 import Table from '../Table'
-import { formatTasksData, prettyId } from '../../lib/utils'
-
 import { AuthorConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import TaskList from '../TaskList'
 import ErrorDisplay from '../ErrorDisplay'
 import NoteSummary from './NoteSummary'
+import useQuery from '../../hooks/useQuery'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { formatTasksData, prettyId } from '../../lib/utils'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
 const ReviewSummary = ({
   note,
@@ -28,23 +28,23 @@ const ReviewSummary = ({
   isV2Note,
 }) => {
   const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
-  const noteCompletedReviews = isV2Note
-    ? note.details.replies.filter((reply) =>
-        reply.invitations.includes(officialReviewInvitationId)
-      ) ?? []
-    : note.details.directReplies?.filter((p) => p.invitation === officialReviewInvitationId) ??
-      []
+  const directlyReplyFilterFn = isV2Note
+    ? (p) => p.invitations.includes(officialReviewInvitationId)
+    : (p) => p.invitation === officialReviewInvitationId
+  const noteCompletedReviews = note.details.directReplies?.filter(directlyReplyFilterFn) ?? []
   const ratings = []
   const confidences = []
   noteCompletedReviews.forEach((p) => {
     const ratingEx = /^(\d+): .*$/
-    const ratingMatch = isV2Note
-      ? p.content[reviewRatingName]?.value?.match(ratingEx)
-      : p.content[reviewRatingName]?.match(ratingEx)
+    const ratingValue = isV2Note
+      ? p.content[reviewRatingName]?.value
+      : p.content[reviewRatingName]
+    const ratingMatch = ratingValue?.match(ratingEx)
     ratings.push(ratingMatch ? parseInt(ratingMatch[1], 10) : null)
-    const confidenceMatch = isV2Note
-      ? p.content[reviewConfidenceName]?.value?.match(ratingEx)
-      : p.content[reviewConfidenceName]?.match(ratingEx)
+    const confidenceValue = isV2Note
+      ? p.content[reviewConfidenceName]?.value
+      : p.content[reviewConfidenceName]
+    const confidenceMatch = confidenceValue?.match(ratingEx)
     confidences.push(confidenceMatch ? parseInt(confidenceMatch[1], 10) : null)
   })
 
@@ -97,11 +97,10 @@ const ReviewSummary = ({
         })}
       </ul>
       <div>
-        <strong>Average Rating:</strong>
-        {`${averageRating} (Min: ${minRating}, Max: ${maxRating})`}
+        <strong>Average Rating:</strong> {averageRating} (Min: {minRating}, Max: {maxRating})
         <br />
-        <strong>Average Confidence:</strong>
-        {`${averageConfidence} (Min: ${minConfidence}, Max: ${maxConfidence})`}
+        <strong>Average Confidence:</strong> {averageConfidence} (Min: {minConfidence}, Max:{' '}
+        {maxConfidence})
       </div>
     </div>
   )
@@ -167,42 +166,17 @@ const AuthorConsole = ({ appContext }) => {
     reviewConfidenceName,
     authorName,
     submissionName,
-    wildcardInvitation,
     blindSubmissionId, // for v1 only
   } = useContext(WebFieldContext)
 
-  const { user, accessToken } = useUser()
+  const { user, userLoading, accessToken } = useUser()
   const router = useRouter()
   const query = useQuery()
   const { setBannerContent } = appContext
   const [authorNotes, setAuthorNotes] = useState([])
   const [invitations, setInvitations] = useState([])
 
-  useEffect(() => {
-    if (!query) return
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
-    } else {
-      setBannerContent(venueHomepageLink(venueId))
-    }
-  }, [query, venueId])
-
-  useEffect(() => {
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
-    } else {
-      setBannerContent(venueHomepageLink(venueId))
-    }
-  }, [group])
-
-  useEffect(() => {
-    if (!group || !authorSubmissionField || !submissionId || !wildcardInvitation) return
-    apiVersion === 2 ? loadDataV2() : loadData() // eslint-disable-line no-unused-expressions, no-use-before-define
-  }, [group])
-
-  useEffect(() => {
-    if (authorNotes) typesetMathJax()
-  }, [authorNotes])
+  const wildcardInvitation = `${venueId}/.*`
 
   const formatInvitations = (allInvitations) => formatTasksData([allInvitations, [], []], true)
 
@@ -309,7 +283,7 @@ const AuthorConsole = ({ appContext }) => {
       {
         [authorSubmissionField]: user.profile.id,
         invitation: submissionId,
-        details: 'replies',
+        details: 'directReplies',
         sort: 'number:asc',
       },
       { accessToken, version: 2 }
@@ -373,44 +347,61 @@ const AuthorConsole = ({ appContext }) => {
     }
   }
 
-  if (!user || !user.profile || user.profile.id === 'guest') {
-    router.replace(
-      `/login?redirect=${encodeURIComponent(
-        `${window.location.pathname}${window.location.search}${window.location.hash}`
-      )}`
-    )
-  }
+  useEffect(() => {
+    if (!query) return
 
-  let missingConfig
-  if (
-    // eslint-disable-next-line no-cond-assign
-    (missingConfig = Object.entries({
-      header,
-      group,
-      apiVersion,
-      venueId,
-      submissionId,
-      authorSubmissionField,
-      officialReviewName,
-      decisionName,
-      reviewRatingName,
-      reviewConfidenceName,
-      authorName,
-      submissionName,
-      wildcardInvitation,
-    }).filter(([key, value]) => value === undefined))?.length ||
-    (apiVersion === 1 && blindSubmissionId === undefined)
-  ) {
-    return (
-      <ErrorDisplay
-        statusCode=""
-        message={`web has missing config: ${
-          missingConfig.length
-            ? missingConfig.map((p) => p[0]).join(' ,')
-            : 'blindSubmissionId'
-        }`}
-      />
-    )
+    if (query.referrer) {
+      setBannerContent(referrerLink(query.referrer))
+    } else {
+      setBannerContent(venueHomepageLink(venueId))
+    }
+  }, [query, venueId])
+
+  useEffect(() => {
+    if (!userLoading && (!user || !user.profile || user.profile.id === 'guest')) {
+      router.replace(
+        `/login?redirect=${encodeURIComponent(
+          `${window.location.pathname}${window.location.search}${window.location.hash}`
+        )}`
+      )
+    }
+  }, [user, userLoading])
+
+  useEffect(() => {
+    if (userLoading || !user || !group || !authorSubmissionField || !submissionId) return
+
+    if (apiVersion === 2) {
+      loadDataV2()
+    } else {
+      loadData()
+    }
+  }, [user, userLoading, group])
+
+  useEffect(() => {
+    if (authorNotes) {
+      typesetMathJax()
+    }
+  }, [authorNotes])
+
+  const missingConfig = Object.entries({
+    header,
+    group,
+    apiVersion,
+    venueId,
+    submissionId,
+    authorSubmissionField,
+    officialReviewName,
+    decisionName,
+    reviewRatingName,
+    reviewConfidenceName,
+    authorName,
+    submissionName,
+  }).filter(([key, value]) => value === undefined)
+  if (missingConfig?.length || (apiVersion === 1 && blindSubmissionId === undefined)) {
+    const errorMessage = `Author Console is missing required properties: ${
+      missingConfig.length ? missingConfig.map((p) => p[0]).join(', ') : 'blindSubmissionId'
+    }`
+    return <ErrorDisplay statusCode="" message={errorMessage} />
   }
 
   return (

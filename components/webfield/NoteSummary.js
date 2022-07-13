@@ -5,9 +5,6 @@ const NoteSummary = ({ note, referrerUrl, isV2Note }) => {
   const titleValue = isV2Note ? note.content?.title?.value : note.content?.title
   const pdfValue = isV2Note ? note.content?.pdf?.value : note.content?.pdf
   const authorsValue = isV2Note ? note.content?.authors?.value : note.content?.authors
-  const authorDomainsValue = isV2Note
-    ? note.content?.authorDomains?.value
-    : note.content?.authorDomains
   return (
     <div className="note">
       <h4>
@@ -35,16 +32,12 @@ const NoteSummary = ({ note, referrerUrl, isV2Note }) => {
         </div>
       )}
       {authorsValue && <div className="note-authors">{authorsValue.join(', ')}</div>}
-      {authorDomainsValue && (
-        <div className="note-authors">{`Conflict Domains: ${authorDomainsValue.join(
-          ', '
-        )}`}</div>
-      )}
 
       <NoteContentCollapsible
         id={note.id}
         content={note.content}
         invitation={note.invitation}
+        isV2Note={isV2Note}
       />
     </div>
   )
