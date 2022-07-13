@@ -11,6 +11,9 @@ import useUser from '../../hooks/useUser'
 import { formatTasksData, prettyId, prettyInvitationId } from '../../lib/utils'
 import Dropdown from '../Dropdown'
 import { useRouter } from 'next/router'
+import useQuery from '../../hooks/useQuery'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
+import ErrorDisplay from '../ErrorDisplay'
 
 const AreaChairInfo = ({ areaChairId }) => {
   return (
@@ -113,26 +116,34 @@ const PaperRankingDropdown = ({
 
 const AssignedPaperRow = ({
   note,
-  invitations,
-  officialReviews,
-  venueId,
-  reviewerName,
-  officialReviewName,
-  reviewRatingName,
-  areaChairName,
-  paperRankingTags,
-  notesCount,
+  reviewerConsoleData,
   paperRankingId,
-  paperNumberAnonGroupIdMap,
   setReviewerConsoleData,
   enablePaperRanking,
   setEnablePaperRanking,
-  areaChairMap,
 }) => {
+  const {
+    invitations,
+    officialReviews,
+    paperRankingTags,
+    blindedNotes,
+    paperNumberAnonGroupIdMap,
+    areaChairMap,
+  } = reviewerConsoleData
+  const {
+    venueId,
+    reviewerName,
+    officialReviewName,
+    reviewRatingName,
+    areaChairName,
+    submissionName,
+  } = useContext(WebFieldContext)
+  const notesCount = blindedNotes.length
   const referrerUrl = encodeURIComponent(
     `[Reviewer Console](/group?id=${venueId}/${reviewerName}#assigned-papers)`
   )
-  const officialReviewInvitaitonId = `${venueId}/Paper${note.number}/-/${officialReviewName}`
+  const officialReviewInvitaitonId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
+  console.log('officialReviewInvitaitonId', officialReviewInvitaitonId)
   const officialReviewInvitation = invitations?.find(
     (p) => p.id === officialReviewInvitaitonId
   )
@@ -179,7 +190,7 @@ const AssignedPaperRow = ({
             anonGroupId={anonGroupId}
             tagReaders={[
               venueId,
-              `${venueId}/Paper${note.number}/${areaChairName}`,
+              `${venueId}/${submissionName}${note.number}/${areaChairName}`,
               anonGroupId,
             ]}
             setReviewerConsoleData={setReviewerConsoleData}
@@ -201,13 +212,15 @@ const ReviewerConsole = ({ appContext }) => {
     officialReviewName,
     reviewRatingName,
     areaChairName,
+    submissionName,
     blindSubmissionId,
     customLoadInvitation,
     reviewLoad,
-    area,
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
   const { router } = useRouter
+  const query = useQuery()
+  const { setBannerContent } = appContext
   const [reviewerConsoleData, setReviewerConsoleData] = useState({})
   const [enablePaperRanking, setEnablePaperRanking] = useState(true)
 
@@ -232,7 +245,7 @@ const ReviewerConsole = ({ appContext }) => {
       const memberGroups = await api.getAll(
         '/groups',
         {
-          regex: `${venueId}/Paper.*`,
+          regex: `${venueId}/${submissionName}.*`,
           member: user.id,
         },
         { accessToken, version: 1 }
@@ -242,9 +255,9 @@ const ReviewerConsole = ({ appContext }) => {
       const groupByNumber = memberGroups
         .filter((p) => p.id.endsWith(`/${reviewerName}`))
         .reduce((prev, curr) => {
-          const num = getNumberFromGroup(curr.id)
+          const num = getNumberFromGroup(curr.id, submissionName)
           const anonGroup = anonGroups.find((p) =>
-            p.id.startsWith(`${venueId}/Paper${num}/${singularName}_`)
+            p.id.startsWith(`${venueId}/${submissionName}${num}/${singularName}_`)
           )
           return anonGroup ? { ...prev, [num]: anonGroup.id } : prev
         }, {})
@@ -360,7 +373,7 @@ const ReviewerConsole = ({ appContext }) => {
         .getAll(
           '/groups',
           {
-            regex: `${venueId}/Paper.*`,
+            regex: `${venueId}/${submissionName}.*`,
             select: 'id,members',
           },
           { accessToken, version: 1 }
@@ -369,7 +382,7 @@ const ReviewerConsole = ({ appContext }) => {
           return groups
             .filter((p) => p.id.includes(areaChairName))
             .reduce((prev, curr) => {
-              const num = getNumberFromGroup(curr.id)
+              const num = getNumberFromGroup(curr.id, submissionName)
               prev[num] = curr.members[0]
               return prev
             }, {})
@@ -430,6 +443,16 @@ const ReviewerConsole = ({ appContext }) => {
   }
 
   useEffect(() => {
+    if (!query) return
+
+    if (query.referrer) {
+      setBannerContent(referrerLink(query.referrer))
+    } else {
+      setBannerContent(venueHomepageLink(venueId))
+    }
+  }, [query, venueId])
+
+  useEffect(() => {
     if (!userLoading && (!user || !user.profile || user.profile.id === 'guest')) {
       router.replace(
         `/login?redirect=${encodeURIComponent(
@@ -449,6 +472,26 @@ const ReviewerConsole = ({ appContext }) => {
       typesetMathJax()
     }
   }, [reviewerConsoleData.blindedNotes])
+
+  const missingConfig = Object.entries({
+    header,
+    group,
+    venueId,
+    reviewerName,
+    officialReviewName,
+    reviewRatingName,
+    areaChairName,
+    submissionName,
+    blindSubmissionId,
+    customLoadInvitation,
+    reviewLoad,
+  }).filter(([key, value]) => value === undefined)
+  if (missingConfig?.length) {
+    const errorMessage = `Reviewer Console is missing required properties: ${missingConfig
+      .map((p) => p[0])
+      .join(', ')}`
+    return <ErrorDisplay statusCode="" message={errorMessage} />
+  }
 
   return (
     <>
@@ -477,34 +520,21 @@ const ReviewerConsole = ({ appContext }) => {
                 <Table
                   className="console-table table-striped"
                   headings={[
-                    { id: 'number', content: '#', width: '5%' },
-                    { id: 'summary', content: 'Paper Summary', width: '45%' },
-                    { id: 'ratings', content: 'Your Ratings', width: '50%' },
+                    { id: 'number', content: '#', width: '8%' },
+                    { id: 'summary', content: 'Paper Summary', width: '46%' },
+                    { id: 'ratings', content: 'Your Ratings', width: '46%' },
                   ]}
                 >
                   {reviewerConsoleData.blindedNotes?.map((note) => {
-                    const abc = 123
                     return (
                       <AssignedPaperRow
                         key={note.id}
                         note={note}
-                        invitations={reviewerConsoleData.invitations}
-                        venueId={venueId}
-                        reviewerName={reviewerName}
-                        officialReviewName={officialReviewName}
-                        reviewRatingName={reviewRatingName}
-                        areaChairName={areaChairName}
-                        officialReviews={reviewerConsoleData.officialReviews}
-                        paperRankingTags={reviewerConsoleData.paperRankingTags}
-                        notesCount={reviewerConsoleData.blindedNotes.length}
+                        reviewerConsoleData={reviewerConsoleData}
                         paperRankingId={paperRankingId}
-                        paperNumberAnonGroupIdMap={
-                          reviewerConsoleData.paperNumberAnonGroupIdMap
-                        }
                         setReviewerConsoleData={setReviewerConsoleData}
                         enablePaperRanking={enablePaperRanking}
                         setEnablePaperRanking={setEnablePaperRanking}
-                        areaChairMap={reviewerConsoleData.areaChairMap}
                       />
                     )
                   })}
