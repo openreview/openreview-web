@@ -8,16 +8,17 @@ import BasicHeader from './BasicHeader'
 import { ReviewerConsoleNoteReviewStatus } from './NoteReviewStatus'
 import NoteSummary from './NoteSummary'
 import useUser from '../../hooks/useUser'
-import { formatTasksData, prettyInvitationId } from '../../lib/utils'
+import { formatTasksData, prettyId, prettyInvitationId } from '../../lib/utils'
 import Dropdown from '../Dropdown'
+import { useRouter } from 'next/router'
 
 const AreaChairInfo = ({ areaChairId }) => {
   return (
     <div className="note-area-chairs">
       <p>
         <strong>Area Chair:</strong>{' '}
-        <a href={`https://openreview.net/profile?id=${areaChairId}`} target="_blank">
-          prettyId(areaChairId)
+        <a href={`/profile?id=${areaChairId}`} target="_blank">
+          {prettyId(areaChairId)}
         </a>
       </p>
     </div>
@@ -25,12 +26,22 @@ const AreaChairInfo = ({ areaChairId }) => {
 }
 
 const PaperRankingDropdown = ({
+  noteId,
+  noteForum,
   notesCount,
-  currentTagvalue,
+  currentTagObj,
   existingPaperRankingTags,
   paperRankingInvitation,
+  paperRankingId,
+  anonGroupId,
+  tagReaders,
+  setReviewerConsoleData,
+  enablePaperRanking,
+  setEnablePaperRanking,
 }) => {
+  const { accessToken } = useUser()
   const noRankingText = 'No Ranking'
+  const currentTagvalue = currentTagObj?.tag
   const allOptions = [{ label: noRankingText, value: noRankingText }].concat(
     [...Array(notesCount).keys()].map((p) => {
       const tagValue = `${p + 1} of ${notesCount}`
@@ -48,14 +59,51 @@ const PaperRankingDropdown = ({
     return currentTagvalue ? { label: currentTagvalue, value: currentTagvalue } : undefined
   }
 
+  const postTag = async (newTagValue) => {
+    setEnablePaperRanking(false)
+    try {
+      const result = await api.post(
+        '/tags',
+        {
+          id: currentTagObj.id,
+          tag: newTagValue,
+          signatures: [anonGroupId],
+          readers: tagReaders,
+          forum: noteId,
+          invitation: paperRankingInvitation?.id ?? paperRankingId,
+          ddate: null,
+        },
+        { accessToken }
+      )
+
+      setReviewerConsoleData((reviewerConsoleData) => {
+        let newPaperRankingTags = [...reviewerConsoleData.paperRankingTags].filter(
+          (p) => p?.forum !== noteForum
+        )
+        newPaperRankingTags.push(result)
+        return {
+          ...reviewerConsoleData,
+          paperRankingTags: newPaperRankingTags,
+        }
+      })
+    } catch (error) {
+      promptError(error.message)
+    }
+    setEnablePaperRanking(true)
+  }
+
   return (
     <div className="tag-widget reviewer-console">
-      <label className="ranking-label">{prettyInvitationId(paperRankingInvitation.id)}</label>
+      <label className="ranking-label">
+        {prettyInvitationId(paperRankingInvitation.id ?? paperRankingId)}
+      </label>
       <Dropdown
-        className="ranking-dropdown dropdown-sm"
+        className={`ranking-dropdown dropdown-sm${
+          enablePaperRanking ? '' : ' dropdown-disable'
+        }`}
         options={availableOptions}
         onChange={(e) => {
-          console.log(e.value)
+          postTag(e.value)
         }}
         value={getCurrentValue()}
       />
@@ -71,9 +119,15 @@ const AssignedPaperRow = ({
   reviewerName,
   officialReviewName,
   reviewRatingName,
+  areaChairName,
   paperRankingTags,
   notesCount,
   paperRankingId,
+  paperNumberAnonGroupIdMap,
+  setReviewerConsoleData,
+  enablePaperRanking,
+  setEnablePaperRanking,
+  areaChairMap,
 }) => {
   const referrerUrl = encodeURIComponent(
     `[Reviewer Console](/group?id=${venueId}/${reviewerName}#assigned-papers)`
@@ -86,15 +140,18 @@ const AssignedPaperRow = ({
     (p) => p.invitation === officialReviewInvitaitonId
   )
   const isV2Note = note.version === 2
-  const currentTagvalue = paperRankingTags?.find((p) => p.forum === note.forum)?.tag
+  const currentTagObj = paperRankingTags?.find((p) => p.forum === note.forum)
   const paperRankingInvitation = invitations?.find((p) => p.id === paperRankingId)
+  const anonGroupId = paperNumberAnonGroupIdMap[note.number]
   return (
     <tr>
       <td>
         <strong className="note-number">{note.number}</strong>
       </td>
       <td>
+        {console.log('areaChairMap', areaChairMap)}
         <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={isV2Note} />
+        <AreaChairInfo areaChairId={areaChairMap[note.number]} />
       </td>
       <td>
         <ReviewerConsoleNoteReviewStatus
@@ -113,10 +170,22 @@ const AssignedPaperRow = ({
         />
         {paperRankingTags && (
           <PaperRankingDropdown
+            noteId={note.id}
+            noteForum={note.forum}
             notesCount={notesCount}
-            currentTagvalue={currentTagvalue}
+            currentTagObj={currentTagObj}
             existingPaperRankingTags={paperRankingTags}
             paperRankingInvitation={paperRankingInvitation}
+            paperRankingId={paperRankingId}
+            anonGroupId={anonGroupId}
+            tagReaders={[
+              venueId,
+              `${venueId}/Paper${note.number}/${areaChairName}`,
+              anonGroupId,
+            ]}
+            setReviewerConsoleData={setReviewerConsoleData}
+            enablePaperRanking={enablePaperRanking}
+            setEnablePaperRanking={setEnablePaperRanking}
           />
         )}
       </td>
@@ -132,12 +201,16 @@ const ReviewerConsole = ({ appContext }) => {
     reviewerName,
     officialReviewName,
     reviewRatingName,
+    areaChairName,
     blindSubmissionId,
     customLoadInvitation,
     reviewLoad,
+    area,
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
+  const { router } = useRouter
   const [reviewerConsoleData, setReviewerConsoleData] = useState({})
+  const [enablePaperRanking, setEnablePaperRanking] = useState(true)
 
   const wildcardInvitation = `${venueId}/.*`
   const customMaxPapersId = `${venueId}/${reviewerName}/-/Custom_Max_Papers`
@@ -160,21 +233,20 @@ const ReviewerConsole = ({ appContext }) => {
       const memberGroups = await api.getAll(
         '/groups',
         {
-          regex: wildcardInvitation, // TODO: should this be `${venueId}/Paper.*`
+          regex: `${venueId}/Paper.*`,
           member: user.id,
         },
         { accessToken, version: 1 }
       )
-      const anonGroups = memberGroups //memberGroups.filter((p) => p.id.includes(`/${singularName}_`))
+      const anonGroups = memberGroups.filter((p) => p.id.includes(`/${singularName}_`))
+
       const groupByNumber = memberGroups
         .filter((p) => p.id.endsWith(`/${reviewerName}`))
         .reduce((prev, curr) => {
           const num = getNumberFromGroup(curr.id)
           const anonGroup = anonGroups.find((p) =>
-            // p.id.startsWith(`${venueId}/Paper${num}/${singularName}_`)
-            p.id.startsWith(`${venueId}/Paper${num}/AnonReviewer`)
+            p.id.startsWith(`${venueId}/Paper${num}/${singularName}_`)
           )
-          console.log('anonGroup', anonGroup)
           return anonGroup ? { ...prev, [num]: anonGroup.id } : prev
         }, {})
       //#endregion
@@ -333,11 +405,13 @@ const ReviewerConsole = ({ appContext }) => {
         const paperRankingInvitation = invitations.find((p) => p.id === paperRankingId)
         if (paperRankingInvitation) {
           setReviewerConsoleData({
+            paperNumberAnonGroupIdMap: groupByNumber,
             blindedNotes,
             customLoad,
             invitations: formatInvitations(invitations),
             officialReviews,
             paperRankingTags: paperRankingInvitation.details?.repliedTags ?? [],
+            areaChairMap,
           })
         } else {
           return api
@@ -350,11 +424,13 @@ const ReviewerConsole = ({ appContext }) => {
             )
             .then((result) => {
               setReviewerConsoleData({
+                paperNumberAnonGroupIdMap: groupByNumber,
                 blindedNotes,
                 customLoad,
                 invitations: formatInvitations(invitations),
                 officialReviews,
-                paperRankingTags: result.tags?.length ? result.tags : null,
+                paperRankingTags: result.tags?.length ? result.tags : null, // null will not render paper ranking
+                areaChairMap,
               })
             })
         }
@@ -428,10 +504,18 @@ const ReviewerConsole = ({ appContext }) => {
                         reviewerName={reviewerName}
                         officialReviewName={officialReviewName}
                         reviewRatingName={reviewRatingName}
+                        areaChairName={areaChairName}
                         officialReviews={reviewerConsoleData.officialReviews}
                         paperRankingTags={reviewerConsoleData.paperRankingTags}
                         notesCount={reviewerConsoleData.blindedNotes.length}
                         paperRankingId={paperRankingId}
+                        paperNumberAnonGroupIdMap={
+                          reviewerConsoleData.paperNumberAnonGroupIdMap
+                        }
+                        setReviewerConsoleData={setReviewerConsoleData}
+                        enablePaperRanking={enablePaperRanking}
+                        setEnablePaperRanking={setEnablePaperRanking}
+                        areaChairMap={reviewerConsoleData.areaChairMap}
                       />
                     )
                   })}
