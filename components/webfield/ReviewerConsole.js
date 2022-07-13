@@ -149,7 +149,6 @@ const AssignedPaperRow = ({
         <strong className="note-number">{note.number}</strong>
       </td>
       <td>
-        {console.log('areaChairMap', areaChairMap)}
         <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={isV2Note} />
         <AreaChairInfo areaChairId={areaChairMap[note.number]} />
       </td>
@@ -260,9 +259,8 @@ const ReviewerConsole = ({ appContext }) => {
               {
                 invitation: blindSubmissionId,
                 number: noteNumbers.join(','),
-                select: 'id,number,forum,content.title,content.authors,content.pdf',
-                details: 'invitation,directReplies', // TODO: filter directReplies where invitation is official review invitation and signature is in user's anon groups
-                // TODO: so that getOfficialReviewsPs can be removed
+                select: 'id,number,forum,content.title,content.authors,content.pdf,details',
+                details: 'invitation,directReplies',
                 sort: 'number:asc',
               },
               { accessToken }
@@ -270,25 +268,6 @@ const ReviewerConsole = ({ appContext }) => {
             .then((result) => result.notes ?? [])
         : Promise.resolve([])
       //#endregion
-
-      // #region get official reviews
-      const getOfficialReviewsPs = noteNumbers.length
-        ? Promise.all(
-            noteNumbers.map((noteNumber) => {
-              return api
-                .get(
-                  '/notes',
-                  {
-                    invitation: `${venueId}/Paper${noteNumber}/-/${officialReviewName}`,
-                    tauthor: true,
-                  },
-                  { accessToken }
-                )
-                .then((result) => result.notes ?? [])
-            })
-          ).then((results) => results.flat())
-        : Promise.resolve([])
-      // #endregion
 
       // #region get all invitations
       const invitationsP = api.getAll(
@@ -381,27 +360,37 @@ const ReviewerConsole = ({ appContext }) => {
         .getAll(
           '/groups',
           {
-            regex: `${venueId}/Paper.*/Area_Chairs`, // TODO: remove area chairs then filter for performance
+            regex: `${venueId}/Paper.*`,
             select: 'id,members',
           },
           { accessToken, version: 1 }
         )
         .then((groups) => {
-          return groups.reduce((prev, curr) => {
-            const num = getNumberFromGroup(curr.id)
-            prev[num] = curr.members[0]
-            return prev
-          }, {})
+          return groups
+            .filter((p) => p.id.includes(areaChairName))
+            .reduce((prev, curr) => {
+              const num = getNumberFromGroup(curr.id)
+              prev[num] = curr.members[0]
+              return prev
+            }, {})
         })
       // #endregion
 
       Promise.all([
         getBlindedNotesP,
-        getOfficialReviewsPs,
         getAllInvitationsP,
         getCustomLoadP,
         getAreaChairGroupsP,
-      ]).then(([blindedNotes, officialReviews, invitations, customLoad, areaChairMap]) => {
+      ]).then(([blindedNotes, invitations, customLoad, areaChairMap]) => {
+        const anonGroupIds = anonGroups.map((p) => p.id)
+        // get official reviews from notes details
+        const officialReviews = blindedNotes
+          .flatMap((p) => p.details.directReplies)
+          .filter(
+            (q) =>
+              q.invitation.includes(officialReviewName) &&
+              q.signatures.some((r) => anonGroupIds.includes(r))
+          )
         const paperRankingInvitation = invitations.find((p) => p.id === paperRankingId)
         if (paperRankingInvitation) {
           setReviewerConsoleData({
