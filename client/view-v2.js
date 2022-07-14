@@ -161,10 +161,14 @@ module.exports = (function() {
     var $input;
 
     if (!_.has(fieldDescription.value, 'param') || _.has(fieldDescription.value.param, 'const')) {
-      if (Array.isArray(fieldDescription.value) || fieldDescription.param.type.endsWith('[]')){
+      value = fieldDescription.value;
+      if (_.has(fieldDescription.value, 'param')) {
+        value = fieldDescription.value.param.const;
+      }
+      if (Array.isArray(fieldDescription.value) || fieldDescription.value.param.type.endsWith('[]')) {
         //treat as values
         contentInputResult = view.mkDropdownAdder(
-          fieldName, fieldDescription.description, fieldDescription.value,
+          fieldName, fieldDescription.description, value,
           fieldValue, { hoverText: true, refreshData: false, required: !fieldDescription.value.param?.optional }
         );
       } else {
@@ -173,7 +177,7 @@ module.exports = (function() {
           type: 'text',
           class: 'form-control note_content_value',
           name: fieldName,
-          value: fieldDescription.value,
+          value: value,
           readonly: true
         }), fieldName, fieldDescription);
       }
