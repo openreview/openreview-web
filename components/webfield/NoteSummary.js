@@ -1,7 +1,7 @@
 import NoteContentCollapsible from './NoteContentCollapsible'
-import { getNotePdfUrl } from '../../lib/utils'
+import { forumDate, getNotePdfUrl } from '../../lib/utils'
 
-const NoteSummary = ({ note, referrerUrl, isV2Note }) => {
+const NoteSummary = ({ note, referrerUrl, isV2Note, showDates = false }) => {
   const titleValue = isV2Note ? note.content?.title?.value : note.content?.title
   const pdfValue = isV2Note ? note.content?.pdf?.value : note.content?.pdf
   const authorsValue = isV2Note ? note.content?.authors?.value : note.content?.authors
@@ -32,6 +32,21 @@ const NoteSummary = ({ note, referrerUrl, isV2Note }) => {
         </div>
       )}
       {authorsValue && <div className="note-authors">{authorsValue.join(', ')}</div>}
+
+      {showDates && (
+        <div>
+          <span className="date">
+            <strong>Submission date</strong>:{' '}
+            {forumDate(
+              note.cdate,
+              note.tcdate,
+              note.mdate,
+              note.tmdate,
+              isV2Note ? note.content.year?.value : note.content.year
+            )}
+          </span>
+        </div>
+      )}
 
       <NoteContentCollapsible
         id={note.id}
