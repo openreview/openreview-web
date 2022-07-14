@@ -889,7 +889,8 @@ module.exports = (function() {
   // Used by TMLR Journal consoles
   var eicTaskList = function(invitations, forumId, options) {
     var defaults = {
-      referrer: ''
+      referrer: '',
+      showEditLink: false
     };
     options = _.defaults(options, defaults);
 
@@ -918,9 +919,9 @@ module.exports = (function() {
     var renderTaskItem = function(inv) {
       return (
         '<li class="note ' + (inv.complete ? 'completed' : '') + '">' +
-          '<h4><a href="/invitation/info?id=' + inv.id + (options.referrer ? '&referrer=' + options.referrer : '') + '" target="_blank">' +
-            view.prettyInvitationId(inv.id) +
-          '</a></h4>' +
+        '<h4><a href="/forum?id=' + inv.forumId + (inv.complete ? '' : '&invitationId=' + inv.id) + (options.referrer ? '&referrer=' + options.referrer : '') + '" target="_blank">' +
+         view.prettyInvitationId(inv.id) + '</a></h4>' +
+          (options.showEditLink ? '<a href="/invitation/edit?id=' + inv.id  + '">Edit</a>' : '') +
           (inv.startDateStr ? '<p class="mb-1"><span class="duedate">Start: ' + inv.startDateStr + '</span></p>' : '') +
           '<p class="mb-1"><span class="duedate ' + inv.dueDateStatus +'">Due: ' + inv.dueDateStr + '</span></p>' +
           '<p class="mb-0">' + (inv.complete ? 'Complete' : 'Incomplete') + ', ' + inv.replies.length + ' ' + (inv.replies.length === 1 ? 'Reply' : 'Replies') + '</p>' +
