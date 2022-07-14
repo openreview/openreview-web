@@ -6,32 +6,20 @@ import NoteContent, { NoteContentV2 } from '../NoteContent'
 const NoteContentCollapsible = ({ id, content, invitation, isV2Note }) => {
   const [collapsed, setCollapsed] = useState(true)
   const collapseRef = useRef(null)
-  const fieldsToOmit = isV2Note // html should be displayed
-    ? [
-        'title',
-        'authors',
-        'authorids',
-        'pdf',
-        'verdict',
-        'paperhash',
-        'ee',
-        'year',
-        'venue',
-        'venueid',
-      ]
-    : [
-        'title',
-        'authors',
-        'author_emails',
-        'authorids',
-        'pdf',
-        'verdict',
-        'paperhash',
-        'ee',
-        'year',
-        'venue',
-        'venueid',
-      ]
+  const fieldsToOmit = [
+    // html should be displayed
+    'title',
+    'authors',
+    'author_emails',
+    'authorids',
+    'pdf',
+    'verdict',
+    'paperhash',
+    'ee',
+    'year',
+    'venue',
+    'venueid',
+  ]
 
   if (Object.keys(content).every((p) => fieldsToOmit.includes(p))) return null // will expand to empty
 

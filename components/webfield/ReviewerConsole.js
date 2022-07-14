@@ -225,8 +225,10 @@ const ReviewerConsole = ({ appContext }) => {
     reviewRatingName,
     areaChairName,
     submissionName,
-    submissionId,
-    customLoadInvitation,
+    submissionInvitationId,
+    customLoadInvitationId, // for v1 only
+    recruitmentInvitationId, // for v2 only
+    customMaxPapersInvitationId, // to query custom load edges
     reviewLoad,
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
@@ -237,7 +239,6 @@ const ReviewerConsole = ({ appContext }) => {
   const [enablePaperRanking, setEnablePaperRanking] = useState(true)
 
   const wildcardInvitation = `${venueId}/.*`
-  const customMaxPapersId = `${venueId}/${reviewerName}/-/Custom_Max_Papers`
   const paperRankingId = `${venueId}/${reviewerName}/-/Paper_Ranking`
 
   const formatInvitations = (allInvitations) => formatTasksData([allInvitations, [], []], true)
@@ -277,10 +278,9 @@ const ReviewerConsole = ({ appContext }) => {
             .get(
               '/notes',
               {
-                invitation: submissionId,
+                invitation: submissionInvitationId,
                 number: noteNumbers.join(','),
                 details: 'invitation,directReplies',
-                sort: 'number:asc',
               },
               { accessToken, version: apiVersion }
             )
@@ -343,36 +343,53 @@ const ReviewerConsole = ({ appContext }) => {
         .get(
           '/edges',
           {
-            invitation: customMaxPapersId,
+            invitation: customMaxPapersInvitationId,
             tail: user.id,
           },
           { accessToken }
         )
         .then((result) => {
-          if (result.edges?.length) return edges[0].weight
-          return api
-            .get(
-              '/notes',
-              {
-                invitation: customLoadInvitation,
-                select: 'content.reviewer_load,content.user,content.reduced_load',
-              },
-              { accessToken }
-            )
-            .then((result) => {
-              if (!result.notes?.length) return reviewLoad
-              if (result.notes.length === 1) {
-                return (
-                  result.notes[0].content.reviewer_load || result.notes[0].content.reduced_load
+          if (result.edges?.length) return result.edges[0].weight
+          return apiVersion === 2
+            ? api
+                .get(
+                  '/notes',
+                  {
+                    invitation: recruitmentInvitationId,
+                    sort: 'cdate:desc',
+                  },
+                  { accessToken, version: 2 }
                 )
-              } else {
-                // If there is more than one there might be a Program Chair
-                const loads = result.notes.filter((p) => userIds.includes(note.content.user))
-                return loads.length
-                  ? loads[0].content.reviewer_load || loads[0].content.reduced_load
-                  : reviewLoad
-              }
-            })
+                .then((result) => {
+                  if (!result.notes?.length) return reviewLoad
+                  return result.notes[0].content?.['reduced_load']?.value
+                })
+            : api
+                .get(
+                  '/notes',
+                  {
+                    invitation: customLoadInvitationId,
+                    select: 'content.reviewer_load,content.user,content.reduced_load',
+                  },
+                  { accessToken, version: 1 }
+                )
+                .then((result) => {
+                  if (!result.notes?.length) return reviewLoad
+                  if (result.notes.length === 1) {
+                    return (
+                      result.notes[0].content.reviewer_load ||
+                      result.notes[0].content.reduced_load
+                    )
+                  } else {
+                    // If there is more than one there might be a Program Chair
+                    const loads = result.notes.filter((p) =>
+                      userIds.includes(note.content.user)
+                    )
+                    return loads.length
+                      ? loads[0].content.reviewer_load || loads[0].content.reduced_load
+                      : reviewLoad
+                  }
+                })
         })
       // #endregion
 
@@ -471,7 +488,15 @@ const ReviewerConsole = ({ appContext }) => {
   }, [user, userLoading])
 
   useEffect(() => {
-    if (userLoading || !user || !group || !submissionId || !submissionName) return
+    if (
+      userLoading ||
+      !user ||
+      !group ||
+      !submissionInvitationId ||
+      !submissionName ||
+      !venueId
+    )
+      return
     loadData()
   }, [user, userLoading, group])
 
@@ -491,14 +516,19 @@ const ReviewerConsole = ({ appContext }) => {
     reviewRatingName,
     areaChairName,
     submissionName,
-    submissionId,
-    customLoadInvitation,
+    submissionInvitationId,
     reviewLoad,
   }).filter(([key, value]) => value === undefined)
-  if (missingConfig?.length) {
-    const errorMessage = `Reviewer Console is missing required properties: ${missingConfig
-      .map((p) => p[0])
-      .join(', ')}`
+  if (
+    missingConfig?.length ||
+    (apiVersion === 2 && recruitmentInvitationId === undefined) ||
+    (apiVersion === 1 && customLoadInvitationId === undefined)
+  ) {
+    const errorMessage = `Reviewer Console is missing required properties: ${
+      missingConfig.length
+        ? missingConfig.map((p) => p[0]).join(', ')
+        : `${apiVersion === 2 ? 'recruitmentInvitationId' : 'customLoadInvitationId'}`
+    }`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
 
