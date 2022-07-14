@@ -1,4 +1,7 @@
+/* globals typesetMathJax,promptError: false */
 import { useContext, useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
+import Link from 'next/link'
 import api from '../../lib/api-client'
 import Table from '../Table'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
@@ -15,24 +18,21 @@ import {
   prettyInvitationId,
 } from '../../lib/utils'
 import Dropdown from '../Dropdown'
-import { useRouter } from 'next/router'
 import useQuery from '../../hooks/useQuery'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import ErrorDisplay from '../ErrorDisplay'
 import { filterAssignedInvitations } from '../../lib/webfield-utils'
 
-const AreaChairInfo = ({ areaChairId }) => {
-  return (
-    <div className="note-area-chairs">
-      <p>
-        <strong>Area Chair:</strong>{' '}
-        <a href={`/profile?id=${areaChairId}`} target="_blank">
-          {prettyId(areaChairId)}
-        </a>
-      </p>
-    </div>
-  )
-}
+const AreaChairInfo = ({ areaChairId }) => (
+  <div className="note-area-chairs">
+    <p>
+      <strong>Area Chair:</strong>{' '}
+      <Link href={`/profile?id=${areaChairId}`}>
+        <a>{prettyId(areaChairId)}</a>
+      </Link>
+    </p>
+  </div>
+)
 
 const PaperRankingDropdown = ({
   noteId,
@@ -86,7 +86,7 @@ const PaperRankingDropdown = ({
       )
 
       setReviewerConsoleData((reviewerConsoleData) => {
-        let newPaperRankingTags = [...reviewerConsoleData.paperRankingTags].filter(
+        const newPaperRankingTags = [...reviewerConsoleData.paperRankingTags].filter(
           (p) => p?.forum !== noteForum
         )
         newPaperRankingTags.push(result)
@@ -269,7 +269,7 @@ const ReviewerConsole = ({ appContext }) => {
           )
           return anonGroup ? { ...prev, [num]: anonGroup.id } : prev
         }, {})
-      //#endregion
+      // #endregion
       const noteNumbers = Object.keys(groupByNumber)
 
       // #region get notes
@@ -286,7 +286,7 @@ const ReviewerConsole = ({ appContext }) => {
             )
             .then((result) => result.notes ?? [])
         : Promise.resolve([])
-      //#endregion
+      // #endregion
 
       // #region get all invitations
       const invitationsP = api.getAll(
@@ -327,15 +327,15 @@ const ReviewerConsole = ({ appContext }) => {
         invitationsP,
         edgeInvitationsP,
         tagInvitationsP,
-      ]).then(([noteInvitations, edgeInvitations, tagInvitations]) => {
-        return noteInvitations
+      ]).then(([noteInvitations, edgeInvitations, tagInvitations]) =>
+        noteInvitations
           .map((p) => ({ ...p, noteInvitation: true, apiVersion }))
           .concat(edgeInvitations.map((p) => ({ ...p, tagInvitation: true, apiVersion })))
           .concat(tagInvitations.map((p) => ({ ...p, tagInvitation: true, apiVersion })))
-          .filter((p) => {
-            return filterAssignedInvitations(p, reviewerName, submissionName, noteNumbers)
-          })
-      })
+          .filter((p) =>
+            filterAssignedInvitations(p, reviewerName, submissionName, noteNumbers)
+          )
+      )
       // #endregion
 
       // #region get custom load
@@ -360,9 +360,9 @@ const ReviewerConsole = ({ appContext }) => {
                   },
                   { accessToken, version: 2 }
                 )
-                .then((result) => {
-                  if (!result.notes?.length) return reviewLoad
-                  return result.notes[0].content?.['reduced_load']?.value
+                .then((noteResult) => {
+                  if (!noteResult.notes?.length) return reviewLoad
+                  return noteResult.notes[0].content?.reduced_load?.value
                 })
             : api
                 .get(
@@ -373,22 +373,21 @@ const ReviewerConsole = ({ appContext }) => {
                   },
                   { accessToken, version: 1 }
                 )
-                .then((result) => {
-                  if (!result.notes?.length) return reviewLoad
-                  if (result.notes.length === 1) {
+                .then((noteResult) => {
+                  if (!noteResult.notes?.length) return reviewLoad
+                  if (noteResult.notes.length === 1) {
                     return (
-                      result.notes[0].content.reviewer_load ||
-                      result.notes[0].content.reduced_load
+                      noteResult.notes[0].content.reviewer_load ||
+                      noteResult.notes[0].content.reduced_load
                     )
-                  } else {
-                    // If there is more than one there might be a Program Chair
-                    const loads = result.notes.filter((p) =>
-                      userIds.includes(note.content.user)
-                    )
-                    return loads.length
-                      ? loads[0].content.reviewer_load || loads[0].content.reduced_load
-                      : reviewLoad
                   }
+                  // If there is more than one there might be a Program Chair
+                  const loads = noteResult.notes.filter((note) =>
+                    userIds.includes(note.content.user)
+                  )
+                  return loads.length
+                    ? loads[0].content.reviewer_load || loads[0].content.reduced_load
+                    : reviewLoad
                 })
         })
       // #endregion
@@ -403,15 +402,15 @@ const ReviewerConsole = ({ appContext }) => {
           },
           { accessToken }
         )
-        .then((groups) => {
-          return groups
+        .then((groups) =>
+          groups
             .filter((p) => p.id.includes(areaChairName))
             .reduce((prev, curr) => {
               const num = getNumberFromGroup(curr.id, submissionName)
-              prev[num] = curr.members[0]
+              prev[num] = curr.members[0] // eslint-disable-line no-param-reassign
               return prev
             }, {})
-        })
+        )
       // #endregion
 
       Promise.all([getNotesP, getAllInvitationsP, getCustomLoadP, getAreaChairGroupsP]).then(
@@ -440,7 +439,7 @@ const ReviewerConsole = ({ appContext }) => {
               areaChairMap,
             })
           } else {
-            return api
+            api
               .get(
                 '/tags',
                 {
@@ -564,19 +563,17 @@ const ReviewerConsole = ({ appContext }) => {
                     { id: 'ratings', content: 'Your Ratings', width: '46%' },
                   ]}
                 >
-                  {reviewerConsoleData.notes?.map((note) => {
-                    return (
-                      <AssignedPaperRow
-                        key={note.id}
-                        note={note}
-                        reviewerConsoleData={reviewerConsoleData}
-                        paperRankingId={paperRankingId}
-                        setReviewerConsoleData={setReviewerConsoleData}
-                        enablePaperRanking={enablePaperRanking}
-                        setEnablePaperRanking={setEnablePaperRanking}
-                      />
-                    )
-                  })}
+                  {reviewerConsoleData.notes?.map((note) => (
+                    <AssignedPaperRow
+                      key={note.id}
+                      note={note}
+                      reviewerConsoleData={reviewerConsoleData}
+                      paperRankingId={paperRankingId}
+                      setReviewerConsoleData={setReviewerConsoleData}
+                      enablePaperRanking={enablePaperRanking}
+                      setEnablePaperRanking={setEnablePaperRanking}
+                    />
+                  ))}
                 </Table>
               </div>
             )}
