@@ -14,6 +14,7 @@ import useUser from '../../hooks/useUser'
 import {
   formatTasksData,
   getNumberFromGroup,
+  prettyField,
   prettyId,
   prettyInvitationId,
 } from '../../lib/utils'
@@ -23,10 +24,10 @@ import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import ErrorDisplay from '../ErrorDisplay'
 import { filterAssignedInvitations } from '../../lib/webfield-utils'
 
-const AreaChairInfo = ({ areaChairId }) => (
+const AreaChairInfo = ({ areaChairName, areaChairId }) => (
   <div className="note-area-chairs">
     <p>
-      <strong>Area Chair:</strong>{' '}
+      <strong>{prettyField(areaChairName)}:</strong>{' '}
       <Link href={`/profile?id=${areaChairId}`}>
         <a>{prettyId(areaChairId)}</a>
       </Link>
@@ -172,7 +173,9 @@ const AssignedPaperRow = ({
       </td>
       <td>
         <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={isV2Note} />
-        {areaChairId && <AreaChairInfo areaChairId={areaChairId} />}
+        {areaChairId && (
+          <AreaChairInfo areaChairName={areaChairName} areaChairId={areaChairId} />
+        )}
       </td>
       <td>
         <ReviewerConsoleNoteReviewStatus
@@ -214,6 +217,88 @@ const AssignedPaperRow = ({
   )
 }
 
+const ReviewerConsoleTasks = ({
+  venueId,
+  reviewerName,
+  apiVersion,
+  submissionName,
+  noteNumbers,
+}) => {
+  const wildcardInvitation = `${venueId}/.*`
+
+  const { accessToken } = useUser()
+  const [invitations, setInvitations] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  const loadInvitations = async () => {
+    try {
+      const invitationsP = api.getAll(
+        '/invitations',
+        {
+          regex: wildcardInvitation,
+          invitee: true,
+          duedate: true,
+          replyto: true,
+          type: 'notes',
+          details: 'replytoNote,repliedNotes',
+        },
+        { accessToken, version: apiVersion }
+      )
+      const edgeInvitationsP = api.getAll(
+        '/invitations',
+        {
+          regex: wildcardInvitation,
+          invitee: true,
+          duedate: true,
+          type: 'edges',
+          details: 'repliedEdges',
+        },
+        { accessToken, version: apiVersion }
+      )
+      const tagInvitationsP = api.getAll(
+        '/invitations',
+        {
+          regex: wildcardInvitation,
+          invitee: true,
+          duedate: true,
+          type: 'tags',
+          details: 'repliedTags',
+        },
+        { accessToken, version: apiVersion }
+      )
+      await Promise.all([invitationsP, edgeInvitationsP, tagInvitationsP]).then(
+        ([noteInvitations, edgeInvitations, tagInvitations]) => {
+          const allInvitations = noteInvitations
+            .map((p) => ({ ...p, noteInvitation: true, apiVersion }))
+            .concat(edgeInvitations.map((p) => ({ ...p, tagInvitation: true, apiVersion })))
+            .concat(tagInvitations.map((p) => ({ ...p, tagInvitation: true, apiVersion })))
+            .filter((p) =>
+              filterAssignedInvitations(p, reviewerName, submissionName, noteNumbers)
+            )
+          setInvitations(formatTasksData([allInvitations, [], []], true))
+        }
+      )
+    } catch (error) {
+      promptError(error.message)
+    }
+    setIsLoading(false)
+  }
+
+  useEffect(() => {
+    loadInvitations()
+  }, [])
+
+  return (
+    <TaskList
+      invitations={invitations}
+      emptyMessage={isLoading ? 'Loading...' : 'No outstanding tasks for this conference'}
+      referrer={`${encodeURIComponent(
+        `[Reviewer Console](/group?id=${venueId}/${reviewerName}'#reviewer-tasks)`
+      )}&t=${Date.now()}`}
+    />
+  )
+}
+
 const ReviewerConsole = ({ appContext }) => {
   const {
     header,
@@ -230,18 +315,19 @@ const ReviewerConsole = ({ appContext }) => {
     recruitmentInvitationId, // for v2 only
     customMaxPapersInvitationId, // to query custom load edges
     reviewLoad,
+    hasPaperRanking,
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
   const router = useRouter()
   const query = useQuery()
   const { setBannerContent } = appContext
+  const [showTasks, setShowTasks] = useState(false)
   const [reviewerConsoleData, setReviewerConsoleData] = useState({})
   const [enablePaperRanking, setEnablePaperRanking] = useState(true)
 
   const wildcardInvitation = `${venueId}/.*`
   const paperRankingId = `${venueId}/${reviewerName}/-/Paper_Ranking`
 
-  const formatInvitations = (allInvitations) => formatTasksData([allInvitations, [], []], true)
   const loadData = async () => {
     const userIds = [...user.profile.usernames, ...user.profile.emails]
 
@@ -288,54 +374,16 @@ const ReviewerConsole = ({ appContext }) => {
         : Promise.resolve([])
       // #endregion
 
-      // #region get all invitations
-      const invitationsP = api.getAll(
-        '/invitations',
-        {
-          regex: wildcardInvitation,
-          invitee: true,
-          duedate: true,
-          replyto: true,
-          type: 'notes',
-          details: 'replytoNote,repliedNotes',
-        },
-        { accessToken, version: apiVersion }
-      )
-      const edgeInvitationsP = api.getAll(
-        '/invitations',
-        {
-          regex: wildcardInvitation,
-          invitee: true,
-          duedate: true,
-          type: 'edges',
-          details: 'repliedEdges',
-        },
-        { accessToken, version: apiVersion }
-      )
-      const tagInvitationsP = api.getAll(
-        '/invitations',
-        {
-          regex: wildcardInvitation,
-          invitee: true,
-          duedate: true,
-          type: 'tags',
-          details: 'repliedTags',
-        },
-        { accessToken, version: apiVersion }
-      )
-      const getAllInvitationsP = Promise.all([
-        invitationsP,
-        edgeInvitationsP,
-        tagInvitationsP,
-      ]).then(([noteInvitations, edgeInvitations, tagInvitations]) =>
-        noteInvitations
-          .map((p) => ({ ...p, noteInvitation: true, apiVersion }))
-          .concat(edgeInvitations.map((p) => ({ ...p, tagInvitation: true, apiVersion })))
-          .concat(tagInvitations.map((p) => ({ ...p, tagInvitation: true, apiVersion })))
-          .filter((p) =>
-            filterAssignedInvitations(p, reviewerName, submissionName, noteNumbers)
-          )
-      )
+      // #region paper ranking invitation
+      const paperRankingInvitationP = hasPaperRanking
+        ? api.getInvitationById(paperRankingId, accessToken, {
+            regex: wildcardInvitation,
+            invitee: true,
+            duedate: true,
+            type: 'tags',
+            details: 'repliedTags',
+          })
+        : Promise.resolve(null)
       // #endregion
 
       // #region get custom load
@@ -413,54 +461,66 @@ const ReviewerConsole = ({ appContext }) => {
         )
       // #endregion
 
-      Promise.all([getNotesP, getAllInvitationsP, getCustomLoadP, getAreaChairGroupsP]).then(
-        ([notes, invitations, customLoad, areaChairMap]) => {
-          const anonGroupIds = anonGroups.map((p) => p.id)
-          // get official reviews from notes details
-          const officialReviewFilterFn =
-            apiVersion === 2
-              ? (p) => p.invitations.some((q) => q.includes(officialReviewName))
-              : (p) => p.invitation.includes(officialReviewName)
-          const officialReviews = notes
-            .flatMap((p) => p.details.directReplies)
-            .filter(
-              (q) =>
-                officialReviewFilterFn(q) && q.signatures.some((r) => anonGroupIds.includes(r))
+      Promise.all([
+        getNotesP,
+        paperRankingInvitationP,
+        getCustomLoadP,
+        getAreaChairGroupsP,
+      ]).then(([notes, paperRankingInvitation, customLoad, areaChairMap]) => {
+        const anonGroupIds = anonGroups.map((p) => p.id)
+        // get official reviews from notes details
+        const officialReviewFilterFn =
+          apiVersion === 2
+            ? (p) => p.invitations.some((q) => q.includes(officialReviewName))
+            : (p) => p.invitation.includes(officialReviewName)
+        const officialReviews = notes
+          .flatMap((p) => p.details.directReplies)
+          .filter(
+            (q) =>
+              officialReviewFilterFn(q) && q.signatures.some((r) => anonGroupIds.includes(r))
+          )
+        if (paperRankingInvitation) {
+          setReviewerConsoleData({
+            paperNumberAnonGroupIdMap: groupByNumber,
+            notes,
+            customLoad,
+            officialReviews,
+            paperRankingTags: paperRankingInvitation.details?.repliedTags ?? [],
+            areaChairMap,
+            noteNumbers,
+          })
+        } else if (hasPaperRanking) {
+          api
+            .get(
+              '/tags',
+              {
+                invitation: paperRankingId,
+              },
+              { accessToken }
             )
-          const paperRankingInvitation = invitations.find((p) => p.id === paperRankingId)
-          if (paperRankingInvitation) {
-            setReviewerConsoleData({
-              paperNumberAnonGroupIdMap: groupByNumber,
-              notes,
-              customLoad,
-              invitations: formatInvitations(invitations),
-              officialReviews,
-              paperRankingTags: paperRankingInvitation.details?.repliedTags ?? [],
-              areaChairMap,
-            })
-          } else {
-            api
-              .get(
-                '/tags',
-                {
-                  invitation: paperRankingId,
-                },
-                { accessToken }
-              )
-              .then((result) => {
-                setReviewerConsoleData({
-                  paperNumberAnonGroupIdMap: groupByNumber,
-                  notes,
-                  customLoad,
-                  invitations: formatInvitations(invitations),
-                  officialReviews,
-                  paperRankingTags: result.tags?.length ? result.tags : null, // null will not render paper ranking
-                  areaChairMap,
-                })
+            .then((result) => {
+              setReviewerConsoleData({
+                paperNumberAnonGroupIdMap: groupByNumber,
+                notes,
+                customLoad,
+                officialReviews,
+                paperRankingTags: result.tags?.length ? result.tags : null, // null will not render paper ranking
+                areaChairMap,
+                noteNumbers,
               })
-          }
+            })
+        } else {
+          setReviewerConsoleData({
+            paperNumberAnonGroupIdMap: groupByNumber,
+            notes,
+            customLoad,
+            officialReviews,
+            paperRankingTags: null,
+            areaChairMap,
+            noteNumbers,
+          })
         }
-      )
+      })
     } catch (error) {
       promptError(error.message)
     }
@@ -516,7 +576,9 @@ const ReviewerConsole = ({ appContext }) => {
     areaChairName,
     submissionName,
     submissionInvitationId,
+    customMaxPapersInvitationId,
     reviewLoad,
+    hasPaperRanking,
   }).filter(([key, value]) => value === undefined)
   if (
     missingConfig?.length ||
@@ -543,7 +605,9 @@ const ReviewerConsole = ({ appContext }) => {
           <Tab id="assigned-papers" active>
             Assigned Papers
           </Tab>
-          <Tab id="reviewer-tasks">Reviewer Tasks</Tab>
+          <Tab id="reviewer-tasks" onClick={() => setShowTasks(true)}>
+            Reviewer Tasks
+          </Tab>
         </TabList>
 
         <TabPanels>
@@ -579,13 +643,15 @@ const ReviewerConsole = ({ appContext }) => {
             )}
           </TabPanel>
           <TabPanel id="reviewer-tasks">
-            <TaskList
-              invitations={reviewerConsoleData.invitations}
-              emptyMessage="No outstanding tasks for this conference"
-              referrer={`${encodeURIComponent(
-                `[Reviewer Console](/group?id=${venueId}/${reviewerName}'#reviewer-tasks)`
-              )}&t=${Date.now()}`}
-            />
+            {showTasks && (
+              <ReviewerConsoleTasks
+                venueId={venueId}
+                reviewerName={reviewerName}
+                apiVersion={apiVersion}
+                submissionName={submissionName}
+                noteNumbers={reviewerConsoleData.noteNumbers}
+              />
+            )}
           </TabPanel>
         </TabPanels>
       </Tabs>
