@@ -26,6 +26,7 @@ const BasicHeader = ({ title, instructions, options }) => {
         </div>
       )}
       {options?.underline && <hr className="spacer" />}
+      {options?.extra}
     </div>
   )
 }
