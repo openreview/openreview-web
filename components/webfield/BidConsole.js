@@ -1,18 +1,20 @@
-import { useContext, useEffect, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useState } from 'react'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import useQuery from '../../hooks/useQuery'
 import { useRouter } from 'next/router'
-import NoteList, { NoteListWithBidTag, NoteListWithTag } from '../NoteList'
+import { NoteListWithBidTag } from '../NoteList'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import PaginationLinks from '../PaginationLinks'
 import Icon from '../Icon'
 import Dropdown from '../Dropdown'
 import { prettyInvitationId } from '../../lib/utils'
 import LoadingSpinner from '../LoadingSpinner'
+import PaginatedList from '../PaginatedList'
+import Note from '../Note'
+import BidRadioButtonGroup from './BidRadioButtonGroup'
 
 const buildArray = (invitation, fieldName, profileId, noteNumber) => {
   if (invitation.reply?.[fieldName]?.value) return invitation.reply[fieldName].value
@@ -50,26 +52,23 @@ const AllSubmissionsTab = ({
   bidEdges,
   setBidEdges,
 }) => {
-  const [notes, setNotes] = useState([])
   const [selectedScore, setSelectedScore] = useState(scoreIds?.[0])
   const { user, accessToken } = useUser()
-  const [pageNumber, setPageNumber] = useState(1)
-  const [totalCount, setTotalCount] = useState(0)
   const sortOptions = scoreIds.map((p) => ({ label: prettyInvitationId(p), value: p }))
-  const pageSize = 50
 
-  const getNotesSortedByAffinity = async (offset = 0, limit = 50) => {
-    const getNotesByBlindSubmissionInvitationP = () =>
-      api.get(
+  const getNotesSortedByAffinity = async (limit, offset) => {
+    const getNotesByBlindSubmissionInvitationP = () => {
+      return api.get(
         '/notes',
         {
           invitation: blindSubmissionInvitationId,
           details: 'invitation',
-          offset: (pageNumber - 1) * pageSize,
+          offset,
           limit,
         },
         { accessToken }
       )
+    }
     try {
       if (selectedScore) {
         const edgesResult = await api.get(
@@ -87,13 +86,17 @@ const AllSubmissionsTab = ({
           //TODO: data loading when there's edge
         } else {
           const notesResult = await getNotesByBlindSubmissionInvitationP()
-          setNotes(notesResult.notes)
-          setTotalCount(notesResult.count)
+          return {
+            items: notesResult.notes,
+            count: notesResult.count,
+          }
         }
       } else {
         const notesResult = await getNotesByBlindSubmissionInvitationP()
-        setNotes(notesResult.notes)
-        setTotalCount(notesResult.count)
+        return {
+          items: notesResult.notes,
+          count: notesResult.count,
+        }
       }
     } catch (error) {
       promptError(error.message)
@@ -136,15 +139,27 @@ const AllSubmissionsTab = ({
   }
 
   useEffect(() => {
-    if (notes.length) {
-      typesetMathJax()
-    }
-  }, [notes])
+    typesetMathJax()
+  }, [])
 
-  useEffect(() => {
-    getNotesSortedByAffinity()
-  }, [pageNumber])
-
+  const loadItems = useCallback(getNotesSortedByAffinity, [])
+  const NoteWithBidTag = ({ item: note }) => (
+    <>
+      <Note
+        note={note}
+        options={{
+          showContents: true,
+          collapsibleContents: true,
+          pdfLink: true,
+        }}
+      />
+      <BidRadioButtonGroup
+        options={bidOptions}
+        selectedBidOption={bidEdges?.find((p) => p.head === note.id)?.label}
+        updateBidOption={(updatedOption) => updateBidOption(note, updatedOption)}
+      />
+    </>
+  )
   return (
     <>
       <form className="form-inline notes-search-form" role="search">
@@ -169,24 +184,12 @@ const AllSubmissionsTab = ({
           </div>
         )}
       </form>
-      <NoteListWithBidTag
-        notes={notes}
-        bidOptions={bidOptions}
-        bidEdges={bidEdges}
-        displayOptions={{
-          emptyMessage: 'No papers to display at this time',
-          showContents: true,
-          collapsibleContents: true,
-          pdfLink: true,
-        }}
-        updateBidOption={updateBidOption}
-      />
-      <PaginationLinks
-        currentPage={pageNumber}
-        itemsPerPage={pageSize}
-        totalCount={totalCount}
-        setCurrentPage={setPageNumber}
-        options={{ noScroll: true }}
+      <PaginatedList
+        loadItems={loadItems}
+        ListItem={NoteWithBidTag}
+        emptyMessage="No papers to display at this time"
+        itemsPerPage={5}
+        className="submissions-list"
       />
     </>
   )
@@ -194,11 +197,15 @@ const AllSubmissionsTab = ({
 
 const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges }) => {
   const [notes, setNotes] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
   const { user, accessToken } = useUser()
   const noteIds = bidEdges.filter((p) => p.label === bidOption).map((q) => q.head)
 
   const getNotesByBids = async () => {
-    if (!noteIds?.length) return
+    if (!noteIds?.length) {
+      setIsLoading(false)
+      return
+    }
     try {
       const noteSearchResults = await api.post(
         '/notes/search',
@@ -207,11 +214,11 @@ const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges
         },
         { accessToken }
       )
-      console.log('noteSearchResults', noteSearchResults)
       setNotes(noteSearchResults.notes)
     } catch (error) {
       promptError(error.message)
     }
+    setIsLoading(false)
   }
 
   const updateBidOption = async (note, updatedOption) => {
@@ -261,6 +268,7 @@ const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges
     getNotesByBids()
   }, [])
 
+  if (isLoading) return <LoadingSpinner />
   return (
     <NoteListWithBidTag
       notes={notes}
@@ -370,7 +378,6 @@ const BidConsole = ({ appContext }) => {
           <TabPanels>
             {bidOptionsWithDefaultTabs?.map((bidOption, index) => {
               const id = getBidOptionId(bidOption)
-              if (activeTabIndex !== index) return null
               if (index === 0)
                 return (
                   <TabPanel key={id} id={id}>

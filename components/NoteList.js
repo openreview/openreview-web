@@ -1,34 +1,5 @@
 import Note, { NoteV2 } from './Note'
-const RadioButtonGroup = ({ options, selectedBidOption, updateBidOption }) => {
-  return (
-    <div
-      className="tag-widget edge-widget"
-      data-type="radio"
-      data-id=""
-      data-invitation-id="NeurIPS.cc/2022/Conference/Reviewers/-/Bid"
-    >
-      <label>Bid:</label>
-
-      <div className="btn-group btn-group-xs" role="group" data-toggle="buttons">
-        {options.map((option) => {
-          return (
-            <label
-              key={option}
-              className={`btn btn-default radio-toggle${
-                option === selectedBidOption ? ' active' : ''
-              }`}
-              onClick={() => {
-                updateBidOption(option)
-              }}
-            >
-              <input type="radio" name="tag-options" autoComplete="off" /> {option}
-            </label>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
+import BidRadioButtonGroup from './webfield/BidRadioButtonGroup'
 
 const NoteList = ({ notes, displayOptions }) => (
   <ul className="list-unstyled submissions-list">
@@ -65,7 +36,7 @@ export const NoteListWithBidTag = ({
           {note.version === 2 ? (
             <>
               <NoteV2 note={note} options={displayOptions} />
-              <RadioButtonGroup
+              <BidRadioButtonGroup
                 options={bidOptions}
                 selectedBidOption={selectedBidOption}
                 updateBidOption={(updatedOption) => updateBidOption(note, updatedOption)}
@@ -74,7 +45,7 @@ export const NoteListWithBidTag = ({
           ) : (
             <>
               <Note note={note} options={displayOptions} />
-              <RadioButtonGroup
+              <BidRadioButtonGroup
                 options={bidOptions}
                 selectedBidOption={selectedBidOption}
                 updateBidOption={(updatedOption) => updateBidOption(note, updatedOption)}

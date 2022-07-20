@@ -700,6 +700,7 @@ table.table-minimal {
 
       &.disabled {
         opacity: 0.65;
+        pointer-events: none;
         label {
           color: constants.$mediumDarkBlue;
           cursor: not-allowed;
