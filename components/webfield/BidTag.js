@@ -1,6 +1,19 @@
 import { useEffect, useState } from 'react'
+import { prettyInvitationId } from '../../lib/utils'
 
-const BidRadioButtonGroup = ({ options, selectedBidOption, updateBidOption }) => {
+export const TagText = ({ scoreEdge }) => {
+  if (!scoreEdge) return null
+  return (
+    <div className="tag-widget text " data-type="text">
+      <form className="form-inline">
+        <label>{prettyInvitationId(scoreEdge.invitation)}</label>
+        <span className="current-value">{scoreEdge.weight}</span>
+      </form>
+    </div>
+  )
+}
+
+export const BidRadioButtonGroup = ({ options, selectedBidOption, updateBidOption }) => {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
@@ -36,5 +49,3 @@ const BidRadioButtonGroup = ({ options, selectedBidOption, updateBidOption }) =>
     </div>
   )
 }
-
-export default BidRadioButtonGroup

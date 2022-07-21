@@ -1,5 +1,5 @@
 import Note, { NoteV2 } from './Note'
-import BidRadioButtonGroup from './webfield/BidRadioButtonGroup'
+import { BidRadioButtonGroup, TagText } from './webfield/BidTag'
 
 const NoteList = ({ notes, displayOptions }) => (
   <ul className="list-unstyled submissions-list">
@@ -25,12 +25,14 @@ export const NoteListWithBidTag = ({
   notes,
   bidOptions,
   bidEdges,
+  scoreEdges,
   displayOptions,
   updateBidOption,
 }) => (
   <ul className="list-unstyled submissions-list">
     {notes.map((note) => {
       const selectedBidOption = bidEdges?.find((p) => p.head === note.id)?.label
+      const scoreEdge = scoreEdges?.find((p) => p.head === note.id)
       return (
         <li key={note.id}>
           {note.version === 2 ? (
@@ -41,6 +43,7 @@ export const NoteListWithBidTag = ({
                 selectedBidOption={selectedBidOption}
                 updateBidOption={(updatedOption) => updateBidOption(note, updatedOption)}
               />
+              <TagText scoreEdge={scoreEdge} />
             </>
           ) : (
             <>
@@ -50,6 +53,7 @@ export const NoteListWithBidTag = ({
                 selectedBidOption={selectedBidOption}
                 updateBidOption={(updatedOption) => updateBidOption(note, updatedOption)}
               />
+              <TagText scoreEdge={scoreEdge} />
             </>
           )}
         </li>
