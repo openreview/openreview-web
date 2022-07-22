@@ -17,7 +17,7 @@ import PaginationLinks from '../PaginationLinks'
 import ErrorDisplay from '../ErrorDisplay'
 
 const buildArray = (invitation, fieldName, profileId, noteNumber) => {
-  if (invitation.reply?.[fieldName]?.value) return invitation.reply[fieldName].value
+  if (invitation.reply?.[fieldName]?.values) return invitation.reply[fieldName].values
   if (invitation.reply?.[fieldName]?.['values-copied'])
     return invitation.reply[fieldName]['values-copied']
       .map((value) => {
@@ -44,6 +44,34 @@ const buildArray = (invitation, fieldName, profileId, noteNumber) => {
   return []
 }
 
+const buildArrayV2 = (invitation, fieldName, profileId, noteNumber) => {
+  if (invitation.reply?.[fieldName]?.const) return invitation.reply[fieldName].const
+  if (invitation.reply?.[fieldName]?.['values-copied'])
+    return invitation.reply[fieldName]['values-copied']
+      .map((value) => {
+        if (value === '{signatures}') {
+          return profileId
+        } else if (value[0] === '{') {
+          return null
+        } else {
+          return value
+        }
+      })
+      .filter((p) => p)
+  if (invitation.reply?.[fieldName]?.regex)
+    return invitation.reply[fieldName].regex
+      .split('|')
+      .map((value) => {
+        if (value.indexOf('Paper.*') !== -1) {
+          return value.replace('Paper.*', `Paper${noteNumber}`)
+        } else {
+          return value
+        }
+      })
+      .filter((p) => p)
+  return []
+}
+
 const AllSubmissionsTab = ({
   venueId,
   scoreIds,
@@ -53,6 +81,7 @@ const AllSubmissionsTab = ({
   bidEdges,
   setBidEdges,
   conflictIds,
+  apiVersion,
 }) => {
   const [notes, setNotes] = useState([])
   const [selectedScore, setSelectedScore] = useState(scoreIds?.[0])
@@ -68,16 +97,15 @@ const AllSubmissionsTab = ({
 
   const getNotesSortedByAffinity = async (score = selectedScore, limit = 50) => {
     setIsLoading(true)
-    const getNotesByBlindSubmissionInvitationP = async () => {
+    const getNotesBySubmissionInvitationP = async () => {
       const result = await api.get(
         '/notes',
         {
           invitation: submissionInvitationId,
-          details: 'invitation',
           offset: (pageNumber - 1) * pageSize,
           limit,
         },
-        { accessToken }
+        { accessToken, version: apiVersion }
       )
       return {
         ...result,
@@ -105,26 +133,36 @@ const AllSubmissionsTab = ({
           const notesResult = await api.post(
             '/notes/search',
             { ids: noteIds },
-            { accessToken }
+            { accessToken, version: apiVersion }
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
-            if (
-              matchingNote &&
-              matchingNote.invitation === submissionInvitationId &&
-              !conflictIds.includes(noteId)
-            )
-              return matchingNote
-            return []
+            if (apiVersion === 2) {
+              if (
+                matchingNote &&
+                matchingNote.invitations.includes(submissionInvitationId) &&
+                !conflictIds.includes(noteId)
+              )
+                return matchingNote
+              return []
+            } else {
+              if (
+                matchingNote &&
+                matchingNote.invitation === submissionInvitationId &&
+                !conflictIds.includes(noteId)
+              )
+                return matchingNote
+              return []
+            }
           })
           setNotes(filteredNotes)
         } else {
-          const notesResult = await getNotesByBlindSubmissionInvitationP()
+          const notesResult = await getNotesBySubmissionInvitationP()
           setNotes(notesResult.notes)
           setTotalCount(notesResult.count)
         }
       } else {
-        const notesResult = await getNotesByBlindSubmissionInvitationP()
+        const notesResult = await getNotesBySubmissionInvitationP()
         setNotes(notesResult.notes)
         setTotalCount(notesResult.count)
       }
@@ -149,7 +187,7 @@ const AllSubmissionsTab = ({
           offset: 0,
           invitation: submissionInvitationId,
         },
-        { accessToken }
+        { accessToken, version: apiVersion }
       )
       setNotes(result.notes)
     } catch (error) {
@@ -174,8 +212,14 @@ const AllSubmissionsTab = ({
           tail: user.profile.id,
           signatures: [user.profile.id],
           writers: [user.profile.id],
-          readers: buildArray(invitation, 'readers', user.profile.id, note.number),
-          nonreaders: buildArray(invitation, 'nonreaders', user.profile.id, note.number),
+          readers:
+            apiVersion === 2
+              ? buildArrayV2(invitation, 'readers', user.profile.id, note.number)
+              : buildArray(invitation, 'readers', user.profile.id, note.number),
+          nonreaders:
+            apiVersion === 2
+              ? buildArrayV2(invitation, 'nonreaders', user.profile.id, note.number)
+              : buildArray(invitation, 'nonreaders', user.profile.id, note.number),
           ddate: existingBidToDelete ? Date.now() : null,
         },
         { accessToken }
@@ -277,6 +321,7 @@ const AllSubmissionsTab = ({
               pdfLink: true,
             }}
             updateBidOption={updateBidOption}
+            apiVersion={apiVersion}
           />
           {!searchTerm && (
             <PaginationLinks
@@ -300,6 +345,7 @@ const NoBidTab = ({
   bidEdges,
   setBidEdges,
   conflictIds,
+  apiVersion,
 }) => {
   const [notes, setNotes] = useState([])
   const [scoreEdges, setScoreEdges] = useState([])
@@ -309,15 +355,14 @@ const NoBidTab = ({
 
   const getNotesWithNoBids = async () => {
     setIsLoading(true)
-    const getNotesByBlindSubmissionInvitationP = async () => {
+    const getNotesBySubmissionInvitationP = async () => {
       const result = await api.get(
         '/notes',
         {
           invitation: submissionInvitationId,
-          details: 'invitation',
           limit: 1000,
         },
-        { accessToken }
+        { accessToken, version: apiVersion }
       )
       return {
         ...result,
@@ -343,26 +388,37 @@ const NoBidTab = ({
           const notesResult = await api.post(
             '/notes/search',
             { ids: noteIds },
-            { accessToken }
+            { accessToken, version: apiVersion }
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
-            if (
-              matchingNote &&
-              matchingNote.invitation === submissionInvitationId &&
-              !conflictIds.includes(noteId) &&
-              !bidEdges.find((p) => p.head === noteId)
-            )
-              return matchingNote
-            return []
+            if (apiVersion === 2) {
+              if (
+                matchingNote &&
+                matchingNote.invitation.includes(submissionInvitationId) &&
+                !conflictIds.includes(noteId) &&
+                !bidEdges.find((p) => p.head === noteId)
+              )
+                return matchingNote
+              return []
+            } else {
+              if (
+                matchingNote &&
+                matchingNote.invitation === submissionInvitationId &&
+                !conflictIds.includes(noteId) &&
+                !bidEdges.find((p) => p.head === noteId)
+              )
+                return matchingNote
+              return []
+            }
           })
           setNotes(filteredNotes)
         } else {
-          const notesResult = await getNotesByBlindSubmissionInvitationP()
+          const notesResult = await getNotesBySubmissionInvitationP()
           setNotes(notesResult.notes)
         }
       } else {
-        const notesResult = await getNotesByBlindSubmissionInvitationP()
+        const notesResult = await getNotesBySubmissionInvitationP()
         setNotes(notesResult.notes)
       }
     } catch (error) {
@@ -387,8 +443,14 @@ const NoBidTab = ({
           tail: user.profile.id,
           signatures: [user.profile.id],
           writers: [user.profile.id],
-          readers: buildArray(invitation, 'readers', user.profile.id, note.number),
-          nonreaders: buildArray(invitation, 'nonreaders', user.profile.id, note.number),
+          readers:
+            apiVersion === 2
+              ? buildArrayV2(invitation, 'readers', user.profile.id, note.number)
+              : buildArray(invitation, 'readers', user.profile.id, note.number),
+          nonreaders:
+            apiVersion === 2
+              ? buildArrayV2(invitation, 'nonreaders', user.profile.id, note.number)
+              : buildArray(invitation, 'nonreaders', user.profile.id, note.number),
           ddate: existingBidToDelete ? Date.now() : null,
         },
         { accessToken }
@@ -426,11 +488,19 @@ const NoBidTab = ({
       }}
       updateBidOption={updateBidOption}
       virtualList={true}
+      apiVersion={apiVersion}
     />
   )
 }
 
-const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges }) => {
+const BidOptionTab = ({
+  bidOptions,
+  bidOption,
+  bidEdges,
+  invitation,
+  setBidEdges,
+  apiVersion,
+}) => {
   const [notes, setNotes] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const { user, accessToken } = useUser()
@@ -448,7 +518,7 @@ const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges
         {
           ids: noteIds,
         },
-        { accessToken }
+        { accessToken, version: apiVersion }
       )
       setNotes(noteSearchResults.notes)
     } catch (error) {
@@ -473,8 +543,14 @@ const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges
           tail: user.profile.id,
           signatures: [user.profile.id],
           writers: [user.profile.id],
-          readers: buildArray(invitation, 'readers', user.profile.id, note.number),
-          nonreaders: buildArray(invitation, 'nonreaders', user.profile.id, note.number),
+          readers:
+            apiVersion === 2
+              ? buildArrayV2(invitation, 'readers', user.profile.id, note.number)
+              : buildArray(invitation, 'readers', user.profile.id, note.number),
+          nonreaders:
+            apiVersion === 2
+              ? buildArrayV2(invitation, 'nonreaders', user.profile.id, note.number)
+              : buildArray(invitation, 'nonreaders', user.profile.id, note.number),
           ddate: existingBidToDelete ? Date.now() : null,
         },
         { accessToken }
@@ -517,6 +593,7 @@ const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges
         pdfLink: true,
       }}
       updateBidOption={updateBidOption}
+      apiVersion={apiVersion}
     />
   )
 }
@@ -600,6 +677,7 @@ const BidConsole = ({ appContext }) => {
             bidEdges={bidEdges}
             setBidEdges={setBidEdges}
             conflictIds={conflictIds}
+            apiVersion={apiVersion}
           />
         </TabPanel>
       )
@@ -614,6 +692,7 @@ const BidConsole = ({ appContext }) => {
             bidEdges={bidEdges}
             setBidEdges={setBidEdges}
             conflictIds={conflictIds}
+            apiVersion={apiVersion}
           />
         </TabPanel>
       )
@@ -626,6 +705,7 @@ const BidConsole = ({ appContext }) => {
           bidEdges={bidEdges}
           invitation={invitation}
           setBidEdges={setBidEdges}
+          apiVersion={apiVersion}
         />
       </TabPanel>
     )

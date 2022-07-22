@@ -30,10 +30,11 @@ export const NoteListWithBidTag = ({
   displayOptions,
   updateBidOption,
   virtualList,
+  apiVersion,
 }) => {
   const renderNoteWithTag = (note, selectedBidOption, scoreEdge) => (
     <>
-      {note.version === 2 ? (
+      {apiVersion === 2 ? ( // bid has no mixed notes from v1 and v2
         <>
           <NoteV2 note={note} options={displayOptions} />
           <BidRadioButtonGroup
