@@ -65,25 +65,25 @@ const AllSubmissionsTab = ({
   const sortOptions = scoreIds.map((p) => ({ label: prettyInvitationId(p), value: p }))
   const pageSize = 50
 
-  const getNotesSortedByAffinity = async (offset = 0, limit = 50) => {
+  const getNotesSortedByAffinity = async (limit = 50) => {
     setIsLoading(true)
-    const getNotesByBlindSubmissionInvitationP = () => {
-      return api
-        .get(
-          '/notes',
-          {
-            invitation: blindSubmissionInvitationId,
-            details: 'invitation',
-            offset: (pageNumber - 1) * pageSize,
-            limit,
-          },
-          { accessToken }
-        )
-        .then((result) => ({
-          ...result,
-          notes: results.notes.filter((p) => !conflictIds.includes(p.id)),
-        }))
+    const getNotesByBlindSubmissionInvitationP = async () => {
+      const result = await api.get(
+        '/notes',
+        {
+          invitation: blindSubmissionInvitationId,
+          details: 'invitation',
+          offset: (pageNumber - 1) * pageSize,
+          limit,
+        },
+        { accessToken }
+      )
+      return {
+        ...result,
+        notes: results.notes.filter((p) => !conflictIds.includes(p.id)),
+      }
     }
+
     try {
       if (selectedScore) {
         const edgesResult = await api.get(
@@ -192,8 +192,24 @@ const AllSubmissionsTab = ({
     }
   }
 
+  const handleSearchTermChange = (updatedSearchTerm) => {
+    const cleanSearchTerm = updatedSearchTerm.trim()
+    if (cleanSearchTerm) {
+      getNotesBySearchTerm(cleanSearchTerm)
+    } else {
+      getNotesSortedByAffinity()
+    }
+    setSearchTerm(updatedSearchTerm)
+  }
+
+  const handleScoreDropdownChange = (scoreSelected) => {
+    setPageNumber(1)
+    setSelectedScore(scoreSelected)
+    getNotesSortedByAffinity()
+  }
+
   const delaySearch = useCallback(
-    debounce((term) => setSearchTerm(term), 300),
+    debounce((term) => handleSearchTermChange(term), 300),
     []
   )
 
@@ -206,20 +222,6 @@ const AllSubmissionsTab = ({
   useEffect(() => {
     getNotesSortedByAffinity()
   }, [pageNumber])
-
-  useEffect(() => {
-    setPageNumber(1)
-    getNotesSortedByAffinity()
-  }, [selectedScore])
-
-  useEffect(() => {
-    const cleanSearchTerm = searchTerm.trim()
-    if (cleanSearchTerm) {
-      getNotesBySearchTerm(cleanSearchTerm)
-    } else {
-      getNotesSortedByAffinity()
-    }
-  }, [searchTerm])
 
   return (
     <>
@@ -235,11 +237,11 @@ const AllSubmissionsTab = ({
             onChange={(e) => {
               setImmediateSearchTerm(e.target.value)
               if (e.target.value.trim().length >= 3) delaySearch(e.target.value)
-              if (e.target.value.trim().length === 0) setSearchTerm('')
+              if (e.target.value.trim().length === 0) handleSearchTermChange('')
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && immediateSearchTerm.trim().length >= 2) {
-                setSearchTerm(immediateSearchTerm)
+                handleSearchTermChange(immediateSearchTerm)
               }
             }}
           />
@@ -253,7 +255,7 @@ const AllSubmissionsTab = ({
               options={sortOptions}
               placeholder="Select a score to sort by"
               value={sortOptions.find((p) => p.value === selectedScore)}
-              onChange={(e) => setSelectedScore(e.value)}
+              onChange={(e) => handleScoreDropdownChange(e.value)}
             />
           </div>
         )}
@@ -289,7 +291,153 @@ const AllSubmissionsTab = ({
   )
 }
 
-const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges }) => {
+const NoBidTab = ({
+  scoreIds,
+  bidOptions,
+  blindSubmissionInvitationId,
+  invitation,
+  bidEdges,
+  setBidEdges,
+  conflictIds,
+  activeTabIndex,
+  currentIndex,
+}) => {
+  const [notes, setNotes] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const { user, accessToken } = useUser()
+  const selectedScore = scoreIds[0]
+
+  const getNotesWithNoBids = async () => {
+    setIsLoading(true)
+    const getNotesByBlindSubmissionInvitationP = () => {
+      return api
+        .get(
+          '/notes',
+          {
+            invitation: blindSubmissionInvitationId,
+            details: 'invitation',
+            limit: 1000,
+          },
+          { accessToken }
+        )
+        .then((result) => ({
+          ...result,
+          notes: results.notes.filter(
+            (p) => !conflictIds.includes(p.id) || !bidEdges.find((q) => q.head === p.id)
+          ),
+        }))
+    }
+    try {
+      if (selectedScore) {
+        const edgesResult = await api.get(
+          '/edges',
+          {
+            invitation: selectedScore,
+            tail: user.profile.id,
+            sort: 'weight:desc',
+          },
+          { accessToken }
+        )
+        if (edgesResult.count) {
+          const noteIds = edgesResult.edges.map((p) => p.head)
+          const notesResult = await api.post(
+            '/notes/search',
+            { ids: noteIds },
+            { accessToken }
+          )
+          const filteredNotes = noteIds.flatMap((noteId) => {
+            const matchingNote = notesResult.notes.find((p) => p.id === noteId)
+            if (
+              matchingNote &&
+              matchingNote.invitation === blindSubmissionInvitationId &&
+              !conflictIds.includes(noteId) &&
+              !bidEdges.find((p) => p.head === noteId)
+            )
+              return matchingNote
+            return []
+          })
+          setNotes(filteredNotes)
+        } else {
+          const notesResult = await getNotesByBlindSubmissionInvitationP()
+          setNotes(notesResult.notes)
+        }
+      } else {
+        const notesResult = await getNotesByBlindSubmissionInvitationP()
+        setNotes(notesResult.notes)
+      }
+    } catch (error) {
+      promptError(error.message)
+    }
+    setIsLoading(false)
+  }
+
+  const updateBidOption = async (note, updatedOption) => {
+    const existingBidToDelete = bidEdges.find(
+      (p) => p.head === note.id && p.label === updatedOption
+    )
+    const existingBidToUpdate = bidEdges.find((p) => p.head === note.id)
+    try {
+      const result = await api.post(
+        '/edges',
+        {
+          id: existingBidToDelete?.id ?? existingBidToUpdate?.id,
+          invitation: invitation.id,
+          label: updatedOption,
+          head: note.id,
+          tail: user.profile.id,
+          signatures: [user.profile.id],
+          writers: [user.profile.id],
+          readers: buildArray(invitation, 'readers', user.profile.id, note.number),
+          nonreaders: buildArray(invitation, 'nonreaders', user.profile.id, note.number),
+          ddate: existingBidToDelete ? Date.now() : null,
+        },
+        { accessToken }
+      )
+      let updatedBidEdges = bidEdges
+      if (existingBidToDelete) {
+        updatedBidEdges = bidEdges.filter((p) => p.id !== existingBidToDelete.id)
+        setBidEdges(updatedBidEdges)
+        setNotes((notes) => notes.filter((p) => p.id !== note.id))
+        return
+      }
+
+      setBidEdges([...bidEdges.filter((p) => p.id !== existingBidToUpdate?.id), result])
+      setNotes((notes) => notes.filter((p) => p.id !== note.id))
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  useEffect(() => {
+    if (activeTabIndex === currentIndex) getNotesWithNoBids()
+  }, [activeTabIndex])
+
+  if (isLoading) return <LoadingSpinner />
+  return (
+    <NoteListWithBidTag
+      notes={notes}
+      bidOptions={bidOptions}
+      bidEdges={bidEdges}
+      displayOptions={{
+        emptyMessage: 'No papers to display at this time',
+        showContents: true,
+        collapsibleContents: true,
+        pdfLink: true,
+      }}
+      updateBidOption={updateBidOption}
+    />
+  )
+}
+
+const BidOptionTab = ({
+  bidOptions,
+  bidOption,
+  bidEdges,
+  invitation,
+  setBidEdges,
+  activeTabIndex,
+  currentIndex,
+}) => {
   const [notes, setNotes] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const { user, accessToken } = useUser()
@@ -359,8 +507,8 @@ const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges
   }, [notes])
 
   useEffect(() => {
-    getNotesByBids()
-  }, [])
+    if (activeTabIndex === currentIndex) getNotesByBids()
+  }, [activeTabIndex])
 
   if (isLoading) return <LoadingSpinner />
   return (
@@ -392,7 +540,7 @@ const BidConsole = ({ appContext }) => {
   } = useContext(WebFieldContext)
   const getBidOptionId = (bidOption) => bidOption.toLowerCase().split(' ').join('-')
   const allPapersOption = 'All Papers'
-  const bidOptionsWithDefaultTabs = [allPapersOption, ...bidOptions]
+  const bidOptionsWithDefaultTabs = [allPapersOption, ...bidOptions, 'No Bid']
   const getActiveTabIndex = () => {
     const tabIndex = bidOptionsWithDefaultTabs.findIndex(
       (p) => `#${getBidOptionId(p)}` === window.location.hash
@@ -497,7 +645,23 @@ const BidConsole = ({ appContext }) => {
                     />
                   </TabPanel>
                 )
-              if (index !== activeTabIndex) return null
+              if (index === bidOptionsWithDefaultTabs.length - 1)
+                return (
+                  <TabPanel key={id} id={id}>
+                    <NoBidTab
+                      key={id}
+                      scoreIds={scoreIds}
+                      bidOptions={bidOptions}
+                      blindSubmissionInvitationId={blindSubmissionInvitationId}
+                      invitation={invitation}
+                      bidEdges={bidEdges}
+                      setBidEdges={setBidEdges}
+                      conflictIds={conflictIds}
+                      activeTabIndex={activeTabIndex}
+                      currentIndex={index}
+                    />
+                  </TabPanel>
+                )
               return (
                 <TabPanel key={id} id={id}>
                   <BidOptionTab
@@ -506,6 +670,8 @@ const BidConsole = ({ appContext }) => {
                     bidEdges={bidEdges}
                     invitation={invitation}
                     setBidEdges={setBidEdges}
+                    activeTabIndex={activeTabIndex}
+                    currentIndex={index}
                   />
                 </TabPanel>
               )
