@@ -14,6 +14,7 @@ import { prettyInvitationId } from '../../lib/utils'
 import LoadingSpinner from '../LoadingSpinner'
 import debounce from 'lodash/debounce'
 import PaginationLinks from '../PaginationLinks'
+import ErrorDisplay from '../ErrorDisplay'
 
 const buildArray = (invitation, fieldName, profileId, noteNumber) => {
   if (invitation.reply?.[fieldName]?.value) return invitation.reply[fieldName].value
@@ -47,7 +48,7 @@ const AllSubmissionsTab = ({
   venueId,
   scoreIds,
   bidOptions,
-  blindSubmissionInvitationId,
+  submissionInvitationId,
   invitation,
   bidEdges,
   setBidEdges,
@@ -65,13 +66,13 @@ const AllSubmissionsTab = ({
   const sortOptions = scoreIds.map((p) => ({ label: prettyInvitationId(p), value: p }))
   const pageSize = 50
 
-  const getNotesSortedByAffinity = async (limit = 50) => {
+  const getNotesSortedByAffinity = async (score = selectedScore, limit = 50) => {
     setIsLoading(true)
     const getNotesByBlindSubmissionInvitationP = async () => {
       const result = await api.get(
         '/notes',
         {
-          invitation: blindSubmissionInvitationId,
+          invitation: submissionInvitationId,
           details: 'invitation',
           offset: (pageNumber - 1) * pageSize,
           limit,
@@ -80,16 +81,16 @@ const AllSubmissionsTab = ({
       )
       return {
         ...result,
-        notes: results.notes.filter((p) => !conflictIds.includes(p.id)),
+        notes: result.notes.filter((p) => !conflictIds.includes(p.id)),
       }
     }
 
     try {
-      if (selectedScore) {
+      if (score) {
         const edgesResult = await api.get(
           '/edges',
           {
-            invitation: selectedScore,
+            invitation: score,
             tail: user.profile.id,
             sort: 'weight:desc',
             offset: (pageNumber - 1) * pageSize,
@@ -110,7 +111,7 @@ const AllSubmissionsTab = ({
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
             if (
               matchingNote &&
-              matchingNote.invitation === blindSubmissionInvitationId &&
+              matchingNote.invitation === submissionInvitationId &&
               !conflictIds.includes(noteId)
             )
               return matchingNote
@@ -146,7 +147,7 @@ const AllSubmissionsTab = ({
           group: venueId,
           limit: 1000,
           offset: 0,
-          invitation: blindSubmissionInvitationId,
+          invitation: submissionInvitationId,
         },
         { accessToken }
       )
@@ -205,7 +206,7 @@ const AllSubmissionsTab = ({
   const handleScoreDropdownChange = (scoreSelected) => {
     setPageNumber(1)
     setSelectedScore(scoreSelected)
-    getNotesSortedByAffinity()
+    getNotesSortedByAffinity(scoreSelected)
   }
 
   const delaySearch = useCallback(
@@ -261,7 +262,7 @@ const AllSubmissionsTab = ({
         )}
       </form>
       {isLoading ? (
-        <LoadingSpinner />
+        <LoadingSpinner inline />
       ) : (
         <>
           <NoteListWithBidTag
@@ -294,38 +295,36 @@ const AllSubmissionsTab = ({
 const NoBidTab = ({
   scoreIds,
   bidOptions,
-  blindSubmissionInvitationId,
+  submissionInvitationId,
   invitation,
   bidEdges,
   setBidEdges,
   conflictIds,
-  activeTabIndex,
-  currentIndex,
 }) => {
   const [notes, setNotes] = useState([])
+  const [scoreEdges, setScoreEdges] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const { user, accessToken } = useUser()
   const selectedScore = scoreIds[0]
 
   const getNotesWithNoBids = async () => {
     setIsLoading(true)
-    const getNotesByBlindSubmissionInvitationP = () => {
-      return api
-        .get(
-          '/notes',
-          {
-            invitation: blindSubmissionInvitationId,
-            details: 'invitation',
-            limit: 1000,
-          },
-          { accessToken }
-        )
-        .then((result) => ({
-          ...result,
-          notes: results.notes.filter(
-            (p) => !conflictIds.includes(p.id) || !bidEdges.find((q) => q.head === p.id)
-          ),
-        }))
+    const getNotesByBlindSubmissionInvitationP = async () => {
+      const result = await api.get(
+        '/notes',
+        {
+          invitation: submissionInvitationId,
+          details: 'invitation',
+          limit: 1000,
+        },
+        { accessToken }
+      )
+      return {
+        ...result,
+        notes: result.notes.filter(
+          (p) => !conflictIds.includes(p.id) || !bidEdges.find((q) => q.head === p.id)
+        ),
+      }
     }
     try {
       if (selectedScore) {
@@ -339,6 +338,7 @@ const NoBidTab = ({
           { accessToken }
         )
         if (edgesResult.count) {
+          setScoreEdges(edgesResult.edges)
           const noteIds = edgesResult.edges.map((p) => p.head)
           const notesResult = await api.post(
             '/notes/search',
@@ -349,7 +349,7 @@ const NoBidTab = ({
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
             if (
               matchingNote &&
-              matchingNote.invitation === blindSubmissionInvitationId &&
+              matchingNote.invitation === submissionInvitationId &&
               !conflictIds.includes(noteId) &&
               !bidEdges.find((p) => p.head === noteId)
             )
@@ -409,15 +409,15 @@ const NoBidTab = ({
   }
 
   useEffect(() => {
-    if (activeTabIndex === currentIndex) getNotesWithNoBids()
-  }, [activeTabIndex])
-
-  if (isLoading) return <LoadingSpinner />
+    getNotesWithNoBids()
+  }, [])
+  if (isLoading) return <LoadingSpinner inline />
   return (
     <NoteListWithBidTag
       notes={notes}
       bidOptions={bidOptions}
       bidEdges={bidEdges}
+      scoreEdges={scoreEdges}
       displayOptions={{
         emptyMessage: 'No papers to display at this time',
         showContents: true,
@@ -425,25 +425,19 @@ const NoBidTab = ({
         pdfLink: true,
       }}
       updateBidOption={updateBidOption}
+      virtualList={true}
     />
   )
 }
 
-const BidOptionTab = ({
-  bidOptions,
-  bidOption,
-  bidEdges,
-  invitation,
-  setBidEdges,
-  activeTabIndex,
-  currentIndex,
-}) => {
+const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges }) => {
   const [notes, setNotes] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const { user, accessToken } = useUser()
   const noteIds = bidEdges.filter((p) => p.label === bidOption).map((q) => q.head)
 
   const getNotesByBids = async () => {
+    setIsLoading(true)
     if (!noteIds?.length) {
       setIsLoading(false)
       return
@@ -507,10 +501,10 @@ const BidOptionTab = ({
   }, [notes])
 
   useEffect(() => {
-    if (activeTabIndex === currentIndex) getNotesByBids()
-  }, [activeTabIndex])
+    getNotesByBids()
+  }, [])
 
-  if (isLoading) return <LoadingSpinner />
+  if (isLoading) return <LoadingSpinner inline />
   return (
     <NoteListWithBidTag
       notes={notes}
@@ -532,9 +526,10 @@ const BidConsole = ({ appContext }) => {
     header,
     venueId,
     entity: invitation,
+    apiVersion,
     bidOptions,
     scoreIds,
-    blindSubmissionInvitationId,
+    submissionInvitationId,
     bidInvitationId,
     conflictInvitationId,
   } = useContext(WebFieldContext)
@@ -591,6 +586,68 @@ const BidConsole = ({ appContext }) => {
     getBidAndConflictEdges()
   }, [])
 
+  const renderActiveTab = () => {
+    const id = getBidOptionId(bidOptionsWithDefaultTabs[activeTabIndex])
+    if (activeTabIndex === 0)
+      return (
+        <TabPanel id={id}>
+          <AllSubmissionsTab
+            venueId={venueId}
+            scoreIds={scoreIds}
+            bidOptions={bidOptions}
+            submissionInvitationId={submissionInvitationId}
+            invitation={invitation}
+            bidEdges={bidEdges}
+            setBidEdges={setBidEdges}
+            conflictIds={conflictIds}
+          />
+        </TabPanel>
+      )
+    if (activeTabIndex === bidOptionsWithDefaultTabs.length - 1)
+      return (
+        <TabPanel id={id}>
+          <NoBidTab
+            scoreIds={scoreIds}
+            bidOptions={bidOptions}
+            submissionInvitationId={submissionInvitationId}
+            invitation={invitation}
+            bidEdges={bidEdges}
+            setBidEdges={setBidEdges}
+            conflictIds={conflictIds}
+          />
+        </TabPanel>
+      )
+    const bidOption = bidOptionsWithDefaultTabs[activeTabIndex]
+    return (
+      <TabPanel id={id} key={id}>
+        <BidOptionTab
+          bidOptions={bidOptions}
+          bidOption={bidOption}
+          bidEdges={bidEdges}
+          invitation={invitation}
+          setBidEdges={setBidEdges}
+        />
+      </TabPanel>
+    )
+  }
+
+  const missingConfig = Object.entries({
+    header,
+    venueId,
+    invitation,
+    apiVersion,
+    bidOptions,
+    scoreIds,
+    submissionInvitationId,
+    bidInvitationId,
+    conflictInvitationId,
+  }).filter(([key, value]) => value === undefined)
+  if (missingConfig?.length) {
+    const errorMessage = `Author Console is missing required properties: ${missingConfig
+      .map((p) => p[0])
+      .join(', ')}`
+    return <ErrorDisplay statusCode="" message={errorMessage} />
+  }
   return (
     <>
       <BasicHeader
@@ -601,7 +658,7 @@ const BidConsole = ({ appContext }) => {
         }}
       />
       {isLoading ? (
-        <LoadingSpinner />
+        <LoadingSpinner inline />
       ) : (
         <Tabs>
           <TabList>
@@ -626,57 +683,7 @@ const BidConsole = ({ appContext }) => {
             })}
           </TabList>
 
-          <TabPanels>
-            {bidOptionsWithDefaultTabs?.map((bidOption, index) => {
-              const id = getBidOptionId(bidOption)
-              if (index === 0)
-                return (
-                  <TabPanel key={id} id={id}>
-                    <AllSubmissionsTab
-                      key={id}
-                      venueId={venueId}
-                      scoreIds={scoreIds}
-                      bidOptions={bidOptions}
-                      blindSubmissionInvitationId={blindSubmissionInvitationId}
-                      invitation={invitation}
-                      bidEdges={bidEdges}
-                      setBidEdges={setBidEdges}
-                      conflictIds={conflictIds}
-                    />
-                  </TabPanel>
-                )
-              if (index === bidOptionsWithDefaultTabs.length - 1)
-                return (
-                  <TabPanel key={id} id={id}>
-                    <NoBidTab
-                      key={id}
-                      scoreIds={scoreIds}
-                      bidOptions={bidOptions}
-                      blindSubmissionInvitationId={blindSubmissionInvitationId}
-                      invitation={invitation}
-                      bidEdges={bidEdges}
-                      setBidEdges={setBidEdges}
-                      conflictIds={conflictIds}
-                      activeTabIndex={activeTabIndex}
-                      currentIndex={index}
-                    />
-                  </TabPanel>
-                )
-              return (
-                <TabPanel key={id} id={id}>
-                  <BidOptionTab
-                    bidOptions={bidOptions}
-                    bidOption={bidOption}
-                    bidEdges={bidEdges}
-                    invitation={invitation}
-                    setBidEdges={setBidEdges}
-                    activeTabIndex={activeTabIndex}
-                    currentIndex={index}
-                  />
-                </TabPanel>
-              )
-            })}
-          </TabPanels>
+          <TabPanels>{renderActiveTab()}</TabPanels>
         </Tabs>
       )}
     </>
