@@ -1,10 +1,12 @@
+/* globals typesetMathJax,promptError: false */
 import { useCallback, useContext, useEffect, useState } from 'react'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
+import { useRouter } from 'next/router'
+import debounce from 'lodash/debounce'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import useQuery from '../../hooks/useQuery'
-import { useRouter } from 'next/router'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import { NoteListWithBidTag } from '../NoteList'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -12,7 +14,6 @@ import Icon from '../Icon'
 import Dropdown from '../Dropdown'
 import { prettyInvitationId } from '../../lib/utils'
 import LoadingSpinner from '../LoadingSpinner'
-import debounce from 'lodash/debounce'
 import PaginationLinks from '../PaginationLinks'
 import ErrorDisplay from '../ErrorDisplay'
 
@@ -21,24 +22,18 @@ const buildArray = (invitation, fieldName, profileId, noteNumber) => {
   if (invitation.reply?.[fieldName]?.['values-copied'])
     return invitation.reply[fieldName]['values-copied']
       .map((value) => {
-        if (value === '{signatures}') {
-          return profileId
-        } else if (value[0] === '{') {
-          return null
-        } else {
-          return value
-        }
+        if (value === '{signatures}') return profileId
+        if (value[0] === '{') return null
+        return value
       })
       .filter((p) => p)
   if (invitation.reply?.[fieldName]?.['values-regex'])
     return invitation.reply[fieldName]['values-regex']
       .split('|')
       .map((value) => {
-        if (value.indexOf('Paper.*') !== -1) {
+        if (value.indexOf('Paper.*') !== -1)
           return value.replace('Paper.*', `Paper${noteNumber}`)
-        } else {
-          return value
-        }
+        return value
       })
       .filter((p) => p)
   return []
@@ -50,24 +45,18 @@ const buildArrayV2 = (invitation, fieldName, profileId, noteNumber) => {
   if (invitation.reply?.[fieldName]?.['values-copied'])
     return invitation.reply[fieldName]['values-copied']
       .map((value) => {
-        if (value === '{signatures}') {
-          return profileId
-        } else if (value[0] === '{') {
-          return null
-        } else {
-          return value
-        }
+        if (value === '{signatures}') return profileId
+        if (value[0] === '{') return null
+        return value
       })
       .filter((p) => p)
   if (invitation.reply?.[fieldName]?.regex)
     return invitation.reply[fieldName].regex
       .split('|')
       .map((value) => {
-        if (value.indexOf('Paper.*') !== -1) {
+        if (value.indexOf('Paper.*') !== -1)
           return value.replace('Paper.*', `Paper${noteNumber}`)
-        } else {
-          return value
-        }
+        return value
       })
       .filter((p) => p)
   return []
@@ -87,22 +76,20 @@ const getBidObjectToPost = (
   userId,
   ddate,
   apiVersion
-) => {
-  return {
-    id,
-    invitation: invitation.id,
-    label: updatedOption,
-    head: note.id,
-    tail: userId,
-    signatures: [userId],
-    ...(apiVersion !== 2 && {
-      readers: buildArray(invitation, 'readers', userId, note.number),
-      nonreaders: buildArray(invitation, 'nonreaders', userId, note.number),
-      writers: [userId],
-    }),
-    ddate,
-  }
-}
+) => ({
+  id,
+  invitation: invitation.id,
+  label: updatedOption,
+  head: note.id,
+  tail: userId,
+  signatures: [userId],
+  ...(apiVersion !== 2 && {
+    readers: buildArray(invitation, 'readers', userId, note.number),
+    nonreaders: buildArray(invitation, 'nonreaders', userId, note.number),
+    writers: [userId],
+  }),
+  ddate,
+})
 
 const AllSubmissionsTab = ({
   venueId,
@@ -177,6 +164,7 @@ const AllSubmissionsTab = ({
               )
                 return matchingNote
               return []
+              // eslint-disable-next-line no-else-return
             } else {
               if (
                 matchingNote &&
@@ -426,6 +414,7 @@ const NoBidTab = ({
               )
                 return matchingNote
               return []
+              // eslint-disable-next-line no-else-return
             } else {
               if (
                 matchingNote &&
@@ -477,12 +466,12 @@ const NoBidTab = ({
       if (existingBidToDelete) {
         updatedBidEdges = bidEdges.filter((p) => p.id !== existingBidToDelete.id)
         setBidEdges(updatedBidEdges)
-        setNotes((notes) => notes.filter((p) => p.id !== note.id))
+        setNotes((notes) => notes.filter((p) => p.id !== note.id)) // eslint-disable-line no-shadow
         return
       }
 
       setBidEdges([...bidEdges.filter((p) => p.id !== existingBidToUpdate?.id), result])
-      setNotes((notes) => notes.filter((p) => p.id !== note.id))
+      setNotes((notes) => notes.filter((p) => p.id !== note.id)) // eslint-disable-line no-shadow
     } catch (error) {
       promptError(error.message)
     }
@@ -570,12 +559,12 @@ const BidOptionTab = ({
       if (existingBidToDelete) {
         updatedBidEdges = bidEdges.filter((p) => p.id !== existingBidToDelete.id)
         setBidEdges(updatedBidEdges)
-        setNotes((notes) => notes.filter((p) => p.id !== note.id))
+        setNotes((notes) => notes.filter((p) => p.id !== note.id)) // eslint-disable-line no-shadow
         return
       }
 
       setBidEdges([...bidEdges.filter((p) => p.id !== existingBidToUpdate?.id), result])
-      setNotes((notes) => notes.filter((p) => p.id !== note.id))
+      setNotes((notes) => notes.filter((p) => p.id !== note.id)) // eslint-disable-line no-shadow
     } catch (error) {
       promptError(error.message)
     }

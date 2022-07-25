@@ -1,6 +1,6 @@
+import List from 'rc-virtual-list'
 import Note, { NoteV2 } from './Note'
 import { BidRadioButtonGroup, TagText } from './webfield/BidTag'
-import List from 'rc-virtual-list'
 
 const NoteList = ({ notes, displayOptions }) => (
   <ul className="list-unstyled submissions-list">

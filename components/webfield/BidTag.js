@@ -21,7 +21,8 @@ export const BidRadioButtonGroup = ({ options, selectedBidOption, updateBidOptio
   }, [selectedBidOption])
 
   return (
-    <div className="tag-widget edge-widget" data-type="radio" data-id="">
+    <div className="tag-widget edge-widget" data-type="radio">
+      {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
       <label>Bid:</label>
 
       <div
@@ -29,22 +30,20 @@ export const BidRadioButtonGroup = ({ options, selectedBidOption, updateBidOptio
         role="group"
         data-toggle="buttons"
       >
-        {options.map((option) => {
-          return (
-            <label
-              key={option}
-              className={`btn btn-default radio-toggle${
-                option === selectedBidOption ? ' active' : ''
-              }`}
-              onClick={() => {
-                setIsLoading(true)
-                updateBidOption(option)
-              }}
-            >
-              <input type="radio" name="tag-options" autoComplete="off" /> {option}
-            </label>
-          )
-        })}
+        {options.map((option) => (
+          <label
+            key={option}
+            className={`btn btn-default radio-toggle${
+              option === selectedBidOption ? ' active' : ''
+            }`}
+            onClick={() => {
+              setIsLoading(true)
+              updateBidOption(option)
+            }}
+          >
+            <input type="radio" name="tag-options" autoComplete="off" /> {option}
+          </label>
+        ))}
       </div>
     </div>
   )
