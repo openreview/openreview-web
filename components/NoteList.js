@@ -61,13 +61,23 @@ export const NoteListWithBidTag = ({
   if (virtualList)
     return (
       <ul className="list-unstyled submissions-list">
-        <List data={notes} height={window.innerHeight} itemHeight={135} itemKey="id">
+        <List
+          data={notes}
+          height={notes.length === 0 ? 0 : window.innerHeight}
+          itemHeight={135}
+          itemKey="id"
+        >
           {(note) => {
             const selectedBidOption = bidEdges?.find((p) => p.head === note.id)?.label
             const scoreEdge = scoreEdges?.find((p) => p.head === note.id)
             return renderNoteWithTag(note, selectedBidOption, scoreEdge)
           }}
         </List>
+        {notes.length === 0 && (
+          <li>
+            <p className="empty-message">{displayOptions.emptyMessage}</p>
+          </li>
+        )}
       </ul>
     )
   return (

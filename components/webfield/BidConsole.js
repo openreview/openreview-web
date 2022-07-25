@@ -44,6 +44,7 @@ const buildArray = (invitation, fieldName, profileId, noteNumber) => {
   return []
 }
 
+// TODO: based on buildArray in webfield-v2, won't work with new new schema
 const buildArrayV2 = (invitation, fieldName, profileId, noteNumber) => {
   if (invitation.reply?.[fieldName]?.const) return invitation.reply[fieldName].const
   if (invitation.reply?.[fieldName]?.['values-copied'])
@@ -70,6 +71,37 @@ const buildArrayV2 = (invitation, fieldName, profileId, noteNumber) => {
       })
       .filter((p) => p)
   return []
+}
+
+const getDdate = (existingBidToDelete, apiVersion) => {
+  if (existingBidToDelete) return Date.now()
+  if (apiVersion === 2) return { delete: true }
+  return null
+}
+
+const getBidObjectToPost = (
+  id,
+  updatedOption,
+  invitation,
+  note,
+  userId,
+  ddate,
+  apiVersion
+) => {
+  return {
+    id,
+    invitation: invitation.id,
+    label: updatedOption,
+    head: note.id,
+    tail: userId,
+    signatures: [userId],
+    ...(apiVersion !== 2 && {
+      readers: buildArray(invitation, 'readers', userId, note.number),
+      nonreaders: buildArray(invitation, 'nonreaders', userId, note.number),
+      writers: [userId],
+    }),
+    ddate,
+  }
 }
 
 const AllSubmissionsTab = ({
@@ -124,7 +156,7 @@ const AllSubmissionsTab = ({
             offset: (pageNumber - 1) * pageSize,
             limit,
           },
-          { accessToken }
+          { accessToken, version: apiVersion }
         )
         if (edgesResult.count) {
           setTotalCount(edgesResult.count)
@@ -201,28 +233,21 @@ const AllSubmissionsTab = ({
       (p) => p.head === note.id && p.label === updatedOption
     )
     const existingBidToUpdate = bidEdges.find((p) => p.head === note.id)
+    const ddate = getDdate(existingBidToDelete, apiVersion)
+    const bidId = existingBidToDelete?.id ?? existingBidToUpdate?.id
     try {
       const result = await api.post(
         '/edges',
-        {
-          id: existingBidToDelete?.id ?? existingBidToUpdate?.id,
-          invitation: invitation.id,
-          label: updatedOption,
-          head: note.id,
-          tail: user.profile.id,
-          signatures: [user.profile.id],
-          writers: [user.profile.id],
-          readers:
-            apiVersion === 2
-              ? buildArrayV2(invitation, 'readers', user.profile.id, note.number)
-              : buildArray(invitation, 'readers', user.profile.id, note.number),
-          nonreaders:
-            apiVersion === 2
-              ? buildArrayV2(invitation, 'nonreaders', user.profile.id, note.number)
-              : buildArray(invitation, 'nonreaders', user.profile.id, note.number),
-          ddate: existingBidToDelete ? Date.now() : null,
-        },
-        { accessToken }
+        getBidObjectToPost(
+          bidId,
+          updatedOption,
+          invitation,
+          note,
+          user.profile.id,
+          ddate,
+          apiVersion
+        ),
+        { accessToken, version: apiVersion }
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -367,7 +392,7 @@ const NoBidTab = ({
       return {
         ...result,
         notes: result.notes.filter(
-          (p) => !conflictIds.includes(p.id) || !bidEdges.find((q) => q.head === p.id)
+          (p) => !conflictIds.includes(p.id) && !bidEdges.find((q) => q.head === p.id)
         ),
       }
     }
@@ -380,7 +405,7 @@ const NoBidTab = ({
             tail: user.profile.id,
             sort: 'weight:desc',
           },
-          { accessToken }
+          { accessToken, version: apiVersion }
         )
         if (edgesResult.count) {
           setScoreEdges(edgesResult.edges)
@@ -432,28 +457,21 @@ const NoBidTab = ({
       (p) => p.head === note.id && p.label === updatedOption
     )
     const existingBidToUpdate = bidEdges.find((p) => p.head === note.id)
+    const ddate = getDdate(existingBidToDelete, apiVersion)
+    const bidId = existingBidToDelete?.id ?? existingBidToUpdate?.id
     try {
       const result = await api.post(
         '/edges',
-        {
-          id: existingBidToDelete?.id ?? existingBidToUpdate?.id,
-          invitation: invitation.id,
-          label: updatedOption,
-          head: note.id,
-          tail: user.profile.id,
-          signatures: [user.profile.id],
-          writers: [user.profile.id],
-          readers:
-            apiVersion === 2
-              ? buildArrayV2(invitation, 'readers', user.profile.id, note.number)
-              : buildArray(invitation, 'readers', user.profile.id, note.number),
-          nonreaders:
-            apiVersion === 2
-              ? buildArrayV2(invitation, 'nonreaders', user.profile.id, note.number)
-              : buildArray(invitation, 'nonreaders', user.profile.id, note.number),
-          ddate: existingBidToDelete ? Date.now() : null,
-        },
-        { accessToken }
+        getBidObjectToPost(
+          bidId,
+          updatedOption,
+          invitation,
+          note,
+          user.profile.id,
+          ddate,
+          apiVersion
+        ),
+        { accessToken, version: apiVersion }
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -532,28 +550,21 @@ const BidOptionTab = ({
       (p) => p.head === note.id && p.label === updatedOption
     )
     const existingBidToUpdate = bidEdges.find((p) => p.head === note.id)
+    const ddate = getDdate(existingBidToDelete, apiVersion)
+    const bidId = existingBidToDelete?.id ?? existingBidToUpdate?.id
     try {
       const result = await api.post(
         '/edges',
-        {
-          id: existingBidToDelete?.id ?? existingBidToUpdate?.id,
-          invitation: invitation.id,
-          label: updatedOption,
-          head: note.id,
-          tail: user.profile.id,
-          signatures: [user.profile.id],
-          writers: [user.profile.id],
-          readers:
-            apiVersion === 2
-              ? buildArrayV2(invitation, 'readers', user.profile.id, note.number)
-              : buildArray(invitation, 'readers', user.profile.id, note.number),
-          nonreaders:
-            apiVersion === 2
-              ? buildArrayV2(invitation, 'nonreaders', user.profile.id, note.number)
-              : buildArray(invitation, 'nonreaders', user.profile.id, note.number),
-          ddate: existingBidToDelete ? Date.now() : null,
-        },
-        { accessToken }
+        getBidObjectToPost(
+          bidId,
+          updatedOption,
+          invitation,
+          note,
+          user.profile.id,
+          ddate,
+          apiVersion
+        ),
+        { accessToken, version: apiVersion }
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -633,12 +644,12 @@ const BidConsole = ({ appContext }) => {
       const bidEdgeResultsP = api.getAll(
         '/edges',
         { invitation: bidInvitationId, tail: user.profile.id },
-        { accessToken }
+        { accessToken, version: apiVersion }
       )
       const conflictEdgeResultsP = api.getAll(
         '/edges',
         { invitation: conflictInvitationId, tail: user.profile.id },
-        { accessToken }
+        { accessToken, version: apiVersion }
       )
       const results = await Promise.all([bidEdgeResultsP, conflictEdgeResultsP])
       setBidEdges(results[0])
