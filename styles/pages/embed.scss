@@ -1,5 +1,5 @@
-@use "../utils/_constants";
-@use "../utils/_mixins";
+@use '../utils/_constants';
+@use '../utils/_mixins';
 
 main.embed {
   padding-bottom: 8px;
@@ -30,7 +30,7 @@ main.embed {
       position: absolute;
       left: 0px;
       top: 0px;
-      margin-top: calc(4px - .125rem);
+      margin-top: calc(4px - 0.125rem);
       width: 28px;
       height: 28px;
       border-radius: 50%;
@@ -39,12 +39,12 @@ main.embed {
     }
     h4 {
       margin-top: 0;
-      margin-bottom: .5rem;
+      margin-bottom: 0.5rem;
       span {
         color: constants.$subtleGray;
-        font-size: .75rem;
+        font-size: 0.75rem;
         font-weight: normal;
-        padding-left: .5rem;
+        padding-left: 0.5rem;
       }
     }
     .message-content {
@@ -57,7 +57,7 @@ main.embed {
     @include mixins.markdown-content-styles;
   }
   .submit-container {
-    margin-top: .5rem;
+    margin-top: 0.5rem;
     border-top: 1px solid constants.$mediumBlue;
     padding-top: 1rem;
 

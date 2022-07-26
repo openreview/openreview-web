@@ -21,10 +21,7 @@ export default function EditEdgeDropdown(props) {
   if (!props.existingEdge && !props.canAddEdge) return null
   return (
     <div className="edit-controls full-width">
-      <label onMouseEnter={e => handleHover(e.target)}>
-        {props.label}
-        :
-      </label>
+      <label onMouseEnter={(e) => handleHover(e.target)}>{props.label}:</label>
       <div className="btn-group edit-edge-dropdown">
         <button
           className="btn btn-default btn-xs btn-link dropdown-toggle"
@@ -33,29 +30,41 @@ export default function EditEdgeDropdown(props) {
           aria-haspopup="true"
           aria-expanded="false"
         >
-          <span className="edge-weight">{props.selected ?? props.editEdgeTemplate?.defaultWeight}</span>
+          <span className="edge-weight">
+            {props.selected ?? props.editEdgeTemplate?.defaultWeight}
+          </span>
           <span className="caret" />
         </button>
         <ul className="dropdown-menu">
-          {props.options && props.options.map(option => (
-            <li key={option}>
-              <a
-                href="#"
-                onClick={e => props.addEdge({
-                  e,
-                  existingEdge: props.existingEdge,
-                  editEdgeTemplate: props.editEdgeTemplate,
-                  updatedEdgeFields: { [props.type]: option },
-                })}
-              >
-                {option}
-              </a>
-            </li>
-          ))}
+          {props.options &&
+            props.options.map((option) => (
+              <li key={option}>
+                <a
+                  href="#"
+                  onClick={(e) =>
+                    props.addEdge({
+                      e,
+                      existingEdge: props.existingEdge,
+                      editEdgeTemplate: props.editEdgeTemplate,
+                      updatedEdgeFields: { [props.type]: option },
+                    })
+                  }
+                >
+                  {option}
+                </a>
+              </li>
+            ))}
         </ul>
       </div>
       {props.existingEdge && showTrashButton && (
-        <a href="#" className="edit-edge-remove" onClick={(e) => { e.stopPropagation(); props.removeEdge() }}>
+        <a
+          href="#"
+          className="edit-edge-remove"
+          onClick={(e) => {
+            e.stopPropagation()
+            props.removeEdge()
+          }}
+        >
           <span className="glyphicon glyphicon-trash" />
         </a>
       )}

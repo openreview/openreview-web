@@ -15,12 +15,10 @@ function VenuesList({ filteredVenues }) {
   return (
     <div className="groups">
       <ul className="list-unstyled venues-list">
-        {filteredVenues.map(venue => (
+        {filteredVenues.map((venue) => (
           <li key={venue.id}>
             <Link href={`/submissions?venue=${venue.id}`}>
-              <a title="View submissions for this venue">
-                {prettyId(venue.id)}
-              </a>
+              <a title="View submissions for this venue">{prettyId(venue.id)}</a>
             </Link>
           </li>
         ))}
@@ -32,11 +30,8 @@ function VenuesList({ filteredVenues }) {
 function GroupHeading({ year, count }) {
   return (
     <>
-      <span className="h3">{year}</span>
-      {' '}
-      <span className="h4">
-        {`(${count} ${inflect(count, 'venue', 'venues')})`}
-      </span>
+      <span className="h3">{year}</span>{' '}
+      <span className="h4">{`(${count} ${inflect(count, 'venue', 'venues')})`}</span>
     </>
   )
 }
@@ -44,10 +39,8 @@ function GroupHeading({ year, count }) {
 function Venue({ hostGroup, venuesByYear, appContext }) {
   const { setBannerContent } = appContext
 
-  const descriptionRe = /^ {2}title: ["'](.+)["'], *$/mg
-  const groupDescription = hostGroup.web
-    ? descriptionRe.exec(hostGroup.web)?.[1] ?? ''
-    : ''
+  const descriptionRe = /^ {2}title: ["'](.+)["'], *$/gm
+  const groupDescription = hostGroup.web ? descriptionRe.exec(hostGroup.web)?.[1] ?? '' : ''
 
   useEffect(() => {
     setBannerContent(referrerLink('[All Venues](/venues)'))
@@ -76,7 +69,9 @@ function Venue({ hostGroup, venuesByYear, appContext }) {
 
       <header className="clearfix">
         <h1 className="mb-4">
-          {groupDescription ? `${groupDescription} (${prettyId(hostGroup.id)})` : prettyId(hostGroup.id)}
+          {groupDescription
+            ? `${groupDescription} (${prettyId(hostGroup.id)})`
+            : prettyId(hostGroup.id)}
         </h1>
       </header>
 
@@ -108,8 +103,12 @@ Venue.getInitialProps = async (ctx) => {
   const { token } = auth(ctx)
 
   const [hostGroup, venues] = await Promise.all([
-    api.get('/groups', { id: ctx.query.id }, { accessToken: token }).then(res => res.groups?.[0]),
-    api.get('/groups', { host: ctx.query.id }, { accessToken: token }).then(res => res.groups)
+    api
+      .get('/groups', { id: ctx.query.id }, { accessToken: token })
+      .then((res) => res.groups?.[0]),
+    api
+      .get('/groups', { host: ctx.query.id }, { accessToken: token })
+      .then((res) => res.groups),
   ])
 
   if (!hostGroup) {
@@ -124,14 +123,21 @@ Venue.getInitialProps = async (ctx) => {
 
   const groupedVenues = groupBy(venues, (group) => {
     // Assumes that the host group id is a prefix of the venue id
-    const firstYear = group.id.replace(hostGroup.id, '').split('/').slice(1).find(part => Number.parseInt(part, 10))
+    const firstYear = group.id
+      .replace(hostGroup.id, '')
+      .split('/')
+      .slice(1)
+      .find((part) => Number.parseInt(part, 10))
     // Use small number as default to ensure it shows up last in the list
     return firstYear || 0
   })
-  const venuesByYear = Object.keys(groupedVenues).sort().reverse().map((year) => ({
-    year,
-    venues: groupedVenues[year],
-  }))
+  const venuesByYear = Object.keys(groupedVenues)
+    .sort()
+    .reverse()
+    .map((year) => ({
+      year,
+      venues: groupedVenues[year],
+    }))
 
   const lastEntry = venuesByYear[venuesByYear.length - 1]
   if (lastEntry.year === '0') {

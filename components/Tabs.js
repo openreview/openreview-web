@@ -1,11 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 export function Tabs({ children, className }) {
-  return (
-    <div className={`tabs-container ${className || ''}`}>
-      {children}
-    </div>
-  )
+  return <div className={`tabs-container ${className || ''}`}>{children}</div>
 }
 
 export function TabList({ children }) {
@@ -35,32 +31,27 @@ export function Tab({ id, headingCount, onClick, active, children }) {
 
   return (
     <li role="presentation" onClick={handleClick}>
-      <a href={`#${id}`} aria-controls={id} role="tab" data-toggle="tab" data-modify-history="true" ref={tabEl}>
-        {children}
-        {' '}
-        {headingCount && (
-          <span className="badge">{headingCount}</span>
-        )}
+      <a
+        href={`#${id}`}
+        aria-controls={id}
+        role="tab"
+        data-toggle="tab"
+        data-modify-history="true"
+        ref={tabEl}
+      >
+        {children} {headingCount && <span className="badge">{headingCount}</span>}
       </a>
     </li>
   )
 }
 
 export function TabPanels({ children }) {
-  return (
-    <div className="tab-content">
-      {children}
-    </div>
-  )
+  return <div className="tab-content">{children}</div>
 }
 
 export function TabPanel({ id, className, children }) {
   return (
-    <div
-      id={id}
-      className={`tab-pane fade ${className || ''}`}
-      role="tabpanel"
-    >
+    <div id={id} className={`tab-pane fade ${className || ''}`} role="tabpanel">
       {children}
     </div>
   )

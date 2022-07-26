@@ -4,15 +4,21 @@ import findIndex from 'lodash/findIndex'
 import Icon from '../Icon'
 
 export default function ToggleButtonGroup({
-  name, className, options, values, isDisabled, onChange, includeReset
+  name,
+  className,
+  options,
+  values,
+  isDisabled,
+  onChange,
+  includeReset,
 }) {
-  const [optionStates, setOptionStates] = useState((new Array(options?.length || 0)).fill(0))
+  const [optionStates, setOptionStates] = useState(new Array(options?.length || 0).fill(0))
   const numStates = 3
   const maxLabelLength = 20
 
   const onButtonClick = (e) => {
     const { value } = e.target
-    const index = findIndex(options, option => option.value === value)
+    const index = findIndex(options, (option) => option.value === value)
     const newOptionStates = [...optionStates]
     newOptionStates[index] = (newOptionStates[index] + 1) % numStates
 
@@ -43,15 +49,15 @@ export default function ToggleButtonGroup({
   }
 
   const onResetClick = () => {
-    setOptionStates((new Array(options?.length || 0)).fill(0))
+    setOptionStates(new Array(options?.length || 0).fill(0))
 
-    onChange((new Array(numStates - 1)).fill([]))
+    onChange(new Array(numStates - 1).fill([]))
   }
 
   useEffect(() => {
     if (!values || !options?.length) return
 
-    const newOptionStates = (new Array(options.length)).fill(0)
+    const newOptionStates = new Array(options.length).fill(0)
     values.forEach((selectedValues, state) => {
       options.forEach((option, i) => {
         if (selectedValues.includes(option.value)) {
@@ -67,21 +73,25 @@ export default function ToggleButtonGroup({
 
   return (
     <div
-      className={`btn-group btn-group-sm toggle-group ${className || ''} ${isDisabled ? 'disabled' : ''}`}
+      className={`btn-group btn-group-sm toggle-group ${className || ''} ${
+        isDisabled ? 'disabled' : ''
+      }`}
       role="group"
     >
       {options.map((option, i) => {
         const selected = optionStates[i] > 0
         return (
-          <label key={option.value} className={`btn btn-default ${selected ? 'active' : ''} state-${optionStates[i]}`}>
+          <label
+            key={option.value}
+            className={`btn btn-default ${selected ? 'active' : ''} state-${optionStates[i]}`}
+          >
             <input
               type="checkbox"
               name={name}
               value={option.value}
               checked={selected}
               onChange={onButtonClick}
-            />
-            {' '}
+            />{' '}
             {truncate(option.label, {
               length: maxLabelLength,
               omission: '...',
@@ -98,8 +108,7 @@ export default function ToggleButtonGroup({
             value="reset"
             checked={false}
             onChange={onResetClick}
-          />
-          {' '}
+          />{' '}
           <Icon name="remove" tooltip="Reset" />
         </label>
       )}

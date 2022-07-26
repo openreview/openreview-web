@@ -2,7 +2,13 @@ import Link from 'next/link'
 import { stringify } from 'query-string'
 
 export default function PaginationLinks({
-  currentPage = 1, setCurrentPage, itemsPerPage, totalCount, baseUrl, queryParams = {}, options = {},
+  currentPage = 1,
+  setCurrentPage,
+  itemsPerPage,
+  totalCount,
+  baseUrl,
+  queryParams = {},
+  options = {},
 }) {
   if (totalCount <= itemsPerPage) {
     return null
@@ -66,9 +72,7 @@ export default function PaginationLinks({
 
           let pageLink
           if (page.disabled) {
-            pageLink = (
-              <span>{page.label}</span>
-            )
+            pageLink = <span>{page.label}</span>
           } else if (typeof setCurrentPage === 'function') {
             const onClickHandler = (e) => {
               e.preventDefault()
@@ -84,9 +88,15 @@ export default function PaginationLinks({
               </a>
             )
           } else {
-            const queryString = stringify({ ...queryParams, page: page.number }, { skipNull: true })
+            const queryString = stringify(
+              { ...queryParams, page: page.number },
+              { skipNull: true }
+            )
             pageLink = (
-              <Link href={`${baseUrl}?${queryString}`} shallow={options.useShallowRouting ?? false}>
+              <Link
+                href={`${baseUrl}?${queryString}`}
+                shallow={options.useShallowRouting ?? false}
+              >
                 <a>{page.label}</a>
               </Link>
             )

@@ -33,7 +33,10 @@ const GroupInfo = ({ appContext }) => {
         if (!accessToken) {
           router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
         } else {
-          setError({ statusCode: 403, message: 'You don\'t have permission to read this group' })
+          setError({
+            statusCode: 403,
+            message: "You don't have permission to read this group",
+          })
         }
         return
       }
@@ -74,9 +77,7 @@ const GroupInfo = ({ appContext }) => {
   return (
     <>
       <Head>
-        <title key="title">
-          {prettyId(group?.id)} Group Info | OpenReview
-        </title>
+        <title key="title">{prettyId(group?.id)} Group Info | OpenReview</title>
       </Head>
 
       <div id="header">
@@ -89,20 +90,11 @@ const GroupInfo = ({ appContext }) => {
 
           <GroupMembersInfo group={group} />
 
-          <GroupSignedNotes
-            groupId={group.id}
-            accessToken={accessToken}
-          />
+          <GroupSignedNotes groupId={group.id} accessToken={accessToken} />
 
-          <GroupChildGroups
-            groupId={group.id}
-            accessToken={accessToken}
-          />
+          <GroupChildGroups groupId={group.id} accessToken={accessToken} />
 
-          <GroupRelatedInvitations
-            groupId={group.id}
-            accessToken={accessToken}
-          />
+          <GroupRelatedInvitations groupId={group.id} accessToken={accessToken} />
         </div>
       ) : (
         <LoadingSpinner />

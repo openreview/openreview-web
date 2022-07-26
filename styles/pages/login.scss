@@ -1,8 +1,9 @@
-@use "../utils/constants";
+@use '../utils/constants';
 
 main.login {
-  .login-container, .signup-container {
-    margin-top: .5rem;
+  .login-container,
+  .signup-container {
+    margin-top: 0.5rem;
     margin-bottom: 2rem;
 
     form {
@@ -32,8 +33,8 @@ main.login {
 
   .login-container {
     button {
-      margin-top: .25rem;
-      margin-bottom: .5rem;
+      margin-top: 0.25rem;
+      margin-bottom: 0.5rem;
     }
   }
 

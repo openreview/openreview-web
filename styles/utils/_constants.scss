@@ -9,7 +9,7 @@ $alertRed: #f2dede;
 $sandyBrown: #efece3;
 $subtleGray: #777777;
 $backgroundGray: #dddddd;
-$borderGray: rgba(0,0,0,0.1);
+$borderGray: rgba(0, 0, 0, 0.1);
 
 // Media Queries
 $xs-min: 0px;
@@ -21,10 +21,10 @@ $xs-max: ($sm-min - 1);
 $sm-max: ($md-min - 1);
 $md-max: ($lg-min - 1);
 
-$phone:          unquote("only screen and (min-width: #{$xs-min})");
-$phone-only:     unquote("only screen and (max-width: #{$xs-max})");
-$tablet:         unquote("only screen and (min-width: #{$sm-min})");
-$tablet-only:    unquote("only screen and (min-width: #{$sm-min}) and (max-width: #{$sm-max})");
-$desktop:        unquote("only screen and (min-width: #{$md-min})");
-$desktop-only:   unquote("only screen and (min-width: #{$md-min}) and (max-width: #{$md-max})");
-$large:          unquote("only screen and (min-width: #{$lg-min})");
+$phone: unquote('only screen and (min-width: #{$xs-min})');
+$phone-only: unquote('only screen and (max-width: #{$xs-max})');
+$tablet: unquote('only screen and (min-width: #{$sm-min})');
+$tablet-only: unquote('only screen and (min-width: #{$sm-min}) and (max-width: #{$sm-max})');
+$desktop: unquote('only screen and (min-width: #{$md-min})');
+$desktop-only: unquote('only screen and (min-width: #{$md-min}) and (max-width: #{$md-max})');
+$large: unquote('only screen and (min-width: #{$lg-min})');
