@@ -113,8 +113,8 @@ const CompareRevisions = ({ appContext }) => {
     if (!diff) return null
 
     return Object.entries(diff).map(([fieldName, fieldValue]) => {
-      // eslint-disable-next-line no-param-reassign
       if (fieldName.startsWith(prefixToRemove))
+        // eslint-disable-next-line no-param-reassign
         fieldName = fieldName.substring(prefixToRemove.length)
       // eslint-disable-next-line no-param-reassign
       if (fieldName.endsWith('.value')) fieldName = fieldName.slice(0, -6)
