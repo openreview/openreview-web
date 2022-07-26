@@ -53,7 +53,7 @@ main.forum {
 
   .filter-controls {
     background: $gray1;
-    padding: .5rem;
+    padding: 0.5rem;
     border: 1px solid #eee;
 
     & > div {
@@ -65,8 +65,8 @@ main.forum {
     }
 
     .form-group {
-      margin-right: .5rem;
-      margin-bottom: .5rem;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
 
       &:last-child {
         margin-right: 0;
@@ -89,7 +89,8 @@ main.forum {
       label.icon-label {
         padding-right: 0.5rem;
       }
-      select.form-control, input.form-control {
+      select.form-control,
+      input.form-control {
         width: 100%;
         min-width: 160px;
         height: 32px;
@@ -114,7 +115,7 @@ main.forum {
       .dropdown-select__control {
         background-color: #fff;
         max-height: 32px;
-        font-size: .75rem;
+        font-size: 0.75rem;
       }
       .dropdown-select__value-container {
         max-height: 28px;
@@ -129,7 +130,7 @@ main.forum {
     }
 
     #keyword-input {
-      font-size: .75rem;
+      font-size: 0.75rem;
       &::placeholder {
         color: hsl(0, 0%, 50%);
         opacity: 1;
@@ -137,11 +138,11 @@ main.forum {
     }
 
     #sort-dropdown {
-      font-size: .75rem;
+      font-size: 0.75rem;
     }
 
     .btn-group {
-      margin-right: .5rem;
+      margin-right: 0.5rem;
 
       &:last-child {
         margin-right: 0;
@@ -186,10 +187,10 @@ main.forum {
     }
     .icon-label {
       line-height: 26px;
-      padding-right: .5rem;
+      padding-right: 0.5rem;
     }
     .readers-filter-container {
-      margin-bottom: -.25rem;
+      margin-bottom: -0.25rem;
       margin-right: auto;
     }
     .readers-filter {
@@ -198,9 +199,9 @@ main.forum {
       .btn {
         font-weight: 400;
         min-width: 4rem;
-        padding-top: .125rem;
-        padding-bottom: .125rem;
-        margin-bottom: .25rem;
+        padding-top: 0.125rem;
+        padding-bottom: 0.125rem;
+        margin-bottom: 0.25rem;
       }
       .reset-btn {
         min-width: 2.5rem;
@@ -248,8 +249,8 @@ main.forum {
     }
     .note-editor-container {
       background-color: transparent;
-      padding: 0 .125rem .5rem .125rem;
-      margin-top: .5rem;
+      padding: 0 0.125rem 0.5rem 0.125rem;
+      margin-top: 0.5rem;
       margin-bottom: 0rem;
 
       .note_content_title {
@@ -261,7 +262,7 @@ main.forum {
 
   .note {
     position: relative;
-    padding: .5rem;
+    padding: 0.5rem;
     border: 1px solid #eee;
     border-radius: 2px;
 
@@ -315,20 +316,24 @@ main.forum {
       }
     }
     .subheading {
-      margin-bottom: .25rem;
+      margin-bottom: 0.25rem;
 
       strong {
         padding-right: 0.5rem;
       }
       > span {
-        padding-left: .5rem;
-        padding-right: .5rem;
-        font-size: .75rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        font-size: 0.75rem;
         line-height: 15px;
         height: 16px;
         display: inline-block;
       }
-      .signatures, .invitation, .created-date, .readers, .revisions {
+      .signatures,
+      .invitation,
+      .created-date,
+      .readers,
+      .revisions {
         color: constants.$subtleGray;
         font-weight: 400;
       }
@@ -337,7 +342,7 @@ main.forum {
       }
       .glyphicon {
         font-size: 13px;
-        padding-right: .25rem;
+        padding-right: 0.25rem;
       }
       .highlight {
         background-color: constants.$mediumBlue;
@@ -345,8 +350,9 @@ main.forum {
         padding: 0 4px;
         border-radius: 2px;
       }
-      .highlight + .highlight, .tooltip + .highlight  {
-        margin-left: .25rem;
+      .highlight + .highlight,
+      .tooltip + .highlight {
+        margin-left: 0.25rem;
       }
       .btn-link {
         padding: 0;
@@ -376,7 +382,7 @@ main.forum {
         rgba(247, 246, 241, 0.4) 25%,
         $gray1 98%
       );
-      content: "";
+      content: '';
       button {
         display: none;
         text-decoration: none;
@@ -446,14 +452,14 @@ main.forum {
       margin-top: 0.75rem;
       padding-left: 2.5rem;
       & > .note {
-        margin-bottom: .5rem;
+        margin-bottom: 0.5rem;
       }
       & > .note:last-child {
         margin-bottom: 0;
       }
     }
     &.deleted > div {
-      opacity: .35;
+      opacity: 0.35;
     }
     &.deleted > div.note-replies {
       opacity: 1;

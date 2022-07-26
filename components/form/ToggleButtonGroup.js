@@ -4,7 +4,13 @@ import findIndex from 'lodash/findIndex'
 import Icon from '../Icon'
 
 export default function ToggleButtonGroup({
-  name, className, options, values, isDisabled, onChange, includeReset
+  name,
+  className,
+  options,
+  values,
+  isDisabled,
+  onChange,
+  includeReset,
 }) {
   const [optionStates, setOptionStates] = useState(new Array(options?.length || 0).fill(0))
   const numStates = 3
@@ -43,9 +49,9 @@ export default function ToggleButtonGroup({
   }
 
   const onResetClick = () => {
-    setOptionStates((new Array(options?.length || 0)).fill(0))
+    setOptionStates(new Array(options?.length || 0).fill(0))
 
-    onChange((new Array(numStates - 1)).fill([]))
+    onChange(new Array(numStates - 1).fill([]))
   }
 
   useEffect(() => {
@@ -85,8 +91,7 @@ export default function ToggleButtonGroup({
               value={option.value}
               checked={selected}
               onChange={onButtonClick}
-            />
-            {' '}
+            />{' '}
             {truncate(option.label, {
               length: maxLabelLength,
               omission: '...',
@@ -103,8 +108,7 @@ export default function ToggleButtonGroup({
             value="reset"
             checked={false}
             onChange={onResetClick}
-          />
-          {' '}
+          />{' '}
           <Icon name="remove" tooltip="Reset" />
         </label>
       )}

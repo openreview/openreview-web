@@ -9,8 +9,17 @@ import { prettyId, prettyInvitationId, inflect } from '../../lib/utils'
 import { stringifyFilters } from '../../lib/forum-utils'
 
 export default function FilterForm({
-  forumId, selectedFilters, setSelectedFilters, filterOptions, sort, setSort,
-  layout, setLayout, defaultCollapseLevel, setDefaultCollapseLevel, numReplies,
+  forumId,
+  selectedFilters,
+  setSelectedFilters,
+  filterOptions,
+  sort,
+  setSort,
+  layout,
+  setLayout,
+  defaultCollapseLevel,
+  setDefaultCollapseLevel,
+  numReplies,
   numRepliesHidden,
 }) {
   // Options for multiselect dropdown
@@ -139,7 +148,14 @@ export default function FilterForm({
         </div>
 
         <div className="form-group no-expand">
-          <select id="sort-dropdown" className="form-control" value={sort} onChange={(e) => { setSort(e.target.value) }}>
+          <select
+            id="sort-dropdown"
+            className="form-control"
+            value={sort}
+            onChange={(e) => {
+              setSort(e.target.value)
+            }}
+          >
             <option value="date-desc">Sort: Newest First</option>
             <option value="date-asc">Sort: Oldest First</option>
             {/* <option value="tag-desc">Sort: Most Tagged</option> */}
@@ -151,40 +167,88 @@ export default function FilterForm({
             <button
               type="button"
               className={`btn btn-default ${layout === 1 ? 'active' : ''}`}
-              onClick={(e) => { setLayout(1) }}
+              onClick={(e) => {
+                setLayout(1)
+              }}
             >
-              <img className="icon" src="/images/linear_icon.svg" alt="back arrow" data-toggle="tooltip" title="Linear discussion layout" />
+              <img
+                className="icon"
+                src="/images/linear_icon.svg"
+                alt="back arrow"
+                data-toggle="tooltip"
+                title="Linear discussion layout"
+              />
               <span className="sr-only">Linear</span>
             </button>
             <button
               type="button"
               className={`btn btn-default ${layout === 2 ? 'active' : ''}`}
-              onClick={(e) => { setLayout(2) }}
+              onClick={(e) => {
+                setLayout(2)
+              }}
             >
-              <img className="icon" src="/images/threaded_icon.svg" alt="back arrow" data-toggle="tooltip" title="Threaded discussion layout" />
+              <img
+                className="icon"
+                src="/images/threaded_icon.svg"
+                alt="back arrow"
+                data-toggle="tooltip"
+                title="Threaded discussion layout"
+              />
               <span className="sr-only">Threaded</span>
             </button>
             <button
               type="button"
               className={`btn btn-default ${layout === 3 ? 'active' : ''}`}
-              onClick={(e) => { setLayout(3) }}
+              onClick={(e) => {
+                setLayout(3)
+              }}
             >
-              <img className="icon" src="/images/nested_icon.svg" alt="back arrow" data-toggle="tooltip" title="Nested discussion layout" />
+              <img
+                className="icon"
+                src="/images/nested_icon.svg"
+                alt="back arrow"
+                data-toggle="tooltip"
+                title="Nested discussion layout"
+              />
               <span className="sr-only">Nested</span>
             </button>
           </div>
 
           <div className="btn-group btn-group-sm" role="group" aria-label="collapse level">
-            <button type="button" className={`btn btn-default ${defaultCollapseLevel === 0 ? 'active' : ''}`} onClick={(e) => { setDefaultCollapseLevel(0) }}>
-              <span data-toggle="tooltip" title="Collapse content">−</span>
+            <button
+              type="button"
+              className={`btn btn-default ${defaultCollapseLevel === 0 ? 'active' : ''}`}
+              onClick={(e) => {
+                setDefaultCollapseLevel(0)
+              }}
+            >
+              <span data-toggle="tooltip" title="Collapse content">
+                −
+              </span>
               <span className="sr-only">Collapsed</span>
             </button>
-            <button type="button" className={`btn btn-default ${defaultCollapseLevel === 1 ? 'active' : ''}`} onClick={(e) => { setDefaultCollapseLevel(1) }}>
-              <span data-toggle="tooltip" title="Partially expand content">＝</span>
+            <button
+              type="button"
+              className={`btn btn-default ${defaultCollapseLevel === 1 ? 'active' : ''}`}
+              onClick={(e) => {
+                setDefaultCollapseLevel(1)
+              }}
+            >
+              <span data-toggle="tooltip" title="Partially expand content">
+                ＝
+              </span>
               <span className="sr-only">Default</span>
             </button>
-            <button type="button" className={`btn btn-default ${defaultCollapseLevel === 2 ? 'active' : ''}`} onClick={(e) => { setDefaultCollapseLevel(2) }}>
-              <span data-toggle="tooltip" title="Fully expand content">≡</span>
+            <button
+              type="button"
+              className={`btn btn-default ${defaultCollapseLevel === 2 ? 'active' : ''}`}
+              onClick={(e) => {
+                setDefaultCollapseLevel(2)
+              }}
+            >
+              <span data-toggle="tooltip" title="Fully expand content">
+                ≡
+              </span>
               <span className="sr-only">Expanded</span>
             </button>
           </div>

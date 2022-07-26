@@ -67,7 +67,7 @@ export default function NoteEditorForm({
       const isLoadingError = [
         'Can not create note, readers must match parent note',
         'Default reader is not in the list of readers',
-        'no_results'
+        'no_results',
       ].includes(err)
       onError(isLoadingError)
     }

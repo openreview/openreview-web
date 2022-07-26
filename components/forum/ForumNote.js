@@ -10,7 +10,13 @@ import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
 
 function ForumNote({ note, updateNote }) {
   const {
-    id, content, details, signatures, editInvitations, deleteInvitation, tagInvitations,
+    id,
+    content,
+    details,
+    signatures,
+    editInvitations,
+    deleteInvitation,
+    tagInvitations,
   } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
@@ -78,7 +84,11 @@ function ForumNote({ note, updateNote }) {
   }
 
   return (
-    <div className={`forum-note ${pastDue ? 'trashed' : ''} ${texDisabled ? 'disable-tex-rendering' : ''}`}>
+    <div
+      className={`forum-note ${pastDue ? 'trashed' : ''} ${
+        texDisabled ? 'disable-tex-rendering' : ''
+      }`}
+    >
       <ForumTitle
         id={id}
         title={content.title?.value}
@@ -110,16 +120,12 @@ function ForumNote({ note, updateNote }) {
                 aria-haspopup="true"
                 aria-expanded="false"
               >
-                Edit
-                &nbsp;
+                Edit &nbsp;
                 <span className="caret" />
               </button>
               <ul className="dropdown-menu">
-                {editInvitations?.map(invitation => (
-                  <li
-                    key={invitation.id}
-                    onClick={() => openNoteEditor(invitation)}
-                  >
+                {editInvitations?.map((invitation) => (
+                  <li key={invitation.id} onClick={() => openNoteEditor(invitation)}>
                     {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                     <a href="#">{prettyInvitationId(invitation.id)}</a>
                   </li>
@@ -137,7 +143,6 @@ function ForumNote({ note, updateNote }) {
               <Icon name="trash" tooltip={prettyInvitationId(deleteInvitation)} />
             </button>
           )}
-
         </div>
       </div>
 

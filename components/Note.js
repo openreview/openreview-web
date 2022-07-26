@@ -123,13 +123,15 @@ export const NoteV2 = ({ note, options }) => {
             ? prettyId(note.invitations[0])
             : note.content?.venue?.value}
           {privatelyRevealed && (
-            <Icon name="eye-open" extraClasses="note-visible-icon ml-2" tooltip="Privately revealed to you" />
+            <Icon
+              name="eye-open"
+              extraClasses="note-visible-icon ml-2"
+              tooltip="Privately revealed to you"
+            />
           )}
         </li>
         <li className="readers">
-          Readers:
-          {' '}
-          <NoteReaders readers={note.readers} />
+          Readers: <NoteReaders readers={note.readers} />
         </li>
         {options.replyCount && (
           <li>{inflect(note.details.replyCount, 'Reply', 'Replies', true)}</li>
