@@ -39,29 +39,6 @@ const buildArray = (invitation, fieldName, profileId, noteNumber) => {
   return []
 }
 
-// TODO: based on buildArray in webfield-v2, won't work with new new schema
-const buildArrayV2 = (invitation, fieldName, profileId, noteNumber) => {
-  if (invitation.reply?.[fieldName]?.const) return invitation.reply[fieldName].const
-  if (invitation.reply?.[fieldName]?.['values-copied'])
-    return invitation.reply[fieldName]['values-copied']
-      .map((value) => {
-        if (value === '{signatures}') return profileId
-        if (value[0] === '{') return null
-        return value
-      })
-      .filter((p) => p)
-  if (invitation.reply?.[fieldName]?.regex)
-    return invitation.reply[fieldName].regex
-      .split('|')
-      .map((value) => {
-        if (value.indexOf('Paper.*') !== -1)
-          return value.replace('Paper.*', `Paper${noteNumber}`)
-        return value
-      })
-      .filter((p) => p)
-  return []
-}
-
 const getDdate = (existingBidToDelete, apiVersion) => {
   if (existingBidToDelete) return Date.now()
   if (apiVersion === 2) return { delete: true }
