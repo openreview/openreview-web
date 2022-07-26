@@ -99,11 +99,11 @@ const PersonalLinksSection = ({
         <div className="col-md-4 personal-links__column">
           <div className="small-heading">
             DBLP URL
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a
               className="personal-links__faqlink"
-              href="/faq#question-dblp-import"
+              href="https://docs.openreview.net/getting-started/creating-an-openreview-profile/importing-papers-from-dblp"
               target="_blank"
+              rel="noreferrer"
             >
               <Icon name="info-sign" />
             </a>
@@ -146,11 +146,11 @@ const PersonalLinksSection = ({
         <div className="col-md-4 personal-links__column">
           <div className="small-heading">
             Semantic Scholar URL
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a
               className="personal-links__faqlink"
-              href="/faq#question-semantic-scholar"
+              href="https://docs.openreview.net/getting-started/creating-an-openreview-profile/finding-and-adding-a-semantic-scholar-url-to-your-profile"
               target="_blank"
+              rel="noreferrer"
             >
               <Icon name="info-sign" />
             </a>

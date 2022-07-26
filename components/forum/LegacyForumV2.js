@@ -1,10 +1,11 @@
-import { useEffect, useContext } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import UserContext from '../UserContext'
 import LoadingSpinner from '../LoadingSpinner'
 import { NoteAuthorsV2 } from '../NoteAuthors'
 import NoteReaders from '../NoteReaders'
 import { NoteContentV2 } from '../NoteContent'
 import { prettyId, inflect, forumDate } from '../../lib/utils'
+import api from '../../lib/api-client'
 
 export default function LegacyForumV2({
   forumNote,
@@ -12,6 +13,7 @@ export default function LegacyForumV2({
   selectedInvitationId,
   clientJsLoading,
 }) {
+  const [isBetaUser, setIsBetaUser] = useState(null)
   const { user, userLoading } = useContext(UserContext)
   const { id, content, details } = forumNote
 
@@ -20,15 +22,38 @@ export default function LegacyForumV2({
       ? [content.authors?.value].flat()
       : []
 
+  // Check if user is in a group participating in the new forum beta
+  useEffect(() => {
+    if (userLoading) return
+
+    if (!user) {
+      setIsBetaUser(false)
+      return
+    }
+
+    const betaTestGroups = ['TMLR/Editors_In_Chief', 'TMLR/Action_Editors', 'TMLR/Reviewers', 'TMLR/Authors']
+    api.get('/groups', { ids: betaTestGroups, select: 'members' })
+      .then(({ groups }) => {
+        const groupMembers = groups.length > 0
+          ? groups.reduce((acc, group) => [...acc, ...(group.members ?? [])], [])
+          : []
+        if (groupMembers && user.profile.usernames.some((userId) => groupMembers.includes(userId))) {
+          setIsBetaUser(true)
+        } else {
+          setIsBetaUser(false)
+        }
+      })
+  }, [userLoading, user?.id])
+
   // Load and execute legacy forum code
   useEffect(() => {
-    if (clientJsLoading || userLoading) return
+    if (clientJsLoading || userLoading || isBetaUser === null) return
 
     // eslint-disable-next-line global-require
     const runForum = require('../../client/forum-v2')
-    runForum(id, selectedNoteId, selectedInvitationId, user)
+    runForum(id, selectedNoteId, selectedInvitationId, user, isBetaUser)
     // authors resets when clientJsLoading turns false
-  }, [clientJsLoading, user?.id, JSON.stringify(authors), userLoading])
+  }, [clientJsLoading, user?.id, JSON.stringify(authors), userLoading, isBetaUser])
 
   return (
     <div className="forum-container">

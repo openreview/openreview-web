@@ -25,6 +25,11 @@
     }
   }
 
+  .private-contents-icon {
+    color: constants.$subtleGray;
+    padding-right: .25rem;
+  }
+
   .attachment-download-link {
     .glyphicon {
       padding-right: 0.25rem;

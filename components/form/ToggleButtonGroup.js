@@ -1,22 +1,29 @@
 import { useEffect, useState } from 'react'
+import truncate from 'lodash/truncate'
 import findIndex from 'lodash/findIndex'
+import Icon from '../Icon'
 
 export default function ToggleButtonGroup({
-  name,
-  className,
-  options,
-  values,
-  isDisabled,
-  onChange,
+  name, className, options, values, isDisabled, onChange, includeReset
 }) {
   const [optionStates, setOptionStates] = useState(new Array(options?.length || 0).fill(0))
   const numStates = 3
+  const maxLabelLength = 20
 
   const onButtonClick = (e) => {
     const { value } = e.target
     const index = findIndex(options, (option) => option.value === value)
     const newOptionStates = [...optionStates]
     newOptionStates[index] = (newOptionStates[index] + 1) % numStates
+
+    // Special case for adding "everyone" to the list of excluded options
+    if (newOptionStates[index] === 2 && newOptionStates[0] !== 2) {
+      newOptionStates[0] = 2
+    } else if (newOptionStates[index] === 0 && newOptionStates[0] === 2) {
+      if (newOptionStates.every((state, i) => i === 0 || state !== 2)) {
+        newOptionStates[0] = 0
+      }
+    }
     setOptionStates(newOptionStates)
 
     // Initialize empty arrays
@@ -33,6 +40,12 @@ export default function ToggleButtonGroup({
       selectedOptions[groupIndex].push(option)
     })
     onChange(selectedOptions)
+  }
+
+  const onResetClick = () => {
+    setOptionStates((new Array(options?.length || 0)).fill(0))
+
+    onChange((new Array(numStates - 1)).fill([]))
   }
 
   useEffect(() => {
@@ -72,11 +85,29 @@ export default function ToggleButtonGroup({
               value={option.value}
               checked={selected}
               onChange={onButtonClick}
-            />{' '}
-            {option.label}
+            />
+            {' '}
+            {truncate(option.label, {
+              length: maxLabelLength,
+              omission: '...',
+              separator: ' ',
+            })}
           </label>
         )
       })}
+      {includeReset && (
+        <label className="btn btn-default reset-btn">
+          <input
+            type="checkbox"
+            name="reset"
+            value="reset"
+            checked={false}
+            onChange={onResetClick}
+          />
+          {' '}
+          <Icon name="remove" tooltip="Reset" />
+        </label>
+      )}
     </div>
   )
 }

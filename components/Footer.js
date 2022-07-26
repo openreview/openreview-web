@@ -59,21 +59,9 @@ const Footer = () => (
 
           <div className="col-sm-4">
             <ul className="list-unstyled">
-              <li>
-                <Link href="/faq">
-                  <a>Frequently Asked Questions</a>
-                </Link>
-              </li>
-              <li>
-                <Link href="/legal/terms">
-                  <a>Terms of Service</a>
-                </Link>
-              </li>
-              <li>
-                <Link href="/legal/privacy">
-                  <a>Privacy Policy</a>
-                </Link>
-              </li>
+              <li><a href="https://docs.openreview.net/getting-started/frequently-asked-questions">Frequently Asked Questions</a></li>
+              <li><Link href="/legal/terms"><a>Terms of Service</a></Link></li>
+              <li><Link href="/legal/privacy"><a>Privacy Policy</a></Link></li>
             </ul>
           </div>
         </div>
@@ -117,32 +105,12 @@ const Footer = () => (
 
           <div className="col-xs-6">
             <ul className="list-unstyled">
-              <li>
-                <Link href="/faq">
-                  <a>Frequently Asked Questions</a>
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact">
-                  <a>Contact</a>
-                </Link>
-              </li>
-              <li>
-                {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                <a href="#" data-toggle="modal" data-target="#feedback-modal">
-                  Feedback
-                </a>
-              </li>
-              <li>
-                <Link href="/legal/terms">
-                  <a>Terms of Service</a>
-                </Link>
-              </li>
-              <li>
-                <Link href="/legal/privacy">
-                  <a>Privacy Policy</a>
-                </Link>
-              </li>
+              <li><a href="https://docs.openreview.net/getting-started/frequently-asked-questions">Frequently Asked Questions</a></li>
+              <li><Link href="/contact"><a>Contact</a></Link></li>
+              {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+              <li><a href="#" data-toggle="modal" data-target="#feedback-modal">Feedback</a></li>
+              <li><Link href="/legal/terms"><a>Terms of Service</a></Link></li>
+              <li><Link href="/legal/privacy"><a>Privacy Policy</a></Link></li>
             </ul>
           </div>
         </div>

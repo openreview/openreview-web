@@ -210,8 +210,8 @@ export default class OpenReviewApp extends App {
     }
   }
 
-  onRouteChangeStart() {
-    this.shouldResetBanner = true
+  onRouteChangeStart(url) {
+    this.shouldResetBanner = url.split('?')[0] !== window.location.pathname
     this.shouldResetLayout = true
     this.shouldResetEditBanner = true
 
@@ -274,7 +274,7 @@ export default class OpenReviewApp extends App {
 
     // MathJax has to be loaded asynchronously from the CDN after the config file loads
     const script = document.createElement('script')
-    script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-chtml-full.js'
+    script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.1/es5/tex-chtml-full.js'
     script.async = true
     script.crossOrigin = 'anonymous'
     document.head.appendChild(script)

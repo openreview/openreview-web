@@ -1092,7 +1092,7 @@ module.exports = (function() {
             '<div class="pull-right content-warning danger">' +
               '<strong>IMPORTANT: All uses of "\\\\" in LaTeX formulas should be replaced with "\\\\\\\\"</strong>' +
               '<br><span>Learn more about adding LaTeX formulas to Markdown content here: ' +
-              '<a href="/faq#question-tex-differences" target="_blank">FAQ</a></span>' +
+              '<a href="https://docs.openreview.net/reference/openreview-tex/openreview-tex-support" target="_blank">FAQ</a></span>' +
             '</div>'
           );
         }
@@ -2620,7 +2620,8 @@ module.exports = (function() {
       return token
         .replace(/^-$/g, '')       // remove dashes
         .replace(/_/g, ' ')        // replace undescores with spaces
-        .replace(/^.*[0-9]$/g, '')  // remove tokens ending with a digit
+        .replace(/\.\*/g, '')      // remove wildcards
+        .replace(/^.*[0-9]$/g, '') // remove tokens ending with a digit
         .trim();
     }).filter(function(token) {
       return !!token;
@@ -3996,12 +3997,8 @@ module.exports = (function() {
       var startCount = (pageNum - 1) * notesPerPage + 1;
       var endCount = (pageNum - 1) * notesPerPage + notesPerPage;
       if (endCount > totalNotes) endCount = totalNotes;
-      templateParams = {
-        ...templateParams,
-        startCount: startCount,
-        endCount: endCount,
-        totalNotes: totalNotes,
-      }
+      templateParams.countText = `Showing ${startCount}${notesPerPage === 1 ? "" : `-${endCount}`} of ${totalNotes}`;
+
     }
     return Handlebars.templates['partials/paginationLinks'](templateParams);
   };

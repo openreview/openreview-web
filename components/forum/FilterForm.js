@@ -1,6 +1,5 @@
 /* globals promptMessage: false */
 
-import { useState } from 'react'
 import { stringify } from 'query-string'
 import copy from 'copy-to-clipboard'
 import Icon from '../Icon'
@@ -10,20 +9,10 @@ import { prettyId, prettyInvitationId, inflect } from '../../lib/utils'
 import { stringifyFilters } from '../../lib/forum-utils'
 
 export default function FilterForm({
-  forumId,
-  selectedFilters,
-  setSelectedFilters,
-  filterOptions,
-  sort,
-  setSort,
-  layout,
-  setLayout,
-  setCollapseLevel,
-  numReplies,
+  forumId, selectedFilters, setSelectedFilters, filterOptions, sort, setSort,
+  layout, setLayout, defaultCollapseLevel, setDefaultCollapseLevel, numReplies,
   numRepliesHidden,
 }) {
-  const [collapse, setCollapse] = useState(1)
-
   // Options for multiselect dropdown
   const invDropdownFilterOptions = filterOptions.invitations.map((invitationId) => ({
     value: invitationId,
@@ -58,6 +47,11 @@ export default function FilterForm({
       ...selectedFilters,
       ...modifiedFilters,
     })
+
+    const activeTab = document.querySelector('.filter-tabs li.active')
+    if (activeTab) {
+      activeTab.classList.remove('active')
+    }
   }
 
   const copyFilterUrl = () => {
@@ -81,12 +75,12 @@ export default function FilterForm({
 
   return (
     <form className="form-inline filter-controls">
-      <div>
+      <div className="wrap">
         <div className="form-group expand">
           {/* For more customization examples see: https://codesandbox.io/s/v638kx67w7 */}
           <Dropdown
             name="filter-invitations"
-            className="replies-filter"
+            className="replies-filter invitations-filter"
             options={invDropdownFilterOptions}
             value={selectedInvitationOptions}
             isDisabled={!filterOptions}
@@ -106,7 +100,7 @@ export default function FilterForm({
           />
         </div>
 
-        <div className="form-group">
+        <div className="form-group expand">
           <Dropdown
             name="filter-signatures"
             className="replies-filter"
@@ -129,14 +123,14 @@ export default function FilterForm({
           />
         </div>
 
-        <div className="form-group">
+        <div className="form-group expand">
           <input
             type="text"
             className="form-control"
             id="keyword-input"
-            placeholder="Search..."
+            placeholder="Search keywords..."
             defaultValue={selectedFilters.keywords ? selectedFilters.keywords[0] : ''}
-            onBlur={(e) => {
+            onChange={(e) => {
               updateFilters({
                 keywords: e.target.value ? [e.target.value.toLowerCase()] : null,
               })
@@ -144,88 +138,53 @@ export default function FilterForm({
           />
         </div>
 
-        <div className="form-group">
-          <select
-            id="sort-dropdown"
-            className="form-control"
-            value={sort}
-            onChange={(e) => {
-              setSort(e.target.value)
-            }}
-          >
+        <div className="form-group no-expand">
+          <select id="sort-dropdown" className="form-control" value={sort} onChange={(e) => { setSort(e.target.value) }}>
             <option value="date-desc">Sort: Newest First</option>
             <option value="date-asc">Sort: Oldest First</option>
             {/* <option value="tag-desc">Sort: Most Tagged</option> */}
           </select>
         </div>
 
-        <div className="form-group">
+        <div className="form-group no-expand layout-buttons">
           <div className="btn-group btn-group-sm" role="group" aria-label="nesting level">
             <button
               type="button"
-              className={`btn btn-default ${layout === 0 ? 'active' : ''}`}
-              onClick={(e) => {
-                setLayout(0)
-              }}
+              className={`btn btn-default ${layout === 1 ? 'active' : ''}`}
+              onClick={(e) => { setLayout(1) }}
             >
-              <Icon name="list" tooltip="Linear discussion" />
+              <img className="icon" src="/images/linear_icon.svg" alt="back arrow" data-toggle="tooltip" title="Linear discussion layout" />
               <span className="sr-only">Linear</span>
             </button>
-            <button
-              type="button"
-              className={`btn btn-default ${layout === 1 ? 'active' : ''}`}
-              onClick={(e) => {
-                setLayout(1)
-              }}
-            >
-              <Icon name="align-left" tooltip="Threaded discussion" />
-              <span className="sr-only">Threaded</span>
-            </button>
-            {/* TODO: enable button when nested layout is implemented */}
-            {/*
             <button
               type="button"
               className={`btn btn-default ${layout === 2 ? 'active' : ''}`}
               onClick={(e) => { setLayout(2) }}
             >
-              <Icon name="indent-left" tooltip="Nested discussion" />
+              <img className="icon" src="/images/threaded_icon.svg" alt="back arrow" data-toggle="tooltip" title="Threaded discussion layout" />
+              <span className="sr-only">Threaded</span>
+            </button>
+            <button
+              type="button"
+              className={`btn btn-default ${layout === 3 ? 'active' : ''}`}
+              onClick={(e) => { setLayout(3) }}
+            >
+              <img className="icon" src="/images/nested_icon.svg" alt="back arrow" data-toggle="tooltip" title="Nested discussion layout" />
               <span className="sr-only">Nested</span>
             </button>
-            */}
           </div>
 
           <div className="btn-group btn-group-sm" role="group" aria-label="collapse level">
-            <button
-              type="button"
-              className={`btn btn-default ${collapse === 0 ? 'active' : ''}`}
-              onClick={(e) => {
-                setCollapse(0)
-                setCollapseLevel(0)
-              }}
-            >
-              <Icon name="resize-small" tooltip="Collapse content" />
+            <button type="button" className={`btn btn-default ${defaultCollapseLevel === 0 ? 'active' : ''}`} onClick={(e) => { setDefaultCollapseLevel(0) }}>
+              <span data-toggle="tooltip" title="Collapse content">−</span>
               <span className="sr-only">Collapsed</span>
             </button>
-            <button
-              type="button"
-              className={`btn btn-default ${collapse === 1 ? 'active' : ''}`}
-              onClick={(e) => {
-                setCollapse(1)
-                setCollapseLevel(1)
-              }}
-            >
-              <Icon name="resize-full" tooltip="Partially expand content" />
+            <button type="button" className={`btn btn-default ${defaultCollapseLevel === 1 ? 'active' : ''}`} onClick={(e) => { setDefaultCollapseLevel(1) }}>
+              <span data-toggle="tooltip" title="Partially expand content">＝</span>
               <span className="sr-only">Default</span>
             </button>
-            <button
-              type="button"
-              className={`btn btn-default ${collapse === 2 ? 'active' : ''}`}
-              onClick={(e) => {
-                setCollapse(2)
-                setCollapseLevel(2)
-              }}
-            >
-              <Icon name="fullscreen" tooltip="Fully expand content" />
+            <button type="button" className={`btn btn-default ${defaultCollapseLevel === 2 ? 'active' : ''}`} onClick={(e) => { setDefaultCollapseLevel(2) }}>
+              <span data-toggle="tooltip" title="Fully expand content">≡</span>
               <span className="sr-only">Expanded</span>
             </button>
           </div>
@@ -245,12 +204,12 @@ export default function FilterForm({
         </div>
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-          <label className="control-label icon-label">
-            <Icon name="eye-open" tooltip="Visible to" />
-          </label>
+      <div>
+        {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+        <label className="control-label icon-label">
+          <Icon name="eye-open" tooltip="Visible to" />
+        </label>
+        <div className="form-group readers-filter-container">
           <ToggleButtonGroup
             name="readers-filter"
             className="readers-filter"
@@ -268,10 +227,11 @@ export default function FilterForm({
                     : null,
               })
             }}
+            includeReset
           />
         </div>
 
-        <div className="form-group">
+        <div className="form-group filtered-reply-count">
           <em className="control-label filter-count">
             {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
             {numReplies - numRepliesHidden} / {inflect(numReplies, 'reply', 'replies', true)}{' '}

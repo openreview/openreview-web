@@ -10,6 +10,7 @@ import Icon from '../Icon'
 import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
 import { prettyId, urlFromGroupId } from '../../lib/utils'
+import useUser from '../../hooks/useUser'
 
 const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }) => {
   const [subject, setSubject] = useState(`Message to ${prettyId(groupId)}`)
@@ -242,6 +243,9 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
   )
   const [filteredMembers, setFilteredMembers] = useState(groupMembers)
 
+  const { user } = useUser()
+  const userIds = [...(user?.profile?.emails ?? []), ...(user?.profile?.usernames ?? [])]
+
   function groupMemberReducer(state, action) {
     switch (action.type) {
       case 'SELECT':
@@ -331,6 +335,15 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
   }
 
   const deleteMember = async (memberId) => {
+    if (
+      userIds.includes(memberId) &&
+      // eslint-disable-next-line no-alert
+      !window.confirm(
+        'You are removing yourself and may lose access to this group. Are you sure you want to continue?'
+      )
+    ) {
+      return
+    }
     try {
       await api.delete(
         '/groups/members',
@@ -419,6 +432,15 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
       return
     }
     const membersToRemove = groupMembers.filter((p) => p.isSelected).map((p) => p.id)
+    if (
+      userIds.some((p) => membersToRemove.includes(p)) &&
+      // eslint-disable-next-line no-alert
+      !window.confirm(
+        'You are removing yourself and may lose access to this group. Are you sure you want to continue?'
+      )
+    ) {
+      return
+    }
     try {
       await api.delete(
         '/groups/members',

@@ -119,21 +119,17 @@ export const NoteV2 = ({ note, options }) => {
           )}
         </li>
         <li>
-          {/* eslint-disable-next-line no-nested-ternary */}
           {note.note || !note.content?.venue?.value // note.note indicates this is an edit
             ? prettyId(note.invitations[0])
             : note.content?.venue?.value}
           {privatelyRevealed && (
-            <Icon
-              name="eye-open"
-              extraClasses="note-visible-icon ml-2"
-              tooltip="Privately revealed to you"
-            />
+            <Icon name="eye-open" extraClasses="note-visible-icon ml-2" tooltip="Privately revealed to you" />
           )}
         </li>
-        {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
         <li className="readers">
-          Readers: <NoteReaders readers={note.readers} />
+          Readers:
+          {' '}
+          <NoteReaders readers={note.readers} />
         </li>
         {options.replyCount && (
           <li>{inflect(note.details.replyCount, 'Reply', 'Replies', true)}</li>

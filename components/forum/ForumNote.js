@@ -3,30 +3,19 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import NoteEditorForm from '../NoteEditorForm'
-import NoteAuthors from '../NoteAuthors'
-import NoteContent from '../NoteContent'
+import { NoteAuthorsV2 } from '../NoteAuthors'
+import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
 
 function ForumNote({ note, updateNote }) {
   const {
-    id,
-    content,
-    details,
-    signatures,
-    referenceInvitations,
-    originalInvitations,
-    tagInvitations,
+    id, content, details, signatures, editInvitations, deleteInvitation, tagInvitations,
   } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
-  const canEdit =
-    (details.original && details.originalWritable) ||
-    (!details.originalWritable && details.writable)
-  const showInvitationButtons =
-    referenceInvitations?.length > 0 || originalInvitations?.length > 0
   // eslint-disable-next-line no-underscore-dangle
-  const texDisabled = !!content._disableTexRendering
+  const texDisabled = !!content._disableTexRendering?.value
 
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeNote, setActiveNote] = useState(null)
@@ -58,13 +47,13 @@ function ForumNote({ note, updateNote }) {
     }
     setActiveNote(noteToEdit ?? note)
     setActiveInvitation(activeInvitation ? null : invitation)
-    window.scrollTo(0, 0)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const closeNoteEditor = () => {
     setActiveInvitation(null)
     setActiveNote(null)
-    window.scrollTo(0, 0)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   if (activeInvitation) {
@@ -74,34 +63,36 @@ function ForumNote({ note, updateNote }) {
           note={activeNote}
           invitation={activeInvitation}
           onNoteEdited={(newNote) => {
-            updateNote({ ...note, content: { ...note.content, ...newNote.content } })
+            updateNote(newNote)
             closeNoteEditor()
           }}
           onNoteCancelled={closeNoteEditor}
+          onError={(isLoadingError) => {
+            if (isLoadingError) {
+              setActiveInvitation(null)
+            }
+          }}
         />
       </div>
     )
   }
 
   return (
-    <div
-      className={`forum-note ${pastDue ? 'trashed' : ''} ${
-        texDisabled ? 'disable-tex-rendering' : ''
-      } ${canEdit ? 'editable' : ''}`}
-    >
+    <div className={`forum-note ${pastDue ? 'trashed' : ''} ${texDisabled ? 'disable-tex-rendering' : ''}`}>
       <ForumTitle
         id={id}
-        title={content.title}
-        pdf={content.pdf}
-        html={content.html || content.ee}
+        title={content.title?.value}
+        pdf={content.pdf?.value}
+        html={content.html?.value}
       />
 
       <div className="forum-authors mb-2">
         <h3>
-          <NoteAuthors
+          <NoteAuthorsV2
             authors={content.authors}
-            authorIds={content.authorIds}
+            authorIds={content.authorids}
             signatures={signatures}
+            noteReaders={note.readers}
           />
         </h3>
       </div>
@@ -110,73 +101,52 @@ function ForumNote({ note, updateNote }) {
         <ForumMeta note={note} />
 
         <div className="invitation-buttons">
-          {showInvitationButtons && <span className="hint">Add:</span>}
-          {originalInvitations?.map((invitation) => {
-            let buttonText = prettyInvitationId(invitation.id)
-            let options = { original: true }
-            if (
-              buttonText === 'Revision' &&
-              invitation.multiReply === false &&
-              invitation.details.repliedNotes?.length
-            ) {
-              buttonText = 'Edit Revision'
-              options = { revision: true }
-            }
-            return (
+          {editInvitations?.length > 0 && (
+            <div className="btn-group">
               <button
-                key={invitation.id}
                 type="button"
-                className="btn btn-xs"
-                onClick={() => openNoteEditor(invitation, options)}
+                className="btn btn-xs dropdown-toggle"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false"
               >
-                {buttonText}
+                Edit
+                &nbsp;
+                <span className="caret" />
               </button>
-            )
-          })}
+              <ul className="dropdown-menu">
+                {editInvitations?.map(invitation => (
+                  <li
+                    key={invitation.id}
+                    onClick={() => openNoteEditor(invitation)}
+                  >
+                    {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                    <a href="#">{prettyInvitationId(invitation.id)}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-          {referenceInvitations?.map((invitation) => (
+          {deleteInvitation && !pastDue && (
             <button
-              key={invitation.id}
               type="button"
               className="btn btn-xs"
-              onClick={() => openNoteEditor(invitation)}
+              onClick={() => openNoteEditor(deleteInvitation)}
             >
-              {prettyInvitationId(invitation.id)}
+              <Icon name="trash" tooltip={prettyInvitationId(deleteInvitation)} />
             </button>
-          ))}
+          )}
 
-          {canEdit && !pastDue && (
-            <>
-              <button
-                type="button"
-                className="btn btn-xs"
-                onClick={() => {
-                  const invitation = note.details.originalWritable
-                    ? note.details.originalInvitation
-                    : note.details.invitation
-                  const options = note.details.originalWritable ? { original: true } : {}
-                  openNoteEditor(invitation, options)
-                }}
-              >
-                <Icon name="edit" />
-              </button>
-              <button type="button" className="btn btn-xs" onClick={() => {}}>
-                <Icon name="trash" />
-              </button>
-            </>
-          )}
-          {canEdit && pastDue && (
-            <button type="button" className="btn btn-xs" onClick={() => {}}>
-              Restore
-            </button>
-          )}
         </div>
       </div>
 
-      <NoteContent
+      <NoteContentV2
         id={id}
         content={content}
-        invitation={details.originalInvitation || details.invitation}
+        number={note.number}
+        presentation={details.presentation}
+        noteReaders={note.readers}
       />
     </div>
   )
@@ -216,12 +186,12 @@ function ForumMeta({ note }) {
     <div className="forum-meta">
       <span className="date item">
         <Icon name="calendar" />
-        {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year)}
+        {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year?.value)}
       </span>
 
       <span className="item">
         <Icon name="folder-open" />
-        {note.content.venue || prettyId(note.invitation)}
+        {note.content.venue?.value || prettyId(note.invitations[0])}
       </span>
 
       {note.readers && (
@@ -236,27 +206,26 @@ function ForumMeta({ note }) {
         </span>
       )}
 
-      {note.details.revisions && (
-        <span className="item">
-          <Icon name="duplicate" />
-          <Link href={`/revisions?id=${note.id}`}>
-            <a>Revisions</a>
-          </Link>
-        </span>
-      )}
+      <span className="item">
+        <Icon name="duplicate" />
+        <Link href={`/revisions?id=${note.id}`}>
+          <a>Revisions</a>
+        </Link>
+      </span>
 
       {/* eslint-disable-next-line no-underscore-dangle */}
-      {note.content._bibtex && (
+      {note.content._bibtex?.value && (
         <span className="item">
+          <Icon name="bookmark" />
           {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
           <a
             href="#"
             data-target="#bibtex-modal"
             data-toggle="modal"
             // eslint-disable-next-line no-underscore-dangle
-            data-bibtex={encodeURIComponent(note.content._bibtex)}
+            data-bibtex={encodeURIComponent(note.content._bibtex.value)}
           >
-            Show BibTeX
+            BibTeX
           </a>
         </span>
       )}
