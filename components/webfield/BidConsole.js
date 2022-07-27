@@ -7,7 +7,7 @@ import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import useQuery from '../../hooks/useQuery'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
-import { NoteListWithBidTag } from '../NoteList'
+import { NoteListWithBidWidget } from '../NoteList'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import Icon from '../Icon'
@@ -299,7 +299,7 @@ const AllSubmissionsTab = ({
         <LoadingSpinner inline />
       ) : (
         <>
-          <NoteListWithBidTag
+          <NoteListWithBidWidget
             notes={notes}
             bidOptions={bidOptions}
             bidEdges={bidEdges}
@@ -459,7 +459,7 @@ const NoBidTab = ({
   }, [])
   if (isLoading) return <LoadingSpinner inline />
   return (
-    <NoteListWithBidTag
+    <NoteListWithBidWidget
       notes={notes}
       bidOptions={bidOptions}
       bidEdges={bidEdges}
@@ -559,7 +559,7 @@ const BidOptionTab = ({
 
   if (isLoading) return <LoadingSpinner inline />
   return (
-    <NoteListWithBidTag
+    <NoteListWithBidWidget
       notes={notes}
       bidOptions={bidOptions}
       bidEdges={bidEdges}

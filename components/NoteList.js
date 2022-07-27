@@ -1,6 +1,6 @@
 import List from 'rc-virtual-list'
 import Note, { NoteV2 } from './Note'
-import { BidRadioButtonGroup, TagText } from './webfield/BidTag'
+import { BidRadioButtonGroup, BidScore } from './webfield/BidWidget'
 
 const NoteList = ({ notes, displayOptions }) => (
   <ul className="list-unstyled submissions-list">
@@ -22,7 +22,7 @@ const NoteList = ({ notes, displayOptions }) => (
   </ul>
 )
 
-export const NoteListWithBidTag = ({
+export const NoteListWithBidWidget = ({
   notes,
   bidOptions,
   bidEdges,
@@ -32,7 +32,7 @@ export const NoteListWithBidTag = ({
   virtualList,
   apiVersion,
 }) => {
-  const renderNoteWithTag = (note, selectedBidOption, scoreEdge) => (
+  const renderNoteWithBidWidget = (note, selectedBidOption, scoreEdge) => (
     <>
       {apiVersion === 2 ? ( // bid has no mixed notes from v1 and v2
         <>
@@ -42,7 +42,7 @@ export const NoteListWithBidTag = ({
             selectedBidOption={selectedBidOption}
             updateBidOption={(updatedOption) => updateBidOption(note, updatedOption)}
           />
-          <TagText scoreEdge={scoreEdge} />
+          <BidScore scoreEdge={scoreEdge} />
         </>
       ) : (
         <>
@@ -52,7 +52,7 @@ export const NoteListWithBidTag = ({
             selectedBidOption={selectedBidOption}
             updateBidOption={(updatedOption) => updateBidOption(note, updatedOption)}
           />
-          <TagText scoreEdge={scoreEdge} />
+          <BidScore scoreEdge={scoreEdge} />
         </>
       )}
     </>
@@ -70,7 +70,7 @@ export const NoteListWithBidTag = ({
           {(note) => {
             const selectedBidOption = bidEdges?.find((p) => p.head === note.id)?.label
             const scoreEdge = scoreEdges?.find((p) => p.head === note.id)
-            return renderNoteWithTag(note, selectedBidOption, scoreEdge)
+            return renderNoteWithBidWidget(note, selectedBidOption, scoreEdge)
           }}
         </List>
         {notes.length === 0 && (
@@ -86,7 +86,9 @@ export const NoteListWithBidTag = ({
         const selectedBidOption = bidEdges?.find((p) => p.head === note.id)?.label
         const scoreEdge = scoreEdges?.find((p) => p.head === note.id)
 
-        return <li key={note.id}>{renderNoteWithTag(note, selectedBidOption, scoreEdge)}</li>
+        return (
+          <li key={note.id}>{renderNoteWithBidWidget(note, selectedBidOption, scoreEdge)}</li>
+        )
       })}
 
       {notes.length === 0 && (

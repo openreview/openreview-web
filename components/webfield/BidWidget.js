@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { prettyInvitationId } from '../../lib/utils'
 
-export const TagText = ({ scoreEdge }) => {
+export const BidScore = ({ scoreEdge }) => {
   if (!scoreEdge) return null
   return (
     <div className="tag-widget text " data-type="text">
