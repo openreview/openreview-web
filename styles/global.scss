@@ -190,13 +190,13 @@ hr {
   padding-left: 1rem;
 }
 .r-90 {
-  transform: rotate(90deg)
+  transform: rotate(90deg);
 }
 .r-180 {
-  transform: rotate(180deg)
+  transform: rotate(180deg);
 }
 .r-270 {
-  transform: rotate(270deg)
+  transform: rotate(270deg);
 }
 
 @media #{constants.$phone-only} {

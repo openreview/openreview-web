@@ -44,42 +44,37 @@ export default function EditEdgeTwoDropdowns(props) {
   return (
     <div className="edit-controls full-width d-flex">
       <div className="d-flex">
-        <label onMouseEnter={e => handleHover(e.target)}>
-          {props.editInvitation.name}
-          :
-        </label>
-        {
-          props.editEdgeTemplate.label
-            ? <label>{props.editEdgeTemplate.label}</label>
-            : (
-              <div className="btn-group edit-edge-dropdown">
-                <button
-                  className="btn btn-default btn-xs btn-link dropdown-toggle flex-button"
-                  type="button"
-                  data-toggle="dropdown"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                  onClick={e => e.stopPropagation()}
-                >
-                  <span className="two-dropdowns-edge-label">{label ?? defaultOption}</span>
-                  <span className="caret" />
-                </button>
-                <ul className="dropdown-menu">
-                  {labelOptions && labelOptions.map(option => (
-                    <li key={option}>
-                      <a href="#" onClick={() => setLabel(option)}>{option}</a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )
-        }
+        <label onMouseEnter={(e) => handleHover(e.target)}>{props.editInvitation.name}:</label>
+        {props.editEdgeTemplate.label ? (
+          <label>{props.editEdgeTemplate.label}</label>
+        ) : (
+          <div className="btn-group edit-edge-dropdown">
+            <button
+              className="btn btn-default btn-xs btn-link dropdown-toggle flex-button"
+              type="button"
+              data-toggle="dropdown"
+              aria-haspopup="true"
+              aria-expanded="false"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <span className="two-dropdowns-edge-label">{label ?? defaultOption}</span>
+              <span className="caret" />
+            </button>
+            <ul className="dropdown-menu">
+              {labelOptions &&
+                labelOptions.map((option) => (
+                  <li key={option}>
+                    <a href="#" onClick={() => setLabel(option)}>
+                      {option}
+                    </a>
+                  </li>
+                ))}
+            </ul>
+          </div>
+        )}
       </div>
       <div className="d-flex ml-1">
-        <label>
-          {props.label2}
-          :
-        </label>
+        <label>{props.label2}:</label>
         <div className="btn-group edit-edge-dropdown">
           <button
             className="btn btn-default btn-xs btn-link dropdown-toggle flex-button"
@@ -87,17 +82,20 @@ export default function EditEdgeTwoDropdowns(props) {
             data-toggle="dropdown"
             aria-haspopup="true"
             aria-expanded="false"
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <span className="two-dropdowns-edge-weight">{weight ?? defaultOption}</span>
             <span className="caret" />
           </button>
           <ul className="dropdown-menu">
-            {weightOptions && weightOptions.map(option => (
-              <li key={option}>
-                <a href="#" onClick={() => setWeight(option)}>{option}</a>
-              </li>
-            ))}
+            {weightOptions &&
+              weightOptions.map((option) => (
+                <li key={option}>
+                  <a href="#" onClick={() => setWeight(option)}>
+                    {option}
+                  </a>
+                </li>
+              ))}
           </ul>
         </div>
       </div>
@@ -107,19 +105,25 @@ export default function EditEdgeTwoDropdowns(props) {
           <a href="#" className="ml-1" onClick={addEdge}>
             <span className="glyphicon glyphicon-floppy-disk" />
           </a>
-          {
-            showTrashButton
-            && (
-              <a href="#" className="ml-1" onClick={(e) => { e.stopPropagation(); props.removeEdge() }}>
-                <span className="glyphicon glyphicon-trash" />
-              </a>
-            )
-          }
+          {showTrashButton && (
+            <a
+              href="#"
+              className="ml-1"
+              onClick={(e) => {
+                e.stopPropagation()
+                props.removeEdge()
+              }}
+            >
+              <span className="glyphicon glyphicon-trash" />
+            </a>
+          )}
         </>
-      ) : enableAddEdge && (
-        <a href="#" className="ml-1" onClick={addEdge}>
-          <span className="glyphicon glyphicon-plus" />
-        </a>
+      ) : (
+        enableAddEdge && (
+          <a href="#" className="ml-1" onClick={addEdge}>
+            <span className="glyphicon glyphicon-plus" />
+          </a>
+        )
       )}
     </div>
   )

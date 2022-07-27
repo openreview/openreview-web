@@ -13,7 +13,11 @@ const UnlinkPublicationButton = ({ noteId, linkUnlinkPublication, isUnlinked }) 
 
   return (
     <span role="button" tabIndex={0} onClick={handleClick}>
-      <Icon name={iconType} extraClasses={extraClasses} tooltip={shouldUnlink ? 'unlink this paper' : 'relink this paper'} />
+      <Icon
+        name={iconType}
+        extraClasses={extraClasses}
+        tooltip={shouldUnlink ? 'unlink this paper' : 'relink this paper'}
+      />
     </span>
   )
 }

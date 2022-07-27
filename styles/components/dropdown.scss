@@ -1,16 +1,16 @@
-@use "../utils/constants";
+@use '../utils/constants';
 
 #content .dropdown-select {
   &__value-container {
-    padding-left: .5rem;
-    padding-right: .5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
   &__menu {
     background-color: #fff;
   }
   &__option {
-    padding-left: .5rem;
-    padding-right: .5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
   &__control {
     border-width: 2px;
@@ -21,7 +21,7 @@
     &--is-focused {
       border-color: constants.$mediumDarkBlue;
       border-width: 2px;
-      box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102,175,233,.6);
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
       &:hover {
         border-color: constants.$mediumDarkBlue;
       }
@@ -49,13 +49,15 @@
 }
 
 .dropdown-sm .dropdown-select {
-  &__control, &__value-container {
+  &__control,
+  &__value-container {
     min-height: unset;
     max-height: 30px;
     line-height: 1.5;
-    font-size: .75rem;
+    font-size: 0.75rem;
   }
-  &__indicators, &__option {
+  &__indicators,
+  &__option {
     height: 28px;
   }
 }

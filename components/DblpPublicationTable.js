@@ -140,8 +140,7 @@ export default function DblpPublicationTable({
                       title={publication.title}
                       authors={publication.authorNames}
                       openReviewId={
-                        existingPublication?.id ||
-                        existingPublicationOfOtherProfile?.noteId
+                        existingPublication?.id || existingPublicationOfOtherProfile?.noteId
                       }
                       selected={selectedPublications.includes(publication.key)}
                       toggleSelected={selectPublication(publication.key)}
@@ -150,7 +149,7 @@ export default function DblpPublicationTable({
                       venue={publication.venue}
                     />
                   )
-                })
+                }),
               }
             })}
           options={{ id: 'dblp-papers', collapsed: false, html: false, bodyContainer: '' }}

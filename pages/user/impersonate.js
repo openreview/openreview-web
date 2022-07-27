@@ -25,7 +25,11 @@ const Impersonate = () => {
     }
 
     try {
-      const { user, token } = await api.post('/impersonate', { groupId: userId }, { accessToken })
+      const { user, token } = await api.post(
+        '/impersonate',
+        { groupId: userId },
+        { accessToken }
+      )
       loginUser(user, token, '/profile')
     } catch (apiError) {
       setError(apiError)
@@ -49,9 +53,7 @@ const Impersonate = () => {
           Enter the user&apos;s email address or username below.
         </p>
 
-        {error && (
-          <ErrorAlert error={error} />
-        )}
+        {error && <ErrorAlert error={error} />}
 
         <form className="form-inline mb-4" onSubmit={impersonateUser}>
           <div className="input-group mr-2" style={{ width: 'calc(100% - 128px)' }}>
@@ -63,10 +65,15 @@ const Impersonate = () => {
               className={`form-control ${error ? 'form-invalid' : ''}`}
               placeholder="john@example.com, ~Jane_Doe1"
               value={userId}
-              onChange={e => setUserId(e.target.value.trim())}
+              onChange={(e) => setUserId(e.target.value.trim())}
             />
           </div>
-          <button type="submit" className="btn" disabled={userId.length < 3} style={{ width: '120px' }}>
+          <button
+            type="submit"
+            className="btn"
+            disabled={userId.length < 3}
+            style={{ width: '120px' }}
+          >
             Impersonate
           </button>
         </form>

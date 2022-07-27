@@ -1,10 +1,10 @@
-@use "../utils/constants";
-@use "sass:math";
+@use '../utils/constants';
+@use 'sass:math';
 
 $background-color: #fffaf4;
 $input-placeholder-color: hsv(0, 0, 75%);
 
-@mixin placeholder($color: $input-placeholder-color){
+@mixin placeholder($color: $input-placeholder-color) {
   &::-moz-placeholder {
     opacity: 1;
   }
@@ -21,7 +21,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
 .rc-picker {
   display: inline-flex;
   width: 50%;
-  margin-right: .5rem;
+  margin-right: 0.5rem;
 }
 
 .rc-picker-panel {
@@ -65,10 +65,9 @@ $input-placeholder-color: hsv(0, 0, 75%);
     background: 0 0;
     border: 0;
     cursor: pointer;
-    transition: color .3s;
+    transition: color 0.3s;
     min-width: 1.6em;
     font-size: 14px;
-
   }
 
   .rc-picker-header-view {
@@ -77,7 +76,6 @@ $input-placeholder-color: hsv(0, 0, 75%);
     font-weight: 500;
     line-height: 40px;
     background-color: $background-color;
-
 
     > button {
       &:not(:first-child) {
@@ -89,7 +87,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
       background: 0 0;
       border: 0;
       cursor: pointer;
-      transition: color .3s;
+      transition: color 0.3s;
     }
   }
 }
@@ -126,7 +124,6 @@ $input-placeholder-color: hsv(0, 0, 75%);
   }
 
   .rc-picker-cell-in-view {
-
     font-weight: 400;
   }
 }
@@ -147,7 +144,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
   line-height: 34px;
   text-align: left;
   list-style: none;
-  >li {
+  > li {
     display: inline-block;
   }
 }
@@ -165,7 +162,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
   padding: 1px 6px;
 
   .rc-picker-now-btn {
-    color:white;
+    color: white;
   }
 }
 
@@ -173,16 +170,16 @@ $input-placeholder-color: hsv(0, 0, 75%);
   float: right;
   color: #fff;
 
-   button {
+  button {
     background-color: #4d8093;
     border: 2px solid #3f6978;
     font-weight: bold;
-    font-size: .75rem;
+    font-size: 0.75rem;
     line-height: 1.125rem;
     text-align: center;
     min-width: 5rem;
-    border-radius: 3px
-   }
+    border-radius: 3px;
+  }
 }
 
 // ================== Year & Month Panel ==================
@@ -260,7 +257,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
     overflow-y: hidden;
     text-align: left;
     list-style: none;
-    transition: background .3s;
+    transition: background 0.3s;
 
     .rc-picker-time-panel-cell-selected {
       color: #fff;
@@ -289,7 +286,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
         line-height: 28px;
         border-radius: 0;
         cursor: pointer;
-        transition: background .3s;
+        transition: background 0.3s;
 
         .rc-picker-panel-rtl & {
           padding: 0 12px 0 0;
@@ -337,10 +334,10 @@ $input-placeholder-color: hsv(0, 0, 75%);
   input {
     width: 100%;
     background-color: $background-color;
-    border: none!important;
+    border: none !important;
     outline: none;
     padding: 0.375rem 0.75rem;
-    font-size: .75rem;
+    font-size: 0.75rem;
     height: 26px;
   }
 }

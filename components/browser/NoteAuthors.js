@@ -3,9 +3,7 @@
 import { useState } from 'react'
 import zip from 'lodash/zip'
 
-export default function NoteAuthors({
-  authors, authorIds, original, max,
-}) {
+export default function NoteAuthors({ authors, authorIds, original, max }) {
   const showOriginalAuthors = original && original.content
   const authorNameIdPairs = showOriginalAuthors
     ? zip(original.content.authors, original.content.authorids)
@@ -53,11 +51,14 @@ export default function NoteAuthors({
           key="show-all-authors"
           href="#"
           className="show-all-authors"
-          onClick={(e) => { e.preventDefault(); setIsExpanded(!isExpanded) }}
+          onClick={(e) => {
+            e.preventDefault()
+            setIsExpanded(!isExpanded)
+          }}
         >
-          {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-          + {numAuthors - cutoff} More
-        </a>,
+          {/* eslint-disable-next-line react/jsx-one-expression-per-line */}+{' '}
+          {numAuthors - cutoff} More
+        </a>
       )
     }
   }

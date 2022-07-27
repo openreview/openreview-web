@@ -68,8 +68,9 @@ fixture`Setup data`.before(async (ctx) => {
 
 test('setup TestVenue', async (t) => {
   const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
-  const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
-    }/${submissionDate.getDate()}`
+  const submissionDateString = `${submissionDate.getFullYear()}/${
+    submissionDate.getMonth() + 1
+  }/${submissionDate.getDate()}`
   const { superUserToken } = t.fixtureCtx
   const requestVenueJson = {
     invitation: 'openreview.net/Support/-/Request_Form',
@@ -160,8 +161,9 @@ test('setup TestVenue', async (t) => {
   await waitForJobs(postSubmissionId, superUserToken)
 
   const reviewDeadline = new Date(Date.now() + 24 * 60 * 60 * 1000)
-  const reviewDeadlineString = `${reviewDeadline.getFullYear()}/${reviewDeadline.getMonth() + 1
-    }/${reviewDeadline.getDate()}`
+  const reviewDeadlineString = `${reviewDeadline.getFullYear()}/${
+    reviewDeadline.getMonth() + 1
+  }/${reviewDeadline.getDate()}`
   const reviewStageJson = {
     content: {
       review_deadline: reviewDeadlineString,
@@ -195,8 +197,9 @@ test('setup TestVenue', async (t) => {
 
 test('setup AnotherTestVenue', async (t) => {
   const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
-  const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
-    }/${submissionDate.getDate()}`
+  const submissionDateString = `${submissionDate.getFullYear()}/${
+    submissionDate.getMonth() + 1
+  }/${submissionDate.getDate()}`
   const { superUserToken } = t.fixtureCtx
 
   const requestVenueJson = {
@@ -293,8 +296,9 @@ test('setup AnotherTestVenue', async (t) => {
 
 test('setup ICLR', async (t) => {
   const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
-  const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
-    }/${submissionDate.getDate()}`
+  const submissionDateString = `${submissionDate.getFullYear()}/${
+    submissionDate.getMonth() + 1
+  }/${submissionDate.getDate()}`
   const { superUserToken } = t.fixtureCtx
 
   const requestVenueJson = {

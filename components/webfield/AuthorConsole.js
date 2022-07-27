@@ -97,11 +97,10 @@ const ReviewSummary = ({
         })}
       </ul>
       <div>
-        <strong>Average Rating:</strong>{' '}
-        {averageRating} (Min: {minRating}, Max: {maxRating})
+        <strong>Average Rating:</strong> {averageRating} (Min: {minRating}, Max: {maxRating})
         <br />
-        <strong>Average Confidence:</strong>{' '}
-        {averageConfidence} (Min: {minConfidence}, Max: {maxConfidence})
+        <strong>Average Confidence:</strong> {averageConfidence} (Min: {minConfidence}, Max:{' '}
+        {maxConfidence})
       </div>
     </div>
   )
@@ -400,16 +399,9 @@ const AuthorConsole = ({ appContext }) => {
   }).filter(([key, value]) => value === undefined)
   if (missingConfig?.length || (apiVersion === 1 && blindSubmissionId === undefined)) {
     const errorMessage = `Author Console is missing required properties: ${
-      missingConfig.length
-        ? missingConfig.map((p) => p[0]).join(', ')
-        : 'blindSubmissionId'
+      missingConfig.length ? missingConfig.map((p) => p[0]).join(', ') : 'blindSubmissionId'
     }`
-    return (
-      <ErrorDisplay
-        statusCode=""
-        message={errorMessage}
-      />
-    )
+    return <ErrorDisplay statusCode="" message={errorMessage} />
   }
 
   return (

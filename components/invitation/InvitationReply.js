@@ -267,18 +267,17 @@ export function InvitationReplyWithPreview({ invitation, accessToken, loadInvita
     <EditorSection title="Reply Parameters" className="reply-preview">
       <Tabs>
         <TabList>
-          <Tab id="reply" active>Reply</Tab>
-          <Tab id="preview" onClick={generateReplyPreview}>Preview</Tab>
+          <Tab id="reply" active>
+            Reply
+          </Tab>
+          <Tab id="preview" onClick={generateReplyPreview}>
+            Preview
+          </Tab>
         </TabList>
 
         <TabPanels>
           <TabPanel id="reply">
-            <CodeEditor
-              code={replyString}
-              onChange={setReplyString}
-              readOnly={false}
-              isJson
-            />
+            <CodeEditor code={replyString} onChange={setReplyString} readOnly={false} isJson />
           </TabPanel>
           <TabPanel id="preview">
             <div

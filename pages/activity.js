@@ -31,7 +31,10 @@ const Activity = ({ appContext }) => {
       limit: 200,
     }
     try {
-      const { notes } = await api.getCombined('/notes', queryParamV1, queryParamV2, { accessToken, sort: 'tmdate:desc' })
+      const { notes } = await api.getCombined('/notes', queryParamV1, queryParamV2, {
+        accessToken,
+        sort: 'tmdate:desc',
+      })
       setActivityNotes(notes)
     } catch (apiError) {
       setError(apiError)
@@ -72,12 +75,8 @@ const Activity = ({ appContext }) => {
         <h1>Activity</h1>
       </header>
 
-      {!error && !activityNotes && (
-        <LoadingSpinner />
-      )}
-      {error && (
-        <ErrorAlert error={error} />
-      )}
+      {!error && !activityNotes && <LoadingSpinner />}
+      {error && <ErrorAlert error={error} />}
       <WebfieldContainer ref={activityRef} />
     </div>
   )

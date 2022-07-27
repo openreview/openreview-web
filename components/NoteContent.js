@@ -80,11 +80,14 @@ export function NoteContentValue({ content = '', enableMarkdown }) {
 
   const autoLinkContent = (value) => {
     // Regex based on https://gist.github.com/dperini/729294 modified to not accept FTP urls
-    const urlRegex = /(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*[^.,()"'\s])?/ig
-    const profileRegex = /(?:.)?(~[^\d\s]+_[^\d\s]+[0-9]+)/ig
+    const urlRegex =
+      /(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*[^.,()"'\s])?/gi
+    const profileRegex = /(?:.)?(~[^\d\s]+_[^\d\s]+[0-9]+)/gi
 
     const intermediate = value.replace(urlRegex, (match) => {
-      const url = match.startsWith('https://openreview.net') ? match.replace('https://openreview.net', '') : match
+      const url = match.startsWith('https://openreview.net')
+        ? match.replace('https://openreview.net', '')
+        : match
       return `<a href="${url}" target="_blank" rel="nofollow">${url}</a>`
     })
 
@@ -110,10 +113,7 @@ export function NoteContentValue({ content = '', enableMarkdown }) {
       dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
     />
   ) : (
-    <span
-      className="note-content-value"
-      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-    />
+    <span className="note-content-value" dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
   )
 }
 
@@ -148,9 +148,10 @@ export const NoteContentV2 = ({
   isEdit = false,
 }) => {
   const contentKeys = Object.keys(content)
-  const contentOrder = presentation?.length > 0
-    ? Array.from(new Set(presentation.map((p) => p.name).concat(contentKeys)))
-    : contentKeys
+  const contentOrder =
+    presentation?.length > 0
+      ? Array.from(new Set(presentation.map((p) => p.name).concat(contentKeys)))
+      : contentKeys
 
   if (Number.isInteger(number)) {
     contentOrder.push('Submission_Number')
@@ -177,7 +178,9 @@ export const NoteContentV2 = ({
       {contentOrder.map((fieldName, i) => {
         if (omittedFields.includes(fieldName) || fieldName.startsWith('_')) return null
 
-        const fieldValue = prettyContentValue(fieldName === 'Submission_Number' ? number : content[fieldName]?.value)
+        const fieldValue = prettyContentValue(
+          fieldName === 'Submission_Number' ? number : content[fieldName]?.value
+        )
         if (!fieldValue) return null
 
         const enableMarkdown = presentation?.[i]?.markdown
@@ -187,8 +190,7 @@ export const NoteContentV2 = ({
 
         return (
           <div key={fieldName}>
-            <NoteContentField name={fieldName} />
-            {' '}
+            <NoteContentField name={fieldName} />{' '}
             {showPrivateIcon && (
               <Icon
                 name="eye-open"
@@ -198,7 +200,6 @@ export const NoteContentV2 = ({
                   .join(', ')}`}
               />
             )}
-
             {fieldValue.startsWith('/attachment/') ? (
               <span className="note-content-value">
                 <DownloadLink

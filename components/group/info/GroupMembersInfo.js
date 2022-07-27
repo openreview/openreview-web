@@ -4,7 +4,7 @@ import { urlFromGroupId } from '../../../lib/utils'
 
 const GroupMembersInfo = ({ group }) => {
   const loadMembers = (limit, offset) => ({
-    items: group.members.slice(offset, offset + limit).map(member => ({
+    items: group.members.slice(offset, offset + limit).map((member) => ({
       id: member,
       title: member,
       href: urlFromGroupId(member, true),
@@ -15,11 +15,8 @@ const GroupMembersInfo = ({ group }) => {
   const memberCount = group.members?.length > 0 ? `(${group.members.length})` : ''
 
   return (
-    <EditorSection title={`Group Members ${memberCount}`} className="members" >
-      <PaginatedList
-        loadItems={loadMembers}
-        emptyMessage="No members to display"
-      />
+    <EditorSection title={`Group Members ${memberCount}`} className="members">
+      <PaginatedList loadItems={loadMembers} emptyMessage="No members to display" />
     </EditorSection>
   )
 }

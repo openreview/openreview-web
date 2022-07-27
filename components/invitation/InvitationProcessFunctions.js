@@ -21,8 +21,7 @@ const InvitationProcessFunctionsV2 = ({
           Process
         </Tab>
         <Tab id="dateprocesses">
-          Date Process
-          {' '}
+          Date Process{' '}
           <Icon
             name="info-sign"
             tooltip="Use the form below to specify dates expression and delay of date processes, invitation properties can be references with #{}, e.g. #{duedate}"
