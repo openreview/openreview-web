@@ -114,8 +114,15 @@ test('user open own profile', async (t) => {
     .click(Selector('button').withText('Remove').filterVisible())
 
   const { superUserToken } = t.fixtureCtx
-  const messages = await getMessages({ to: 'a@aa.com', subject: 'OpenReview Account Linking' }, superUserToken)
-  await t.expect(messages[0].content.text).contains('Click on the link below to confirm that a@aa.com and a@a.com both belong to the same person')
+  const messages = await getMessages(
+    { to: 'a@aa.com', subject: 'OpenReview Account Linking' },
+    superUserToken
+  )
+  await t
+    .expect(messages[0].content.text)
+    .contains(
+      'Click on the link below to confirm that a@aa.com and a@a.com both belong to the same person'
+    )
     // personal links
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .ok()
