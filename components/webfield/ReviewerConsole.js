@@ -230,54 +230,57 @@ const ReviewerConsoleTasks = ({
   const [invitations, setInvitations] = useState([])
   const [isLoading, setIsLoading] = useState(true)
 
+  const addInvitaitonTypeAndVersion = (invitation, apiVersion) => {
+    let invitaitonType = 'tagInvitation'
+    if (apiVersion === 2 && invitation.edit?.note) invitaitonType = 'noteInvitation'
+    if (apiVersion === 1 && !invitation.reply.content?.tag && !invitation.reply.content?.head)
+      invitaitonType = 'noteInvitation'
+    return { ...invitation, [invitaitonType]: true, apiVersion }
+  }
+
+  // for note invitations only
+  const filterHasReplyTo = (invitation, apiVersion) => {
+    if (!invitation.noteInvitation) return true
+    if (apiVersion === 2) {
+      const result = invitation.edit?.note?.replyto?.const || invitation.edit?.note?.id?.const
+      return result
+    }
+    const result = invitation.reply.replyto || invitation.reply.referent
+    return result
+  }
+
   const loadInvitations = async () => {
     try {
-      const invitationsP = api.getAll(
+      let allInvitations = await api.getAll(
         '/invitations',
         {
           regex: wildcardInvitation,
           invitee: true,
           duedate: true,
-          replyto: true,
-          type: 'notes',
-          details: 'replytoNote,repliedNotes',
+          type: 'all',
         },
         { accessToken, version: apiVersion }
       )
-      const edgeInvitationsP = api.getAll(
-        '/invitations',
-        {
-          regex: wildcardInvitation,
-          invitee: true,
-          duedate: true,
-          type: 'edges',
-          details: 'repliedEdges',
-        },
-        { accessToken, version: apiVersion }
-      )
-      const tagInvitationsP = api.getAll(
-        '/invitations',
-        {
-          regex: wildcardInvitation,
-          invitee: true,
-          duedate: true,
-          type: 'tags',
-          details: 'repliedTags',
-        },
-        { accessToken, version: apiVersion }
-      )
-      await Promise.all([invitationsP, edgeInvitationsP, tagInvitationsP]).then(
-        ([noteInvitations, edgeInvitations, tagInvitations]) => {
-          const allInvitations = noteInvitations
-            .map((p) => ({ ...p, noteInvitation: true, apiVersion }))
-            .concat(edgeInvitations.map((p) => ({ ...p, tagInvitation: true, apiVersion })))
-            .concat(tagInvitations.map((p) => ({ ...p, tagInvitation: true, apiVersion })))
-            .filter((p) =>
-              filterAssignedInvitations(p, reviewerName, submissionName, noteNumbers)
-            )
-          setInvitations(formatTasksData([allInvitations, [], []], true))
-        }
-      )
+
+      allInvitations = allInvitations
+        .map((p) => addInvitaitonTypeAndVersion(p, apiVersion))
+        .filter((p) => filterHasReplyTo(p, apiVersion))
+        .filter((p) => filterAssignedInvitations(p, reviewerName, submissionName, noteNumbers))
+
+      if (allInvitations.length) {
+        // add details
+        const validInvitationDetails = await api.getAll('/invitations', {
+          ids: allInvitations.map((p) => p.id),
+          details: 'all',
+          select: 'id,details',
+        })
+
+        allInvitations.forEach((p) => {
+          p.details = validInvitationDetails.find((q) => q.id === p.id)?.details
+        })
+      }
+
+      setInvitations(formatTasksData([allInvitations, [], []], true))
     } catch (error) {
       promptError(error.message)
     }
