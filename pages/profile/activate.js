@@ -42,11 +42,15 @@ const ActivateProfile = ({ appContext }) => {
     try {
       const { user, token } = await api.put(`/activate/${activateToken}`, dataToSubmit)
       if (token) {
-        promptMessage('Your OpenReview profile has been successfully created', { scrollToTop: false })
+        promptMessage('Your OpenReview profile has been successfully created', {
+          scrollToTop: false,
+        })
         loginUser(user, token)
       } else {
         // If user moderation is enabled, PUT /activate/${token} will return an empty response
-        promptMessage('Your OpenReview profile has been created. Please allow up to 12 hours for your profile to be activated.')
+        promptMessage(
+          'Your OpenReview profile has been created. Please allow up to 12 hours for your profile to be activated.'
+        )
         router.push('/')
       }
     } catch (error) {
@@ -79,8 +83,8 @@ const ActivateProfile = ({ appContext }) => {
       <header>
         <h1>Complete Registration</h1>
         <h5>
-          Enter your current institution and at least one web URL to complete your registration.
-          All other fields are optional.
+          Enter your current institution and at least one web URL to complete your
+          registration. All other fields are optional.
         </h5>
       </header>
 
@@ -94,7 +98,9 @@ const ActivateProfile = ({ appContext }) => {
           hidePublicationEditor
           loading={loading}
         />
-      ) : <LoadingSpinner inline />}
+      ) : (
+        <LoadingSpinner inline />
+      )}
     </div>
   )
 }

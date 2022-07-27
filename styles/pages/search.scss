@@ -1,15 +1,14 @@
 main.search {
-
   .filter-form {
     .form-group {
-      margin-left: .625rem;
+      margin-left: 0.625rem;
       &:first-child {
-        margin-left: .25rem;
+        margin-left: 0.25rem;
       }
     }
     label:not(.radio-inline) {
       vertical-align: bottom;
-      margin-right: .625rem;
+      margin-right: 0.625rem;
       margin-bottom: 6px;
     }
     .radio-inline {
@@ -32,5 +31,4 @@ main.search {
     overflow: hidden;
     line-height: 1.75rem;
   }
-
 }

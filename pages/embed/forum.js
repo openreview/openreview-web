@@ -30,8 +30,14 @@ export default function EmbeddedForum({ appContext, userContext }) {
       const { notes } = await api.get('/notes', { id: forumId }, { accessToken })
       if (notes?.length > 0) {
         const noteCopy = notes[0]
-        noteCopy.content.truncatedTitle = truncate(noteCopy.content.title, { length: 70, separator: /,? +/ })
-        noteCopy.content.truncatedAbstract = truncate(noteCopy.content['TL;DR'] || noteCopy.content.abstract, { length: 200, separator: /,? +/ })
+        noteCopy.content.truncatedTitle = truncate(noteCopy.content.title, {
+          length: 70,
+          separator: /,? +/,
+        })
+        noteCopy.content.truncatedAbstract = truncate(
+          noteCopy.content['TL;DR'] || noteCopy.content.abstract,
+          { length: 200, separator: /,? +/ }
+        )
         setForumNote(noteCopy)
       } else {
         setError(`Could not load forum. Forum ${forumId} not found.`)
@@ -113,11 +119,22 @@ export default function EmbeddedForum({ appContext, userContext }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
         <title key="title">{`${forumNote?.content.title || 'Forum'} | OpenReview`}</title>
-        <meta name="description" content={forumNote?.content['TL;DR'] || forumNote?.content.abstract || ''} />
+        <meta
+          name="description"
+          content={forumNote?.content['TL;DR'] || forumNote?.content.abstract || ''}
+        />
 
         <meta property="og:title" key="og:title" content={forumNote?.content.truncatedTitle} />
-        <meta property="og:description" key="og:description" content={forumNote?.content.truncatedAbstract} />
-        <meta property="og:image" key="og:image" content="https://openreview.net/images/openreview_logo_512.png" />
+        <meta
+          property="og:description"
+          key="og:description"
+          content={forumNote?.content.truncatedAbstract}
+        />
+        <meta
+          property="og:image"
+          key="og:image"
+          content="https://openreview.net/images/openreview_logo_512.png"
+        />
         <meta property="og:type" key="og:type" content="article" />
         <meta property="og:site_name" key="og:site_name" content="OpenReview" />
         <meta name="twitter:card" content="summary" />
@@ -140,7 +157,11 @@ export default function EmbeddedForum({ appContext, userContext }) {
               filters={filters}
               displayMode={displayMode}
             />
-            <SubmitForm user={user.profile} contentField={query.content || 'message'} postNote={postNote} />
+            <SubmitForm
+              user={user.profile}
+              contentField={query.content || 'message'}
+              postNote={postNote}
+            />
           </>
         ) : (
           <LoadingSpinner />
@@ -198,9 +219,7 @@ function ContentContainer({ children }) {
 function ErrorMessage({ message }) {
   return (
     <div className="alert alert-danger">
-      <Icon name="exclamation-sign" />
-      {' '}
-      <span>{message}</span>
+      <Icon name="exclamation-sign" /> <span>{message}</span>
     </div>
   )
 }
@@ -223,36 +242,44 @@ function fetchNotes(url, forum, invitation, userAccessToken, initialFetch) {
 
   return api.get(url, query, { accessToken: userAccessToken }).then(({ notes }) => {
     if (notes?.length > 0) {
-      return initialFetch ? notes.filter(note => note.id !== note.forum) : notes
+      return initialFetch ? notes.filter((note) => note.id !== note.forum) : notes
     }
     return []
   })
 }
 
 function ForumReplies({
-  forumId, invitationId, contentField = 'message', accessToken, filters, displayMode,
+  forumId,
+  invitationId,
+  contentField = 'message',
+  accessToken,
+  filters,
+  displayMode,
 }) {
   const [replyNotes, setReplyNotes] = useState(null)
   const bottomElRef = useRef()
 
-  const { data, error } = useSWR(['/notes', forumId, invitationId, accessToken, true], fetchNotes, {
-    onSuccess: (noteData) => {
-      setReplyNotes(noteData)
-      setTimeout(() => {
-        document.documentElement.scrollTop = bottomElRef.current.offsetTop
-      }, 20)
-    },
-  })
+  const { data, error } = useSWR(
+    ['/notes', forumId, invitationId, accessToken, true],
+    fetchNotes,
+    {
+      onSuccess: (noteData) => {
+        setReplyNotes(noteData)
+        setTimeout(() => {
+          document.documentElement.scrollTop = bottomElRef.current.offsetTop
+        }, 20)
+      },
+    }
+  )
 
   useInterval(() => {
     if (!data) return
 
-    fetchNotes('/notes', forumId, invitationId, accessToken, false)
-      .then((notes) => {
-        if (notes.length) {
-          setReplyNotes([...replyNotes, ...notes])
-        }
-      })
+    fetchNotes('/notes', forumId, invitationId, accessToken, false).then((notes) => {
+      if (notes.length) {
+        setReplyNotes([...replyNotes, ...notes])
+      }
+    })
   }, updateInterval)
 
   if (!replyNotes) {
@@ -261,21 +288,21 @@ function ForumReplies({
 
   return (
     <div className="notes-container">
-      {replyNotes && replyNotes.map(replyNote => (
-        <div key={replyNote.id} className="message">
-          <div className="img">OR</div>
-          <h4>
-            {prettyId(replyNote.signatures[0], true)}
-            {' '}
-            <span>{forumDate(replyNote.cdate, replyNote.tcdate, replyNote.mdate)}</span>
-          </h4>
-          <MessageContent content={replyNote.content[contentField]} />
-        </div>
-      ))}
-      {error && (
-        <ErrorMessage message={error.message} />
-      )}
-      <div className="spacer" ref={bottomElRef}>{' '}</div>
+      {replyNotes &&
+        replyNotes.map((replyNote) => (
+          <div key={replyNote.id} className="message">
+            <div className="img">OR</div>
+            <h4>
+              {prettyId(replyNote.signatures[0], true)}{' '}
+              <span>{forumDate(replyNote.cdate, replyNote.tcdate, replyNote.mdate)}</span>
+            </h4>
+            <MessageContent content={replyNote.content[contentField]} />
+          </div>
+        ))}
+      {error && <ErrorMessage message={error.message} />}
+      <div className="spacer" ref={bottomElRef}>
+        {' '}
+      </div>
     </div>
   )
 }
@@ -289,7 +316,10 @@ function MessageContent({ content = '' }) {
 
   return (
     // eslint-disable-next-line react/no-danger
-    <div className="message-content markdown-rendered" dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+    <div
+      className="message-content markdown-rendered"
+      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+    />
   )
 }
 
@@ -316,21 +346,31 @@ function SubmitForm({ user, contentField, postNote }) {
       <form className="form-inline" onSubmit={submitForm}>
         <div className="img">OR</div>
         <h4>
-          {prettyId(selectedSignature, true)}
-          {' '}
-          <span><a>change</a></span>
+          {prettyId(selectedSignature, true)}{' '}
+          <span>
+            <a>change</a>
+          </span>
         </h4>
         <div className="form-group" style={{ display: 'none' }}>
           <select id="note-signature" className="form-control">
-            {user.usernames.map(username => (
-              <option key={username} value={username}>{prettyId(username)}</option>
+            {user.usernames.map((username) => (
+              <option key={username} value={username}>
+                {prettyId(username)}
+              </option>
             ))}
           </select>
         </div>
         <div className="form-group">
-          <textarea id="note-content" className="form-control" rows="2" placeholder="Enter your message" />
+          <textarea
+            id="note-content"
+            className="form-control"
+            rows="2"
+            placeholder="Enter your message"
+          />
         </div>
-        <button type="submit" className="btn btn-primary">Post</button>
+        <button type="submit" className="btn btn-primary">
+          Post
+        </button>
       </form>
     </div>
   )

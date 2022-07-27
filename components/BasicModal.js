@@ -3,8 +3,15 @@
 import { useEffect, useRef } from 'react'
 
 export default function BasicModal({
-  id, title, children, primaryButtonText = 'Submit', cancelButtonText = 'Cancel',
-  primaryButtonDisabled = false, onPrimaryButtonClick, onClose, options = {},
+  id,
+  title,
+  children,
+  primaryButtonText = 'Submit',
+  cancelButtonText = 'Cancel',
+  primaryButtonDisabled = false,
+  onPrimaryButtonClick,
+  onClose,
+  options = {},
 }) {
   const modalRef = useRef(null)
 
@@ -26,21 +33,14 @@ export default function BasicModal({
         <div className="modal-content">
           {title && (
             <div className="modal-header">
-              <button
-                type="button"
-                className="close"
-                data-dismiss="modal"
-                aria-label="Close"
-              >
+              <button type="button" className="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">×</span>
               </button>
               <h3 className="modal-title">{title}</h3>
             </div>
           )}
 
-          <div className="modal-body">
-            {children}
-          </div>
+          <div className="modal-body">{children}</div>
 
           {!options.hideFooter && (
             <div className="modal-footer">
@@ -48,7 +48,12 @@ export default function BasicModal({
                 {cancelButtonText}
               </button>
               {primaryButtonText && (
-                <button type="button" className="btn btn-primary" onClick={onPrimaryButtonClick} disabled={primaryButtonDisabled}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={onPrimaryButtonClick}
+                  disabled={primaryButtonDisabled}
+                >
                   {primaryButtonText}
                 </button>
               )}

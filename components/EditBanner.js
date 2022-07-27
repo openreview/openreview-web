@@ -6,9 +6,7 @@ export default function EditBanner({ children }) {
       <div className="container">
         <div className="row">
           <div className="col-xs-12">
-            <div className="alert-content">
-              {children}
-            </div>
+            <div className="alert-content">{children}</div>
           </div>
         </div>
       </div>

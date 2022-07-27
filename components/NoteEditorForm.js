@@ -3,15 +3,22 @@
 /* globals promptError: false */
 /* globals promptLogin: false */
 
-import {
-  useContext, useEffect, useRef, useState,
-} from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import LoadingSpinner from './LoadingSpinner'
 import UserContext from './UserContext'
 
 export default function NoteEditorForm({
-  invitation, note, forumId, replyToId, loadingIndicator,
-  onNoteCreated, onNoteEdited, onNoteCancelled, onLoad, onValidate, onError,
+  invitation,
+  note,
+  forumId,
+  replyToId,
+  loadingIndicator,
+  onNoteCreated,
+  onNoteEdited,
+  onNoteCancelled,
+  onLoad,
+  onValidate,
+  onError,
 }) {
   const [loading, setLoading] = useState(true)
   const containerRef = useRef(null)
@@ -60,7 +67,7 @@ export default function NoteEditorForm({
       const isLoadingError = [
         'Can not create note, readers must match parent note',
         'Default reader is not in the list of readers',
-        'no_results'
+        'no_results',
       ].includes(err)
       onError(isLoadingError)
     }
@@ -98,9 +105,8 @@ export default function NoteEditorForm({
 
   return (
     <div className="note-editor-container">
-      {loading && (
-        typeof loadingIndicator === 'object' ? loadingIndicator : <LoadingSpinner inline />
-      )}
+      {loading &&
+        (typeof loadingIndicator === 'object' ? loadingIndicator : <LoadingSpinner inline />)}
 
       <div ref={containerRef} />
     </div>

@@ -10,7 +10,13 @@ import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
 
 function ForumNote({ note, updateNote }) {
   const {
-    id, content, details, signatures, editInvitations, deleteInvitation, tagInvitations,
+    id,
+    content,
+    details,
+    signatures,
+    editInvitations,
+    deleteInvitation,
+    tagInvitations,
   } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
@@ -24,7 +30,7 @@ function ForumNote({ note, updateNote }) {
     if (activeInvitation && activeInvitation.id !== invitation.id) {
       promptError(
         'There is currently another editor pane open on the page. Please submit your changes or click Cancel before continuing',
-        { scrollToTop: false },
+        { scrollToTop: false }
       )
       return
     }
@@ -78,7 +84,11 @@ function ForumNote({ note, updateNote }) {
   }
 
   return (
-    <div className={`forum-note ${pastDue ? 'trashed' : ''} ${texDisabled ? 'disable-tex-rendering' : ''}`}>
+    <div
+      className={`forum-note ${pastDue ? 'trashed' : ''} ${
+        texDisabled ? 'disable-tex-rendering' : ''
+      }`}
+    >
       <ForumTitle
         id={id}
         title={content.title?.value}
@@ -110,16 +120,12 @@ function ForumNote({ note, updateNote }) {
                 aria-haspopup="true"
                 aria-expanded="false"
               >
-                Edit
-                &nbsp;
+                Edit &nbsp;
                 <span className="caret" />
               </button>
               <ul className="dropdown-menu">
-                {editInvitations?.map(invitation => (
-                  <li
-                    key={invitation.id}
-                    onClick={() => openNoteEditor(invitation)}
-                  >
+                {editInvitations?.map((invitation) => (
+                  <li key={invitation.id} onClick={() => openNoteEditor(invitation)}>
                     {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                     <a href="#">{prettyInvitationId(invitation.id)}</a>
                   </li>
@@ -137,7 +143,6 @@ function ForumNote({ note, updateNote }) {
               <Icon name="trash" tooltip={prettyInvitationId(deleteInvitation)} />
             </button>
           )}
-
         </div>
       </div>
 
@@ -152,19 +157,20 @@ function ForumNote({ note, updateNote }) {
   )
 }
 
-function ForumTitle({
-  id, title, pdf, html,
-}) {
+function ForumTitle({ id, title, pdf, html }) {
   return (
     <div className="forum-title mt-2 mb-2">
-      <h2 className="citation_title">
-        {title}
-      </h2>
+      <h2 className="citation_title">{title}</h2>
 
       {pdf && (
         <div className="forum-content-link">
           {/* eslint-disable-next-line react/jsx-no-target-blank */}
-          <a className="citation_pdf_url" href={`/pdf?id=${id}`} title="Download PDF" target="_blank">
+          <a
+            className="citation_pdf_url"
+            href={`/pdf?id=${id}`}
+            title="Download PDF"
+            target="_blank"
+          >
             <img src="/images/pdf_icon_blue.svg" alt="Download PDF" />
           </a>
         </div>
@@ -194,9 +200,14 @@ function ForumMeta({ note }) {
       </span>
 
       {note.readers && (
-        <span className="readers item" data-toggle="tooltip" data-placement="top" title={`Visible to ${note.readers.join(', ')}`}>
+        <span
+          className="readers item"
+          data-toggle="tooltip"
+          data-placement="top"
+          title={`Visible to ${note.readers.join(', ')}`}
+        >
           <Icon name="eye-open" />
-          {note.readers.map(reader => prettyId(reader, true)).join(', ')}
+          {note.readers.map((reader) => prettyId(reader, true)).join(', ')}
         </span>
       )}
 
