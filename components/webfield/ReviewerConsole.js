@@ -230,7 +230,7 @@ const ReviewerConsoleTasks = ({
   const [invitations, setInvitations] = useState([])
   const [isLoading, setIsLoading] = useState(true)
 
-  const addInvitaitonTypeAndVersion = (invitation, apiVersion) => {
+  const addInvitaitonTypeAndVersion = (invitation) => {
     let invitaitonType = 'tagInvitation'
     if (apiVersion === 2 && invitation.edit?.note) invitaitonType = 'noteInvitation'
     if (apiVersion === 1 && !invitation.reply.content?.tag && !invitation.reply.content?.head)
@@ -239,7 +239,7 @@ const ReviewerConsoleTasks = ({
   }
 
   // for note invitations only
-  const filterHasReplyTo = (invitation, apiVersion) => {
+  const filterHasReplyTo = (invitation) => {
     if (!invitation.noteInvitation) return true
     if (apiVersion === 2) {
       const result = invitation.edit?.note?.replyto?.const || invitation.edit?.note?.id?.const
@@ -263,8 +263,8 @@ const ReviewerConsoleTasks = ({
       )
 
       allInvitations = allInvitations
-        .map((p) => addInvitaitonTypeAndVersion(p, apiVersion))
-        .filter((p) => filterHasReplyTo(p, apiVersion))
+        .map((p) => addInvitaitonTypeAndVersion(p))
+        .filter((p) => filterHasReplyTo(p))
         .filter((p) => filterAssignedInvitations(p, reviewerName, submissionName, noteNumbers))
 
       if (allInvitations.length) {
@@ -276,6 +276,7 @@ const ReviewerConsoleTasks = ({
         })
 
         allInvitations.forEach((p) => {
+          // eslint-disable-next-line no-param-reassign
           p.details = validInvitationDetails.find((q) => q.id === p.id)?.details
         })
       }
