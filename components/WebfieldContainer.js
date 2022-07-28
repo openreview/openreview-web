@@ -13,7 +13,12 @@ const WebfieldContainer = forwardRef((props, ref) => {
     if (!href) return
 
     // Open link in new tab if link has target="_blank", or if it's a ctrl-click or middle click
-    if (target.getAttribute('target') === '_blank' || e.metaKey || e.ctrlKey || e.button === 1) {
+    if (
+      target.getAttribute('target') === '_blank' ||
+      e.metaKey ||
+      e.ctrlKey ||
+      e.button === 1
+    ) {
       e.preventDefault()
       window.open(href, '_blank')
       return

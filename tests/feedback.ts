@@ -10,34 +10,43 @@ const sendButton = Selector('#feedback-modal button:nth-child(2)')
 const alertPanel = Selector('#feedback-modal .alert-danger')
 const textPanel = Selector('#feedback-modal p')
 
-fixture`Feedback Modal`
-  .page`http://localhost:${process.env.NEXT_PORT}`
-  .before(async (ctx) => {
-    ctx.superUserToken = await getToken('openreview.net', '1234')
-    return ctx
-  })
+fixture`Feedback Modal`.page`http://localhost:${process.env.NEXT_PORT}`.before(async (ctx) => {
+  ctx.superUserToken = await getToken('openreview.net', '1234')
+  return ctx
+})
 
 test('send incomplete feedback as a guest user', async (t) => {
   await t
     .click(feedbackLink)
-    .expect(feedbackModal.exists).ok()
+    .expect(feedbackModal.exists)
+    .ok()
     .click(sendButton)
-    .expect(alertPanel.innerText).eql(' Error: message must NOT have fewer than 1 characters')
+    .expect(alertPanel.innerText)
+    .eql(' Error: message must NOT have fewer than 1 characters')
 })
 
 test('send feedback as a guest user', async (t) => {
   await t
     .click(feedbackLink)
-    .expect(feedbackModal.exists).ok()
-    .expect(emailInput.exists).ok()
+    .expect(feedbackModal.exists)
+    .ok()
+    .expect(emailInput.exists)
+    .ok()
     .typeText(emailInput, 'melisa@test.com')
     .typeText(subjectInput, 'subject')
     .typeText(textInput, 'this is my feedback')
     .click(sendButton)
-    .expect(textPanel.innerText).eql('Your feedback has been submitted. Thank you.')
+    .expect(textPanel.innerText)
+    .eql('Your feedback has been submitted. Thank you.')
 
   const { superUserToken } = t.fixtureCtx
-  const messages = await getMessages({ subject: 'OpenReview Feedback: subject' }, superUserToken)
-  await t.expect(messages.length).eql(1)
-    .expect(messages[0].content.replyTo).eql('melisa@test.com')
+  const messages = await getMessages(
+    { subject: 'OpenReview Feedback: subject' },
+    superUserToken
+  )
+  await t
+    .expect(messages.length)
+    .eql(1)
+    .expect(messages[0].content.replyTo)
+    .eql('melisa@test.com')
 })

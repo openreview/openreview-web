@@ -13,7 +13,9 @@ export default function EdgeBrowserHeader({ invitation }) {
         <div className="row">
           <div className="col-xs-12">
             <h1 id="matching-title">
-              {`${prettyId(invitation.id)} ${invitation.query.label ? ` – ${invitation.query.label}` : ''}`}
+              {`${prettyId(invitation.id)} ${
+                invitation.query.label ? ` – ${invitation.query.label}` : ''
+              }`}
             </h1>
           </div>
 
@@ -26,9 +28,7 @@ export default function EdgeBrowserHeader({ invitation }) {
                 aria-haspopup="true"
                 aria-expanded="false"
               >
-                Actions
-                {' '}
-                <span className="caret" />
+                Actions <span className="caret" />
               </button>
               <ul className="dropdown-menu dropdown-align-right">
                 <li>
@@ -37,10 +37,14 @@ export default function EdgeBrowserHeader({ invitation }) {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="view-locks">View Locked Assignments</a>
+                  <a href="#" className="view-locks">
+                    View Locked Assignments
+                  </a>
                 </li>
                 <li>
-                  <a href="#" className="view-breaks">View Vetoed Assignments</a>
+                  <a href="#" className="view-breaks">
+                    View Vetoed Assignments
+                  </a>
                 </li>
               </ul>
             </div>

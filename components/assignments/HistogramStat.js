@@ -26,16 +26,13 @@ const HistogramStat = ({ id, stats, edgeBrowserUrlParams }) => {
     } else {
       dataList = [
         ...new Set(
-          stats.interactiveData
-            .filter((p) => p.num >= d.x0 && p.num < d.x1)
-            .map((q) => q.data)
+          stats.interactiveData.filter((p) => p.num >= d.x0 && p.num < d.x1).map((q) => q.data)
         ),
       ]
     }
 
-    const localStorageKey = stats.tag === 'discrete'
-      ? `${id}-x-${d[0]}`
-      : `${id}-x-${d.x0}-to-${d.x1}`
+    const localStorageKey =
+      stats.tag === 'discrete' ? `${id}-x-${d[0]}` : `${id}-x-${d.x0}-to-${d.x1}`
     try {
       window.localStorage.setItem(
         localStorageKey,

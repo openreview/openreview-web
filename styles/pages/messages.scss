@@ -1,24 +1,23 @@
-@use "../utils/constants";
+@use '../utils/constants';
 
 main.messages {
-
   .filter-controls {
     margin-top: 2rem;
     margin-bottom: 1rem;
 
     .form-group {
-      margin-right: .75rem;
-      margin-bottom: .5rem;
+      margin-right: 0.75rem;
+      margin-bottom: 0.5rem;
 
       label {
-        margin-right: .25rem;
+        margin-right: 0.25rem;
       }
       .multiselector {
         margin-left: 0;
         margin-right: 0;
       }
     }
-    input[type="text"] {
+    input[type='text'] {
       line-height: 34px;
     }
     #status-search-dropdown {
@@ -54,5 +53,4 @@ main.messages {
     margin-top: 3rem;
     margin-bottom: 2rem;
   }
-
 }

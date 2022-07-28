@@ -17,18 +17,26 @@ import Icon from '../Icon'
 export default function ForumReply({ note, replies, replyDepth, parentId, updateNote }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
-  const { displayOptionsMap, layout, setCollapsed, setContentExpanded } = useContext(ForumReplyContext)
+  const { displayOptionsMap, layout, setCollapsed, setContentExpanded } =
+    useContext(ForumReplyContext)
   const { user } = useUser()
 
-  const {
-    invitations, content, signatures, ddate,
-  } = note
+  const { invitations, content, signatures, ddate } = note
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
-  const allChildIds = replies.reduce((acc, reply) => acc.concat(reply.id, reply.replies.map((r) => r.id)), [])
+  const allChildIds = replies.reduce(
+    (acc, reply) =>
+      acc.concat(
+        reply.id,
+        reply.replies.map((r) => r.id)
+      ),
+    []
+  )
   const allRepliesHidden = allChildIds.every((childId) => displayOptionsMap[childId].hidden)
 
   const scrollToNote = (noteId, showEditor) => {
-    const el = document.querySelector(`.note[data-id="${noteId}"]${showEditor ? ' .invitation-buttons' : ''}`)
+    const el = document.querySelector(
+      `.note[data-id="${noteId}"]${showEditor ? ' .invitation-buttons' : ''}`
+    )
     if (!el) return
 
     const navBarHeight = 63
@@ -38,8 +46,10 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
   }
 
   const openNoteEditor = (invitation, type) => {
-    if ((activeInvitation && activeInvitation.id !== invitation.id)
-      || (activeEditInvitation && activeEditInvitation.id !== invitation.id)) {
+    if (
+      (activeInvitation && activeInvitation.id !== invitation.id) ||
+      (activeEditInvitation && activeEditInvitation.id !== invitation.id)
+    ) {
       promptError(
         'There is currently another editor pane open on the page. Please submit your changes or click Cancel before continuing',
         { scrollToTop: false }
@@ -69,26 +79,23 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
       >
         <div className="heading">
           <h4 className="minimal-title">
-            <strong>{content.title?.value || buildNoteTitle(invitations[0])}</strong>
-            {' '}
-            &bull;
-            {' '}
+            <strong>{content.title?.value || buildNoteTitle(invitations[0])}</strong> &bull;{' '}
             <span className="signatures">
-              by
-              {' '}
-              {signatures.map(signature => prettyId(signature, true)).join(', ')}
-            </span>
-            {' '}
-            {ddate && (
-              <span className="signatures">[Deleted]</span>
-            )}
+              by {signatures.map((signature) => prettyId(signature, true)).join(', ')}
+            </span>{' '}
+            {ddate && <span className="signatures">[Deleted]</span>}
           </h4>
 
           <CopyLinkButton forumId={note.forum} noteId={note.id} />
         </div>
 
         {!allRepliesHidden && (
-          <NoteReplies replies={replies} replyDepth={replyDepth + 1} parentId={note.id} updateNote={updateNote} />
+          <NoteReplies
+            replies={replies}
+            replyDepth={replyDepth + 1}
+            parentId={note.id}
+            updateNote={updateNote}
+          />
         )}
       </ReplyContainer>
     )
@@ -131,7 +138,12 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         {!allRepliesHidden && (
           <>
             <hr />
-            <NoteReplies replies={replies} replyDepth={replyDepth + 1} parentId={note.id} updateNote={updateNote} />
+            <NoteReplies
+              replies={replies}
+              replyDepth={replyDepth + 1}
+              parentId={note.id}
+              updateNote={updateNote}
+            />
           </>
         )}
       </ReplyContainer>
@@ -150,13 +162,10 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
       setContentExpanded={setContentExpanded}
       replyDepth={replyDepth}
     >
-      {(layout === replyDepth && note.replyto !== parentId) && (
+      {layout === replyDepth && note.replyto !== parentId && (
         <div className="parent-title">
           <h5 onClick={() => scrollToNote(note.replyto)}>
-            <Icon name="share-alt" />
-            {' '}
-            Replying to
-            {' '}
+            <Icon name="share-alt" /> Replying to{' '}
             {truncate(note.parentTitle, {
               length: 135,
               omission: '...',
@@ -177,7 +186,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
 
         <CopyLinkButton forumId={note.forum} noteId={note.id} />
 
-        {(note.editInvitations?.length > 0 && !ddate) && (
+        {note.editInvitations?.length > 0 && !ddate && (
           <div className="btn-group">
             <button
               type="button"
@@ -186,12 +195,11 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
               aria-haspopup="true"
               aria-expanded="false"
             >
-              Edit
-              &nbsp;
+              Edit &nbsp;
               <span className="caret" />
             </button>
             <ul className="dropdown-menu">
-              {note.editInvitations?.map(invitation => (
+              {note.editInvitations?.map((invitation) => (
                 <li key={invitation.id}>
                   {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                   <a
@@ -244,41 +252,64 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         </span>
         <span className="signatures">
           <Icon name="pencil" tooltip="Reply Author" />
-          {signatures.map((signature) => {
-            const signatureLink = signature.startsWith('~')
-              ? <a href={`/profile?id=${signature}`} target="_blank" rel="noreferrer">{prettyId(signature, true)}</a>
-              : prettyId(signature, true)
-            const signatureGroup = note.details?.signatures?.find(p => p.id === signature)
-            if (signatureGroup) {
-              let tooltip = `Identities privately revealed to ${signatureGroup.readers?.map(p => prettyId(p, true)).join(', ')}`
-              let icon = 'eye-open'
-              if (signatureGroup.readers?.includes('everyone')) {
-                tooltip = 'Identities publicly revealed to everyone'
-                icon = 'globe'
-              }
-              return (
-                <span key={signature}>
-                  {signatureLink}
-                  {' '}
-                  (
-                  <Icon name={icon} tooltip={tooltip} />
-                  {signatureGroup.members.map(q => (
-                    <a key={q} href={`/profile?id=${q}`} target="_blank" rel="noreferrer">{prettyId(q, true)}</a>
-                  )).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
-                  )
-                </span>
+          {signatures
+            .map((signature) => {
+              const signatureLink = signature.startsWith('~') ? (
+                <a href={`/profile?id=${signature}`} target="_blank" rel="noreferrer">
+                  {prettyId(signature, true)}
+                </a>
+              ) : (
+                prettyId(signature, true)
               )
-            }
-            return <span key={signature}>{signatureLink}</span>
-          }).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+              const signatureGroup = note.details?.signatures?.find((p) => p.id === signature)
+              if (signatureGroup) {
+                let tooltip = `Identities privately revealed to ${signatureGroup.readers
+                  ?.map((p) => prettyId(p, true))
+                  .join(', ')}`
+                let icon = 'eye-open'
+                if (signatureGroup.readers?.includes('everyone')) {
+                  tooltip = 'Identities publicly revealed to everyone'
+                  icon = 'globe'
+                }
+                return (
+                  <span key={signature}>
+                    {signatureLink} (
+                    <Icon name={icon} tooltip={tooltip} />
+                    {signatureGroup.members
+                      .map((q) => (
+                        <a key={q} href={`/profile?id=${q}`} target="_blank" rel="noreferrer">
+                          {prettyId(q, true)}
+                        </a>
+                      ))
+                      .reduce(
+                        (accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]),
+                        null
+                      )}
+                    )
+                  </span>
+                )
+              }
+              return <span key={signature}>{signatureLink}</span>
+            })
+            .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
         </span>
-        <span className="created-date" data-toggle="tooltip" data-placement="top" title="Date created">
+        <span
+          className="created-date"
+          data-toggle="tooltip"
+          data-placement="top"
+          title="Date created"
+        >
           <Icon name="calendar" />
           {forumDate(note.cdate, null, note.mdate, null)}
         </span>
-        <span className="readers" data-toggle="tooltip" data-placement="top" title="Visible to">
+        <span
+          className="readers"
+          data-toggle="tooltip"
+          data-placement="top"
+          title="Visible to"
+        >
           <Icon name="eye-open" />
-          {note.readers.map(reader => prettyId(reader, true)).join(', ')}
+          {note.readers.map((reader) => prettyId(reader, true)).join(', ')}
         </span>
         <span className="revisions">
           <Icon name="duplicate" />
@@ -298,11 +329,11 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         deleted={!!ddate}
       />
 
-      {(note.replyInvitations?.length > 0 && !note.ddate) && (
+      {note.replyInvitations?.length > 0 && !note.ddate && (
         <div className="invitations-container mt-2">
           <div className="invitation-buttons">
             <span className="hint">Add:</span>
-            {note.replyInvitations.map(inv => (
+            {note.replyInvitations.map((inv) => (
               <button
                 key={inv.id}
                 type="button"
@@ -341,26 +372,45 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
       )}
 
       {!allRepliesHidden && (
-        <NoteReplies replies={replies} replyDepth={replyDepth + 1} parentId={note.id} updateNote={updateNote} />
+        <NoteReplies
+          replies={replies}
+          replyDepth={replyDepth + 1}
+          parentId={note.id}
+          updateNote={updateNote}
+        />
       )}
     </ReplyContainer>
   )
 }
 
 function ReplyContainer({
-  id, hidden, collapsed, expanded, deleted, setCollapsed, setContentExpanded, replyDepth, children,
+  id,
+  hidden,
+  collapsed,
+  expanded,
+  deleted,
+  setCollapsed,
+  setContentExpanded,
+  replyDepth,
+  children,
 }) {
   return (
     <div
-      className={`note ${deleted ? 'deleted' : ''} depth-${replyDepth % 2 === 0 ? 'even' : 'odd'}`}
+      className={`note ${deleted ? 'deleted' : ''} depth-${
+        replyDepth % 2 === 0 ? 'even' : 'odd'
+      }`}
       style={hidden ? { display: 'none' } : {}}
       data-id={id}
     >
-      <div className="btn-group-vertical btn-group-xs collapse-controls-v" role="group" aria-label="Collapse controls">
+      <div
+        className="btn-group-vertical btn-group-xs collapse-controls-v"
+        role="group"
+        aria-label="Collapse controls"
+      >
         <button
           type="button"
           className={`btn btn-default ${collapsed ? 'active' : ''}`}
-          onClick={e => {
+          onClick={(e) => {
             setCollapsed(id, true)
             setContentExpanded(id, false)
           }}
@@ -369,8 +419,8 @@ function ReplyContainer({
         </button>
         <button
           type="button"
-          className={`btn btn-default middle ${(!collapsed && !expanded) ? 'active' : ''}`}
-          onClick={e => {
+          className={`btn btn-default middle ${!collapsed && !expanded ? 'active' : ''}`}
+          onClick={(e) => {
             setCollapsed(id, false)
             setContentExpanded(id, false)
           }}
@@ -379,7 +429,7 @@ function ReplyContainer({
         </button>
         <button
           type="button"
-          className={`btn btn-default ${(!collapsed && expanded) ? 'active' : ''}`}
+          className={`btn btn-default ${!collapsed && expanded ? 'active' : ''}`}
           onClick={(e) => {
             setCollapsed(id, false)
             setContentExpanded(id, true)
@@ -410,7 +460,13 @@ function CopyLinkButton({ forumId, noteId }) {
 }
 
 function NoteContentCollapsible({
-  id, content, presentation, noteReaders, contentExpanded, deleted, setContentExpanded,
+  id,
+  content,
+  presentation,
+  noteReaders,
+  contentExpanded,
+  deleted,
+  setContentExpanded,
 }) {
   if (deleted) {
     return (
@@ -433,7 +489,11 @@ function NoteContentCollapsible({
       />
       {!contentExpanded && (
         <div className="gradient-overlay">
-          <button type="button" className="btn btn-block btn-link" onClick={() => setContentExpanded(id, true)}>
+          <button
+            type="button"
+            className="btn btn-block btn-link"
+            onClick={() => setContentExpanded(id, true)}
+          >
             ≡ &nbsp;Show All
           </button>
         </div>

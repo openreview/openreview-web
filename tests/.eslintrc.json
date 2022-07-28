@@ -6,7 +6,7 @@
     "fixture": "readonly",
     "test": "readonly"
   },
-  "rules" : {
+  "rules": {
     "newline-per-chained-call": "off"
   }
 }

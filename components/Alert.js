@@ -5,12 +5,7 @@ function Alert({ color, dismissible, children }) {
       role="alert"
     >
       {dismissible && (
-        <button
-          type="button"
-          className="close"
-          data-dismiss="alert"
-          aria-label="Close"
-        >
+        <button type="button" className="close" data-dismiss="alert" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       )}

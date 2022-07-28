@@ -23,7 +23,7 @@
       "${1:${TM_FILENAME_BASE}}.getInitialProps = async (ctx) => {\n",
       "}\n",
       "${1:${TM_FILENAME_BASE}}.bodyClass = '${1:${TM_FILENAME_BASE}}'\n",
-      "export default ${1:${TM_FILENAME_BASE}}\n",
+      "export default ${1:${TM_FILENAME_BASE}}\n"
     ],
     "description": "Creates a page component as a named arrow function without PropTypes"
   },
@@ -36,8 +36,8 @@
       "\t\t<div>\n",
       "\t\t</div>",
       "\t)",
-      "}\n",
+      "}\n"
     ],
     "description": "Creates a stateless page component as a named function without PropTypes"
-  },
+  }
 }

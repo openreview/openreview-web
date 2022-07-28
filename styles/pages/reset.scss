@@ -1,7 +1,6 @@
-@use "../utils/constants";
+@use '../utils/constants';
 
 main.reset {
-
   .reset-container {
     margin-bottom: 1rem;
 
@@ -15,8 +14,8 @@ main.reset {
       color: constants.$orRed;
     }
     button {
-      margin-top: .25rem;
-      margin-bottom: .5rem;
+      margin-top: 0.25rem;
+      margin-bottom: 0.5rem;
     }
     .alert-success {
       margin-top: 2rem;
@@ -36,5 +35,4 @@ main.reset {
       padding: 0 2rem;
     }
   }
-
 }

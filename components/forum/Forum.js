@@ -20,9 +20,19 @@ import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { prettyInvitationId } from '../../lib/utils'
-import { formatNote, getNoteInvitations, parseFilterQuery, replaceFilterWildcards } from '../../lib/forum-utils'
+import {
+  formatNote,
+  getNoteInvitations,
+  parseFilterQuery,
+  replaceFilterWildcards,
+} from '../../lib/forum-utils'
 
-export default function Forum({ forumNote, selectedNoteId, selectedInvitationId, clientJsLoading }) {
+export default function Forum({
+  forumNote,
+  selectedNoteId,
+  selectedInvitationId,
+  clientJsLoading,
+}) {
   const { userLoading, accessToken } = useUser()
   const [parentNote, setParentNote] = useState(forumNote)
   const [replyNoteMap, setReplyNoteMap] = useState(null)
@@ -51,10 +61,7 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
 
   const numRepliesHidden = displayOptionsMap
-    ? Object.values(displayOptionsMap).reduce(
-        (count, opt) => count + (opt.hidden ? 1 : 0),
-        0
-      )
+    ? Object.values(displayOptionsMap).reduce((count, opt) => count + (opt.hidden ? 1 : 0), 0)
     : 0
 
   // API helper functions
@@ -63,15 +70,19 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
 
     const extraParams = includeTags ? { tags: true } : { details: 'repliedNotes' }
     return api
-      .get('/invitations', { replyForum: forumId, ...extraParams }, { accessToken, version: 2 })
+      .get(
+        '/invitations',
+        { replyForum: forumId, ...extraParams },
+        { accessToken, version: 2 }
+      )
       .then(({ invitations }) => {
         if (!invitations?.length) return []
 
         return invitations.map((inv) => {
           // Check if invitation does not have multiReply prop OR invitation is set to multiReply
           // but it is not false OR there have not been any replies to the invitation yet
-          const repliesAvailable = !inv.maxReplies
-            || inv.details?.repliedNotes?.length < inv.maxReplies
+          const repliesAvailable =
+            !inv.maxReplies || inv.details?.repliedNotes?.length < inv.maxReplies
           return {
             ...inv,
             process: null,
@@ -85,11 +96,16 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
   const getNotesByForumId = (forumId) => {
     if (!forumId) return Promise.resolve([])
 
-    return api.get('/notes', {
-      forum: forumId,
-      trash: true,
-      details: 'replyCount,writable,signatures,invitation,presentation',
-    }, { accessToken, version: 2 })
+    return api
+      .get(
+        '/notes',
+        {
+          forum: forumId,
+          trash: true,
+          details: 'replyCount,writable,signatures,invitation,presentation',
+        },
+        { accessToken, version: 2 }
+      )
       .then(({ notes }) => {
         if (!Array.isArray(notes)) return []
 
@@ -121,7 +137,10 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
     const numberWildcard = /(Reviewer|Area_Chair)_(\w{4})/g
     const usernameWildcard = /(~[^\d]+\d+)([/_])/g
     notes.forEach((note) => {
-      const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(invitations, note)
+      const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
+        invitations,
+        note
+      )
 
       // Don't include forum note in replyMap
       if (note.id === note.forum) {
@@ -152,7 +171,9 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
       parentIdMap[parentId].push(note.id)
 
       // Populate filter options
-      invitationIds.add(note.invitations[0].replace(numberWildcard, '$1.*').replace(usernameWildcard, '.*$2'))
+      invitationIds.add(
+        note.invitations[0].replace(numberWildcard, '$1.*').replace(usernameWildcard, '.*$2')
+      )
       note.signatures.forEach((noteSig) => signatureGroupIds.add(noteSig))
       note.readers.forEach((rId) => readerGroupIds.add(rId))
     })
@@ -164,7 +185,8 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
       const replyToNote = replyMap[note.replyto]
       if (!replyToNote) return
 
-      replyMap[note.id].parentTitle = replyToNote.content.title?.value || replyToNote.generatedTitle
+      replyMap[note.id].parentTitle =
+        replyToNote.content.title?.value || replyToNote.generatedTitle
     })
 
     setReplyNoteMap(replyMap)
@@ -243,7 +265,10 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
 
   // Update forum note after new edit
   const updateParentNote = (note) => {
-    const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(allInvitations, note)
+    const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
+      allInvitations,
+      note
+    )
 
     setParentNote({
       ...note,
@@ -258,7 +283,10 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
     const noteId = note.id
     const parentId = note.replyto
     const existingNote = replyNoteMap[noteId]
-    const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(allInvitations, note)
+    const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
+      allInvitations,
+      note
+    )
 
     const formattedNote = formatNote(
       note,
@@ -269,11 +297,12 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
     )
     const replyToNote = replyNoteMap[parentId]
     if (replyToNote) {
-      formattedNote.parentTitle = replyToNote.content.title?.value || replyToNote.generatedTitle
+      formattedNote.parentTitle =
+        replyToNote.content.title?.value || replyToNote.generatedTitle
     }
     setReplyNoteMap({
       ...replyNoteMap,
-      [noteId]: formattedNote
+      [noteId]: formattedNote,
     })
 
     if (isEmpty(existingNote)) {
@@ -360,10 +389,12 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
       // Threaded view
       orderedNotes = (parentMap[id] ?? []).sort(selectedSortFn).map((noteId) => ({
         id: noteId,
-        replies: getAllReplies(noteId).sort(leastRecentComp).map((noteId2) => ({
-          id: noteId2,
-          replies: []
-        })),
+        replies: getAllReplies(noteId)
+          .sort(leastRecentComp)
+          .map((noteId2) => ({
+            id: noteId2,
+            replies: [],
+          })),
       }))
     } else if (layout === 3) {
       // Partially Nested view
@@ -371,10 +402,12 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
         id: noteId,
         replies: (parentMap[noteId] ?? []).sort(selectedSortFn).map((noteId2) => ({
           id: noteId2,
-          replies: getAllReplies(noteId2).sort(leastRecentComp).map((noteId3) => ({
-            id: noteId3,
-            replies: [],
-          })),
+          replies: getAllReplies(noteId2)
+            .sort(leastRecentComp)
+            .map((noteId3) => ({
+              id: noteId3,
+              replies: [],
+            })),
         })),
       }))
     }
@@ -452,7 +485,11 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
     orderedReplies.forEach((note) => {
       const { hidden } = newDisplayOptions[note.id]
       const allChildIds = note.replies.reduce(
-        (acc, reply) => acc.concat(reply.id, reply.replies.map((r) => r.id)),
+        (acc, reply) =>
+          acc.concat(
+            reply.id,
+            reply.replies.map((r) => r.id)
+          ),
         []
       )
       const someChildrenVisible = allChildIds.some(
@@ -523,15 +560,19 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
       {/* TODO: remove this message when new page is the default */}
       <div id="tab-message" className="alert alert-warning">
         <p>
-          <Icon name="exclamation-sign pr-1" />
-          {' '}
-          You are using a beta version of the forum page. For more information, please read the
-          {' '}
-          <a href="https://docs.openreview.net/getting-started/using-the-new-forum-page" target="_blank" rel="noreferrer">forum docs</a>.
-          {' '}
-          To switch back to the old forum click here:
-          {' '}
-          <Link href={`/forum?id=${id}`}><a>View old forum &raquo;</a></Link>
+          <Icon name="exclamation-sign pr-1" /> You are using a beta version of the forum page.
+          For more information, please read the{' '}
+          <a
+            href="https://docs.openreview.net/getting-started/using-the-new-forum-page"
+            target="_blank"
+            rel="noreferrer"
+          >
+            forum docs
+          </a>
+          . To switch back to the old forum click here:{' '}
+          <Link href={`/forum?id=${id}`}>
+            <a>View old forum &raquo;</a>
+          </Link>
         </p>
       </div>
 
@@ -576,7 +617,7 @@ export default function Forum({ forumNote, selectedNoteId, selectedInvitationId,
         </div>
       )}
 
-      {(repliesLoaded && orderedReplies.length > 0) && (
+      {repliesLoaded && orderedReplies.length > 0 && (
         <div className="filters-container mt-3">
           {replyForumViews && <FilterTabs forumId={id} forumViews={replyForumViews} />}
 
