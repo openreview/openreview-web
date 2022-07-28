@@ -27,7 +27,15 @@ const NavUserLinks = () => {
     if (userLoading || user) return
 
     const routesToSkipRedirection = [
-      '/', '/login', '/confirm', '/logout', '/signup', '/404', '/profile/activate', '/reset', '/user/password',
+      '/',
+      '/login',
+      '/confirm',
+      '/logout',
+      '/signup',
+      '/404',
+      '/profile/activate',
+      '/reset',
+      '/user/password',
     ]
     if (routesToSkipRedirection.includes(router.pathname)) {
       setLoginPath('/login')
@@ -41,7 +49,9 @@ const NavUserLinks = () => {
     return (
       <ul className="nav navbar-nav navbar-right">
         <li id="user-menu">
-          <Link href={loginPath}><a>Login</a></Link>
+          <Link href={loginPath}>
+            <a>Login</a>
+          </Link>
         </li>
       </ul>
     )
@@ -50,10 +60,14 @@ const NavUserLinks = () => {
   return (
     <ul className="nav navbar-nav navbar-right">
       <li className="hidden-sm">
-        <Link href="/activity"><a>Activity</a></Link>
+        <Link href="/activity">
+          <a>Activity</a>
+        </Link>
       </li>
       <li className="hidden-sm">
-        <Link href="/tasks"><a>Tasks</a></Link>
+        <Link href="/tasks">
+          <a>Tasks</a>
+        </Link>
       </li>
       <li id="user-menu" className="dropdown">
         <a
@@ -64,25 +78,35 @@ const NavUserLinks = () => {
           aria-expanded="false"
         >
           {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-          <span>{user.profile.first} {user.profile.middle} {user.profile.last}  {user.impersonator && '(Impersonated)'}</span>
-          {' '}
+          <span>
+            {user.profile.first} {user.profile.middle} {user.profile.last}{' '}
+            {user.impersonator && '(Impersonated)'}
+          </span>{' '}
           <span className="caret" />
         </a>
 
         <ul className="dropdown-menu">
           <li>
-            <Link href="/profile"><a>Profile</a></Link>
+            <Link href="/profile">
+              <a>Profile</a>
+            </Link>
           </li>
           <li className="visible-sm-block">
-            <Link href="/activity"><a>Activity</a></Link>
+            <Link href="/activity">
+              <a>Activity</a>
+            </Link>
           </li>
           <li className="visible-sm-block">
-            <Link href="/tasks"><a>Tasks</a></Link>
+            <Link href="/tasks">
+              <a>Tasks</a>
+            </Link>
           </li>
           <li role="separator" className="divider hidden-xs" />
           <li>
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a href="/logout" onClick={handleLogout}>Logout</a>
+            <a href="/logout" onClick={handleLogout}>
+              Logout
+            </a>
           </li>
         </ul>
       </li>

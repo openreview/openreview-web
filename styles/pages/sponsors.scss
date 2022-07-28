@@ -1,4 +1,4 @@
-@use "../utils/constants";
+@use '../utils/constants';
 
 main.sponsors {
   h1 {
@@ -8,7 +8,7 @@ main.sponsors {
     h2 {
       border-bottom: 1px solid #ddd;
       margin-bottom: 2rem;
-      padding-bottom: .75rem;
+      padding-bottom: 0.75rem;
       font-size: 1.25rem;
       font-weight: bold;
       color: constants.$orRed;
@@ -28,7 +28,8 @@ main.sponsors {
         display: block;
       }
     }
-    .width-5, .width-4 {
+    .width-5,
+    .width-4 {
       margin-bottom: 3rem;
     }
     .height-5 a {

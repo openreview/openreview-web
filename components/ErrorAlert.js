@@ -4,11 +4,7 @@ import Icon from './Icon'
 function ErrorAlert({ error }) {
   return (
     <Alert color="danger">
-      <Icon name="exclamation-sign" />
-      {' '}
-      <strong>Error:</strong>
-      {' '}
-      {error.message}
+      <Icon name="exclamation-sign" /> <strong>Error:</strong> {error.message}
     </Alert>
   )
 }

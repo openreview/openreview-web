@@ -21,12 +21,23 @@ const BibtexModal = () => {
   }, [])
 
   return (
-    <BasicModal id="bibtex-modal" title="BibTeX Record" cancelButtonText="Done" primaryButtonText={null}>
+    <BasicModal
+      id="bibtex-modal"
+      title="BibTeX Record"
+      cancelButtonText="Done"
+      primaryButtonText={null}
+    >
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
-      <pre ref={bibTexContentRef} className="bibtex-content" onClick={handleBixtexContentClick}>
+      <pre
+        ref={bibTexContentRef}
+        className="bibtex-content"
+        onClick={handleBixtexContentClick}
+      >
         {bibtexContent}
       </pre>
-      <em className="instructions">Click anywhere on the box above to highlight complete record</em>
+      <em className="instructions">
+        Click anywhere on the box above to highlight complete record
+      </em>
     </BasicModal>
   )
 }

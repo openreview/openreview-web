@@ -11,7 +11,9 @@ export default function Donate() {
       <div className="row">
         <div className="col-xs-12 col-md-8 col-md-offset-2 text-center">
           <h1>Donate to the OpenReview nonprofit</h1>
-          <p>All donations directly support OpenReview development, maintenance, and services.</p>
+          <p>
+            All donations directly support OpenReview development, maintenance, and services.
+          </p>
 
           <div>
             <iframe
@@ -29,14 +31,18 @@ export default function Donate() {
             <p className="hint">
               Code for Science and Society is a registered US 501(c)(3) nonprofit.
               <br />
-              Donations are tax deductible to the extent allowed by law in US. Tax
-              ID 81-3791683.
+              Donations are tax deductible to the extent allowed by law in US. Tax ID
+              81-3791683.
             </p>
           </div>
         </div>
       </div>
 
-      <Script src="https://donorbox.org/widget.js" paypalexpress="true" crossorigin="anonymous" />
+      <Script
+        src="https://donorbox.org/widget.js"
+        paypalexpress="true"
+        crossorigin="anonymous"
+      />
     </div>
   )
 }

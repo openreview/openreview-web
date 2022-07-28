@@ -1,5 +1,5 @@
-@use "../utils/constants";
-@use "../utils/mixins";
+@use '../utils/constants';
+@use '../utils/mixins';
 
 table.messages-table {
   border-bottom: 1px solid #ddd;
@@ -16,7 +16,7 @@ table.messages-table {
     text-align: center;
   }
   .email-title {
-    padding: .375rem 0;
+    padding: 0.375rem 0;
   }
   .email-content {
     position: relative;
@@ -32,7 +32,11 @@ table.messages-table {
         top: 110px;
         height: 40px;
         width: 100%;
-        background-image: linear-gradient(to bottom, transparent 0%, constants.$backgroundWhite 100%);
+        background-image: linear-gradient(
+          to bottom,
+          transparent 0%,
+          constants.$backgroundWhite 100%
+        );
         content: '';
       }
     }
@@ -41,7 +45,7 @@ table.messages-table {
     }
     p {
       white-space: pre-wrap;
-      margin-bottom: .5rem;
+      margin-bottom: 0.5rem;
     }
     &.markdown-rendered p {
       white-space: normal;
@@ -55,8 +59,8 @@ table.messages-table {
 
     &::before {
       position: absolute;
-      width: .875rem;
-      height: .875rem;
+      width: 0.875rem;
+      height: 0.875rem;
       left: 0;
       top: 3px;
       border-radius: 50%;

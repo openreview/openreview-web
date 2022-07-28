@@ -6,7 +6,9 @@ import { formatTimestamp } from '../lib/utils'
 const MessageRow = ({ message }) => (
   <tr>
     <td>
-      <span className={`status ${message.status === 'delivered' ? 'delivered' : 'not-delivered'}`}>
+      <span
+        className={`status ${message.status === 'delivered' ? 'delivered' : 'not-delivered'}`}
+      >
         {message.status}
       </span>
     </td>
@@ -14,8 +16,7 @@ const MessageRow = ({ message }) => (
     <td>
       <div className="clearfix">
         <div className="email-to pull-left mr-3">
-          To:
-          {' '}
+          To:{' '}
           <a
             href={`/profile?email=${encodeURIComponent(message.content?.to)}`}
             className="profile-link"
@@ -27,8 +28,7 @@ const MessageRow = ({ message }) => (
         </div>
         {message.referrer && (
           <div className="email-parent pull-left mr-4">
-            Parent:
-            {' '}
+            Parent:{' '}
             <a
               href={`/group/edit?id=${encodeURIComponent(message.referrer)}`}
               className="profile-link"
@@ -40,9 +40,7 @@ const MessageRow = ({ message }) => (
           </div>
         )}
         <div className="email-sent pull-right">
-          Sent:
-          {' '}
-          <span>{formatTimestamp((message.timestamp * 1000) || message.cdate)}</span>
+          Sent: <span>{formatTimestamp(message.timestamp * 1000 || message.cdate)}</span>
         </div>
       </div>
 
@@ -53,8 +51,10 @@ const MessageRow = ({ message }) => (
       <div
         role="button"
         tabIndex="0"
-        className={`email-content collapsed ${message.content?.text?.startsWith('<p>') ? 'markdown-rendered' : ''}`}
-        onClick={e => e.currentTarget.classList.toggle('collapsed')}
+        className={`email-content collapsed ${
+          message.content?.text?.startsWith('<p>') ? 'markdown-rendered' : ''
+        }`}
+        onClick={(e) => e.currentTarget.classList.toggle('collapsed')}
       >
         {/* eslint-disable-next-line react/no-danger */}
         <p dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.content?.text) }} />
@@ -86,11 +86,13 @@ const MessagesTable = ({ messages }) => {
         { id: 'details', content: 'Message Details' },
       ]}
     >
-      {messages.length > 0 ? messages.map(m => (
-        <MessageRow key={m.id} message={m} />
-      )) : (
+      {messages.length > 0 ? (
+        messages.map((m) => <MessageRow key={m.id} message={m} />)
+      ) : (
         <tr>
-          <td colSpan="2"><p className="empty-message text-center">No messages found</p></td>
+          <td colSpan="2">
+            <p className="empty-message text-center">No messages found</p>
+          </td>
         </tr>
       )}
     </Table>

@@ -21,13 +21,15 @@ const ErrorDisplay = ({ statusCode, message }) => (
           <p className="error-help">
             <strong>
               Important: If this URL was sent to you in an email, then in order to access this
-              page the same email address must be added to your OpenReview profile and confirmed.
+              page the same email address must be added to your OpenReview profile and
+              confirmed.
             </strong>
           </p>
           <p className="error-help">
-            To add a new email to your profile, navigate to the
-            {' '}
-            <Link href="/profile/edit"><a>Edit Profile page</a></Link>
+            To add a new email to your profile, navigate to the{' '}
+            <Link href="/profile/edit">
+              <a>Edit Profile page</a>
+            </Link>
             , click the + icon at the bottom of the Emails section and enter the new email
             address. Then, click the Confirm button, check your email for the confirmation
             message from OpenReview, and finally click the link to complete the confirmation.
@@ -36,10 +38,11 @@ const ErrorDisplay = ({ statusCode, message }) => (
       )}
 
       <p>
-        If you&apos;d like to report this error to the developers, please use the
-        {' '}
+        If you&apos;d like to report this error to the developers, please use the{' '}
         {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-        <a href="#" data-toggle="modal" data-target="#feedback-modal">Feedback form</a>
+        <a href="#" data-toggle="modal" data-target="#feedback-modal">
+          Feedback form
+        </a>
         .
       </p>
     </div>

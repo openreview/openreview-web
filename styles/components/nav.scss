@@ -1,4 +1,4 @@
-@use "../utils/constants";
+@use '../utils/constants';
 
 nav.navbar {
   background-color: constants.$orRed;
@@ -60,7 +60,8 @@ nav.navbar {
       padding: 4px 20px;
       color: constants.$darkBlue;
 
-      &:focus, &:hover {
+      &:focus,
+      &:hover {
         background-color: constants.$backgroundGray;
       }
     }
@@ -80,7 +81,7 @@ nav.navbar {
       border-radius: 0;
       padding-top: 4px;
       padding-bottom: 4px;
-      transition: background-color 0.5s linear, box-shadow .4s .2s ease;
+      transition: background-color 0.5s linear, box-shadow 0.4s 0.2s ease;
 
       @media #{constants.$desktop-only} {
         width: 300px;
@@ -138,12 +139,14 @@ nav.navbar {
     border-color: constants.$orRedDark;
     border-radius: 2px;
 
-    &:focus, &:hover {
+    &:focus,
+    &:hover {
       background-color: constants.$darkBlue;
     }
   }
 
-  .navbar-collapse, .navbar-form {
+  .navbar-collapse,
+  .navbar-form {
     border-color: constants.$darkBlue;
   }
   .navbar-form {
@@ -162,9 +165,9 @@ nav.navbar {
 // OpenReview Banner
 .banner {
   background: constants.$backgroundGray;
-  padding: .5rem 0 .375rem 0;
+  padding: 0.5rem 0 0.375rem 0;
   color: constants.$subtleGray;
-  font-size: .875rem;
+  font-size: 0.875rem;
   line-height: 1.5rem;
   border-bottom: 1px solid #d0d0d0;
 
@@ -179,7 +182,7 @@ nav.navbar {
       border-width: 2px;
       padding-top: 1px;
       padding-bottom: 1px;
-      margin-left: .5rem;
+      margin-left: 0.5rem;
     }
 
     img {
@@ -207,7 +210,7 @@ nav.navbar {
 
   span.glyphicon {
     top: 1px;
-    padding-right: .5rem;
+    padding-right: 0.5rem;
   }
 
   ol.breadcrumb {
