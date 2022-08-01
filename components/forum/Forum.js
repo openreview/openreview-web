@@ -640,7 +640,7 @@ export default function Forum({
         </div>
       )}
 
-      <div className="row mt-3">
+      <div className="row mt-3 forum-replies-container">
         <div className="col-xs-12">
           <div id="forum-replies">
             <ForumReplyContext.Provider

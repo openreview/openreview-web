@@ -51,6 +51,12 @@ main.forum {
     margin: 0.25rem 0;
   }
 
+  .filters-container {
+    @media #{constants.$phone-only} {
+      margin-left: -15px;
+      margin-right: -15px;
+    }
+  }
   .filter-controls {
     background: $gray1;
     padding: 0.5rem;
@@ -226,6 +232,14 @@ main.forum {
     }
   }
 
+  .forum-replies-container {
+    .col-xs-12 {
+      @media #{constants.$phone-only} {
+        padding-left: 25px;
+        padding-right: 8px;
+      }
+    }
+  }
   #forum-replies {
     // background-color: $gray1;
 
@@ -306,6 +320,7 @@ main.forum {
       h5 {
         margin: 0;
         margin-bottom: 0.125rem;
+        font-size: .875rem;
         color: constants.$subtleGray;
         line-height: normal;
         font-style: italic;
@@ -422,6 +437,9 @@ main.forum {
       position: absolute;
       left: -24px;
       top: -1px;
+      @media #{constants.$phone-only} {
+        left: -22px;
+      }
       & > .btn {
         min-width: auto;
         font-size: 12px;
