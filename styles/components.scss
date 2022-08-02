@@ -1118,6 +1118,49 @@ table.table-minimal {
   }
 }
 
+.name-deletion-list {
+  .name-deletion-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    line-height: 26px;
+
+    .col-status {
+      margin-right: 0.5rem;
+      width: 5%;
+    }
+
+    .username {
+      width: 15%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .comment {
+      width: 30%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex-grow: 1;
+      margin-right: 0.5rem;
+
+      .full-comment {
+        background: #efece3;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        box-shadow: inset 0 1px 1px rgb(0 0 0 / 5%);
+        white-space: normal;
+      }
+    }
+    .col-created {
+      width: 20%;
+      margin-right: 0.5rem;
+    }
+    .col-actions {
+      width: 20%;
+    }
+  }
+}
+
 // Profile Search Widget
 .search-profile {
   .submission-authors,

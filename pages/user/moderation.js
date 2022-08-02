@@ -9,16 +9,19 @@ import Icon from '../../components/Icon'
 import LoadSpinner from '../../components/LoadingSpinner'
 import PaginationLinks from '../../components/PaginationLinks'
 import api from '../../lib/api-client'
-import { prettyId, formatDateTime } from '../../lib/utils'
+import { prettyId, formatDateTime, buildArray } from '../../lib/utils'
 import Dropdown from '../../components/Dropdown'
 import BasicModal from '../../components/BasicModal'
+import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
 
-const Moderation = ({ appContext, accessToken }) => {
-  const { setBannerHidden } = appContext
+const UserModerationTab = ({ accessToken }) => {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const [configNote, setConfigNote] = useState(null)
-
   const moderationDisabled = configNote?.content?.moderate === 'No'
+
+  useEffect(() => {
+    getModerationStatus()
+  }, [])
 
   const getModerationStatus = async () => {
     try {
@@ -56,22 +59,8 @@ const Moderation = ({ appContext, accessToken }) => {
     }
   }
 
-  useEffect(() => {
-    setBannerHidden(true)
-    getModerationStatus()
-  }, [])
-
   return (
     <>
-      <Head>
-        <title key="title">User Moderation | OpenReview</title>
-      </Head>
-
-      <header>
-        <h1>User Moderation</h1>
-        <hr />
-      </header>
-
       {configNote && (
         <div className="moderation-status">
           <h4>Moderation Status:</h4>
@@ -104,6 +93,234 @@ const Moderation = ({ appContext, accessToken }) => {
           showSortButton
         />
       </div>
+    </>
+  )
+}
+
+const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCount }) => {
+  const [nameDeletionNotes, setNameDeletionNotes] = useState(null)
+  const [nameDeletionNotesToShow, setNameDeletionNotesToShow] = useState(null)
+  const [noteToReject, setNoteToReject] = useState(null)
+  const [commentToView, setCommentToView] = useState(null)
+  const [idsLoading, setIdsLoading] = useState([])
+  const [page, setPage] = useState(1)
+  const pageSize = 25
+  const loadNameDeletionRequests = async () => {
+    try {
+      const result = await api.get(
+        '/notes',
+        {
+          invitation: 'openreview.net/Support/-/Profile_Name_Removal',
+        },
+        { accessToken }
+      )
+      const sortedResult = [
+        ...result.notes.filter((p) => p.content.status === 'Pending'),
+        ...result.notes.filter((p) => p.content.status !== 'Pending'),
+      ]
+      setNameDeletionNotes(sortedResult)
+      setNameDeletionNotesToShow(
+        sortedResult.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
+      )
+      setNameDeletionRequestCount(
+        result.notes.filter((p) => p.content.status === 'Pending').length
+      )
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const handleRejectButtonClick = (note) => {
+    setNoteToReject(note)
+  }
+
+  const acceptRejectNameDeletionNote = async (nameDeletionNote, response, supportComment) => {
+    const nameDeletionDecisionInvitationId =
+      'openreview.net/Support/-/Profile_Name_Removal_Decision'
+    try {
+      setIdsLoading((p) => [...p, nameDeletionNote.id])
+      const invitationResult = await api.get(
+        '/invitations',
+        { id: nameDeletionDecisionInvitationId },
+        { accessToken }
+      )
+      const nameDeletionDecisionInvitation = invitationResult.invitations[0]
+      const noteToPost = {
+        referent: nameDeletionNote.id,
+        invitation: nameDeletionDecisionInvitation.id,
+        content: {
+          status: response ? 'Accepted' : 'Rejected',
+          ...(!response && { support_comment: supportComment }),
+        },
+        readers: buildArray(nameDeletionDecisionInvitation, 'readers', superUser.profile.id),
+        writers: buildArray(nameDeletionDecisionInvitation, 'writers', superUser.profile.id),
+        signatures: buildArray(
+          nameDeletionDecisionInvitation,
+          'signatures',
+          superUser.profile.id
+        ),
+      }
+      const result = await api.post('/notes', noteToPost, { accessToken })
+      $('#name-delete-reject').modal('hide')
+      loadNameDeletionRequests()
+    } catch (error) {
+      promptError(error.message)
+      setIdsLoading((p) => p.filter((q) => q !== nameDeletionNote.id))
+    }
+  }
+
+  const getStatusLabelClass = (note) => {
+    switch (note.content.status) {
+      case 'Accepted':
+        return 'label label-success'
+      case 'Rejected':
+        return 'label label-danger'
+      default:
+        return 'label label-default'
+    }
+  }
+
+  useEffect(() => {
+    if (noteToReject) $('#name-delete-reject').modal('show')
+  }, [noteToReject])
+
+  useEffect(() => {
+    if (commentToView) $('#full-comment').modal('show')
+  }, [commentToView])
+
+  useEffect(() => {
+    if (!nameDeletionNotes) return
+    setNameDeletionNotesToShow(
+      nameDeletionNotes.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
+    )
+  }, [page])
+
+  useEffect(() => {
+    loadNameDeletionRequests()
+  }, [])
+
+  return (
+    <>
+      <div className="name-deletion-list">
+        {nameDeletionNotesToShow ? (
+          <>
+            {nameDeletionNotesToShow.map((note) => {
+              return (
+                <div className="name-deletion-row" key={note.id}>
+                  <span className="col-status">
+                    <span className={getStatusLabelClass(note)}>{note.content.status}</span>
+                  </span>
+                  <span className="username">
+                    <a href={`/profile?id=${note.signatures[0]}`} target="_blank">
+                      {note.content.username}
+                    </a>
+                  </span>
+                  <div className="comment">
+                    <span onClick={() => setCommentToView(note.content.comment)}>
+                      {note.content.comment}
+                    </span>
+                  </div>
+                  <span className="col-created">{formatDateTime(note.tcdate)}</span>
+                  <span className="col-actions">
+                    {note.content.status === 'Pending' && (
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn-xs"
+                          disabled={idsLoading.includes(note.id)}
+                          onClick={() => {
+                            acceptRejectNameDeletionNote(note, true)
+                          }}
+                        >
+                          <Icon name="ok-circle" /> Accept
+                        </button>{' '}
+                        <button
+                          type="button"
+                          className="btn btn-xs"
+                          disabled={idsLoading.includes(note.id)}
+                          onClick={() => {
+                            handleRejectButtonClick(note, false)
+                          }}
+                        >
+                          <Icon name="remove-circle" /> Reject
+                        </button>{' '}
+                      </>
+                    )}
+                  </span>
+                </div>
+              )
+            })}
+            {nameDeletionNotes.length === 0 ? (
+              <p className="empty-message">No name deletion requests.</p>
+            ) : (
+              <PaginationLinks
+                currentPage={page}
+                itemsPerPage={pageSize}
+                totalCount={nameDeletionNotes.length}
+                options={{ useShallowRouting: true }}
+                setCurrentPage={setPage}
+              />
+            )}
+          </>
+        ) : (
+          <LoadSpinner inline />
+        )}
+      </div>
+      <NameDeleteRejectionModal
+        noteToReject={noteToReject}
+        acceptRejectNameDeletionNote={acceptRejectNameDeletionNote}
+        setNoteToReject={setNoteToReject}
+      />
+      <FullCommentModal commentToView={commentToView} setCommentToView={setCommentToView} />
+    </>
+  )
+}
+
+const Moderation = ({ appContext, accessToken, superUser }) => {
+  const { setBannerHidden } = appContext
+  const [nameDeletionRequestCount, setNameDeletionRequestCount] = useState(0)
+
+  useEffect(() => {
+    setBannerHidden(true)
+  }, [])
+
+  return (
+    <>
+      <Head>
+        <title key="title">User Moderation | OpenReview</title>
+      </Head>
+
+      <header>
+        <h1>User Moderation</h1>
+        {/* <hr /> */}
+      </header>
+
+      <Tabs>
+        <TabList>
+          <Tab id="reply" active>
+            User Moderation
+          </Tab>
+          <Tab id="preview">
+            Name Delete Requests{' '}
+            {nameDeletionRequestCount !== 0 && (
+              <span className="badge">{nameDeletionRequestCount}</span>
+            )}
+          </Tab>
+        </TabList>
+
+        <TabPanels>
+          <TabPanel id="reply">
+            <UserModerationTab accessToken={accessToken} />
+          </TabPanel>
+          <TabPanel id="preview">
+            <NameDeletionTab
+              accessToken={accessToken}
+              superUser={superUser}
+              setNameDeletionRequestCount={setNameDeletionRequestCount}
+            />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
     </>
   )
 }
@@ -483,6 +700,65 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotesCount })
           <h4>{`There are ${signedNotesCount} notes signed by this profile.`}</h4>
         )}
       </>
+    </BasicModal>
+  )
+}
+
+const NameDeleteRejectionModal = ({
+  noteToReject,
+  acceptRejectNameDeletionNote,
+  setNoteToReject,
+}) => {
+  const [supportComment, setSupportComment] = useState('')
+  if (!noteToReject) return null
+  return (
+    <BasicModal
+      id="name-delete-reject"
+      primaryButtonDisabled={!supportComment}
+      onPrimaryButtonClick={() => {
+        acceptRejectNameDeletionNote(noteToReject, false, supportComment)
+      }}
+      onClose={() => {
+        setNoteToReject(null)
+        setSupportComment('')
+      }}
+    >
+      <>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+          }}
+        >
+          <div className="form-group form-rejection">
+            <label htmlFor="message" className="mb-1">
+              {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+              Reason for rejecting {noteToReject.content.username}:
+            </label>
+            <textarea
+              name="message"
+              className="form-control mt-2"
+              rows="5"
+              value={supportComment}
+              onChange={(e) => {
+                setSupportComment(e.target.value)
+              }}
+            />
+          </div>
+        </form>
+      </>
+    </BasicModal>
+  )
+}
+
+const FullCommentModal = ({ commentToView, setCommentToView }) => {
+  return (
+    <BasicModal
+      id="full-comment"
+      onClose={() => setCommentToView(null)}
+      primaryButtonText={null}
+      cancelButtonText="OK"
+    >
+      <>{commentToView}</>
     </BasicModal>
   )
 }
