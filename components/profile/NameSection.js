@@ -1,4 +1,4 @@
-/* globals promptError,clearMessage: false */
+/* globals promptError,clearMessage,$, promptMessage: false */
 import { useCallback, useEffect, useReducer, useState } from 'react'
 import { nanoid } from 'nanoid'
 import debounce from 'lodash/debounce'
@@ -96,8 +96,8 @@ const NameDeleteRequestModal = ({
       $('#name-delete').modal('hide')
       promptMessage('Your request has been submitted')
       loadPendingNameDeletionNotes()
-    } catch (error) {
-      setError(error.message)
+    } catch (apiError) {
+      setError(apiError.message)
     }
   }
   if (!nameToRequestDelete) return null

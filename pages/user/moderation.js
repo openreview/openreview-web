@@ -1,6 +1,4 @@
-/* globals $: false */
-/* globals promptError: false */
-/* globals promptMessage: false */
+/* globals $,promptError,promptMessage: false */
 
 import { useEffect, useState, useReducer, useRef } from 'react'
 import Head from 'next/head'
@@ -19,10 +17,6 @@ const UserModerationTab = ({ accessToken }) => {
   const [configNote, setConfigNote] = useState(null)
   const moderationDisabled = configNote?.content?.moderate === 'No'
 
-  useEffect(() => {
-    getModerationStatus()
-  }, [])
-
   const getModerationStatus = async () => {
     try {
       const { notes } = await api.get('/notes', {
@@ -38,6 +32,10 @@ const UserModerationTab = ({ accessToken }) => {
       promptError(error.message)
     }
   }
+
+  useEffect(() => {
+    getModerationStatus()
+  }, [])
 
   const enableDisableModeration = async () => {
     // eslint-disable-next-line no-alert
@@ -204,52 +202,54 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCount }
       <div className="name-deletion-list">
         {nameDeletionNotesToShow ? (
           <>
-            {nameDeletionNotesToShow.map((note) => {
-              return (
-                <div className="name-deletion-row" key={note.id}>
-                  <span className="col-status">
-                    <span className={getStatusLabelClass(note)}>{note.content.status}</span>
-                  </span>
-                  <span className="username">
-                    <a href={`/profile?id=${note.signatures[0]}`} target="_blank">
-                      {note.content.username}
-                    </a>
-                  </span>
-                  <div className="comment">
-                    <span onClick={() => setCommentToView(note.content.comment)}>
-                      {note.content.comment}
-                    </span>
-                  </div>
-                  <span className="col-created">{formatDateTime(note.tcdate)}</span>
-                  <span className="col-actions">
-                    {note.content.status === 'Pending' && (
-                      <>
-                        <button
-                          type="button"
-                          className="btn btn-xs"
-                          disabled={idsLoading.includes(note.id)}
-                          onClick={() => {
-                            acceptRejectNameDeletionNote(note, true)
-                          }}
-                        >
-                          <Icon name="ok-circle" /> Accept
-                        </button>{' '}
-                        <button
-                          type="button"
-                          className="btn btn-xs"
-                          disabled={idsLoading.includes(note.id)}
-                          onClick={() => {
-                            handleRejectButtonClick(note, false)
-                          }}
-                        >
-                          <Icon name="remove-circle" /> Reject
-                        </button>{' '}
-                      </>
-                    )}
+            {nameDeletionNotesToShow.map((note) => (
+              <div className="name-deletion-row" key={note.id}>
+                <span className="col-status">
+                  <span className={getStatusLabelClass(note)}>{note.content.status}</span>
+                </span>
+                <span className="username">
+                  <a
+                    href={`/profile?id=${note.signatures[0]}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {note.content.username}
+                  </a>
+                </span>
+                <div className="comment">
+                  <span onClick={() => setCommentToView(note.content.comment)}>
+                    {note.content.comment}
                   </span>
                 </div>
-              )
-            })}
+                <span className="col-created">{formatDateTime(note.tcdate)}</span>
+                <span className="col-actions">
+                  {note.content.status === 'Pending' && (
+                    <>
+                      <button
+                        type="button"
+                        className="btn btn-xs"
+                        disabled={idsLoading.includes(note.id)}
+                        onClick={() => {
+                          acceptRejectNameDeletionNote(note, true)
+                        }}
+                      >
+                        <Icon name="ok-circle" /> Accept
+                      </button>{' '}
+                      <button
+                        type="button"
+                        className="btn btn-xs"
+                        disabled={idsLoading.includes(note.id)}
+                        onClick={() => {
+                          handleRejectButtonClick(note, false)
+                        }}
+                      >
+                        <Icon name="remove-circle" /> Reject
+                      </button>{' '}
+                    </>
+                  )}
+                </span>
+              </div>
+            ))}
             {nameDeletionNotes.length === 0 ? (
               <p className="empty-message">No name deletion requests.</p>
             ) : (
@@ -750,17 +750,15 @@ const NameDeleteRejectionModal = ({
   )
 }
 
-const FullCommentModal = ({ commentToView, setCommentToView }) => {
-  return (
-    <BasicModal
-      id="full-comment"
-      onClose={() => setCommentToView(null)}
-      primaryButtonText={null}
-      cancelButtonText="OK"
-    >
-      <>{commentToView}</>
-    </BasicModal>
-  )
-}
+const FullCommentModal = ({ commentToView, setCommentToView }) => (
+  <BasicModal
+    id="full-comment"
+    onClose={() => setCommentToView(null)}
+    primaryButtonText={null}
+    cancelButtonText="OK"
+  >
+    <>{commentToView}</>
+  </BasicModal>
+)
 
 export default withAdminAuth(Moderation)
