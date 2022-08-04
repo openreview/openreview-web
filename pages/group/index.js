@@ -58,8 +58,8 @@ const Group = ({ groupId, webfieldCode, writable, componentObj, appContext }) =>
 
     setWebComponent(
       dynamic(() =>
-        import(`../../components/webfield/${componentObj.component}`).catch(() => {
-          promptError(`Error loading ${componentObj.component}`)
+        import(`../../components/webfield/${componentObj.component}`).catch((e) => {
+          promptError(`Error loading ${componentObj.component}: ${e.message}`)
         })
       )
     )
@@ -67,7 +67,7 @@ const Group = ({ groupId, webfieldCode, writable, componentObj, appContext }) =>
     const componentProps = {}
     Object.keys(componentObj.properties).forEach((propName) => {
       const prop = componentObj.properties[propName]
-      if (typeof prop === 'object' && prop.component) {
+      if (typeof prop === 'object' && prop?.component) {
         componentProps[propName] = dynamic(() =>
           import(`../../components/webfield/${prop.component}`)
         )

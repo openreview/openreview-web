@@ -181,6 +181,46 @@ main.invitation {
     }
   }
 
+  .menu-bar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.25rem;
+    .message-button-container {
+      margin-right: 0.25rem;
+      .message-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.05rem 0.1rem;
+      }
+    }
+    .btn-export-data {
+      margin-right: 0.25rem;
+    }
+    .search-label {
+      margin-right: 0.25rem;
+      font-weight: bold;
+    }
+
+    .search-input {
+      margin-right: 0.25rem;
+      width: 55%;
+    }
+
+    .sort-label {
+      margin-right: 0.25rem;
+      font-weight: bold;
+    }
+
+    .sort-dropdown {
+      margin-right: 0.25rem;
+    }
+
+    .sort-button {
+    }
+  }
+
   table {
     margin-bottom: 0;
   }

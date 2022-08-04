@@ -61,3 +61,16 @@
     height: 28px;
   }
 }
+
+.message-button .dropdown-select {
+  &__control {
+    background-color: constants.$mediumBlue;
+    border: none;
+  }
+  &__placeholder {
+    color: white;
+  }
+  &__indicator &__dropdown-indicator {
+    color: white;
+  }
+}
