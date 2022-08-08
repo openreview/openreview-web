@@ -572,7 +572,7 @@ export default function Forum({
             forum docs
           </a>
           . To switch back to the old forum click here:{' '}
-          <Link href={`/forum?id=${id}`}>
+          <Link href={`/forum-original?id=${id}`}>
             <a>View old forum &raquo;</a>
           </Link>
         </p>

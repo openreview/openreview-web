@@ -13,7 +13,6 @@ export default function LegacyForumV2({
   selectedInvitationId,
   clientJsLoading,
 }) {
-  const [isBetaUser, setIsBetaUser] = useState(null)
   const { user, userLoading } = useContext(UserContext)
   const { id, content, details } = forumNote
 
@@ -22,46 +21,15 @@ export default function LegacyForumV2({
       ? [content.authors?.value].flat()
       : []
 
-  // Check if user is in a group participating in the new forum beta
-  useEffect(() => {
-    if (userLoading) return
-
-    if (!user) {
-      setIsBetaUser(false)
-      return
-    }
-
-    const betaTestGroups = [
-      'TMLR/Editors_In_Chief',
-      'TMLR/Action_Editors',
-      'TMLR/Reviewers',
-      'TMLR/Authors',
-    ]
-    api.get('/groups', { ids: betaTestGroups, select: 'members' }).then(({ groups }) => {
-      const groupMembers =
-        groups.length > 0
-          ? groups.reduce((acc, group) => [...acc, ...(group.members ?? [])], [])
-          : []
-      if (
-        groupMembers &&
-        user.profile.usernames.some((userId) => groupMembers.includes(userId))
-      ) {
-        setIsBetaUser(true)
-      } else {
-        setIsBetaUser(false)
-      }
-    })
-  }, [userLoading, user?.id])
-
   // Load and execute legacy forum code
   useEffect(() => {
-    if (clientJsLoading || userLoading || isBetaUser === null) return
+    if (clientJsLoading || userLoading) return
 
     // eslint-disable-next-line global-require
     const runForum = require('../../client/forum-v2')
-    runForum(id, selectedNoteId, selectedInvitationId, user, isBetaUser)
+    runForum(id, selectedNoteId, selectedInvitationId, user, true)
     // authors resets when clientJsLoading turns false
-  }, [clientJsLoading, user?.id, JSON.stringify(authors), userLoading, isBetaUser])
+  }, [clientJsLoading, user?.id, JSON.stringify(authors), userLoading, true])
 
   return (
     <div className="forum-container">
