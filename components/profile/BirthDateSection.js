@@ -1,5 +1,4 @@
 const BirthDateSection = ({ profileYearOfBirth, updateYearOfBirth }) => {
-  console.log('profileYearOfBirth', profileYearOfBirth)
   return (
     <div className="year-of-birth" translate="no">
       <input
