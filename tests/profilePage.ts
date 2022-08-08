@@ -28,10 +28,10 @@ const editFirstNameInputSelector = Selector('input:not([readonly]).first-name')
 const editMiddleNameInputSelector = Selector('input:not([readonly]).middle-name')
 const editLastNameInputSelector = Selector('input:not([readonly]).last-name')
 const nameSectionPlusIconSelector = Selector('section').nth(0).find('.glyphicon-plus-sign')
-const emailSectionPlusIconSelector = Selector('section').nth(2).find('.glyphicon-plus-sign')
+const emailSectionPlusIconSelector = Selector('section').nth(3).find('.glyphicon-plus-sign')
 const editEmailInputSelector = Selector('input:not([readonly]).email')
-const emailConfirmButtons = Selector('section').nth(2).find('button').withText('Confirm')
-const emailRemoveButtons = Selector('section').nth(2).find('button').withText('Remove')
+const emailConfirmButtons = Selector('section').nth(3).find('button').withText('Confirm')
+const emailRemoveButtons = Selector('section').nth(3).find('button').withText('Remove')
 const pageHeader = Selector('div.title-container').find('h1')
 const profileViewEmail = Selector('section.emails').find('span')
 const addDBLPPaperToProfileButton = Selector('button.personal-links__adddblpbtn')
@@ -52,6 +52,7 @@ const nameMakePreferredButton = Selector('div.container.names')
   .filterVisible()
   .nth(0)
 const homepageUrlInput = Selector('input#homepage_url')
+const yearOfBirthInput = Selector('section').nth(2).find('input')
 // #endregion
 
 fixture`Profile page`.before(async (ctx) => {
@@ -140,6 +141,40 @@ test('user open own profile', async (t) => {
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
+})
+
+test('add and delete year of birth', async (t) => {
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    // add invalid year of birth
+    .typeText(yearOfBirthInput, '0000')
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText)
+    .contains('The value 0 in yearOfBirth is invalid')
+    // add valid year of birth
+    .typeText(yearOfBirthInput, '2000')
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText)
+    .eql('Your profile information has been successfully updated')
+
+  await t
+    // remove year of birth
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .expect(yearOfBirthInput.value)
+    .eql('2000')
+    .selectText(yearOfBirthInput).pressKey('delete')
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText)
+    .eql('Your profile information has been successfully updated')
+
+  await t
+    // verify year of birth has been removed
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .expect(yearOfBirthInput.value)
+    .eql('')
 })
 
 test('import paper from dblp', async (t) => {
