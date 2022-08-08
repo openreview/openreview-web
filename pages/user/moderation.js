@@ -95,6 +95,16 @@ const UserModerationTab = ({ accessToken }) => {
   )
 }
 
+const FullComment = ({ comment }) => <p>{comment}</p>
+
+const FullUsernameList = ({ usernames }) => (
+  <ul>
+    {usernames.map((p) => (
+      <li>{p}</li>
+    ))}
+  </ul>
+)
+
 const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCount }) => {
   const [nameDeletionNotes, setNameDeletionNotes] = useState(null)
   const [nameDeletionNotesToShow, setNameDeletionNotesToShow] = useState(null)
@@ -207,17 +217,29 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCount }
                 <span className="col-status">
                   <span className={getStatusLabelClass(note)}>{note.content.status}</span>
                 </span>
-                <span className="username">
+                <span className="name">
                   <a
                     href={`/profile?id=${note.signatures[0]}`}
                     target="_blank"
                     rel="noreferrer"
                   >
-                    {note.content.username}
+                    {note.content.name}
                   </a>
                 </span>
+                <span
+                  className="usernames"
+                  onClick={() =>
+                    setCommentToView(<FullUsernameList usernames={note.content.usernames} />)
+                  }
+                >
+                  {note.content.usernames.join(',')}
+                </span>
                 <div className="comment">
-                  <span onClick={() => setCommentToView(note.content.comment)}>
+                  <span
+                    onClick={() =>
+                      setCommentToView(<FullComment comment={note.content.comment} />)
+                    }
+                  >
                     {note.content.comment}
                   </span>
                 </div>
@@ -757,7 +779,7 @@ const FullCommentModal = ({ commentToView, setCommentToView }) => (
     primaryButtonText={null}
     cancelButtonText="OK"
   >
-    <>{commentToView}</>
+    {commentToView}
   </BasicModal>
 )
 

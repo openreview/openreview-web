@@ -83,7 +83,8 @@ const NameDeleteRequestModal = ({
         {
           invitation: profileNameRemovalInvitation.id,
           content: {
-            username: nameToRequestDelete.username,
+            name: getNameString(nameToRequestDelete),
+            usernames: [nameToRequestDelete.username, ...nameToRequestDelete.altUsernames],
             comment: reason,
             status: 'Pending',
           },
@@ -109,6 +110,7 @@ const NameDeleteRequestModal = ({
       primaryButtonDisabled={!reason.length}
       onClose={() => {
         setNameToRequestDelete(null)
+        setError(null)
         setReason('')
       }}
     >
@@ -270,10 +272,11 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
       {names.map((p) => {
         if (p.duplicate) return null
         const hasPendingNameDeletionRequest = pendingNameDeletionRequests?.find(
-          (q) => q?.content?.username === p.username && q?.content?.status === 'Pending'
+          (q) => q?.content?.usernames.includes(p.username) && q?.content?.status === 'Pending'
         )
         const hasRejectedNameDeletionRequest = pendingNameDeletionRequests?.find(
-          (q) => q?.content?.username === p.username && q?.content?.status === 'Rejected'
+          (q) =>
+            q?.content?.usernames.includes(p.username) && q?.content?.status === 'Rejected'
         )
         return (
           <div className="row" key={p.key}>

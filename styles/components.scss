@@ -1130,14 +1130,21 @@ table.table-minimal {
       width: 5%;
     }
 
-    .username {
+    .name {
+      width: 15%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .usernames {
       width: 15%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
     .comment {
-      width: 30%;
+      width: 20%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -1152,7 +1159,7 @@ table.table-minimal {
       }
     }
     .col-created {
-      width: 20%;
+      width: 15%;
       margin-right: 0.5rem;
     }
     .col-actions {
