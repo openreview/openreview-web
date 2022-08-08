@@ -83,7 +83,7 @@ export default function ProfileEditor({
     let profileContent = {
       ...profile,
       names: profile.names.flatMap((p) => (p.first || p.middle || p.last ? p : [])),
-      yearOfBirth: profile.yearOfBirth ? Number.parseInt(profile.yearOfBirth) : undefined,
+      yearOfBirth: profile.yearOfBirth ? Number.parseInt(profile.yearOfBirth, 10) : undefined,
       emails: profile.emails.flatMap((p) => (p.email ? p : [])),
       links: undefined,
       ...profile.links,
