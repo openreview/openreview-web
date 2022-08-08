@@ -754,7 +754,7 @@ const NameDeleteRejectionModal = ({
           <div className="form-group form-rejection">
             <label htmlFor="message" className="mb-1">
               {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-              Reason for rejecting {noteToReject.content.username}:
+              Reason for rejecting {noteToReject.content.name}:
             </label>
             <textarea
               name="message"
