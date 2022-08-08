@@ -100,7 +100,7 @@ const FullComment = ({ comment }) => <p>{comment}</p>
 const FullUsernameList = ({ usernames }) => (
   <ul>
     {usernames.map((p) => (
-      <li>{p}</li>
+      <li key={p}>{p}</li>
     ))}
   </ul>
 )
