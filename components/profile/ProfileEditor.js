@@ -342,7 +342,7 @@ export default function ProfileEditor({
 
       <ProfileSection
         title="Year Of Birth"
-        instructions="This information helps conferences better understand their age diversity. (Optional)"
+        instructions="This information helps conferences better understand the age diversity of participants. (Optional)"
       >
         <BirthDateSection
           profileYearOfBirth={profile?.yearOfBirth}
