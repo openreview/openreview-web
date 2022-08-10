@@ -342,7 +342,7 @@ export default function ProfileEditor({
 
       <ProfileSection
         title="Year Of Birth"
-        instructions="This information helps us to disambiguate profiles and remains private. (Optional)"
+        instructions="This information is solely used by OpenReview to disambiguate user profiles. It will never be released publicly or shared with venue organizers. (Optional)"
       >
         <BirthDateSection
           profileYearOfBirth={profile?.yearOfBirth}
