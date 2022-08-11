@@ -166,6 +166,9 @@ const AssignedPaperRow = ({
   const paperRatingValue = isV2Note
     ? officialReview?.content?.[reviewRatingName]?.value
     : officialReview?.content?.[reviewRatingName]
+  const review = isV2Note
+    ? officialReview?.content?.review?.value
+    : officialReview?.content?.review
   return (
     <tr>
       <td>
@@ -185,7 +188,7 @@ const AssignedPaperRow = ({
               : null
           }
           paperRating={paperRatingValue}
-          review={officialReview?.content?.review}
+          review={review}
           invitationUrl={
             officialReviewInvitation
               ? `/forum?id=${note.forum}&noteId=${note.id}&invitationId=${officialReviewInvitation.id}&referrer=${referrerUrl}`
