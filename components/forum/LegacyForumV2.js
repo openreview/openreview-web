@@ -1,11 +1,10 @@
-import { useState, useEffect, useContext } from 'react'
+import { useEffect, useContext } from 'react'
 import UserContext from '../UserContext'
 import LoadingSpinner from '../LoadingSpinner'
 import { NoteAuthorsV2 } from '../NoteAuthors'
 import NoteReaders from '../NoteReaders'
 import { NoteContentV2 } from '../NoteContent'
 import { prettyId, inflect, forumDate } from '../../lib/utils'
-import api from '../../lib/api-client'
 
 export default function LegacyForumV2({
   forumNote,

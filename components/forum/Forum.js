@@ -572,7 +572,7 @@ export default function Forum({
             forum docs
           </a>
           . To switch back to the old forum click here:{' '}
-          <Link href={`/forum-original?id=${id}`}>
+          <Link href={`/forum-original?id=${id}${query.referrer ? `&referrer=${encodeURIComponent(query.referrer)}` : ''}`}>
             <a>View old forum &raquo;</a>
           </Link>
         </p>
