@@ -423,11 +423,18 @@ export default function Forum({
 
       // Scroll note and invitation specified in url
       if (selectedNoteId && !scrolled) {
-        scrollToElement(`.note[data-id="${selectedNoteId}"]`)
+        if (selectedNoteId === id) {
+          scrollToElement('.forum-note')
+        } else {
+          scrollToElement(`.note[data-id="${selectedNoteId}"]`)
+        }
 
         if (selectedInvitationId) {
+          const container = selectedNoteId === id
+            ? '.invitations-container'
+            : `.note[data-id="${selectedNoteId}"]`
           const button = document.querySelector(
-            `.note[data-id="${selectedNoteId}"] button[data-id="${selectedInvitationId}"]`
+            `${container} button[data-id="${selectedInvitationId}"]`
           )
           if (button) button.click()
         }
@@ -591,6 +598,7 @@ export default function Forum({
                 className={`btn btn-xs ${
                   activeInvitation?.id === invitation.id ? 'active' : ''
                 }`}
+                data-id={invitation.id}
                 onClick={() => openNoteEditor(invitation)}
               >
                 {prettyInvitationId(invitation.id)}
