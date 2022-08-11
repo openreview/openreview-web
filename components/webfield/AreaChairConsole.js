@@ -62,6 +62,7 @@ const AssignedPaperRow = ({
   officalReviewName,
   reviewRatingName,
   reviewConfidenceName,
+  enableReviewerReassignment,
 }) => {
   const referrerContainer = activeTabIndex === 0 ? '#assigned-papers' : '#secondary-papers'
   const referrerUrl = encodeURIComponent(
@@ -98,7 +99,11 @@ const AssignedPaperRow = ({
         <NoteSummary note={note} referrerUrl={referrerUrl} />
       </td>
       <td>
-        <AcConsoleNoteReviewStatus reviewers={reviewers} officialReviews={officialReviews} />
+        <AcConsoleNoteReviewStatus
+          reviewers={reviewers}
+          officialReviews={officialReviews}
+          enableReviewerReassignment={enableReviewerReassignment}
+        />
       </td>
       <td></td>
     </tr>
@@ -123,6 +128,7 @@ const AreaChairConsole = ({ appContext }) => {
     officalReviewName,
     reviewRatingName,
     reviewConfidenceName,
+    enableReviewerReassignment,
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
   const router = useRouter()
@@ -197,11 +203,6 @@ const AreaChairConsole = ({ appContext }) => {
             p.id.includes('/Reviewers')
           )
           return noteNumbers.map((p) => {
-            if (p === 2086) {
-              console.log(
-                reviewerGroups.find((q) => getNumberFromGroup(q.id, submissionName) === p)
-              )
-            }
             const reviewers = reviewerGroups
               .find((q) => getNumberFromGroup(q.id, submissionName) === p)
               ?.members.flatMap((r) => {
@@ -245,7 +246,34 @@ const AreaChairConsole = ({ appContext }) => {
         : Promise.resolve()
       //#endregion
       const result = await Promise.all([blindedNotesP, reviewerGroupsP, assignedSACP])
-      console.log('result', result)
+      //#region get reviewer and sac profiles
+      const allIds = [
+        ...results[1].flatMap((p) => p.reviewers).map((p) => p.reviewerProfileId),
+        ...(result[2] ?? []),
+      ]
+      const ids = allIds.filter((p) => p.startsWith('~'))
+      const emails = allIds.filter((p) => p.match(/.+@.+/))
+      const getProfilesByIdsP = ids.length
+        ? api.post(
+            '/profiles/search',
+            {
+              ids,
+            },
+            { accessToken }
+          )
+        : Promise.resolve([])
+      const getProfilesByEmailsP = emails.length
+        ? api.post(
+            '/profiles/search',
+            {
+              emails,
+            },
+            { accessToken }
+          )
+        : Promise.resolve([])
+      const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
+      //#endregion
+
       setAcConsoleData({
         notes: result[0],
         reviewersInfo: result[1],
@@ -303,6 +331,7 @@ const AreaChairConsole = ({ appContext }) => {
     officalReviewName,
     reviewRatingName,
     reviewConfidenceName,
+    enableReviewerReassignment,
   }).filter(([key, value]) => value === undefined)
   if (missingConfig?.length) {
     const errorMessage = `AC Console is missing required properties: ${
@@ -361,6 +390,7 @@ const AreaChairConsole = ({ appContext }) => {
                       officalReviewName={officalReviewName}
                       reviewRatingName={reviewRatingName}
                       reviewConfidenceName={reviewConfidenceName}
+                      enableReviewerReassignment={enableReviewerReassignment}
                     />
                   ))}
                 </Table>
