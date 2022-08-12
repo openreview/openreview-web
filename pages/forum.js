@@ -65,8 +65,10 @@ const ForumPage = ({ forumNote, query, appContext }) => {
   // Set correct body class for new forum
   useEffect(() => {
     if (forumNote.version === 2) {
-      document.getElementById('content').classList.remove('legacy-forum')
-      document.getElementById('content').classList.add('forum')
+      setTimeout(() => {
+        document.getElementById('content').classList.remove('legacy-forum')
+        document.getElementById('content').classList.add('forum')
+      }, 100)
     }
   }, [forumNote.version])
 
