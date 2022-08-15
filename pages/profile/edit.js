@@ -43,8 +43,10 @@ export default function ProfileEdit({ appContext }) {
     const invitation = get(notes, 'notes[0].invitation')
     const invitationMap = {
       'dblp.org/-/record': 'dblp.org/-/author_coreference',
-      'OpenReview.net/Archive/-/Imported_Record': 'OpenReview.net/Archive/-/Imported_Record_Revision',
-      'OpenReview.net/Archive/-/Direct_Upload': 'OpenReview.net/Archive/-/Direct_Upload_Revision',
+      'OpenReview.net/Archive/-/Imported_Record':
+        'OpenReview.net/Archive/-/Imported_Record_Revision',
+      'OpenReview.net/Archive/-/Direct_Upload':
+        'OpenReview.net/Archive/-/Direct_Upload_Revision',
     }
     if (!authorIds) {
       throw new Error(`Note ${noteId} is missing author ids`)
@@ -53,15 +55,17 @@ export default function ProfileEdit({ appContext }) {
       throw new Error(`Note ${noteId} uses an unsupported invitation`)
     }
     const allAuthorIds = [
-      ...(profile.emails?.filter(p => p.confirmed).map(p => p.email) ?? []),
-      ...(profile.names?.map(p => p.username).filter(p => p) ?? []),
+      ...(profile.emails?.filter((p) => p.confirmed).map((p) => p.email) ?? []),
+      ...(profile.names?.map((p) => p.username).filter((p) => p) ?? []),
     ]
 
-    const matchedIdx = authorIds.reduce((matchedIndex, authorId, index) => { // find all matched index of all author ids
+    const matchedIdx = authorIds.reduce((matchedIndex, authorId, index) => {
+      // find all matched index of all author ids
       if (allAuthorIds.includes(authorId)) matchedIndex.push(index)
       return matchedIndex
     }, [])
-    if (matchedIdx.length !== 1) { // no match or multiple match
+    if (matchedIdx.length !== 1) {
+      // no match or multiple match
       throw new Error(`Multiple matches found in authors of paper ${noteId}.`)
     }
     authorIds[matchedIdx[0]] = null // the only match
@@ -89,12 +93,16 @@ export default function ProfileEdit({ appContext }) {
     }
     try {
       const apiRes = await api.post('/profiles', dataToSubmit, { accessToken })
-      const prefName = apiRes.content?.names?.find(name => name.preferred === true)
+      const prefName = apiRes.content?.names?.find((name) => name.preferred === true)
       if (prefName) {
         updateUserName(prefName.first, prefName.middle, prefName.last) // update nav dropdown
       }
 
-      await Promise.all(publicationIdsToUnlink.map(publicationId => unlinkPublication(profile.id, publicationId)))
+      await Promise.all(
+        publicationIdsToUnlink.map((publicationId) =>
+          unlinkPublication(profile.id, publicationId)
+        )
+      )
       promptMessage('Your profile information has been successfully updated')
       router.push('/profile')
     } catch (apiError) {

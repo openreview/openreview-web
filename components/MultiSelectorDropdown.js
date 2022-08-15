@@ -7,7 +7,7 @@ export default function MultiSelectorDropdown({
   extraClass = undefined,
   displayTextFn = undefined,
 }) {
-  const allValues = options.map(f => f.value)
+  const allValues = options.map((f) => f.value)
   const numOptions = allValues.length
 
   const handleSelectAllChange = () => {
@@ -20,7 +20,7 @@ export default function MultiSelectorDropdown({
 
   const handleSelectValueChange = (value) => {
     if (selectedValues?.includes(value)) {
-      setSelectedValues(selectedValues?.filter(v => v !== value))
+      setSelectedValues(selectedValues?.filter((v) => v !== value))
     } else {
       setSelectedValues([...selectedValues, value])
     }
@@ -55,19 +55,19 @@ export default function MultiSelectorDropdown({
               className="select-all-checkbox"
               type="checkbox"
               checked={selectedValues?.length === numOptions}
-              onChange={e => handleSelectAllChange(e.target.value)}
+              onChange={(e) => handleSelectAllChange(e.target.value)}
             />
             Select All
           </label>
         </li>
-        {options.map(option => (
+        {options.map((option) => (
           <li key={option.value}>
             <label>
               <input
                 value={option.value}
                 type="checkbox"
                 checked={selectedValues?.includes(option.value)}
-                onChange={e => handleSelectValueChange(e.target.value)}
+                onChange={(e) => handleSelectValueChange(e.target.value)}
               />
               {option.label}
             </label>

@@ -10,8 +10,6 @@ import UserContext from '../components/UserContext'
 import {
   auth,
   getTokenPayload,
-  setAuthCookie,
-  removeAuthCookie,
   cookieExpiration,
   refreshExpiration,
 } from '../lib/auth'
@@ -63,7 +61,6 @@ export default class OpenReviewApp extends App {
       accessToken: userAccessToken,
       logoutRedirect: false,
     })
-    setAuthCookie(userAccessToken)
 
     // Need pass new accessToken to Webfield so legacy ajax functions work
     window.Webfield.setToken(userAccessToken)
@@ -96,7 +93,6 @@ export default class OpenReviewApp extends App {
     })
 
     if (!setCookie) return
-    setAuthCookie(userAccessToken)
 
     // Need pass new accessToken to Webfield so legacy ajax functions work
     window.Webfield.setToken(userAccessToken)
@@ -112,7 +108,6 @@ export default class OpenReviewApp extends App {
     window.Webfield.setToken(null)
     window.Webfield2.setToken(null)
 
-    removeAuthCookie()
     this.setState({ user: null, accessToken: null, logoutRedirect: !!redirectPath })
 
     clearTimeout(this.refreshTimer)
@@ -210,8 +205,8 @@ export default class OpenReviewApp extends App {
     }
   }
 
-  onRouteChangeStart() {
-    this.shouldResetBanner = true
+  onRouteChangeStart(url) {
+    this.shouldResetBanner = url.split('?')[0] !== window.location.pathname
     this.shouldResetLayout = true
     this.shouldResetEditBanner = true
 
@@ -274,7 +269,7 @@ export default class OpenReviewApp extends App {
 
     // MathJax has to be loaded asynchronously from the CDN after the config file loads
     const script = document.createElement('script')
-    script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-chtml-full.js'
+    script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.1/es5/tex-chtml-full.js'
     script.async = true
     script.crossOrigin = 'anonymous'
     document.head.appendChild(script)
@@ -312,9 +307,6 @@ export default class OpenReviewApp extends App {
     ) {
       OpenReviewApp.attemptRefresh().then((refreshCookieData) => {
         setUserState(refreshCookieData)
-        if (refreshCookieData.token) {
-          setAuthCookie(refreshCookieData.token)
-        }
         this.setState({ clientJsLoading: false })
       })
     } else {

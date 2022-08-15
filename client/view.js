@@ -1092,7 +1092,7 @@ module.exports = (function() {
             '<div class="pull-right content-warning danger">' +
               '<strong>IMPORTANT: All uses of "\\\\" in LaTeX formulas should be replaced with "\\\\\\\\"</strong>' +
               '<br><span>Learn more about adding LaTeX formulas to Markdown content here: ' +
-              '<a href="/faq#question-tex-differences" target="_blank">FAQ</a></span>' +
+              '<a href="https://docs.openreview.net/reference/openreview-tex/openreview-tex-support" target="_blank">FAQ</a></span>' +
             '</div>'
           );
         }
@@ -1223,18 +1223,16 @@ module.exports = (function() {
           $inputGroup = valueInput($input, fieldName, fieldDescription);
         }
 
-        if (!_.get(fieldDescription, 'hideCharCounter', false)) {
-          var lenMatches = _.get(fieldDescription, 'value-regex', '').match(/\{(\d+),(\d+)\}$/);
-          if (lenMatches) {
-            var minLen = parseInt(lenMatches[1], 10);
-            var maxLen = parseInt(lenMatches[2], 10);
-            minLen = (isNaN(minLen) || minLen < 0) ? 0 : minLen;
-            maxLen = (isNaN(maxLen) || maxLen < minLen) ? 0 : maxLen;
-            if (minLen || maxLen) {
-              $inputGroup.append(mkCharCouterWidget($input, minLen, maxLen));
-              if (fieldValue) {
-                $input.trigger('keyup');
-              }
+        var lenMatches = _.get(fieldDescription, 'value-regex', '').match(/\{(\d+),(\d+)\}$/);
+        if (lenMatches) {
+          var minLen = parseInt(lenMatches[1], 10);
+          var maxLen = parseInt(lenMatches[2], 10);
+          minLen = (isNaN(minLen) || minLen < 0) ? 0 : minLen;
+          maxLen = (isNaN(maxLen) || maxLen < minLen) ? 0 : maxLen;
+          if (minLen || maxLen) {
+            $inputGroup.append(mkCharCouterWidget($input, minLen, maxLen));
+            if (fieldValue) {
+              $input.trigger('keyup');
             }
           }
         }
@@ -1910,7 +1908,7 @@ module.exports = (function() {
 
     var omittedContentFields = [
       'title', 'authors', 'author_emails', 'authorids', 'pdf',
-      'verdict', 'paperhash', 'ee', 'html', 'year', 'venue', 'venueid'
+      'verdict', 'paperhash', 'ee', 'html', 'year', ...(!params.isReference ? ['venue', 'venueid'] : [])
     ].concat(additionalOmittedFields || []);
 
     var $contents = [];
@@ -2622,7 +2620,8 @@ module.exports = (function() {
       return token
         .replace(/^-$/g, '')       // remove dashes
         .replace(/_/g, ' ')        // replace undescores with spaces
-        .replace(/^.*[0-9]$/g, '')  // remove tokens ending with a digit
+        .replace(/\.\*/g, '')      // remove wildcards
+        .replace(/^.*[0-9]$/g, '') // remove tokens ending with a digit
         .trim();
     }).filter(function(token) {
       return !!token;
@@ -3140,12 +3139,6 @@ module.exports = (function() {
 
         var fieldNames = _.keys(files);
         var promises = fieldNames.map(function(fieldName) {
-          if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
-            return Webfield.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
-              note.content[fieldName] = result.url;
-              return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, note.content.pdf);
-            });
-          }
           if (window.USE_PARALLEL_UPLOAD) {
             //#region parallel upload
             var uploadInProgressField = uploadInProgressFields.find(p=>p.fieldName===fieldName)
@@ -3158,11 +3151,16 @@ module.exports = (function() {
             var chunkSize = 1024 * 1000 * 5; //5mb
             var chunkCount = Math.ceil(file.size / chunkSize);
             var clientUploadId = nanoid();
-            var chunks = Array.from(new Array(chunkCount), (e, chunkIndex) => {
-              return file.slice(
-                chunkIndex * chunkSize,
-                (chunkIndex + 1) * chunkSize,
-                file.type
+            var chunks = Array.from(new Array(chunkCount), function (e, chunkIndex) {
+              return new File(
+                [
+                  file.slice(
+                    chunkIndex * chunkSize,
+                    (chunkIndex + 1) * chunkSize,
+                    file.type
+                  )
+                ],
+                file.name
               );
             });
             var sendSingleChunk = function (chunk, index) {
@@ -3705,12 +3703,6 @@ module.exports = (function() {
 
           var fieldNames = _.keys(files);
           var promises = fieldNames.map(function(fieldName) {
-            if (fieldName === 'pdf' && invitation.reply.content.pdf['value-regex']) {
-              return Webfield.sendFile('/pdf', files[fieldName], 'application/pdf').then(function(result) {
-                editNote.content[fieldName] = result.url;
-                return updatePdfSection($contentMap.pdf, invitation.reply.content.pdf, editNote.content.pdf);
-              });
-            }
             if (window.USE_PARALLEL_UPLOAD) {
               //#region parallel upload
               var uploadInProgressField = uploadInProgressFields.find(p=>p.fieldName===fieldName)
@@ -3723,11 +3715,16 @@ module.exports = (function() {
               var chunkSize = 1024 * 1000 * 5; //5mb
               var chunkCount = Math.ceil(file.size / chunkSize);
               var clientUploadId = nanoid();
-              var chunks = Array.from(new Array(chunkCount), (e, chunkIndex) => {
-                return file.slice(
-                  chunkIndex * chunkSize,
-                  (chunkIndex + 1) * chunkSize,
-                  file.type
+              var chunks = Array.from(new Array(chunkCount), function (e, chunkIndex) {
+                return new File(
+                  [
+                    file.slice(
+                      chunkIndex * chunkSize,
+                      (chunkIndex + 1) * chunkSize,
+                      file.type
+                    )
+                  ],
+                  file.name
                 );
               });
               var sendSingleChunk = function (chunk, index) {
@@ -4000,12 +3997,8 @@ module.exports = (function() {
       var startCount = (pageNum - 1) * notesPerPage + 1;
       var endCount = (pageNum - 1) * notesPerPage + notesPerPage;
       if (endCount > totalNotes) endCount = totalNotes;
-      templateParams = {
-        ...templateParams,
-        startCount: startCount,
-        endCount: endCount,
-        totalNotes: totalNotes,
-      }
+      templateParams.countText = `Showing ${startCount}${notesPerPage === 1 ? "" : `-${endCount}`} of ${totalNotes}`;
+
     }
     return Handlebars.templates['partials/paginationLinks'](templateParams);
   };

@@ -59,26 +59,51 @@ export default function FeedbackModal() {
         <p>{text}</p>
       ) : (
         <p>
-          Enter your feedback below and we&apos;ll get back to you as soon as possible.
-          To submit a bug report or feature request, you can use the official OpenReview GitHub repository:
+          Enter your feedback below and we&apos;ll get back to you as soon as possible. To
+          submit a bug report or feature request, you can use the official OpenReview GitHub
+          repository:
           <br />
-          <a href="https://github.com/openreview/openreview/issues/new/choose" target="_blank" rel="noreferrer">Report an issue</a>
+          <a
+            href="https://github.com/openreview/openreview/issues/new/choose"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Report an issue
+          </a>
         </p>
       )}
 
-      {error && (
-        <ErrorAlert error={error} />
-      )}
+      {error && <ErrorAlert error={error} />}
 
       <form onSubmit={submitForm} ref={formRef}>
         <div className="form-group">
-          <input id="feedback-from" type="email" name="from" className="form-control" placeholder="Email" required />
+          <input
+            id="feedback-from"
+            type="email"
+            name="from"
+            className="form-control"
+            placeholder="Email"
+            required
+          />
         </div>
         <div className="form-group">
-          <input id="feedback-subject" type="text" name="subject" className="form-control" placeholder="Subject" />
+          <input
+            id="feedback-subject"
+            type="text"
+            name="subject"
+            className="form-control"
+            placeholder="Subject"
+          />
         </div>
         <div className="form-group">
-          <textarea id="feedback-message" name="message" className="form-control feedback-input" rows="5" placeholder="Message" required />
+          <textarea
+            id="feedback-message"
+            name="message"
+            className="form-control feedback-input"
+            rows="5"
+            placeholder="Message"
+            required
+          />
         </div>
       </form>
     </BasicModal>

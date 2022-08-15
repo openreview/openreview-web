@@ -7,8 +7,12 @@ export default function FilterTabs({ forumId, forumViews }) {
 
   return (
     <ul className="nav nav-tabs filter-tabs">
-      {forumViews.map(view => (
-        <li key={view.id} role="presentation" className={view.id === currentHash ? 'active' : null}>
+      {forumViews.map((view) => (
+        <li
+          key={view.id}
+          role="presentation"
+          className={view.id === currentHash ? 'active' : null}
+        >
           <Link href={`?id=${forumId}#${view.id}`} shallow>
             <a>{view.label}</a>
           </Link>

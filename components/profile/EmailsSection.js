@@ -8,24 +8,34 @@ import api from '../../lib/api-client'
 import { isValidEmail } from '../../lib/utils'
 
 const EmailsButton = ({
-  type, emailObj, handleRemove, handleConfirm, handleMakePreferred,
+  type,
+  emailObj,
+  handleRemove,
+  handleConfirm,
+  handleMakePreferred,
 }) => {
-  const {
-    confirmed, preferred, email, isValid,
-  } = emailObj
+  const { confirmed, preferred, email, isValid } = emailObj
 
   if (type === 'confirmed') {
     if (confirmed) {
       return <div className="emails__confirmed-text hint">(Confirmed)</div>
     }
     if (email && isValid) {
-      return <button type="button" className="btn confirm-button" onClick={handleConfirm}>Confirm</button>
+      return (
+        <button type="button" className="btn confirm-button" onClick={handleConfirm}>
+          Confirm
+        </button>
+      )
     }
     return null
   }
 
   if (type === 'remove' && !confirmed && email && isValid) {
-    return <button type="button" className="btn" onClick={handleRemove}>Remove</button>
+    return (
+      <button type="button" className="btn" onClick={handleRemove}>
+        Remove
+      </button>
+    )
   }
 
   if (type === 'preferred') {
@@ -33,7 +43,11 @@ const EmailsButton = ({
       return <div className="emails__preferred-text hint">(Preferred Email)</div>
     }
     if (confirmed) {
-      return <button type="button" className="btn preferred-button" onClick={handleMakePreferred}>Make Preferred</button>
+      return (
+        <button type="button" className="btn preferred-button" onClick={handleMakePreferred}>
+          Make Preferred
+        </button>
+      )
     }
   }
   return null
@@ -50,7 +64,7 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
       })
     }
     if (action.removeEmail) {
-      return state.filter(p => p.key !== action.data.key)
+      return state.filter((p) => p.key !== action.data.key)
     }
     if (action.setPreferred) {
       return state.map((email) => {
@@ -62,7 +76,10 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
     return state
   }
   // eslint-disable-next-line max-len
-  const [emails, setEmails] = useReducer(emailsReducer, profileEmails?.map(p => ({ ...p, key: nanoid(), isValid: true })) ?? [])
+  const [emails, setEmails] = useReducer(
+    emailsReducer,
+    profileEmails?.map((p) => ({ ...p, key: nanoid(), isValid: true })) ?? []
+  )
   const { accessToken } = useUser()
   const alreadyConfirmedError = useRef(null)
 
@@ -71,10 +88,13 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
   }
 
   const handleUpdateEmail = (targetValue, key) => {
-    const existingEmailObj = emails?.find(p => p.key === key)
+    const existingEmailObj = emails?.find((p) => p.key === key)
     if (targetValue === existingEmailObj?.email) return // nothing changed
     const isValid = isValidEmail(targetValue.toLowerCase())
-    setEmails({ updateEmail: true, data: { ...existingEmailObj, email: targetValue, isValid } })
+    setEmails({
+      updateEmail: true,
+      data: { ...existingEmailObj, email: targetValue, isValid },
+    })
   }
 
   const handleRemoveEmail = (key) => {
@@ -86,7 +106,7 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
   }
 
   const handleConfirmEmail = async (key) => {
-    const newEmail = emails?.find(p => p.key === key)?.email?.toLowerCase()
+    const newEmail = emails?.find((p) => p.key === key)?.email?.toLowerCase()
     if (!newEmail) return promptError('Email is required')
     if (profileId) {
       const linkData = { alternate: newEmail, username: profileId }
@@ -96,11 +116,14 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
       } catch (error) {
         if (error.message.includes('confirmed')) {
           alreadyConfirmedError.current = error.details
-          return promptError(`Error: ${error.details.alternate} is already associated with another OpenReview profile,
+          return promptError(
+            `Error: ${error.details.alternate} is already associated with another OpenReview profile,
           <a href="/profile?id=${error.details.otherProfile}" title="View profile" target="_blank" class="action-link">${error.details.otherProfile}</a>.
           To merge this profile with your account, please click here to submit a support request:
           <a href="#" title="View profile" target="_blank" class="action-link" data-toggle="modal" data-target="#feedback-modal">Merge Profiles</a>.
-          `, { html: true })
+          `,
+            { html: true }
+          )
         }
         return promptError(error.message)
       }
@@ -113,7 +136,11 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
     $('#feedback-modal').on('shown.bs.modal', (e) => {
       $('#feedback-modal').find('#feedback-from').val(alreadyConfirmedError.current?.user)
       $('#feedback-modal').find('#feedback-subject').val('Merge Profiles')
-      $('#feedback-modal').find('#feedback-message').val(`Hi OpenReview Support,\n\nPlease merge the profiles with the following usernames:\n${alreadyConfirmedError.current?.otherProfile}\n${alreadyConfirmedError.current?.thisProfile}\n\nThank you.`)
+      $('#feedback-modal')
+        .find('#feedback-message')
+        .val(
+          `Hi OpenReview Support,\n\nPlease merge the profiles with the following usernames:\n${alreadyConfirmedError.current?.otherProfile}\n${alreadyConfirmedError.current?.thisProfile}\n\nThank you.`
+        )
     })
     return () => {
       $('#feedback-modal').off('shown.bs.modal')
@@ -127,18 +154,39 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
   return (
     <div>
       <div className="container emails">
-        {emails.map(emailObj => (
+        {emails.map((emailObj) => (
           <div className="row d-flex" key={emailObj.key}>
             <div className="col-md-4 emails__value">
               {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
-              <input type="email" autoFocus value={emailObj.email} readOnly={emailObj.confirmed} className={`form-control email profile ${emailObj.isValid ? undefined : 'invalid-value'}`} onChange={e => handleUpdateEmail(e.target.value.trim(), emailObj.key)} />
+              <input
+                type="email"
+                autoFocus
+                value={emailObj.email}
+                readOnly={emailObj.confirmed}
+                className={`form-control email profile ${
+                  emailObj.isValid ? undefined : 'invalid-value'
+                }`}
+                onChange={(e) => handleUpdateEmail(e.target.value.trim(), emailObj.key)}
+              />
             </div>
             <div className="col-md-1 emails__value">
-              <EmailsButton type="confirmed" emailObj={emailObj} handleConfirm={() => handleConfirmEmail(emailObj.key)} />
+              <EmailsButton
+                type="confirmed"
+                emailObj={emailObj}
+                handleConfirm={() => handleConfirmEmail(emailObj.key)}
+              />
             </div>
             <div className="col-md-1 emails__value">
-              <EmailsButton type="preferred" emailObj={emailObj} handleMakePreferred={() => handleMakeEmailPreferred(emailObj.key)} />
-              <EmailsButton type="remove" emailObj={emailObj} handleRemove={() => handleRemoveEmail(emailObj.key)} />
+              <EmailsButton
+                type="preferred"
+                emailObj={emailObj}
+                handleMakePreferred={() => handleMakeEmailPreferred(emailObj.key)}
+              />
+              <EmailsButton
+                type="remove"
+                emailObj={emailObj}
+                handleRemove={() => handleRemoveEmail(emailObj.key)}
+              />
             </div>
           </div>
         ))}

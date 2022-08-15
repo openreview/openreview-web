@@ -76,7 +76,7 @@ main.profile-edit {
       }
     }
     table.table {
-      margin-bottom: .5rem;
+      margin-bottom: 0.5rem;
     }
     .webfield-accordion-divider {
       margin: 0;
@@ -206,6 +206,10 @@ main.profile-edit {
       color: #fff;
       outline: 0px solid transparent;
     }
+  }
+
+  .year-of-birth {
+    max-width: 500px;
   }
 
   .names {

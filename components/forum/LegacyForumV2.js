@@ -1,30 +1,67 @@
-import { useEffect, useContext } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import UserContext from '../UserContext'
 import LoadingSpinner from '../LoadingSpinner'
 import { NoteAuthorsV2 } from '../NoteAuthors'
 import NoteReaders from '../NoteReaders'
 import { NoteContentV2 } from '../NoteContent'
 import { prettyId, inflect, forumDate } from '../../lib/utils'
+import api from '../../lib/api-client'
 
 export default function LegacyForumV2({
-  forumNote, selectedNoteId, selectedInvitationId, clientJsLoading,
+  forumNote,
+  selectedNoteId,
+  selectedInvitationId,
+  clientJsLoading,
 }) {
+  const [isBetaUser, setIsBetaUser] = useState(null)
   const { user, userLoading } = useContext(UserContext)
   const { id, content, details } = forumNote
 
-  const authors = Array.isArray(content.authors?.value) || typeof content.authors?.value === 'string'
-    ? [content.authors?.value].flat()
-    : []
+  const authors =
+    Array.isArray(content.authors?.value) || typeof content.authors?.value === 'string'
+      ? [content.authors?.value].flat()
+      : []
+
+  // Check if user is in a group participating in the new forum beta
+  useEffect(() => {
+    if (userLoading) return
+
+    if (!user) {
+      setIsBetaUser(false)
+      return
+    }
+
+    const betaTestGroups = [
+      'TMLR/Editors_In_Chief',
+      'TMLR/Action_Editors',
+      'TMLR/Reviewers',
+      'TMLR/Authors',
+    ]
+    api.get('/groups', { ids: betaTestGroups, select: 'members' }).then(({ groups }) => {
+      const groupMembers =
+        groups.length > 0
+          ? groups.reduce((acc, group) => [...acc, ...(group.members ?? [])], [])
+          : []
+      if (
+        groupMembers &&
+        user.profile.usernames.some((userId) => groupMembers.includes(userId))
+      ) {
+        setIsBetaUser(true)
+      } else {
+        setIsBetaUser(false)
+      }
+    })
+  }, [userLoading, user?.id])
 
   // Load and execute legacy forum code
   useEffect(() => {
-    if (clientJsLoading || userLoading) return
+    if (clientJsLoading || userLoading || isBetaUser === null) return
 
     // eslint-disable-next-line global-require
     const runForum = require('../../client/forum-v2')
-    runForum(id, selectedNoteId, selectedInvitationId, user)
+    runForum(id, selectedNoteId, selectedInvitationId, user, isBetaUser)
     // authors resets when clientJsLoading turns false
-  }, [clientJsLoading, user?.id, JSON.stringify(authors), userLoading])
+  }, [clientJsLoading, user?.id, JSON.stringify(authors), userLoading, isBetaUser])
 
   return (
     <div className="forum-container">
@@ -44,11 +81,7 @@ export default function LegacyForumV2({
 
         <ForumMeta note={forumNote} />
 
-        <NoteContentV2
-          id={id}
-          content={content}
-          presentation={details.presentation}
-        />
+        <NoteContentV2 id={id} content={content} presentation={details.presentation} />
 
         <ForumReplyCount count={details.replyCount} />
       </div>
@@ -62,21 +95,30 @@ export default function LegacyForumV2({
   )
 }
 
-const ForumTitle = ({
-  id, title, pdf, html,
-}) => (
+const ForumTitle = ({ id, title, pdf, html }) => (
   <div className="title_pdf_row">
     <h2 className="note_content_title citation_title">
       {title}
 
       {pdf && (
         // eslint-disable-next-line react/jsx-no-target-blank
-        <a className="note_content_pdf citation_pdf_url" href={`/pdf?id=${id}`} title="Download PDF" target="_blank">
+        <a
+          className="note_content_pdf citation_pdf_url"
+          href={`/pdf?id=${id}`}
+          title="Download PDF"
+          target="_blank"
+        >
           <img src="/images/pdf_icon_blue.svg" alt="Download PDF" />
         </a>
       )}
       {html && (
-        <a className="note_content_pdf html-link" href={html} title="Open Website" target="_blank" rel="noopener noreferrer">
+        <a
+          className="note_content_pdf html-link"
+          href={html}
+          title="Open Website"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <img src="/images/html_icon_blue.svg" alt="Open Website" />
         </a>
       )}
@@ -84,9 +126,7 @@ const ForumTitle = ({
   </div>
 )
 
-const ForumAuthors = ({
-  authors, authorIds, signatures, noteReaders,
-}) => (
+const ForumAuthors = ({ authors, authorIds, signatures, noteReaders }) => (
   <div className="meta_row">
     <h3 className="signatures author">
       <NoteAuthorsV2
@@ -109,9 +149,7 @@ const ForumMeta = ({ note }) => (
 
     {note.readers && (
       <span className="item">
-        Readers:
-        {' '}
-        <NoteReaders readers={note.readers} />
+        Readers: <NoteReaders readers={note.readers} />
       </span>
     )}
   </div>
@@ -119,6 +157,8 @@ const ForumMeta = ({ note }) => (
 
 const ForumReplyCount = ({ count }) => (
   <div className="reply_row clearfix">
-    <div className="item" id="reply_count">{inflect(count, 'Reply', 'Replies', true)}</div>
+    <div className="item" id="reply_count">
+      {inflect(count, 'Reply', 'Replies', true)}
+    </div>
   </div>
 )

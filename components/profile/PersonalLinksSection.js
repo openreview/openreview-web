@@ -11,7 +11,7 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
     if (!value.trim()?.length) return
     switch (type) {
       case 'gscholar': {
-        const isValid = isValidURL(value) && value.startsWith('https://scholar.google')
+        const isValid = isValidURL(value.trim()) && value.startsWith('https://scholar.google')
         if (!isValid)
           promptError(`${value} is not a valid Google Scholar URL`, { scrollToTop: false })
         setLinks({ type, data: { value, valid: isValid } })
@@ -19,14 +19,14 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
       }
       case 'semanticScholar': {
         const isValid =
-          isValidURL(value) && value.startsWith('https://www.semanticscholar.org')
+          isValidURL(value.trim()) && value.startsWith('https://www.semanticscholar.org')
         if (!isValid)
           promptError(`${value} is not a valid Semantic Scholar URL`, { scrollToTop: false })
         setLinks({ type, data: { value, valid: isValid } })
         break
       }
       default: {
-        const isValid = isValidURL(value)
+        const isValid = isValidURL(value.trim())
         if (!isValid)
           promptError(`${value} is not a valid ${type} URL`, { scrollToTop: false })
         setLinks({ type, data: { value, valid: isValid } })
@@ -99,11 +99,11 @@ const PersonalLinksSection = ({
         <div className="col-md-4 personal-links__column">
           <div className="small-heading">
             DBLP URL
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a
               className="personal-links__faqlink"
-              href="/faq#question-dblp-import"
+              href="https://docs.openreview.net/getting-started/creating-an-openreview-profile/importing-papers-from-dblp"
               target="_blank"
+              rel="noreferrer"
             >
               <Icon name="info-sign" />
             </a>
@@ -146,11 +146,11 @@ const PersonalLinksSection = ({
         <div className="col-md-4 personal-links__column">
           <div className="small-heading">
             Semantic Scholar URL
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a
               className="personal-links__faqlink"
-              href="/faq#question-semantic-scholar"
+              href="https://docs.openreview.net/getting-started/creating-an-openreview-profile/finding-and-adding-a-semantic-scholar-url-to-your-profile"
               target="_blank"
+              rel="noreferrer"
             >
               <Icon name="info-sign" />
             </a>

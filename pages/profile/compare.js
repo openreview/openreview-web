@@ -12,25 +12,28 @@ import { prettyId, prettyField } from '../../lib/utils'
 const Names = ({ names, highlightValue }) => (
   <table>
     <tbody>
-      {names && names.map((name) => {
-        const nameStr = `${name.first} ${name.middle ?? ''} ${name.last}`.replace(/\s{2,}/g, ' ')
-        return (
-          <tr
-            key={`${nameStr}${name.preferred}`}
-            data-toggle={name.signatures && 'tooltip'}
-            title={name.signature && `Edited by ${name.signatures}`}
-            style={name.confirmed ? null : { color: '#8c1b13' }}
-          >
-            <td>
-              <span className={highlightValue.includes(nameStr) ? 'highlight ' : null}>
-                {nameStr}
-              </span>
-              {' '}
-              {name.preferred && <small>(Preferred)</small>}
-            </td>
-          </tr>
-        )
-      })}
+      {names &&
+        names.map((name, index) => {
+          const nameStr = `${name.first} ${name.middle ?? ''} ${name.last}`.replace(
+            /\s{2,}/g,
+            ' '
+          )
+          return (
+            <tr
+              key={`${nameStr}${name.preferred}${index}`}
+              data-toggle={name.signatures && 'tooltip'}
+              title={name.signature && `Edited by ${name.signatures}`}
+              style={name.confirmed ? null : { color: '#8c1b13' }}
+            >
+              <td>
+                <span className={highlightValue.includes(nameStr) ? 'highlight ' : null}>
+                  {nameStr}
+                </span>{' '}
+                {name.preferred && <small>(Preferred)</small>}
+              </td>
+            </tr>
+          )
+        })}
     </tbody>
   </table>
 )
@@ -38,29 +41,37 @@ const Names = ({ names, highlightValue }) => (
 const History = ({ historys, highlightValue }) => (
   <table style={{ width: '100%' }}>
     <tbody>
-      {historys && historys.map(history => (
-        <tr
-          key={`${history.position}${history.institution.name}${history.start}${history.end}`}
-          data-toggle={history.signatures && 'tooltip'}
-          title={history.signature && `Edited by ${history.signatures}`}
-          style={history.confirmed ? null : { color: '#8c1b13' }}
-        >
-          <td className="position">
-            <strong>{history.position}</strong>
-          </td>
-          <td className="institution">
-            <span className={highlightValue.includes(history.institution.name) ? 'highlight' : null}>
-              {history.institution.name}
-            </span>
-            {' '}
-            {history.institution.domain && (
-              <small className={highlightValue.includes(history.institution.domain) ? 'highlight' : null}>
-                {`(${history.institution.domain})`}
-              </small>
-            )}
-          </td>
-        </tr>
-      ))}
+      {historys &&
+        historys.map((history) => (
+          <tr
+            key={`${history.position}${history.institution.name}${history.start}${history.end}`}
+            data-toggle={history.signatures && 'tooltip'}
+            title={history.signature && `Edited by ${history.signatures}`}
+            style={history.confirmed ? null : { color: '#8c1b13' }}
+          >
+            <td className="position">
+              <strong>{history.position}</strong>
+            </td>
+            <td className="institution">
+              <span
+                className={
+                  highlightValue.includes(history.institution.name) ? 'highlight' : null
+                }
+              >
+                {history.institution.name}
+              </span>{' '}
+              {history.institution.domain && (
+                <small
+                  className={
+                    highlightValue.includes(history.institution.domain) ? 'highlight' : null
+                  }
+                >
+                  {`(${history.institution.domain})`}
+                </small>
+              )}
+            </td>
+          </tr>
+        ))}
     </tbody>
   </table>
 )
@@ -68,28 +79,33 @@ const History = ({ historys, highlightValue }) => (
 const Relation = ({ relationships, highlightValue }) => (
   <table style={{ width: '100%' }}>
     <tbody>
-      {relationships && relationships.map(relationship => (
-        <tr
-          key={`${relationship.name}${relationship.relation}${relationship.start}${relationship.end}`}
-          data-toggle={relationship.signatures && 'tooltip'}
-          title={relationship.signature && `Edited by ${relationship.signatures}`}
-          style={relationship.confirmed ? null : { color: '#8c1b13' }}
-        >
-          <td>
-            <strong className={highlightValue.includes(relationship.name) ? 'highlight' : null}>
-              {relationship.name}
-            </strong>
-          </td>
-          <td>
-            <small className={highlightValue.includes(relationship.email) ? 'highlight' : null}>
-              {relationship.email}
-            </small>
-          </td>
-          <td>
-            <span>{relationship.relation}</span>
-          </td>
-        </tr>
-      ))}
+      {relationships &&
+        relationships.map((relationship) => (
+          <tr
+            key={`${relationship.name}${relationship.relation}${relationship.start}${relationship.end}`}
+            data-toggle={relationship.signatures && 'tooltip'}
+            title={relationship.signature && `Edited by ${relationship.signatures}`}
+            style={relationship.confirmed ? null : { color: '#8c1b13' }}
+          >
+            <td>
+              <strong
+                className={highlightValue.includes(relationship.name) ? 'highlight' : null}
+              >
+                {relationship.name}
+              </strong>
+            </td>
+            <td>
+              <small
+                className={highlightValue.includes(relationship.email) ? 'highlight' : null}
+              >
+                {relationship.email}
+              </small>
+            </td>
+            <td>
+              <span>{relationship.relation}</span>
+            </td>
+          </tr>
+        ))}
     </tbody>
   </table>
 )
@@ -97,20 +113,25 @@ const Relation = ({ relationships, highlightValue }) => (
 const Expertise = ({ expertises, highlightValue }) => (
   <table>
     <tbody>
-      {expertises && expertises.map(expertise => (
-        <tr
-          key={expertise.keywords}
-          data-toggle={expertise.signatures && 'tooltip'}
-          title={expertise.signature && `Edited by ${expertise.signatures}`}
-          style={expertise.confirmed ? null : { color: '#8c1b13' }}
-        >
-          <td>
-            <span className={highlightValue.includes(expertise.keywords.join(', ')) ? 'highlight' : null}>
-              {expertise.keywords.join(', ')}
-            </span>
-          </td>
-        </tr>
-      ))}
+      {expertises &&
+        expertises.map((expertise) => (
+          <tr
+            key={expertise.keywords}
+            data-toggle={expertise.signatures && 'tooltip'}
+            title={expertise.signature && `Edited by ${expertise.signatures}`}
+            style={expertise.confirmed ? null : { color: '#8c1b13' }}
+          >
+            <td>
+              <span
+                className={
+                  highlightValue.includes(expertise.keywords.join(', ')) ? 'highlight' : null
+                }
+              >
+                {expertise.keywords.join(', ')}
+              </span>
+            </td>
+          </tr>
+        ))}
     </tbody>
   </table>
 )
@@ -118,42 +139,52 @@ const Expertise = ({ expertises, highlightValue }) => (
 const Publications = ({ publications, highlightValue }) => (
   <table style={{ width: '100%' }}>
     <tbody>
-      {publications && publications.map(publication => (
-        <React.Fragment key={publication.forum}>
-          <tr key={`${publication.title}1`}>
-            <td>
-              <a href={`/forum?id=${publication.forum}`} target="_blank" rel="noreferrer">
-                <strong className={highlightValue.includes(publication.title) ? 'highlight' : null}>
-                  {publication.title}
-                </strong>
-              </a>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              {publication.authors.map(author => (
-                <React.Fragment key={author}>
-                  <span className={highlightValue.includes(author) ? 'highlight' : null}>{author}</span>
-                  <span>, </span>
-                </React.Fragment>
-              ))}
-            </td>
-          </tr>
-          <tr>
-            <td style={{ paddingBottom: '.75rem' }}>
-              {publication.authorids.map((authorid, index) => (
-                // eslint-disable-next-line react/no-array-index-key
-                <a key={index} href={`/group?id=${authorid}`} target="_blank" rel="noreferrer">
-                  <span className={highlightValue.includes(authorid) ? 'highlight' : null}>
-                    {authorid}
-                  </span>
-                  <span>, </span>
+      {publications &&
+        publications.map((publication) => (
+          <React.Fragment key={publication.forum}>
+            <tr key={`${publication.title}1`}>
+              <td>
+                <a href={`/forum?id=${publication.forum}`} target="_blank" rel="noreferrer">
+                  <strong
+                    className={highlightValue.includes(publication.title) ? 'highlight' : null}
+                  >
+                    {publication.title}
+                  </strong>
                 </a>
-              ))}
-            </td>
-          </tr>
-        </React.Fragment>
-      ))}
+              </td>
+            </tr>
+            <tr>
+              <td>
+                {publication.authors.map((author) => (
+                  <React.Fragment key={author}>
+                    <span className={highlightValue.includes(author) ? 'highlight' : null}>
+                      {author}
+                    </span>
+                    <span>, </span>
+                  </React.Fragment>
+                ))}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ paddingBottom: '.75rem' }}>
+                {publication.authorids.map((authorid, index) => (
+                  // eslint-disable-next-line react/no-array-index-key
+                  <a
+                    key={index}
+                    href={`/group?id=${authorid}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span className={highlightValue.includes(authorid) ? 'highlight' : null}>
+                      {authorid}
+                    </span>
+                    <span>, </span>
+                  </a>
+                ))}
+              </td>
+            </tr>
+          </React.Fragment>
+        ))}
     </tbody>
   </table>
 )
@@ -163,37 +194,52 @@ const Others = ({ fieldContent, highlightValue, isEmailSection }) => {
     if (fieldContent.startsWith('http')) {
       return (
         <a href={fieldContent.value} target="_blank" rel="noreferrer">
-          <span className={highlightValue.includes(fieldContent) ? 'highlight' : null}>{fieldContent}</span>
+          <span className={highlightValue.includes(fieldContent) ? 'highlight' : null}>
+            {fieldContent}
+          </span>
         </a>
       )
     }
-    return <span className={highlightValue.includes(fieldContent) ? 'highlight' : null}>{fieldContent}</span>
+    return (
+      <span className={highlightValue.includes(fieldContent) ? 'highlight' : null}>
+        {fieldContent}
+      </span>
+    )
   }
   return (
     <table>
       <tbody>
-        {fieldContent && fieldContent.map((content, i) => (
-          <tr
-            // eslint-disable-next-line react/no-array-index-key
-            key={`${content.value}-${i}`}
-            data-toggle={content.signatures && 'tooltip'}
-            title={content.signature && `Edited by ${content.signatures}`}
-            style={content.confirmed ? null : { color: '#8c1b13' }}
-          >
-            <td>
-              {content.value?.startsWith('http') ? (
-                <a href={content.value} target="_blank" rel="noreferrer">
-                  <span className={highlightValue.includes(content.value) ? 'highlight' : null}>{content.value}</span>
-                </a>
-              ) : (
-                <>
-                  <span className={highlightValue.includes(content.value) ? 'highlight' : null}>{content.value}</span>
-                  {isEmailSection && content.isConfirmedEmail && <small> (Confirmed)</small>}
-                </>
-              )}
-            </td>
-          </tr>
-        ))}
+        {fieldContent &&
+          fieldContent.map((content, i) => (
+            <tr
+              // eslint-disable-next-line react/no-array-index-key
+              key={`${content.value}-${i}`}
+              data-toggle={content.signatures && 'tooltip'}
+              title={content.signature && `Edited by ${content.signatures}`}
+              style={content.confirmed ? null : { color: '#8c1b13' }}
+            >
+              <td>
+                {content.value?.startsWith('http') ? (
+                  <a href={content.value} target="_blank" rel="noreferrer">
+                    <span
+                      className={highlightValue.includes(content.value) ? 'highlight' : null}
+                    >
+                      {content.value}
+                    </span>
+                  </a>
+                ) : (
+                  <>
+                    <span
+                      className={highlightValue.includes(content.value) ? 'highlight' : null}
+                    >
+                      {content.value}
+                    </span>
+                    {isEmailSection && content.isConfirmedEmail && <small> (Confirmed)</small>}
+                  </>
+                )}
+              </td>
+            </tr>
+          ))}
       </tbody>
     </table>
   )
@@ -214,16 +260,20 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       return []
     }
     try {
-      const { notes } = await api.get('/notes', {
-        'content.authorids': profileId,
-        sort: 'cdate',
-      }, { accessToken })
+      const { notes } = await api.get(
+        '/notes',
+        {
+          'content.authorids': profileId,
+          sort: 'cdate',
+        },
+        { accessToken }
+      )
       if (notes?.length > 0) {
-        return notes.map(publication => ({
+        return notes.map((publication) => ({
           forum: publication.forum,
           title: publication.content.title,
           authors: publication.content.authors,
-          authorids: publication.content.authorids.filter(id => id),
+          authorids: publication.content.authorids.filter((id) => id),
         }))
       }
     } catch (error) {
@@ -243,7 +293,9 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       }
       if (key === 'names') {
         value.forEach((name) => {
-          compareFields.push(`${name?.first} ${name?.middle ?? ''} ${name?.last}`.replace(/\s{2,}/g, ' '))
+          compareFields.push(
+            `${name?.first} ${name?.middle ?? ''} ${name?.last}`.replace(/\s{2,}/g, ' ')
+          )
         })
         return
       }
@@ -287,7 +339,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
         })
       }
     })
-    return compareFields.filter(p => p)
+    return compareFields.filter((p) => p)
   }
 
   const getBasicProfile = async (id) => {
@@ -311,7 +363,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     const localProfile = { ...profile }
     // for checking signature to decide if confirmed
     const profileUsernames = localProfile.content?.names
-      ? localProfile.content?.names.map(name => (name?.username))
+      ? localProfile.content?.names.map((name) => name?.username)
       : []
 
     if (!localProfile.content?.[fieldName]) return null
@@ -327,15 +379,18 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     return localProfile.content[fieldName].map((c, index) => {
       let isConfirmedEmail = false
 
-      if (fieldName === 'emails' && localProfile.content.emailsConfirmed?.includes(c) === true) isConfirmedEmail = true
+      if (fieldName === 'emails' && localProfile.content.emailsConfirmed?.includes(c) === true)
+        isConfirmedEmail = true
 
       const { signatures } = localProfile.metaContent[fieldName][index]
       return {
         ...c,
         value: c,
-        signatures: signatures.map(signature => prettyId(signature)).join(', '),
-        confirmed: (signatures.includes('~Super_User1') || signatures.includes('OpenReview.net'))
-          || signatures.some(signature => profileUsernames.includes(signature)),
+        signatures: signatures.map((signature) => prettyId(signature)).join(', '),
+        confirmed:
+          signatures.includes('~Super_User1') ||
+          signatures.includes('OpenReview.net') ||
+          signatures.some((signature) => profileUsernames.includes(signature)),
         isConfirmedEmail,
       }
     })
@@ -344,11 +399,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   const formatLongDate = (date) => {
     if (!date) return ''
 
-    return new Date(date)
-      .toISOString()
-      .replace(/-/g, '/')
-      .replace('T', ' ')
-      .replace('Z', '')
+    return new Date(date).toISOString().replace(/-/g, '/').replace('T', ' ').replace('Z', '')
   }
 
   const addSignatureToProfile = (profile) => {
@@ -373,6 +424,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       expertise: addMetadata(profile, 'expertise'),
       relations: addMetadata(profile, 'relations'),
       publications: profile.publications,
+      yearOfBirth: profile.content.yearOfBirth?.toString(),
     }
   }
 
@@ -387,9 +439,17 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       case 'expertise':
         return <Expertise expertises={profile.expertise} highlightValue={highlightValue} />
       case 'publications':
-        return <Publications publications={profile.publications} highlightValue={highlightValue} />
+        return (
+          <Publications publications={profile.publications} highlightValue={highlightValue} />
+        )
       default:
-        return <Others fieldContent={profile[fieldName]} highlightValue={highlightValue} isEmailSection={fieldName === 'emails'} />
+        return (
+          <Others
+            fieldContent={profile[fieldName]}
+            highlightValue={highlightValue}
+            isEmailSection={fieldName === 'emails'}
+          />
+        )
     }
   }
 
@@ -397,11 +457,14 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     if (count === 0) return `no ${headTail} edge`
     return (
       <>
-        <a href={`${process.env.API_URL}/edges?${headTail}=${id}`} target="_blank" rel="noreferrer">{count}</a>
-        {' '}
-        {headTail}
-        {' '}
-        edges
+        <a
+          href={`${process.env.API_URL}/edges?${headTail}=${id}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {count}
+        </a>{' '}
+        {headTail} edges
       </>
     )
   }
@@ -411,7 +474,11 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     const toProfile = { id: basicProfiles[to].id, active: basicProfiles[to].active }
     const postMerge = async () => {
       try {
-        await api.post('/profiles/merge', { from: fromProfile.id, to: toProfile.id }, { accessToken })
+        await api.post(
+          '/profiles/merge',
+          { from: fromProfile.id, to: toProfile.id },
+          { accessToken }
+        )
         Router.reload()
       } catch (error) {
         promptError(error.message)
@@ -419,8 +486,12 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     }
 
     if (toProfile.active === false && fromProfile.active === true) {
-      // eslint-disable-next-line no-alert
-      if (window.confirm('You are merging an active profile into an inactive profile. Are you sure you want to proceed?')) {
+      if (
+        // eslint-disable-next-line no-alert
+        window.confirm(
+          'You are merging an active profile into an inactive profile. Are you sure you want to proceed?'
+        )
+      ) {
         postMerge()
       }
     } else {
@@ -429,9 +500,12 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   }
 
   const getEdges = async () => {
-    if (!basicProfiles.left?.id
-      || !basicProfiles.right?.id
-      || basicProfiles.left.id === basicProfiles.right.id) return
+    if (
+      !basicProfiles.left?.id ||
+      !basicProfiles.right?.id ||
+      basicProfiles.left.id === basicProfiles.right.id
+    )
+      return
     try {
       const leftHeadP = api.get('/edges', { head: basicProfiles.left.id }, { accessToken })
       const leftTailP = api.get('/edges', { tail: basicProfiles.left.id }, { accessToken })
@@ -452,10 +526,9 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   useEffect(() => {
     setBannerHidden(true)
 
-    Promise.all([getBasicProfile(left), getBasicProfile(right)])
-      .then((profiles) => {
-        setBasicProfiles({ left: profiles[0], right: profiles[1] })
-      })
+    Promise.all([getBasicProfile(left), getBasicProfile(right)]).then((profiles) => {
+      setBasicProfiles({ left: profiles[0], right: profiles[1] })
+    })
   }, [])
 
   useEffect(() => {
@@ -471,10 +544,18 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   useEffect(() => {
     if (!withSignatureProfiles) return
 
-    setFields(Array.from(new Set([
-      ...Object.keys(withSignatureProfiles.left).filter(key => !isEmpty(withSignatureProfiles.left[key])),
-      ...Object.keys(withSignatureProfiles.right).filter(key => !isEmpty(withSignatureProfiles.right[key])),
-    ])))
+    setFields(
+      Array.from(
+        new Set([
+          ...Object.keys(withSignatureProfiles.left).filter(
+            (key) => !isEmpty(withSignatureProfiles.left[key])
+          ),
+          ...Object.keys(withSignatureProfiles.right).filter(
+            (key) => !isEmpty(withSignatureProfiles.right[key])
+          ),
+        ])
+      )
+    )
 
     setHighlightValues({
       left: getHighlightValue(withSignatureProfiles.left),
@@ -498,11 +579,13 @@ const Compare = ({ left, right, accessToken, appContext }) => {
           <table className="table">
             <thead>
               <tr>
-                <th style={{ width: '110px', verticalAlign: 'middle' }}>
-                  Merge Direction
-                </th>
+                <th style={{ width: '110px', verticalAlign: 'middle' }}>Merge Direction</th>
                 <th style={{ width: '300px', textAlign: 'center', verticalAlign: 'middle' }}>
-                  <a href={`/profile?id=${basicProfiles.left?.id}`} target="_blank" rel="noreferrer">
+                  <a
+                    href={`/profile?id=${basicProfiles.left?.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     {basicProfiles.left?.id}
                   </a>
                 </th>
@@ -510,7 +593,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                   <button
                     type="button"
                     className="btn merge-btn-left mb-2"
-                    disabled={(basicProfiles.left?.id && basicProfiles.right?.id) ? null : true}
+                    disabled={basicProfiles.left?.id && basicProfiles.right?.id ? null : true}
                     onClick={() => mergeProfile('right', 'left')}
                   >
                     &laquo;
@@ -519,14 +602,18 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                   <button
                     type="button"
                     className="btn merge-btn-right"
-                    disabled={(basicProfiles.left?.id && basicProfiles.right?.id) ? null : true}
+                    disabled={basicProfiles.left?.id && basicProfiles.right?.id ? null : true}
                     onClick={() => mergeProfile('left', 'right')}
                   >
                     &raquo;
                   </button>
                 </th>
                 <th style={{ width: '300px', textAlign: 'center', verticalAlign: 'middle' }}>
-                  <a href={`/profile?id=${basicProfiles.right?.id}`} target="_blank" rel="noreferrer">
+                  <a
+                    href={`/profile?id=${basicProfiles.right?.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     {basicProfiles.right?.id}
                   </a>
                 </th>
@@ -534,7 +621,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
             </thead>
 
             <tbody>
-              {fields.map(field => (
+              {fields.map((field) => (
                 <tr key={field}>
                   <td>
                     <strong>{prettyField(field)}</strong>
@@ -547,26 +634,23 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                   </td>
                 </tr>
               ))}
-              {
-                edgeCounts
-                && (
-                  <tr>
-                    <td>
-                      <strong>Edges</strong>
-                    </td>
-                    <td colSpan="2">
-                      {renderEdgeLink(edgeCounts.leftHead, 'head', basicProfiles.left.id)}
-                      {', '}
-                      {renderEdgeLink(edgeCounts.leftTail, 'tail', basicProfiles.left.id)}
-                    </td>
-                    <td colSpan="2">
-                      {renderEdgeLink(edgeCounts.rightHead, 'head', basicProfiles.right.id)}
-                      {', '}
-                      {renderEdgeLink(edgeCounts.rightTail, 'tail', basicProfiles.right.id)}
-                    </td>
-                  </tr>
-                )
-              }
+              {edgeCounts && (
+                <tr>
+                  <td>
+                    <strong>Edges</strong>
+                  </td>
+                  <td colSpan="2">
+                    {renderEdgeLink(edgeCounts.leftHead, 'head', basicProfiles.left.id)}
+                    {', '}
+                    {renderEdgeLink(edgeCounts.leftTail, 'tail', basicProfiles.left.id)}
+                  </td>
+                  <td colSpan="2">
+                    {renderEdgeLink(edgeCounts.rightHead, 'head', basicProfiles.right.id)}
+                    {', '}
+                    {renderEdgeLink(edgeCounts.rightTail, 'tail', basicProfiles.right.id)}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         ) : (

@@ -31,7 +31,9 @@ const ResetForm = ({ resetToken }) => {
 
     try {
       const apiRes = await api.put(`/reset/${resetToken}`, { password })
-      promptMessage('Your password has been updated. Please log in with your new password to continue.')
+      promptMessage(
+        'Your password has been updated. Please log in with your new password to continue.'
+      )
       router.push('/login')
     } catch (apiError) {
       setError(apiError.message)
@@ -54,7 +56,7 @@ const ResetForm = ({ resetToken }) => {
           className={`form-control ${error ? 'form-invalid' : ''}`}
           placeholder="New password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
         />
       </div>
 
@@ -66,7 +68,7 @@ const ResetForm = ({ resetToken }) => {
           className={`form-control ${error ? 'form-invalid' : ''}`}
           placeholder="Confirm new password"
           value={passwordConfirmation}
-          onChange={e => setPasswordConfirmation(e.target.value)}
+          onChange={(e) => setPasswordConfirmation(e.target.value)}
         />
       </div>
 
@@ -119,13 +121,13 @@ const PasswordReset = () => {
 
         {resetToken ? (
           <>
-            <p className="text-muted">
-              Enter your new password below.
-            </p>
+            <p className="text-muted">Enter your new password below.</p>
             <ResetForm resetToken={resetToken} />
 
             <p className="help-block">
-              <Link href="/login"><a>Back to Login</a></Link>
+              <Link href="/login">
+                <a>Back to Login</a>
+              </Link>
             </p>
           </>
         ) : (

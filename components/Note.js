@@ -8,27 +8,27 @@ import { prettyId, forumDate, inflect } from '../lib/utils'
 const Note = ({ note, invitation, options }) => {
   const privatelyRevealed = options.showPrivateIcon && !note.readers.includes('everyone')
   return (
-    <div className={`note ${privatelyRevealed ? 'note-private' : ''} ${options.unlinkedPublications?.includes(note.id) ? 'unlinked-publication' : ''}`}>
+    <div
+      className={`note ${privatelyRevealed ? 'note-private' : ''} ${
+        options.unlinkedPublications?.includes(note.id) ? 'unlinked-publication' : ''
+      }`}
+    >
       <NoteTitle
         id={note.id}
         forum={note.forum}
         invitation={note.invitation}
         content={note.content}
         signatures={note.signatures}
-        options={
-          {
-            ...options,
-            isUnlinked: options.unlinkedPublications?.includes(note.id),
-          }
-        }
+        options={{
+          ...options,
+          isUnlinked: options.unlinkedPublications?.includes(note.id),
+        }}
       />
 
-      {(note.forumContent && note.id !== note.forum) && (
+      {note.forumContent && note.id !== note.forum && (
         <div className="note-parent-title">
           <Icon name="share-alt" />
-          <strong>
-            {note.forumContent.title || 'No Title'}
-          </strong>
+          <strong>{note.forumContent.title || 'No Title'}</strong>
         </div>
       )}
 
@@ -42,13 +42,23 @@ const Note = ({ note, invitation, options }) => {
       </div>
 
       <ul className="note-meta-info list-inline">
-        <li>{forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year)}</li>
+        <li>
+          {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year)}
+        </li>
         <li>
           {note.content.venue ? note.content.venue : prettyId(note.invitation)}
-          {privatelyRevealed && <Icon name="eye-close" extraClasses="note-visible-icon" tooltip="Privately revealed to you" />}
+          {privatelyRevealed && (
+            <Icon
+              name="eye-close"
+              extraClasses="note-visible-icon"
+              tooltip="Privately revealed to you"
+            />
+          )}
         </li>
         {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-        <li className="readers">Readers: <NoteReaders readers={note.readers} /></li>
+        <li className="readers">
+          Readers: <NoteReaders readers={note.readers} />
+        </li>
         {options.replyCount && (
           <li>{inflect(note.details.replyCount, 'Reply', 'Replies', true)}</li>
         )}
@@ -58,7 +68,9 @@ const Note = ({ note, invitation, options }) => {
         <NoteContent
           id={note.id}
           content={note.content}
-          invitation={note.details?.originalInvitation || note.details?.invitation || invitation}
+          invitation={
+            note.details?.originalInvitation || note.details?.invitation || invitation
+          }
           omit={options.omitFields}
           isReference={options.isReference}
         />
@@ -80,12 +92,10 @@ export const NoteV2 = ({ note, options }) => {
         options={options}
       />
 
-      {(note.forumContent && note.id !== note.forum) && (
+      {note.forumContent && note.id !== note.forum && (
         <div className="note-parent-title">
           <Icon name="share-alt" />
-          <strong>
-            {note.forumContent.title?.value || 'No Title'}
-          </strong>
+          <strong>{note.forumContent.title?.value || 'No Title'}</strong>
         </div>
       )}
 
@@ -99,16 +109,30 @@ export const NoteV2 = ({ note, options }) => {
       </div>
 
       <ul className="note-meta-info list-inline">
-        <li>{forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content?.year?.value)}</li>
         <li>
-          {/* eslint-disable-next-line no-nested-ternary */}
+          {forumDate(
+            note.cdate,
+            note.tcdate,
+            note.mdate,
+            note.tmdate,
+            note.content?.year?.value
+          )}
+        </li>
+        <li>
           {note.note || !note.content?.venue?.value // note.note indicates this is an edit
             ? prettyId(note.invitations[0])
             : note.content?.venue?.value}
-          {privatelyRevealed && <Icon name="eye-open" extraClasses="note-visible-icon ml-2" tooltip="Privately revealed to you" />}
+          {privatelyRevealed && (
+            <Icon
+              name="eye-open"
+              extraClasses="note-visible-icon ml-2"
+              tooltip="Privately revealed to you"
+            />
+          )}
         </li>
-        {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-        <li className="readers">Readers: <NoteReaders readers={note.readers} /></li>
+        <li className="readers">
+          Readers: <NoteReaders readers={note.readers} />
+        </li>
         {options.replyCount && (
           <li>{inflect(note.details.replyCount, 'Reply', 'Replies', true)}</li>
         )}

@@ -1,4 +1,4 @@
-module.exports = function(forumId, noteId, invitationId, user) {
+module.exports = function(forumId, noteId, invitationId, user, isBetaUser) {
   if (!noteId) {
     noteId = forumId;
   }
@@ -604,6 +604,7 @@ module.exports = function(forumId, noteId, invitationId, user) {
     }
 
     $content.removeClass('pre-rendered').empty().append(
+      isBetaUser && '<div id="beta-message" class="alert alert-warning"></div>',
       $root,
       $forumViewsTabs || '<hr class="small">',
       $forumFiltersRow,
@@ -612,6 +613,12 @@ module.exports = function(forumId, noteId, invitationId, user) {
         mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1)
       )
     );
+
+    if (isBetaUser) {
+      $('#beta-message').html(
+        '<p><span class="glyphicon glyphicon-exclamation-sign pr-1 " aria-hidden="true"></span> OpenReview is testing a new version of this page and needs your feedback. To try the new forum click here: <a href="/forum-new?id=' + rootRec.note.id + '">View new forum »</a></p>'
+      ).show();
+    }
 
     typesetMathJax();
     $content.trigger('forumRendered');

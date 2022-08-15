@@ -47,7 +47,7 @@ const ResetForm = ({ setEmailSent }) => {
           placeholder="Email address"
           value={email}
           maxLength={254}
-          onChange={e => setEmail(e.target.value.trim())}
+          onChange={(e) => setEmail(e.target.value.trim())}
         />
       </div>
 
@@ -74,22 +74,27 @@ function Reset() {
           <Alert color="success">
             An email with the subject &quot;OpenReview Password Reset&quot; has been sent to
             {'  '}
-            <strong>{emailSent}</strong>
-            . Please follow the link in this email to reset your password.
+            <strong>{emailSent}</strong>. Please follow the link in this email to reset your
+            password.
           </Alert>
         ) : (
           <>
             <p className="text-muted">
-              Enter your email address below and we&apos;ll send you a link to reset your password.
+              Enter your email address below and we&apos;ll send you a link to reset your
+              password.
             </p>
             <ResetForm setEmailSent={setEmailSent} />
           </>
         )}
 
         <p className="help-block">
-          <Link href="/login"><a>Back to Login</a></Link>
+          <Link href="/login">
+            <a>Back to Login</a>
+          </Link>
           <br />
-          <Link href="/signup"><a>Sign Up for OpenReview</a></Link>
+          <Link href="/signup">
+            <a>Sign Up for OpenReview</a>
+          </Link>
         </p>
       </div>
     </div>

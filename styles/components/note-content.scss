@@ -1,20 +1,20 @@
-@use "../utils/constants";
-@use "../utils/mixins";
+@use '../utils/constants';
+@use '../utils/mixins';
 
 .note-content {
-  font-size: .75rem;
+  font-size: 0.75rem;
   line-height: 1.125rem;
-  margin-top: .125rem;
-  margin-bottom: .125rem;
+  margin-top: 0.125rem;
+  margin-bottom: 0.125rem;
 
   li {
-    padding: .125rem 0;
+    padding: 0.125rem 0;
   }
 
   strong {
     font-weight: bold;
     color: constants.$orRed;
-    padding-right: .25rem;
+    padding-right: 0.25rem;
   }
 
   .note-content-value {
@@ -25,9 +25,14 @@
     }
   }
 
+  .private-contents-icon {
+    color: constants.$subtleGray;
+    padding-right: 0.25rem;
+  }
+
   .attachment-download-link {
     .glyphicon {
-      padding-right: .25rem;
+      padding-right: 0.25rem;
     }
   }
 }

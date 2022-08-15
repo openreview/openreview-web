@@ -42,7 +42,7 @@ module.exports = (function() {
             '<div class="pull-right content-warning danger">' +
               '<strong>IMPORTANT: All uses of "\\\\" in LaTeX formulas should be replaced with "\\\\\\\\"</strong>' +
               '<br><span>Learn more about adding LaTeX formulas to Markdown content here: ' +
-              '<a href="/faq#question-tex-differences" target="_blank">FAQ</a></span>' +
+              '<a href="https://docs.openreview.net/reference/openreview-tex/openreview-tex-support" target="_blank">FAQ</a></span>' +
             '</div>'
           );
         }
@@ -102,8 +102,6 @@ module.exports = (function() {
       default, // type: array,string
       hidden,
       scroll,
-      hideCharCounter,
-
     },
     order,
     description,
@@ -222,18 +220,16 @@ module.exports = (function() {
             $inputGroup = valueInput($input, fieldName, fieldDescription);
           }
 
-          if (!_.get(fieldDescription.value.param, 'hideCharCounter', false)) {
-            var lenMatches = _.get(fieldDescription.value.param, 'regex', '').match(/\{(\d+),(\d+)\}\$$/);
-            if (lenMatches) {
-              var minLen = parseInt(lenMatches[1], 10);
-              var maxLen = parseInt(lenMatches[2], 10);
-              minLen = (isNaN(minLen) || minLen < 0) ? 0 : minLen;
-              maxLen = (isNaN(maxLen) || maxLen < minLen) ? 0 : maxLen;
-              if (minLen || maxLen) {
-                $inputGroup.append(mkCharCouterWidget($input, minLen, maxLen));
-                if (fieldValue) {
-                  $input.trigger('keyup');
-                }
+          var lenMatches = _.get(fieldDescription.value, 'regex', '').match(/\{(\d+),(\d+)\}\$$/);
+          if (lenMatches) {
+            var minLen = parseInt(lenMatches[1], 10);
+            var maxLen = parseInt(lenMatches[2], 10);
+            minLen = (isNaN(minLen) || minLen < 0) ? 0 : minLen;
+            maxLen = (isNaN(maxLen) || maxLen < minLen) ? 0 : maxLen;
+            if (minLen || maxLen) {
+              $inputGroup.append(mkCharCouterWidget($input, minLen, maxLen));
+              if (fieldValue) {
+                $input.trigger('keyup');
               }
             }
           }
@@ -871,8 +867,8 @@ module.exports = (function() {
       id: 'confirm-delete-modal',
       showHeader: true,
       title: `${actionText} Note`,
-      body: `<p class="mb-4">Are you sure you want to ${actionText.toLowerCase()}
-        ${noteTitle} by ${view.prettyId(note.signatures[0])}? The ${actionText.toLowerCase()}ed note will
+      body: `<p class="mb-4">Are you sure you want to ${actionText.toLowerCase()} the note
+        "${noteTitle}" by ${view.prettyId(note.signatures[0])}? The ${actionText.toLowerCase()}d note will
         be updated with the signature you choose below.</p>`,
       showFooter: true,
       primaryButtonText: actionText
@@ -1015,7 +1011,11 @@ module.exports = (function() {
         const editToPost = constructEdit({ formData: formContent, invitationObj: invitation });
         Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(function(result) {
           if (params.onNoteCreated) {
-            params.onNoteCreated(result);
+            Webfield2.get('/notes', { id: result.note.id, details: 'invitation,presentation' }, { handleErrors: false }).then(function(noteRes) {
+              params.onNoteCreated(noteRes.notes?.[0]);
+            }, function() {
+              params.onNoteCreated(result);
+            });
           }
           $noteEditor.remove();
           view.clearAutosaveData(autosaveStorageKeys);
@@ -1476,18 +1476,16 @@ module.exports = (function() {
         const editToPost = params.isEdit
           ? constructUpdatedEdit(params.editToUpdate, invitation, formContent)
           : constructEdit({ formData: formContent, noteObj: existingNote, invitationObj: invitation });
-        Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(function() {
-          if (params.onNoteEdited ) {
+        Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(function(edit) {
+          if (params.onNoteEdited) {
             if (params.isEdit) {
               params.onNoteEdited();
             } else {
-              if (note.id) { // recruitment invitation web may pass note without id
-                Webfield2.get('/notes', { id: note.id }).then(function (result) {
-                  params.onNoteEdited(result);
-                });
-              } else {
+              Webfield2.get('/notes', { id: edit.note.id, details: 'invitation,presentation' }, { handleErrors: false }).then(function(noteRes) {
+                params.onNoteEdited(noteRes.notes?.[0]);
+              }, function() {
                 params.onNoteEdited();
-              }
+              });
             }
           }
           $noteEditor.remove();
@@ -1582,6 +1580,7 @@ module.exports = (function() {
   };
 
   const constructEdit = ({ formData, noteObj, invitationObj }) => {
+    const fieldsToIgnoreConst = ['authors','authorids']
     if (!invitationObj.edit) return undefined;
     const result = {}
     const note = {}
@@ -1629,7 +1628,7 @@ module.exports = (function() {
         return;
       }
       if (valueObj = contentFieldValue.value) {
-        if (valueObj.const) {
+        if (valueObj.const && !fieldsToIgnoreConst.includes(contentFieldName)) {
           return
         } else {
           content[contentFieldName] = { value: formData?.[contentFieldName] ?? noteObj?.content?.[contentFieldName]?.value }
@@ -1785,9 +1784,9 @@ module.exports = (function() {
           } else {
             //value-dropdown
             var values = view.idsFromListAdder($contentMap[k], ret);
-              if (values && values.length) {
-                inputVal = values[0];
-              }
+            if (values?.length > 0) {
+              inputVal = values[0];
+            }
           }
         }
       } else if (Array.isArray(contentObj)) {
@@ -1912,6 +1911,8 @@ module.exports = (function() {
     mkNewNoteEditor: mkNewNoteEditor,
     mkNoteEditor: mkNoteEditor,
     mkNotePanel: mkNotePanel,
+    deleteOrRestoreNote: deleteOrRestoreNote,
+    constructEdit:constructEdit,
   };
 
 }());
