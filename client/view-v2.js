@@ -165,7 +165,7 @@ module.exports = (function() {
       if (_.has(fieldDescription.value, 'param')) {
         value = fieldDescription.value.param.const;
       }
-      if (Array.isArray(fieldDescription.value) || fieldDescription.value.param.type.endsWith('[]')) {
+      if (Array.isArray(fieldDescription.value)) {
         //treat as values
         contentInputResult = view.mkDropdownAdder(
           fieldName, fieldDescription.description, value,
@@ -1387,8 +1387,8 @@ module.exports = (function() {
           ...(params.isEdit ? { edit: params.editToUpdate } : { note }),
         };
         const content = getContent(invitation, $contentMap, noteEditObject);
-        const useEditSignature = (_.has(invitation.edit.note?.signatures, 'const')) &&
-          invitation.edit.note?.signatures?.const[0] === '${signatures}' // when note signature is edit signature, note reader should use edit signatures
+        const useEditSignature = (Array.isArray(invitation.edit.note?.signatures)) &&
+          invitation.edit.note?.signatures[0] === '${3/signatures}' // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
         const editReaderValues = getReaders(editReaders, invitation, editSignatureInputValues, true);
@@ -1589,7 +1589,7 @@ module.exports = (function() {
     const { note: noteFields, ...otherFields } = invitationObj.edit
     // editToPost.readers/writers etc.
     Object.entries(otherFields).forEach(([field, value]) => {
-      if (value.const) return
+      if (Array.isArray(value) && value[0].startsWith('${')) return
       switch (field) {
         case 'readers':
           result[field] = formData?.editReaderValues ?? noteObj?.[field]
@@ -1608,7 +1608,7 @@ module.exports = (function() {
     const { content: contentFields, ...otherNoteFields } = noteFields
     // editToPost.note.id/ddate/reader/writers etc.
     Object.entries(otherNoteFields).forEach(([otherNoteField, value]) => {
-      if (value.const) return
+      if (Array.isArray(value) && value[0].startsWith('${')) return
       switch (otherNoteField) {
         case 'readers':
           note[otherNoteField] = formData?.noteReaderValues ?? noteObj?.[otherNoteField]
@@ -1765,7 +1765,7 @@ module.exports = (function() {
           inputVal = $selection.length ? $selection.val() : '';
         } else if (presentationObj.input === 'checkbox') {
           //values-checkbox
-          if (contentObjInInvitation.type.endsWith('[]')) {
+          if (presentationObj.type.endsWith('[]')) {
             inputVal = [];
             $contentMap[k].find('.note_content_value input[type="checkbox"]').each(function(i) {
               if ($(this).prop('checked')) {
@@ -1780,7 +1780,7 @@ module.exports = (function() {
           }
         } else if (presentationObj.input === 'select' || !(_.has(presentationObj, 'input'))) {
           //values-dropdown
-          if (contentObjInInvitation.type.endsWith('[]')) {
+          if (presentationObj.type.endsWith('[]')) {
             inputVal = view.idsFromListAdder($contentMap[k], ret);
           } else {
             //value-dropdown
@@ -1792,12 +1792,12 @@ module.exports = (function() {
         }
       } else if (Array.isArray(contentObj)) {
         //values
-        if (contentObjInInvitation.type.endsWith('[]') && k !== 'authorids') {
+        if (presentationObj.type.endsWith('[]') && k !== 'authorids') {
           inputVal = view.idsFromListAdder($contentMap[k], ret);
         }
       } else if (contentObj.param?.hasOwnProperty('regex')) {
         //values-regex
-        if (contentObjInInvitation.type.endsWith('[]')) {
+        if (presentationObj.type.endsWith('[]')) {
           var inputArray = inputVal.split(',');
               inputVal = _.filter(
                 _.map(inputArray, function(s) { return s.trim(); }),
@@ -1817,7 +1817,7 @@ module.exports = (function() {
             errors.push('Field ' + k + ' contains invalid JSON. Please make sure all quotes and brackets match.');
           }
         }
-      } else if (contentObjInInvitation.type ==='file') {
+      } else if (presentationObj.type ==='file') {
         var $fileSection = $contentMap[k];
         var $fileInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '.') + '[type="file"]');
         var file = $fileInput && $fileInput.val() ? $fileInput[0].files[0] : null;
