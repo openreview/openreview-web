@@ -163,7 +163,7 @@ module.exports = (function() {
       if (_.has(fieldDescription.value, 'param')) {
         value = fieldDescription.value.param.const;
       }
-      if (Array.isArray(fieldDescription.value)) {
+      if (Array.isArray(value)) {
         //treat as values
         contentInputResult = view.mkDropdownAdder(
           fieldName, fieldDescription.description, value,
@@ -1789,9 +1789,10 @@ module.exports = (function() {
             }
           }
         }
-      } else if (Array.isArray(contentObj)) {
+      } else if (Array.isArray(contentObj) ||
+      contentObj.param?.hasOwnProperty('const') && presentationObj.type.endsWith('[]')) {
         //values
-        if (presentationObj.type.endsWith('[]') && k !== 'authorids') {
+        if (k !== 'authorids') {
           inputVal = view.idsFromListAdder($contentMap[k], ret);
         }
       } else if (contentObj.param?.hasOwnProperty('regex')) {
