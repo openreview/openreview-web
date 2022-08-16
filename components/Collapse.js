@@ -1,13 +1,13 @@
 import { nanoid } from 'nanoid'
 import { useRef, useState } from 'react'
 
-const Collapse = ({ showLabel, hideLabel, children }) => {
+const Collapse = ({ showLabel, hideLabel, onExpand, className, children }) => {
   const [collapsed, setCollapsed] = useState(true)
   const collapseRef = useRef(null)
   const id = nanoid()
 
   return (
-    <>
+    <div className={className ?? ''}>
       <a
         data-toggle="collapse"
         href={`#${id}`}
@@ -16,6 +16,7 @@ const Collapse = ({ showLabel, hideLabel, children }) => {
         onClick={(e) => {
           e.preventDefault()
           $(collapseRef.current).collapse(collapsed ? 'show' : 'hide')
+          if (collapsed && onExpand) onExpand()
           setCollapsed((p) => !p)
         }}
       >
@@ -24,7 +25,7 @@ const Collapse = ({ showLabel, hideLabel, children }) => {
       <div ref={collapseRef} className="collapse" id={id}>
         {children}
       </div>
-    </>
+    </div>
   )
 }
 

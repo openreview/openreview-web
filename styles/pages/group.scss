@@ -304,6 +304,37 @@ main.invitation {
     .download-pdf-link {
       margin-bottom: 0.5rem;
     }
+
+    .areachair-console-reviewer-progress {
+      display: flex;
+      flex-direction: column;
+
+      .assigned-reviewers {
+        margin-bottom: 0.5rem;
+
+        .assigned-reviewer-row {
+          display: flex;
+          flex-direction: row;
+          margin-bottom: 0.25rem;
+
+          .assigned-reviewer-action {
+            display: flex;
+            flex-direction: column;
+            margin-left: 0.5rem;
+          }
+        }
+
+        .assign-new-reviewers {
+          display: flex;
+          justify-content: space-around;
+
+          .reviewers-dropdown {
+            flex-grow: 1;
+            margin-right: 0.5rem;
+          }
+        }
+      }
+    }
   }
 
   .ac-console-table {
