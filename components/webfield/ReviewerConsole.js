@@ -338,8 +338,11 @@ const ReviewerConsole = ({ appContext }) => {
   const loadData = async () => {
     const userIds = [...user.profile.usernames, ...user.profile.emails]
 
+    let anonGroups
+    let groupByNumber
+    let noteNumbers
+    // #region get reviewer note number
     try {
-      // #region get reviewer note number
       const singularName = reviewerName.endsWith('s')
         ? reviewerName.slice(0, -1)
         : reviewerName
@@ -351,9 +354,9 @@ const ReviewerConsole = ({ appContext }) => {
         },
         { accessToken }
       )
-      const anonGroups = memberGroups.filter((p) => p.id.includes(`/${singularName}_`))
+      anonGroups = memberGroups.filter((p) => p.id.includes(`/${singularName}_`))
 
-      const groupByNumber = memberGroups
+      groupByNumber = memberGroups
         .filter((p) => p.id.endsWith(`/${reviewerName}`))
         .reduce((prev, curr) => {
           const num = getNumberFromGroup(curr.id, submissionName)
@@ -362,175 +365,182 @@ const ReviewerConsole = ({ appContext }) => {
           )
           return anonGroup ? { ...prev, [num]: anonGroup.id } : prev
         }, {})
-      // #endregion
-      const noteNumbers = Object.keys(groupByNumber)
-
-      // #region get notes
-      const getNotesP = noteNumbers.length
-        ? api
-            .get(
-              '/notes',
-              {
-                invitation: submissionInvitationId,
-                number: noteNumbers.join(','),
-                details: 'invitation,directReplies',
-              },
-              { accessToken, version: apiVersion }
-            )
-            .then((result) => result.notes ?? [])
-        : Promise.resolve([])
-      // #endregion
-
-      // #region paper ranking invitation
-      const paperRankingInvitationP = hasPaperRanking
-        ? api.getInvitationById(paperRankingId, accessToken, {
-            regex: wildcardInvitation,
-            invitee: true,
-            duedate: true,
-            type: 'tags',
-            details: 'repliedTags',
-          })
-        : Promise.resolve(null)
-      // #endregion
-
-      // #region get custom load
-      const getCustomLoadP = api
-        .get(
-          '/edges',
-          {
-            invitation: customMaxPapersInvitationId,
-            tail: user.id,
-          },
-          { accessToken }
-        )
-        .then((result) => {
-          if (result.edges?.length) return result.edges[0].weight
-          return apiVersion === 2
-            ? api
-                .get(
-                  '/notes',
-                  {
-                    invitation: recruitmentInvitationId,
-                    sort: 'cdate:desc',
-                  },
-                  { accessToken, version: 2 }
-                )
-                .then((noteResult) => {
-                  if (!noteResult.notes?.length) return reviewLoad
-                  return noteResult.notes[0].content?.reduced_load?.value
-                })
-            : api
-                .get(
-                  '/notes',
-                  {
-                    invitation: customLoadInvitationId,
-                    select: 'content.reviewer_load,content.user,content.reduced_load',
-                  },
-                  { accessToken, version: 1 }
-                )
-                .then((noteResult) => {
-                  if (!noteResult.notes?.length) return reviewLoad
-                  if (noteResult.notes.length === 1) {
-                    return (
-                      noteResult.notes[0].content.reviewer_load ||
-                      noteResult.notes[0].content.reduced_load
-                    )
-                  }
-                  // If there is more than one there might be a Program Chair
-                  const loads = noteResult.notes.filter((note) =>
-                    userIds.includes(note.content.user)
-                  )
-                  return loads.length
-                    ? loads[0].content.reviewer_load || loads[0].content.reduced_load
-                    : reviewLoad
-                })
-        })
-      // #endregion
-
-      // #region get area chair groups
-      const getAreaChairGroupsP = api
-        .getAll(
-          '/groups',
-          {
-            regex: `${venueId}/${submissionName}.*`,
-            select: 'id,members',
-          },
-          { accessToken }
-        )
-        .then((groups) =>
-          groups
-            .filter((p) => p.id.includes(areaChairName))
-            .reduce((prev, curr) => {
-              const num = getNumberFromGroup(curr.id, submissionName)
-              prev[num] = curr.members[0] // eslint-disable-line no-param-reassign
-              return prev
-            }, {})
-        )
-      // #endregion
-
-      Promise.all([
-        getNotesP,
-        paperRankingInvitationP,
-        getCustomLoadP,
-        getAreaChairGroupsP,
-      ]).then(([notes, paperRankingInvitation, customLoad, areaChairMap]) => {
-        const anonGroupIds = anonGroups.map((p) => p.id)
-        // get official reviews from notes details
-        const officialReviewFilterFn =
-          apiVersion === 2
-            ? (p) => p.invitations.some((q) => q.includes(officialReviewName))
-            : (p) => p.invitation.includes(officialReviewName)
-        const officialReviews = notes
-          .flatMap((p) => p.details.directReplies)
-          .filter(
-            (q) =>
-              officialReviewFilterFn(q) && q.signatures.some((r) => anonGroupIds.includes(r))
-          )
-        if (paperRankingInvitation) {
-          setReviewerConsoleData({
-            paperNumberAnonGroupIdMap: groupByNumber,
-            notes,
-            customLoad,
-            officialReviews,
-            paperRankingTags: paperRankingInvitation.details?.repliedTags ?? [],
-            areaChairMap,
-            noteNumbers,
-          })
-        } else if (hasPaperRanking) {
-          api
-            .get(
-              '/tags',
-              {
-                invitation: paperRankingId,
-              },
-              { accessToken }
-            )
-            .then((result) => {
-              setReviewerConsoleData({
-                paperNumberAnonGroupIdMap: groupByNumber,
-                notes,
-                customLoad,
-                officialReviews,
-                paperRankingTags: result.tags?.length ? result.tags : null, // null will not render paper ranking
-                areaChairMap,
-                noteNumbers,
-              })
-            })
-        } else {
-          setReviewerConsoleData({
-            paperNumberAnonGroupIdMap: groupByNumber,
-            notes,
-            customLoad,
-            officialReviews,
-            paperRankingTags: null,
-            areaChairMap,
-            noteNumbers,
-          })
-        }
-      })
+        noteNumbers = Object.keys(groupByNumber)
     } catch (error) {
       promptError(error.message)
     }
+    // #endregion
+
+    // #region get notes
+    const getNotesP = noteNumbers.length
+      ? api
+          .get(
+            '/notes',
+            {
+              invitation: submissionInvitationId,
+              number: noteNumbers.join(','),
+              details: 'invitation,directReplies',
+            },
+            { accessToken, version: apiVersion }
+          )
+          .then((result) => result.notes ?? [])
+      : Promise.resolve([])
+    // #endregion
+
+    // #region paper ranking invitation
+    const paperRankingInvitationP = hasPaperRanking
+      ? api.getInvitationById(paperRankingId, accessToken, {
+          regex: wildcardInvitation,
+          invitee: true,
+          duedate: true,
+          type: 'tags',
+          details: 'repliedTags',
+        })
+      : Promise.resolve(null)
+    // #endregion
+
+    // #region get custom load
+    const getCustomLoadP = api
+      .get(
+        '/edges',
+        {
+          invitation: customMaxPapersInvitationId,
+          tail: user.id,
+        },
+        { accessToken }
+      )
+      .then((result) => {
+        if (result.edges?.length) {
+          return result.edges[0].weight
+        }
+
+        if (apiVersion === 2) {
+          return api
+            .get(
+              '/notes',
+              {
+                invitation: recruitmentInvitationId,
+                sort: 'cdate:desc',
+              },
+              { accessToken, version: 2 }
+            )
+            .then((noteResult) => {
+              if (!noteResult.notes?.length) return reviewLoad
+              return noteResult.notes[0].content?.reduced_load?.value
+            })
+        }
+
+        return api
+          .get(
+            '/notes',
+            {
+              invitation: customLoadInvitationId,
+              select: 'content.reviewer_load,content.user,content.reduced_load',
+            },
+            { accessToken, version: 1 }
+          )
+          .then((noteResult) => {
+            if (!noteResult.notes?.length) return reviewLoad
+            if (noteResult.notes.length === 1) {
+              return (
+                noteResult.notes[0].content.reviewer_load ||
+                noteResult.notes[0].content.reduced_load
+              )
+            }
+            // If there is more than one there might be a Program Chair
+            const loads = noteResult.notes.filter((note) =>
+              userIds.includes(note.content.user)
+            )
+            return loads.length
+              ? loads[0].content.reviewer_load || loads[0].content.reduced_load
+              : reviewLoad
+          })
+      })
+    // #endregion
+
+    // #region get area chair groups
+    const getAreaChairGroupsP = api
+      .getAll(
+        '/groups',
+        {
+          regex: `${venueId}/${submissionName}.*`,
+          select: 'id,members',
+        },
+        { accessToken }
+      )
+      .then((groups) =>
+        groups
+          .filter((p) => p.id.includes(areaChairName))
+          .reduce((prev, curr) => {
+            const num = getNumberFromGroup(curr.id, submissionName)
+            prev[num] = curr.members[0] // eslint-disable-line no-param-reassign
+            return prev
+          }, {})
+      )
+    // #endregion
+
+    Promise.all([
+      getNotesP,
+      paperRankingInvitationP,
+      getCustomLoadP,
+      getAreaChairGroupsP,
+    ]).then(([notes, paperRankingInvitation, customLoad, areaChairMap]) => {
+      const anonGroupIds = anonGroups.map((p) => p.id)
+      // get official reviews from notes details
+      const officialReviewFilterFn =
+        apiVersion === 2
+          ? (p) => p.invitations.some((q) => q.includes(officialReviewName))
+          : (p) => p.invitation.includes(officialReviewName)
+      const officialReviews = notes
+        .flatMap((p) => p.details.directReplies)
+        .filter(
+          (q) =>
+            officialReviewFilterFn(q) && q.signatures.some((r) => anonGroupIds.includes(r))
+        )
+      if (paperRankingInvitation) {
+        setReviewerConsoleData({
+          paperNumberAnonGroupIdMap: groupByNumber,
+          notes,
+          customLoad,
+          officialReviews,
+          paperRankingTags: paperRankingInvitation.details?.repliedTags ?? [],
+          areaChairMap,
+          noteNumbers,
+        })
+      } else if (hasPaperRanking) {
+        api
+          .get(
+            '/tags',
+            {
+              invitation: paperRankingId,
+            },
+            { accessToken }
+          )
+          .then((result) => {
+            setReviewerConsoleData({
+              paperNumberAnonGroupIdMap: groupByNumber,
+              notes,
+              customLoad,
+              officialReviews,
+              paperRankingTags: result.tags?.length ? result.tags : null, // null will not render paper ranking
+              areaChairMap,
+              noteNumbers,
+            })
+          })
+      } else {
+        setReviewerConsoleData({
+          paperNumberAnonGroupIdMap: groupByNumber,
+          notes,
+          customLoad,
+          officialReviews,
+          paperRankingTags: null,
+          areaChairMap,
+          noteNumbers,
+        })
+      }
+    }).catch((error) => {
+      promptError(error.message)
+    })
   }
 
   useEffect(() => {
