@@ -7,7 +7,7 @@ import Icon from '../../components/Icon'
 import LoadSpinner from '../../components/LoadingSpinner'
 import PaginationLinks from '../../components/PaginationLinks'
 import api from '../../lib/api-client'
-import { prettyId, formatDateTime, buildArray } from '../../lib/utils'
+import { prettyId, formatDateTime, buildArray, inflect } from '../../lib/utils'
 import Dropdown from '../../components/Dropdown'
 import BasicModal from '../../components/BasicModal'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
@@ -105,7 +105,7 @@ const FullUsernameList = ({ usernames }) => (
   </ul>
 )
 
-const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCount }) => {
+const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMsg }) => {
   const [nameDeletionNotes, setNameDeletionNotes] = useState(null)
   const [nameDeletionNotesToShow, setNameDeletionNotesToShow] = useState(null)
   const [noteToReject, setNoteToReject] = useState(null)
@@ -113,32 +113,46 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCount }
   const [idsLoading, setIdsLoading] = useState([])
   const [page, setPage] = useState(1)
   const pageSize = 25
+
+  const getTabCountMessage = (pendingCount, errorCount) => {
+    if (pendingCount === 0 && errorCount === 0) return null
+    if (pendingCount === 0 && errorCount !== 0)
+      return inflect(errorCount, 'error', 'errors', true)
+    if (pendingCount !== 0 && errorCount === 0) return pendingCount
+    return `${pendingCount} pending,${inflect(errorCount, 'error', 'errors', true)}`
+  }
+
   const loadNameDeletionRequests = async () => {
     const nameDeletionDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal_Decision`
     try {
-      const result = await api.get(
+      const nameRemovalNotesP = api.get(
         '/notes',
         {
           invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
         },
         { accessToken }
       )
-      const decisionResults = await api.getAll(
+      const decisionResultsP = api.getAll(
         '/references',
         {
           invitation: nameDeletionDecisionInvitationId,
         },
         { accessToken, resultsKey: 'references' }
       )
-      const processLogs = await api.getAll(
+      const processLogsP = api.getAll(
         '/logs/process',
         { invitation: nameDeletionDecisionInvitationId },
         { accessToken, resultsKey: 'logs' }
       )
 
+      const [nameRemovalNotes, decisionResults, processLogs] = await Promise.all([
+        nameRemovalNotesP,
+        decisionResultsP,
+        processLogsP,
+      ])
       const sortedResult = [
-        ...result.notes.filter((p) => p.content.status === 'Pending'),
-        ...result.notes.filter((p) => p.content.status !== 'Pending'),
+        ...nameRemovalNotes.notes.filter((p) => p.content.status === 'Pending'),
+        ...nameRemovalNotes.notes.filter((p) => p.content.status !== 'Pending'),
       ].map((p) => {
         const decisionReference = decisionResults.find((q) => q.referent === p.id)
         let processLogStatus = 'N/A'
@@ -157,8 +171,14 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCount }
       setNameDeletionNotesToShow(
         sortedResult.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
       )
-      setNameDeletionRequestCount(
-        result.notes.filter((p) => p.content.status === 'Pending').length
+      const pendingRequestCount = nameRemovalNotes.notes.filter(
+        (p) => p.content.status === 'Pending'
+      ).length
+      const errorProcessCount = sortedResult.filter(
+        (p) => p.processLogStatus === 'error'
+      ).length
+      setNameDeletionRequestCountMsg(
+        getTabCountMessage(pendingRequestCount, errorProcessCount)
       )
     } catch (error) {
       promptError(error.message)
@@ -346,7 +366,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCount }
 
 const Moderation = ({ appContext, accessToken, superUser }) => {
   const { setBannerHidden } = appContext
-  const [nameDeletionRequestCount, setNameDeletionRequestCount] = useState(0)
+  const [nameDeletionRequestCountMsg, setNameDeletionRequestCountMsg] = useState(0)
 
   useEffect(() => {
     setBannerHidden(true)
@@ -370,8 +390,8 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
           </Tab>
           <Tab id="preview">
             Name Delete Requests{' '}
-            {nameDeletionRequestCount !== 0 && (
-              <span className="badge">{nameDeletionRequestCount}</span>
+            {nameDeletionRequestCountMsg && (
+              <span className="badge">{nameDeletionRequestCountMsg}</span>
             )}
           </Tab>
         </TabList>
@@ -384,7 +404,7 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
             <NameDeletionTab
               accessToken={accessToken}
               superUser={superUser}
-              setNameDeletionRequestCount={setNameDeletionRequestCount}
+              setNameDeletionRequestCountMsg={setNameDeletionRequestCountMsg}
             />
           </TabPanel>
         </TabPanels>
