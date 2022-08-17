@@ -49,7 +49,7 @@ export const AreaChairConsoleNoteReviewStatus = ({
   enableReviewerReassignment,
   referrerUrl,
   venueId,
-  officalReviewName,
+  officialReviewName,
   allProfiles,
   reviewerGroupMembers,
   reviewerGroupWithConflict,
@@ -132,7 +132,7 @@ export const AreaChairConsoleNoteReviewStatus = ({
               (p) => p.anonymousId === reviewer.anonymousId
             )
             const lastReminderSent = localStorage.getItem(
-              `https://openreview.net/forum?id=${note.forum}&noteId=${note.id}&invitationId=${venueId}/Paper${note.number}/${officalReviewName}|${reviewer.reviewerProfileId}`
+              `https://openreview.net/forum?id=${note.forum}&noteId=${note.id}&invitationId=${venueId}/Paper${note.number}/${officialReviewName}|${reviewer.reviewerProfileId}`
             )
             const reviewerProfile = allProfiles.find(
               (p) =>

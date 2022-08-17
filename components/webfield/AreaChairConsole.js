@@ -46,9 +46,10 @@ const MessageReviewersModal = ({
   selectedNoteIds,
   reviewersInfo,
   venueId,
-  officalReviewName,
+  officialReviewName,
   allProfiles,
 }) => {
+  const { accessToken } = useUser()
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -57,10 +58,40 @@ const MessageReviewersModal = ({
   \n\nThank you,\n${shortPhrase} Area Chair`)
   const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
   const [recipientsInfo, setRecipientsInfo] = useState([])
+  const totalMessagesCount = uniqBy(recipientsInfo, (p) => p.reviewerProfileId).reduce(
+    (prev, curr) => prev + curr.count,
+    0
+  )
 
-  const handlePrimaryButtonClick = () => {
+  const handlePrimaryButtonClick = async () => {
     if (currentStep === 1) {
       setCurrentStep(2)
+      return
+    }
+    // send emails
+    try {
+      const sendEmailPs = selectedNoteIds.map((noteId) => {
+        const note = notes.find((p) => p.id === noteId)
+        const reviewerIds = recipientsInfo
+          .filter((p) => p.noteNumber === note.number)
+          .map((q) => q.reviewerProfileId)
+        if (!reviewerIds.length) return Promise.resolve()
+        const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${noteId}&invitation=${venueId}/Paper${note.number}/-/${officialReviewName}`
+        return api.post(
+          '/messages',
+          {
+            groups: reviewerIds,
+            subject: subject,
+            message: message.replace('[[SUBMIT_REVIEW_LINK]]', forumUrl),
+          },
+          { accessToken }
+        )
+      })
+      await Promise.all(sendEmailPs)
+      $('#message-reviewers').modal('hide')
+      promptMessage(`Successfully sent ${totalMessagesCount} emails`)
+    } catch (error) {
+      setError(error.message)
     }
   }
 
@@ -71,12 +102,12 @@ const MessageReviewersModal = ({
       .map((q) => q.number)
     const selectedReviewerIds = reviewersInfo
       ?.filter((p) => selectedNoteNumbers.includes(p.number))
-      .flatMap((q) => q.reviewers)
+      .flatMap((q) => q.reviewers.map((r) => ({ ...r, noteNumber: q.number })))
     const officialReviewsOfSelectedNotes = notes
       ?.filter((p) => selectedNoteIds.includes(p.id))
       ?.flatMap((q) =>
         q.details.directReplies.filter(
-          (r) => r.invitation === `${venueId}/Paper${q.number}/-/${officalReviewName}`
+          (r) => r.invitation === `${venueId}/Paper${q.number}/-/${officialReviewName}`
         )
       )
     const anonymousIdsOfOfficialReviews = officialReviewsOfSelectedNotes.map((p) => {
@@ -122,13 +153,14 @@ const MessageReviewersModal = ({
         ? reviewerProfile.content.preferredEmail ?? reviewerProfile.content.emails[0]
         : reviewer.reviewerProfileId
       return {
+        noteNumber: recipient.noteNumber,
         reviewerProfileId: recipient.reviewerProfileId,
         preferredName,
         preferredEmail,
         count,
       }
     })
-    setRecipientsInfo(uniqBy(recipientsInfo, (p) => p.reviewerProfileId))
+    setRecipientsInfo(recipientsInfo)
   }, [messageOption, selectedNoteIds])
 
   return (
@@ -137,7 +169,10 @@ const MessageReviewersModal = ({
       title={messageOption?.label}
       primaryButtonText={primaryButtonText}
       onPrimaryButtonClick={handlePrimaryButtonClick}
-      onClose={() => {}}
+      primaryButtonDisabled={!totalMessagesCount}
+      onClose={() => {
+        setCurrentStep(1)
+      }}
     >
       {error && <div className="alert alert-danger">{error}</div>}
       {currentStep === 1 ? (
@@ -160,7 +195,7 @@ const MessageReviewersModal = ({
             <label htmlFor="message">Email Body</label>
             <textarea
               name="message"
-              className="form-control"
+              className="form-control message-body"
               rows="6"
               value={message}
               required
@@ -171,11 +206,11 @@ const MessageReviewersModal = ({
       ) : (
         <>
           <p>
-            A total of <span className="num-reviewers"></span> reminder emails will be sent to
-            the following reviewers:
+            A total of <span className="num-reviewers">{totalMessagesCount}</span> reminder
+            emails will be sent to the following reviewers:
           </p>
           <div className="well reviewer-list">
-            {recipientsInfo.map((recipientInfo) => (
+            {uniqBy(recipientsInfo, (p) => p.reviewerProfileId).map((recipientInfo) => (
               <li key={recipientInfo.preferredEmail}>{`${recipientInfo.preferredName} <${
                 recipientInfo.preferredEmail
               }>${recipientInfo.count > 1 ? ` --- (×${recipientInfo.count})` : ''}`}</li>
@@ -193,7 +228,7 @@ const MenuBar = ({
   shortPhrase,
   reviewersInfo,
   venueId,
-  officalReviewName,
+  officialReviewName,
   allProfiles,
 }) => {
   const disabledMessageButton = selectedNoteIds.length === 0
@@ -255,7 +290,7 @@ const MenuBar = ({
         selectedNoteIds={selectedNoteIds}
         reviewersInfo={reviewersInfo}
         venueId={venueId}
-        officalReviewName={officalReviewName}
+        officialReviewName={officialReviewName}
         allProfiles={allProfiles}
       />
     </div>
@@ -267,7 +302,7 @@ const AssignedPaperRow = ({
   venueId,
   areaChairName,
   reviewersInfo,
-  officalReviewName,
+  officialReviewName,
   reviewRatingName,
   reviewConfidenceName,
   enableReviewerReassignment,
@@ -288,7 +323,7 @@ const AssignedPaperRow = ({
     reviewersInfo.find((p) => p.number === note.number)?.reviewers ?? []
   const ratingExp = /^(\d+): .*/
   const officialReviews = (note.details.directReplies ?? [])
-    .filter((p) => p.invitation === `${venueId}/Paper${note.number}/-/${officalReviewName}`)
+    .filter((p) => p.invitation === `${venueId}/Paper${note.number}/-/${officialReviewName}`)
     ?.map((q) => {
       const anonymousId = getNumberFromGroup(q.signatures[0], 'Reviewer_', false)
       const ratingNumber = q.content[reviewRatingName]
@@ -333,7 +368,7 @@ const AssignedPaperRow = ({
           enableReviewerReassignment={enableReviewerReassignment}
           referrerUrl={referrerUrl}
           venueId={venueId}
-          officalReviewName={officalReviewName}
+          officialReviewName={officialReviewName}
           allProfiles={allProfiles}
           reviewerGroupMembers={reviewerGroupMembers}
           reviewerGroupWithConflict={reviewerGroupWithConflict}
@@ -445,7 +480,7 @@ const AreaChairConsole = ({ appContext }) => {
     seniorAreaChairsId,
     areaChairName,
     submissionName,
-    officalReviewName,
+    officialReviewName,
     reviewRatingName,
     reviewConfidenceName,
     enableReviewerReassignment,
@@ -731,7 +766,7 @@ const AreaChairConsole = ({ appContext }) => {
     seniorAreaChairsId,
     areaChairName,
     submissionName,
-    officalReviewName,
+    officialReviewName,
     reviewRatingName,
     reviewConfidenceName,
     enableReviewerReassignment,
@@ -777,7 +812,7 @@ const AreaChairConsole = ({ appContext }) => {
                   shortPhrase={shortPhrase}
                   reviewersInfo={acConsoleData.reviewersInfo}
                   venueId={venueId}
-                  officalReviewName={officalReviewName}
+                  officialReviewName={officialReviewName}
                   allProfiles={acConsoleData.allProfiles}
                 />
                 <Table
@@ -807,7 +842,7 @@ const AreaChairConsole = ({ appContext }) => {
                       venueId={venueId}
                       areaChairName={areaChairName}
                       reviewersInfo={acConsoleData.reviewersInfo}
-                      officalReviewName={officalReviewName}
+                      officialReviewName={officialReviewName}
                       reviewRatingName={reviewRatingName}
                       reviewConfidenceName={reviewConfidenceName}
                       enableReviewerReassignment={enableReviewerReassignment}
