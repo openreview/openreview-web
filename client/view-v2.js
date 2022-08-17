@@ -1095,8 +1095,8 @@ module.exports = (function() {
 
     var requiredText = fieldDescription.optional ? null : $('<span>', { text: '*', class: 'required_field' });
 
-    if (_.has(fieldDescription, 'regex')) {
-      return Webfield.get('/groups', { regex: fieldDescription.regex }, { handleErrors: false })
+    if (_.has(fieldDescription, 'param') && _.has(fieldDescription.param, 'regex')) {
+      return Webfield.get('/groups', { regex: fieldDescription.param.regex }, { handleErrors: false })
         .then(function (result) {
           if (_.isEmpty(result.groups)) {
             promptError('You do not have permission to create a note');
@@ -1118,8 +1118,8 @@ module.exports = (function() {
           var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
           promptError(errorText);
         });
-    } else if (_.has(fieldDescription, 'enum')) {
-      var values = fieldDescription.enum;
+    } else if (_.has(fieldDescription, 'param') && _.has(fieldDescription.param, 'enum')) {
+      var values = fieldDescription.param.enum;
       var extraGroupsP = $.Deferred().resolve([]);
       var regexIndex = _.findIndex(values, function (g) { return g.indexOf('.*') >= 0; });
       if (regexIndex >= 0) {
@@ -1128,9 +1128,9 @@ module.exports = (function() {
           .then(function (result) {
             if (result.groups && result.groups.length) {
               var groups = result.groups.map(function (g) { return g.id; });
-              fieldDescription.enum = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
+              fieldDescription.param.enum = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
             } else {
-              fieldDescription.enum.splice(regexIndex, 1);
+              fieldDescription.param.enum.splice(regexIndex, 1);
             }
             return result.groups;
           });
@@ -1166,7 +1166,7 @@ module.exports = (function() {
             if (!_.includes(parentReaders, 'everyone')) {
               newFieldDescription = {
                 description: fieldDescription.description,
-                default: fieldDescription.default
+                default: fieldDescription.param?.default
               };
               newFieldDescription[fieldType] = parentReaders;
               if (!fieldValue.length) {
@@ -1180,90 +1180,93 @@ module.exports = (function() {
         done(fieldDescription);
       }
     };
-    if (_.has(fieldDescription, 'param')) {
-      if (_.has(fieldDescription.param, 'regex')) {
-        return Webfield2.get('/groups', { regex: fieldDescription.regex }, { handleErrors: false })
-        .then(function(result) {
-          if (_.isEmpty(result.groups)) {
-            done(undefined, 'You do not have permission to create a note');
-          } else {
-            var everyoneList = _.filter(result.groups, function(g) {
-              return g.id === 'everyone';
-            });
-            var restOfList = _.sortBy(_.filter(result.groups, function(g) {
-              return g.id !== 'everyone';
-            }), function(g) {
-              return g.id;
-            });
 
-            var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue, { groups: everyoneList.concat(restOfList) });
-            if (fieldDescription.optional) $readers.find('.small_heading').prepend(requiredText);
-            done($readers);
-          }
-        }, function(jqXhr, textStatus) {
-          var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
-          done(undefined, errorText);
-        });
-      } else if (_.has(fieldDescription.param, 'enum')) {
-        var values = fieldDescription.param.enum;
-        var extraGroupsP = [];
-        var regexIndex = _.findIndex(values, function(g) { return g.indexOf('.*') >=0; });
-        var regex = null;
-        if (regexIndex >= 0) {
-          regex = values[regexIndex];
-          var result = await Webfield.get('/groups', { regex: regex })
-          if (result.groups && result.groups.length) {
-            var groups = result.groups.map(function(g) { return g.id; });
-            fieldDescription.param.enum = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
-          } else {
-            fieldDescription.param.enum.splice(regexIndex, 1);
-          }
-        }
+    if (_.has(fieldDescription, 'param') && _.has(fieldDescription.param, 'regex')) {
+      return Webfield2.get('/groups', { regex: fieldDescription.param.regex }, { handleErrors: false })
+      .then(function(result) {
+        if (_.isEmpty(result.groups)) {
+          done(undefined, 'You do not have permission to create a note');
+        } else {
+          var everyoneList = _.filter(result.groups, function(g) {
+            return g.id === 'everyone';
+          });
+          var restOfList = _.sortBy(_.filter(result.groups, function(g) {
+            return g.id !== 'everyone';
+          }), function(g) {
+            return g.id;
+          });
 
-        return setParentReaders(replyto, fieldDescription, 'enum', function (newFieldDescription) {
-          // Make sure the new parent readers belong to the current invitation available values
-          var invitationReaders = fieldDescription.param.enum;
-          var replyValues = [];
-          newFieldDescription.param.enum.forEach(function(valueReader) {
-            if (invitationReaders.includes(valueReader) || valueReader.match(regex)) {
-              replyValues.push(valueReader);
-            }
-          })
-
-          // Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
-          var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
-          var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_');  });
-          if (hasReviewers && !hasAnonReviewers) {
-            fieldDescription.param.enum.forEach(function(value) {
-              if (value.includes('AnonReviewer') || value.includes('Reviewer_')) {
-                replyValues.push(value);
-              }
-            });
-          }
-
-          newFieldDescription.param.enum = replyValues;
-          if (_.difference(newFieldDescription.param.default, newFieldDescription.param.enum).length !== 0) { //invitation default is not in list of possible values
-            done(undefined, 'Default reader is not in the list of readers');
-          }
-          var $readers = mkComposerInput('readers', { value: newFieldDescription }, fieldValue);
-          $readers.find('.small_heading').prepend(requiredText);
+          var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue, { groups: everyoneList.concat(restOfList) });
+          if (fieldDescription.optional) $readers.find('.small_heading').prepend(requiredText);
           done($readers);
-        });
-      }
-    } else if (_.has(fieldDescription, 'const')) {
-      return setParentReaders(replyto, fieldDescription, 'const', function(newFieldDescription) {
-        if (fieldDescription.const?.[0] === "${{note.replyto}.readers}") {
-          fieldDescription.const = newFieldDescription.const;
         }
-        var subsetReaders = fieldDescription.const.every(function (val) {
-          var found = newFieldDescription.const.indexOf(val) !== -1;
+      }, function(jqXhr, textStatus) {
+        var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
+        done(undefined, errorText);
+      });
+    } else if (_.has(fieldDescription, 'param') && _.has(fieldDescription.param, 'enum')) {
+      var values = fieldDescription.param.enum;
+      var extraGroupsP = [];
+      var regexIndex = _.findIndex(values, function(g) { return g.indexOf('.*') >=0; });
+      var regex = null;
+      if (regexIndex >= 0) {
+        regex = values[regexIndex];
+        var result = await Webfield.get('/groups', { regex: regex })
+        if (result.groups && result.groups.length) {
+          var groups = result.groups.map(function(g) { return g.id; });
+          fieldDescription.param.enum = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
+        } else {
+          fieldDescription.param.enum.splice(regexIndex, 1);
+        }
+      }
+
+      return setParentReaders(replyto, fieldDescription, 'enum', function (newFieldDescription) {
+        // Make sure the new parent readers belong to the current invitation available values
+        var invitationReaders = fieldDescription.param.enum;
+        var replyValues = [];
+        newFieldDescription.param.enum.forEach(function(valueReader) {
+          if (invitationReaders.includes(valueReader) || valueReader.match(regex)) {
+            replyValues.push(valueReader);
+          }
+        })
+
+        // Make sure AnonReviewers are in the dropdown options where '/Reviewers' is in the parent note
+        var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
+        var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_');  });
+        if (hasReviewers && !hasAnonReviewers) {
+          fieldDescription.param.enum.forEach(function(value) {
+            if (value.includes('AnonReviewer') || value.includes('Reviewer_')) {
+              replyValues.push(value);
+            }
+          });
+        }
+
+        newFieldDescription.param.enum = replyValues;
+        if (_.difference(newFieldDescription.param.default, newFieldDescription.param.enum).length !== 0) { //invitation default is not in list of possible values
+          done(undefined, 'Default reader is not in the list of readers');
+        }
+        var $readers = mkComposerInput('readers', { value: newFieldDescription }, fieldValue);
+        $readers.find('.small_heading').prepend(requiredText);
+        done($readers);
+      });
+    } else if ((_.has(fieldDescription, 'param') && _.has(fieldDescription, 'const')) || Array.isArray(fieldDescription)) {
+      if (Array.isArray(fieldDescription)) {
+        //wrap array as param.const to reuse code
+        fieldDescription = {'param': {'const': fieldDescription}};
+      }
+      return setParentReaders(replyto, fieldDescription, 'const', function(newFieldDescription) {
+        if (fieldDescription.param.const[0] === "${{note.replyto}.readers}") {
+          fieldDescription.param.const = newFieldDescription.param.const;
+        }
+        var subsetReaders = fieldDescription.param.const.every(function (val) {
+          var found = newFieldDescription.param.const.indexOf(val) !== -1;
           if (!found && val.includes('/Reviewer_')) {
-            var hasReviewers = _.find(newFieldDescription.const, function(v) { return v.includes('/Reviewers')});
+            var hasReviewers = _.find(newFieldDescription.param.const, function(v) { return v.includes('/Reviewers')});
             return hasReviewers;
           }
           return found;
-          })
-        if (_.isEqual(newFieldDescription.const, fieldDescription.const) || subsetReaders) {
+        })
+        if (_.isEqual(newFieldDescription.param.const, fieldDescription.param.const) || subsetReaders) {
           var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue); //for values, readers must match with invitation instead of parent invitation
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
@@ -1279,7 +1282,6 @@ module.exports = (function() {
   }
 
   function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures') {
-
     var $signatures;
     if (_.has(fieldDescription, 'param') && _.has(fieldDescription.param, 'regex')) {
       var currentVal = fieldValue && fieldValue[0];
@@ -1301,7 +1303,7 @@ module.exports = (function() {
         }
 
         return Webfield.get('/groups', {
-          regex: fieldDescription.regex, signatory: user.id
+          regex: fieldDescription.param.regex, signatory: user.id
         }, { handleErrors: false }).then(function(result) {
           if (_.isEmpty(result.groups)) {
             return $.Deferred().reject('no_results');
