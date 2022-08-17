@@ -114,6 +114,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCount }
   const [page, setPage] = useState(1)
   const pageSize = 25
   const loadNameDeletionRequests = async () => {
+    const nameDeletionDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal_Decision`
     try {
       const result = await api.get(
         '/notes',
@@ -122,10 +123,36 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCount }
         },
         { accessToken }
       )
+      const decisionResults = await api.getAll(
+        '/references',
+        {
+          invitation: nameDeletionDecisionInvitationId,
+        },
+        { accessToken, resultsKey: 'references' }
+      )
+      const processLogs = await api.getAll(
+        '/logs/process',
+        { invitation: nameDeletionDecisionInvitationId },
+        { accessToken, resultsKey: 'logs' }
+      )
+
       const sortedResult = [
         ...result.notes.filter((p) => p.content.status === 'Pending'),
         ...result.notes.filter((p) => p.content.status !== 'Pending'),
-      ]
+      ].map((p) => {
+        const decisionReference = decisionResults.find((q) => q.referent === p.id)
+        let processLogStatus = 'N/A'
+        if (p.content.status !== 'Pending')
+          processLogStatus =
+            processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
+        return {
+          ...p,
+          processLogStatus,
+          processLogUrl: decisionReference
+            ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
+            : null,
+        }
+      })
       setNameDeletionNotes(sortedResult)
       setNameDeletionNotesToShow(
         sortedResult.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
@@ -187,6 +214,19 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCount }
     }
   }
 
+  const getProcessLogStatusLabelClass = (note) => {
+    switch (note.processLogStatus) {
+      case 'ok':
+        return 'label label-success'
+      case 'error':
+        return 'label label-danger'
+      case 'running':
+        return 'label label-default'
+      default:
+        return ''
+    }
+  }
+
   useEffect(() => {
     if (noteToReject) $('#name-delete-reject').modal('show')
   }, [noteToReject])
@@ -215,6 +255,13 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCount }
               <div className="name-deletion-row" key={note.id}>
                 <span className="col-status">
                   <span className={getStatusLabelClass(note)}>{note.content.status}</span>
+                </span>
+                <span className="col-status">
+                  <a href={note.processLogUrl} target="_blank" rel="noreferrer">
+                    <span className={getProcessLogStatusLabelClass(note)}>
+                      {note.processLogStatus}
+                    </span>
+                  </a>
                 </span>
                 <span className="name">
                   <a

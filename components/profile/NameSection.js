@@ -105,7 +105,7 @@ const NameDeleteRequestModal = ({
   return (
     <BasicModal
       id="name-delete"
-      title="Delete a name"
+      title="Request Name Deletion"
       onPrimaryButtonClick={postNameDeleteRequest}
       primaryButtonDisabled={!reason.length}
       onClose={() => {
@@ -115,7 +115,10 @@ const NameDeleteRequestModal = ({
       }}
     >
       {error && <div className="alert alert-danger">{error}</div>}
-      <p>The name you would like to delete is {getNameString(nameToRequestDelete)}</p>
+      <p>
+        You are requesting to remove the name {getNameString(nameToRequestDelete)} from your
+        profile and all associated submissions. This action cannot be undone.
+      </p>
       <ul>
         <li>
           <strong>First name</strong>: {nameToRequestDelete.first}
@@ -132,7 +135,7 @@ const NameDeleteRequestModal = ({
       <textarea
         className="form-control"
         rows={5}
-        placeholder="the reason that you want to delete this name"
+        placeholder="Please enter a short description of why you want to delete this name from your profile"
         value={reason}
         maxLength={5000}
         onChange={(e) => setReason(e.target.value)}

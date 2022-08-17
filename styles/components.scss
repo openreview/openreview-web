@@ -1126,8 +1126,13 @@ table.table-minimal {
     line-height: 26px;
 
     .col-status {
+      margin-right: 0.25rem;
+      width: 6%;
+    }
+
+    .col-process-status {
       margin-right: 0.5rem;
-      width: 5%;
+      width: 4%;
     }
 
     .name {
