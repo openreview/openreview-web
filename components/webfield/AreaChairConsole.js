@@ -16,9 +16,11 @@ import NoteSummary from './NoteSummary'
 import { AreaChairConsoleNoteReviewStatus } from './NoteReviewStatus'
 import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import TaskList from '../TaskList'
+import BasicModal from '../BasicModal'
+import { uniqBy } from 'lodash'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
-  const allNotesSelected = selectedNoteIds.length === allNoteIds.length
+  const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -37,19 +39,195 @@ const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) 
   )
 }
 
-const MenuBar = () => {
+const MessageReviewersModal = ({
+  notes,
+  messageOption,
+  shortPhrase,
+  selectedNoteIds,
+  reviewersInfo,
+  venueId,
+  officalReviewName,
+  allProfiles,
+}) => {
+  const [currentStep, setCurrentStep] = useState(1)
+  const [error, setError] = useState(null)
+  const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
+  const [message, setMessage] =
+    useState(`Click on the link below to go to the review page:\n\n[[SUBMIT_REVIEW_LINK]]
+  \n\nThank you,\n${shortPhrase} Area Chair`)
+  const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
+  const [recipientsInfo, setRecipientsInfo] = useState([])
+
+  const handlePrimaryButtonClick = () => {
+    if (currentStep === 1) {
+      setCurrentStep(2)
+    }
+  }
+
+  const getRecipients = (messageOption, selecteNoteIds) => {
+    if (!selecteNoteIds.length) return []
+    const selectedNoteNumbers = notes
+      ?.filter((p) => selectedNoteIds.includes(p.id))
+      .map((q) => q.number)
+    const selectedReviewerIds = reviewersInfo
+      ?.filter((p) => selectedNoteNumbers.includes(p.number))
+      .flatMap((q) => q.reviewers)
+    const officialReviewsOfSelectedNotes = notes
+      ?.filter((p) => selectedNoteIds.includes(p.id))
+      ?.flatMap((q) =>
+        q.details.directReplies.filter(
+          (r) => r.invitation === `${venueId}/Paper${q.number}/-/${officalReviewName}`
+        )
+      )
+    const anonymousIdsOfOfficialReviews = officialReviewsOfSelectedNotes.map((p) => {
+      return getNumberFromGroup(p.signatures[0], 'Reviewer_', false)
+    })
+    switch (messageOption.value) {
+      case 'allReviewers':
+        return selectedReviewerIds
+      case 'withReviews':
+        return selectedReviewerIds.filter((p) =>
+          anonymousIdsOfOfficialReviews.includes(p.anonymousId)
+        )
+      case 'missingReviews':
+        return selectedReviewerIds.filter(
+          (p) => !anonymousIdsOfOfficialReviews.includes(p.anonymousId)
+        )
+      default:
+        return []
+    }
+  }
+  const getReviewerName = (reviewerProfile) => {
+    const name =
+      reviewerProfile.content.names.find((t) => t.preferred) ||
+      reviewerProfile.content.names[0]
+    return name ? prettyId(reviewerProfile.id) : `${name.first} ${name.last}`
+  }
+  useEffect(() => {
+    if (!messageOption) return
+    const recipients = getRecipients(messageOption, selectedNoteIds)
+    const recipientsInfo = recipients.map((recipient) => {
+      const reviewerProfile = allProfiles.find(
+        (p) =>
+          p.content.names.some((q) => q.username === recipient.reviewerProfileId) ||
+          p.content.emails.includes(recipient.reviewerProfileId)
+      )
+      const count = recipients.filter(
+        (p) => p.reviewerProfileId === recipient.reviewerProfileId
+      ).length
+      const preferredName = reviewerProfile
+        ? getReviewerName(reviewerProfile)
+        : reviewer.reviewerProfileId
+      const preferredEmail = reviewerProfile
+        ? reviewerProfile.content.preferredEmail ?? reviewerProfile.content.emails[0]
+        : reviewer.reviewerProfileId
+      return {
+        reviewerProfileId: recipient.reviewerProfileId,
+        preferredName,
+        preferredEmail,
+        count,
+      }
+    })
+    setRecipientsInfo(uniqBy(recipientsInfo, (p) => p.reviewerProfileId))
+  }, [messageOption, selectedNoteIds])
+
+  return (
+    <BasicModal
+      id="message-reviewers"
+      title={messageOption?.label}
+      primaryButtonText={primaryButtonText}
+      onPrimaryButtonClick={handlePrimaryButtonClick}
+      onClose={() => {}}
+    >
+      {error && <div className="alert alert-danger">{error}</div>}
+      {currentStep === 1 ? (
+        <>
+          <p>
+            You may customize the message that will be sent to the reviewers. In the email
+            body, the text [[SUBMIT_REVIEW_LINK]] will be replaced with a hyperlink to the form
+            where the reviewer can fill out his or her review.
+          </p>
+          <div className="form-group">
+            <label htmlFor="subject">Email Subject</label>
+            <input
+              type="text"
+              name="subject"
+              className="form-control"
+              value={subject}
+              required
+              onChange={(e) => setSubject(e.target.value)}
+            />
+            <label htmlFor="message">Email Body</label>
+            <textarea
+              name="message"
+              className="form-control"
+              rows="6"
+              value={message}
+              required
+              onChange={(e) => setMessage(e.target.value)}
+            />
+          </div>
+        </>
+      ) : (
+        <>
+          <p>
+            A total of <span className="num-reviewers"></span> reminder emails will be sent to
+            the following reviewers:
+          </p>
+          <div className="well reviewer-list">
+            {recipientsInfo.map((recipientInfo) => (
+              <li key={recipientInfo.preferredEmail}>{`${recipientInfo.preferredName} <${
+                recipientInfo.preferredEmail
+              }>${recipientInfo.count > 1 ? ` --- (×${recipientInfo.count})` : ''}`}</li>
+            ))}
+          </div>
+        </>
+      )}
+    </BasicModal>
+  )
+}
+
+const MenuBar = ({
+  notes,
+  selectedNoteIds,
+  shortPhrase,
+  reviewersInfo,
+  venueId,
+  officalReviewName,
+  allProfiles,
+}) => {
+  const disabledMessageButton = selectedNoteIds.length === 0
+  const messageReviewerOptions = [
+    { label: 'All Reviewers of selected papers', value: 'allReviewers' },
+    { label: 'Reviewers of selected papers with submitted reviews', value: 'withReviews' },
+    {
+      label: 'Reviewers of selected papers with unsubmitted reviews',
+      value: 'missingReviews',
+    },
+  ]
+  const [messageOption, setMessageOption] = useState(null)
+
+  const handleMessageDropdownChange = (option) => {
+    setMessageOption(option)
+    $('#message-reviewers').modal('show')
+  }
+
   return (
     <div className="menu-bar">
       <div className="message-button-container">
-        <button className="btn message-button">
+        <button className={`btn message-button${disabledMessageButton ? ' disabled' : ''}`}>
           <Icon name="envelope" />
           <Dropdown
-            className="dropdown-sm message-button-dropdown"
-            placeholder="Message"
+            className={`dropdown-sm message-button-dropdown${
+              disabledMessageButton ? ' dropdown-disabled' : ''
+            }`}
+            options={messageReviewerOptions}
             components={{
               IndicatorSeparator: () => null,
               DropdownIndicator: () => null,
             }}
+            value={{ label: 'Message', value: '' }}
+            onChange={handleMessageDropdownChange}
           />
         </button>
       </div>
@@ -65,10 +243,21 @@ const MenuBar = () => {
       <Dropdown
         className="dropdown-sm sort-dropdown"
         value={{ label: 'Paper Number', value: '' }}
+        options={[{ label: 'test123' }]}
       />
       <button className="btn btn-icon sort-button">
         <Icon name="sort" />
       </button>
+      <MessageReviewersModal
+        notes={notes}
+        messageOption={messageOption}
+        shortPhrase={shortPhrase}
+        selectedNoteIds={selectedNoteIds}
+        reviewersInfo={reviewersInfo}
+        venueId={venueId}
+        officalReviewName={officalReviewName}
+        allProfiles={allProfiles}
+      />
     </div>
   )
 }
@@ -265,6 +454,7 @@ const AreaChairConsole = ({ appContext }) => {
     reviewerGroupWithConflict,
     officialMetaReviewName,
     metaReviewContentField,
+    shortPhrase,
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
   const router = useRouter()
@@ -550,6 +740,7 @@ const AreaChairConsole = ({ appContext }) => {
     reviewerGroupWithConflict,
     officialMetaReviewName,
     metaReviewContentField,
+    shortPhrase,
   }).filter(([key, value]) => value === undefined)
   if (missingConfig?.length) {
     const errorMessage = `AC Console is missing required properties: ${
@@ -580,7 +771,15 @@ const AreaChairConsole = ({ appContext }) => {
               </p>
             ) : (
               <div className="table-container">
-                <MenuBar />
+                <MenuBar
+                  notes={acConsoleData.notes}
+                  selectedNoteIds={selectedNoteIds}
+                  shortPhrase={shortPhrase}
+                  reviewersInfo={acConsoleData.reviewersInfo}
+                  venueId={venueId}
+                  officalReviewName={officalReviewName}
+                  allProfiles={acConsoleData.allProfiles}
+                />
                 <Table
                   className="console-table table-striped"
                   headings={[
@@ -590,7 +789,7 @@ const AreaChairConsole = ({ appContext }) => {
                         <SelectAllCheckBox
                           selectedNoteIds={selectedNoteIds}
                           setSelectedNoteIds={setSelectedNoteIds}
-                          allNoteIds={acConsoleData.notes?.map((p) => p.id) ?? []}
+                          allNoteIds={acConsoleData.notes?.map((p) => p.id)}
                         />
                       ),
                       width: '8%',

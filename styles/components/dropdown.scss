@@ -66,11 +66,31 @@
   &__control {
     background-color: constants.$mediumBlue;
     border: none;
+    width: fit-content;
   }
   &__placeholder {
     color: white;
   }
+  &__single-value {
+    color: white !important;
+  }
   &__indicator &__dropdown-indicator {
     color: white;
   }
+  &__menu {
+    background-color: white;
+    width: fit-content;
+  }
+  &__menu-list {
+    width: fit-content;
+  }
+  &__option {
+    color: black;
+    text-align: left;
+    font-weight: normal;
+  }
+}
+
+.dropdown-disabled {
+  pointer-events: none;
 }
