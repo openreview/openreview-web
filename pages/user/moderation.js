@@ -118,7 +118,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCount }
       const result = await api.get(
         '/notes',
         {
-          invitation: 'openreview.net/Support/-/Profile_Name_Removal',
+          invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
         },
         { accessToken }
       )
@@ -143,8 +143,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCount }
   }
 
   const acceptRejectNameDeletionNote = async (nameDeletionNote, response, supportComment) => {
-    const nameDeletionDecisionInvitationId =
-      'openreview.net/Support/-/Profile_Name_Removal_Decision'
+    const nameDeletionDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal_Decision`
     try {
       setIdsLoading((p) => [...p, nameDeletionNote.id])
       const invitationResult = await api.get(

@@ -60,7 +60,7 @@ const NamesButton = ({
   )
 }
 
-const nameDeletionInvitationId = 'openreview.net/Support/-/Profile_Name_Removal'
+const nameDeletionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`
 const NameDeleteRequestModal = ({
   nameToRequestDelete,
   setNameToRequestDelete,
