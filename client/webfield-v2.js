@@ -1896,25 +1896,25 @@ module.exports = (function() {
     var $tagWidget = view.mkTagInput(
       '_',
       {
-        'value-dropdown': invitation.edge[options.fieldName].enum
+        'value-dropdown': invitation.edge[options.fieldName].param.enum
       },
       invitation.details.repliedEdges.map(function(e){ return { id: e.id, tag: e[options.fieldName] }; }),
       {
-        placeholder: invitation.edge[options.fieldName].presentation.default,
+        placeholder: invitation.edge[options.fieldName].param.default,
         label: view.prettyInvitationId(invitation.id),
         readOnly: false,
         onChange: function(id, value, deleted, done) {
           var body = {
-            head: invitation.edge.head.const,
+            head: invitation.edge.head.param.const,
             tail: user.profile.id,
             signatures: [user.profile.id],
-            readers: invitation.edge.readers.const.map(function(r) { return r == '${tail}' ? user.profile.id : r; }),
-            writers: invitation.edge.writers.const.map(function(r) { return r == '${tail}' ? user.profile.id : r; }),
-            invitation: invitation.id,
-            ddate: deleted ? Date.now() : null
+            invitation: invitation.id
           };
           if (id) {
             body.id = id;
+          }
+          if (deleted) {
+            body.ddate = Date.now();
           }
           if (options.fieldName == 'weight') {
             body.weight = parseInt(value);
