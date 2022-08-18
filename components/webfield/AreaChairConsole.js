@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useState } from 'react'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import WebFieldContext from '../WebFieldContext'
@@ -17,7 +17,7 @@ import { AreaChairConsoleNoteReviewStatus } from './NoteReviewStatus'
 import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import TaskList from '../TaskList'
 import BasicModal from '../BasicModal'
-import { uniqBy } from 'lodash'
+import { debounce, uniqBy } from 'lodash'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
   const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
@@ -230,6 +230,7 @@ const MenuBar = ({
   venueId,
   officialReviewName,
   allProfiles,
+  setAcConsoleData,
 }) => {
   const disabledMessageButton = selectedNoteIds.length === 0
   const messageReviewerOptions = [
@@ -241,11 +242,37 @@ const MenuBar = ({
     },
   ]
   const [messageOption, setMessageOption] = useState(null)
+  const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
 
   const handleMessageDropdownChange = (option) => {
     setMessageOption(option)
     $('#message-reviewers').modal('show')
   }
+
+  const delaySearch = useCallback(
+    debounce((term) => setSearchTerm(term), 300),
+    []
+  )
+
+  useEffect(() => {
+    if (!searchTerm) {
+      setAcConsoleData((acConsoleData) => ({
+        ...acConsoleData,
+        notesDisplayed: notes,
+      }))
+      return
+    }
+    const cleanSearchTerm = searchTerm.trim().toLowerCase()
+    setAcConsoleData((acConsoleData) => ({
+      ...acConsoleData,
+      notesDisplayed: notes.filter(
+        (note) =>
+          note.number == cleanSearchTerm ||
+          note.content.title.toLowerCase().includes(cleanSearchTerm)
+      ),
+    }))
+  }, [searchTerm])
 
   return (
     <div className="menu-bar">
@@ -273,6 +300,11 @@ const MenuBar = ({
       <input
         className="form-control search-input"
         placeholder="Enter search term or type + to start a query and press enter"
+        value={immediateSearchTerm}
+        onChange={(e) => {
+          setImmediateSearchTerm(e.target.value)
+          delaySearch(e.target.value)
+        }}
       />
       <span className="sort-label">Sort by:</span>
       <Dropdown
@@ -671,48 +703,8 @@ const AreaChairConsole = ({ appContext }) => {
 
       setAcConsoleData({
         notes: result[0],
+        notesDisplayed: result[0],
         reviewersInfo: result[1],
-        // ?.map((p) => ({
-        //   ...p,
-        //   reviewers: p.reviewers.map((q) => {
-        //     let reviewerProfile = profileResults[0].profiles
-        //       .concat(profileResults[1])
-        //       .find(
-        //         (r) =>
-        //           r.content.names.some((s) => s.username === q.reviewerProfileId) ||
-        //           r.content.emails.includes(q.reviewerProfileId)
-        //       )
-        //     if (reviewerProfile) {
-        //       const name =
-        //         reviewerProfile.content.names.find((t) => t.preferred) ||
-        //         reviewerProfile.content.names[0]
-        //       reviewerProfile = {
-        //         id: q.reviewerProfileId,
-        //         name: name ? prettyId(reviewerProfile.id) : `${name.first} ${name.last}`,
-        //         email:
-        //           reviewerProfile.content.preferredEmail ?? reviewerProfile.content.emails[0],
-        //         allEmails: reviewerProfile.content.emailsConfirmed,
-        //         names: reviewerProfile.content.names,
-        //         emails: reviewerProfile.content.emailsConfirmed,
-        //       }
-        //     } else {
-        //       reviewerProfile = {
-        //         id: q.reviewerProfileId,
-        //         name: '',
-        //         email: q.reviewerProfileId,
-        //         allEmails: [q.reviewerProfileId],
-        //         // content: {
-        //         //   names: [{ username: q.reviewerProfileId }],
-        //         // },
-        //         names: [q.reviewerProfileId],
-        //         emails: [q.reviewerProfileId],
-        //       }
-        //     }
-
-        //     // return { ...q, reviewerProfile }
-        //     return q
-        //   }),
-        // })),
         reviewerRankingByPaper: result[3],
         reviewerGroupMembers: result[4],
         allProfiles: profileResults[0].profiles.concat(profileResults[1].profiles),
@@ -720,6 +712,89 @@ const AreaChairConsole = ({ appContext }) => {
     } catch (error) {
       promptError(error.message)
     }
+  }
+
+  const renderTable = () => {
+    if (acConsoleData.notes?.length === 0)
+      return (
+        <p className="empty-message">
+          No assigned papers.Check back later or contact info@openreview.net if you believe
+          this to be an error.
+        </p>
+      )
+    if (acConsoleData.notesDisplayed?.length === 0)
+      return (
+        <div className="table-container">
+          <MenuBar
+            notes={acConsoleData.notes}
+            selectedNoteIds={selectedNoteIds}
+            shortPhrase={shortPhrase}
+            reviewersInfo={acConsoleData.reviewersInfo}
+            venueId={venueId}
+            officialReviewName={officialReviewName}
+            allProfiles={acConsoleData.allProfiles}
+            setAcConsoleData={setAcConsoleData}
+          />
+          <p className="empty-message">No assigned papers matching search criteria.</p>
+        </div>
+      )
+    return (
+      <div className="table-container">
+        <MenuBar
+          notes={acConsoleData.notes}
+          selectedNoteIds={selectedNoteIds}
+          shortPhrase={shortPhrase}
+          reviewersInfo={acConsoleData.reviewersInfo}
+          venueId={venueId}
+          officialReviewName={officialReviewName}
+          allProfiles={acConsoleData.allProfiles}
+          setAcConsoleData={setAcConsoleData}
+        />
+        <Table
+          className="console-table table-striped"
+          headings={[
+            {
+              id: 'select-all',
+              content: (
+                <SelectAllCheckBox
+                  selectedNoteIds={selectedNoteIds}
+                  setSelectedNoteIds={setSelectedNoteIds}
+                  allNoteIds={acConsoleData.notesDisplayed?.map((p) => p.id)}
+                />
+              ),
+              width: '8%',
+            },
+            { id: 'number', content: '#', width: '8%' },
+            { id: 'summary', content: 'Paper Summary', width: '46%' },
+            { id: 'reviewProgress', content: 'Review Progress', width: '46%' },
+            { id: 'metaReviewStatus', content: 'Meta Review Status', width: '46%' },
+          ]}
+        >
+          {acConsoleData.notesDisplayed?.map((note) => (
+            <AssignedPaperRow
+              key={note.id}
+              note={note}
+              venueId={venueId}
+              areaChairName={areaChairName}
+              reviewersInfo={acConsoleData.reviewersInfo}
+              officialReviewName={officialReviewName}
+              reviewRatingName={reviewRatingName}
+              reviewConfidenceName={reviewConfidenceName}
+              enableReviewerReassignment={enableReviewerReassignment}
+              reviewerRankingByPaper={acConsoleData.reviewerRankingByPaper}
+              reviewerGroupMembers={acConsoleData.reviewerGroupMembers}
+              allProfiles={acConsoleData.allProfiles}
+              reviewerGroupWithConflict={reviewerGroupWithConflict}
+              officialMetaReviewName={officialMetaReviewName}
+              submissionName={submissionName}
+              metaReviewContentField={metaReviewContentField}
+              selectedNoteIds={selectedNoteIds}
+              setSelectedNoteIds={setSelectedNoteIds}
+            />
+          ))}
+        </Table>
+      </div>
+    )
   }
 
   useEffect(() => {
@@ -798,69 +873,7 @@ const AreaChairConsole = ({ appContext }) => {
         </TabList>
 
         <TabPanels>
-          <TabPanel id="assigned-papers">
-            {acConsoleData.notes?.length === 0 ? (
-              <p className="empty-message">
-                No assigned papers.Check back later or contact info@openreview.net if you
-                believe this to be an error.
-              </p>
-            ) : (
-              <div className="table-container">
-                <MenuBar
-                  notes={acConsoleData.notes}
-                  selectedNoteIds={selectedNoteIds}
-                  shortPhrase={shortPhrase}
-                  reviewersInfo={acConsoleData.reviewersInfo}
-                  venueId={venueId}
-                  officialReviewName={officialReviewName}
-                  allProfiles={acConsoleData.allProfiles}
-                />
-                <Table
-                  className="console-table table-striped"
-                  headings={[
-                    {
-                      id: 'select-all',
-                      content: (
-                        <SelectAllCheckBox
-                          selectedNoteIds={selectedNoteIds}
-                          setSelectedNoteIds={setSelectedNoteIds}
-                          allNoteIds={acConsoleData.notes?.map((p) => p.id)}
-                        />
-                      ),
-                      width: '8%',
-                    },
-                    { id: 'number', content: '#', width: '8%' },
-                    { id: 'summary', content: 'Paper Summary', width: '46%' },
-                    { id: 'reviewProgress', content: 'Review Progress', width: '46%' },
-                    { id: 'metaReviewStatus', content: 'Meta Review Status', width: '46%' },
-                  ]}
-                >
-                  {acConsoleData.notes?.map((note) => (
-                    <AssignedPaperRow
-                      key={note.id}
-                      note={note}
-                      venueId={venueId}
-                      areaChairName={areaChairName}
-                      reviewersInfo={acConsoleData.reviewersInfo}
-                      officialReviewName={officialReviewName}
-                      reviewRatingName={reviewRatingName}
-                      reviewConfidenceName={reviewConfidenceName}
-                      enableReviewerReassignment={enableReviewerReassignment}
-                      reviewerRankingByPaper={acConsoleData.reviewerRankingByPaper}
-                      reviewerGroupMembers={acConsoleData.reviewerGroupMembers}
-                      allProfiles={acConsoleData.allProfiles}
-                      reviewerGroupWithConflict={reviewerGroupWithConflict}
-                      officialMetaReviewName={officialMetaReviewName}
-                      submissionName={submissionName}
-                      metaReviewContentField={metaReviewContentField}
-                      selectedNoteIds={selectedNoteIds}
-                      setSelectedNoteIds={setSelectedNoteIds}
-                    />
-                  ))}
-                </Table>
-              </div>
-            )}
-          </TabPanel>
+          <TabPanel id="assigned-papers">{renderTable()}</TabPanel>
           <TabPanel id="areachair-tasks">
             {activeTabIndex === 1 && (
               <AreaChairConsoleTasks
