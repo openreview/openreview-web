@@ -1776,7 +1776,7 @@ module.exports = (function() {
           } else {
             //value-checkbox
             inputVal = $contentMap[k].find('.note_content_value input[type="checkbox"]').prop('checked') ?
-                contentObj.enum[0] :
+                contentObj.param.enum[0] :
                 '';
           }
         } else if (presentationObj.input === 'select' || !(_.has(presentationObj, 'input'))) {
@@ -1870,6 +1870,12 @@ module.exports = (function() {
   };
 
   var getReaders = function(widget, invitation, signatures, isEdit = false) {
+    if (isEdit && Array.isArray(invitation.edit.readers)) {
+      return undefined;
+    }
+    if (Array.isArray(invitation.edit.note?.readers)) {
+      return undefined;
+    }
     var readers = invitation.edit ? (isEdit ? invitation.edit.readers : invitation.edit.note?.readers) : invitation.reply.readers
     var inputValues = view.idsFromListAdder(widget, readers);
 
