@@ -1858,6 +1858,9 @@ module.exports = (function() {
     if (writers && Array.isArray(writers)) {
       return writers;
     }
+    if (writers && _.has(writers, 'param') && _.has(writers.param, 'const')){
+      return writers.param.const;
+    }
 
     if (writers && _.has(writers, 'param') && writers.param.regex === '~.*') {
       return [user.profile.id];
@@ -1871,8 +1874,8 @@ module.exports = (function() {
     var inputValues = view.idsFromListAdder(widget, readers);
 
     var invitationValues = [];
-    if (_.has(readers, 'enum')) {
-      invitationValues = readers.enum.map(function(v) { return _.has(v, 'id') ? v.id : v; });
+    if (_.has(readers, 'param') && _.has(readers.param, 'enum')) {
+      invitationValues = readers.param.enum.map(function(v) { return _.has(v, 'id') ? v.id : v; });
     }
 
     // Add signature if exists in the invitation readers list
