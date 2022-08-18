@@ -58,8 +58,8 @@ const Group = ({ groupId, webfieldCode, writable, componentObj, appContext }) =>
 
     setWebComponent(
       dynamic(() =>
-        import(`../../components/webfield/${componentObj.component}`).catch(() => {
-          promptError(`Error loading ${componentObj.component}`)
+        import(`../../components/webfield/${componentObj.component}`).catch((e) => {
+          promptError(`Error loading ${componentObj.component}: ${e.message}`)
         })
       )
     )

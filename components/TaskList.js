@@ -88,7 +88,7 @@ const TaskList = ({
     )
   }
 
-  return invitations.length ? (
+  return invitations?.length ? (
     <ul className="list-unstyled submissions-list task-list">
       {invitations.map((invitation) => (
         <li key={invitation.id} className={`note${invitation.completed ? ' completed' : ''}`}>
