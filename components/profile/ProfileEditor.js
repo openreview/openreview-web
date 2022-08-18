@@ -15,6 +15,7 @@ import ProfileSection from './ProfileSection'
 import RelationsSection from './RelationsSection'
 import api from '../../lib/api-client'
 import { isValidDomain, isValidEmail, isValidYear } from '../../lib/utils'
+import BirthDateSection from './BirthDateSection'
 
 export default function ProfileEditor({
   loadedProfile,
@@ -82,6 +83,7 @@ export default function ProfileEditor({
     let profileContent = {
       ...profile,
       names: profile.names.flatMap((p) => (p.first || p.middle || p.last ? p : [])),
+      yearOfBirth: profile.yearOfBirth ? Number.parseInt(profile.yearOfBirth, 10) : undefined,
       emails: profile.emails.flatMap((p) => (p.email ? p : [])),
       links: undefined,
       ...profile.links,
@@ -336,6 +338,18 @@ export default function ProfileEditor({
         <GenderSection
           profileGender={profile?.gender}
           updateGender={(gender) => setProfile({ type: 'gender', data: gender })}
+        />
+      </ProfileSection>
+
+      <ProfileSection
+        title="Year Of Birth"
+        instructions="This information is solely used by OpenReview to disambiguate user profiles. It will never be released publicly or shared with venue organizers. (Optional)"
+      >
+        <BirthDateSection
+          profileYearOfBirth={profile?.yearOfBirth}
+          updateYearOfBirth={(yearOfBirth) =>
+            setProfile({ type: 'yearOfBirth', data: yearOfBirth })
+          }
         />
       </ProfileSection>
 
