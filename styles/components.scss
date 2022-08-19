@@ -33,6 +33,10 @@
         margin-left: 2px;
         margin-top: -2px;
       }
+
+      > span.glyphicon {
+        margin-left: 0.25rem;
+      }
     }
 
     &.active {
@@ -582,6 +586,7 @@ table.table-minimal {
     color: constants.$subtleGray;
     margin-top: 4px;
     margin-bottom: 4px;
+    margin-right: 0.25rem;
   }
   a,
   span {
