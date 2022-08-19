@@ -171,10 +171,8 @@ export default function Forum({
       parentIdMap[parentId].push(note.id)
 
       // Populate filter options
-      note.invitations.forEach((noteInv) =>
-        invitationIds.add(
-          noteInv.replace(numberWildcard, '$1.*').replace(usernameWildcard, '.*$2')
-        )
+      invitationIds.add(
+        note.invitations[0].replace(numberWildcard, '$1.*').replace(usernameWildcard, '.*$2')
       )
       note.signatures.forEach((noteSig) => signatureGroupIds.add(noteSig))
       note.readers.forEach((rId) => readerGroupIds.add(rId))
@@ -650,7 +648,7 @@ export default function Forum({
         </div>
       )}
 
-      <div className="row mt-3">
+      <div className="row mt-3 forum-replies-container">
         <div className="col-xs-12">
           <div id="forum-replies">
             <ForumReplyContext.Provider
