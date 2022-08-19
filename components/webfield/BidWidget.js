@@ -13,12 +13,17 @@ export const BidScore = ({ scoreEdge }) => {
   )
 }
 
-export const BidRadioButtonGroup = ({ options, selectedBidOption, updateBidOption }) => {
+export const BidRadioButtonGroup = ({
+  options,
+  selectedBidOption,
+  updateBidOption,
+  bidUpdateStatus,
+}) => {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     setIsLoading(false)
-  }, [selectedBidOption])
+  }, [selectedBidOption, bidUpdateStatus])
 
   return (
     <div className="tag-widget edge-widget" data-type="radio">
@@ -41,7 +46,7 @@ export const BidRadioButtonGroup = ({ options, selectedBidOption, updateBidOptio
               updateBidOption(option)
             }}
           >
-            <input type="radio" name="tag-options" autoComplete="off" /> {option}
+            {option}
           </label>
         ))}
       </div>

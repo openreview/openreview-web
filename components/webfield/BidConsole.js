@@ -7,7 +7,6 @@ import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import useQuery from '../../hooks/useQuery'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
-import { NoteListWithBidWidget } from '../NoteList'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import Icon from '../Icon'
@@ -16,6 +15,7 @@ import { prettyInvitationId } from '../../lib/utils'
 import LoadingSpinner from '../LoadingSpinner'
 import PaginationLinks from '../PaginationLinks'
 import ErrorDisplay from '../ErrorDisplay'
+import NoteListWithBidWidget from '../NoteListWithBidWidget'
 
 const buildArray = (invitation, fieldName, profileId, noteNumber) => {
   if (invitation.reply?.[fieldName]?.values) return invitation.reply[fieldName].values
@@ -88,6 +88,7 @@ const AllSubmissionsTab = ({
   const [totalCount, setTotalCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [scoreEdges, setScoreEdges] = useState([])
+  const [bidUpdateStatus, setBidUpdateStatus] = useState(true)
   const sortOptions = scoreIds.map((p) => ({ label: prettyInvitationId(p), value: p }))
   const pageSize = 50
 
@@ -224,6 +225,7 @@ const AllSubmissionsTab = ({
       setBidEdges([...bidEdges.filter((p) => p.id !== existingBidToUpdate?.id), result])
     } catch (error) {
       promptError(error.message)
+      setBidUpdateStatus((status) => !status)
     }
   }
 
@@ -312,6 +314,7 @@ const AllSubmissionsTab = ({
             }}
             updateBidOption={updateBidOption}
             apiVersion={apiVersion}
+            bidUpdateStatus={bidUpdateStatus}
           />
           {!searchTerm && (
             <PaginationLinks
@@ -342,6 +345,7 @@ const NoBidTab = ({
   const [isLoading, setIsLoading] = useState(true)
   const { user, accessToken } = useUser()
   const selectedScore = scoreIds[0]
+  const [bidUpdateStatus, setBidUpdateStatus] = useState(true)
 
   const getNotesWithNoBids = async () => {
     setIsLoading(true)
@@ -451,6 +455,7 @@ const NoBidTab = ({
       setNotes((notes) => notes.filter((p) => p.id !== note.id)) // eslint-disable-line no-shadow
     } catch (error) {
       promptError(error.message)
+      setBidUpdateStatus((status) => !status)
     }
   }
 
@@ -473,6 +478,7 @@ const NoBidTab = ({
       updateBidOption={updateBidOption}
       virtualList={true}
       apiVersion={apiVersion}
+      bidUpdateStatus={bidUpdateStatus}
     />
   )
 }
@@ -489,6 +495,7 @@ const BidOptionTab = ({
   const [isLoading, setIsLoading] = useState(true)
   const { user, accessToken } = useUser()
   const noteIds = bidEdges.filter((p) => p.label === bidOption).map((q) => q.head)
+  const [bidUpdateStatus, setBidUpdateStatus] = useState(true)
 
   const getNotesByBids = async () => {
     setIsLoading(true)
@@ -544,6 +551,7 @@ const BidOptionTab = ({
       setNotes((notes) => notes.filter((p) => p.id !== note.id)) // eslint-disable-line no-shadow
     } catch (error) {
       promptError(error.message)
+      setBidUpdateStatus((status) => !status)
     }
   }
 
@@ -571,6 +579,7 @@ const BidOptionTab = ({
       }}
       updateBidOption={updateBidOption}
       apiVersion={apiVersion}
+      bidUpdateStatus={bidUpdateStatus}
     />
   )
 }
