@@ -18,6 +18,7 @@ import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import TaskList from '../TaskList'
 import BasicModal from '../BasicModal'
 import { debounce, uniqBy } from 'lodash'
+import { filterCollections } from '../../lib/webfield-utils'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
   const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
@@ -40,7 +41,7 @@ const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) 
 }
 
 const MessageReviewersModal = ({
-  notes,
+  tableRowsDisplayed,
   messageOption,
   shortPhrase,
   selectedNoteIds,
@@ -71,7 +72,7 @@ const MessageReviewersModal = ({
     // send emails
     try {
       const sendEmailPs = selectedNoteIds.map((noteId) => {
-        const note = notes.find((p) => p.id === noteId)
+        const note = tableRowsDisplayed.find((row) => row.note.id === noteId)
         const reviewerIds = recipientsInfo
           .filter((p) => p.noteNumber === note.number)
           .map((q) => q.reviewerProfileId)
@@ -97,66 +98,80 @@ const MessageReviewersModal = ({
 
   const getRecipients = (messageOption, selecteNoteIds) => {
     if (!selecteNoteIds.length) return []
-    const selectedNoteNumbers = notes
-      ?.filter((p) => selectedNoteIds.includes(p.id))
-      .map((q) => q.number)
-    const selectedReviewerIds = reviewersInfo
-      ?.filter((p) => selectedNoteNumbers.includes(p.number))
-      .flatMap((q) => q.reviewers.map((r) => ({ ...r, noteNumber: q.number })))
-    const officialReviewsOfSelectedNotes = notes
-      ?.filter((p) => selectedNoteIds.includes(p.id))
-      ?.flatMap((q) =>
-        q.details.directReplies.filter(
-          (r) => r.invitation === `${venueId}/Paper${q.number}/-/${officialReviewName}`
-        )
-      )
-    const anonymousIdsOfOfficialReviews = officialReviewsOfSelectedNotes.map((p) => {
-      return getNumberFromGroup(p.signatures[0], 'Reviewer_', false)
-    })
+    // const selectedNoteNumbers = tableRowsDisplayed
+    //   ?.filter((p) => selectedNoteIds.includes(p.note.id))
+    //   .map((q) => q.note.number)
+    // const selectedReviewerIds = reviewersInfo
+    //   ?.filter((p) => selectedNoteNumbers.includes(p.number))
+    //   .flatMap((q) => q.reviewers.map((r) => ({ ...r, noteNumber: q.number })))
+    // const officialReviewsOfSelectedNotes = notes
+    //   ?.filter((p) => selectedNoteIds.includes(p.id))
+    //   ?.flatMap((q) =>
+    //     q.details.directReplies.filter(
+    //       (r) => r.invitation === `${venueId}/Paper${q.number}/-/${officialReviewName}`
+    //     )
+    //   )
+    // const anonymousIdsOfOfficialReviews = officialReviewsOfSelectedNotes.map((p) => {
+    //   return getNumberFromGroup(p.signatures[0], 'Reviewer_', false)
+    // })
+    const selectedRows = tableRowsDisplayed.filter((row) =>
+      selecteNoteIds.includes(row.note.id)
+    )
+
+    // const selectedReviewerIds = reviewersInfo
+    //   ?.filter((p) => selectedRows.map((q) => q.note.number).includes(p.number))
+    //   .flatMap((r) => r.reviewers.map((s) => ({ ...s, noteNumber: r.number })))
+
     switch (messageOption.value) {
       case 'allReviewers':
-        return selectedReviewerIds
+        // return selectedReviewerIds
+        return selectedRows.flatMap((row) => row.reviewers)
       case 'withReviews':
-        return selectedReviewerIds.filter((p) =>
-          anonymousIdsOfOfficialReviews.includes(p.anonymousId)
-        )
+        // return selectedReviewerIds.filter((p) =>
+        //   anonymousIdsOfOfficialReviews.includes(p.anonymousId)
+        // )
+        return selectedRows
+          .flatMap((row) => row.reviewers)
+          .filter((reviewer) => reviewer.hasReview)
       case 'missingReviews':
-        return selectedReviewerIds.filter(
-          (p) => !anonymousIdsOfOfficialReviews.includes(p.anonymousId)
-        )
+        // return selectedReviewerIds.filter(
+        //   (p) => !anonymousIdsOfOfficialReviews.includes(p.anonymousId)
+        // )
+        return selectedRows
+          .flatMap((row) => row.reviewers)
+          .filter((reviewer) => !reviewer.hasReview)
       default:
         return []
     }
   }
-  const getReviewerName = (reviewerProfile) => {
-    const name =
-      reviewerProfile.content.names.find((t) => t.preferred) ||
-      reviewerProfile.content.names[0]
-    return name ? prettyId(reviewerProfile.id) : `${name.first} ${name.last}`
-  }
+
   useEffect(() => {
     if (!messageOption) return
     const recipients = getRecipients(messageOption, selectedNoteIds)
     const recipientsInfo = recipients.map((recipient) => {
-      const reviewerProfile = allProfiles.find(
-        (p) =>
-          p.content.names.some((q) => q.username === recipient.reviewerProfileId) ||
-          p.content.emails.includes(recipient.reviewerProfileId)
-      )
+      // const reviewerProfile = allProfiles.find(
+      //   (p) =>
+      //     p.content.names.some((q) => q.username === recipient.reviewerProfileId) ||
+      //     p.content.emails.includes(recipient.reviewerProfileId)
+      // )
       const count = recipients.filter(
         (p) => p.reviewerProfileId === recipient.reviewerProfileId
       ).length
-      const preferredName = reviewerProfile
-        ? getReviewerName(reviewerProfile)
-        : reviewer.reviewerProfileId
-      const preferredEmail = reviewerProfile
-        ? reviewerProfile.content.preferredEmail ?? reviewerProfile.content.emails[0]
-        : reviewer.reviewerProfileId
+      // const preferredName = recipient.profile
+      //   ? getReviewerName(recipient.profile)
+      //   : recipient.reviewerProfileId
+      // const preferredEmail = recipient.profile
+      //   ? recipient.profile.content.preferredEmail ?? recipient.profile.content.emails[0]
+      //   : recipient.reviewerProfileId
+      // return {
+      //   noteNumber: recipient.noteNumber,
+      //   reviewerProfileId: recipient.reviewerProfileId,
+      //   preferredName,
+      //   preferredEmail,
+      //   count,
+      // }
       return {
-        noteNumber: recipient.noteNumber,
-        reviewerProfileId: recipient.reviewerProfileId,
-        preferredName,
-        preferredEmail,
+        ...recipient,
         count,
       }
     })
@@ -222,8 +237,54 @@ const MessageReviewersModal = ({
   )
 }
 
+const QuerySearchInfoModal = ({ filterOperators, propertiesAllowed }) => {
+  return (
+    <BasicModal
+      id="query-search-info"
+      title="Query Search"
+      primaryButtonText={null}
+      cancelButtonText="OK"
+    >
+      <>
+        <strong className="tooltip-title">Query Mode Help</strong>
+        <p>
+          In Query mode, you can enter an expression and hit ENTER to search.
+          <br /> The expression consists of property of a paper and a value you would like to
+          search.
+        </p>
+        <p>e.g. +number=5 will return the paper 5</p>
+        <p>
+          Expressions may also be combined with AND/OR.
+          <br />
+          e.g. +number=5 OR number=6 OR number=7 will return paper 5,6 and 7.
+          <br />
+          If the value has multiple words, it should be enclosed in double quotes.
+          <br />
+          e.g. +title="some title to search"
+        </p>
+        <p>
+          Braces can be used to organize expressions.
+          <br />
+          e.g. +number=1 OR ((number=5 AND number=7) OR number=8) will return paper 1 and 8.
+        </p>
+        <p>
+          <strong>Operators available</strong>
+          {`: ${filterOperators.join(', ')}`}
+        </p>
+        <p>
+          <strong>Properties available</strong>
+        </p>
+        {Object.keys(propertiesAllowed).map((key) => {
+          return <li>{key}</li>
+        })}
+      </>
+    </BasicModal>
+  )
+}
+
 const MenuBar = ({
-  notes,
+  tableRows,
+  tableRowsDisplayed,
   selectedNoteIds,
   shortPhrase,
   reviewersInfo,
@@ -231,7 +292,10 @@ const MenuBar = ({
   officialReviewName,
   allProfiles,
   setAcConsoleData,
+  filterOperators,
+  propertiesAllowed,
 }) => {
+  console.log('tableRowsDisplayed', tableRowsDisplayed)
   const disabledMessageButton = selectedNoteIds.length === 0
   const messageReviewerOptions = [
     { label: 'All Reviewers of selected papers', value: 'allReviewers' },
@@ -244,6 +308,8 @@ const MenuBar = ({
   const [messageOption, setMessageOption] = useState(null)
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
+  const [queryIsInvalid, setQueryIsInvalid] = useState(false)
+  const [isQuerySearch, setIsQuerySearch] = useState(false)
 
   const handleMessageDropdownChange = (option) => {
     setMessageOption(option)
@@ -255,21 +321,48 @@ const MenuBar = ({
     []
   )
 
+  const keyDownHandler = (e) => {
+    if (e.key !== 'Enter' || !filterOperators || !propertiesAllowed) return
+    console.log('immediateSearchTerm', immediateSearchTerm)
+    const cleanImmediateSearchTerm = immediateSearchTerm.trim()
+    // query search
+    const { filteredRows, queryIsInvalid } = filterCollections(
+      tableRows,
+      cleanImmediateSearchTerm.slice(1),
+      filterOperators,
+      propertiesAllowed,
+      'note.id'
+    )
+    if (queryIsInvalid) {
+      setQueryIsInvalid(true)
+      return
+    }
+    setAcConsoleData((acConsoleData) => ({
+      ...acConsoleData,
+      tableRowsDisplayed: filteredRows,
+    }))
+  }
+
+  const handleQuerySearchInfoClick = () => {
+    $('#query-search-info').modal('show')
+  }
+
   useEffect(() => {
     if (!searchTerm) {
       setAcConsoleData((acConsoleData) => ({
         ...acConsoleData,
-        notesDisplayed: notes,
+        tableRowsDisplayed: acConsoleData.tableRows,
       }))
       return
     }
     const cleanSearchTerm = searchTerm.trim().toLowerCase()
+    if (cleanSearchTerm.startsWith('+')) return // will be handled in keyDownHandler
     setAcConsoleData((acConsoleData) => ({
       ...acConsoleData,
-      notesDisplayed: notes.filter(
-        (note) =>
-          note.number == cleanSearchTerm ||
-          note.content.title.toLowerCase().includes(cleanSearchTerm)
+      tableRowsDisplayed: acConsoleData.tableRows.filter(
+        (row) =>
+          row.note.number == cleanSearchTerm ||
+          row.note.content.title.toLowerCase().includes(cleanSearchTerm)
       ),
     }))
   }, [searchTerm])
@@ -297,14 +390,22 @@ const MenuBar = ({
         <button className="btn btn-export-data">Export</button>
       </div>
       <span className="search-label">Search:</span>
+      {isQuerySearch && (
+        <div role="button" onClick={handleQuerySearchInfoClick}>
+          <Icon name="info-sign" />
+        </div>
+      )}
       <input
-        className="form-control search-input"
+        className={`form-control search-input${queryIsInvalid ? ' invalid-value' : ''}`}
         placeholder="Enter search term or type + to start a query and press enter"
         value={immediateSearchTerm}
         onChange={(e) => {
           setImmediateSearchTerm(e.target.value)
+          setQueryIsInvalid(false)
+          setIsQuerySearch(e.target.value.trim().startsWith('+'))
           delaySearch(e.target.value)
         }}
+        onKeyDown={(e) => keyDownHandler(e)}
       />
       <span className="sort-label">Sort by:</span>
       <Dropdown
@@ -316,7 +417,7 @@ const MenuBar = ({
         <Icon name="sort" />
       </button>
       <MessageReviewersModal
-        notes={notes}
+        tableRowsDisplayed={tableRowsDisplayed}
         messageOption={messageOption}
         shortPhrase={shortPhrase}
         selectedNoteIds={selectedNoteIds}
@@ -325,12 +426,18 @@ const MenuBar = ({
         officialReviewName={officialReviewName}
         allProfiles={allProfiles}
       />
+      {isQuerySearch && (
+        <QuerySearchInfoModal
+          filterOperators={filterOperators}
+          propertiesAllowed={propertiesAllowed}
+        />
+      )}
     </div>
   )
 }
 
 const AssignedPaperRow = ({
-  note,
+  rowData,
   venueId,
   areaChairName,
   reviewersInfo,
@@ -348,29 +455,31 @@ const AssignedPaperRow = ({
   selectedNoteIds,
   setSelectedNoteIds,
 }) => {
+  console.log('rowdata is ', rowData)
+  const { note } = rowData
   const referrerUrl = encodeURIComponent(
     `[Area Chair Console](/group?id=${venueId}/${areaChairName}#assigned-papers)`
   )
-  const assignedReviewers =
-    reviewersInfo.find((p) => p.number === note.number)?.reviewers ?? []
-  const ratingExp = /^(\d+): .*/
-  const officialReviews = (note.details.directReplies ?? [])
-    .filter((p) => p.invitation === `${venueId}/Paper${note.number}/-/${officialReviewName}`)
-    ?.map((q) => {
-      const anonymousId = getNumberFromGroup(q.signatures[0], 'Reviewer_', false)
-      const ratingNumber = q.content[reviewRatingName]
-        ? q.content[reviewRatingName].substring(0, q.content[reviewRatingName].indexOf(':'))
-        : null
-      const confidenceMatch =
-        q.content[reviewConfidenceName] && q.content[reviewConfidenceName].match(ratingExp)
-      return {
-        anonymousId: anonymousId,
-        confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
-        rating: ratingNumber ? parseInt(ratingNumber, 10) : null,
-        reviewLength: q.content.review?.length,
-        id: q.id,
-      }
-    })
+  // const assignedReviewers =
+  //   reviewersInfo.find((p) => p.number === note.number)?.reviewers ?? []
+  // const ratingExp = /^(\d+): .*/
+  // const officialReviews = (note.details.directReplies ?? [])
+  //   .filter((p) => p.invitation === `${venueId}/Paper${note.number}/-/${officialReviewName}`)
+  //   ?.map((q) => {
+  //     const anonymousId = getNumberFromGroup(q.signatures[0], 'Reviewer_', false)
+  //     const ratingNumber = q.content[reviewRatingName]
+  //       ? q.content[reviewRatingName].substring(0, q.content[reviewRatingName].indexOf(':'))
+  //       : null
+  //     const confidenceMatch =
+  //       q.content[reviewConfidenceName] && q.content[reviewConfidenceName].match(ratingExp)
+  //     return {
+  //       anonymousId: anonymousId,
+  //       confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
+  //       rating: ratingNumber ? parseInt(ratingNumber, 10) : null,
+  //       reviewLength: q.content.review?.length,
+  //       id: q.id,
+  //     }
+  //   })
   return (
     <tr>
       <td>
@@ -393,7 +502,7 @@ const AssignedPaperRow = ({
         <NoteSummary note={note} referrerUrl={referrerUrl} />
       </td>
       <td>
-        <AreaChairConsoleNoteReviewStatus
+        {/* <AreaChairConsoleNoteReviewStatus
           note={note}
           assignedReviewers={assignedReviewers}
           officialReviews={officialReviews}
@@ -404,6 +513,16 @@ const AssignedPaperRow = ({
           allProfiles={allProfiles}
           reviewerGroupMembers={reviewerGroupMembers}
           reviewerGroupWithConflict={reviewerGroupWithConflict}
+        /> */}
+        <AreaChairConsoleNoteReviewStatus
+          rowData={rowData}
+          venueId={venueId}
+          officialReviewName={officialReviewName}
+          referrerUrl={referrerUrl}
+          enableReviewerReassignment={enableReviewerReassignment}
+          reviewerGroupWithConflict={reviewerGroupWithConflict}
+          reviewerGroupMembers={reviewerGroupMembers}
+          allProfiles={allProfiles}
         />
       </td>
       <td>
@@ -522,6 +641,8 @@ const AreaChairConsole = ({ appContext }) => {
     officialMetaReviewName,
     metaReviewContentField,
     shortPhrase,
+    filterOperators, // for query search only
+    propertiesAllowed, // for query search only
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
   const router = useRouter()
@@ -537,6 +658,13 @@ const AreaChairConsole = ({ appContext }) => {
   const headerInstructions = enableEditReviewAssignments
     ? `${header.instructions}<p><strong>Reviewer Assignment Browser: </strong><a id="edge_browser_url" href="${edgeBrowserUrl}"" target="_blank" rel="nofollow">Modify Reviewer Assignments</a></p>`
     : header.instructions
+
+  const getReviewerName = (reviewerProfile) => {
+    const name =
+      reviewerProfile.content.names.find((t) => t.preferred) ||
+      reviewerProfile.content.names[0]
+    return name ? prettyId(reviewerProfile.id) : `${name.first} ${name.last}`
+  }
 
   const loadData = async () => {
     try {
@@ -701,9 +829,116 @@ const AreaChairConsole = ({ appContext }) => {
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
       //#endregion
 
+      //#region calculate reviewProgressData and metaReviewData
+      const notes = result[0]
+      const allProfiles = profileResults[0].profiles.concat(profileResults[1].profiles)
+      const tableRows = notes.map((note) => {
+        const assignedReviewers =
+          result[1].find((p) => p.number === note.number)?.reviewers ?? []
+        const assignedReviewerProfiles = assignedReviewers.map((reviewer) =>
+          allProfiles.find(
+            (p) =>
+              p.content.names.some((q) => q.username === reviewer.reviewerProfileId) ||
+              p.content.emails.includes(reviewer.reviewerProfileId)
+          )
+        )
+        const officialReviews = (note.details.directReplies ?? [])
+          .filter(
+            (p) => p.invitation === `${venueId}/Paper${note.number}/-/${officialReviewName}`
+          )
+          ?.map((q) => {
+            const anonymousId = getNumberFromGroup(q.signatures[0], 'Reviewer_', false)
+            const ratingNumber = q.content[reviewRatingName]
+              ? q.content[reviewRatingName].substring(
+                  0,
+                  q.content[reviewRatingName].indexOf(':')
+                )
+              : null
+            const confidenceMatch =
+              q.content[reviewConfidenceName] &&
+              q.content[reviewConfidenceName].match(ratingExp)
+            return {
+              anonymousId: anonymousId,
+              confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
+              rating: ratingNumber ? parseInt(ratingNumber, 10) : null,
+              reviewLength: q.content.review?.length,
+              id: q.id,
+            }
+          })
+        const ratings = officialReviews.map((p) => p.rating)
+        const validRatings = ratings.filter((p) => p !== null)
+        const ratingAvg = validRatings.length
+          ? (validRatings.reduce((sum, curr) => sum + curr, 0) / validRatings.length).toFixed(
+              2
+            )
+          : 'N/A'
+        const ratingMin = validRatings.length ? Math.min(...validRatings) : 'N/A'
+        const ratingMax = validRatings.length ? Math.max(...validRatings) : 'N/A'
+
+        const confidences = officialReviews.map((p) => p.confidence)
+        const validConfidences = confidences.filter((p) => p !== null)
+        const confidenceAvg = validConfidences.length
+          ? (
+              validConfidences.reduce((sum, curr) => sum + curr, 0) / validConfidences.length
+            ).toFixed(2)
+          : 'N/A'
+        const confidenceMin = validConfidences.length ? Math.min(...validConfidences) : 'N/A'
+        const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
+
+        const metaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
+        const metaReview = note.details.directReplies.find(
+          (p) => p.invitation === metaReviewInvitationId
+        )
+        return {
+          note,
+          reviewers: result[1]
+            .find((p) => p.number === note.number)
+            ?.reviewers?.map((reviewer) => {
+              const profile = allProfiles.find(
+                (p) =>
+                  p.content.names.some((q) => q.username === reviewer.reviewerProfileId) ||
+                  p.content.emails.includes(reviewer.reviewerProfileId)
+              )
+              return {
+                ...reviewer,
+                profile,
+                hasReview: officialReviews.some((p) => p.anonymousId === reviewer.anonymousId),
+                noteNumber: note.number,
+                preferredName: profile ? getReviewerName(profile) : reviewer.reviewerProfileId,
+                preferredEmail: profile
+                  ? profile.content.preferredEmail ?? profile.content.emails[0]
+                  : reviewer.reviewerProfileId,
+              }
+            }),
+          reviewerProfiles: assignedReviewerProfiles,
+          officialReviews,
+          reviewProgressData: {
+            reviewer: assignedReviewerProfiles,
+            numReviewersAssigned: assignedReviewers.length,
+            numReviewsDone: officialReviews.length,
+            ratingAvg,
+            ratingMax,
+            ratingMin,
+            confidenceAvg,
+            confidenceMax,
+            confidenceMin,
+            replyCount: note.details['replyCount'],
+          },
+          // recommendation: ['metaReviewData.recommendation'],
+          // ranking: ['metaReviewData.ranking'],
+          metaReviewData: {
+            recommendation: metaReview.content[metaReviewContentField],
+            // ranking,
+          },
+        }
+      })
+      //#endregion
+
+      console.log(tableRows)
+      console.log('reviewersInfo', result[1])
       setAcConsoleData({
-        notes: result[0],
-        notesDisplayed: result[0],
+        tableRows,
+        tableRowsDisplayed: tableRows,
         reviewersInfo: result[1],
         reviewerRankingByPaper: result[3],
         reviewerGroupMembers: result[4],
@@ -715,18 +950,19 @@ const AreaChairConsole = ({ appContext }) => {
   }
 
   const renderTable = () => {
-    if (acConsoleData.notes?.length === 0)
+    if (acConsoleData.tableRows?.length === 0)
       return (
         <p className="empty-message">
           No assigned papers.Check back later or contact info@openreview.net if you believe
           this to be an error.
         </p>
       )
-    if (acConsoleData.notesDisplayed?.length === 0)
+    if (acConsoleData.tableRowsDisplayed?.length === 0)
       return (
         <div className="table-container">
           <MenuBar
-            notes={acConsoleData.notes}
+            tableRows={acConsoleData.tableRows}
+            tableRowsDisplayed={acConsoleData.tableRowsDisplayed}
             selectedNoteIds={selectedNoteIds}
             shortPhrase={shortPhrase}
             reviewersInfo={acConsoleData.reviewersInfo}
@@ -741,7 +977,8 @@ const AreaChairConsole = ({ appContext }) => {
     return (
       <div className="table-container">
         <MenuBar
-          notes={acConsoleData.notes}
+          tableRows={acConsoleData.tableRows}
+          tableRowsDisplayed={acConsoleData.tableRowsDisplayed}
           selectedNoteIds={selectedNoteIds}
           shortPhrase={shortPhrase}
           reviewersInfo={acConsoleData.reviewersInfo}
@@ -749,6 +986,8 @@ const AreaChairConsole = ({ appContext }) => {
           officialReviewName={officialReviewName}
           allProfiles={acConsoleData.allProfiles}
           setAcConsoleData={setAcConsoleData}
+          filterOperators={filterOperators}
+          propertiesAllowed={propertiesAllowed}
         />
         <Table
           className="console-table table-striped"
@@ -759,7 +998,7 @@ const AreaChairConsole = ({ appContext }) => {
                 <SelectAllCheckBox
                   selectedNoteIds={selectedNoteIds}
                   setSelectedNoteIds={setSelectedNoteIds}
-                  allNoteIds={acConsoleData.notesDisplayed?.map((p) => p.id)}
+                  allNoteIds={acConsoleData.tableRowsDisplayed?.map((row) => row.note.id)}
                 />
               ),
               width: '8%',
@@ -770,10 +1009,10 @@ const AreaChairConsole = ({ appContext }) => {
             { id: 'metaReviewStatus', content: 'Meta Review Status', width: '46%' },
           ]}
         >
-          {acConsoleData.notesDisplayed?.map((note) => (
+          {acConsoleData.tableRowsDisplayed?.map((row) => (
             <AssignedPaperRow
-              key={note.id}
-              note={note}
+              key={row.note.id}
+              rowData={row}
               venueId={venueId}
               areaChairName={areaChairName}
               reviewersInfo={acConsoleData.reviewersInfo}

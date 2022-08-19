@@ -43,6 +43,151 @@ export const ReviewerConsoleNoteReviewStatus = ({
 
 // modified from noteReviewers.hbs handlebar template
 export const AreaChairConsoleNoteReviewStatus = ({
+  rowData,
+  venueId,
+  officialReviewName,
+  referrerUrl,
+  enableReviewerReassignment,
+  reviewerGroupWithConflict,
+  reviewerGroupMembers,
+  allProfiles,
+}) => {
+  const { officialReviews, reviewers, note } = rowData
+  const {
+    numReviewsDone,
+    numReviewersAssigned,
+    replyCount,
+    ratingMax,
+    ratingMin,
+    ratingAvg,
+    confidenceMax,
+    confidenceMin,
+    confidenceAvg,
+  } = rowData.reviewProgressData
+  const [reviewerReassignmentOptions, setReviewerReassignmentOptions] = useState([])
+  const { accessToken } = useUser()
+
+  const loadReviewerReassignmentOptions = async () => {
+    if (!enableReviewerReassignment) return
+    const result = await api.get(
+      '/edges',
+      {
+        head: note.id,
+        invitation: reviewerGroupWithConflict,
+      },
+      { accessToken }
+    )
+    const profileIdWithConflicts = result.edges.map((p) => p.tail)
+    const options = reviewerGroupMembers
+      .filter((m) => !profileIdWithConflicts.includes(m))
+      .map((p) => {
+        const reviewerProfile = allProfiles.find(
+          (q) => q.content.names.some((r) => r.username === p) || q.content.emails.includes(p)
+        )
+        if (reviewerProfile)
+          return {
+            value: reviewerProfile.id,
+            label: `${prettyId(
+              reviewerProfile.id
+            )}(${reviewerProfile.content.emailsConfirmed.join(',')})`,
+          }
+
+        return {
+          value: p,
+          label: prettyId(p),
+        }
+      })
+    setReviewerReassignmentOptions(options)
+  }
+
+  return (
+    <div className="areachair-console-reviewer-progress">
+      <h4>
+        {numReviewsDone} of {numReviewersAssigned} Reviews Submitted
+      </h4>
+      <Collapse
+        showLabel="Show reviewers"
+        hideLabel="Hide reviewers"
+        onExpand={loadReviewerReassignmentOptions}
+        className="assigned-reviewers"
+      >
+        <div>
+          {reviewers.map((reviewer) => {
+            const completedReview = officialReviews.find(
+              (p) => p.anonymousId === reviewer.anonymousId
+            )
+            const lastReminderSent = localStorage.getItem(
+              `https://openreview.net/forum?id=${note.forum}&noteId=${note.id}&invitationId=${venueId}/Paper${note.number}/${officialReviewName}|${reviewer.reviewerProfileId}`
+            )
+            return (
+              <div key={reviewer.reviewerProfileId} className="assigned-reviewer-row">
+                <strong>{reviewer.anonymousId}</strong>
+                <div className="assigned-reviewer-action">
+                  <span>
+                    {reviewer.preferredName}{' '}
+                    <span className="text-muted">&lt;{reviewer.preferredEmail}&gt;</span>
+                  </span>
+                  {completedReview ? (
+                    <>
+                      {completedReview.reviewLength && (
+                        <span>Review length: {completedReview.reviewLength}</span>
+                      )}
+                      <a
+                        href={`/forum?id=${note.forum}&noteId=${completedReview.id}&referrer=${referrerUrl}`}
+                        target="_blank"
+                      >
+                        Read Review
+                      </a>
+                    </>
+                  ) : (
+                    <>
+                      {enableReviewerReassignment && (
+                        <a href="#" className="unassign-reviewer-link">
+                          Unassign
+                        </a>
+                      )}
+                      <a href="#" className="send-reminder-link">
+                        Send Reminder
+                      </a>
+                      {lastReminderSent && (
+                        <span>
+                          Last send:
+                          {new Date(parseInt(lastReminderSent)).toLocaleDateString()}
+                        </span>
+                      )}
+                    </>
+                  )}
+                  <a href="#" className="show-activity-modal">
+                    Show Reviewer Activity
+                  </a>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+        {enableReviewerReassignment && (
+          <div className="assign-new-reviewers">
+            <Dropdown options={reviewerReassignmentOptions} className="reviewers-dropdown" />
+            <button className="btn btn-xs">Assign</button>
+          </div>
+        )}
+      </Collapse>
+      <span>
+        <strong>Average Rating:</strong> {ratingAvg} (Min: {ratingMin}, Max: {ratingMax})
+      </span>
+      <span>
+        <strong>Average Confidence:</strong> {confidenceAvg} (Min: {confidenceMin}, Max:{' '}
+        {confidenceMax})
+      </span>
+      <span>
+        <strong>Number of Forum replies:</strong> {replyCount}
+      </span>
+    </div>
+  )
+}
+
+// modified from noteReviewers.hbs handlebar template
+export const AreaChairConsoleNoteReviewStatusold = ({
   note,
   assignedReviewers,
   officialReviews,
