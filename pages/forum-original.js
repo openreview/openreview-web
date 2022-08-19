@@ -3,7 +3,7 @@ import Head from 'next/head'
 import Router from 'next/router'
 import truncate from 'lodash/truncate'
 import withError from '../components/withError'
-import Forum from '../components/forum/Forum'
+import LegacyForumV2 from '../components/forum/LegacyForumV2'
 import useQuery from '../hooks/useQuery'
 import api from '../lib/api-client'
 import { auth } from '../lib/auth'
@@ -48,6 +48,16 @@ const ForumPage = ({ forumNote, appContext }) => {
     }
   }, [forumNote, query])
 
+  // Set correct body class for legacy forum
+  useEffect(() => {
+    if (forumNote) {
+      setTimeout(() => {
+        document.getElementById('content').classList.remove('forum')
+        document.getElementById('content').classList.add('legacy-forum')
+      }, 100)
+    }
+  }, [forumNote])
+
   return (
     <>
       <Head>
@@ -85,7 +95,7 @@ const ForumPage = ({ forumNote, appContext }) => {
         )}
       </Head>
 
-      <Forum
+      <LegacyForumV2
         forumNote={forumNote}
         selectedNoteId={query.noteId}
         selectedInvitationId={query.invitationId}
@@ -166,6 +176,6 @@ ForumPage.getInitialProps = async (ctx) => {
   }
 }
 
-ForumPage.bodyClass = 'forum'
+ForumPage.bodyClass = 'legacy-forum'
 
 export default withError(ForumPage)
