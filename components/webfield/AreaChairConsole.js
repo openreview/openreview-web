@@ -19,6 +19,7 @@ import TaskList from '../TaskList'
 import BasicModal from '../BasicModal'
 import { debounce, uniqBy } from 'lodash'
 import { filterCollections } from '../../lib/webfield-utils'
+import ExportCSV from '../ExportCSV'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
   const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
@@ -72,10 +73,11 @@ const MessageReviewersModal = ({
     // send emails
     try {
       const sendEmailPs = selectedNoteIds.map((noteId) => {
-        const note = tableRowsDisplayed.find((row) => row.note.id === noteId)
+        const note = tableRowsDisplayed.find((row) => row.note.id === noteId).note
         const reviewerIds = recipientsInfo
-          .filter((p) => p.noteNumber === note.number)
+          .filter((p) => p.noteNumber == note.number)
           .map((q) => q.reviewerProfileId)
+        console.log('reviewerIds', reviewerIds)
         if (!reviewerIds.length) return Promise.resolve()
         const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${noteId}&invitation=${venueId}/Paper${note.number}/-/${officialReviewName}`
         return api.post(
@@ -238,6 +240,7 @@ const MessageReviewersModal = ({
 }
 
 const QuerySearchInfoModal = ({ filterOperators, propertiesAllowed }) => {
+  console.log('filterOperators', filterOperators)
   return (
     <BasicModal
       id="query-search-info"
@@ -246,26 +249,31 @@ const QuerySearchInfoModal = ({ filterOperators, propertiesAllowed }) => {
       cancelButtonText="OK"
     >
       <>
-        <strong className="tooltip-title">Query Mode Help</strong>
+        <strong className="tooltip-title">Some tips to use query search</strong>
         <p>
           In Query mode, you can enter an expression and hit ENTER to search.
-          <br /> The expression consists of property of a paper and a value you would like to
-          search.
+          <br />
+          The expression consists of property of a paper and a value you would like to search
         </p>
-        <p>e.g. +number=5 will return the paper 5</p>
+        <p>
+          e.g. <code>+number=5</code> will return the paper 5
+        </p>
         <p>
           Expressions may also be combined with AND/OR.
           <br />
-          e.g. +number=5 OR number=6 OR number=7 will return paper 5,6 and 7.
+          e.g. <code>+number=5 OR number=6 OR number=7</code> will return paper 5,6 and 7.
           <br />
+        </p>
+        <p>
           If the value has multiple words, it should be enclosed in double quotes.
           <br />
-          e.g. +title="some title to search"
+          e.g. <code>+title="some title to search"</code>
         </p>
         <p>
           Braces can be used to organize expressions.
           <br />
-          e.g. +number=1 OR ((number=5 AND number=7) OR number=8) will return paper 1 and 8.
+          e.g. <code>+number=1 OR ((number=5 AND number=7) OR number=8)</code> will return
+          paper 1 and 8.
         </p>
         <p>
           <strong>Operators available</strong>
@@ -310,6 +318,12 @@ const MenuBar = ({
   const [searchTerm, setSearchTerm] = useState('')
   const [queryIsInvalid, setQueryIsInvalid] = useState(false)
   const [isQuerySearch, setIsQuerySearch] = useState(false)
+
+  const exportFileName = `${shortPhrase}${
+    tableRows?.length === tableRowsDisplayed?.length
+      ? ' AC paper status'
+      : 'AC paper status(Filtered)'
+  }`
 
   const handleMessageDropdownChange = (option) => {
     setMessageOption(option)
@@ -387,7 +401,9 @@ const MenuBar = ({
         </button>
       </div>
       <div className="btn-group">
-        <button className="btn btn-export-data">Export</button>
+        {/* <button className="btn btn-export-data">Export</button> */}
+
+        <ExportCSV fileName={exportFileName} />
       </div>
       <span className="search-label">Search:</span>
       {isQuerySearch && (
@@ -970,6 +986,8 @@ const AreaChairConsole = ({ appContext }) => {
             officialReviewName={officialReviewName}
             allProfiles={acConsoleData.allProfiles}
             setAcConsoleData={setAcConsoleData}
+            filterOperators={filterOperators}
+            propertiesAllowed={propertiesAllowed}
           />
           <p className="empty-message">No assigned papers matching search criteria.</p>
         </div>
