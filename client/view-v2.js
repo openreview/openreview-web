@@ -220,7 +220,7 @@ module.exports = (function() {
             $inputGroup = valueInput($input, fieldName, fieldDescription);
           }
 
-          var lenMatches = _.get(fieldDescription.value, 'regex', '').match(/\{(\d+),(\d+)\}\$$/);
+          var lenMatches = _.get(fieldDescription.value.param, 'regex', '').match(/\{(\d+),(\d+)\}\$$/);
           if (lenMatches) {
             var minLen = parseInt(lenMatches[1], 10);
             var maxLen = parseInt(lenMatches[2], 10);

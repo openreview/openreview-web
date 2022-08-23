@@ -567,9 +567,9 @@ module.exports = (function() {
     var cssClass = title ? 'hover_title' : 'hover_item';
     var $hoverItem = $('<div>', { class: cssClass + (removable ? ' removable_item' : ''), translate: 'no' });
     if (_.isString(resultText) && resultText.length > 0) {
-      if (resultText.includes('${note.number}')) {
+      if (resultText.match('{[1-9]\/?(note)?\/number}')) {
         resultText = '"number" will be replaced with the paper number after the submission has been completed.';
-      } else if (resultText.includes('${signatures}')) {
+      } else if (resultText.match('{[1-9]\/signatures}')) {
         resultText = '"signatures" will be replaced with the edit signature shown below.';
       }
       var $hoverResult = $('<div>', {class: 'hover_result'}).text(resultText).hide();
@@ -2566,6 +2566,12 @@ module.exports = (function() {
       return id;
 
     } else {
+
+      if (id.includes('${')) {
+        var match = id.match('{.*}')[0];
+        var newMatch = match.replace(/\//g, '.');
+        id = id.replace(match, newMatch);
+      }
       var tokens = id.split('/');
       if (onlyLast) {
         var sliceIndex = _.findIndex(tokens, function(token) {
