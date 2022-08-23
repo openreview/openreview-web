@@ -4,6 +4,7 @@ import NoteReaders from './NoteReaders'
 import NoteContent, { NoteContentV2 } from './NoteContent'
 import Icon from './Icon'
 import { prettyId, forumDate, inflect } from '../lib/utils'
+import NoteContentCollapsible from './webfield/NoteContentCollapsible'
 
 const Note = ({ note, invitation, options }) => {
   const privatelyRevealed = options.showPrivateIcon && !note.readers.includes('everyone')
@@ -65,15 +66,26 @@ const Note = ({ note, invitation, options }) => {
       </ul>
 
       {options.showContents && (!note.ddate || note.ddate > Date.now()) && (
-        <NoteContent
-          id={note.id}
-          content={note.content}
-          invitation={
-            note.details?.originalInvitation || note.details?.invitation || invitation
-          }
-          omit={options.omitFields}
-          isReference={options.isReference}
-        />
+        options.collapseContents ?  (
+          <NoteContentCollapsible
+            id={note.id}
+            content={note.content}
+            invitation={
+              note.details?.originalInvitation || note.details?.invitation || invitation
+            }
+            isV2Note={false}
+          />
+        ) : (
+          <NoteContent
+            id={note.id}
+            content={note.content}
+            invitation={
+              note.details?.originalInvitation || note.details?.invitation || invitation
+            }
+            omit={options.omitFields}
+            isReference={options.isReference}
+          />
+        )
       )}
     </div>
   )
@@ -81,6 +93,7 @@ const Note = ({ note, invitation, options }) => {
 
 export const NoteV2 = ({ note, options }) => {
   const privatelyRevealed = options.showPrivateIcon && !note.readers.includes('everyone')
+
   return (
     <div className={`note ${privatelyRevealed ? 'note-private' : ''} ${options.extraClasses}`}>
       <NoteTitleV2
@@ -139,14 +152,24 @@ export const NoteV2 = ({ note, options }) => {
       </ul>
 
       {options.showContents && (!note.ddate || note.ddate > Date.now()) && (
-        <NoteContentV2
-          id={note.id}
-          content={note.content ?? {}}
-          omit={options.omitFields}
-          isEdit={options.isReference}
-          presentation={note.details?.presentation}
-          noteReaders={note.readers?.sort()}
-        />
+        options.collapseContents ?  (
+          <NoteContentCollapsible
+            id={note.id}
+            content={note.content ?? {}}
+            presentation={note.details?.presentation}
+            noteReaders={note.readers?.sort()}
+            isV2Note={true}
+          />
+        ) : (
+          <NoteContentV2
+            id={note.id}
+            content={note.content ?? {}}
+            omit={options.omitFields}
+            isEdit={options.isReference}
+            presentation={note.details?.presentation}
+            noteReaders={note.readers?.sort()}
+          />
+        )
       )}
     </div>
   )
