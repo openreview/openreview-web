@@ -1,5 +1,11 @@
-import { useContext, useEffect } from 'react'
+/* globals $: false */
+/* globals Webfield, Webfield2: false */
+/* globals typesetMathJax: false */
+
+import { useState, useContext, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
+import uniq from 'lodash/uniq'
 import WebFieldContext from '../WebFieldContext'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 import VenueHeader from './VenueHeader'
@@ -10,8 +16,28 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
-function SubmissionsList({ invitationId, apiVersion }) {
-  const { accessToken, userLoading } = useUser()
+function ConsoleList({ groupIds }) {
+  return (
+    <ul className="list-unstyled submissions-list">
+      {groupIds.map(groupId => {
+        let groupName = groupId.split('/').pop().replace(/_/g, ' ')
+        if (groupName.endsWith('s')) {
+          groupName = groupName.slice(0, -1)
+        }
+
+        return (
+          <li key={groupId} className="note invitation-link">
+            <Link href={`/group?id=${groupId}`}>
+              <a>{groupName} Console</a>
+            </Link>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+function SubmissionsList({ invitationId, accessToken, apiVersion }) {
   const paperDisplayOptions = {
     pdfLink: true,
     replyCount: true,
@@ -43,8 +69,6 @@ function SubmissionsList({ invitationId, apiVersion }) {
     )
   }
 
-  if (userLoading) return null
-
   return (
     <PaginatedList
       loadItems={loadNotes}
@@ -52,6 +76,31 @@ function SubmissionsList({ invitationId, apiVersion }) {
       itemsPerPage={25}
       className="submissions-list"
     />
+  )
+}
+
+function ActivityList({ activityNotes, user }) {
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    if (!activityNotes) return
+
+    $(containerRef.current).empty()
+
+    Webfield.ui.activityList(activityNotes, {
+      container: containerRef.current,
+      emptyMessage: 'No recent activity to display.',
+      user: user.profile,
+      showActionButtons: true,
+    })
+
+    $('[data-toggle="tooltip"]').tooltip()
+
+    typesetMathJax()
+  }, [activityNotes])
+
+  return (
+    <div ref={containerRef} />
   )
 }
 
@@ -68,6 +117,9 @@ export default function VenueHomepage({ appContext }) {
     authorsGroupId,
     apiVersion,
   } = useContext(WebFieldContext)
+  const { user, accessToken, userLoading } = useUser()
+  const [userConsoles, setUserConsoles] = useState([])
+  const [activityNotes, setActivityNotes] = useState([])
   const router = useRouter()
   const { setBannerContent } = appContext
 
@@ -81,6 +133,52 @@ export default function VenueHomepage({ appContext }) {
       setBannerContent(venueHomepageLink(parentGroupId))
     }
   }, [router.isReady, router.query])
+
+  useEffect(() => {
+    if (userLoading) return
+
+    if (!user) {
+      setUserConsoles([])
+      setActivityNotes([])
+      return
+    }
+
+    const getUserGroups = () => api.getAll(
+      '/groups',
+      { regex: `${group.id}/.*`, member: user.id, web: true },
+      { accessToken }
+    )
+    const getUserSubmissions = () => api.get(
+      '/notes',
+      { invitation: submissionId, 'content.authorids': user.profile.id, limit: 1 },
+      { accessToken, version: apiVersion }
+    )
+    const getActivityNotes = () => api.get(
+      '/notes',
+      { invitation: `${group.id}/.*`, details: 'forumContent,invitation,writable', sort: 'tmdate:desc', limit: 25 },
+      { accessToken, version: apiVersion}
+    )
+
+    Promise.all([getUserGroups(), getUserSubmissions(), getActivityNotes()])
+      .then(([userGroups, userSubmissions, recentActivityNotes]) => {
+        const groupIds = []
+        if (userSubmissions.notes?.length > 0) {
+          groupIds.push(authorsGroupId)
+        }
+        if (userGroups?.length > 0) {
+          userGroups.forEach((g) => {
+            groupIds.push(g.id)
+          })
+        }
+        setUserConsoles(uniq(groupIds))
+
+        if (recentActivityNotes.notes?.length > 0) {
+          setActivityNotes(recentActivityNotes.notes)
+        }
+      })
+  }, [user, accessToken, userLoading])
+
+  if (userLoading) return null
 
   return (
     <>
@@ -100,9 +198,11 @@ export default function VenueHomepage({ appContext }) {
       <div id="notes">
         <Tabs>
           <TabList>
-            <Tab id="your-consoles" active>
-              Your Consoles
-            </Tab>
+            {userConsoles.length > 0 && (
+              <Tab id="your-consoles" active>
+                Your Consoles
+              </Tab>
+            )}
             {showSubmissions && (
               <Tab id="all-submissions">
                 All Submissions
@@ -118,14 +218,19 @@ export default function VenueHomepage({ appContext }) {
                 Desk Rejected Submissions
               </Tab>
             )}
-            <Tab id="recent-activity">
-              Recent Activity
-            </Tab>
+            {activityNotes.length > 0 && (
+              <Tab id="recent-activity">
+                Recent Activity
+              </Tab>
+            )}
           </TabList>
 
           <TabPanels>
-            <TabPanel id="your-consoles">
-            </TabPanel>
+            {userConsoles.length > 0 && (
+              <TabPanel id="your-consoles">
+                <ConsoleList groupIds={userConsoles} />
+              </TabPanel>
+            )}
 
             {showSubmissions && (
               <TabPanel id="all-submissions">
@@ -154,8 +259,11 @@ export default function VenueHomepage({ appContext }) {
               </TabPanel>
             )}
 
-            <TabPanel id="recent-activity">
-            </TabPanel>
+            {activityNotes.length > 0 && (
+              <TabPanel id="recent-activity">
+                <ActivityList activityNotes={activityNotes} user={user} />
+              </TabPanel>
+            )}
           </TabPanels>
         </Tabs>
       </div>
