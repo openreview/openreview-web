@@ -567,9 +567,9 @@ module.exports = (function() {
     var cssClass = title ? 'hover_title' : 'hover_item';
     var $hoverItem = $('<div>', { class: cssClass + (removable ? ' removable_item' : ''), translate: 'no' });
     if (_.isString(resultText) && resultText.length > 0) {
-      if (resultText.match('{[1-9]\/?(note)?\/number}')) {
+      if (resultText.includes('${note.number}')) {
         resultText = '"number" will be replaced with the paper number after the submission has been completed.';
-      } else if (resultText.match('{[1-9]\/signatures}')) {
+      } else if (resultText.includes('${signatures}')) {
         resultText = '"signatures" will be replaced with the edit signature shown below.';
       }
       var $hoverResult = $('<div>', {class: 'hover_result'}).text(resultText).hide();
