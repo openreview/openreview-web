@@ -279,7 +279,7 @@ module.exports = (function() {
         });
         contentInputResult = valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
       } else if (fieldDescription.value.param.input === 'select' || !(_.has(fieldDescription.value.param, 'input'))) {
-        if (fieldDescription.value.param.type.endsWith('[]')) {
+        if (Array.isArray(fieldDescription.value.param.enum) || fieldDescription.value.param.type.endsWith('[]')) {
           //values-dropdown
           contentInputResult = view.mkDropdownAdder(
             fieldName, fieldDescription.description, fieldDescription.value.param.enum,
@@ -1166,11 +1166,12 @@ module.exports = (function() {
             if (!_.includes(parentReaders, 'everyone')) {
               newFieldDescription = {
                 description: fieldDescription.description,
-                default: fieldDescription.param?.default
+                default: fieldDescription.param?.default,
+                param: {}
               };
-              newFieldDescription[fieldType] = parentReaders;
+              newFieldDescription.param[fieldType] = parentReaders;
               if (!fieldValue.length) {
-                fieldValue = newFieldDescription[fieldType];
+                fieldValue = newFieldDescription.param[fieldType];
               }
             }
           }
@@ -1854,12 +1855,11 @@ module.exports = (function() {
 
   var getWriters = function(invitation, signatures, user) {
     var writers = invitation.edit ? invitation.edit.writers : invitation.reply.writers
-
     if (writers && Array.isArray(writers)) {
-      return writers;
+      return undefined;
     }
     if (writers && _.has(writers, 'param') && _.has(writers.param, 'const')){
-      return writers.param.const;
+      return undefined;
     }
 
     if (writers && _.has(writers, 'param') && writers.param.regex === '~.*') {
