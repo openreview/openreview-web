@@ -401,9 +401,7 @@ const MenuBar = ({
         </button>
       </div>
       <div className="btn-group">
-        {/* <button className="btn btn-export-data">Export</button> */}
-
-        <ExportCSV fileName={exportFileName} />
+        <ExportCSV records={tableRowsDisplayed} fileName={exportFileName} />
       </div>
       <span className="search-label">Search:</span>
       {isQuerySearch && (
