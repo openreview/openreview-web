@@ -1,6 +1,6 @@
 /* globals typesetMathJax,promptError: false */
+
 import { useCallback, useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
 import debounce from 'lodash/debounce'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import WebFieldContext from '../WebFieldContext'
@@ -134,24 +134,15 @@ const AllSubmissionsTab = ({
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
-            if (apiVersion === 2) {
-              if (
-                matchingNote &&
-                matchingNote.invitations.includes(submissionInvitationId) &&
-                !conflictIds.includes(noteId)
-              )
-                return matchingNote
-              return []
-              // eslint-disable-next-line no-else-return
-            } else {
-              if (
-                matchingNote &&
-                matchingNote.invitation === submissionInvitationId &&
-                !conflictIds.includes(noteId)
-              )
-                return matchingNote
-              return []
+            const noteInvitation = apiVersion === 2 ? matchingNote.invitations[0] : matchingNote.invitation
+            if (
+              matchingNote &&
+              noteInvitation === submissionInvitationId &&
+              !conflictIds.includes(noteId)
+            ) {
+              return matchingNote
             }
+            return []
           })
           setNotes(filteredNotes)
         } else {
@@ -349,7 +340,8 @@ const NoBidTab = ({
 
   const getNotesWithNoBids = async () => {
     setIsLoading(true)
-    const getNotesBySubmissionInvitationP = async () => {
+
+    const getNotesBySubmissionInvitation = async () => {
       const result = await api.get(
         '/notes',
         {
@@ -365,6 +357,7 @@ const NoBidTab = ({
         ),
       }
     }
+
     try {
       if (selectedScore) {
         const edgesResult = await api.get(
@@ -386,39 +379,30 @@ const NoBidTab = ({
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
-            if (apiVersion === 2) {
-              if (
-                matchingNote &&
-                matchingNote.invitation.includes(submissionInvitationId) &&
-                !conflictIds.includes(noteId) &&
-                !bidEdges.find((p) => p.head === noteId)
-              )
-                return matchingNote
-              return []
-              // eslint-disable-next-line no-else-return
-            } else {
-              if (
-                matchingNote &&
-                matchingNote.invitation === submissionInvitationId &&
-                !conflictIds.includes(noteId) &&
-                !bidEdges.find((p) => p.head === noteId)
-              )
-                return matchingNote
-              return []
+            const noteInvitation = apiVersion === 2 ? matchingNote?.invitations[0] : matchingNote?.invitation
+            if (
+              matchingNote &&
+              noteInvitation === submissionInvitationId &&
+              !conflictIds.includes(noteId) &&
+              !bidEdges.find((p) => p.head === noteId)
+            ) {
+              return matchingNote
             }
+            return []
           })
           setNotes(filteredNotes)
         } else {
-          const notesResult = await getNotesBySubmissionInvitationP()
+          const notesResult = await getNotesBySubmissionInvitation()
           setNotes(notesResult.notes)
         }
       } else {
-        const notesResult = await getNotesBySubmissionInvitationP()
+        const notesResult = await getNotesBySubmissionInvitation()
         setNotes(notesResult.notes)
       }
     } catch (error) {
       promptError(error.message)
     }
+
     setIsLoading(false)
   }
 
@@ -462,7 +446,9 @@ const NoBidTab = ({
   useEffect(() => {
     getNotesWithNoBids()
   }, [])
+
   if (isLoading) return <LoadingSpinner inline />
+
   return (
     <NoteListWithBidWidget
       notes={notes}
@@ -596,6 +582,7 @@ const BidConsole = ({ appContext }) => {
     bidInvitationId,
     conflictInvitationId,
   } = useContext(WebFieldContext)
+
   const getBidOptionId = (bidOption) => bidOption.toLowerCase().split(' ').join('-')
   const allPapersOption = 'All Papers'
   const bidOptionsWithDefaultTabs = [allPapersOption, ...bidOptions, 'No Bid']
@@ -612,7 +599,6 @@ const BidConsole = ({ appContext }) => {
   const { setBannerContent } = appContext
   const { accessToken, user } = useUser()
   const query = useQuery()
-  const router = useRouter()
 
   const getBidAndConflictEdges = async () => {
     try {
@@ -709,20 +695,22 @@ const BidConsole = ({ appContext }) => {
     conflictInvitationId,
   }).filter(([key, value]) => value === undefined)
   if (missingConfig?.length) {
-    const errorMessage = `Author Console is missing required properties: ${missingConfig
+    const errorMessage = `Bidding Console is missing required properties: ${missingConfig
       .map((p) => p[0])
       .join(', ')}`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
+
   return (
     <>
       <BasicHeader
         title={header?.title}
         instructions={header?.instructions}
         options={{
-          extra: <h4 id="bidcount">{`You have completed ${bidEdges.length} bids`}</h4>,
+          extra: <h4 id="bidcount">You have completed {bidEdges.length} bids</h4>,
         }}
       />
+
       {isLoading ? (
         <LoadingSpinner inline />
       ) : (

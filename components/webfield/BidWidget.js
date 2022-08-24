@@ -29,7 +29,7 @@ export const BidRadioButtonGroup = ({
     <div className="tag-widget edge-widget" data-type="radio">
       {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
       <label>Bid:</label>
-
+      {' '}
       <div
         className={`btn-group btn-group-xs${isLoading ? ' disabled' : ''}`}
         role="group"

@@ -3,14 +3,17 @@
 import { useRef, useState } from 'react'
 import NoteContent, { NoteContentV2 } from '../NoteContent'
 
-const NoteContentCollapsible = (props) => {
-  let presentation, noteReaders, isEdit, isReference, invitation // eslint-disable-line one-var
-  const { id, content, omit, isV2Note } = props
-  if (props.isV2Note) {
-    ;({ presentation, noteReaders, isEdit } = props)
-  } else {
-    ;({ invitation, isReference } = props)
-  }
+const NoteContentCollapsible = ({
+  id,
+  content,
+  omit,
+  invitation, // v1 only
+  isReference, // v1 only
+  presentation, // v2 only
+  noteReaders, // v2 only
+  isEdit, // v2 only
+  isV2Note,
+}) => {
   const [collapsed, setCollapsed] = useState(true)
   const collapseRef = useRef(null)
 

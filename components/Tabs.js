@@ -40,7 +40,8 @@ export function Tab({ id, headingCount, onClick, active, children, icon }) {
         data-modify-history="true"
         ref={tabEl}
       >
-        {children} {headingCount && <span className="badge">{headingCount}</span>}
+        {children}
+        {headingCount && <span className="badge">{headingCount}</span>}
         {icon && <Icon name={icon} />}
       </a>
     </li>
