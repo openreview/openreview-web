@@ -1,6 +1,6 @@
 # This workflow deploys any branch or tag to the staging environment.
 
-name: staging deployment
+name: Staging Deployment
 
 on:
   # Allows you to run this workflow manually from the Actions tab
