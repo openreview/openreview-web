@@ -3,7 +3,7 @@ import Head from 'next/head'
 import Router from 'next/router'
 import truncate from 'lodash/truncate'
 import LegacyForum from '../components/forum/LegacyForum'
-import LegacyForumV2 from '../components/forum/LegacyForumV2'
+import Forum from '../components/forum/Forum'
 import withError from '../components/withError'
 import api from '../lib/api-client'
 import { auth } from '../lib/auth'
@@ -62,6 +62,16 @@ const ForumPage = ({ forumNote, query, appContext }) => {
     }
   }, [forumNote, query])
 
+  // Set correct body class for new forum
+  useEffect(() => {
+    if (forumNote.version === 2) {
+      setTimeout(() => {
+        document.getElementById('content').classList.remove('legacy-forum')
+        document.getElementById('content').classList.add('forum')
+      }, 100)
+    }
+  }, [forumNote.version])
+
   return (
     <>
       <Head>
@@ -98,7 +108,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
       </Head>
 
       {forumNote.version === 2 ? (
-        <LegacyForumV2
+        <Forum
           forumNote={forumNote}
           selectedNoteId={query.noteId}
           selectedInvitationId={query.invitationId}
@@ -151,16 +161,16 @@ ForumPage.getInitialProps = async (ctx) => {
   try {
     const note = await api.getNoteById(ctx.query.id, token, {
       trash: true,
-      details: 'original,invitation,replyCount,writable,presentation',
+      details: 'original,replyCount,writable,signatures,invitation,presentation',
     })
-
-    if (note?.version === 2) {
-      return { forumNote: note, query: ctx.query }
-    }
 
     // Only super user can see deleted forums
     if (note?.ddate && !note?.details?.writable) {
       return { statusCode: 404, message: 'Not Found' }
+    }
+
+    if (note?.version === 2) {
+      return { forumNote: note, query: ctx.query }
     }
 
     // if blind submission return the forum

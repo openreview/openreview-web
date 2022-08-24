@@ -1011,7 +1011,7 @@ module.exports = (function() {
         const editToPost = constructEdit({ formData: formContent, invitationObj: invitation });
         Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(function(result) {
           if (params.onNoteCreated) {
-            Webfield2.get('/notes', { id: result.note.id, details: 'invitation,presentation' }, { handleErrors: false }).then(function(noteRes) {
+            Webfield2.get('/notes', { id: result.note.id, details: 'invitation,presentation,writable' }, { handleErrors: false }).then(function(noteRes) {
               params.onNoteCreated(noteRes.notes?.[0]);
             }, function() {
               params.onNoteCreated(result);
@@ -1483,7 +1483,7 @@ module.exports = (function() {
             if (params.isEdit) {
               params.onNoteEdited();
             } else {
-              Webfield2.get('/notes', { id: edit.note.id, details: 'invitation,presentation' }, { handleErrors: false }).then(function(noteRes) {
+              Webfield2.get('/notes', { id: edit.note.id, details: 'invitation,presentation,writable' }, { handleErrors: false }).then(function(noteRes) {
                 params.onNoteEdited(noteRes.notes?.[0]);
               }, function() {
                 params.onNoteEdited();

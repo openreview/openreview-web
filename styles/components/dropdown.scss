@@ -61,3 +61,8 @@
     height: 28px;
   }
 }
+
+.dropdown-disable {
+  opacity: 0.5;
+  pointer-events: none;
+}

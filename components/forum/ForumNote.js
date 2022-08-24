@@ -149,7 +149,9 @@ function ForumNote({ note, updateNote }) {
       <NoteContentV2
         id={id}
         content={content}
-        number={note.number}
+        number={
+          note.invitations[0].split('/-/')[1].includes('Submission') ? note.number : null
+        }
         presentation={details.presentation}
         noteReaders={note.readers}
       />
