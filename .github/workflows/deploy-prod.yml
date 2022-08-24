@@ -1,6 +1,6 @@
 # This workflow deploys any branch, tag, or commit hash to the production environment.
 
-name: production deployment
+name: Production Deployment
 
 on:
   # Allows you to run this workflow manually from the Actions tab
