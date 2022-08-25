@@ -922,8 +922,9 @@ module.exports = (function() {
         $cancelButton.prop({ disabled: true });
 
         var content = getContent(invitation, $contentMap);
-        const useEditSignature = (_.has(invitation.edit.note?.signatures, 'const')) &&
-          invitation.edit.note?.signatures?.const[0] === '${signatures}' // when note signature is edit signature, note reader should use edit signatures
+        var constNoteSignature = (Array.isArray(invitation.edit.note?.signatures) && invitation.edit.note?.signatures[0].includes('/signatures}'))
+        const useEditSignature = constNoteSignature || (_.has(invitation.edit.note?.signatures.param, 'const') &&
+          invitation.edit.note?.signatures?.param.const[0].includes('/signatures}')) // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
         const editReaderValues = getReaders(editReaders, invitation, editSignatureInputValues, true);
@@ -1390,8 +1391,9 @@ module.exports = (function() {
           ...(params.isEdit ? { edit: params.editToUpdate } : { note }),
         };
         const content = getContent(invitation, $contentMap, noteEditObject);
-        const useEditSignature = (Array.isArray(invitation.edit.note?.signatures)) &&
-          invitation.edit.note?.signatures[0] === '${3/signatures}' // when note signature is edit signature, note reader should use edit signatures
+        var constNoteSignature = (Array.isArray(invitation.edit.note?.signatures) && invitation.edit.note?.signatures[0].includes('/signatures}'))
+        const useEditSignature = constNoteSignature || (_.has(invitation.edit.note?.signatures.param, 'const') &&
+          invitation.edit.note?.signatures?.param.const[0].includes('/signatures}')) // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
         const editReaderValues = getReaders(editReaders, invitation, editSignatureInputValues, true);
