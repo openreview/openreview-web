@@ -1,5 +1,5 @@
 /* globals $: false */
-/* globals view: false */
+/* globals view, view2: false */
 /* globals Handlebars: false */
 /* globals promptError: false */
 /* globals promptMessage: false */
@@ -17,7 +17,13 @@ import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
 import api from '../../lib/api-client'
-import { prettyId, formatDateTime, cloneAssignmentConfigNote } from '../../lib/utils'
+import {
+  prettyId,
+  formatDateTime,
+  cloneAssignmentConfigNote,
+  cloneAssignmentConfigNoteV2,
+} from '../../lib/utils'
+import { getNoteContentValues } from '../../lib/forum-utils'
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
@@ -49,6 +55,7 @@ const ActionLink = ({ label, className, iconName, href, onClick, disabled }) => 
 const AssignmentRow = ({
   note,
   configInvitation,
+  apiVersion,
   handleEditConfiguration,
   handleViewConfiguration,
   handleCloneConfiguration,
@@ -57,9 +64,10 @@ const AssignmentRow = ({
   referrer,
   shouldRemoveDeployLink,
 }) => {
-  const edgeBrowserUrl = getEdgeBrowserUrl(note.content)
-  const edgeEditUrl = getEdgeBrowserUrl(note.content, { editable: true })
-  const { status, error_message: errorMessage } = note.content
+  const noteContent = apiVersion === 2 ? getNoteContentValues(note.content) : note.content
+  const edgeBrowserUrl = getEdgeBrowserUrl(noteContent)
+  const edgeEditUrl = getEdgeBrowserUrl(noteContent, { editable: true })
+  const { status, error_message: errorMessage } = noteContent
 
   return (
     <tr>
@@ -68,7 +76,7 @@ const AssignmentRow = ({
       <td className="assignment-label">
         <Link href={edgeBrowserUrl}>
           <a disabled={edgeBrowserUrl ? null : true}>
-            {note.content.title ? note.content.title : note.content.label}
+            {noteContent.title ? noteContent.title : noteContent.label}
           </a>
         </Link>
       </td>
@@ -96,13 +104,13 @@ const AssignmentRow = ({
         <ActionLink
           label="View"
           iconName="info-sign"
-          onClick={() => handleViewConfiguration(note)}
+          onClick={() => handleViewConfiguration(note.id, noteContent)}
           disabled={!configInvitation}
         />
         <ActionLink
           label="Edit"
           iconName="pencil"
-          onClick={() => handleEditConfiguration(note)}
+          onClick={() => handleEditConfiguration(note, apiVersion)}
           disabled={
             ['Running', 'Complete', 'Deploying', 'Deployed', 'Deployment Error'].includes(
               status
@@ -112,7 +120,7 @@ const AssignmentRow = ({
         <ActionLink
           label="Copy"
           iconName="duplicate"
-          onClick={() => handleCloneConfiguration(note)}
+          onClick={() => handleCloneConfiguration(note, apiVersion)}
           disabled={!configInvitation}
         />
       </td>
@@ -169,8 +177,9 @@ const AssignmentRow = ({
 
 const Assignments = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
-  const [assignmentNotes, setAssignmentNotes] = useState(null)
   const [configInvitation, setConfigInvitation] = useState(null)
+  const [assignmentNotes, setAssignmentNotes] = useState(null)
+  const [apiVersion, setApiVersion] = useState(null)
   const [error, setError] = useState(null)
   const [viewModalContent, setViewModalContent] = useState(null)
   const query = useQuery()
@@ -181,6 +190,29 @@ const Assignments = ({ appContext }) => {
   )
 
   // API functions
+  const getConfigInvitation = async () => {
+    try {
+      const invitation = await api.getInvitationById(
+        `${query.group}/-/Assignment_Configuration`,
+        accessToken
+      )
+      if (invitation) {
+        setConfigInvitation(invitation)
+        setApiVersion(invitation.apiVersion)
+      } else {
+        setError({
+          statusCode: 404,
+          message: 'Could not list assignments. Invitation not found.',
+        })
+      }
+    } catch (apiError) {
+      setError({
+        statusCode: 404,
+        message: 'Could not list assignments. Invitation not found.',
+      })
+    }
+  }
+
   const getAssignmentNotes = async () => {
     try {
       const { notes } = await api.get(
@@ -188,32 +220,12 @@ const Assignments = ({ appContext }) => {
         {
           invitation: `${query.group}/-/Assignment_Configuration`,
         },
-        { accessToken }
+        { accessToken, version: apiVersion }
       )
 
       setAssignmentNotes(notes || [])
     } catch (apiError) {
       promptError(apiError.message)
-    }
-  }
-
-  const getConfigInvitation = async () => {
-    try {
-      const { invitations } = await api.get(
-        '/invitations',
-        {
-          id: `${query.group}/-/Assignment_Configuration`,
-        },
-        { accessToken }
-      )
-      if (invitations?.length > 0) {
-        setConfigInvitation(invitations[0])
-      }
-    } catch (apiError) {
-      setError({
-        statusCode: 404,
-        message: 'Could not list assignments. Invitation not found.',
-      })
     }
   }
 
@@ -288,7 +300,8 @@ const Assignments = ({ appContext }) => {
     )
 
     $('#note-editor-modal').modal('show')
-    view.mkNewNoteEditor(configInvitation, null, null, null, {
+    const editorFunc = apiVersion === 2 ? view2.mkNewNoteEditor : view.mkNewNoteEditor
+    editorFunc(configInvitation, null, null, null, {
       onNoteCreated: hideEditorModal,
       onNoteCancelled: hideEditorModal,
       onError: showDialogErrorMessage,
@@ -297,7 +310,7 @@ const Assignments = ({ appContext }) => {
     })
   }
 
-  const handleEditConfiguration = (note) => {
+  const handleEditConfiguration = (note, version) => {
     if (!configInvitation) return
 
     $('#note-editor-modal').remove()
@@ -311,7 +324,8 @@ const Assignments = ({ appContext }) => {
     )
     $('#note-editor-modal').modal('show')
 
-    view.mkNoteEditor(note, configInvitation, null, {
+    const editorFunc = version === 2 ? view2.mkNoteEditor : view.mkNoteEditor
+    editorFunc(note, configInvitation, null, {
       onNoteEdited: hideEditorModal,
       onNoteCancelled: hideEditorModal,
       onError: showDialogErrorMessage,
@@ -320,7 +334,7 @@ const Assignments = ({ appContext }) => {
     })
   }
 
-  const handleCloneConfiguration = (note) => {
+  const handleCloneConfiguration = (note, version) => {
     if (!configInvitation) return
 
     $('#note-editor-modal').remove()
@@ -334,8 +348,10 @@ const Assignments = ({ appContext }) => {
     )
     $('#note-editor-modal').modal('show')
 
-    const clone = cloneAssignmentConfigNote(note)
-    view.mkNoteEditor(clone, configInvitation, null, {
+    const clone =
+      version === 2 ? cloneAssignmentConfigNoteV2(note) : cloneAssignmentConfigNote(note)
+    const editorFunc = version === 2 ? view2.mkNoteEditor : view.mkNoteEditor
+    editorFunc(clone, configInvitation, null, {
       onNoteEdited: hideEditorModal,
       onNoteCancelled: hideEditorModal,
       onError: showDialogErrorMessage,
@@ -344,12 +360,12 @@ const Assignments = ({ appContext }) => {
     })
   }
 
-  const handleViewConfiguration = (note) => {
-    if (note.id !== viewModalContent?.id) {
+  const handleViewConfiguration = (noteId, noteContent) => {
+    if (noteId !== viewModalContent?.id) {
       setViewModalContent({
-        id: note.id,
-        title: note.content.title || note.content.label,
-        content: note.content,
+        id: noteId,
+        title: noteContent.title || noteContent.label,
+        content: noteContent,
       })
     }
 
@@ -393,9 +409,14 @@ const Assignments = ({ appContext }) => {
       setBannerContent(venueHomepageLink(query.group))
     }
 
-    getAssignmentNotes()
     getConfigInvitation()
   }, [accessToken, query])
+
+  useEffect(() => {
+    if (apiVersion) {
+      getAssignmentNotes()
+    }
+  }, [apiVersion])
 
   useEffect(() => {
     if (assignmentNotes) {
@@ -451,6 +472,7 @@ const Assignments = ({ appContext }) => {
                   key={assignmentNote.id}
                   note={assignmentNote}
                   configInvitation={configInvitation}
+                  apiVersion={apiVersion}
                   handleEditConfiguration={handleEditConfiguration}
                   handleViewConfiguration={handleViewConfiguration}
                   handleCloneConfiguration={handleCloneConfiguration}
