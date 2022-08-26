@@ -17,7 +17,7 @@ import { AreaChairConsoleNoteReviewStatus } from './NoteReviewStatus'
 import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import TaskList from '../TaskList'
 import BasicModal from '../BasicModal'
-import { debounce, uniqBy } from 'lodash'
+import { debounce, orderBy, uniqBy } from 'lodash'
 import { filterCollections } from '../../lib/webfield-utils'
 import ExportCSV from '../ExportCSV'
 
@@ -303,7 +303,6 @@ const MenuBar = ({
   filterOperators,
   propertiesAllowed,
 }) => {
-  console.log('tableRowsDisplayed', tableRowsDisplayed)
   const disabledMessageButton = selectedNoteIds.length === 0
   const messageReviewerOptions = [
     { label: 'All Reviewers of selected papers', value: 'allReviewers' },
@@ -311,6 +310,75 @@ const MenuBar = ({
     {
       label: 'Reviewers of selected papers with unsubmitted reviews',
       value: 'missingReviews',
+    },
+  ]
+  const sortDropdownOptions = [
+    { label: 'Paper Number', value: 'Paper Number', getValue: (p) => p.note?.number },
+    { label: 'Paper Title', value: 'Paper Title', getValue: (p) => p.note?.content?.title },
+    {
+      label: 'Number of Forum Replies',
+      value: 'Number of Forum Replies',
+      getValue: (p) => p.reviewProgressData?.replyCount,
+    },
+    {
+      label: 'Number of Reviews Submitted',
+      value: 'Number of Reviews Submitted',
+      getValue: (p) => p.reviewProgressData?.numReviewsDone,
+    },
+    {
+      label: 'Number of Reviews Missing',
+      value: 'Number of Reviews Missing',
+      getValue: (p) =>
+        p.reviewProgressData?.numReviewersAssigned ??
+        0 - p.reviewProgressData?.numReviewsDone ??
+        0,
+    },
+    {
+      label: 'Average Rating',
+      value: 'Average Rating',
+      getValue: (p) =>
+        p.reviewProgressData?.ratingAvg === 'N/A' ? 0 : p.reviewProgressData?.ratingAvg,
+    },
+    {
+      label: 'Max Rating',
+      value: 'Max Rating',
+      getValue: (p) =>
+        p.reviewProgressData?.ratingMax === 'N/A' ? 0 : p.reviewProgressData?.ratingMax,
+    },
+    {
+      label: 'Min Rating',
+      value: 'Min Rating',
+      getValue: (p) =>
+        p.reviewProgressData?.ratingMin === 'N/A' ? 0 : p.reviewProgressData?.ratingMin,
+    },
+    {
+      label: 'Average Confidence',
+      value: 'Average Confidence',
+      getValue: (p) =>
+        p.reviewProgressData?.confidenceAvg === 'N/A'
+          ? 0
+          : p.reviewProgressData?.confidenceAvg,
+    },
+    {
+      label: 'Max Confidence',
+      value: 'Max Confidenc',
+      getValue: (p) =>
+        p.reviewProgressData?.confidenceMax === 'N/A'
+          ? 0
+          : p.reviewProgressData?.confidenceMax,
+    },
+    {
+      label: 'Min Confidence',
+      value: 'Min Confidence',
+      getValue: (p) =>
+        p.reviewProgressData?.confidenceMin === 'N/A'
+          ? 0
+          : p.reviewProgressData?.confidenceMin,
+    },
+    {
+      label: 'Meta Review Recommendation',
+      value: 'Meta Review Recommendation',
+      getValue: (p) => p.metaReviewData?.recommendation,
     },
   ]
   const [messageOption, setMessageOption] = useState(null)
@@ -359,6 +427,20 @@ const MenuBar = ({
 
   const handleQuerySearchInfoClick = () => {
     $('#query-search-info').modal('show')
+  }
+
+  const handleSortByChange = (e) => {
+    setAcConsoleData((data) => ({
+      ...data,
+      tableRowsDisplayed: orderBy(data.tableRowsDisplayed, e.getValue),
+    }))
+  }
+
+  const handleReverseSort = () => {
+    setAcConsoleData((data) => ({
+      ...data,
+      tableRowsDisplayed: [...data.tableRowsDisplayed].reverse(),
+    }))
   }
 
   useEffect(() => {
@@ -425,9 +507,10 @@ const MenuBar = ({
       <Dropdown
         className="dropdown-sm sort-dropdown"
         value={{ label: 'Paper Number', value: '' }}
-        options={[{ label: 'test123' }]}
+        options={sortDropdownOptions}
+        onChange={handleSortByChange}
       />
-      <button className="btn btn-icon sort-button">
+      <button className="btn btn-icon sort-button" onClick={handleReverseSort}>
         <Icon name="sort" />
       </button>
       <MessageReviewersModal

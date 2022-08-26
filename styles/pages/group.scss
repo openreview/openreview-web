@@ -223,6 +223,14 @@ main.invitation {
 
     .sort-dropdown {
       margin-right: 0.25rem;
+      .dropdown-select {
+        &__menu {
+          width: fit-content;
+        }
+        &__option {
+          white-space: nowrap;
+        }
+      }
     }
 
     .sort-button {
