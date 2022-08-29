@@ -14,14 +14,26 @@
 
       {{#if noteInvitation}}
         <h4>
-          {{#if edit.note.replyto}}
-            <a href="/forum?id={{details.replytoNote.forum}}&noteId={{noteId}}{{#unless completed}}&invitationId={{id}}{{/unless}}{{#if ../taskOptions.referrer}}&referrer={{../taskOptions.referrer}}{{/if}}">
-              {{prettyInvitationId id includePaperNum=true}}
-            </a>
+          {{#if ../taskOptions.apiV2}}
+            {{#if edit.note.replyto}}
+              <a href="/forum?id={{details.replytoNote.forum}}&noteId={{noteId}}{{#unless completed}}&invitationId={{id}}{{/unless}}{{#if ../taskOptions.referrer}}&referrer={{../taskOptions.referrer}}{{/if}}">
+                {{prettyInvitationId id includePaperNum=true}}
+              </a>
+            {{else}}
+              <a href="/forum?id={{details.replytoNote.forum}}{{#unless completed}}&invitationId={{id}}{{/unless}}{{#if ../taskOptions.referrer}}&referrer={{../taskOptions.referrer}}{{/if}}">
+                {{prettyInvitationId id includePaperNum=true}}
+              </a>
+            {{/if}}
           {{else}}
-            <a href="/forum?id={{details.replytoNote.forum}}{{#unless completed}}&invitationId={{id}}{{/unless}}{{#if ../taskOptions.referrer}}&referrer={{../taskOptions.referrer}}{{/if}}">
-              {{prettyInvitationId id includePaperNum=true}}
-            </a>
+            {{#if reply.replyto}}
+              <a href="/forum?id={{details.replytoNote.forum}}&noteId={{noteId}}{{#unless completed}}&invitationId={{id}}{{/unless}}{{#if ../taskOptions.referrer}}&referrer={{../taskOptions.referrer}}{{/if}}">
+                {{prettyInvitationId id includePaperNum=true}}
+              </a>
+            {{else}}
+              <a href="/forum?id={{details.replytoNote.forum}}{{#unless completed}}&invitationId={{id}}{{/unless}}{{#if ../taskOptions.referrer}}&referrer={{../taskOptions.referrer}}{{/if}}">
+                {{prettyInvitationId id includePaperNum=true}}
+              </a>
+            {{/if}}
           {{/if}}
           <span class="duedate {{dueDateStatus}}">Due: {{dueDateStr}}</span>
         </h4>
@@ -30,7 +42,7 @@
             <span class="glyphicon glyphicon-share-alt"></span>
             <span class="title">
               <a href="/forum?id={{details.replytoNote.forum}}{{#if ../taskOptions.referrer}}&referrer={{../taskOptions.referrer}}{{/if}}">
-                {{details.replytoNote.content.title.value}}
+                {{#if ../taskOptions.apiV2}}{{details.replytoNote.content.title.value}}{{else}}{{details.replytoNote.content.title}}{{/if}}
               </a>
             </span>
           </div>
