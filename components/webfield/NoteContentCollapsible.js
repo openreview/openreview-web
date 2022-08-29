@@ -16,6 +16,22 @@ const NoteContentCollapsible = ({
 }) => {
   const [collapsed, setCollapsed] = useState(true)
   const collapseRef = useRef(null)
+  const fieldsToOmit = [
+    // html should be displayed
+    'title',
+    'authors',
+    'author_emails',
+    'authorids',
+    'pdf',
+    'verdict',
+    'paperhash',
+    'ee',
+    'year',
+    'venue',
+    'venueid',
+  ]
+
+  if (Object.keys(content).every((p) => fieldsToOmit.includes(p))) return null // will expand to empty
 
   return (
     <>
