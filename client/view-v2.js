@@ -213,7 +213,7 @@ module.exports = (function() {
         });
         contentInputResult = valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
       } else if (fieldDescription.value.param.input === 'select' || !(_.has(fieldDescription.value.param, 'input'))) {
-        if (fieldDescription.value.param.type.endsWith('[]')) {
+        if (!(_.has(fieldDescription.value.param, 'type')) || fieldDescription.value.param.type.endsWith('[]')) {
           //values-dropdown
           contentInputResult = view.mkDropdownAdder(
             fieldName, fieldDescription.description, fieldDescription.value.param.enum,
