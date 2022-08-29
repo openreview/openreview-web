@@ -213,7 +213,7 @@ module.exports = (function() {
         });
         contentInputResult = valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
       } else if (fieldDescription.value.param.input === 'select' || !(_.has(fieldDescription.value.param, 'input'))) {
-        if (Array.isArray(fieldDescription.value.param.enum) || fieldDescription.value.param.type.endsWith('[]')) {
+        if (fieldDescription.value.param.type.endsWith('[]')) {
           //values-dropdown
           contentInputResult = view.mkDropdownAdder(
             fieldName, fieldDescription.description, fieldDescription.value.param.enum,
@@ -227,7 +227,7 @@ module.exports = (function() {
           );
         }
       }
-    } else if (_.has(fieldDescription.value.param === 'json')) {
+    } else if (fieldDescription.value.param.type === 'json') {
       contentInputResult = valueInput($('<textarea>', {
         class: 'note_content_value form-control',
         name: fieldName,
@@ -1735,7 +1735,6 @@ module.exports = (function() {
       if (presentationObj.hidden && k === 'authors') {
         return ret;
       }
-      console.log("k:", k);
       var $inputVal = $contentMap[k].find('.note_content_value[name="' + k + '"]');
       var inputVal = $inputVal.val();
 
