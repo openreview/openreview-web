@@ -1593,7 +1593,7 @@ module.exports = (function() {
     const { note: noteFields, ...otherFields } = invitationObj.edit
     // editToPost.readers/writers etc.
     Object.entries(otherFields).forEach(([field, value]) => {
-      if (Array.isArray(value) && value[0].startsWith('${')) return
+      if (!_.has(value, 'param')) return
       switch (field) {
         case 'readers':
           result[field] = formData?.editReaderValues ?? noteObj?.[field]
@@ -1612,7 +1612,7 @@ module.exports = (function() {
     const { content: contentFields, ...otherNoteFields } = noteFields
     // editToPost.note.id/ddate/reader/writers etc.
     Object.entries(otherNoteFields).forEach(([otherNoteField, value]) => {
-      if (Array.isArray(value) && value[0].startsWith('${')) return
+      if (!_.has(value, 'param')) return
       switch (otherNoteField) {
         case 'readers':
           note[otherNoteField] = formData?.noteReaderValues ?? noteObj?.[otherNoteField]
