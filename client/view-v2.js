@@ -179,72 +179,6 @@ module.exports = (function() {
           readonly: true
         }), fieldName, fieldDescription);
       }
-    } else if (_.has(fieldDescription.value.param, 'regex')) {
-      if (!_.has(fieldDescription.value.param, 'type') || fieldDescription.value.param.type.endsWith('[]')) {
-        // then treat as values-regex
-        if (params && params.groups) {
-          var groupIds = _.map(params.groups, function (g) {
-            return g.id;
-          });
-          contentInputResult = view.mkDropdownAdder(
-            fieldName, fieldDescription.description, groupIds,
-            fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.param.optional }
-          );
-        } else {
-          $input = $('<input>', {
-            type: 'text',
-            class: 'form-control note_content_value',
-            name: fieldName,
-            value: fieldValue
-          });
-          $input.addClass('autosave-enabled');
-          contentInputResult = valueInput($input, fieldName, fieldDescription);
-        }
-      } else {
-        // then treat as value-regex
-        var $inputGroup;
-        // Create a new regex that doesn't include min and max length
-        var regexStr = fieldDescription.value.param.regex;
-        var re = new RegExp('^' + regexStr.replace(/\{\d+,\d+\}\$$/, '') + '$');
-        var newlineMatch = '\n'.match(re);
-        if (newlineMatch && newlineMatch.length) {
-          $input = $('<textarea>', {
-            class: 'note_content_value form-control',
-            name: fieldName,
-            text: fieldValue
-          });
-
-          if (fieldDescription.value.param.markdown) {
-            $inputGroup = markdownInput($input, fieldName, fieldDescription);
-          } else {
-            $inputGroup = valueInput($input, fieldName, fieldDescription);
-          }
-
-          var lenMatches = _.get(fieldDescription.value.param, 'regex', '').match(/\{(\d+),(\d+)\}\$$/);
-          if (lenMatches) {
-            var minLen = parseInt(lenMatches[1], 10);
-            var maxLen = parseInt(lenMatches[2], 10);
-            minLen = (isNaN(minLen) || minLen < 0) ? 0 : minLen;
-            maxLen = (isNaN(maxLen) || maxLen < minLen) ? 0 : maxLen;
-            if (minLen || maxLen) {
-              $inputGroup.append(mkCharCouterWidget($input, minLen, maxLen));
-              if (fieldValue) {
-                $input.trigger('keyup');
-              }
-            }
-          }
-        } else {
-          $input = $('<input>', {
-            type: 'text',
-            class: 'form-control note_content_value',
-            name: fieldName,
-            value: fieldValue
-          });
-          $inputGroup = valueInput($input, fieldName, fieldDescription); //input will probably be omitted field when rendered
-        }
-        $input.addClass('autosave-enabled');
-        contentInputResult = $inputGroup;
-      }
     } else if (_.has(fieldDescription.value.param, 'enum')) {
       if (fieldDescription.value.param.input === 'radio') {
         //value-radio
@@ -293,7 +227,7 @@ module.exports = (function() {
           );
         }
       }
-    } else if (_.has(fieldDescription.value, 'value-dict')) {
+    } else if (_.has(fieldDescription.value.param === 'json')) {
       contentInputResult = valueInput($('<textarea>', {
         class: 'note_content_value form-control',
         name: fieldName,
@@ -302,6 +236,68 @@ module.exports = (function() {
 
     } else if (fieldDescription.value.param.type === 'file') {
       contentInputResult = mkAttachmentSection(fieldName, fieldDescription, fieldValue);
+    } else if (_.has(fieldDescription.value.param, 'regex') || fieldDescription.value.param.type === 'string') {
+      if (!_.has(fieldDescription.value.param, 'type') || fieldDescription.value.param.type.endsWith('[]')) {
+        // then treat as values-regex
+        if (params && params.groups) {
+          var groupIds = _.map(params.groups, function (g) {
+            return g.id;
+          });
+          contentInputResult = view.mkDropdownAdder(
+            fieldName, fieldDescription.description, groupIds,
+            fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.param.optional }
+          );
+        } else {
+          $input = $('<input>', {
+            type: 'text',
+            class: 'form-control note_content_value',
+            name: fieldName,
+            value: fieldValue
+          });
+          $input.addClass('autosave-enabled');
+          contentInputResult = valueInput($input, fieldName, fieldDescription);
+        }
+      } else {
+        // then treat as value-regex
+        var $inputGroup;
+        if (_.has(fieldDescription.value.param, 'input') && fieldDescription.value.param.input === 'textarea') {
+          $input = $('<textarea>', {
+            class: 'note_content_value form-control',
+            name: fieldName,
+            text: fieldValue
+          });
+
+          if (fieldDescription.value.param.markdown) {
+            $inputGroup = markdownInput($input, fieldName, fieldDescription);
+          } else {
+            $inputGroup = valueInput($input, fieldName, fieldDescription);
+          }
+
+          var lenMatches = _.has(fieldDescription.value.param, 'maxLength');
+          if (lenMatches) {
+            var minLen = fieldDescription.value.param.minLength;
+            var maxLen = fieldDescription.value.param.maxLength;
+            minLen = (isNaN(minLen) || minLen < 0) ? 0 : minLen;
+            maxLen = (isNaN(maxLen) || maxLen < minLen) ? 0 : maxLen;
+            if (minLen || maxLen) {
+              $inputGroup.append(mkCharCouterWidget($input, minLen, maxLen));
+              if (fieldValue) {
+                $input.trigger('keyup');
+              }
+            }
+          }
+        } else {
+          $input = $('<input>', {
+            type: 'text',
+            class: 'form-control note_content_value',
+            name: fieldName,
+            value: fieldValue
+          });
+          $inputGroup = valueInput($input, fieldName, fieldDescription); //input will probably be omitted field when rendered
+        }
+        $input.addClass('autosave-enabled');
+        contentInputResult = $inputGroup;
+      }
     }
 
     return contentInputResult;
@@ -1739,6 +1735,7 @@ module.exports = (function() {
       if (presentationObj.hidden && k === 'authors') {
         return ret;
       }
+      console.log("k:", k);
       var $inputVal = $contentMap[k].find('.note_content_value[name="' + k + '"]');
       var inputVal = $inputVal.val();
 
@@ -1809,7 +1806,7 @@ module.exports = (function() {
                 function(e) { return !_.isEmpty(e); }
               );
         }
-      } else if (contentObj.param?.hasOwnProperty('value-dict')) {
+      } else if (presentationObj.type ==='json') {
         if (inputVal) {
           var inputStr = _.map(inputVal.split('\n'), function(line) {
             return line.trim();
