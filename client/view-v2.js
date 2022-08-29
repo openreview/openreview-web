@@ -826,7 +826,7 @@ module.exports = (function() {
   const deleteOrRestoreNote = async (note, invitation, noteTitle, user, onTrashedOrRestored) => {
     const isDeleted = note.ddate && note.ddate < Date.now();
     var postUpdatedNote = function ($editSignatures, $editReaders) {
-      const ddate = isDeleted ? null : Date.now();
+      const ddate = isDeleted ? {'delete': true} : Date.now();
       let editSignatureInputValues = view.idsFromListAdder($editSignatures, invitation.edit.signatures);
       const editReaderValues = getReaders($editReaders, invitation, editSignatureInputValues, true);
       if (!editSignatureInputValues || !editSignatureInputValues.length) {
