@@ -830,7 +830,8 @@ module.exports = (function() {
       showTasks: true,
       showContents: true,
       referrer: null,
-      emptyMessage: 'No outstanding tasks to display'
+      emptyMessage: 'No outstanding tasks to display',
+      apiV2: true,
     };
     options = _.defaults(options, taskDefaults);
 
