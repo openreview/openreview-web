@@ -616,7 +616,7 @@ module.exports = function(forumId, noteId, invitationId, user, isBetaUser) {
 
     if (isBetaUser) {
       $('#beta-message').html(
-        '<p><span class="glyphicon glyphicon-exclamation-sign pr-1 " aria-hidden="true"></span> OpenReview is testing a new version of this page and needs your feedback. To try the new forum click here: <a href="/forum-new?id=' + rootRec.note.id + '">View new forum »</a></p>'
+        '<p><span class="glyphicon glyphicon-exclamation-sign pr-1 " aria-hidden="true"></span> OpenReview is testing a new version of this page and needs your feedback. To try the new forum click here: <a href="/forum' + window.location.search + '">View new forum »</a></p>'
       ).show();
     }
 
