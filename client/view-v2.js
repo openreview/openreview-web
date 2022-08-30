@@ -306,10 +306,7 @@ module.exports = (function() {
   const mkComposerInput = (fieldName, fieldDescription, fieldValue, params) => {
     let contentInputResult;
 
-    if (fieldName === 'authorids' && fieldDescription.value?.param.type.endsWith('[]') && (
-      (_.has(fieldDescription.value.param, 'regex') && view.isTildeIdAllowed(fieldDescription.value.param.regex))
-      || (Array.isArray(fieldDescription.value))
-    )) {
+    if (fieldName === 'authorids') {
       let authors;
       let authorids;
       if (params?.note) {
@@ -320,7 +317,7 @@ module.exports = (function() {
         authors = [userProfile.first + ' ' + userProfile.middle + ' ' + userProfile.last];
         authorids = [userProfile.preferredId];
       }
-      const invitationRegex = fieldDescription.value.param.regex;
+      const invitationRegex = fieldDescription.value.param?.regex;
       // Enable allowUserDefined if the values-regex has '~.*|'
       // Don't enable adding or removing authors if invitation uses 'values' instead of values-regex
       contentInputResult = valueInput(
@@ -1330,8 +1327,10 @@ module.exports = (function() {
       }
 
     } else {
-      $signatures = mkComposerInput(headingText, { value: fieldDescription }, fieldValue);
-      return $.Deferred().resolve($signatures);
+      if (fieldDescription) {
+        $signatures = mkComposerInput(headingText, { value: fieldDescription }, fieldValue);
+        return $.Deferred().resolve($signatures);
+      }
     }
 
   }
@@ -1388,7 +1387,7 @@ module.exports = (function() {
         };
         const content = getContent(invitation, $contentMap, noteEditObject);
         var constNoteSignature = (Array.isArray(invitation.edit.note?.signatures) && invitation.edit.note?.signatures[0].includes('/signatures}'))
-        const useEditSignature = constNoteSignature || (_.has(invitation.edit.note?.signatures.param, 'const') &&
+        const useEditSignature = constNoteSignature || (_.has(invitation.edit.note?.signatures?.param, 'const') &&
           invitation.edit.note?.signatures?.param.const[0].includes('/signatures}')) // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
