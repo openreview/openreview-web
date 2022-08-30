@@ -272,7 +272,7 @@ module.exports = (function() {
       replyto: true,
       type: 'notes',
       details: 'replytoNote,repliedNotes',
-      version: '1' //TODO: remove when the task view supports V2
+      //version: '1' //TODO: remove when the task view supports V2
     });
 
     var edgeInvitationsP = getAll('/invitations', {
@@ -281,7 +281,7 @@ module.exports = (function() {
       duedate: true,
       type: 'edges',
       details: 'repliedEdges',
-      version: '1' //TODO: remove when the task view supports V2
+      //version: '1' //TODO: remove when the task view supports V2
     });
 
     var tagInvitationsP = getAll('/invitations', {
@@ -290,7 +290,7 @@ module.exports = (function() {
       duedate: true,
       type: 'tags',
       details: 'repliedTags',
-      version: '1' //TODO: remove when the task view supports V2
+      //version: '1' //TODO: remove when the task view supports V2
     });
 
     var filterInviteeAndNumbers = function(inv) {
@@ -830,7 +830,8 @@ module.exports = (function() {
       showTasks: true,
       showContents: true,
       referrer: null,
-      emptyMessage: 'No outstanding tasks to display'
+      emptyMessage: 'No outstanding tasks to display',
+      apiV2: true,
     };
     options = _.defaults(options, taskDefaults);
 
@@ -858,11 +859,11 @@ module.exports = (function() {
         if (inv.details.repliedNotes?.length > 0) {
           inv.completed = true;
         }
-        inv.noteId = inv.details.repliedNotes?.length === 1 ? inv.details.repliedNotes[0].id : inv.reply.replyto;
+        inv.noteId = inv.details.repliedNotes?.length === 1 ? inv.details.repliedNotes[0].id : inv.edit.note.replyto;
 
         if (_.isEmpty(inv.details.replytoNote)) {
           // Some invitations returned by the API do not contain replytoNote
-          inv.details.replytoNote = { forum: inv.reply.forum };
+          inv.details.replytoNote = { forum: inv.edit.note.forum };
         }
       } else {
         inv.tagInvitation = true;
