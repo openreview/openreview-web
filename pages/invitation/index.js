@@ -89,7 +89,11 @@ const Invitation = ({ invitationId, webfieldCode, writable, componentObj, appCon
       ) : (
         <WebFieldContext.Provider value={webComponentProps}>
           <div id="invitation-container">
-            {WebComponent && webComponentProps ? <WebComponent /> : <LoadingSpinner />}
+            {WebComponent && webComponentProps ? (
+              <WebComponent appContext={appContext} />
+            ) : (
+              <LoadingSpinner />
+            )}
           </div>
         </WebFieldContext.Provider>
       )}

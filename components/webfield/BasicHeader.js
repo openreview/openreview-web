@@ -31,6 +31,7 @@ const BasicHeader = ({ title, instructions, customLoad, options }) => {
         </div>
       )}
       {options?.underline && <hr className="spacer" />}
+      {options?.extra}
     </div>
   )
 }

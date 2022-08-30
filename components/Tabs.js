@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import Icon from './Icon'
 
 export function Tabs({ children, className }) {
   return <div className={`tabs-container ${className || ''}`}>{children}</div>
@@ -14,7 +15,7 @@ export function TabList({ children }) {
   )
 }
 
-export function Tab({ id, headingCount, onClick, active, children }) {
+export function Tab({ id, headingCount, onClick, active, children, icon }) {
   const tabEl = useRef(null)
 
   useEffect(() => {
@@ -39,7 +40,9 @@ export function Tab({ id, headingCount, onClick, active, children }) {
         data-modify-history="true"
         ref={tabEl}
       >
-        {children} {headingCount && <span className="badge">{headingCount}</span>}
+        {children}
+        {headingCount && <span className="badge">{headingCount}</span>}
+        {icon && <Icon name={icon} />}
       </a>
     </li>
   )
