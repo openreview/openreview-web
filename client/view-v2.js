@@ -158,7 +158,7 @@ module.exports = (function() {
     fieldValue = valueInNote || fieldDefault;  // These will always be mutually exclusive
     var $input;
 
-    if (!_.has(fieldDescription.value, 'param') || _.has(fieldDescription.value.param, 'const')) {
+    if (fieldDescription.value && (!_.has(fieldDescription.value, 'param') || _.has(fieldDescription.value.param, 'const'))) {
       value = fieldDescription.value;
       if (_.has(fieldDescription.value, 'param')) {
         value = fieldDescription.value.param.const;
@@ -179,7 +179,7 @@ module.exports = (function() {
           readonly: true
         }), fieldName, fieldDescription);
       }
-    } else if (_.has(fieldDescription.value.param, 'enum')) {
+    } else if (_.has(fieldDescription.value?.param, 'enum')) {
       if (fieldDescription.value.param.input === 'radio') {
         //value-radio
         $input = $('<div>', { class: 'note_content_value value-radio-container' }).append(
@@ -227,16 +227,16 @@ module.exports = (function() {
           );
         }
       }
-    } else if (fieldDescription.value.param.type === 'json') {
+    } else if (fieldDescription.value?.param.type === 'json') {
       contentInputResult = valueInput($('<textarea>', {
         class: 'note_content_value form-control',
         name: fieldName,
         text: fieldValue && JSON.stringify(fieldValue, undefined, 4)
       }), fieldName, fieldDescription);
 
-    } else if (fieldDescription.value.param.type === 'file') {
+    } else if (fieldDescription.value?.param.type === 'file') {
       contentInputResult = mkAttachmentSection(fieldName, fieldDescription, fieldValue);
-    } else if (_.has(fieldDescription.value.param, 'regex') || fieldDescription.value.param.type === 'string') {
+    } else if (_.has(fieldDescription.value?.param, 'regex') || fieldDescription.value?.param.type === 'string') {
       if (!_.has(fieldDescription.value.param, 'type') || fieldDescription.value.param.type.endsWith('[]')) {
         // then treat as values-regex
         if (params && params.groups) {
@@ -1327,12 +1327,9 @@ module.exports = (function() {
       }
 
     } else {
-      if (fieldDescription) {
-        $signatures = mkComposerInput(headingText, { value: fieldDescription }, fieldValue);
-        return $.Deferred().resolve($signatures);
-      }
+      $signatures = mkComposerInput(headingText, { value: fieldDescription }, fieldValue);
+      return $.Deferred().resolve($signatures);
     }
-
   }
 
   const mkNoteEditor = async (note, invitation, user, options) => {
