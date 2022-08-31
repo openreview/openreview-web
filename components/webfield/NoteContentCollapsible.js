@@ -3,7 +3,17 @@
 import { useRef, useState } from 'react'
 import NoteContent, { NoteContentV2 } from '../NoteContent'
 
-const NoteContentCollapsible = ({ id, content, invitation, isV2Note }) => {
+const NoteContentCollapsible = ({
+  id,
+  content,
+  omit,
+  invitation, // v1 only
+  isReference, // v1 only
+  presentation, // v2 only
+  noteReaders, // v2 only
+  isEdit, // v2 only
+  isV2Note,
+}) => {
   const [collapsed, setCollapsed] = useState(true)
   const collapseRef = useRef(null)
   const fieldsToOmit = [
@@ -43,11 +53,21 @@ const NoteContentCollapsible = ({ id, content, invitation, isV2Note }) => {
           <NoteContentV2
             id={id}
             content={content}
-            invitation={invitation}
             include={['html']}
+            omit={omit}
+            presentation={presentation}
+            noteReaders={noteReaders}
+            isEdit={isEdit}
           />
         ) : (
-          <NoteContent id={id} content={content} invitation={invitation} include={['html']} />
+          <NoteContent
+            id={id}
+            content={content}
+            invitation={invitation}
+            include={['html']}
+            omit={omit}
+            isReference={isReference}
+          />
         )}
       </div>
     </>
