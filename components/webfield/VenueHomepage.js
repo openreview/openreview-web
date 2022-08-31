@@ -2,18 +2,16 @@
 /* globals Webfield, Webfield2: false */
 /* globals typesetMathJax: false */
 
-import { useState, useContext, useEffect, useCallback, useRef } from 'react'
+import { useState, useContext, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import uniq from 'lodash/uniq'
-import debounce from 'lodash/debounce'
 import WebFieldContext from '../WebFieldContext'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 import VenueHeader from './VenueHeader'
 import SubmissionButton from './SubmissionButton'
 import Note, { NoteV2 } from '../Note'
 import PaginatedList from '../PaginatedList'
-import Icon from '../Icon'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
@@ -39,7 +37,7 @@ function ConsoleList({ groupIds }) {
   )
 }
 
-function SubmissionsList({ venueId, invitationId, accessToken, apiVersion }) {
+function SubmissionsList({ venueId, invitationId, accessToken, apiVersion, enableSearch }) {
   const paperDisplayOptions = {
     pdfLink: true,
     replyCount: true,
@@ -82,19 +80,6 @@ function SubmissionsList({ venueId, invitationId, accessToken, apiVersion }) {
     }
   }
 
-  const handleSearchTermChange = (updatedSearchTerm) => {
-    if (updatedSearchTerm) {
-      searchNotes(updatedSearchTerm, 1000, 0)
-    } else {
-      loadNotes(pageSize, 0)
-    }
-  }
-
-  const delaySearch = useCallback(
-    debounce((term) => handleSearchTermChange(term), 300),
-    [venueId, invitationId, accessToken]
-  )
-
   function NoteListItem({ item }) {
     if (apiVersion === 2) {
       return (
@@ -107,37 +92,13 @@ function SubmissionsList({ venueId, invitationId, accessToken, apiVersion }) {
   }
 
   return (
-    <div>
-      <form className="form-inline notes-search-form" role="search">
-        <div className="form-group search-content has-feedback">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search submissions by title and metadata"
-            autoComplete="off"
-            onChange={(e) => {
-              const term = e.target.value.trim()
-              if (term.length >= 3) delaySearch(e.target.value)
-              if (term.length === 0) handleSearchTermChange('')
-            }}
-            onKeyDown={(e) => {
-              const term = e.target.value.trim()
-              if (e.key === 'Enter' && term.length >= 2) {
-                handleSearchTermChange(e.target.value)
-              }
-            }}
-          />
-          <Icon name="search" extraClasses="form-control-feedback" />
-        </div>
-      </form>
-
-      <PaginatedList
-        loadItems={loadNotes}
-        ListItem={NoteListItem}
-        itemsPerPage={pageSize}
-        className="submissions-list"
-      />
-    </div>
+    <PaginatedList
+      loadItems={loadNotes}
+      searchItems={enableSearch && searchNotes}
+      ListItem={NoteListItem}
+      itemsPerPage={pageSize}
+      className="submissions-list"
+    />
   )
 }
 
@@ -300,7 +261,7 @@ export default function VenueHomepage({ appContext }) {
                   venueId={group.id}
                   invitationId={blindSubmissionId}
                   apiVersion={apiVersion}
-                  showSearch={true}
+                  enableSearch={true}
                 />
               </TabPanel>
             )}

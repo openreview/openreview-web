@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import debounce from 'lodash/debounce'
 import LoadingSpinner from './LoadingSpinner'
 import ErrorAlert from './ErrorAlert'
+import Icon from './Icon'
 import BasePaginatedList from './BasePaginatedList'
 
 function DefaultListItem({ item }) {
@@ -14,6 +16,7 @@ function DefaultListItem({ item }) {
 
 export default function PaginatedList({
   loadItems,
+  searchItems,
   ListItem,
   emptyMessage,
   itemsPerPage = 15,
@@ -25,6 +28,27 @@ export default function PaginatedList({
   const [error, setError] = useState(null)
 
   const itemComponent = typeof ListItem === 'function' ? ListItem : DefaultListItem
+  const enableSearch = typeof searchItems === 'function'
+
+  const handleSearchTermChange = async (updatedSearchTerm) => {
+    if (updatedSearchTerm) {
+      try {
+        const offset = (page - 1) * itemsPerPage
+        const { items, count } = await searchItems(updatedSearchTerm, itemsPerPage, offset)
+        setListItems(items)
+        setTotalCount(count)
+      } catch (apiError) {
+        setError(apiError)
+      }
+    } else {
+      setPage(1)
+    }
+  }
+
+  const delaySearch = useCallback(
+    debounce((term) => handleSearchTermChange(term), 300),
+    [searchItems]
+  )
 
   useEffect(() => {
     // Reset page when loading function changes
@@ -50,20 +74,52 @@ export default function PaginatedList({
     }
   }, [loadItems, page, itemsPerPage])
 
-  if (!listItems) return <LoadingSpinner inline />
-
   if (error) return <ErrorAlert error={error} />
 
   return (
-    <BasePaginatedList
-      listItems={listItems}
-      totalCount={totalCount}
-      itemsPerPage={itemsPerPage}
-      currentPage={page}
-      setCurrentPage={setPage}
-      ListItem={itemComponent}
-      emptyMessage={emptyMessage}
-      className={className}
-    />
+    <div>
+      {enableSearch && (
+        <form className="form-inline notes-search-form" role="search">
+          <div className="form-group search-content has-feedback">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search submissions by title and metadata"
+              autoComplete="off"
+              onChange={(e) => {
+                const term = e.target.value.trim()
+                if (term.length === 0) {
+                  handleSearchTermChange('')
+                } else if (term.length >= 3) {
+                  delaySearch(e.target.value)
+                }
+              }}
+              onKeyDown={(e) => {
+                const term = e.target.value.trim()
+                if (e.key === 'Enter' && term.length >= 2) {
+                  handleSearchTermChange(e.target.value)
+                }
+              }}
+            />
+            <Icon name="search" extraClasses="form-control-feedback" />
+          </div>
+        </form>
+      )}
+
+      {listItems ? (
+        <BasePaginatedList
+          listItems={listItems}
+          totalCount={totalCount}
+          itemsPerPage={itemsPerPage}
+          currentPage={page}
+          setCurrentPage={setPage}
+          ListItem={itemComponent}
+          emptyMessage={emptyMessage}
+          className={className}
+        />
+      ) : (
+        <LoadingSpinner inline />
+      )}
+    </div>
   )
 }
