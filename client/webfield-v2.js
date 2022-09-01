@@ -266,31 +266,28 @@ module.exports = (function() {
     };
     options = _.defaults(options, defaults);
     var invitationsP = getAll('/invitations', {
-      regex: venueId + '/.*',
+      prefix: venueId + '/.*',
       invitee: true,
       duedate: true,
       replyto: true,
       type: 'notes',
-      details: 'replytoNote,repliedNotes',
-      //version: '1' //TODO: remove when the task view supports V2
+      details: 'replytoNote,repliedNotes'
     });
 
     var edgeInvitationsP = getAll('/invitations', {
-      regex: venueId + '/.*',
+      prefix: venueId + '/.*',
       invitee: true,
       duedate: true,
       type: 'edges',
-      details: 'repliedEdges',
-      //version: '1' //TODO: remove when the task view supports V2
+      details: 'repliedEdges'
     });
 
     var tagInvitationsP = getAll('/invitations', {
-      regex: venueId + '/.*',
+      prefix: venueId + '/.*',
       invitee: true,
       duedate: true,
       type: 'tags',
-      details: 'repliedTags',
-      //version: '1' //TODO: remove when the task view supports V2
+      details: 'repliedTags'
     });
 
     var filterInviteeAndNumbers = function(inv) {
@@ -1106,7 +1103,7 @@ module.exports = (function() {
     var anonRoleName = roleName.slice(0, -1) + '_';
     var numberToken = options.numberToken;
     var query = {
-      regex: venueId + '/' + numberToken + '.*',
+      prefix: venueId + '/' + numberToken + '.*',
       select: 'id,members'
     }
     if (options && options.assigned) {
