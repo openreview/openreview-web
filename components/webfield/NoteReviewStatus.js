@@ -7,7 +7,7 @@ import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import BasicModal from '../BasicModal'
 import Collapse from '../Collapse'
-import Dropdown from '../Dropdown'
+import Dropdown, { CreatableDropdown } from '../Dropdown'
 import ErrorAlert from '../ErrorAlert'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteList from '../NoteList'
@@ -122,6 +122,8 @@ export const AreaChairConsoleNoteReviewStatus = ({
     confidenceAvg,
   } = rowData.reviewProgressData
   const [reviewerReassignmentOptions, setReviewerReassignmentOptions] = useState([])
+  const [selectedReviewer, setSelectedReviewer] = useState(null)
+  const [reviewerIdWithConflicts, setReviewerIdWithConflicts] = useState([])
   const { accessToken } = useUser()
 
   const loadReviewerReassignmentOptions = async () => {
@@ -135,6 +137,8 @@ export const AreaChairConsoleNoteReviewStatus = ({
       { accessToken }
     )
     const profileIdWithConflicts = result.edges.map((p) => p.tail)
+    console.log('profileIdWithConflicts', profileIdWithConflicts)
+    setReviewerIdWithConflicts(profileIdWithConflicts)
     const options = reviewerGroupMembers
       .filter((m) => !profileIdWithConflicts.includes(m))
       .map((p) => {
@@ -155,6 +159,32 @@ export const AreaChairConsoleNoteReviewStatus = ({
         }
       })
     setReviewerReassignmentOptions(options)
+  }
+
+  const assignReviewer = async () => {
+    const selectedReviewerValue = selectedReviewer?.value
+    if (!(selectedReviewerValue?.startsWith('~') || selectedReviewerValue?.includes('@'))) {
+      promptError('Please enter a valid email for assigning a reviewer')
+      setSelectedReviewer(null)
+      return
+    }
+    const existingReviewer = reviewers.find(
+      (p) =>
+        p.profile.content.names.some((r) => r.username === selectedReviewerValue) ||
+        p.profile.content.emails.includes(selectedReviewerValue)
+    )
+    if (existingReviewer) {
+      promptError(
+        `Reviewer ${existingReviewer.preferredName} has already been assigned to Paper ${note.number}`
+      )
+      setSelectedReviewer(null)
+      return
+    }
+    if (reviewerIdWithConflicts.includes(selectedReviewerValue)) {
+      promptError('The reviewer entered is invalid')
+      setSelectedReviewer(null)
+      return
+    }
   }
 
   const handleShowReviewerActivityClick = (anonymousId) => {
@@ -244,8 +274,28 @@ export const AreaChairConsoleNoteReviewStatus = ({
         </div>
         {enableReviewerReassignment && (
           <div className="assign-new-reviewers">
-            <Dropdown options={reviewerReassignmentOptions} className="reviewers-dropdown" />
-            <button className="btn btn-xs">Assign</button>
+            {/* <Dropdown
+              options={reviewerReassignmentOptions}
+              className="reviewers-dropdown"
+              menuIsOpen
+            /> */}
+            <CreatableDropdown
+              className="dropdown-select reviewers-dropdown"
+              classNamePrefix="reviewers-dropdown"
+              options={reviewerReassignmentOptions}
+              placeholder="reviewer@domain.edu"
+              onChange={(e) => setSelectedReviewer(e)}
+              value={selectedReviewer}
+              hideArrow
+              isClearable
+            />
+            <button
+              className="btn btn-xs"
+              onClick={assignReviewer}
+              disabled={!selectedReviewer}
+            >
+              Assign
+            </button>
           </div>
         )}
       </Collapse>

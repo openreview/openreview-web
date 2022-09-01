@@ -366,6 +366,17 @@ main.invitation {
           .reviewers-dropdown {
             flex-grow: 1;
             margin-right: 0.5rem;
+            &__menu {
+              background-color: #fff;
+            }
+            &__control {
+              border-width: 2px;
+              border-color: lighten(constants.$mediumBlue, 10%);
+            }
+            &__option {
+              font-size: small;
+              word-wrap: break-word;
+            }
           }
         }
       }
