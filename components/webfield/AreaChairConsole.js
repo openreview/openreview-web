@@ -240,7 +240,6 @@ const MessageReviewersModal = ({
 }
 
 const QuerySearchInfoModal = ({ filterOperators, propertiesAllowed }) => {
-  console.log('filterOperators', filterOperators)
   return (
     <BasicModal
       id="query-search-info"
@@ -386,6 +385,7 @@ const MenuBar = ({
   const [searchTerm, setSearchTerm] = useState('')
   const [queryIsInvalid, setQueryIsInvalid] = useState(false)
   const [isQuerySearch, setIsQuerySearch] = useState(false)
+  const [sortOption, setSortOption] = useState(sortDropdownOptions[0])
 
   const exportFileName = `${shortPhrase}${
     tableRows?.length === tableRowsDisplayed?.length
@@ -429,13 +429,6 @@ const MenuBar = ({
     $('#query-search-info').modal('show')
   }
 
-  const handleSortByChange = (e) => {
-    setAcConsoleData((data) => ({
-      ...data,
-      tableRowsDisplayed: orderBy(data.tableRowsDisplayed, e.getValue),
-    }))
-  }
-
   const handleReverseSort = () => {
     setAcConsoleData((data) => ({
       ...data,
@@ -462,6 +455,13 @@ const MenuBar = ({
       ),
     }))
   }, [searchTerm])
+
+  useEffect(() => {
+    setAcConsoleData((data) => ({
+      ...data,
+      tableRowsDisplayed: orderBy(data.tableRowsDisplayed, sortOption.getValue),
+    }))
+  }, [sortOption])
 
   return (
     <div className="menu-bar">
@@ -506,9 +506,9 @@ const MenuBar = ({
       <span className="sort-label">Sort by:</span>
       <Dropdown
         className="dropdown-sm sort-dropdown"
-        value={{ label: 'Paper Number', value: '' }}
+        value={sortOption}
         options={sortDropdownOptions}
-        onChange={handleSortByChange}
+        onChange={(e) => setSortOption(e)}
       />
       <button className="btn btn-icon sort-button" onClick={handleReverseSort}>
         <Icon name="sort" />

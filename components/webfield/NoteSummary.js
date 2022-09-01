@@ -1,5 +1,7 @@
 import NoteContentCollapsible from './NoteContentCollapsible'
 import { getNotePdfUrl } from '../../lib/utils'
+import Collapse from '../Collapse'
+import NoteContent, { NoteContentV2 } from '../NoteContent'
 
 const NoteSummary = ({ note, referrerUrl, isV2Note }) => {
   const titleValue = isV2Note ? note.content?.title?.value : note.content?.title
@@ -33,12 +35,23 @@ const NoteSummary = ({ note, referrerUrl, isV2Note }) => {
       )}
       {authorsValue && <div className="note-authors">{authorsValue.join(', ')}</div>}
 
-      <NoteContentCollapsible
-        id={note.id}
-        content={note.content}
-        invitation={note.invitation}
-        isV2Note={isV2Note}
-      />
+      <Collapse showLabel="Show details" hideLabel="Hide details">
+        {isV2Note ? (
+          <NoteContentV2
+            id={note.id}
+            content={note.content}
+            invitation={note.invitation}
+            include={['html']}
+          />
+        ) : (
+          <NoteContent
+            id={note.id}
+            content={note.content}
+            invitation={note.invitation}
+            include={['html']}
+          />
+        )}
+      </Collapse>
     </div>
   )
 }

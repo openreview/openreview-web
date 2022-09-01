@@ -219,9 +219,11 @@ main.invitation {
     .sort-label {
       margin-right: 0.25rem;
       font-weight: bold;
+      white-space: nowrap;
     }
 
     .sort-dropdown {
+      width: 25%;
       margin-right: 0.25rem;
       .dropdown-select {
         &__menu {
@@ -300,6 +302,19 @@ main.invitation {
     .div-add-reviewer {
       margin-top: 0.4rem;
       margin-bottom: 0.4rem;
+    }
+    .reviewer-activity-header {
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+      span {
+        margin-right: 0.25rem;
+        strong {
+          color: constants.$orRed;
+        }
+      }
+    }
+    .alert-danger {
+      word-wrap: break-word;
     }
   }
 

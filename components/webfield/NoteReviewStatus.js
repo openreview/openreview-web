@@ -5,8 +5,12 @@ import { useEffect, useState } from 'react'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
+import BasicModal from '../BasicModal'
 import Collapse from '../Collapse'
 import Dropdown from '../Dropdown'
+import ErrorAlert from '../ErrorAlert'
+import LoadingSpinner from '../LoadingSpinner'
+import NoteList from '../NoteList'
 
 // modified from noteReviewStatus.hbs handlebar template
 // eslint-disable-next-line import/prefer-default-export
@@ -40,6 +44,59 @@ export const ReviewerConsoleNoteReviewStatus = ({
     )}
   </div>
 )
+
+const AreaChairConsoleReviewerActivityModal = ({ note, reviewer, venueId }) => {
+  const { accessToken } = useUser()
+  const [error, setError] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [activityNotes, setActivityNotes] = useState(null)
+
+  const loadReviewerActivity = async () => {
+    setIsLoading(true)
+    try {
+      const result = await api.get(
+        '/notes',
+        {
+          signature: `${venueId}/Paper${note.number}/Reviewer_${reviewer.anonymousId}`,
+        },
+        { accessToken }
+      )
+      setActivityNotes(result.notes)
+    } catch (error) {
+      setError(error)
+    }
+    setIsLoading(false)
+  }
+  return (
+    <BasicModal
+      id={`reviewer-activity-${reviewer.anonymousId}`}
+      title={
+        <>
+          {`Paper ${note.number} Reviewer ${reviewer.anonymousId} Activity`}
+          <div className="reviewer-activity-header">
+            <span>
+              <strong>Name:</strong> {reviewer.preferredName}
+            </span>
+            <span>
+              <strong>Email:</strong> {reviewer.preferredEmail}
+            </span>
+          </div>
+        </>
+      }
+      onOpen={loadReviewerActivity}
+      options={{ hideFooter: true }}
+    >
+      {error && <ErrorAlert error={error} />}
+      {isLoading && <LoadingSpinner inline={true} text={null} />}
+      {activityNotes && (
+        <NoteList
+          notes={activityNotes}
+          displayOptions={{ showContents: true, collapse: true }}
+        />
+      )}
+    </BasicModal>
+  )
+}
 
 // modified from noteReviewers.hbs handlebar template
 export const AreaChairConsoleNoteReviewStatus = ({
@@ -100,6 +157,10 @@ export const AreaChairConsoleNoteReviewStatus = ({
     setReviewerReassignmentOptions(options)
   }
 
+  const handleShowReviewerActivityClick = (anonymousId) => {
+    $(`#reviewer-activity-${anonymousId}`).modal('show')
+  }
+
   return (
     <div className="areachair-console-reviewer-progress">
       <h4>
@@ -157,9 +218,25 @@ export const AreaChairConsoleNoteReviewStatus = ({
                       )}
                     </>
                   )}
-                  <a href="#" className="show-activity-modal">
-                    Show Reviewer Activity
-                  </a>
+                  {completedReview && (
+                    <>
+                      <a
+                        href="#"
+                        className="show-activity-modal"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          handleShowReviewerActivityClick(reviewer.anonymousId)
+                        }}
+                      >
+                        Show Reviewer Activity
+                      </a>
+                      <AreaChairConsoleReviewerActivityModal
+                        note={note}
+                        reviewer={reviewer}
+                        venueId={venueId}
+                      />
+                    </>
+                  )}
                 </div>
               </div>
             )
