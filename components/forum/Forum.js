@@ -428,12 +428,12 @@ export default function Forum({
         }
 
         if (selectedInvitationId) {
-          const container = selectedNoteId === id
-            ? '.invitations-container'
-            : `.note[data-id="${selectedNoteId}"]`
-          const button = document.querySelector(
-            `${container} button[data-id="${selectedInvitationId}"]`
-          )
+          const buttonSelector = `[data-id="${selectedInvitationId}"]`
+          const selector = selectedNoteId === id
+            ? `.forum-note a${buttonSelector}, .invitations-container button${buttonSelector}`
+            : `.note[data-id="${selectedNoteId}"] button${buttonSelector}`
+          const button = document.querySelector(selector)
+          console.log(selector)
           if (button) button.click()
         }
 
