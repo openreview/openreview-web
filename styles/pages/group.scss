@@ -344,6 +344,10 @@ main.invitation {
       display: flex;
       flex-direction: column;
 
+      .send-reminder-link {
+        margin-right: 0.25rem;
+      }
+
       .assigned-reviewers {
         margin-bottom: 0.5rem;
 
@@ -359,26 +363,26 @@ main.invitation {
           }
         }
 
-        .assign-new-reviewers {
-          display: flex;
-          justify-content: space-around;
+        // .assign-new-reviewers {
+        //   display: flex;
+        //   justify-content: space-around;
 
-          .reviewers-dropdown {
-            flex-grow: 1;
-            margin-right: 0.5rem;
-            &__menu {
-              background-color: #fff;
-            }
-            &__control {
-              border-width: 2px;
-              border-color: lighten(constants.$mediumBlue, 10%);
-            }
-            &__option {
-              font-size: small;
-              word-wrap: break-word;
-            }
-          }
-        }
+        //   .reviewers-dropdown {
+        //     flex-grow: 1;
+        //     margin-right: 0.5rem;
+        //     &__menu {
+        //       background-color: #fff;
+        //     }
+        //     &__control {
+        //       border-width: 2px;
+        //       border-color: lighten(constants.$mediumBlue, 10%);
+        //     }
+        //     &__option {
+        //       font-size: small;
+        //       word-wrap: break-word;
+        //     }
+        //   }
+        // }
       }
     }
   }

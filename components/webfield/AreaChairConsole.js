@@ -79,13 +79,13 @@ const MessageReviewersModal = ({
           .map((q) => q.reviewerProfileId)
         console.log('reviewerIds', reviewerIds)
         if (!reviewerIds.length) return Promise.resolve()
-        const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${noteId}&invitation=${venueId}/Paper${note.number}/-/${officialReviewName}`
+        const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${noteId}&invitationId=${venueId}/Paper${note.number}/-/${officialReviewName}`
         return api.post(
           '/messages',
           {
             groups: reviewerIds,
             subject: subject,
-            message: message.replace('[[SUBMIT_REVIEW_LINK]]', forumUrl),
+            message: message.replaceAll('[[SUBMIT_REVIEW_LINK]]', forumUrl),
           },
           { accessToken }
         )
@@ -551,6 +551,7 @@ const AssignedPaperRow = ({
   metaReviewContentField,
   selectedNoteIds,
   setSelectedNoteIds,
+  shortPhrase,
 }) => {
   console.log('rowdata is ', rowData)
   const { note } = rowData
@@ -620,6 +621,7 @@ const AssignedPaperRow = ({
           reviewerGroupWithConflict={reviewerGroupWithConflict}
           reviewerGroupMembers={reviewerGroupMembers}
           allProfiles={allProfiles}
+          shortPhrase={shortPhrase}
         />
       </td>
       <td>
@@ -1129,6 +1131,7 @@ const AreaChairConsole = ({ appContext }) => {
               metaReviewContentField={metaReviewContentField}
               selectedNoteIds={selectedNoteIds}
               setSelectedNoteIds={setSelectedNoteIds}
+              shortPhrase={shortPhrase}
             />
           ))}
         </Table>
