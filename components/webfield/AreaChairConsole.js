@@ -1042,7 +1042,12 @@ const AreaChairConsole = ({ appContext }) => {
         reviewersInfo: result[1],
         reviewerRankingByPaper: result[3],
         reviewerGroupMembers: result[4],
-        allProfiles: profileResults[0].profiles.concat(profileResults[1].profiles),
+        allProfiles,
+        sacProfile: allProfiles.find(
+          (p) =>
+            p.content.names.some((q) => q.username === result[2]) ||
+            p.content.emails.includes(result[2])
+        ),
       })
     } catch (error) {
       promptError(error.message)
@@ -1204,7 +1209,18 @@ const AreaChairConsole = ({ appContext }) => {
 
   return (
     <>
-      <BasicHeader title={header?.title} instructions={headerInstructions} />
+      <BasicHeader
+        title={header?.title}
+        instructions={`${headerInstructions}${
+          acConsoleData.sacProfile
+            ? `<p class="dark">Your assigned Senior Area Chair is <a href="https://openreview.net/profile?id=${
+                acConsoleData.sacProfile.id
+              }" target="_blank">${prettyId(acConsoleData.sacProfile.id)}</a>(${
+                acConsoleData.sacProfile.email
+              })`
+            : ''
+        }`}
+      />
       <Tabs>
         <TabList>
           <Tab id="assigned-papers" active>
