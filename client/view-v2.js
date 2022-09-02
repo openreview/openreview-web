@@ -1278,7 +1278,7 @@ module.exports = (function() {
 
   function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures') {
     var $signatures;
-    if (_.has(fieldDescription, 'param') && _.has(fieldDescription.param, 'regex')) {
+    if (_.has(fieldDescription, 'param.regex')) {
       var currentVal = fieldValue && fieldValue[0];
 
       if (fieldDescription.param.regex === '~.*') {
