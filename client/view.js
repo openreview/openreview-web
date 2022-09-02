@@ -571,6 +571,9 @@ module.exports = (function() {
         resultText = '"number" will be replaced with the paper number after the submission has been completed.';
       } else if (resultText.includes('/signatures}')) {
         resultText = '"signatures" will be replaced with the edit signature shown below.';
+      } else if (resultText.includes('/value}')) {
+        const fieldName = resultText.split('/').slice(-2)[0]
+        resultText = '"value" will be replaced with the value of the field ' + fieldName;
       }
       var $hoverResult = $('<div>', {class: 'hover_result'}).text(resultText).hide();
       $hoverItem.append($hoverResult).hover(function() {

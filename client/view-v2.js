@@ -1625,7 +1625,7 @@ module.exports = (function() {
         return;
       }
       if (valueObj = contentFieldValue.value) {
-        if (valueObj.const && !fieldsToIgnoreConst.includes(contentFieldName)) {
+        if (!_.has(valueObj, 'param') || valueObj.param.const) {
           return
         } else {
           content[contentFieldName] = { value: formData?.[contentFieldName] ?? noteObj?.content?.[contentFieldName]?.value }
