@@ -768,7 +768,7 @@ const AreaChairConsole = ({ appContext }) => {
       const allIds = [
         ...new Set([
           ...result[1].flatMap((p) => p.reviewers).map((p) => p.reviewerProfileId),
-          ...(result[2] ?? []),
+          ...(result[2] ? [result[2]] : []),
         ]),
       ]
       const ids = allIds.filter((p) => p.startsWith('~'))
@@ -900,17 +900,22 @@ const AreaChairConsole = ({ appContext }) => {
           },
         }
       })
+
+      const sacProfile = allProfiles.find(
+        (p) =>
+          p.content.names.some((q) => q.username === result[2]) ||
+          p.content.emails.includes(result[2])
+      )
       // #endregion
       setAcConsoleData({
         tableRows,
         tableRowsDisplayed: tableRows,
         reviewersInfo: result[1],
         allProfiles,
-        sacProfile: allProfiles.find(
-          (p) =>
-            p.content.names.some((q) => q.username === result[2]) ||
-            p.content.emails.includes(result[2])
-        ),
+        sacProfile: {
+          id: sacProfile.id,
+          email: sacProfile.content.preferredEmail ?? sacProfile.content.emails[0],
+        },
       })
     } catch (error) {
       promptError(`loading data: ${error.message}`)
@@ -1064,7 +1069,7 @@ const AreaChairConsole = ({ appContext }) => {
           acConsoleData.sacProfile
             ? `<p class="dark">Your assigned Senior Area Chair is <a href="https://openreview.net/profile?id=${
                 acConsoleData.sacProfile.id
-              }" target="_blank">${prettyId(acConsoleData.sacProfile.id)}</a>(${
+              }" target="_blank">${prettyId(acConsoleData.sacProfile.id)}</a> (${
                 acConsoleData.sacProfile.email
               })`
             : ''
