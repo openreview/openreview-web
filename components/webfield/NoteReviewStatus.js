@@ -44,7 +44,12 @@ export const ReviewerConsoleNoteReviewStatus = ({
   </div>
 )
 
-const AreaChairConsoleReviewerActivityModal = ({ note, reviewer, venueId }) => {
+const AreaChairConsoleReviewerActivityModal = ({
+  note,
+  reviewer,
+  venueId,
+  submissionName,
+}) => {
   const { accessToken } = useUser()
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -56,7 +61,7 @@ const AreaChairConsoleReviewerActivityModal = ({ note, reviewer, venueId }) => {
       const result = await api.get(
         '/notes',
         {
-          signature: `${venueId}/Paper${note.number}/Reviewer_${reviewer.anonymousId}`,
+          signature: `${venueId}/${submissionName}${note.number}/Reviewer_${reviewer.anonymousId}`,
         },
         { accessToken }
       )
@@ -104,6 +109,7 @@ const AreaChairConsoleReviewerReminderModal = ({
   venueId,
   officialReviewName,
   setUpdateLastSent,
+  submissionName,
 }) => {
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
   const [message, setMessage] =
@@ -115,7 +121,7 @@ Click on the link below to go to the review page:\n\n[[SUBMIT_REVIEW_LINK]]
 
   const sendReminder = async () => {
     try {
-      const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${note.id}&invitationId=${venueId}/Paper${note.number}/-/${officialReviewName}`
+      const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${note.id}&invitationId=${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
       await api.post(
         '/messages',
         {
@@ -191,6 +197,7 @@ export const AreaChairConsoleNoteReviewStatus = ({
   officialReviewName,
   referrerUrl,
   shortPhrase,
+  submissionName,
 }) => {
   const { officialReviews, reviewers, note } = rowData
   const {
@@ -230,7 +237,7 @@ export const AreaChairConsoleNoteReviewStatus = ({
               (p) => p.anonymousId === reviewer.anonymousId
             )
             const lastReminderSent = localStorage.getItem(
-              `https://openreview.net/forum?id=${note.forum}&noteId=${note.id}&invitationId=${venueId}/Paper${note.number}/-/${officialReviewName}|${reviewer.reviewerProfileId}`
+              `https://openreview.net/forum?id=${note.forum}&noteId=${note.id}&invitationId=${venueId}/${submissionName}${note.number}/-/${officialReviewName}|${reviewer.reviewerProfileId}`
             )
             return (
               <div key={reviewer.reviewerProfileId} className="assigned-reviewer-row">
@@ -262,6 +269,7 @@ export const AreaChairConsoleNoteReviewStatus = ({
                         venueId={venueId}
                         officialReviewName={officialReviewName}
                         setUpdateLastSent={setUpdateLastSent}
+                        submissionName={submissionName}
                       />
                       {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                       <a
@@ -299,6 +307,7 @@ export const AreaChairConsoleNoteReviewStatus = ({
                         note={note}
                         reviewer={reviewer}
                         venueId={venueId}
+                        submissionName={submissionName}
                       />
                     </>
                   )}

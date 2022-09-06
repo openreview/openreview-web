@@ -49,6 +49,7 @@ const MessageReviewersModal = ({
   selectedNoteIds,
   venueId,
   officialReviewName,
+  submissionName,
 }) => {
   const { accessToken } = useUser()
   const [currentStep, setCurrentStep] = useState(1)
@@ -77,7 +78,7 @@ const MessageReviewersModal = ({
           .filter((p) => p.noteNumber == note.number) // eslint-disable-line eqeqeq
           .map((q) => q.reviewerProfileId)
         if (!reviewerIds.length) return Promise.resolve()
-        const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${noteId}&invitationId=${venueId}/Paper${note.number}/-/${officialReviewName}`
+        const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
         return api.post(
           '/messages',
           {
@@ -245,13 +246,12 @@ const MenuBar = ({
   tableRowsDisplayed,
   selectedNoteIds,
   shortPhrase,
-  reviewersInfo,
   venueId,
   officialReviewName,
-  allProfiles,
   setAcConsoleData,
   filterOperators,
   propertiesAllowed,
+  submissionName,
 }) => {
   const disabledMessageButton = selectedNoteIds.length === 0
   const messageReviewerOptions = [
@@ -469,6 +469,7 @@ const MenuBar = ({
         selectedNoteIds={selectedNoteIds}
         venueId={venueId}
         officialReviewName={officialReviewName}
+        submissionName={submissionName}
       />
       {isQuerySearch && (
         <QuerySearchInfoModal
@@ -524,6 +525,7 @@ const AssignedPaperRow = ({
           officialReviewName={officialReviewName}
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
+          submissionName={submissionName}
         />
       </td>
       <td>
@@ -679,7 +681,7 @@ const AreaChairConsole = ({ appContext }) => {
       const areaChairPaperNums = areaChairGroups.flatMap((p) => {
         const num = getNumberFromGroup(p.id, submissionName)
         const anonymousAreaChairGroup = anonymousAreaChairGroups.find((q) =>
-          q.id.startsWith(`${venueId}/Paper${num}/Area_Chair_`)
+          q.id.startsWith(`${venueId}/${submissionName}${num}/Area_Chair_`)
         )
         if (anonymousAreaChairGroup) return num
         return []
@@ -719,7 +721,8 @@ const AreaChairConsole = ({ appContext }) => {
               ?.members.flatMap((r) => {
                 const anonymousReviewerGroup = anonymousReviewerGroups.find(
                   (t) =>
-                    t.id.startsWith(`${venueId}/Paper${p}/Reviewer_`) && t.members[0] === r
+                    t.id.startsWith(`${venueId}/${submissionName}${p}/Reviewer_`) &&
+                    t.members[0] === r
                 )
                 if (anonymousReviewerGroup) {
                   const anonymousReviewerId = getNumberFromGroup(
@@ -808,7 +811,9 @@ const AreaChairConsole = ({ appContext }) => {
         )
         const officialReviews = (note.details.directReplies ?? [])
           .filter(
-            (p) => p.invitation === `${venueId}/Paper${note.number}/-/${officialReviewName}`
+            (p) =>
+              p.invitation ===
+              `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
           )
           ?.map((q) => {
             const anonymousId = getNumberFromGroup(q.signatures[0], 'Reviewer_', false)
@@ -927,13 +932,12 @@ const AreaChairConsole = ({ appContext }) => {
             tableRowsDisplayed={acConsoleData.tableRowsDisplayed}
             selectedNoteIds={selectedNoteIds}
             shortPhrase={shortPhrase}
-            reviewersInfo={acConsoleData.reviewersInfo}
             venueId={venueId}
             officialReviewName={officialReviewName}
-            allProfiles={acConsoleData.allProfiles}
             setAcConsoleData={setAcConsoleData}
             filterOperators={filterOperators}
             propertiesAllowed={propertiesAllowed}
+            submissionName={submissionName}
           />
           <p className="empty-message">No assigned papers matching search criteria.</p>
         </div>
@@ -945,13 +949,12 @@ const AreaChairConsole = ({ appContext }) => {
           tableRowsDisplayed={acConsoleData.tableRowsDisplayed}
           selectedNoteIds={selectedNoteIds}
           shortPhrase={shortPhrase}
-          reviewersInfo={acConsoleData.reviewersInfo}
           venueId={venueId}
           officialReviewName={officialReviewName}
-          allProfiles={acConsoleData.allProfiles}
           setAcConsoleData={setAcConsoleData}
           filterOperators={filterOperators}
           propertiesAllowed={propertiesAllowed}
+          submissionName={submissionName}
         />
         <Table
           className="console-table table-striped"
