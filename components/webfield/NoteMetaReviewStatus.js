@@ -64,28 +64,21 @@ export const AuthorConsoleNoteMetaReviewStatus = ({
 // eslint-disable-next-line import/prefer-default-export
 export const AreaChairConsoleNoteMetaReviewStatus = ({
   note,
-  venueId,
-  submissionName,
-  officialMetaReviewName,
+  metaReviewData,
   metaReviewContentField,
   referrerUrl,
 }) => {
-  const metaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
-  const metaReview = note.details.directReplies.find(
-    (p) => p.invitation === metaReviewInvitationId
-  )
-  const recommendation = metaReview.content[metaReviewContentField]
   const [metaReviewInvitation, setMetaReviewInvitation] = useState(null)
   const { accessToken } = useUser()
 
-  const editUrl = `/forum?id=${note.forum}&noteId=${metaReview.id}&referrer=${referrerUrl}`
+  const editUrl = `/forum?id=${note.forum}&noteId=${metaReviewData.metaReview?.id}&referrer=${referrerUrl}`
 
   const loadMetaReviewInvitation = async () => {
     try {
       const result = await api.get(
         '/invitations',
         {
-          id: metaReviewInvitationId,
+          id: metaReviewData.metaReviewInvitationId,
           invitee: true,
           duedate: true,
           replyto: true,
@@ -93,7 +86,8 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
         },
         { accessToken }
       )
-      if (result.invitations.length) setMetaReviewInvitation(metaReviewInvitationId)
+      if (result.invitations.length)
+        setMetaReviewInvitation(metaReviewData.metaReviewInvitationId)
     } catch (error) {
       promptError(error.message)
     }
@@ -104,13 +98,13 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
   }, [])
   return (
     <>
-      {recommendation ? (
+      {metaReviewData[metaReviewContentField] ? (
         <>
           {
             <>
               <h4>AC Recommendation:</h4>
               <p>
-                <strong>{metaReview.content[metaReviewContentField]}</strong>
+                <strong>{metaReviewData[metaReviewContentField]}</strong>
               </p>
               <p>
                 <a href={editUrl} target="_blank" rel="nofollow noreferrer">{`Read${
@@ -124,14 +118,14 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
         <h4>
           {metaReviewInvitation ? (
             <a
-              href={`/forum?id=${note.forum}&noteId=${note.id}&invitationId=${metaReviewInvitation}&referrer=${referrerUrl}`}
+              href={`/forum?id=${note.forum}&noteId=${note.id}&invitationId=${metaReviewData.metaReviewInvitation}&referrer=${referrerUrl}`}
               target="_blank"
               rel="nofollow noreferrer"
             >
               Submit
             </a>
           ) : (
-            <strong>No Recommendation</strong>
+            <strong>{`No ${metaReviewContentField}`}</strong>
           )}
         </h4>
       )}

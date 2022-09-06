@@ -493,7 +493,7 @@ const AssignedPaperRow = ({
   setSelectedNoteIds,
   shortPhrase,
 }) => {
-  const { note } = rowData
+  const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
     `[Area Chair Console](/group?id=${venueId}/${areaChairName}#assigned-papers)`
   )
@@ -531,9 +531,7 @@ const AssignedPaperRow = ({
       <td>
         <AreaChairConsoleNoteMetaReviewStatus
           note={note}
-          venueId={venueId}
-          submissionName={submissionName}
-          officialMetaReviewName={officialMetaReviewName}
+          metaReviewData={metaReviewData}
           metaReviewContentField={metaReviewContentField}
           referrerUrl={referrerUrl}
         />
@@ -798,7 +796,6 @@ const AreaChairConsole = ({ appContext }) => {
       const allProfiles = (profileResults[0].profiles ?? []).concat(
         profileResults[1].profiles ?? []
       )
-
       const tableRows = notes.map((note) => {
         const assignedReviewers =
           result[1].find((p) => p.number === note.number)?.reviewers ?? []
@@ -894,7 +891,9 @@ const AreaChairConsole = ({ appContext }) => {
             replyCount: note.details.replyCount,
           },
           metaReviewData: {
-            recommendation: metaReview.content[metaReviewContentField],
+            [metaReviewContentField]: metaReview?.content[metaReviewContentField],
+            metaReviewInvitationId: `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`,
+            metaReview,
           },
         }
       })
