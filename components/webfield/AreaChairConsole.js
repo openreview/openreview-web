@@ -77,7 +77,6 @@ const MessageReviewersModal = ({
         const reviewerIds = recipientsInfo
           .filter((p) => p.noteNumber == note.number)
           .map((q) => q.reviewerProfileId)
-        console.log('reviewerIds', reviewerIds)
         if (!reviewerIds.length) return Promise.resolve()
         const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${noteId}&invitationId=${venueId}/Paper${note.number}/-/${officialReviewName}`
         return api.post(
@@ -100,45 +99,18 @@ const MessageReviewersModal = ({
 
   const getRecipients = (messageOption, selecteNoteIds) => {
     if (!selecteNoteIds.length) return []
-    // const selectedNoteNumbers = tableRowsDisplayed
-    //   ?.filter((p) => selectedNoteIds.includes(p.note.id))
-    //   .map((q) => q.note.number)
-    // const selectedReviewerIds = reviewersInfo
-    //   ?.filter((p) => selectedNoteNumbers.includes(p.number))
-    //   .flatMap((q) => q.reviewers.map((r) => ({ ...r, noteNumber: q.number })))
-    // const officialReviewsOfSelectedNotes = notes
-    //   ?.filter((p) => selectedNoteIds.includes(p.id))
-    //   ?.flatMap((q) =>
-    //     q.details.directReplies.filter(
-    //       (r) => r.invitation === `${venueId}/Paper${q.number}/-/${officialReviewName}`
-    //     )
-    //   )
-    // const anonymousIdsOfOfficialReviews = officialReviewsOfSelectedNotes.map((p) => {
-    //   return getNumberFromGroup(p.signatures[0], 'Reviewer_', false)
-    // })
     const selectedRows = tableRowsDisplayed.filter((row) =>
       selecteNoteIds.includes(row.note.id)
     )
 
-    // const selectedReviewerIds = reviewersInfo
-    //   ?.filter((p) => selectedRows.map((q) => q.note.number).includes(p.number))
-    //   .flatMap((r) => r.reviewers.map((s) => ({ ...s, noteNumber: r.number })))
-
     switch (messageOption.value) {
       case 'allReviewers':
-        // return selectedReviewerIds
         return selectedRows.flatMap((row) => row.reviewers)
       case 'withReviews':
-        // return selectedReviewerIds.filter((p) =>
-        //   anonymousIdsOfOfficialReviews.includes(p.anonymousId)
-        // )
         return selectedRows
           .flatMap((row) => row.reviewers)
           .filter((reviewer) => reviewer.hasReview)
       case 'missingReviews':
-        // return selectedReviewerIds.filter(
-        //   (p) => !anonymousIdsOfOfficialReviews.includes(p.anonymousId)
-        // )
         return selectedRows
           .flatMap((row) => row.reviewers)
           .filter((reviewer) => !reviewer.hasReview)
@@ -151,27 +123,9 @@ const MessageReviewersModal = ({
     if (!messageOption) return
     const recipients = getRecipients(messageOption, selectedNoteIds)
     const recipientsInfo = recipients.map((recipient) => {
-      // const reviewerProfile = allProfiles.find(
-      //   (p) =>
-      //     p.content.names.some((q) => q.username === recipient.reviewerProfileId) ||
-      //     p.content.emails.includes(recipient.reviewerProfileId)
-      // )
       const count = recipients.filter(
         (p) => p.reviewerProfileId === recipient.reviewerProfileId
       ).length
-      // const preferredName = recipient.profile
-      //   ? getReviewerName(recipient.profile)
-      //   : recipient.reviewerProfileId
-      // const preferredEmail = recipient.profile
-      //   ? recipient.profile.content.preferredEmail ?? recipient.profile.content.emails[0]
-      //   : recipient.reviewerProfileId
-      // return {
-      //   noteNumber: recipient.noteNumber,
-      //   reviewerProfileId: recipient.reviewerProfileId,
-      //   preferredName,
-      //   preferredEmail,
-      //   count,
-      // }
       return {
         ...recipient,
         count,
@@ -282,7 +236,7 @@ const QuerySearchInfoModal = ({ filterOperators, propertiesAllowed }) => {
           <strong>Properties available</strong>
         </p>
         {Object.keys(propertiesAllowed).map((key) => {
-          return <li>{key}</li>
+          return <li key={key}>{key}</li>
         })}
       </>
     </BasicModal>
@@ -405,7 +359,6 @@ const MenuBar = ({
 
   const keyDownHandler = (e) => {
     if (e.key !== 'Enter' || !filterOperators || !propertiesAllowed) return
-    console.log('immediateSearchTerm', immediateSearchTerm)
     const cleanImmediateSearchTerm = immediateSearchTerm.trim()
     // query search
     const { filteredRows, queryIsInvalid } = filterCollections(
@@ -445,7 +398,7 @@ const MenuBar = ({
       return
     }
     const cleanSearchTerm = searchTerm.trim().toLowerCase()
-    if (cleanSearchTerm.startsWith('+')) return // will be handled in keyDownHandler
+    if (cleanSearchTerm.startsWith('+')) return // handled in keyDownHandler
     setAcConsoleData((acConsoleData) => ({
       ...acConsoleData,
       tableRowsDisplayed: acConsoleData.tableRows.filter(
@@ -537,15 +490,7 @@ const AssignedPaperRow = ({
   rowData,
   venueId,
   areaChairName,
-  reviewersInfo,
   officialReviewName,
-  reviewRatingName,
-  reviewConfidenceName,
-  enableReviewerReassignment,
-  reviewerRankingByPaper,
-  reviewerGroupMembers,
-  allProfiles,
-  reviewerGroupWithConflict,
   officialMetaReviewName,
   submissionName,
   metaReviewContentField,
@@ -553,31 +498,10 @@ const AssignedPaperRow = ({
   setSelectedNoteIds,
   shortPhrase,
 }) => {
-  console.log('rowdata is ', rowData)
   const { note } = rowData
   const referrerUrl = encodeURIComponent(
     `[Area Chair Console](/group?id=${venueId}/${areaChairName}#assigned-papers)`
   )
-  // const assignedReviewers =
-  //   reviewersInfo.find((p) => p.number === note.number)?.reviewers ?? []
-  // const ratingExp = /^(\d+): .*/
-  // const officialReviews = (note.details.directReplies ?? [])
-  //   .filter((p) => p.invitation === `${venueId}/Paper${note.number}/-/${officialReviewName}`)
-  //   ?.map((q) => {
-  //     const anonymousId = getNumberFromGroup(q.signatures[0], 'Reviewer_', false)
-  //     const ratingNumber = q.content[reviewRatingName]
-  //       ? q.content[reviewRatingName].substring(0, q.content[reviewRatingName].indexOf(':'))
-  //       : null
-  //     const confidenceMatch =
-  //       q.content[reviewConfidenceName] && q.content[reviewConfidenceName].match(ratingExp)
-  //     return {
-  //       anonymousId: anonymousId,
-  //       confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
-  //       rating: ratingNumber ? parseInt(ratingNumber, 10) : null,
-  //       reviewLength: q.content.review?.length,
-  //       id: q.id,
-  //     }
-  //   })
   return (
     <tr>
       <td>
@@ -600,27 +524,11 @@ const AssignedPaperRow = ({
         <NoteSummary note={note} referrerUrl={referrerUrl} />
       </td>
       <td>
-        {/* <AreaChairConsoleNoteReviewStatus
-          note={note}
-          assignedReviewers={assignedReviewers}
-          officialReviews={officialReviews}
-          enableReviewerReassignment={enableReviewerReassignment}
-          referrerUrl={referrerUrl}
-          venueId={venueId}
-          officialReviewName={officialReviewName}
-          allProfiles={allProfiles}
-          reviewerGroupMembers={reviewerGroupMembers}
-          reviewerGroupWithConflict={reviewerGroupWithConflict}
-        /> */}
         <AreaChairConsoleNoteReviewStatus
           rowData={rowData}
           venueId={venueId}
           officialReviewName={officialReviewName}
           referrerUrl={referrerUrl}
-          enableReviewerReassignment={enableReviewerReassignment}
-          reviewerGroupWithConflict={reviewerGroupWithConflict}
-          reviewerGroupMembers={reviewerGroupMembers}
-          allProfiles={allProfiles}
           shortPhrase={shortPhrase}
         />
       </td>
@@ -733,11 +641,6 @@ const AreaChairConsole = ({ appContext }) => {
     officialReviewName,
     reviewRatingName,
     reviewConfidenceName,
-    enableReviewerReassignment,
-    enableReviewerReassignmentToOutsideReviewers,
-    reviewerPaperRankingInvitationId,
-    reviewerGroup,
-    reviewerGroupWithConflict,
     officialMetaReviewName,
     metaReviewContentField,
     shortPhrase,
@@ -859,51 +762,13 @@ const AreaChairConsole = ({ appContext }) => {
         : Promise.resolve()
       //#endregion
 
-      //#region reviewer paper ranking
-      const reviewerPaperRankingsP = api
-        .get(
-          '/tags',
-          {
-            invitation: reviewerPaperRankingInvitationId,
-          },
-          { accessToken }
-        )
-        .then((result) => {
-          return result.tags.reduce((rankingByForum, tag) => {
-            if (!rankingByForum[tag.forum]) {
-              rankingByForum[tag.forum] = {}
-            }
-            var index = getNumberFromGroup(tag.signatures[0], 'Reviewer_')
-            rankingByForum[tag.forum][index] = tag
-            return rankingByForum
-          }, {})
-        })
-      //#endregion
-
-      //#region  get all reviewers for reassignment dropdown
-      const reviewerGroupMembersP = enableReviewerReassignment
-        ? api
-            .get('/groups', { id: reviewerGroup, select: 'members' }, { accessToken })
-            .then((result) => {
-              return result.groups[0].members
-            })
-        : Promise.resolve([])
-      //#endregion
-
-      const result = await Promise.all([
-        blindedNotesP,
-        reviewerGroupsP,
-        assignedSACP,
-        reviewerPaperRankingsP,
-        reviewerGroupMembersP,
-      ])
+      const result = await Promise.all([blindedNotesP, reviewerGroupsP, assignedSACP])
 
       //#region get assigned reviewer , sac and all reviewer group members profiles
       const allIds = [
         ...new Set([
           ...result[1].flatMap((p) => p.reviewers).map((p) => p.reviewerProfileId),
           ...(result[2] ?? []),
-          ...result[4],
         ]),
       ]
       const ids = allIds.filter((p) => p.startsWith('~'))
@@ -931,7 +796,10 @@ const AreaChairConsole = ({ appContext }) => {
 
       //#region calculate reviewProgressData and metaReviewData
       const notes = result[0]
-      const allProfiles = profileResults[0].profiles.concat(profileResults[1].profiles)
+      const allProfiles = (profileResults[0].profiles ?? []).concat(
+        profileResults[1].profiles ?? []
+      )
+
       const tableRows = notes.map((note) => {
         const assignedReviewers =
           result[1].find((p) => p.number === note.number)?.reviewers ?? []
@@ -1024,24 +892,17 @@ const AreaChairConsole = ({ appContext }) => {
             confidenceMin,
             replyCount: note.details['replyCount'],
           },
-          // recommendation: ['metaReviewData.recommendation'],
-          // ranking: ['metaReviewData.ranking'],
           metaReviewData: {
             recommendation: metaReview.content[metaReviewContentField],
-            // ranking,
           },
         }
       })
       //#endregion
 
-      console.log(tableRows)
-      console.log('reviewersInfo', result[1])
       setAcConsoleData({
         tableRows,
         tableRowsDisplayed: tableRows,
         reviewersInfo: result[1],
-        reviewerRankingByPaper: result[3],
-        reviewerGroupMembers: result[4],
         allProfiles,
         sacProfile: allProfiles.find(
           (p) =>
@@ -1050,7 +911,7 @@ const AreaChairConsole = ({ appContext }) => {
         ),
       })
     } catch (error) {
-      promptError(error.message)
+      promptError(`loading data: ${error.message}`)
     }
   }
 
@@ -1122,15 +983,7 @@ const AreaChairConsole = ({ appContext }) => {
               rowData={row}
               venueId={venueId}
               areaChairName={areaChairName}
-              reviewersInfo={acConsoleData.reviewersInfo}
               officialReviewName={officialReviewName}
-              reviewRatingName={reviewRatingName}
-              reviewConfidenceName={reviewConfidenceName}
-              enableReviewerReassignment={enableReviewerReassignment}
-              reviewerRankingByPaper={acConsoleData.reviewerRankingByPaper}
-              reviewerGroupMembers={acConsoleData.reviewerGroupMembers}
-              allProfiles={acConsoleData.allProfiles}
-              reviewerGroupWithConflict={reviewerGroupWithConflict}
               officialMetaReviewName={officialMetaReviewName}
               submissionName={submissionName}
               metaReviewContentField={metaReviewContentField}
@@ -1165,7 +1018,8 @@ const AreaChairConsole = ({ appContext }) => {
   }, [user, userLoading])
 
   useEffect(() => {
-    if (userLoading || !user || !group || !venueId) return
+    if (userLoading || !user || !group || !venueId || !submissionName || !officialReviewName)
+      return
     loadData()
   }, [user, userLoading, group])
 
@@ -1191,11 +1045,6 @@ const AreaChairConsole = ({ appContext }) => {
     officialReviewName,
     reviewRatingName,
     reviewConfidenceName,
-    enableReviewerReassignment,
-    enableReviewerReassignmentToOutsideReviewers,
-    reviewerPaperRankingInvitationId,
-    reviewerGroup,
-    reviewerGroupWithConflict,
     officialMetaReviewName,
     metaReviewContentField,
     shortPhrase,

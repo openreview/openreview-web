@@ -4,7 +4,7 @@ const ExportCSV = ({ records, fileName }) => {
   const [href, setHref] = useState(null)
   const exportColumns = [
     { header: 'number', getValue: (p) => p.note?.number },
-    { header: 'forum', getValue: (p) => p.note?.forum },
+    { header: 'forum', getValue: (p) => `https://openreview.net/forum?id=${p.note?.forum}` },
     { header: 'title', getValue: (p) => p.note?.content?.title },
     { header: 'abstract', getValue: (p) => p.note?.content?.abstract },
     { header: 'num reviewers', getValue: (p) => p.reviewProgressData?.numReviewersAssigned },
@@ -19,6 +19,11 @@ const ExportCSV = ({ records, fileName }) => {
           ?.filter((q) => !q.hasReview)
           ?.map((r) => r.reviewerProfileId)
           ?.join('|'),
+    },
+    {
+      header: 'reviewer contact info',
+      getValue: (p) =>
+        p.reviewers.map((q) => `${q.preferredName}<${q.preferredEmail}>`).join(','),
     },
     { header: 'min rating', getValue: (p) => p.reviewProgressData?.ratingMin },
     { header: 'max rating', getValue: (p) => p.reviewProgressData?.ratingMax },

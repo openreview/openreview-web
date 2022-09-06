@@ -209,7 +209,7 @@ main.invitation {
 
     .search-input {
       margin-right: 0.25rem;
-      width: 55%;
+      width: 50%;
 
       &.invalid-value {
         border-color: constants.$orRed;
@@ -223,7 +223,7 @@ main.invitation {
     }
 
     .sort-dropdown {
-      width: 25%;
+      width: 18%;
       margin-right: 0.25rem;
       .dropdown-select {
         &__menu {
