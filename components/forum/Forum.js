@@ -433,7 +433,6 @@ export default function Forum({
             ? `.forum-note a${buttonSelector}, .invitations-container button${buttonSelector}`
             : `.note[data-id="${selectedNoteId}"] button${buttonSelector}`
           const button = document.querySelector(selector)
-          console.log(selector)
           if (button) button.click()
         }
 
