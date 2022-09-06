@@ -394,7 +394,7 @@ const MenuBar = ({
       return
     }
     const cleanSearchTerm = searchTerm.trim().toLowerCase()
-    if (cleanSearchTerm.startsWith('+')) return // handled in keyDownHandler
+    if (filterOperators && propertiesAllowed && cleanSearchTerm.startsWith('+')) return // handled in keyDownHandler
     setAcConsoleData((acConsoleData) => ({
       ...acConsoleData,
       tableRowsDisplayed: acConsoleData.tableRows.filter(
@@ -435,14 +435,18 @@ const MenuBar = ({
         <ExportCSV records={tableRowsDisplayed} fileName={exportFileName} />
       </div>
       <span className="search-label">Search:</span>
-      {isQuerySearch && (
+      {isQuerySearch && filterOperators && propertiesAllowed && (
         <div role="button" onClick={handleQuerySearchInfoClick}>
           <Icon name="info-sign" />
         </div>
       )}
       <input
         className={`form-control search-input${queryIsInvalidStatus ? ' invalid-value' : ''}`}
-        placeholder="Enter search term or type + to start a query and press enter"
+        placeholder={`Enter search term${
+          filterOperators && propertiesAllowed
+            ? ' or type + to start a query and press enter'
+            : ''
+        }`}
         value={immediateSearchTerm}
         onChange={(e) => {
           setImmediateSearchTerm(e.target.value)
@@ -471,7 +475,7 @@ const MenuBar = ({
         officialReviewName={officialReviewName}
         submissionName={submissionName}
       />
-      {isQuerySearch && (
+      {isQuerySearch && filterOperators && propertiesAllowed && (
         <QuerySearchInfoModal
           filterOperators={filterOperators}
           propertiesAllowed={propertiesAllowed}
@@ -486,7 +490,6 @@ const AssignedPaperRow = ({
   venueId,
   areaChairName,
   officialReviewName,
-  officialMetaReviewName,
   submissionName,
   metaReviewContentField,
   selectedNoteIds,
@@ -898,7 +901,6 @@ const AreaChairConsole = ({ appContext }) => {
         }
       })
       // #endregion
-
       setAcConsoleData({
         tableRows,
         tableRowsDisplayed: tableRows,
