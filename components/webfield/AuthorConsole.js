@@ -1,5 +1,4 @@
 /* globals typesetMathJax,promptError: false */
-
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'

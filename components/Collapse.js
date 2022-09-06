@@ -1,3 +1,4 @@
+/* globals $: false */
 import { nanoid } from 'nanoid'
 import { useRef, useState } from 'react'
 

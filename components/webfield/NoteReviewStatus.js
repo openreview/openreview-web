@@ -1,5 +1,6 @@
-// modified from noteReviewStatus.hbs handlebar template
+/* globals $,promptMessage: false */
 
+// modified from noteReviewStatus.hbs handlebar template
 import Link from 'next/link'
 import { useState } from 'react'
 import useUser from '../../hooks/useUser'
@@ -60,8 +61,8 @@ const AreaChairConsoleReviewerActivityModal = ({ note, reviewer, venueId }) => {
         { accessToken }
       )
       setActivityNotes(result.notes)
-    } catch (error) {
-      setError(error)
+    } catch (apiError) {
+      setError(apiError)
     }
     setIsLoading(false)
   }
@@ -119,7 +120,7 @@ Click on the link below to go to the review page:\n\n[[SUBMIT_REVIEW_LINK]]
         '/messages',
         {
           groups: [reviewer.reviewerProfileId],
-          subject: subject,
+          subject,
           message: message.replaceAll('[[SUBMIT_REVIEW_LINK]]', forumUrl),
         },
         { accessToken }
@@ -130,8 +131,8 @@ Click on the link below to go to the review page:\n\n[[SUBMIT_REVIEW_LINK]]
       promptMessage(`A reminder email has been sent to ${reviewer.preferredName}`, {
         scrollToTop: false,
       })
-    } catch (error) {
-      setError(error.message)
+    } catch (apiError) {
+      setError(apiError.message)
     }
   }
 
@@ -247,6 +248,7 @@ export const AreaChairConsoleNoteReviewStatus = ({
                       <a
                         href={`/forum?id=${note.forum}&noteId=${completedReview.id}&referrer=${referrerUrl}`}
                         target="_blank"
+                        rel="nofollow noreferrer"
                       >
                         Read Review
                       </a>
@@ -261,6 +263,7 @@ export const AreaChairConsoleNoteReviewStatus = ({
                         officialReviewName={officialReviewName}
                         setUpdateLastSent={setUpdateLastSent}
                       />
+                      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                       <a
                         href="#"
                         className="send-reminder-link"
@@ -274,13 +277,14 @@ export const AreaChairConsoleNoteReviewStatus = ({
                       {lastReminderSent && (
                         <span>
                           (Last sent:
-                          {new Date(parseInt(lastReminderSent)).toLocaleDateString()})
+                          {new Date(parseInt(lastReminderSent, 10)).toLocaleDateString()})
                         </span>
                       )}
                     </div>
                   )}
                   {completedReview && (
                     <>
+                      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                       <a
                         href="#"
                         className="show-activity-modal"

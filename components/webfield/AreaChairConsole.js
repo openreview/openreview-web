@@ -1,5 +1,7 @@
+/* globals $,promptMessage,promptError,typesetMathJax: false */
 import { useRouter } from 'next/router'
 import { useCallback, useContext, useEffect, useState } from 'react'
+import { debounce, orderBy, uniqBy } from 'lodash'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import WebFieldContext from '../WebFieldContext'
@@ -17,7 +19,6 @@ import { AreaChairConsoleNoteReviewStatus } from './NoteReviewStatus'
 import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import TaskList from '../TaskList'
 import BasicModal from '../BasicModal'
-import { debounce, orderBy, uniqBy } from 'lodash'
 import { filterCollections } from '../../lib/webfield-utils'
 import ExportCSV from '../ExportCSV'
 
@@ -46,10 +47,8 @@ const MessageReviewersModal = ({
   messageOption,
   shortPhrase,
   selectedNoteIds,
-  reviewersInfo,
   venueId,
   officialReviewName,
-  allProfiles,
 }) => {
   const { accessToken } = useUser()
   const [currentStep, setCurrentStep] = useState(1)
@@ -73,9 +72,9 @@ const MessageReviewersModal = ({
     // send emails
     try {
       const sendEmailPs = selectedNoteIds.map((noteId) => {
-        const note = tableRowsDisplayed.find((row) => row.note.id === noteId).note
+        const { note } = tableRowsDisplayed.find((row) => row.note.id === noteId)
         const reviewerIds = recipientsInfo
-          .filter((p) => p.noteNumber == note.number)
+          .filter((p) => p.noteNumber == note.number) // eslint-disable-line eqeqeq
           .map((q) => q.reviewerProfileId)
         if (!reviewerIds.length) return Promise.resolve()
         const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${noteId}&invitationId=${venueId}/Paper${note.number}/-/${officialReviewName}`
@@ -83,7 +82,7 @@ const MessageReviewersModal = ({
           '/messages',
           {
             groups: reviewerIds,
-            subject: subject,
+            subject,
             message: message.replaceAll('[[SUBMIT_REVIEW_LINK]]', forumUrl),
           },
           { accessToken }
@@ -92,12 +91,12 @@ const MessageReviewersModal = ({
       await Promise.all(sendEmailPs)
       $('#message-reviewers').modal('hide')
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
-    } catch (error) {
-      setError(error.message)
+    } catch (apiError) {
+      setError(apiError.message)
     }
   }
 
-  const getRecipients = (messageOption, selecteNoteIds) => {
+  const getRecipients = (selecteNoteIds) => {
     if (!selecteNoteIds.length) return []
     const selectedRows = tableRowsDisplayed.filter((row) =>
       selecteNoteIds.includes(row.note.id)
@@ -121,8 +120,8 @@ const MessageReviewersModal = ({
 
   useEffect(() => {
     if (!messageOption) return
-    const recipients = getRecipients(messageOption, selectedNoteIds)
-    const recipientsInfo = recipients.map((recipient) => {
+    const recipients = getRecipients(selectedNoteIds)
+    const recipientsWithCount = recipients.map((recipient) => {
       const count = recipients.filter(
         (p) => p.reviewerProfileId === recipient.reviewerProfileId
       ).length
@@ -131,7 +130,7 @@ const MessageReviewersModal = ({
         count,
       }
     })
-    setRecipientsInfo(recipientsInfo)
+    setRecipientsInfo(recipientsWithCount)
   }, [messageOption, selectedNoteIds])
 
   return (
@@ -193,55 +192,53 @@ const MessageReviewersModal = ({
   )
 }
 
-const QuerySearchInfoModal = ({ filterOperators, propertiesAllowed }) => {
-  return (
-    <BasicModal
-      id="query-search-info"
-      title="Query Search"
-      primaryButtonText={null}
-      cancelButtonText="OK"
-    >
-      <>
-        <strong className="tooltip-title">Some tips to use query search</strong>
-        <p>
-          In Query mode, you can enter an expression and hit ENTER to search.
-          <br />
-          The expression consists of property of a paper and a value you would like to search
-        </p>
-        <p>
-          e.g. <code>+number=5</code> will return the paper 5
-        </p>
-        <p>
-          Expressions may also be combined with AND/OR.
-          <br />
-          e.g. <code>+number=5 OR number=6 OR number=7</code> will return paper 5,6 and 7.
-          <br />
-        </p>
-        <p>
-          If the value has multiple words, it should be enclosed in double quotes.
-          <br />
-          e.g. <code>+title="some title to search"</code>
-        </p>
-        <p>
-          Braces can be used to organize expressions.
-          <br />
-          e.g. <code>+number=1 OR ((number=5 AND number=7) OR number=8)</code> will return
-          paper 1 and 8.
-        </p>
-        <p>
-          <strong>Operators available</strong>
-          {`: ${filterOperators.join(', ')}`}
-        </p>
-        <p>
-          <strong>Properties available</strong>
-        </p>
-        {Object.keys(propertiesAllowed).map((key) => {
-          return <li key={key}>{key}</li>
-        })}
-      </>
-    </BasicModal>
-  )
-}
+const QuerySearchInfoModal = ({ filterOperators, propertiesAllowed }) => (
+  <BasicModal
+    id="query-search-info"
+    title="Query Search"
+    primaryButtonText={null}
+    cancelButtonText="OK"
+  >
+    <>
+      <strong className="tooltip-title">Some tips to use query search</strong>
+      <p>
+        In Query mode, you can enter an expression and hit ENTER to search.
+        <br />
+        The expression consists of property of a paper and a value you would like to search
+      </p>
+      <p>
+        e.g. <code>+number=5</code> will return the paper 5
+      </p>
+      <p>
+        Expressions may also be combined with AND/OR.
+        <br />
+        e.g. <code>+number=5 OR number=6 OR number=7</code> will return paper 5,6 and 7.
+        <br />
+      </p>
+      <p>
+        If the value has multiple words, it should be enclosed in double quotes.
+        <br />
+        e.g. <code>+title=&quot;some title to search&quot;</code>
+      </p>
+      <p>
+        Braces can be used to organize expressions.
+        <br />
+        e.g. <code>+number=1 OR ((number=5 AND number=7) OR number=8)</code> will return paper
+        1 and 8.
+      </p>
+      <p>
+        <strong>Operators available</strong>
+        {`: ${filterOperators.join(', ')}`}
+      </p>
+      <p>
+        <strong>Properties available</strong>
+      </p>
+      {Object.keys(propertiesAllowed).map((key) => (
+        <li key={key}>{key}</li>
+      ))}
+    </>
+  </BasicModal>
+)
 
 const MenuBar = ({
   tableRows,
@@ -282,9 +279,8 @@ const MenuBar = ({
       label: 'Number of Reviews Missing',
       value: 'Number of Reviews Missing',
       getValue: (p) =>
-        p.reviewProgressData?.numReviewersAssigned ??
-        0 - p.reviewProgressData?.numReviewsDone ??
-        0,
+        (p.reviewProgressData?.numReviewersAssigned ?? 0) -
+        (p.reviewProgressData?.numReviewsDone ?? 0),
     },
     {
       label: 'Average Rating',
@@ -337,7 +333,7 @@ const MenuBar = ({
   const [messageOption, setMessageOption] = useState(null)
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
-  const [queryIsInvalid, setQueryIsInvalid] = useState(false)
+  const [queryIsInvalidStatus, setQueryIsInvalidStatus] = useState(false)
   const [isQuerySearch, setIsQuerySearch] = useState(false)
   const [sortOption, setSortOption] = useState(sortDropdownOptions[0])
 
@@ -369,7 +365,7 @@ const MenuBar = ({
       'note.id'
     )
     if (queryIsInvalid) {
-      setQueryIsInvalid(true)
+      setQueryIsInvalidStatus(true)
       return
     }
     setAcConsoleData((acConsoleData) => ({
@@ -403,7 +399,7 @@ const MenuBar = ({
       ...acConsoleData,
       tableRowsDisplayed: acConsoleData.tableRows.filter(
         (row) =>
-          row.note.number == cleanSearchTerm ||
+          row.note.number == cleanSearchTerm || // eslint-disable-line eqeqeq
           row.note.content.title.toLowerCase().includes(cleanSearchTerm)
       ),
     }))
@@ -445,12 +441,12 @@ const MenuBar = ({
         </div>
       )}
       <input
-        className={`form-control search-input${queryIsInvalid ? ' invalid-value' : ''}`}
+        className={`form-control search-input${queryIsInvalidStatus ? ' invalid-value' : ''}`}
         placeholder="Enter search term or type + to start a query and press enter"
         value={immediateSearchTerm}
         onChange={(e) => {
           setImmediateSearchTerm(e.target.value)
-          setQueryIsInvalid(false)
+          setQueryIsInvalidStatus(false)
           setIsQuerySearch(e.target.value.trim().startsWith('+'))
           delaySearch(e.target.value)
         }}
@@ -471,10 +467,8 @@ const MenuBar = ({
         messageOption={messageOption}
         shortPhrase={shortPhrase}
         selectedNoteIds={selectedNoteIds}
-        reviewersInfo={reviewersInfo}
         venueId={venueId}
         officialReviewName={officialReviewName}
-        allProfiles={allProfiles}
       />
       {isQuerySearch && (
         <QuerySearchInfoModal
@@ -655,7 +649,7 @@ const AreaChairConsole = ({ appContext }) => {
   const [activeTabIndex, setActiveTabIndex] = useState(0)
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
 
-  let edgeBrowserUrl = reviewerAssignmentTitle
+  const edgeBrowserUrl = reviewerAssignmentTitle
     ? edgeBrowserProposedUrl
     : edgeBrowserDeployedUrl
   const headerInstructions = enableEditReviewAssignments
@@ -702,7 +696,7 @@ const AreaChairConsole = ({ appContext }) => {
           })
         : Promise.resolve([])
 
-      //#region getReviewerGroups(noteNumbers)
+      // #region getReviewerGroups(noteNumbers)
       const reviewerGroupsP = api
         .getAll(
           '/groups',
@@ -724,7 +718,8 @@ const AreaChairConsole = ({ appContext }) => {
               .find((q) => getNumberFromGroup(q.id, submissionName) === p)
               ?.members.flatMap((r) => {
                 const anonymousReviewerGroup = anonymousReviewerGroups.find(
-                  (t) => t.id.startsWith(`${venueId}/Paper${p}/Reviewer_`) && t.members[0] == r
+                  (t) =>
+                    t.id.startsWith(`${venueId}/Paper${p}/Reviewer_`) && t.members[0] === r
                 )
                 if (anonymousReviewerGroup) {
                   const anonymousReviewerId = getNumberFromGroup(
@@ -741,14 +736,14 @@ const AreaChairConsole = ({ appContext }) => {
               })
             return {
               number: p,
-              reviewers: reviewers,
+              reviewers,
             }
           })
         })
 
-      //#endregion
+      // #endregion
 
-      //#region assigned SAC
+      // #region assigned SAC
       const assignedSACP = seniorAreaChairsId
         ? api
             .get(
@@ -758,13 +753,14 @@ const AreaChairConsole = ({ appContext }) => {
             )
             .then((result) => {
               if (result?.edges?.length) return result.edges[0].tail
+              return null
             })
         : Promise.resolve()
-      //#endregion
+      // #endregion
 
       const result = await Promise.all([blindedNotesP, reviewerGroupsP, assignedSACP])
 
-      //#region get assigned reviewer , sac and all reviewer group members profiles
+      // #region get assigned reviewer , sac and all reviewer group members profiles
       const allIds = [
         ...new Set([
           ...result[1].flatMap((p) => p.reviewers).map((p) => p.reviewerProfileId),
@@ -792,9 +788,9 @@ const AreaChairConsole = ({ appContext }) => {
           )
         : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
-      //#endregion
+      // #endregion
 
-      //#region calculate reviewProgressData and metaReviewData
+      // #region calculate reviewProgressData and metaReviewData
       const notes = result[0]
       const allProfiles = (profileResults[0].profiles ?? []).concat(
         profileResults[1].profiles ?? []
@@ -824,9 +820,9 @@ const AreaChairConsole = ({ appContext }) => {
               : null
             const confidenceMatch =
               q.content[reviewConfidenceName] &&
-              q.content[reviewConfidenceName].match(ratingExp)
+              q.content[reviewConfidenceName].match(/^(\d+): .*/)
             return {
-              anonymousId: anonymousId,
+              anonymousId,
               confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
               rating: ratingNumber ? parseInt(ratingNumber, 10) : null,
               reviewLength: q.content.review?.length,
@@ -890,14 +886,14 @@ const AreaChairConsole = ({ appContext }) => {
             confidenceAvg,
             confidenceMax,
             confidenceMin,
-            replyCount: note.details['replyCount'],
+            replyCount: note.details.replyCount,
           },
           metaReviewData: {
             recommendation: metaReview.content[metaReviewContentField],
           },
         }
       })
-      //#endregion
+      // #endregion
 
       setAcConsoleData({
         tableRows,

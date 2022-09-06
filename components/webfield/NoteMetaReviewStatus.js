@@ -1,5 +1,6 @@
-// modified from noteMetaReviewStatus.hbs handlebar template
+/* globals promptError: false */
 
+// modified from noteMetaReviewStatus.hbs handlebar template
 import { useEffect, useState } from 'react'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -112,7 +113,7 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
                 <strong>{metaReview.content[metaReviewContentField]}</strong>
               </p>
               <p>
-                <a href={editUrl} target="_blank">{`Read${
+                <a href={editUrl} target="_blank" rel="nofollow noreferrer">{`Read${
                   metaReviewInvitation ? '/Edit' : ''
                 }`}</a>
               </p>
@@ -125,6 +126,7 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
             <a
               href={`/forum?id=${note.forum}&noteId=${note.id}&invitationId=${metaReviewInvitation}&referrer=${referrerUrl}`}
               target="_blank"
+              rel="nofollow noreferrer"
             >
               Submit
             </a>

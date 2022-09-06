@@ -33,16 +33,18 @@ const ExportCSV = ({ records, fileName }) => {
     { header: 'average confidence', getValue: (p) => p.reviewProgressData?.confidenceAvg },
     { header: 'ac recommendation', getValue: (p) => p.metaReviewData?.recommendation },
   ]
+
   const handleExportClick = () => {
     const headerRow = `${exportColumns.map((p) => p.header).join(',')}\n`
-    const dataRows = records.map((p) => {
-      return `${exportColumns
-        .map((column) => {
-          const value = column.getValue(p)?.toString()
-          return `"${value?.replaceAll('"', '""')}"`
-        })
-        .join(',')}\n`
-    })
+    const dataRows = records.map(
+      (p) =>
+        `${exportColumns
+          .map((column) => {
+            const value = column.getValue(p)?.toString()
+            return `"${value?.replaceAll('"', '""')}"`
+          })
+          .join(',')}\n`
+    )
 
     const blob = new Blob([headerRow, ...dataRows], { type: 'text/csv' })
     const url = window.URL || window.webkitURL
