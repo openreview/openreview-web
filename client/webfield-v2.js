@@ -266,31 +266,28 @@ module.exports = (function() {
     };
     options = _.defaults(options, defaults);
     var invitationsP = getAll('/invitations', {
-      regex: venueId + '/.*',
+      prefix: venueId + '/.*',
       invitee: true,
       duedate: true,
       replyto: true,
       type: 'notes',
-      details: 'replytoNote,repliedNotes',
-      version: '1' //TODO: remove when the task view supports V2
+      details: 'replytoNote,repliedNotes'
     });
 
     var edgeInvitationsP = getAll('/invitations', {
-      regex: venueId + '/.*',
+      prefix: venueId + '/.*',
       invitee: true,
       duedate: true,
       type: 'edges',
-      details: 'repliedEdges',
-      version: '1' //TODO: remove when the task view supports V2
+      details: 'repliedEdges'
     });
 
     var tagInvitationsP = getAll('/invitations', {
-      regex: venueId + '/.*',
+      prefix: venueId + '/.*',
       invitee: true,
       duedate: true,
       type: 'tags',
-      details: 'repliedTags',
-      version: '1' //TODO: remove when the task view supports V2
+      details: 'repliedTags'
     });
 
     var filterInviteeAndNumbers = function(inv) {
@@ -830,7 +827,8 @@ module.exports = (function() {
       showTasks: true,
       showContents: true,
       referrer: null,
-      emptyMessage: 'No outstanding tasks to display'
+      emptyMessage: 'No outstanding tasks to display',
+      apiV2: true,
     };
     options = _.defaults(options, taskDefaults);
 
@@ -858,11 +856,11 @@ module.exports = (function() {
         if (inv.details.repliedNotes?.length > 0) {
           inv.completed = true;
         }
-        inv.noteId = inv.details.repliedNotes?.length === 1 ? inv.details.repliedNotes[0].id : inv.reply.replyto;
+        inv.noteId = inv.details.repliedNotes?.length === 1 ? inv.details.repliedNotes[0].id : inv.edit.note.replyto;
 
         if (_.isEmpty(inv.details.replytoNote)) {
           // Some invitations returned by the API do not contain replytoNote
-          inv.details.replytoNote = { forum: inv.reply.forum };
+          inv.details.replytoNote = { forum: inv.edit.note.forum };
         }
       } else {
         inv.tagInvitation = true;
@@ -1105,7 +1103,7 @@ module.exports = (function() {
     var anonRoleName = roleName.slice(0, -1) + '_';
     var numberToken = options.numberToken;
     var query = {
-      regex: venueId + '/' + numberToken + '.*',
+      prefix: venueId + '/' + numberToken + '.*',
       select: 'id,members'
     }
     if (options && options.assigned) {
@@ -1896,25 +1894,25 @@ module.exports = (function() {
     var $tagWidget = view.mkTagInput(
       '_',
       {
-        'value-dropdown': invitation.edge[options.fieldName].enum
+        'value-dropdown': invitation.edge[options.fieldName].param.enum
       },
       invitation.details.repliedEdges.map(function(e){ return { id: e.id, tag: e[options.fieldName] }; }),
       {
-        placeholder: invitation.edge[options.fieldName].presentation.default,
+        placeholder: invitation.edge[options.fieldName].param.default,
         label: view.prettyInvitationId(invitation.id),
         readOnly: false,
         onChange: function(id, value, deleted, done) {
           var body = {
-            head: invitation.edge.head.const,
+            head: invitation.edge.head.param.const,
             tail: user.profile.id,
             signatures: [user.profile.id],
-            readers: invitation.edge.readers.const.map(function(r) { return r == '${tail}' ? user.profile.id : r; }),
-            writers: invitation.edge.writers.const.map(function(r) { return r == '${tail}' ? user.profile.id : r; }),
-            invitation: invitation.id,
-            ddate: deleted ? Date.now() : null
+            invitation: invitation.id
           };
           if (id) {
             body.id = id;
+          }
+          if (deleted) {
+            body.ddate = Date.now();
           }
           if (options.fieldName == 'weight') {
             body.weight = parseInt(value);

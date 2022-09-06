@@ -24,7 +24,13 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
         limit,
         offset,
       },
-      null,
+      {
+        prefix: `${groupId}/-/.*`,
+        expired: true,
+        type: 'all',
+        limit,
+        offset,
+      },
       { accessToken }
     )
 
