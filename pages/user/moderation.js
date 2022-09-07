@@ -384,12 +384,7 @@ const VenueRequestRow = ({ item }) => {
           </span>
         </div>
       </div>
-      <a
-        classname="request-user"
-        href={`/profile?id=${signature}`}
-        target="_blank"
-        rel="noreferrer"
-      >
+      <a href={`/profile?id=${signature}`} target="_blank" rel="noreferrer">
         {prettyId(signature)}
       </a>
     </div>
@@ -430,6 +425,7 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
       return formattedNotesWithCount
     } catch (error) {
       promptError(error.message)
+      return null
     }
   }
   const loadItems = useCallback(loadRequestNotes, [accessToken])
