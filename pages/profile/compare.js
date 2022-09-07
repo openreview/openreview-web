@@ -13,14 +13,14 @@ const Names = ({ names, highlightValue }) => (
   <table>
     <tbody>
       {names &&
-        names.map((name) => {
+        names.map((name, index) => {
           const nameStr = `${name.first} ${name.middle ?? ''} ${name.last}`.replace(
             /\s{2,}/g,
             ' '
           )
           return (
             <tr
-              key={`${nameStr}${name.preferred}`}
+              key={`${nameStr}${name.preferred}${index}`}
               data-toggle={name.signatures && 'tooltip'}
               title={name.signature && `Edited by ${name.signatures}`}
               style={name.confirmed ? null : { color: '#8c1b13' }}
@@ -424,6 +424,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       expertise: addMetadata(profile, 'expertise'),
       relations: addMetadata(profile, 'relations'),
       publications: profile.publications,
+      yearOfBirth: profile.content.yearOfBirth?.toString(),
     }
   }
 

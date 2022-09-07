@@ -19,7 +19,7 @@ export const ReadOnlyField = ({ field, value }) => {
 export const ReadOnlyFieldV2 = ({ field, value }) => {
   const fieldName = Object.keys(field)[0]
   const fieldDescription = field[fieldName].description
-  const required = !field[fieldName].value?.optional
+  const required = !field[fieldName].value?.param?.optional
 
   return (
     <div className="readonly-field">

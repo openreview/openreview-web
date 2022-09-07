@@ -690,7 +690,7 @@ Handlebars.registerHelper('pagination', function(totalNotes, notesPerPage, pageN
  * @param {String} `singular` The singular form
  * @param {String} `plural` The plural form
  * @param {String} `include`
- * @return {String}
+ * @returns {String}
  */
 Handlebars.registerHelper('inflect', function(count, singular, plural, include) {
   count = typeof count === 'number' ? count : 0;
@@ -709,7 +709,7 @@ Handlebars.registerHelper('inflect', function(count, singular, plural, include) 
  * @param {any} `a`
  * @param {any} `b`
  * @param {Object} `options` Handlebars provided options object
- * @return {String}
+ * @returns {String}
  * @block
  * @api public
  */
@@ -732,7 +732,7 @@ Handlebars.registerHelper('is', function(a, b, options) {
  * @param {String} `a`
  * @param {String} `b`
  * @param {Object} `options` Handlebars provided options object
- * @return {String}
+ * @returns {String}
  * @block
  * @api public
  */

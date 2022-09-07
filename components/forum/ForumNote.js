@@ -140,7 +140,7 @@ function ForumNote({ note, updateNote }) {
               className="btn btn-xs"
               onClick={() => openNoteEditor(deleteInvitation)}
             >
-              <Icon name="trash" tooltip={prettyInvitationId(deleteInvitation)} />
+              <Icon name="trash" tooltip={prettyInvitationId(deleteInvitation.id)} />
             </button>
           )}
         </div>
@@ -149,7 +149,9 @@ function ForumNote({ note, updateNote }) {
       <NoteContentV2
         id={id}
         content={content}
-        number={note.number}
+        number={
+          note.invitations[0].split('/-/')[1].includes('Submission') ? note.number : null
+        }
         presentation={details.presentation}
         noteReaders={note.readers}
       />
