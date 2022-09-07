@@ -340,7 +340,7 @@ export default class EdgeBrowser extends React.Component {
           const interpolatedLookupResult = await api.get(
             '/groups',
             { regex: interpolatedSignature, signatory: this.userId },
-            { accessToken: this.accessToken, version: this.version }
+            { accessToken: this.accessToken, version: 1 } // Use only version 1 where regex is supported
           )
           editInvitationSignaturesMap.push({
             invitation: editInvitation.id,
