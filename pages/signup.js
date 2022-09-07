@@ -131,7 +131,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
     if (middleName.length === 1) setMiddleName(middleName.toUpperCase())
     if (lastName.length === 1) setLastName(lastName.toUpperCase())
 
-    if (firstName.trim().length < 1 || lastName.trim().length < 1) {
+    if (firstName.trim().length < 1) {
       setNewUsername('')
       return
     }
