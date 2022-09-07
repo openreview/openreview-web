@@ -101,16 +101,7 @@ export default function ProfileEditor({
     }
 
     let invalidRecord = null
-    /*** 
-    // validate names
-    if ((invalidRecord = profileContent.names.find((p) => !p.first || !p.last))) {
-      return promptInvalidValue(
-        'names',
-        invalidRecord.key,
-        'First and last name cannot be empty'
-      )
-    }
-    */
+    
     // validate emails
     if ((invalidRecord = profileContent.emails.find((p) => !isValidEmail(p.email)))) {
       return promptInvalidValue(
