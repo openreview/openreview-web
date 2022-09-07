@@ -153,9 +153,9 @@ export const TextAreaV2 = () => {
   const fieldName = Object.keys(field)[0]
   const fieldDescription = field[fieldName].description
   // eslint-disable-next-line prefer-destructuring
-  const required = !field[fieldName].value?.optional
-  const scroll = field[fieldName].presentation?.scroll
-  const enableMarkdown = field[fieldName].presentation?.markdown
+  const required = !field[fieldName].value?.param?.optional
+  const scroll = field[fieldName].value?.param?.scroll
+  const enableMarkdown = field[fieldName].value?.param?.markdown
 
   const [showCharCounter, setShowCharCounter] = useState(false)
 

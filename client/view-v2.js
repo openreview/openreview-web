@@ -1,12 +1,12 @@
 module.exports = (function() {
   const valueInput = (contentInput, fieldName, fieldDescription) => {
     const $smallHeading = $('<div>', { text: view.prettyField(fieldName), class: 'small_heading' });
-    if (!fieldDescription.value.optional) {
+    if (!fieldDescription.value.param?.optional) {
       $smallHeading.prepend('<span class="required_field">*</span>');
     }
 
     let $description;
-    if (fieldDescription.presentation?.scroll) {
+    if (fieldDescription.value.param?.scroll) {
       $description = $('<textarea class="form-control scroll-box" readonly>').text(fieldDescription.description);
     } else {
       $description = $('<div class="hint disable-tex-rendering">').text(fieldDescription.description);
@@ -21,12 +21,12 @@ module.exports = (function() {
 
   const markdownInput = ($contentInput, fieldName, fieldDescription) => {
     const $smallHeading = $('<div>', { text: view.prettyField(fieldName), class: 'small_heading' });
-    if (!fieldDescription.value.optional) {
+    if (!fieldDescription.value.param?.optional) {
       $smallHeading.prepend('<span class="required_field">*</span>');
     }
 
     let $description;
-    if (fieldDescription.presentation?.scroll) {
+    if (fieldDescription.value.param?.scroll) {
       $description = $('<textarea class="form-control scroll-box" readonly>').text(fieldDescription.description);
     } else {
       $description = $('<div class="hint disable-tex-rendering">').text(fieldDescription.description);
@@ -153,29 +153,91 @@ module.exports = (function() {
     };
 
     const fieldDefault = (params?.useDefaults) ?
-      _.get(fieldDescription.presentation, 'default', '') :
+      _.get(fieldDescription.value?.param, 'default', '') :
       '';
     fieldValue = valueInNote || fieldDefault;  // These will always be mutually exclusive
     var $input;
-    if (_.has(fieldDescription.value, 'const')) {
-      if (Array.isArray(fieldDescription.value.const) || fieldDescription.value.type.endsWith('[]')) {
-        // then treat as values
+
+    if (fieldDescription.value && (!_.has(fieldDescription.value, 'param') || _.has(fieldDescription.value.param, 'const'))) {
+      value = fieldDescription.value;
+      if (_.has(fieldDescription.value, 'param')) {
+        value = fieldDescription.value.param.const;
+      }
+      if (Array.isArray(value)) {
+        //treat as values
         contentInputResult = view.mkDropdownAdder(
-          fieldName, fieldDescription.description, fieldDescription.value.const,
-          fieldValue, { hoverText: true, refreshData: false, required: !fieldDescription.value.optional }
+          fieldName, fieldDescription.description, value,
+          fieldValue, { hoverText: true, refreshData: false, required: !fieldDescription.value.param?.optional }
         );
       } else {
-        // treat as value
+        //treat as value
         contentInputResult = valueInput($('<input>', {
           type: 'text',
           class: 'form-control note_content_value',
           name: fieldName,
-          value: fieldDescription.value.const,
+          value: value,
           readonly: true
         }), fieldName, fieldDescription);
       }
-    } else if (_.has(fieldDescription.value, 'regex')) {
-      if (fieldDescription.value.type.endsWith('[]')) {
+    } else if (_.has(fieldDescription.value?.param, 'enum')) {
+      if (fieldDescription.value.param.input === 'radio') {
+        //value-radio
+        $input = $('<div>', { class: 'note_content_value value-radio-container' }).append(
+          _.map(fieldDescription.value.param.enum, function (v) {
+            return $('<div>', { class: 'radio' }).append(
+              $('<label>').append(
+                $('<input>', {
+                  type: 'radio',
+                  name: fieldName,
+                  id: _.kebabCase(fieldName) + '-' + _.kebabCase(v),
+                  value: v,
+                  checked: fieldValue === v,
+                }),
+                v
+              )
+            );
+          })
+        );
+        contentInputResult = valueInput($input, fieldName, fieldDescription);
+      } else if (fieldDescription.value.param.input === 'checkbox') {
+        var options = fieldDescription.value.param.enum;
+        var checkedValues = _.isArray(fieldValue) ? fieldValue : [fieldValue];
+        var requiredValues = fieldDescription.value.param.default;
+
+        var checkboxes = _.map(options, function (option) {
+          var checked = _.includes(checkedValues, option) ? 'checked' : '';
+          var disabled = _.includes(requiredValues, option) ? 'disabled' : '';
+          return '<label class="checkbox-inline">' +
+            '<input type="checkbox" name="' + fieldName + '" value="' + option + '" ' + checked + ' ' + disabled + '> ' + (params.prettyId ? view.prettyId(option) : option) +
+            '</label>';
+        });
+        contentInputResult = valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
+      } else if (fieldDescription.value.param.input === 'select' || !(_.has(fieldDescription.value.param, 'input'))) {
+        if (!(_.has(fieldDescription.value.param, 'type')) || fieldDescription.value.param.type.endsWith('[]')) {
+          //values-dropdown
+          contentInputResult = view.mkDropdownAdder(
+            fieldName, fieldDescription.description, fieldDescription.value.param.enum,
+            fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.param.optional, alwaysHaveValues: fieldDescription.value.param.default }
+          );
+        } else {
+          //value-dropdown
+          contentInputResult = view.mkDropdownList(
+            fieldName, fieldDescription.description, fieldValue,
+            fieldDescription.value.param.enum, !fieldDescription.value.param.optional
+          );
+        }
+      }
+    } else if (fieldDescription.value?.param.type === 'json') {
+      contentInputResult = valueInput($('<textarea>', {
+        class: 'note_content_value form-control',
+        name: fieldName,
+        text: fieldValue && JSON.stringify(fieldValue, undefined, 4)
+      }), fieldName, fieldDescription);
+
+    } else if (fieldDescription.value?.param.type === 'file') {
+      contentInputResult = mkAttachmentSection(fieldName, fieldDescription, fieldValue);
+    } else if (_.has(fieldDescription.value?.param, 'regex') || fieldDescription.value?.param.type === 'string') {
+      if (!_.has(fieldDescription.value.param, 'type') || fieldDescription.value.param.type.endsWith('[]')) {
         // then treat as values-regex
         if (params && params.groups) {
           var groupIds = _.map(params.groups, function (g) {
@@ -183,7 +245,7 @@ module.exports = (function() {
           });
           contentInputResult = view.mkDropdownAdder(
             fieldName, fieldDescription.description, groupIds,
-            fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.optional }
+            fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.param.optional }
           );
         } else {
           $input = $('<input>', {
@@ -198,27 +260,23 @@ module.exports = (function() {
       } else {
         // then treat as value-regex
         var $inputGroup;
-        // Create a new regex that doesn't include min and max length
-        var regexStr = fieldDescription.value.regex;
-        var re = new RegExp('^' + regexStr.replace(/\{\d+,\d+\}\$$/, '') + '$');
-        var newlineMatch = '\n'.match(re);
-        if (newlineMatch && newlineMatch.length) {
+        if (_.has(fieldDescription.value.param, 'input') && fieldDescription.value.param.input === 'textarea') {
           $input = $('<textarea>', {
             class: 'note_content_value form-control',
             name: fieldName,
             text: fieldValue
           });
 
-          if (fieldDescription.presentation?.markdown) {
+          if (fieldDescription.value.param.markdown) {
             $inputGroup = markdownInput($input, fieldName, fieldDescription);
           } else {
             $inputGroup = valueInput($input, fieldName, fieldDescription);
           }
 
-          var lenMatches = _.get(fieldDescription.value, 'regex', '').match(/\{(\d+),(\d+)\}\$$/);
+          var lenMatches = _.has(fieldDescription.value.param, 'maxLength');
           if (lenMatches) {
-            var minLen = parseInt(lenMatches[1], 10);
-            var maxLen = parseInt(lenMatches[2], 10);
+            var minLen = fieldDescription.value.param.minLength;
+            var maxLen = fieldDescription.value.param.maxLength;
             minLen = (isNaN(minLen) || minLen < 0) ? 0 : minLen;
             maxLen = (isNaN(maxLen) || maxLen < minLen) ? 0 : maxLen;
             if (minLen || maxLen) {
@@ -240,60 +298,6 @@ module.exports = (function() {
         $input.addClass('autosave-enabled');
         contentInputResult = $inputGroup;
       }
-    } else if (_.has(fieldDescription.value, 'enum')) {
-      if (fieldDescription.presentation?.input === 'radio') {
-        $input = $('<div>', { class: 'note_content_value value-radio-container' }).append(
-          _.map(fieldDescription.value.enum, function (v) {
-            return $('<div>', { class: 'radio' }).append(
-              $('<label>').append(
-                $('<input>', {
-                  type: 'radio',
-                  name: fieldName,
-                  id: _.kebabCase(fieldName) + '-' + _.kebabCase(v),
-                  value: v,
-                  checked: fieldValue === v,
-                }),
-                v
-              )
-            );
-          })
-        );
-        contentInputResult = valueInput($input, fieldName, fieldDescription);
-      } else if (fieldDescription.presentation?.input === 'checkbox') {
-        var options = fieldDescription.value.enum;
-        var checkedValues = _.isArray(fieldValue) ? fieldValue : [fieldValue];
-        var requiredValues = fieldDescription.presentation?.default;
-
-        var checkboxes = _.map(options, function (option) {
-          var checked = _.includes(checkedValues, option) ? 'checked' : '';
-          var disabled = _.includes(requiredValues, option) ? 'disabled' : '';
-          return '<label class="checkbox-inline">' +
-            '<input type="checkbox" name="' + fieldName + '" value="' + option + '" ' + checked + ' ' + disabled + '> ' + (params.prettyId ? view.prettyId(option) : option) +
-            '</label>';
-        });
-        contentInputResult = valueInput('<div class="note_content_value no-wrap">' + checkboxes.join('\n') + '</div>', fieldName, fieldDescription);
-      } else if (fieldDescription.presentation?.input === 'select' || !(_.has(fieldDescription.presentation, 'input'))) {
-        if (Array.isArray(fieldDescription.value.enum) || fieldDescription.value?.type.endsWith('[]')) {
-          contentInputResult = view.mkDropdownAdder(
-            fieldName, fieldDescription.description, fieldDescription.value.enum,
-            fieldValue, { hoverText: false, refreshData: true, required: !fieldDescription.value.optional, alwaysHaveValues: fieldDescription.presentation?.default }
-          );
-        } else {
-          contentInputResult = view.mkDropdownList(
-            fieldName, fieldDescription.description, fieldValue,
-            fieldDescription.value.enum, !fieldDescription.value.optional
-          );
-        }
-      }
-    } else if (_.has(fieldDescription.value, 'value-dict')) {
-      contentInputResult = valueInput($('<textarea>', {
-        class: 'note_content_value form-control',
-        name: fieldName,
-        text: fieldValue && JSON.stringify(fieldValue, undefined, 4)
-      }), fieldName, fieldDescription);
-
-    } else if (fieldDescription.value?.type === 'file') {
-      contentInputResult = mkAttachmentSection(fieldName, fieldDescription, fieldValue);
     }
 
     return contentInputResult;
@@ -302,10 +306,7 @@ module.exports = (function() {
   const mkComposerInput = (fieldName, fieldDescription, fieldValue, params) => {
     let contentInputResult;
 
-    if (fieldName === 'authorids' && fieldDescription.value?.type.endsWith('[]') && (
-      (_.has(fieldDescription.value, 'regex') && view.isTildeIdAllowed(fieldDescription.value.regex)) ||
-      _.has(fieldDescription.value, 'const')
-    )) {
+    if (fieldName === 'authorids') {
       let authors;
       let authorids;
       if (params?.note) {
@@ -316,7 +317,7 @@ module.exports = (function() {
         authors = [userProfile.first + ' ' + userProfile.middle + ' ' + userProfile.last];
         authorids = [userProfile.preferredId];
       }
-      const invitationRegex = fieldDescription.value?.regex;
+      const invitationRegex = fieldDescription.value.param?.regex;
       // Enable allowUserDefined if the values-regex has '~.*|'
       // Don't enable adding or removing authors if invitation uses 'values' instead of values-regex
       contentInputResult = valueInput(
@@ -332,7 +333,7 @@ module.exports = (function() {
       contentInputResult = mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
     }
 
-    if (fieldDescription.presentation?.hidden === true) {
+    if (fieldDescription.value?.param?.hidden === true) {
       return contentInputResult.hide();
     }
     return contentInputResult;
@@ -341,7 +342,7 @@ module.exports = (function() {
   // Private helper function used by mkPdfSection and mkAttachmentSection
   const mkFileRow = ($widgets, fieldName, fieldDescription, fieldValue) => {
     const smallHeading = $('<div>', {text: view.prettyField(fieldName), class: 'small_heading'});
-    if (!fieldDescription.value.optional) {
+    if (!fieldDescription.value.param.optional) {
       const requiredText = $('<span>', {text: '*', class: 'required_field'});
       smallHeading.prepend(requiredText);
     }
@@ -818,7 +819,7 @@ module.exports = (function() {
   const deleteOrRestoreNote = async (note, invitation, noteTitle, user, onTrashedOrRestored) => {
     const isDeleted = note.ddate && note.ddate < Date.now();
     var postUpdatedNote = function ($editSignatures, $editReaders) {
-      const ddate = isDeleted ? null : Date.now();
+      const ddate = isDeleted ? {'delete': true} : Date.now();
       let editSignatureInputValues = view.idsFromListAdder($editSignatures, invitation.edit.signatures);
       const editReaderValues = getReaders($editReaders, invitation, editSignatureInputValues, true);
       if (!editSignatureInputValues || !editSignatureInputValues.length) {
@@ -893,7 +894,7 @@ module.exports = (function() {
 
     var contentOrder = order(invitation.edit?.note?.content, invitation.id);
     var $contentMap = _.reduce(contentOrder, function(ret, k) {
-      ret[k] = mkComposerInput(k, invitation.edit?.note?.content?.[k], invitation.edit?.note?.content?.[k]?.presentation?.default || '', { useDefaults: true, user: user});
+      ret[k] = mkComposerInput(k, invitation.edit?.note?.content?.[k], invitation.edit?.note?.content?.[k].value.param?.default || '', { useDefaults: true, user: user});
       return ret;
     }, {});
     function buildEditor(editReaders, editSignatures, noteReaders, noteSignatures) {
@@ -914,8 +915,9 @@ module.exports = (function() {
         $cancelButton.prop({ disabled: true });
 
         var content = getContent(invitation, $contentMap);
-        const useEditSignature = (_.has(invitation.edit.note?.signatures, 'const')) &&
-          invitation.edit.note?.signatures?.const[0] === '${signatures}' // when note signature is edit signature, note reader should use edit signatures
+        var constNoteSignature = (Array.isArray(invitation.edit.note?.signatures) && invitation.edit.note?.signatures[0].includes('/signatures}'))
+        const useEditSignature = constNoteSignature || (_.has(invitation.edit.note?.signatures.param, 'const') &&
+          invitation.edit.note?.signatures?.param.const[0].includes('/signatures}')) // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
         const editReaderValues = getReaders(editReaders, invitation, editSignatureInputValues, true);
@@ -1087,8 +1089,8 @@ module.exports = (function() {
 
     var requiredText = fieldDescription.optional ? null : $('<span>', { text: '*', class: 'required_field' });
 
-    if (_.has(fieldDescription, 'regex')) {
-      return Webfield.get('/groups', { regex: fieldDescription.regex }, { handleErrors: false })
+    if (_.has(fieldDescription, 'param') && _.has(fieldDescription.param, 'regex')) {
+      return Webfield.get('/groups', { regex: fieldDescription.param.regex }, { handleErrors: false })
         .then(function (result) {
           if (_.isEmpty(result.groups)) {
             promptError('You do not have permission to create a note');
@@ -1110,8 +1112,8 @@ module.exports = (function() {
           var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
           promptError(errorText);
         });
-    } else if (_.has(fieldDescription, 'enum')) {
-      var values = fieldDescription.enum;
+    } else if (_.has(fieldDescription, 'param') && _.has(fieldDescription.param, 'enum')) {
+      var values = fieldDescription.param.enum;
       var extraGroupsP = $.Deferred().resolve([]);
       var regexIndex = _.findIndex(values, function (g) { return g.indexOf('.*') >= 0; });
       if (regexIndex >= 0) {
@@ -1120,9 +1122,9 @@ module.exports = (function() {
           .then(function (result) {
             if (result.groups && result.groups.length) {
               var groups = result.groups.map(function (g) { return g.id; });
-              fieldDescription.enum = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
+              fieldDescription.param.enum = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
             } else {
-              fieldDescription.enum.splice(regexIndex, 1);
+              fieldDescription.param.enum.splice(regexIndex, 1);
             }
             return result.groups;
           });
@@ -1158,11 +1160,12 @@ module.exports = (function() {
             if (!_.includes(parentReaders, 'everyone')) {
               newFieldDescription = {
                 description: fieldDescription.description,
-                default: fieldDescription.default
+                default: fieldDescription.param?.default,
+                param: {}
               };
-              newFieldDescription[fieldType] = parentReaders;
+              newFieldDescription.param[fieldType] = parentReaders;
               if (!fieldValue.length) {
-                fieldValue = newFieldDescription[fieldType];
+                fieldValue = newFieldDescription.param[fieldType];
               }
             }
           }
@@ -1173,8 +1176,8 @@ module.exports = (function() {
       }
     };
 
-    if (_.has(fieldDescription, 'regex')) {
-      return Webfield2.get('/groups', { regex: fieldDescription.regex }, { handleErrors: false })
+    if (_.has(fieldDescription, 'param') && _.has(fieldDescription.param, 'regex')) {
+      return Webfield2.get('/groups', { regex: fieldDescription.param.regex }, { handleErrors: false })
       .then(function(result) {
         if (_.isEmpty(result.groups)) {
           done(undefined, 'You do not have permission to create a note');
@@ -1196,8 +1199,8 @@ module.exports = (function() {
         var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
         done(undefined, errorText);
       });
-    } else if (_.has(fieldDescription, 'enum')) {
-      var values = fieldDescription.enum;
+    } else if (_.has(fieldDescription, 'param') && _.has(fieldDescription.param, 'enum')) {
+      var values = fieldDescription.param.enum;
       var extraGroupsP = [];
       var regexIndex = _.findIndex(values, function(g) { return g.indexOf('.*') >=0; });
       var regex = null;
@@ -1206,17 +1209,17 @@ module.exports = (function() {
         var result = await Webfield.get('/groups', { regex: regex })
         if (result.groups && result.groups.length) {
           var groups = result.groups.map(function(g) { return g.id; });
-          fieldDescription.enum = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
+          fieldDescription.param.enum = values.slice(0, regexIndex).concat(groups, values.slice(regexIndex + 1));
         } else {
-          fieldDescription.enum.splice(regexIndex, 1);
+          fieldDescription.param.enum.splice(regexIndex, 1);
         }
       }
 
       return setParentReaders(replyto, fieldDescription, 'enum', function (newFieldDescription) {
         // Make sure the new parent readers belong to the current invitation available values
-        var invitationReaders = fieldDescription.enum;
+        var invitationReaders = fieldDescription.param.enum;
         var replyValues = [];
-        newFieldDescription.enum.forEach(function(valueReader) {
+        newFieldDescription.param.enum.forEach(function(valueReader) {
           if (invitationReaders.includes(valueReader) || valueReader.match(regex)) {
             replyValues.push(valueReader);
           }
@@ -1226,36 +1229,39 @@ module.exports = (function() {
         var hasReviewers = _.find(replyValues, function(v) { return v.endsWith('/Reviewers'); });
         var hasAnonReviewers = _.find(replyValues, function(v) { return v.includes('/AnonReviewer') || v.includes('/Reviewer_');  });
         if (hasReviewers && !hasAnonReviewers) {
-          fieldDescription.enum.forEach(function(value) {
+          fieldDescription.param.enum.forEach(function(value) {
             if (value.includes('AnonReviewer') || value.includes('Reviewer_')) {
               replyValues.push(value);
             }
           });
         }
 
-        newFieldDescription.enum = replyValues;
-        if (_.difference(newFieldDescription.default, newFieldDescription.enum).length !== 0) { //invitation default is not in list of possible values
+        newFieldDescription.param.enum = replyValues;
+        if (_.difference(newFieldDescription.param.default, newFieldDescription.param.enum).length !== 0) { //invitation default is not in list of possible values
           done(undefined, 'Default reader is not in the list of readers');
         }
         var $readers = mkComposerInput('readers', { value: newFieldDescription }, fieldValue);
         $readers.find('.small_heading').prepend(requiredText);
         done($readers);
       });
-
-    } else if (_.has(fieldDescription, 'const')) {
+    } else if ((_.has(fieldDescription, 'param') && _.has(fieldDescription, 'const')) || Array.isArray(fieldDescription)) {
+      if (Array.isArray(fieldDescription)) {
+        //wrap array as param.const to reuse code
+        fieldDescription = {'param': {'const': fieldDescription}};
+      }
       return setParentReaders(replyto, fieldDescription, 'const', function(newFieldDescription) {
-        if (fieldDescription.const?.[0] === "${{note.replyto}.readers}") {
-          fieldDescription.const = newFieldDescription.const;
+        if (fieldDescription.param.const[0] === "${{note.replyto}.readers}") {
+          fieldDescription.param.const = newFieldDescription.param.const;
         }
-        var subsetReaders = fieldDescription.const.every(function (val) {
-          var found = newFieldDescription.const.indexOf(val) !== -1;
+        var subsetReaders = fieldDescription.param.const.every(function (val) {
+          var found = newFieldDescription.param.const.indexOf(val) !== -1;
           if (!found && val.includes('/Reviewer_')) {
-            var hasReviewers = _.find(newFieldDescription.const, function(v) { return v.includes('/Reviewers')});
+            var hasReviewers = _.find(newFieldDescription.param.const, function(v) { return v.includes('/Reviewers')});
             return hasReviewers;
           }
           return found;
-          })
-        if (_.isEqual(newFieldDescription.const, fieldDescription.const) || subsetReaders) {
+        })
+        if (_.isEqual(newFieldDescription.param.const, fieldDescription.param.const) || subsetReaders) {
           var $readers = mkComposerInput('readers', { value: fieldDescription }, fieldValue); //for values, readers must match with invitation instead of parent invitation
           $readers.find('.small_heading').prepend(requiredText);
           done($readers);
@@ -1271,12 +1277,11 @@ module.exports = (function() {
   }
 
   function buildSignatures(fieldDescription, fieldValue, user, headingText='signatures') {
-
     var $signatures;
-    if (_.has(fieldDescription, 'regex')) {
+    if (_.has(fieldDescription, 'param.regex')) {
       var currentVal = fieldValue && fieldValue[0];
 
-      if (fieldDescription.regex === '~.*') {
+      if (fieldDescription.param.regex === '~.*') {
         if (user && user.profile) {
           var prefId = user.profile.preferredId || user.profile.id;
           $signatures = view.mkDropdownList(
@@ -1293,7 +1298,7 @@ module.exports = (function() {
         }
 
         return Webfield.get('/groups', {
-          regex: fieldDescription.regex, signatory: user.id
+          regex: fieldDescription.param.regex, signatory: user.id
         }, { handleErrors: false }).then(function(result) {
           if (_.isEmpty(result.groups)) {
             return $.Deferred().reject('no_results');
@@ -1325,7 +1330,6 @@ module.exports = (function() {
       $signatures = mkComposerInput(headingText, { value: fieldDescription }, fieldValue);
       return $.Deferred().resolve($signatures);
     }
-
   }
 
   const mkNoteEditor = async (note, invitation, user, options) => {
@@ -1379,8 +1383,9 @@ module.exports = (function() {
           ...(params.isEdit ? { edit: params.editToUpdate } : { note }),
         };
         const content = getContent(invitation, $contentMap, noteEditObject);
-        const useEditSignature = (_.has(invitation.edit.note?.signatures, 'const')) &&
-          invitation.edit.note?.signatures?.const[0] === '${signatures}' // when note signature is edit signature, note reader should use edit signatures
+        var constNoteSignature = (Array.isArray(invitation.edit.note?.signatures) && invitation.edit.note?.signatures[0].includes('/signatures}'))
+        const useEditSignature = constNoteSignature || (_.has(invitation.edit.note?.signatures?.param, 'const') &&
+          invitation.edit.note?.signatures?.param.const[0].includes('/signatures}')) // when note signature is edit signature, note reader should use edit signatures
         const editSignatureInputValues = view.idsFromListAdder(editSignatures, invitation.edit.signatures);
         const noteSignatureInputValues = view.idsFromListAdder(noteSignatures, invitation.edit?.note?.signatures);
         const editReaderValues = getReaders(editReaders, invitation, editSignatureInputValues, true);
@@ -1580,7 +1585,7 @@ module.exports = (function() {
     const { note: noteFields, ...otherFields } = invitationObj.edit
     // editToPost.readers/writers etc.
     Object.entries(otherFields).forEach(([field, value]) => {
-      if (value.const) return
+      if (!_.has(value, 'param')) return
       switch (field) {
         case 'readers':
           result[field] = formData?.editReaderValues ?? noteObj?.[field]
@@ -1599,7 +1604,7 @@ module.exports = (function() {
     const { content: contentFields, ...otherNoteFields } = noteFields
     // editToPost.note.id/ddate/reader/writers etc.
     Object.entries(otherNoteFields).forEach(([otherNoteField, value]) => {
-      if (value.const) return
+      if (!_.has(value, 'param')) return
       switch (otherNoteField) {
         case 'readers':
           note[otherNoteField] = formData?.noteReaderValues ?? noteObj?.[otherNoteField]
@@ -1620,7 +1625,7 @@ module.exports = (function() {
         return;
       }
       if (valueObj = contentFieldValue.value) {
-        if (valueObj.const && !fieldsToIgnoreConst.includes(contentFieldName)) {
+        if (!_.has(valueObj, 'param') || valueObj.param.const) {
           return
         } else {
           content[contentFieldName] = { value: formData?.[contentFieldName] ?? noteObj?.content?.[contentFieldName]?.value }
@@ -1685,7 +1690,7 @@ module.exports = (function() {
     const invitationEditContent = invitation.edit?.note?.content;
 
     Object.keys(invitationEditContent).forEach(function(fieldName) {
-      if (fieldName === 'pdf' && !invitationEditContent.pdf.value?.optional) {
+      if (fieldName === 'pdf' && !invitationEditContent.pdf.value.param?.optional) {
         if (formContent.pdf && !_.endsWith(formContent.pdf, '.pdf') && !_.startsWith(formContent.pdf, '/pdf') && !_.startsWith(formContent.pdf, 'http')) {
           errorList.push('Uploaded file must have .pdf extension');
         }
@@ -1695,7 +1700,7 @@ module.exports = (function() {
         }
       }
 
-      if (!invitationEditContent[fieldName].value?.optional && _.isEmpty(formContent[fieldName])) {
+      if (!invitationEditContent[fieldName].value.param?.optional && _.isEmpty(formContent[fieldName])) {
         errorList.push('Field missing: ' + view.prettyField(fieldName));
       }
 
@@ -1722,7 +1727,7 @@ module.exports = (function() {
     var content = _.reduce(invitationContent, function(ret, contentObjInInvitation, k) {
       // Let the widget handle it :D and extract the data when we encouter authorids
       const contentObj = contentObjInInvitation.value;
-      const presentationObj = contentObjInInvitation.presentation || {};
+      const presentationObj = contentObjInInvitation.value.param || {};
       if (presentationObj.hidden && k === 'authors') {
         return ret;
       }
@@ -1730,7 +1735,7 @@ module.exports = (function() {
       var inputVal = $inputVal.val();
 
       if (k === 'authorids' &&
-        (contentObj.hasOwnProperty('regex') && view.isTildeIdAllowed(contentObj.regex) || contentObj.hasOwnProperty('const')
+        (contentObj.param?.hasOwnProperty('regex') && view.isTildeIdAllowed(contentObj.param.regex) || Array.isArray(contentObj)
       )) {
         ret.authorids = [];
         ret.authors = [];
@@ -1749,14 +1754,14 @@ module.exports = (function() {
           ret.authorids.push(authorid);
         });
         return ret;
-      } else if (contentObj.hasOwnProperty('enum')) {
+      } else if (contentObj.param?.hasOwnProperty('enum')) {
         //value-radio
         if (presentationObj.input === 'radio') {
           var $selection = $contentMap[k].find('.note_content_value input[type="radio"]:checked');
           inputVal = $selection.length ? $selection.val() : '';
         } else if (presentationObj.input === 'checkbox') {
           //values-checkbox
-          if (contentObj.type.endsWith('[]')) {
+          if (presentationObj.type.endsWith('[]')) {
             inputVal = [];
             $contentMap[k].find('.note_content_value input[type="checkbox"]').each(function(i) {
               if ($(this).prop('checked')) {
@@ -1766,12 +1771,12 @@ module.exports = (function() {
           } else {
             //value-checkbox
             inputVal = $contentMap[k].find('.note_content_value input[type="checkbox"]').prop('checked') ?
-                contentObj.enum[0] :
+                contentObj.param.enum[0] :
                 '';
           }
         } else if (presentationObj.input === 'select' || !(_.has(presentationObj, 'input'))) {
-          if (contentObj.type.endsWith('[]')) {
-            //values-dropdown
+          //values-dropdown
+          if (presentationObj.type.endsWith('[]')) {
             inputVal = view.idsFromListAdder($contentMap[k], ret);
           } else {
             //value-dropdown
@@ -1781,21 +1786,22 @@ module.exports = (function() {
             }
           }
         }
-      } else if (contentObj.hasOwnProperty('const')) {
+      } else if (Array.isArray(contentObj) ||
+      contentObj.param?.hasOwnProperty('const') && presentationObj.type.endsWith('[]')) {
         //values
-        if (contentObj.type.endsWith('[]') && k !== 'authorids') {
+        if (k !== 'authorids') {
           inputVal = view.idsFromListAdder($contentMap[k], ret);
         }
-      } else if (contentObj.hasOwnProperty('regex')) {
+      } else if (contentObj.param?.hasOwnProperty('regex')) {
         //values-regex
-        if (contentObj.type.endsWith('[]')) {
+        if (presentationObj.type.endsWith('[]')) {
           var inputArray = inputVal.split(',');
               inputVal = _.filter(
                 _.map(inputArray, function(s) { return s.trim(); }),
                 function(e) { return !_.isEmpty(e); }
               );
         }
-      } else if (contentObj.hasOwnProperty('value-dict')) {
+      } else if (presentationObj.type ==='json') {
         if (inputVal) {
           var inputStr = _.map(inputVal.split('\n'), function(line) {
             return line.trim();
@@ -1808,7 +1814,7 @@ module.exports = (function() {
             errors.push('Field ' + k + ' contains invalid JSON. Please make sure all quotes and brackets match.');
           }
         }
-      } else if (contentObj.type ==='file') {
+      } else if (presentationObj.type ==='file') {
         var $fileSection = $contentMap[k];
         var $fileInput = $fileSection && $fileSection.find('input.note_' + k.replace(/\W/g, '.') + '[type="file"]');
         var file = $fileInput && $fileInput.val() ? $fileInput[0].files[0] : null;
@@ -1843,12 +1849,14 @@ module.exports = (function() {
 
   var getWriters = function(invitation, signatures, user) {
     var writers = invitation.edit ? invitation.edit.writers : invitation.reply.writers
-
-    if (writers && _.has(writers, 'const')) {
-      return writers.const;
+    if (writers && Array.isArray(writers)) {
+      return undefined;
+    }
+    if (writers && _.has(writers, 'param') && _.has(writers.param, 'const')){
+      return undefined;
     }
 
-    if (writers && _.has(writers, 'regex') && writers.regex === '~.*') {
+    if (writers && _.has(writers, 'param') && writers.param.regex === '~.*') {
       return [user.profile.id];
     }
 
@@ -1856,12 +1864,18 @@ module.exports = (function() {
   };
 
   var getReaders = function(widget, invitation, signatures, isEdit = false) {
+    if (isEdit && Array.isArray(invitation.edit.readers)) {
+      return undefined;
+    }
+    if (Array.isArray(invitation.edit.note?.readers)) {
+      return undefined;
+    }
     var readers = invitation.edit ? (isEdit ? invitation.edit.readers : invitation.edit.note?.readers) : invitation.reply.readers
     var inputValues = view.idsFromListAdder(widget, readers);
 
     var invitationValues = [];
-    if (_.has(readers, 'enum')) {
-      invitationValues = readers.enum.map(function(v) { return _.has(v, 'id') ? v.id : v; });
+    if (_.has(readers, 'param') && _.has(readers.param, 'enum')) {
+      invitationValues = readers.param.enum.map(function(v) { return _.has(v, 'id') ? v.id : v; });
     }
 
     // Add signature if exists in the invitation readers list

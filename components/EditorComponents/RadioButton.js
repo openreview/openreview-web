@@ -42,8 +42,8 @@ export const RadioButtonV2 = () => {
   const { field, onChange, value } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const fieldDescription = field[fieldName].description
-  const required = !field[fieldName].value?.optional
-  const options = field[fieldName].value?.enum
+  const required = !field[fieldName].value?.param?.optional
+  const options = field[fieldName].value?.param?.enum
 
   return (
     <div className="radio-button">

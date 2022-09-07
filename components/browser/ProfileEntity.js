@@ -101,7 +101,7 @@ export default function ProfileEntity(props) {
       props.parentInfo.number,
       user
     )
-    if (!signatures || signatures.length === 0) {
+    if (version === 1 && (!signatures || signatures.length === 0)) {
       promptError("You don't have permission to edit this edge")
       return
     }
@@ -172,7 +172,7 @@ export default function ProfileEntity(props) {
       props.parentInfo.number,
       user
     )
-    if (!signatures || signatures.length === 0) {
+    if (version === 1 && (!signatures || signatures.length === 0)) {
       promptError("You don't have permission to edit this edge")
       return
     }

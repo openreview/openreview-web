@@ -42,15 +42,15 @@ export const WebfieldWidgetV2 = () => {
   const { field } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
 
-  if (field[fieldName].value?.enum) {
-    if (field[fieldName].presentation?.input === 'radio') {
+  if (field[fieldName].value?.param?.enum) {
+    if (field[fieldName].value?.param?.input === 'radio') {
       return <RadioButtonV2 />
     }
-    if (field[fieldName].presentation?.input === 'select') {
+    if (field[fieldName].value?.param?.input === 'select') {
       return <DropdownListV2 />
     }
-  } else if (field[fieldName].value?.regex) {
-    if (field[fieldName].value?.type?.endsWith('[]')) {
+  } else if (field[fieldName].value?.param?.regex) {
+    if (field[fieldName].value?.param?.type?.endsWith('[]')) {
       // values-regex
     } else {
       // value-regex
