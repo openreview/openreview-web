@@ -1,6 +1,6 @@
 /* globals $,promptError,promptMessage: false */
 
-import { useEffect, useState, useReducer, useRef } from 'react'
+import { useEffect, useState, useReducer, useRef, useCallback } from 'react'
 import Head from 'next/head'
 import withAdminAuth from '../../components/withAdminAuth'
 import Icon from '../../components/Icon'
@@ -11,6 +11,7 @@ import { prettyId, formatDateTime, buildArray, inflect } from '../../lib/utils'
 import Dropdown from '../../components/Dropdown'
 import BasicModal from '../../components/BasicModal'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
+import PaginatedList from '../../components/PaginatedList'
 
 const UserModerationTab = ({ accessToken }) => {
   const [shouldReload, reload] = useReducer((p) => !p, true)
@@ -364,9 +365,89 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
   )
 }
 
+const VenueRequestRow = ({ item }) => {
+  const { forum, abbreviatedName, signature, hasOfficialReply, deployed } = item
+  return (
+    <div className="venue-request-row">
+      <a className="request-name" href={`/forum?id=${forum}`} target="_blank" rel="noreferrer">
+        {abbreviatedName}
+      </a>
+      <div className="request-status">
+        <div className="deploy-label">
+          <span className={`label label-${deployed ? 'success' : 'default'}`}>
+            {deployed ? 'Deployed' : 'Not Deployed'}
+          </span>
+        </div>
+        <div className="reply-label">
+          <span className={`label label-${hasOfficialReply ? 'success' : 'danger'}`}>
+            {hasOfficialReply ? 'Replied' : 'Not Replied'}
+          </span>
+        </div>
+      </div>
+      <a
+        classname="request-user"
+        href={`/profile?id=${signature}`}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {prettyId(signature)}
+      </a>
+    </div>
+  )
+}
+
+const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
+  const loadRequestNotes = async (limit, offset) => {
+    try {
+      const { notes, count } = await api.get(
+        '/notes',
+        {
+          invitation: 'OpenReview.net/Support/-/Request_Form',
+          sort: 'tcdate',
+          details: 'replies',
+          limit,
+          offset,
+        },
+        { accessToken }
+      )
+
+      const formattedNotesWithCount = {
+        items: notes?.map((p) => ({
+          forum: p.forum,
+          abbreviatedName: p.content?.['Abbreviated Venue Name'],
+          hasOfficialReply: p.details.replies.find((q) =>
+            q.signatures.includes('OpenReview.net/Support')
+          ),
+          deployed: p.content?.venue_id,
+          signature: p.signatures?.[0],
+        })),
+        count: count ?? 0,
+      }
+      if (offset === 0)
+        setPendingVenueRequestCount(
+          formattedNotesWithCount.items?.filter((p) => !p.hasOfficialReply)?.length
+        )
+      return formattedNotesWithCount
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+  const loadItems = useCallback(loadRequestNotes, [accessToken])
+  return (
+    <PaginatedList
+      className="venue-request-list"
+      loadItems={loadItems}
+      emptyMessage="No venue requests"
+      itemsPerPage={25}
+      ListItem={VenueRequestRow}
+    />
+  )
+}
+
 const Moderation = ({ appContext, accessToken, superUser }) => {
   const { setBannerHidden } = appContext
   const [nameDeletionRequestCountMsg, setNameDeletionRequestCountMsg] = useState(0)
+  const [pendingVenueRequestCount, setPendingVenueRequestCount] = useState(0)
 
   useEffect(() => {
     setBannerHidden(true)
@@ -394,6 +475,12 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
               <span className="badge">{nameDeletionRequestCountMsg}</span>
             )}
           </Tab>
+          <Tab id="requests">
+            Venue Requests{' '}
+            {pendingVenueRequestCount !== 0 && (
+              <span className="badge">{pendingVenueRequestCount}</span>
+            )}
+          </Tab>
         </TabList>
 
         <TabPanels>
@@ -405,6 +492,12 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
               accessToken={accessToken}
               superUser={superUser}
               setNameDeletionRequestCountMsg={setNameDeletionRequestCountMsg}
+            />
+          </TabPanel>
+          <TabPanel id="requests">
+            <VenueRequestsTab
+              accessToken={accessToken}
+              setPendingVenueRequestCount={setPendingVenueRequestCount}
             />
           </TabPanel>
         </TabPanels>
