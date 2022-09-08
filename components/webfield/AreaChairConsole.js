@@ -869,11 +869,11 @@ const AreaChairConsole = ({ appContext }) => {
         const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
         const metaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
-        const metaReview = note.details.directReplies.find((p) => {
-          return p.version === 2
+        const metaReview = note.details.directReplies.find((p) =>
+          p.version === 2
             ? p.invitations.includes(metaReviewInvitationId)
             : p.invitation === metaReviewInvitationId
-        })
+        )
         return {
           note,
           reviewers: result[1]
