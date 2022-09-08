@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import isEmpty from 'lodash/isEmpty'
+import escapeRegExp from 'lodash/escapeRegExp'
 
 import ForumNote from './ForumNote'
 import NoteEditorForm from '../NoteEditorForm'
@@ -466,7 +467,7 @@ export default function Forum({
 
     Object.values(replyNoteMap).forEach((note) => {
       const keywordRegex = selectedFilters.keywords
-        ? new RegExp(`\\b${selectedFilters.keywords[0]}`, 'mi')
+        ? new RegExp(`\\b${escapeRegExp(selectedFilters.keywords[0])}`, 'mi')
         : null
       const isVisible =
         (!selectedFilters.invitations ||
