@@ -74,13 +74,23 @@ export const NoteTitleV2 = ({
   options = {},
 }) => (
   <h4>
-    <Link
-      href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}${
-        options.referrer ? `&referrer=${encodeURIComponent(options.referrer)}` : ''
-      }`}
-    >
-      <a>{content.title?.value || buildNoteTitle(invitation, signatures)}</a>
-    </Link>
+    {options.openNoteInNewWindow ? (
+      <a
+        href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}`}
+        target="_blank"
+        rel="nofollow noreferrer"
+      >
+        {content.title?.value || buildNoteTitle(invitation, signatures)}
+      </a>
+    ) : (
+      <Link
+        href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}${
+          options.referrer ? `&referrer=${encodeURIComponent(options.referrer)}` : ''
+        }`}
+      >
+        <a>{content.title?.value || buildNoteTitle(invitation, signatures)}</a>
+      </Link>
+    )}
 
     {options.pdfLink && content.pdf?.value && (
       <Link href={`/attachment?id=${id}&name=pdf`}>

@@ -95,7 +95,7 @@ const AreaChairConsoleReviewerActivityModal = ({
       {activityNotes && (
         <NoteList
           notes={activityNotes}
-          displayOptions={{ showContents: true, collapse: true }}
+          displayOptions={{ showContents: true, collapse: true, openNoteInNewWindow: true }}
         />
       )}
     </BasicModal>
