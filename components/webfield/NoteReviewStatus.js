@@ -63,7 +63,7 @@ const AreaChairConsoleReviewerActivityModal = ({
         {
           signature: `${venueId}/${submissionName}${note.number}/Reviewer_${reviewer.anonymousId}`,
         },
-        { accessToken }
+        { accessToken, version: note.version }
       )
       setActivityNotes(result.notes)
     } catch (apiError) {

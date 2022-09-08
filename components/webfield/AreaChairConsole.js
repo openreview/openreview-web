@@ -397,11 +397,14 @@ const MenuBar = ({
     if (filterOperators && propertiesAllowed && cleanSearchTerm.startsWith('+')) return // handled in keyDownHandler
     setAcConsoleData((acConsoleData) => ({
       ...acConsoleData,
-      tableRowsDisplayed: acConsoleData.tableRows.filter(
-        (row) =>
+      tableRowsDisplayed: acConsoleData.tableRows.filter((row) => {
+        const noteTitle =
+          row.note.version === 2 ? row.note.content?.title?.value : row.note.content?.title
+        return (
           row.note.number == cleanSearchTerm || // eslint-disable-line eqeqeq
-          row.note.content.title.toLowerCase().includes(cleanSearchTerm)
-      ),
+          noteTitle.toLowerCase().includes(cleanSearchTerm)
+        )
+      }),
     }))
   }, [searchTerm])
 
@@ -419,7 +422,7 @@ const MenuBar = ({
           <Icon name="envelope" />
           <Dropdown
             className={`dropdown-sm message-button-dropdown${
-              disabledMessageButton ? ' dropdown-disabled' : ''
+              disabledMessageButton ? ' dropdown-disable' : ''
             }`}
             options={messageReviewerOptions}
             components={{
@@ -519,7 +522,7 @@ const AssignedPaperRow = ({
         <strong className="note-number">{note.number}</strong>
       </td>
       <td>
-        <NoteSummary note={note} referrerUrl={referrerUrl} />
+        <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={note.version === 2} />
       </td>
       <td>
         <AreaChairConsoleNoteReviewStatus
@@ -544,8 +547,6 @@ const AssignedPaperRow = ({
 }
 
 const AreaChairConsoleTasks = ({ venueId, areaChairName, apiVersion }) => {
-  const wildcardInvitation = `${venueId}/.*`
-
   const { accessToken } = useUser()
   const [invitations, setInvitations] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -573,7 +574,7 @@ const AreaChairConsoleTasks = ({ venueId, areaChairName, apiVersion }) => {
       let allInvitations = await api.getAll(
         '/invitations',
         {
-          regex: wildcardInvitation,
+          prefix: `${venueId}/.*`,
           invitee: true,
           duedate: true,
           type: 'all',
@@ -677,7 +678,7 @@ const AreaChairConsole = ({ appContext }) => {
         },
         { accessToken }
       )
-      const areaChairGroups = allGroups.filter((p) => p.id.endsWith('Area_Chairs'))
+      const areaChairGroups = allGroups.filter((p) => p.id.endsWith(areaChairName))
       const anonymousAreaChairGroups = allGroups.filter((p) => p.id.includes('/Area_Chair_'))
       const areaChairPaperNums = areaChairGroups.flatMap((p) => {
         const num = getNumberFromGroup(p.id, submissionName)
@@ -690,13 +691,17 @@ const AreaChairConsole = ({ appContext }) => {
 
       const noteNumbers = [...new Set(areaChairPaperNums)]
       const blindedNotesP = noteNumbers.length
-        ? api.getAll('/notes', {
-            invitation: blindSubmissionInvitationId,
-            number: noteNumbers.join(','),
-            select: 'id,number,forum,content,details,invitation',
-            details: 'invitation,replyCount,directReplies',
-            sort: 'number:asc',
-          })
+        ? api.getAll(
+            '/notes',
+            {
+              invitation: blindSubmissionInvitationId,
+              number: noteNumbers.join(','),
+              select: 'id,number,forum,content,details,invitation,version',
+              details: 'invitation,replyCount,directReplies',
+              sort: 'number:asc',
+            },
+            { accessToken, version: apiVersion }
+          )
         : Promise.resolve([])
 
       // #region getReviewerGroups(noteNumbers)
@@ -810,22 +815,27 @@ const AreaChairConsole = ({ appContext }) => {
           )
         )
         const officialReviews = (note.details.directReplies ?? [])
-          .filter(
-            (p) =>
-              p.invitation ===
-              `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
-          )
+          .filter((p) => {
+            const officalReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
+            return p.version === 2
+              ? p.invitations.includes(officalReviewInvitationId)
+              : p.invitation === officalReviewInvitationId
+          })
           ?.map((q) => {
+            console.log('q', q)
             const anonymousId = getNumberFromGroup(q.signatures[0], 'Reviewer_', false)
-            const ratingNumber = q.content[reviewRatingName]
-              ? q.content[reviewRatingName].substring(
-                  0,
-                  q.content[reviewRatingName].indexOf(':')
-                )
+            const reviewRatingValue =
+              q.version === 2
+                ? q.content[reviewRatingName]?.value
+                : q.content[reviewRatingName]
+            const ratingNumber = reviewRatingValue
+              ? reviewRatingValue.substring(0, reviewRatingValue.indexOf(':'))
               : null
-            const confidenceMatch =
-              q.content[reviewConfidenceName] &&
-              q.content[reviewConfidenceName].match(/^(\d+): .*/)
+            const confidenceValue =
+              q.version === 2
+                ? q.content[reviewConfidenceName]?.value
+                : q.content[reviewConfidenceName]
+            const confidenceMatch = confidenceValue && confidenceValue.match(/^(\d+): .*/)
             return {
               anonymousId,
               confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
@@ -912,10 +922,12 @@ const AreaChairConsole = ({ appContext }) => {
         tableRowsDisplayed: tableRows,
         reviewersInfo: result[1],
         allProfiles,
-        sacProfile: {
-          id: sacProfile.id,
-          email: sacProfile.content.preferredEmail ?? sacProfile.content.emails[0],
-        },
+        sacProfile: sacProfile
+          ? {
+              id: sacProfile.id,
+              email: sacProfile.content.preferredEmail ?? sacProfile.content.emails[0],
+            }
+          : null,
       })
     } catch (error) {
       promptError(`loading data: ${error.message}`)

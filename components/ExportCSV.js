@@ -5,8 +5,16 @@ const ExportCSV = ({ records, fileName }) => {
   const exportColumns = [
     { header: 'number', getValue: (p) => p.note?.number },
     { header: 'forum', getValue: (p) => `https://openreview.net/forum?id=${p.note?.forum}` },
-    { header: 'title', getValue: (p) => p.note?.content?.title },
-    { header: 'abstract', getValue: (p) => p.note?.content?.abstract },
+    {
+      header: 'title',
+      getValue: (p, isV2Note) =>
+        isV2Note ? p.note?.content?.title?.value : p.note?.content?.title,
+    },
+    {
+      header: 'abstract',
+      getValue: (p, isV2Note) =>
+        isV2Note ? p.note?.content?.abstract?.value : p.note?.content?.abstract,
+    },
     { header: 'num reviewers', getValue: (p) => p.reviewProgressData?.numReviewersAssigned },
     {
       header: 'num submitted reviewers',
@@ -40,7 +48,7 @@ const ExportCSV = ({ records, fileName }) => {
       (p) =>
         `${exportColumns
           .map((column) => {
-            const value = column.getValue(p)?.toString()
+            const value = column.getValue(p, p.note?.version === 2)?.toString()
             return `"${value?.replaceAll('"', '""')}"`
           })
           .join(',')}\n`
