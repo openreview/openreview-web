@@ -291,7 +291,7 @@ const AuthorConsole = ({ appContext }) => {
       api.getAll(
         '/invitations',
         {
-          regex: wildcardInvitation,
+          prefix: wildcardInvitation,
           invitee: true,
           duedate: true,
           replyto: true,
@@ -303,7 +303,7 @@ const AuthorConsole = ({ appContext }) => {
       api.getAll(
         '/invitations',
         {
-          regex: wildcardInvitation,
+          prefix: wildcardInvitation,
           invitee: true,
           duedate: true,
           type: 'edges',
@@ -314,7 +314,7 @@ const AuthorConsole = ({ appContext }) => {
       api.getAll(
         '/invitations',
         {
-          regex: wildcardInvitation,
+          prefix: wildcardInvitation,
           invitee: true,
           duedate: true,
           type: 'tags',
