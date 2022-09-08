@@ -264,7 +264,12 @@ const MenuBar = ({
   ]
   const sortDropdownOptions = [
     { label: 'Paper Number', value: 'Paper Number', getValue: (p) => p.note?.number },
-    { label: 'Paper Title', value: 'Paper Title', getValue: (p) => p.note?.content?.title },
+    {
+      label: 'Paper Title',
+      value: 'Paper Title',
+      getValue: (p) =>
+        p.note?.version === 2 ? p.note?.content?.title?.value : p.note?.content?.title,
+    },
     {
       label: 'Number of Forum Replies',
       value: 'Number of Forum Replies',
@@ -822,25 +827,24 @@ const AreaChairConsole = ({ appContext }) => {
               : p.invitation === officalReviewInvitationId
           })
           ?.map((q) => {
-            console.log('q', q)
+            const isV2Note = q.version === 2
             const anonymousId = getNumberFromGroup(q.signatures[0], 'Reviewer_', false)
-            const reviewRatingValue =
-              q.version === 2
-                ? q.content[reviewRatingName]?.value
-                : q.content[reviewRatingName]
+            const reviewRatingValue = isV2Note
+              ? q.content[reviewRatingName]?.value
+              : q.content[reviewRatingName]
             const ratingNumber = reviewRatingValue
               ? reviewRatingValue.substring(0, reviewRatingValue.indexOf(':'))
               : null
-            const confidenceValue =
-              q.version === 2
-                ? q.content[reviewConfidenceName]?.value
-                : q.content[reviewConfidenceName]
+            const confidenceValue = isV2Note
+              ? q.content[reviewConfidenceName]?.value
+              : q.content[reviewConfidenceName]
             const confidenceMatch = confidenceValue && confidenceValue.match(/^(\d+): .*/)
+            const reviewValue = isV2Note ? q.content.review?.value : q.content.review
             return {
               anonymousId,
               confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
               rating: ratingNumber ? parseInt(ratingNumber, 10) : null,
-              reviewLength: q.content.review?.length,
+              reviewLength: reviewValue?.length,
               id: q.id,
             }
           })
@@ -865,9 +869,11 @@ const AreaChairConsole = ({ appContext }) => {
         const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
         const metaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
-        const metaReview = note.details.directReplies.find(
-          (p) => p.invitation === metaReviewInvitationId
-        )
+        const metaReview = note.details.directReplies.find((p) => {
+          return p.version === 2
+            ? p.invitations.includes(metaReviewInvitationId)
+            : p.invitation === metaReviewInvitationId
+        })
         return {
           note,
           reviewers: result[1]
@@ -904,7 +910,10 @@ const AreaChairConsole = ({ appContext }) => {
             replyCount: note.details.replyCount,
           },
           metaReviewData: {
-            [metaReviewContentField]: metaReview?.content[metaReviewContentField],
+            [metaReviewContentField]:
+              metaReview?.version === 2
+                ? metaReview?.content[metaReviewContentField]?.value
+                : metaReview?.content[metaReviewContentField],
             metaReviewInvitationId: `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`,
             metaReview,
           },
