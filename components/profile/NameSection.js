@@ -128,9 +128,11 @@ const NameDeleteRequestModal = ({
             <strong>Middle name</strong>: {nameToRequestDelete.middle}
           </li>
         )}
-        <li>
-          <strong>Last name</strong>: {nameToRequestDelete.last}
-        </li>
+        {nameToRequestDelete.last && (
+          <li>
+            <strong>Last name</strong>: {nameToRequestDelete.last}
+          </li>
+        )}
       </ul>
       <textarea
         className="form-control"
