@@ -281,7 +281,6 @@ export default function Forum({
 
   // Add new reply note or update and existing reply note
   const updateNote = (note) => {
-    console.log(note)
     const noteId = note.id
     const parentId = note.replyto
     const existingNote = replyNoteMap[noteId]
@@ -321,6 +320,7 @@ export default function Forum({
       // update the invitation and the parent note
       const invObj = allInvitations.find((i) => i.id === note.invitations[0])
       if (invObj.maxReplies) {
+        const remainingReplies = (invObj.details.repliesAvailable ?? 1) - 1
         setAllInvitations(
           allInvitations
             .filter((i) => i.id !== invObj.id)
@@ -328,23 +328,27 @@ export default function Forum({
               ...invObj,
               details: {
                 ...invObj.details,
-                repliesAvailable: invObj.details.repliesAvailable - 1,
+                repliesAvailable: remainingReplies,
               },
             })
         )
-        if (parentId === parentNote.id) {
-          setParentNote({
-            ...parentNote,
-            replyInvitations: parentNote.replyInvitations.filter((i) => i.id !== invObj.id)
-          })
-        } else {
-          setReplyNoteMap((prevMap) => ({
-            ...prevMap,
-            [parentId]: {
-              ...replyToNote,
-              replyInvitations: replyToNote.replyInvitations.filter((i) => i.id !== invObj.id),
-            },
-          }))
+        if (remainingReplies < 1) {
+          if (parentId === parentNote.id) {
+            setParentNote({
+              ...parentNote,
+              replyInvitations: parentNote.replyInvitations.filter((i) => i.id !== invObj.id),
+            })
+          } else {
+            setReplyNoteMap((prevMap) => ({
+              ...prevMap,
+              [parentId]: {
+                ...replyToNote,
+                replyInvitations: replyToNote.replyInvitations.filter(
+                  (i) => i.id !== invObj.id
+                ),
+              },
+            }))
+          }
         }
       }
     }
