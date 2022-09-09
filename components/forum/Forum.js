@@ -281,6 +281,7 @@ export default function Forum({
 
   // Add new reply note or update and existing reply note
   const updateNote = (note) => {
+    console.log(note)
     const noteId = note.id
     const parentId = note.replyto
     const existingNote = replyNoteMap[noteId]
@@ -315,6 +316,37 @@ export default function Forum({
         ...parentMap,
         [parentId]: parentMap[parentId] ? [...parentMap[parentId], noteId] : [noteId],
       })
+
+      // If new note is a reply to an invitation with a maxReplies property,
+      // update the invitation and the parent note
+      const invObj = allInvitations.find((i) => i.id === note.invitations[0])
+      if (invObj.maxReplies) {
+        setAllInvitations(
+          allInvitations
+            .filter((i) => i.id !== invObj.id)
+            .concat({
+              ...invObj,
+              details: {
+                ...invObj.details,
+                repliesAvailable: invObj.details.repliesAvailable - 1,
+              },
+            })
+        )
+        if (parentId === parentNote.id) {
+          setParentNote({
+            ...parentNote,
+            replyInvitations: parentNote.replyInvitations.filter((i) => i.id !== invObj.id)
+          })
+        } else {
+          setReplyNoteMap((prevMap) => ({
+            ...prevMap,
+            [parentId]: {
+              ...replyToNote,
+              replyInvitations: replyToNote.replyInvitations.filter((i) => i.id !== invObj.id),
+            },
+          }))
+        }
+      }
     }
   }
 
@@ -430,9 +462,10 @@ export default function Forum({
 
         if (selectedInvitationId) {
           const buttonSelector = `[data-id="${selectedInvitationId}"]`
-          const selector = selectedNoteId === id
-            ? `.forum-note a${buttonSelector}, .invitations-container button${buttonSelector}`
-            : `.note[data-id="${selectedNoteId}"] button${buttonSelector}`
+          const selector =
+            selectedNoteId === id
+              ? `.forum-note a${buttonSelector}, .invitations-container button${buttonSelector}`
+              : `.note[data-id="${selectedNoteId}"] button${buttonSelector}`
           const button = document.querySelector(selector)
           if (button) button.click()
         }
@@ -577,7 +610,11 @@ export default function Forum({
             forum docs
           </a>
           . To switch back to the old forum click here:{' '}
-          <Link href={`/forum-original?id=${id}${query.referrer ? `&referrer=${encodeURIComponent(query.referrer)}` : ''}`}>
+          <Link
+            href={`/forum-original?id=${id}${
+              query.referrer ? `&referrer=${encodeURIComponent(query.referrer)}` : ''
+            }`}
+          >
             <a>View old forum &raquo;</a>
           </Link>
         </p>
