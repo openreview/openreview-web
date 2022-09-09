@@ -5,17 +5,19 @@ import EditorComponentContext from '../EditorComponentContext'
 import MarkdownPreviewTab from '../MarkdownPreviewTab'
 import WebFieldContext from '../WebFieldContext'
 
-const CharCounter = ({ regex, contentLength, isV2Invitation }) => {
-  let minLength = null
-  let maxLength = null
-  const lenMatches = (regex ?? '').match(
-    isV2Invitation ? /\{(\d+),(\d+)\}\$$/ : /\{(\d+),(\d+)\}$/
-  )
-  if (lenMatches) {
-    minLength = parseInt(lenMatches[1], 10)
-    maxLength = parseInt(lenMatches[2], 10)
-    minLength = Number.isNaN(minLength) || minLength < 0 ? 0 : minLength
-    maxLength = Number.isNaN(maxLength) || maxLength < minLength ? 0 : maxLength
+const CharCounter = ({ regex, minLengthInvitation=0, maxLengthInvitation=0, contentLength, isV2Invitation }) => {
+  let minLength = minLengthInvitation
+  let maxLength = maxLengthInvitation
+  if (!isV2Invitation) {
+    const lenMatches = (regex ?? '').match(
+      isV2Invitation ? /\{(\d+),(\d+)\}\$$/ : /\{(\d+),(\d+)\}$/
+    )
+    if (lenMatches) {
+      minLength = parseInt(lenMatches[1], 10)
+      maxLength = parseInt(lenMatches[2], 10)
+      minLength = Number.isNaN(minLength) || minLength < 0 ? 0 : minLength
+      maxLength = Number.isNaN(maxLength) || maxLength < minLength ? 0 : maxLength
+    }
   }
 
   const getClassName = () => {
@@ -201,7 +203,8 @@ export const TextAreaV2 = () => {
       </div>
       {showCharCounter && (
         <CharCounter
-          regex={field[fieldName]?.value?.regex}
+          minLengthInvitation={field[fieldName]?.value?.param?.minLength}
+          maxLengthInvitation={field[fieldName]?.value?.param?.maxLength}
           contentLength={value?.trim()?.length ?? 0}
           isV2Invitation={true}
         />
