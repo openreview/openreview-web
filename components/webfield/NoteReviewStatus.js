@@ -153,9 +153,9 @@ Click on the link below to go to the review page:\n\n{{submit_review_link}}
       {error && <div className="alert alert-danger">{error}</div>}
       <>
         <p>
-          You may customize the message that will be sent to the reviewer. In the email body,
+          {`You may customize the message that will be sent to the reviewer. In the email body,
           the text {{ submit_review_link }} will be replaced with a hyperlink to the form where
-          the reviewer can fill out his or her review.
+          the reviewer can fill out his or her review.`}
         </p>
         <div className="form-group">
           <label htmlFor="reviewer">Reviewer</label>

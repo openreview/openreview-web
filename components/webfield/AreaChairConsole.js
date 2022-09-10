@@ -149,9 +149,9 @@ const MessageReviewersModal = ({
       {currentStep === 1 ? (
         <>
           <p>
-            You may customize the message that will be sent to the reviewers. In the email
+            {`You may customize the message that will be sent to the reviewers. In the email
             body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
-            form where the reviewer can fill out his or her review.
+            form where the reviewer can fill out his or her review.`}
           </p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>
@@ -439,6 +439,7 @@ const MenuBar = ({
             }}
             value={{ label: 'Message', value: '' }}
             onChange={handleMessageDropdownChange}
+            isSearchable={false}
           />
         </button>
       </div>
