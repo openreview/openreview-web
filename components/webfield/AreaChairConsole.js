@@ -56,7 +56,7 @@ const MessageReviewersModal = ({
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
   const [message, setMessage] =
-    useState(`Click on the link below to go to the review page:\n\n[[SUBMIT_REVIEW_LINK]]
+    useState(`Click on the link below to go to the review page:\n\n{{submit_review_link}}
   \n\nThank you,\n${shortPhrase} Area Chair`)
   const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
   const [recipientsInfo, setRecipientsInfo] = useState([])
@@ -84,7 +84,7 @@ const MessageReviewersModal = ({
           {
             groups: reviewerIds,
             subject,
-            message: message.replaceAll('[[SUBMIT_REVIEW_LINK]]', forumUrl),
+            message: message.replaceAll('{{submit_review_link}}', forumUrl),
           },
           { accessToken }
         )
@@ -150,8 +150,8 @@ const MessageReviewersModal = ({
         <>
           <p>
             You may customize the message that will be sent to the reviewers. In the email
-            body, the text [[SUBMIT_REVIEW_LINK]] will be replaced with a hyperlink to the form
-            where the reviewer can fill out his or her review.
+            body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
+            form where the reviewer can fill out his or her review.
           </p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>

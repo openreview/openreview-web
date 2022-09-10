@@ -114,7 +114,7 @@ const AreaChairConsoleReviewerReminderModal = ({
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
   const [message, setMessage] =
     useState(`This is a reminder to please submit your review for ${shortPhrase}.\n\n
-Click on the link below to go to the review page:\n\n[[SUBMIT_REVIEW_LINK]]
+Click on the link below to go to the review page:\n\n{{submit_review_link}}
   \n\nThank you,\n${shortPhrase} Area Chair`)
   const [error, setError] = useState(null)
   const { accessToken } = useUser()
@@ -127,7 +127,7 @@ Click on the link below to go to the review page:\n\n[[SUBMIT_REVIEW_LINK]]
         {
           groups: [reviewer.reviewerProfileId],
           subject,
-          message: message.replaceAll('[[SUBMIT_REVIEW_LINK]]', forumUrl),
+          message: message.replaceAll('{{submit_review_link}}', forumUrl),
         },
         { accessToken }
       )
@@ -154,7 +154,7 @@ Click on the link below to go to the review page:\n\n[[SUBMIT_REVIEW_LINK]]
       <>
         <p>
           You may customize the message that will be sent to the reviewer. In the email body,
-          the text [[SUBMIT_REVIEW_LINK]] will be replaced with a hyperlink to the form where
+          the text {{ submit_review_link }} will be replaced with a hyperlink to the form where
           the reviewer can fill out his or her review.
         </p>
         <div className="form-group">
