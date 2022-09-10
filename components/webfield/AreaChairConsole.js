@@ -251,6 +251,7 @@ const MenuBar = ({
   setAcConsoleData,
   filterOperators,
   propertiesAllowed,
+  enableQuerySearch,
   submissionName,
 }) => {
   const disabledMessageButton = selectedNoteIds.length === 0
@@ -342,6 +343,8 @@ const MenuBar = ({
   const [isQuerySearch, setIsQuerySearch] = useState(false)
   const [sortOption, setSortOption] = useState(sortDropdownOptions[0])
 
+  const shouldEnableQuerySearch = enableQuerySearch && filterOperators && propertiesAllowed
+
   const exportFileName = `${shortPhrase}${
     tableRows?.length === tableRowsDisplayed?.length
       ? ' AC paper status'
@@ -359,7 +362,7 @@ const MenuBar = ({
   )
 
   const keyDownHandler = (e) => {
-    if (e.key !== 'Enter' || !filterOperators || !propertiesAllowed) return
+    if (e.key !== 'Enter' || !shouldEnableQuerySearch) return
     const cleanImmediateSearchTerm = immediateSearchTerm.trim()
     // query search
     const { filteredRows, queryIsInvalid } = filterCollections(
@@ -399,7 +402,7 @@ const MenuBar = ({
       return
     }
     const cleanSearchTerm = searchTerm.trim().toLowerCase()
-    if (filterOperators && propertiesAllowed && cleanSearchTerm.startsWith('+')) return // handled in keyDownHandler
+    if (shouldEnableQuerySearch && cleanSearchTerm.startsWith('+')) return // handled in keyDownHandler
     setAcConsoleData((acConsoleData) => ({
       ...acConsoleData,
       tableRowsDisplayed: acConsoleData.tableRows.filter((row) => {
@@ -443,7 +446,7 @@ const MenuBar = ({
         <ExportCSV records={tableRowsDisplayed} fileName={exportFileName} />
       </div>
       <span className="search-label">Search:</span>
-      {isQuerySearch && filterOperators && propertiesAllowed && (
+      {isQuerySearch && shouldEnableQuerySearch && (
         <div role="button" onClick={handleQuerySearchInfoClick}>
           <Icon name="info-sign" />
         </div>
@@ -451,9 +454,7 @@ const MenuBar = ({
       <input
         className={`form-control search-input${queryIsInvalidStatus ? ' invalid-value' : ''}`}
         placeholder={`Enter search term${
-          filterOperators && propertiesAllowed
-            ? ' or type + to start a query and press enter'
-            : ''
+          shouldEnableQuerySearch ? ' or type + to start a query and press enter' : ''
         }`}
         value={immediateSearchTerm}
         onChange={(e) => {
@@ -483,7 +484,7 @@ const MenuBar = ({
         officialReviewName={officialReviewName}
         submissionName={submissionName}
       />
-      {isQuerySearch && filterOperators && propertiesAllowed && (
+      {isQuerySearch && shouldEnableQuerySearch && (
         <QuerySearchInfoModal
           filterOperators={filterOperators}
           propertiesAllowed={propertiesAllowed}
@@ -633,11 +634,8 @@ const AreaChairConsole = ({ appContext }) => {
     entity: group,
     venueId,
     apiVersion,
-    enableEditReviewAssignments,
-    reviewerAssignmentTitle,
-    edgeBrowserProposedUrl,
-    edgeBrowserDeployedUrl,
-    blindSubmissionInvitationId,
+    reviewerAssignment,
+    submissionInvitationId,
     seniorAreaChairsId,
     areaChairName,
     submissionName,
@@ -647,9 +645,16 @@ const AreaChairConsole = ({ appContext }) => {
     officialMetaReviewName,
     metaReviewContentField,
     shortPhrase,
-    filterOperators, // for query search only
-    propertiesAllowed, // for query search only
+    filterOperators: filterOperatorsConfig, // for query search only
+    propertiesAllowed: propertiesAllowedConfig, // for query search only
+    enableQuerySearch, // for query search only
   } = useContext(WebFieldContext)
+  const {
+    showEdgeBrowserUrl,
+    proposedAssignmentTitle,
+    edgeBrowserProposedUrl,
+    edgeBrowserDeployedUrl,
+  } = reviewerAssignment ?? {}
   const { user, accessToken, userLoading } = useUser()
   const router = useRouter()
   const query = useQuery()
@@ -658,10 +663,33 @@ const AreaChairConsole = ({ appContext }) => {
   const [activeTabIndex, setActiveTabIndex] = useState(0)
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
 
-  const edgeBrowserUrl = reviewerAssignmentTitle
+  let filterOperators = ['!=', '>=', '<=', '>', '<', '='] // sequence matters
+  let propertiesAllowed = {
+    number: ['note.number'],
+    id: ['note.id'],
+    title: ['note.content.title'],
+    author: ['note.content.authors', 'note.content.authorids'], // multi props
+    keywords: ['note.content.keywords'],
+    reviewer: ['reviewProgressData.reviewers'],
+    numReviewersAssigned: ['reviewProgressData.numReviewers'],
+    numReviewsDone: ['reviewProgressData.numSubmittedReviews'],
+    ratingAvg: ['reviewProgressData.averageRating'],
+    ratingMax: ['reviewProgressData.maxRating'],
+    ratingMin: ['reviewProgressData.minRating'],
+    confidenceAvg: ['reviewProgressData.averageConfidence'],
+    confidenceMax: ['reviewProgressData.maxConfidence'],
+    confidenceMin: ['reviewProgressData.minConfidence'],
+    replyCount: ['reviewProgressData.forumReplyCount'],
+    recommendation: ['metaReviewData.recommendation'],
+    ranking: ['metaReviewData.ranking'],
+  }
+  if (filterOperatorsConfig) filterOperators = filterOperatorsConfig
+  if (propertiesAllowedConfig) propertiesAllowed = propertiesAllowedConfig
+
+  const edgeBrowserUrl = proposedAssignmentTitle
     ? edgeBrowserProposedUrl
     : edgeBrowserDeployedUrl
-  const headerInstructions = enableEditReviewAssignments
+  const headerInstructions = showEdgeBrowserUrl
     ? `${header.instructions}<p><strong>Reviewer Assignment Browser: </strong><a id="edge_browser_url" href="${edgeBrowserUrl}"" target="_blank" rel="nofollow">Modify Reviewer Assignments</a></p>`
     : header.instructions
 
@@ -699,7 +727,7 @@ const AreaChairConsole = ({ appContext }) => {
         ? api.getAll(
             '/notes',
             {
-              invitation: blindSubmissionInvitationId,
+              invitation: submissionInvitationId,
               number: noteNumbers.join(','),
               select: 'id,number,forum,content,details,invitation,version',
               details: 'invitation,replyCount,directReplies',
@@ -964,6 +992,7 @@ const AreaChairConsole = ({ appContext }) => {
             setAcConsoleData={setAcConsoleData}
             filterOperators={filterOperators}
             propertiesAllowed={propertiesAllowed}
+            enableQuerySearch={enableQuerySearch}
             submissionName={submissionName}
           />
           <p className="empty-message">No assigned papers matching search criteria.</p>
@@ -981,6 +1010,7 @@ const AreaChairConsole = ({ appContext }) => {
           setAcConsoleData={setAcConsoleData}
           filterOperators={filterOperators}
           propertiesAllowed={propertiesAllowed}
+          enableQuerySearch={enableQuerySearch}
           submissionName={submissionName}
         />
         <Table
@@ -1060,11 +1090,8 @@ const AreaChairConsole = ({ appContext }) => {
     group,
     venueId,
     apiVersion,
-    enableEditReviewAssignments,
-    reviewerAssignmentTitle,
-    edgeBrowserProposedUrl,
-    edgeBrowserDeployedUrl,
-    blindSubmissionInvitationId,
+    reviewerAssignment,
+    submissionInvitationId,
     seniorAreaChairsId,
     areaChairName,
     submissionName,
@@ -1074,6 +1101,7 @@ const AreaChairConsole = ({ appContext }) => {
     officialMetaReviewName,
     metaReviewContentField,
     shortPhrase,
+    enableQuerySearch,
   }).filter(([key, value]) => value === undefined)
   if (missingConfig?.length) {
     const errorMessage = `AC Console is missing required properties: ${
