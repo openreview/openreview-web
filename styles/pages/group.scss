@@ -352,11 +352,16 @@ main.invitation {
           display: flex;
           flex-direction: row;
           margin-bottom: 0.25rem;
+          align-items: baseline;
+          .assigned-reviewer-id {
+            font-size: 0.75rem;
+          }
 
           .assigned-reviewer-action {
             display: flex;
             flex-direction: column;
             margin-left: 0.5rem;
+            font-size: 0.75rem;
           }
         }
       }

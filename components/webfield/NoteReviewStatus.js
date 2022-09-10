@@ -241,7 +241,7 @@ export const AreaChairConsoleNoteReviewStatus = ({
             )
             return (
               <div key={reviewer.reviewerProfileId} className="assigned-reviewer-row">
-                <strong>{reviewer.anonymousId}</strong>
+                <strong className="assigned-reviewer-id">{reviewer.anonymousId}</strong>
                 <div className="assigned-reviewer-action">
                   <span>
                     {reviewer.preferredName}{' '}
