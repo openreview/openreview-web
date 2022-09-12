@@ -1015,7 +1015,7 @@ const AreaChairConsole = ({ appContext }) => {
           submissionName={submissionName}
         />
         <Table
-          className="console-table table-striped"
+          className="console-table table-striped ac-console-table"
           headings={[
             {
               id: 'select-all',
@@ -1026,12 +1026,11 @@ const AreaChairConsole = ({ appContext }) => {
                   allNoteIds={acConsoleData.tableRowsDisplayed?.map((row) => row.note.id)}
                 />
               ),
-              width: '8%',
             },
-            { id: 'number', content: '#', width: '8%' },
-            { id: 'summary', content: 'Paper Summary', width: '46%' },
-            { id: 'reviewProgress', content: 'Review Progress', width: '46%' },
-            { id: 'metaReviewStatus', content: 'Meta Review Status', width: '46%' },
+            { id: 'number', content: '#' },
+            { id: 'summary', content: 'Paper Summary' },
+            { id: 'reviewProgress', content: 'Review Progress', width: '30%' },
+            { id: 'metaReviewStatus', content: 'Meta Review Status' },
           ]}
         >
           {acConsoleData.tableRowsDisplayed?.map((row) => (
