@@ -97,12 +97,12 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
     loadMetaReviewInvitation()
   }, [])
   return (
-    <>
+    <div className="areachair-console-meta-review">
       {metaReviewData[metaReviewContentField] ? (
         <>
           {
             <>
-              <h4>AC Recommendation:</h4>
+              <h4 className="title">AC Recommendation:</h4>
               <p>
                 <strong>{metaReviewData[metaReviewContentField]}</strong>
               </p>
@@ -129,6 +129,6 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
           )}
         </h4>
       )}
-    </>
+    </div>
   )
 }

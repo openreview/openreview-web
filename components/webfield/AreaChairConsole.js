@@ -1015,7 +1015,7 @@ const AreaChairConsole = ({ appContext }) => {
           submissionName={submissionName}
         />
         <Table
-          className="console-table table-striped ac-console-table"
+          className="console-table table-striped areachair-console-table"
           headings={[
             {
               id: 'select-all',

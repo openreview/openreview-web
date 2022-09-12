@@ -336,6 +336,10 @@ main.invitation {
     .download-pdf-link {
       margin-bottom: 0.5rem;
     }
+  }
+
+  .areachair-console-table {
+    table-layout: auto;
 
     .areachair-console-reviewer-progress {
       display: flex;
@@ -366,10 +370,13 @@ main.invitation {
         }
       }
     }
-  }
 
-  .ac-console-table {
-    table-layout: auto;
+    .areachair-console-meta-review {
+      margin-right: 0.5rem;
+      .title {
+        white-space: nowrap;
+      }
+    }
   }
 
   .console-table .eic-task-list {
