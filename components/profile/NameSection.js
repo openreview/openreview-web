@@ -88,9 +88,17 @@ const NameDeleteRequestModal = ({
             comment: reason,
             status: 'Pending',
           },
-          readers: buildArray(profileNameRemovalInvitation, 'readers', user.profile.id),
-          writers: buildArray(profileNameRemovalInvitation, 'writers', user.profile.id),
-          signatures: [user.profile.id],
+          readers: buildArray(
+            profileNameRemovalInvitation,
+            'readers',
+            user.profile.preferredId
+          ),
+          writers: buildArray(
+            profileNameRemovalInvitation,
+            'writers',
+            user.profile.preferredId
+          ),
+          signatures: [user.profile.preferredId],
         },
         { accessToken }
       )
@@ -128,9 +136,11 @@ const NameDeleteRequestModal = ({
             <strong>Middle name</strong>: {nameToRequestDelete.middle}
           </li>
         )}
-        <li>
-          <strong>Last name</strong>: {nameToRequestDelete.last}
-        </li>
+        {nameToRequestDelete.last && (
+          <li>
+            <strong>Last name</strong>: {nameToRequestDelete.last}
+          </li>
+        )}
       </ul>
       <textarea
         className="form-control"
