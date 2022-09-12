@@ -55,9 +55,7 @@ const MessageReviewersModal = ({
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
-  const [message, setMessage] =
-    useState(`Click on the link below to go to the review page:\n\n{{submit_review_link}}
-  \n\nThank you,\n${shortPhrase} Area Chair`)
+  const [message, setMessage] = useState(null)
   const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
   const [recipientsInfo, setRecipientsInfo] = useState([])
   const totalMessagesCount = uniqBy(recipientsInfo, (p) => p.reviewerProfileId).reduce(
@@ -121,6 +119,12 @@ const MessageReviewersModal = ({
 
   useEffect(() => {
     if (!messageOption) return
+    setMessage(`${
+      messageOption.value === 'missingReviews'
+        ? `This is a reminder to please submit your review for ${shortPhrase}.\n\n`
+        : ''
+    }Click on the link below to go to the review page:\n\n{{submit_review_link}}
+    \n\nThank you,\n${shortPhrase} Area Chair`)
     const recipients = getRecipients(selectedNoteIds)
     const recipientsWithCount = recipients.map((recipient) => {
       const count = recipients.filter(
@@ -168,7 +172,7 @@ const MessageReviewersModal = ({
               name="message"
               className="form-control message-body"
               rows="6"
-              value={message}
+              value={message ?? ''}
               required
               onChange={(e) => setMessage(e.target.value)}
             />

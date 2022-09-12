@@ -338,6 +338,25 @@ main.invitation {
     }
   }
 
+  .ac-console-table {
+    // used by ac console template
+    .row-0 {
+      width: 35px;
+    }
+    .row-1 {
+      width: 55px;
+    }
+    .row-2 {
+      width: 35%;
+    }
+    .row-3 {
+      width: 30%;
+    }
+    .row-4 {
+      width: auto;
+    }
+  }
+
   .areachair-console-table {
     table-layout: auto;
 
