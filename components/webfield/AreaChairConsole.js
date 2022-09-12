@@ -368,6 +368,7 @@ const MenuBar = ({
   const keyDownHandler = (e) => {
     if (e.key !== 'Enter' || !shouldEnableQuerySearch) return
     const cleanImmediateSearchTerm = immediateSearchTerm.trim()
+    if (!cleanImmediateSearchTerm.startsWith('+')) return
     // query search
     const { filteredRows, queryIsInvalid } = filterCollections(
       tableRows,
@@ -672,21 +673,25 @@ const AreaChairConsole = ({ appContext }) => {
   let propertiesAllowed = {
     number: ['note.number'],
     id: ['note.id'],
-    title: ['note.content.title'],
-    author: ['note.content.authors', 'note.content.authorids'], // multi props
-    keywords: ['note.content.keywords'],
-    reviewer: ['reviewProgressData.reviewers'],
-    numReviewersAssigned: ['reviewProgressData.numReviewers'],
-    numReviewsDone: ['reviewProgressData.numSubmittedReviews'],
-    ratingAvg: ['reviewProgressData.averageRating'],
-    ratingMax: ['reviewProgressData.maxRating'],
-    ratingMin: ['reviewProgressData.minRating'],
-    confidenceAvg: ['reviewProgressData.averageConfidence'],
-    confidenceMax: ['reviewProgressData.maxConfidence'],
-    confidenceMin: ['reviewProgressData.minConfidence'],
-    replyCount: ['reviewProgressData.forumReplyCount'],
+    title: ['note.content.title', 'note.content.title.value'],
+    author: [
+      'note.content.authors',
+      'note.content.authorids',
+      'note.content.authors.value',
+      'note.content.authorids.value',
+    ],
+    keywords: ['note.content.keywords', 'note.content.keywords.value'],
+    reviewer: ['reviewers'],
+    numReviewersAssigned: ['reviewProgressData.numReviewersAssigned'],
+    numReviewsDone: ['reviewProgressData.numReviewsDone'],
+    ratingAvg: ['reviewProgressData.ratingAvg'],
+    ratingMax: ['reviewProgressData.ratingMax'],
+    ratingMin: ['reviewProgressData.ratingMin'],
+    confidenceAvg: ['reviewProgressData.confidenceAvg'],
+    confidenceMax: ['reviewProgressData.confidenceMax'],
+    confidenceMin: ['reviewProgressData.confidenceMin'],
+    replyCount: ['reviewProgressData.replyCount'],
     recommendation: ['metaReviewData.recommendation'],
-    ranking: ['metaReviewData.ranking'],
   }
   if (filterOperatorsConfig) filterOperators = filterOperatorsConfig
   if (propertiesAllowedConfig) propertiesAllowed = propertiesAllowedConfig
@@ -919,6 +924,7 @@ const AreaChairConsole = ({ appContext }) => {
               )
               return {
                 ...reviewer,
+                type: 'reviewer',
                 profile,
                 hasReview: officialReviews.some((p) => p.anonymousId === reviewer.anonymousId),
                 noteNumber: note.number,
@@ -931,7 +937,7 @@ const AreaChairConsole = ({ appContext }) => {
           reviewerProfiles: assignedReviewerProfiles,
           officialReviews,
           reviewProgressData: {
-            reviewer: assignedReviewerProfiles,
+            reviewers: assignedReviewerProfiles,
             numReviewersAssigned: assignedReviewers.length,
             numReviewsDone: officialReviews.length,
             ratingAvg,
@@ -1078,7 +1084,15 @@ const AreaChairConsole = ({ appContext }) => {
   }, [user, userLoading])
 
   useEffect(() => {
-    if (userLoading || !user || !group || !venueId || !submissionName || !officialReviewName)
+    if (
+      userLoading ||
+      !user ||
+      !group ||
+      !venueId ||
+      !submissionName ||
+      !officialReviewName ||
+      !submissionInvitationId
+    )
       return
     loadData()
   }, [user, userLoading, group])
