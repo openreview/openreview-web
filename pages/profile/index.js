@@ -495,6 +495,8 @@ Profile.getInitialProps = async (ctx) => {
       profile = profiles[0]
     }
   } catch (error) {
+    if (error.name === 'TokenExpiredError')
+      return { statusCode: error.status, message: error.message }
     return { statusCode: 404, message: 'Profile not found' }
   }
   if (!profile) {
