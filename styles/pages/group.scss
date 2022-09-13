@@ -244,6 +244,12 @@ main.invitation {
     margin-bottom: 0;
   }
 
+  .empty-table-container {
+    .empty-message {
+      margin-left: 0.5rem;
+    }
+  }
+
   .console-table,
   .ac-console-table {
     h4 {
@@ -359,6 +365,9 @@ main.invitation {
 
   .areachair-console-table {
     table-layout: auto;
+    .empty-message {
+      margin-left: 0.5rem;
+    }
 
     .areachair-console-reviewer-progress {
       display: flex;

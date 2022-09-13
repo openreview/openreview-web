@@ -992,7 +992,7 @@ const AreaChairConsole = ({ appContext }) => {
       )
     if (acConsoleData.tableRowsDisplayed?.length === 0)
       return (
-        <div className="table-container">
+        <div className="table-container empty-table-container">
           <MenuBar
             tableRows={acConsoleData.tableRows}
             tableRowsDisplayed={acConsoleData.tableRowsDisplayed}

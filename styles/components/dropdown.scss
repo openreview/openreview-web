@@ -64,13 +64,9 @@
 
 .message-button .dropdown-select {
   &__control {
-    background-color: constants.$mediumBlue;
+    background-color: unset;
     border: none;
     width: fit-content;
-    &:hover {
-      color: #fff;
-      background-color: constants.$mediumDarkBlue;
-    }
   }
   &__placeholder {
     color: white;
