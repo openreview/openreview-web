@@ -618,13 +618,13 @@ const InvitationGeneralEditV2 = ({
         ? { delete: true }
         : parseInt(generalInfo.expdate, 10)
     const maxReplies =
-      !generalInfo.maxReplies || Number.isNaN(Number(generalInfo.maxReplies))
+      !generalInfo.maxReplies || Number.isNaN(parseInt(generalInfo.maxReplies, 10))
         ? { delete: true }
-        : Number(generalInfo.maxReplies)
+        : parseInt(generalInfo.maxReplies, 10)
     const minReplies =
-      !generalInfo.minReplies || Number.isNaN(Number(generalInfo.minReplies))
+      !generalInfo.minReplies || Number.isNaN(parseInt(generalInfo.minReplies, 10))
         ? { delete: true }
-        : Number(generalInfo.minReplies)
+        : parseInt(generalInfo.minReplies, 10)
 
     const invitationEdit = {
       invitation: {
