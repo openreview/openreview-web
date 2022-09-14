@@ -688,9 +688,15 @@ const ConfirmNameModal = ({ firstName, middleName, lastName, newUsername, onConf
           <>
             {', '}
             middle name <strong>{middleName}</strong>
+            {','}
           </>
-        )}{' '}
-        and last name <strong>{lastName}</strong>
+        )}
+        {lastName && (
+          <>
+            {' and '}
+            last name <strong>{lastName}</strong>
+          </>
+        )}
         {'. '}
         On your OpenReview profile your name will appear as{' '}
         <strong>{`${firstName} ${lastName}`}</strong> and your username will be{' '}
