@@ -252,7 +252,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
       if (invitationResult.invitations.length) {
         setShowDeleteNameButton(true)
       }
-    } catch (error) {}
+    } catch (error) {} // eslint-disable-line no-empty
     // #endregion
     try {
       const result = await api.get(
