@@ -7,7 +7,13 @@ import Icon from '../../components/Icon'
 import LoadSpinner from '../../components/LoadingSpinner'
 import PaginationLinks from '../../components/PaginationLinks'
 import api from '../../lib/api-client'
-import { prettyId, formatDateTime, buildArray, inflect } from '../../lib/utils'
+import {
+  prettyId,
+  formatDateTime,
+  buildArray,
+  inflect,
+  getProfileStateLabelClass,
+} from '../../lib/utils'
 import Dropdown from '../../components/Dropdown'
 import BasicModal from '../../components/BasicModal'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
@@ -547,29 +553,6 @@ const UserModerationQueue = ({
       }
       reload()
     }
-  }
-
-  const getProfileStateLabelClass = (state) => {
-    const modifier = (() => {
-      switch (state) {
-        case 'Active Institutional':
-        case 'Active Automatic':
-        case 'Active':
-          return 'success'
-
-        case 'Needs Moderation':
-        case 'Rejected':
-          return 'warning'
-        case 'Blocked':
-        case 'Limited':
-          return 'danger'
-        case 'Inactive':
-        case 'Merged':
-        default:
-          return 'default'
-      }
-    })()
-    return `label label-${modifier}`
   }
 
   useEffect(() => {
