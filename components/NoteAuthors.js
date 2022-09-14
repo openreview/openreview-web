@@ -86,8 +86,8 @@ const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
 
 export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) => {
   let showPrivateLabel = false
-  if (authorIds?.readers && !isEqual(noteReaders?.sort(), authorIds?.readers?.sort())) {
-    showPrivateLabel = true
+  if (authorIds?.readers && !isEqual(noteReaders?.sort(), authorIds.readers.sort())) {
+    showPrivateLabel = !authorIds.readers.includes('everyone')
   }
 
   let authorsList
