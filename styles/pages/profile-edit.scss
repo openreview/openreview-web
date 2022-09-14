@@ -37,6 +37,10 @@ main.profile-edit {
   .glyphicon {
     color: constants.$mediumBlue;
     font-size: 1.25rem;
+
+    &.limited-state-info {
+      font-size: 0.875rem;
+    }
   }
 
   input {

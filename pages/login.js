@@ -23,10 +23,6 @@ const LoginForm = () => {
 
     try {
       const { user, token } = await api.post('/login', { id: email, password })
-      if (user.profile.state === 'Limited')
-        promptError(
-          'Your profile status is currently limited, please enter your year of birth to activate your profile again.'
-        )
       loginUser(user, token, query?.redirect || '/')
     } catch (error) {
       setLoginError(error)
