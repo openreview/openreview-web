@@ -19,7 +19,7 @@ export default function withAdminAuth(Component) {
       console.warn('Warning: withAdminAuth does not call getInitialProps of wrapped component')
     }
 
-    return { ...ctx.query, accessToken: token }
+    return { ...ctx.query, accessToken: token, superUser: user }
   }
 
   WithAdminAuth.displayName = `withAdminAuth(${
