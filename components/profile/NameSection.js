@@ -20,6 +20,7 @@ const NamesButton = ({
   hasRejectedNameDeletionRequest,
   namesCount,
   isPreferredUsername,
+  showDeleteNameButton,
 }) => {
   const getRequestDeletionButtonTooltip = () => {
     if (hasPendingNameDeletionRequest) return 'Request to remove this name has been submitted.'
@@ -35,7 +36,7 @@ const NamesButton = ({
         <button type="button" className="btn preferred_button" onClick={handleMakePreferred}>
           Make Preferred
         </button>
-        {namesCount !== 1 && !isPreferredUsername && (
+        {namesCount !== 1 && !isPreferredUsername && showDeleteNameButton && (
           <span title={getRequestDeletionButtonTooltip()}>
             <button
               type="button"
@@ -157,6 +158,7 @@ const NameDeleteRequestModal = ({
 const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
   const [nameToRequestDelete, setNameToRequestDelete] = useState(null)
   const [pendingNameDeletionRequests, setPendingNameDeletionRequests] = useState(null)
+  const [showDeleteNameButton, setShowDeleteNameButton] = useState(false)
   const { accessToken } = useUser()
   const namesReducer = (names, action) => {
     if (action.addNewName) return [...names, action.data]
@@ -240,6 +242,18 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
   }
 
   const loadPendingNameDeletionNotes = async () => {
+    // #region check invitation has been created
+    try {
+      const invitationResult = await api.get(
+        '/invitations',
+        { id: nameDeletionInvitationId },
+        { accessToken }
+      )
+      if (invitationResult.invitations.length) {
+        setShowDeleteNameButton(true)
+      }
+    } catch (error) {} // eslint-disable-line no-empty
+    // #endregion
     try {
       const result = await api.get(
         '/notes',
@@ -368,6 +382,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
                   hasRejectedNameDeletionRequest={hasRejectedNameDeletionRequest}
                   namesCount={names.length}
                   isPreferredUsername={preferredUsername === p.username}
+                  showDeleteNameButton={showDeleteNameButton}
                 />
               </div>
             )}
