@@ -29,8 +29,8 @@ export const DropdownListV2 = () => {
   const { field, onChange, value } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const fieldDescription = field[fieldName].description
-  const required = !field[fieldName].value?.optional
-  const options = field[fieldName].value?.enum?.map((p) => ({ label: p, value: p }))
+  const required = !field[fieldName].value?.param?.optional
+  const options = field[fieldName].value?.param?.enum?.map((p) => ({ label: p, value: p }))
 
   return (
     <div className="dropdown-list">

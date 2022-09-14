@@ -65,14 +65,16 @@ const Note = ({ note, invitation, options }) => {
         )}
       </ul>
 
-      {options.showContents && (!note.ddate || note.ddate > Date.now()) && (
-        options.collapseContents ?  (
+      {options.showContents &&
+        (!note.ddate || note.ddate > Date.now()) &&
+        (options.collapsibleContents ? (
           <NoteContentCollapsible
             id={note.id}
             content={note.content}
             invitation={
               note.details?.originalInvitation || note.details?.invitation || invitation
             }
+            omit={options.omitFields}
             isV2Note={false}
           />
         ) : (
@@ -85,8 +87,7 @@ const Note = ({ note, invitation, options }) => {
             omit={options.omitFields}
             isReference={options.isReference}
           />
-        )
-      )}
+        ))}
     </div>
   )
 }
@@ -151,11 +152,14 @@ export const NoteV2 = ({ note, options }) => {
         )}
       </ul>
 
-      {options.showContents && (!note.ddate || note.ddate > Date.now()) && (
-        options.collapseContents ?  (
+      {options.showContents &&
+        (!note.ddate || note.ddate > Date.now()) &&
+        (options.collapsibleContents ? (
           <NoteContentCollapsible
             id={note.id}
             content={note.content ?? {}}
+            omit={options.omitFields}
+            isEdit={options.isReference}
             presentation={note.details?.presentation}
             noteReaders={note.readers?.sort()}
             isV2Note={true}
@@ -169,8 +173,7 @@ export const NoteV2 = ({ note, options }) => {
             presentation={note.details?.presentation}
             noteReaders={note.readers?.sort()}
           />
-        )
-      )}
+        ))}
     </div>
   )
 }
