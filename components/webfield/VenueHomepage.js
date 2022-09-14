@@ -42,7 +42,7 @@ function SubmissionsList({ venueId, invitationId, accessToken, apiVersion, enabl
     pdfLink: true,
     replyCount: true,
     showContents: true,
-    collapseContents: true,
+    collapsibleContents: true,
     showTags: false,
   }
   const pageSize = 25
@@ -227,7 +227,7 @@ export default function VenueHomepage({ appContext }) {
               </Tab>
             )}
             {showSubmissions && (
-              <Tab id="all-submissions">
+              <Tab id="all-submissions" active={userConsoles.length === 0}>
                 All Submissions
               </Tab>
             )}
@@ -242,7 +242,7 @@ export default function VenueHomepage({ appContext }) {
               </Tab>
             )}
             {activityNotes.length > 0 && (
-              <Tab id="recent-activity">
+              <Tab id="recent-activity" active={userConsoles.length === 0 && !showSubmissions}>
                 Recent Activity
               </Tab>
             )}
