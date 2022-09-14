@@ -1191,6 +1191,31 @@ table.table-minimal {
   }
 }
 
+.venue-request-list {
+  .venue-request-row {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 0.25rem;
+
+    .request-name {
+      width: 30%;
+    }
+    .request-status {
+      display: flex;
+      justify-content: space-around;
+      margin-right: 1.5rem;
+      width: 20%;
+      .deploy-label {
+        width: 50%;
+        margin-right: 1.5rem;
+      }
+      .reply-label {
+        width: 50%;
+      }
+    }
+  }
+}
+
 // Profile Search Widget
 .search-profile {
   .submission-authors,

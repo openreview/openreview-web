@@ -1807,8 +1807,12 @@ module.exports = (function() {
     var expertiseInv = _.find(invitationsGroup, function(inv) {
       return _.endsWith(inv.id, 'Expertise_Selection');
     });
-    if (expertiseInv && profileConfirmationInv && profileConfirmationInv.completed) {
+    if (expertiseInv && profileConfirmationInv && profileConfirmationInv.completed && !expertiseInv.completed) {
       expertiseInv.completed = true;
+      // eslint-disable-next-line no-param-reassign
+      invitationsGroup.numPending -= 1
+      // eslint-disable-next-line no-param-reassign
+      invitationsGroup.numCompleted += 1
     }
   };
 
