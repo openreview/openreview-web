@@ -1,6 +1,6 @@
 /* globals promptError: false */
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import NoteEditorForm from '../NoteEditorForm'
 import { NoteAuthorsV2 } from '../NoteAuthors'
@@ -127,7 +127,9 @@ function ForumNote({ note, updateNote }) {
                 {editInvitations?.map((invitation) => (
                   <li key={invitation.id} onClick={() => openNoteEditor(invitation)}>
                     {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                    <a href="#">{prettyInvitationId(invitation.id)}</a>
+                    <a href="#" data-id={invitation.id}>
+                      {prettyInvitationId(invitation.id)}
+                    </a>
                   </li>
                 ))}
               </ul>
