@@ -315,12 +315,17 @@ export default function Forum({
         ...parentMap,
         [parentId]: parentMap[parentId] ? [...parentMap[parentId], noteId] : [noteId],
       })
+    }
 
-      // If new note is a reply to an invitation with a maxReplies property,
-      // update the invitation and the parent note
+    // If updated note is a reply to an invitation with a maxReplies property,
+    // update the invitation and the parent note
+    if (isEmpty(existingNote) || existingNote.ddate !== note.ddate) {
       const invObj = allInvitations.find((i) => i.id === note.invitations[0])
       if (invObj.maxReplies) {
-        const remainingReplies = (invObj.details.repliesAvailable ?? 1) - 1
+        const increment = isEmpty(existingNote) || !note.ddate ? 1 : -1
+        const prevRepliesAvailable = invObj.details.repliesAvailable ?? 1
+        const remainingReplies = prevRepliesAvailable - increment
+
         setAllInvitations(
           allInvitations
             .filter((i) => i.id !== invObj.id)
@@ -332,6 +337,7 @@ export default function Forum({
               },
             })
         )
+
         if (remainingReplies < 1) {
           if (parentId === parentNote.id) {
             setParentNote({
@@ -346,6 +352,21 @@ export default function Forum({
                 replyInvitations: replyToNote.replyInvitations.filter(
                   (i) => i.id !== invObj.id
                 ),
+              },
+            }))
+          }
+        } else if (prevRepliesAvailable === 0 && remainingReplies > 0) {
+          if (parentId === parentNote.id) {
+            setParentNote({
+              ...parentNote,
+              replyInvitations: parentNote.replyInvitations.concat(invObj),
+            })
+          } else {
+            setReplyNoteMap((prevMap) => ({
+              ...prevMap,
+              [parentId]: {
+                ...replyToNote,
+                replyInvitations: replyToNote.replyInvitations.concat(invObj),
               },
             }))
           }
