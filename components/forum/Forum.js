@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import isEmpty from 'lodash/isEmpty'
+import escapeRegExp from 'lodash/escapeRegExp'
 
 import ForumNote from './ForumNote'
 import NoteEditorForm from '../NoteEditorForm'
@@ -102,7 +103,7 @@ export default function Forum({
         {
           forum: forumId,
           trash: true,
-          details: 'replyCount,writable,signatures,invitation,presentation',
+          details: 'replyCount,editsCount,writable,signatures,invitation,presentation',
         },
         { accessToken, version: 2 }
       )
@@ -315,6 +316,63 @@ export default function Forum({
         [parentId]: parentMap[parentId] ? [...parentMap[parentId], noteId] : [noteId],
       })
     }
+
+    // If updated note is a reply to an invitation with a maxReplies property,
+    // update the invitation and the parent note
+    if (isEmpty(existingNote) || existingNote.ddate !== note.ddate) {
+      const invObj = allInvitations.find((i) => i.id === note.invitations[0])
+      if (invObj.maxReplies) {
+        const increment = isEmpty(existingNote) || !note.ddate ? 1 : -1
+        const prevRepliesAvailable = invObj.details.repliesAvailable ?? 1
+        const remainingReplies = prevRepliesAvailable - increment
+
+        setAllInvitations(
+          allInvitations
+            .filter((i) => i.id !== invObj.id)
+            .concat({
+              ...invObj,
+              details: {
+                ...invObj.details,
+                repliesAvailable: remainingReplies,
+              },
+            })
+        )
+
+        if (remainingReplies < 1) {
+          if (parentId === parentNote.id) {
+            setParentNote({
+              ...parentNote,
+              replyInvitations: parentNote.replyInvitations.filter((i) => i.id !== invObj.id),
+            })
+          } else {
+            setReplyNoteMap((prevMap) => ({
+              ...prevMap,
+              [parentId]: {
+                ...replyToNote,
+                replyInvitations: replyToNote.replyInvitations.filter(
+                  (i) => i.id !== invObj.id
+                ),
+              },
+            }))
+          }
+        } else if (prevRepliesAvailable === 0 && remainingReplies > 0) {
+          if (parentId === parentNote.id) {
+            setParentNote({
+              ...parentNote,
+              replyInvitations: parentNote.replyInvitations.concat(invObj),
+            })
+          } else {
+            setReplyNoteMap((prevMap) => ({
+              ...prevMap,
+              [parentId]: {
+                ...replyToNote,
+                replyInvitations: replyToNote.replyInvitations.concat(invObj),
+              },
+            }))
+          }
+        }
+      }
+    }
   }
 
   // Handle url hash changes
@@ -428,12 +486,12 @@ export default function Forum({
         }
 
         if (selectedInvitationId) {
-          const container = selectedNoteId === id
-            ? '.invitations-container'
-            : `.note[data-id="${selectedNoteId}"]`
-          const button = document.querySelector(
-            `${container} button[data-id="${selectedInvitationId}"]`
-          )
+          const buttonSelector = `[data-id="${selectedInvitationId}"]`
+          const selector =
+            selectedNoteId === id
+              ? `.forum-note a${buttonSelector}, .invitations-container button${buttonSelector}`
+              : `.note[data-id="${selectedNoteId}"] button${buttonSelector}`
+          const button = document.querySelector(selector)
           if (button) button.click()
         }
 
@@ -467,7 +525,7 @@ export default function Forum({
 
     Object.values(replyNoteMap).forEach((note) => {
       const keywordRegex = selectedFilters.keywords
-        ? new RegExp(`\\b${selectedFilters.keywords[0]}`, 'mi')
+        ? new RegExp(`\\b${escapeRegExp(selectedFilters.keywords[0])}`, 'mi')
         : null
       const isVisible =
         (!selectedFilters.invitations ||
@@ -577,7 +635,11 @@ export default function Forum({
             forum docs
           </a>
           . To switch back to the old forum click here:{' '}
-          <Link href={`/forum-original?id=${id}${query.referrer ? `&referrer=${encodeURIComponent(query.referrer)}` : ''}`}>
+          <Link
+            href={`/forum-original?id=${id}${
+              query.referrer ? `&referrer=${encodeURIComponent(query.referrer)}` : ''
+            }`}
+          >
             <a>View old forum &raquo;</a>
           </Link>
         </p>
