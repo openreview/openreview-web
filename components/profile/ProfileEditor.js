@@ -320,6 +320,7 @@ export default function ProfileEditor({
         <NamesSection
           profileNames={profile?.names}
           updateNames={(names) => setProfile({ type: 'names', data: names })}
+          preferredUsername={loadedProfile?.names?.find((p) => p.preferred)?.username}
         />
       </ProfileSection>
 

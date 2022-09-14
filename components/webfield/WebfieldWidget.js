@@ -49,7 +49,7 @@ export const WebfieldWidgetV2 = () => {
     if (field[fieldName].value?.param?.input === 'select') {
       return <DropdownListV2 />
     }
-  } else if (field[fieldName].value?.param?.regex) {
+  } else if (field[fieldName].value?.param?.regex || field[fieldName].value?.param?.input === 'textarea') {
     if (field[fieldName].value?.param?.type?.endsWith('[]')) {
       // values-regex
     } else {
