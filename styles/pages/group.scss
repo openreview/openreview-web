@@ -316,6 +316,15 @@ main.invitation {
     }
   }
 
+  #venue-configuration {
+    .overview-list {
+      padding-left: 15px;
+    }
+    .overview-timeline {
+      white-space: nowrap;
+    }
+  }
+
   // Edit and Info Mode
   section {
     &.general,

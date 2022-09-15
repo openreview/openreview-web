@@ -8,7 +8,7 @@ import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
 import { useContext, useEffect, useState } from 'react'
 import BasicHeader from './BasicHeader'
-import { inflect, prettyId } from '../../lib/utils'
+import { formatDateTime, inflect, prettyId } from '../../lib/utils'
 import Link from 'next/link'
 
 const StatContainer = ({ title, hint, value }) => {
@@ -21,7 +21,8 @@ const StatContainer = ({ title, hint, value }) => {
   )
 }
 
-const RecruitmentStatsRow = ({ areaChairsId, seniorAreaChairsId }) => {
+const RecruitmentStatsRow = () => {
+  const { areaChairsId, seniorAreaChairsId } = useContext(WebFieldContext)
   return (
     <>
       <div className="row">
@@ -63,14 +64,9 @@ const SubmissionsStatsRow = () => {
   )
 }
 
-const BiddingStatsRow = ({
-  areaChairsId,
-  seniorAreaChairsId,
-  reviewersId,
-  bidEnabled,
-  recommendationEnabled,
-}) => {
+const BiddingStatsRow = ({ bidEnabled, recommendationEnabled }) => {
   if (!bidEnabled && !recommendationEnabled) return null
+  const { areaChairsId, seniorAreaChairsId, reviewersId } = useContext(WebFieldContext)
   return (
     <>
       <div className="row">
@@ -108,7 +104,8 @@ const BiddingStatsRow = ({
   )
 }
 
-const ReviewStatsRow = ({ paperReviewsCompleteThreshold }) => {
+const ReviewStatsRow = () => {
+  const { paperReviewsCompleteThreshold } = useContext(WebFieldContext)
   return (
     <>
       <div className="row">
@@ -137,7 +134,8 @@ const ReviewStatsRow = ({ paperReviewsCompleteThreshold }) => {
   )
 }
 
-const MetaReviewStatsRow = ({ areaChairsId }) => {
+const MetaReviewStatsRow = () => {
+  const { areaChairsId } = useContext(WebFieldContext)
   if (!areaChairsId) return null
   return (
     <>
@@ -178,92 +176,286 @@ const DecisionStatsRow = ({ decisionsByTypeCount = [] }) => {
   )
 }
 
-const DescriptionTimelineRow = ({ requestForm }) => {
-  //TODO: invitation map to timeline
-  if (!requestForm) return
-  return (
-    <div className="row">
-      {requestForm && (
-        <div className="col-md-4 col-xs-12">
-          <h4>Description:</h4>
-          <p>
-            <span>
-              {`Author And Reviewer Anonymity: ${requestForm.content['Author and Reviewer Anonymity']}`}
-              <br />
-              {requestForm.content['Open Reviewing Policy']}
-              <br />
-              {`Paper matching uses ${requestForm.content['Paper Matching'].join(', ')}`}
-              {requestForm.content['Other Important Information'] && (
-                <>
-                  <br />
-                  {note.content['Other Important Information']}
-                </>
-              )}
-            </span>
-            <br />
-          </p>
-        </div>
-      )}
-      <div className="col-md-8 col-xs-12">
-        <h4>Timeline:</h4>
-      </div>
-    </div>
-  )
-}
-
-// Official Committee, Registration Forms, Bids & Recommendation
-const OtherConfigInfoRow = ({
-  venueId,
+const DescriptionTimelineOtherConfigRow = ({
   requestForm,
-  programChairsId,
-  seniorAreaChairsId,
-  areaChairsId,
-  authorsId,
   registrationForms,
+  invitations,
   bidEnabled,
   recommendationEnabled,
 }) => {
+  console.log('invitaitons', invitations)
+  if (!requestForm) return null
+  const {
+    venueId,
+    areaChairsId,
+    seniorAreaChairsId,
+    reviewersId,
+    programChairsId,
+    authorsId,
+    bidName,
+    submissionId,
+    officialReviewName,
+    commentName,
+    officialMetaReviewName,
+    decisionName,
+  } = useContext(WebFieldContext)
+  const referrerUrl = encodeURIComponent(
+    `[Program Chair Console](/group?id=${venueId}/Program_Chairs)`
+  )
   const sacRoles = requestForm?.content?.['senior_area_chair_roles'] ?? ['Senior_Area_Chairs']
   const acRoles = requestForm?.content?.['area_chair_roles'] ?? ['Area_Chairs']
   const hasEthicsChairs =
     requestForm?.content?.['ethics_chairs_and_reviewers']?.includes('Yes')
   const reviewerRoles = requestForm?.content?.['reviewer_roles'] ?? ['Reviewers']
+
+  const timelineInvitations = [
+    { id: submissionId, displayName: 'Paper Submissions' },
+    { id: `${reviewersId}/-/${bidName}`, displayName: 'Reviewers Bidding' },
+    ...(seniorAreaChairsId
+      ? [
+          {
+            id: `${seniorAreaChairsId}/-/${bidName}`,
+            displayName: 'Senior Area Chairs Bidding',
+          },
+        ]
+      : []),
+    ...(areaChairsId
+      ? [
+          {
+            id: `${areaChairsId}/-/${bidName}`,
+            displayName: 'Area Chairs Bidding',
+          },
+        ]
+      : []),
+    { id: `${venueId}/-/${officialReviewName}`, displayName: 'Reviewing' },
+    { id: `${venueId}/-/${commentName}`, displayName: 'Commenting' },
+    { id: `${venueId}/-/${officialMetaReviewName}`, displayName: 'Meta Reviews' },
+    { id: `${venueId}/-/${decisionName}`, displayName: 'Decisions' },
+  ].flatMap((p) => {
+    const invitation = invitations.find((q) => q.id === p.id)
+    if (!invitation) return []
+    const dateFormatOption = {
+      minute: 'numeric',
+      second: undefined,
+      timeZoneName: 'short',
+      locale: 'en-GB',
+    }
+    const start = invitation.cdate ? formatDateTime(invitation.cdate, dateFormatOption) : null
+    const end = invitation.duedate
+      ? formatDateTime(invitation.duedate, dateFormatOption)
+      : null
+    const exp = invitation.expdate
+      ? formatDateTime(invitation.expdate, dateFormatOption)
+      : null
+    const periodString = (
+      <span>
+        {start ? (
+          <>
+            {' '}
+            from <em>{start}</em>
+          </>
+        ) : (
+          ' open'
+        )}
+        {end ? (
+          <>
+            {' '}
+            until <em>{end}</em> and expires <em>{exp}</em>
+          </>
+        ) : (
+          <>
+            {' '}
+            no deadline and expired <em>{exp}</em>
+          </>
+        )}
+      </span>
+    )
+    return { ...p, duedate: invitation.duedate, invitationObj: invitation, periodString }
+  })
+
+  const datedInvitations = timelineInvitations
+    .filter((p) => p.duedate)
+    .sort((a, b) => a.duedate - b.duedate)
+  const notDatedInvitations = timelineInvitations.filter((p) => !p.duedate)
+
   return (
-    <div className="row">
-      <div className="col-md-4 col-xs-6">
-        <h4>Venue Roles:</h4>
-        <ul>
-          <li>
-            <Link href={`/group/edit?id=${programChairsId}`}>
-              <a>Program Chairs</a>
-            </Link>
-          </li>
+    <>
+      <div className="row">
+        {requestForm && (
+          <div className="col-md-4 col-xs-12">
+            <h4>Description:</h4>
+            <p>
+              <span>
+                {`Author And Reviewer Anonymity: ${requestForm.content['Author and Reviewer Anonymity']}`}
+                <br />
+                {requestForm.content['Open Reviewing Policy']}
+                <br />
+                {`Paper matching uses ${requestForm.content['Paper Matching'].join(', ')}`}
+                {requestForm.content['Other Important Information'] && (
+                  <>
+                    <br />
+                    {note.content['Other Important Information']}
+                  </>
+                )}
+              </span>
+              <br />
+              <a href={`/forum?id=${requestForm.id}`}>
+                <strong>Full Venue Configuration</strong>
+              </a>
+            </p>
+          </div>
+        )}
+        <div className="col-md-8 col-xs-12">
+          <h4>Timeline:</h4>
+          {datedInvitations.map((invitation) => {
+            return (
+              <li className="overview-timeline">
+                <a href={`/invitation/edit?id=${invitation.id}&referrer=${referrerUrl}`}>
+                  {invitation.displayName}
+                </a>
+                {invitation.periodString}
+              </li>
+            )
+          })}
+          {notDatedInvitations.map((invitation) => {
+            return (
+              <li className="overview-timeline">
+                <a href={`/invitation/edit?id=${invitation.id}&referrer=${referrerUrl}`}>
+                  {invitation.displayName}
+                </a>
+                {invitation.periodString}
+              </li>
+            )
+          })}
           {seniorAreaChairsId &&
             sacRoles.map((role) => {
+              const assignmentConfig = invitations.find(
+                (p) => p.id === `${venueId}/${role}/-/Assignment_Configuration`
+              )
+              if (!assignmentConfig) return null
               return (
-                <li>
-                  <Link href={`/group/edit?id=${venueId}/${role}`}>
-                    <a>{prettyId(role)}</a>
-                  </Link>
-                  (
-                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
-                    <a>Invited</a>
-                  </Link>
-                  ,
-                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
-                    <a>Declined</a>
-                  </Link>
-                  )
+                <li className="overview-timeline">
+                  <a href={`/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`}>
+                    {`${prettyId(role)} Paper Assignment`}
+                  </a>{' '}
+                  open until Reviewing starts
                 </li>
               )
             })}
           {areaChairsId &&
             acRoles.map((role) => {
+              const assignmentConfig = invitations.find(
+                (p) => p.id === `${venueId}/${role}/-/Assignment_Configuration`
+              )
+              if (!assignmentConfig) return null
+              return (
+                <li className="overview-timeline">
+                  <a href={`/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`}>
+                    {`${prettyId(role)} Paper Assignment`}
+                  </a>{' '}
+                  open until Reviewing starts
+                </li>
+              )
+            })}
+          {reviewerRoles.map((role) => {
+            return (
+              <li className="overview-timeline">
+                <a href={`/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`}>
+                  {`${prettyId(role)} Paper Assignment`}
+                </a>{' '}
+                open until Reviewing starts
+              </li>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Official Committee, Registration Forms, Bids & Recommendation */}
+      <div className="row">
+        <div className="col-md-4 col-xs-6">
+          <h4>Venue Roles:</h4>
+          <ul className="overview-list">
+            <li>
+              <Link href={`/group/edit?id=${programChairsId}`}>
+                <a>Program Chairs</a>
+              </Link>
+            </li>
+            {seniorAreaChairsId &&
+              sacRoles.map((role) => {
+                return (
+                  <li>
+                    <Link href={`/group/edit?id=${venueId}/${role}`}>
+                      <a>{prettyId(role)}</a>
+                    </Link>{' '}
+                    (
+                    <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
+                      <a>Invited</a>
+                    </Link>
+                    ,
+                    <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
+                      <a>Declined</a>
+                    </Link>
+                    )
+                  </li>
+                )
+              })}
+            {areaChairsId &&
+              acRoles.map((role) => {
+                return (
+                  <li>
+                    <Link href={`/group/edit?id=${venueId}/${role}`}>
+                      <a>{prettyId(role)}</a>
+                    </Link>{' '}
+                    (
+                    <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
+                      <a>Invited</a>
+                    </Link>
+                    ,
+                    <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
+                      <a>Declined</a>
+                    </Link>
+                    )
+                  </li>
+                )
+              })}
+            {hasEthicsChairs && (
+              <>
+                <li>
+                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs`}>
+                    <a>Ethics_Chairs</a>
+                  </Link>{' '}
+                  (
+                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs/Invited`}>
+                    <a>Invited</a>
+                  </Link>
+                  ,
+                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs/Declined`}>
+                    <a>Declined</a>
+                  </Link>
+                  )
+                </li>
+                <li>
+                  <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers`}>
+                    <a>Ethics_Reviewers</a>
+                  </Link>{' '}
+                  (
+                  <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers/Invited`}>
+                    <a>Invited</a>
+                  </Link>
+                  ,
+                  <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers/Declined`}>
+                    <a>Declined</a>
+                  </Link>
+                  )
+                </li>
+              </>
+            )}
+            {reviewerRoles.map((role) => {
               return (
                 <li>
                   <Link href={`/group/edit?id=${venueId}/${role}`}>
                     <a>{prettyId(role)}</a>
-                  </Link>
+                  </Link>{' '}
                   (
                   <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
                     <a>Invited</a>
@@ -276,152 +468,102 @@ const OtherConfigInfoRow = ({
                 </li>
               )
             })}
-          {hasEthicsChairs && (
-            <>
-              <li>
-                <Link href={`/group/edit?id=${venueId}/Ethics_Chairs`}>
-                  <a>Ethics_Chairs</a>
-                </Link>
-                (
-                <Link href={`/group/edit?id=${venueId}/Ethics_Chairs/Invited`}>
-                  <a>Invited</a>
-                </Link>
-                ,
-                <Link href={`/group/edit?id=${venueId}/Ethics_Chairs/Declined`}>
-                  <a>Declined</a>
-                </Link>
-                )
-              </li>
-              <li>
-                <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers`}>
-                  <a>Ethics_Reviewers</a>
-                </Link>
-                (
-                <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers/Invited`}>
-                  <a>Invited</a>
-                </Link>
-                ,
-                <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers/Declined`}>
-                  <a>Declined</a>
-                </Link>
-                )
-              </li>
-            </>
-          )}
-          {reviewerRoles.map((role) => {
-            return (
-              <li>
-                <Link href={`/group/edit?id=${venueId}/${role}`}>
-                  <a>{prettyId(role)}</a>
-                </Link>
-                (
-                <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
-                  <a>Invited</a>
-                </Link>
-                ,
-                <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
-                  <a>Declined</a>
-                </Link>
-                )
-              </li>
-            )
-          })}
-          <li>
-            <Link href={`/group/edit?id=${authorsId}`}>
-              <a>Authors</a>
-            </Link>
-            (
-            <Link href={`/group/edit?id=${authorsId}/Accepted`}>
-              <a>Accepted</a>
-            </Link>
-            )
-          </li>
-        </ul>
-      </div>
-      {registrationForms && registrationForms.length !== 0 && (
-        <div className="col-md-4 col-xs-6">
-          <h4>Registration Forms:</h4>
-          <ul>
-            {registrationForms.map((form) => {
-              return (
-                <li>
-                  <Link href={`/forum?id=${form.id}`}>
-                    <a>{form.content.title}</a>
-                  </Link>
-                </li>
+            <li>
+              <Link href={`/group/edit?id=${authorsId}`}>
+                <a>Authors</a>
+              </Link>{' '}
+              (
+              <Link href={`/group/edit?id=${authorsId}/Accepted`}>
+                <a>Accepted</a>
+              </Link>
               )
-            })}
+            </li>
           </ul>
         </div>
-      )}
-      {bidEnabled && (
-        <div className="col-md-4 col-xs-6">
-          <h4>Bids & Recommendations:</h4>
-          <ul>
-            <li>
-              <Link href="TODO:edge browser url">
-                <a>Reviewer Bids</a>
-              </Link>
-            </li>
-            {seniorAreaChairsId && (
-              <li>
-                <Link href="TODO:edge browser url">
-                  <a>Senior Area Chair Bids</a>
-                </Link>
-              </li>
-            )}
-            {areaChairsId && (
-              <>
-                <li>
-                  <Link href="TODO:edge browser url">
-                    <a>Area Chair Bid</a>
-                  </Link>
-                </li>
-                {recommendationEnabled && (
+        {registrationForms && registrationForms.length !== 0 && (
+          <div className="col-md-4 col-xs-6">
+            <h4>Registration Forms:</h4>
+            <ul className="overview-list">
+              {registrationForms.map((form) => {
+                return (
                   <li>
-                    <Link href="TODO:edge browser url">
-                      <a>Area Chair Reviewer Recommendations</a>
+                    <Link href={`/forum?id=${form.id}`}>
+                      <a>{form.content.title}</a>
                     </Link>
                   </li>
-                )}
-              </>
-            )}
-          </ul>
-        </div>
-      )}
-    </div>
+                )
+              })}
+            </ul>
+          </div>
+        )}
+        {bidEnabled && (
+          <div className="col-md-4 col-xs-6">
+            <h4>Bids & Recommendations:</h4>
+            <ul className="overview-list">
+              <li>
+                <Link href="TODO:edge browser url">
+                  <a>Reviewer Bids</a>
+                </Link>
+              </li>
+              {seniorAreaChairsId && (
+                <li>
+                  <Link href="TODO:edge browser url">
+                    <a>Senior Area Chair Bids</a>
+                  </Link>
+                </li>
+              )}
+              {areaChairsId && (
+                <>
+                  <li>
+                    <Link href="TODO:edge browser url">
+                      <a>Area Chair Bid</a>
+                    </Link>
+                  </li>
+                  {recommendationEnabled && (
+                    <li>
+                      <Link href="TODO:edge browser url">
+                        <a>Area Chair Reviewer Recommendations</a>
+                      </Link>
+                    </li>
+                  )}
+                </>
+              )}
+            </ul>
+          </div>
+        )}
+      </div>
+    </>
   )
 }
 
-const OverviewTab = ({
-  areaChairsId,
-  seniorAreaChairsId,
-  reviewersId,
-  programChairsId,
-  authorsId,
-  bidEnabled,
-  recommendationEnabled,
-  paperReviewsCompleteThreshold,
-  requestForm,
-}) => {
+const OverviewTab = ({ pcConsoleData }) => {
+  const { areaChairsId, seniorAreaChairsId, reviewersId, bidName, recommendationName } =
+    useContext(WebFieldContext)
+  const bidEnabled = pcConsoleData.invitaitons?.some((p) =>
+    [
+      `${seniorAreaChairsId}/-/${bidName}`,
+      `${areaChairsId}/-/${bidName}`,
+      `${reviewersId}/-/${bidName}`,
+    ].includes(p.id)
+  )
+  const recommendationEnabled = pcConsoleData.invitaitons?.some(
+    (p) => p.id === `${reviewersId}/-/${recommendationName}`
+  )
   return (
     <>
-      <RecruitmentStatsRow
-        areaChairsId={areaChairsId}
-        seniorAreaChairsId={seniorAreaChairsId}
-      />
+      <RecruitmentStatsRow />
       <SubmissionsStatsRow />
-      <BiddingStatsRow
-        areaChairsId={areaChairsId}
-        seniorAreaChairsId={seniorAreaChairsId}
-        reviewersId={reviewersId}
+      <BiddingStatsRow bidEnabled={bidEnabled} recommendationEnabled={recommendationEnabled} />
+      <ReviewStatsRow />
+      <MetaReviewStatsRow />
+      <DecisionStatsRow />
+      <DescriptionTimelineOtherConfigRow
+        requestForm={pcConsoleData.requestForm}
+        registrationForms={pcConsoleData.registrationForms}
+        invitations={pcConsoleData.invitaitons}
         bidEnabled={bidEnabled}
         recommendationEnabled={recommendationEnabled}
       />
-      <ReviewStatsRow paperReviewsCompleteThreshold={paperReviewsCompleteThreshold} />
-      <MetaReviewStatsRow areaChairsId={areaChairsId} />
-      <DecisionStatsRow />
-      <DescriptionTimelineRow requestForm={requestForm} />
     </>
   )
 }
@@ -438,12 +580,21 @@ const ProgramChairConsole = ({ appContext }) => {
     programChairsId,
     authorsId,
     paperReviewsCompleteThreshold,
+    bidName,
+    recommendationName,
+    requestFormId,
+    submissionId,
+    officialReviewName,
+    commentName,
+    officialMetaReviewName,
+    decisionName,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
   const router = useRouter()
   const query = useQuery()
   const [activeTabId, setActiveTabId] = useState('venue-configuration')
+  const [pcConsoleData, setPcConsoleData] = useState({})
 
   const loadData = async () => {
     try {
@@ -451,7 +602,8 @@ const ProgramChairConsole = ({ appContext }) => {
       const conferenceInvitationsP = api.getAll(
         '/invitations',
         {
-          prefix: `${venueId}/-/.*`,
+          ...(apiVersion === 2 && { prefix: `${venueId}/-/.*` }),
+          ...(apiVersion !== 2 && { regex: `${venueId}/-/.*` }),
           expired: true,
           type: 'all',
         },
@@ -460,7 +612,8 @@ const ProgramChairConsole = ({ appContext }) => {
       const reviewerInvitationsP = api.getAll(
         '/invitations',
         {
-          prefix: `${reviewersId}/-/.*`,
+          ...(apiVersion === 2 && { prefix: `${reviewersId}/-/.*` }),
+          ...(apiVersion !== 2 && { regex: `${reviewersId}/-/.*` }),
           expired: true,
           type: 'all',
         },
@@ -470,7 +623,8 @@ const ProgramChairConsole = ({ appContext }) => {
         ? api.getAll(
             '/invitations',
             {
-              prefix: `${areaChairsId}/-/.*`,
+              ...(apiVersion === 2 && { prefix: `${areaChairsId}/-/.*` }),
+              ...(apiVersion !== 2 && { regex: `${areaChairsId}/-/.*` }),
               expired: true,
               type: 'all',
             },
@@ -481,7 +635,8 @@ const ProgramChairConsole = ({ appContext }) => {
         ? api.getAll(
             '/invitations',
             {
-              prefix: `${seniorAreaChairsId}/-/.*`,
+              ...(apiVersion === 2 && { prefix: `${seniorAreaChairsId}/-/.*` }),
+              ...(apiVersion !== 2 && { regex: `${seniorAreaChairsId}/-/.*` }),
               expired: true,
               type: 'all',
             },
@@ -494,8 +649,51 @@ const ProgramChairConsole = ({ appContext }) => {
         acInvitationsP,
         sacInvitationsP,
       ])
-      console.log('invitationResults', invitationResults)
+
       // #endregion
+
+      // #region getRequestForm
+      let requestForm = null
+      if (requestFormId) {
+        const getRequestFormResult = await api.get(
+          '/notes',
+          {
+            id: requestFormId,
+            limit: 1,
+            select: 'id,content',
+          },
+          { accessToken }
+        )
+        requestForm = getRequestFormResult.notes?.[0]
+      }
+      // #endregion
+
+      // #region getRegistrationForms
+      const prefixes = [reviewersId, areaChairsId, seniorAreaChairsId]
+      const getRegistrationFormPs = prefixes.map((prefix) => {
+        return api
+          .getAll(
+            '/notes',
+            {
+              invitation: `${prefix}/-/.*`,
+              signature: venueId,
+              select: 'id,invitation,content.title',
+            },
+            { accessToken }
+          )
+          .then((notes) => {
+            return notes.filter((note) => note.invitation.endsWith('Form'))
+          })
+      })
+      const getRegistrationFormResults = await Promise.all(getRegistrationFormPs)
+      const registrationForms = getRegistrationFormResults.flat()
+      // #endregion
+
+      setPcConsoleData({
+        invitaitons: invitationResults.flat(),
+        requestForm,
+        registrationForms,
+      })
     } catch (error) {
       promptError(`loading data: ${error.message}`)
     }
@@ -563,14 +761,7 @@ const ProgramChairConsole = ({ appContext }) => {
 
         <TabPanels>
           <TabPanel id="venue-configuration">
-            {/* <OverviewTab
-              areaChairsId={areaChairsId}
-              seniorAreaChairsId={seniorAreaChairsId}
-              reviewersId={reviewersId}
-              bidEnabled={bidEnabled}
-              recommendationEnabled={recommendationEnabled}
-              paperReviewsCompleteThreshold={paperReviewsCompleteThreshold}
-            /> */}
+            <OverviewTab pcConsoleData={pcConsoleData} />
           </TabPanel>
           <TabPanel id="paper-status">{activeTabId === 'paper-status' && <>2</>}</TabPanel>
           {areaChairsId && activeTabId === 'areachair-status' && (
