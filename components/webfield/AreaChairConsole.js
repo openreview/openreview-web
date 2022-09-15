@@ -586,7 +586,8 @@ const AreaChairConsoleTasks = ({ venueId, areaChairName, apiVersion }) => {
       let allInvitations = await api.getAll(
         '/invitations',
         {
-          prefix: `${venueId}/.*`,
+          ...(apiVersion !== 2 && { regex: `${venueId}/.*` }),
+          ...(apiVersion === 2 && { prefix: `${venueId}/.*` }),
           invitee: true,
           duedate: true,
           type: 'all',
