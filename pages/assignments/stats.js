@@ -11,6 +11,7 @@ import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { prettyId, getGroupIdfromInvitation } from '../../lib/utils'
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
+import { getNoteContentValues } from '../../lib/forum-utils'
 import { referrerLink } from '../../lib/banner-links'
 import {
   getAssignmentMap,
@@ -64,10 +65,10 @@ const AssignmentStats = ({ appContext }) => {
 
   const loadConfigNote = async (assignmentConfigId) => {
     try {
-      const { notes } = await api.get('/notes', { id: assignmentConfigId }, { accessToken })
-      if (notes?.length > 0) {
-        setAssignmentConfigNote(notes[0])
-        setGroupId(getGroupIdfromInvitation(notes[0].invitation))
+      const note = await api.getNoteById(assignmentConfigId, accessToken)
+      if (note) {
+        setAssignmentConfigNote(note)
+        setGroupId(getGroupIdfromInvitation(note.apiVersion === 2 ? note.invitations[0] : note.invitation))
       } else {
         setError({
           statusCode: 404,
@@ -80,7 +81,8 @@ const AssignmentStats = ({ appContext }) => {
   }
 
   const loadMatchingDataFromEdges = async () => {
-    const noteContent = assignmentConfigNote.content
+    const { apiVersion, content } = assignmentConfigNote
+    const noteContent = apiVersion === 2 ? getNoteContentValues(content) : content
     const paperInvitationElements = noteContent.paper_invitation.split('&')
 
     let papersP = Promise.resolve([])
@@ -92,7 +94,7 @@ const AssignmentStats = ({ appContext }) => {
         const filterElements = filter.split('=')
         getNotesArgs[filterElements[0]] = filterElements[1]
       })
-      papersP = api.getAll('/notes', getNotesArgs, { accessToken, resultsKey: 'notes' })
+      papersP = api.getAll('/notes', getNotesArgs, { accessToken, version: apiVersion })
     } else {
       papersP = api.get('/groups', { id: paperInvitationElements[0] }, { accessToken })
     }
@@ -202,12 +204,12 @@ const AssignmentStats = ({ appContext }) => {
   useEffect(() => {
     if (!assignmentConfigNote) return
 
-    const useEdges = !!assignmentConfigNote.content.scores_specification
+    const useEdges = assignmentConfigNote.apiVersion === 2 || !!assignmentConfigNote.content.scores_specification
     if (useEdges) {
       loadMatchingDataFromEdges()
-      return
+    } else {
+      loadMatchingDataFromNotes()
     }
-    loadMatchingDataFromNotes()
   }, [assignmentConfigNote])
 
   useEffect(() => {
@@ -305,7 +307,12 @@ const AssignmentStats = ({ appContext }) => {
             <ul className="dropdown-menu dropdown-align-right">
               {assignmentConfigNote && (
                 <li>
-                  <Link href={getEdgeBrowserUrl(assignmentConfigNote.content)}>
+                  <Link
+                    href={getEdgeBrowserUrl(
+                      assignmentConfigNote.content,
+                      { version: assignmentConfigNote.apiVersion }
+                    )}
+                  >
                     <a>Browse Assignments</a>
                   </Link>
                 </li>
