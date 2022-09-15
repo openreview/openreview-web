@@ -3,18 +3,19 @@ import Icon from '../Icon'
 
 const LimitedStateAlert = () => (
   <Alert color="warning">
+    <Icon name="info-sign" extraClasses="pr-2" />
     <span>
-      Your profile status is currently limited, please enter your year of birth to activate
-      your profile again.
-    </span>
-    <a
-      href="https://docs.openreview.net/getting-started/frequently-asked-questions/my-profile-is-limited-.-what-does-that-mean"
-      target="_blank"
-      rel="noreferrer"
-    >
+      Your profile status is currently Limited.
+      Please enter your year of birth to activate your profile again.
       {' '}
-      <Icon name="info-sign" extraClasses="limited-state-info" />
-    </a>
+      <a
+        href="https://docs.openreview.net/getting-started/frequently-asked-questions/my-profile-is-limited-.-what-does-that-mean"
+        target="_blank"
+        rel="noreferrer"
+      >
+        Learn more &raquo;
+      </a>
+    </span>
   </Alert>
 )
 

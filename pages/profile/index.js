@@ -9,6 +9,7 @@ import random from 'lodash/random'
 import { nanoid } from 'nanoid'
 import NoteList from '../../components/NoteList'
 import Icon from '../../components/Icon'
+import LimitedStatusAlert from '../../components/profile/LimitedStateAlert'
 import withError from '../../components/withError'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -16,7 +17,6 @@ import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profi
 import { prettyList } from '../../lib/utils'
 import { auth } from '../../lib/auth'
 import { profileModeToggle } from '../../lib/banner-links'
-import LimitedStatusAlert from '../../components/profile/LimitedStateAlert'
 
 const ProfileSection = ({ name, title, instructions, actionLink, children }) => (
   <section className={name}>
@@ -308,10 +308,11 @@ const Profile = ({ profile, publicProfile, appContext }) => {
 
   return (
     <div className="profile-container">
-      {profile.state === 'Limited' && <LimitedStatusAlert />}
       <Head>
         <title key="title">{`${profile.preferredName} | OpenReview`}</title>
       </Head>
+
+      {profile.state === 'Limited' && <LimitedStatusAlert />}
 
       <header className="clearfix">
         <div className="title-container">

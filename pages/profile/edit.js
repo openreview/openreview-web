@@ -8,12 +8,12 @@ import get from 'lodash/get'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ProfileEditor from '../../components/profile/ProfileEditor'
+import LimitedStateAlert from '../../components/profile/LimitedStateAlert'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { profileModeToggle } from '../../lib/banner-links'
 import { formatProfileData } from '../../lib/profiles'
-import LimitedStateAlert from '../../components/profile/LimitedStateAlert'
 
 export default function ProfileEdit({ appContext }) {
   const { accessToken } = useLoginRedirect()
@@ -134,10 +134,11 @@ export default function ProfileEdit({ appContext }) {
 
   return (
     <div>
-      {profile.state === 'Limited' && <LimitedStateAlert />}
       <Head>
         <title key="title">Edit Profile | OpenReview</title>
       </Head>
+
+      {profile.state === 'Limited' && <LimitedStateAlert />}
 
       <header>
         <h1>Edit Profile</h1>
