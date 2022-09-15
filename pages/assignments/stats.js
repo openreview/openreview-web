@@ -43,22 +43,26 @@ const AssignmentStats = ({ appContext }) => {
   const { setBannerContent } = appContext
 
   let edgeBrowserUrlParams = {}
-  if (assignmentConfigNote?.content) {
+  if (assignmentConfigNote) {
+    const configNoteContent = assignmentConfigNote.apiVersion === 2
+      ? getNoteContentValues(assignmentConfigNote.content)
+      : assignmentConfigNote.content
     edgeBrowserUrlParams = {
-      browseInvitations: Object.keys(assignmentConfigNote.content.scores_specification ?? {}),
+      browseInvitations: Object.keys(configNoteContent.scores_specification ?? {}),
       editInvitation:
-        assignmentConfigNote.content.status === 'Deployed' &&
-        assignmentConfigNote.content.deployed_assignment_invitation
-          ? assignmentConfigNote.content.deployed_assignment_invitation
-          : `${assignmentConfigNote.content.assignment_invitation},label:${encodeURIComponent(
-              assignmentConfigNote.content.title
+        configNoteContent.status === 'Deployed' &&
+        configNoteContent.deployed_assignment_invitation
+          ? configNoteContent.deployed_assignment_invitation
+          : `${configNoteContent.assignment_invitation},label:${encodeURIComponent(
+              configNoteContent.title
             )}`,
-      conflictsInvitation: assignmentConfigNote.content.conflicts_invitation,
-      customMaxPapersInvitation: assignmentConfigNote.content.custom_max_papers_invitation,
-      customLoadInvitation: assignmentConfigNote.content.custom_load_invitation,
-      aggregateScoreInvitation: assignmentConfigNote.content.aggregate_score_invitation,
-      assignmentLabel: encodeURIComponent(assignmentConfigNote.content.title),
-      referrerText: `${prettyId(assignmentConfigNote.content.title)} Statistics`,
+      conflictsInvitation: configNoteContent.conflicts_invitation,
+      customMaxPapersInvitation: configNoteContent.custom_max_papers_invitation,
+      customLoadInvitation: configNoteContent.custom_load_invitation,
+      aggregateScoreInvitation: configNoteContent.aggregate_score_invitation,
+      assignmentLabel: encodeURIComponent(configNoteContent.title),
+      referrerText: `${prettyId(configNoteContent.title)} Statistics`,
+      apiVersion: assignmentConfigNote.apiVersion,
       configNoteId: assignmentConfigNote.id,
     }
   }
