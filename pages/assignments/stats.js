@@ -44,9 +44,7 @@ const AssignmentStats = ({ appContext }) => {
 
   let edgeBrowserUrlParams = {}
   if (assignmentConfigNote) {
-    const configNoteContent = assignmentConfigNote.apiVersion === 2
-      ? getNoteContentValues(assignmentConfigNote.content)
-      : assignmentConfigNote.content
+    const configNoteContent = assignmentConfigNote.content
     edgeBrowserUrlParams = {
       browseInvitations: Object.keys(configNoteContent.scores_specification ?? {}),
       editInvitation:
@@ -71,8 +69,13 @@ const AssignmentStats = ({ appContext }) => {
     try {
       const note = await api.getNoteById(assignmentConfigId, accessToken)
       if (note) {
-        setAssignmentConfigNote(note)
-        setGroupId(getGroupIdfromInvitation(note.apiVersion === 2 ? note.invitations[0] : note.invitation))
+        if (note.apiVersion === 2) {
+          setAssignmentConfigNote({ ...note, content: getNoteContentValues(note.content) })
+          setGroupId(getGroupIdfromInvitation(note.invitations[0]))
+        } else {
+          setAssignmentConfigNote(note)
+          setGroupId(getGroupIdfromInvitation(note.invitation))
+        }
       } else {
         setError({
           statusCode: 404,
@@ -85,8 +88,7 @@ const AssignmentStats = ({ appContext }) => {
   }
 
   const loadMatchingDataFromEdges = async () => {
-    const { apiVersion, content } = assignmentConfigNote
-    const noteContent = apiVersion === 2 ? getNoteContentValues(content) : content
+    const { apiVersion, content: noteContent } = assignmentConfigNote
     const paperInvitationElements = noteContent.paper_invitation.split('&')
 
     let papersP = Promise.resolve([])
@@ -344,7 +346,7 @@ const AssignmentStats = ({ appContext }) => {
           value={values.meanPaperCountPerGroup}
           name="Mean Number of Papers per User"
         />
-        {assignmentConfigNote?.content?.randomized_fraction_of_opt && (
+        {assignmentConfigNote?.content.randomized_fraction_of_opt && (
           <ScalarStat
             value={
               Math.round(assignmentConfigNote.content.randomized_fraction_of_opt * 100) / 100
