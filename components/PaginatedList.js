@@ -24,29 +24,18 @@ export default function PaginatedList({
 }) {
   const [listItems, setListItems] = useState(null)
   const [totalCount, setTotalCount] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
   const [page, setPage] = useState(1)
   const [error, setError] = useState(null)
 
   const itemComponent = typeof ListItem === 'function' ? ListItem : DefaultListItem
   const enableSearch = typeof searchItems === 'function'
 
-  const handleSearchTermChange = async (updatedSearchTerm) => {
-    if (updatedSearchTerm) {
-      try {
-        const offset = (page - 1) * itemsPerPage
-        const { items, count } = await searchItems(updatedSearchTerm, itemsPerPage, offset)
-        setListItems(items)
-        setTotalCount(count)
-      } catch (apiError) {
-        setError(apiError)
-      }
-    } else {
-      setPage(1)
-    }
-  }
-
   const delaySearch = useCallback(
-    debounce((term) => handleSearchTermChange(term), 300),
+    debounce((term) => {
+      setSearchTerm(term)
+      setPage(1)
+    }, 300),
     [searchItems]
   )
 
@@ -61,7 +50,9 @@ export default function PaginatedList({
       const offset = (page - 1) * itemsPerPage
 
       try {
-        const { items, count } = await loadItems(itemsPerPage, offset)
+        const { items, count } = await ((enableSearch && searchTerm)
+          ? searchItems(searchTerm, itemsPerPage, offset)
+          : loadItems(itemsPerPage, offset))
         setListItems(items)
         setTotalCount(count)
       } catch (apiError) {
@@ -72,14 +63,25 @@ export default function PaginatedList({
     if (typeof loadItems === 'function') {
       fetchItems()
     }
-  }, [loadItems, page, itemsPerPage])
+  }, [page, searchTerm, loadItems, searchItems, itemsPerPage])
 
   if (error) return <ErrorAlert error={error} />
 
   return (
     <div>
       {enableSearch && (
-        <form className="form-inline notes-search-form" role="search">
+        <form
+          className="form-inline notes-search-form"
+          role="search"
+          onSubmit={(e) => {
+            e.preventDefault()
+            const term = e.target[0].value.trim()
+            if (term.length > 1) {
+              setSearchTerm(term)
+              setPage(1)
+            }
+          }}
+        >
           <div className="form-group search-content has-feedback">
             <input
               type="text"
@@ -89,15 +91,10 @@ export default function PaginatedList({
               onChange={(e) => {
                 const term = e.target.value.trim()
                 if (term.length === 0) {
-                  handleSearchTermChange('')
-                } else if (term.length >= 3) {
-                  delaySearch(e.target.value)
-                }
-              }}
-              onKeyDown={(e) => {
-                const term = e.target.value.trim()
-                if (e.key === 'Enter' && term.length >= 2) {
-                  handleSearchTermChange(e.target.value)
+                  setSearchTerm('')
+                  setPage(1)
+                } else if (term.length > 2) {
+                  delaySearch(term)
                 }
               }}
             />

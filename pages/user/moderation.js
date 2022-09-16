@@ -429,6 +429,7 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
     }
   }
   const loadItems = useCallback(loadRequestNotes, [accessToken])
+
   return (
     <PaginatedList
       className="venue-request-list"
