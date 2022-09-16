@@ -11,6 +11,7 @@ import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { prettyId, getGroupIdfromInvitation } from '../../lib/utils'
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
+import { getNoteContentValues } from '../../lib/forum-utils'
 import { referrerLink } from '../../lib/banner-links'
 import {
   getAssignmentMap,
@@ -42,32 +43,39 @@ const AssignmentStats = ({ appContext }) => {
   const { setBannerContent } = appContext
 
   let edgeBrowserUrlParams = {}
-  if (assignmentConfigNote?.content) {
+  if (assignmentConfigNote) {
+    const configNoteContent = assignmentConfigNote.content
     edgeBrowserUrlParams = {
-      browseInvitations: Object.keys(assignmentConfigNote.content.scores_specification ?? {}),
+      browseInvitations: Object.keys(configNoteContent.scores_specification ?? {}),
       editInvitation:
-        assignmentConfigNote.content.status === 'Deployed' &&
-        assignmentConfigNote.content.deployed_assignment_invitation
-          ? assignmentConfigNote.content.deployed_assignment_invitation
-          : `${assignmentConfigNote.content.assignment_invitation},label:${encodeURIComponent(
-              assignmentConfigNote.content.title
+        configNoteContent.status === 'Deployed' &&
+        configNoteContent.deployed_assignment_invitation
+          ? configNoteContent.deployed_assignment_invitation
+          : `${configNoteContent.assignment_invitation},label:${encodeURIComponent(
+              configNoteContent.title
             )}`,
-      conflictsInvitation: assignmentConfigNote.content.conflicts_invitation,
-      customMaxPapersInvitation: assignmentConfigNote.content.custom_max_papers_invitation,
-      customLoadInvitation: assignmentConfigNote.content.custom_load_invitation,
-      aggregateScoreInvitation: assignmentConfigNote.content.aggregate_score_invitation,
-      assignmentLabel: encodeURIComponent(assignmentConfigNote.content.title),
-      referrerText: `${prettyId(assignmentConfigNote.content.title)} Statistics`,
+      conflictsInvitation: configNoteContent.conflicts_invitation,
+      customMaxPapersInvitation: configNoteContent.custom_max_papers_invitation,
+      customLoadInvitation: configNoteContent.custom_load_invitation,
+      aggregateScoreInvitation: configNoteContent.aggregate_score_invitation,
+      assignmentLabel: encodeURIComponent(configNoteContent.title),
+      referrerText: `${prettyId(configNoteContent.title)} Statistics`,
+      apiVersion: assignmentConfigNote.apiVersion,
       configNoteId: assignmentConfigNote.id,
     }
   }
 
   const loadConfigNote = async (assignmentConfigId) => {
     try {
-      const { notes } = await api.get('/notes', { id: assignmentConfigId }, { accessToken })
-      if (notes?.length > 0) {
-        setAssignmentConfigNote(notes[0])
-        setGroupId(getGroupIdfromInvitation(notes[0].invitation))
+      const note = await api.getNoteById(assignmentConfigId, accessToken)
+      if (note) {
+        if (note.apiVersion === 2) {
+          setAssignmentConfigNote({ ...note, content: getNoteContentValues(note.content) })
+          setGroupId(getGroupIdfromInvitation(note.invitations[0]))
+        } else {
+          setAssignmentConfigNote(note)
+          setGroupId(getGroupIdfromInvitation(note.invitation))
+        }
       } else {
         setError({
           statusCode: 404,
@@ -80,7 +88,7 @@ const AssignmentStats = ({ appContext }) => {
   }
 
   const loadMatchingDataFromEdges = async () => {
-    const noteContent = assignmentConfigNote.content
+    const { apiVersion, content: noteContent } = assignmentConfigNote
     const paperInvitationElements = noteContent.paper_invitation.split('&')
 
     let papersP = Promise.resolve([])
@@ -92,7 +100,7 @@ const AssignmentStats = ({ appContext }) => {
         const filterElements = filter.split('=')
         getNotesArgs[filterElements[0]] = filterElements[1]
       })
-      papersP = api.getAll('/notes', getNotesArgs, { accessToken, resultsKey: 'notes' })
+      papersP = api.getAll('/notes', getNotesArgs, { accessToken, version: apiVersion })
     } else {
       papersP = api.get('/groups', { id: paperInvitationElements[0] }, { accessToken })
     }
@@ -202,12 +210,12 @@ const AssignmentStats = ({ appContext }) => {
   useEffect(() => {
     if (!assignmentConfigNote) return
 
-    const useEdges = !!assignmentConfigNote.content.scores_specification
+    const useEdges = assignmentConfigNote.apiVersion === 2 || !!assignmentConfigNote.content.scores_specification
     if (useEdges) {
       loadMatchingDataFromEdges()
-      return
+    } else {
+      loadMatchingDataFromNotes()
     }
-    loadMatchingDataFromNotes()
   }, [assignmentConfigNote])
 
   useEffect(() => {
@@ -305,7 +313,12 @@ const AssignmentStats = ({ appContext }) => {
             <ul className="dropdown-menu dropdown-align-right">
               {assignmentConfigNote && (
                 <li>
-                  <Link href={getEdgeBrowserUrl(assignmentConfigNote.content)}>
+                  <Link
+                    href={getEdgeBrowserUrl(
+                      assignmentConfigNote.content,
+                      { version: assignmentConfigNote.apiVersion }
+                    )}
+                  >
                     <a>Browse Assignments</a>
                   </Link>
                 </li>
@@ -333,7 +346,7 @@ const AssignmentStats = ({ appContext }) => {
           value={values.meanPaperCountPerGroup}
           name="Mean Number of Papers per User"
         />
-        {assignmentConfigNote?.content?.randomized_fraction_of_opt && (
+        {assignmentConfigNote?.content.randomized_fraction_of_opt && (
           <ScalarStat
             value={
               Math.round(assignmentConfigNote.content.randomized_fraction_of_opt * 100) / 100
