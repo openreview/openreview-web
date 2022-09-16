@@ -98,6 +98,7 @@ export default function ProfileEditor({
       currentInstitution: undefined,
       id: undefined,
       preferredId: undefined,
+      state: undefined,
     }
 
     let invalidRecord = null
