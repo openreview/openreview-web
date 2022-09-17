@@ -10,6 +10,7 @@ import { useContext, useEffect, useState } from 'react'
 import BasicHeader from './BasicHeader'
 import { formatDateTime, inflect, prettyId } from '../../lib/utils'
 import Link from 'next/link'
+import LoadingSpinner from '../LoadingSpinner'
 
 const StatContainer = ({ title, hint, value }) => {
   return (
@@ -21,28 +22,83 @@ const StatContainer = ({ title, hint, value }) => {
   )
 }
 
-const RecruitmentStatsRow = () => {
-  const { areaChairsId, seniorAreaChairsId } = useContext(WebFieldContext)
+const RecruitmentStatsRow = ({ pcConsoleData }) => {
+  const { reviewersId, areaChairsId, seniorAreaChairsId } = useContext(WebFieldContext)
+  const { accessToken } = useUser()
+  const [invitedCount, setInvitedCount] = useState({})
+  const [isLoading, setIsLoading] = useState(false)
+  const reviewersInvitedId = reviewersId ? `${reviewersId}/Invited` : null
+  const areaChairsInvitedId = areaChairsId ? `${areaChairsId}/Invited` : null
+  const seniorAreaChairsInvitedId = seniorAreaChairsId ? `${seniorAreaChairsId}/Invited` : null
+
+  const loadData = async () => {
+    setIsLoading(true)
+    try {
+      const result = await Promise.all(
+        [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map(
+          (invitedId) => {
+            return invitedId
+              ? api.getGroupById(invitedId, accessToken, {
+                  select: 'members',
+                })
+              : Promise.resolve(null)
+          }
+        )
+      )
+      setInvitedCount({
+        reviewersInvitedCount: result[0].members.length,
+        areaChairsInvitedCount: result[1].members.length,
+        seniorAreaChairsInvitedCount: result[2].members.length,
+      })
+    } catch (error) {
+      promptError(error.message)
+    }
+    setIsLoading(false)
+  }
+
+  useEffect(() => {
+    if (!reviewersId) return
+    loadData()
+  }, [])
+
   return (
     <>
       <div className="row">
         <StatContainer
           title="Reviewer Recruitment"
           hint="accepted / invited"
-          value="10441/3852"
+          value={
+            !isLoading && pcConsoleData.reviewers ? (
+              `${pcConsoleData.reviewers?.length} / ${invitedCount.reviewersInvitedCount}`
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
         />
         {areaChairsId && (
           <StatContainer
             title="Area Chair Recruitment"
             hint="accepted / invited"
-            value="10441/3852"
+            value={
+              !isLoading && pcConsoleData.areaChairs ? (
+                `${pcConsoleData.areaChairs?.length} / ${invitedCount.areaChairsInvitedCount}`
+              ) : (
+                <LoadingSpinner inline={true} text={null} />
+              )
+            }
           />
         )}
         {seniorAreaChairsId && (
           <StatContainer
             title="Senior Area Chair Recruitment"
             hint="accepted / invited"
-            value="10441/3852"
+            value={
+              !isLoading && pcConsoleData.seniorAreaChairs ? (
+                `${pcConsoleData.seniorAreaChairs?.length} / ${invitedCount.seniorAreaChairsInvitedCount}`
+              ) : (
+                <LoadingSpinner inline={true} text={null} />
+              )
+            }
           />
         )}
       </div>
@@ -51,22 +107,70 @@ const RecruitmentStatsRow = () => {
   )
 }
 
-const SubmissionsStatsRow = () => {
+const SubmissionsStatsRow = ({ pcConsoleData }) => {
   return (
     <>
       <div className="row">
-        <StatContainer title="Active Submissions" value="7661" />
-        <StatContainer title="Withdrawn Submissions" value="7661" />
-        <StatContainer title="Desk Rejected Submissions" value="7661" />
+        <StatContainer
+          title="Active Submissions"
+          value={
+            pcConsoleData.notes ? (
+              pcConsoleData.notes.length
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
+        />
+        <StatContainer
+          title="Withdrawn Submissions"
+          value={
+            pcConsoleData.withdrawnNotes ? (
+              pcConsoleData.withdrawnNotes.length
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
+        />
+        <StatContainer
+          title="Desk Rejected Submissions"
+          value={
+            pcConsoleData.deskRejectedNotes ? (
+              pcConsoleData.deskRejectedNotes.length
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
+        />
       </div>
       <hr className="spacer" />
     </>
   )
 }
 
-const BiddingStatsRow = ({ bidEnabled, recommendationEnabled }) => {
+const BiddingStatsRow = ({ bidEnabled, recommendationEnabled, pcConsoleData }) => {
   if (!bidEnabled && !recommendationEnabled) return null
-  const { areaChairsId, seniorAreaChairsId, reviewersId } = useContext(WebFieldContext)
+  const { areaChairsId, seniorAreaChairsId, reviewersId, bidName } =
+    useContext(WebFieldContext)
+
+  const calcBiddingProgress = (id, role) => {
+    const bidInvitation = pcConsoleData.invitations?.find((p) => p.id === `${id}/-/${bidName}`)
+    const taskCompletionCount = bidInvitation?.taskCompletionCount
+      ? parseInt(bidInvitation.taskCompletionCount, 10)
+      : 0
+    const bidComplete = pcConsoleData.bidCounts?.[role]?.reduce((numComplete, bidCount) => {
+      return bidCount.count >= taskCompletionCount ? numComplete + 1 : numComplete
+    }, 0)
+    const total = pcConsoleData[role]?.length
+    return total === 0 ? (
+      <span>{bidComplete} / 0</span>
+    ) : (
+      <>
+        {((bidComplete * 100) / total).toFixed(2)} %
+        <span>{`(${bidComplete} / ${total})`}</span>
+      </>
+    )
+  }
+
   return (
     <>
       <div className="row">
@@ -74,14 +178,14 @@ const BiddingStatsRow = ({ bidEnabled, recommendationEnabled }) => {
           <StatContainer
             title="Reviewer Bidding Progress"
             hint="% of ACs who have completed the required number of bids"
-            value="7661"
+            value={calcBiddingProgress(reviewersId, 'reviewers')}
           />
         )}
         {bidEnabled && areaChairsId && (
           <StatContainer
             title="AC Bidding Progress"
             hint="% of ACs who have completed the required number of bids"
-            value="7661"
+            value={calcBiddingProgress(areaChairsId, 'areaChairs')}
           />
         )}
         {recommendationEnabled && areaChairsId && (
@@ -95,7 +199,7 @@ const BiddingStatsRow = ({ bidEnabled, recommendationEnabled }) => {
           <StatContainer
             title="SAC Bidding Progress"
             hint="% of SACs who have completed the required number of bids"
-            value="7661"
+            value={calcBiddingProgress(seniorAreaChairsId, 'seniorAreaChairs')}
           />
         )}
       </div>
@@ -183,7 +287,6 @@ const DescriptionTimelineOtherConfigRow = ({
   bidEnabled,
   recommendationEnabled,
 }) => {
-  console.log('invitaitons', invitations)
   if (!requestForm) return null
   const {
     venueId,
@@ -309,7 +412,7 @@ const DescriptionTimelineOtherConfigRow = ({
           <h4>Timeline:</h4>
           {datedInvitations.map((invitation) => {
             return (
-              <li className="overview-timeline">
+              <li className="overview-timeline" key={invitation.id}>
                 <a href={`/invitation/edit?id=${invitation.id}&referrer=${referrerUrl}`}>
                   {invitation.displayName}
                 </a>
@@ -319,7 +422,7 @@ const DescriptionTimelineOtherConfigRow = ({
           })}
           {notDatedInvitations.map((invitation) => {
             return (
-              <li className="overview-timeline">
+              <li className="overview-timeline" key={invitation.id}>
                 <a href={`/invitation/edit?id=${invitation.id}&referrer=${referrerUrl}`}>
                   {invitation.displayName}
                 </a>
@@ -334,7 +437,7 @@ const DescriptionTimelineOtherConfigRow = ({
               )
               if (!assignmentConfig) return null
               return (
-                <li className="overview-timeline">
+                <li className="overview-timeline" key={assignmentConfig.id}>
                   <a href={`/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`}>
                     {`${prettyId(role)} Paper Assignment`}
                   </a>{' '}
@@ -349,7 +452,7 @@ const DescriptionTimelineOtherConfigRow = ({
               )
               if (!assignmentConfig) return null
               return (
-                <li className="overview-timeline">
+                <li className="overview-timeline" key={assignmentConfig.id}>
                   <a href={`/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`}>
                     {`${prettyId(role)} Paper Assignment`}
                   </a>{' '}
@@ -359,7 +462,7 @@ const DescriptionTimelineOtherConfigRow = ({
             })}
           {reviewerRoles.map((role) => {
             return (
-              <li className="overview-timeline">
+              <li className="overview-timeline" key={role}>
                 <a href={`/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`}>
                   {`${prettyId(role)} Paper Assignment`}
                 </a>{' '}
@@ -383,7 +486,7 @@ const DescriptionTimelineOtherConfigRow = ({
             {seniorAreaChairsId &&
               sacRoles.map((role) => {
                 return (
-                  <li>
+                  <li key={role}>
                     <Link href={`/group/edit?id=${venueId}/${role}`}>
                       <a>{prettyId(role)}</a>
                     </Link>{' '}
@@ -402,7 +505,7 @@ const DescriptionTimelineOtherConfigRow = ({
             {areaChairsId &&
               acRoles.map((role) => {
                 return (
-                  <li>
+                  <li key={role}>
                     <Link href={`/group/edit?id=${venueId}/${role}`}>
                       <a>{prettyId(role)}</a>
                     </Link>{' '}
@@ -452,7 +555,7 @@ const DescriptionTimelineOtherConfigRow = ({
             )}
             {reviewerRoles.map((role) => {
               return (
-                <li>
+                <li key={role}>
                   <Link href={`/group/edit?id=${venueId}/${role}`}>
                     <a>{prettyId(role)}</a>
                   </Link>{' '}
@@ -486,7 +589,7 @@ const DescriptionTimelineOtherConfigRow = ({
             <ul className="overview-list">
               {registrationForms.map((form) => {
                 return (
-                  <li>
+                  <li key={form.id}>
                     <Link href={`/forum?id=${form.id}`}>
                       <a>{form.content.title}</a>
                     </Link>
@@ -539,28 +642,32 @@ const DescriptionTimelineOtherConfigRow = ({
 const OverviewTab = ({ pcConsoleData }) => {
   const { areaChairsId, seniorAreaChairsId, reviewersId, bidName, recommendationName } =
     useContext(WebFieldContext)
-  const bidEnabled = pcConsoleData.invitaitons?.some((p) =>
+  const bidEnabled = pcConsoleData.invitations?.some((p) =>
     [
       `${seniorAreaChairsId}/-/${bidName}`,
       `${areaChairsId}/-/${bidName}`,
       `${reviewersId}/-/${bidName}`,
     ].includes(p.id)
   )
-  const recommendationEnabled = pcConsoleData.invitaitons?.some(
+  const recommendationEnabled = pcConsoleData.invitations?.some(
     (p) => p.id === `${reviewersId}/-/${recommendationName}`
   )
   return (
     <>
-      <RecruitmentStatsRow />
-      <SubmissionsStatsRow />
-      <BiddingStatsRow bidEnabled={bidEnabled} recommendationEnabled={recommendationEnabled} />
+      <RecruitmentStatsRow pcConsoleData={pcConsoleData} />
+      <SubmissionsStatsRow pcConsoleData={pcConsoleData} />
+      <BiddingStatsRow
+        bidEnabled={bidEnabled}
+        recommendationEnabled={recommendationEnabled}
+        pcConsoleData={pcConsoleData}
+      />
       <ReviewStatsRow />
       <MetaReviewStatsRow />
       <DecisionStatsRow />
       <DescriptionTimelineOtherConfigRow
         requestForm={pcConsoleData.requestForm}
         registrationForms={pcConsoleData.registrationForms}
-        invitations={pcConsoleData.invitaitons}
+        invitations={pcConsoleData.invitations}
         bidEnabled={bidEnabled}
         recommendationEnabled={recommendationEnabled}
       />
@@ -584,6 +691,8 @@ const ProgramChairConsole = ({ appContext }) => {
     recommendationName,
     requestFormId,
     submissionId,
+    withdrawnSubmissionId,
+    deskRejectedSubmissionId,
     officialReviewName,
     commentName,
     officialMetaReviewName,
@@ -689,10 +798,81 @@ const ProgramChairConsole = ({ appContext }) => {
       const registrationForms = getRegistrationFormResults.flat()
       // #endregion
 
+      // #region get Reviewer,AC,SAC Members
+      const committeeMemberResults = await Promise.all(
+        [reviewersId, areaChairsId, seniorAreaChairsId].map((id) => {
+          return id
+            ? api.getGroupById(id, accessToken, { select: 'members' })
+            : Promise.resolve(null)
+        })
+      )
+      // #endregion
+
+      // #region getSubmissions
+      const notes = await api.getAll('/notes', {
+        invitation: submissionId,
+        details: 'invitation,tags,original,replyCount,directReplies',
+        select: 'id,number,forum,content,details',
+        sort: 'number:asc',
+      })
+      // #endregion
+
+      // #region get withdrawn and rejected submissions
+      const withdrawnRejectedSubmissionResults = await Promise.all(
+        [withdrawnSubmissionId, deskRejectedSubmissionId].map((id) => {
+          return id
+            ? api.getAll(
+                '/notes',
+                {
+                  invitation: id,
+                  details: 'original',
+                },
+                { accessToken }
+              )
+            : Promise.resolve([])
+        })
+      )
+      // #endregion
+
+      // #region get Reviewer,AC,SAC bid
+      const bidCountResults = await Promise.all(
+        [reviewersId, areaChairsId, seniorAreaChairsId].map((id) => {
+          if (!id || !bidName) return Promise.resolve({})
+          return api.getAll(
+            '/edges',
+            {
+              invitation: `${id}/-/${bidName}`,
+              groupBy: 'tail',
+              select: 'count',
+            },
+            { accessToken, resultsKey: 'groupedEdges' }
+          )
+          // .then((results) => {
+          //   if (!results?.length) return {}
+          //   return results.reduce((profileMap, groupedEdge) => {
+          //     profileMap[groupedEdge.id.tail] = groupedEdge.count
+          //     return profileMap
+          //   }, {})
+          // })
+        })
+      )
+      // #endregion
+
       setPcConsoleData({
-        invitaitons: invitationResults.flat(),
+        invitations: invitationResults.flat(),
         requestForm,
         registrationForms,
+        reviewers: committeeMemberResults[0]?.members ?? [],
+        areaChairs: committeeMemberResults[1]?.members ?? [],
+        seniorAreaChairs: committeeMemberResults[2]?.members ?? [],
+        notes,
+        withdrawnNotes: withdrawnRejectedSubmissionResults[0],
+        deskRejectedNotes: withdrawnRejectedSubmissionResults[1],
+        bidCounts: {
+          reviewers: bidCountResults[0],
+          areaChairs: bidCountResults[1],
+          seniorAreaChairs: bidCountResults[2],
+        },
       })
     } catch (error) {
       promptError(`loading data: ${error.message}`)
