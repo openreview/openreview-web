@@ -8,7 +8,7 @@ import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
 import { useContext, useEffect, useState } from 'react'
 import BasicHeader from './BasicHeader'
-import { formatDateTime, inflect, prettyId } from '../../lib/utils'
+import { formatDateTime, getNumberFromGroup, inflect, prettyId } from '../../lib/utils'
 import Link from 'next/link'
 import LoadingSpinner from '../LoadingSpinner'
 
@@ -19,6 +19,16 @@ const StatContainer = ({ title, hint, value }) => {
       {hint && <p className="hint">{hint}</p>}
       <h3>{value}</h3>
     </div>
+  )
+}
+
+const renderStat = (numComplete, total) => {
+  return total === 0 ? (
+    <span>{numComplete} / 0</span>
+  ) : (
+    <>
+      {((numComplete * 100) / total).toFixed(2)} %<span>{`(${numComplete} / ${total})`}</span>
+    </>
   )
 }
 
@@ -208,20 +218,89 @@ const BiddingStatsRow = ({ bidEnabled, recommendationEnabled, pcConsoleData }) =
   )
 }
 
-const ReviewStatsRow = () => {
-  const { paperReviewsCompleteThreshold } = useContext(WebFieldContext)
+const ReviewStatsRow = ({ pcConsoleData }) => {
+  const { paperReviewsCompleteThreshold, officialReviewName, venueId } =
+    useContext(WebFieldContext)
+
+  const allOfficialReviews = pcConsoleData.officialReviewsByPaperNumber?.flatMap(
+    (p) => p.officialReviews
+  )
+
+  const assignedReviewsCount = pcConsoleData.paperGroups?.reviewerGroups?.reduce(
+    (prev, curr) => {
+      return prev + curr.members.length
+    },
+    0
+  )
+
+  const reviewerAnonGroupIds = [
+    ...new Set(pcConsoleData.paperGroups?.reviewerGroups?.flatMap((group) => group.members)),
+  ]
+    .slice(0, 10)
+    .map((reviewerTildeId) => {
+      const assignedPaperReviewerGroups = pcConsoleData.paperGroups?.reviewerGroups?.filter(
+        (group) => group.members.includes(reviewerTildeId)
+      )
+      return assignedPaperReviewerGroups.map((reviewerGroup) => {
+        const anonReviewerGroupId =
+          pcConsoleData.paperGroups?.anonReviewerGroups[reviewerGroup.paperNumber]?.[
+            reviewerTildeId
+          ]
+        return anonReviewerGroupId
+      })
+    })
+
+  const reviewersCompletedAllReviews = reviewerAnonGroupIds.filter(
+    (anonReviewerGroupIds) =>
+      !anonReviewerGroupIds.some((anonReviewerGroupId) => {
+        !allOfficialReviews.find((p) => p.signatures[0] === anonReviewerGroupId)
+      })
+  )
+
+  const reviewersComplete = reviewersCompletedAllReviews.length
+
+  const reviewersWithAssignmentsCount = reviewerAnonGroupIds.length
+
+  const paperWithMoreThanThresholddReviews = pcConsoleData.notes?.filter((note) => {
+    const paperOfficialReviews = pcConsoleData.officialReviewsByPaperNumber?.find(
+      (p) => (p.noteNumber = note.number)
+    )?.officialReviews
+    const paperReviewers = pcConsoleData.paperGroups?.reviewerGroups?.find(
+      (p) => p.noteNumber === note.number
+    )?.members
+
+    const completedReviewsCount = paperOfficialReviews?.length
+    const assignedReviewersCount = paperReviewers?.length
+    return (
+      assignedReviewersCount > 0 &&
+      completedReviewsCount >= (paperReviewsCompleteThreshold ?? assignedReviewersCount)
+    )
+  })
+
   return (
     <>
       <div className="row">
         <StatContainer
           title="Review Progress"
           hint="% of all assigned official reviews that have been submitted"
-          value="7661"
+          value={
+            pcConsoleData.notes && pcConsoleData.paperGroups ? (
+              renderStat(allOfficialReviews.length, assignedReviewsCount)
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
         />
         <StatContainer
           title="Reviewer Progress"
           hint="% of reviewers who have reviewed all of their assigned papers"
-          value="7661"
+          value={
+            pcConsoleData.notes && pcConsoleData.paperGroups ? (
+              renderStat(reviewersComplete, reviewersWithAssignmentsCount)
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
         />
         <StatContainer
           title="Paper Progress"
@@ -230,7 +309,13 @@ const ReviewStatsRow = () => {
               ? `at least ${inflect(paperReviewsCompleteThreshold, 'review', 'reviews', true)}`
               : 'reviews from all assigned reviewers'
           }`}
-          value="7661"
+          value={
+            pcConsoleData.notes ? (
+              paperWithMoreThanThresholddReviews.length
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
         />
       </div>
       <hr className="spacer" />
@@ -238,8 +323,11 @@ const ReviewStatsRow = () => {
   )
 }
 
-const MetaReviewStatsRow = () => {
+const MetaReviewStatsRow = ({ pcConsoleData }) => {
   const { areaChairsId } = useContext(WebFieldContext)
+  const metaReviewsCount = pcConsoleData.metaReviewsByPaperNumber?.filter(
+    (p) => p.metaReviews?.length
+  )?.length
   if (!areaChairsId) return null
   return (
     <>
@@ -247,7 +335,13 @@ const MetaReviewStatsRow = () => {
         <StatContainer
           title="Meta-Review Progress"
           hint="% of papers that have received meta-reviews"
-          value="7661"
+          value={
+            pcConsoleData.notes && pcConsoleData.metaReviewsByPaperNumber ? (
+              renderStat(metaReviewsCount, pcConsoleData.notes.length)
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
         />
         <StatContainer
           title="AC Meta-Review Progress"
@@ -661,8 +755,8 @@ const OverviewTab = ({ pcConsoleData }) => {
         recommendationEnabled={recommendationEnabled}
         pcConsoleData={pcConsoleData}
       />
-      <ReviewStatsRow />
-      <MetaReviewStatsRow />
+      <ReviewStatsRow pcConsoleData={pcConsoleData} />
+      <MetaReviewStatsRow pcConsoleData={pcConsoleData} />
       <DecisionStatsRow />
       <DescriptionTimelineOtherConfigRow
         requestForm={pcConsoleData.requestForm}
@@ -697,6 +791,8 @@ const ProgramChairConsole = ({ appContext }) => {
     commentName,
     officialMetaReviewName,
     decisionName,
+    anonReviewerName,
+    anonAreaChairName,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -858,6 +954,43 @@ const ProgramChairConsole = ({ appContext }) => {
       )
       // #endregion
 
+      // #region getGroups (per paper groups)
+      const perPaperGroupResults = await api.get(
+        '/groups',
+        {
+          id: `${venueId}/Paper.*`,
+          stream: true,
+          select: 'id,members',
+        },
+        { accessToken }
+      )
+      const reviewerGroups = []
+      const anonReviewerGroups = {}
+      const areaChairGroups = []
+      const anonAreaChairGroups = {}
+      const seniorAreaChairGroups = []
+      perPaperGroupResults.groups?.forEach((group) => {
+        if (group.id.endsWith('/Reviewers')) {
+          reviewerGroups.push({
+            noteNumber: getNumberFromGroup(group.id, 'Paper'),
+            ...group,
+          })
+        } else if (group.id.includes(anonReviewerName)) {
+          const number = getNumberFromGroup(group.id, 'Paper')
+          if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
+          if (group.members.length) anonReviewerGroups[number][group.members[0]] = group.id
+        } else if (group.id.endsWith('/Area_Chairs')) {
+          areaChairGroups.push(group)
+        } else if (group.id.includes(anonAreaChairName)) {
+          const number = getNumberFromGroup(group.id, 'Paper')
+          if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
+          if (group.members.length) anonAreaChairGroups[number][group.members[0]] = group.id
+        } else if (group.id.endsWith('Senior_Area_Chairs')) {
+          seniorAreaChairGroups.push(group)
+        }
+      })
+      // #endregion
+
       setPcConsoleData({
         invitations: invitationResults.flat(),
         requestForm,
@@ -866,12 +999,36 @@ const ProgramChairConsole = ({ appContext }) => {
         areaChairs: committeeMemberResults[1]?.members ?? [],
         seniorAreaChairs: committeeMemberResults[2]?.members ?? [],
         notes,
+        officialReviewsByPaperNumber: notes.map((note) => {
+          return {
+            noteNumber: note.number,
+            officialReviews: note.details.directReplies.filter(
+              (p) => p.invitation === `${venueId}/Paper${note.number}/-/${officialReviewName}`
+            ),
+          }
+        }),
+        metaReviewsByPaperNumber: notes.map((note) => {
+          return {
+            noteNumber: note.number,
+            metaReviews: note.details.directReplies.filter(
+              (p) =>
+                p.invitation === `${venueId}/Paper${note.number}/-/${officialMetaReviewName}`
+            ),
+          }
+        }),
         withdrawnNotes: withdrawnRejectedSubmissionResults[0],
         deskRejectedNotes: withdrawnRejectedSubmissionResults[1],
         bidCounts: {
           reviewers: bidCountResults[0],
           areaChairs: bidCountResults[1],
           seniorAreaChairs: bidCountResults[2],
+        },
+        paperGroups: {
+          anonReviewerGroups,
+          reviewerGroups,
+          anonAreaChairGroups,
+          areaChairGroups,
+          seniorAreaChairGroups,
         },
       })
     } catch (error) {
