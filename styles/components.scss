@@ -1048,7 +1048,7 @@ table.table-minimal {
 
 // User Moderation
 .moderation-status {
-  width: 1040px;
+  width: 1100px;
   margin: 1.75rem auto 0 auto;
   display: flex;
   align-items: center;
@@ -1074,7 +1074,7 @@ table.table-minimal {
   }
 
   .profiles-list {
-    width: 1040px;
+    width: 1100px;
     margin: 1.75rem auto;
     min-height: 100px;
 
@@ -1108,7 +1108,7 @@ table.table-minimal {
         width: 200px;
       }
       &.col-status {
-        width: 140px;
+        width: 200px;
         .label {
           line-height: 26px;
         }
