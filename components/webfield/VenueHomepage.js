@@ -1,6 +1,7 @@
 /* globals $: false */
 /* globals Webfield, Webfield2: false */
 /* globals typesetMathJax: false */
+/* globals promptError: false */
 
 import { useState, useContext, useEffect, useRef } from 'react'
 import Link from 'next/link'
@@ -166,23 +167,23 @@ export default function VenueHomepage({ appContext }) {
       return
     }
 
-    const getUserGroups = () => api.getAll(
+    const getUserGroupsP = api.getAll(
       '/groups',
       { regex: `${group.id}/.*`, member: user.id, web: true },
       { accessToken }
     )
-    const getUserSubmissions = () => api.get(
+    const getUserSubmissionsP = api.get(
       '/notes',
       { invitation: submissionId, 'content.authorids': user.profile.id, limit: 1 },
       { accessToken, version: apiVersion }
     )
-    const getActivityNotes = () => api.get(
+    const getActivityNotesP = api.get(
       '/notes',
       { invitation: `${group.id}/.*`, details: 'forumContent,invitation,writable', sort: 'tmdate:desc', limit: 25 },
       { accessToken, version: apiVersion}
     )
 
-    Promise.all([getUserGroups(), getUserSubmissions(), getActivityNotes()])
+    Promise.all([getUserGroupsP, getUserSubmissionsP, getActivityNotesP])
       .then(([userGroups, userSubmissions, recentActivityNotes]) => {
         const groupIds = []
         if (userSubmissions.notes?.length > 0) {
@@ -198,6 +199,9 @@ export default function VenueHomepage({ appContext }) {
         if (recentActivityNotes.notes?.length > 0) {
           setActivityNotes(recentActivityNotes.notes)
         }
+      })
+      .catch((error) => {
+        promptError(error.message)
       })
   }, [user, accessToken, userLoading])
 

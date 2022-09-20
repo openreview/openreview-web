@@ -29,7 +29,9 @@ export default function PaginatedList({
   const [error, setError] = useState(null)
 
   const itemComponent = typeof ListItem === 'function' ? ListItem : DefaultListItem
-  const enableSearch = typeof searchItems === 'function'
+  const enableSearch =
+    typeof searchItems === 'function' &&
+    (listItems === null || listItems?.length > 0 || searchTerm)
 
   const delaySearch = useCallback(
     debounce((term) => {
@@ -50,7 +52,7 @@ export default function PaginatedList({
       const offset = (page - 1) * itemsPerPage
 
       try {
-        const { items, count } = await ((enableSearch && searchTerm)
+        const { items, count } = await (enableSearch && searchTerm
           ? searchItems(searchTerm, itemsPerPage, offset)
           : loadItems(itemsPerPage, offset))
         setListItems(items)
@@ -93,6 +95,7 @@ export default function PaginatedList({
                 if (term.length === 0) {
                   setSearchTerm('')
                   setPage(1)
+                  setListItems(null)
                 } else if (term.length > 2) {
                   delaySearch(term)
                 }
