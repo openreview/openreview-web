@@ -92,16 +92,16 @@ export default function InvitationReply({
   )
 }
 
-export const InvitationReplyV2 = ({
+export function InvitationReplyV2({
   invitation,
   profileId,
   accessToken,
   loadInvitation,
   replyField,
   readOnly = false,
-}) => {
+}) {
   const [replyString, setReplyString] = useState(
-    invitation[replyField] ? JSON.stringify(invitation[replyField], undefined, 2) : '[]'
+    invitation[replyField] ? JSON.stringify(invitation[replyField], undefined, 2) : ''
   )
   const [isSaving, setIsSaving] = useState(false)
 
@@ -109,6 +109,7 @@ export const InvitationReplyV2 = ({
     edge: 'Edge',
     edit: 'Edit',
     replyForumViews: 'Reply Forum Views',
+    content: 'Content',
   }
   const sectionTitle = titleMap[replyField] || replyField
 
@@ -116,25 +117,14 @@ export const InvitationReplyV2 = ({
     const metaInvitationId = getMetaInvitationId(invitation)
     switch (replyField) {
       case 'edge':
-        if (!metaInvitationId) throw new Error('No meta invitation found')
-        return {
-          invitation: {
-            id: invitation.id,
-            signatures: invitation.signatures,
-            edge: replyObj,
-          },
-          readers: [profileId],
-          writers: [profileId],
-          signatures: [profileId],
-          invitations: metaInvitationId,
-        }
       case 'replyForumViews':
+      case 'content':
         if (!metaInvitationId) throw new Error('No meta invitation found')
         return {
           invitation: {
             id: invitation.id,
             signatures: invitation.signatures,
-            replyForumViews: replyObj,
+            [replyField]: replyObj,
           },
           readers: [profileId],
           writers: [profileId],
@@ -204,7 +194,7 @@ export const InvitationReplyV2 = ({
   )
 }
 
-// for v1 invitations only
+// For v1 invitations only
 export function InvitationReplyWithPreview({ invitation, accessToken, loadInvitation }) {
   const [replyString, setReplyString] = useState(
     invitation.reply ? JSON.stringify(invitation.reply, undefined, 2) : '[]'
