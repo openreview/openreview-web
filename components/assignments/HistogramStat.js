@@ -55,6 +55,7 @@ const HistogramStat = ({ id, stats, edgeBrowserUrlParams }) => {
       assignmentLabel,
       referrerText,
       configNoteId,
+      apiVersion,
     } = edgeBrowserUrlParams
     const type = stats.type === 'reviewer' ? 'type:tail' : 'type:head'
     const edgeBrowserUrl = `/edges/browse?\
@@ -67,6 +68,7 @@ ${conflictsInvitation}\
 ${customMaxPapersInvitation ? `;${customMaxPapersInvitation},head:ignore` : ''}\
 ${customLoadInvitation ? `;${customLoadInvitation},head:ignore` : ''}\
 &maxColumns=3\
+&version=${apiVersion}
 &referrer=${encodeURIComponent(`[${referrerText}](/assignments/stats?id=${configNoteId})`)}`
 
     router.push(edgeBrowserUrl)
