@@ -306,7 +306,7 @@ module.exports = (function() {
   const mkComposerInput = (fieldName, fieldDescription, fieldValue, params) => {
     let contentInputResult;
 
-    if (fieldName === 'authorids') {
+    if (fieldName === 'authorids' && params.profileWidget) {
       let authors;
       let authorids;
       if (params?.note) {
@@ -333,7 +333,7 @@ module.exports = (function() {
       contentInputResult = mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
     }
 
-    if (fieldDescription.value?.param?.hidden === true) {
+    if (fieldDescription.value?.param?.hidden === true || (fieldName === 'authors' && params.profileWidget)) {
       return contentInputResult.hide();
     }
     return contentInputResult;
@@ -893,8 +893,12 @@ module.exports = (function() {
     }
 
     var contentOrder = order(invitation.edit?.note?.content, invitation.id);
+    var profileWidget = false;
+    if (contentOrder.includes('authors') && contentOrder.includes('authorids')) {
+      profileWidget = true;
+    }
     var $contentMap = _.reduce(contentOrder, function(ret, k) {
-      ret[k] = mkComposerInput(k, invitation.edit?.note?.content?.[k], invitation.edit?.note?.content?.[k].value.param?.default || '', { useDefaults: true, user: user});
+      ret[k] = mkComposerInput(k, invitation.edit?.note?.content?.[k], invitation.edit?.note?.content?.[k].value.param?.default || '', { useDefaults: true, user: user, profileWidget: profileWidget});
       return ret;
     }, {});
     function buildEditor(editReaders, editSignatures, noteReaders, noteSignatures) {
@@ -1354,10 +1358,13 @@ module.exports = (function() {
     // the order here should be from invitation, not note.details
     // presentation info may be different
     const contentOrder = order(invitation.edit?.note?.content, invitation.id)
-
+    var profileWidget = false;
+    if (contentOrder.includes('authors') && contentOrder.includes('authorids')) {
+      profileWidget = true;
+    }
     const $contentMap = _.reduce(contentOrder, (map, fieldName) => {
       const fieldContent = _.get(note, ['content', fieldName, 'value'], '');
-      map[fieldName] = mkComposerInput(fieldName, invitation.edit.note.content[fieldName], fieldContent, { note: note, useDefaults: true });
+      map[fieldName] = mkComposerInput(fieldName, invitation.edit.note.content[fieldName], fieldContent, { note: note, useDefaults: true, profileWidget: profileWidget });
       return map;
     }, {});
 
