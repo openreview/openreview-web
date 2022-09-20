@@ -1517,10 +1517,8 @@ module.exports = (function() {
       if (!existingNote) {
         return;
       }
-      var details = existingNote.details;
 
       view.deleteOrRestoreNote(existingNote, noteTitle, user, function(newNote) {
-        details.isDeleted = true;
         $note.addClass('trashed').html(
           noteTemplateFn({
             ...newNote,
