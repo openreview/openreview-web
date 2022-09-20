@@ -27,7 +27,7 @@ const renderStat = (numComplete, total) => {
     <span>{numComplete} / 0</span>
   ) : (
     <>
-      {((numComplete * 100) / total).toFixed(2)} %<span>{`(${numComplete} / ${total})`}</span>
+      {((numComplete * 100) / total).toFixed(2)} %<span>{` (${numComplete} / ${total})`}</span>
     </>
   )
 }
@@ -176,7 +176,7 @@ const BiddingStatsRow = ({ bidEnabled, recommendationEnabled, pcConsoleData }) =
     ) : (
       <>
         {((bidComplete * 100) / total).toFixed(2)} %
-        <span>{`(${bidComplete} / ${total})`}</span>
+        <span>{` (${bidComplete} / ${total})`}</span>
       </>
     )
   }
@@ -233,33 +233,45 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
     0
   )
 
-  const reviewerAnonGroupIds = [
-    ...new Set(pcConsoleData.paperGroups?.reviewerGroups?.flatMap((group) => group.members)),
-  ]
-    .slice(0, 10)
-    .map((reviewerTildeId) => {
-      const assignedPaperReviewerGroups = pcConsoleData.paperGroups?.reviewerGroups?.filter(
-        (group) => group.members.includes(reviewerTildeId)
-      )
-      return assignedPaperReviewerGroups.map((reviewerGroup) => {
-        const anonReviewerGroupId =
-          pcConsoleData.paperGroups?.anonReviewerGroups[reviewerGroup.paperNumber]?.[
-            reviewerTildeId
-          ]
-        return anonReviewerGroupId
-      })
+  // map tilde id in reviewerGroup to anon reviewer group id in anonReviewerGroups
+  const reviewerAnonGroupIds = {}
+  pcConsoleData.paperGroups?.reviewerGroups.forEach((reviewerGroup) => {
+    const paperAnonReviewerGroups =
+      pcConsoleData.paperGroups?.anonReviewerGroups[reviewerGroup.noteNumber]
+    reviewerGroup.members.forEach((reviewerTildeId) => {
+      if (!paperAnonReviewerGroups?.[reviewerTildeId]) return
+      if (reviewerAnonGroupIds[reviewerTildeId]) {
+        reviewerAnonGroupIds[reviewerTildeId].push({
+          noteNumber: reviewerGroup.noteNumber,
+          anonGroupId: paperAnonReviewerGroups[reviewerTildeId],
+        })
+      } else {
+        reviewerAnonGroupIds[reviewerTildeId] = [
+          {
+            noteNumber: reviewerGroup.noteNumber,
+            anonGroupId: paperAnonReviewerGroups[reviewerTildeId],
+          },
+        ]
+      }
     })
+  })
 
-  const reviewersCompletedAllReviews = reviewerAnonGroupIds.filter(
-    (anonReviewerGroupIds) =>
-      !anonReviewerGroupIds.some((anonReviewerGroupId) => {
-        !allOfficialReviews.find((p) => p.signatures[0] === anonReviewerGroupId)
+  // all anon reviewer id group have signed official review
+  const reviewersCompletedAllReviews = Object.values(reviewerAnonGroupIds ?? {}).filter(
+    (anonReviewerGroups) =>
+      anonReviewerGroups?.every((anonReviewerGroup) => {
+        const paperOfficialReviews = pcConsoleData.officialReviewsByPaperNumber?.find(
+          (p) => p.noteNumber === anonReviewerGroup.noteNumber
+        )?.officialReviews
+        return paperOfficialReviews?.find(
+          (p) => p.signatures[0] === anonReviewerGroup.anonGroupId
+        )
       })
   )
 
-  const reviewersComplete = reviewersCompletedAllReviews.length
+  const reviewersComplete = reviewersCompletedAllReviews?.length
 
-  const reviewersWithAssignmentsCount = reviewerAnonGroupIds.length
+  const reviewersWithAssignmentsCount = Object.values(reviewerAnonGroupIds ?? {}).length
 
   const paperWithMoreThanThresholddReviews = pcConsoleData.notes?.filter((note) => {
     const paperOfficialReviews = pcConsoleData.officialReviewsByPaperNumber?.find(
@@ -311,7 +323,7 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
           }`}
           value={
             pcConsoleData.notes ? (
-              paperWithMoreThanThresholddReviews.length
+              renderStat(paperWithMoreThanThresholddReviews.length, pcConsoleData.notes.length)
             ) : (
               <LoadingSpinner inline={true} text={null} />
             )
@@ -328,6 +340,46 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
   const metaReviewsCount = pcConsoleData.metaReviewsByPaperNumber?.filter(
     (p) => p.metaReviews?.length
   )?.length
+
+  // map tilde id in areaChairGroups to anon areachair group id in anonAreaChairGroups
+  const areaChairAnonGroupIds = {}
+  pcConsoleData.paperGroups?.areaChairGroups.forEach((areaChairGroup) => {
+    const paperAnonAreaChairGroups =
+      pcConsoleData.paperGroups?.anonAreaChairGroups[areaChairGroup.noteNumber]
+    areaChairGroup.members.forEach((areaChairTildeId) => {
+      if (!paperAnonAreaChairGroups?.[areaChairTildeId]) return
+      if (areaChairAnonGroupIds[areaChairTildeId]) {
+        areaChairAnonGroupIds[areaChairTildeId].push({
+          noteNumber: areaChairGroup.noteNumber,
+          anonGroupId: paperAnonAreaChairGroups[areaChairTildeId],
+        })
+      } else {
+        areaChairAnonGroupIds[areaChairTildeId] = [
+          {
+            noteNumber: areaChairGroup.noteNumber,
+            anonGroupId: paperAnonAreaChairGroups[areaChairTildeId],
+          },
+        ]
+      }
+    })
+  })
+
+  // all anon areaChair id group have signed meta review
+  const areaChairsCompletedAllMetaReviews = Object.values(areaChairAnonGroupIds ?? {}).filter(
+    (anonAreaChairGroups) =>
+      anonAreaChairGroups?.every((anonAreaChairGroup) => {
+        const paperOfficialMetaReviews = pcConsoleData.metaReviewsByPaperNumber?.find(
+          (p) => p.noteNumber === anonAreaChairGroup.noteNumber
+        )?.metaReviews
+        return paperOfficialMetaReviews?.find(
+          (p) => p.signatures[0] === anonAreaChairGroup.anonGroupId
+        )
+      })
+  )
+
+  const areaChairsComplete = areaChairsCompletedAllMetaReviews?.length
+  const areaChairsCount = pcConsoleData.areaChairs?.length
+
   if (!areaChairsId) return null
   return (
     <>
@@ -336,7 +388,7 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
           title="Meta-Review Progress"
           hint="% of papers that have received meta-reviews"
           value={
-            pcConsoleData.notes && pcConsoleData.metaReviewsByPaperNumber ? (
+            pcConsoleData.notes && pcConsoleData.paperGroups ? (
               renderStat(metaReviewsCount, pcConsoleData.notes.length)
             ) : (
               <LoadingSpinner inline={true} text={null} />
@@ -346,7 +398,13 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
         <StatContainer
           title="AC Meta-Review Progress"
           hint="% of area chairs who have completed meta reviews for all their assigned papers"
-          value="7661"
+          value={
+            pcConsoleData.notes && pcConsoleData.paperGroups ? (
+              renderStat(areaChairsComplete, areaChairsCount)
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
         />
       </div>
       <hr className="spacer" />
@@ -354,19 +412,47 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
   )
 }
 
-const DecisionStatsRow = ({ decisionsByTypeCount = [] }) => {
+const DecisionStatsRow = ({ pcConsoleData, decisionsByTypeCount = [] }) => {
+  const { venueId } = useContext(WebFieldContext)
+
+  const notesWithFinalDecision = pcConsoleData.decisionByPaperNumber?.filter((p) => p.decision)
+  const decisionsCount = notesWithFinalDecision?.length
+  const submissionsCount = pcConsoleData.notes?.length
+
+  const allDecisions = pcConsoleData.decisionByPaperNumber?.flatMap((p) => {
+    return p.decision?.content?.decision ?? []
+  })
+
   return (
     <>
       <div className="row">
         <StatContainer
           title="Decision Progress"
           hint="% of papers that have received a decision"
-          value="7661"
+          value={
+            pcConsoleData.notes ? (
+              renderStat(decisionsCount, submissionsCount)
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
         />
       </div>
       <div className="row">
-        {decisionsByTypeCount.map((type) => {
-          return <StatContainer title={type} value="7661" />
+        {[...new Set(allDecisions)]?.sort().map((type) => {
+          const perDecisionCount = allDecisions.filter((p) => p === type).length
+          return (
+            <StatContainer
+              title={type}
+              value={
+                pcConsoleData.decisionByPaperNumber ? (
+                  renderStat(perDecisionCount, pcConsoleData.notes.length)
+                ) : (
+                  <LoadingSpinner inline={true} text={null} />
+                )
+              }
+            />
+          )
         })}
       </div>
       <hr className="spacer" />
@@ -757,7 +843,7 @@ const OverviewTab = ({ pcConsoleData }) => {
       />
       <ReviewStatsRow pcConsoleData={pcConsoleData} />
       <MetaReviewStatsRow pcConsoleData={pcConsoleData} />
-      <DecisionStatsRow />
+      <DecisionStatsRow pcConsoleData={pcConsoleData} />
       <DescriptionTimelineOtherConfigRow
         requestForm={pcConsoleData.requestForm}
         registrationForms={pcConsoleData.registrationForms}
@@ -943,13 +1029,6 @@ const ProgramChairConsole = ({ appContext }) => {
             },
             { accessToken, resultsKey: 'groupedEdges' }
           )
-          // .then((results) => {
-          //   if (!results?.length) return {}
-          //   return results.reduce((profileMap, groupedEdge) => {
-          //     profileMap[groupedEdge.id.tail] = groupedEdge.count
-          //     return profileMap
-          //   }, {})
-          // })
         })
       )
       // #endregion
@@ -980,7 +1059,10 @@ const ProgramChairConsole = ({ appContext }) => {
           if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
           if (group.members.length) anonReviewerGroups[number][group.members[0]] = group.id
         } else if (group.id.endsWith('/Area_Chairs')) {
-          areaChairGroups.push(group)
+          areaChairGroups.push({
+            noteNumber: getNumberFromGroup(group.id, 'Paper'),
+            ...group,
+          })
         } else if (group.id.includes(anonAreaChairName)) {
           const number = getNumberFromGroup(group.id, 'Paper')
           if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
@@ -1013,6 +1095,14 @@ const ProgramChairConsole = ({ appContext }) => {
             metaReviews: note.details.directReplies.filter(
               (p) =>
                 p.invitation === `${venueId}/Paper${note.number}/-/${officialMetaReviewName}`
+            ),
+          }
+        }),
+        decisionByPaperNumber: notes.map((note) => {
+          return {
+            noteNumber: note.number,
+            decision: note.details.directReplies.find(
+              (p) => p.invitation === `${venueId}/Paper${note.number}/-/${decisionName}`
             ),
           }
         }),
