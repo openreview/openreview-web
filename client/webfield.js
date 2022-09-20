@@ -1518,12 +1518,15 @@ module.exports = (function() {
         return;
       }
       var details = existingNote.details;
-      existingNote = _.omit(existingNote, ['details']);
 
       view.deleteOrRestoreNote(existingNote, noteTitle, user, function(newNote) {
         details.isDeleted = true;
         $note.addClass('trashed').html(
-          noteTemplateFn(Object.assign({}, newNote, { details: details, options: options }))
+          noteTemplateFn({
+            ...newNote,
+            details: { ...existingNote.details, isDeleted: true },
+            options: options
+          })
         );
         return _.isFunction(options.onNoteTrashed) ? options.onNoteTrashed(newNote) : true;
       });
