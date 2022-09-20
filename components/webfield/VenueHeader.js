@@ -16,6 +16,7 @@ const VenueHeader = ({ headerInfo }) => {
     deadline,
     date,
   } = headerInfo
+
   return (
     <div className="venue-header" id="header">
       <h1>{title}</h1>
