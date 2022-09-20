@@ -88,14 +88,6 @@ export const InvitationEditorV2 = ({
         loadInvitation={loadInvitation}
         isMetaInvitation={isMetaInvitation}
       />
-      <InvitationReplyV2
-        key={`${invitation.id}-content`}
-        invitation={invitation}
-        profileId={profileId}
-        accessToken={accessToken}
-        loadInvitation={loadInvitation}
-        replyField="content"
-      />
       {!isMetaInvitation && (
         <>
           <InvitationReplyV2
@@ -117,6 +109,14 @@ export const InvitationEditorV2 = ({
           <InvitationChildInvitationsV2 invitation={invitation} />
         </>
       )}
+      <InvitationReplyV2
+        key={`${invitation.id}-content`}
+        invitation={invitation}
+        profileId={profileId}
+        accessToken={accessToken}
+        loadInvitation={loadInvitation}
+        replyField="content"
+      />
       <InvitationCodeV2
         invitation={invitation}
         profileId={profileId}

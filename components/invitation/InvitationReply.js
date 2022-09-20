@@ -116,35 +116,38 @@ export function InvitationReplyV2({
   const getRequestBody = (replyObj) => {
     const metaInvitationId = getMetaInvitationId(invitation)
     switch (replyField) {
+      case 'edit':
       case 'edge':
       case 'replyForumViews':
-      case 'content':
         if (!metaInvitationId) throw new Error('No meta invitation found')
         return {
           invitation: {
             id: invitation.id,
             signatures: invitation.signatures,
             [replyField]: replyObj,
+            edit: true,
           },
           readers: [profileId],
           writers: [profileId],
           signatures: [profileId],
           invitations: metaInvitationId,
         }
-      case 'edit':
+      case 'content':
         if (!metaInvitationId) throw new Error('No meta invitation found')
         return {
           invitation: {
             id: invitation.id,
             signatures: invitation.signatures,
-            edit: {
+            content: {
+              ...invitation.content,
               ...replyObj,
             },
+            edit: true,
           },
           readers: [profileId],
           writers: [profileId],
           signatures: [profileId],
-          invitations: metaInvitationId,
+          ...(metaInvitationId !== invitation.id ? { invitations: metaInvitationId } : {}),
         }
       default:
         return null
@@ -162,7 +165,7 @@ export function InvitationReplyV2({
         accessToken,
         version: 2,
       })
-      promptMessage(`Settings for '${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      promptMessage(`Settings for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
       loadInvitation(invitation.id)
     } catch (error) {
       let { message } = error
