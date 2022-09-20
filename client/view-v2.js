@@ -893,10 +893,7 @@ module.exports = (function() {
     }
 
     var contentOrder = order(invitation.edit?.note?.content, invitation.id);
-    var profileWidget = false;
-    if (contentOrder.includes('authors') && contentOrder.includes('authorids')) {
-      profileWidget = true;
-    }
+    var profileWidget = contentOrder.includes('authors') && contentOrder.includes('authorids');
     var $contentMap = _.reduce(contentOrder, function(ret, k) {
       ret[k] = mkComposerInput(k, invitation.edit?.note?.content?.[k], invitation.edit?.note?.content?.[k].value.param?.default || '', { useDefaults: true, user: user, profileWidget: profileWidget});
       return ret;
@@ -1358,10 +1355,7 @@ module.exports = (function() {
     // the order here should be from invitation, not note.details
     // presentation info may be different
     const contentOrder = order(invitation.edit?.note?.content, invitation.id)
-    var profileWidget = false;
-    if (contentOrder.includes('authors') && contentOrder.includes('authorids')) {
-      profileWidget = true;
-    }
+    var profileWidget = contentOrder.includes('authors') && contentOrder.includes('authorids');
     const $contentMap = _.reduce(contentOrder, (map, fieldName) => {
       const fieldContent = _.get(note, ['content', fieldName, 'value'], '');
       map[fieldName] = mkComposerInput(fieldName, invitation.edit.note.content[fieldName], fieldContent, { note: note, useDefaults: true, profileWidget: profileWidget });
