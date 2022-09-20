@@ -125,9 +125,16 @@ function ForumNote({ note, updateNote }) {
               </button>
               <ul className="dropdown-menu">
                 {editInvitations?.map((invitation) => (
-                  <li key={invitation.id} onClick={() => openNoteEditor(invitation)}>
+                  <li key={invitation.id}>
                     {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                    <a href="#" data-id={invitation.id}>
+                    <a
+                      href="#"
+                      data-id={invitation.id}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        openNoteEditor(invitation)
+                      }}
+                    >
                       {prettyInvitationId(invitation.id)}
                     </a>
                   </li>
