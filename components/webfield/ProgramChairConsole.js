@@ -412,9 +412,7 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
   )
 }
 
-const DecisionStatsRow = ({ pcConsoleData, decisionsByTypeCount = [] }) => {
-  const { venueId } = useContext(WebFieldContext)
-
+const DecisionStatsRow = ({ pcConsoleData }) => {
   const notesWithFinalDecision = pcConsoleData.decisionByPaperNumber?.filter((p) => p.decision)
   const decisionsCount = notesWithFinalDecision?.length
   const submissionsCount = pcConsoleData.notes?.length
@@ -443,6 +441,7 @@ const DecisionStatsRow = ({ pcConsoleData, decisionsByTypeCount = [] }) => {
           const perDecisionCount = allDecisions.filter((p) => p === type).length
           return (
             <StatContainer
+              key={type}
               title={type}
               value={
                 pcConsoleData.decisionByPaperNumber ? (
@@ -481,6 +480,7 @@ const DescriptionTimelineOtherConfigRow = ({
     commentName,
     officialMetaReviewName,
     decisionName,
+    scoresName,
   } = useContext(WebFieldContext)
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs)`
@@ -560,6 +560,23 @@ const DescriptionTimelineOtherConfigRow = ({
     .filter((p) => p.duedate)
     .sort((a, b) => a.duedate - b.duedate)
   const notDatedInvitations = timelineInvitations.filter((p) => !p.duedate)
+
+  const buildEdgeBrowserUrl = (invGroup, invName) => {
+    const invitationId = `${invGroup}/-/${invName}`
+    const referrerUrl = `/group${location.search}${location.hash}`
+    const conflictInvitationId = invitations.find((p) => p.id === `${invGroup}/-/Conflict`)?.id
+    const scoresInvitationId = invitations.find(
+      (p) => p.id === `${invGroup}/-/${scoresName}`
+    )?.id
+
+    // Right now this is only showing bids, affinity scores, and conflicts as the
+    // other scores invitations + labels are not available in the PC console
+    return `/edges/browse?traverse=${invitationId}&browse=${invitationId}${
+      scoresInvitationId ? `;${scoresInvitationId}` : ''
+    }${conflictInvitationId ? `;${conflictInvitationId}` : ''}&referrer=${encodeURIComponent(
+      `[PC Console](${referrerUrl})`
+    )}`
+  }
 
   return (
     <>
@@ -784,13 +801,13 @@ const DescriptionTimelineOtherConfigRow = ({
             <h4>Bids & Recommendations:</h4>
             <ul className="overview-list">
               <li>
-                <Link href="TODO:edge browser url">
+                <Link href={buildEdgeBrowserUrl(reviewersId, bidName)}>
                   <a>Reviewer Bids</a>
                 </Link>
               </li>
               {seniorAreaChairsId && (
                 <li>
-                  <Link href="TODO:edge browser url">
+                  <Link href={buildEdgeBrowserUrl(seniorAreaChairsId, bidName)}>
                     <a>Senior Area Chair Bids</a>
                   </Link>
                 </li>
@@ -798,13 +815,13 @@ const DescriptionTimelineOtherConfigRow = ({
               {areaChairsId && (
                 <>
                   <li>
-                    <Link href="TODO:edge browser url">
+                    <Link href={buildEdgeBrowserUrl(areaChairsId, bidName)}>
                       <a>Area Chair Bid</a>
                     </Link>
                   </li>
                   {recommendationEnabled && (
                     <li>
-                      <Link href="TODO:edge browser url">
+                      <Link href={buildEdgeBrowserUrl(reviewersId, recommendationName)}>
                         <a>Area Chair Reviewer Recommendations</a>
                       </Link>
                     </li>
@@ -879,6 +896,7 @@ const ProgramChairConsole = ({ appContext }) => {
     decisionName,
     anonReviewerName,
     anonAreaChairName,
+    scoresName,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
