@@ -85,7 +85,9 @@ const VenueHeader = ({ headerInfo }) => {
         ) : (
           <p className="no-margin">Please see the venue website for more information.</p>
         )}
-        <p>{deadline}</p>
+        {deadline && (
+          <p>{deadline}</p>
+        )}
       </div>
     </div>
   )
