@@ -138,6 +138,7 @@ export default function VenueHomepage({ appContext }) {
     withdrawnSubmissionId,
     deskRejectedSubmissionId,
     showSubmissions,
+    showActivity,
     authorsGroupId,
     apiVersion,
   } = useContext(WebFieldContext)
@@ -245,7 +246,7 @@ export default function VenueHomepage({ appContext }) {
                 Desk Rejected Submissions
               </Tab>
             )}
-            {activityNotes.length > 0 && (
+            {showActivity && activityNotes.length > 0 && (
               <Tab id="recent-activity" active={userConsoles.length === 0 && !showSubmissions}>
                 Recent Activity
               </Tab>
@@ -263,7 +264,7 @@ export default function VenueHomepage({ appContext }) {
               <TabPanel id="all-submissions">
                 <SubmissionsList
                   venueId={group.id}
-                  invitationId={blindSubmissionId}
+                  invitationId={blindSubmissionId || submissionId}
                   apiVersion={apiVersion}
                   enableSearch={true}
                 />
