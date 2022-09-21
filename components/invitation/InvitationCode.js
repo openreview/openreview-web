@@ -123,11 +123,21 @@ export const InvitationCodeV2 = ({
         throw new Error('No meta invitation found')
       }
 
+      let updateField = codeType
+      let updateObj = code
+      if (codeType.startsWith('content.')) {
+        const contentField = codeType.replace('content.', '').replace('.value', '')
+        updateField = 'content'
+        updateObj = {
+          ...invitation.content,
+          [contentField]: { value: code },
+        }
+      }
       const requestBody = {
         invitation: {
           id: invitation.id,
           signatures: invitation.signatures,
-          [codeType]: code,
+          [updateField]: updateObj,
           ...(isMetaInvitation && { edit: true }),
         },
         readers: [profileId],
