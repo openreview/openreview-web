@@ -12,6 +12,7 @@ import { formatDateTime, getNumberFromGroup, inflect, prettyId } from '../../lib
 import Link from 'next/link'
 import LoadingSpinner from '../LoadingSpinner'
 
+// #region overview tab
 const StatContainer = ({ title, hint, value }) => {
   return (
     <div className="col-md-4 col-xs-6">
@@ -460,9 +461,7 @@ const DecisionStatsRow = ({ pcConsoleData }) => {
 }
 
 const DescriptionTimelineOtherConfigRow = ({
-  requestForm,
-  registrationForms,
-  invitations,
+  pcConsoleData,
   bidEnabled,
   recommendationEnabled,
 }) => {
@@ -482,6 +481,8 @@ const DescriptionTimelineOtherConfigRow = ({
     decisionName,
     scoresName,
   } = useContext(WebFieldContext)
+
+  const { requestForm, registrationForms, invitations } = pcConsoleData
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs)`
   )
@@ -862,15 +863,14 @@ const OverviewTab = ({ pcConsoleData }) => {
       <MetaReviewStatsRow pcConsoleData={pcConsoleData} />
       <DecisionStatsRow pcConsoleData={pcConsoleData} />
       <DescriptionTimelineOtherConfigRow
-        requestForm={pcConsoleData.requestForm}
-        registrationForms={pcConsoleData.registrationForms}
-        invitations={pcConsoleData.invitations}
+        pcConsoleData={pcConsoleData}
         bidEnabled={bidEnabled}
         recommendationEnabled={recommendationEnabled}
       />
     </>
   )
 }
+// #endregion
 
 const ProgramChairConsole = ({ appContext }) => {
   const {
