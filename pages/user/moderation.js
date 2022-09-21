@@ -435,6 +435,7 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
     }
   }
   const loadItems = useCallback(loadRequestNotes, [accessToken])
+
   return (
     <PaginatedList
       className="venue-request-list"
@@ -614,7 +615,7 @@ const UserModerationQueue = ({
   }
 
   const blockUnblockUser = async (profile) => {
-    const actionIsBlock = profile?.state !== 'Blocked'
+    const actionIsBlock = profile?.state !== 'Blocked' && !profile?.block
     const signedNotes = !onlyModeration
       ? await api.getCombined('/notes', { signature: profile.id }, null, {
           accessToken,
@@ -698,7 +699,9 @@ const UserModerationQueue = ({
             return (
               <li
                 key={profile.id}
-                className={`${profile.state === 'Blocked' ? 'blocked' : null}`}
+                className={`${
+                  profile.state === 'Blocked' || profile.block ? 'blocked' : null
+                }`}
               >
                 <span className="col-name">
                   <a
@@ -716,8 +719,12 @@ const UserModerationQueue = ({
                   <span className={`label label-${profile.password ? 'success' : 'danger'}`}>
                     password
                   </span>{' '}
-                  <span className={getProfileStateLabelClass(profile.state)}>
-                    {profile.state}
+                  <span
+                    className={getProfileStateLabelClass(
+                      profile.state ?? (profile.active ? 'Active' : 'Inactive')
+                    )}
+                  >
+                    {profile.state ?? 'active'}
                   </span>
                 </span>
                 <span className="col-actions">
@@ -750,7 +757,7 @@ const UserModerationQueue = ({
                     </>
                   ) : (
                     <>
-                      {!profile.state === 'Blocked' && profile.active && (
+                      {!(profile.state === 'Blocked' || profile.block) && profile.active && (
                         <button
                           type="button"
                           className="btn btn-xs"
@@ -765,9 +772,15 @@ const UserModerationQueue = ({
                         onClick={() => blockUnblockUser(profile)}
                       >
                         <Icon
-                          name={`${profile.state === 'Blocked' ? 'refresh' : 'ban-circle'}`}
+                          name={`${
+                            profile.state === 'Blocked' || profile.block
+                              ? 'refresh'
+                              : 'ban-circle'
+                          }`}
                         />{' '}
-                        {`${profile.state === 'Blocked' ? 'Unblock' : 'Block'}`}
+                        {`${
+                          profile.state === 'Blocked' || profile.block ? 'Unblock' : 'Block'
+                        }`}
                       </button>
                     </>
                   )}
