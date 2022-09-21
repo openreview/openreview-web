@@ -1,6 +1,7 @@
 /* globals promptError,promptMessage,view: false */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import pickBy from 'lodash/pickBy'
 import EditorSection from '../EditorSection'
 import CodeEditor from '../CodeEditor'
 import SpinnerButton from '../SpinnerButton'
@@ -98,11 +99,10 @@ export function InvitationReplyV2({
   accessToken,
   loadInvitation,
   replyField,
+  isMetaInvitation = false,
   readOnly = false,
 }) {
-  const [replyString, setReplyString] = useState(
-    invitation[replyField] ? JSON.stringify(invitation[replyField], undefined, 2) : ''
-  )
+  const [replyString, setReplyString] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
   const titleMap = {
@@ -115,25 +115,27 @@ export function InvitationReplyV2({
 
   const getRequestBody = (replyObj) => {
     const metaInvitationId = getMetaInvitationId(invitation)
+    if (!isMetaInvitation && !metaInvitationId) {
+      throw new Error('No meta invitation found')
+    }
+
     switch (replyField) {
       case 'edit':
       case 'edge':
       case 'replyForumViews':
-        if (!metaInvitationId) throw new Error('No meta invitation found')
         return {
           invitation: {
             id: invitation.id,
             signatures: invitation.signatures,
             [replyField]: replyObj,
-            edit: true,
+            ...(isMetaInvitation && { edit: true }),
           },
           readers: [profileId],
           writers: [profileId],
           signatures: [profileId],
-          invitations: metaInvitationId,
+          ...(!isMetaInvitation && { invitations: metaInvitationId })
         }
       case 'content':
-        if (!metaInvitationId) throw new Error('No meta invitation found')
         return {
           invitation: {
             id: invitation.id,
@@ -142,12 +144,12 @@ export function InvitationReplyV2({
               ...invitation.content,
               ...replyObj,
             },
-            edit: true,
+            ...(isMetaInvitation && { edit: true }),
           },
           readers: [profileId],
           writers: [profileId],
           signatures: [profileId],
-          ...(metaInvitationId !== invitation.id ? { invitations: metaInvitationId } : {}),
+          ...(!isMetaInvitation && { invitations: metaInvitationId }),
         }
       default:
         return null
@@ -155,13 +157,12 @@ export function InvitationReplyV2({
   }
 
   const saveInvitationReply = async () => {
+    setIsSaving(true)
     try {
-      setIsSaving(true)
       const cleanReplyString = replyString.trim()
       const replyObj = JSON.parse(cleanReplyString.length ? cleanReplyString : '[]')
-      const requestPath = '/invitations/edits'
       const requestBody = getRequestBody(replyObj)
-      await api.post(requestPath, requestBody, {
+      await api.post('/invitations/edits', requestBody, {
         accessToken,
         version: 2,
       })
@@ -177,9 +178,26 @@ export function InvitationReplyV2({
     setIsSaving(false)
   }
 
+  useEffect(() => {
+    if (!invitation || !replyField) return
+
+    let code = invitation[replyField]
+    if (!code) {
+      setReplyString(replyField === 'replyForumViews' ? '[]' : '{}')
+      return
+    }
+
+    if (replyField === 'content') {
+      code = pickBy(code, (_value, key) => !key.endsWith('_script'))
+    }
+    setReplyString(JSON.stringify(code, undefined, 2))
+  }, [invitation, replyField])
+
   return (
     <EditorSection title={sectionTitle}>
-      <CodeEditor code={replyString} onChange={setReplyString} readOnly={readOnly} isJson />
+      {replyString && (
+        <CodeEditor code={replyString} onChange={setReplyString} readOnly={readOnly} isJson />
+      )}
 
       {!readOnly && (
         <div className="mt-2">

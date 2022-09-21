@@ -13,6 +13,7 @@ import InvitationChildInvitations, {
 } from './InvitationChildInvitations'
 import { isSuperUser } from '../../lib/auth'
 import InvitationProcessFunctionsV2 from './InvitationProcessFunctions'
+import ContentProcessFunctions from './ContentProcessFunctions'
 
 const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => {
   const profileId = user?.profile?.id
@@ -90,6 +91,7 @@ export const InvitationEditorV2 = ({
       />
       {!isMetaInvitation && (
         <>
+          <InvitationChildInvitationsV2 invitation={invitation} />
           <InvitationReplyV2
             key={`${invitation.id}-edit`}
             invitation={invitation}
@@ -106,7 +108,6 @@ export const InvitationEditorV2 = ({
             loadInvitation={loadInvitation}
             replyField="replyForumViews"
           />
-          <InvitationChildInvitationsV2 invitation={invitation} />
         </>
       )}
       <InvitationReplyV2
@@ -116,13 +117,13 @@ export const InvitationEditorV2 = ({
         accessToken={accessToken}
         loadInvitation={loadInvitation}
         replyField="content"
+        isMetaInvitation={isMetaInvitation}
       />
-      <InvitationCodeV2
+      <ContentProcessFunctions
         invitation={invitation}
         profileId={profileId}
         accessToken={accessToken}
         loadInvitation={loadInvitation}
-        codeType="web"
         isMetaInvitation={isMetaInvitation}
       />
       <InvitationProcessFunctionsV2
@@ -130,6 +131,14 @@ export const InvitationEditorV2 = ({
         profileId={profileId}
         accessToken={accessToken}
         loadInvitation={loadInvitation}
+        isMetaInvitation={isMetaInvitation}
+      />
+      <InvitationCodeV2
+        invitation={invitation}
+        profileId={profileId}
+        accessToken={accessToken}
+        loadInvitation={loadInvitation}
+        codeType="web"
         isMetaInvitation={isMetaInvitation}
       />
     </div>
