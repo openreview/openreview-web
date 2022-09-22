@@ -147,6 +147,7 @@ export default function VenueHomepage({ appContext }) {
   const { user, accessToken, userLoading } = useUser()
   const [userConsoles, setUserConsoles] = useState([])
   const [activityNotes, setActivityNotes] = useState([])
+  const [reloadConsoles, setReloadConsoles] = useState(false)
   const router = useRouter()
   const { setBannerContent } = appContext
 
@@ -206,7 +207,7 @@ export default function VenueHomepage({ appContext }) {
       .catch((error) => {
         promptError(error.message)
       })
-  }, [user, accessToken, userLoading])
+  }, [user, accessToken, userLoading, reloadConsoles])
 
   if (userLoading) return null
 
@@ -222,6 +223,7 @@ export default function VenueHomepage({ appContext }) {
             onNoteCreated={() => {
               const defaultConfirmationMessage = 'Your submission is complete. Check your inbox for a confirmation email. The author console page for managing your submissions will be available soon.'
               promptMessage(submissionConfirmationMessage || defaultConfirmationMessage)
+              setReloadConsoles(!reloadConsoles)
             }}
             options={{ largeLabel: true }}
           />
