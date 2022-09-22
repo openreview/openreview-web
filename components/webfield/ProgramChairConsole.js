@@ -6,11 +6,19 @@ import Table from '../Table'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
-import { useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useState } from 'react'
 import BasicHeader from './BasicHeader'
 import { formatDateTime, getNumberFromGroup, inflect, prettyId } from '../../lib/utils'
 import Link from 'next/link'
 import LoadingSpinner from '../LoadingSpinner'
+import { debounce, orderBy } from 'lodash'
+import Icon from '../Icon'
+import Dropdown from '../Dropdown'
+import ExportCSV from '../ExportCSV'
+import NoteSummary from './NoteSummary'
+import PaginationLinks from '../PaginationLinks'
+import { AreaChairConsoleNoteReviewStatus } from './NoteReviewStatus'
+import { ProgramChairConsolePaperAreaChairProgress } from './NoteMetaReviewStatus'
 
 // #region overview tab
 const StatContainer = ({ title, hint, value }) => {
@@ -237,20 +245,19 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
   // map tilde id in reviewerGroup to anon reviewer group id in anonReviewerGroups
   const reviewerAnonGroupIds = {}
   pcConsoleData.paperGroups?.reviewerGroups.forEach((reviewerGroup) => {
-    const paperAnonReviewerGroups =
-      pcConsoleData.paperGroups?.anonReviewerGroups[reviewerGroup.noteNumber]
-    reviewerGroup.members.forEach((reviewerTildeId) => {
-      if (!paperAnonReviewerGroups?.[reviewerTildeId]) return
-      if (reviewerAnonGroupIds[reviewerTildeId]) {
-        reviewerAnonGroupIds[reviewerTildeId].push({
+    reviewerGroup.members.forEach((reviewer) => {
+      if (!reviewer.reviewerAnonGroup) return
+      const reviewerProfileId = reviewer.reviewerProfileId
+      if (reviewerAnonGroupIds[reviewerProfileId]) {
+        reviewerAnonGroupIds[reviewerProfileId].push({
           noteNumber: reviewerGroup.noteNumber,
-          anonGroupId: paperAnonReviewerGroups[reviewerTildeId],
+          anonGroupId: reviewer.reviewerAnonGroup,
         })
       } else {
-        reviewerAnonGroupIds[reviewerTildeId] = [
+        reviewerAnonGroupIds[reviewerProfileId] = [
           {
             noteNumber: reviewerGroup.noteNumber,
-            anonGroupId: paperAnonReviewerGroups[reviewerTildeId],
+            anonGroupId: reviewer.reviewerAnonGroup,
           },
         ]
       }
@@ -276,7 +283,7 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
 
   const paperWithMoreThanThresholddReviews = pcConsoleData.notes?.filter((note) => {
     const paperOfficialReviews = pcConsoleData.officialReviewsByPaperNumber?.find(
-      (p) => (p.noteNumber = note.number)
+      (p) => p.noteNumber === note.number
     )?.officialReviews
     const paperReviewers = pcConsoleData.paperGroups?.reviewerGroups?.find(
       (p) => p.noteNumber === note.number
@@ -345,20 +352,19 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
   // map tilde id in areaChairGroups to anon areachair group id in anonAreaChairGroups
   const areaChairAnonGroupIds = {}
   pcConsoleData.paperGroups?.areaChairGroups.forEach((areaChairGroup) => {
-    const paperAnonAreaChairGroups =
-      pcConsoleData.paperGroups?.anonAreaChairGroups[areaChairGroup.noteNumber]
-    areaChairGroup.members.forEach((areaChairTildeId) => {
-      if (!paperAnonAreaChairGroups?.[areaChairTildeId]) return
-      if (areaChairAnonGroupIds[areaChairTildeId]) {
-        areaChairAnonGroupIds[areaChairTildeId].push({
+    areaChairGroup.members.forEach((areaChair) => {
+      if (!areaChair.areaChairAnonGroup) return
+      const areaChairProfileId = areaChair.areaChairProfileId
+      if (areaChairAnonGroupIds[areaChairProfileId]) {
+        areaChairAnonGroupIds[areaChairProfileId].push({
           noteNumber: areaChairGroup.noteNumber,
-          anonGroupId: paperAnonAreaChairGroups[areaChairTildeId],
+          anonGroupId: areaChair.areaChairAnonGroup,
         })
       } else {
-        areaChairAnonGroupIds[areaChairTildeId] = [
+        areaChairAnonGroupIds[areaChairProfileId] = [
           {
             noteNumber: areaChairGroup.noteNumber,
-            anonGroupId: paperAnonAreaChairGroups[areaChairTildeId],
+            anonGroupId: areaChair.areaChairAnonGroup,
           },
         ]
       }
@@ -872,6 +878,617 @@ const OverviewTab = ({ pcConsoleData }) => {
 }
 // #endregion
 
+// #region paperStatus tab
+const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
+  const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedNoteIds(allNoteIds)
+      return
+    }
+    setSelectedNoteIds([])
+  }
+  return (
+    <input
+      type="checkbox"
+      id="select-all-papers"
+      checked={allNotesSelected}
+      onChange={handleSelectAll}
+    />
+  )
+}
+
+const MenuBar = ({
+  tableRows,
+  tableRowsDisplayed,
+  selectedNoteIds,
+  setPaperStatusTabData,
+}) => {
+  const { shortPhrase, venueId, officialReviewName, enableQuerySearch } =
+    useContext(WebFieldContext)
+  const disabledMessageButton = selectedNoteIds.length === 0
+  const messageReviewerOptions = [
+    { label: 'All Reviewers of selected papers', value: 'allReviewers' },
+    { label: 'Reviewers of selected papers with submitted reviews', value: 'withReviews' },
+    {
+      label: 'Reviewers of selected papers with unsubmitted reviews',
+      value: 'missingReviews',
+    },
+  ]
+  const sortDropdownOptions = [
+    { label: 'Paper Number', value: 'Paper Number', getValue: (p) => p.note?.number },
+    {
+      label: 'Paper Title',
+      value: 'Paper Title',
+      getValue: (p) =>
+        p.note?.version === 2 ? p.note?.content?.title?.value : p.note?.content?.title,
+    },
+    {
+      label: 'Number of Forum Replies',
+      value: 'Number of Forum Replies',
+      getValue: (p) => p.reviewProgressData?.replyCount,
+    },
+    {
+      label: 'Number of Reviews Submitted',
+      value: 'Number of Reviews Submitted',
+      getValue: (p) => p.reviewProgressData?.numReviewsDone,
+    },
+    {
+      label: 'Number of Reviews Missing',
+      value: 'Number of Reviews Missing',
+      getValue: (p) =>
+        (p.reviewProgressData?.numReviewersAssigned ?? 0) -
+        (p.reviewProgressData?.numReviewsDone ?? 0),
+    },
+    {
+      label: 'Average Rating',
+      value: 'Average Rating',
+      getValue: (p) =>
+        p.reviewProgressData?.ratingAvg === 'N/A' ? 0 : p.reviewProgressData?.ratingAvg,
+    },
+    {
+      label: 'Max Rating',
+      value: 'Max Rating',
+      getValue: (p) =>
+        p.reviewProgressData?.ratingMax === 'N/A' ? 0 : p.reviewProgressData?.ratingMax,
+    },
+    {
+      label: 'Min Rating',
+      value: 'Min Rating',
+      getValue: (p) =>
+        p.reviewProgressData?.ratingMin === 'N/A' ? 0 : p.reviewProgressData?.ratingMin,
+    },
+    {
+      label: 'Average Confidence',
+      value: 'Average Confidence',
+      getValue: (p) =>
+        p.reviewProgressData?.confidenceAvg === 'N/A'
+          ? 0
+          : p.reviewProgressData?.confidenceAvg,
+    },
+    {
+      label: 'Max Confidence',
+      value: 'Max Confidenc',
+      getValue: (p) =>
+        p.reviewProgressData?.confidenceMax === 'N/A'
+          ? 0
+          : p.reviewProgressData?.confidenceMax,
+    },
+    {
+      label: 'Min Confidence',
+      value: 'Min Confidence',
+      getValue: (p) =>
+        p.reviewProgressData?.confidenceMin === 'N/A'
+          ? 0
+          : p.reviewProgressData?.confidenceMin,
+    },
+    {
+      label: 'Meta Review Recommendation',
+      value: 'Meta Review Recommendation',
+      getValue: (p) => p.metaReviewData?.recommendation,
+    },
+  ]
+  const [messageOption, setMessageOption] = useState(null)
+  const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [queryIsInvalidStatus, setQueryIsInvalidStatus] = useState(false)
+  const [isQuerySearch, setIsQuerySearch] = useState(false)
+  const [sortOption, setSortOption] = useState(sortDropdownOptions[0])
+  let filterOperators = ['!=', '>=', '<=', '>', '<', '='] // sequence matters
+  let propertiesAllowed = {
+    number: ['note.number'],
+  }
+
+  const shouldEnableQuerySearch = enableQuerySearch && filterOperators && propertiesAllowed
+
+  const exportFileName = `${shortPhrase}${
+    tableRows?.length === tableRowsDisplayed?.length
+      ? ' AC paper status'
+      : 'AC paper status(Filtered)'
+  }`
+
+  const handleMessageDropdownChange = (option) => {
+    setMessageOption(option)
+    $('#message-reviewers').modal('show')
+  }
+
+  const delaySearch = useCallback(
+    debounce((term) => setSearchTerm(term), 300),
+    []
+  )
+
+  const keyDownHandler = (e) => {
+    if (e.key !== 'Enter' || !shouldEnableQuerySearch) return
+    const cleanImmediateSearchTerm = immediateSearchTerm.trim()
+    if (!cleanImmediateSearchTerm.startsWith('+')) return
+    // query search
+    const { filteredRows, queryIsInvalid } = filterCollections(
+      tableRows,
+      cleanImmediateSearchTerm.slice(1),
+      filterOperators,
+      propertiesAllowed,
+      'note.id'
+    )
+    if (queryIsInvalid) {
+      setQueryIsInvalidStatus(true)
+      return
+    }
+    setPaperStatusTabData((paperStatusTabData) => ({
+      ...paperStatusTabData,
+      tableRowsDisplayed: filteredRows,
+    }))
+  }
+
+  const handleQuerySearchInfoClick = () => {
+    $('#query-search-info').modal('show')
+  }
+
+  const handleReverseSort = () => {
+    setPaperStatusTabData((data) => ({
+      ...data,
+      tableRowsDisplayed: [...data.tableRowsDisplayed].reverse(),
+    }))
+  }
+
+  useEffect(() => {
+    if (!searchTerm) {
+      setPaperStatusTabData((paperStatusTabData) => ({
+        ...paperStatusTabData,
+        tableRowsDisplayed: paperStatusTabData.tableRows,
+      }))
+      return
+    }
+    const cleanSearchTerm = searchTerm.trim().toLowerCase()
+    if (shouldEnableQuerySearch && cleanSearchTerm.startsWith('+')) return // handled in keyDownHandler
+    setPaperStatusTabData((paperStatusTabData) => ({
+      ...paperStatusTabData,
+      tableRowsDisplayed: paperStatusTabData.tableRows.filter((row) => {
+        const noteTitle =
+          row.note.version === 2 ? row.note.content?.title?.value : row.note.content?.title
+        return (
+          row.note.number == cleanSearchTerm || // eslint-disable-line eqeqeq
+          noteTitle.toLowerCase().includes(cleanSearchTerm)
+        )
+      }),
+    }))
+  }, [searchTerm])
+
+  useEffect(() => {
+    setPaperStatusTabData((data) => ({
+      ...data,
+      tableRowsDisplayed: orderBy(data.tableRowsDisplayed, sortOption.getValue),
+    }))
+  }, [sortOption])
+
+  return (
+    <div className="menu-bar">
+      <div className="message-button-container">
+        <button className={`btn message-button${disabledMessageButton ? ' disabled' : ''}`}>
+          <Icon name="envelope" />
+          <Dropdown
+            className={`dropdown-sm message-button-dropdown${
+              disabledMessageButton ? ' dropdown-disable' : ''
+            }`}
+            options={messageReviewerOptions}
+            components={{
+              IndicatorSeparator: () => null,
+              DropdownIndicator: () => null,
+            }}
+            value={{ label: 'Message', value: '' }}
+            onChange={handleMessageDropdownChange}
+            isSearchable={false}
+          />
+        </button>
+      </div>
+      <div className="btn-group">
+        <ExportCSV records={tableRowsDisplayed} fileName={exportFileName} />
+      </div>
+      <span className="search-label">Search:</span>
+      {isQuerySearch && shouldEnableQuerySearch && (
+        <div role="button" onClick={handleQuerySearchInfoClick}>
+          <Icon name="info-sign" />
+        </div>
+      )}
+      <input
+        className={`form-control search-input${queryIsInvalidStatus ? ' invalid-value' : ''}`}
+        placeholder={`Enter search term${
+          shouldEnableQuerySearch ? ' or type + to start a query and press enter' : ''
+        }`}
+        value={immediateSearchTerm}
+        onChange={(e) => {
+          setImmediateSearchTerm(e.target.value)
+          setQueryIsInvalidStatus(false)
+          setIsQuerySearch(e.target.value.trim().startsWith('+'))
+          delaySearch(e.target.value)
+        }}
+        onKeyDown={(e) => keyDownHandler(e)}
+      />
+      <span className="sort-label">Sort by:</span>
+      <Dropdown
+        className="dropdown-sm sort-dropdown"
+        value={sortOption}
+        options={sortDropdownOptions}
+        onChange={(e) => setSortOption(e)}
+      />
+      <button className="btn btn-icon sort-button" onClick={handleReverseSort}>
+        <Icon name="sort" />
+      </button>
+      {/* <MessageReviewersModal
+        tableRowsDisplayed={tableRowsDisplayed}
+        messageOption={messageOption}
+        shortPhrase={shortPhrase}
+        selectedNoteIds={selectedNoteIds}
+        venueId={venueId}
+        officialReviewName={officialReviewName}
+        submissionName={submissionName}
+      /> */}
+      {isQuerySearch && shouldEnableQuerySearch && (
+        <QuerySearchInfoModal
+          filterOperators={filterOperators}
+          propertiesAllowed={propertiesAllowed}
+        />
+      )}
+    </div>
+  )
+}
+
+const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds }) => {
+  const { areaChairsId, venueId, officialReviewName, shortPhrase, recommendationName } =
+    useContext(WebFieldContext)
+  const { note, metaReviewData } = rowData
+  const referrerUrl = encodeURIComponent(
+    `[Program Chair Console](/group?id=${venueId}/Program_Chairs#paper-status)`
+  )
+  const noteWithAuthorRevealed = {
+    ...note,
+    content: {
+      ...note.content,
+      authors: note.details.original?.content?.authors ?? note.content.authors,
+      authorids: note.details.original?.content?.authorids ?? note.content.authorids,
+    },
+  }
+  return (
+    <tr>
+      <td>
+        <input
+          type="checkbox"
+          checked={selectedNoteIds.includes(note.id)}
+          onChange={(e) => {
+            if (e.target.checked) {
+              setSelectedNoteIds((noteIds) => [...noteIds, note.id])
+              return
+            }
+            setSelectedNoteIds((noteIds) => noteIds.filter((p) => p !== note.id))
+          }}
+        />
+      </td>
+      <td>
+        <strong className="note-number">{note.number}</strong>
+      </td>
+      <td>
+        <NoteSummary
+          note={noteWithAuthorRevealed}
+          referrerUrl={referrerUrl}
+          isV2Note={note.version === 2}
+        />
+      </td>
+      <td>
+        <AreaChairConsoleNoteReviewStatus
+          rowData={rowData}
+          venueId={venueId}
+          officialReviewName={officialReviewName}
+          referrerUrl={referrerUrl}
+          shortPhrase={shortPhrase}
+          submissionName="Paper"
+        />
+      </td>
+      {areaChairsId && (
+        <td>
+          <ProgramChairConsolePaperAreaChairProgress
+            metaReviewData={metaReviewData}
+            referrerUrl={referrerUrl}
+          />
+        </td>
+      )}
+      <td className="console-decision">
+        <h4 className="title">{note.details?.decision?.content?.decision ?? 'No Decision'}</h4>
+      </td>
+    </tr>
+  )
+}
+
+const PaperStatusTab = ({ pcConsoleData }) => {
+  const [paperStatusTabData, setPaperStatusTabData] = useState({})
+  const [selectedNoteIds, setSelectedNoteIds] = useState([])
+  const {
+    areaChairsId,
+    reviewRatingName,
+    reviewConfidenceName,
+    recommendationName,
+    venueId,
+    officialMetaReviewName,
+  } = useContext(WebFieldContext)
+  const [pageNumber, setPageNumber] = useState(1)
+  const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
+  const pageSize = 3
+
+  const getReviewerName = (reviewerProfile) => {
+    const name =
+      reviewerProfile.content.names.find((t) => t.preferred) ||
+      reviewerProfile.content.names[0]
+    return name ? prettyId(reviewerProfile.id) : `${name.first} ${name.last}`
+  }
+
+  useEffect(() => {
+    // #region calculate reviewProgressData and metaReviewData
+    const notes = pcConsoleData.notes
+    const tableRows = notes.map((note) => {
+      const assignedReviewers =
+        pcConsoleData.paperGroups.reviewerGroups?.find(
+          (group) => group.noteNumber === note.number
+        )?.members ?? []
+
+      const assignedReviewerProfiles = assignedReviewers.map((reviewer) => {
+        return {
+          id: reviewer.reviewerProfileId,
+          profile: pcConsoleData.allProfiles?.find(
+            (p) =>
+              p.content.names.some((q) => q.username === reviewer.reviewerProfileId) ||
+              p.content.emails.includes(reviewer.reviewerProfileId)
+          ),
+        }
+      })
+
+      const assignedAreaChairs =
+        pcConsoleData.paperGroups.areaChairGroups?.find(
+          (group) => group.noteNumber === note.number
+        )?.members ?? []
+
+      const assignedAreaChairProfiles = assignedAreaChairs.map((areaChair) => {
+        return {
+          id: areaChair.areaChairProfileId,
+          profile: pcConsoleData.allProfiles?.find(
+            (p) =>
+              p.content.names.some((q) => q.username === areaChair.areaChairProfileId) ||
+              p.content.emails.includes(areaChair.areaChairProfileId)
+          ),
+        }
+      })
+
+      const officialReviews =
+        pcConsoleData.officialReviewsByPaperNumber
+          .find((p) => p.noteNumber === note.number)
+          ?.officialReviews?.map((q) => {
+            const isV2Note = q.version === 2
+            // const anonymousId = getNumberFromGroup(q.signatures[0], 'Reviewer_', false)
+            const reviewRatingValue = isV2Note
+              ? q.content[reviewRatingName]?.value
+              : q.content[reviewRatingName]
+            const ratingNumber = reviewRatingValue
+              ? reviewRatingValue.substring(0, reviewRatingValue.indexOf(':'))
+              : null
+            const confidenceValue = isV2Note
+              ? q.content[reviewConfidenceName]?.value
+              : q.content[reviewConfidenceName]
+            const confidenceMatch = confidenceValue && confidenceValue.match(/^(\d+): .*/)
+            const reviewValue = isV2Note ? q.content.review?.value : q.content.review
+            return {
+              anonymousId: q.anonId,
+              confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
+              rating: ratingNumber ? parseInt(ratingNumber, 10) : null,
+              reviewLength: reviewValue?.length,
+              id: q.id,
+            }
+          }) ?? []
+      const ratings = officialReviews.map((p) => p.rating)
+      const validRatings = ratings.filter((p) => p !== null)
+      const ratingAvg = validRatings.length
+        ? (validRatings.reduce((sum, curr) => sum + curr, 0) / validRatings.length).toFixed(2)
+        : 'N/A'
+      const ratingMin = validRatings.length ? Math.min(...validRatings) : 'N/A'
+      const ratingMax = validRatings.length ? Math.max(...validRatings) : 'N/A'
+
+      const confidences = officialReviews.map((p) => p.confidence)
+      const validConfidences = confidences.filter((p) => p !== null)
+      const confidenceAvg = validConfidences.length
+        ? (
+            validConfidences.reduce((sum, curr) => sum + curr, 0) / validConfidences.length
+          ).toFixed(2)
+        : 'N/A'
+      const confidenceMin = validConfidences.length ? Math.min(...validConfidences) : 'N/A'
+      const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
+
+      const metaReviews =
+        pcConsoleData.metaReviewsByPaperNumber?.find((p) => p.noteNumber === note.number)
+          ?.metaReviews ?? []
+
+      return {
+        note,
+        reviewers: assignedReviewers?.map((reviewer) => {
+          const profile = assignedReviewerProfiles.find(
+            (p) => p.id === reviewer.reviewerProfileId
+          )?.profile
+          return {
+            ...reviewer,
+            type: 'reviewer',
+            profile,
+            hasReview: officialReviews.some((p) => p.anonymousId === reviewer.anonymousId),
+            noteNumber: note.number,
+            preferredName: profile ? getReviewerName(profile) : reviewer.reviewerProfileId,
+            preferredEmail: profile
+              ? profile.content.preferredEmail ?? profile.content.emails[0]
+              : reviewer.reviewerProfileId,
+          }
+        }),
+        reviewerProfiles: assignedReviewerProfiles,
+        officialReviews,
+        reviewProgressData: {
+          reviewers: assignedReviewerProfiles,
+          numReviewersAssigned: assignedReviewers.length,
+          numReviewsDone: officialReviews.length,
+          ratingAvg,
+          ratingMax,
+          ratingMin,
+          confidenceAvg,
+          confidenceMax,
+          confidenceMin,
+          replyCount: note.details.replyCount,
+        },
+        metaReviewData: {
+          // [metaReviewContentField]:
+          //   metaReview?.version === 2
+          //     ? metaReview?.content[metaReviewContentField]?.value
+          //     : metaReview?.content[metaReviewContentField],
+          // metaReviewInvitationId: `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`,
+
+          numAreaChairsAssigned: assignedAreaChairs.length,
+          areaChairs: assignedAreaChairs.map((areaChair) => {
+            const profile = assignedAreaChairProfiles.find(
+              (p) => p.id === areaChair.areaChairProfileId
+            )?.profile
+            return {
+              ...areaChair,
+              preferredName: profile ? getReviewerName(profile) : areaChair.areaChairProfileId,
+              preferredEmail: profile
+                ? profile.content.preferredEmail ?? profile.content.emails[0]
+                : areaChair.areaChairProfileId,
+            }
+          }),
+          numMetaReviewsDone: metaReviews.length,
+          metaReviews: metaReviews.map((metaReview) => {
+            return {
+              [recommendationName]:
+                metaReview?.version === 2
+                  ? metaReview?.content[recommendationName]?.value
+                  : metaReview?.content[recommendationName],
+              ...metaReview,
+            }
+          }),
+        },
+      }
+    })
+
+    setPaperStatusTabData({
+      tableRows,
+      tableRowsDisplayed: tableRows,
+      // reviewersInfo: result[1],
+      // allProfiles,
+      // sacProfile: sacProfile
+      //   ? {
+      //       id: sacProfile.id,
+      //       email: sacProfile.content.preferredEmail ?? sacProfile.content.emails[0],
+      //     }
+      //   : null,
+    })
+
+    // const sacProfile = pcConsoleData.allProfiles?.find(
+    //   (p) =>
+    //     p.content.names.some((q) => q.username === result[2]) ||
+    //     p.content.emails.includes(result[2])
+    // )
+    // #endregion
+  }, [])
+
+  useEffect(() => {
+    setPaperStatusTabData((paperStatusTabData) => ({
+      ...paperStatusTabData,
+      tableRowsDisplayed: paperStatusTabData.tableRows.slice(
+        pageSize * (pageNumber - 1),
+        pageSize * (pageNumber - 1) + pageSize
+      ),
+    }))
+  }, [pageNumber])
+
+  if (paperStatusTabData.tableRows?.length === 0)
+    return (
+      <p className="empty-message">
+        No papers have been submitted.Check back later or contact info@openreview.net if you
+        believe this to be an error.
+      </p>
+    )
+  if (paperStatusTabData.tableRowsDisplayed?.length === 0)
+    return (
+      <div className="table-container empty-table-container">
+        <MenuBar
+          tableRows={paperStatusTabData.tableRows}
+          tableRowsDisplayed={paperStatusTabData.tableRowsDisplayed}
+          selectedNoteIds={selectedNoteIds}
+          setPaperStatusTabData={setPaperStatusTabData}
+        />
+        <p className="empty-message">No papers matching search criteria.</p>
+      </div>
+    )
+  return (
+    <div className="table-container">
+      <MenuBar
+        tableRows={paperStatusTabData.tableRows}
+        tableRowsDisplayed={paperStatusTabData.tableRowsDisplayed}
+        selectedNoteIds={selectedNoteIds}
+        setPaperStatusTabData={setPaperStatusTabData}
+      />
+      <Table
+        className="console-table table-striped programchair-console-table"
+        headings={[
+          {
+            id: 'select-all',
+            content: (
+              <SelectAllCheckBox
+                selectedNoteIds={selectedNoteIds}
+                setSelectedNoteIds={setSelectedNoteIds}
+                allNoteIds={paperStatusTabData.tableRowsDisplayed?.map((row) => row.note.id)}
+              />
+            ),
+          },
+          { id: 'number', content: '#' },
+          { id: 'summary', content: 'Paper Summary' },
+          { id: 'reviewProgress', content: 'Review Progress' },
+          ...(areaChairsId ? [{ id: 'status', content: 'Status' }] : []),
+          { id: 'decision', content: 'Decision' },
+        ]}
+      >
+        {paperStatusTabData.tableRowsDisplayed?.map((row) => (
+          <PaperRow
+            key={row.note.id}
+            rowData={row}
+            selectedNoteIds={selectedNoteIds}
+            setSelectedNoteIds={setSelectedNoteIds}
+          />
+        ))}
+      </Table>
+      <PaginationLinks
+        currentPage={pageNumber}
+        itemsPerPage={pageSize}
+        totalCount={totalCount}
+        setCurrentPage={setPageNumber}
+        options={{ noScroll: true }}
+      />
+    </div>
+  )
+}
+
+// #endregion
+
 const ProgramChairConsole = ({ appContext }) => {
   const {
     header,
@@ -897,6 +1514,10 @@ const ProgramChairConsole = ({ appContext }) => {
     anonReviewerName,
     anonAreaChairName,
     scoresName,
+    shortPhrase,
+    enableQuerySearch,
+    reviewRatingName,
+    reviewConfidenceName,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -1003,7 +1624,7 @@ const ProgramChairConsole = ({ appContext }) => {
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) => {
           return id
             ? api.getGroupById(id, accessToken, { select: 'members' })
-            : Promise.resolve(null)
+            : Promise.resolve([])
         })
       )
       // #endregion
@@ -1066,12 +1687,14 @@ const ProgramChairConsole = ({ appContext }) => {
       const areaChairGroups = []
       const anonAreaChairGroups = {}
       const seniorAreaChairGroups = []
+      let allGroupMembers = []
       perPaperGroupResults.groups?.forEach((group) => {
         if (group.id.endsWith('/Reviewers')) {
           reviewerGroups.push({
             noteNumber: getNumberFromGroup(group.id, 'Paper'),
             ...group,
           })
+          allGroupMembers = allGroupMembers.concat(group.members)
         } else if (group.id.includes(anonReviewerName)) {
           const number = getNumberFromGroup(group.id, 'Paper')
           if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
@@ -1081,18 +1704,49 @@ const ProgramChairConsole = ({ appContext }) => {
             noteNumber: getNumberFromGroup(group.id, 'Paper'),
             ...group,
           })
+          allGroupMembers = allGroupMembers.concat(group.members)
         } else if (group.id.includes(anonAreaChairName)) {
           const number = getNumberFromGroup(group.id, 'Paper')
           if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
           if (group.members.length) anonAreaChairGroups[number][group.members[0]] = group.id
         } else if (group.id.endsWith('Senior_Area_Chairs')) {
           seniorAreaChairGroups.push(group)
+          allGroupMembers = allGroupMembers.concat(group.members)
         }
       })
       // #endregion
 
+      // #region get all profiles
+      const allIds = [...new Set(allGroupMembers)]
+      const ids = allIds.filter((p) => p.startsWith('~'))
+      const emails = allIds.filter((p) => p.match(/.+@.+/))
+      const getProfilesByIdsP = ids.length
+        ? api.post(
+            '/profiles/search',
+            {
+              ids,
+            },
+            { accessToken }
+          )
+        : Promise.resolve([])
+      const getProfilesByEmailsP = emails.length
+        ? api.post(
+            '/profiles/search',
+            {
+              emails,
+            },
+            { accessToken }
+          )
+        : Promise.resolve([])
+      const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
+      const allProfiles = (profileResults[0].profiles ?? []).concat(
+        profileResults[1].profiles ?? []
+      )
+      // #endregion
+
       setPcConsoleData({
         invitations: invitationResults.flat(),
+        allProfiles,
         requestForm,
         registrationForms,
         reviewers: committeeMemberResults[0]?.members ?? [],
@@ -1102,18 +1756,29 @@ const ProgramChairConsole = ({ appContext }) => {
         officialReviewsByPaperNumber: notes.map((note) => {
           return {
             noteNumber: note.number,
-            officialReviews: note.details.directReplies.filter(
-              (p) => p.invitation === `${venueId}/Paper${note.number}/-/${officialReviewName}`
-            ),
+            officialReviews: note.details.directReplies
+              .filter(
+                (p) =>
+                  p.invitation === `${venueId}/Paper${note.number}/-/${officialReviewName}`
+              )
+              ?.map((review) => ({
+                ...review,
+                anonId: getNumberFromGroup(review.signatures[0], 'Reviewer_', false),
+              })),
           }
         }),
         metaReviewsByPaperNumber: notes.map((note) => {
           return {
             noteNumber: note.number,
-            metaReviews: note.details.directReplies.filter(
-              (p) =>
-                p.invitation === `${venueId}/Paper${note.number}/-/${officialMetaReviewName}`
-            ),
+            metaReviews: note.details.directReplies
+              .filter(
+                (p) =>
+                  p.invitation === `${venueId}/Paper${note.number}/-/${officialMetaReviewName}`
+              )
+              ?.map((metaReview) => ({
+                ...metaReview,
+                anonId: getNumberFromGroup(metaReview.signatures[0], 'Area_Chair_', false),
+              })),
           }
         }),
         decisionByPaperNumber: notes.map((note) => {
@@ -1133,9 +1798,39 @@ const ProgramChairConsole = ({ appContext }) => {
         },
         paperGroups: {
           anonReviewerGroups,
-          reviewerGroups,
+          reviewerGroups: reviewerGroups.map((reviewerGroup) => {
+            const paperAnonReviewerGroups = anonReviewerGroups[reviewerGroup.noteNumber]
+            return {
+              ...reviewerGroup,
+              members: reviewerGroup.members.map((member) => {
+                const reviewerAnonGroup = paperAnonReviewerGroups[member]
+                return {
+                  reviewerProfileId: member,
+                  reviewerAnonGroup,
+                  anonymousId: reviewerAnonGroup
+                    ? getNumberFromGroup(reviewerAnonGroup, 'Reviewer_', false)
+                    : null,
+                }
+              }),
+            }
+          }),
           anonAreaChairGroups,
-          areaChairGroups,
+          areaChairGroups: areaChairGroups.map((areaChairGroup) => {
+            const paperAnonAreaChairGroups = anonAreaChairGroups[areaChairGroup.noteNumber]
+            return {
+              ...areaChairGroup,
+              members: areaChairGroup.members.map((member) => {
+                const areaChairAnonGroup = paperAnonAreaChairGroups[member]
+                return {
+                  areaChairProfileId: member,
+                  areaChairAnonGroup,
+                  anonymousId: areaChairAnonGroup
+                    ? getNumberFromGroup(areaChairAnonGroup, 'Area_Chair_', false)
+                    : null,
+                }
+              }),
+            }
+          }),
           seniorAreaChairGroups,
         },
       })
@@ -1208,7 +1903,11 @@ const ProgramChairConsole = ({ appContext }) => {
           <TabPanel id="venue-configuration">
             <OverviewTab pcConsoleData={pcConsoleData} />
           </TabPanel>
-          <TabPanel id="paper-status">{activeTabId === 'paper-status' && <>2</>}</TabPanel>
+          <TabPanel id="paper-status">
+            {activeTabId === 'paper-status' && (
+              <PaperStatusTab pcConsoleData={pcConsoleData} />
+            )}
+          </TabPanel>
           {areaChairsId && activeTabId === 'areachair-status' && (
             <TabPanel id="areachair-status">
               <>3</>

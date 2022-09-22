@@ -30,7 +30,7 @@
       cursor: pointer;
 
       > span.badge {
-        margin-left: .375rem;
+        margin-left: 0.375rem;
         margin-top: -2px;
       }
 
@@ -1472,6 +1472,13 @@ header,
     span.cmt-number {
       color: #a11;
     }
+  }
+}
+
+.collapse-widget {
+  .collapse-indent {
+    border-left: 2px solid constants.$backgroundGray;
+    padding-left: 0.75rem;
   }
 }
 

@@ -62,6 +62,36 @@
   }
 }
 
+.message-button .dropdown-select {
+  &__control {
+    background-color: unset;
+    border: none;
+    width: fit-content;
+  }
+  &__placeholder {
+    color: white;
+  }
+  &__single-value {
+    color: white !important;
+    font-size: 0.875rem;
+  }
+  &__indicator &__dropdown-indicator {
+    color: white;
+  }
+  &__menu {
+    background-color: white;
+    width: fit-content;
+  }
+  &__menu-list {
+    width: fit-content;
+  }
+  &__option {
+    color: black;
+    text-align: left;
+    font-weight: normal;
+  }
+}
+
 .dropdown-disable {
   opacity: 0.5;
   pointer-events: none;

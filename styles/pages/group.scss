@@ -181,8 +181,73 @@ main.invitation {
     }
   }
 
+  .menu-bar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.25rem;
+    .message-button-container {
+      margin-right: 0.25rem;
+      .message-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.05rem 0.1rem;
+      }
+    }
+    .btn-export-data {
+      margin-right: 0.25rem;
+
+      a {
+        color: white;
+      }
+    }
+    .search-label {
+      margin-right: 0.25rem;
+      font-weight: bold;
+    }
+
+    .search-input {
+      margin-right: 0.25rem;
+      width: 50%;
+
+      &.invalid-value {
+        border-color: constants.$orRed;
+      }
+    }
+
+    .sort-label {
+      margin-right: 0.25rem;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .sort-dropdown {
+      width: 18%;
+      margin-right: 0.25rem;
+      .dropdown-select {
+        &__menu {
+          width: fit-content;
+        }
+        &__option {
+          white-space: nowrap;
+        }
+      }
+    }
+
+    .message-body {
+      resize: vertical;
+    }
+  }
+
   table {
     margin-bottom: 0;
+  }
+
+  .empty-table-container {
+    .empty-message {
+      margin-left: 0.5rem;
+    }
   }
 
   .console-table,
@@ -281,6 +346,80 @@ main.invitation {
     }
     .row-4 {
       width: auto;
+    }
+  }
+
+  .areachair-console-table,
+  .programchair-console-table {
+    table-layout: auto;
+    .empty-message {
+      margin-left: 0.5rem;
+    }
+
+    .console-reviewer-progress {
+      display: flex;
+      flex-direction: column;
+
+      .send-reminder-link {
+        margin-right: 0.25rem;
+      }
+
+      .assigned-reviewers {
+        margin-bottom: 0.5rem;
+
+        .assigned-reviewer-row {
+          display: flex;
+          flex-direction: row;
+          margin-bottom: 0.25rem;
+          align-items: baseline;
+          .assigned-reviewer-id {
+            font-size: 0.75rem;
+          }
+
+          .assigned-reviewer-action {
+            display: flex;
+            flex-direction: column;
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+          }
+        }
+      }
+    }
+
+    .reviewer-activity-header {
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+      span {
+        margin-right: 0.25rem;
+        strong {
+          color: constants.$orRed;
+        }
+      }
+    }
+    .alert-danger {
+      word-wrap: break-word;
+    }
+  }
+
+  .programchair-console-table {
+    table-layout: auto;
+    .areachair-progress {
+      .title {
+        white-space: nowrap;
+      }
+    }
+    .console-meta-review {
+      margin-right: 0.5rem;
+      .title {
+        white-space: nowrap;
+      }
+    }
+
+    .console-decision {
+      margin-right: 0.5rem;
+      .title {
+        white-space: nowrap;
+      }
     }
   }
 

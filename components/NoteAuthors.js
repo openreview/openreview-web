@@ -13,7 +13,7 @@ const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
   let showPrivateLabel
   if (original?.content?.authors && !isEqual(authors, original.content.authors)) {
     displayAuthors = original.content.authors
-    displayAuthorIds = original.content.authorIds || []
+    displayAuthorIds = original.content.authorids || []
     showPrivateLabel = true
   } else {
     displayAuthors = authors

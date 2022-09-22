@@ -1,5 +1,6 @@
-import NoteContentCollapsible from './NoteContentCollapsible'
 import { forumDate, getNotePdfUrl } from '../../lib/utils'
+import Collapse from '../Collapse'
+import NoteContent, { NoteContentV2 } from '../NoteContent'
 
 const NoteSummary = ({ note, referrerUrl, isV2Note, showDates = false }) => {
   const titleValue = isV2Note ? note.content?.title?.value : note.content?.title
@@ -48,12 +49,23 @@ const NoteSummary = ({ note, referrerUrl, isV2Note, showDates = false }) => {
         </div>
       )}
 
-      <NoteContentCollapsible
-        id={note.id}
-        content={note.content}
-        invitation={note.invitation}
-        isV2Note={isV2Note}
-      />
+      <Collapse showLabel="Show details" hideLabel="Hide details">
+        {isV2Note ? (
+          <NoteContentV2
+            id={note.id}
+            content={note.content}
+            invitation={note.invitation}
+            include={['html']}
+          />
+        ) : (
+          <NoteContent
+            id={note.id}
+            content={note.content}
+            invitation={note.invitation}
+            include={['html']}
+          />
+        )}
+      </Collapse>
     </div>
   )
 }
