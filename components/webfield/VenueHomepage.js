@@ -2,6 +2,7 @@
 /* globals Webfield, Webfield2: false */
 /* globals typesetMathJax: false */
 /* globals promptError: false */
+/* globals promptMessage: false */
 
 import { useState, useContext, useEffect, useRef } from 'react'
 import Link from 'next/link'
@@ -137,6 +138,7 @@ export default function VenueHomepage({ appContext }) {
     blindSubmissionId, // v1
     withdrawnSubmissionId,
     deskRejectedSubmissionId,
+    submissionConfirmationMessage,
     showSubmissions,
     showActivity,
     authorsGroupId,
@@ -217,7 +219,10 @@ export default function VenueHomepage({ appContext }) {
           <SubmissionButton
             invitationId={submissionId}
             apiVersion={apiVersion}
-            onNoteCreated={() => {}}
+            onNoteCreated={() => {
+              const defaultConfirmationMessage = 'Your submission is complete. Check your inbox for a confirmation email. The author console page for managing your submissions will be available soon.'
+              promptMessage(submissionConfirmationMessage || defaultConfirmationMessage)
+            }}
             options={{ largeLabel: true }}
           />
         </div>
