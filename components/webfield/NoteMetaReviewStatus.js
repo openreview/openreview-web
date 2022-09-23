@@ -100,19 +100,15 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
     <div className="areachair-console-meta-review">
       {metaReviewData[metaReviewContentField] ? (
         <>
-          {
-            <>
-              <h4 className="title">AC Recommendation:</h4>
-              <p>
-                <strong>{metaReviewData[metaReviewContentField]}</strong>
-              </p>
-              <p>
-                <a href={editUrl} target="_blank" rel="nofollow noreferrer">{`Read${
-                  metaReviewInvitation ? '/Edit' : ''
-                }`}</a>
-              </p>
-            </>
-          }
+          <h4 className="title">AC Recommendation:</h4>
+          <p>
+            <strong>{metaReviewData[metaReviewContentField]}</strong>
+          </p>
+          <p>
+            <a href={editUrl} target="_blank" rel="nofollow noreferrer">{`Read${
+              metaReviewInvitation ? '/Edit' : ''
+            }`}</a>
+          </p>
         </>
       ) : (
         <h4>
