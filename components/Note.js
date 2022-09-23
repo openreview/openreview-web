@@ -88,8 +88,8 @@ const Note = ({ note, invitation, options }) => {
         <li className="readers">
           Readers: <NoteReaders readers={note.readers} />
         </li>
-        {options.replyCount && (
-          <li>{inflect(note.details.replyCount, 'Reply', 'Replies', true)}</li>
+        {(options.replyCount && typeof note.details?.replyCount === 'number') && (
+          <li>{inflect(note.details?.replyCount, 'Reply', 'Replies', true)}</li>
         )}
       </ul>
       {renderNoteContent()}
@@ -179,8 +179,8 @@ export const NoteV2 = ({ note, options }) => {
         <li className="readers">
           Readers: <NoteReaders readers={note.readers} />
         </li>
-        {options.replyCount && (
-          <li>{inflect(note.details.replyCount, 'Reply', 'Replies', true)}</li>
+        {(options.replyCount && typeof note.details?.replyCount === 'number') && (
+          <li>{inflect(note.details?.replyCount, 'Reply', 'Replies', true)}</li>
         )}
       </ul>
       {renderNoteContent()}

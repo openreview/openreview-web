@@ -13,7 +13,7 @@ const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
   let showPrivateLabel
   if (original?.content?.authors && !isEqual(authors, original.content.authors)) {
     displayAuthors = original.content.authors
-    displayAuthorIds = original.content.authorIds || []
+    displayAuthorIds = original.content.authorids || []
     showPrivateLabel = true
   } else {
     displayAuthors = authors
@@ -86,8 +86,8 @@ const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
 
 export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) => {
   let showPrivateLabel = false
-  if (authorIds?.readers && !isEqual(noteReaders?.sort(), authorIds?.readers?.sort())) {
-    showPrivateLabel = true
+  if (authorIds?.readers && !isEqual(noteReaders?.sort(), authorIds.readers.sort())) {
+    showPrivateLabel = !authorIds.readers.includes('everyone')
   }
 
   let authorsList

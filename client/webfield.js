@@ -1517,13 +1517,14 @@ module.exports = (function() {
       if (!existingNote) {
         return;
       }
-      var details = existingNote.details;
-      existingNote = _.omit(existingNote, ['details']);
 
       view.deleteOrRestoreNote(existingNote, noteTitle, user, function(newNote) {
-        details.isDeleted = true;
         $note.addClass('trashed').html(
-          noteTemplateFn(Object.assign({}, newNote, { details: details, options: options }))
+          noteTemplateFn({
+            ...newNote,
+            details: { ...existingNote.details, isDeleted: true },
+            options: options
+          })
         );
         return _.isFunction(options.onNoteTrashed) ? options.onNoteTrashed(newNote) : true;
       });
@@ -1786,8 +1787,6 @@ module.exports = (function() {
       }
     });
 
-    temporaryMarkExpertiseCompleted(allInvitations);
-
     var $container = $(options.container);
     var taskListHtml = Handlebars.templates['partials/taskList']({
       invitations: allInvitations,
@@ -1795,21 +1794,6 @@ module.exports = (function() {
     });
 
     $container.append(taskListHtml);
-  };
-
-  // Temporary hack:
-  // Mark expertise selection task as completed when reviewer profile confirmation
-  // or AC profile confirmation tasks are complete
-  var temporaryMarkExpertiseCompleted = function(invitationsGroup) {
-    var profileConfirmationInv = _.find(invitationsGroup, function(inv) {
-      return _.endsWith(inv.id, 'Profile_Confirmation') || _.endsWith(inv.id, 'Registration');
-    });
-    var expertiseInv = _.find(invitationsGroup, function(inv) {
-      return _.endsWith(inv.id, 'Expertise_Selection');
-    });
-    if (expertiseInv && profileConfirmationInv && profileConfirmationInv.completed) {
-      expertiseInv.completed = true;
-    }
   };
 
   var errorMessage = function(message) {

@@ -14,7 +14,7 @@ import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 const ForumPage = ({ forumNote, appContext }) => {
   const query = useQuery()
   const { setBannerContent, clientJsLoading } = appContext
-  const { id, invitations, domain, content, cdate, tcdate, tmdate } = forumNote
+  const { id, invitations, domain, content, cdate, tcdate, tmdate, pdate } = forumNote
   const convertedContent = getNoteContentValues(content)
   const truncatedTitle = truncate(convertedContent.title, { length: 70, separator: /,? +/ })
   const truncatedAbstract = truncate(convertedContent['TL;DR'] || convertedContent.abstract, {
@@ -29,7 +29,7 @@ const ForumPage = ({ forumNote, appContext }) => {
     .toISOString()
     .slice(0, 10)
     .replace(/-/g, '/')
-  const modificationDate = new Date(tmdate || Date.now())
+  const modificationDate = new Date(pdate || tmdate || Date.now())
     .toISOString()
     .slice(0, 10)
     .replace(/-/g, '/')
@@ -83,8 +83,8 @@ const ForumPage = ({ forumNote, appContext }) => {
             {authors.map((author) => (
               <meta key={author} name="citation_author" content={author} />
             ))}
-            <meta name="citation_publication_date" content={creationDate} />
-            <meta name="citation_online_date" content={modificationDate} />
+            <meta name="citation_publication_date" content={modificationDate} />
+            <meta name="citation_online_date" content={creationDate} />
             {convertedContent.pdf && (
               <meta name="citation_pdf_url" content={`https://openreview.net/pdf?id=${id}`} />
             )}
