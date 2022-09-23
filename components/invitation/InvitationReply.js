@@ -133,7 +133,7 @@ export function InvitationReplyV2({
           readers: [profileId],
           writers: [profileId],
           signatures: [profileId],
-          ...(!isMetaInvitation && { invitations: metaInvitationId })
+          ...(!isMetaInvitation && { invitations: metaInvitationId }),
         }
       case 'content':
         return {
@@ -188,7 +188,10 @@ export function InvitationReplyV2({
     }
 
     if (replyField === 'content') {
-      code = pickBy(code, (_value, key) => !key.endsWith('_script'))
+      code = pickBy(
+        code,
+        (valueObj, key) => !key.endsWith('_script') || typeof valueObj.value !== 'string'
+      )
     }
     setReplyString(JSON.stringify(code, undefined, 2))
   }, [invitation, replyField])

@@ -12,7 +12,9 @@ export default function InvitationProcessFunctionsV2({
   loadInvitation,
   isMetaInvitation,
 }) {
-  const contentScripts = Object.keys(invitation.content ?? {}).filter((key) => key.endsWith('_script'))
+  const contentScripts = Object.keys(invitation.content ?? {}).filter(
+    (key) => key.endsWith('_script') && typeof invitation.content[key].value === 'string'
+  )
   if (contentScripts.length === 0) {
     return null
   }
