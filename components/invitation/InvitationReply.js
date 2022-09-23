@@ -1,6 +1,7 @@
 /* globals promptError,promptMessage,view: false */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import pickBy from 'lodash/pickBy'
 import EditorSection from '../EditorSection'
 import CodeEditor from '../CodeEditor'
 import SpinnerButton from '../SpinnerButton'
@@ -92,69 +93,63 @@ export default function InvitationReply({
   )
 }
 
-export const InvitationReplyV2 = ({
+export function InvitationReplyV2({
   invitation,
   profileId,
   accessToken,
   loadInvitation,
   replyField,
+  isMetaInvitation = false,
   readOnly = false,
-}) => {
-  const [replyString, setReplyString] = useState(
-    invitation[replyField] ? JSON.stringify(invitation[replyField], undefined, 2) : '[]'
-  )
+}) {
+  const [replyString, setReplyString] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
   const titleMap = {
     edge: 'Edge',
     edit: 'Edit',
     replyForumViews: 'Reply Forum Views',
+    content: 'Content',
   }
   const sectionTitle = titleMap[replyField] || replyField
 
   const getRequestBody = (replyObj) => {
     const metaInvitationId = getMetaInvitationId(invitation)
+    if (!isMetaInvitation && !metaInvitationId) {
+      throw new Error('No meta invitation found')
+    }
+
     switch (replyField) {
-      case 'edge':
-        if (!metaInvitationId) throw new Error('No meta invitation found')
-        return {
-          invitation: {
-            id: invitation.id,
-            signatures: invitation.signatures,
-            edge: replyObj,
-          },
-          readers: [profileId],
-          writers: [profileId],
-          signatures: [profileId],
-          invitations: metaInvitationId,
-        }
-      case 'replyForumViews':
-        if (!metaInvitationId) throw new Error('No meta invitation found')
-        return {
-          invitation: {
-            id: invitation.id,
-            signatures: invitation.signatures,
-            replyForumViews: replyObj,
-          },
-          readers: [profileId],
-          writers: [profileId],
-          signatures: [profileId],
-          invitations: metaInvitationId,
-        }
       case 'edit':
-        if (!metaInvitationId) throw new Error('No meta invitation found')
+      case 'edge':
+      case 'replyForumViews':
         return {
           invitation: {
             id: invitation.id,
             signatures: invitation.signatures,
-            edit: {
+            [replyField]: replyObj,
+            ...(isMetaInvitation && { edit: true }),
+          },
+          readers: [profileId],
+          writers: [profileId],
+          signatures: [profileId],
+          ...(!isMetaInvitation && { invitations: metaInvitationId }),
+        }
+      case 'content':
+        return {
+          invitation: {
+            id: invitation.id,
+            signatures: invitation.signatures,
+            content: {
+              ...invitation.content,
               ...replyObj,
             },
+            ...(isMetaInvitation && { edit: true }),
           },
           readers: [profileId],
           writers: [profileId],
           signatures: [profileId],
-          invitations: metaInvitationId,
+          ...(!isMetaInvitation && { invitations: metaInvitationId }),
         }
       default:
         return null
@@ -162,17 +157,16 @@ export const InvitationReplyV2 = ({
   }
 
   const saveInvitationReply = async () => {
+    setIsSaving(true)
     try {
-      setIsSaving(true)
       const cleanReplyString = replyString.trim()
       const replyObj = JSON.parse(cleanReplyString.length ? cleanReplyString : '[]')
-      const requestPath = '/invitations/edits'
       const requestBody = getRequestBody(replyObj)
-      await api.post(requestPath, requestBody, {
+      await api.post('/invitations/edits', requestBody, {
         accessToken,
         version: 2,
       })
-      promptMessage(`Settings for '${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      promptMessage(`Settings for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
       loadInvitation(invitation.id)
     } catch (error) {
       let { message } = error
@@ -184,9 +178,29 @@ export const InvitationReplyV2 = ({
     setIsSaving(false)
   }
 
+  useEffect(() => {
+    if (!invitation || !replyField) return
+
+    let code = invitation[replyField]
+    if (!code) {
+      setReplyString(replyField === 'replyForumViews' ? '[]' : '{}')
+      return
+    }
+
+    if (replyField === 'content') {
+      code = pickBy(
+        code,
+        (valueObj, key) => !key.endsWith('_script') || typeof valueObj.value !== 'string'
+      )
+    }
+    setReplyString(JSON.stringify(code, undefined, 2))
+  }, [invitation, replyField])
+
   return (
     <EditorSection title={sectionTitle}>
-      <CodeEditor code={replyString} onChange={setReplyString} readOnly={readOnly} isJson />
+      {replyString && (
+        <CodeEditor code={replyString} onChange={setReplyString} readOnly={readOnly} isJson />
+      )}
 
       {!readOnly && (
         <div className="mt-2">
@@ -204,7 +218,7 @@ export const InvitationReplyV2 = ({
   )
 }
 
-// for v1 invitations only
+// For v1 invitations only
 export function InvitationReplyWithPreview({ invitation, accessToken, loadInvitation }) {
   const [replyString, setReplyString] = useState(
     invitation.reply ? JSON.stringify(invitation.reply, undefined, 2) : '[]'
