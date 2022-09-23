@@ -407,6 +407,17 @@ main.invitation {
       .title {
         white-space: nowrap;
       }
+      .meta-review-info {
+        display: flex;
+        flex-direction: column;
+        .areachair-contact {
+          display: flex;
+          .areachair-name {
+            white-space: nowrap;
+            margin-right: 0.5rem;
+          }
+        }
+      }
     }
     .console-meta-review {
       margin-right: 0.5rem;
@@ -459,7 +470,8 @@ main.invitation {
     .overview-list {
       padding-left: 15px;
     }
-    .overview-timeline {
+    .overview-timeline,
+    .overview-registration-link {
       white-space: nowrap;
     }
   }

@@ -75,53 +75,29 @@ export const ProgramChairConsolePaperAreaChairProgress = ({ metaReviewData, refe
           areaChairs.map((areaChair) => {
             const metaReview = metaReviews.find((p) => p.anonId === areaChair.anonymousId)
             return (
-              <>
-                <tr key={areaChair.id}>
-                  <td>
+              <div key={areaChair.anonymousId} className="meta-review-info">
+                <div className="areachair-contact">
+                  <span>
                     {areaChair.preferredName}{' '}
-                    {areaChair.preferredEmail && (
-                      <span className="text-muted">{`<${areaChair.preferredEmail}>`}</span>
-                    )}
-                  </td>
-                </tr>
+                    <span className="text-muted">&lt;{areaChair.preferredEmail}&gt;</span>
+                  </span>
+                </div>
                 {metaReview && (
-                  <>
-                    <tr>
-                      <td>Recommendation: {metaReview.content.recommendation}</td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <a
-                          href={`/forum?id=${metaReview.forum}&noteId=${metaReview.id}&referrer=${referrerUrl}`}
-                          target="_blank"
-                        >
-                          Read Meta Review
-                        </a>
-                      </td>
-                    </tr>
-                  </>
+                  <div>
+                    <span>Recommendation: {metaReview.content.recommendation}</span>
+                    <div>
+                      <a
+                        href={`/forum?id=${metaReview.forum}&noteId=${metaReview.id}&referrer=${referrerUrl}`}
+                        target="_blank"
+                      >
+                        Read Meta Review
+                      </a>
+                    </div>
+                  </div>
                 )}
-              </>
+              </div>
             )
           })}
-        {/* {metaReview && (
-            <>
-              <tr>
-                <td>Recommendation: {metaReview.content.recommendation}</td>
-              </tr>
-
-              <tr>
-                <td>
-                  <a
-                    href="/forum?id={{metaReview.forum}}&noteId={{metaReview.id}}{{#if referrer}}&referrer={{referrer}}{{/if}}"
-                    target="_blank"
-                  >
-                    Read Meta Review
-                  </a>
-                </td>
-              </tr>
-            </>
-          )} */}
       </div>
 
       {seniorAreaChair && (
