@@ -319,21 +319,19 @@ export const AreaChairConsoleNoteReviewStatus = ({
         className="assigned-reviewers"
       >
         <div>
-          {reviewers.map((reviewer) => {
-            return (
-              <AreaChairConsoleReviewerStatusRow
-                key={reviewer.anonymousId}
-                officialReviews={officialReviews}
-                reviewer={reviewer}
-                note={note}
-                venueId={venueId}
-                officialReviewName={officialReviewName}
-                referrerUrl={referrerUrl}
-                shortPhrase={shortPhrase}
-                submissionName={submissionName}
-              />
-            )
-          })}
+          {reviewers.map((reviewer) => (
+            <AreaChairConsoleReviewerStatusRow
+              key={reviewer.anonymousId}
+              officialReviews={officialReviews}
+              reviewer={reviewer}
+              note={note}
+              venueId={venueId}
+              officialReviewName={officialReviewName}
+              referrerUrl={referrerUrl}
+              shortPhrase={shortPhrase}
+              submissionName={submissionName}
+            />
+          ))}
         </div>
       </Collapse>
       <span>
