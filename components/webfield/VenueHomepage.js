@@ -2,6 +2,7 @@
 /* globals Webfield, Webfield2: false */
 /* globals typesetMathJax: false */
 /* globals promptError: false */
+/* globals promptMessage: false */
 
 import { useState, useContext, useEffect, useRef } from 'react'
 import Link from 'next/link'
@@ -137,13 +138,16 @@ export default function VenueHomepage({ appContext }) {
     blindSubmissionId, // v1
     withdrawnSubmissionId,
     deskRejectedSubmissionId,
+    submissionConfirmationMessage,
     showSubmissions,
+    showActivity,
     authorsGroupId,
     apiVersion,
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
   const [userConsoles, setUserConsoles] = useState([])
   const [activityNotes, setActivityNotes] = useState([])
+  const [reloadConsoles, setReloadConsoles] = useState(false)
   const router = useRouter()
   const { setBannerContent } = appContext
 
@@ -203,7 +207,7 @@ export default function VenueHomepage({ appContext }) {
       .catch((error) => {
         promptError(error.message)
       })
-  }, [user, accessToken, userLoading])
+  }, [user, accessToken, userLoading, reloadConsoles])
 
   if (userLoading) return null
 
@@ -216,7 +220,11 @@ export default function VenueHomepage({ appContext }) {
           <SubmissionButton
             invitationId={submissionId}
             apiVersion={apiVersion}
-            onNoteCreated={() => {}}
+            onNoteCreated={() => {
+              const defaultConfirmationMessage = 'Your submission is complete. Check your inbox for a confirmation email. The author console page for managing your submissions will be available soon.'
+              promptMessage(submissionConfirmationMessage || defaultConfirmationMessage)
+              setReloadConsoles(!reloadConsoles)
+            }}
             options={{ largeLabel: true }}
           />
         </div>
@@ -245,7 +253,7 @@ export default function VenueHomepage({ appContext }) {
                 Desk Rejected Submissions
               </Tab>
             )}
-            {activityNotes.length > 0 && (
+            {showActivity && activityNotes.length > 0 && (
               <Tab id="recent-activity" active={userConsoles.length === 0 && !showSubmissions}>
                 Recent Activity
               </Tab>
@@ -263,7 +271,7 @@ export default function VenueHomepage({ appContext }) {
               <TabPanel id="all-submissions">
                 <SubmissionsList
                   venueId={group.id}
-                  invitationId={blindSubmissionId}
+                  invitationId={blindSubmissionId || submissionId}
                   apiVersion={apiVersion}
                   enableSearch={true}
                 />

@@ -1787,8 +1787,6 @@ module.exports = (function() {
       }
     });
 
-    temporaryMarkExpertiseCompleted(allInvitations);
-
     var $container = $(options.container);
     var taskListHtml = Handlebars.templates['partials/taskList']({
       invitations: allInvitations,
@@ -1796,25 +1794,6 @@ module.exports = (function() {
     });
 
     $container.append(taskListHtml);
-  };
-
-  // Temporary hack:
-  // Mark expertise selection task as completed when reviewer profile confirmation
-  // or AC profile confirmation tasks are complete
-  var temporaryMarkExpertiseCompleted = function(invitationsGroup) {
-    var profileConfirmationInv = _.find(invitationsGroup, function(inv) {
-      return _.endsWith(inv.id, 'Profile_Confirmation') || _.endsWith(inv.id, 'Registration');
-    });
-    var expertiseInv = _.find(invitationsGroup, function(inv) {
-      return _.endsWith(inv.id, 'Expertise_Selection');
-    });
-    if (expertiseInv && profileConfirmationInv && profileConfirmationInv.completed && !expertiseInv.completed) {
-      expertiseInv.completed = true;
-      // eslint-disable-next-line no-param-reassign
-      invitationsGroup.numPending -= 1
-      // eslint-disable-next-line no-param-reassign
-      invitationsGroup.numCompleted += 1
-    }
   };
 
   var errorMessage = function(message) {
