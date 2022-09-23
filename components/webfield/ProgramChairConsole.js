@@ -11,7 +11,7 @@ import BasicHeader from './BasicHeader'
 import { formatDateTime, getNumberFromGroup, inflect, prettyId } from '../../lib/utils'
 import Link from 'next/link'
 import LoadingSpinner from '../LoadingSpinner'
-import { debounce, orderBy } from 'lodash'
+import { debounce, orderBy, uniqBy } from 'lodash'
 import Icon from '../Icon'
 import Dropdown from '../Dropdown'
 import ExportCSV from '../ExportCSV'
@@ -936,6 +936,155 @@ const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) 
   )
 }
 
+const MessageReviewersModal = ({ tableRowsDisplayed, messageOption, selectedNoteIds }) => {
+  const { accessToken } = useUser()
+  const { shortPhrase, venueId, officialReviewName, submissionName } =
+    useContext(WebFieldContext)
+  const [currentStep, setCurrentStep] = useState(1)
+  const [error, setError] = useState(null)
+  const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
+  const [message, setMessage] = useState(null)
+  const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
+  const [recipientsInfo, setRecipientsInfo] = useState([])
+  const totalMessagesCount = uniqBy(recipientsInfo, (p) => p.reviewerProfileId).reduce(
+    (prev, curr) => prev + curr.count,
+    0
+  )
+
+  const handlePrimaryButtonClick = async () => {
+    if (currentStep === 1) {
+      setCurrentStep(2)
+      return
+    }
+    // send emails
+    try {
+      const sendEmailPs = selectedNoteIds.map((noteId) => {
+        const { note } = tableRowsDisplayed.find((row) => row.note.id === noteId)
+        const reviewerIds = recipientsInfo
+          .filter((p) => p.noteNumber == note.number) // eslint-disable-line eqeqeq
+          .map((q) => q.reviewerProfileId)
+        if (!reviewerIds.length) return Promise.resolve()
+        const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
+        return api.post(
+          '/messages',
+          {
+            groups: reviewerIds,
+            subject,
+            message: message.replaceAll('{{submit_review_link}}', forumUrl),
+          },
+          { accessToken }
+        )
+      })
+      await Promise.all(sendEmailPs)
+      $('#message-reviewers').modal('hide')
+      promptMessage(`Successfully sent ${totalMessagesCount} emails`)
+    } catch (apiError) {
+      setError(apiError.message)
+    }
+  }
+
+  const getRecipients = (selecteNoteIds) => {
+    if (!selecteNoteIds.length) return []
+    const selectedRows = tableRowsDisplayed.filter((row) =>
+      selecteNoteIds.includes(row.note.id)
+    )
+
+    switch (messageOption.value) {
+      case 'allReviewers':
+        return selectedRows.flatMap((row) => row.reviewers)
+      case 'withReviews':
+        return selectedRows
+          .flatMap((row) => row.reviewers)
+          .filter((reviewer) => reviewer.hasReview)
+      case 'missingReviews':
+        return selectedRows
+          .flatMap((row) => row.reviewers)
+          .filter((reviewer) => !reviewer.hasReview)
+      default:
+        return []
+    }
+  }
+
+  useEffect(() => {
+    if (!messageOption) return
+    setMessage(`${
+      messageOption.value === 'missingReviews'
+        ? `This is a reminder to please submit your review for ${shortPhrase}.\n\n`
+        : ''
+    }Click on the link below to go to the review page:\n\n{{submit_review_link}}
+    \n\nThank you,\n${shortPhrase} Area Chair`)
+    const recipients = getRecipients(selectedNoteIds)
+    const recipientsWithCount = recipients.map((recipient) => {
+      const count = recipients.filter(
+        (p) => p.reviewerProfileId === recipient.reviewerProfileId
+      ).length
+      return {
+        ...recipient,
+        count,
+      }
+    })
+    setRecipientsInfo(recipientsWithCount)
+  }, [messageOption, selectedNoteIds])
+
+  return (
+    <BasicModal
+      id="message-reviewers"
+      title={messageOption?.label}
+      primaryButtonText={primaryButtonText}
+      onPrimaryButtonClick={handlePrimaryButtonClick}
+      primaryButtonDisabled={!totalMessagesCount}
+      onClose={() => {
+        setCurrentStep(1)
+      }}
+    >
+      {error && <div className="alert alert-danger">{error}</div>}
+      {currentStep === 1 ? (
+        <>
+          <p>
+            {`You may customize the message that will be sent to the reviewers. In the email
+            body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
+            form where the reviewer can fill out his or her review.`}
+          </p>
+          <div className="form-group">
+            <label htmlFor="subject">Email Subject</label>
+            <input
+              type="text"
+              name="subject"
+              className="form-control"
+              value={subject}
+              required
+              onChange={(e) => setSubject(e.target.value)}
+            />
+            <label htmlFor="message">Email Body</label>
+            <textarea
+              name="message"
+              className="form-control message-body"
+              rows="6"
+              value={message ?? ''}
+              required
+              onChange={(e) => setMessage(e.target.value)}
+            />
+          </div>
+        </>
+      ) : (
+        <>
+          <p>
+            A total of <span className="num-reviewers">{totalMessagesCount}</span> reminder
+            emails will be sent to the following reviewers:
+          </p>
+          <div className="well reviewer-list">
+            {uniqBy(recipientsInfo, (p) => p.reviewerProfileId).map((recipientInfo) => (
+              <li key={recipientInfo.preferredEmail}>{`${recipientInfo.preferredName} <${
+                recipientInfo.preferredEmail
+              }>${recipientInfo.count > 1 ? ` --- (×${recipientInfo.count})` : ''}`}</li>
+            ))}
+          </div>
+        </>
+      )}
+    </BasicModal>
+  )
+}
+
 const QuerySearchInfoModal = ({ filterOperators, propertiesAllowed }) => (
   <BasicModal
     id="query-search-info"
@@ -1113,9 +1262,7 @@ const MenuBar = ({
   const shouldEnableQuerySearch = enableQuerySearch && filterOperators && propertiesAllowed
 
   const exportFileName = `${shortPhrase}${
-    tableRows?.length === tableRowsDisplayed?.length
-      ? ' AC paper status'
-      : 'AC paper status(Filtered)'
+    tableRows?.length === tableRowsAll?.length ? ' paper status' : 'paper status(Filtered)'
   }`
 
   const handleMessageDropdownChange = (option) => {
@@ -1215,7 +1362,7 @@ const MenuBar = ({
         </button>
       </div>
       <div className="btn-group">
-        <ExportCSV records={tableRowsDisplayed} fileName={exportFileName} />
+        <ExportCSV records={tableRows} fileName={exportFileName} />
       </div>
       <span className="search-label">Search:</span>
       {isQuerySearch && shouldEnableQuerySearch && (
@@ -1247,15 +1394,11 @@ const MenuBar = ({
       <button className="btn btn-icon sort-button" onClick={handleReverseSort}>
         <Icon name="sort" />
       </button>
-      {/* <MessageReviewersModal
-        tableRowsDisplayed={tableRowsDisplayed}
+      <MessageReviewersModal
+        tableRowsDisplayed={tableRows}
         messageOption={messageOption}
-        shortPhrase={shortPhrase}
         selectedNoteIds={selectedNoteIds}
-        venueId={venueId}
-        officialReviewName={officialReviewName}
-        submissionName={submissionName}
-      /> */}
+      />
       {isQuerySearch && shouldEnableQuerySearch && (
         <QuerySearchInfoModal
           filterOperators={filterOperators}
@@ -1307,6 +1450,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds }) => {
         />
       </td>
       <td>
+        {console.log('rowData', rowData)}
         <AreaChairConsoleNoteReviewStatus
           rowData={rowData}
           venueId={venueId}
@@ -1344,7 +1488,7 @@ const PaperStatusTab = ({ pcConsoleData, showContent }) => {
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
-  const pageSize = 3
+  const pageSize = 1
 
   const getReviewerName = (reviewerProfile) => {
     const name =
@@ -1357,12 +1501,11 @@ const PaperStatusTab = ({ pcConsoleData, showContent }) => {
     // #region calculate reviewProgressData and metaReviewData
     const notes = pcConsoleData.notes
     if (!notes) return
-    const tableRows = notes?.map((note, index) => {
-      // const assignedReviewers =
-      //   pcConsoleData.paperGroups.reviewerGroups?.find(
-      //     (group) => group.noteNumber === note.number
-      //   )?.members ?? []
-      const assignedReviewers = pcConsoleData.paperGroups.reviewerGroups[index].members ?? []
+    const tableRows = notes?.map((note) => {
+      const assignedReviewers =
+        pcConsoleData.paperGroups.reviewerGroups?.find(
+          (group) => group.noteNumber === note.number
+        )?.members ?? []
 
       const assignedReviewerProfiles = assignedReviewers.map((reviewer) => {
         return {
@@ -1376,11 +1519,10 @@ const PaperStatusTab = ({ pcConsoleData, showContent }) => {
         }
       })
 
-      // const assignedAreaChairs =
-      //   pcConsoleData.paperGroups.areaChairGroups?.find(
-      //     (group) => group.noteNumber === note.number
-      //   )?.members ?? []
-      const assignedAreaChairs = pcConsoleData.paperGroups.areaChairGroups[index].members ?? []
+      const assignedAreaChairs =
+        pcConsoleData.paperGroups.areaChairGroups?.find(
+          (group) => group.noteNumber === note.number
+        )?.members ?? []
 
       const assignedAreaChairProfiles = assignedAreaChairs.map((areaChair) => {
         return {
@@ -1397,30 +1539,30 @@ const PaperStatusTab = ({ pcConsoleData, showContent }) => {
       const officialReviews =
         // pcConsoleData.officialReviewsByPaperNumber
         //   .find((p) => p.noteNumber === note.number)
-        pcConsoleData.officialReviewsByPaperNumberMap
-          ?.get(note.number)
-          ?.officialReviews?.map((q) => {
-            const isV2Note = q.version === 2
-            // const anonymousId = getNumberFromGroup(q.signatures[0], 'Reviewer_', false)
-            const reviewRatingValue = isV2Note
-              ? q.content[reviewRatingName]?.value
-              : q.content[reviewRatingName]
-            const ratingNumber = reviewRatingValue
-              ? reviewRatingValue.substring(0, reviewRatingValue.indexOf(':'))
-              : null
-            const confidenceValue = isV2Note
-              ? q.content[reviewConfidenceName]?.value
-              : q.content[reviewConfidenceName]
-            const confidenceMatch = confidenceValue && confidenceValue.match(/^(\d+): .*/)
-            const reviewValue = isV2Note ? q.content.review?.value : q.content.review
-            return {
-              anonymousId: q.anonId,
-              confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
-              rating: ratingNumber ? parseInt(ratingNumber, 10) : null,
-              reviewLength: reviewValue?.length,
-              id: q.id,
-            }
-          }) ?? []
+        pcConsoleData.officialReviewsByPaperNumberMap?.get(note.number)?.map((q) => {
+          const isV2Note = q.version === 2
+          // const anonymousId = getNumberFromGroup(q.signatures[0], 'Reviewer_', false)
+          const reviewRatingValue = isV2Note
+            ? q.content[reviewRatingName]?.value
+            : q.content[reviewRatingName]
+          const ratingNumber = reviewRatingValue
+            ? reviewRatingValue.substring(0, reviewRatingValue.indexOf(':'))
+            : null
+          const confidenceValue = isV2Note
+            ? q.content[reviewConfidenceName]?.value
+            : q.content[reviewConfidenceName]
+
+          const confidenceMatch = confidenceValue && confidenceValue.match(/^(\d+): .*/)
+          console.log('confidenceMatch', confidenceMatch)
+          const reviewValue = isV2Note ? q.content.review?.value : q.content.review
+          return {
+            anonymousId: q.anonId,
+            confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
+            rating: ratingNumber ? parseInt(ratingNumber, 10) : null,
+            reviewLength: reviewValue?.length,
+            id: q.id,
+          }
+        }) ?? []
       const ratings = officialReviews.map((p) => p.rating)
       const validRatings = ratings.filter((p) => p !== null)
       const ratingAvg = validRatings.length
