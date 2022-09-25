@@ -13,7 +13,7 @@ const InvitationProcessFunctionsV2 = ({
   loadInvitation,
   isMetaInvitation,
 }) => (
-  <EditorSection title="Process functions" className="process-functions">
+  <EditorSection title="Process Functions" className="process-functions">
     <Tabs>
       <TabList>
         <Tab id="preprocess">Pre Process</Tab>

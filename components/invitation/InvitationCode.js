@@ -1,6 +1,7 @@
 /* globals promptMessage,promptError,$: false */
 
 import React, { useEffect, useState } from 'react'
+import get from 'lodash/get'
 import dynamic from 'next/dynamic'
 import EditorSection from '../EditorSection'
 import SpinnerButton from '../SpinnerButton'
@@ -102,7 +103,7 @@ export const InvitationCodeV2 = ({
   alwaysShowEditor,
   noTitle,
 }) => {
-  const [code, setCode] = useState(invitation[codeType])
+  const [code, setCode] = useState(get(invitation, codeType))
   const [showEditor, setShowEditor] = useState(alwaysShowEditor ?? false)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -117,14 +118,26 @@ export const InvitationCodeV2 = ({
     setIsSaving(true)
 
     try {
-      const requestPath = '/invitations/edits'
       const metaInvitationId = getMetaInvitationId(invitation)
-      if (!isMetaInvitation && !metaInvitationId) throw new Error('No meta invitation found')
+      if (!isMetaInvitation && !metaInvitationId) {
+        throw new Error('No meta invitation found')
+      }
+
+      let updateField = codeType
+      let updateObj = code
+      if (codeType.startsWith('content.')) {
+        const contentField = codeType.replace('content.', '').replace('.value', '')
+        updateField = 'content'
+        updateObj = {
+          ...invitation.content,
+          [contentField]: { value: code },
+        }
+      }
       const requestBody = {
         invitation: {
           id: invitation.id,
           signatures: invitation.signatures,
-          [codeType]: code,
+          [updateField]: updateObj,
           ...(isMetaInvitation && { edit: true }),
         },
         readers: [profileId],
@@ -132,7 +145,7 @@ export const InvitationCodeV2 = ({
         signatures: [profileId],
         ...(!isMetaInvitation && { invitations: metaInvitationId }),
       }
-      await api.post(requestPath, requestBody, {
+      await api.post('/invitations/edits', requestBody, {
         accessToken,
         version: 2,
       })
@@ -146,12 +159,12 @@ export const InvitationCodeV2 = ({
   }
 
   const handleCancelClick = () => {
-    setCode(invitation[codeType])
+    setCode(get(invitation, codeType))
     setShowEditor(false)
   }
 
   useEffect(() => {
-    setCode(invitation[codeType])
+    setCode(get(invitation, codeType))
     setShowEditor(alwaysShowEditor ?? false)
   }, [invitation.id])
 
