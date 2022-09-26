@@ -1,17 +1,15 @@
 /* globals $,promptMessage,promptError,typesetMathJax: false */
-import { useRouter } from 'next/router'
+
 import { useCallback, useContext, useEffect, useState } from 'react'
-import { debounce, orderBy, uniqBy } from 'lodash'
-import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
+import { useRouter } from 'next/router'
+import debounce from 'lodash/debounce'
+import orderBy from 'lodash/orderBy'
+import uniqBy from 'lodash/uniqBy'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import Table from '../Table'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
-import api from '../../lib/api-client'
 import ErrorDisplay from '../ErrorDisplay'
-import { formatTasksData, getNumberFromGroup, prettyId } from '../../lib/utils'
 import Dropdown from '../Dropdown'
 import Icon from '../Icon'
 import NoteSummary from './NoteSummary'
@@ -19,8 +17,18 @@ import { AreaChairConsoleNoteReviewStatus } from './NoteReviewStatus'
 import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import TaskList from '../TaskList'
 import BasicModal from '../BasicModal'
-import { filterCollections } from '../../lib/webfield-utils'
 import ExportCSV from '../ExportCSV'
+import useUser from '../../hooks/useUser'
+import useQuery from '../../hooks/useQuery'
+import api from '../../lib/api-client'
+import {
+  formatTasksData,
+  getNumberFromGroup,
+  getIndentifierFromGroup,
+  prettyId,
+} from '../../lib/utils'
+import { filterCollections } from '../../lib/webfield-utils'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
   const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
@@ -204,44 +212,41 @@ const QuerySearchInfoModal = ({ filterOperators, propertiesAllowed }) => (
     primaryButtonText={null}
     cancelButtonText="OK"
   >
-    <>
-      <strong className="tooltip-title">Some tips to use query search</strong>
-      <p>
-        In Query mode, you can enter an expression and hit ENTER to search.
-        <br />
-        The expression consists of property of a paper and a value you would like to search
-      </p>
-      <p>
-        e.g. <code>+number=5</code> will return the paper 5
-      </p>
-      <p>
-        Expressions may also be combined with AND/OR.
-        <br />
-        e.g. <code>+number=5 OR number=6 OR number=7</code> will return paper 5,6 and 7.
-        <br />
-      </p>
-      <p>
-        If the value has multiple words, it should be enclosed in double quotes.
-        <br />
-        e.g. <code>+title=&quot;some title to search&quot;</code>
-      </p>
-      <p>
-        Braces can be used to organize expressions.
-        <br />
-        e.g. <code>+number=1 OR ((number=5 AND number=7) OR number=8)</code> will return paper
-        1 and 8.
-      </p>
-      <p>
-        <strong>Operators available</strong>
-        {`: ${filterOperators.join(', ')}`}
-      </p>
-      <p>
-        <strong>Properties available</strong>
-      </p>
+    <strong className="tooltip-title">Some tips to use query search</strong>
+    <p>
+      In Query mode, you can enter an expression and hit ENTER to search. An expression
+      consists of a property and a value you would like to search for.
+    </p>
+    <p>
+      e.g. <code>+number=5</code> will return paper number 5
+    </p>
+    <p>
+      Expressions may also be combined with AND/OR.
+      <br />
+      e.g. <code>+number=5 OR number=6 OR number=7</code> will return paper 5, 6, and 7.
+    </p>
+    <p>
+      If the value has multiple words, it should be enclosed in double quotes.
+      <br />
+      e.g. <code>+title=&quot;some title to search&quot;</code>
+    </p>
+    <p>
+      Braces can be used to organize expressions.
+      <br />
+      e.g. <code>+number=1 OR ((number=5 AND number=7) OR number=8)</code> will return paper 1
+      and 8.
+    </p>
+    <p>
+      <strong>Operators available:</strong> {filterOperators.join(', ')}
+    </p>
+    <p>
+      <strong>Properties available:</strong>
+    </p>
+    <ul className="list-unstyled">
       {Object.keys(propertiesAllowed).map((key) => (
         <li key={key}>{key}</li>
       ))}
-    </>
+    </ul>
   </BasicModal>
 )
 
@@ -430,37 +435,45 @@ const MenuBar = ({
 
   return (
     <div className="menu-bar">
-      <div className="message-button-container">
-        <button className={`btn message-button${disabledMessageButton ? ' disabled' : ''}`}>
-          <Icon name="envelope" />
-          <Dropdown
-            className={`dropdown-sm message-button-dropdown${
-              disabledMessageButton ? ' dropdown-disable' : ''
-            }`}
-            options={messageReviewerOptions}
-            components={{
-              IndicatorSeparator: () => null,
-              DropdownIndicator: () => null,
-            }}
-            value={{ label: 'Message', value: '' }}
-            onChange={handleMessageDropdownChange}
-            isSearchable={false}
-          />
+      <div className="message-button-container btn-group" role="group">
+        <button
+          type="button"
+          className="message-button btn btn-icon dropdown-toggle"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+          title="Select papers to message corresponding reviewers"
+          disabled={disabledMessageButton}
+        >
+          <Icon name="envelope" extraClasses="pr-1" /> Message <span className="caret" />
         </button>
+        <ul
+          className="dropdown-menu message-button-dropdown"
+          aria-labelledby="grp-msg-reviewers-btn"
+        >
+          {messageReviewerOptions.map((option) => (
+            <li key={option.value}>
+              {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+              <a id={option.value} onClick={() => handleMessageDropdownChange(option)}>
+                {option.label}
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
-      <div className="btn-group">
-        <ExportCSV records={tableRowsDisplayed} fileName={exportFileName} />
-      </div>
+
+      <ExportCSV records={tableRowsDisplayed} fileName={exportFileName} />
+
       <span className="search-label">Search:</span>
       {isQuerySearch && shouldEnableQuerySearch && (
         <div role="button" onClick={handleQuerySearchInfoClick}>
-          <Icon name="info-sign" />
+          <Icon name="info-sign" extraClasses="pr-1" />
         </div>
       )}
       <input
         className={`form-control search-input${queryIsInvalidStatus ? ' invalid-value' : ''}`}
         placeholder={`Enter search term${
-          shouldEnableQuerySearch ? ' or type + to start a query and press enter' : ''
+          shouldEnableQuerySearch ? ', or type + to start a query and press enter' : ''
         }`}
         value={immediateSearchTerm}
         onChange={(e) => {
@@ -471,9 +484,10 @@ const MenuBar = ({
         }}
         onKeyDown={(e) => keyDownHandler(e)}
       />
+
       <span className="sort-label">Sort by:</span>
       <Dropdown
-        className="dropdown-sm sort-dropdown"
+        className="sort-dropdown"
         value={sortOption}
         options={sortDropdownOptions}
         onChange={(e) => setSortOption(e)}
@@ -481,6 +495,7 @@ const MenuBar = ({
       <button className="btn btn-icon sort-button" onClick={handleReverseSort}>
         <Icon name="sort" />
       </button>
+
       <MessageReviewersModal
         tableRowsDisplayed={tableRowsDisplayed}
         messageOption={messageOption}
@@ -490,7 +505,7 @@ const MenuBar = ({
         officialReviewName={officialReviewName}
         submissionName={submissionName}
       />
-      {isQuerySearch && shouldEnableQuerySearch && (
+      {shouldEnableQuerySearch && (
         <QuerySearchInfoModal
           filterOperators={filterOperators}
           propertiesAllowed={propertiesAllowed}
@@ -775,10 +790,9 @@ const AreaChairConsole = ({ appContext }) => {
                     t.members[0] === r
                 )
                 if (anonymousReviewerGroup) {
-                  const anonymousReviewerId = getNumberFromGroup(
+                  const anonymousReviewerId = getIndentifierFromGroup(
                     anonymousReviewerGroup.id,
-                    'Reviewer_',
-                    false
+                    'Reviewer_'
                   )
                   return {
                     anonymousId: anonymousReviewerId,
@@ -867,7 +881,7 @@ const AreaChairConsole = ({ appContext }) => {
           })
           ?.map((q) => {
             const isV2Note = q.version === 2
-            const anonymousId = getNumberFromGroup(q.signatures[0], 'Reviewer_', false)
+            const anonymousId = getIndentifierFromGroup(q.signatures[0], 'Reviewer_')
             const reviewRatingValue = isV2Note
               ? q.content[reviewRatingName]?.value
               : q.content[reviewRatingName]
@@ -1143,6 +1157,7 @@ const AreaChairConsole = ({ appContext }) => {
             : ''
         }`}
       />
+
       <Tabs>
         <TabList>
           <Tab id="assigned-papers" active>
