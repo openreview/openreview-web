@@ -204,6 +204,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
                   {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                   <a
                     href="#"
+                    data-id={invitation.id}
                     onClick={(e) => {
                       e.preventDefault()
                       openNoteEditor(invitation, 'edit')
