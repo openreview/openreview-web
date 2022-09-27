@@ -67,7 +67,7 @@ const Group = ({ groupId, webfieldCode, writable, componentObj, appContext }) =>
     const componentProps = {}
     Object.keys(componentObj.properties).forEach((propName) => {
       const prop = componentObj.properties[propName]
-      if (typeof prop === 'object' && prop.component) {
+      if (prop?.component) {
         componentProps[propName] = dynamic(() =>
           import(`../../components/webfield/${prop.component}`)
         )

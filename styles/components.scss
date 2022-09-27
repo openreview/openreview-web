@@ -1500,6 +1500,13 @@ header,
   }
 }
 
+.collapse-widget {
+  .collapse-indent {
+    border-left: 2px solid constants.$backgroundGray;
+    padding-left: 0.75rem;
+  }
+}
+
 // #region webfield react components
 //RecruitmentForm
 .recruitment-form {

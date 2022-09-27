@@ -4,10 +4,38 @@ import NoteReaders from './NoteReaders'
 import NoteContent, { NoteContentV2 } from './NoteContent'
 import Icon from './Icon'
 import { prettyId, forumDate, inflect } from '../lib/utils'
-import NoteContentCollapsible from './webfield/NoteContentCollapsible'
+import Collapse from './Collapse'
 
 const Note = ({ note, invitation, options }) => {
   const privatelyRevealed = options.showPrivateIcon && !note.readers.includes('everyone')
+
+  const renderNoteContent = () => {
+    if (!options.showContents || (note.ddate && note.ddate <= Date.now())) return null
+    if (options.collapse)
+      return (
+        <Collapse showLabel="Show details" hideLabel="Hide details" indent={true}>
+          <NoteContent
+            id={note.id}
+            content={note.content}
+            invitation={
+              note.details?.originalInvitation || note.details?.invitation || invitation
+            }
+            omit={options.omitFields}
+            isReference={options.isReference}
+          />
+        </Collapse>
+      )
+    return (
+      <NoteContent
+        id={note.id}
+        content={note.content}
+        invitation={note.details?.originalInvitation || note.details?.invitation || invitation}
+        omit={options.omitFields}
+        isReference={options.isReference}
+      />
+    )
+  }
+
   return (
     <div
       className={`note ${privatelyRevealed ? 'note-private' : ''} ${
@@ -64,36 +92,40 @@ const Note = ({ note, invitation, options }) => {
           <li>{inflect(note.details?.replyCount, 'Reply', 'Replies', true)}</li>
         )}
       </ul>
-
-      {options.showContents &&
-        (!note.ddate || note.ddate > Date.now()) &&
-        (options.collapsibleContents ? (
-          <NoteContentCollapsible
-            id={note.id}
-            content={note.content}
-            invitation={
-              note.details?.originalInvitation || note.details?.invitation || invitation
-            }
-            omit={options.omitFields}
-            isV2Note={false}
-          />
-        ) : (
-          <NoteContent
-            id={note.id}
-            content={note.content}
-            invitation={
-              note.details?.originalInvitation || note.details?.invitation || invitation
-            }
-            omit={options.omitFields}
-            isReference={options.isReference}
-          />
-        ))}
+      {renderNoteContent()}
     </div>
   )
 }
 
 export const NoteV2 = ({ note, options }) => {
   const privatelyRevealed = options.showPrivateIcon && !note.readers.includes('everyone')
+
+  const renderNoteContent = () => {
+    if (!options.showContents || (note.ddate && note.ddate <= Date.now())) return null
+    if (options.collapse)
+      return (
+        <Collapse showLabel="Show details" hideLabel="Hide details" indent={true}>
+          <NoteContentV2
+            id={note.id}
+            content={note.content ?? {}}
+            omit={options.omitFields}
+            isEdit={options.isReference}
+            presentation={note.details?.presentation}
+            noteReaders={note.readers?.sort()}
+          />
+        </Collapse>
+      )
+    return (
+      <NoteContentV2
+        id={note.id}
+        content={note.content ?? {}}
+        omit={options.omitFields}
+        isEdit={options.isReference}
+        presentation={note.details?.presentation}
+        noteReaders={note.readers?.sort()}
+      />
+    )
+  }
 
   return (
     <div className={`note ${privatelyRevealed ? 'note-private' : ''} ${options.extraClasses}`}>
@@ -151,29 +183,7 @@ export const NoteV2 = ({ note, options }) => {
           <li>{inflect(note.details?.replyCount, 'Reply', 'Replies', true)}</li>
         )}
       </ul>
-
-      {options.showContents &&
-        (!note.ddate || note.ddate > Date.now()) &&
-        (options.collapsibleContents ? (
-          <NoteContentCollapsible
-            id={note.id}
-            content={note.content ?? {}}
-            omit={options.omitFields}
-            isEdit={options.isReference}
-            presentation={note.details?.presentation}
-            noteReaders={note.readers?.sort()}
-            isV2Note={true}
-          />
-        ) : (
-          <NoteContentV2
-            id={note.id}
-            content={note.content ?? {}}
-            omit={options.omitFields}
-            isEdit={options.isReference}
-            presentation={note.details?.presentation}
-            noteReaders={note.readers?.sort()}
-          />
-        ))}
+      {renderNoteContent()}
     </div>
   )
 }
