@@ -181,8 +181,69 @@ main.invitation {
     }
   }
 
+  .menu-bar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: .5rem 0.25rem;
+    border-bottom: 1px solid #ddd;
+
+    .message-button-container {
+      margin-right: 0.25rem;
+    }
+    .btn-export-data {
+      margin-right: 0.5rem;
+
+      a {
+        color: white;
+      }
+    }
+    .search-label {
+      margin-right: 0.25rem;
+      font-weight: bold;
+    }
+
+    .search-input {
+      margin-right: 0.5rem;
+      width: 50%;
+
+      &.invalid-value {
+        border-color: constants.$orRed;
+      }
+    }
+
+    .sort-label {
+      margin-right: 0.25rem;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .sort-dropdown {
+      width: 18%;
+      margin-right: 0.25rem;
+      .dropdown-select {
+        &__menu {
+          width: fit-content;
+        }
+        &__option {
+          white-space: nowrap;
+        }
+      }
+    }
+
+    .message-body {
+      resize: vertical;
+    }
+  }
+
   table {
     margin-bottom: 0;
+  }
+
+  .empty-table-container {
+    .empty-message {
+      margin-left: 0.5rem;
+    }
   }
 
   .console-table,
@@ -241,6 +302,19 @@ main.invitation {
       margin-top: 0.4rem;
       margin-bottom: 0.4rem;
     }
+    .reviewer-activity-header {
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+      span {
+        margin-right: 0.25rem;
+        strong {
+          color: constants.$orRed;
+        }
+      }
+    }
+    .alert-danger {
+      word-wrap: break-word;
+    }
   }
 
   .console-table {
@@ -267,6 +341,7 @@ main.invitation {
   }
 
   .ac-console-table {
+    // used by ac console template
     .row-0 {
       width: 35px;
     }
@@ -281,6 +356,61 @@ main.invitation {
     }
     .row-4 {
       width: auto;
+    }
+  }
+
+  .areachair-console-table {
+    table-layout: auto;
+
+    & > thead > tr > th {
+      vertical-align: top;
+    }
+    input[type="checkbox"] {
+      width: 1rem;
+      height: 1rem;
+    }
+    #select-all-papers {
+      margin-top: 0;
+      position: relative;
+      top: 2px;
+    }
+    .empty-message {
+      margin-left: 0.5rem;
+    }
+    .areachair-console-reviewer-progress {
+      display: flex;
+      flex-direction: column;
+
+      .send-reminder-link {
+        margin-right: 0.25rem;
+      }
+
+      .assigned-reviewers {
+        margin-bottom: 0.5rem;
+
+        .assigned-reviewer-row {
+          display: flex;
+          flex-direction: row;
+          margin-bottom: 0.25rem;
+          align-items: baseline;
+          .assigned-reviewer-id {
+            font-size: 0.75rem;
+          }
+
+          .assigned-reviewer-action {
+            display: flex;
+            flex-direction: column;
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+          }
+        }
+      }
+    }
+    .areachair-console-meta-review {
+      margin-right: 0.5rem;
+      .title {
+        white-space: nowrap;
+      }
     }
   }
 

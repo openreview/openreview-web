@@ -11,6 +11,7 @@ export default function BasicModal({
   primaryButtonDisabled = false,
   onPrimaryButtonClick,
   onClose,
+  onOpen,
   options = {},
 }) {
   const modalRef = useRef(null)
@@ -21,9 +22,14 @@ export default function BasicModal({
         onClose()
       }
     })
+    $(modalRef.current).on('show.bs.modal', () => {
+      if (typeof onOpen === 'function') {
+        onOpen()
+      }
+    })
 
     return () => {
-      $(modalRef.current).off('hidden.bs.modal')
+      $(modalRef.current).off('hidden.bs.modal,show.bs.modal')
     }
   }, [modalRef])
 
