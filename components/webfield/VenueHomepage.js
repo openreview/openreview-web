@@ -4,8 +4,8 @@
 import { useState, useContext, useEffect, useReducer } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import kebabCase from 'lodash/kebabCase'
 import uniq from 'lodash/uniq'
+import { nanoid } from 'nanoid/non-secure'
 import WebFieldContext from '../WebFieldContext'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 import VenueHeader from './VenueHeader'
@@ -44,7 +44,7 @@ function ConsolesList({
     const getUserGroupsP = api.getAll(
       '/groups',
       { ...groupIdQuery, member: user.id, web: true },
-      { accessToken }
+      { accessToken, version: apiVersion }
     )
 
     let getUserSubmissionsP
@@ -115,9 +115,11 @@ export default function VenueHomepage({ appContext }) {
     tabs,
     apiVersion,
   } = useContext(WebFieldContext)
+  const [formattedTabs, setFormattedTabs] = useState(null)
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const router = useRouter()
   const { setBannerContent } = appContext
+  const defaultActiveTab = formattedTabs?.findIndex((t) => !t.hidden) ?? 0
 
   const renderTab = (tabConfig) => {
     if (!tabConfig) return null
@@ -131,6 +133,15 @@ export default function VenueHomepage({ appContext }) {
           apiVersion={apiVersion}
           options={tabConfig.options}
           shouldReload={shouldReload}
+          setHidden={(newHidden) => {
+            if (newHidden === tabConfig.hidden) return
+
+            setFormattedTabs(
+              formattedTabs.map((t) =>
+                t.id === tabConfig.id ? { ...t, hidden: newHidden } : t
+              )
+            )
+          }}
         />
       )
     }
@@ -174,6 +185,18 @@ export default function VenueHomepage({ appContext }) {
     }
   }, [router.isReady, router.query])
 
+  useEffect(() => {
+    if (!tabs) return
+
+    setFormattedTabs(
+      tabs.map((tab) => ({
+        id: nanoid(10),
+        hidden: tab.type === 'consoles',
+        ...tab,
+      }))
+    )
+  }, [tabs])
+
   if (!header || !tabs) {
     const errorMessage = 'Venue Homepage requires both header and tabs properties to be set'
     return <ErrorDisplay statusCode="" message={errorMessage} />
@@ -202,25 +225,24 @@ export default function VenueHomepage({ appContext }) {
       <div id="notes">
         <Tabs>
           <TabList>
-            {tabs.map((tabConfig, i) => {
-              const tabId = kebabCase(tabConfig.name)
-              return (
-                <Tab key={tabId} id={tabId} active={i === 0}>
-                  {tabConfig.name}
-                </Tab>
-              )
-            })}
+            {formattedTabs?.map((tabConfig, i) => (
+              <Tab
+                key={tabConfig.id}
+                id={tabConfig.id}
+                active={i === defaultActiveTab}
+                hidden={tabConfig.hidden}
+              >
+                {tabConfig.name}
+              </Tab>
+            ))}
           </TabList>
 
           <TabPanels>
-            {tabs.map((tabConfig) => {
-              const tabId = kebabCase(tabConfig.name)
-              return (
-                <TabPanel key={`${tabId}-panel`} id={tabId}>
-                  {renderTab(tabConfig)}
-                </TabPanel>
-              )
-            })}
+            {formattedTabs?.map((tabConfig) => (
+              <TabPanel key={`${tabConfig.id}-panel`} id={tabConfig.id}>
+                {renderTab(tabConfig)}
+              </TabPanel>
+            ))}
           </TabPanels>
         </Tabs>
       </div>
