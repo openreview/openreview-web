@@ -1,6 +1,3 @@
-/* globals $: false */
-/* globals Webfield, Webfield2: false */
-/* globals typesetMathJax: false */
 /* globals promptError: false */
 /* globals promptMessage: false */
 
@@ -13,8 +10,8 @@ import WebFieldContext from '../WebFieldContext'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 import VenueHeader from './VenueHeader'
 import SubmissionButton from './SubmissionButton'
-import Note, { NoteV2 } from '../Note'
-import PaginatedList from '../PaginatedList'
+import SubmissionsList from './SubmissionsList'
+import ActivityList from './ActivityList'
 import Markdown from '../EditorComponents/Markdown'
 import ErrorDisplay from '../ErrorDisplay'
 import useUser from '../../hooks/useUser'
@@ -85,132 +82,6 @@ function ConsolesList({ venueId, submissionInvitationId, authorsGroupId, apiVers
       })}
     </ul>
   )
-}
-
-function SubmissionsList({ venueId, query, apiVersion, options = {} }) {
-  const { accessToken, userLoading } = useUser()
-
-  const paperDisplayOptions = {
-    pdfLink: true,
-    replyCount: true,
-    showContents: true,
-    collapse: true,
-    showTags: false,
-  }
-  const opts = {
-    enableSearch: false,
-    pageSize: 25,
-    ...options,
-  }
-
-  const loadNotes = async (limit, offset) => {
-    const { notes, count } = await api.get(
-      '/notes',
-      { ...query, details: 'replyCount,invitation,original', limit, offset },
-      { accessToken, version: apiVersion }
-    )
-    return {
-      items: notes,
-      count: count ?? 0,
-    }
-  }
-
-  const searchNotes = async (term, limit, offset) => {
-    const { notes, count } = await api.get(
-      '/notes/search',
-      {
-        ...query,
-        term,
-        type: 'terms',
-        content: 'all',
-        source: 'forum',
-        group: venueId,
-        limit,
-        offset,
-      },
-      { accessToken, version: apiVersion }
-    )
-    return {
-      items: notes,
-      count: count ?? 0,
-    }
-  }
-
-  function NoteListItem({ item }) {
-    if (apiVersion === 2) {
-      return <NoteV2 note={item} options={paperDisplayOptions} />
-    }
-    return <Note note={item} options={paperDisplayOptions} />
-  }
-
-  if (userLoading) return null
-
-  return (
-    <PaginatedList
-      loadItems={loadNotes}
-      searchItems={opts.enableSearch && searchNotes}
-      ListItem={NoteListItem}
-      itemsPerPage={opts.pageSize}
-      className="submissions-list"
-    />
-  )
-}
-
-function ActivityList({ venueId, apiVersion, options = {} }) {
-  const [activityNotes, setActivityNotes] = useState(null)
-  const { user, accessToken, userLoading } = useUser()
-  const containerRef = useRef(null)
-
-  const opts = {
-    invitation: `${venueId}/.*`,
-    pageSize: 25,
-    ...options,
-  }
-
-  useEffect(() => {
-    if (userLoading) return
-
-    api.get(
-      '/notes',
-      {
-        invitation: opts.invitation,
-        details: 'forumContent,invitation,writable',
-        sort: 'tmdate:desc',
-        limit: opts.pageSize,
-      },
-      { accessToken, version: apiVersion }
-    )
-      .then(({ notes }) => {
-        if (notes?.length > 0) {
-          setActivityNotes(notes)
-        } else {
-          setActivityNotes([])
-        }
-      })
-      .catch((error) => {
-        setActivityNotes([])
-        promptError(error.message)
-      })
-  }, [userLoading, accessToken])
-
-  useEffect(() => {
-    if (!activityNotes) return
-
-    $(containerRef.current).empty()
-
-    Webfield.ui.activityList(activityNotes, {
-      container: containerRef.current,
-      emptyMessage: 'No recent activity to display.',
-      user: user.profile,
-      showActionButtons: true,
-    })
-
-    $('[data-toggle="tooltip"]').tooltip()
-
-    typesetMathJax()
-  }, [activityNotes])
-
-  return <div ref={containerRef} />
 }
 
 export default function VenueHomepage({ appContext }) {
