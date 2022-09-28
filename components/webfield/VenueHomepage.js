@@ -1,7 +1,7 @@
 /* globals promptError: false */
 /* globals promptMessage: false */
 
-import { useState, useContext, useEffect, useReducer, useRef } from 'react'
+import { useState, useContext, useEffect, useReducer } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import kebabCase from 'lodash/kebabCase'
@@ -18,7 +18,15 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
-function ConsolesList({ venueId, submissionInvitationId, authorsGroupId, apiVersion, shouldReload, options = {} }) {
+function ConsolesList({
+  venueId,
+  submissionInvitationId,
+  authorsGroupId,
+  apiVersion,
+  setHidden,
+  shouldReload,
+  options = {},
+}) {
   const [userConsoles, setUserConsoles] = useState(null)
   const { user, accessToken, userLoading } = useUser()
 
@@ -32,16 +40,23 @@ function ConsolesList({ venueId, submissionInvitationId, authorsGroupId, apiVers
       return
     }
 
+    const groupIdQuery = apiVersion === 1 ? { regex: `${venueId}/.*` } : { prefix: venueId }
     const getUserGroupsP = api.getAll(
       '/groups',
-      { regex: `${venueId}/.*`, member: user.id, web: true },
+      { ...groupIdQuery, member: user.id, web: true },
       { accessToken }
     )
-    const getUserSubmissionsP = api.get(
-      '/notes',
-      { invitation: submissionInvitationId, 'content.authorids': user.profile.id, limit: 1 },
-      { accessToken, version: apiVersion }
-    )
+
+    let getUserSubmissionsP
+    if (apiVersion === 1) {
+      getUserSubmissionsP = api.get(
+        '/notes',
+        { invitation: submissionInvitationId, 'content.authorids': user.profile.id },
+        { accessToken, version: apiVersion }
+      )
+    } else {
+      getUserSubmissionsP = Promise.resolve({ notes: [] })
+    }
 
     Promise.all([getUserGroupsP, getUserSubmissionsP])
       .then(([userGroups, userSubmissions]) => {
@@ -61,6 +76,12 @@ function ConsolesList({ venueId, submissionInvitationId, authorsGroupId, apiVers
         promptError(error.message)
       })
   }, [user, accessToken, userLoading, venueId, submissionInvitationId, shouldReload])
+
+  useEffect(() => {
+    if (!userConsoles || typeof setHidden !== 'function') return
+
+    setHidden(userConsoles.length === 0)
+  }, [userConsoles])
 
   if (!userConsoles) return null
 
@@ -124,9 +145,7 @@ export default function VenueHomepage({ appContext }) {
       )
     }
     if (tabConfig.type === 'markdown') {
-      return (
-        <Markdown text={tabConfig.content} />
-      )
+      return <Markdown text={tabConfig.content} />
     }
     if (tabConfig.query || tabConfig.invitation) {
       const query = tabConfig.invitation
