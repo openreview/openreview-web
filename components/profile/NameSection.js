@@ -241,6 +241,19 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
     setNames({ setPreferred: true, data: { key } })
   }
 
+  const getNameDeletionRequests = async () => {
+    try {
+      const result = await api.get(
+        '/notes',
+        { invitation: nameDeletionInvitationId },
+        { accessToken }
+      )
+      return result.notes
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
   const loadPendingNameDeletionNotes = async () => {
     // #region check invitation has been created
     try {
@@ -254,16 +267,27 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
       }
     } catch (error) {} // eslint-disable-line no-empty
     // #endregion
-    try {
-      const result = await api.get(
-        '/notes',
-        { invitation: nameDeletionInvitationId },
-        { accessToken }
+
+    const nameDeletionNotes = await getNameDeletionRequests()
+    setPendingNameDeletionRequests(nameDeletionNotes)
+  }
+
+  const handleDeleteNameChange = async (nameToRequestDelete) => {
+    const nameDeletionNotes = await getNameDeletionRequests()
+    const hasExistingNameDeletionRequest = nameDeletionNotes?.find(
+      (p) =>
+        p?.content?.usernames.includes(nameToRequestDelete.username) &&
+        ['Pending', 'Rejected'].includes(p?.content?.status)
+    )
+    if (hasExistingNameDeletionRequest) {
+      promptError(
+        `Request to remove ${getNameString(nameToRequestDelete)} has been submitted.`
       )
-      setPendingNameDeletionRequests(result.notes)
-    } catch (error) {
-      promptError(error.message)
+      setNameToRequestDelete(null)
+      setPendingNameDeletionRequests(nameDeletionNotes)
+      return
     }
+    $('#name-delete').modal('show')
   }
 
   useEffect(() => {
@@ -276,7 +300,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
 
   useEffect(() => {
     if (nameToRequestDelete) {
-      $('#name-delete').modal('show')
+      handleDeleteNameChange(nameToRequestDelete)
       return
     }
     $('#name-delete').modal('hide')
