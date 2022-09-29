@@ -20,7 +20,6 @@ const NamesButton = ({
   hasRejectedNameDeletionRequest,
   namesCount,
   isPreferredUsername,
-  showDeleteNameButton,
 }) => {
   const getRequestDeletionButtonTooltip = () => {
     if (hasPendingNameDeletionRequest) return 'Request to remove this name has been submitted.'
@@ -36,7 +35,7 @@ const NamesButton = ({
         <button type="button" className="btn preferred_button" onClick={handleMakePreferred}>
           Make Preferred
         </button>
-        {namesCount !== 1 && !isPreferredUsername && showDeleteNameButton && (
+        {namesCount !== 1 && !isPreferredUsername && (
           <span title={getRequestDeletionButtonTooltip()}>
             <button
               type="button"
@@ -158,7 +157,6 @@ const NameDeleteRequestModal = ({
 const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
   const [nameToRequestDelete, setNameToRequestDelete] = useState(null)
   const [pendingNameDeletionRequests, setPendingNameDeletionRequests] = useState(null)
-  const [showDeleteNameButton, setShowDeleteNameButton] = useState(false)
   const { accessToken } = useUser()
   const namesReducer = (names, action) => {
     if (action.addNewName) return [...names, action.data]
@@ -252,37 +250,23 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
     } catch (error) {
       promptError(error.message)
     }
+    return null
   }
 
   const loadPendingNameDeletionNotes = async () => {
-    // #region check invitation has been created
-    try {
-      const invitationResult = await api.get(
-        '/invitations',
-        { id: nameDeletionInvitationId },
-        { accessToken }
-      )
-      if (invitationResult.invitations.length) {
-        setShowDeleteNameButton(true)
-      }
-    } catch (error) {} // eslint-disable-line no-empty
-    // #endregion
-
     const nameDeletionNotes = await getNameDeletionRequests()
     setPendingNameDeletionRequests(nameDeletionNotes)
   }
 
-  const handleDeleteNameChange = async (nameToRequestDelete) => {
+  const handleDeleteNameChange = async (nameToDelete) => {
     const nameDeletionNotes = await getNameDeletionRequests()
     const hasExistingNameDeletionRequest = nameDeletionNotes?.find(
       (p) =>
-        p?.content?.usernames.includes(nameToRequestDelete.username) &&
+        p?.content?.usernames.includes(nameToDelete.username) &&
         ['Pending', 'Rejected'].includes(p?.content?.status)
     )
     if (hasExistingNameDeletionRequest) {
-      promptError(
-        `Request to remove ${getNameString(nameToRequestDelete)} has been submitted.`
-      )
+      promptError(`Request to remove ${getNameString(nameToDelete)} has been submitted.`)
       setNameToRequestDelete(null)
       setPendingNameDeletionRequests(nameDeletionNotes)
       return
@@ -406,7 +390,6 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
                   hasRejectedNameDeletionRequest={hasRejectedNameDeletionRequest}
                   namesCount={names.length}
                   isPreferredUsername={preferredUsername === p.username}
-                  showDeleteNameButton={showDeleteNameButton}
                 />
               </div>
             )}
