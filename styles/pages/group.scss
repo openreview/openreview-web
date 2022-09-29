@@ -350,7 +350,7 @@ main.invitation {
   }
 
   .areachair-console-table,
-  .programchair-console-table {
+  .pc-console-paper-status {
     table-layout: auto;
     .empty-message {
       margin-left: 0.5rem;
@@ -401,7 +401,7 @@ main.invitation {
     }
   }
 
-  .programchair-console-table {
+  .pc-console-paper-status {
     table-layout: auto;
     .areachair-progress {
       .title {
@@ -430,6 +430,27 @@ main.invitation {
       margin-right: 0.5rem;
       .title {
         white-space: nowrap;
+      }
+    }
+  }
+
+  .pc-console-ac-status {
+    table-layout: auto;
+    .review-progress {
+      display: flex;
+      flex-direction: column;
+
+      .note-info {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 0.25rem;
+        .note-number {
+          margin-right: 0.25rem;
+        }
+      }
+
+      .review-info {
+        margin-bottom: 0.25rem;
       }
     }
   }

@@ -1043,7 +1043,6 @@ const PaperStatusTab = ({ pcConsoleData, showContent }) => {
     const notes = pcConsoleData.notes
     if (!notes) return
     const tableRows = [...(pcConsoleData.noteNumberReviewMetaReviewMap.values() ?? [])]
-    console.log('tableRows', tableRows)
     setPaperStatusTabData({
       tableRowsAll: tableRows,
       tableRows: [...tableRows], // could be filtered
@@ -1122,7 +1121,7 @@ const PaperStatusTab = ({ pcConsoleData, showContent }) => {
         propertiesAllowed={propertiesAllowed}
       />
       <Table
-        className="console-table table-striped programchair-console-table"
+        className="console-table table-striped pc-console-paper-status"
         headings={[
           {
             id: 'select-all',
@@ -1171,7 +1170,7 @@ const CommitteeSummary = ({
   acBids,
   invitations,
 }) => {
-  const { id, preferredName, preferredEmail } = rowData.areaChairProfile
+  const { id, preferredName, preferredEmail } = rowData.areaChairProfile ?? {}
   const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
   const {
     seniorAreaChairsId,
@@ -1239,7 +1238,7 @@ const CommitteeSummary = ({
           )}
         </p>
       </div>
-      {seniorAreaChairsId && (
+      {sacProfile && (
         <>
           <h4>Senior Area Chair: </h4>
           <div className="note">
@@ -1260,28 +1259,92 @@ const CommitteeSummary = ({
   )
 }
 
-const NoteAreaChairProgress = () => {
-  // return (
-  //   <div className="reviewer-progress">
-  //     <h4>
-  //       {numCompletedReviews} of {numPapers} Papers Reviews Completed
-  //     </h4>
-  //     <strong>Papers:</strong>
-  //     <table class="table table-condensed table-minimal">
-  //       <tbody>{notes.map(note=>{
-  //         return( <>
-  //         <tr>
-  //         <td style="width: 28px;"><strong>{note.number}.</strong></td>
-  //         <td style="width: 314px;"><a href="/forum?id={{note.forum}}{{#if ../referrer}}&referrer={{../referrer}}{{/if}}" target="_blank">{{note.content.title}}</a></td>
-  //       </tr>
-  //       <tr>
-  //         <td style="width: 28px;"></td>
-  //         <td style="width: 314px;"><strong>{{numOfReviews}} of {{numOfReviewers}} Reviews Submitted </strong>{{#if averageRating}}/ Average Rating:</strong> {{averageRating}} (Min: {{minRating}}, Max: {{maxRating}}){{/if}}</td>
-  //       </tr></>)
-  //       })}</tbody>
-  //     </table>
-  //   </div>
-  // )
+// modified based on notesAreaChairProgress.hbs
+const NoteAreaChairProgress = ({ rowData }) => {
+  const numCompletedReviews = rowData.notes.filter(
+    (p) => p.reviewers?.length === p.officialReviews?.length
+  ).length
+  const numPapers = rowData.notes.length
+  return (
+    <div className="reviewer-progress">
+      <h4>
+        {numCompletedReviews} of {numPapers} Papers Reviews Completed
+      </h4>
+      {rowData.notes.length !== 0 && <strong>Papers:</strong>}
+      <div className="review-progress">
+        {rowData.notes.map((p) => {
+          return (
+            <div key={p.noteNumber}>
+              <div className="note-info">
+                <strong className="note-number">{p.noteNumber}</strong>
+                <a>{p.note?.content?.title}</a>
+              </div>
+              <div className="review-info">
+                <strong>
+                  {p.reviewProgressData?.numReviewsDone} of{' '}
+                  {p.reviewProgressData?.numReviewersAssigned} Reviews Submitted{' '}
+                </strong>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// modified based on notesAreaChairStatus.hbs
+const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
+  const numCompletedMetaReviews = rowData.notes.filter(
+    (p) => p.metaReviewData?.numMetaReviewsDone === p.metaReviewData?.numAreaChairsAssigned
+  ).length
+  const numPapers = rowData.notes.length
+  return (
+    <div className="reviewer-progress">
+      <h4>
+        {numCompletedMetaReviews} of {numPapers} Papers Meta Review Completed
+      </h4>
+      {rowData.notes.length !== 0 && <strong>Papers:</strong>}
+      <div className="review-progress">
+        {rowData.notes.map((p) => {
+          const venue = p.note?.content?.venue
+          const metaReviews = p.metaReviewData?.metaReviews
+          const hasMetaReview = metaReviews?.length
+          return (
+            <div key={p.noteNumber}>
+              <div className="note-info">
+                <strong className="note-number">{p.noteNumber}</strong>
+                {hasMetaReview ? (
+                  <>
+                    <span>{`${venue ? `${venue} - ` : ''}${
+                      p.note?.content?.recommendation ?? ''
+                    }`}</span>
+                    {metaReviews.map((metaReview) => {
+                      return (
+                        <div key={metaReview.id}>
+                          {metaReview.content.format && (
+                            <span>Format: {metaReview.content.format}</span>
+                          )}
+                          <a
+                            href={`/forum?id=${metaReview.forum}&noteId=${metaReview.id}&referrer=${referrerUrl}`}
+                            target="_blank"
+                          >
+                            Read Meta Review
+                          </a>
+                        </div>
+                      )
+                    })}
+                  </>
+                ) : (
+                  <span>{`${venue ? `${venue} - ` : ''} No Meta Review`}</span>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 const AreaChairStatusRow = ({
@@ -1290,6 +1353,7 @@ const AreaChairStatusRow = ({
   recommendationEnabled,
   acBids,
   invitations,
+  referrerUrl,
 }) => {
   return (
     <tr>
@@ -1306,9 +1370,11 @@ const AreaChairStatusRow = ({
         />
       </td>
       <td>
-        <NoteAreaChairProgress />
+        <NoteAreaChairProgress rowData={rowData} />
       </td>
-      <td>status</td>
+      <td>
+        <NoteAreaChairStatus rowData={rowData} referrerUrl={referrerUrl} />
+      </td>
     </tr>
   )
 }
@@ -1325,6 +1391,7 @@ const AreaChairStatusTab = ({ pcConsoleData }) => {
     reviewersId,
     bidName,
     recommendationName,
+    venueId,
   } = useContext(WebFieldContext)
   const { accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
@@ -1339,6 +1406,9 @@ const AreaChairStatusTab = ({ pcConsoleData }) => {
   )
   const recommendationEnabled = pcConsoleData.invitations?.some(
     (p) => p.id === `${reviewersId}/-/${recommendationName}`
+  )
+  const referrerUrl = encodeURIComponent(
+    `[Program Chair Console](/group?id=${venueId}/Program_Chairs#reviewer-status)`
   )
 
   const loadACStatusTabData = async () => {
@@ -1454,10 +1524,12 @@ const AreaChairStatusTab = ({ pcConsoleData }) => {
 
     // #region calc ac to notes map
     const acNotesMap = new Map()
+    const allNoteNumbers = pcConsoleData.notes.map((p) => p.number)
     pcConsoleData.paperGroups.areaChairGroups.forEach((acGroup) => {
       const members = acGroup.members
       members.forEach((member) => {
         const noteNumber = acGroup.noteNumber
+        if (!allNoteNumbers.includes(noteNumber)) return // paper could have been desk rejected
         const reviewMetaReviewInfo =
           pcConsoleData.noteNumberReviewMetaReviewMap.get(noteNumber) ?? {}
         if (acNotesMap.get(member.areaChairProfileId)) {
@@ -1473,7 +1545,6 @@ const AreaChairStatusTab = ({ pcConsoleData }) => {
 
     setAreaChairStatusTabData({
       tableRows: pcConsoleData.areaChairs.map((areaChairProfileId, index) => {
-        const assignmentsInfo = areaChairWithAssignmentsMap[areaChairProfileId]
         let sacId = null
         let sacProfile = null
         if (seniorAreaChairsId) {
@@ -1527,12 +1598,13 @@ const AreaChairStatusTab = ({ pcConsoleData }) => {
     areaChairStatusTabData.tableRows,
   ])
 
+  if (!pcConsoleData.notes) return <LoadingSpinner />
+
   if (areaChairStatusTabData.tableRowsAll?.length === 0)
-    //TODO: empty ac display
     return (
       <p className="empty-message">
-        No papers have been submitted.Check back later or contact info@openreview.net if you
-        believe this to be an error.
+        There are no area chairs.Check back later or contact info@openreview.net if you believe
+        this to be an error.
       </p>
     )
   if (areaChairStatusTabData.tableRows?.length === 0)
@@ -1566,11 +1638,11 @@ const AreaChairStatusTab = ({ pcConsoleData }) => {
         recommendationEnabled={recommendationEnabled}
       />
       <Table
-        className="console-table table-striped programchair-console-table"
+        className="console-table table-striped pc-console-ac-status"
         headings={[
           { id: 'number', content: '#' },
           { id: 'areachair', content: 'Area Chair' },
-          { id: 'reviewProgress', content: 'Review Progress', width: '30%' },
+          { id: 'reviewProgress', content: 'Review Progress' },
           { id: 'status', content: 'Status' },
         ]}
       >
@@ -1582,6 +1654,7 @@ const AreaChairStatusTab = ({ pcConsoleData }) => {
             recommendationEnabled={recommendationEnabled}
             acBids={pcConsoleData.bidCount?.areaChairs}
             invitations={pcConsoleData.invitations}
+            referrerUrl={referrerUrl}
           />
         ))}
       </Table>
@@ -2076,7 +2149,7 @@ const ProgramChairConsole = ({ appContext }) => {
       const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
       const metaReviews =
-        pcConsoleDataNoReview.metaReviewsByPaperNumberMap?.get(note.number)?.metaReviews ?? []
+        pcConsoleDataNoReview.metaReviewsByPaperNumberMap?.get(note.number) ?? []
 
       noteNumberReviewMetaReviewMap.set(note.number, {
         note,
@@ -2137,6 +2210,7 @@ const ProgramChairConsole = ({ appContext }) => {
         },
       })
     })
+
     return noteNumberReviewMetaReviewMap
   }
 
@@ -2239,7 +2313,6 @@ const ProgramChairConsole = ({ appContext }) => {
             )} */}
             <PaperStatusTab
               pcConsoleData={pcConsoleData}
-              loadData={loadData}
               showContent={activeTabId === '#paper-status'}
             />
           </TabPanel>
