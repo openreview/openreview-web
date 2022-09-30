@@ -7,7 +7,7 @@ import isEmpty from 'lodash/isEmpty'
 import withAdminAuth from '../../components/withAdminAuth'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import api from '../../lib/api-client'
-import { prettyId, prettyField } from '../../lib/utils'
+import { prettyId, prettyField, getProfileStateLabelClass } from '../../lib/utils'
 // #region components used by Compare (in renderField method)
 const Names = ({ names, highlightValue }) => (
   <table>
@@ -406,6 +406,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     if (Object.keys(profile).length === 0) return profile
 
     return {
+      state: profile.state,
       tcdate: formatLongDate(profile.tcdate || profile.cdate),
       tmdate: formatLongDate(profile.tmdate || profile.mdate),
       active: (!!profile.active).toString(),
@@ -430,6 +431,10 @@ const Compare = ({ left, right, accessToken, appContext }) => {
 
   const renderField = (profile, fieldName, highlightValue) => {
     switch (fieldName) {
+      case 'state':
+        return (
+          <span className={getProfileStateLabelClass(profile.state)}>{profile.state}</span>
+        )
       case 'names':
         return <Names names={profile.names} highlightValue={highlightValue} />
       case 'history':
@@ -470,8 +475,20 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   }
 
   const mergeProfile = (from, to) => {
-    const fromProfile = { id: basicProfiles[from].id, active: basicProfiles[from].active }
-    const toProfile = { id: basicProfiles[to].id, active: basicProfiles[to].active }
+    const fromProfile = {
+      id: basicProfiles[from].id,
+      active: basicProfiles[from].active,
+      state: basicProfiles[from].state,
+    }
+    const toProfile = {
+      id: basicProfiles[to].id,
+      active: basicProfiles[to].state
+        ? ['Active Institutional', 'Active Automatic', 'Active'].includes(
+            basicProfiles[to].state
+          )
+        : basicProfiles[to].active,
+      state: basicProfiles[to].state,
+    }
     const postMerge = async () => {
       try {
         await api.post(
@@ -489,7 +506,9 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       if (
         // eslint-disable-next-line no-alert
         window.confirm(
-          'You are merging an active profile into an inactive profile. Are you sure you want to proceed?'
+          `You are merging an ${fromProfile.state ?? 'active'} profile into an ${
+            toProfile.state ?? 'inactive'
+          } profile. Are you sure you want to proceed?`
         )
       ) {
         postMerge()

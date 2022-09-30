@@ -131,7 +131,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
     if (middleName.length === 1) setMiddleName(middleName.toUpperCase())
     if (lastName.length === 1) setLastName(lastName.toUpperCase())
 
-    if (firstName.trim().length < 1 || lastName.trim().length < 1) {
+    if (firstName.trim().length < 1) {
       setNewUsername('')
       return
     }
@@ -688,9 +688,15 @@ const ConfirmNameModal = ({ firstName, middleName, lastName, newUsername, onConf
           <>
             {', '}
             middle name <strong>{middleName}</strong>
+            {','}
           </>
-        )}{' '}
-        and last name <strong>{lastName}</strong>
+        )}
+        {lastName && (
+          <>
+            {' and '}
+            last name <strong>{lastName}</strong>
+          </>
+        )}
         {'. '}
         On your OpenReview profile your name will appear as{' '}
         <strong>{`${firstName} ${lastName}`}</strong> and your username will be{' '}

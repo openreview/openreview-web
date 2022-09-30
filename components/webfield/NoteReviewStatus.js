@@ -12,7 +12,6 @@ import LoadingSpinner from '../LoadingSpinner'
 import NoteList from '../NoteList'
 
 // modified from noteReviewStatus.hbs handlebar template
-// eslint-disable-next-line import/prefer-default-export
 export const ReviewerConsoleNoteReviewStatus = ({
   editUrl,
   paperRating,

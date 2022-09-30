@@ -1,6 +1,6 @@
 /* globals promptError: false */
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import NoteEditorForm from '../NoteEditorForm'
 import { NoteAuthorsV2 } from '../NoteAuthors'
@@ -125,9 +125,18 @@ function ForumNote({ note, updateNote }) {
               </button>
               <ul className="dropdown-menu">
                 {editInvitations?.map((invitation) => (
-                  <li key={invitation.id} onClick={() => openNoteEditor(invitation)}>
+                  <li key={invitation.id}>
                     {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                    <a href="#">{prettyInvitationId(invitation.id)}</a>
+                    <a
+                      href="#"
+                      data-id={invitation.id}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        openNoteEditor(invitation)
+                      }}
+                    >
+                      {prettyInvitationId(invitation.id)}
+                    </a>
                   </li>
                 ))}
               </ul>

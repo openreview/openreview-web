@@ -1,4 +1,5 @@
 /* globals $: false */
+/* globals view: false */
 /* globals view2: false */
 /* globals promptError: false */
 /* globals promptLogin: false */
@@ -74,7 +75,7 @@ export default function NoteEditorForm({
   }
 
   useEffect(() => {
-    if (!invitation || (!note && !forumId) || typeof view === 'undefined') return
+    if (!invitation || typeof view === 'undefined') return
 
     if (!user) {
       promptLogin()
@@ -83,7 +84,8 @@ export default function NoteEditorForm({
     setLoading(true)
 
     if (note) {
-      view2.mkNoteEditor(note, invitation, user, {
+      const noteEditorFn = invitation.edit ? view2.mkNoteEditor : view.mkNoteEditor
+      noteEditorFn(note, invitation, user, {
         onNoteEdited: handleEdited,
         onNoteCancelled,
         onValidate,
@@ -91,7 +93,8 @@ export default function NoteEditorForm({
         onError: handleError,
       })
     } else {
-      view2.mkNewNoteEditor(invitation, forumId, replyToId, user, {
+      const newNoteEditorFn = invitation.edit ? view2.mkNewNoteEditor : view.mkNewNoteEditor
+      newNoteEditorFn(invitation, forumId, replyToId, user, {
         onNoteCreated: handleCreated,
         onNoteCancelled,
         onValidate,

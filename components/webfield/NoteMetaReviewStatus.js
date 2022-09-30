@@ -1,6 +1,6 @@
 /* globals promptError: false */
-// modified from noteMetaReviewStatus.hbs handlebar template
 
+// modified from noteMetaReviewStatus.hbs handlebar template
 import { inflect } from '../../lib/utils'
 import { useEffect, useState } from 'react'
 import useUser from '../../hooks/useUser'

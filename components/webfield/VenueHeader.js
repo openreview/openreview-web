@@ -16,6 +16,7 @@ const VenueHeader = ({ headerInfo }) => {
     deadline,
     date,
   } = headerInfo
+
   return (
     <div className="venue-header" id="header">
       <h1>{title}</h1>
@@ -84,7 +85,9 @@ const VenueHeader = ({ headerInfo }) => {
         ) : (
           <p className="no-margin">Please see the venue website for more information.</p>
         )}
-        <p>{deadline}</p>
+        {deadline && (
+          <p>{deadline}</p>
+        )}
       </div>
     </div>
   )

@@ -204,6 +204,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
                   {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                   <a
                     href="#"
+                    data-id={invitation.id}
                     onClick={(e) => {
                       e.preventDefault()
                       openNoteEditor(invitation, 'edit')
@@ -276,11 +277,17 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
                     {signatureLink} (
                     <Icon name={icon} tooltip={tooltip} />
                     {signatureGroup.members
+                      .slice(0, 4)
                       .map((q) => (
                         <a key={q} href={`/profile?id=${q}`} target="_blank" rel="noreferrer">
                           {prettyId(q, true)}
                         </a>
                       ))
+                      .concat(signatureGroup.members.length > 4 ? (
+                        <a key="others" href={`/group/info?id=${signatureGroup.id}`} target="_blank" rel="noreferrer">
+                          +{signatureGroup.members.length - 4} more
+                        </a>
+                      ) : [])
                       .reduce(
                         (accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]),
                         null
@@ -311,12 +318,14 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
           <Icon name="eye-open" />
           {note.readers.map((reader) => prettyId(reader, true)).join(', ')}
         </span>
-        <span className="revisions">
-          <Icon name="duplicate" />
-          <Link href={`/revisions?id=${note.id}`}>
-            <a>Revisions</a>
-          </Link>
-        </span>
+        {note.details?.editsCount > 1 && (
+          <span className="revisions">
+            <Icon name="duplicate" />
+            <Link href={`/revisions?id=${note.id}`}>
+              <a>Revisions</a>
+            </Link>
+          </span>
+        )}
       </div>
 
       <NoteContentCollapsible

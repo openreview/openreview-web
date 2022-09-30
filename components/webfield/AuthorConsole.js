@@ -1,5 +1,4 @@
 /* globals typesetMathJax,promptError: false */
-
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
@@ -292,7 +291,7 @@ const AuthorConsole = ({ appContext }) => {
       api.getAll(
         '/invitations',
         {
-          regex: wildcardInvitation,
+          prefix: wildcardInvitation,
           invitee: true,
           duedate: true,
           replyto: true,
@@ -304,7 +303,7 @@ const AuthorConsole = ({ appContext }) => {
       api.getAll(
         '/invitations',
         {
-          regex: wildcardInvitation,
+          prefix: wildcardInvitation,
           invitee: true,
           duedate: true,
           type: 'edges',
@@ -315,7 +314,7 @@ const AuthorConsole = ({ appContext }) => {
       api.getAll(
         '/invitations',
         {
-          regex: wildcardInvitation,
+          prefix: wildcardInvitation,
           invitee: true,
           duedate: true,
           type: 'tags',

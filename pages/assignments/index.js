@@ -65,8 +65,8 @@ const AssignmentRow = ({
   shouldRemoveDeployLink,
 }) => {
   const noteContent = apiVersion === 2 ? getNoteContentValues(note.content) : note.content
-  const edgeBrowserUrl = getEdgeBrowserUrl(noteContent)
-  const edgeEditUrl = getEdgeBrowserUrl(noteContent, { editable: true })
+  const edgeBrowserUrl = getEdgeBrowserUrl(noteContent, { version: apiVersion })
+  const edgeEditUrl = getEdgeBrowserUrl(noteContent, { editable: true, version: apiVersion })
   const { status, error_message: errorMessage } = noteContent
 
   return (

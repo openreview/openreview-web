@@ -8,6 +8,7 @@ import get from 'lodash/get'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ProfileEditor from '../../components/profile/ProfileEditor'
+import LimitedStateAlert from '../../components/profile/LimitedStateAlert'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -136,6 +137,8 @@ export default function ProfileEdit({ appContext }) {
       <Head>
         <title key="title">Edit Profile | OpenReview</title>
       </Head>
+
+      {profile.state === 'Limited' && <LimitedStateAlert />}
 
       <header>
         <h1>Edit Profile</h1>

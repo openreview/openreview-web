@@ -9,6 +9,7 @@ import random from 'lodash/random'
 import { nanoid } from 'nanoid'
 import NoteList from '../../components/NoteList'
 import Icon from '../../components/Icon'
+import LimitedStatusAlert from '../../components/profile/LimitedStateAlert'
 import withError from '../../components/withError'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -310,6 +311,8 @@ const Profile = ({ profile, publicProfile, appContext }) => {
       <Head>
         <title key="title">{`${profile.preferredName} | OpenReview`}</title>
       </Head>
+
+      {profile.state === 'Limited' && <LimitedStatusAlert />}
 
       <header className="clearfix">
         <div className="title-container">

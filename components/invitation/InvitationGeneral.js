@@ -609,6 +609,23 @@ const InvitationGeneralEditV2 = ({
   })
 
   const constructInvitationEditToPost = () => {
+    const duedate =
+      !generalInfo.duedate || Number.isNaN(parseInt(generalInfo.duedate, 10))
+        ? { delete: true }
+        : parseInt(generalInfo.duedate, 10)
+    const expdate =
+      !generalInfo.expdate || Number.isNaN(parseInt(generalInfo.expdate, 10))
+        ? { delete: true }
+        : parseInt(generalInfo.expdate, 10)
+    const maxReplies =
+      !generalInfo.maxReplies || Number.isNaN(parseInt(generalInfo.maxReplies, 10))
+        ? { delete: true }
+        : parseInt(generalInfo.maxReplies, 10)
+    const minReplies =
+      !generalInfo.minReplies || Number.isNaN(parseInt(generalInfo.minReplies, 10))
+        ? { delete: true }
+        : parseInt(generalInfo.minReplies, 10)
+
     const invitationEdit = {
       invitation: {
         id: generalInfo.id,
@@ -617,23 +634,17 @@ const InvitationGeneralEditV2 = ({
         cdate: Number.isNaN(parseInt(generalInfo.cdate, 10))
           ? null
           : parseInt(generalInfo.cdate, 10),
-        duedate: Number.isNaN(parseInt(generalInfo.duedate, 10))
-          ? null
-          : parseInt(generalInfo.duedate, 10),
-        expdate: Number.isNaN(parseInt(generalInfo.expdate, 10))
-          ? null
-          : parseInt(generalInfo.expdate, 10),
+        duedate,
+        expdate,
         invitees: stringToArray(generalInfo.invitees),
-        ...(!isMetaInvitation && {
-          maxReplies: Number.isNaN(Number(generalInfo.maxReplies))
-            ? null
-            : Number(generalInfo.maxReplies),
-        }),
-        ...(!isMetaInvitation && {
-          minReplies: Number.isNaN(Number(generalInfo.minReplies))
-            ? null
-            : Number(generalInfo.minReplies),
-        }),
+        ...(!isMetaInvitation &&
+          maxReplies && {
+            maxReplies,
+          }),
+        ...(!isMetaInvitation &&
+          minReplies && {
+            minReplies,
+          }),
         noninvitees: stringToArray(generalInfo.noninvitees),
         nonreaders: stringToArray(generalInfo.nonreaders),
         readers: stringToArray(generalInfo.readers),
