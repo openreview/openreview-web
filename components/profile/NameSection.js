@@ -240,38 +240,41 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
   }
 
   const getNameDeletionRequests = async () => {
-    try {
-      const result = await api.get(
-        '/notes',
-        { invitation: nameDeletionInvitationId },
-        { accessToken }
-      )
-      return result.notes
-    } catch (error) {
-      promptError(error.message)
-    }
-    return null
+    const result = await api.get(
+      '/notes',
+      { invitation: nameDeletionInvitationId },
+      { accessToken }
+    )
+    return result.notes
   }
 
   const loadPendingNameDeletionNotes = async () => {
-    const nameDeletionNotes = await getNameDeletionRequests()
-    setPendingNameDeletionRequests(nameDeletionNotes)
+    try {
+      const nameDeletionNotes = await getNameDeletionRequests()
+      setPendingNameDeletionRequests(nameDeletionNotes)
+    } catch (error) {
+      promptError(error.message)
+    }
   }
 
   const handleDeleteNameChange = async (nameToDelete) => {
-    const nameDeletionNotes = await getNameDeletionRequests()
-    const hasExistingNameDeletionRequest = nameDeletionNotes?.find(
-      (p) =>
-        p?.content?.usernames.includes(nameToDelete.username) &&
-        ['Pending', 'Rejected'].includes(p?.content?.status)
-    )
-    if (hasExistingNameDeletionRequest) {
-      promptError(`Request to remove ${getNameString(nameToDelete)} has been submitted.`)
-      setNameToRequestDelete(null)
-      setPendingNameDeletionRequests(nameDeletionNotes)
-      return
+    try {
+      const nameDeletionNotes = await getNameDeletionRequests()
+      const hasExistingNameDeletionRequest = nameDeletionNotes?.find(
+        (p) =>
+          p?.content?.usernames.includes(nameToDelete.username) &&
+          ['Pending', 'Rejected'].includes(p?.content?.status)
+      )
+      if (hasExistingNameDeletionRequest) {
+        promptError(`Request to remove ${getNameString(nameToDelete)} has been submitted.`)
+        setNameToRequestDelete(null)
+        setPendingNameDeletionRequests(nameDeletionNotes)
+        return
+      }
+      $('#name-delete').modal('show')
+    } catch (error) {
+      promptError(error.message)
     }
-    $('#name-delete').modal('show')
   }
 
   useEffect(() => {
