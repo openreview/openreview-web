@@ -1,3 +1,5 @@
+import { useContext } from 'react'
+import WebFieldContext from '../WebFieldContext'
 import BaseMenuBar from './BaseMenuBar'
 import { MessageAreaChairsModal } from './MessageModal'
 import QuerySearchInfoModal from './QuerySearchInfoModal'
@@ -15,6 +17,7 @@ const AreaChairStatusMenuBar = ({
   recommendationEnabled,
   messageParentGroup,
 }) => {
+  const { seniorAreaChairsId } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {
     number: ['number'],
@@ -47,12 +50,31 @@ const AreaChairStatusMenuBar = ({
     },
   ]
   const exportColumns = [
-    { header: 'id', getValue: (p) => p },
-    { header: 'id', getValue: (p) => p },
-    { header: 'id', getValue: (p) => p },
-    { header: 'id', getValue: (p) => p },
-    { header: 'id', getValue: (p) => p },
-    { header: 'id', getValue: (p) => p },
+    { header: 'id', getValue: (p) => p.areaChairProfileId },
+    {
+      header: 'name',
+      getValue: (p) => p.areaChairProfile?.preferredName ?? p.areaChairProfileId,
+    },
+    {
+      header: 'email',
+      getValue: (p) => p.areaChairProfile?.preferredEmail ?? p.areaChairProfileId,
+    },
+    { header: 'assigned papers', getValue: (p) => p.notes?.length },
+    { header: 'reviews completed', getValue: (p) => p.numCompletedReviews },
+    { header: 'meta reviews completed', getValue: (p) => p.numCompletedMetaReviews },
+    ...(seniorAreaChairsId
+      ? [
+          { header: 'sac id', getValue: (p) => p.seniorAreaChair?.seniorAreaChairId ?? 'N/A' },
+          {
+            header: 'sac name',
+            getValue: (p) => p.seniorAreaChair?.sacProfile?.preferredName ?? 'N/A',
+          },
+          {
+            header: 'sac email',
+            getValue: (p) => p.seniorAreaChair?.sacProfile?.preferredEmail ?? 'N/A',
+          },
+        ]
+      : []),
   ]
   const sortOptions = [
     {
