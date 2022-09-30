@@ -13,30 +13,14 @@ const AreaChairStatusMenuBar = ({
   propertiesAllowed: propertiesAllowedConfig,
   bidEnabled,
   recommendationEnabled,
+  messageParentGroup,
 }) => {
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {
-    number: ['note.number'],
-    id: ['note.id'],
-    title: ['note.content.title', 'note.content.title.value'],
-    author: [
-      'note.content.authors',
-      'note.content.authorids',
-      'note.content.authors.value',
-      'note.content.authorids.value',
-    ],
-    keywords: ['note.content.keywords', 'note.content.keywords.value'],
-    reviewer: ['reviewers'],
-    numReviewersAssigned: ['reviewProgressData.numReviewersAssigned'],
-    numReviewsDone: ['reviewProgressData.numReviewsDone'],
-    ratingAvg: ['reviewProgressData.ratingAvg'],
-    ratingMax: ['reviewProgressData.ratingMax'],
-    ratingMin: ['reviewProgressData.ratingMin'],
-    confidenceAvg: ['reviewProgressData.confidenceAvg'],
-    confidenceMax: ['reviewProgressData.confidenceMax'],
-    confidenceMin: ['reviewProgressData.confidenceMin'],
-    replyCount: ['reviewProgressData.replyCount'],
-    decision: ['metaReviewData.recommendation'],
+    number: ['number'],
+    name: ['areaChairProfile.preferredName'],
+    email: ['areaChairProfile.preferredEmail'],
+    sac: ['areaChairProfile.seniorAreaChair.seniorAreaChairId'],
   }
   const messageAreaChairOptions = [
     ...(bidEnabled
@@ -62,49 +46,59 @@ const AreaChairStatusMenuBar = ({
       value: 'missingMetaReviews',
     },
   ]
+  const exportColumns = [
+    { header: 'id', getValue: (p) => p },
+    { header: 'id', getValue: (p) => p },
+    { header: 'id', getValue: (p) => p },
+    { header: 'id', getValue: (p) => p },
+    { header: 'id', getValue: (p) => p },
+    { header: 'id', getValue: (p) => p },
+  ]
   const sortOptions = [
-    // TODO: ac status tab sort options
     {
       label: 'Area Chair',
       value: 'Area Chair',
-      getValue: (p) => p,
+      getValue: (p) => p.areaChairProfile?.preferredName,
     },
     {
       label: 'Bids Completed',
       value: 'Bids Completed',
-      getValue: (p) => p,
+      getValue: (p) => p.completedBids,
     },
     {
       label: 'Reviewer Recommendations Completed',
       value: 'Reviewer Recommendations Completed',
-      getValue: (p) => p,
+      getValue: (p) => p.completedRecommendations,
     },
     {
       label: 'Papers Assigned',
       value: 'Papers Assigned',
-      getValue: (p) => p,
+      getValue: (p) => p.notes?.length,
     },
     {
       label: 'Papers with Completed Review Missing',
       value: 'Papers with Completed Review Missing',
-      getValue: (p) => p,
+      getValue: (p) => p.notes?.length ?? 0 - p.numCompletedReviews ?? 0,
     },
     {
       label: 'Papers with Completed Review',
       value: 'Papers with Completed Review',
-      getValue: (p) => p,
+      getValue: (p) => p.numCompletedReviews,
     },
     {
       label: 'Papers with Completed MetaReview Missing',
       value: 'Papers with Completed MetaReview Missing',
-      getValue: (p) => p,
+      getValue: (p) => p.notes?.length ?? 0 - p.numCompletedMetaReviews,
     },
     {
       label: 'Papers with Completed MetaReview',
       value: 'Papers with Completed MetaReview',
-      getValue: (p) => p,
+      getValue: (p) => p.numCompletedMetaReviews,
     },
   ]
+  const basicSearchFunction = (row, term) => {
+    return row.areaChairProfileId.toLowerCase().includes(term)
+  }
   return (
     <BaseMenuBar
       tableRowsAll={tableRowsAll}
@@ -115,11 +109,16 @@ const AreaChairStatusMenuBar = ({
       enableQuerySearch={enableQuerySearch}
       filterOperators={filterOperators}
       propertiesAllowed={propertiesAllowed}
+      messageDropdownLabel="Message Area Chairs"
       messageOptions={messageAreaChairOptions}
       messageModalId="message-areachairs"
+      messageParentGroup={messageParentGroup}
+      exportColumns={exportColumns}
       sortOptions={sortOptions}
+      basicSearchFunction={basicSearchFunction}
       messageModal={(props) => <MessageAreaChairsModal {...props} />}
       querySearchInfoModal={(props) => <QuerySearchInfoModal {...props} />}
+      extraClasses="ac-status-menu"
     />
   )
 }

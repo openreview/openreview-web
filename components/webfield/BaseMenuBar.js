@@ -14,11 +14,16 @@ const BaseMenuBar = ({
   enableQuerySearch,
   filterOperators,
   propertiesAllowed,
+  messageDropdownLabel = 'Message',
   messageOptions,
   messageModalId,
+  messageParentGroup,
+  exportColumns,
   sortOptions,
+  basicSearchFunction,
   messageModal,
   querySearchInfoModal,
+  extraClasses,
 }) => {
   const disabledMessageButton = selectedIds?.length === 0
 
@@ -61,8 +66,8 @@ const BaseMenuBar = ({
       setQueryIsInvalidStatus(true)
       return
     }
-    setData((paperStatusTabData) => ({
-      ...paperStatusTabData,
+    setData((tabData) => ({
+      ...tabData,
       tableRows: filteredRows,
     }))
   }
@@ -73,8 +78,8 @@ const BaseMenuBar = ({
 
   const handleReverseSort = () => {
     const reversedTableRows = [...tableRows].reverse()
-    setData((paperStatusTabData) => ({
-      ...paperStatusTabData,
+    setData((tabData) => ({
+      ...tabData,
       tableRows: reversedTableRows,
     }))
   }
@@ -82,24 +87,19 @@ const BaseMenuBar = ({
   useEffect(() => {
     if (!tableRows) return
     if (!searchTerm) {
-      setData((paperStatusTabData) => ({
-        ...paperStatusTabData,
-        tableRows: [...paperStatusTabData.tableRowsAll],
+      setData((tabData) => ({
+        ...tabData,
+        tableRows: [...tabData.tableRowsAll],
       }))
       return
     }
     const cleanSearchTerm = searchTerm.trim().toLowerCase()
     if (shouldEnableQuerySearch && cleanSearchTerm.startsWith('+')) return // handled in keyDownHandler
-    setData((paperStatusTabData) => ({
-      ...paperStatusTabData,
-      tableRows: paperStatusTabData.tableRowsAll.filter((row) => {
-        const noteTitle =
-          row.note.version === 2 ? row.note.content?.title?.value : row.note.content?.title
-        return (
-          row.note.number == cleanSearchTerm || // eslint-disable-line eqeqeq
-          noteTitle.toLowerCase().includes(cleanSearchTerm)
-        )
-      }),
+    setData((tabData) => ({
+      ...tabData,
+      tableRows: tabData.tableRowsAll.filter((row) =>
+        basicSearchFunction(row, cleanSearchTerm)
+      ),
     }))
   }, [searchTerm])
 
@@ -111,7 +111,7 @@ const BaseMenuBar = ({
   }, [sortOption])
 
   return (
-    <div className="menu-bar">
+    <div className={`menu-bar ${extraClasses ? extraClasses : ''}`}>
       <div className="message-button-container">
         <button className={`btn message-button${disabledMessageButton ? ' disabled' : ''}`}>
           <Icon name="envelope" />
@@ -124,15 +124,21 @@ const BaseMenuBar = ({
               IndicatorSeparator: () => null,
               DropdownIndicator: () => null,
             }}
-            value={{ label: 'Message', value: '' }}
+            value={{ label: messageDropdownLabel, value: '' }}
             onChange={handleMessageDropdownChange}
             isSearchable={false}
           />
         </button>
       </div>
-      <div className="btn-group">
-        <ExportCSV records={tableRows} fileName={exportFileName} />
-      </div>
+      {exportColumns && (
+        <div className="btn-group">
+          <ExportCSV
+            records={tableRows}
+            fileName={exportFileName}
+            exportColumns={exportColumns}
+          />
+        </div>
+      )}
       <span className="search-label">Search:</span>
       {isQuerySearch && shouldEnableQuerySearch && (
         <div role="button" onClick={handleQuerySearchInfoClick}>
@@ -169,6 +175,7 @@ const BaseMenuBar = ({
         messageOption,
         messageModalId,
         selectedIds,
+        messageParentGroup,
       })}
       {isQuerySearch &&
         shouldEnableQuerySearch &&

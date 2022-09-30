@@ -1163,13 +1163,7 @@ const PaperStatusTab = ({ pcConsoleData, showContent }) => {
 // #endregion
 
 // #region acStatus tab
-const CommitteeSummary = ({
-  rowData,
-  bidEnabled,
-  recommendationEnabled,
-  acBids,
-  invitations,
-}) => {
+const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
   const { id, preferredName, preferredEmail } = rowData.areaChairProfile ?? {}
   const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
   const {
@@ -1180,7 +1174,7 @@ const CommitteeSummary = ({
     scoresName,
     recommendationName,
   } = useContext(WebFieldContext)
-  const completedBids = acBids?.find((p) => p.id?.tail === id)?.count
+  const completedBids = rowData.completedBids
   const completedRecs = rowData.completedRecommendations
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
     `tail:${id}`,
@@ -1205,7 +1199,7 @@ const CommitteeSummary = ({
   return (
     <>
       <div className="note">
-        {preferredName && (
+        {preferredName ? (
           <>
             <h4>
               <a href={getProfileLink(id, rowData.areaChairProfileId)} target="_blank">
@@ -1214,6 +1208,8 @@ const CommitteeSummary = ({
             </h4>
             <p className="text-muted">({preferredEmail})</p>
           </>
+        ) : (
+          <h4>{rowData.areaChairProfileId}</h4>
         )}
         <p>
           {bidEnabled && (
@@ -1261,9 +1257,7 @@ const CommitteeSummary = ({
 
 // modified based on notesAreaChairProgress.hbs
 const NoteAreaChairProgress = ({ rowData }) => {
-  const numCompletedReviews = rowData.notes.filter(
-    (p) => p.reviewers?.length === p.officialReviews?.length
-  ).length
+  const numCompletedReviews = rowData.numCompletedReviews
   const numPapers = rowData.notes.length
   return (
     <div className="reviewer-progress">
@@ -1295,9 +1289,7 @@ const NoteAreaChairProgress = ({ rowData }) => {
 
 // modified based on notesAreaChairStatus.hbs
 const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
-  const numCompletedMetaReviews = rowData.notes.filter(
-    (p) => p.metaReviewData?.numMetaReviewsDone === p.metaReviewData?.numAreaChairsAssigned
-  ).length
+  const numCompletedMetaReviews = rowData.numCompletedMetaReviews
   const numPapers = rowData.notes.length
   return (
     <div className="reviewer-progress">
@@ -1543,38 +1535,52 @@ const AreaChairStatusTab = ({ pcConsoleData }) => {
     })
     // #endregion
 
-    setAreaChairStatusTabData({
-      tableRows: pcConsoleData.areaChairs.map((areaChairProfileId, index) => {
-        let sacId = null
-        let sacProfile = null
-        if (seniorAreaChairsId) {
-          sacId = sacByAcMap.get(areaChairProfileId)
-          if (seniorAreaChairWithoutAssignmentIds.includes(sacId)) {
-            sacProfile = acSacProfileWithoutAssignmentMap.get(sacId)
-          } else {
-            sacProfile = pcConsoleData.allProfilesMap.get(sacId)
-          }
-        }
-        let acProfile = null
-        if (areaChairWithoutAssignmentIds.includes(areaChairProfileId)) {
-          acProfile = acSacProfileWithoutAssignmentMap.get(areaChairProfileId)
+    const tableRows = pcConsoleData.areaChairs.map((areaChairProfileId, index) => {
+      let sacId = null
+      let sacProfile = null
+      if (seniorAreaChairsId) {
+        sacId = sacByAcMap.get(areaChairProfileId)
+        if (seniorAreaChairWithoutAssignmentIds.includes(sacId)) {
+          sacProfile = acSacProfileWithoutAssignmentMap.get(sacId)
         } else {
-          acProfile = pcConsoleData.allProfilesMap.get(areaChairProfileId)
+          sacProfile = pcConsoleData.allProfilesMap.get(sacId)
         }
-        return {
-          areaChairProfileId: areaChairProfileId,
-          areaChairProfile: acProfile,
-          number: index + 1,
-          completedRecommendations: acRecommendationCount[areaChairProfileId],
-          notes: acNotesMap.get(areaChairProfileId) ?? [],
-          ...(seniorAreaChairsId && {
-            seniorAreaChair: {
-              seniorAreaChairId: sacId,
-              sacProfile,
-            },
-          }),
-        }
-      }),
+      }
+      let acProfile = null
+      if (areaChairWithoutAssignmentIds.includes(areaChairProfileId)) {
+        acProfile = acSacProfileWithoutAssignmentMap.get(areaChairProfileId)
+      } else {
+        acProfile = pcConsoleData.allProfilesMap.get(areaChairProfileId)
+      }
+      const notes = acNotesMap.get(areaChairProfileId) ?? []
+      return {
+        areaChairProfileId: areaChairProfileId,
+        areaChairProfile: acProfile,
+        number: index + 1,
+        completedRecommendations: acRecommendationCount[areaChairProfileId] ?? 0,
+        completedBids:
+          pcConsoleData.bidCount?.areaChairs?.find((p) => p.id?.tail === areaChairProfileId)
+            ?.count ?? 0,
+        numCompletedReviews: notes.filter(
+          (p) => p.reviewers?.length === p.officialReviews?.length
+        ).length,
+        numCompletedMetaReviews:
+          notes.filter(
+            (p) =>
+              p.metaReviewData?.numMetaReviewsDone === p.metaReviewData?.numAreaChairsAssigned
+          ).length ?? 0,
+        notes,
+        ...(seniorAreaChairsId && {
+          seniorAreaChair: {
+            seniorAreaChairId: sacId,
+            sacProfile,
+          },
+        }),
+      }
+    })
+    setAreaChairStatusTabData({
+      tableRowsAll: tableRows,
+      tableRows: [...tableRows],
     })
   }
 
@@ -1620,6 +1626,7 @@ const AreaChairStatusTab = ({ pcConsoleData }) => {
           propertiesAllowed={propertiesAllowed}
           bidEnabled={bidEnabled}
           recommendationEnabled={recommendationEnabled}
+          messageParentGroup={areaChairsId}
         />
         <p className="empty-message">No area chair matching search criteria.</p>
       </div>
@@ -1636,6 +1643,7 @@ const AreaChairStatusTab = ({ pcConsoleData }) => {
         propertiesAllowed={propertiesAllowed}
         bidEnabled={bidEnabled}
         recommendationEnabled={recommendationEnabled}
+        messageParentGroup={areaChairsId}
       />
       <Table
         className="console-table table-striped pc-console-ac-status"
@@ -1652,7 +1660,6 @@ const AreaChairStatusTab = ({ pcConsoleData }) => {
             rowData={row}
             bidEnabled={bidEnabled}
             recommendationEnabled={recommendationEnabled}
-            acBids={pcConsoleData.bidCount?.areaChairs}
             invitations={pcConsoleData.invitations}
             referrerUrl={referrerUrl}
           />

@@ -192,20 +192,20 @@ export const MessageReviewersModal = ({
   )
 }
 
-export const MessageAreaChairsModal = ({ tableRowsDisplayed, messageOption, selectedIds }) => {
+export const MessageAreaChairsModal = ({
+  tableRowsDisplayed: tableRows,
+  messageOption,
+  messageParentGroup,
+}) => {
   const { accessToken } = useUser()
-  const { shortPhrase, venueId, officialReviewName, submissionName } =
-    useContext(WebFieldContext)
+  const { shortPhrase } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
   const [message, setMessage] = useState(null)
   const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
   const [recipientsInfo, setRecipientsInfo] = useState([])
-  const totalMessagesCount = uniqBy(recipientsInfo, (p) => p.reviewerProfileId).reduce(
-    (prev, curr) => prev + curr.count,
-    0
-  )
+  const totalMessagesCount = recipientsInfo.length
 
   const handlePrimaryButtonClick = async () => {
     if (currentStep === 1) {
@@ -214,48 +214,38 @@ export const MessageAreaChairsModal = ({ tableRowsDisplayed, messageOption, sele
     }
     // send emails
     try {
-      const sendEmailPs = selectedIds.map((noteId) => {
-        const { note } = tableRowsDisplayed.find((row) => row.note.id === noteId)
-        const reviewerIds = recipientsInfo
-          .filter((p) => p.noteNumber == note.number) // eslint-disable-line eqeqeq
-          .map((q) => q.reviewerProfileId)
-        if (!reviewerIds.length) return Promise.resolve()
-        const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
-        return api.post(
-          '/messages',
-          {
-            groups: reviewerIds,
-            subject,
-            message: message.replaceAll('{{submit_review_link}}', forumUrl),
-          },
-          { accessToken }
-        )
-      })
-      await Promise.all(sendEmailPs)
-      $('#message-reviewers').modal('hide')
+      await api.post(
+        '/messages',
+        {
+          groups: recipientsInfo.map((p) => p.id),
+          subject,
+          message,
+          parentGroup: messageParentGroup,
+        },
+        { accessToken }
+      )
+      $('#message-areachairs').modal('hide')
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
     } catch (apiError) {
       setError(apiError.message)
     }
   }
 
-  const getRecipients = (selecteNoteIds) => {
-    if (!selecteNoteIds.length) return []
-    const selectedRows = tableRowsDisplayed.filter((row) =>
-      selecteNoteIds.includes(row.note.id)
-    )
-
+  const getRecipientRows = () => {
+    console.log('tableRows', tableRows)
     switch (messageOption.value) {
-      case 'allReviewers':
-        return selectedRows.flatMap((row) => row.reviewers)
-      case 'withReviews':
-        return selectedRows
-          .flatMap((row) => row.reviewers)
-          .filter((reviewer) => reviewer.hasReview)
+      case 'noBids':
+        return tableRows.map((row) => row.completedBids === 0)
+      case 'noRecommendations':
+        return tableRows.map((row) => row.completedRecommendations === 0)
       case 'missingReviews':
-        return selectedRows
-          .flatMap((row) => row.reviewers)
-          .filter((reviewer) => !reviewer.hasReview)
+        return tableRows.filter((row) => row.numCompletedReviews < row.notes?.length ?? 0)
+      case 'noMetaReviews':
+        return tableRows.filter(
+          (row) => row.numCompletedMetaReviews === 0 && (row.notes?.length ?? 0) !== 0
+        )
+      case 'missingMetaReviews':
+        return tableRows.filter((row) => row.numCompletedMetaReviews < row.notes?.length ?? 0)
       default:
         return []
     }
@@ -263,24 +253,24 @@ export const MessageAreaChairsModal = ({ tableRowsDisplayed, messageOption, sele
 
   useEffect(() => {
     if (!messageOption) return
-    setMessage(`${
-      messageOption.value === 'missingReviews'
-        ? `This is a reminder to please submit your review for ${shortPhrase}.\n\n`
-        : ''
-    }Click on the link below to go to the review page:\n\n{{submit_review_link}}
-    \n\nThank you,\n${shortPhrase} Area Chair`)
-    const recipients = getRecipients(selectedIds)
-    const recipientsWithCount = recipients.map((recipient) => {
-      const count = recipients.filter(
-        (p) => p.reviewerProfileId === recipient.reviewerProfileId
-      ).length
-      return {
-        ...recipient,
-        count,
-      }
-    })
-    setRecipientsInfo(recipientsWithCount)
-  }, [messageOption, selectedIds])
+    const recipientRows = getRecipientRows()
+    setRecipientsInfo(
+      recipientRows.map((row) => {
+        const acProfile = row.areaChairProfile
+        return acProfile
+          ? {
+              id: row.areaChairProfileId,
+              preferredName: acProfile.preferredName,
+              preferredEmail: acProfile.preferredEmail,
+            }
+          : {
+              id: row.areaChairProfileId,
+              preferredName: row.areaChairProfileId,
+              preferredEmail: row.areaChairProfileId,
+            }
+      })
+    )
+  }, [messageOption])
 
   return (
     <BasicModal
@@ -288,7 +278,7 @@ export const MessageAreaChairsModal = ({ tableRowsDisplayed, messageOption, sele
       title={messageOption?.label}
       primaryButtonText={primaryButtonText}
       onPrimaryButtonClick={handlePrimaryButtonClick}
-      primaryButtonDisabled={!totalMessagesCount}
+      primaryButtonDisabled={!totalMessagesCount || !message}
       onClose={() => {
         setCurrentStep(1)
       }}
@@ -297,9 +287,8 @@ export const MessageAreaChairsModal = ({ tableRowsDisplayed, messageOption, sele
       {currentStep === 1 ? (
         <>
           <p>
-            {`You may customize the message that will be sent to the reviewers. In the email
-            body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
-            form where the reviewer can fill out his or her review.`}
+            Enter a message to be sent to all selected area chairs below. You will have a
+            chance to review a list of all recipients after clicking "Next" below.
           </p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>
@@ -326,13 +315,13 @@ export const MessageAreaChairsModal = ({ tableRowsDisplayed, messageOption, sele
         <>
           <p>
             A total of <span className="num-reviewers">{totalMessagesCount}</span> reminder
-            emails will be sent to the following reviewers:
+            emails will be sent to the following area chairs:
           </p>
           <div className="well reviewer-list">
-            {uniqBy(recipientsInfo, (p) => p.reviewerProfileId).map((recipientInfo) => (
-              <li key={recipientInfo.preferredEmail}>{`${recipientInfo.preferredName} <${
-                recipientInfo.preferredEmail
-              }>${recipientInfo.count > 1 ? ` --- (×${recipientInfo.count})` : ''}`}</li>
+            {recipientsInfo.map((recipientInfo) => (
+              <li
+                key={recipientInfo.preferredEmail}
+              >{`${recipientInfo.preferredName} <${recipientInfo.preferredEmail}>`}</li>
             ))}
           </div>
         </>
