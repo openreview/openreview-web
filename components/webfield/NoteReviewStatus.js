@@ -190,6 +190,104 @@ Click on the link below to go to the review page:\n\n{{submit_review_link}}
   )
 }
 
+const AreaChairConsoleReviewerStatusRow = ({
+  officialReviews,
+  reviewer,
+  note,
+  venueId,
+  officialReviewName,
+  referrerUrl,
+  shortPhrase,
+  submissionName,
+}) => {
+  const [updateLastSent, setUpdateLastSent] = useState(true)
+  const completedReview = officialReviews.find((p) => p.anonymousId === reviewer.anonymousId)
+  const lastReminderSent = localStorage.getItem(
+    `https://openreview.net/forum?id=${note.forum}&noteId=${note.id}&invitationId=${venueId}/${submissionName}${note.number}/-/${officialReviewName}|${reviewer.reviewerProfileId}`
+  )
+  const handleShowReviewerActivityClick = (anonymousId) => {
+    $(`#reviewer-activity-${anonymousId}`).modal('show')
+  }
+  const handleSendReminder = (anonymousId) => {
+    $(`#reviewer-reminder-${anonymousId}`).modal('show')
+  }
+  return (
+    <div key={reviewer.reviewerProfileId} className="assigned-reviewer-row">
+      <strong className="assigned-reviewer-id">{reviewer.anonymousId}</strong>
+      <div className="assigned-reviewer-action">
+        <span>
+          {reviewer.preferredName}{' '}
+          <span className="text-muted">&lt;{reviewer.preferredEmail}&gt;</span>
+        </span>
+        {completedReview ? (
+          <>
+            {completedReview.reviewLength && (
+              <span>Review length: {completedReview.reviewLength}</span>
+            )}
+            <a
+              href={`/forum?id=${note.forum}&noteId=${completedReview.id}&referrer=${referrerUrl}`}
+              target="_blank"
+              rel="nofollow noreferrer"
+            >
+              Read Review
+            </a>
+          </>
+        ) : (
+          <div>
+            <AreaChairConsoleReviewerReminderModal
+              note={note}
+              reviewer={reviewer}
+              shortPhrase={shortPhrase}
+              venueId={venueId}
+              officialReviewName={officialReviewName}
+              setUpdateLastSent={setUpdateLastSent}
+              submissionName={submissionName}
+            />
+            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+            <a
+              href="#"
+              className="send-reminder-link"
+              onClick={(e) => {
+                e.preventDefault()
+                handleSendReminder(reviewer.anonymousId)
+              }}
+            >
+              Send Reminder
+            </a>
+            {lastReminderSent && (
+              <span>
+                (Last sent:
+                {new Date(parseInt(lastReminderSent, 10)).toLocaleDateString()})
+              </span>
+            )}
+          </div>
+        )}
+        {completedReview && (
+          <>
+            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+            <a
+              href="#"
+              className="show-activity-modal"
+              onClick={(e) => {
+                e.preventDefault()
+                handleShowReviewerActivityClick(reviewer.anonymousId)
+              }}
+            >
+              Show Reviewer Activity
+            </a>
+            <AreaChairConsoleReviewerActivityModal
+              note={note}
+              reviewer={reviewer}
+              venueId={venueId}
+              submissionName={submissionName}
+            />
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // modified from noteReviewers.hbs handlebar template
 export const AreaChairConsoleNoteReviewStatus = ({
   rowData,
@@ -211,18 +309,9 @@ export const AreaChairConsoleNoteReviewStatus = ({
     confidenceMin,
     confidenceAvg,
   } = rowData.reviewProgressData
-  const [updateLastSent, setUpdateLastSent] = useState(true)
-
-  const handleShowReviewerActivityClick = (anonymousId) => {
-    $(`#reviewer-activity-${anonymousId}`).modal('show')
-  }
-
-  const handleSendReminder = (anonymousId) => {
-    $(`#reviewer-reminder-${anonymousId}`).modal('show')
-  }
 
   return (
-    <div className="console-reviewer-progress">
+    <div className="areachair-console-reviewer-progress">
       <h4>
         {numReviewsDone} of {numReviewersAssigned} Reviews Submitted
       </h4>
@@ -232,89 +321,19 @@ export const AreaChairConsoleNoteReviewStatus = ({
         className="assigned-reviewers"
       >
         <div>
-          {reviewers?.map((reviewer) => {
-            const completedReview = officialReviews.find(
-              (p) => p.anonymousId === reviewer.anonymousId
-            )
-            const lastReminderSent = localStorage.getItem(
-              `https://openreview.net/forum?id=${note.forum}&noteId=${note.id}&invitationId=${venueId}/${submissionName}${note.number}/-/${officialReviewName}|${reviewer.reviewerProfileId}`
-            )
-            return (
-              <div key={reviewer.reviewerProfileId} className="assigned-reviewer-row">
-                <strong className="assigned-reviewer-id">{reviewer.anonymousId}</strong>
-                <div className="assigned-reviewer-action">
-                  <span>
-                    {reviewer.preferredName}{' '}
-                    <span className="text-muted">&lt;{reviewer.preferredEmail}&gt;</span>
-                  </span>
-                  {completedReview ? (
-                    <>
-                      {completedReview.reviewLength && (
-                        <span>Review length: {completedReview.reviewLength}</span>
-                      )}
-                      <a
-                        href={`/forum?id=${note.forum}&noteId=${completedReview.id}&referrer=${referrerUrl}`}
-                        target="_blank"
-                        rel="nofollow noreferrer"
-                      >
-                        Read Review
-                      </a>
-                    </>
-                  ) : (
-                    <div>
-                      <AreaChairConsoleReviewerReminderModal
-                        note={note}
-                        reviewer={reviewer}
-                        shortPhrase={shortPhrase}
-                        venueId={venueId}
-                        officialReviewName={officialReviewName}
-                        setUpdateLastSent={setUpdateLastSent}
-                        submissionName={submissionName}
-                      />
-                      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                      <a
-                        href="#"
-                        className="send-reminder-link"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          handleSendReminder(reviewer.anonymousId)
-                        }}
-                      >
-                        Send Reminder
-                      </a>
-                      {lastReminderSent && (
-                        <span>
-                          (Last sent:
-                          {new Date(parseInt(lastReminderSent, 10)).toLocaleDateString()})
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  {completedReview && (
-                    <>
-                      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                      <a
-                        href="#"
-                        className="show-activity-modal"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          handleShowReviewerActivityClick(reviewer.anonymousId)
-                        }}
-                      >
-                        Show Reviewer Activity
-                      </a>
-                      <AreaChairConsoleReviewerActivityModal
-                        note={note}
-                        reviewer={reviewer}
-                        venueId={venueId}
-                        submissionName={submissionName}
-                      />
-                    </>
-                  )}
-                </div>
-              </div>
-            )
-          })}
+          {reviewers.map((reviewer) => (
+            <AreaChairConsoleReviewerStatusRow
+              key={reviewer.anonymousId}
+              officialReviews={officialReviews}
+              reviewer={reviewer}
+              note={note}
+              venueId={venueId}
+              officialReviewName={officialReviewName}
+              referrerUrl={referrerUrl}
+              shortPhrase={shortPhrase}
+              submissionName={submissionName}
+            />
+          ))}
         </div>
       </Collapse>
       <span>
