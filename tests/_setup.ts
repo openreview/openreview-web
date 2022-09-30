@@ -38,7 +38,7 @@ const waitForJobs = (noteId, superUserToken) =>
     }, 500)
   })
 
-fixture`Setup data`.before(async (ctx) => {
+fixture`Set up test data`.before(async (ctx) => {
   ctx.superUserToken = await getToken('openreview.net', '1234')
   await setupProfileViewEdit(ctx.superUserToken)
   await setupRegister(ctx.superUserToken)
@@ -66,7 +66,7 @@ fixture`Setup data`.before(async (ctx) => {
   return ctx
 })
 
-test('setup TestVenue', async (t) => {
+test('Set up TestVenue', async (t) => {
   const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
   const submissionDateString = `${submissionDate.getFullYear()}/${
     submissionDate.getMonth() + 1
@@ -195,7 +195,7 @@ test('setup TestVenue', async (t) => {
   )
 })
 
-test('setup AnotherTestVenue', async (t) => {
+test('Set up AnotherTestVenue', async (t) => {
   const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
   const submissionDateString = `${submissionDate.getFullYear()}/${
     submissionDate.getMonth() + 1
@@ -294,7 +294,7 @@ test('setup AnotherTestVenue', async (t) => {
   await waitForJobs(postSubmissionId, superUserToken)
 })
 
-test('setup ICLR', async (t) => {
+test('Set up ICLR', async (t) => {
   const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
   const submissionDateString = `${submissionDate.getFullYear()}/${
     submissionDate.getMonth() + 1
