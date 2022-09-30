@@ -151,41 +151,39 @@ Click on the link below to go to the review page:\n\n{{submit_review_link}}
       onClose={() => {}}
     >
       {error && <div className="alert alert-danger">{error}</div>}
-      <>
-        <p>
-          {`You may customize the message that will be sent to the reviewer. In the email body,
+      <p>
+        {`You may customize the message that will be sent to the reviewer. In the email body,
           the text {{ submit_review_link }} will be replaced with a hyperlink to the form where
           the reviewer can fill out his or her review.`}
-        </p>
-        <div className="form-group">
-          <label htmlFor="reviewer">Reviewer</label>
-          <input
-            type="text"
-            name="reviewer"
-            className="form-control"
-            value={reviewer.preferredName}
-            disabled
-          />
-          <label htmlFor="subject">Email Subject</label>
-          <input
-            type="text"
-            name="subject"
-            className="form-control"
-            value={subject}
-            required
-            onChange={(e) => setSubject(e.target.value)}
-          />
-          <label htmlFor="message">Email Body</label>
-          <textarea
-            name="message"
-            className="form-control message-body"
-            rows="6"
-            value={message}
-            required
-            onChange={(e) => setMessage(e.target.value)}
-          />
-        </div>
-      </>
+      </p>
+      <div className="form-group">
+        <label htmlFor="reviewer">Reviewer</label>
+        <input
+          type="text"
+          name="reviewer"
+          className="form-control"
+          value={reviewer.preferredName}
+          disabled
+        />
+        <label htmlFor="subject">Email Subject</label>
+        <input
+          type="text"
+          name="subject"
+          className="form-control"
+          value={subject}
+          required
+          onChange={(e) => setSubject(e.target.value)}
+        />
+        <label htmlFor="message">Email Body</label>
+        <textarea
+          name="message"
+          className="form-control message-body"
+          rows="6"
+          value={message}
+          required
+          onChange={(e) => setMessage(e.target.value)}
+        />
+      </div>
     </BasicModal>
   )
 }
