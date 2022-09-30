@@ -1962,7 +1962,7 @@ const ProgramChairConsole = ({ appContext }) => {
           )
           ?.map((review) => ({
             ...review,
-            anonId: getNumberFromGroup(review.signatures[0], 'Reviewer_', false),
+            anonId: getIndentifierFromGroup(review.signatures[0], 'Reviewer_'),
           }))
         const metaReviews = directReplies
           .filter(
@@ -1971,7 +1971,7 @@ const ProgramChairConsole = ({ appContext }) => {
           )
           ?.map((metaReview) => ({
             ...metaReview,
-            anonId: getNumberFromGroup(metaReview.signatures[0], 'Area_Chair_', false),
+            anonId: getIndentifierFromGroup(metaReview.signatures[0], 'Area_Chair_'),
           }))
         const decision = directReplies.find(
           (p) => p.invitation === `${venueId}/Paper${note.number}/-/${decisionName}`
@@ -2049,7 +2049,7 @@ const ProgramChairConsole = ({ appContext }) => {
                   reviewerProfileId: member,
                   reviewerAnonGroup,
                   anonymousId: reviewerAnonGroup
-                    ? getNumberFromGroup(reviewerAnonGroup, 'Reviewer_', false)
+                    ? getIndentifierFromGroup(reviewerAnonGroup, 'Reviewer_')
                     : null,
                 }
               }),
@@ -2066,7 +2066,7 @@ const ProgramChairConsole = ({ appContext }) => {
                   areaChairProfileId: member,
                   areaChairAnonGroup,
                   anonymousId: areaChairAnonGroup
-                    ? getNumberFromGroup(areaChairAnonGroup, 'Area_Chair_', false)
+                    ? getIndentifierFromGroup(areaChairAnonGroup, 'Area_Chair_')
                     : null,
                 }
               }),

@@ -185,18 +185,20 @@ main.invitation {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: 0.25rem;
+    padding: 0.5rem 0.25rem;
+    border-bottom: 1px solid #ddd;
+
     .message-button-container {
       margin-right: 0.25rem;
-      .message-button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0.05rem 0.1rem;
-      }
+      // .message-button {
+      //   display: flex;
+      //   align-items: center;
+      //   justify-content: center;
+      //   padding: 0.05rem 0.1rem;
+      // }
     }
     .btn-export-data {
-      margin-right: 0.25rem;
+      margin-right: 0.5rem;
 
       a {
         color: white;
@@ -359,6 +361,19 @@ main.invitation {
   .areachair-console-table,
   .pc-console-paper-status {
     table-layout: auto;
+    & > thead > tr > th {
+      vertical-align: top;
+    }
+    input[type='checkbox'] {
+      width: 1rem;
+      height: 1rem;
+    }
+    #select-all-papers {
+      margin-top: 0;
+      position: relative;
+      top: 2px;
+    }
+
     .empty-message {
       margin-left: 0.5rem;
     }
