@@ -372,7 +372,7 @@ test('reimport unlinked paper and import all', async (t) => {
 })
 
 // eslint-disable-next-line no-unused-expressions
-fixture`profile page different user`
+fixture`Profile page different user`
 
 test('open profile of other user by email', async (t) => {
   await t
@@ -404,7 +404,7 @@ test('open profile of other user by id', async (t) => {
 })
 
 // eslint-disable-next-line no-unused-expressions
-fixture`issue related tests`
+fixture`Issue related tests`
 
 test('#83 email status is missing', async (t) => {
   await t
