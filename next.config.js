@@ -1,7 +1,6 @@
 const nextBuildId = require('next-build-id')
-const withTM = require('next-transpile-modules')(['query-string'])
 
-module.exports = withTM({
+module.exports = {
   swcMinify: false,
   eslint: {
     dirs: ['pages', 'components', 'hooks', 'lib', 'tests'],
@@ -19,4 +18,4 @@ module.exports = withTM({
   },
   generateBuildId: () => nextBuildId({ dir: __dirname, describe: true }),
   poweredByHeader: false,
-})
+}

@@ -1647,8 +1647,8 @@ module.exports = (function() {
     return result
   }
 
-  constructUpdatedEdit = (edit, invitation, formContent) => {
-    const shouldSetValue = (fieldPath)=>{
+  const constructUpdatedEdit = (edit, invitation, formContent) => {
+    const shouldSetValue = (fieldPath) => {
       const field = _.get(invitation, fieldPath)
       if (!field || field?.const) return false
       return true
