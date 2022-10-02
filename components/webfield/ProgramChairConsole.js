@@ -10,6 +10,7 @@ import { useContext, useEffect, useMemo, useState } from 'react'
 import BasicHeader from './BasicHeader'
 import {
   formatDateTime,
+  getIndentifierFromGroup,
   getNumberFromGroup,
   getProfileName,
   inflect,
@@ -24,7 +25,13 @@ import { ProgramChairConsolePaperAreaChairProgress } from './NoteMetaReviewStatu
 import PaperStatusMenuBar from './PaperStatusMenuBar'
 import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
 import { buildEdgeBrowserUrl } from '../../lib/webfield-utils'
+import SeniorAreaChairStatusMenuBar from './SeniorAreaChairStatusMenuBar'
 
+// id could be tilde id or email
+const getProfileLink = (profileId, id) => {
+  if (profileId) return `/profile?id=${profileId}`
+  return id.startsWith('~') ? `/profile?id=${id}` : `/profile?email=${id}`
+}
 // #region overview tab
 const StatContainer = ({ title, hint, value }) => {
   return (
@@ -1191,11 +1198,6 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
     scoresName
   )
 
-  // id could be tilde id or email
-  const getProfileLink = (profileId, id) => {
-    if (profileId) return `/profile?id=${profileId}`
-    return id.startsWith('~') ? `/profile?id=${id}` : `/profile?email=${id}`
-  }
   return (
     <>
       <div className="note">
@@ -1371,7 +1373,7 @@ const AreaChairStatusRow = ({
   )
 }
 
-const AreaChairStatusTab = ({ pcConsoleData }) => {
+const AreaChairStatusTab = ({ pcConsoleData, setPcConsoleData }) => {
   const [areaChairStatusTabData, setAreaChairStatusTabData] = useState({})
   const {
     shortPhrase,
@@ -1472,23 +1474,34 @@ const AreaChairStatusTab = ({ pcConsoleData }) => {
       })
     })
 
-    const areaChairWithAssignmentsMap = pcConsoleData.paperGroups.areaChairGroups.reduce(
-      (prev, curr) => {
-        curr.members.forEach((member) => {
-          if (prev[member.areaChairProfileId]) {
-            prev[member.areaChairProfileId].assignedPapers.push(
-              pcConsoleData.notes.find((p) => p.number === curr.noteNumber)
-            )
-          } else {
-            prev[member.areaChairProfileId] = {
-              assignedPapers: [pcConsoleData.notes.find((p) => p.number === curr.noteNumber)],
-            }
-          }
-        })
-        return prev
+    setPcConsoleData((data) => ({
+      ...data,
+      sacAcInfo: {
+        sacByAcMap,
+        acBySacMap,
+        acSacProfileWithoutAssignmentMap,
+        areaChairWithoutAssignmentIds,
+        seniorAreaChairWithoutAssignmentIds,
       },
-      {}
-    )
+    }))
+
+    // const areaChairWithAssignmentsMap = pcConsoleData.paperGroups.areaChairGroups.reduce(
+    //   (prev, curr) => {
+    //     curr.members.forEach((member) => {
+    //       if (prev[member.areaChairProfileId]) {
+    //         prev[member.areaChairProfileId].assignedPapers.push(
+    //           pcConsoleData.notes.find((p) => p.number === curr.noteNumber)
+    //         )
+    //       } else {
+    //         prev[member.areaChairProfileId] = {
+    //           assignedPapers: [pcConsoleData.notes.find((p) => p.number === curr.noteNumber)],
+    //         }
+    //       }
+    //     })
+    //     return prev
+    //   },
+    //   {}
+    // )
     // #endregion
 
     // #region get ac recommendation count
@@ -1535,6 +1548,8 @@ const AreaChairStatusTab = ({ pcConsoleData }) => {
     })
     // #endregion
 
+    console.log('sacByAcMap', sacByAcMap)
+    console.log('acBySacMap', acBySacMap)
     const tableRows = pcConsoleData.areaChairs.map((areaChairProfileId, index) => {
       let sacId = null
       let sacProfile = null
@@ -1663,6 +1678,266 @@ const AreaChairStatusTab = ({ pcConsoleData }) => {
             invitations={pcConsoleData.invitations}
             referrerUrl={referrerUrl}
           />
+        ))}
+      </Table>
+      <PaginationLinks
+        currentPage={pageNumber}
+        itemsPerPage={pageSize}
+        totalCount={totalCount}
+        setCurrentPage={setPageNumber}
+        options={{ noScroll: true, showCount: true }}
+      />
+    </div>
+  )
+}
+// #endregion
+
+// #region sacStatus tab
+const BasicProfileSummary = ({ profile, profileId }) => {
+  const { id, preferredName, preferredEmail } = profile ?? {}
+  return (
+    <div className="note">
+      {preferredName ? (
+        <>
+          <h4>
+            <a href={getProfileLink(id, profileId)} target="_blank">
+              {preferredName}
+            </a>
+          </h4>
+          <p className="text-muted">({preferredEmail})</p>
+        </>
+      ) : (
+        <h4>{profileId}</h4>
+      )}
+    </div>
+  )
+}
+const SeniorAreaChairStatusRow = ({ rowData }) => {
+  return (
+    <tr>
+      <td>
+        <strong className="note-number">{rowData.number}</strong>
+      </td>
+      <td>
+        <BasicProfileSummary
+          profile={rowData.sacProfile ?? {}}
+          profileId={rowData.sacProfileId}
+        />
+      </td>
+      <td>
+        {rowData.acs.map((ac) => (
+          <BasicProfileSummary key={ac.id} profile={ac.profile ?? {}} profileId={ac.id} />
+        ))}
+      </td>
+    </tr>
+  )
+}
+
+const SeniorAreaChairStatusTab = ({ pcConsoleData, setPcConsoleData }) => {
+  const [seniorAreaChairStatusTabData, setSeniorAreaChairStatusTabData] = useState({})
+  const [pageNumber, setPageNumber] = useState(1)
+  const [totalCount, setTotalCount] = useState(pcConsoleData.areaChairs?.length ?? 0)
+  const { seniorAreaChairsId } = useContext(WebFieldContext)
+  const { accessToken } = useUser()
+  const pageSize = 5
+
+  const loadSacStatusTabData = async () => {
+    if (!pcConsoleData.sacAcInfo) {
+      // #region get sac edges to get sac of ac
+      const sacEdgeResult = seniorAreaChairsId
+        ? await api.getAll(
+            '/edges',
+            { invitation: `${seniorAreaChairsId}/-/Assignment` },
+            { accessToken }
+          )
+        : []
+
+      const sacByAcMap = new Map()
+      const acBySacMap = new Map()
+      sacEdgeResult.forEach((edge) => {
+        const ac = edge.head
+        const sac = edge.tail
+        sacByAcMap.set(ac, sac)
+        if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
+        acBySacMap.get(sac).push(ac)
+      })
+      // #endregion
+
+      // #region get profile of acs/sacs without assignments
+      const areaChairWithoutAssignmentIds = pcConsoleData.areaChairs.filter(
+        (areaChairProfileId) => !pcConsoleData.allProfilesMap.get(areaChairProfileId)
+      )
+      const seniorAreaChairWithoutAssignmentIds = pcConsoleData.seniorAreaChairs.filter(
+        (sacProfileId) => !pcConsoleData.allProfilesMap.get(sacProfileId)
+      )
+      const allIdsNoAssignment = areaChairWithoutAssignmentIds.concat(
+        seniorAreaChairWithoutAssignmentIds
+      )
+      const ids = allIdsNoAssignment.filter((p) => p.startsWith('~'))
+      const emails = allIdsNoAssignment.filter((p) => p.match(/.+@.+/))
+      const getProfilesByIdsP = ids.length
+        ? api.post(
+            '/profiles/search',
+            {
+              ids,
+            },
+            { accessToken }
+          )
+        : Promise.resolve([])
+      const getProfilesByEmailsP = emails.length
+        ? api.post(
+            '/profiles/search',
+            {
+              emails,
+            },
+            { accessToken }
+          )
+        : Promise.resolve([])
+      const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
+      const acSacProfilesWithoutAssignment = (profileResults[0].profiles ?? [])
+        .concat(profileResults[1].profiles ?? [])
+        .map((profile) => ({
+          ...profile,
+          preferredName: getProfileName(profile),
+          preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
+        }))
+
+      const acSacProfileWithoutAssignmentMap = new Map()
+      acSacProfilesWithoutAssignment.forEach((profile) => {
+        const usernames = profile.content.names.flatMap((p) => p.username ?? [])
+        const emails = profile.content.emails.filter((p) => p)
+        usernames.concat(emails).forEach((key) => {
+          acSacProfileWithoutAssignmentMap.set(key, profile)
+        })
+      })
+
+      setPcConsoleData((data) => ({
+        ...data,
+        sacAcInfo: {
+          sacByAcMap,
+          acBySacMap,
+          acSacProfileWithoutAssignmentMap,
+          areaChairWithoutAssignmentIds,
+          seniorAreaChairWithoutAssignmentIds,
+        },
+      }))
+
+      const tableRows = pcConsoleData.seniorAreaChairs.map((sacProfileId, index) => {
+        const acs =
+          acBySacMap.get(sacProfileId)?.map((acProfileId) => {
+            const acProfile = areaChairWithoutAssignmentIds.includes(acProfileId)
+              ? acSacProfileWithoutAssignmentMap.get(acProfileId)
+              : pcConsoleData.allProfilesMap.get(acProfileId)
+            return {
+              id: acProfileId,
+              profile: acProfile,
+            }
+          }) ?? []
+        const sacProfile = seniorAreaChairWithoutAssignmentIds.includes(sacProfileId)
+          ? acSacProfileWithoutAssignmentMap.get(sacProfileId)
+          : pcConsoleData.allProfilesMap.get(sacProfileId)
+        return {
+          number: index + 1,
+          sacProfileId,
+          sacProfile,
+          acs,
+        }
+      })
+
+      setSeniorAreaChairStatusTabData({
+        tableRowsAll: tableRows,
+        tableRows: [...tableRows],
+      })
+    } else {
+      const tableRows = pcConsoleData.seniorAreaChairs.map((sacProfileId, index) => {
+        const acs =
+          pcConsoleData.sacAcInfo.acBySacMap.get(sacProfileId)?.map((acProfileId) => {
+            const acProfile = pcConsoleData.sacAcInfo.areaChairWithoutAssignmentIds.includes(
+              acProfileId
+            )
+              ? pcConsoleData.sacAcInfo.acSacProfileWithoutAssignmentMap.get(acProfileId)
+              : pcConsoleData.allProfilesMap.get(acProfileId)
+            return {
+              id: acProfileId,
+              profile: acProfile,
+            }
+          }) ?? []
+        const sacProfile =
+          pcConsoleData.sacAcInfo.seniorAreaChairWithoutAssignmentIds.includes(sacProfileId)
+            ? pcConsoleData.sacAcInfo.acSacProfileWithoutAssignmentMap.get(sacProfileId)
+            : pcConsoleData.allProfilesMap.get(sacProfileId)
+        return {
+          number: index + 1,
+          sacProfileId,
+          sacProfile,
+          acs,
+        }
+      })
+
+      setSeniorAreaChairStatusTabData({
+        tableRowsAll: tableRows,
+        tableRows: [...tableRows],
+      })
+    }
+  }
+
+  useEffect(() => {
+    if (!pcConsoleData?.paperGroups?.seniorAreaChairGroups) return
+    loadSacStatusTabData()
+  }, [pcConsoleData?.paperGroups?.seniorAreaChairGroups])
+
+  useEffect(() => {
+    setSeniorAreaChairStatusTabData((data) => ({
+      ...data,
+      tableRowsDisplayed: data.tableRows?.slice(
+        pageSize * (pageNumber - 1),
+        pageSize * (pageNumber - 1) + pageSize
+      ),
+    }))
+    setTotalCount(seniorAreaChairStatusTabData.tableRows?.length ?? 0)
+  }, [
+    pageNumber,
+    pcConsoleData.paperGroups?.areaChairGroups,
+    seniorAreaChairStatusTabData.tableRows,
+  ])
+
+  if (!pcConsoleData.sacAcInfo) return <LoadingSpinner />
+
+  if (seniorAreaChairStatusTabData.tableRowsAll?.length === 0)
+    return (
+      <p className="empty-message">
+        There are no senior area chairs.Check back later or contact info@openreview.net if you
+        believe this to be an error.
+      </p>
+    )
+  if (seniorAreaChairStatusTabData.tableRows?.length === 0)
+    return (
+      <div className="table-container empty-table-container">
+        <SeniorAreaChairStatusMenuBar
+          tableRowsAll={seniorAreaChairStatusTabData.tableRowsAll}
+          tableRows={seniorAreaChairStatusTabData.tableRows}
+          setSeniorAreaChairStatusTabData={setSeniorAreaChairStatusTabData}
+        />
+        <p className="empty-message">No senior area chair matching search criteria.</p>
+      </div>
+    )
+  return (
+    <div className="table-container">
+      <SeniorAreaChairStatusMenuBar
+        tableRowsAll={seniorAreaChairStatusTabData.tableRowsAll}
+        tableRows={seniorAreaChairStatusTabData.tableRows}
+        setSeniorAreaChairStatusTabData={setSeniorAreaChairStatusTabData}
+      />
+      <Table
+        className="console-table table-striped pc-console-ac-status"
+        headings={[
+          { id: 'number', content: '#' },
+          { id: 'seniorAreaChair', content: 'Senior Area Chair' },
+          { id: 'areachair', content: 'Area Chair' },
+        ]}
+      >
+        {seniorAreaChairStatusTabData.tableRowsDisplayed?.map((row) => (
+          <SeniorAreaChairStatusRow key={row.sacProfileId} rowData={row} />
         ))}
       </Table>
       <PaginationLinks
@@ -2325,12 +2600,18 @@ const ProgramChairConsole = ({ appContext }) => {
           </TabPanel>
           {areaChairsId && activeTabId === '#areachair-status' && (
             <TabPanel id="areachair-status">
-              <AreaChairStatusTab pcConsoleData={pcConsoleData} />
+              <AreaChairStatusTab
+                pcConsoleData={pcConsoleData}
+                setPcConsoleData={setPcConsoleData}
+              />
             </TabPanel>
           )}
           {seniorAreaChairsId && activeTabId === '#seniorareachair-status' && (
             <TabPanel id="seniorareachair-status">
-              <>4</>
+              <SeniorAreaChairStatusTab
+                pcConsoleData={pcConsoleData}
+                setPcConsoleData={setPcConsoleData}
+              />
             </TabPanel>
           )}
           <TabPanel id="reviewer-status">

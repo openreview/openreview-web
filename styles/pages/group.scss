@@ -248,6 +248,13 @@ main.invitation {
       width: 40%;
     }
   }
+
+  .sac-status-menu {
+    .search-input {
+      flex-grow: 1;
+    }
+  }
+
   table {
     margin-bottom: 0;
   }

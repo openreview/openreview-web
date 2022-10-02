@@ -112,24 +112,26 @@ const BaseMenuBar = ({
 
   return (
     <div className={`menu-bar ${extraClasses ? extraClasses : ''}`}>
-      <div className="message-button-container">
-        <button className={`btn message-button${disabledMessageButton ? ' disabled' : ''}`}>
-          <Icon name="envelope" />
-          <Dropdown
-            className={`dropdown-sm message-button-dropdown${
-              disabledMessageButton ? ' dropdown-disable' : ''
-            }`}
-            options={messageOptions}
-            components={{
-              IndicatorSeparator: () => null,
-              DropdownIndicator: () => null,
-            }}
-            value={{ label: messageDropdownLabel, value: '' }}
-            onChange={handleMessageDropdownChange}
-            isSearchable={false}
-          />
-        </button>
-      </div>
+      {messageModal && (
+        <div className="message-button-container">
+          <button className={`btn message-button${disabledMessageButton ? ' disabled' : ''}`}>
+            <Icon name="envelope" />
+            <Dropdown
+              className={`dropdown-sm message-button-dropdown${
+                disabledMessageButton ? ' dropdown-disable' : ''
+              }`}
+              options={messageOptions}
+              components={{
+                IndicatorSeparator: () => null,
+                DropdownIndicator: () => null,
+              }}
+              value={{ label: messageDropdownLabel, value: '' }}
+              onChange={handleMessageDropdownChange}
+              isSearchable={false}
+            />
+          </button>
+        </div>
+      )}
       {exportColumns && (
         <div className="btn-group">
           <ExportCSV
@@ -170,13 +172,14 @@ const BaseMenuBar = ({
         <Icon name="sort" />
       </button>
 
-      {messageModal({
-        tableRowsDisplayed: tableRows,
-        messageOption,
-        messageModalId,
-        selectedIds,
-        messageParentGroup,
-      })}
+      {messageModal &&
+        messageModal({
+          tableRowsDisplayed: tableRows,
+          messageOption,
+          messageModalId,
+          selectedIds,
+          messageParentGroup,
+        })}
       {isQuerySearch &&
         shouldEnableQuerySearch &&
         querySearchInfoModal({ filterOperators, propertiesAllowed })}
