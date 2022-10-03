@@ -28,11 +28,14 @@
     "no-prototype-builtins": ["off"],
     "newline-per-chained-call": ["off"],
     "arrow-parens": "off",
-    "max-len": ["error", {
-      "code": 130,
-      "ignoreStrings": true,
-      "ignoreTemplateLiterals": true,
-      "ignoreRegExpLiterals": true
-    }]
+    "max-len": [
+      "error",
+      {
+        "code": 120,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true,
+        "ignoreRegExpLiterals": true
+      }
+    ]
   }
 }

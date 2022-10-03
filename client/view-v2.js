@@ -607,7 +607,8 @@ module.exports = (function () {
               ?.map((p) => view.prettyId(p))
               .join(', ')}`
             var privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
-            var readerEveryoneLabel = '<span class="private-contents-icon glyphicon glyphicon-globe" title="Publicly revealed to everyone" data-toggle="tooltip" data-placement="bottom"/>'
+            var readerEveryoneLabel =
+              '<span class="private-contents-icon glyphicon glyphicon-globe" title="Publicly revealed to everyone" data-toggle="tooltip" data-placement="bottom"/>'
             if (signatureGroup.readers?.includes('everyone')) {
               return `${signatureLink} ${readerEveryoneLabel} ${signatureGroup.members
                 .map((q) => prettyProfileLink(q, view.prettyId(q)))
@@ -1081,11 +1082,9 @@ module.exports = (function () {
       Webfield2.post('/notes/edits', editToPost, null).then(function () {
         // the return of the post is edit without updatednote
         // so get the updated note again
-        Webfield2.get('/notes', { id: note.id, trash: !isDeleted }).then(
-          function (result) {
-            onTrashedOrRestored({ ...result.notes[0], details: note.details })
-          }
-        )
+        Webfield2.get('/notes', { id: note.id, trash: !isDeleted }).then(function (result) {
+          onTrashedOrRestored({ ...result.notes[0], details: note.details })
+        })
       })
     }
 
@@ -1413,7 +1412,8 @@ module.exports = (function () {
       // eslint-disable-next-line no-console
       console.error(error)
 
-      const err = error === 'no_results' ? 'You do not have permission to create a note' : error
+      const err =
+        error === 'no_results' ? 'You do not have permission to create a note' : error
       if (params.onError) {
         params.onError([err])
       } else {
@@ -2098,6 +2098,7 @@ module.exports = (function () {
     const note = {}
     const content = {}
     const { note: noteFields, ...otherFields } = invitationObj.edit
+
     // editToPost.readers/writers etc.
     Object.entries(otherFields).forEach(([field, value]) => {
       if (!_.has(value, 'param')) return
@@ -2111,12 +2112,15 @@ module.exports = (function () {
         case 'signatures':
           result[field] = formData?.editSignatureInputValues
           break
-        default: // readers/writers/signatures collected in editor default to note readers/writers/signatures
+        default:
+          // readers/writers/signatures collected in editor default to note readers/writers/signatures
           result[field] = formData?.[field] ?? noteObj?.[field]
           break
       }
     })
+
     const { content: contentFields, ...otherNoteFields } = noteFields
+
     // editToPost.note.id/ddate/reader/writers etc.
     Object.entries(otherNoteFields).forEach(([otherNoteField, value]) => {
       if (!_.has(value, 'param')) return
@@ -2133,6 +2137,7 @@ module.exports = (function () {
           break
       }
     })
+
     // content fields
     Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
       if (formData?.[contentFieldName] === null) {
