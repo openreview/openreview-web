@@ -2016,7 +2016,7 @@ module.exports = (function() {
     }
 
     var notePastDue = note.ddate && note.ddate < Date.now();
-    var origFormattedDate = forumDate(originalNote.cdate, originalNote.tcdate, originalNote.mdate, originalNote.tmdate, originalNote.content.year);
+    var origFormattedDate = forumDate(originalNote.cdate, originalNote.tcdate, originalNote.mdate, originalNote.tmdate, originalNote.content.year, originalNote.pdate);
     var $origDateItem = (!notePastDue || note.details.writable) ?
       $('<span>', {class: 'date item'}).text(origFormattedDate) :
       null;
@@ -2173,7 +2173,7 @@ module.exports = (function() {
 
     // Meta Info Row
     var $metaEditRow = $('<div>', {class: 'meta_row'});
-    var formattedDate = forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year);
+    var formattedDate = forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year, note.pdate);
     var $replyCountLabel = (params.withReplyCount && details.replyCount) ?
       $('<span>', {class: 'item'}).text(details.replyCount === 1 ? '1 Reply' : details.replyCount + ' Replies') :
       null;
@@ -2673,13 +2673,12 @@ module.exports = (function() {
     return words.join(' ').trim();
   };
 
-  var forumDate = function(createdDate, trueCreatedDate, modifiedDate, trueModifiedDate, createdYear) {
+  var forumDate = function(createdDate, trueCreatedDate, modifiedDate, trueModifiedDate, createdYear, pdate) {
     var mdateSettings = {
       day: '2-digit',
       month: 'short',
       year: 'numeric'
     };
-
     var cdateSettings = {
       day: '2-digit',
       month: 'short',
@@ -2689,9 +2688,7 @@ module.exports = (function() {
     var cdate = createdDate || trueCreatedDate || Date.now();
     var hasYear = (typeof createdYear === 'string' && createdYear.length) ||
       (typeof createdYear === 'number' && createdYear > 0);
-    var cdateObj = hasYear ?
-      new Date(createdYear) :
-      new Date(cdate);
+    var cdateObj = hasYear ? new Date(createdYear) : new Date(cdate);
 
     // if the cdateObj lacks the precision to represent days/months,
     // remove them from cdateSettings
@@ -2710,23 +2707,23 @@ module.exports = (function() {
 
     var cdateFormatted = cdateObj.toLocaleDateString('en-GB', cdateSettings);
     var mdate = modifiedDate || trueModifiedDate;
-    var mdateFormatted = '';
+    var mdateFormatted = mdate ? new Date(mdate).toLocaleDateString('en-GB', mdateSettings) : '';
 
-    /*
-    Note to self:
-    I think this first condition is no longer needed,
-    because we're no longer storing "year" in the content.
-    Confirm this later.
-    */
-    if (hasYear && cdate === mdate) {
-      mdateFormatted = ' (imported: ' + new Date(cdate).toLocaleDateString('en-GB', mdateSettings) + ')';
-    } else if (cdate < trueCreatedDate && trueCreatedDate === trueModifiedDate) {
-      mdateFormatted = ' (imported: ' + new Date(mdate).toLocaleDateString('en-GB', mdateSettings) + ')';
-    } else if (mdate && cdate !== mdate) {
-      mdateFormatted = ' (modified: ' + new Date(mdate).toLocaleDateString('en-GB', mdateSettings) + ')';
+    if (pdate) {
+      var pdateFormatted = new Date(pdate).toLocaleDateString('en-GB', mdateSettings);
+      var secondaryDate = mdate ? `Last Modified: ${mdateFormatted}` : `Uploaded: ${cdateFormatted}`;
+      return `Published: ${pdateFormatted}, ${secondaryDate}`;
     }
 
-    return cdateFormatted + mdateFormatted;
+    var mdateStr = ''
+    if (hasYear && cdate === mdate) {
+      mdateStr = ' (imported: ' + new Date(cdate).toLocaleDateString('en-GB', mdateSettings) + ')';
+    } else if (cdate < trueCreatedDate && trueCreatedDate === trueModifiedDate) {
+      mdateStr = ' (imported: ' + mdateFormatted + ')';
+    } else if (mdate && cdate !== mdate) {
+      mdateStr = ' (modified: ' + mdateFormatted + ')';
+    }
+    return cdateFormatted + mdateStr;
   };
 
   var truncateTitle = function(title, len) {

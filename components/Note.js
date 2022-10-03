@@ -161,7 +161,8 @@ export const NoteV2 = ({ note, options }) => {
             note.tcdate,
             note.mdate,
             note.tmdate,
-            note.content?.year?.value
+            note.content?.year?.value,
+            note.pdate
           )}
         </li>
         <li>
