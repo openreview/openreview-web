@@ -1,3 +1,8 @@
+/* globals $, _: false */
+/* globals view, Webfield, Webfield2: false */
+/* globals typesetMathJax: false */
+/* globals marked, DOMPurify, MathJax: false */
+
 module.exports = (function() {
   const valueInput = (contentInput, fieldName, fieldDescription) => {
     const $smallHeading = $('<div>', { text: view.prettyField(fieldName), class: 'small_heading' });
@@ -155,7 +160,7 @@ module.exports = (function() {
     const fieldDefault = (params?.useDefaults) ?
       _.get(fieldDescription.value?.param, 'default', '') :
       '';
-    fieldValue = valueInNote || fieldDefault;  // These will always be mutually exclusive
+    fieldValue = valueInNote || fieldDefault; // These will always be mutually exclusive
     var $input;
 
     if (fieldDescription.value && (!_.has(fieldDescription.value, 'param') || _.has(fieldDescription.value.param, 'const'))) {
@@ -164,13 +169,13 @@ module.exports = (function() {
         value = fieldDescription.value.param.const;
       }
       if (Array.isArray(value)) {
-        //treat as values
+        // treat as values
         contentInputResult = view.mkDropdownAdder(
           fieldName, fieldDescription.description, value,
           fieldValue, { hoverText: true, refreshData: false, required: !fieldDescription.value.param?.optional }
         );
       } else {
-        //treat as value
+        // treat as value
         contentInputResult = valueInput($('<input>', {
           type: 'text',
           class: 'form-control note_content_value',
@@ -181,9 +186,9 @@ module.exports = (function() {
       }
     } else if (_.has(fieldDescription.value?.param, 'enum')) {
       if (fieldDescription.value.param.input === 'radio') {
-        //value-radio
+        // value-radio
         $input = $('<div>', { class: 'note_content_value value-radio-container' }).append(
-          _.map(fieldDescription.value.param.enum, function (v) {
+          _.map(fieldDescription.value.param.enum, function(v) {
             return $('<div>', { class: 'radio' }).append(
               $('<label>').append(
                 $('<input>', {
@@ -448,8 +453,8 @@ module.exports = (function() {
       } else {
         authorText = note.content.authors.value?.join(', ');
       }
-      var showPrivateLabel = note.content?.authorids?.readers && !_.isEqual(note.readers?.sort(), note.content.authorids.readers?.sort())
-      if (showPrivateLabel){
+      var showPrivateLabel = note.content?.authorids?.readers && !_.isEqual(note.readers?.sort(), note.content.authorids.readers?.sort());
+      if (showPrivateLabel) {
         var tooltip = `privately revealed to ${note.content?.authorids?.readers?.map(p =>view.prettyId(p)).join(', ')}`
         var privateLabel = `<span class="private-contents-icon glyphicon glyphicon-eye-open" title="${tooltip}" data-toggle="tooltip" data-placement="bottom"/>`
         authorText = `${authorText} ${privateLabel}`
@@ -1058,7 +1063,7 @@ module.exports = (function() {
       const parentId = forum === replyto ? null : replyto;
       let noteReaders = null;
       await buildNoteReaders(invitation.edit.note.readers, [], parentId, (result, error) => {
-        if (error){
+        if (error) {
           if (params.onError) {
             params.onError([error]);
           } else {
@@ -1067,7 +1072,7 @@ module.exports = (function() {
         }
         noteReaders = result;
       });
-      const noteSignatures = await buildSignatures(invitation.edit?.note?.signatures, null, user, 'signatures')
+      const noteSignatures = await buildSignatures(invitation.edit?.note?.signatures, null, user, 'signatures');
       buildEditor(editReaders, editSignatures, noteReaders, noteSignatures);
     } catch (error) {
       console.error(error);
@@ -1081,7 +1086,6 @@ module.exports = (function() {
 
   };
 
-
   function buildEditReaders(fieldDescription) {
     if (!fieldDescription) {
       // done(undefined, 'Invitation is missing readers');
@@ -1092,7 +1096,7 @@ module.exports = (function() {
 
     if (_.has(fieldDescription, 'param') && _.has(fieldDescription.param, 'regex')) {
       return Webfield.get('/groups', { regex: fieldDescription.param.regex }, { handleErrors: false })
-        .then(function (result) {
+        .then(function(result) {
           if (_.isEmpty(result.groups)) {
             promptError('You do not have permission to create a note');
           } else {
@@ -1109,7 +1113,7 @@ module.exports = (function() {
             $readers.find('.small_heading').prepend(requiredText);
             return $readers;
           }
-        }, function (jqXhr, textStatus) {
+        }, function(jqXhr, textStatus) {
           var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus);
           promptError(errorText);
         });
