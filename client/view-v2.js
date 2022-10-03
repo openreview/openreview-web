@@ -160,11 +160,11 @@ module.exports = (function() {
     const fieldDefault = (params?.useDefaults) ?
       _.get(fieldDescription.value?.param, 'default', '') :
       '';
-    fieldValue = valueInNote || fieldDefault; // These will always be mutually exclusive
+    var fieldValue = valueInNote || fieldDefault;  // These will always be mutually exclusive
     var $input;
 
     if (fieldDescription.value && (!_.has(fieldDescription.value, 'param') || _.has(fieldDescription.value.param, 'const'))) {
-      value = fieldDescription.value;
+      var value = fieldDescription.value;
       if (_.has(fieldDescription.value, 'param')) {
         value = fieldDescription.value.param.const;
       }
@@ -477,7 +477,7 @@ module.exports = (function() {
     return authorText;
   };
 
-   const buildContent = (note, params, additionalOmittedFields) => {
+  const buildContent = (note, params, additionalOmittedFields) => {
     if (!params.withContent || (note.ddate && note.ddate < Date.now())) {
       return;
     }
@@ -1629,14 +1629,16 @@ module.exports = (function() {
         content[contentFieldName] = null;
         return;
       }
-      if (valueObj = contentFieldValue.value) {
+      var valueObj = contentFieldValue.value
+      if (valueObj) {
         if (!fieldsToIgnoreConst.includes(contentFieldName) && (!_.has(valueObj, 'param') || valueObj.param.const)) {
           return
         } else {
           content[contentFieldName] = { value: formData?.[contentFieldName] ?? noteObj?.content?.[contentFieldName]?.value }
         }
       }
-      if (fieldReader = contentFieldValue.readers) {
+      var fieldReader = contentFieldValue.readers
+      if (fieldReader) {
         if (fieldReader.const) {
           return
         } else {
