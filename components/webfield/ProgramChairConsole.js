@@ -6,7 +6,7 @@ import Table from '../Table'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
-import { useContext, useEffect, useMemo, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import BasicHeader from './BasicHeader'
 import {
   formatDateTime,
@@ -20,11 +20,11 @@ import Link from 'next/link'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteSummary from './NoteSummary'
 import PaginationLinks from '../PaginationLinks'
-import { AreaChairConsoleNoteReviewStatus } from './NoteReviewStatus'
+import { AcPcConsoleNoteReviewStatus } from './NoteReviewStatus'
 import { ProgramChairConsolePaperAreaChairProgress } from './NoteMetaReviewStatus'
 import PaperStatusMenuBar from './PaperStatusMenuBar'
 import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
-import { buildEdgeBrowserUrl } from '../../lib/webfield-utils'
+import { buildEdgeBrowserUrl, getNoteContent } from '../../lib/webfield-utils'
 import SeniorAreaChairStatusMenuBar from './SeniorAreaChairStatusMenuBar'
 
 // id could be tilde id or email
@@ -247,12 +247,9 @@ const ReviewStatsRow = ({ pcConsoleData, showContent }) => {
 
   useEffect(() => {
     if (!pcConsoleData.notes || Object.keys(reviewStats).length) return
-    // const allOfficialReviews = pcConsoleData.officialReviewsByPaperNumber?.flatMap(
-    //   (p) => p.officialReviews
-    // )
     const allOfficialReviews = [
       ...(pcConsoleData.officialReviewsByPaperNumberMap?.values() ?? []),
-    ]?.flatMap((p) => p.officialReviews)
+    ]?.flat()
 
     const assignedReviewsCount = pcConsoleData.paperGroups?.reviewerGroups?.reduce(
       (prev, curr) => {
@@ -285,20 +282,21 @@ const ReviewStatsRow = ({ pcConsoleData, showContent }) => {
     })
 
     // all anon reviewer id group have signed official review
-    // const reviewersCompletedAllReviews = Object.values(reviewerAnonGroupIds ?? {}).filter(
-    //   (anonReviewerGroups) =>
-    //     anonReviewerGroups?.every((anonReviewerGroup) => {
-    //       const paperOfficialReviews = pcConsoleData.officialReviewsByPaperNumber?.find(
-    //         (p) => p.noteNumber === anonReviewerGroup.noteNumber
-    //       )?.officialReviews
-    //       return paperOfficialReviews?.find(
-    //         (p) => p.signatures[0] === anonReviewerGroup.anonGroupId
-    //       )
-    //     })
-    // )
+    const reviewersCompletedAllReviews = Object.values(reviewerAnonGroupIds ?? {}).filter(
+      (anonReviewerGroups) => {
+        return anonReviewerGroups?.every((anonReviewerGroup) => {
+          const paperOfficialReviews = pcConsoleData.officialReviewsByPaperNumberMap.get(
+            anonReviewerGroup.noteNumber
+          )
+          return paperOfficialReviews?.find(
+            (p) => p.signatures[0] === anonReviewerGroup.anonGroupId
+          )
+        })
+      }
+    )
 
-    // const reviewersComplete = reviewersCompletedAllReviews?.length
-    const reviewersComplete = 0
+    const reviewersComplete = reviewersCompletedAllReviews?.length
+    // const reviewersComplete = 0
 
     const reviewersWithAssignmentsCount = Object.values(reviewerAnonGroupIds ?? {}).length
 
@@ -308,7 +306,8 @@ const ReviewStatsRow = ({ pcConsoleData, showContent }) => {
       // )
       const paperOfficialReviews = pcConsoleData.officialReviewsByPaperNumberMap.get(
         note.number
-      )?.officialReviews
+      )
+      // ?.officialReviews
       const paperReviewers = pcConsoleData.paperGroups?.reviewerGroups?.find(
         (p) => p.noteNumber === note.number
       )?.members
@@ -393,7 +392,8 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
   // )?.length
   const metaReviewsCount = [
     ...(pcConsoleData.metaReviewsByPaperNumberMap?.values() ?? []),
-  ]?.filter((p) => p.metaReviews?.length)?.length
+  ]?.filter((p) => p.length)?.length
+  // ?.filter((p) => p.metaReviews?.length)?.length
 
   // map tilde id in areaChairGroups to anon areachair group id in anonAreaChairGroups
   const areaChairAnonGroupIds = {}
@@ -421,9 +421,9 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
   const areaChairsCompletedAllMetaReviews = Object.values(areaChairAnonGroupIds ?? {}).filter(
     (anonAreaChairGroups) =>
       anonAreaChairGroups?.every((anonAreaChairGroup) => {
-        const paperOfficialMetaReviews = pcConsoleData.metaReviewsByPaperNumber?.find(
-          (p) => p.noteNumber === anonAreaChairGroup.noteNumber
-        )?.metaReviews
+        const paperOfficialMetaReviews = pcConsoleData.metaReviewsByPaperNumberMap.get(
+          anonAreaChairGroup.noteNumber
+        )
         return paperOfficialMetaReviews?.find(
           (p) => p.signatures[0] === anonAreaChairGroup.anonGroupId
         )
@@ -470,9 +470,10 @@ const DecisionStatsRow = ({ pcConsoleData }) => {
   const notesWithFinalDecision = decisions.filter((p) => p)
   const decisionsCount = notesWithFinalDecision?.length
   const submissionsCount = pcConsoleData.notes?.length
-
   const allDecisions = decisions.flatMap((p) => {
-    return p?.content?.decision ?? []
+    return (
+      (pcConsoleData.isV2Console ? p?.content?.decision?.value : p?.content?.decision) ?? []
+    )
   })
 
   return (
@@ -538,11 +539,11 @@ const DescriptionTimelineOtherConfigRow = ({
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs)`
   )
-  const sacRoles = requestForm?.content?.['senior_area_chair_roles'] ?? ['Senior_Area_Chairs']
-  const acRoles = requestForm?.content?.['area_chair_roles'] ?? ['Area_Chairs']
-  const hasEthicsChairs =
-    requestForm?.content?.['ethics_chairs_and_reviewers']?.includes('Yes')
-  const reviewerRoles = requestForm?.content?.['reviewer_roles'] ?? ['Reviewers']
+  const requestFormContent = getNoteContent(requestForm, pcConsoleData.isV2Console)
+  const sacRoles = requestFormContent?.['senior_area_chair_roles'] ?? ['Senior_Area_Chairs']
+  const acRoles = requestFormContent?.['area_chair_roles'] ?? ['Area_Chairs']
+  const hasEthicsChairs = requestFormContent?.['ethics_chairs_and_reviewers']?.includes('Yes')
+  const reviewerRoles = requestFormContent?.['reviewer_roles'] ?? ['Reviewers']
 
   const timelineInvitations = [
     { id: submissionId, displayName: 'Paper Submissions' },
@@ -623,15 +624,15 @@ const DescriptionTimelineOtherConfigRow = ({
             <h4>Description:</h4>
             <p>
               <span>
-                {`Author And Reviewer Anonymity: ${requestForm.content['Author and Reviewer Anonymity']}`}
+                {`Author And Reviewer Anonymity: ${requestFormContent?.['Author and Reviewer Anonymity']}`}
                 <br />
-                {requestForm.content['Open Reviewing Policy']}
+                {requestFormContent?.['Open Reviewing Policy']}
                 <br />
-                {`Paper matching uses ${requestForm.content['Paper Matching'].join(', ')}`}
-                {requestForm.content['Other Important Information'] && (
+                {`Paper matching uses ${requestFormContent?.['Paper Matching']?.join(', ')}`}
+                {requestFormContent?.['Other Important Information'] && (
                   <>
                     <br />
-                    {note.content['Other Important Information']}
+                    {requestFormContent?.['Other Important Information']}
                   </>
                 )}
               </span>
@@ -825,7 +826,11 @@ const DescriptionTimelineOtherConfigRow = ({
                 return (
                   <li key={form.id} className="overview-registration-link">
                     <Link href={`/forum?id=${form.id}`}>
-                      <a>{form.content.title}</a>
+                      <a>
+                        {pcConsoleData.isV2Console
+                          ? form.content?.title?.value
+                          : form.content?.title}
+                      </a>
                     </Link>
                   </li>
                 )
@@ -908,14 +913,14 @@ const DescriptionTimelineOtherConfigRow = ({
 const OverviewTab = ({ pcConsoleData, showContent }) => {
   const { areaChairsId, seniorAreaChairsId, reviewersId, bidName, recommendationName } =
     useContext(WebFieldContext)
-  const bidEnabled = pcConsoleData.invitations?.some((p) =>
+  const bidEnabled = pcConsoleData.invitations?.find((p) =>
     [
       `${seniorAreaChairsId}/-/${bidName}`,
       `${areaChairsId}/-/${bidName}`,
       `${reviewersId}/-/${bidName}`,
     ].includes(p.id)
   )
-  const recommendationEnabled = pcConsoleData.invitations?.some(
+  const recommendationEnabled = pcConsoleData.invitations?.find(
     (p) => p.id === `${reviewersId}/-/${recommendationName}`
   )
   return (
@@ -961,7 +966,7 @@ const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) 
   )
 }
 
-const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds }) => {
+const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision }) => {
   const { areaChairsId, venueId, officialReviewName, shortPhrase, recommendationName } =
     useContext(WebFieldContext)
   const { note, metaReviewData } = rowData
@@ -1002,7 +1007,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds }) => {
         />
       </td>
       <td>
-        <AreaChairConsoleNoteReviewStatus
+        <AcPcConsoleNoteReviewStatus
           rowData={rowData}
           venueId={venueId}
           officialReviewName={officialReviewName}
@@ -1020,7 +1025,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds }) => {
         </td>
       )}
       <td className="console-decision">
-        <h4 className="title">{note.details?.decision?.content?.decision ?? 'No Decision'}</h4>
+        <h4 className="title">{decision}</h4>
       </td>
     </tr>
   )
@@ -1147,14 +1152,24 @@ const PaperStatusTab = ({ pcConsoleData, showContent }) => {
           { id: 'decision', content: 'Decision' },
         ]}
       >
-        {paperStatusTabData.tableRowsDisplayed?.map((row) => (
-          <PaperRow
-            key={row.note.id}
-            rowData={row}
-            selectedNoteIds={selectedNoteIds}
-            setSelectedNoteIds={setSelectedNoteIds}
-          />
-        ))}
+        {paperStatusTabData.tableRowsDisplayed?.map((row) => {
+          let decision = 'No Decision'
+          if (pcConsoleData.isV2Console) {
+            decision = row.note?.content?.venue?.value
+          } else {
+            const decisionNote = pcConsoleData.decisionByPaperNumberMap.get(row.note.number)
+            if (decisionNote?.content?.decision) decision = decisionNote.content.decision
+          }
+          return (
+            <PaperRow
+              key={row.note.id}
+              rowData={row}
+              selectedNoteIds={selectedNoteIds}
+              setSelectedNoteIds={setSelectedNoteIds}
+              decision={decision}
+            />
+          )
+        })}
       </Table>
       <PaginationLinks
         currentPage={pageNumber}
@@ -1258,7 +1273,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
 }
 
 // modified based on notesAreaChairProgress.hbs
-const NoteAreaChairProgress = ({ rowData }) => {
+const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
   const numCompletedReviews = rowData.numCompletedReviews
   const numPapers = rowData.notes.length
   return (
@@ -1269,11 +1284,15 @@ const NoteAreaChairProgress = ({ rowData }) => {
       {rowData.notes.length !== 0 && <strong>Papers:</strong>}
       <div className="review-progress">
         {rowData.notes.map((p) => {
+          const noteTitle =
+            p.note.version === 2 ? p.note?.content?.title?.value : p.note?.content?.title
           return (
             <div key={p.noteNumber}>
               <div className="note-info">
                 <strong className="note-number">{p.noteNumber}</strong>
-                <a>{p.note?.content?.title}</a>
+                <a href={`/forum?id=${p.note.forum}&referrer=${referrerUrl}`} target="_blank">
+                  {noteTitle}
+                </a>
               </div>
               <div className="review-info">
                 <strong>
@@ -1290,7 +1309,7 @@ const NoteAreaChairProgress = ({ rowData }) => {
 }
 
 // modified based on notesAreaChairStatus.hbs
-const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
+const NoteAreaChairStatus = ({ rowData, referrerUrl, isV2Console }) => {
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews
   const numPapers = rowData.notes.length
   return (
@@ -1301,7 +1320,8 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
       {rowData.notes.length !== 0 && <strong>Papers:</strong>}
       <div className="review-progress">
         {rowData.notes.map((p) => {
-          const venue = p.note?.content?.venue
+          const noteContent = getNoteContent(p.note, isV2Console)
+          const venue = noteContent?.venue
           const metaReviews = p.metaReviewData?.metaReviews
           const hasMetaReview = metaReviews?.length
           return (
@@ -1311,13 +1331,14 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
                 {hasMetaReview ? (
                   <>
                     <span>{`${venue ? `${venue} - ` : ''}${
-                      p.note?.content?.recommendation ?? ''
+                      noteContent.recommendation ?? ''
                     }`}</span>
                     {metaReviews.map((metaReview) => {
+                      const metaReviewContent = getNoteContent(metaReview, isV2Console)
                       return (
                         <div key={metaReview.id}>
-                          {metaReview.content.format && (
-                            <span>Format: {metaReview.content.format}</span>
+                          {metaReviewContent.format && (
+                            <span>Format: {metaReviewContent.format}</span>
                           )}
                           <a
                             href={`/forum?id=${metaReview.forum}&noteId=${metaReview.id}&referrer=${referrerUrl}`}
@@ -1348,6 +1369,7 @@ const AreaChairStatusRow = ({
   acBids,
   invitations,
   referrerUrl,
+  isV2Console,
 }) => {
   return (
     <tr>
@@ -1364,16 +1386,20 @@ const AreaChairStatusRow = ({
         />
       </td>
       <td>
-        <NoteAreaChairProgress rowData={rowData} />
+        <NoteAreaChairProgress rowData={rowData} referrerUrl={referrerUrl} />
       </td>
       <td>
-        <NoteAreaChairStatus rowData={rowData} referrerUrl={referrerUrl} />
+        <NoteAreaChairStatus
+          rowData={rowData}
+          referrerUrl={referrerUrl}
+          isV2Console={isV2Console}
+        />
       </td>
     </tr>
   )
 }
 
-const AreaChairStatusTab = ({ pcConsoleData, setPcConsoleData }) => {
+const AreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo }) => {
   const [areaChairStatusTabData, setAreaChairStatusTabData] = useState({})
   const {
     shortPhrase,
@@ -1406,203 +1432,255 @@ const AreaChairStatusTab = ({ pcConsoleData, setPcConsoleData }) => {
   )
 
   const loadACStatusTabData = async () => {
-    // #region get sac edges to get sac of ac
-    const sacEdgeResult = seniorAreaChairsId
-      ? await api.getAll(
-          '/edges',
-          { invitation: `${seniorAreaChairsId}/-/Assignment` },
-          { accessToken }
-        )
-      : []
+    // // #region get sac edges to get sac of ac
+    // const sacEdgeResult = seniorAreaChairsId
+    //   ? await api.getAll(
+    //       '/edges',
+    //       { invitation: `${seniorAreaChairsId}/-/Assignment` },
+    //       { accessToken }
+    //     )
+    //   : []
 
-    const sacByAcMap = new Map()
-    const acBySacMap = new Map()
-    sacEdgeResult.forEach((edge) => {
-      const ac = edge.head
-      const sac = edge.tail
-      sacByAcMap.set(ac, sac)
-      if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
-      acBySacMap.get(sac).push(ac)
-    })
-    // #endregion
+    // const sacByAcMap = new Map()
+    // const acBySacMap = new Map()
+    // sacEdgeResult.forEach((edge) => {
+    //   const ac = edge.head
+    //   const sac = edge.tail
+    //   sacByAcMap.set(ac, sac)
+    //   if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
+    //   acBySacMap.get(sac).push(ac)
+    // })
+    // // #endregion
 
-    // #region get profile of acs/sacs without assignments
-    const areaChairWithoutAssignmentIds = pcConsoleData.areaChairs.filter(
-      (areaChairProfileId) => !pcConsoleData.allProfilesMap.get(areaChairProfileId)
-    )
-    const seniorAreaChairWithoutAssignmentIds = pcConsoleData.seniorAreaChairs.filter(
-      (sacProfileId) => !pcConsoleData.allProfilesMap.get(sacProfileId)
-    )
-    const allIdsNoAssignment = areaChairWithoutAssignmentIds.concat(
-      seniorAreaChairWithoutAssignmentIds
-    )
-    const ids = allIdsNoAssignment.filter((p) => p.startsWith('~'))
-    const emails = allIdsNoAssignment.filter((p) => p.match(/.+@.+/))
-    const getProfilesByIdsP = ids.length
-      ? api.post(
-          '/profiles/search',
-          {
-            ids,
-          },
-          { accessToken }
-        )
-      : Promise.resolve([])
-    const getProfilesByEmailsP = emails.length
-      ? api.post(
-          '/profiles/search',
-          {
-            emails,
-          },
-          { accessToken }
-        )
-      : Promise.resolve([])
-    const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
-    const acSacProfilesWithoutAssignment = (profileResults[0].profiles ?? [])
-      .concat(profileResults[1].profiles ?? [])
-      .map((profile) => ({
-        ...profile,
-        preferredName: getProfileName(profile),
-        preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
-      }))
-
-    const acSacProfileWithoutAssignmentMap = new Map()
-    acSacProfilesWithoutAssignment.forEach((profile) => {
-      const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-      const emails = profile.content.emails.filter((p) => p)
-      usernames.concat(emails).forEach((key) => {
-        acSacProfileWithoutAssignmentMap.set(key, profile)
-      })
-    })
-
-    setPcConsoleData((data) => ({
-      ...data,
-      sacAcInfo: {
-        sacByAcMap,
-        acBySacMap,
-        acSacProfileWithoutAssignmentMap,
-        areaChairWithoutAssignmentIds,
-        seniorAreaChairWithoutAssignmentIds,
-      },
-    }))
-
-    // const areaChairWithAssignmentsMap = pcConsoleData.paperGroups.areaChairGroups.reduce(
-    //   (prev, curr) => {
-    //     curr.members.forEach((member) => {
-    //       if (prev[member.areaChairProfileId]) {
-    //         prev[member.areaChairProfileId].assignedPapers.push(
-    //           pcConsoleData.notes.find((p) => p.number === curr.noteNumber)
-    //         )
-    //       } else {
-    //         prev[member.areaChairProfileId] = {
-    //           assignedPapers: [pcConsoleData.notes.find((p) => p.number === curr.noteNumber)],
-    //         }
-    //       }
-    //     })
-    //     return prev
-    //   },
-    //   {}
+    // // #region get profile of acs/sacs without assignments
+    // const areaChairWithoutAssignmentIds = pcConsoleData.areaChairs.filter(
+    //   (areaChairProfileId) => !pcConsoleData.allProfilesMap.get(areaChairProfileId)
     // )
-    // #endregion
+    // const seniorAreaChairWithoutAssignmentIds = pcConsoleData.seniorAreaChairs.filter(
+    //   (sacProfileId) => !pcConsoleData.allProfilesMap.get(sacProfileId)
+    // )
+    // const allIdsNoAssignment = areaChairWithoutAssignmentIds.concat(
+    //   seniorAreaChairWithoutAssignmentIds
+    // )
+    // const ids = allIdsNoAssignment.filter((p) => p.startsWith('~'))
+    // const emails = allIdsNoAssignment.filter((p) => p.match(/.+@.+/))
+    // const getProfilesByIdsP = ids.length
+    //   ? api.post(
+    //       '/profiles/search',
+    //       {
+    //         ids,
+    //       },
+    //       { accessToken }
+    //     )
+    //   : Promise.resolve([])
+    // const getProfilesByEmailsP = emails.length
+    //   ? api.post(
+    //       '/profiles/search',
+    //       {
+    //         emails,
+    //       },
+    //       { accessToken }
+    //     )
+    //   : Promise.resolve([])
+    // const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
+    // const acSacProfilesWithoutAssignment = (profileResults[0].profiles ?? [])
+    //   .concat(profileResults[1].profiles ?? [])
+    //   .map((profile) => ({
+    //     ...profile,
+    //     preferredName: getProfileName(profile),
+    //     preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
+    //   }))
 
-    // #region get ac recommendation count
-    const acRecommendations =
-      recommendationName && areaChairsId
-        ? await api.getAll(
-            '/edges',
-            {
-              invitation: `${reviewersId}/-/${recommendationName}`,
-              stream: true,
-            },
-            { accessToken }
-          )
-        : []
-    const acRecommendationCount = acRecommendations.reduce((profileMap, edge) => {
-      var acId = edge.signatures[0]
-      if (!profileMap[acId]) {
-        profileMap[acId] = 0
-      }
-      profileMap[acId] += 1
-      return profileMap
-    }, {})
+    // const acSacProfileWithoutAssignmentMap = new Map()
+    // acSacProfilesWithoutAssignment.forEach((profile) => {
+    //   const usernames = profile.content.names.flatMap((p) => p.username ?? [])
+    //   const emails = profile.content.emails.filter((p) => p)
+    //   usernames.concat(emails).forEach((key) => {
+    //     acSacProfileWithoutAssignmentMap.set(key, profile)
+    //   })
+    // })
 
-    // #endregion
+    // setPcConsoleData((data) => ({
+    //   ...data,
+    //   sacAcInfo: {
+    //     sacByAcMap,
+    //     acBySacMap,
+    //     acSacProfileWithoutAssignmentMap,
+    //     areaChairWithoutAssignmentIds,
+    //     seniorAreaChairWithoutAssignmentIds,
+    //   },
+    // }))
 
-    // #region calc ac to notes map
-    const acNotesMap = new Map()
-    const allNoteNumbers = pcConsoleData.notes.map((p) => p.number)
-    pcConsoleData.paperGroups.areaChairGroups.forEach((acGroup) => {
-      const members = acGroup.members
-      members.forEach((member) => {
-        const noteNumber = acGroup.noteNumber
-        if (!allNoteNumbers.includes(noteNumber)) return // paper could have been desk rejected
-        const reviewMetaReviewInfo =
-          pcConsoleData.noteNumberReviewMetaReviewMap.get(noteNumber) ?? {}
-        if (acNotesMap.get(member.areaChairProfileId)) {
-          acNotesMap
-            .get(member.areaChairProfileId)
-            .push({ noteNumber, ...reviewMetaReviewInfo })
+    // // const areaChairWithAssignmentsMap = pcConsoleData.paperGroups.areaChairGroups.reduce(
+    // //   (prev, curr) => {
+    // //     curr.members.forEach((member) => {
+    // //       if (prev[member.areaChairProfileId]) {
+    // //         prev[member.areaChairProfileId].assignedPapers.push(
+    // //           pcConsoleData.notes.find((p) => p.number === curr.noteNumber)
+    // //         )
+    // //       } else {
+    // //         prev[member.areaChairProfileId] = {
+    // //           assignedPapers: [pcConsoleData.notes.find((p) => p.number === curr.noteNumber)],
+    // //         }
+    // //       }
+    // //     })
+    // //     return prev
+    // //   },
+    // //   {}
+    // // )
+    // // #endregion
+
+    // // #region get ac recommendation count
+    // const acRecommendations =
+    //   recommendationName && areaChairsId
+    //     ? await api.getAll(
+    //         '/edges',
+    //         {
+    //           invitation: `${reviewersId}/-/${recommendationName}`,
+    //           stream: true,
+    //         },
+    //         { accessToken }
+    //       )
+    //     : []
+    // const acRecommendationCount = acRecommendations.reduce((profileMap, edge) => {
+    //   var acId = edge.signatures[0]
+    //   if (!profileMap[acId]) {
+    //     profileMap[acId] = 0
+    //   }
+    //   profileMap[acId] += 1
+    //   return profileMap
+    // }, {})
+
+    // // #endregion
+
+    // // #region calc ac to notes map
+    // const acNotesMap = new Map()
+    // const allNoteNumbers = pcConsoleData.notes.map((p) => p.number)
+    // pcConsoleData.paperGroups.areaChairGroups.forEach((acGroup) => {
+    //   const members = acGroup.members
+    //   members.forEach((member) => {
+    //     const noteNumber = acGroup.noteNumber
+    //     if (!allNoteNumbers.includes(noteNumber)) return // paper could have been desk rejected
+    //     const reviewMetaReviewInfo =
+    //       pcConsoleData.noteNumberReviewMetaReviewMap.get(noteNumber) ?? {}
+    //     if (acNotesMap.get(member.areaChairProfileId)) {
+    //       acNotesMap
+    //         .get(member.areaChairProfileId)
+    //         .push({ noteNumber, ...reviewMetaReviewInfo })
+    //     } else {
+    //       acNotesMap.set(member.areaChairProfileId, [{ noteNumber, ...reviewMetaReviewInfo }])
+    //     }
+    //   })
+    // })
+    // // #endregion
+
+    // console.log('sacByAcMap', sacByAcMap)
+    // console.log('acBySacMap', acBySacMap)
+    if (!pcConsoleData.sacAcInfo) {
+      loadSacAcInfo()
+    } else {
+      // #region get ac recommendation count
+      const acRecommendations =
+        recommendationName && areaChairsId
+          ? await api.getAll(
+              '/edges',
+              {
+                invitation: `${reviewersId}/-/${recommendationName}`,
+                stream: true,
+              },
+              { accessToken }
+            )
+          : []
+      const acRecommendationCount = acRecommendations.reduce((profileMap, edge) => {
+        var acId = edge.signatures[0]
+        if (!profileMap[acId]) {
+          profileMap[acId] = 0
+        }
+        profileMap[acId] += 1
+        return profileMap
+      }, {})
+
+      // #endregion
+      // #region calc ac to notes map
+      const acNotesMap = new Map()
+      const allNoteNumbers = pcConsoleData.notes.map((p) => p.number)
+      pcConsoleData.paperGroups.areaChairGroups.forEach((acGroup) => {
+        const members = acGroup.members
+        members.forEach((member) => {
+          const noteNumber = acGroup.noteNumber
+          if (!allNoteNumbers.includes(noteNumber)) return // paper could have been desk rejected
+          const reviewMetaReviewInfo =
+            pcConsoleData.noteNumberReviewMetaReviewMap.get(noteNumber) ?? {}
+          if (acNotesMap.get(member.areaChairProfileId)) {
+            acNotesMap
+              .get(member.areaChairProfileId)
+              .push({ noteNumber, ...reviewMetaReviewInfo })
+          } else {
+            acNotesMap.set(member.areaChairProfileId, [
+              { noteNumber, ...reviewMetaReviewInfo },
+            ])
+          }
+        })
+      })
+      // #endregion
+      const tableRows = pcConsoleData.areaChairs.map((areaChairProfileId, index) => {
+        let sacId = null
+        let sacProfile = null
+        if (seniorAreaChairsId) {
+          sacId = pcConsoleData.sacAcInfo.sacByAcMap.get(areaChairProfileId)
+          if (pcConsoleData.sacAcInfo.seniorAreaChairWithoutAssignmentIds.includes(sacId)) {
+            sacProfile = pcConsoleData.sacAcInfo.acSacProfileWithoutAssignmentMap.get(sacId)
+          } else {
+            sacProfile = pcConsoleData.allProfilesMap.get(sacId)
+          }
+        }
+        let acProfile = null
+        if (
+          pcConsoleData.sacAcInfo.areaChairWithoutAssignmentIds.includes(areaChairProfileId)
+        ) {
+          acProfile =
+            pcConsoleData.sacAcInfo.acSacProfileWithoutAssignmentMap.get(areaChairProfileId)
         } else {
-          acNotesMap.set(member.areaChairProfileId, [{ noteNumber, ...reviewMetaReviewInfo }])
+          acProfile = pcConsoleData.allProfilesMap.get(areaChairProfileId)
+        }
+        const notes = acNotesMap.get(areaChairProfileId) ?? []
+        return {
+          areaChairProfileId: areaChairProfileId,
+          areaChairProfile: acProfile,
+          number: index + 1,
+          completedRecommendations: acRecommendationCount[areaChairProfileId] ?? 0,
+          completedBids:
+            pcConsoleData.bidCount?.areaChairs?.find((p) => p.id?.tail === areaChairProfileId)
+              ?.count ?? 0,
+          numCompletedReviews: notes.filter(
+            (p) => p.reviewers?.length === p.officialReviews?.length
+          ).length,
+          numCompletedMetaReviews:
+            notes.filter(
+              (p) =>
+                p.metaReviewData?.numMetaReviewsDone ===
+                p.metaReviewData?.numAreaChairsAssigned
+            ).length ?? 0,
+          notes,
+          ...(seniorAreaChairsId && {
+            seniorAreaChair: {
+              seniorAreaChairId: sacId,
+              sacProfile,
+            },
+          }),
         }
       })
-    })
-    // #endregion
-
-    console.log('sacByAcMap', sacByAcMap)
-    console.log('acBySacMap', acBySacMap)
-    const tableRows = pcConsoleData.areaChairs.map((areaChairProfileId, index) => {
-      let sacId = null
-      let sacProfile = null
-      if (seniorAreaChairsId) {
-        sacId = sacByAcMap.get(areaChairProfileId)
-        if (seniorAreaChairWithoutAssignmentIds.includes(sacId)) {
-          sacProfile = acSacProfileWithoutAssignmentMap.get(sacId)
-        } else {
-          sacProfile = pcConsoleData.allProfilesMap.get(sacId)
-        }
-      }
-      let acProfile = null
-      if (areaChairWithoutAssignmentIds.includes(areaChairProfileId)) {
-        acProfile = acSacProfileWithoutAssignmentMap.get(areaChairProfileId)
-      } else {
-        acProfile = pcConsoleData.allProfilesMap.get(areaChairProfileId)
-      }
-      const notes = acNotesMap.get(areaChairProfileId) ?? []
-      return {
-        areaChairProfileId: areaChairProfileId,
-        areaChairProfile: acProfile,
-        number: index + 1,
-        completedRecommendations: acRecommendationCount[areaChairProfileId] ?? 0,
-        completedBids:
-          pcConsoleData.bidCount?.areaChairs?.find((p) => p.id?.tail === areaChairProfileId)
-            ?.count ?? 0,
-        numCompletedReviews: notes.filter(
-          (p) => p.reviewers?.length === p.officialReviews?.length
-        ).length,
-        numCompletedMetaReviews:
-          notes.filter(
-            (p) =>
-              p.metaReviewData?.numMetaReviewsDone === p.metaReviewData?.numAreaChairsAssigned
-          ).length ?? 0,
-        notes,
-        ...(seniorAreaChairsId && {
-          seniorAreaChair: {
-            seniorAreaChairId: sacId,
-            sacProfile,
-          },
-        }),
-      }
-    })
-    setAreaChairStatusTabData({
-      tableRowsAll: tableRows,
-      tableRows: [...tableRows],
-    })
+      setAreaChairStatusTabData({
+        tableRowsAll: tableRows,
+        tableRows: [...tableRows],
+      })
+    }
   }
 
   useEffect(() => {
     if (!pcConsoleData.paperGroups?.areaChairGroups) return
     loadACStatusTabData()
-  }, [pcConsoleData.paperGroups?.areaChairGroups])
+  }, [pcConsoleData.paperGroups?.areaChairGroups, pcConsoleData.sacAcInfo])
 
   useEffect(() => {
     setAreaChairStatusTabData((areaChairStatusTabData) => ({
@@ -1677,6 +1755,7 @@ const AreaChairStatusTab = ({ pcConsoleData, setPcConsoleData }) => {
             recommendationEnabled={recommendationEnabled}
             invitations={pcConsoleData.invitations}
             referrerUrl={referrerUrl}
+            isV2Console={pcConsoleData.isV2Console}
           />
         ))}
       </Table>
@@ -1712,6 +1791,7 @@ const BasicProfileSummary = ({ profile, profileId }) => {
     </div>
   )
 }
+
 const SeniorAreaChairStatusRow = ({ rowData }) => {
   return (
     <tr>
@@ -1733,121 +1813,15 @@ const SeniorAreaChairStatusRow = ({ rowData }) => {
   )
 }
 
-const SeniorAreaChairStatusTab = ({ pcConsoleData, setPcConsoleData }) => {
+const SeniorAreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo }) => {
   const [seniorAreaChairStatusTabData, setSeniorAreaChairStatusTabData] = useState({})
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.areaChairs?.length ?? 0)
-  const { seniorAreaChairsId } = useContext(WebFieldContext)
-  const { accessToken } = useUser()
   const pageSize = 5
 
   const loadSacStatusTabData = async () => {
     if (!pcConsoleData.sacAcInfo) {
-      // #region get sac edges to get sac of ac
-      const sacEdgeResult = seniorAreaChairsId
-        ? await api.getAll(
-            '/edges',
-            { invitation: `${seniorAreaChairsId}/-/Assignment` },
-            { accessToken }
-          )
-        : []
-
-      const sacByAcMap = new Map()
-      const acBySacMap = new Map()
-      sacEdgeResult.forEach((edge) => {
-        const ac = edge.head
-        const sac = edge.tail
-        sacByAcMap.set(ac, sac)
-        if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
-        acBySacMap.get(sac).push(ac)
-      })
-      // #endregion
-
-      // #region get profile of acs/sacs without assignments
-      const areaChairWithoutAssignmentIds = pcConsoleData.areaChairs.filter(
-        (areaChairProfileId) => !pcConsoleData.allProfilesMap.get(areaChairProfileId)
-      )
-      const seniorAreaChairWithoutAssignmentIds = pcConsoleData.seniorAreaChairs.filter(
-        (sacProfileId) => !pcConsoleData.allProfilesMap.get(sacProfileId)
-      )
-      const allIdsNoAssignment = areaChairWithoutAssignmentIds.concat(
-        seniorAreaChairWithoutAssignmentIds
-      )
-      const ids = allIdsNoAssignment.filter((p) => p.startsWith('~'))
-      const emails = allIdsNoAssignment.filter((p) => p.match(/.+@.+/))
-      const getProfilesByIdsP = ids.length
-        ? api.post(
-            '/profiles/search',
-            {
-              ids,
-            },
-            { accessToken }
-          )
-        : Promise.resolve([])
-      const getProfilesByEmailsP = emails.length
-        ? api.post(
-            '/profiles/search',
-            {
-              emails,
-            },
-            { accessToken }
-          )
-        : Promise.resolve([])
-      const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
-      const acSacProfilesWithoutAssignment = (profileResults[0].profiles ?? [])
-        .concat(profileResults[1].profiles ?? [])
-        .map((profile) => ({
-          ...profile,
-          preferredName: getProfileName(profile),
-          preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
-        }))
-
-      const acSacProfileWithoutAssignmentMap = new Map()
-      acSacProfilesWithoutAssignment.forEach((profile) => {
-        const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-        const emails = profile.content.emails.filter((p) => p)
-        usernames.concat(emails).forEach((key) => {
-          acSacProfileWithoutAssignmentMap.set(key, profile)
-        })
-      })
-
-      setPcConsoleData((data) => ({
-        ...data,
-        sacAcInfo: {
-          sacByAcMap,
-          acBySacMap,
-          acSacProfileWithoutAssignmentMap,
-          areaChairWithoutAssignmentIds,
-          seniorAreaChairWithoutAssignmentIds,
-        },
-      }))
-
-      const tableRows = pcConsoleData.seniorAreaChairs.map((sacProfileId, index) => {
-        const acs =
-          acBySacMap.get(sacProfileId)?.map((acProfileId) => {
-            const acProfile = areaChairWithoutAssignmentIds.includes(acProfileId)
-              ? acSacProfileWithoutAssignmentMap.get(acProfileId)
-              : pcConsoleData.allProfilesMap.get(acProfileId)
-            return {
-              id: acProfileId,
-              profile: acProfile,
-            }
-          }) ?? []
-        const sacProfile = seniorAreaChairWithoutAssignmentIds.includes(sacProfileId)
-          ? acSacProfileWithoutAssignmentMap.get(sacProfileId)
-          : pcConsoleData.allProfilesMap.get(sacProfileId)
-        return {
-          number: index + 1,
-          sacProfileId,
-          sacProfile,
-          acs,
-        }
-      })
-
-      setSeniorAreaChairStatusTabData({
-        tableRowsAll: tableRows,
-        tableRows: [...tableRows],
-      })
+      loadSacAcInfo()
     } else {
       const tableRows = pcConsoleData.seniorAreaChairs.map((sacProfileId, index) => {
         const acs =
@@ -1884,7 +1858,7 @@ const SeniorAreaChairStatusTab = ({ pcConsoleData, setPcConsoleData }) => {
   useEffect(() => {
     if (!pcConsoleData?.paperGroups?.seniorAreaChairGroups) return
     loadSacStatusTabData()
-  }, [pcConsoleData?.paperGroups?.seniorAreaChairGroups])
+  }, [pcConsoleData?.paperGroups?.seniorAreaChairGroups, pcConsoleData.sacAcInfo])
 
   useEffect(() => {
     setSeniorAreaChairStatusTabData((data) => ({
@@ -1991,6 +1965,7 @@ const ProgramChairConsole = ({ appContext }) => {
   )
   const [pcConsoleData, setPcConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
+  const isV2Console = apiVersion === 2
 
   const loadData = async () => {
     if (isLoadingData) return
@@ -2000,8 +1975,8 @@ const ProgramChairConsole = ({ appContext }) => {
       const conferenceInvitationsP = api.getAll(
         '/invitations',
         {
-          ...(apiVersion === 2 && { prefix: `${venueId}/-/.*` }),
-          ...(apiVersion !== 2 && { regex: `${venueId}/-/.*` }),
+          ...(isV2Console && { prefix: `${venueId}/-/.*` }),
+          ...(!isV2Console && { regex: `${venueId}/-/.*` }),
           expired: true,
           type: 'all',
         },
@@ -2010,8 +1985,8 @@ const ProgramChairConsole = ({ appContext }) => {
       const reviewerInvitationsP = api.getAll(
         '/invitations',
         {
-          ...(apiVersion === 2 && { prefix: `${reviewersId}/-/.*` }),
-          ...(apiVersion !== 2 && { regex: `${reviewersId}/-/.*` }),
+          ...(isV2Console && { prefix: `${reviewersId}/-/.*` }),
+          ...(!isV2Console && { regex: `${reviewersId}/-/.*` }),
           expired: true,
           type: 'all',
         },
@@ -2021,8 +1996,8 @@ const ProgramChairConsole = ({ appContext }) => {
         ? api.getAll(
             '/invitations',
             {
-              ...(apiVersion === 2 && { prefix: `${areaChairsId}/-/.*` }),
-              ...(apiVersion !== 2 && { regex: `${areaChairsId}/-/.*` }),
+              ...(isV2Console && { prefix: `${areaChairsId}/-/.*` }),
+              ...(!isV2Console && { regex: `${areaChairsId}/-/.*` }),
               expired: true,
               type: 'all',
             },
@@ -2033,15 +2008,16 @@ const ProgramChairConsole = ({ appContext }) => {
         ? api.getAll(
             '/invitations',
             {
-              ...(apiVersion === 2 && { prefix: `${seniorAreaChairsId}/-/.*` }),
-              ...(apiVersion !== 2 && { regex: `${seniorAreaChairsId}/-/.*` }),
+              ...(isV2Console && { prefix: `${seniorAreaChairsId}/-/.*` }),
+              ...(!isV2Console && { regex: `${seniorAreaChairsId}/-/.*` }),
               expired: true,
               type: 'all',
             },
             { accessToken, version: apiVersion }
           )
         : Promise.resolve([])
-      const invitationResults = await Promise.all([
+
+      const invitationResultsP = Promise.all([
         conferenceInvitationsP,
         reviewerInvitationsP,
         acInvitationsP,
@@ -2051,19 +2027,17 @@ const ProgramChairConsole = ({ appContext }) => {
       // #endregion
 
       // #region getRequestForm
-      let requestForm = null
-      if (requestFormId) {
-        const getRequestFormResult = await api.get(
-          '/notes',
-          {
-            id: requestFormId,
-            limit: 1,
-            select: 'id,content',
-          },
-          { accessToken }
-        )
-        requestForm = getRequestFormResult.notes?.[0]
-      }
+      const getRequestFormResultP = requestFormId
+        ? api.get(
+            '/notes',
+            {
+              id: requestFormId,
+              limit: 1,
+              select: 'id,content',
+            },
+            { accessToken, version: apiVersion }
+          )
+        : Promise.resolve(null)
       // #endregion
 
       // #region getRegistrationForms
@@ -2077,18 +2051,21 @@ const ProgramChairConsole = ({ appContext }) => {
               signature: venueId,
               select: 'id,invitation,content.title',
             },
-            { accessToken }
+            { accessToken, version: apiVersion }
           )
           .then((notes) => {
-            return notes.filter((note) => note.invitation.endsWith('Form'))
+            return notes.filter((note) =>
+              isV2Console
+                ? note.invitations.includes('Form')
+                : note.invitation.endsWith('Form')
+            )
           })
       })
-      const getRegistrationFormResults = await Promise.all(getRegistrationFormPs)
-      const registrationForms = getRegistrationFormResults.flat()
+      const getRegistrationFormResultsP = Promise.all(getRegistrationFormPs)
       // #endregion
 
       // #region get Reviewer,AC,SAC Members
-      const committeeMemberResults = await Promise.all(
+      const committeeMemberResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) => {
           return id
             ? api.getGroupById(id, accessToken, { select: 'members' })
@@ -2098,16 +2075,20 @@ const ProgramChairConsole = ({ appContext }) => {
       // #endregion
 
       // #region getSubmissions
-      const notes = await api.getAll('/notes', {
-        invitation: submissionId,
-        details: 'invitation,tags,original,replyCount,directReplies',
-        select: 'id,number,forum,content,details',
-        sort: 'number:asc',
-      })
+      const notesP = api.getAll(
+        '/notes',
+        {
+          invitation: submissionId,
+          details: 'invitation,tags,original,replyCount,directReplies',
+          select: 'id,number,forum,content,details',
+          sort: 'number:asc',
+        },
+        { accessToken, version: apiVersion }
+      )
       // #endregion
 
       // #region get withdrawn and rejected submissions
-      const withdrawnRejectedSubmissionResults = await Promise.all(
+      const withdrawnRejectedSubmissionResultsP = Promise.all(
         [withdrawnSubmissionId, deskRejectedSubmissionId].map((id) => {
           return id
             ? api.getAll(
@@ -2116,7 +2097,7 @@ const ProgramChairConsole = ({ appContext }) => {
                   invitation: id,
                   details: 'original',
                 },
-                { accessToken }
+                { accessToken, version: apiVersion }
               )
             : Promise.resolve([])
         })
@@ -2124,7 +2105,7 @@ const ProgramChairConsole = ({ appContext }) => {
       // #endregion
 
       // #region get Reviewer,AC,SAC bid
-      const bidCountResults = await Promise.all(
+      const bidCountResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) => {
           if (!id || !bidName) return Promise.resolve({})
           return api.getAll(
@@ -2141,7 +2122,7 @@ const ProgramChairConsole = ({ appContext }) => {
       // #endregion
 
       // #region getGroups (per paper groups)
-      const perPaperGroupResults = await api.get(
+      const perPaperGroupResultsP = api.get(
         '/groups',
         {
           id: `${venueId}/Paper.*`,
@@ -2150,6 +2131,28 @@ const ProgramChairConsole = ({ appContext }) => {
         },
         { accessToken }
       )
+      // #endregion
+
+      const results = await Promise.all([
+        invitationResultsP,
+        getRequestFormResultP,
+        getRegistrationFormResultsP,
+        committeeMemberResultsP,
+        notesP,
+        withdrawnRejectedSubmissionResultsP,
+        bidCountResultsP,
+        perPaperGroupResultsP,
+      ])
+      const invitationResults = results[0]
+      const requestForm = results[1].notes?.[0]
+      const registrationForms = results[2].flat()
+      const committeeMemberResults = results[3]
+      const notes = results[4]
+      const withdrawnRejectedSubmissionResults = results[5]
+      const bidCountResults = results[6]
+      const perPaperGroupResults = results[7]
+
+      // #region categorize result of per paper groups
       const reviewerGroups = []
       const anonReviewerGroups = {}
       const areaChairGroups = []
@@ -2184,7 +2187,7 @@ const ProgramChairConsole = ({ appContext }) => {
       })
       // #endregion
 
-      // #region get all profiles
+      // #region get all profiles(with assignments)
       const allIds = [...new Set(allGroupMembers)]
       const ids = allIds.filter((p) => p.startsWith('~'))
       const emails = allIds.filter((p) => p.match(/.+@.+/))
@@ -2215,10 +2218,9 @@ const ProgramChairConsole = ({ appContext }) => {
           preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
         }))
       // #endregion
+
       const allProfilesMap = new Map()
       allProfiles.forEach((profile) => {
-        // p.content.names.some((q) => q.username === reviewer.reviewerProfileId) ||
-        //       p.content.emails.includes(reviewer.reviewerProfileId)
         const usernames = profile.content.names.flatMap((p) => p.username ?? [])
         const emails = profile.content.emails.filter((p) => p)
         usernames.concat(emails).forEach((key) => {
@@ -2232,31 +2234,40 @@ const ProgramChairConsole = ({ appContext }) => {
       notes.forEach((note) => {
         const directReplies = note.details.directReplies
         const officialReviews = directReplies
-          .filter(
-            (p) => p.invitation === `${venueId}/Paper${note.number}/-/${officialReviewName}`
-          )
+          .filter((p) => {
+            const officialReviewInvitationId = `${venueId}/Paper${note.number}/-/${officialReviewName}`
+            return isV2Console
+              ? p.invitations.includes(officialReviewInvitationId)
+              : p.invitation === officialReviewInvitationId
+          })
           ?.map((review) => ({
             ...review,
             anonId: getIndentifierFromGroup(review.signatures[0], 'Reviewer_'),
           }))
         const metaReviews = directReplies
-          .filter(
-            (p) =>
-              p.invitation === `${venueId}/Paper${note.number}/-/${officialMetaReviewName}`
-          )
+          .filter((p) => {
+            const officialMetaReviewInvitationId = `${venueId}/Paper${note.number}/-/${officialMetaReviewName}`
+            return isV2Console
+              ? p.invitations.includes(officialMetaReviewInvitationId)
+              : p.invitation === officialMetaReviewInvitationId
+          })
           ?.map((metaReview) => ({
             ...metaReview,
             anonId: getIndentifierFromGroup(metaReview.signatures[0], 'Area_Chair_'),
           }))
-        const decision = directReplies.find(
-          (p) => p.invitation === `${venueId}/Paper${note.number}/-/${decisionName}`
-        )
+        const decisionInvitationId = `${venueId}/Paper${note.number}/-/${decisionName}`
+        const decision = directReplies.find((p) => {
+          return isV2Console
+            ? p.invitations.includes(decisionInvitationId)
+            : p.invitation === decisionInvitationId
+        })
         officialReviewsByPaperNumberMap.set(note.number, officialReviews)
         metaReviewsByPaperNumberMap.set(note.number, metaReviews)
         decisionByPaperNumberMap.set(note.number, decision)
       })
 
       const pcConsoleDataNoReview = {
+        isV2Console,
         invitations: invitationResults.flat(),
         allProfiles,
         allProfilesMap,
@@ -2269,42 +2280,6 @@ const ProgramChairConsole = ({ appContext }) => {
         officialReviewsByPaperNumberMap,
         metaReviewsByPaperNumberMap,
         decisionByPaperNumberMap,
-        // officialReviewsByPaperNumber: notes.map((note) => {
-        //   return {
-        //     noteNumber: note.number,
-        //     officialReviews: note.details.directReplies
-        //       .filter(
-        //         (p) =>
-        //           p.invitation === `${venueId}/Paper${note.number}/-/${officialReviewName}`
-        //       )
-        //       ?.map((review) => ({
-        //         ...review,
-        //         anonId: getNumberFromGroup(review.signatures[0], 'Reviewer_', false),
-        //       })),
-        //   }
-        // }),
-        // metaReviewsByPaperNumber: notes.map((note) => {
-        //   return {
-        //     noteNumber: note.number,
-        //     metaReviews: note.details.directReplies
-        //       .filter(
-        //         (p) =>
-        //           p.invitation === `${venueId}/Paper${note.number}/-/${officialMetaReviewName}`
-        //       )
-        //       ?.map((metaReview) => ({
-        //         ...metaReview,
-        //         anonId: getNumberFromGroup(metaReview.signatures[0], 'Area_Chair_', false),
-        //       })),
-        //   }
-        // }),
-        // decisionByPaperNumber: notes.map((note) => {
-        //   return {
-        //     noteNumber: note.number,
-        //     decision: note.details.directReplies.find(
-        //       (p) => p.invitation === `${venueId}/Paper${note.number}/-/${decisionName}`
-        //     ),
-        //   }
-        // }),
         withdrawnNotes: withdrawnRejectedSubmissionResults[0],
         deskRejectedNotes: withdrawnRejectedSubmissionResults[1],
         bidCounts: {
@@ -2361,6 +2336,7 @@ const ProgramChairConsole = ({ appContext }) => {
     setIsLoadingData(false)
   }
 
+  // TODO move calling this fn to tabs using it
   const calculateNotesReviewMetaReviewData = (pcConsoleDataNoReview) => {
     if (!pcConsoleDataNoReview) return new Map()
     const noteNumberReviewMetaReviewMap = new Map()
@@ -2496,6 +2472,87 @@ const ProgramChairConsole = ({ appContext }) => {
     return noteNumberReviewMetaReviewMap
   }
 
+  const loadSacAcInfo = async () => {
+    // #region get sac edges to get sac of ac
+    const sacEdgeResult = seniorAreaChairsId
+      ? await api.getAll(
+          '/edges',
+          { invitation: `${seniorAreaChairsId}/-/Assignment` },
+          { accessToken }
+        )
+      : []
+
+    const sacByAcMap = new Map()
+    const acBySacMap = new Map()
+    sacEdgeResult.forEach((edge) => {
+      const ac = edge.head
+      const sac = edge.tail
+      sacByAcMap.set(ac, sac)
+      if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
+      acBySacMap.get(sac).push(ac)
+    })
+    // #endregion
+
+    // #region get profile of acs/sacs without assignments
+    const areaChairWithoutAssignmentIds = pcConsoleData.areaChairs.filter(
+      (areaChairProfileId) => !pcConsoleData.allProfilesMap.get(areaChairProfileId)
+    )
+    const seniorAreaChairWithoutAssignmentIds = pcConsoleData.seniorAreaChairs.filter(
+      (sacProfileId) => !pcConsoleData.allProfilesMap.get(sacProfileId)
+    )
+    const allIdsNoAssignment = areaChairWithoutAssignmentIds.concat(
+      seniorAreaChairWithoutAssignmentIds
+    )
+    const ids = allIdsNoAssignment.filter((p) => p.startsWith('~'))
+    const emails = allIdsNoAssignment.filter((p) => p.match(/.+@.+/))
+    const getProfilesByIdsP = ids.length
+      ? api.post(
+          '/profiles/search',
+          {
+            ids,
+          },
+          { accessToken }
+        )
+      : Promise.resolve([])
+    const getProfilesByEmailsP = emails.length
+      ? api.post(
+          '/profiles/search',
+          {
+            emails,
+          },
+          { accessToken }
+        )
+      : Promise.resolve([])
+    const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
+    const acSacProfilesWithoutAssignment = (profileResults[0].profiles ?? [])
+      .concat(profileResults[1].profiles ?? [])
+      .map((profile) => ({
+        ...profile,
+        preferredName: getProfileName(profile),
+        preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
+      }))
+
+    const acSacProfileWithoutAssignmentMap = new Map()
+    acSacProfilesWithoutAssignment.forEach((profile) => {
+      const usernames = profile.content.names.flatMap((p) => p.username ?? [])
+      const emails = profile.content.emails.filter((p) => p)
+      usernames.concat(emails).forEach((key) => {
+        acSacProfileWithoutAssignmentMap.set(key, profile)
+      })
+    })
+    // #endregion
+    setPcConsoleData((data) => ({
+      ...data,
+      sacAcInfo: {
+        sacByAcMap,
+        acBySacMap,
+        acSacProfileWithoutAssignmentMap,
+        areaChairWithoutAssignmentIds,
+        seniorAreaChairWithoutAssignmentIds,
+      },
+    }))
+  }
+
   useEffect(() => {
     if (!query) return
 
@@ -2523,7 +2580,7 @@ const ProgramChairConsole = ({ appContext }) => {
 
   useEffect(() => {
     if (!activeTabId) return
-    location.replace(activeTabId)
+    history.replaceState(null, null, activeTabId)
   }, [activeTabId])
 
   return (
@@ -2602,7 +2659,7 @@ const ProgramChairConsole = ({ appContext }) => {
             <TabPanel id="areachair-status">
               <AreaChairStatusTab
                 pcConsoleData={pcConsoleData}
-                setPcConsoleData={setPcConsoleData}
+                loadSacAcInfo={loadSacAcInfo}
               />
             </TabPanel>
           )}
@@ -2610,7 +2667,7 @@ const ProgramChairConsole = ({ appContext }) => {
             <TabPanel id="seniorareachair-status">
               <SeniorAreaChairStatusTab
                 pcConsoleData={pcConsoleData}
-                setPcConsoleData={setPcConsoleData}
+                loadSacAcInfo={loadSacAcInfo}
               />
             </TabPanel>
           )}

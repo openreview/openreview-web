@@ -8,7 +8,7 @@ import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import Table from '../Table'
 import ErrorDisplay from '../ErrorDisplay'
 import NoteSummary from './NoteSummary'
-import { AreaChairConsoleNoteReviewStatus } from './NoteReviewStatus'
+import { AcPcConsoleNoteReviewStatus } from './NoteReviewStatus'
 import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import TaskList from '../TaskList'
 import useUser from '../../hooks/useUser'
@@ -80,7 +80,7 @@ const AssignedPaperRow = ({
         <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={note.version === 2} />
       </td>
       <td>
-        <AreaChairConsoleNoteReviewStatus
+        <AcPcConsoleNoteReviewStatus
           rowData={rowData}
           venueId={venueId}
           officialReviewName={officialReviewName}
