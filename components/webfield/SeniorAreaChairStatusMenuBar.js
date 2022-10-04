@@ -12,9 +12,8 @@ const SeniorAreaChairStatusMenuBar = ({
       getValue: (p) => p.areaChairProfile?.preferredName,
     },
   ]
-  const basicSearchFunction = (row, term) => {
-    return row.sacProfileId.toLowerCase().includes(term)
-  }
+  const basicSearchFunction = (row, term) => row.sacProfileId.toLowerCase().includes(term)
+
   return (
     <BaseMenuBar
       tableRowsAll={tableRowsAll}

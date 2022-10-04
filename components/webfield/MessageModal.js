@@ -1,3 +1,4 @@
+/* globals $,promptMessage: false */
 import { uniqBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
 import useUser from '../../hooks/useUser'
@@ -127,7 +128,6 @@ export const MessageReviewersModal = ({
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
     } catch (apiError) {
       setError(apiError.message)
-      console.log(apiError.message)
     }
   }
 
@@ -232,7 +232,6 @@ export const MessageAreaChairsModal = ({
   }
 
   const getRecipientRows = () => {
-    console.log('tableRows', tableRows)
     switch (messageOption.value) {
       case 'noBids':
         return tableRows.map((row) => row.completedBids === 0)
@@ -288,7 +287,7 @@ export const MessageAreaChairsModal = ({
         <>
           <p>
             Enter a message to be sent to all selected area chairs below. You will have a
-            chance to review a list of all recipients after clicking "Next" below.
+            chance to review a list of all recipients after clicking &quot;Next&quot; below.
           </p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>

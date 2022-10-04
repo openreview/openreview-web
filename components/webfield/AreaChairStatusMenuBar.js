@@ -118,9 +118,9 @@ const AreaChairStatusMenuBar = ({
       getValue: (p) => p.numCompletedMetaReviews,
     },
   ]
-  const basicSearchFunction = (row, term) => {
-    return row.areaChairProfileId.toLowerCase().includes(term)
-  }
+  const basicSearchFunction = (row, term) =>
+    row.areaChairProfileId.toLowerCase().includes(term)
+
   return (
     <BaseMenuBar
       tableRowsAll={tableRowsAll}

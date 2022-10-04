@@ -1,5 +1,6 @@
+/* globals $: false */
 import { debounce, orderBy } from 'lodash'
-import React, { Children, useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { filterCollections } from '../../lib/webfield-utils'
 import Dropdown from '../Dropdown'
 import ExportCSV from '../ExportCSV'
@@ -111,7 +112,7 @@ const BaseMenuBar = ({
   }, [sortOption])
 
   return (
-    <div className={`menu-bar ${extraClasses ? extraClasses : ''}`}>
+    <div className={`menu-bar ${extraClasses ?? ''}`}>
       {messageModal && (
         <div className="message-button-container">
           <button className={`btn message-button${disabledMessageButton ? ' disabled' : ''}`}>

@@ -179,10 +179,7 @@ const PaperStatusMenuBar = ({
       exportColumns={exportColumns}
       sortOptions={sortOptions}
       basicSearchFunction={basicSearchFunction}
-      messageModal={(props) => {
-        console.log(props)
-        return <MessageReviewersModal {...props} />
-      }}
+      messageModal={(props) => <MessageReviewersModal {...props} />}
       querySearchInfoModal={(props) => <QuerySearchInfoModal {...props} />}
     />
   )

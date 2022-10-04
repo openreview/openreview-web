@@ -1,12 +1,14 @@
+/* globals promptError: false */
+import { useContext, useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
+import Link from 'next/link'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
-import { useRouter } from 'next/router'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import Table from '../Table'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
-import { useContext, useEffect, useState } from 'react'
 import BasicHeader from './BasicHeader'
 import {
   formatDateTime,
@@ -16,7 +18,6 @@ import {
   inflect,
   prettyId,
 } from '../../lib/utils'
-import Link from 'next/link'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteSummary from './NoteSummary'
 import PaginationLinks from '../PaginationLinks'
@@ -33,25 +34,22 @@ const getProfileLink = (profileId, id) => {
   return id.startsWith('~') ? `/profile?id=${id}` : `/profile?email=${id}`
 }
 // #region overview tab
-const StatContainer = ({ title, hint, value }) => {
-  return (
-    <div className="col-md-4 col-xs-6">
-      <h4>{title}:</h4>
-      {hint && <p className="hint">{hint}</p>}
-      <h3>{value}</h3>
-    </div>
-  )
-}
+const StatContainer = ({ title, hint, value }) => (
+  <div className="col-md-4 col-xs-6">
+    <h4>{title}:</h4>
+    {hint && <p className="hint">{hint}</p>}
+    <h3>{value}</h3>
+  </div>
+)
 
-const renderStat = (numComplete, total) => {
-  return total === 0 ? (
+const renderStat = (numComplete, total) =>
+  total === 0 ? (
     <span>{numComplete} / 0</span>
   ) : (
     <>
       {((numComplete * 100) / total).toFixed(2)} %<span>{` (${numComplete} / ${total})`}</span>
     </>
   )
-}
 
 const RecruitmentStatsRow = ({ pcConsoleData }) => {
   const { reviewersId, areaChairsId, seniorAreaChairsId } = useContext(WebFieldContext)
@@ -66,14 +64,12 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
     setIsLoading(true)
     try {
       const result = await Promise.all(
-        [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map(
-          (invitedId) => {
-            return invitedId
-              ? api.getGroupById(invitedId, accessToken, {
-                  select: 'members',
-                })
-              : Promise.resolve(null)
-          }
+        [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map((invitedId) =>
+          invitedId
+            ? api.getGroupById(invitedId, accessToken, {
+                select: 'members',
+              })
+            : Promise.resolve(null)
         )
       )
       setInvitedCount({
@@ -138,48 +134,45 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
   )
 }
 
-const SubmissionsStatsRow = ({ pcConsoleData }) => {
-  return (
-    <>
-      <div className="row">
-        <StatContainer
-          title="Active Submissions"
-          value={
-            pcConsoleData.notes ? (
-              pcConsoleData.notes.length
-            ) : (
-              <LoadingSpinner inline={true} text={null} />
-            )
-          }
-        />
-        <StatContainer
-          title="Withdrawn Submissions"
-          value={
-            pcConsoleData.withdrawnNotes ? (
-              pcConsoleData.withdrawnNotes.length
-            ) : (
-              <LoadingSpinner inline={true} text={null} />
-            )
-          }
-        />
-        <StatContainer
-          title="Desk Rejected Submissions"
-          value={
-            pcConsoleData.deskRejectedNotes ? (
-              pcConsoleData.deskRejectedNotes.length
-            ) : (
-              <LoadingSpinner inline={true} text={null} />
-            )
-          }
-        />
-      </div>
-      <hr className="spacer" />
-    </>
-  )
-}
+const SubmissionsStatsRow = ({ pcConsoleData }) => (
+  <>
+    <div className="row">
+      <StatContainer
+        title="Active Submissions"
+        value={
+          pcConsoleData.notes ? (
+            pcConsoleData.notes.length
+          ) : (
+            <LoadingSpinner inline={true} text={null} />
+          )
+        }
+      />
+      <StatContainer
+        title="Withdrawn Submissions"
+        value={
+          pcConsoleData.withdrawnNotes ? (
+            pcConsoleData.withdrawnNotes.length
+          ) : (
+            <LoadingSpinner inline={true} text={null} />
+          )
+        }
+      />
+      <StatContainer
+        title="Desk Rejected Submissions"
+        value={
+          pcConsoleData.deskRejectedNotes ? (
+            pcConsoleData.deskRejectedNotes.length
+          ) : (
+            <LoadingSpinner inline={true} text={null} />
+          )
+        }
+      />
+    </div>
+    <hr className="spacer" />
+  </>
+)
 
 const BiddingStatsRow = ({ bidEnabled, recommendationEnabled, pcConsoleData }) => {
-  if (!bidEnabled && !recommendationEnabled) return null
   const { areaChairsId, seniorAreaChairsId, reviewersId, bidName } =
     useContext(WebFieldContext)
 
@@ -188,9 +181,11 @@ const BiddingStatsRow = ({ bidEnabled, recommendationEnabled, pcConsoleData }) =
     const taskCompletionCount = bidInvitation?.taskCompletionCount
       ? parseInt(bidInvitation.taskCompletionCount, 10)
       : 0
-    const bidComplete = pcConsoleData.bidCounts?.[role]?.reduce((numComplete, bidCount) => {
-      return bidCount.count >= taskCompletionCount ? numComplete + 1 : numComplete
-    }, 0)
+    const bidComplete = pcConsoleData.bidCounts?.[role]?.reduce(
+      (numComplete, bidCount) =>
+        bidCount.count >= taskCompletionCount ? numComplete + 1 : numComplete,
+      0
+    )
     const total = pcConsoleData[role]?.length
     return total === 0 ? (
       <span>{bidComplete} / 0</span>
@@ -201,6 +196,7 @@ const BiddingStatsRow = ({ bidEnabled, recommendationEnabled, pcConsoleData }) =
       </>
     )
   }
+  if (!bidEnabled && !recommendationEnabled) return null
 
   return (
     <>
@@ -252,9 +248,7 @@ const ReviewStatsRow = ({ pcConsoleData, showContent }) => {
     ]?.flat()
 
     const assignedReviewsCount = pcConsoleData.paperGroups?.reviewerGroups?.reduce(
-      (prev, curr) => {
-        return prev + curr.members.length
-      },
+      (prev, curr) => prev + curr.members.length,
       0
     )
 
@@ -264,7 +258,7 @@ const ReviewStatsRow = ({ pcConsoleData, showContent }) => {
     pcConsoleData.paperGroups?.reviewerGroups.forEach((reviewerGroup) => {
       reviewerGroup.members.forEach((reviewer) => {
         if (!reviewer.reviewerAnonGroup) return
-        const reviewerProfileId = reviewer.reviewerProfileId
+        const reviewerProfileId = reviewer.reviewerProfileId // eslint-disable-line prefer-destructuring
         if (reviewerAnonGroupIds[reviewerProfileId]) {
           reviewerAnonGroupIds[reviewerProfileId].push({
             noteNumber: reviewerGroup.noteNumber,
@@ -283,8 +277,8 @@ const ReviewStatsRow = ({ pcConsoleData, showContent }) => {
 
     // all anon reviewer id group have signed official review
     const reviewersCompletedAllReviews = Object.values(reviewerAnonGroupIds ?? {}).filter(
-      (anonReviewerGroups) => {
-        return anonReviewerGroups?.every((anonReviewerGroup) => {
+      (anonReviewerGroups) =>
+        anonReviewerGroups?.every((anonReviewerGroup) => {
           const paperOfficialReviews = pcConsoleData.officialReviewsByPaperNumberMap.get(
             anonReviewerGroup.noteNumber
           )
@@ -292,7 +286,6 @@ const ReviewStatsRow = ({ pcConsoleData, showContent }) => {
             (p) => p.signatures[0] === anonReviewerGroup.anonGroupId
           )
         })
-      }
     )
 
     const reviewersComplete = reviewersCompletedAllReviews?.length
@@ -400,7 +393,7 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
   pcConsoleData.paperGroups?.areaChairGroups.forEach((areaChairGroup) => {
     areaChairGroup.members.forEach((areaChair) => {
       if (!areaChair.areaChairAnonGroup) return
-      const areaChairProfileId = areaChair.areaChairProfileId
+      const areaChairProfileId = areaChair.areaChairProfileId // eslint-disable-line prefer-destructuring
       if (areaChairAnonGroupIds[areaChairProfileId]) {
         areaChairAnonGroupIds[areaChairProfileId].push({
           noteNumber: areaChairGroup.noteNumber,
@@ -470,11 +463,10 @@ const DecisionStatsRow = ({ pcConsoleData }) => {
   const notesWithFinalDecision = decisions.filter((p) => p)
   const decisionsCount = notesWithFinalDecision?.length
   const submissionsCount = pcConsoleData.notes?.length
-  const allDecisions = decisions.flatMap((p) => {
-    return (
+  const allDecisions = decisions.flatMap(
+    (p) =>
       (pcConsoleData.isV2Console ? p?.content?.decision?.value : p?.content?.decision) ?? []
-    )
-  })
+  )
 
   return (
     <>
@@ -533,6 +525,7 @@ const DescriptionTimelineOtherConfigRow = ({
     officialMetaReviewName,
     decisionName,
     scoresName,
+    recommendationName,
   } = useContext(WebFieldContext)
 
   const { requestForm, registrationForms, invitations } = pcConsoleData
@@ -540,10 +533,10 @@ const DescriptionTimelineOtherConfigRow = ({
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs)`
   )
   const requestFormContent = getNoteContent(requestForm, pcConsoleData.isV2Console)
-  const sacRoles = requestFormContent?.['senior_area_chair_roles'] ?? ['Senior_Area_Chairs']
-  const acRoles = requestFormContent?.['area_chair_roles'] ?? ['Area_Chairs']
-  const hasEthicsChairs = requestFormContent?.['ethics_chairs_and_reviewers']?.includes('Yes')
-  const reviewerRoles = requestFormContent?.['reviewer_roles'] ?? ['Reviewers']
+  const sacRoles = requestFormContent?.senior_area_chair_roles ?? ['Senior_Area_Chairs']
+  const acRoles = requestFormContent?.area_chair_roles ?? ['Area_Chairs']
+  const hasEthicsChairs = requestFormContent?.ethics_chairs_and_reviewers?.includes('Yes')
+  const reviewerRoles = requestFormContent?.reviewer_roles ?? ['Reviewers']
 
   const timelineInvitations = [
     { id: submissionId, displayName: 'Paper Submissions' },
@@ -645,26 +638,22 @@ const DescriptionTimelineOtherConfigRow = ({
         )}
         <div className="col-md-8 col-xs-12">
           <h4>Timeline:</h4>
-          {datedInvitations.map((invitation) => {
-            return (
-              <li className="overview-timeline" key={invitation.id}>
-                <a href={`/invitation/edit?id=${invitation.id}&referrer=${referrerUrl}`}>
-                  {invitation.displayName}
-                </a>
-                {invitation.periodString}
-              </li>
-            )
-          })}
-          {notDatedInvitations.map((invitation) => {
-            return (
-              <li className="overview-timeline" key={invitation.id}>
-                <a href={`/invitation/edit?id=${invitation.id}&referrer=${referrerUrl}`}>
-                  {invitation.displayName}
-                </a>
-                {invitation.periodString}
-              </li>
-            )
-          })}
+          {datedInvitations.map((invitation) => (
+            <li className="overview-timeline" key={invitation.id}>
+              <a href={`/invitation/edit?id=${invitation.id}&referrer=${referrerUrl}`}>
+                {invitation.displayName}
+              </a>
+              {invitation.periodString}
+            </li>
+          ))}
+          {notDatedInvitations.map((invitation) => (
+            <li className="overview-timeline" key={invitation.id}>
+              <a href={`/invitation/edit?id=${invitation.id}&referrer=${referrerUrl}`}>
+                {invitation.displayName}
+              </a>
+              {invitation.periodString}
+            </li>
+          ))}
           {seniorAreaChairsId &&
             sacRoles.map((role) => {
               const assignmentConfig = invitations.find(
@@ -695,16 +684,14 @@ const DescriptionTimelineOtherConfigRow = ({
                 </li>
               )
             })}
-          {reviewerRoles.map((role) => {
-            return (
-              <li className="overview-timeline" key={role}>
-                <a href={`/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`}>
-                  {`${prettyId(role)} Paper Assignment`}
-                </a>{' '}
-                open until Reviewing starts
-              </li>
-            )
-          })}
+          {reviewerRoles.map((role) => (
+            <li className="overview-timeline" key={role}>
+              <a href={`/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`}>
+                {`${prettyId(role)} Paper Assignment`}
+              </a>{' '}
+              open until Reviewing starts
+            </li>
+          ))}
         </div>
       </div>
 
@@ -719,43 +706,39 @@ const DescriptionTimelineOtherConfigRow = ({
               </Link>
             </li>
             {seniorAreaChairsId &&
-              sacRoles.map((role) => {
-                return (
-                  <li key={role}>
-                    <Link href={`/group/edit?id=${venueId}/${role}`}>
-                      <a>{prettyId(role)}</a>
-                    </Link>{' '}
-                    (
-                    <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
-                      <a>Invited</a>
-                    </Link>
-                    ,
-                    <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
-                      <a>Declined</a>
-                    </Link>
-                    )
-                  </li>
-                )
-              })}
+              sacRoles.map((role) => (
+                <li key={role}>
+                  <Link href={`/group/edit?id=${venueId}/${role}`}>
+                    <a>{prettyId(role)}</a>
+                  </Link>{' '}
+                  (
+                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
+                    <a>Invited</a>
+                  </Link>
+                  ,
+                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
+                    <a>Declined</a>
+                  </Link>
+                  )
+                </li>
+              ))}
             {areaChairsId &&
-              acRoles.map((role) => {
-                return (
-                  <li key={role}>
-                    <Link href={`/group/edit?id=${venueId}/${role}`}>
-                      <a>{prettyId(role)}</a>
-                    </Link>{' '}
-                    (
-                    <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
-                      <a>Invited</a>
-                    </Link>
-                    ,
-                    <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
-                      <a>Declined</a>
-                    </Link>
-                    )
-                  </li>
-                )
-              })}
+              acRoles.map((role) => (
+                <li key={role}>
+                  <Link href={`/group/edit?id=${venueId}/${role}`}>
+                    <a>{prettyId(role)}</a>
+                  </Link>{' '}
+                  (
+                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
+                    <a>Invited</a>
+                  </Link>
+                  ,
+                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
+                    <a>Declined</a>
+                  </Link>
+                  )
+                </li>
+              ))}
             {hasEthicsChairs && (
               <>
                 <li>
@@ -788,24 +771,22 @@ const DescriptionTimelineOtherConfigRow = ({
                 </li>
               </>
             )}
-            {reviewerRoles.map((role) => {
-              return (
-                <li key={role}>
-                  <Link href={`/group/edit?id=${venueId}/${role}`}>
-                    <a>{prettyId(role)}</a>
-                  </Link>{' '}
-                  (
-                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
-                    <a>Invited</a>
-                  </Link>
-                  ,
-                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
-                    <a>Declined</a>
-                  </Link>
-                  )
-                </li>
-              )
-            })}
+            {reviewerRoles.map((role) => (
+              <li key={role}>
+                <Link href={`/group/edit?id=${venueId}/${role}`}>
+                  <a>{prettyId(role)}</a>
+                </Link>{' '}
+                (
+                <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
+                  <a>Invited</a>
+                </Link>
+                ,
+                <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
+                  <a>Declined</a>
+                </Link>
+                )
+              </li>
+            ))}
             <li>
               <Link href={`/group/edit?id=${authorsId}`}>
                 <a>Authors</a>
@@ -822,19 +803,17 @@ const DescriptionTimelineOtherConfigRow = ({
           <div className="col-md-4 col-xs-6">
             <h4>Registration Forms:</h4>
             <ul className="overview-list">
-              {registrationForms.map((form) => {
-                return (
-                  <li key={form.id} className="overview-registration-link">
-                    <Link href={`/forum?id=${form.id}`}>
-                      <a>
-                        {pcConsoleData.isV2Console
-                          ? form.content?.title?.value
-                          : form.content?.title}
-                      </a>
-                    </Link>
-                  </li>
-                )
-              })}
+              {registrationForms.map((form) => (
+                <li key={form.id} className="overview-registration-link">
+                  <Link href={`/forum?id=${form.id}`}>
+                    <a>
+                      {pcConsoleData.isV2Console
+                        ? form.content?.title?.value
+                        : form.content?.title}
+                    </a>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         )}
@@ -1052,9 +1031,9 @@ const PaperStatusTab = ({ pcConsoleData, showContent }) => {
 
   useEffect(() => {
     // #region calculate reviewProgressData and metaReviewData
-    const notes = pcConsoleData.notes
+    const { notes, noteNumberReviewMetaReviewMap } = pcConsoleData
     if (!notes) return
-    const tableRows = [...(pcConsoleData.noteNumberReviewMetaReviewMap.values() ?? [])]
+    const tableRows = [...(noteNumberReviewMetaReviewMap.values() ?? [])]
     setPaperStatusTabData({
       tableRowsAll: tableRows,
       tableRows: [...tableRows], // could be filtered
@@ -1079,9 +1058,9 @@ const PaperStatusTab = ({ pcConsoleData, showContent }) => {
   }, [pcConsoleData.notes])
 
   useEffect(() => {
-    setPaperStatusTabData((paperStatusTabData) => ({
-      ...paperStatusTabData,
-      tableRowsDisplayed: paperStatusTabData.tableRows?.slice(
+    setPaperStatusTabData((data) => ({
+      ...data,
+      tableRowsDisplayed: data.tableRows?.slice(
         pageSize * (pageNumber - 1),
         pageSize * (pageNumber - 1) + pageSize
       ),
@@ -1158,6 +1137,7 @@ const PaperStatusTab = ({ pcConsoleData, showContent }) => {
             decision = row.note?.content?.venue?.value
           } else {
             const decisionNote = pcConsoleData.decisionByPaperNumberMap.get(row.note.number)
+            // eslint-disable-next-line prefer-destructuring
             if (decisionNote?.content?.decision) decision = decisionNote.content.decision
           }
           return (
@@ -1196,7 +1176,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
     scoresName,
     recommendationName,
   } = useContext(WebFieldContext)
-  const completedBids = rowData.completedBids
+  const completedBids = rowData.completedBids // eslint-disable-line prefer-destructuring
   const completedRecs = rowData.completedRecommendations
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
     `tail:${id}`,
@@ -1219,7 +1199,11 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
         {preferredName ? (
           <>
             <h4>
-              <a href={getProfileLink(id, rowData.areaChairProfileId)} target="_blank">
+              <a
+                href={getProfileLink(id, rowData.areaChairProfileId)}
+                target="_blank"
+                rel="noreferrer"
+              >
                 {preferredName}
               </a>
             </h4>
@@ -1233,7 +1217,12 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
             <>
               Completed Bids:{completedBids}
               {completedBids && (
-                <a href={edgeBrowserBidsUrl} className="show-reviewer-bids" target="_blank">
+                <a
+                  href={edgeBrowserBidsUrl}
+                  className="show-reviewer-bids"
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   view all
                 </a>
               )}
@@ -1243,7 +1232,12 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
             <>
               Reviewers Recommended:{completedRecs}
               {completedBids && (
-                <a href={edgeBrowserRecsUrl} className="show-reviewer-bids" target="_blank">
+                <a
+                  href={edgeBrowserRecsUrl}
+                  className="show-reviewer-bids"
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   view all
                 </a>
               )}
@@ -1258,7 +1252,11 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
             {sacProfile?.preferredName && (
               <>
                 <h4>
-                  <a href={getProfileLink(sacProfile?.id, seniorAreaChairId)} target="_blank">
+                  <a
+                    href={getProfileLink(sacProfile?.id, seniorAreaChairId)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     {sacProfile.preferredName}
                   </a>
                 </h4>
@@ -1274,7 +1272,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
 
 // modified based on notesAreaChairProgress.hbs
 const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
-  const numCompletedReviews = rowData.numCompletedReviews
+  const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   return (
     <div className="reviewer-progress">
@@ -1290,7 +1288,11 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
             <div key={p.noteNumber}>
               <div className="note-info">
                 <strong className="note-number">{p.noteNumber}</strong>
-                <a href={`/forum?id=${p.note.forum}&referrer=${referrerUrl}`} target="_blank">
+                <a
+                  href={`/forum?id=${p.note.forum}&referrer=${referrerUrl}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   {noteTitle}
                 </a>
               </div>
@@ -1310,7 +1312,7 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
 
 // modified based on notesAreaChairStatus.hbs
 const NoteAreaChairStatus = ({ rowData, referrerUrl, isV2Console }) => {
-  const numCompletedMetaReviews = rowData.numCompletedMetaReviews
+  const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   return (
     <div className="reviewer-progress">
@@ -1343,6 +1345,7 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl, isV2Console }) => {
                           <a
                             href={`/forum?id=${metaReview.forum}&noteId=${metaReview.id}&referrer=${referrerUrl}`}
                             target="_blank"
+                            rel="noreferrer"
                           >
                             Read Meta Review
                           </a>
@@ -1370,34 +1373,32 @@ const AreaChairStatusRow = ({
   invitations,
   referrerUrl,
   isV2Console,
-}) => {
-  return (
-    <tr>
-      <td>
-        <strong>{rowData.number}</strong>
-      </td>
-      <td>
-        <CommitteeSummary
-          rowData={rowData}
-          bidEnabled={bidEnabled}
-          recommendationEnabled={recommendationEnabled}
-          acBids={acBids}
-          invitations={invitations}
-        />
-      </td>
-      <td>
-        <NoteAreaChairProgress rowData={rowData} referrerUrl={referrerUrl} />
-      </td>
-      <td>
-        <NoteAreaChairStatus
-          rowData={rowData}
-          referrerUrl={referrerUrl}
-          isV2Console={isV2Console}
-        />
-      </td>
-    </tr>
-  )
-}
+}) => (
+  <tr>
+    <td>
+      <strong>{rowData.number}</strong>
+    </td>
+    <td>
+      <CommitteeSummary
+        rowData={rowData}
+        bidEnabled={bidEnabled}
+        recommendationEnabled={recommendationEnabled}
+        acBids={acBids}
+        invitations={invitations}
+      />
+    </td>
+    <td>
+      <NoteAreaChairProgress rowData={rowData} referrerUrl={referrerUrl} />
+    </td>
+    <td>
+      <NoteAreaChairStatus
+        rowData={rowData}
+        referrerUrl={referrerUrl}
+        isV2Console={isV2Console}
+      />
+    </td>
+  </tr>
+)
 
 const AreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo }) => {
   const [areaChairStatusTabData, setAreaChairStatusTabData] = useState({})
@@ -1592,11 +1593,11 @@ const AreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo }) => {
             )
           : []
       const acRecommendationCount = acRecommendations.reduce((profileMap, edge) => {
-        var acId = edge.signatures[0]
+        const acId = edge.signatures[0]
         if (!profileMap[acId]) {
-          profileMap[acId] = 0
+          profileMap[acId] = 0 // eslint-disable-line no-param-reassign
         }
-        profileMap[acId] += 1
+        profileMap[acId] += 1 // eslint-disable-line no-param-reassign
         return profileMap
       }, {})
 
@@ -1605,9 +1606,9 @@ const AreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo }) => {
       const acNotesMap = new Map()
       const allNoteNumbers = pcConsoleData.notes.map((p) => p.number)
       pcConsoleData.paperGroups.areaChairGroups.forEach((acGroup) => {
-        const members = acGroup.members
-        members.forEach((member) => {
-          const noteNumber = acGroup.noteNumber
+        // const members = acGroup.members
+        acGroup.members.forEach((member) => {
+          const noteNumber = acGroup.noteNumber // eslint-disable-line prefer-destructuring
           if (!allNoteNumbers.includes(noteNumber)) return // paper could have been desk rejected
           const reviewMetaReviewInfo =
             pcConsoleData.noteNumberReviewMetaReviewMap.get(noteNumber) ?? {}
@@ -1645,7 +1646,7 @@ const AreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo }) => {
         }
         const notes = acNotesMap.get(areaChairProfileId) ?? []
         return {
-          areaChairProfileId: areaChairProfileId,
+          areaChairProfileId,
           areaChairProfile: acProfile,
           number: index + 1,
           completedRecommendations: acRecommendationCount[areaChairProfileId] ?? 0,
@@ -1683,9 +1684,9 @@ const AreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo }) => {
   }, [pcConsoleData.paperGroups?.areaChairGroups, pcConsoleData.sacAcInfo])
 
   useEffect(() => {
-    setAreaChairStatusTabData((areaChairStatusTabData) => ({
-      ...areaChairStatusTabData,
-      tableRowsDisplayed: areaChairStatusTabData.tableRows?.slice(
+    setAreaChairStatusTabData((data) => ({
+      ...data,
+      tableRowsDisplayed: data.tableRows?.slice(
         pageSize * (pageNumber - 1),
         pageSize * (pageNumber - 1) + pageSize
       ),
@@ -1779,7 +1780,7 @@ const BasicProfileSummary = ({ profile, profileId }) => {
       {preferredName ? (
         <>
           <h4>
-            <a href={getProfileLink(id, profileId)} target="_blank">
+            <a href={getProfileLink(id, profileId)} target="_blank" rel="noreferrer">
               {preferredName}
             </a>
           </h4>
@@ -1792,26 +1793,24 @@ const BasicProfileSummary = ({ profile, profileId }) => {
   )
 }
 
-const SeniorAreaChairStatusRow = ({ rowData }) => {
-  return (
-    <tr>
-      <td>
-        <strong className="note-number">{rowData.number}</strong>
-      </td>
-      <td>
-        <BasicProfileSummary
-          profile={rowData.sacProfile ?? {}}
-          profileId={rowData.sacProfileId}
-        />
-      </td>
-      <td>
-        {rowData.acs.map((ac) => (
-          <BasicProfileSummary key={ac.id} profile={ac.profile ?? {}} profileId={ac.id} />
-        ))}
-      </td>
-    </tr>
-  )
-}
+const SeniorAreaChairStatusRow = ({ rowData }) => (
+  <tr>
+    <td>
+      <strong className="note-number">{rowData.number}</strong>
+    </td>
+    <td>
+      <BasicProfileSummary
+        profile={rowData.sacProfile ?? {}}
+        profileId={rowData.sacProfileId}
+      />
+    </td>
+    <td>
+      {rowData.acs.map((ac) => (
+        <BasicProfileSummary key={ac.id} profile={ac.profile ?? {}} profileId={ac.id} />
+      ))}
+    </td>
+  </tr>
+)
 
 const SeniorAreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo }) => {
   const [seniorAreaChairStatusTabData, setSeniorAreaChairStatusTabData] = useState({})
@@ -2042,8 +2041,8 @@ const ProgramChairConsole = ({ appContext }) => {
 
       // #region getRegistrationForms
       const prefixes = [reviewersId, areaChairsId, seniorAreaChairsId]
-      const getRegistrationFormPs = prefixes.map((prefix) => {
-        return api
+      const getRegistrationFormPs = prefixes.map((prefix) =>
+        api
           .getAll(
             '/notes',
             {
@@ -2053,24 +2052,22 @@ const ProgramChairConsole = ({ appContext }) => {
             },
             { accessToken, version: apiVersion }
           )
-          .then((notes) => {
-            return notes.filter((note) =>
+          .then((notes) =>
+            notes.filter((note) =>
               isV2Console
                 ? note.invitations.includes('Form')
                 : note.invitation.endsWith('Form')
             )
-          })
-      })
+          )
+      )
       const getRegistrationFormResultsP = Promise.all(getRegistrationFormPs)
       // #endregion
 
       // #region get Reviewer,AC,SAC Members
       const committeeMemberResultsP = Promise.all(
-        [reviewersId, areaChairsId, seniorAreaChairsId].map((id) => {
-          return id
-            ? api.getGroupById(id, accessToken, { select: 'members' })
-            : Promise.resolve([])
-        })
+        [reviewersId, areaChairsId, seniorAreaChairsId].map((id) =>
+          id ? api.getGroupById(id, accessToken, { select: 'members' }) : Promise.resolve([])
+        )
       )
       // #endregion
 
@@ -2089,8 +2086,8 @@ const ProgramChairConsole = ({ appContext }) => {
 
       // #region get withdrawn and rejected submissions
       const withdrawnRejectedSubmissionResultsP = Promise.all(
-        [withdrawnSubmissionId, deskRejectedSubmissionId].map((id) => {
-          return id
+        [withdrawnSubmissionId, deskRejectedSubmissionId].map((id) =>
+          id
             ? api.getAll(
                 '/notes',
                 {
@@ -2100,7 +2097,7 @@ const ProgramChairConsole = ({ appContext }) => {
                 { accessToken, version: apiVersion }
               )
             : Promise.resolve([])
-        })
+        )
       )
       // #endregion
 
@@ -2159,30 +2156,30 @@ const ProgramChairConsole = ({ appContext }) => {
       const anonAreaChairGroups = {}
       const seniorAreaChairGroups = []
       let allGroupMembers = []
-      perPaperGroupResults.groups?.forEach((group) => {
-        if (group.id.endsWith('/Reviewers')) {
+      perPaperGroupResults.groups?.forEach((p) => {
+        if (p.id.endsWith('/Reviewers')) {
           reviewerGroups.push({
-            noteNumber: getNumberFromGroup(group.id, 'Paper'),
-            ...group,
+            noteNumber: getNumberFromGroup(p.id, 'Paper'),
+            ...p,
           })
-          allGroupMembers = allGroupMembers.concat(group.members)
-        } else if (group.id.includes(anonReviewerName)) {
-          const number = getNumberFromGroup(group.id, 'Paper')
+          allGroupMembers = allGroupMembers.concat(p.members)
+        } else if (p.id.includes(anonReviewerName)) {
+          const number = getNumberFromGroup(p.id, 'Paper')
           if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
-          if (group.members.length) anonReviewerGroups[number][group.members[0]] = group.id
-        } else if (group.id.endsWith('/Area_Chairs')) {
+          if (p.members.length) anonReviewerGroups[number][p.members[0]] = p.id
+        } else if (p.id.endsWith('/Area_Chairs')) {
           areaChairGroups.push({
-            noteNumber: getNumberFromGroup(group.id, 'Paper'),
-            ...group,
+            noteNumber: getNumberFromGroup(p.id, 'Paper'),
+            ...p,
           })
-          allGroupMembers = allGroupMembers.concat(group.members)
-        } else if (group.id.includes(anonAreaChairName)) {
-          const number = getNumberFromGroup(group.id, 'Paper')
+          allGroupMembers = allGroupMembers.concat(p.members)
+        } else if (p.id.includes(anonAreaChairName)) {
+          const number = getNumberFromGroup(p.id, 'Paper')
           if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
-          if (group.members.length) anonAreaChairGroups[number][group.members[0]] = group.id
-        } else if (group.id.endsWith('Senior_Area_Chairs')) {
-          seniorAreaChairGroups.push(group)
-          allGroupMembers = allGroupMembers.concat(group.members)
+          if (p.members.length) anonAreaChairGroups[number][p.members[0]] = p.id
+        } else if (p.id.endsWith('Senior_Area_Chairs')) {
+          seniorAreaChairGroups.push(p)
+          allGroupMembers = allGroupMembers.concat(p.members)
         }
       })
       // #endregion
@@ -2222,8 +2219,8 @@ const ProgramChairConsole = ({ appContext }) => {
       const allProfilesMap = new Map()
       allProfiles.forEach((profile) => {
         const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-        const emails = profile.content.emails.filter((p) => p)
-        usernames.concat(emails).forEach((key) => {
+        const profileEmails = profile.content.emails.filter((p) => p)
+        usernames.concat(profileEmails).forEach((key) => {
           allProfilesMap.set(key, profile)
         })
       })
@@ -2232,7 +2229,7 @@ const ProgramChairConsole = ({ appContext }) => {
       const metaReviewsByPaperNumberMap = new Map()
       const decisionByPaperNumberMap = new Map()
       notes.forEach((note) => {
-        const directReplies = note.details.directReplies
+        const directReplies = note.details.directReplies // eslint-disable-line prefer-destructuring
         const officialReviews = directReplies
           .filter((p) => {
             const officialReviewInvitationId = `${venueId}/Paper${note.number}/-/${officialReviewName}`
@@ -2256,11 +2253,11 @@ const ProgramChairConsole = ({ appContext }) => {
             anonId: getIndentifierFromGroup(metaReview.signatures[0], 'Area_Chair_'),
           }))
         const decisionInvitationId = `${venueId}/Paper${note.number}/-/${decisionName}`
-        const decision = directReplies.find((p) => {
-          return isV2Console
+        const decision = directReplies.find((p) =>
+          isV2Console
             ? p.invitations.includes(decisionInvitationId)
             : p.invitation === decisionInvitationId
-        })
+        )
         officialReviewsByPaperNumberMap.set(note.number, officialReviews)
         metaReviewsByPaperNumberMap.set(note.number, metaReviews)
         decisionByPaperNumberMap.set(note.number, decision)
@@ -2343,27 +2340,23 @@ const ProgramChairConsole = ({ appContext }) => {
     pcConsoleDataNoReview.notes.forEach((note) => {
       const assignedReviewers =
         pcConsoleDataNoReview.paperGroups.reviewerGroups?.find(
-          (group) => group.noteNumber === note.number
+          (p) => p.noteNumber === note.number
         )?.members ?? []
 
-      const assignedReviewerProfiles = assignedReviewers.map((reviewer) => {
-        return {
-          id: reviewer.reviewerProfileId,
-          profile: pcConsoleDataNoReview.allProfilesMap.get(reviewer.reviewerProfileId),
-        }
-      })
+      const assignedReviewerProfiles = assignedReviewers.map((reviewer) => ({
+        id: reviewer.reviewerProfileId,
+        profile: pcConsoleDataNoReview.allProfilesMap.get(reviewer.reviewerProfileId),
+      }))
 
       const assignedAreaChairs =
         pcConsoleDataNoReview.paperGroups.areaChairGroups?.find(
-          (group) => group.noteNumber === note.number
+          (p) => p.noteNumber === note.number
         )?.members ?? []
 
-      const assignedAreaChairProfiles = assignedAreaChairs.map((areaChair) => {
-        return {
-          id: areaChair.areaChairProfileId,
-          profile: pcConsoleDataNoReview.allProfilesMap.get(areaChair.areaChairProfileId),
-        }
-      })
+      const assignedAreaChairProfiles = assignedAreaChairs.map((areaChair) => ({
+        id: areaChair.areaChairProfileId,
+        profile: pcConsoleDataNoReview.allProfilesMap.get(areaChair.areaChairProfileId),
+      }))
 
       const officialReviews =
         pcConsoleDataNoReview.officialReviewsByPaperNumberMap?.get(note.number)?.map((q) => {
@@ -2456,15 +2449,13 @@ const ProgramChairConsole = ({ appContext }) => {
             }
           }),
           numMetaReviewsDone: metaReviews.length,
-          metaReviews: metaReviews.map((metaReview) => {
-            return {
-              [recommendationName]:
-                metaReview?.version === 2
-                  ? metaReview?.content[recommendationName]?.value
-                  : metaReview?.content[recommendationName],
-              ...metaReview,
-            }
-          }),
+          metaReviews: metaReviews.map((metaReview) => ({
+            [recommendationName]:
+              metaReview?.version === 2
+                ? metaReview?.content[recommendationName]?.value
+                : metaReview?.content[recommendationName],
+            ...metaReview,
+          })),
         },
       })
     })
@@ -2535,8 +2526,8 @@ const ProgramChairConsole = ({ appContext }) => {
     const acSacProfileWithoutAssignmentMap = new Map()
     acSacProfilesWithoutAssignment.forEach((profile) => {
       const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-      const emails = profile.content.emails.filter((p) => p)
-      usernames.concat(emails).forEach((key) => {
+      const profileEmails = profile.content.emails.filter((p) => p)
+      usernames.concat(profileEmails).forEach((key) => {
         acSacProfileWithoutAssignmentMap.set(key, profile)
       })
     })
@@ -2580,7 +2571,7 @@ const ProgramChairConsole = ({ appContext }) => {
 
   useEffect(() => {
     if (!activeTabId) return
-    history.replaceState(null, null, activeTabId)
+    window.history.replaceState(null, null, activeTabId)
   }, [activeTabId])
 
   return (

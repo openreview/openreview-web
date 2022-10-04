@@ -179,9 +179,7 @@ const AreaChairConsoleMenuBar = ({
       exportColumns={exportColumns}
       sortOptions={sortOptions}
       basicSearchFunction={basicSearchFunction}
-      messageModal={(props) => {
-        return <MessageReviewersModal {...props} />
-      }}
+      messageModal={(props) => <MessageReviewersModal {...props} />}
       querySearchInfoModal={(props) => <QuerySearchInfoModal {...props} />}
     />
   )

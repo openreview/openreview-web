@@ -1,8 +1,8 @@
 /* globals promptError: false */
 
 // modified from noteMetaReviewStatus.hbs handlebar template
-import { inflect } from '../../lib/utils'
 import { useEffect, useState } from 'react'
+import { inflect } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 
@@ -162,6 +162,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({ metaReviewData, refe
                       <a
                         href={`/forum?id=${metaReview.forum}&noteId=${metaReview.id}&referrer=${referrerUrl}`}
                         target="_blank"
+                        rel="noreferrer"
                       >
                         Read Meta Review
                       </a>
@@ -176,12 +177,12 @@ export const ProgramChairConsolePaperAreaChairProgress = ({ metaReviewData, refe
       {seniorAreaChair && (
         <>
           <strong>Senior Area Chair:</strong>
-          <table class="table table-condensed table-minimal">
+          <table className="table table-condensed table-minimal">
             <tbody>
               <tr>
                 <td style="width: {{#if tableWidth}}{{tableWidth}}{{else}}320px;{{/if}}">
                   {seniorAreaChair.name}{' '}
-                  <span class="text-muted">({seniorAreaChair.email})</span>
+                  <span className="text-muted">({seniorAreaChair.email})</span>
                 </td>
               </tr>
             </tbody>
