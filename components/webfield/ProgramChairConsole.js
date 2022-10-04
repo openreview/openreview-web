@@ -1010,7 +1010,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision }) =>
   )
 }
 
-const PaperStatusTab = ({ pcConsoleData, showContent }) => {
+const PaperStatusTab = ({ pcConsoleData, showContent, loadReviewMetaReviewData }) => {
   const [paperStatusTabData, setPaperStatusTabData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const {
@@ -1030,32 +1030,22 @@ const PaperStatusTab = ({ pcConsoleData, showContent }) => {
   const pageSize = 1
 
   useEffect(() => {
-    // #region calculate reviewProgressData and metaReviewData
-    const { notes, noteNumberReviewMetaReviewMap } = pcConsoleData
-    if (!notes) return
-    const tableRows = [...(noteNumberReviewMetaReviewMap.values() ?? [])]
-    setPaperStatusTabData({
-      tableRowsAll: tableRows,
-      tableRows: [...tableRows], // could be filtered
-      tableRowsDisplayed: tableRows, // could be filtered and paginated
-      // reviewersInfo: result[1],
-      // allProfiles,
-      // sacProfile: sacProfile
-      //   ? {
-      //       id: sacProfile.id,
-      //       email: sacProfile.content.preferredEmail ?? sacProfile.content.emails[0],
-      //     }
-      //   : null,
-    })
+    if (!pcConsoleData.notes || !showContent) return
+    if (!pcConsoleData.noteNumberReviewMetaReviewMap) {
+      loadReviewMetaReviewData()
+    } else {
+      const { notes, noteNumberReviewMetaReviewMap } = pcConsoleData
+      if (!notes) return
+      const tableRows = [...(noteNumberReviewMetaReviewMap.values() ?? [])]
+      setPaperStatusTabData({
+        tableRowsAll: tableRows,
+        tableRows: [...tableRows], // could be filtered
+        tableRowsDisplayed: tableRows, // could be filtered and paginated
+      })
 
-    // const sacProfile = pcConsoleData.allProfiles?.find(
-    //   (p) =>
-    //     p.content.names.some((q) => q.username === result[2]) ||
-    //     p.content.emails.includes(result[2])
-    // )
-    // #endregion
-    setTotalCount(pcConsoleData.notes?.length ?? 0)
-  }, [pcConsoleData.notes])
+      setTotalCount(pcConsoleData.notes?.length ?? 0)
+    }
+  }, [pcConsoleData.notes, pcConsoleData.noteNumberReviewMetaReviewMap, showContent])
 
   useEffect(() => {
     setPaperStatusTabData((data) => ({
@@ -1400,7 +1390,7 @@ const AreaChairStatusRow = ({
   </tr>
 )
 
-const AreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo }) => {
+const AreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewData }) => {
   const [areaChairStatusTabData, setAreaChairStatusTabData] = useState({})
   const {
     shortPhrase,
@@ -1433,152 +1423,10 @@ const AreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo }) => {
   )
 
   const loadACStatusTabData = async () => {
-    // // #region get sac edges to get sac of ac
-    // const sacEdgeResult = seniorAreaChairsId
-    //   ? await api.getAll(
-    //       '/edges',
-    //       { invitation: `${seniorAreaChairsId}/-/Assignment` },
-    //       { accessToken }
-    //     )
-    //   : []
-
-    // const sacByAcMap = new Map()
-    // const acBySacMap = new Map()
-    // sacEdgeResult.forEach((edge) => {
-    //   const ac = edge.head
-    //   const sac = edge.tail
-    //   sacByAcMap.set(ac, sac)
-    //   if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
-    //   acBySacMap.get(sac).push(ac)
-    // })
-    // // #endregion
-
-    // // #region get profile of acs/sacs without assignments
-    // const areaChairWithoutAssignmentIds = pcConsoleData.areaChairs.filter(
-    //   (areaChairProfileId) => !pcConsoleData.allProfilesMap.get(areaChairProfileId)
-    // )
-    // const seniorAreaChairWithoutAssignmentIds = pcConsoleData.seniorAreaChairs.filter(
-    //   (sacProfileId) => !pcConsoleData.allProfilesMap.get(sacProfileId)
-    // )
-    // const allIdsNoAssignment = areaChairWithoutAssignmentIds.concat(
-    //   seniorAreaChairWithoutAssignmentIds
-    // )
-    // const ids = allIdsNoAssignment.filter((p) => p.startsWith('~'))
-    // const emails = allIdsNoAssignment.filter((p) => p.match(/.+@.+/))
-    // const getProfilesByIdsP = ids.length
-    //   ? api.post(
-    //       '/profiles/search',
-    //       {
-    //         ids,
-    //       },
-    //       { accessToken }
-    //     )
-    //   : Promise.resolve([])
-    // const getProfilesByEmailsP = emails.length
-    //   ? api.post(
-    //       '/profiles/search',
-    //       {
-    //         emails,
-    //       },
-    //       { accessToken }
-    //     )
-    //   : Promise.resolve([])
-    // const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
-    // const acSacProfilesWithoutAssignment = (profileResults[0].profiles ?? [])
-    //   .concat(profileResults[1].profiles ?? [])
-    //   .map((profile) => ({
-    //     ...profile,
-    //     preferredName: getProfileName(profile),
-    //     preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
-    //   }))
-
-    // const acSacProfileWithoutAssignmentMap = new Map()
-    // acSacProfilesWithoutAssignment.forEach((profile) => {
-    //   const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-    //   const emails = profile.content.emails.filter((p) => p)
-    //   usernames.concat(emails).forEach((key) => {
-    //     acSacProfileWithoutAssignmentMap.set(key, profile)
-    //   })
-    // })
-
-    // setPcConsoleData((data) => ({
-    //   ...data,
-    //   sacAcInfo: {
-    //     sacByAcMap,
-    //     acBySacMap,
-    //     acSacProfileWithoutAssignmentMap,
-    //     areaChairWithoutAssignmentIds,
-    //     seniorAreaChairWithoutAssignmentIds,
-    //   },
-    // }))
-
-    // // const areaChairWithAssignmentsMap = pcConsoleData.paperGroups.areaChairGroups.reduce(
-    // //   (prev, curr) => {
-    // //     curr.members.forEach((member) => {
-    // //       if (prev[member.areaChairProfileId]) {
-    // //         prev[member.areaChairProfileId].assignedPapers.push(
-    // //           pcConsoleData.notes.find((p) => p.number === curr.noteNumber)
-    // //         )
-    // //       } else {
-    // //         prev[member.areaChairProfileId] = {
-    // //           assignedPapers: [pcConsoleData.notes.find((p) => p.number === curr.noteNumber)],
-    // //         }
-    // //       }
-    // //     })
-    // //     return prev
-    // //   },
-    // //   {}
-    // // )
-    // // #endregion
-
-    // // #region get ac recommendation count
-    // const acRecommendations =
-    //   recommendationName && areaChairsId
-    //     ? await api.getAll(
-    //         '/edges',
-    //         {
-    //           invitation: `${reviewersId}/-/${recommendationName}`,
-    //           stream: true,
-    //         },
-    //         { accessToken }
-    //       )
-    //     : []
-    // const acRecommendationCount = acRecommendations.reduce((profileMap, edge) => {
-    //   var acId = edge.signatures[0]
-    //   if (!profileMap[acId]) {
-    //     profileMap[acId] = 0
-    //   }
-    //   profileMap[acId] += 1
-    //   return profileMap
-    // }, {})
-
-    // // #endregion
-
-    // // #region calc ac to notes map
-    // const acNotesMap = new Map()
-    // const allNoteNumbers = pcConsoleData.notes.map((p) => p.number)
-    // pcConsoleData.paperGroups.areaChairGroups.forEach((acGroup) => {
-    //   const members = acGroup.members
-    //   members.forEach((member) => {
-    //     const noteNumber = acGroup.noteNumber
-    //     if (!allNoteNumbers.includes(noteNumber)) return // paper could have been desk rejected
-    //     const reviewMetaReviewInfo =
-    //       pcConsoleData.noteNumberReviewMetaReviewMap.get(noteNumber) ?? {}
-    //     if (acNotesMap.get(member.areaChairProfileId)) {
-    //       acNotesMap
-    //         .get(member.areaChairProfileId)
-    //         .push({ noteNumber, ...reviewMetaReviewInfo })
-    //     } else {
-    //       acNotesMap.set(member.areaChairProfileId, [{ noteNumber, ...reviewMetaReviewInfo }])
-    //     }
-    //   })
-    // })
-    // // #endregion
-
-    // console.log('sacByAcMap', sacByAcMap)
-    // console.log('acBySacMap', acBySacMap)
     if (!pcConsoleData.sacAcInfo) {
       loadSacAcInfo()
+    } else if (!pcConsoleData.noteNumberReviewMetaReviewMap) {
+      loadReviewMetaReviewData()
     } else {
       // #region get ac recommendation count
       const acRecommendations =
@@ -1681,7 +1529,11 @@ const AreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo }) => {
   useEffect(() => {
     if (!pcConsoleData.paperGroups?.areaChairGroups) return
     loadACStatusTabData()
-  }, [pcConsoleData.paperGroups?.areaChairGroups, pcConsoleData.sacAcInfo])
+  }, [
+    pcConsoleData.paperGroups?.areaChairGroups,
+    pcConsoleData.sacAcInfo,
+    pcConsoleData.noteNumberReviewMetaReviewMap,
+  ])
 
   useEffect(() => {
     setAreaChairStatusTabData((data) => ({
@@ -2324,8 +2176,8 @@ const ProgramChairConsole = ({ appContext }) => {
       }
       setPcConsoleData({
         ...pcConsoleDataNoReview,
-        noteNumberReviewMetaReviewMap:
-          calculateNotesReviewMetaReviewData(pcConsoleDataNoReview),
+        // noteNumberReviewMetaReviewMap:
+        //   calculateNotesReviewMetaReviewData(pcConsoleDataNoReview),
       })
     } catch (error) {
       promptError(`loading data: ${error.message}`)
@@ -2333,33 +2185,30 @@ const ProgramChairConsole = ({ appContext }) => {
     setIsLoadingData(false)
   }
 
-  // TODO move calling this fn to tabs using it
-  const calculateNotesReviewMetaReviewData = (pcConsoleDataNoReview) => {
-    if (!pcConsoleDataNoReview) return new Map()
+  const calculateNotesReviewMetaReviewData = () => {
+    if (!pcConsoleData) return new Map()
     const noteNumberReviewMetaReviewMap = new Map()
-    pcConsoleDataNoReview.notes.forEach((note) => {
+    pcConsoleData.notes.forEach((note) => {
       const assignedReviewers =
-        pcConsoleDataNoReview.paperGroups.reviewerGroups?.find(
-          (p) => p.noteNumber === note.number
-        )?.members ?? []
+        pcConsoleData.paperGroups.reviewerGroups?.find((p) => p.noteNumber === note.number)
+          ?.members ?? []
 
       const assignedReviewerProfiles = assignedReviewers.map((reviewer) => ({
         id: reviewer.reviewerProfileId,
-        profile: pcConsoleDataNoReview.allProfilesMap.get(reviewer.reviewerProfileId),
+        profile: pcConsoleData.allProfilesMap.get(reviewer.reviewerProfileId),
       }))
 
       const assignedAreaChairs =
-        pcConsoleDataNoReview.paperGroups.areaChairGroups?.find(
-          (p) => p.noteNumber === note.number
-        )?.members ?? []
+        pcConsoleData.paperGroups.areaChairGroups?.find((p) => p.noteNumber === note.number)
+          ?.members ?? []
 
       const assignedAreaChairProfiles = assignedAreaChairs.map((areaChair) => ({
         id: areaChair.areaChairProfileId,
-        profile: pcConsoleDataNoReview.allProfilesMap.get(areaChair.areaChairProfileId),
+        profile: pcConsoleData.allProfilesMap.get(areaChair.areaChairProfileId),
       }))
 
       const officialReviews =
-        pcConsoleDataNoReview.officialReviewsByPaperNumberMap?.get(note.number)?.map((q) => {
+        pcConsoleData.officialReviewsByPaperNumberMap?.get(note.number)?.map((q) => {
           const isV2Note = q.version === 2
           const reviewRatingValue = isV2Note
             ? q.content[reviewRatingName]?.value
@@ -2399,8 +2248,7 @@ const ProgramChairConsole = ({ appContext }) => {
       const confidenceMin = validConfidences.length ? Math.min(...validConfidences) : 'N/A'
       const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
-      const metaReviews =
-        pcConsoleDataNoReview.metaReviewsByPaperNumberMap?.get(note.number) ?? []
+      const metaReviews = pcConsoleData.metaReviewsByPaperNumberMap?.get(note.number) ?? []
 
       noteNumberReviewMetaReviewMap.set(note.number, {
         note,
@@ -2460,7 +2308,7 @@ const ProgramChairConsole = ({ appContext }) => {
       })
     })
 
-    return noteNumberReviewMetaReviewMap
+    setPcConsoleData((data) => ({ ...data, noteNumberReviewMetaReviewMap }))
   }
 
   const loadSacAcInfo = async () => {
@@ -2644,6 +2492,7 @@ const ProgramChairConsole = ({ appContext }) => {
             <PaperStatusTab
               pcConsoleData={pcConsoleData}
               showContent={activeTabId === '#paper-status'}
+              loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
             />
           </TabPanel>
           {areaChairsId && activeTabId === '#areachair-status' && (
@@ -2651,6 +2500,7 @@ const ProgramChairConsole = ({ appContext }) => {
               <AreaChairStatusTab
                 pcConsoleData={pcConsoleData}
                 loadSacAcInfo={loadSacAcInfo}
+                loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
               />
             </TabPanel>
           )}
