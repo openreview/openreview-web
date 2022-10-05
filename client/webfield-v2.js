@@ -1562,8 +1562,10 @@ module.exports = (function() {
 
         // Build readers array
         var tagInvitationId = $widget.data('invitationId');
-        var readers = buildArray(tagInvitationId, 'readers', $note.data('number'), isTagWidget);
-        var nonreaders = buildArray(tagInvitationId, 'nonreaders', $note.data('number'), isTagWidget);
+        var noteNumber = $note.data('number');
+        var readers = buildArray(tagInvitationId, 'readers', noteNumber, isTagWidget);
+        var nonreaders = buildArray(tagInvitationId, 'nonreaders', noteNumber, isTagWidget);
+        var writers = buildArray(tagInvitationId, 'writers', noteNumber, isTagWidget);
 
         // For radio tag widgets, if user is de-selecting result the tag should be deleted
         var ddate = null;
@@ -1611,9 +1613,9 @@ module.exports = (function() {
             head: $note.data('id'),
             tail: window.user.profile.id,
             signatures: [window.user.profile.id],  // TODO: remove global user
-            writers: [window.user.profile.id],
             readers: readers,
             nonreaders: nonreaders,
+            writers: writers,
             ddate: ddate
           };
           post('/edges', requestBody, { handleErrors: false })
