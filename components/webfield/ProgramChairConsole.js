@@ -1807,6 +1807,7 @@ const ProgramChairConsole = ({ appContext }) => {
     enableQuerySearch,
     reviewRatingName,
     reviewConfidenceName,
+    submissionName,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -2188,6 +2189,7 @@ const ProgramChairConsole = ({ appContext }) => {
     setIsLoadingData(false)
   }
 
+  // eslint-disable-next-line consistent-return
   const calculateNotesReviewMetaReviewData = () => {
     if (!pcConsoleData) return new Map()
     const noteNumberReviewMetaReviewMap = new Map()
