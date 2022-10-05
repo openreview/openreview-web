@@ -191,6 +191,9 @@ const Assignments = ({ appContext }) => {
 
   // API functions
   const getConfigInvitation = async () => {
+    const notFoundMessage =
+      'There is currently no assignment configuration ready for use. Please go to your venue request form and use the Paper Matching Setup to compute conflicts and/or affinity scores.'
+
     try {
       const invitation = await api.getInvitationById(
         `${query.group}/-/Assignment_Configuration`,
@@ -202,13 +205,13 @@ const Assignments = ({ appContext }) => {
       } else {
         setError({
           statusCode: 404,
-          message: 'Could not list assignments. Invitation not found.',
+          message: notFoundMessage,
         })
       }
     } catch (apiError) {
       setError({
         statusCode: 404,
-        message: 'Could not list assignments. Invitation not found.',
+        message: notFoundMessage,
       })
     }
   }
