@@ -73,9 +73,9 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
         )
       )
       setInvitedCount({
-        reviewersInvitedCount: result[0].members.length,
-        areaChairsInvitedCount: result[1].members.length,
-        seniorAreaChairsInvitedCount: result[2].members.length,
+        reviewersInvitedCount: result[0]?.members.length,
+        areaChairsInvitedCount: result[1]?.members.length,
+        seniorAreaChairsInvitedCount: result[2]?.members.length,
       })
     } catch (error) {
       promptError(error.message)
@@ -1555,8 +1555,8 @@ const AreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReview
   if (areaChairStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        There are no area chairs.Check back later or contact info@openreview.net if you believe
-        this to be an error.
+        There are no area chairs. Check back later or contact info@openreview.net if you
+        believe this to be an error.
       </p>
     )
   if (areaChairStatusTabData.tableRows?.length === 0)
@@ -1993,10 +1993,10 @@ const ProgramChairConsole = ({ appContext }) => {
         perPaperGroupResultsP,
       ])
       const invitationResults = results[0]
-      const requestForm = results[1].notes?.[0]
+      const requestForm = results[1]?.notes?.[0]
       const registrationForms = results[2].flat()
       const committeeMemberResults = results[3]
-      const notes = results[4]
+      const notes = results[4].map((note) => ({ ...note, version: apiVersion }))
       const withdrawnRejectedSubmissionResults = results[5]
       const bidCountResults = results[6]
       const perPaperGroupResults = results[7]
