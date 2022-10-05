@@ -72,7 +72,7 @@ const Note = ({ note, invitation, options }) => {
 
       <ul className="note-meta-info list-inline">
         <li>
-          {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year)}
+          {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year, note.pdate)}
         </li>
         <li>
           {note.content.venue ? note.content.venue : prettyId(note.invitation)}
