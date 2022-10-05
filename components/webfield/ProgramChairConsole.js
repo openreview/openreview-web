@@ -1801,6 +1801,7 @@ const ProgramChairConsole = ({ appContext }) => {
     decisionName,
     anonReviewerName,
     anonAreaChairName,
+    areaChairName,
     scoresName,
     shortPhrase,
     enableQuerySearch,
@@ -1894,23 +1895,25 @@ const ProgramChairConsole = ({ appContext }) => {
       // #region getRegistrationForms
       const prefixes = [reviewersId, areaChairsId, seniorAreaChairsId]
       const getRegistrationFormPs = prefixes.map((prefix) =>
-        api
-          .getAll(
-            '/notes',
-            {
-              invitation: `${prefix}/-/.*`,
-              signature: venueId,
-              select: 'id,invitation,content.title',
-            },
-            { accessToken, version: apiVersion }
-          )
-          .then((notes) =>
-            notes.filter((note) =>
-              isV2Console
-                ? note.invitations.includes('Form')
-                : note.invitation.endsWith('Form')
-            )
-          )
+        prefix
+          ? api
+              .getAll(
+                '/notes',
+                {
+                  invitation: `${prefix}/-/.*`,
+                  signature: venueId,
+                  select: 'id,invitation,content.title',
+                },
+                { accessToken, version: apiVersion }
+              )
+              .then((notes) =>
+                notes.filter((note) =>
+                  isV2Console
+                    ? note.invitations.includes('Form')
+                    : note.invitation.endsWith('Form')
+                )
+              )
+          : Promise.resolve(null)
       )
       const getRegistrationFormResultsP = Promise.all(getRegistrationFormPs)
       // #endregion
@@ -1974,7 +1977,7 @@ const ProgramChairConsole = ({ appContext }) => {
       const perPaperGroupResultsP = api.get(
         '/groups',
         {
-          id: `${venueId}/Paper.*`,
+          id: `${venueId}/${submissionName}.*`,
           stream: true,
           select: 'id,members',
         },
@@ -1994,7 +1997,7 @@ const ProgramChairConsole = ({ appContext }) => {
       ])
       const invitationResults = results[0]
       const requestForm = results[1]?.notes?.[0]
-      const registrationForms = results[2].flat()
+      const registrationForms = results[2].flatMap((p) => p ?? [])
       const committeeMemberResults = results[3]
       const notes = results[4].map((note) => ({ ...note, version: apiVersion }))
       const withdrawnRejectedSubmissionResults = results[5]
@@ -2019,7 +2022,7 @@ const ProgramChairConsole = ({ appContext }) => {
           const number = getNumberFromGroup(p.id, 'Paper')
           if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
           if (p.members.length) anonReviewerGroups[number][p.members[0]] = p.id
-        } else if (p.id.endsWith('/Area_Chairs')) {
+        } else if (p.id.endsWith(`/${areaChairName}`)) {
           areaChairGroups.push({
             noteNumber: getNumberFromGroup(p.id, 'Paper'),
             ...p,
@@ -2084,27 +2087,27 @@ const ProgramChairConsole = ({ appContext }) => {
         const directReplies = note.details.directReplies // eslint-disable-line prefer-destructuring
         const officialReviews = directReplies
           .filter((p) => {
-            const officialReviewInvitationId = `${venueId}/Paper${note.number}/-/${officialReviewName}`
+            const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
             return isV2Console
               ? p.invitations.includes(officialReviewInvitationId)
               : p.invitation === officialReviewInvitationId
           })
           ?.map((review) => ({
             ...review,
-            anonId: getIndentifierFromGroup(review.signatures[0], 'Reviewer_'),
+            anonId: getIndentifierFromGroup(review.signatures[0], anonReviewerName),
           }))
         const metaReviews = directReplies
           .filter((p) => {
-            const officialMetaReviewInvitationId = `${venueId}/Paper${note.number}/-/${officialMetaReviewName}`
+            const officialMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
             return isV2Console
               ? p.invitations.includes(officialMetaReviewInvitationId)
               : p.invitation === officialMetaReviewInvitationId
           })
           ?.map((metaReview) => ({
             ...metaReview,
-            anonId: getIndentifierFromGroup(metaReview.signatures[0], 'Area_Chair_'),
+            anonId: getIndentifierFromGroup(metaReview.signatures[0], anonAreaChairName),
           }))
-        const decisionInvitationId = `${venueId}/Paper${note.number}/-/${decisionName}`
+        const decisionInvitationId = `${venueId}/${submissionName}${note.number}/-/${decisionName}`
         const decision = directReplies.find((p) =>
           isV2Console
             ? p.invitations.includes(decisionInvitationId)
@@ -2148,7 +2151,7 @@ const ProgramChairConsole = ({ appContext }) => {
                   reviewerProfileId: member,
                   reviewerAnonGroup,
                   anonymousId: reviewerAnonGroup
-                    ? getIndentifierFromGroup(reviewerAnonGroup, 'Reviewer_')
+                    ? getIndentifierFromGroup(reviewerAnonGroup, anonReviewerName)
                     : null,
                 }
               }),
@@ -2160,12 +2163,12 @@ const ProgramChairConsole = ({ appContext }) => {
             return {
               ...areaChairGroup,
               members: areaChairGroup.members.map((member) => {
-                const areaChairAnonGroup = paperAnonAreaChairGroups[member]
+                const areaChairAnonGroup = paperAnonAreaChairGroups?.[member]
                 return {
                   areaChairProfileId: member,
                   areaChairAnonGroup,
                   anonymousId: areaChairAnonGroup
-                    ? getIndentifierFromGroup(areaChairAnonGroup, 'Area_Chair_')
+                    ? getIndentifierFromGroup(areaChairAnonGroup, anonAreaChairName)
                     : null,
                 }
               }),
