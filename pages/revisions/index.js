@@ -550,7 +550,7 @@ const Revisions = ({ appContext }) => {
         : revisions.sort((p) => p[0].tcdate).find((q) => q[0].note?.content?.title)?.[0]?.note
             ?.content?.title?.value
     latestNoteTitle = truncate(latestNoteTitle, {
-      length: 45,
+      length: 40,
       omission: '...',
       separator: ' ',
     })

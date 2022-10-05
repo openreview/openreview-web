@@ -333,7 +333,7 @@ module.exports = (function() {
       contentInputResult = mkComposerContentInput(fieldName, fieldDescription, fieldValue, params);
     }
 
-    if (fieldDescription.value?.param?.hidden === true || (fieldName === 'authors' && params.profileWidget)) {
+    if (contentInputResult && fieldDescription.value?.param?.hidden === true || (fieldName === 'authors' && params.profileWidget)) {
       return contentInputResult.hide();
     }
     return contentInputResult;

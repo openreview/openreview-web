@@ -63,6 +63,11 @@ main.revisions {
     .note-content li {
       padding-left: 0;
     }
+    .note-content-value pre {
+      margin-bottom: 0;
+      padding: .375rem;
+      font-size: .75rem;
+    }
 
     &.hide-sidebar {
       .row .checkbox {
