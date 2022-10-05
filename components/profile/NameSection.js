@@ -19,6 +19,7 @@ const NamesButton = ({
   hasPendingNameDeletionRequest,
   hasRejectedNameDeletionRequest,
   namesCount,
+  hasPreferredUsername,
   isPreferredUsername,
 }) => {
   const getRequestDeletionButtonTooltip = () => {
@@ -35,21 +36,23 @@ const NamesButton = ({
         <button type="button" className="btn preferred_button" onClick={handleMakePreferred}>
           Make Preferred
         </button>
-        {namesCount !== 1 && !isPreferredUsername && (
-          <span title={getRequestDeletionButtonTooltip()}>
-            <button
-              type="button"
-              className={`btn request_deletion_button${
-                hasPendingNameDeletionRequest || hasRejectedNameDeletionRequest
-                  ? ' disabled'
-                  : ''
-              }`}
-              onClick={handleRequestDeletion}
-            >
-              Request Deletion
-            </button>
-          </span>
-        )}
+        {namesCount !== 1 &&
+          hasPreferredUsername &&
+          !isPreferredUsername && (
+            <span title={getRequestDeletionButtonTooltip()}>
+              <button
+                type="button"
+                className={`btn request_deletion_button${
+                  hasPendingNameDeletionRequest || hasRejectedNameDeletionRequest
+                    ? ' disabled'
+                    : ''
+                }`}
+                onClick={handleRequestDeletion}
+              >
+                Request Deletion
+              </button>
+            </span>
+          )}
       </>
     )
   }
@@ -65,9 +68,10 @@ const NameDeleteRequestModal = ({
   nameToRequestDelete,
   setNameToRequestDelete,
   loadPendingNameDeletionNotes,
+  preferredUsername,
 }) => {
   const [reason, setReason] = useState('')
-  const { accessToken, user } = useUser()
+  const { accessToken } = useUser()
   const [error, setError] = useState(null)
 
   const postNameDeleteRequest = async () => {
@@ -88,17 +92,9 @@ const NameDeleteRequestModal = ({
             comment: reason,
             status: 'Pending',
           },
-          readers: buildArray(
-            profileNameRemovalInvitation,
-            'readers',
-            user.profile.preferredId
-          ),
-          writers: buildArray(
-            profileNameRemovalInvitation,
-            'writers',
-            user.profile.preferredId
-          ),
-          signatures: [user.profile.preferredId],
+          readers: buildArray(profileNameRemovalInvitation, 'readers', preferredUsername),
+          writers: buildArray(profileNameRemovalInvitation, 'writers', preferredUsername),
+          signatures: [preferredUsername],
         },
         { accessToken }
       )
@@ -392,6 +388,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
                   hasPendingNameDeletionRequest={hasPendingNameDeletionRequest}
                   hasRejectedNameDeletionRequest={hasRejectedNameDeletionRequest}
                   namesCount={names.length}
+                  hasPreferredUsername={preferredUsername}
                   isPreferredUsername={preferredUsername === p.username}
                 />
               </div>
@@ -409,6 +406,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
         nameToRequestDelete={nameToRequestDelete}
         setNameToRequestDelete={setNameToRequestDelete}
         loadPendingNameDeletionNotes={loadPendingNameDeletionNotes}
+        preferredUsername={preferredUsername}
       />
     </div>
   )
