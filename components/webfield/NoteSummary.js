@@ -49,6 +49,8 @@ const NoteSummary = ({ note, referrerUrl, isV2Note, showDates = false }) => {
         </div>
       )}
 
+      {isV2Note && note?.content?.venue?.value && <span>{note.content.venue.value}</span>}
+
       <Collapse showLabel="Show details" hideLabel="Hide details">
         {isV2Note ? (
           <NoteContentV2

@@ -60,6 +60,9 @@ main.assignments-list {
     span.glyphicon {
       padding-right: 0.5rem;
     }
+    .assignment-status:focus {
+      outline: 0;
+    }
   }
 
   .modal-title {
