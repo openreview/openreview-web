@@ -348,7 +348,8 @@ test('update profile', async (t) => {
 })
 
 // eslint-disable-next-line no-unused-expressions
-fixture`issue related tests`
+fixture`Issue related tests`
+
 test('#160 allow user to overwrite last/middle/first name to be lowercase', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/signup`)
