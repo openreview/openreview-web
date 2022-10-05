@@ -296,7 +296,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
                     target="_blank"
                     rel="noreferrer"
                   >
-                    {note.content.name}
+                    {prettyId(note.signatures[0])}
                   </a>
                 </span>
                 <span
@@ -414,6 +414,7 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
 
       const formattedNotesWithCount = {
         items: notes?.map((p) => ({
+          id: p.id,
           forum: p.forum,
           abbreviatedName: p.content?.['Abbreviated Venue Name'],
           hasOfficialReply: p.details.replies.find((q) =>
