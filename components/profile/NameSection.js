@@ -36,23 +36,21 @@ const NamesButton = ({
         <button type="button" className="btn preferred_button" onClick={handleMakePreferred}>
           Make Preferred
         </button>
-        {namesCount !== 1 &&
-          hasPreferredUsername &&
-          !isPreferredUsername && (
-            <span title={getRequestDeletionButtonTooltip()}>
-              <button
-                type="button"
-                className={`btn request_deletion_button${
-                  hasPendingNameDeletionRequest || hasRejectedNameDeletionRequest
-                    ? ' disabled'
-                    : ''
-                }`}
-                onClick={handleRequestDeletion}
-              >
-                Request Deletion
-              </button>
-            </span>
-          )}
+        {namesCount !== 1 && hasPreferredUsername && !isPreferredUsername && (
+          <span title={getRequestDeletionButtonTooltip()}>
+            <button
+              type="button"
+              className={`btn request_deletion_button${
+                hasPendingNameDeletionRequest || hasRejectedNameDeletionRequest
+                  ? ' disabled'
+                  : ''
+              }`}
+              onClick={handleRequestDeletion}
+            >
+              Request Deletion
+            </button>
+          </span>
+        )}
       </>
     )
   }
