@@ -2,5 +2,7 @@
 /videos
 /.next
 
-/client
+/client/templates.js
+/client/templates
+
 /public/error-styles.css
