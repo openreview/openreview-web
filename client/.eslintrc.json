@@ -1,8 +1,9 @@
 {
   "extends": "airbnb-base",
   "rules": {
-    "semi": ["error", "always"],
+    "semi": ["error", "never"],
     "no-var": ["off"],
+    "indent": ["off"],
     "vars-on-top": ["off"],
     "no-unused-vars": ["off"],
     "prefer-arrow-callback": ["off"],
@@ -14,8 +15,8 @@
     "no-param-reassign": ["off"],
     "object-shorthand": ["off"],
     "prefer-object-spread": ["off"],
+    "prefer-spread": ["off"],
     "prefer-destructuring": ["off"],
-    "space-before-function-paren": ["error", "never"],
     "operator-linebreak": ["off"],
     "no-underscore-dangle": ["off"],
     "no-shadow": ["off"],
@@ -26,12 +27,15 @@
     "func-names": ["off"],
     "no-prototype-builtins": ["off"],
     "newline-per-chained-call": ["off"],
-    "arrow-parens": [2, "as-needed", { "requireForBlockBody": true }],
-    "max-len": ["error", {
-      "code": 130,
-      "ignoreStrings": true,
-      "ignoreTemplateLiterals": true,
-      "ignoreRegExpLiterals": true
-    }]
+    "arrow-parens": "off",
+    "max-len": [
+      "error",
+      {
+        "code": 120,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true,
+        "ignoreRegExpLiterals": true
+      }
+    ]
   }
 }
