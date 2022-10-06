@@ -21,7 +21,6 @@ const NamesButton = ({
   namesCount,
   hasPreferredUsername,
   isPreferredUsername,
-  showDeleteNameButton,
 }) => {
   const getRequestDeletionButtonTooltip = () => {
     if (hasPendingNameDeletionRequest) return 'Request to remove this name has been submitted.'
@@ -37,24 +36,21 @@ const NamesButton = ({
         <button type="button" className="btn preferred_button" onClick={handleMakePreferred}>
           Make Preferred
         </button>
-        {namesCount !== 1 &&
-          hasPreferredUsername &&
-          !isPreferredUsername &&
-          showDeleteNameButton && (
-            <span title={getRequestDeletionButtonTooltip()}>
-              <button
-                type="button"
-                className={`btn request_deletion_button${
-                  hasPendingNameDeletionRequest || hasRejectedNameDeletionRequest
-                    ? ' disabled'
-                    : ''
-                }`}
-                onClick={handleRequestDeletion}
-              >
-                Request Deletion
-              </button>
-            </span>
-          )}
+        {namesCount !== 1 && hasPreferredUsername && !isPreferredUsername && (
+          <span title={getRequestDeletionButtonTooltip()}>
+            <button
+              type="button"
+              className={`btn request_deletion_button${
+                hasPendingNameDeletionRequest || hasRejectedNameDeletionRequest
+                  ? ' disabled'
+                  : ''
+              }`}
+              onClick={handleRequestDeletion}
+            >
+              Request Deletion
+            </button>
+          </span>
+        )}
       </>
     )
   }
@@ -155,7 +151,6 @@ const NameDeleteRequestModal = ({
 const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
   const [nameToRequestDelete, setNameToRequestDelete] = useState(null)
   const [pendingNameDeletionRequests, setPendingNameDeletionRequests] = useState(null)
-  const [showDeleteNameButton, setShowDeleteNameButton] = useState(false)
   const { accessToken } = useUser()
   const namesReducer = (names, action) => {
     if (action.addNewName) return [...names, action.data]
@@ -238,26 +233,39 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
     setNames({ setPreferred: true, data: { key } })
   }
 
+  const getNameDeletionRequests = async () => {
+    const result = await api.get(
+      '/notes',
+      { invitation: nameDeletionInvitationId },
+      { accessToken }
+    )
+    return result.notes
+  }
+
   const loadPendingNameDeletionNotes = async () => {
-    // #region check invitation has been created
     try {
-      const invitationResult = await api.get(
-        '/invitations',
-        { id: nameDeletionInvitationId },
-        { accessToken }
+      const nameDeletionNotes = await getNameDeletionRequests()
+      setPendingNameDeletionRequests(nameDeletionNotes)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const handleDeleteNameChange = async (nameToDelete) => {
+    try {
+      const nameDeletionNotes = await getNameDeletionRequests()
+      const hasExistingNameDeletionRequest = nameDeletionNotes?.find(
+        (p) =>
+          p?.content?.usernames.includes(nameToDelete.username) &&
+          ['Pending', 'Rejected'].includes(p?.content?.status)
       )
-      if (invitationResult.invitations.length) {
-        setShowDeleteNameButton(true)
+      if (hasExistingNameDeletionRequest) {
+        promptError(`Request to remove ${getNameString(nameToDelete)} has been submitted.`)
+        setNameToRequestDelete(null)
+        setPendingNameDeletionRequests(nameDeletionNotes)
+        return
       }
-    } catch (error) {} // eslint-disable-line no-empty
-    // #endregion
-    try {
-      const result = await api.get(
-        '/notes',
-        { invitation: nameDeletionInvitationId },
-        { accessToken }
-      )
-      setPendingNameDeletionRequests(result.notes)
+      $('#name-delete').modal('show')
     } catch (error) {
       promptError(error.message)
     }
@@ -273,7 +281,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
 
   useEffect(() => {
     if (nameToRequestDelete) {
-      $('#name-delete').modal('show')
+      handleDeleteNameChange(nameToRequestDelete)
       return
     }
     $('#name-delete').modal('hide')
@@ -380,7 +388,6 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
                   namesCount={names.length}
                   hasPreferredUsername={preferredUsername}
                   isPreferredUsername={preferredUsername === p.username}
-                  showDeleteNameButton={showDeleteNameButton}
                 />
               </div>
             )}
