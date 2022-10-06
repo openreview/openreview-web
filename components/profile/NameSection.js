@@ -71,8 +71,10 @@ const NameDeleteRequestModal = ({
   const [reason, setReason] = useState('')
   const { accessToken } = useUser()
   const [error, setError] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const postNameDeleteRequest = async () => {
+    setIsLoading(true)
     try {
       const result = await api.get(
         '/invitations',
@@ -102,6 +104,7 @@ const NameDeleteRequestModal = ({
     } catch (apiError) {
       setError(apiError.message)
     }
+    setIsLoading(false)
   }
   if (!nameToRequestDelete) return null
   return (
@@ -109,7 +112,7 @@ const NameDeleteRequestModal = ({
       id="name-delete"
       title="Request Name Deletion"
       onPrimaryButtonClick={postNameDeleteRequest}
-      primaryButtonDisabled={!reason.length}
+      primaryButtonDisabled={!reason.length || isLoading}
       onClose={() => {
         setNameToRequestDelete(null)
         setError(null)
