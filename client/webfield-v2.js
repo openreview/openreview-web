@@ -1680,11 +1680,14 @@ module.exports = (function () {
             _.map(tagInvitation.reply[fieldName]['values-copied'], function (value) {
               if (value === '{signatures}') {
                 return window.user.profile.id
-              } else if (value[0] === '{') {
-                return null
-              } else {
-                return value
               }
+              if (value === '{tail}') {
+                return window.user.profile.id
+              }
+              if (value[0] === '{') {
+                return null
+              }
+              return value
             })
           )
         } else if (_.has(tagInvitation, 'reply.' + fieldName + '.regex')) {
