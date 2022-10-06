@@ -2076,7 +2076,8 @@ module.exports = (function () {
 
   var mkTitleComponent = function (note, titleLink, titleText) {
     var $titleHTML = $('<h2 class="note_content_title">')
-    var titleHref = '/forum?id=' + note.forum + (note.forum !== note.id ? '&noteId=' + note.id : '')
+    var titleHref =
+      '/forum?id=' + note.forum + (note.forum !== note.id ? '&noteId=' + note.id : '')
 
     $titleHTML.append($('<a>', { href: titleHref, text: titleText }))
     return $titleHTML
@@ -2369,7 +2370,8 @@ module.exports = (function () {
       originalNote.tcdate,
       originalNote.mdate,
       originalNote.tmdate,
-      originalNote.content.year
+      originalNote.content.year,
+      originalNote.pdate
     )
     var $origDateItem =
       !notePastDue || note.details.writable
@@ -2573,7 +2575,8 @@ module.exports = (function () {
       note.tcdate,
       note.mdate,
       note.tmdate,
-      note.content.year
+      note.content.year,
+      note.pdate
     )
     var $replyCountLabel =
       params.withReplyCount && details.replyCount
@@ -3162,14 +3165,14 @@ module.exports = (function () {
     trueCreatedDate,
     modifiedDate,
     trueModifiedDate,
-    createdYear
+    createdYear,
+    pdate
   ) {
     var mdateSettings = {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
     }
-
     var cdateSettings = {
       day: '2-digit',
       month: 'short',
@@ -3201,26 +3204,28 @@ module.exports = (function () {
 
     var cdateFormatted = cdateObj.toLocaleDateString('en-GB', cdateSettings)
     var mdate = modifiedDate || trueModifiedDate
-    var mdateFormatted = ''
+    var mdateFormatted = mdate
+      ? new Date(mdate).toLocaleDateString('en-GB', mdateSettings)
+      : ''
 
-    /*
-    Note to self:
-    I think this first condition is no longer needed,
-    because we're no longer storing "year" in the content.
-    Confirm this later.
-    */
-    if (hasYear && cdate === mdate) {
-      mdateFormatted =
-        ' (imported: ' + new Date(cdate).toLocaleDateString('en-GB', mdateSettings) + ')'
-    } else if (cdate < trueCreatedDate && trueCreatedDate === trueModifiedDate) {
-      mdateFormatted =
-        ' (imported: ' + new Date(mdate).toLocaleDateString('en-GB', mdateSettings) + ')'
-    } else if (mdate && cdate !== mdate) {
-      mdateFormatted =
-        ' (modified: ' + new Date(mdate).toLocaleDateString('en-GB', mdateSettings) + ')'
+    if (pdate) {
+      var pdateFormatted = new Date(pdate).toLocaleDateString('en-GB', mdateSettings)
+      var secondaryDate = mdate
+        ? `Last Modified: ${mdateFormatted}`
+        : `Uploaded: ${cdateFormatted}`
+      return `Published: ${pdateFormatted}, ${secondaryDate}`
     }
 
-    return cdateFormatted + mdateFormatted
+    var mdateStr = ''
+    if (hasYear && cdate === mdate) {
+      mdateStr =
+        ' (imported: ' + new Date(cdate).toLocaleDateString('en-GB', mdateSettings) + ')'
+    } else if (cdate < trueCreatedDate && trueCreatedDate === trueModifiedDate) {
+      mdateStr = ' (imported: ' + mdateFormatted + ')'
+    } else if (mdate && cdate !== mdate) {
+      mdateStr = ' (modified: ' + mdateFormatted + ')'
+    }
+    return cdateFormatted + mdateStr
   }
 
   var truncateTitle = function (title, len) {
@@ -3349,7 +3354,9 @@ module.exports = (function () {
     if (
       readerInputValues &&
       readerInputValues !== 'everyone' &&
-      invitation.id.match(/ICLR.cc\/2017\/conference\/-\/paper[0-9]+\/(official|public)\/comment/)
+      invitation.id.match(
+        /ICLR.cc\/2017\/conference\/-\/paper[0-9]+\/(official|public)\/comment/
+      )
     ) {
       var authoridsStr = $(
         'div #note_' +

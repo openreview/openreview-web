@@ -867,7 +867,8 @@ module.exports = (function () {
       note.tcdate,
       note.mdate,
       note.tmdate,
-      note.content?.year?.value
+      note.content?.year?.value,
+      note.pdate
     )
     var $dateItem =
       !notePastDue || details.writable
