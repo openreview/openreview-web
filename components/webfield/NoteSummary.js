@@ -43,11 +43,14 @@ const NoteSummary = ({ note, referrerUrl, isV2Note, showDates = false }) => {
               note.tcdate,
               note.mdate,
               note.tmdate,
-              isV2Note ? note.content.year?.value : note.content.year
+              isV2Note ? note.content.year?.value : note.content.year,
+              note.pdate
             )}
           </span>
         </div>
       )}
+
+      {isV2Note && note?.content?.venue?.value && <span>{note.content.venue.value}</span>}
 
       <Collapse showLabel="Show details" hideLabel="Hide details">
         {isV2Note ? (

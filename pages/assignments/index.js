@@ -87,14 +87,24 @@ const AssignmentRow = ({
 
       <td>
         {['Error', 'No Solution', 'Deployment Error'].includes(status) ? (
-          <span
-            className="assignment-status"
-            data-toggle="tooltip"
-            data-placement="top"
-            title={errorMessage}
-          >
-            {status}
-          </span>
+          <>
+            <strong>
+              {status}
+            </strong>
+            <br />
+            <a
+              tabIndex="0"
+              role="button"
+              className="assignment-status"
+              data-toggle="popover"
+              data-placement="top"
+              data-trigger="foucus"
+              data-content={errorMessage}
+              title="Error Details"
+            >
+              View Details
+            </a>
+          </>
         ) : (
           <span className="assignment-status">{status}</span>
         )}
@@ -191,6 +201,9 @@ const Assignments = ({ appContext }) => {
 
   // API functions
   const getConfigInvitation = async () => {
+    const notFoundMessage =
+      'There is currently no assignment configuration ready for use. Please go to your venue request form and use the Paper Matching Setup to compute conflicts and/or affinity scores.'
+
     try {
       const invitation = await api.getInvitationById(
         `${query.group}/-/Assignment_Configuration`,
@@ -202,13 +215,13 @@ const Assignments = ({ appContext }) => {
       } else {
         setError({
           statusCode: 404,
-          message: 'Could not list assignments. Invitation not found.',
+          message: notFoundMessage,
         })
       }
     } catch (apiError) {
       setError({
         statusCode: 404,
-        message: 'Could not list assignments. Invitation not found.',
+        message: notFoundMessage,
       })
     }
   }
@@ -420,7 +433,7 @@ const Assignments = ({ appContext }) => {
 
   useEffect(() => {
     if (assignmentNotes) {
-      $('[data-toggle="tooltip"]').tooltip()
+      $('[data-toggle="popover"]').popover({ container: '#content' })
     }
   }, [assignmentNotes])
 

@@ -825,9 +825,11 @@ header {
     }
   }
   .error-message {
-    max-width: 620px;
+    max-width: 720px;
     margin: 20px auto;
     margin-bottom: 40px;
+    white-space: inherit;
+    word-break: break-word;
   }
   .error-help {
     max-width: 620px;
