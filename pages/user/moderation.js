@@ -541,6 +541,7 @@ const UserModerationQueue = ({
           limit: pageSize,
           offset: (pageNumber - 1) * pageSize,
           withBlocked: onlyModeration ? undefined : true,
+          ...(!onlyModeration && { trash: true }),
           ...filters,
         },
         { accessToken, cachePolicy: 'no-cache' }
@@ -646,30 +647,37 @@ const UserModerationQueue = ({
     }
   }
 
-  const deleteUser = async (profile) => {
-    const signedNotes = await api.getCombined('/notes', { signature: profile.id }, null, {
-      accessToken,
-    })
-    if (signedNotes.count) {
-      promptError(
-        `There are ${inflect(
-          signedNotes.count,
-          'note',
-          'notes',
-          true
-        )} signed by this profile.`
-      )
-      return
+  const deleteRestoreUser = async (profile) => {
+    const actionIsDelete = !profile?.ddate
+
+    if (actionIsDelete) {
+      const signedNotes = await api.getCombined('/notes', { signature: profile.id }, null, {
+        accessToken,
+      })
+      if (signedNotes.count) {
+        promptError(
+          `There are ${inflect(
+            signedNotes.count,
+            'note',
+            'notes',
+            true
+          )} signed by this profile.`
+        )
+        return
+      }
     }
+
     // eslint-disable-next-line no-alert
     const confirmResult = window.confirm(
-      `Are you sure you want to delete ${profile?.content?.names?.[0]?.first} ${profile?.content?.names?.[0]?.last}?`
+      `Are you sure you want to ${actionIsDelete ? 'delete' : 'restore'} ${
+        profile?.content?.names?.[0]?.first
+      } ${profile?.content?.names?.[0]?.last}?`
     )
     if (confirmResult) {
       try {
         await api.post(
           '/profile/moderate',
-          { id: profile.id, decision: 'delete' },
+          { id: profile.id, decision: actionIsDelete ? 'delete' : 'restore' },
           { accessToken }
         )
       } catch (error) {
@@ -733,8 +741,8 @@ const UserModerationQueue = ({
             return (
               <li
                 key={profile.id}
-                className={`${
-                  profile.state === 'Blocked' || profile.block ? 'blocked' : null
+                className={`${profile.state === 'Blocked' || profile.block ? 'blocked' : ''}${
+                  profile.ddate ? ' deleted' : ''
                 }`}
               >
                 <span className="col-name">
@@ -819,9 +827,10 @@ const UserModerationQueue = ({
                       <button
                         type="button"
                         className="btn btn-xs"
-                        onClick={() => deleteUser(profile)}
+                        onClick={() => deleteRestoreUser(profile)}
+                        title={profile.ddate ? 'restore this profile' : 'delete this profile'}
                       >
-                        <Icon name="trash" />
+                        <Icon name={profile.ddate ? 'refresh' : 'trash'} />
                       </button>
                     </>
                   )}
