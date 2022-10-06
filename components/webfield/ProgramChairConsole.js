@@ -235,7 +235,7 @@ const BiddingStatsRow = ({ bidEnabled, recommendationEnabled, pcConsoleData }) =
   )
 }
 
-const ReviewStatsRow = ({ pcConsoleData, showContent }) => {
+const ReviewStatsRow = ({ pcConsoleData }) => {
   const { paperReviewsCompleteThreshold, officialReviewName, venueId } =
     useContext(WebFieldContext)
 
@@ -322,7 +322,6 @@ const ReviewStatsRow = ({ pcConsoleData, showContent }) => {
     })
   }, [pcConsoleData])
 
-  if (!showContent) return null
   return (
     <>
       <div className="row">
@@ -1010,7 +1009,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision }) =>
   )
 }
 
-const PaperStatusTab = ({ pcConsoleData, showContent, loadReviewMetaReviewData }) => {
+const PaperStatusTab = ({ pcConsoleData, loadReviewMetaReviewData }) => {
   const [paperStatusTabData, setPaperStatusTabData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const {
@@ -1027,12 +1026,14 @@ const PaperStatusTab = ({ pcConsoleData, showContent, loadReviewMetaReviewData }
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
-  const pageSize = 1
+  const pageSize = 25
 
   useEffect(() => {
-    if (!pcConsoleData.notes || !showContent) return
+    if (!pcConsoleData.notes) return
     if (!pcConsoleData.noteNumberReviewMetaReviewMap) {
-      loadReviewMetaReviewData()
+      setTimeout(() => {
+        loadReviewMetaReviewData()
+      }, 500)
     } else {
       const { notes, noteNumberReviewMetaReviewMap } = pcConsoleData
       if (!notes) return
@@ -1040,22 +1041,22 @@ const PaperStatusTab = ({ pcConsoleData, showContent, loadReviewMetaReviewData }
       setPaperStatusTabData({
         tableRowsAll: tableRows,
         tableRows: [...tableRows], // could be filtered
-        tableRowsDisplayed: tableRows, // could be filtered and paginated
       })
 
       setTotalCount(pcConsoleData.notes?.length ?? 0)
     }
-  }, [pcConsoleData.notes, pcConsoleData.noteNumberReviewMetaReviewMap, showContent])
+  }, [pcConsoleData.notes, pcConsoleData.noteNumberReviewMetaReviewMap])
 
   useEffect(() => {
     setPaperStatusTabData((data) => ({
       ...data,
       tableRowsDisplayed: data.tableRows?.slice(
+        // could be filtered and paginated
         pageSize * (pageNumber - 1),
         pageSize * (pageNumber - 1) + pageSize
       ),
     }))
-  }, [pageNumber, pcConsoleData.notes, showContent, paperStatusTabData.tableRows])
+  }, [pageNumber, pcConsoleData.notes, paperStatusTabData.tableRows])
 
   useEffect(() => {
     if (!paperStatusTabData.tableRows?.length) return
@@ -1063,8 +1064,8 @@ const PaperStatusTab = ({ pcConsoleData, showContent, loadReviewMetaReviewData }
     setPageNumber(1)
   }, [paperStatusTabData.tableRows])
 
-  if (!showContent) return null
-  if (!pcConsoleData.notes) return <LoadingSpinner />
+  if (!pcConsoleData.notes || !pcConsoleData.noteNumberReviewMetaReviewMap)
+    return <LoadingSpinner />
 
   if (paperStatusTabData.tableRowsAll?.length === 0)
     return (
@@ -1407,7 +1408,7 @@ const AreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReview
   const { accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.areaChairs?.length ?? 0)
-  const pageSize = 5
+  const pageSize = 25
   const bidEnabled = pcConsoleData.invitations?.some((p) =>
     [
       `${seniorAreaChairsId}/-/${bidName}`,
@@ -1550,7 +1551,8 @@ const AreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReview
     areaChairStatusTabData.tableRows,
   ])
 
-  if (!pcConsoleData.notes) return <LoadingSpinner />
+  if (!pcConsoleData.notes || !pcConsoleData.noteNumberReviewMetaReviewMap)
+    return <LoadingSpinner />
 
   if (areaChairStatusTabData.tableRowsAll?.length === 0)
     return (
@@ -1668,7 +1670,7 @@ const SeniorAreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo }) => {
   const [seniorAreaChairStatusTabData, setSeniorAreaChairStatusTabData] = useState({})
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.areaChairs?.length ?? 0)
-  const pageSize = 5
+  const pageSize = 25
 
   const loadSacStatusTabData = async () => {
     if (!pcConsoleData.sacAcInfo) {
@@ -2491,14 +2493,12 @@ const ProgramChairConsole = ({ appContext }) => {
             />
           </TabPanel>
           <TabPanel id="paper-status">
-            {/* {activeTabId === '#paper-status' && (
-              <PaperStatusTab pcConsoleData={pcConsoleData} loadData={loadData} />
-            )} */}
-            <PaperStatusTab
-              pcConsoleData={pcConsoleData}
-              showContent={activeTabId === '#paper-status'}
-              loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
-            />
+            {activeTabId === '#paper-status' && (
+              <PaperStatusTab
+                pcConsoleData={pcConsoleData}
+                loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
+              />
+            )}
           </TabPanel>
           {areaChairsId && activeTabId === '#areachair-status' && (
             <TabPanel id="areachair-status">
