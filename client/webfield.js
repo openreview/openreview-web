@@ -1053,14 +1053,14 @@ module.exports = (function() {
           return _.compact(_.map(tagInvitation.reply[fieldName]['values-copied'], function(value) {
             if (value === '{signatures}') {
               return window.user.profile.id;
-            } if (value === '{tail}') {
+            }
+            if (value === '{tail}') {
               return window.user.profile.id;
             }
-             else if (value[0] === '{') {
+            if (value[0] === '{') {
               return null;
-            } else {
-              return value;
             }
+            return value;
           }));
         } else if (_.has(tagInvitation, 'reply.' + fieldName + '.values-regex')) {
           return _.compact(_.map(tagInvitation.reply[fieldName]['values-regex'].split('|'), function(value) {
