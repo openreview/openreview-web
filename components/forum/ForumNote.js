@@ -175,12 +175,12 @@ function ForumTitle({ id, title, pdf, html }) {
 
       {pdf && (
         <div className="forum-content-link">
-          {/* eslint-disable-next-line react/jsx-no-target-blank */}
           <a
             className="citation_pdf_url"
             href={`/pdf?id=${id}`}
             title="Download PDF"
             target="_blank"
+            rel="noreferrer"
           >
             <img src="/images/pdf_icon_blue.svg" alt="Download PDF" />
           </a>
@@ -202,7 +202,7 @@ function ForumMeta({ note }) {
     <div className="forum-meta">
       <span className="date item">
         <Icon name="calendar" />
-        {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year?.value)}
+        {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year?.value, note.pdate)}
       </span>
 
       <span className="item">

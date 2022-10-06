@@ -63,7 +63,7 @@ const getBidObjectToPost = (
   ...(apiVersion !== 2 && {
     readers: buildArray(invitation, 'readers', userId, note.number),
     nonreaders: buildArray(invitation, 'nonreaders', userId, note.number),
-    writers: [userId],
+    writers: buildArray(invitation, 'writers', userId, note.number),
   }),
   ddate,
 })

@@ -109,7 +109,7 @@ const ForumAuthors = ({ authors, authorIds, signatures, noteReaders }) => (
 const ForumMeta = ({ note }) => (
   <div className="meta_row">
     <span className="date item">
-      {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year?.value)}
+      {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year?.value, note.pdate)}
     </span>
 
     <span className="item">{note.content.venue?.value || prettyId(note.invitations[0])}</span>
