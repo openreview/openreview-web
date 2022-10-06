@@ -654,7 +654,7 @@ module.exports = (function() {
       null;
 
     var $metaEditRow = $('<div>', {class: 'meta_row'});
-    var formattedDate = view.forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content?.year?.value);
+    var formattedDate = view.forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content?.year?.value, note.pdate);
     var $dateItem = (!notePastDue || details.writable) ?
       $('<span>', {class: 'date item'}).text(formattedDate) :
       null;
