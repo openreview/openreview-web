@@ -134,12 +134,16 @@ export default class OpenReviewApp extends App {
 
   static async attemptRefresh() {
     try {
-      const { token, user } = await api.post('/refreshToken', {})
+      const { token, user } = await api.post('/refreshToken')
       const expiration = Date.now() + cookieExpiration
       return { user, token, expiration }
     } catch (error) {
+      window.Webfield.setToken(null)
+      window.Webfield2.setToken(null)
       window.localStorage.removeItem('openreview.lastLogin')
-      return { user: null }
+      clearTimeout(this.refreshTimer)
+
+      return { user: null, accessToken: null }
     }
   }
 
@@ -318,6 +322,18 @@ export default class OpenReviewApp extends App {
     window.addEventListener('storage', (e) => {
       if (e.key === 'openreview.lastLogout') {
         this.logoutUser(null)
+      }
+    })
+
+    // Make sure that even if the timer is not triggered (for example if the computer was
+    // in sleep mode), the token is refreshed
+    window.addEventListener('focus', () => {
+      const cookieData = auth()
+      if (
+        (this.state.user && !cookieData.user) ||
+        (cookieData.expiration && cookieData.expiration < Date.now() + 65000)
+      ) {
+        this.refreshToken()
       }
     })
 
