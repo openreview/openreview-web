@@ -646,6 +646,39 @@ const UserModerationQueue = ({
     }
   }
 
+  const deleteUser = async (profile) => {
+    const signedNotes = await api.getCombined('/notes', { signature: profile.id }, null, {
+      accessToken,
+    })
+    if (signedNotes.count) {
+      promptError(
+        `There are ${inflect(
+          signedNotes.count,
+          'note',
+          'notes',
+          true
+        )} signed by this profile.`
+      )
+      return
+    }
+    // eslint-disable-next-line no-alert
+    const confirmResult = window.confirm(
+      `Are you sure you want to delete ${profile?.content?.names?.[0]?.first} ${profile?.content?.names?.[0]?.last}?`
+    )
+    if (confirmResult) {
+      try {
+        await api.post(
+          '/profile/moderate',
+          { id: profile.id, decision: 'delete' },
+          { accessToken }
+        )
+      } catch (error) {
+        promptError(error.message, { scrollToTop: false })
+      }
+      reload()
+    }
+  }
+
   useEffect(() => {
     getProfiles()
   }, [pageNumber, filters, shouldReload, descOrder])
@@ -782,6 +815,13 @@ const UserModerationQueue = ({
                         {`${
                           profile.state === 'Blocked' || profile.block ? 'Unblock' : 'Block'
                         }`}
+                      </button>{' '}
+                      <button
+                        type="button"
+                        className="btn btn-xs"
+                        onClick={() => deleteUser(profile)}
+                      >
+                        <Icon name="trash" />
                       </button>
                     </>
                   )}
