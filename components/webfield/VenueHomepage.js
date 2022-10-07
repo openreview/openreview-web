@@ -21,7 +21,7 @@ import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 function ConsoleList({ groupIds }) {
   return (
     <ul className="list-unstyled submissions-list">
-      {groupIds.map(groupId => {
+      {groupIds.map((groupId) => {
         let groupName = groupId.split('/').pop().replace(/_/g, ' ')
         if (groupName.endsWith('s')) {
           groupName = groupName.slice(0, -1)
@@ -44,7 +44,7 @@ function SubmissionsList({ venueId, invitationId, accessToken, apiVersion, enabl
     pdfLink: true,
     replyCount: true,
     showContents: true,
-    collapsibleContents: true,
+    collapse: true,
     showTags: false,
   }
   const pageSize = 25
@@ -84,13 +84,9 @@ function SubmissionsList({ venueId, invitationId, accessToken, apiVersion, enabl
 
   function NoteListItem({ item }) {
     if (apiVersion === 2) {
-      return (
-        <NoteV2 note={item} options={paperDisplayOptions} />
-      )
+      return <NoteV2 note={item} options={paperDisplayOptions} />
     }
-    return (
-      <Note note={item} options={paperDisplayOptions} />
-    )
+    return <Note note={item} options={paperDisplayOptions} />
   }
 
   return (
@@ -124,9 +120,7 @@ function ActivityList({ activityNotes, user }) {
     typesetMathJax()
   }, [activityNotes])
 
-  return (
-    <div ref={containerRef} />
-  )
+  return <div ref={containerRef} />
 }
 
 export default function VenueHomepage({ appContext }) {
@@ -183,8 +177,13 @@ export default function VenueHomepage({ appContext }) {
     )
     const getActivityNotesP = api.get(
       '/notes',
-      { invitation: `${group.id}/.*`, details: 'forumContent,invitation,writable', sort: 'tmdate:desc', limit: 25 },
-      { accessToken, version: apiVersion}
+      {
+        invitation: `${group.id}/.*`,
+        details: 'forumContent,invitation,writable',
+        sort: 'tmdate:desc',
+        limit: 25,
+      },
+      { accessToken, version: apiVersion }
     )
 
     Promise.all([getUserGroupsP, getUserSubmissionsP, getActivityNotesP])
@@ -221,7 +220,8 @@ export default function VenueHomepage({ appContext }) {
             invitationId={submissionId}
             apiVersion={apiVersion}
             onNoteCreated={() => {
-              const defaultConfirmationMessage = 'Your submission is complete. Check your inbox for a confirmation email. The author console page for managing your submissions will be available soon.'
+              const defaultConfirmationMessage =
+                'Your submission is complete. Check your inbox for a confirmation email. The author console page for managing your submissions will be available soon.'
               promptMessage(submissionConfirmationMessage || defaultConfirmationMessage)
               setReloadConsoles(!reloadConsoles)
             }}
@@ -244,14 +244,10 @@ export default function VenueHomepage({ appContext }) {
               </Tab>
             )}
             {showSubmissions && withdrawnSubmissionId && (
-              <Tab id="withdrawn-submissions">
-                Withdrawn Submissions
-              </Tab>
+              <Tab id="withdrawn-submissions">Withdrawn Submissions</Tab>
             )}
             {showSubmissions && deskRejectedSubmissionId && (
-              <Tab id="desk-rejected-submissions">
-                Desk Rejected Submissions
-              </Tab>
+              <Tab id="desk-rejected-submissions">Desk Rejected Submissions</Tab>
             )}
             {showActivity && activityNotes.length > 0 && (
               <Tab id="recent-activity" active={userConsoles.length === 0 && !showSubmissions}>
