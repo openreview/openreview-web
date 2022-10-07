@@ -11,6 +11,7 @@ const AreaChairStatusMenuBar = ({
   setAreaChairStatusTabData,
   shortPhrase,
   enableQuerySearch,
+  exportColumns: exportColumnsConfig,
   filterOperators: filterOperatorsConfig,
   propertiesAllowed: propertiesAllowedConfig,
   bidEnabled,
@@ -76,7 +77,7 @@ const AreaChairStatusMenuBar = ({
         ]
       : []),
   ]
-  const sortOptions = [
+  const sortOptions = exportColumnsConfig ?? [
     {
       label: 'Area Chair',
       value: 'Area Chair',

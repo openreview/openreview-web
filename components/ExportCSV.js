@@ -9,7 +9,12 @@ const ExportCSV = ({ records, fileName, exportColumns }) => {
       (p) =>
         `${exportColumns
           .map((column) => {
-            const value = column.getValue(p, p.note?.version === 2)?.toString()
+            let getValueFn = column.getValue
+            if (typeof column.getValue === 'string') {
+              // user defined in config
+              getValueFn = Function('p', 'isV2Note', column.getValue)
+            }
+            const value = getValueFn(p, p.note?.version === 2)?.toString()
             return `"${value?.replaceAll('"', '""')}"`
           })
           .join(',')}\n`

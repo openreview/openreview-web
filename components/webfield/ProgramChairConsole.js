@@ -1023,6 +1023,7 @@ const PaperStatusTab = ({ pcConsoleData, loadReviewMetaReviewData }) => {
     enableQuerySearch,
     filterOperators,
     propertiesAllowed,
+    paperStatusExportColumns,
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
@@ -1084,6 +1085,7 @@ const PaperStatusTab = ({ pcConsoleData, loadReviewMetaReviewData }) => {
           setPaperStatusTabData={setPaperStatusTabData}
           shortPhrase={shortPhrase}
           enableQuerySearch={enableQuerySearch}
+          exportColumns={paperStatusExportColumns}
           filterOperators={filterOperators}
           propertiesAllowed={propertiesAllowed}
         />
@@ -1099,6 +1101,7 @@ const PaperStatusTab = ({ pcConsoleData, loadReviewMetaReviewData }) => {
         setPaperStatusTabData={setPaperStatusTabData}
         shortPhrase={shortPhrase}
         enableQuerySearch={enableQuerySearch}
+        exportColumns={paperStatusExportColumns}
         filterOperators={filterOperators}
         propertiesAllowed={propertiesAllowed}
       />
@@ -1404,6 +1407,7 @@ const AreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReview
     bidName,
     recommendationName,
     venueId,
+    areaChairStatusExportColumns,
   } = useContext(WebFieldContext)
   const { accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
@@ -1569,6 +1573,7 @@ const AreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReview
           tableRows={areaChairStatusTabData.tableRows}
           setAreaChairStatusTabData={setAreaChairStatusTabData}
           shortPhrase={shortPhrase}
+          exportColumns={areaChairStatusExportColumns}
           enableQuerySearch={enableQuerySearch}
           filterOperators={filterOperators}
           propertiesAllowed={propertiesAllowed}
@@ -1586,6 +1591,7 @@ const AreaChairStatusTab = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReview
         tableRows={areaChairStatusTabData.tableRows}
         setAreaChairStatusTabData={setAreaChairStatusTabData}
         shortPhrase={shortPhrase}
+        exportColumns={areaChairStatusExportColumns}
         enableQuerySearch={enableQuerySearch}
         filterOperators={filterOperators}
         propertiesAllowed={propertiesAllowed}
@@ -1810,6 +1816,8 @@ const ProgramChairConsole = ({ appContext }) => {
     reviewRatingName,
     reviewConfidenceName,
     submissionName,
+    paperStatusExportColumns,
+    areaChairStatusExportColumns,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()

@@ -9,6 +9,7 @@ const PaperStatusMenuBar = ({
   setPaperStatusTabData,
   shortPhrase,
   enableQuerySearch,
+  exportColumns: exportColumnsConfig,
   filterOperators: filterOperatorsConfig,
   propertiesAllowed: propertiesAllowedConfig,
 }) => {
@@ -44,7 +45,7 @@ const PaperStatusMenuBar = ({
       value: 'missingReviews',
     },
   ]
-  const exportColumns = [
+  const exportColumns = exportColumnsConfig ?? [
     { header: 'number', getValue: (p) => p.note?.number },
     { header: 'forum', getValue: (p) => `https://openreview.net/forum?id=${p.note?.forum}` },
     {
