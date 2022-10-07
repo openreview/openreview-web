@@ -448,11 +448,9 @@ module.exports = (function () {
       )
     }
 
-    if (
-      contentInputResult &&
-      (fieldDescription.value?.param?.hidden === true ||
-        (fieldName === 'authors' && params.profileWidget))
-    ) {
+    var isFieldHidden = fieldDescription.value?.param?.hidden === true
+    var isProfileWidget = fieldName === 'authors' && params.profileWidget
+    if (contentInputResult && (isFieldHidden || isProfileWidget)) {
       return contentInputResult.hide()
     }
     return contentInputResult
