@@ -179,7 +179,7 @@ const AllSubmissionsTab = ({
         },
         { accessToken, version: apiVersion }
       )
-      setNotes(result.notes)
+      setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)))
     } catch (error) {
       promptError(error.message)
     }
