@@ -613,7 +613,7 @@ Handlebars.registerHelper(
       var idx = _.findIndex(tagInvitations, function (inv) {
         return inv.id === tag.invitation
       })
-      if (tag.tauthor && idx > -1) {
+      if (idx > -1) {
         addPairToCollection(tagsWithInvitations, [[tag], tagInvitations[idx]])
       } else {
         addPairToCollection(tagsWithoutInvitations, [[tag], null])
