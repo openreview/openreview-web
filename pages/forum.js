@@ -100,6 +100,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
                 content={`https://openreview.net/pdf?id=${forumNote.id}`}
               />
             )}
+            <meta name="citation_abstract" content={content.abstract || ''} />
             {conferenceName && (
               <meta name="citation_conference_title" content={conferenceName} />
             )}
