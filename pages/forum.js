@@ -84,7 +84,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
 
         {/* For more information on required meta tags for Google Scholar see: */}
         {/* https://scholar.google.com/intl/en/scholar/inclusion.html#indexing */}
-        {noteInvitation.startsWith(`${process.env.SUPER_USER}`) ? (
+        {noteInvitation.startsWith(`${process.env.SUPER_USER}`) || noteInvitation.startsWith('dblp.org') ? (
           <meta name="robots" content="noindex" />
         ) : (
           <>
