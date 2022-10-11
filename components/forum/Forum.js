@@ -622,29 +622,6 @@ export default function Forum({
 
   return (
     <div className="forum-container">
-      {/* TODO: remove this message when new page is the default */}
-      <div id="tab-message" className="alert alert-warning">
-        <p>
-          <Icon name="exclamation-sign pr-1" /> You are using a beta version of the forum page.
-          For more information, please read the{' '}
-          <a
-            href="https://docs.openreview.net/getting-started/using-the-new-forum-page"
-            target="_blank"
-            rel="noreferrer"
-          >
-            forum docs
-          </a>
-          . To switch back to the old forum click here:{' '}
-          <Link
-            href={`/forum-original?id=${id}${
-              query.referrer ? `&referrer=${encodeURIComponent(query.referrer)}` : ''
-            }`}
-          >
-            <a>View old forum &raquo;</a>
-          </Link>
-        </p>
-      </div>
-
       <ForumNote note={parentNote} updateNote={updateParentNote} />
 
       {parentNote.replyInvitations?.length > 0 && (
