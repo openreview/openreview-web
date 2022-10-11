@@ -24,6 +24,7 @@ const BaseMenuBar = ({
   basicSearchFunction,
   messageModal,
   querySearchInfoModal,
+  searchPlaceHolder,
   extraClasses,
 }) => {
   const disabledMessageButton = selectedIds?.length === 0
@@ -150,9 +151,12 @@ const BaseMenuBar = ({
       )}
       <input
         className={`form-control search-input${queryIsInvalidStatus ? ' invalid-value' : ''}`}
-        placeholder={`Enter search term${
-          shouldEnableQuerySearch ? ' or type + to start a query and press enter' : ''
-        }`}
+        placeholder={
+          searchPlaceHolder ??
+          `Enter search term${
+            shouldEnableQuerySearch ? ' or type + to start a query and press enter' : ''
+          }`
+        }
         value={immediateSearchTerm}
         onChange={(e) => {
           setImmediateSearchTerm(e.target.value)

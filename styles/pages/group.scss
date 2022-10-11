@@ -497,6 +497,40 @@ main.invitation {
     }
   }
 
+  .pc-console-reviewer-status {
+    table-layout: auto;
+    .paper-progress {
+      display: flex;
+      flex-direction: column;
+
+      .paper-info {
+        display: flex;
+        .paper-number {
+          margin-right: 0.25rem;
+        }
+        .paper-title-review {
+          display: flex;
+          flex-direction: column;
+        }
+      }
+    }
+
+    .status-column {
+      display: flex;
+      flex-direction: column;
+      .paper-info {
+        display: flex;
+        .paper-number {
+          margin-right: 0.25rem;
+        }
+        .review-rating-info {
+          display: flex;
+          flex-direction: column;
+        }
+      }
+    }
+  }
+
   .console-table .eic-task-list {
     .note {
       background-color: transparent;

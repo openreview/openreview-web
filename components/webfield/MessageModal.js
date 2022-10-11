@@ -94,7 +94,7 @@ export const MessageReviewersModal = ({
     const recipientsWithCount = {}
     recipients.forEach((recipient) => {
       if (recipient.reviewerProfileId in recipientsWithCount) {
-        recipientsWithCount[recipient.reviewerProfileId].count++
+        recipientsWithCount[recipient.reviewerProfileId].count += 1
       } else {
         recipientsWithCount[recipient.reviewerProfileId] = { ...recipient, count: 1 }
       }
@@ -243,6 +243,136 @@ export const MessageAreaChairsModal = ({
   return (
     <BasicModal
       id="message-areachairs"
+      title={messageOption?.label}
+      primaryButtonText={primaryButtonText}
+      onPrimaryButtonClick={handlePrimaryButtonClick}
+      primaryButtonDisabled={!totalMessagesCount || !message}
+      onClose={() => {
+        setCurrentStep(1)
+      }}
+    >
+      {error && <div className="alert alert-danger">{error}</div>}
+      {currentStep === 1 ? (
+        <>
+          <p>
+            Enter a message to be sent to all selected area chairs below. You will have a
+            chance to review a list of all recipients after clicking &quot;Next&quot; below.
+          </p>
+          <div className="form-group">
+            <label htmlFor="subject">Email Subject</label>
+            <input
+              type="text"
+              name="subject"
+              className="form-control"
+              value={subject}
+              required
+              onChange={(e) => setSubject(e.target.value)}
+            />
+            <label htmlFor="message">Email Body</label>
+            <textarea
+              name="message"
+              className="form-control message-body"
+              rows="6"
+              value={message ?? ''}
+              required
+              onChange={(e) => setMessage(e.target.value)}
+            />
+          </div>
+        </>
+      ) : (
+        <>
+          <p>
+            A total of <span className="num-reviewers">{totalMessagesCount}</span> reminder
+            emails will be sent to the following area chairs:
+          </p>
+          <div className="well reviewer-list">
+            {recipientsInfo.map((recipientInfo) => (
+              <li
+                key={recipientInfo.preferredEmail}
+              >{`${recipientInfo.preferredName} <${recipientInfo.preferredEmail}>`}</li>
+            ))}
+          </div>
+        </>
+      )}
+    </BasicModal>
+  )
+}
+
+export const ReviewStatusMessageReviewersModal = ({
+  tableRowsDisplayed: tableRows,
+  messageOption,
+  messageParentGroup,
+}) => {
+  const { accessToken } = useUser()
+  const { shortPhrase } = useContext(WebFieldContext)
+  const [currentStep, setCurrentStep] = useState(1)
+  const [error, setError] = useState(null)
+  const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
+  const [message, setMessage] = useState(null)
+  const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
+  const [recipientsInfo, setRecipientsInfo] = useState([])
+  const totalMessagesCount = recipientsInfo.length
+
+  const handlePrimaryButtonClick = async () => {
+    if (currentStep === 1) {
+      setCurrentStep(2)
+      return
+    }
+    // send emails
+    try {
+      await api.post(
+        '/messages',
+        {
+          groups: recipientsInfo.map((p) => p.id),
+          subject,
+          message,
+          parentGroup: messageParentGroup,
+        },
+        { accessToken }
+      )
+      $('#message-reviewers').modal('hide')
+      promptMessage(`Successfully sent ${totalMessagesCount} emails`)
+    } catch (apiError) {
+      setError(apiError.message)
+    }
+  }
+
+  const getRecipientRows = () => {
+    switch (messageOption.value) {
+      case 'noBids':
+        return tableRows.map((row) => row.completedBids === 0)
+      case 'missingReviews':
+        return tableRows.filter((row) => row.numCompletedReviews < row.notesInfo?.length ?? 0)
+      default:
+        return []
+    }
+  }
+
+  useEffect(() => {
+    if (!messageOption) return
+    const recipientRows = getRecipientRows()
+    setRecipientsInfo(
+      recipientRows.map((row) => {
+        const { reviewerProfile } = row
+        return reviewerProfile
+          ? {
+              id: row.reviewerProfileId,
+              preferredName: reviewerProfile.preferredName,
+              preferredEmail: reviewerProfile.preferredEmail,
+            }
+          : {
+              id: row.reviewerProfileId,
+              preferredName: row.reviewerProfileId,
+              preferredEmail: row.reviewerProfileId,
+            }
+      })
+    )
+  }, [messageOption])
+
+  return (
+    <BasicModal
+      id="message-reviewers"
+      options={{ extraClasses: 'message-reviewers-modal' }}
       title={messageOption?.label}
       primaryButtonText={primaryButtonText}
       onPrimaryButtonClick={handlePrimaryButtonClick}

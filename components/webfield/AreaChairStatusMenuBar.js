@@ -50,7 +50,7 @@ const AreaChairStatusMenuBar = ({
       value: 'missingMetaReviews',
     },
   ]
-  const exportColumns = [
+  const exportColumns = exportColumnsConfig ?? [
     { header: 'id', getValue: (p) => p.areaChairProfileId },
     {
       header: 'name',
@@ -77,7 +77,7 @@ const AreaChairStatusMenuBar = ({
         ]
       : []),
   ]
-  const sortOptions = exportColumnsConfig ?? [
+  const sortOptions = [
     {
       label: 'Area Chair',
       value: 'Area Chair',
