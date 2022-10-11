@@ -10,7 +10,7 @@
   {{else}}
     <a href="/forum?id={{details.replytoNote.forum}}&noteId={{details.repliedNotes.0.id}}">{{prettyInvitationId id}}: {{details.repliedNotes.0.content.title}}</a>
     {{#with details.repliedNotes.[0]}}
-    <span class="completed-date">Completed: {{forumDate cdate tcdate mdate tmdate}}</span>
+    <span class="completed-date">Completed: {{forumDate cdate tcdate mdate tmdate null}}</span>
     {{/with}}
   {{/unless}}
 </h4>
