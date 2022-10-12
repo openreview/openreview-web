@@ -93,10 +93,10 @@ const MessageReviewersModal = ({
 
     const recipientsWithCount = {}
     recipients.forEach((recipient) => {
-      if (recipient.reviewerProfileId in recipientsWithCount) {
-        recipientsWithCount[recipient.reviewerProfileId].count += 1
+      if (recipient.preferredEmail in recipientsWithCount) {
+        recipientsWithCount[recipient.preferredEmail].count += 1
       } else {
-        recipientsWithCount[recipient.reviewerProfileId] = { ...recipient, count: 1 }
+        recipientsWithCount[recipient.preferredEmail] = { ...recipient, count: 1 }
       }
     })
 
@@ -149,7 +149,7 @@ const MessageReviewersModal = ({
             emails will be sent to the following reviewers:
           </p>
           <div className="well reviewer-list">
-            {uniqBy(recipientsInfo, (p) => p.reviewerProfileId).map((recipientInfo) => (
+            {uniqBy(recipientsInfo, (p) => p.preferredEmail).map((recipientInfo) => (
               <li key={recipientInfo.preferredEmail}>{`${recipientInfo.preferredName} <${
                 recipientInfo.preferredEmail
               }>${recipientInfo.count > 1 ? ` --- (×${recipientInfo.count})` : ''}`}</li>

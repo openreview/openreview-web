@@ -386,14 +386,13 @@ const ProgramChairConsole = ({ appContext }) => {
             const paperAnonReviewerGroups = anonReviewerGroups[reviewerGroup.noteNumber]
             return {
               ...reviewerGroup,
-              members: reviewerGroup.members.map((member) => {
+              members: reviewerGroup.members.flatMap((member) => {
                 const reviewerAnonGroup = paperAnonReviewerGroups[member]
+                if (!reviewerAnonGroup) return []
                 return {
                   reviewerProfileId: member,
                   reviewerAnonGroup,
-                  anonymousId: reviewerAnonGroup
-                    ? getIndentifierFromGroup(reviewerAnonGroup, anonReviewerName)
-                    : null,
+                  anonymousId: getIndentifierFromGroup(reviewerAnonGroup, anonReviewerName),
                 }
               }),
             }
