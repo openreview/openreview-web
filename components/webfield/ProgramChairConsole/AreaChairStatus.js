@@ -286,101 +286,106 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
     } else if (!pcConsoleData.noteNumberReviewMetaReviewMap) {
       loadReviewMetaReviewData()
     } else {
-      // #region get ac recommendation count
-      const acRecommendations =
-        recommendationName && areaChairsId
-          ? await api.getAll(
-              '/edges',
-              {
-                invitation: `${reviewersId}/-/${recommendationName}`,
-                stream: true,
-              },
-              { accessToken }
-            )
-          : []
-      const acRecommendationCount = acRecommendations.reduce((profileMap, edge) => {
-        const acId = edge.signatures[0]
-        if (!profileMap[acId]) {
-          profileMap[acId] = 0 // eslint-disable-line no-param-reassign
-        }
-        profileMap[acId] += 1 // eslint-disable-line no-param-reassign
-        return profileMap
-      }, {})
+      try {
+        // #region get ac recommendation count
+        const acRecommendations =
+          recommendationName && areaChairsId
+            ? await api.getAll(
+                '/edges',
+                {
+                  invitation: `${reviewersId}/-/${recommendationName}`,
+                  stream: true,
+                },
+                { accessToken }
+              )
+            : []
+        const acRecommendationCount = acRecommendations.reduce((profileMap, edge) => {
+          const acId = edge.signatures[0]
+          if (!profileMap[acId]) {
+            profileMap[acId] = 0 // eslint-disable-line no-param-reassign
+          }
+          profileMap[acId] += 1 // eslint-disable-line no-param-reassign
+          return profileMap
+        }, {})
 
-      // #endregion
-      // #region calc ac to notes map
-      const acNotesMap = new Map()
-      const allNoteNumbers = pcConsoleData.notes.map((p) => p.number)
-      pcConsoleData.paperGroups.areaChairGroups.forEach((acGroup) => {
-        // const members = acGroup.members
-        acGroup.members.forEach((member) => {
-          const noteNumber = acGroup.noteNumber // eslint-disable-line prefer-destructuring
-          if (!allNoteNumbers.includes(noteNumber)) return // paper could have been desk rejected
-          const reviewMetaReviewInfo =
-            pcConsoleData.noteNumberReviewMetaReviewMap.get(noteNumber) ?? {}
-          if (acNotesMap.get(member.areaChairProfileId)) {
-            acNotesMap
-              .get(member.areaChairProfileId)
-              .push({ noteNumber, ...reviewMetaReviewInfo })
+        // #endregion
+        // #region calc ac to notes map
+        const acNotesMap = new Map()
+        const allNoteNumbers = pcConsoleData.notes.map((p) => p.number)
+        pcConsoleData.paperGroups.areaChairGroups.forEach((acGroup) => {
+          // const members = acGroup.members
+          acGroup.members.forEach((member) => {
+            const noteNumber = acGroup.noteNumber // eslint-disable-line prefer-destructuring
+            if (!allNoteNumbers.includes(noteNumber)) return // paper could have been desk rejected
+            const reviewMetaReviewInfo =
+              pcConsoleData.noteNumberReviewMetaReviewMap.get(noteNumber) ?? {}
+            if (acNotesMap.get(member.areaChairProfileId)) {
+              acNotesMap
+                .get(member.areaChairProfileId)
+                .push({ noteNumber, ...reviewMetaReviewInfo })
+            } else {
+              acNotesMap.set(member.areaChairProfileId, [
+                { noteNumber, ...reviewMetaReviewInfo },
+              ])
+            }
+          })
+        })
+        // #endregion
+        const tableRows = pcConsoleData.areaChairs.map((areaChairProfileId, index) => {
+          let sacId = null
+          let sacProfile = null
+          if (seniorAreaChairsId) {
+            sacId = pcConsoleData.sacAcInfo.sacByAcMap.get(areaChairProfileId)
+            if (pcConsoleData.sacAcInfo.seniorAreaChairWithoutAssignmentIds.includes(sacId)) {
+              sacProfile = pcConsoleData.sacAcInfo.acSacProfileWithoutAssignmentMap.get(sacId)
+            } else {
+              sacProfile = pcConsoleData.allProfilesMap.get(sacId)
+            }
+          }
+          let acProfile = null
+          if (
+            pcConsoleData.sacAcInfo.areaChairWithoutAssignmentIds.includes(areaChairProfileId)
+          ) {
+            acProfile =
+              pcConsoleData.sacAcInfo.acSacProfileWithoutAssignmentMap.get(areaChairProfileId)
           } else {
-            acNotesMap.set(member.areaChairProfileId, [
-              { noteNumber, ...reviewMetaReviewInfo },
-            ])
+            acProfile = pcConsoleData.allProfilesMap.get(areaChairProfileId)
+          }
+          const notes = acNotesMap.get(areaChairProfileId) ?? []
+          return {
+            areaChairProfileId,
+            areaChairProfile: acProfile,
+            number: index + 1,
+            completedRecommendations: acRecommendationCount[areaChairProfileId] ?? 0,
+            completedBids:
+              pcConsoleData.bidCount?.areaChairs?.find(
+                (p) => p.id?.tail === areaChairProfileId
+              )?.count ?? 0,
+            numCompletedReviews: notes.filter(
+              (p) => p.reviewers?.length === p.officialReviews?.length
+            ).length,
+            numCompletedMetaReviews:
+              notes.filter(
+                (p) =>
+                  p.metaReviewData?.numMetaReviewsDone ===
+                  p.metaReviewData?.numAreaChairsAssigned
+              ).length ?? 0,
+            notes,
+            ...(seniorAreaChairsId && {
+              seniorAreaChair: {
+                seniorAreaChairId: sacId,
+                sacProfile,
+              },
+            }),
           }
         })
-      })
-      // #endregion
-      const tableRows = pcConsoleData.areaChairs.map((areaChairProfileId, index) => {
-        let sacId = null
-        let sacProfile = null
-        if (seniorAreaChairsId) {
-          sacId = pcConsoleData.sacAcInfo.sacByAcMap.get(areaChairProfileId)
-          if (pcConsoleData.sacAcInfo.seniorAreaChairWithoutAssignmentIds.includes(sacId)) {
-            sacProfile = pcConsoleData.sacAcInfo.acSacProfileWithoutAssignmentMap.get(sacId)
-          } else {
-            sacProfile = pcConsoleData.allProfilesMap.get(sacId)
-          }
-        }
-        let acProfile = null
-        if (
-          pcConsoleData.sacAcInfo.areaChairWithoutAssignmentIds.includes(areaChairProfileId)
-        ) {
-          acProfile =
-            pcConsoleData.sacAcInfo.acSacProfileWithoutAssignmentMap.get(areaChairProfileId)
-        } else {
-          acProfile = pcConsoleData.allProfilesMap.get(areaChairProfileId)
-        }
-        const notes = acNotesMap.get(areaChairProfileId) ?? []
-        return {
-          areaChairProfileId,
-          areaChairProfile: acProfile,
-          number: index + 1,
-          completedRecommendations: acRecommendationCount[areaChairProfileId] ?? 0,
-          completedBids:
-            pcConsoleData.bidCount?.areaChairs?.find((p) => p.id?.tail === areaChairProfileId)
-              ?.count ?? 0,
-          numCompletedReviews: notes.filter(
-            (p) => p.reviewers?.length === p.officialReviews?.length
-          ).length,
-          numCompletedMetaReviews:
-            notes.filter(
-              (p) =>
-                p.metaReviewData?.numMetaReviewsDone ===
-                p.metaReviewData?.numAreaChairsAssigned
-            ).length ?? 0,
-          notes,
-          ...(seniorAreaChairsId && {
-            seniorAreaChair: {
-              seniorAreaChairId: sacId,
-              sacProfile,
-            },
-          }),
-        }
-      })
-      setAreaChairStatusTabData({
-        tableRowsAll: tableRows,
-        tableRows: [...tableRows],
-      })
+        setAreaChairStatusTabData({
+          tableRowsAll: tableRows,
+          tableRows: [...tableRows],
+        })
+      } catch (error) {
+        promptError(`loading area chair status: ${error.message}`)
+      }
     }
   }
 

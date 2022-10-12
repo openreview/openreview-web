@@ -318,7 +318,7 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
         })
         setReviewerStatusTabData({ tableRowsAll: tableRows, tableRows: [...tableRows] })
       } catch (error) {
-        promptError(error.message)
+        promptError(`loading reviewer status: ${error.message}`)
       }
     }
   }
