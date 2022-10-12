@@ -3,7 +3,7 @@ import { getProfileLink } from '../../../lib/webfield-utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
-import SeniorAreaChairStatusMenuBar from '../SeniorAreaChairStatusMenuBar'
+import SeniorAreaChairStatusMenuBar from './SeniorAreaChairStatusMenuBar'
 
 const BasicProfileSummary = ({ profile, profileId }) => {
   const { id, preferredName, preferredEmail } = profile ?? {}

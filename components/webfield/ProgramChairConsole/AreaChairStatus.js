@@ -1,3 +1,4 @@
+/* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
@@ -10,7 +11,7 @@ import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
-import AreaChairStatusMenuBar from '../AreaChairStatusMenuBar'
+import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
 
 const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
   const { id, preferredName, preferredEmail } = rowData.areaChairProfile ?? {}

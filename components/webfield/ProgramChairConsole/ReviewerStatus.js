@@ -8,7 +8,7 @@ import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
-import ReviewerStatusMenuBar from '../ReviewerStatusMenuBar'
+import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, preferredEmail } = rowData.reviewerProfile ?? {}
