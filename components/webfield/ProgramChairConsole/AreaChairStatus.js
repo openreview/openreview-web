@@ -420,8 +420,7 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
     setPageNumber(1)
   }, [areaChairStatusTabData.tableRows])
 
-  if (!pcConsoleData.notes || !pcConsoleData.noteNumberReviewMetaReviewMap)
-    return <LoadingSpinner />
+  if (!areaChairStatusTabData.tableRowsAll) return <LoadingSpinner />
 
   if (areaChairStatusTabData.tableRowsAll?.length === 0)
     return (

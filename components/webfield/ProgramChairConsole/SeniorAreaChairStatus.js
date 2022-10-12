@@ -106,7 +106,7 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo }) => {
     seniorAreaChairStatusTabData.tableRows,
   ])
 
-  if (!pcConsoleData.sacAcInfo) return <LoadingSpinner />
+  if (!seniorAreaChairStatusTabData.tableRowsAll) return <LoadingSpinner />
 
   if (seniorAreaChairStatusTabData.tableRowsAll?.length === 0)
     return (

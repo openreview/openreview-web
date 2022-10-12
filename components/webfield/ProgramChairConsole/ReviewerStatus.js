@@ -345,8 +345,7 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
     setPageNumber(1)
   }, [reviewerStatusTabData.tableRows])
 
-  if (!pcConsoleData.notes || !pcConsoleData.noteNumberReviewMetaReviewMap)
-    return <LoadingSpinner />
+  if (!reviewerStatusTabData.tableRowsAll) return <LoadingSpinner />
 
   if (reviewerStatusTabData.tableRowsAll?.length === 0)
     return (

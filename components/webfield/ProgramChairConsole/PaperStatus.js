@@ -149,8 +149,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
     setPageNumber(1)
   }, [paperStatusTabData.tableRows])
 
-  if (!pcConsoleData.notes || !pcConsoleData.noteNumberReviewMetaReviewMap)
-    return <LoadingSpinner />
+  if (!paperStatusTabData.tableRowsAll) return <LoadingSpinner />
 
   if (paperStatusTabData.tableRowsAll?.length === 0)
     return (

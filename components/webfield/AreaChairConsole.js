@@ -484,7 +484,6 @@ const AreaChairConsole = ({ appContext }) => {
       setAcConsoleData({
         tableRowsAll: tableRows,
         tableRows,
-        tableRowsDisplayed: tableRows,
         reviewersInfo: result[1],
         allProfiles,
         sacProfile: sacProfile
@@ -500,19 +499,19 @@ const AreaChairConsole = ({ appContext }) => {
   }
 
   const renderTable = () => {
-    if (acConsoleData.tableRows?.length === 0)
+    if (acConsoleData.tableRowsAll?.length === 0)
       return (
         <p className="empty-message">
           No assigned papers.Check back later or contact info@openreview.net if you believe
           this to be an error.
         </p>
       )
-    if (acConsoleData.tableRowsDisplayed?.length === 0)
+    if (acConsoleData.tableRows?.length === 0)
       return (
         <div className="table-container empty-table-container">
           <AreaChairConsoleMenuBar
-            tableRowsAll={acConsoleData.tableRows} // ac console has no pagination
-            tableRows={acConsoleData.tableRowsDisplayed}
+            tableRowsAll={acConsoleData.tableRowsAll}
+            tableRows={acConsoleData.tableRows}
             selectedNoteIds={selectedNoteIds}
             setAcConsoleData={setAcConsoleData}
             shortPhrase={shortPhrase}
@@ -526,8 +525,8 @@ const AreaChairConsole = ({ appContext }) => {
     return (
       <div className="table-container">
         <AreaChairConsoleMenuBar
-          tableRowsAll={acConsoleData.tableRows}
-          tableRows={acConsoleData.tableRowsDisplayed}
+          tableRowsAll={acConsoleData.tableRowsAll}
+          tableRows={acConsoleData.tableRows}
           selectedNoteIds={selectedNoteIds}
           setAcConsoleData={setAcConsoleData}
           shortPhrase={shortPhrase}
@@ -544,7 +543,7 @@ const AreaChairConsole = ({ appContext }) => {
                 <SelectAllCheckBox
                   selectedNoteIds={selectedNoteIds}
                   setSelectedNoteIds={setSelectedNoteIds}
-                  allNoteIds={acConsoleData.tableRowsDisplayed?.map((row) => row.note.id)}
+                  allNoteIds={acConsoleData.tableRows?.map((row) => row.note.id)}
                 />
               ),
             },
@@ -554,7 +553,7 @@ const AreaChairConsole = ({ appContext }) => {
             { id: 'metaReviewStatus', content: 'Meta Review Status' },
           ]}
         >
-          {acConsoleData.tableRowsDisplayed?.map((row) => (
+          {acConsoleData.tableRows?.map((row) => (
             <AssignedPaperRow
               key={row.note.id}
               rowData={row}
@@ -631,9 +630,13 @@ const AreaChairConsole = ({ appContext }) => {
     metaReviewContentField,
     shortPhrase,
     enableQuerySearch,
-  }).filter(([key, value]) => value === undefined).map((p) => p[0])
+  })
+    .filter(([key, value]) => value === undefined)
+    .map((p) => p[0])
   if (missingConfig.length > 0) {
-    const errorMessage = `AC Console is missing required properties: ${missingConfig.join(', ')}`
+    const errorMessage = `AC Console is missing required properties: ${missingConfig.join(
+      ', '
+    )}`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
 
