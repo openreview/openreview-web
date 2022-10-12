@@ -182,6 +182,11 @@ const ReviewerStatusMenuBar = ({
 
   const sortOptions = [
     {
+      label: 'Reviewer',
+      value: 'Reviewer',
+      getValue: (p) => p.number,
+    },
+    {
       label: 'Reviewer Name',
       value: 'Reviewer Name',
       getValue: (p) =>
