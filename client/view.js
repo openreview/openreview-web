@@ -1713,7 +1713,7 @@ module.exports = (function () {
       )
     }
 
-    if (fieldDescription && fieldDescription.hidden === true) {
+    if (contentInputResult && fieldDescription && fieldDescription.hidden === true) {
       return contentInputResult.hide()
     }
     return contentInputResult
