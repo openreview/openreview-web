@@ -262,6 +262,12 @@ test('get an forum page and see meta tags with conference title', async (t) => {
     .eql(1)
     .expect(Selector('meta').withAttribute('name', 'citation_authors').count)
     .eql(0)
+    .expect(
+      Selector('meta')
+        .withAttribute('name', 'citation_abstract')
+        .withAttribute('content', 'test iclr abstract abstract').exists
+    )
+    .ok()
 
   const htmlResponse = await fetch(
     `http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`,
@@ -276,6 +282,7 @@ test('get an forum page and see meta tags with conference title', async (t) => {
   await t.expect(text).contains('<meta name="citation_online_date"')
   await t.expect(text).contains('<meta name="citation_pdf_url"')
   await t.expect(text).contains('<meta name="citation_author" content="Anonymous"/>')
+  await t.expect(text).contains('<meta name="citation_abstract" content="test iclr abstract abstract"/>')
   await t.expect(text).notContains('<h3 class="citation_author">Anonymous</h3')
 })
 
@@ -315,6 +322,12 @@ test('get forum page and see all available meta tags', async (t) => {
     .eql(2)
     .expect(Selector('meta').withAttribute('name', 'citation_authors').count)
     .eql(0)
+    .expect(
+      Selector('meta')
+        .withAttribute('name', 'citation_abstract')
+        .withAttribute('content', 'The abstract of test paper 1').exists
+    )
+    .ok()
 
   const htmlResponse = await fetch(
     `http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`,
@@ -330,6 +343,7 @@ test('get forum page and see all available meta tags', async (t) => {
   await t.expect(text).contains('<meta name="citation_pdf_url"')
   await t.expect(text).contains('<meta name="citation_author" content="FirstA LastA"/>')
   await t.expect(text).contains('<meta name="citation_author" content="Melisa Bok"/>')
+  await t.expect(text).contains('<meta name="citation_abstract" content="The abstract of test paper 1"/>')
   await t.expect(text).notContains('<h3 class="citation_author">FirstA LastA, Melisa Bok</h3>')
 })
 

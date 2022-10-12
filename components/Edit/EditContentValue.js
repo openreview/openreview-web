@@ -29,7 +29,6 @@ const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown }) => 
       </span>
     )
   }
-
   if (fieldName === '_bibtex') {
     return (
       <div className="note-content-value">

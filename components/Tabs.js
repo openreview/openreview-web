@@ -15,7 +15,7 @@ export function TabList({ children }) {
   )
 }
 
-export function Tab({ id, headingCount, onClick, active, children, icon }) {
+export function Tab({ id, headingCount, icon, onClick, active, hidden, children }) {
   const tabEl = useRef(null)
 
   useEffect(() => {
@@ -29,6 +29,8 @@ export function Tab({ id, headingCount, onClick, active, children, icon }) {
       onClick(e)
     }
   }
+
+  if (hidden) return null
 
   return (
     <li role="presentation" onClick={handleClick}>
