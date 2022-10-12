@@ -1,8 +1,11 @@
-/* globals DOMPurify,marked: false */
-import { useEffect, useState } from 'react'
+/* globals DOMPurify, marked, MathJax: false */
+
+import { useEffect, useState, useRef } from 'react'
 
 const Markdown = ({ text }) => {
   const [sanitizedHtml, setSanitizedHtml] = useState('')
+  const containerEl = useRef(null)
+
   useEffect(() => {
     if (!text) {
       setSanitizedHtml(null)
@@ -15,7 +18,13 @@ const Markdown = ({ text }) => {
     setSanitizedHtml(DOMPurify.sanitize(marked(text)))
   }, [text])
 
-  return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+  useEffect(() => {
+    if (sanitizedHtml && containerEl.current) {
+      MathJax.typesetPromise([containerEl.current])
+    }
+  }, [sanitizedHtml, containerEl])
+
+  return <div ref={containerEl} dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
 }
 
 export default Markdown
