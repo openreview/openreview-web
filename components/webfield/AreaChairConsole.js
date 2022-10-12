@@ -1135,11 +1135,9 @@ const AreaChairConsole = ({ appContext }) => {
     metaReviewContentField,
     shortPhrase,
     enableQuerySearch,
-  }).filter(([key, value]) => value === undefined)
-  if (missingConfig?.length) {
-    const errorMessage = `AC Console is missing required properties: ${
-      missingConfig.length ? missingConfig.map((p) => p[0]).join(', ') : ''
-    }`
+  }).filter(([key, value]) => value === undefined).map((p) => p[0])
+  if (missingConfig.length > 0) {
+    const errorMessage = `AC Console is missing required properties: ${missingConfig.join(', ')}`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
 

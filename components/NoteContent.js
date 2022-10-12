@@ -105,7 +105,9 @@ export function NoteContentValue({ content = '', enableMarkdown }) {
     }
   }, [])
 
-  if (!sanitizedHtml) return <span className="note-content-value" />
+  if (!sanitizedHtml) {
+    return <span className="note-content-value">{content}</span>
+  }
 
   return enableMarkdown ? (
     <div

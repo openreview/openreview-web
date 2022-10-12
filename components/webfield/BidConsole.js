@@ -134,7 +134,8 @@ const AllSubmissionsTab = ({
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
-            const noteInvitation = apiVersion === 2 ? matchingNote.invitations[0] : matchingNote.invitation
+            const noteInvitation =
+              apiVersion === 2 ? matchingNote.invitations[0] : matchingNote.invitation
             if (
               matchingNote &&
               noteInvitation === submissionInvitationId &&
@@ -178,7 +179,7 @@ const AllSubmissionsTab = ({
         },
         { accessToken, version: apiVersion }
       )
-      setNotes(result.notes)
+      setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)))
     } catch (error) {
       promptError(error.message)
     }
@@ -300,7 +301,7 @@ const AllSubmissionsTab = ({
             displayOptions={{
               emptyMessage: 'No papers to display at this time',
               showContents: true,
-              collapsibleContents: true,
+              collapse: true,
               pdfLink: true,
             }}
             updateBidOption={updateBidOption}
@@ -379,7 +380,8 @@ const NoBidTab = ({
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
-            const noteInvitation = apiVersion === 2 ? matchingNote?.invitations[0] : matchingNote?.invitation
+            const noteInvitation =
+              apiVersion === 2 ? matchingNote?.invitations[0] : matchingNote?.invitation
             if (
               matchingNote &&
               noteInvitation === submissionInvitationId &&
@@ -458,7 +460,7 @@ const NoBidTab = ({
       displayOptions={{
         emptyMessage: 'No papers to display at this time',
         showContents: true,
-        collapsibleContents: true,
+        collapse: true,
         pdfLink: true,
       }}
       updateBidOption={updateBidOption}
@@ -560,7 +562,7 @@ const BidOptionTab = ({
       displayOptions={{
         emptyMessage: 'No papers to display at this time',
         showContents: true,
-        collapsibleContents: true,
+        collapse: true,
         pdfLink: true,
       }}
       updateBidOption={updateBidOption}
