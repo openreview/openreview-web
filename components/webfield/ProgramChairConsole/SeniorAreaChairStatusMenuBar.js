@@ -1,4 +1,4 @@
-import BaseMenuBar from './BaseMenuBar'
+import BaseMenuBar from '../BaseMenuBar'
 
 const SeniorAreaChairStatusMenuBar = ({
   tableRowsAll,

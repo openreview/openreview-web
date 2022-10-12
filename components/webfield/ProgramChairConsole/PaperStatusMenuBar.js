@@ -1,6 +1,6 @@
-import BaseMenuBar from './BaseMenuBar'
-import { MessageReviewersModal } from './MessageModal'
-import QuerySearchInfoModal from './QuerySearchInfoModal'
+import BaseMenuBar from '../BaseMenuBar'
+import MessageReviewersModal from '../MessageReviewersModal'
+import QuerySearchInfoModal from '../QuerySearchInfoModal'
 
 const PaperStatusMenuBar = ({
   tableRowsAll,

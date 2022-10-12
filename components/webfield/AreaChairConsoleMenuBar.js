@@ -1,5 +1,5 @@
 import BaseMenuBar from './BaseMenuBar'
-import { MessageReviewersModal } from './MessageModal'
+import MessageReviewersModal from './MessageReviewersModal'
 import QuerySearchInfoModal from './QuerySearchInfoModal'
 
 const AreaChairConsoleMenuBar = ({
