@@ -14,6 +14,7 @@ import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
 import PaperStatus from './ProgramChairConsole/PaperStatus'
 import SeniorAreaChairStatus from './ProgramChairConsole/SeniorAreaChairStatus'
 import ReviewerStatusTab from './ProgramChairConsole/ReviewerStatus'
+import ErrorDisplay from '../ErrorDisplay'
 
 const ProgramChairConsole = ({ appContext }) => {
   const {
@@ -653,7 +654,16 @@ const ProgramChairConsole = ({ appContext }) => {
   }, [user, userLoading])
 
   useEffect(() => {
-    if (userLoading || !user || !group || !venueId) return
+    if (
+      userLoading ||
+      !user ||
+      !group ||
+      !venueId ||
+      !reviewersId ||
+      !submissionId ||
+      !apiVersion
+    )
+      return
     loadData()
   }, [user, userLoading, group])
 
@@ -662,6 +672,36 @@ const ProgramChairConsole = ({ appContext }) => {
     window.history.replaceState(null, null, activeTabId)
   }, [activeTabId])
 
+  const missingConfig = Object.entries({
+    header,
+    entity: group,
+    venueId,
+    apiVersion,
+    reviewersId,
+    programChairsId,
+    authorsId,
+    paperReviewsCompleteThreshold,
+    bidName,
+    recommendationName,
+    requestFormId,
+    submissionId,
+    officialReviewName,
+    commentName,
+    officialMetaReviewName,
+    decisionName,
+    anonReviewerName,
+    shortPhrase,
+    enableQuerySearch,
+    submissionName,
+  })
+    .filter(([key, value]) => value === undefined)
+    .map((p) => p[0])
+  if (missingConfig.length > 0) {
+    const errorMessage = `AC Console is missing required properties: ${missingConfig.join(
+      ', '
+    )}`
+    return <ErrorDisplay statusCode="" message={errorMessage} />
+  }
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
@@ -706,13 +746,15 @@ const ProgramChairConsole = ({ appContext }) => {
           >
             Reviewer Status
           </Tab>
-          <Tab
-            id="deskrejectwithdrawn-status"
-            active={activeTabId === '#deskrejectwithdrawn-status' ? true : undefined}
-            onClick={() => setActiveTabId('#deskrejectwithdrawn-status')}
-          >
-            Desk Rejected/Withdrawn Papers
-          </Tab>
+          {(withdrawnSubmissionId || deskRejectedSubmissionId) && (
+            <Tab
+              id="deskrejectwithdrawn-status"
+              active={activeTabId === '#deskrejectwithdrawn-status' ? true : undefined}
+              onClick={() => setActiveTabId('#deskrejectwithdrawn-status')}
+            >
+              Desk Rejected/Withdrawn Papers
+            </Tab>
+          )}
         </TabList>
 
         <TabPanels>
