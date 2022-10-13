@@ -484,15 +484,35 @@ main.invitation {
 
       .note-info {
         display: flex;
-        align-items: flex-start;
+        align-items: baseline;
         margin-bottom: 0.25rem;
         .note-number {
           margin-right: 0.25rem;
+          font-size: 0.75rem;
+          width: 8%;
         }
       }
 
       .review-info {
-        margin-bottom: 0.25rem;
+        width: 92%;
+      }
+    }
+    .areachair-progress {
+      display: flex;
+      flex-direction: column;
+
+      .meta-review-info {
+        display: flex;
+        align-items: baseline;
+        .note-number {
+          margin-right: 0.25rem;
+          font-size: 0.75rem;
+          width: 20%;
+        }
+        .meta-review {
+          display: flex;
+          flex-direction: column;
+        }
       }
     }
   }
@@ -505,10 +525,13 @@ main.invitation {
 
       .paper-info {
         display: flex;
+        width: 100%;
         .paper-number {
-          margin-right: 0.25rem;
+          // margin-right: 0.25rem;
+          width: 10%;
         }
         .paper-title-review {
+          width: 90%;
           display: flex;
           flex-direction: column;
         }
@@ -522,6 +545,7 @@ main.invitation {
         display: flex;
         .paper-number {
           margin-right: 0.25rem;
+          width: 20%;
         }
         .review-rating-info {
           display: flex;

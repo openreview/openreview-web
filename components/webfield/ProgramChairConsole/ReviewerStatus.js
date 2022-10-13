@@ -186,7 +186,7 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
   const { accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.reviewers?.length ?? 0)
-  const pageSize = 3
+  const pageSize = 25
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs#reviewer-status)`
   )

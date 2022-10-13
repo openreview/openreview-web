@@ -130,25 +130,30 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
       {rowData.notes.length !== 0 && <strong>Papers:</strong>}
       <div className="review-progress">
         {rowData.notes.map((p) => {
+          const { numReviewsDone, numReviewersAssigned, ratingAvg, ratingMin, ratingMax } =
+            p.reviewProgressData
           const noteTitle =
             p.note.version === 2 ? p.note?.content?.title?.value : p.note?.content?.title
           return (
             <div key={p.noteNumber}>
               <div className="note-info">
                 <strong className="note-number">{p.noteNumber}</strong>
-                <a
-                  href={`/forum?id=${p.note.forum}&referrer=${referrerUrl}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {noteTitle}
-                </a>
-              </div>
-              <div className="review-info">
-                <strong>
-                  {p.reviewProgressData?.numReviewsDone} of{' '}
-                  {p.reviewProgressData?.numReviewersAssigned} Reviews Submitted{' '}
-                </strong>
+                <div className="review-info">
+                  <a
+                    href={`/forum?id=${p.note.forum}&referrer=${referrerUrl}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {noteTitle}
+                  </a>
+                  <div>
+                    <strong>
+                      {numReviewsDone} of {numReviewersAssigned} Reviews Submitted{' '}
+                    </strong>
+                    {ratingAvg &&
+                      `/ Average Rating:${ratingAvg} (Min: ${ratingMin}, Max: ${ratingMax})`}
+                  </div>
+                </div>
               </div>
             </div>
           )
@@ -163,48 +168,46 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl, isV2Console }) => {
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   return (
-    <div className="reviewer-progress">
+    <div className="areachair-progress">
       <h4>
         {numCompletedMetaReviews} of {numPapers} Papers Meta Review Completed
       </h4>
       {rowData.notes.length !== 0 && <strong>Papers:</strong>}
-      <div className="review-progress">
+      <div>
         {rowData.notes.map((p) => {
           const noteContent = getNoteContent(p.note, isV2Console)
-          const venue = noteContent?.venue
+          const noteVenue = noteContent?.venue
           const metaReviews = p.metaReviewData?.metaReviews
           const hasMetaReview = metaReviews?.length
           return (
-            <div key={p.noteNumber}>
-              <div className="note-info">
-                <strong className="note-number">{p.noteNumber}</strong>
-                {hasMetaReview ? (
-                  <>
-                    <span>{`${venue ? `${venue} - ` : ''}${
-                      noteContent.recommendation ?? ''
-                    }`}</span>
-                    {metaReviews.map((metaReview) => {
-                      const metaReviewContent = getNoteContent(metaReview, isV2Console)
-                      return (
-                        <div key={metaReview.id}>
-                          {metaReviewContent.format && (
-                            <span>Format: {metaReviewContent.format}</span>
-                          )}
-                          <a
-                            href={`/forum?id=${metaReview.forum}&noteId=${metaReview.id}&referrer=${referrerUrl}`}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Read Meta Review
-                          </a>
-                        </div>
-                      )
-                    })}
-                  </>
-                ) : (
-                  <span>{`${venue ? `${venue} - ` : ''} No Meta Review`}</span>
-                )}
-              </div>
+            <div key={p.noteNumber} className="meta-review-info">
+              <strong className="note-number">{p.noteNumber}</strong>
+              {hasMetaReview ? (
+                <>
+                  {metaReviews.map((metaReview) => {
+                    const metaReviewContent = getNoteContent(metaReview, isV2Console)
+                    return (
+                      <div key={metaReview.id} className="meta-review">
+                        <span>{`${
+                          metaReviewContent.venue ? `${metaReviewContent.venue} - ` : ''
+                        }${metaReviewContent.recommendation ?? ''}`}</span>
+                        {metaReviewContent.format && (
+                          <span>Format: {metaReviewContent.format}</span>
+                        )}
+                        <a
+                          href={`/forum?id=${metaReview.forum}&noteId=${metaReview.id}&referrer=${referrerUrl}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Read Meta Review
+                        </a>
+                      </div>
+                    )
+                  })}
+                </>
+              ) : (
+                <span>{`${noteVenue ? `${noteVenue} - ` : ''} No Meta Review`}</span>
+              )}
             </div>
           )
         })}
