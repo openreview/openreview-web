@@ -19,8 +19,13 @@ const Markdown = ({ text }) => {
   }, [text])
 
   useEffect(() => {
-    if (sanitizedHtml && containerEl.current) {
-      MathJax.typesetPromise([containerEl.current])
+    if (sanitizedHtml && containerEl.current && MathJax.startup?.promise) {
+      MathJax.startup.promise
+        .then(() => MathJax.typesetPromise([containerEl.current]))
+        .catch(() => {
+          // eslint-disable-next-line no-console
+          console.warn('Could not typeset TeX content')
+        })
     }
   }, [sanitizedHtml, containerEl])
 
