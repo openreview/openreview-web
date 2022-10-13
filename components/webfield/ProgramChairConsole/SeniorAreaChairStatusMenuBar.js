@@ -9,10 +9,18 @@ const SeniorAreaChairStatusMenuBar = ({
     {
       label: 'Senior Area Chair',
       value: 'Senior Area Chair',
-      getValue: (p) => p.areaChairProfile?.preferredName,
+      getValue: (p) => p.number,
+    },
+    {
+      label: 'Senior Area Chair Name',
+      value: 'Senior Area Chair Name',
+      getValue: (p) => p.sacProfile?.preferredName ?? p.sacProfileId,
     },
   ]
-  const basicSearchFunction = (row, term) => row.sacProfileId.toLowerCase().includes(term)
+  const basicSearchFunction = (row, term) =>
+    (row.sacProfile?.preferredName.toLowerCase() ?? row.sacProfileId.toLowerCase()).includes(
+      term
+    )
 
   return (
     <BaseMenuBar

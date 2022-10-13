@@ -189,8 +189,7 @@ const ReviewerStatusMenuBar = ({
     {
       label: 'Reviewer Name',
       value: 'Reviewer Name',
-      getValue: (p) =>
-        p.reviewerProfile?.preferredName.toLowerCase() ?? p.reviewerProfileId.toLowerCase(),
+      getValue: (p) => p.reviewerProfile?.preferredName ?? p.reviewerProfileId,
     },
     {
       label: 'Bids Completed',

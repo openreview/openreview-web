@@ -359,7 +359,7 @@ const ProgramChairConsole = ({ appContext }) => {
         decisionByPaperNumberMap.set(note.number, decision)
       })
 
-      const pcConsoleDataNoReview = {
+      setPcConsoleData({
         isV2Console,
         invitations: invitationResults.flat(),
         allProfiles,
@@ -416,11 +416,6 @@ const ProgramChairConsole = ({ appContext }) => {
           }),
           seniorAreaChairGroups,
         },
-      }
-      setPcConsoleData({
-        ...pcConsoleDataNoReview,
-        // noteNumberReviewMetaReviewMap:
-        //   calculateNotesReviewMetaReviewData(pcConsoleDataNoReview),
       })
     } catch (error) {
       promptError(`loading data: ${error.message}`)

@@ -221,7 +221,12 @@ const AreaChairStatusMenuBar = ({
     {
       label: 'Area Chair',
       value: 'Area Chair',
-      getValue: (p) => p.areaChairProfile?.preferredName,
+      getValue: (p) => p.number,
+    },
+    {
+      label: 'Area Chair Name',
+      value: 'Area Chair Name',
+      getValue: (p) => p.areaChairProfile?.preferredName ?? row.areaChairProfileId,
     },
     {
       label: 'Bids Completed',
@@ -260,7 +265,9 @@ const AreaChairStatusMenuBar = ({
     },
   ]
   const basicSearchFunction = (row, term) =>
-    row.areaChairProfileId.toLowerCase().includes(term)
+    (
+      row.areaChairProfile?.preferredName.toLowerCase() ?? row.areaChairProfileId.toLowerCase()
+    ).includes(term)
 
   return (
     <BaseMenuBar
