@@ -226,7 +226,7 @@ const AreaChairStatusMenuBar = ({
     {
       label: 'Area Chair Name',
       value: 'Area Chair Name',
-      getValue: (p) => p.areaChairProfile?.preferredName ?? row.areaChairProfileId,
+      getValue: (p) => p.areaChairProfile?.preferredName ?? p.areaChairProfileId,
     },
     {
       label: 'Bids Completed',
