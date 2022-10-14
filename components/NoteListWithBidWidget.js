@@ -21,6 +21,7 @@ const NoteListWithBidWidget = ({
         <Note note={note} options={displayOptions} />
       )}
       <BidRadioButtonGroup
+        label="Bid"
         options={bidOptions}
         selectedBidOption={selectedBidOption}
         updateBidOption={(updatedOption) => updateBidOption(note, updatedOption)}

@@ -3,7 +3,7 @@ import PaginatedList from '../PaginatedList'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 
-export default function SubmissionsList({ venueId, query, apiVersion, options = {} }) {
+export default function SubmissionsList({ venueId, query, ListItem, apiVersion, options = {} }) {
   const { accessToken, userLoading } = useUser()
 
   const paperDisplayOptions = {
@@ -16,14 +16,16 @@ export default function SubmissionsList({ venueId, query, apiVersion, options = 
   const opts = {
     enableSearch: false,
     pageSize: 25,
+    useCredentials: true,
     ...options,
   }
+  const details = 'replyCount,invitation,original'
 
   const loadNotes = async (limit, offset) => {
     const { notes, count } = await api.get(
       '/notes',
-      { ...query, details: 'replyCount,invitation,original', limit, offset },
-      { accessToken, version: apiVersion }
+      { details, ...query, limit, offset },
+      { accessToken, version: apiVersion, useCredentials: opts.useCredentials }
     )
     return {
       items: notes,
@@ -44,7 +46,7 @@ export default function SubmissionsList({ venueId, query, apiVersion, options = 
         limit,
         offset,
       },
-      { accessToken, version: apiVersion }
+      { accessToken, version: apiVersion, useCredentials: opts.useCredentials }
     )
     return {
       items: notes,
@@ -65,7 +67,7 @@ export default function SubmissionsList({ venueId, query, apiVersion, options = 
     <PaginatedList
       loadItems={loadNotes}
       searchItems={opts.enableSearch && searchNotes}
-      ListItem={NoteListItem}
+      ListItem={ListItem ?? NoteListItem}
       itemsPerPage={opts.pageSize}
       className="submissions-list"
     />

@@ -14,10 +14,12 @@ export const BidScore = ({ scoreEdge }) => {
 }
 
 export const BidRadioButtonGroup = ({
+  label,
   options,
   selectedBidOption,
   updateBidOption,
   bidUpdateStatus,
+  className,
 }) => {
   const [isLoading, setIsLoading] = useState(false)
 
@@ -26,10 +28,10 @@ export const BidRadioButtonGroup = ({
   }, [selectedBidOption, bidUpdateStatus])
 
   return (
-    <div className="tag-widget edge-widget" data-type="radio">
+    <div className={`tag-widget edge-widget ${className ?? ''}`} data-type="radio">
       {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-      <label>Bid:</label>
-      {' '}
+      <label>{label}:</label>
+
       <div
         className={`btn-group btn-group-xs${isLoading ? ' disabled' : ''}`}
         role="group"
@@ -46,6 +48,12 @@ export const BidRadioButtonGroup = ({
               updateBidOption(option)
             }}
           >
+            <input
+              type="radio"
+              name="tag-options"
+              autoComplete="off"
+              checked={option === selectedBidOption || null}
+            />
             {option}
           </label>
         ))}
