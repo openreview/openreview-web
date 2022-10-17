@@ -11,7 +11,13 @@ import { prettyId } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
 export default function ExpertiseConsole({ appContext }) {
-  const { entity: invitation, venueId, title, description } = useContext(WebFieldContext)
+  const {
+    entity: invitation,
+    venueId,
+    title,
+    description,
+    apiVersion,
+  } = useContext(WebFieldContext)
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const router = useRouter()
 

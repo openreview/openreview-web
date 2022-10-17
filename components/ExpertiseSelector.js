@@ -30,9 +30,8 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
 
   const toggleEdge = async (noteId, value) => {
     const existingEdge = edgesMap[noteId]
-    const ddate = (existingEdge && existingEdge.label === value && !existingEdge.ddate)
-      ? Date.now()
-      : null
+    const ddate =
+      existingEdge && existingEdge.label === value && !existingEdge.ddate ? Date.now() : null
 
     try {
       const res = await api.post('/edges', {
@@ -70,7 +69,7 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
         <BidRadioButtonGroup
           label={prettyInvitationId(invitation.id)}
           options={invitation.reply.content.label?.['value-radio']}
-          selectedBidOption={(!edge || edge.ddate) ? undefined : edge.label}
+          selectedBidOption={!edge || edge.ddate ? undefined : edge.label}
           updateBidOption={(value) => toggleEdge(item.id, value)}
           className="mb-2"
         />
@@ -83,7 +82,7 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
       try {
         const edges = await api.getAll('/edges', {
           invitation: invitation.id,
-          tail : user.profile.id
+          tail: user.profile.id,
         })
         if (edges?.length > 0) {
           setEdgesMap(keyBy(edges, 'head'))
@@ -108,9 +107,7 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
         <Tab id="all-your-papers" icon="search" active>
           All Your Papers
         </Tab>
-        <Tab id="excluded-papers">
-          Excluded Papers
-        </Tab>
+        <Tab id="excluded-papers">Excluded Papers</Tab>
       </TabList>
 
       <TabPanels>
@@ -118,7 +115,11 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
           {edgesMap ? (
             <SubmissionsList
               venueId={venueId}
-              query={{ 'content.authorids': user.profile.id, sort: 'cdate', details: 'invitation' }}
+              query={{
+                'content.authorids': user.profile.id,
+                sort: 'cdate',
+                details: 'invitation',
+              }}
               apiVersion={1}
               ListItem={NoteListItem}
               shouldReload={shouldReload}
@@ -132,7 +133,11 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
           {edgesMap ? (
             <SubmissionsList
               venueId={venueId}
-              query={{ ids: Object.keys(edgesMap).join(','), sort: 'cdate', details: 'invitation' }}
+              query={{
+                ids: Object.keys(edgesMap).join(','),
+                sort: 'cdate',
+                details: 'invitation',
+              }}
               apiVersion={1}
               ListItem={NoteListItem}
               options={excludedPapersOptions}
