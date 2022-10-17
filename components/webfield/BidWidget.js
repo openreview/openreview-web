@@ -52,7 +52,7 @@ export const BidRadioButtonGroup = ({
               type="radio"
               name="tag-options"
               autoComplete="off"
-              checked={option === selectedBidOption || null}
+              defaultChecked={option === selectedBidOption || null}
             />
             {option}
           </label>

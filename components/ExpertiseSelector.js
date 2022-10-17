@@ -1,5 +1,7 @@
+/* globals promptError: false */
+
 import { useState, useEffect } from 'react'
-import { groupBy } from 'lodash'
+import keyBy from 'lodash/keyBy'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from './Tabs'
 import SubmissionsList from './webfield/SubmissionsList'
 import BasePaginatedList from './BasePaginatedList'
@@ -42,7 +44,38 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
   const { user, userLoading } = useUser()
   const [edgesMap, setEdgesMap] = useState(null)
 
+  const toggleEdge = async (noteId, value) => {
+    const existingEdge = edgesMap[noteId]
+    const ddate = (existingEdge && existingEdge.label === value && !existingEdge.ddate)
+      ? Date.now()
+      : null
+
+    try {
+      const res = await api.post('/edges', {
+        ...(existingEdge ? { id: existingEdge.id } : {}),
+        invitation: invitation.id,
+        readers: [venueId, user.profile.id],
+        writers: [venueId, user.profile.id],
+        signatures: [user.profile.id],
+        head: noteId,
+        tail: user.profile.id,
+        label: value,
+        ddate,
+      })
+      setEdgesMap({
+        ...edgesMap,
+        [noteId]: res,
+      })
+      return res
+    } catch (error) {
+      promptError(error.message)
+      return null
+    }
+  }
+
   function NoteListItem({ item }) {
+    const edge = edgesMap[item.id]
+
     return (
       <>
         {item.apiVersion === 2 ? (
@@ -53,7 +86,8 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
         <BidRadioButtonGroup
           label={prettyInvitationId(invitation.id)}
           options={invitation.reply.content.label?.['value-radio']}
-          updateBidOption={() => {}}
+          selectedBidOption={(!edge || edge.ddate) ? undefined : edge.label}
+          updateBidOption={(value) => toggleEdge(item.id, value)}
           className="mb-2"
         />
       </>
@@ -61,8 +95,6 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
   }
 
   useEffect(() => {
-    if (userLoading) return
-
     const loadEdges = async () => {
       try {
         const edges = await api.getAll('/edges', {
@@ -70,7 +102,7 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
           tail : user.profile.id
         })
         if (edges?.length > 0) {
-          setEdgesMap(groupBy(edges, 'head'))
+          setEdgesMap(keyBy(edges, 'head'))
         } else {
           setEdgesMap({})
         }
@@ -80,7 +112,7 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
     }
 
     loadEdges()
-  }, [userLoading, shouldReload])
+  }, [userLoading, user, shouldReload])
 
   if (userLoading) return <LoadingSpinner />
 
@@ -102,32 +134,44 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
 
       <TabPanels>
         <TabPanel id="all-your-papers">
-          <SubmissionsList
-            venueId={venueId}
-            query={{ 'content.authorids': user.profile.id, sort: 'cdate', details: 'invitation' }}
-            apiVersion={1}
-            ListItem={NoteListItem}
-            shouldReload={shouldReload}
-            options={{ pageSize: 25, enableSearch: true, useCredentials: false }}
-          />
+          {edgesMap ? (
+            <SubmissionsList
+              venueId={venueId}
+              query={{ 'content.authorids': user.profile.id, sort: 'cdate', details: 'invitation' }}
+              apiVersion={1}
+              ListItem={NoteListItem}
+              shouldReload={shouldReload}
+              options={{ pageSize: 25, enableSearch: true, useCredentials: false }}
+            />
+          ) : (
+            <LoadingSpinner inline />
+          )}
         </TabPanel>
-        <TabPanel id="all-your-papers">
-          <LocallyPaginatedList
-            listItems={[]}
-            totalCount={0}
-            ListItem={NoteListItem}
-            emptyMessage="You have not selected any papers to represent your expertise"
-            className=""
-          />
+        <TabPanel id="your-expertise">
+          {edgesMap ? (
+            <LocallyPaginatedList
+              listItems={[]}
+              totalCount={0}
+              ListItem={NoteListItem}
+              emptyMessage="You have not selected any papers to represent your expertise"
+              className=""
+            />
+          ) : (
+            <LoadingSpinner inline />
+          )}
         </TabPanel>
         <TabPanel id="excluded-papers">
-          <LocallyPaginatedList
-            listItems={[]}
-            totalCount={0}
-            ListItem={NoteListItem}
-            emptyMessage="You have not selected any papers to exclude"
-            className=""
-          />
+          {edgesMap ? (
+            <LocallyPaginatedList
+              listItems={[]}
+              totalCount={0}
+              ListItem={NoteListItem}
+              emptyMessage="You have not selected any papers to exclude"
+              className=""
+            />
+          ) : (
+            <LoadingSpinner inline />
+          )}
         </TabPanel>
       </TabPanels>
     </Tabs>
