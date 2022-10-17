@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import keyBy from 'lodash/keyBy'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from './Tabs'
 import SubmissionsList from './webfield/SubmissionsList'
-import BasePaginatedList from './BasePaginatedList'
 import Note, { NoteV2 } from './Note'
 import { BidRadioButtonGroup } from './webfield/BidWidget'
 import LoadingSpinner from './LoadingSpinner'
@@ -20,25 +19,10 @@ const paperDisplayOptions = {
   replyCount: false,
   showContents: true,
   collapse: true,
-  showTags: true,
+  showEdges: true,
 }
-
-function LocallyPaginatedList({ listItems, ListItem, totalCount, emptyMessage, className }) {
-  const [page, setPage] = useState(1)
-
-  return (
-    <BasePaginatedList
-      listItems={listItems}
-      totalCount={totalCount}
-      itemsPerPage={25}
-      currentPage={page}
-      setCurrentPage={setPage}
-      ListItem={ListItem}
-      emptyMessage="You have not selected any papers to represent your expertise"
-      className=""
-    />
-  )
-}
+const allPapersOptions = { pageSize: 25, enableSearch: true, useCredentials: false }
+const excludedPapersOptions = { pageSize: 25, enableSearch: false }
 
 export default function ExpertiseSelector({ invitation, venueId, shouldReload }) {
   const { user, userLoading } = useUser()
@@ -112,7 +96,7 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
     }
 
     loadEdges()
-  }, [userLoading, user, shouldReload])
+  }, [userLoading, user])
 
   if (userLoading) return <LoadingSpinner />
 
@@ -123,9 +107,6 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
       <TabList>
         <Tab id="all-your-papers" icon="search" active>
           All Your Papers
-        </Tab>
-        <Tab id="your-expertise">
-          Your Selected Expertise
         </Tab>
         <Tab id="excluded-papers">
           Excluded Papers
@@ -141,20 +122,7 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
               apiVersion={1}
               ListItem={NoteListItem}
               shouldReload={shouldReload}
-              options={{ pageSize: 25, enableSearch: true, useCredentials: false }}
-            />
-          ) : (
-            <LoadingSpinner inline />
-          )}
-        </TabPanel>
-        <TabPanel id="your-expertise">
-          {edgesMap ? (
-            <LocallyPaginatedList
-              listItems={[]}
-              totalCount={0}
-              ListItem={NoteListItem}
-              emptyMessage="You have not selected any papers to represent your expertise"
-              className=""
+              options={allPapersOptions}
             />
           ) : (
             <LoadingSpinner inline />
@@ -162,12 +130,12 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
         </TabPanel>
         <TabPanel id="excluded-papers">
           {edgesMap ? (
-            <LocallyPaginatedList
-              listItems={[]}
-              totalCount={0}
+            <SubmissionsList
+              venueId={venueId}
+              query={{ ids: Object.keys(edgesMap).join(','), sort: 'cdate', details: 'invitation' }}
+              apiVersion={1}
               ListItem={NoteListItem}
-              emptyMessage="You have not selected any papers to exclude"
-              className=""
+              options={excludedPapersOptions}
             />
           ) : (
             <LoadingSpinner inline />

@@ -3,7 +3,7 @@ import PaginatedList from '../PaginatedList'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 
-export default function SubmissionsList({ venueId, query, ListItem, apiVersion, options = {} }) {
+export default function SubmissionsList({ venueId, query, ListItem, apiVersion, shouldReload, options = {} }) {
   const { accessToken, userLoading } = useUser()
 
   const paperDisplayOptions = {
@@ -12,6 +12,8 @@ export default function SubmissionsList({ venueId, query, ListItem, apiVersion, 
     showContents: true,
     collapse: true,
     showTags: false,
+    showEdges: false,
+    ...options.paperDisplayOptions,
   }
   const opts = {
     enableSearch: false,
@@ -69,6 +71,7 @@ export default function SubmissionsList({ venueId, query, ListItem, apiVersion, 
       searchItems={opts.enableSearch && searchNotes}
       ListItem={ListItem ?? NoteListItem}
       itemsPerPage={opts.pageSize}
+      shouldReload={shouldReload}
       className="submissions-list"
     />
   )
