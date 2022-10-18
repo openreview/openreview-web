@@ -14,7 +14,7 @@ const ExportCSV = ({ records, fileName, exportColumns }) => {
               let getValueFn = column.getValue
               if (typeof column.getValue === 'string') {
                 // user defined in config
-                getValueFn = Function('p', 'isV2Note', column.getValue) // eslint-disable-line no-new-func
+                getValueFn = Function('row', 'isV2Note', column.getValue) // eslint-disable-line no-new-func
               }
               const value = getValueFn(p, p.note?.version === 2)?.toString()
               return `"${value?.replaceAll('"', '""')}"`

@@ -697,7 +697,7 @@ const ProgramChairConsole = ({ appContext }) => {
     .filter(([key, value]) => value === undefined)
     .map((p) => p[0])
   if (missingConfig.length > 0) {
-    const errorMessage = `AC Console is missing required properties: ${missingConfig.join(
+    const errorMessage = `PC Console is missing required properties: ${missingConfig.join(
       ', '
     )}`
     return <ErrorDisplay statusCode="" message={errorMessage} />
