@@ -130,7 +130,7 @@ const ProgramChairConsole = ({ appContext }) => {
               limit: 1,
               select: 'id,content',
             },
-            { accessToken, version: apiVersion }
+            { accessToken } // request form is in v1
           )
         : Promise.resolve(null)
       // #endregion
