@@ -23,6 +23,8 @@ const PaperStatusMenuBar = ({
       'note.content.authorids',
       'note.content.authors.value',
       'note.content.authorids.value',
+      'note.details.original.content.authors',
+      'note.details.original.content.authorids',
     ],
     keywords: ['note.content.keywords', 'note.content.keywords.value'],
     reviewer: ['reviewers'],

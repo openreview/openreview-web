@@ -255,6 +255,12 @@ main.invitation {
     }
   }
 
+  .rejected-paper-status-menu {
+    .search-input {
+      flex-grow: 1;
+    }
+  }
+
   table {
     margin-bottom: 0;
   }
@@ -553,6 +559,10 @@ main.invitation {
         }
       }
     }
+  }
+
+  .pc-console-rejected-papers {
+    table-layout: auto;
   }
 
   .console-table .eic-task-list {

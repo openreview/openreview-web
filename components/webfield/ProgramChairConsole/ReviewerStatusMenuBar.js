@@ -243,7 +243,7 @@ const ReviewerStatusMenuBar = ({
       sortOptions={sortOptions}
       basicSearchFunction={basicSearchFunction}
       messageModal={(props) => <MessageReviewersModal {...props} />}
-      searchPlaceHolder="Search all reviewers..."
+      searchPlaceHolder="Search all reviewers"
       extraClasses="ac-status-menu"
     />
   )

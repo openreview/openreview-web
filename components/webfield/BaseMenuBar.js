@@ -151,12 +151,9 @@ const BaseMenuBar = ({
       )}
       <input
         className={`form-control search-input${queryIsInvalidStatus ? ' invalid-value' : ''}`}
-        placeholder={
-          searchPlaceHolder ??
-          `Enter search term${
-            shouldEnableQuerySearch ? ' or type + to start a query and press enter' : ''
-          }`
-        }
+        placeholder={`${searchPlaceHolder ?? 'Enter search term'}${
+          shouldEnableQuerySearch ? ' or type + to start a query and press enter' : ''
+        }`}
         value={immediateSearchTerm}
         onChange={(e) => {
           setImmediateSearchTerm(e.target.value)

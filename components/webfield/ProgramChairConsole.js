@@ -15,6 +15,7 @@ import PaperStatus from './ProgramChairConsole/PaperStatus'
 import SeniorAreaChairStatus from './ProgramChairConsole/SeniorAreaChairStatus'
 import ReviewerStatusTab from './ProgramChairConsole/ReviewerStatus'
 import ErrorDisplay from '../ErrorDisplay'
+import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
 
 const ProgramChairConsole = ({ appContext }) => {
   const {
@@ -794,7 +795,7 @@ const ProgramChairConsole = ({ appContext }) => {
             />
           </TabPanel>
           <TabPanel id="deskrejectwithdrawn-status">
-            {activeTabId === '#deskrejectwithdrawn-status' && <>6</>}
+            {activeTabId === '#deskrejectwithdrawn-status' && <RejectedWithdrawnPapers />}
           </TabPanel>
         </TabPanels>
       </Tabs>
