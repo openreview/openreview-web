@@ -66,7 +66,9 @@ function ConsolesList({
         }
         if (userGroups?.length > 0) {
           userGroups.forEach((g) => {
-            groupIds.push(g.id)
+            if (g.id !== venueId) {
+              groupIds.push(g.id)
+            }
           })
         }
         setUserConsoles(uniq(groupIds))

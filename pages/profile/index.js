@@ -312,7 +312,9 @@ const Profile = ({ profile, publicProfile, appContext }) => {
         <title key="title">{`${profile.preferredName} | OpenReview`}</title>
       </Head>
 
-      {profile.state === 'Limited' && <LimitedStatusAlert />}
+      {profile.state === 'Limited' && profile.id === user?.profile?.id && (
+        <LimitedStatusAlert />
+      )}
 
       <header className="clearfix">
         <div className="title-container">
