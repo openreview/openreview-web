@@ -9,7 +9,7 @@ import WebFieldContext from '../../WebFieldContext'
 import NoteSummary from '../NoteSummary'
 import RejectedWithdrawnPapersMenuBar from './RejectedWithdrawnPapersMenuBar'
 
-const RejectedWithdrawnPaperRow = ({ rowData, referrerUrl, isV2Console }) => {
+const RejectedWithdrawnPaperRow = ({ rowData, referrerUrl }) => {
   const { number, note, reason } = rowData
   return (
     <tr>
@@ -17,7 +17,7 @@ const RejectedWithdrawnPaperRow = ({ rowData, referrerUrl, isV2Console }) => {
         <strong>{number}</strong>
       </td>
       <td>
-        <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={isV2Console} />
+        <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={false} />
       </td>
       <td>
         <strong className="note-number">{reason}</strong>
@@ -26,7 +26,7 @@ const RejectedWithdrawnPaperRow = ({ rowData, referrerUrl, isV2Console }) => {
   )
 }
 
-const RejectedWithdrawnPapers = () => {
+const RejectedWithdrawnPapers = ({ pcConsoleData }) => {
   const [rejectedPaperTabData, setRejectedPaperTabData] = useState({})
   const {
     withdrawnSubmissionId,
@@ -44,38 +44,40 @@ const RejectedWithdrawnPapers = () => {
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs#deskrejectwithdrawn-status)`
   )
 
-  const loadRejectedWithdrawnPapers = async () => {
-    const rejectedPapersP = deskRejectedSubmissionId
-      ? api.getAll(
-          '/notes',
-          { invitation: deskRejectedSubmissionId, details: 'original' },
-          { accessToken }
-        )
-      : Promise.resolve([])
-    const withdrawnPapersP = withdrawnSubmissionId
-      ? api.getAll(
-          '/notes',
-          { invitation: withdrawnSubmissionId, details: 'original' },
-          { accessToken }
-        )
-      : Promise.resolve([])
-    try {
-      const results = await Promise.all([rejectedPapersP, withdrawnPapersP])
-      const tableRows = results[0]
-        .map((p) => ({
+  const formatTableRows = (deskRejectedNotes, withdrawnNotes) =>
+    deskRejectedNotes
+      .map((p) => ({
+        number: p.number,
+        note: p,
+        originalNote: p.details?.original,
+        reason: 'Desk Rejected',
+      }))
+      .concat(
+        withdrawnNotes.map((p) => ({
           number: p.number,
           note: p,
           originalNote: p.details?.original,
-          reason: 'Desk Rejected',
+          reason: 'Withdrawn',
         }))
-        .concat(
-          results[1].map((p) => ({
-            number: p.number,
-            note: p,
-            originalNote: p.details?.original,
-            reason: 'Withdrawn',
-          }))
+      )
+
+  const loadRejectedWithdrawnPapers = async () => {
+    try {
+      const results = await Promise.all(
+        [withdrawnSubmissionId, deskRejectedSubmissionId].map((id) =>
+          id
+            ? api.getAll(
+                '/notes',
+                {
+                  invitation: id,
+                  details: 'original',
+                },
+                { accessToken }
+              )
+            : Promise.resolve([])
         )
+      )
+      const tableRows = formatTableRows(results[0], results[1])
       setRejectedPaperTabData({
         tableRowsAll: tableRows,
         tableRows,
@@ -86,6 +88,17 @@ const RejectedWithdrawnPapers = () => {
   }
 
   useEffect(() => {
+    if (pcConsoleData.withdrawnNotes || pcConsoleData.deskRejectedNotes) {
+      const tableRows = formatTableRows(
+        pcConsoleData.deskRejectedNotes ?? [],
+        pcConsoleData.withdrawnNotes ?? []
+      )
+      setRejectedPaperTabData({
+        tableRowsAll: tableRows,
+        tableRows,
+      })
+      return
+    }
     loadRejectedWithdrawnPapers()
   }, [])
 
@@ -149,7 +162,6 @@ const RejectedWithdrawnPapers = () => {
             key={row.number}
             rowData={row}
             referrerUrl={referrerUrl}
-            isV2Console={apiVersion === 2}
           />
         ))}
       </Table>

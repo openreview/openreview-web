@@ -29,7 +29,7 @@ const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) 
 }
 
 const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision }) => {
-  const { areaChairsId, venueId, officialReviewName, shortPhrase, recommendationName } =
+  const { areaChairsId, venueId, officialReviewName, shortPhrase, apiVersion } =
     useContext(WebFieldContext)
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
@@ -83,6 +83,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision }) =>
           <ProgramChairConsolePaperAreaChairProgress
             metaReviewData={metaReviewData}
             referrerUrl={referrerUrl}
+            isV2Console={apiVersion === 2}
           />
         </td>
       )}
@@ -210,13 +211,13 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
       >
         {paperStatusTabData.tableRowsDisplayed?.map((row) => {
           let decision = 'No Decision'
-          if (pcConsoleData.isV2Console) {
-            decision = row.note?.content?.venue?.value
-          } else {
-            const decisionNote = pcConsoleData.decisionByPaperNumberMap.get(row.note.number)
-            // eslint-disable-next-line prefer-destructuring
-            if (decisionNote?.content?.decision) decision = decisionNote.content.decision
-          }
+
+          const decisionNote = pcConsoleData.decisionByPaperNumberMap.get(row.note.number)
+          // eslint-disable-next-line prefer-destructuring
+          if (decisionNote?.content?.decision)
+            decision = pcConsoleData.isV2Console
+              ? decisionNote.content.decision?.value
+              : decisionNote.content.decision
           return (
             <PaperRow
               key={row.note.id}

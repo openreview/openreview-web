@@ -175,7 +175,7 @@ const ProgramChairConsole = ({ appContext }) => {
         {
           invitation: submissionId,
           details: 'invitation,tags,original,replyCount,directReplies',
-          select: 'id,number,forum,content,details',
+          select: 'id,number,forum,content,details,invitations,invitation',
           sort: 'number:asc',
         },
         { accessToken, version: apiVersion }
@@ -183,20 +183,23 @@ const ProgramChairConsole = ({ appContext }) => {
       // #endregion
 
       // #region get withdrawn and rejected submissions
-      const withdrawnRejectedSubmissionResultsP = Promise.all(
-        [withdrawnSubmissionId, deskRejectedSubmissionId].map((id) =>
-          id
-            ? api.getAll(
-                '/notes',
-                {
-                  invitation: id,
-                  details: 'original',
-                },
-                { accessToken, version: apiVersion }
+      const withdrawnRejectedSubmissionResultsP =
+        apiVersion === 2
+          ? Promise.resolve([])
+          : Promise.all(
+              [withdrawnSubmissionId, deskRejectedSubmissionId].map((id) =>
+                id
+                  ? api.getAll(
+                      '/notes',
+                      {
+                        invitation: id,
+                        details: 'original',
+                      },
+                      { accessToken }
+                    )
+                  : Promise.resolve([])
               )
-            : Promise.resolve([])
-        )
-      )
+            )
       // #endregion
 
       // #region get Reviewer,AC,SAC bid
@@ -257,22 +260,22 @@ const ProgramChairConsole = ({ appContext }) => {
       perPaperGroupResults.groups?.forEach((p) => {
         if (p.id.endsWith('/Reviewers')) {
           reviewerGroups.push({
-            noteNumber: getNumberFromGroup(p.id, 'Paper'),
+            noteNumber: getNumberFromGroup(p.id, submissionName),
             ...p,
           })
           allGroupMembers = allGroupMembers.concat(p.members)
         } else if (p.id.includes(anonReviewerName)) {
-          const number = getNumberFromGroup(p.id, 'Paper')
+          const number = getNumberFromGroup(p.id, submissionName)
           if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
           if (p.members.length) anonReviewerGroups[number][p.members[0]] = p.id
         } else if (p.id.endsWith(`/${areaChairName}`)) {
           areaChairGroups.push({
-            noteNumber: getNumberFromGroup(p.id, 'Paper'),
+            noteNumber: getNumberFromGroup(p.id, submissionName),
             ...p,
           })
           allGroupMembers = allGroupMembers.concat(p.members)
         } else if (p.id.includes(anonAreaChairName)) {
-          const number = getNumberFromGroup(p.id, 'Paper')
+          const number = getNumberFromGroup(p.id, submissionName)
           if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
           if (p.members.length) anonAreaChairGroups[number][p.members[0]] = p.id
         } else if (p.id.endsWith('Senior_Area_Chairs')) {
@@ -375,8 +378,12 @@ const ProgramChairConsole = ({ appContext }) => {
         officialReviewsByPaperNumberMap,
         metaReviewsByPaperNumberMap,
         decisionByPaperNumberMap,
-        withdrawnNotes: withdrawnRejectedSubmissionResults[0],
-        deskRejectedNotes: withdrawnRejectedSubmissionResults[1],
+        withdrawnNotes: isV2Console
+          ? notes.filter((p) => p.invitations.includes(withdrawnSubmissionId))
+          : withdrawnRejectedSubmissionResults[0],
+        deskRejectedNotes: isV2Console
+          ? notes.filter((p) => p.invitations.includes(deskRejectedSubmissionId))
+          : withdrawnRejectedSubmissionResults[1],
         bidCounts: {
           reviewers: bidCountResults[0],
           areaChairs: bidCountResults[1],
@@ -722,6 +729,13 @@ const ProgramChairConsole = ({ appContext }) => {
           >
             Paper Status
           </Tab>
+          <Tab
+            id="reviewer-status"
+            active={activeTabId === '#reviewer-status' ? true : undefined}
+            onClick={() => setActiveTabId('#reviewer-status')}
+          >
+            Reviewer Status
+          </Tab>
           {areaChairsId && (
             <Tab
               id="areachair-status"
@@ -740,14 +754,7 @@ const ProgramChairConsole = ({ appContext }) => {
               Senior Area Chair Status
             </Tab>
           )}
-          <Tab
-            id="reviewer-status"
-            active={activeTabId === '#reviewer-status' ? true : undefined}
-            onClick={() => setActiveTabId('#reviewer-status')}
-          >
-            Reviewer Status
-          </Tab>
-          {(withdrawnSubmissionId || deskRejectedSubmissionId) && (
+          {(withdrawnSubmissionId || deskRejectedSubmissionId) && apiVersion !== 2 && (
             <Tab
               id="deskrejectwithdrawn-status"
               active={activeTabId === '#deskrejectwithdrawn-status' ? true : undefined}
@@ -770,6 +777,13 @@ const ProgramChairConsole = ({ appContext }) => {
               />
             )}
           </TabPanel>
+          <TabPanel id="reviewer-status">
+            <ReviewerStatusTab
+              pcConsoleData={pcConsoleData}
+              loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
+              showContent={activeTabId === '#reviewer-status'}
+            />
+          </TabPanel>
           {areaChairsId && activeTabId === '#areachair-status' && (
             <TabPanel id="areachair-status">
               <AreaChairStatus
@@ -787,15 +801,10 @@ const ProgramChairConsole = ({ appContext }) => {
               />
             </TabPanel>
           )}
-          <TabPanel id="reviewer-status">
-            <ReviewerStatusTab
-              pcConsoleData={pcConsoleData}
-              loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
-              showContent={activeTabId === '#reviewer-status'}
-            />
-          </TabPanel>
           <TabPanel id="deskrejectwithdrawn-status">
-            {activeTabId === '#deskrejectwithdrawn-status' && <RejectedWithdrawnPapers />}
+            {activeTabId === '#deskrejectwithdrawn-status' && apiVersion !== 2 && (
+              <RejectedWithdrawnPapers pcConsoleData={pcConsoleData} />
+            )}
           </TabPanel>
         </TabPanels>
       </Tabs>

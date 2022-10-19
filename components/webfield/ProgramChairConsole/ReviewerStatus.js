@@ -65,6 +65,9 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
 const ReviewerProgress = ({ rowData, referrerUrl }) => {
   const numPapers = rowData.notesInfo.length
   const { numCompletedReviews, notesInfo } = rowData
+  const { apiVersion } = useContext(WebFieldContext)
+  const isV2Console = apiVersion === 2
+
   return (
     <div className="review-progress">
       <h4>
@@ -83,7 +86,7 @@ const ReviewerProgress = ({ rowData, referrerUrl }) => {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  {note?.content?.title}
+                  {isV2Console ? note?.content?.title?.value : note?.content?.title}
                 </a>
 
                 {officialReview && (

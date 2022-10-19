@@ -131,7 +131,11 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
 }
 
 // modified from noteAreaChairs.hbs handlebar template pc console->paper status tab->status column
-export const ProgramChairConsolePaperAreaChairProgress = ({ metaReviewData, referrerUrl }) => {
+export const ProgramChairConsolePaperAreaChairProgress = ({
+  metaReviewData,
+  referrerUrl,
+  isV2Console,
+}) => {
   const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChair } = metaReviewData
   return (
     <div className="areachair-progress">
@@ -147,6 +151,9 @@ export const ProgramChairConsolePaperAreaChairProgress = ({ metaReviewData, refe
         {areaChairs.length !== 0 &&
           areaChairs.map((areaChair) => {
             const metaReview = metaReviews.find((p) => p.anonId === areaChair.anonymousId)
+            const recommendation = isV2Console
+              ? metaReview.content?.recommendation?.value
+              : metaReview.content?.recommendation
             return (
               <div key={areaChair.anonymousId} className="meta-review-info">
                 <div className="areachair-contact">
@@ -157,7 +164,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({ metaReviewData, refe
                 </div>
                 {metaReview && (
                   <div>
-                    <span>Recommendation: {metaReview.content.recommendation}</span>
+                    <span>Recommendation: {recommendation}</span>
                     <div>
                       <a
                         href={`/forum?id=${metaReview.forum}&noteId=${metaReview.id}&referrer=${referrerUrl}`}
@@ -180,7 +187,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({ metaReviewData, refe
           <table className="table table-condensed table-minimal">
             <tbody>
               <tr>
-                <td style="width: {{#if tableWidth}}{{tableWidth}}{{else}}320px;{{/if}}">
+                <td>
                   {seniorAreaChair.name}{' '}
                   <span className="text-muted">({seniorAreaChair.email})</span>
                 </td>
