@@ -28,7 +28,7 @@ const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) 
   )
 }
 
-const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision }) => {
+const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venue }) => {
   const { areaChairsId, venueId, officialReviewName, shortPhrase, apiVersion } =
     useContext(WebFieldContext)
   const { note, metaReviewData } = rowData
@@ -65,6 +65,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision }) =>
         <NoteSummary
           note={noteWithAuthorRevealed}
           referrerUrl={referrerUrl}
+          showReaders={true}
           isV2Note={note.version === 2}
         />
       </td>
@@ -89,6 +90,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision }) =>
       )}
       <td className="console-decision">
         <h4 className="title">{decision}</h4>
+        {venue && <span>{venue}</span>}
       </td>
     </tr>
   )
@@ -142,6 +144,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
         pageSize * (pageNumber - 1) + pageSize
       ),
     }))
+    $('[data-toggle="tooltip"]').tooltip('enable')
   }, [pageNumber, pcConsoleData.notes, paperStatusTabData.tableRows])
 
   useEffect(() => {
@@ -225,6 +228,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
               selectedNoteIds={selectedNoteIds}
               setSelectedNoteIds={setSelectedNoteIds}
               decision={decision}
+              venue={row.note?.content?.venue?.value}
             />
           )
         })}

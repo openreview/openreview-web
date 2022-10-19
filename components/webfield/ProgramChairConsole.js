@@ -176,7 +176,7 @@ const ProgramChairConsole = ({ appContext }) => {
         {
           invitation: submissionId,
           details: 'invitation,tags,original,replyCount,directReplies',
-          select: 'id,number,forum,content,details,invitations,invitation',
+          select: 'id,number,forum,content,details,invitations,invitation,readers',
           sort: 'number:asc',
         },
         { accessToken, version: apiVersion }

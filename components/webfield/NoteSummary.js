@@ -2,6 +2,7 @@ import { isEqual } from 'lodash'
 import { forumDate, getNotePdfUrl } from '../../lib/utils'
 import Collapse from '../Collapse'
 import NoteContent, { NoteContentV2 } from '../NoteContent'
+import NoteReaders from '../NoteReaders'
 
 const getAuthorsValue = (note, isV2Note) => {
   if (isV2Note) return note.content?.authors?.value
@@ -11,7 +12,13 @@ const getAuthorsValue = (note, isV2Note) => {
   return noteAuthors
 }
 
-const NoteSummary = ({ note, referrerUrl, isV2Note, showDates = false }) => {
+const NoteSummary = ({
+  note,
+  referrerUrl,
+  isV2Note,
+  showDates = false,
+  showReaders = false,
+}) => {
   const titleValue = isV2Note ? note.content?.title?.value : note.content?.title
   const pdfValue = isV2Note ? note.content?.pdf?.value : note.content?.pdf
   const authorsValue = getAuthorsValue(note, isV2Note)
@@ -42,6 +49,11 @@ const NoteSummary = ({ note, referrerUrl, isV2Note, showDates = false }) => {
         </div>
       )}
       {authorsValue && <div className="note-authors">{authorsValue.join(', ')}</div>}
+      {showReaders && (
+        <div className="note-readers">
+          Readers: <NoteReaders readers={note.readers} />
+        </div>
+      )}
 
       {showDates && (
         <div>
@@ -58,8 +70,6 @@ const NoteSummary = ({ note, referrerUrl, isV2Note, showDates = false }) => {
           </span>
         </div>
       )}
-
-      {isV2Note && note?.content?.venue?.value && <span>{note.content.venue.value}</span>}
 
       <Collapse showLabel="Show details" hideLabel="Hide details">
         {isV2Note ? (

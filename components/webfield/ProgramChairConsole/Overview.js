@@ -108,43 +108,51 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
   )
 }
 
-const SubmissionsStatsRow = ({ pcConsoleData }) => (
-  <>
-    <div className="row">
-      <StatContainer
-        title="Active Submissions"
-        value={
-          pcConsoleData.notes ? (
-            pcConsoleData.notes.length
-          ) : (
-            <LoadingSpinner inline={true} text={null} />
-          )
-        }
-      />
-      <StatContainer
-        title="Withdrawn Submissions"
-        value={
-          pcConsoleData.withdrawnNotes ? (
-            pcConsoleData.withdrawnNotes.length
-          ) : (
-            <LoadingSpinner inline={true} text={null} />
-          )
-        }
-      />
-      <StatContainer
-        title="Desk Rejected Submissions"
-        value={
-          pcConsoleData.deskRejectedNotes ? (
-            pcConsoleData.deskRejectedNotes.length
-          ) : (
-            <LoadingSpinner inline={true} text={null} />
-          )
-        }
-      />
-    </div>
-    <hr className="spacer" />
-  </>
-)
+const SubmissionsStatsRow = ({ pcConsoleData }) => {
+  const inActiveSubmissionIds = (pcConsoleData.withdrawnNotes ?? [])
+    .concat(pcConsoleData.deskRejectedNotes ?? [])
+    .map((p) => p.id)
+  const activeSubmissions = pcConsoleData.notes?.filter(
+    (p) => !inActiveSubmissionIds.includes(p.id)
+  )
+  return (
+    <>
+      <div className="row">
+        <StatContainer
+          title="Active Submissions"
+          value={
+            pcConsoleData.notes ? (
+              activeSubmissions.length
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
+        />
+        <StatContainer
+          title="Withdrawn Submissions"
+          value={
+            pcConsoleData.withdrawnNotes ? (
+              pcConsoleData.withdrawnNotes.length
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
+        />
+        <StatContainer
+          title="Desk Rejected Submissions"
+          value={
+            pcConsoleData.deskRejectedNotes ? (
+              pcConsoleData.deskRejectedNotes.length
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
+        />
+      </div>
+      <hr className="spacer" />
+    </>
+  )
+}
 
 const BiddingStatsRow = ({ bidEnabled, recommendationEnabled, pcConsoleData }) => {
   const { areaChairsId, seniorAreaChairsId, reviewersId, bidName } =

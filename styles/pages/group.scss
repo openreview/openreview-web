@@ -282,6 +282,10 @@ main.invitation {
     .note-authors {
       margin-bottom: 0.5rem;
     }
+    .note-readers {
+      color: constants.$subtleGray;
+      font-weight: 400;
+    }
     .note-contents-toggle {
       font-size: 0.875rem;
     }
@@ -451,6 +455,9 @@ main.invitation {
 
   .pc-console-paper-status {
     table-layout: auto;
+    .tooltip-inner {
+      max-width: none;
+    }
     .areachair-progress {
       .title {
         white-space: nowrap;
