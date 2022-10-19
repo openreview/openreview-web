@@ -47,9 +47,9 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
         )
       )
       setInvitedCount({
-        reviewersInvitedCount: result[0]?.members.length,
-        areaChairsInvitedCount: result[1]?.members.length,
-        seniorAreaChairsInvitedCount: result[2]?.members.length,
+        reviewersInvitedCount: result[0]?.members?.length ?? 0,
+        areaChairsInvitedCount: result[1]?.members?.length ?? 0,
+        seniorAreaChairsInvitedCount: result[2]?.members?.length ?? 0,
       })
     } catch (error) {
       promptError(error.message)
