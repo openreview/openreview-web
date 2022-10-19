@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import keyBy from 'lodash/keyBy'
+import kebabCase from 'lodash/kebabCase'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from './Tabs'
 import SubmissionsList from './webfield/SubmissionsList'
 import Note, { NoteV2 } from './Note'
@@ -27,6 +28,14 @@ const excludedPapersOptions = { pageSize: 25, enableSearch: false }
 export default function ExpertiseSelector({ invitation, venueId, shouldReload }) {
   const { user, userLoading } = useUser()
   const [edgesMap, setEdgesMap] = useState(null)
+
+  const invitationOption = invitation.reply.content.label?.['value-radio']?.[0] || 'Exclude'
+  const tabLabel = `${invitationOption}d Papers`
+  const tabId = kebabCase(tabLabel)
+
+  const selectedIds = edgesMap
+    ? Object.keys(edgesMap).filter((noteId) => !edgesMap[noteId].ddate)
+    : null
 
   const toggleEdge = async (noteId, value) => {
     const existingEdge = edgesMap[noteId]
@@ -107,7 +116,7 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
         <Tab id="all-your-papers" icon="search" active>
           All Your Papers
         </Tab>
-        <Tab id="excluded-papers">Excluded Papers</Tab>
+        <Tab id={tabId}>{tabLabel}</Tab>
       </TabList>
 
       <TabPanels>
@@ -129,12 +138,12 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
             <LoadingSpinner inline />
           )}
         </TabPanel>
-        <TabPanel id="excluded-papers">
-          {edgesMap ? (
+        <TabPanel id={tabId}>
+          {selectedIds.length > 0 ? (
             <SubmissionsList
               venueId={venueId}
               query={{
-                ids: Object.keys(edgesMap).join(','),
+                ids: selectedIds.join(','),
                 sort: 'cdate',
                 details: 'invitation',
               }}
@@ -143,7 +152,7 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
               options={excludedPapersOptions}
             />
           ) : (
-            <LoadingSpinner inline />
+            <p className="empty-message">No {tabLabel.toLowerCase()} to display</p>
           )}
         </TabPanel>
       </TabPanels>
