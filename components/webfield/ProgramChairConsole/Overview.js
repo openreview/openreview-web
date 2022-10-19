@@ -499,6 +499,7 @@ const DescriptionTimelineOtherConfigRow = ({
     decisionName,
     scoresName,
     recommendationName,
+    recruitmentName,
   } = useContext(WebFieldContext)
 
   const { requestForm, registrationForms, invitations } = pcConsoleData
@@ -514,11 +515,16 @@ const DescriptionTimelineOtherConfigRow = ({
   const timelineInvitations = [
     { id: submissionId, displayName: 'Paper Submissions' },
     { id: `${reviewersId}/-/${bidName}`, displayName: 'Reviewers Bidding' },
+    { id: `${reviewersId}/-/${recruitmentName}`, displayName: 'Reviewers Recruitment' },
     ...(seniorAreaChairsId
       ? [
           {
             id: `${seniorAreaChairsId}/-/${bidName}`,
             displayName: 'Senior Area Chairs Bidding',
+          },
+          {
+            id: `${seniorAreaChairsId}/-/${recruitmentName}`,
+            displayName: 'Senior Area Chairs Recruitment',
           },
         ]
       : []),
@@ -527,6 +533,10 @@ const DescriptionTimelineOtherConfigRow = ({
           {
             id: `${areaChairsId}/-/${bidName}`,
             displayName: 'Area Chairs Bidding',
+          },
+          {
+            id: `${areaChairsId}/-/${recruitmentName}`,
+            displayName: 'Area Chairs Recruitment',
           },
         ]
       : []),
@@ -603,7 +613,7 @@ const DescriptionTimelineOtherConfigRow = ({
                 )}
               </span>
               <br />
-              <a href={`/forum?id=${requestForm.id}`}>
+              <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
                 <strong>Full Venue Configuration</strong>
               </a>
             </p>

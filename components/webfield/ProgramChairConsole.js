@@ -48,6 +48,7 @@ const ProgramChairConsole = ({ appContext }) => {
     reviewRatingName,
     reviewConfidenceName,
     submissionName,
+    recruitmentName,
     paperStatusExportColumns,
     areaChairStatusExportColumns,
   } = useContext(WebFieldContext)
