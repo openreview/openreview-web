@@ -17,13 +17,13 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
   const [modifiedWebCode, setModifiedWebCode] = useState(group.web)
 
   const handleUpdateCodeClick = async () => {
+    setIsSaving(true)
     try {
-      setIsSaving(true)
       const groupToPost = {
         ...group,
         web: modifiedWebCode.trim() ? modifiedWebCode.trim() : null,
       }
-      const result = await api.post('/groups', groupToPost, { accessToken })
+      await api.post('/groups', groupToPost, { accessToken })
       setShowCodeEditor(false)
       promptMessage(`UI code for ${group.id} has been updated`, { scrollToTop: false })
       reloadGroup()
@@ -56,7 +56,7 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
           </SpinnerButton>
           <button
             type="button"
-            className="btn btn-default ml-1"
+            className="btn btn-sm btn-default ml-1"
             onClick={() => setShowCodeEditor(false)}
           >
             Cancel
