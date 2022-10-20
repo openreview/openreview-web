@@ -34,7 +34,7 @@ export default function GroupContent({ group, accessToken, profileId, reloadGrou
         signatures: [profileId],
         invitations: group.invitations[0],
       }
-      await api.post('/group/edits', requestBody, { accessToken, version: group.version })
+      await api.post('/group/edits', requestBody, { accessToken, version: 2 })
       promptMessage(`Content object for ${group.id} has been updated`, { scrollToTop: false })
       reloadGroup()
     } catch (error) {

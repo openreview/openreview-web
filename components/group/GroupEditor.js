@@ -18,7 +18,7 @@ const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }
         reloadGroup={reloadGroup}
       />
       <GroupMembers group={group} accessToken={accessToken} reloadGroup={reloadGroup} />
-      {group.version === 2 || true && (
+      {group.invitations && (
         <GroupContent group={group} profileId={profileId} accessToken={accessToken} reloadGroup={reloadGroup} />
       )}
       <GroupSignedNotes groupId={group.id} accessToken={accessToken} />
