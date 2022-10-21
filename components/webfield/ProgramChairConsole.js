@@ -457,19 +457,20 @@ const ProgramChairConsole = ({ appContext }) => {
 
       const officialReviews =
         pcConsoleData.officialReviewsByPaperNumberMap?.get(note.number)?.map((q) => {
-          const isV2Note = q.version === 2
-          const reviewRatingValue = isV2Note
+          const reviewRatingValue = pcConsoleData.isV2Console
             ? q.content[reviewRatingName]?.value
             : q.content[reviewRatingName]
           const ratingNumber = reviewRatingValue
             ? reviewRatingValue.substring(0, reviewRatingValue.indexOf(':'))
             : null
-          const confidenceValue = isV2Note
+          const confidenceValue = pcConsoleData.isV2Console
             ? q.content[reviewConfidenceName]?.value
             : q.content[reviewConfidenceName]
 
           const confidenceMatch = confidenceValue && confidenceValue.match(/^(\d+): .*/)
-          const reviewValue = isV2Note ? q.content.review?.value : q.content.review
+          const reviewValue = pcConsoleData.isV2Console
+            ? q.content.review?.value
+            : q.content.review
           return {
             anonymousId: q.anonId,
             confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
@@ -547,10 +548,9 @@ const ProgramChairConsole = ({ appContext }) => {
           }),
           numMetaReviewsDone: metaReviews.length,
           metaReviews: metaReviews.map((metaReview) => ({
-            [recommendationName]:
-              metaReview?.version === 2
-                ? metaReview?.content[recommendationName]?.value
-                : metaReview?.content[recommendationName],
+            [recommendationName]: pcConsoleData.isV2Console
+              ? metaReview?.content[recommendationName]?.value
+              : metaReview?.content[recommendationName],
             ...metaReview,
           })),
         },

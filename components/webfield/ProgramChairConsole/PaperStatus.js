@@ -1,3 +1,4 @@
+/* globals $: false */
 import { useContext, useEffect, useState } from 'react'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
@@ -101,11 +102,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const {
     areaChairsId,
-    reviewRatingName,
-    reviewConfidenceName,
     recommendationName,
-    venueId,
-    officialMetaReviewName,
     shortPhrase,
     enableQuerySearch,
     filterOperators,
@@ -171,6 +168,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
           selectedNoteIds={selectedNoteIds}
           setPaperStatusTabData={setPaperStatusTabData}
           shortPhrase={shortPhrase}
+          recommendationName={recommendationName}
           enableQuerySearch={enableQuerySearch}
           exportColumns={paperStatusExportColumns}
           filterOperators={filterOperators}
@@ -187,6 +185,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
         selectedNoteIds={selectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
         shortPhrase={shortPhrase}
+        recommendationName={recommendationName}
         enableQuerySearch={enableQuerySearch}
         exportColumns={paperStatusExportColumns}
         filterOperators={filterOperators}

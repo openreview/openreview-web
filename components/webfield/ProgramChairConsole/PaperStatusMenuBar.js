@@ -8,6 +8,7 @@ const PaperStatusMenuBar = ({
   selectedNoteIds,
   setPaperStatusTabData,
   shortPhrase,
+  recommendationName,
   enableQuerySearch,
   exportColumns: exportColumnsConfig,
   filterOperators: filterOperatorsConfig,
@@ -47,7 +48,7 @@ const PaperStatusMenuBar = ({
       value: 'missingReviews',
     },
   ]
-  const exportColumns = exportColumnsConfig ?? [
+  const exportColumns = [
     { header: 'number', getValue: (p) => p.note?.number },
     { header: 'forum', getValue: (p) => `https://openreview.net/forum?id=${p.note?.forum}` },
     {
@@ -84,7 +85,20 @@ const PaperStatusMenuBar = ({
     { header: 'min confidence', getValue: (p) => p.reviewProgressData?.confidenceMin },
     { header: 'max confidence', getValue: (p) => p.reviewProgressData?.confidenceMax },
     { header: 'average confidence', getValue: (p) => p.reviewProgressData?.confidenceAvg },
-    { header: 'ac recommendation', getValue: (p) => p.metaReviewData?.recommendation },
+    {
+      header: 'num area chairs assigned',
+      getValue: (p) => p.metaReviewData?.numAreaChairsAssigned,
+    },
+    {
+      header: 'num submitted area chairs',
+      getValue: (p) => p.metaReviewData?.numMetaReviewsDone,
+    },
+    {
+      header: 'meta reviews',
+      getValue: (p) =>
+        p.metaReviewData?.metaReviews?.map((q) => q[recommendationName])?.join('|'),
+    },
+    ...(exportColumnsConfig ?? []),
   ]
   const sortOptions = [
     { label: 'Paper Number', value: 'Paper Number', getValue: (p) => p.note?.number },
