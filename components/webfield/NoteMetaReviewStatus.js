@@ -152,8 +152,8 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
           areaChairs.map((areaChair) => {
             const metaReview = metaReviews.find((p) => p.anonId === areaChair.anonymousId)
             const recommendation = isV2Console
-              ? metaReview.content?.recommendation?.value
-              : metaReview.content?.recommendation
+              ? metaReview?.content?.recommendation?.value
+              : metaReview?.content?.recommendation
             return (
               <div key={areaChair.anonymousId} className="meta-review-info">
                 <div className="areachair-contact">

@@ -109,20 +109,36 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
 }
 
 const SubmissionsStatsRow = ({ pcConsoleData }) => {
-  const inActiveSubmissionIds = (pcConsoleData.withdrawnNotes ?? [])
-    .concat(pcConsoleData.deskRejectedNotes ?? [])
-    .map((p) => p.id)
-  const activeSubmissions = pcConsoleData.notes?.filter(
-    (p) => !inActiveSubmissionIds.includes(p.id)
-  )
+  const [submissionByStatus, setSubmissionByStatus] = useState({})
+  const { submissionVenueId, withdrawnVenueId, deskRejectedVenueId } =
+    useContext(WebFieldContext)
+
+  const getSubmissionByVenueId = (venueIdValue) => {
+    if (!venueIdValue) return []
+    return pcConsoleData.notes.filter((p) => p.content?.venueid?.value === venueIdValue)
+  }
+
+  useEffect(() => {
+    if (!pcConsoleData) return
+    const withdrawnNotes = pcConsoleData.isV2Console
+      ? getSubmissionByVenueId(withdrawnVenueId)
+      : pcConsoleData.withdrawnNotes
+    const deskRejectedNotes = pcConsoleData.isV2Console
+      ? getSubmissionByVenueId(deskRejectedVenueId)
+      : pcConsoleData.deskRejectedNotes
+    const activeSubmissions = pcConsoleData.isV2Console
+      ? getSubmissionByVenueId(submissionVenueId)
+      : pcConsoleData.notes
+    setSubmissionByStatus({ activeSubmissions, deskRejectedNotes, withdrawnNotes })
+  }, [pcConsoleData])
   return (
     <>
       <div className="row">
         <StatContainer
           title="Active Submissions"
           value={
-            pcConsoleData.notes ? (
-              activeSubmissions.length
+            submissionByStatus.activeSubmissions ? (
+              submissionByStatus.activeSubmissions.length
             ) : (
               <LoadingSpinner inline={true} text={null} />
             )
@@ -131,8 +147,8 @@ const SubmissionsStatsRow = ({ pcConsoleData }) => {
         <StatContainer
           title="Withdrawn Submissions"
           value={
-            pcConsoleData.withdrawnNotes ? (
-              pcConsoleData.withdrawnNotes.length
+            submissionByStatus.withdrawnNotes ? (
+              submissionByStatus.withdrawnNotes.length
             ) : (
               <LoadingSpinner inline={true} text={null} />
             )
@@ -141,8 +157,8 @@ const SubmissionsStatsRow = ({ pcConsoleData }) => {
         <StatContainer
           title="Desk Rejected Submissions"
           value={
-            pcConsoleData.deskRejectedNotes ? (
-              pcConsoleData.deskRejectedNotes.length
+            submissionByStatus.deskRejectedNotes ? (
+              submissionByStatus.deskRejectedNotes.length
             ) : (
               <LoadingSpinner inline={true} text={null} />
             )

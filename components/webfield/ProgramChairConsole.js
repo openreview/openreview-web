@@ -32,9 +32,12 @@ const ProgramChairConsole = ({ appContext }) => {
     bidName,
     recommendationName,
     requestFormId,
-    submissionId,
-    withdrawnSubmissionId,
-    deskRejectedSubmissionId,
+    submissionId, // v1
+    withdrawnSubmissionId, // v1
+    deskRejectedSubmissionId, // v1
+    submissionVenueId, // v2
+    withdrawnVenueId, // v2
+    deskRejectedVenueId, // v2
     officialReviewName,
     commentName,
     officialMetaReviewName,
@@ -379,12 +382,8 @@ const ProgramChairConsole = ({ appContext }) => {
         officialReviewsByPaperNumberMap,
         metaReviewsByPaperNumberMap,
         decisionByPaperNumberMap,
-        withdrawnNotes: isV2Console
-          ? notes.filter((p) => p.invitations.includes(withdrawnSubmissionId))
-          : withdrawnRejectedSubmissionResults[0],
-        deskRejectedNotes: isV2Console
-          ? notes.filter((p) => p.invitations.includes(deskRejectedSubmissionId))
-          : withdrawnRejectedSubmissionResults[1],
+        withdrawnNotes: isV2Console ? null : withdrawnRejectedSubmissionResults[0], // v2 has no rejected papers tab
+        deskRejectedNotes: isV2Console ? null : withdrawnRejectedSubmissionResults[1],
         bidCounts: {
           reviewers: bidCountResults[0],
           areaChairs: bidCountResults[1],
@@ -705,10 +704,10 @@ const ProgramChairConsole = ({ appContext }) => {
   })
     .filter(([key, value]) => value === undefined)
     .map((p) => p[0])
-  if (missingConfig.length > 0) {
-    const errorMessage = `PC Console is missing required properties: ${missingConfig.join(
-      ', '
-    )}`
+  if (missingConfig.length > 0 || (apiVersion === 2 && submissionVenueId === undefined)) {
+    const errorMessage = `PC Console is missing required properties: ${
+      missingConfig.length ? missingConfig.join(', ') : 'submissionVenueId'
+    }`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
   return (
