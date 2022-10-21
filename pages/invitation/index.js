@@ -122,21 +122,28 @@ Invitation.getInitialProps = async (ctx) => {
 
   const { token: accessToken, user } = auth(ctx)
 
-  const noteParams = without(Object.keys(ctx.query), 'id', 'mode', 'referrer', 't')
-
   try {
     const invitation = await api.getInvitationById(ctx.query.id, accessToken)
-    if (invitation) {
-      return {
-        invitationId: invitation.id,
-        ...(invitation.web?.startsWith('// Webfield component')
-          ? { componentObj: parseComponentCode(invitation, user, ctx.query) }
-          : { webfieldCode: generateInvitationWebfieldCode(invitation, ctx.query) }),
-        writable: invitation.details?.writable ?? false,
-        noteParams,
-      }
+    if (!invitation) {
+      return { statusCode: 404, message: `The Invitation ${ctx.query.id} was not found` }
     }
-    return { statusCode: 404, message: `The Invitation ${ctx.query.id} was not found` }
+
+    const isWebfieldComponent = invitation.web?.startsWith('// Webfield component')
+
+    // Get venue group to pass to pass to webfield component
+    let domainGroup = null
+    if (isWebfieldComponent && invitation.domain) {
+      const apiRes = await api.get('/groups', { id: invitation.domain }, { accessToken })
+      domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
+    }
+
+    return {
+      invitationId: invitation.id,
+      ...(isWebfieldComponent
+        ? { componentObj: parseComponentCode(invitation, domainGroup, user, ctx.query) }
+        : { webfieldCode: generateInvitationWebfieldCode(invitation, ctx.query) }),
+      writable: invitation.details?.writable ?? false,
+    }
   } catch (error) {
     if (error.name === 'ForbiddenError') {
       if (!accessToken) {
