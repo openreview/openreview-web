@@ -68,20 +68,18 @@ const getBidObjectToPost = (
   ddate,
 })
 
-const AllSubmissionsTab = ({
-  venueId,
-  scoreIds,
-  bidOptions,
-  submissionInvitationId,
-  invitation,
-  bidEdges,
-  setBidEdges,
-  conflictIds,
-  apiVersion,
-}) => {
+const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) => {
   const [notes, setNotes] = useState([])
   const [selectedScore, setSelectedScore] = useState(scoreIds?.[0])
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
+  const {
+    venueId,
+    entity: invitation,
+    apiVersion,
+    scoreIds,
+    submissionInvitationId,
+    submissionVenueId,
+  } = useContext(WebFieldContext)
   const [searchTerm, setSearchTerm] = useState('')
   const { user, accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
@@ -98,7 +96,8 @@ const AllSubmissionsTab = ({
       const result = await api.get(
         '/notes',
         {
-          invitation: submissionInvitationId,
+          ...(apiVersion !== 2 && { invitation: submissionInvitationId }),
+          ...(apiVersion === 2 && { 'content.venueid': submissionVenueId }),
           offset: (pageNumber - 1) * pageSize,
           limit,
         },
@@ -326,6 +325,7 @@ const NoBidTab = ({
   scoreIds,
   bidOptions,
   submissionInvitationId,
+  submissionVenueId,
   invitation,
   bidEdges,
   setBidEdges,
@@ -346,7 +346,8 @@ const NoBidTab = ({
       const result = await api.get(
         '/notes',
         {
-          invitation: submissionInvitationId,
+          ...(apiVersion !== 2 && { invitation: submissionInvitationId }),
+          ...(apiVersion === 2 && { 'content.venueid': submissionVenueId }),
           limit: 1000,
         },
         { accessToken, version: apiVersion }
@@ -578,16 +579,20 @@ const BidConsole = ({ appContext }) => {
     venueId,
     entity: invitation,
     apiVersion,
-    bidOptions,
     scoreIds,
     submissionInvitationId,
+    submissionVenueId,
     bidInvitationId,
     conflictInvitationId,
   } = useContext(WebFieldContext)
 
+  const bidOptions =
+    apiVersion === 2
+      ? invitation.edge?.label?.param?.enum
+      : invitation.reply?.content?.label?.['value-radio']
   const getBidOptionId = (bidOption) => bidOption.toLowerCase().split(' ').join('-')
   const allPapersOption = 'All Papers'
-  const bidOptionsWithDefaultTabs = [allPapersOption, ...bidOptions, 'No Bid']
+  const bidOptionsWithDefaultTabs = [allPapersOption, ...(bidOptions ?? []), 'No Bid']
   const getActiveTabIndex = () => {
     const tabIndex = bidOptionsWithDefaultTabs.findIndex(
       (p) => `#${getBidOptionId(p)}` === window.location.hash
@@ -606,7 +611,7 @@ const BidConsole = ({ appContext }) => {
     try {
       const bidEdgeResultsP = api.getAll(
         '/edges',
-        { invitation: bidInvitationId, tail: user.profile.id },
+        { invitation: invitation.id, tail: user.profile.id },
         { accessToken, version: apiVersion }
       )
       const conflictEdgeResultsP = api.getAll(
@@ -643,15 +648,10 @@ const BidConsole = ({ appContext }) => {
       return (
         <TabPanel id={id}>
           <AllSubmissionsTab
-            venueId={venueId}
-            scoreIds={scoreIds}
-            bidOptions={bidOptions}
-            submissionInvitationId={submissionInvitationId}
-            invitation={invitation}
             bidEdges={bidEdges}
             setBidEdges={setBidEdges}
             conflictIds={conflictIds}
-            apiVersion={apiVersion}
+            bidOptions={bidOptions}
           />
         </TabPanel>
       )
@@ -662,6 +662,7 @@ const BidConsole = ({ appContext }) => {
             scoreIds={scoreIds}
             bidOptions={bidOptions}
             submissionInvitationId={submissionInvitationId}
+            submissionVenueId={submissionVenueId}
             invitation={invitation}
             bidEdges={bidEdges}
             setBidEdges={setBidEdges}
@@ -690,11 +691,11 @@ const BidConsole = ({ appContext }) => {
     venueId,
     invitation,
     apiVersion,
-    bidOptions,
     scoreIds,
-    submissionInvitationId,
-    bidInvitationId,
+    ...(apiVersion !== 2 && { submissionInvitationId }),
+    ...(apiVersion === 2 && { submissionVenueId }),
     conflictInvitationId,
+    bidOptions,
   }).filter(([key, value]) => value === undefined)
   if (missingConfig?.length) {
     const errorMessage = `Bidding Console is missing required properties: ${missingConfig
