@@ -69,9 +69,6 @@ const getBidObjectToPost = (
 })
 
 const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) => {
-  const [notes, setNotes] = useState([])
-  const [selectedScore, setSelectedScore] = useState(scoreIds?.[0])
-  const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
   const {
     venueId,
     entity: invitation,
@@ -80,6 +77,9 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     submissionInvitationId,
     submissionVenueId,
   } = useContext(WebFieldContext)
+  const [notes, setNotes] = useState([])
+  const [selectedScore, setSelectedScore] = useState(scoreIds?.[0])
+  const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const { user, accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
