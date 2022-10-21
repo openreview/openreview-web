@@ -44,7 +44,8 @@ const ProgramChairConsole = ({ appContext }) => {
     decisionName,
     anonReviewerName,
     anonAreaChairName,
-    areaChairName,
+    areaChairName = 'Area_Chairs',
+    seniorAreaChairName = 'Senior_Area_Chairs',
     scoresName,
     shortPhrase,
     enableQuerySearch,
@@ -282,7 +283,7 @@ const ProgramChairConsole = ({ appContext }) => {
           const number = getNumberFromGroup(p.id, submissionName)
           if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
           if (p.members.length) anonAreaChairGroups[number][p.members[0]] = p.id
-        } else if (p.id.endsWith('Senior_Area_Chairs')) {
+        } else if (p.id.endsWith(seniorAreaChairName)) {
           seniorAreaChairGroups.push(p)
           allGroupMembers = allGroupMembers.concat(p.members)
         }
