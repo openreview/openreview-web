@@ -150,15 +150,22 @@ Group.getInitialProps = async (ctx) => {
       }
     }
 
-    const result = {
+    const isWebfieldComponent = group.web.startsWith('// Webfield component')
+
+    // Get venue group to pass to pass to webfield component
+    let domainGroup = null
+    if (isWebfieldComponent && group.domain) {
+      const apiRes = await api.get('/groups', { id: group.domain }, { accessToken: token })
+      domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
+    }
+
+    return {
       groupId: group.id,
-      ...(group.web.startsWith('// Webfield component')
-        ? { componentObj: parseComponentCode(group, user, ctx.query) }
+      ...(isWebfieldComponent
+        ? { componentObj: parseComponentCode(group, domainGroup, user, ctx.query) }
         : { webfieldCode: generateGroupWebfieldCode(group, ctx.query) }),
       writable: group.details?.writable ?? false,
-      query: ctx.query,
     }
-    return result
   } catch (error) {
     if (error.name === 'ForbiddenError') {
       if (!token) {
