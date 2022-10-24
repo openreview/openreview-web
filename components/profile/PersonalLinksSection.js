@@ -57,13 +57,16 @@ const PersonalLinksSection = ({
   renderPublicationsEditor,
   hideDblpButton,
 }) => {
-  const linksReducer = (state, action) => ({
-    ...state,
-    [action.type]: {
-      value: action.data.value,
-      valid: action.data.valid,
-    },
-  })
+  const linksReducer = (state, action) => {
+    if (action.type === 'overwrite') return action.data
+    return {
+      ...state,
+      [action.type]: {
+        value: action.data.value,
+        valid: action.data.valid,
+      },
+    }
+  }
 
   const [links, setLinks] = useReducer(linksReducer, profileLinks ?? {})
 
@@ -74,6 +77,11 @@ const PersonalLinksSection = ({
       keyboard: false,
     })
   }
+
+  useEffect(() => {
+    if (!profileLinks) return
+    setLinks({ type: 'overwrite', data: profileLinks })
+  }, [profileLinks])
 
   useEffect(() => {
     updateLinks(links)
