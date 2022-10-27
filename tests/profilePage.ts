@@ -113,6 +113,15 @@ test('user open own profile', async (t) => {
     .expect(errorMessageSelector.innerText)
     .eql('A confirmation email has been sent to a@aa.com')
     .click(Selector('button').withText('Remove').filterVisible())
+    // add empty homepage link
+    .selectText(Selector('#homepage_url'))
+    .pressKey('delete')
+    .typeText(Selector('#homepage_url'), ' ')
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText)
+    .eql(
+      'You must enter at least one personal link'
+    )
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
@@ -131,6 +140,7 @@ test('user open own profile', async (t) => {
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .notOk() // button is enabled
     // save
+    .typeText(Selector('#homepage_url'), 'http://google.com')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql(
