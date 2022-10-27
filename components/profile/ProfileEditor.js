@@ -102,7 +102,7 @@ export default function ProfileEditor({
     }
 
     let invalidRecord = null
-    
+
     // validate emails
     if ((invalidRecord = profileContent.emails.find((p) => !isValidEmail(p.email)))) {
       return promptInvalidValue(
@@ -113,7 +113,7 @@ export default function ProfileEditor({
     }
     // #region validate personal links
     // must have >1 links
-    if (!personalLinkNames.some((p) => profileContent[p]?.value)) {
+    if (!personalLinkNames.some((p) => profileContent[p]?.value?.trim())) {
       return promptInvalidLink('homepage', 'You must enter at least one personal link')
     }
     // #endregion
