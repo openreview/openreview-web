@@ -178,7 +178,16 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
         },
         { accessToken, version: apiVersion }
       )
-      setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)))
+      setNotes(
+        apiVersion === 2
+          ? result.notes.filter(
+              (p) =>
+                (!p.content?.venueid?.value ||
+                  p.content.venueid.value === submissionVenueId) &&
+                !conflictIds.includes(p.id)
+            )
+          : result.notes.filter((p) => !conflictIds.includes(p.id))
+      )
     } catch (error) {
       promptError(error.message)
     }
