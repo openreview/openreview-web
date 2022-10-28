@@ -46,8 +46,10 @@ export default function GroupContent({ group, accessToken, profileId, reloadGrou
   }
 
   useEffect(() => {
-    // Close editor when changing groups
+    // Close editor and reset contents when changing groups
     setShowEditor(false)
+
+    setModifiedContent(JSON.stringify(group.content, undefined, 2))
   }, [group.id])
 
   return (
