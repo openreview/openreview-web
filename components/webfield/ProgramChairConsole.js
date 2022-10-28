@@ -44,6 +44,7 @@ const ProgramChairConsole = ({ appContext }) => {
     decisionName,
     anonReviewerName,
     anonAreaChairName,
+    reviewerName = 'Reviewers',
     areaChairName = 'Area_Chairs',
     seniorAreaChairName = 'Senior_Area_Chairs',
     scoresName,
@@ -263,7 +264,7 @@ const ProgramChairConsole = ({ appContext }) => {
       const seniorAreaChairGroups = []
       let allGroupMembers = []
       perPaperGroupResults.groups?.forEach((p) => {
-        if (p.id.endsWith('/Reviewers')) {
+        if (p.id.endsWith(`/${reviewerName}`)) {
           reviewerGroups.push({
             noteNumber: getNumberFromGroup(p.id, submissionName),
             ...p,
