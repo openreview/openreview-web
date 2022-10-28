@@ -139,7 +139,7 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
           )}
         </TabPanel>
         <TabPanel id={tabId}>
-          {selectedIds.length > 0 ? (
+          {selectedIds?.length > 0 ? (
             <SubmissionsList
               venueId={venueId}
               query={{
