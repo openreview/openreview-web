@@ -66,7 +66,7 @@ export default function NoteEntity(props) {
       user
     )
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
-    if (!signatures || signatures.length === 0) {
+    if (version === 1 && (!signatures || signatures.length === 0)) {
       promptError("You don't have permission to edit this edge")
       return
     }
