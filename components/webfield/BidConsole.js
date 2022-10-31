@@ -171,7 +171,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           type: 'terms',
           content: 'all',
           source: 'forum',
-          group: venueId,
+          ...(apiVersion !== 2 && { group: venueId }),
           limit: 1000,
           offset: 0,
           ...(apiVersion !== 2 && { invitation: submissionInvitationId }),
