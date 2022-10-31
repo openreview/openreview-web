@@ -2,6 +2,7 @@
 /* globals promptError: false */
 
 import { useReducer, useState } from 'react'
+import has from 'lodash/has'
 import Link from 'next/link'
 import Dropdown from '../Dropdown'
 import GroupIdList from './GroupIdList'
@@ -94,7 +95,7 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
     ...state,
     [action.type]: action.value,
   })
-  const [generalInfo, setGeneralInfo] = useReducer(generalInfoReducer, {
+  const [generalInfo, setGeneralInfo] = useReducer(generalInfoReducer, group.invitations ? {} : {
     readers: group.readers?.join(', '),
     nonreaders: group.nonreaders?.join(', '),
     writers: group.writers?.join(', '),
@@ -110,7 +111,7 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
       <GroupTableRow label="Readers">
         <input
           className="form-control input-sm"
-          value={generalInfo.readers}
+          value={has(generalInfo, 'readers') ? generalInfo.readers : group.readers}
           onChange={(e) => setGeneralInfo({ type: 'readers', value: e.target.value })}
         />
       </GroupTableRow>
@@ -118,7 +119,7 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
       <GroupTableRow label="Non-readers">
         <input
           className="form-control input-sm"
-          value={generalInfo.nonreaders}
+          value={has(generalInfo, 'nonreaders') ? generalInfo.nonreaders : group.nonreaders}
           onChange={(e) => setGeneralInfo({ type: 'nonreaders', value: e.target.value })}
         />
       </GroupTableRow>
@@ -126,7 +127,7 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
       <GroupTableRow label="Writers">
         <input
           className="form-control input-sm"
-          value={generalInfo.writers}
+          value={has(generalInfo, 'writers') ? generalInfo.writers : group.writers}
           onChange={(e) => setGeneralInfo({ type: 'writers', value: e.target.value })}
         />
       </GroupTableRow>
@@ -134,17 +135,28 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
       <GroupTableRow label="Signatories">
         <input
           className="form-control input-sm"
-          value={generalInfo.signatories}
+          value={has(generalInfo, 'signatories') ? generalInfo.signatories : group.signatories}
           onChange={(e) => setGeneralInfo({ type: 'signatories', value: e.target.value })}
         />
       </GroupTableRow>
+
       <GroupTableRow label="Signature">
         <input
           className="form-control input-sm"
-          value={generalInfo.signatures}
+          value={has(generalInfo, 'signatures') ? generalInfo.signatures : group.signatures}
           onChange={(e) => setGeneralInfo({ type: 'signatures', value: e.target.value })}
         />
       </GroupTableRow>
+
+      {group.invitations && (
+        <GroupTableRow label="Invitations">
+          <input
+            className="form-control input-sm"
+            value={has(generalInfo, 'invitations') ? generalInfo.invitations : group.invitations}
+            onChange={(e) => setGeneralInfo({ type: 'invitations', value: e.target.value })}
+          />
+        </GroupTableRow>
+      )}
 
       {isSuperUser && (
         <GroupTableRow label="AnonymousId">
@@ -154,7 +166,7 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
             options={anonymousIdOptions}
             onChange={(e) => setGeneralInfo({ type: 'anonids', value: e.value })}
             value={
-              generalInfo.anonids
+              (has(generalInfo, 'anonids') ? generalInfo.anonids : group.anonids)
                 ? { value: true, label: 'True' }
                 : { value: false, label: 'False' }
             }
@@ -166,7 +178,7 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
         <GroupTableRow label="Deanonymizers">
           <input
             className="form-control input-sm"
-            value={generalInfo.deanonymizers}
+            value={has(generalInfo, 'deanonymizers') ? generalInfo.deanonymizers : group.deanonymizers}
             onChange={(e) => setGeneralInfo({ type: 'deanonymizers', value: e.target.value })}
           />
         </GroupTableRow>
@@ -176,8 +188,18 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
         <GroupTableRow label="Host">
           <input
             className="form-control input-sm"
-            value={generalInfo.host}
+            value={has(generalInfo, 'host') ? generalInfo.host : group.host}
             onChange={(e) => setGeneralInfo({ type: 'host', value: e.target.value })}
+          />
+        </GroupTableRow>
+      )}
+
+      {group.invitations && (
+        <GroupTableRow label="Domain">
+          <input
+            className="form-control input-sm"
+            value={has(generalInfo, 'domain') ? generalInfo.domain : group.domain}
+            onChange={(e) => setGeneralInfo({ type: 'domain', value: e.target.value })}
           />
         </GroupTableRow>
       )}
@@ -202,29 +224,48 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
   )
 }
 
-const GroupGeneral = ({ group, isSuperUser, accessToken, reloadGroup }) => {
+const GroupGeneral = ({ group, profileId, isSuperUser, accessToken, reloadGroup }) => {
   const [edit, setEdit] = useState(false)
 
-  const convertInfoToArray = (value) =>
-    value?.split(',').flatMap((p) => {
-      const trimmedP = p.trim()
-      return trimmedP || []
-    })
+  const convertInfoToArray = (value) => value?.split(',').map((p) => p.trim()).filter((p) => p)
 
   const saveGeneralInfo = async (generalInfo) => {
     try {
-      const result = await api.getGroupById(group.id, accessToken)
-      const resultToPost = {
-        ...result,
-        readers: convertInfoToArray(generalInfo.readers),
-        nonreaders: convertInfoToArray(generalInfo.nonreaders),
-        writers: convertInfoToArray(generalInfo.writers),
-        signatories: convertInfoToArray(generalInfo.signatories),
-        signatures: convertInfoToArray(generalInfo.signatures),
-        anonids: generalInfo.anonids,
-        deanonymizers: convertInfoToArray(generalInfo.deanonymizers),
+      if (group.invitations) {
+        // For v2 groups POST edit
+        const arrayFields = ['readers', 'nonreaders', 'writers', 'signatories', 'signatures', 'invitations', 'deanonymizers']
+        arrayFields.forEach((field) => {
+          // eslint-disable-next-line no-prototype-builtins
+          if (generalInfo.hasOwnProperty(field)) {
+            // eslint-disable-next-line no-param-reassign
+            generalInfo[field] = convertInfoToArray(generalInfo[field])
+          }
+        })
+        const requestBody = {
+          group: {
+            id: group.id,
+            ...generalInfo
+          },
+          readers: [profileId],
+          writers: [profileId],
+          signatures: [profileId],
+          invitation: group.invitations[0],
+        }
+        await api.post('/groups/edits', requestBody, { accessToken, version: 2 })
+      } else {
+        const result = await api.getGroupById(group.id, accessToken)
+        const resultToPost = {
+          ...result,
+          readers: convertInfoToArray(generalInfo.readers),
+          nonreaders: convertInfoToArray(generalInfo.nonreaders),
+          writers: convertInfoToArray(generalInfo.writers),
+          signatories: convertInfoToArray(generalInfo.signatories),
+          signatures: convertInfoToArray(generalInfo.signatures),
+          anonids: generalInfo.anonids,
+          deanonymizers: convertInfoToArray(generalInfo.deanonymizers),
+        }
+        await api.post('/groups', resultToPost, { accessToken })
       }
-      await api.post('/groups', resultToPost, { accessToken })
       promptMessage(`Settings for ${prettyId(group.id)} updated`, { scrollToTop: false })
       await reloadGroup()
       setEdit(false)
