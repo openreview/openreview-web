@@ -78,6 +78,7 @@ export default function ProfileEntity(props) {
     if (
       (e.target.tagName === 'A' && e.target.className !== 'show-assignments') ||
       (e.target.tagName === 'BUTTON' && e.target.className.includes('dropdown-toggle')) ||
+      (e.target.tagName === 'BUTTON' && e.target.className.includes('edit-edge-toggle-btn')) ||
       (e.target.tagName === 'SPAN' && e.target.className.includes('edge-weight')) ||
       (e.target.tagName === 'SPAN' && e.target.className.includes('caret'))
     ) {

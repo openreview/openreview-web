@@ -115,7 +115,7 @@ export default function NoteEntity(props) {
     )
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     const maxLoadInvitationHead = editInvitation.head?.query?.id
-    if (!signatures || signatures.length === 0) {
+    if (version === 1 && (!signatures || signatures.length === 0)) {
       promptError("You don't have permission to edit this edge")
       return
     }
