@@ -138,6 +138,7 @@ export default function NoteEntity(props) {
         signatures,
       }),
       ...updatedEdgeFields,
+      signatures,
     }
     try {
       const result = await api.post('/edges', body, { accessToken, version })
