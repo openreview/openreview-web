@@ -238,7 +238,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
   }
 
   const delaySearch = useCallback(
-    debounce((term) => handleSearchTermChange(term), 300),
+    debounce((term) => handleSearchTermChange(term), 200),
     []
   )
 
