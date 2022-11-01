@@ -22,12 +22,11 @@ const paperDisplayOptions = {
   collapse: true,
   showEdges: true,
 }
-const allPapersOptions = { pageSize: 25, enableSearch: true, useCredentials: false }
-const excludedPapersOptions = { pageSize: 25, enableSearch: false }
 
 export default function ExpertiseSelector({ invitation, venueId, shouldReload }) {
   const { user, userLoading } = useUser()
   const [edgesMap, setEdgesMap] = useState(null)
+  const [userPapersQuery, setUserPapersQuery] = useState(null)
 
   const invitationOption = invitation.reply.content.label?.['value-radio']?.[0] || 'Exclude'
   const tabLabel = `${invitationOption}d Papers`
@@ -87,6 +86,8 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
   }
 
   useEffect(() => {
+    if (userLoading || !user) return
+
     const loadEdges = async () => {
       try {
         const edges = await api.getAll('/edges', {
@@ -102,9 +103,14 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
         setEdgesMap({})
       }
     }
-
     loadEdges()
-  }, [userLoading, user])
+
+    setUserPapersQuery({
+      'content.authorids': user.profile.id,
+      sort: 'cdate',
+      details: 'invitation',
+    })
+  }, [userLoading, user.profile.id])
 
   if (userLoading) return <LoadingSpinner />
 
@@ -116,7 +122,9 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
         <Tab id="all-your-papers" icon="search" active>
           All Your Papers
         </Tab>
-        <Tab id={tabId}>{tabLabel}</Tab>
+        <Tab id={tabId} headingCount={selectedIds?.length}>
+          {tabLabel}
+        </Tab>
       </TabList>
 
       <TabPanels>
@@ -124,15 +132,13 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
           {edgesMap ? (
             <SubmissionsList
               venueId={venueId}
-              query={{
-                'content.authorids': user.profile.id,
-                sort: 'cdate',
-                details: 'invitation',
-              }}
+              query={userPapersQuery}
               apiVersion={1}
               ListItem={NoteListItem}
               shouldReload={shouldReload}
-              options={allPapersOptions}
+              pageSize={10}
+              useCredentials={false}
+              enableSearch
             />
           ) : (
             <LoadingSpinner inline />
@@ -149,7 +155,6 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
               }}
               apiVersion={1}
               ListItem={NoteListItem}
-              options={excludedPapersOptions}
             />
           ) : (
             <p className="empty-message">No {tabLabel.toLowerCase()} to display</p>

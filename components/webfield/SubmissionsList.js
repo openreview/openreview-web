@@ -1,76 +1,94 @@
+import { useState, useEffect, useCallback } from 'react'
 import Note, { NoteV2 } from '../Note'
 import PaginatedList from '../PaginatedList'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 
-export default function SubmissionsList({ venueId, query, ListItem, apiVersion, shouldReload, options = {} }) {
+const defaultDisplayOptions = {
+  pdfLink: true,
+  replyCount: true,
+  showContents: true,
+  collapse: true,
+  showTags: false,
+  showEdges: false,
+}
+
+export default function SubmissionsList({
+  venueId,
+  query,
+  ListItem,
+  apiVersion,
+  shouldReload,
+  pageSize,
+  enableSearch,
+  useCredentials,
+  paperDisplayOptions,
+}) {
   const { accessToken, userLoading } = useUser()
 
-  const paperDisplayOptions = {
-    pdfLink: true,
-    replyCount: true,
-    showContents: true,
-    collapse: true,
-    showTags: false,
-    showEdges: false,
-    ...options.paperDisplayOptions,
-  }
-  const opts = {
-    enableSearch: false,
-    pageSize: 25,
-    useCredentials: true,
-    ...options,
-  }
+  const [combinedDisplayOptions, setCombinedDisplayOptions] = useState(defaultDisplayOptions)
   const details = 'replyCount,invitation,original'
 
-  const loadNotes = async (limit, offset) => {
-    const { notes, count } = await api.get(
-      '/notes',
-      { details, ...query, limit, offset },
-      { accessToken, version: apiVersion, useCredentials: opts.useCredentials }
-    )
-    return {
-      items: notes,
-      count: count ?? 0,
-    }
-  }
+  const loadNotes = useCallback(
+    async (limit, offset) => {
+      const { notes, count } = await api.get(
+        '/notes',
+        { details, ...query, limit, offset },
+        { accessToken, version: apiVersion, useCredentials: useCredentials ?? true }
+      )
+      return {
+        items: notes,
+        count: count ?? 0,
+      }
+    },
+    [accessToken, query, apiVersion, useCredentials]
+  )
 
-  const searchNotes = async (term, limit, offset) => {
-    const { notes, count } = await api.get(
-      '/notes/search',
-      {
-        ...query,
-        term,
-        type: 'terms',
-        content: 'all',
-        source: 'forum',
-        group: venueId,
-        limit,
-        offset,
-      },
-      { accessToken, version: apiVersion, useCredentials: opts.useCredentials }
-    )
-    return {
-      items: notes,
-      count: count ?? 0,
-    }
-  }
+  const searchNotes = useCallback(
+    async (term, limit, offset) => {
+      const { notes, count } = await api.get(
+        '/notes/search',
+        {
+          ...query,
+          term,
+          type: 'terms',
+          content: 'all',
+          source: 'forum',
+          group: venueId,
+          limit,
+          offset,
+        },
+        { accessToken, version: apiVersion, useCredentials: useCredentials ?? true }
+      )
+      return {
+        items: notes,
+        count: count ?? 0,
+      }
+    },
+    [accessToken, query, apiVersion, useCredentials]
+  )
 
   function NoteListItem({ item }) {
     if (apiVersion === 2) {
-      return <NoteV2 note={item} options={paperDisplayOptions} />
+      return <NoteV2 note={item} options={combinedDisplayOptions} />
     }
-    return <Note note={item} options={paperDisplayOptions} />
+    return <Note note={item} options={combinedDisplayOptions} />
   }
+
+  useEffect(() => {
+    if (paperDisplayOptions) {
+      setCombinedDisplayOptions({ ...defaultDisplayOptions, ...paperDisplayOptions })
+    }
+  }, [paperDisplayOptions])
 
   if (userLoading) return null
 
   return (
     <PaginatedList
       loadItems={loadNotes}
-      searchItems={opts.enableSearch && searchNotes}
+      searchItems={enableSearch && searchNotes}
       ListItem={ListItem ?? NoteListItem}
-      itemsPerPage={opts.pageSize}
+      itemsPerPage={pageSize ?? 25}
       shouldReload={shouldReload}
       className="submissions-list"
     />
