@@ -11,21 +11,35 @@ const CodeEditor = dynamic(() => import('../CodeEditor'), {
   loading: () => <LoadingSpinner inline />,
 })
 
-const GroupUICode = ({ group, accessToken, reloadGroup }) => {
+const GroupUICode = ({ group, profileId, accessToken, reloadGroup }) => {
   const [showCodeEditor, setShowCodeEditor] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [modifiedWebCode, setModifiedWebCode] = useState(group.web)
 
   const handleUpdateCodeClick = async () => {
+    setIsSaving(true)
     try {
-      setIsSaving(true)
-      const groupToPost = {
-        ...group,
-        web: modifiedWebCode.trim() ? modifiedWebCode.trim() : null,
+      if (group.invitations) {
+        const requestBody = {
+          group: {
+            id: group.id,
+            web: modifiedWebCode.trim() ? modifiedWebCode.trim() : null,
+          },
+          readers: [profileId],
+          writers: [profileId],
+          signatures: [profileId],
+          invitation: group.invitations[0],
+        }
+        await api.post('/groups/edits', requestBody, { accessToken, version: 2 })
+      } else {
+        const groupToPost = {
+          ...group,
+          web: modifiedWebCode.trim() ? modifiedWebCode.trim() : null,
+        }
+        await api.post('/groups', groupToPost, { accessToken })
       }
-      const result = await api.post('/groups', groupToPost, { accessToken })
-      setShowCodeEditor(false)
       promptMessage(`UI code for ${group.id} has been updated`, { scrollToTop: false })
+      setShowCodeEditor(false)
       reloadGroup()
     } catch (error) {
       promptError(error.message)
@@ -56,7 +70,7 @@ const GroupUICode = ({ group, accessToken, reloadGroup }) => {
           </SpinnerButton>
           <button
             type="button"
-            className="btn btn-default ml-1"
+            className="btn btn-sm btn-default ml-1"
             onClick={() => setShowCodeEditor(false)}
           >
             Cancel
