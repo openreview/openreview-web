@@ -613,7 +613,7 @@ const AreaChairConsoleTasks = ({ venueId, areaChairName, apiVersion }) => {
       allInvitations = allInvitations
         .map((p) => addInvitaitonTypeAndVersion(p))
         .filter((p) => filterHasReplyTo(p))
-        .filter((p) => p.invitees.indexOf(areaChairName) !== -1)
+        .filter((p) => p.invitees.some((q) => q.includes(areaChairName)))
 
       if (allInvitations.length) {
         // add details
@@ -1135,9 +1135,13 @@ const AreaChairConsole = ({ appContext }) => {
     metaReviewContentField,
     shortPhrase,
     enableQuerySearch,
-  }).filter(([key, value]) => value === undefined).map((p) => p[0])
+  })
+    .filter(([key, value]) => value === undefined)
+    .map((p) => p[0])
   if (missingConfig.length > 0) {
-    const errorMessage = `AC Console is missing required properties: ${missingConfig.join(', ')}`
+    const errorMessage = `AC Console is missing required properties: ${missingConfig.join(
+      ', '
+    )}`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
 

@@ -208,9 +208,16 @@ table.table-minimal {
     .note-authors {
       color: constants.$darkBlue;
       margin-bottom: 0.125rem;
+      font-style: italic;
 
       a {
         color: constants.$darkBlue;
+      }
+
+      .private-contents-icon {
+        font-size: 1rem;
+        color: constants.$subtleGray;
+        padding-left: 0.25rem;
       }
     }
 
