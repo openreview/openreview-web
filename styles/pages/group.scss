@@ -185,11 +185,17 @@ main.invitation {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: .5rem 0.25rem;
+    padding: 0.5rem 0.25rem;
     border-bottom: 1px solid #ddd;
 
     .message-button-container {
       margin-right: 0.25rem;
+      .message-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.05rem 0.1rem;
+      }
     }
     .btn-export-data {
       margin-right: 0.5rem;
@@ -236,6 +242,25 @@ main.invitation {
     }
   }
 
+  .ac-status-menu {
+    .search-input {
+      margin-right: 0.25rem;
+      width: 40%;
+    }
+  }
+
+  .sac-status-menu {
+    .search-input {
+      flex-grow: 1;
+    }
+  }
+
+  .rejected-paper-status-menu {
+    .search-input {
+      flex-grow: 1;
+    }
+  }
+
   table {
     margin-bottom: 0;
   }
@@ -256,6 +281,10 @@ main.invitation {
     }
     .note-authors {
       margin-bottom: 0.5rem;
+    }
+    .note-readers {
+      color: constants.$subtleGray;
+      font-weight: 400;
     }
     .note-contents-toggle {
       font-size: 0.875rem;
@@ -359,13 +388,13 @@ main.invitation {
     }
   }
 
-  .areachair-console-table {
+  .areachair-console-table,
+  .pc-console-paper-status {
     table-layout: auto;
-
     & > thead > tr > th {
       vertical-align: top;
     }
-    input[type="checkbox"] {
+    input[type='checkbox'] {
       width: 1rem;
       height: 1rem;
     }
@@ -374,10 +403,12 @@ main.invitation {
       position: relative;
       top: 2px;
     }
+
     .empty-message {
       margin-left: 0.5rem;
     }
-    .areachair-console-reviewer-progress {
+
+    .console-reviewer-progress {
       display: flex;
       flex-direction: column;
 
@@ -406,12 +437,139 @@ main.invitation {
         }
       }
     }
-    .areachair-console-meta-review {
+
+    .reviewer-activity-header {
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+      span {
+        margin-right: 0.25rem;
+        strong {
+          color: constants.$orRed;
+        }
+      }
+    }
+    .alert-danger {
+      word-wrap: break-word;
+    }
+  }
+
+  .pc-console-paper-status {
+    table-layout: auto;
+    .tooltip-inner {
+      max-width: none;
+    }
+    .areachair-progress {
+      .title {
+        white-space: nowrap;
+      }
+      .meta-review-info {
+        display: flex;
+        flex-direction: column;
+        .areachair-contact {
+          display: flex;
+          .areachair-name {
+            white-space: nowrap;
+            margin-right: 0.5rem;
+          }
+        }
+      }
+    }
+    .console-meta-review {
       margin-right: 0.5rem;
       .title {
         white-space: nowrap;
       }
     }
+
+    .console-decision {
+      margin-right: 0.5rem;
+      .title {
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .pc-console-ac-status {
+    table-layout: auto;
+    .review-progress {
+      display: flex;
+      flex-direction: column;
+
+      .note-info {
+        display: flex;
+        align-items: baseline;
+        margin-bottom: 0.25rem;
+        .note-number {
+          margin-right: 0.25rem;
+          font-size: 0.75rem;
+          width: 8%;
+        }
+      }
+
+      .review-info {
+        width: 92%;
+      }
+    }
+    .areachair-progress {
+      display: flex;
+      flex-direction: column;
+
+      .meta-review-info {
+        display: flex;
+        align-items: baseline;
+        .note-number {
+          margin-right: 0.25rem;
+          font-size: 0.75rem;
+          width: 20%;
+        }
+        .meta-review {
+          display: flex;
+          flex-direction: column;
+        }
+      }
+    }
+  }
+
+  .pc-console-reviewer-status {
+    table-layout: auto;
+    .paper-progress {
+      display: flex;
+      flex-direction: column;
+
+      .paper-info {
+        display: flex;
+        width: 100%;
+        .paper-number {
+          // margin-right: 0.25rem;
+          width: 10%;
+        }
+        .paper-title-review {
+          width: 90%;
+          display: flex;
+          flex-direction: column;
+        }
+      }
+    }
+
+    .status-column {
+      display: flex;
+      flex-direction: column;
+      .paper-info {
+        display: flex;
+        .paper-number {
+          margin-right: 0.25rem;
+          width: 20%;
+        }
+        .review-rating-info {
+          display: flex;
+          flex-direction: column;
+        }
+      }
+    }
+  }
+
+  .pc-console-rejected-papers {
+    table-layout: auto;
   }
 
   .console-table .eic-task-list {
@@ -443,6 +601,16 @@ main.invitation {
   .message-reviewers-container {
     li > a {
       cursor: pointer;
+    }
+  }
+
+  #venue-configuration {
+    .overview-list {
+      padding-left: 15px;
+    }
+    .overview-timeline,
+    .overview-registration-link {
+      white-space: nowrap;
     }
   }
 
