@@ -9,13 +9,13 @@ import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorAlert from '../../components/ErrorAlert'
 import Dropdown from '../../components/Dropdown'
+import Edit from '../../components/Edit/Edit'
 import { EditButton, RestoreButton, TrashButton } from '../../components/IconButton'
 import BasicModal from '../../components/BasicModal'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { buildNoteTitle, prettyId } from '../../lib/utils'
 import { forumLink } from '../../lib/banner-links'
-import Edit from '../../components/Edit/Edit'
 
 const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreEdit }) => {
   const [signature, setSignature] = useState(null)
@@ -513,9 +513,9 @@ const Revisions = ({ appContext }) => {
       setError(apiError)
       return
     }
-    // eslint-disable-next-line max-len
+    // for reusing mkNotePanel
     const edits =
-      apiRes.edits.map((edit) => ({ ...edit, invitations: [edit.invitation] })) || [] // for reusing mkNotePanel
+      apiRes.edits.map((edit) => ({ ...edit, invitations: [edit.invitation] })) || []
     const invitationIds = Array.from(new Set(edits.map((edit) => edit.invitation)))
 
     try {

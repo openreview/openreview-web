@@ -2,9 +2,9 @@ import { buildNoteTitle, forumDate, prettyList } from '../../lib/utils'
 import EditContent from './EditContent'
 import EditValue from './EditValue'
 
-const Edit = ({ edit, options }) => (
+const Edit = ({ edit, type, options }) => (
   <div className={`edit ${options.extraClasses ?? ''}`}>
-    <h4>{buildNoteTitle(edit.invitations[0], edit.signatures)}</h4>
+    <h4>{buildNoteTitle(edit.invitations?.[0] ?? edit.invitation, edit.signatures)}</h4>
 
     <ul className="edit_meta_info list-inline">
       <li>
@@ -21,7 +21,7 @@ const Edit = ({ edit, options }) => (
     </ul>
 
     {options.showContents && (!edit.ddate || edit.ddate > Date.now()) && (
-      <EditContent edit={edit} />
+      <EditContent edit={edit} type={type} />
     )}
 
     <div className="edit_info">

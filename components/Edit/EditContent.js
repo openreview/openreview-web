@@ -2,21 +2,23 @@ import { prettyContentValue, prettyField, prettyId, prettyList } from '../../lib
 import Icon from '../Icon'
 import EditContentValue from './EditContentValue'
 
-const EditContent = ({ edit }) => {
+const EditContent = ({ edit, type = 'note' }) => {
+  if (!edit) return null
+
   const noteContent = {
-    ...edit?.note?.content,
-    ...(edit?.note?.readers && {
-      Readers: { value: prettyList(edit.note.readers, 'long', 'unit') },
+    ...edit[type]?.content,
+    ...(edit[type]?.readers && {
+      Readers: { value: prettyList(edit[type].readers, 'long', 'unit') },
     }),
-    ...(edit?.note?.writers && {
-      Writers: { value: prettyList(edit.note.writers, 'long', 'unit') },
+    ...(edit[type]?.writers && {
+      Writers: { value: prettyList(edit[type].writers, 'long', 'unit') },
     }),
-    ...(edit?.note?.signatures && {
-      Signatures: { value: prettyList(edit.note.signatures, 'long', 'unit') },
+    ...(edit[type]?.signatures && {
+      Signatures: { value: prettyList(edit[type].signatures, 'long', 'unit') },
     }),
   }
 
-  const contentOrder = edit.details?.presentation?.length
+  const contentOrder = edit.details?.presentation?.length > 0
     ? [
         ...edit.details.presentation.map((p) => p.name),
         ...(noteContent.Readers ? ['Readers'] : []),
