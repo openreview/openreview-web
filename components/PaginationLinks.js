@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { stringify } from 'query-string'
+import Dropdown from './Dropdown'
 
 export default function PaginationLinks({
   currentPage = 1,
@@ -18,6 +19,10 @@ export default function PaginationLinks({
   const pageCount = Math.floor(totalCount / itemsPerPage) + overflow
   const pageListLength = Math.min(14, pageCount + 4)
   const pageList = Array(pageListLength)
+  const pageSizeOptions = [15, 30, 50, 100].map((p) => ({
+    label: `${p} items`,
+    value: p,
+  }))
 
   // Create entries for Next, Previous, First and Last links
   pageList[0] = {
@@ -108,6 +113,16 @@ export default function PaginationLinks({
             </li>
           )
         })}
+        {options.showPageSizeOptions && (
+          <li>
+            <Dropdown
+              className="dropdown-select dropdown-pagesize"
+              options={pageSizeOptions}
+              value={pageSizeOptions.find((p) => p.value === itemsPerPage)}
+              onChange={(e) => options.setPageSize(e.value)}
+            />
+          </li>
+        )}
       </ul>
     </nav>
   )

@@ -18,6 +18,7 @@ import Dropdown from '../../components/Dropdown'
 import BasicModal from '../../components/BasicModal'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
 import PaginatedList from '../../components/PaginatedList'
+import Table from '../../components/Table'
 
 const UserModerationTab = ({ accessToken }) => {
   const [shouldReload, reload] = useReducer((p) => !p, true)
@@ -278,6 +279,15 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
       <div className="name-deletion-list">
         {nameDeletionNotesToShow ? (
           <>
+            <Table
+              headings={[
+                { content: 'Status', width: '12%' },
+                { content: 'Requester', width: '15%' },
+                { content: 'Name to delete', width: '15%' },
+                { content: 'Reason', width: '20%' },
+                { content: 'Date' },
+              ]}
+            />
             {nameDeletionNotesToShow.map((note) => (
               <div className="name-deletion-row" key={note.id}>
                 <span className="col-status">
@@ -514,7 +524,6 @@ const UserModerationQueue = ({
   accessToken,
   title,
   onlyModeration = true,
-  pageSize = 15,
   reload,
   shouldReload,
   showSortButton = false,
@@ -527,6 +536,7 @@ const UserModerationQueue = ({
   const [signedNotesCount, setSignedNotesCount] = useState(0)
   const [idsLoading, setIdsLoading] = useState([])
   const [descOrder, setDescOrder] = useState(true)
+  const [pageSize, setPageSize] = useState(15)
   const modalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
 
   const getProfiles = async () => {
@@ -689,7 +699,7 @@ const UserModerationQueue = ({
 
   useEffect(() => {
     getProfiles()
-  }, [pageNumber, filters, shouldReload, descOrder])
+  }, [pageNumber, filters, shouldReload, descOrder, pageSize])
 
   return (
     <div className="profiles-list">
@@ -761,13 +771,20 @@ const UserModerationQueue = ({
                   <span className={`label label-${profile.password ? 'success' : 'danger'}`}>
                     password
                   </span>{' '}
-                  <span
-                    className={getProfileStateLabelClass(
-                      profile.state ?? (profile.active ? 'Active' : 'Inactive')
-                    )}
+                  <a
+                    href={`/profile?id=${profile.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={profile.id}
                   >
-                    {profile.state ?? 'active'}
-                  </span>
+                    <span
+                      className={getProfileStateLabelClass(
+                        profile.state ?? (profile.active ? 'Active' : 'Inactive')
+                      )}
+                    >
+                      {profile.state ?? 'active'}
+                    </span>
+                  </a>
                 </span>
                 <span className="col-actions">
                   {onlyModeration ? (
@@ -854,9 +871,10 @@ const UserModerationQueue = ({
 
       <PaginationLinks
         currentPage={pageNumber}
-        itemsPerPage={15}
+        itemsPerPage={pageSize}
         totalCount={totalCount}
         setCurrentPage={setPageNumber}
+        options={{ showPageSizeOptions: true, setPageSize }}
       />
 
       <RejectionModal

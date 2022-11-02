@@ -15,7 +15,7 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
 import { prettyList } from '../../lib/utils'
-import { auth } from '../../lib/auth'
+import { auth, isSuperUser } from '../../lib/auth'
 import { profileModeToggle } from '../../lib/banner-links'
 
 const ProfileSection = ({ name, title, instructions, actionLink, children }) => (
@@ -72,11 +72,12 @@ const ProfileEmail = ({ email, publicProfile }) => (
   </ProfileItem>
 )
 
-const ProfileLink = ({ link }) => (
+const ProfileLink = ({ link, showLinkText }) => (
   <ProfileItem itemMeta={link.meta}>
     <a href={link.url} target="_blank" rel="noopener noreferrer">
       {link.name}
     </a>
+    {showLinkText && ` (${link.url})`}
   </ProfileItem>
 )
 
@@ -253,6 +254,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
   const [count, setCount] = useState(0)
   const [coAuthors, setCoAuthors] = useState([])
   const { user, userLoading, accessToken } = useUser()
+  const showLinkText = isSuperUser(user)
   const router = useRouter()
   const { setBannerHidden, setEditBanner } = appContext
 
@@ -373,7 +375,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
             actionLink="Suggest URL"
           >
             {profile.links.map((link) => (
-              <ProfileLink key={link.name} link={link} />
+              <ProfileLink key={link.name} link={link} showLinkText={showLinkText} />
             ))}
           </ProfileSection>
 
