@@ -20,6 +20,7 @@ export default function PaginatedList({
   ListItem,
   emptyMessage,
   itemsPerPage = 15,
+  shouldReload,
   className,
 }) {
   const [listItems, setListItems] = useState(null)
@@ -65,7 +66,7 @@ export default function PaginatedList({
     if (typeof loadItems === 'function') {
       fetchItems()
     }
-  }, [page, searchTerm, loadItems, searchItems, itemsPerPage])
+  }, [page, searchTerm, loadItems, searchItems, itemsPerPage, shouldReload])
 
   if (error) return <ErrorAlert error={error} />
 
