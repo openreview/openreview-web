@@ -19,6 +19,9 @@ import BasicModal from '../../components/BasicModal'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
 import PaginatedList from '../../components/PaginatedList'
 import Table from '../../components/Table'
+import { BasicProfileView } from '../profile'
+import { formatProfileData } from '../../lib/profiles'
+import { cloneDeep } from 'lodash'
 
 const UserModerationTab = ({ accessToken }) => {
   const [shouldReload, reload] = useReducer((p) => !p, true)
@@ -537,6 +540,8 @@ const UserModerationQueue = ({
   const [idsLoading, setIdsLoading] = useState([])
   const [descOrder, setDescOrder] = useState(true)
   const [pageSize, setPageSize] = useState(15)
+  const [profileToPreview, setProfileToPreview] = useState(null)
+  const [lastPreviewedProfileId, setLastPreviewedProfileId] = useState(null)
   const modalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
 
   const getProfiles = async () => {
@@ -627,7 +632,7 @@ const UserModerationQueue = ({
   }
 
   const blockUnblockUser = async (profile) => {
-    const actionIsBlock = profile?.state !== 'Blocked' && !profile?.block
+    const actionIsBlock = profile?.state !== 'Blocked'
     const signedNotes = !onlyModeration
       ? await api.getCombined('/notes', { signature: profile.id }, null, {
           accessToken,
@@ -701,6 +706,10 @@ const UserModerationQueue = ({
     getProfiles()
   }, [pageNumber, filters, shouldReload, descOrder, pageSize])
 
+  useEffect(() => {
+    if (profileToPreview) $('#profile-preview').modal('show')
+  }, [profileToPreview])
+
   return (
     <div className="profiles-list">
       <h4>
@@ -751,7 +760,7 @@ const UserModerationQueue = ({
             return (
               <li
                 key={profile.id}
-                className={`${profile.state === 'Blocked' || profile.block ? 'blocked' : ''}${
+                className={`${profile.state === 'Blocked' ? 'blocked' : ''}${
                   profile.ddate ? ' deleted' : ''
                 }`}
               >
@@ -771,20 +780,16 @@ const UserModerationQueue = ({
                   <span className={`label label-${profile.password ? 'success' : 'danger'}`}>
                     password
                   </span>{' '}
-                  <a
-                    href={`/profile?id=${profile.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    title={profile.id}
+                  <span
+                    className={`${getProfileStateLabelClass(
+                      profile.ddate ? 'Deleted' : profile.state
+                    )}${profile.id === lastPreviewedProfileId ? ' last-previewed' : ''}`}
+                    onClick={() => {
+                      setProfileToPreview(formatProfileData(cloneDeep(profile)))
+                    }}
                   >
-                    <span
-                      className={getProfileStateLabelClass(
-                        profile.state ?? (profile.active ? 'Active' : 'Inactive')
-                      )}
-                    >
-                      {profile.state ?? 'active'}
-                    </span>
-                  </a>
+                    {profile.ddate ? 'Deleted' : profile.state}
+                  </span>
                 </span>
                 <span className="col-actions">
                   {onlyModeration ? (
@@ -816,7 +821,7 @@ const UserModerationQueue = ({
                     </>
                   ) : (
                     <>
-                      {!(profile.state === 'Blocked' || profile.block) && profile.active && (
+                      {!(profile.state === 'Blocked' || profile.ddate) && (
                         <button
                           type="button"
                           className="btn btn-xs"
@@ -825,22 +830,18 @@ const UserModerationQueue = ({
                           <Icon name="remove-circle" /> Reject
                         </button>
                       )}{' '}
-                      <button
-                        type="button"
-                        className="btn btn-xs btn-block-profile"
-                        onClick={() => blockUnblockUser(profile)}
-                      >
-                        <Icon
-                          name={`${
-                            profile.state === 'Blocked' || profile.block
-                              ? 'refresh'
-                              : 'ban-circle'
-                          }`}
-                        />{' '}
-                        {`${
-                          profile.state === 'Blocked' || profile.block ? 'Unblock' : 'Block'
-                        }`}
-                      </button>{' '}
+                      {!profile.ddate && (
+                        <button
+                          type="button"
+                          className="btn btn-xs btn-block-profile"
+                          onClick={() => blockUnblockUser(profile)}
+                        >
+                          <Icon
+                            name={`${profile.state === 'Blocked' ? 'refresh' : 'ban-circle'}`}
+                          />{' '}
+                          {`${profile.state === 'Blocked' ? 'Unblock' : 'Block'}`}
+                        </button>
+                      )}{' '}
                       <button
                         type="button"
                         className="btn btn-xs"
@@ -882,6 +883,12 @@ const UserModerationQueue = ({
         profileIdToReject={profileIdToReject}
         rejectUser={rejectUser}
         signedNotesCount={signedNotesCount}
+      />
+
+      <ProfilePreviewModal
+        profileToPreview={profileToPreview}
+        setProfileToPreview={setProfileToPreview}
+        setLastPreviewedProfileId={setLastPreviewedProfileId}
       />
     </div>
   )
@@ -1029,5 +1036,26 @@ const FullCommentModal = ({ commentToView, setCommentToView }) => (
     {commentToView}
   </BasicModal>
 )
+
+const ProfilePreviewModal = ({
+  profileToPreview,
+  setProfileToPreview,
+  setLastPreviewedProfileId,
+}) => {
+  if (!profileToPreview) return null
+  return (
+    <BasicModal
+      id="profile-preview"
+      primaryButtonText={null}
+      cancelButtonText="OK"
+      onClose={() => {
+        setProfileToPreview(null)
+        setLastPreviewedProfileId(profileToPreview.id)
+      }}
+    >
+      <BasicProfileView profile={profileToPreview} showLinkText={true} />
+    </BasicModal>
+  )
+}
 
 export default withAdminAuth(Moderation)

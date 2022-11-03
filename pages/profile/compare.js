@@ -482,11 +482,9 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     }
     const toProfile = {
       id: basicProfiles[to].id,
-      active: basicProfiles[to].state
-        ? ['Active Institutional', 'Active Automatic', 'Active'].includes(
-            basicProfiles[to].state
-          )
-        : basicProfiles[to].active,
+      active: ['Active Institutional', 'Active Automatic', 'Active'].includes(
+        basicProfiles[to].state
+      ),
       state: basicProfiles[to].state,
     }
     const postMerge = async () => {
@@ -506,9 +504,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       if (
         // eslint-disable-next-line no-alert
         window.confirm(
-          `You are merging an ${fromProfile.state ?? 'active'} profile into an ${
-            toProfile.state ?? 'inactive'
-          } profile. Are you sure you want to proceed?`
+          `You are merging an ${fromProfile.state} profile into an ${toProfile.state} profile. Are you sure you want to proceed?`
         )
       ) {
         postMerge()
