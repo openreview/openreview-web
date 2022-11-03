@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useReducer, useRef, useCallback } from 'react'
 import Head from 'next/head'
+import { cloneDeep } from 'lodash'
 import withAdminAuth from '../../components/withAdminAuth'
 import Icon from '../../components/Icon'
 import LoadSpinner from '../../components/LoadingSpinner'
@@ -21,7 +22,6 @@ import PaginatedList from '../../components/PaginatedList'
 import Table from '../../components/Table'
 import { BasicProfileView } from '../profile'
 import { formatProfileData } from '../../lib/profiles'
-import { cloneDeep } from 'lodash'
 
 const UserModerationTab = ({ accessToken }) => {
   const [shouldReload, reload] = useReducer((p) => !p, true)
