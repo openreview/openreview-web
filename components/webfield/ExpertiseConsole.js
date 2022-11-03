@@ -16,6 +16,7 @@ export default function ExpertiseConsole({ appContext }) {
     venueId,
     title,
     description,
+    uploadInvitationId,
     apiVersion,
   } = useContext(WebFieldContext)
   const [shouldReload, reload] = useReducer((p) => !p, true)
@@ -60,7 +61,7 @@ Please contact info@openreview.net with any questions or concerns about this int
 
       <div id="invitation">
         <SubmissionButton
-          invitationId="OpenReview.net/Archive/-/Direct_Upload"
+          invitationId={uploadInvitationId || 'OpenReview.net/Archive/-/Direct_Upload'}
           apiVersion={1}
           onNoteCreated={() => {
             promptMessage('Your paper has been added to the OpenReview Archive')
@@ -74,6 +75,7 @@ Please contact info@openreview.net with any questions or concerns about this int
         <ExpertiseSelector
           invitation={invitation}
           venueId={venueId}
+          apiVersion={apiVersion}
           shouldReload={shouldReload}
         />
       </div>

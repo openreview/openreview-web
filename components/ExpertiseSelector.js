@@ -23,12 +23,15 @@ const paperDisplayOptions = {
   showEdges: true,
 }
 
-export default function ExpertiseSelector({ invitation, venueId, shouldReload }) {
+export default function ExpertiseSelector({ invitation, venueId, apiVersion, shouldReload }) {
   const { user, userLoading } = useUser()
   const [edgesMap, setEdgesMap] = useState(null)
   const [userPapersQuery, setUserPapersQuery] = useState(null)
 
-  const invitationOption = invitation.reply.content.label?.['value-radio']?.[0] || 'Exclude'
+  const options = apiVersion === 2
+    ? invitation.edge?.label?.param?.enum
+    : invitation.reply?.content?.label?.['value-radio']
+  const invitationOption = options?.[0] || 'Exclude'
   const tabLabel = `${invitationOption}d Papers`
   const tabId = kebabCase(tabLabel)
 
@@ -76,7 +79,7 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
         )}
         <BidRadioButtonGroup
           label={prettyInvitationId(invitation.id)}
-          options={invitation.reply.content.label?.['value-radio']}
+          options={options}
           selectedBidOption={!edge || edge.ddate ? undefined : edge.label}
           updateBidOption={(value) => toggleEdge(item.id, value)}
           className="mb-2"
