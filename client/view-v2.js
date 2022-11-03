@@ -2140,9 +2140,8 @@ module.exports = (function () {
 
     // content fields
     Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
-      if (formData?.[contentFieldName] === null) {
-        // field is cleared
-        content[contentFieldName] = null
+      if (formData?.[contentFieldName] === undefined) {
+        // do not return field
         return
       }
       var valueObj = contentFieldValue.value
@@ -2197,9 +2196,7 @@ module.exports = (function () {
     if (invitation.edit.note?.content) {
       editNote.content = Object.entries(invitation.edit.note.content).reduce(
         (acc, [fieldName, fieldValue]) => {
-          if (formContent[fieldName] === null) {
-            // field is cleared
-            acc[fieldName] = null
+          if (formContent[fieldName] === undefined) {
             return acc
           }
           acc[fieldName] = {
