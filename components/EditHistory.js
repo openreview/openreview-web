@@ -6,45 +6,54 @@ import { prettyId } from '../lib/utils'
 
 import styles from '../styles/components/EditHistory.module.scss'
 
-function EmptyMessage({ groupId }) {
+function EmptyMessage({ id }) {
   return (
-    <p className="empty-message">No revision history available for {prettyId(groupId)}.</p>
+    <p className="empty-message">No revision history available for {prettyId(id)}.</p>
   )
 }
 
-export default function EditHistory({ group, accessToken, setError }) {
+export default function EditHistory({ group, invitation, accessToken, setError }) {
   const [edits, setEdits] = useState(null)
   const [count, setCount] = useState(null)
 
   useEffect(() => {
     const loadEdits = async () => {
+      const groupOrInvitation = group ? 'group' : 'invitation'
+      const queryParam = `${groupOrInvitation}.id`
       try {
         const apiRes = await api.get(
-          '/groups/edits',
+          `/${groupOrInvitation}s/edits`,
           {
-            'group.id': group.id,
+            [queryParam]: group?.id ?? invitation?.id,
             sort: 'tcdate',
             details: 'writable,presentation',
             trash: true,
           },
           { accessToken, version: 2 }
         )
-        setEdits(apiRes.edits ?? [])
+        if (apiRes.edits?.length > 0) {
+          setEdits(apiRes.edits.map((edit) => ({
+            ...edit,
+            invitations: [edit.invitation.id]
+          })))
+        } else {
+          setEdits([])
+        }
         setCount(apiRes.count ?? 0)
       } catch (apiError) {
-        setError(apiError)
+        setError({ statusCode: apiError.status, message: apiError.message })
       }
     }
 
     loadEdits()
-  }, [group.id])
+  }, [group, invitation, accessToken])
 
-  if (!group) return null
+  if (!group && !invitation) return null
 
-  if (!group.invitations?.length > 0) {
+  if ((group && !group.invitations?.length > 0) || (invitation && invitation.apiVersion === 1)) {
     return (
       <div>
-        <EmptyMessage groupId={group.id} />
+        <EmptyMessage id={group?.id ?? invitation?.id} />
       </div>
     )
   }
@@ -60,14 +69,14 @@ export default function EditHistory({ group, accessToken, setError }) {
           <Edit
             key={edit.id}
             edit={edit}
-            type="group"
+            type={group ? 'group' : 'invitation'}
             options={{
               showContents: true,
               extraClasses: edit.ddate ? 'edit-trashed' : '',
             }}
           />
         )) : (
-          <EmptyMessage groupId={group.id} />
+          <EmptyMessage id={group?.id ?? invitation?.id} />
         )}
       </div>
     </div>

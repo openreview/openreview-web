@@ -3,29 +3,35 @@ import Icon from '../Icon'
 import EditContentValue from './EditContentValue'
 
 const EditContent = ({ edit, type = 'note' }) => {
-  if (!edit) return null
+  if (!edit || !edit[type]) return null
 
   const noteContent = {
-    ...edit[type]?.content,
-    ...(edit[type]?.readers && {
+    ...edit[type].content,
+    ...(edit[type].readers && {
       Readers: { value: prettyList(edit[type].readers, 'long', 'unit') },
     }),
-    ...(edit[type]?.writers && {
+    ...(edit[type].writers && {
       Writers: { value: prettyList(edit[type].writers, 'long', 'unit') },
     }),
-    ...(edit[type]?.signatures && {
+    ...(edit[type].invitees && {
+      Invitees: { value: prettyList(edit[type].invitees, 'long', 'unit') },
+    }),
+    ...(edit[type].signatures && {
       Signatures: { value: prettyList(edit[type].signatures, 'long', 'unit') },
     }),
   }
 
-  const contentOrder = edit.details?.presentation?.length > 0
-    ? [
-        ...edit.details.presentation.map((p) => p.name),
-        ...(noteContent.Readers ? ['Readers'] : []),
-        ...(noteContent.Writers ? ['Writers'] : []),
-        ...(noteContent.Signatures ? ['Signatures'] : []),
-      ]
-    : Object.keys(noteContent)
+  let contentOrder
+  if (edit.details?.presentation?.length > 0) {
+    contentOrder = edit.details.presentation.map((p) => p.name).concat(
+      noteContent.Readers ? 'Readers' : [],
+      noteContent.Writers ? 'Writers' : [],
+      noteContent.Signatures ? 'Invitees' : [],
+      noteContent.Signatures ? 'Signatures' : [],
+    )
+  } else {
+    contentOrder = Object.keys(noteContent)
+  }
 
   return (
     <ul className="list-unstyled note-content">
