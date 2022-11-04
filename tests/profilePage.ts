@@ -53,6 +53,7 @@ const nameMakePreferredButton = Selector('div.container.names')
   .nth(0)
 const homepageUrlInput = Selector('input#homepage_url')
 const yearOfBirthInput = Selector('section').nth(2).find('input')
+const linkedinUrlInput = Selector('input#linkedin_url')
 // #endregion
 
 fixture`Profile page`.before(async (ctx) => {
@@ -539,6 +540,26 @@ test('#1011 remove space in personal links', async (t) => {
       Selector('a')
         .withText('Homepage')
         .withAttribute('href', 'https://github.com/xkOpenReview').exists
+    )
+    .ok()
+})
+test('#1167 show linkedin as external site', async (t) => {
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .typeText(linkedinUrlInput, 'linkedin.com')
+    .click(saveProfileButton)
+    .expect(
+      Selector('a')
+        .withAttribute('href', '//linkedin.com').exists
+    )
+    .ok()
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .typeText(linkedinUrlInput, 'https://www.linkedin.com', { replace: true })
+    .click(saveProfileButton)
+    .expect(
+      Selector('a')
+        .withAttribute('href', 'https://www.linkedin.com').exists
     )
     .ok()
 })
