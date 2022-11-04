@@ -551,6 +551,7 @@ test('#1167 show linkedin as external site', async (t) => {
     .click(saveProfileButton)
     .expect(
       Selector('a')
+        .withText('LinkedIn')
         .withAttribute('href', '//linkedin.com').exists
     )
     .ok()
@@ -559,6 +560,7 @@ test('#1167 show linkedin as external site', async (t) => {
     .click(saveProfileButton)
     .expect(
       Selector('a')
+        .withText('LinkedIn')
         .withAttribute('href', 'https://www.linkedin.com').exists
     )
     .ok()
