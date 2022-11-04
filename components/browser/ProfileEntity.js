@@ -77,7 +77,10 @@ export default function ProfileEntity(props) {
 
     if (
       (e.target.tagName === 'A' && e.target.className !== 'show-assignments') ||
-      (e.target.tagName === 'BUTTON' && e.target.className.includes('dropdown-toggle'))
+      (e.target.tagName === 'BUTTON' && e.target.className.includes('dropdown-toggle')) ||
+      (e.target.tagName === 'BUTTON' && e.target.className.includes('edit-edge-toggle-btn')) ||
+      (e.target.tagName === 'SPAN' && e.target.className.includes('edge-weight')) ||
+      (e.target.tagName === 'SPAN' && e.target.className.includes('caret'))
     ) {
       return
     }
@@ -152,11 +155,6 @@ export default function ProfileEntity(props) {
     updatedEdgeFields = {},
     isTraverseEdge = false,
   }) => {
-    if (e) {
-      e.preventDefault()
-      e.stopPropagation()
-    }
-
     // Create new edge
     const editInvitation = isTraverseEdge
       ? traverseInvitation
@@ -196,6 +194,7 @@ export default function ProfileEntity(props) {
         signatures,
       }),
       ...updatedEdgeFields,
+      signatures,
     }
     try {
       const result = await api.post('/edges', body, { accessToken, version })

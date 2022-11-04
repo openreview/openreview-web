@@ -34,6 +34,9 @@ main.invitation {
     }
     div.description {
       margin-top: 1rem;
+      &.dark p {
+        color: constants.$darkBlue;
+      }
     }
     p {
       color: #777777;

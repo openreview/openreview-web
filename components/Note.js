@@ -11,7 +11,7 @@ const Note = ({ note, invitation, options }) => {
 
   const renderNoteContent = () => {
     if (!options.showContents || (note.ddate && note.ddate <= Date.now())) return null
-    if (options.collapse)
+    if (options.collapse) {
       return (
         <Collapse showLabel="Show details" hideLabel="Hide details" indent={true}>
           <NoteContent
@@ -25,6 +25,7 @@ const Note = ({ note, invitation, options }) => {
           />
         </Collapse>
       )
+    }
     return (
       <NoteContent
         id={note.id}
@@ -92,6 +93,7 @@ const Note = ({ note, invitation, options }) => {
           <li>{inflect(note.details?.replyCount, 'Reply', 'Replies', true)}</li>
         )}
       </ul>
+
       {renderNoteContent()}
     </div>
   )
@@ -102,7 +104,7 @@ export const NoteV2 = ({ note, options }) => {
 
   const renderNoteContent = () => {
     if (!options.showContents || (note.ddate && note.ddate <= Date.now())) return null
-    if (options.collapse)
+    if (options.collapse) {
       return (
         <Collapse showLabel="Show details" hideLabel="Hide details" indent={true}>
           <NoteContentV2
@@ -115,6 +117,7 @@ export const NoteV2 = ({ note, options }) => {
           />
         </Collapse>
       )
+    }
     return (
       <NoteContentV2
         id={note.id}
@@ -184,6 +187,7 @@ export const NoteV2 = ({ note, options }) => {
           <li>{inflect(note.details?.replyCount, 'Reply', 'Replies', true)}</li>
         )}
       </ul>
+
       {renderNoteContent()}
     </div>
   )
