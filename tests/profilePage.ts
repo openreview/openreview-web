@@ -547,7 +547,7 @@ test('#1167 show linkedin as external site', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .typeText(linkedinUrlInput, 'linkedin.com')
+    .typeText(linkedinUrlInput, 'linkedin.com', { replace: true })
     .click(saveProfileButton)
     .expect(
       Selector('a')
