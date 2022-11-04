@@ -182,7 +182,7 @@ Click on the link below to go to the review page:\n\n{{submit_review_link}}
   )
 }
 
-const AcPcConsoleReviewerStatusRow = ({
+export const AcPcConsoleReviewerStatusRow = ({
   officialReviews,
   reviewer,
   note,
