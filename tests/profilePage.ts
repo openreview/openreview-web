@@ -543,25 +543,3 @@ test('#1011 remove space in personal links', async (t) => {
     )
     .ok()
 })
-test('#1167 show linkedin as external site', async (t) => {
-  await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .typeText(linkedinUrlInput, 'linkedin.com', { replace: true })
-    .click(saveProfileButton)
-    .expect(
-      Selector('a')
-        .withText('LinkedIn')
-        .withAttribute('href', '//linkedin.com').exists
-    )
-    .ok()
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .typeText(linkedinUrlInput, 'https://www.linkedin.com', { replace: true })
-    .click(saveProfileButton)
-    .expect(
-      Selector('a')
-        .withText('LinkedIn')
-        .withAttribute('href', 'https://www.linkedin.com').exists
-    )
-    .ok()
-})
