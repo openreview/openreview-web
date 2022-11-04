@@ -72,14 +72,17 @@ const ProfileEmail = ({ email, publicProfile }) => (
   </ProfileItem>
 )
 
-const ProfileLink = ({ link, showLinkText }) => (
-  <ProfileItem itemMeta={link.meta}>
-    <a href={link.url} target="_blank" rel="noopener noreferrer">
-      {link.name}
-    </a>
-    {showLinkText && <span className="link-text">{`(${link.url})`}</span>}
-  </ProfileItem>
-)
+const ProfileLink = ({ link, showLinkText }) => {
+  const linkUrlWithProtocol = link.url?.startsWith('http') ? link.url : `https://${link.url}`
+  return (
+    <ProfileItem itemMeta={link.meta}>
+      <a href={linkUrlWithProtocol} target="_blank" rel="noopener noreferrer">
+        {link.name}
+      </a>
+      {showLinkText && <span className="link-text">{`(${linkUrlWithProtocol})`}</span>}
+    </ProfileItem>
+  )
+}
 
 const ProfileHistory = ({ history }) => (
   <ProfileItem className="table-row" itemMeta={history.meta} editBadgeDiv>
