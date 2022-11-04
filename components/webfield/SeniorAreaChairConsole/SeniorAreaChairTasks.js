@@ -1,3 +1,4 @@
+/* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import useUser from '../../../hooks/useUser'
 import WebFieldContext from '../../WebFieldContext'

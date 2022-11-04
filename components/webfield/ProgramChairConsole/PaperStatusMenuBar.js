@@ -96,11 +96,7 @@ const PaperStatusMenuBar = ({
     {
       header: 'meta reviews',
       getValue: (p) =>
-        // p.metaReviewData?.metaReviews?.map((q) => q[recommendationName])?.join('|'),
-        {
-          console.log(p.metaReviewData?.metaReviews)
-          return p.metaReviewData?.metaReviews?.map((q) => q[recommendationName])?.join('|')
-        },
+        p.metaReviewData?.metaReviews?.map((q) => q[recommendationName])?.join('|'),
     },
     ...(exportColumnsConfig ?? []),
   ]

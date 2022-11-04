@@ -270,7 +270,6 @@ const AreaChairStatusMenuBar = ({
       row.areaChairProfile?.preferredName.toLowerCase() ?? row.areaChairProfileId.toLowerCase()
     ).includes(term)
 
-  console.log(exportColumns)
   return (
     <BaseMenuBar
       tableRowsAll={tableRowsAll}

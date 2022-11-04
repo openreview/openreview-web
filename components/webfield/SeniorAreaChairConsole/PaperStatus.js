@@ -199,18 +199,16 @@ const PaperStatus = ({ sacConsoleData }) => {
           { id: 'decision', content: 'Decision' },
         ]}
       >
-        {paperStatusTabData.tableRowsDisplayed?.map((row) => {
-          return (
-            <PaperRow
-              key={row.note.id}
-              rowData={row}
-              selectedNoteIds={selectedNoteIds}
-              setSelectedNoteIds={setSelectedNoteIds}
-              decision={row.decision}
-              venue={row.note?.content?.venue?.value}
-            />
-          )
-        })}
+        {paperStatusTabData.tableRowsDisplayed?.map((row) => (
+          <PaperRow
+            key={row.note.id}
+            rowData={row}
+            selectedNoteIds={selectedNoteIds}
+            setSelectedNoteIds={setSelectedNoteIds}
+            decision={row.decision}
+            venue={row.note?.content?.venue?.value}
+          />
+        ))}
       </Table>
       <PaginationLinks
         currentPage={pageNumber}

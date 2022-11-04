@@ -208,7 +208,6 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData }) => {
   )
 
   const calcACStatusTabData = () => {
-    console.log('sacConsoleData', sacConsoleData)
     const acNotesMap = new Map()
     const allNoteNumbers = sacConsoleData.notes.map((p) => p.note.number)
     sacConsoleData.areaChairGroups.forEach((acGroup) => {
@@ -257,7 +256,6 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData }) => {
       loadSacConsoleData()
       return
     }
-    console.log('3', sacConsoleData)
     if (!areaChairStatusTabData.tableRows) calcACStatusTabData()
   }, [sacConsoleData])
 
