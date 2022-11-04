@@ -20,7 +20,7 @@ import BasicModal from '../../components/BasicModal'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
 import PaginatedList from '../../components/PaginatedList'
 import Table from '../../components/Table'
-import { BasicProfileView } from '../profile'
+import BasicProfileView from '../../components/profile/BasicProfileView'
 import { formatProfileData } from '../../lib/profiles'
 
 const UserModerationTab = ({ accessToken }) => {
@@ -869,7 +869,6 @@ const UserModerationQueue = ({
       ) : (
         <LoadSpinner inline />
       )}
-
       <PaginationLinks
         currentPage={pageNumber}
         itemsPerPage={pageSize}
@@ -877,7 +876,6 @@ const UserModerationQueue = ({
         setCurrentPage={setPageNumber}
         options={{ showPageSizeOptions: true, setPageSize }}
       />
-
       <RejectionModal
         id={modalId}
         profileIdToReject={profileIdToReject}
