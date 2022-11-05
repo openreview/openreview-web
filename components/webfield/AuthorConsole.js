@@ -451,7 +451,7 @@ const AuthorConsole = ({ appContext }) => {
               invitations={invitations}
               emptyMessage="No outstanding tasks for this conference"
               referrer={`${encodeURIComponent(
-                `[Author Console](/group?id=${venueId}/${authorName}'#author-tasks)`
+                `[Author Console](/group?id=${venueId}/${authorName}#author-tasks)`
               )}&t=${Date.now()}`}
             />
           </TabPanel>

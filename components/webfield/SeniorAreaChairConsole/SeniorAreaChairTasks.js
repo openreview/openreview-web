@@ -78,7 +78,7 @@ const SeniorAreaChairTasks = () => {
       invitations={invitations}
       emptyMessage={isLoading ? 'Loading...' : 'No outstanding tasks for this conference'}
       referrer={encodeURIComponent(
-        `[Senior Area Chair Console](/group?id=${venueId}/${seniorAreaChairName}'#seniorareachair-tasks)`
+        `[Senior Area Chair Console](/group?id=${venueId}/${seniorAreaChairName}#seniorareachair-tasks)`
       )}
     />
   )
