@@ -202,7 +202,15 @@ const AuthorConsole = ({ appContext }) => {
       api.get('/profiles', { emails: Array.from(authorEmails).join(',') }, { accessToken }),
     ])
     const allProfiles = (idProfiles ?? []).concat(emailProfiles ?? [])
-    return keyBy(allProfiles, 'id')
+    const profilesByUsernames = {}
+    allProfiles.forEach((profile) => {
+      profile.content.names.forEach((name) => {
+        if (name.username) {
+          profilesByUsernames[name.username] = profile
+        }
+      })
+    })
+    return profilesByUsernames
   }
 
   const loadData = async () => {
