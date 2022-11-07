@@ -165,7 +165,7 @@ const AuthorConsole = ({ appContext }) => {
     reviewConfidenceName,
     authorName,
     submissionName,
-    showAuthorProfileStatus,
+    showAuthorProfileStatus, // defaults to true
     blindSubmissionId, // for v1 only
   } = useContext(WebFieldContext)
 
@@ -198,7 +198,7 @@ const AuthorConsole = ({ appContext }) => {
     })
 
     const [{ profiles: idProfiles }, { profiles: emailProfiles }] = await Promise.all([
-      api.get('/profiles', { ids: Array.from(authorIds) }, { accessToken }),
+      api.get('/profiles', { ids: Array.from(authorIds).join(',') }, { accessToken }),
       api.get('/profiles', { emails: Array.from(authorEmails).join(',') }, { accessToken }),
     ])
     const allProfiles = (idProfiles ?? []).concat(emailProfiles ?? [])
@@ -302,7 +302,7 @@ const AuthorConsole = ({ appContext }) => {
       setAuthorNotes(result[0])
       setInvitations(formatInvitations(result[1]))
 
-      if (showAuthorProfileStatus) {
+      if (showAuthorProfileStatus !== false) {
         // Load profile of all co-authors to show active status next to their names
         const profiles = await loadProfiles(result[0], 1)
         setProfileMap(profiles)
@@ -378,7 +378,7 @@ const AuthorConsole = ({ appContext }) => {
       setAuthorNotes(result[0])
       setInvitations(formatInvitations(result[1]))
 
-      if (showAuthorProfileStatus) {
+      if (showAuthorProfileStatus !== false) {
         // Load profile of all co-authors
         const profiles = await loadProfiles(result[0], 2)
         setProfileMap(profiles)
