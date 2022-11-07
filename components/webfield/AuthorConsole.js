@@ -1,7 +1,10 @@
-/* globals typesetMathJax,promptError: false */
+/* globals typesetMathJax, promptError: false */
+
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
+import sum from 'lodash/sum'
+import keyBy from 'lodash/keyBy'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
@@ -33,6 +36,7 @@ const ReviewSummary = ({
   const noteCompletedReviews = note.details.directReplies?.filter(directlyReplyFilterFn) ?? []
   const ratings = []
   const confidences = []
+
   noteCompletedReviews.forEach((p) => {
     const ratingEx = /^(\d+): .*$/
     const ratingValue = isV2Note
@@ -48,30 +52,24 @@ const ReviewSummary = ({
   })
 
   let [averageRating, minRating, maxRating, averageConfidence, minConfidence, maxConfidence] =
-    Array(6).fill('N/A')
+    new Array(6).fill('N/A')
   if (ratings.some((p) => p)) {
     const validRatings = ratings.filter((p) => p)
     minRating = Math.min(...validRatings)
     maxRating = Math.max(...validRatings)
-    averageRating =
-      Math.round(
-        (validRatings.reduce((prev, curr) => prev + curr, 0) * 100) / validRatings.length
-      ) / 100
+    averageRating = Math.round(sum(validRatings) / validRatings.length * 100) / 100
   }
   if (confidences.some((p) => p)) {
     const validConfidences = confidences.filter((p) => p)
     minConfidence = Math.min(...validConfidences)
     maxConfidence = Math.max(...validConfidences)
-    averageConfidence =
-      Math.round(
-        (validConfidences.reduce((prev, curr) => prev + curr, 0) * 100) /
-          validConfidences.length
-      ) / 100
+    averageConfidence = Math.round(sum(validConfidences) / validConfidences.length * 100) / 100
   }
 
   return (
     <div className="author-console-reviewer-progress">
       <h4>{`${noteCompletedReviews.length} Reviews Submitted`}</h4>
+
       <ul className="list-unstyled">
         {noteCompletedReviews.map((review) => {
           const reviewRatingValue = isV2Note
@@ -95,6 +93,7 @@ const ReviewSummary = ({
           )
         })}
       </ul>
+
       <div>
         <strong>Average Rating:</strong> {averageRating} (Min: {minRating}, Max: {maxRating})
         <br />
@@ -114,6 +113,7 @@ const AuthorSubmissionRow = ({
   reviewConfidenceName,
   submissionName,
   authorName,
+  profileMap,
 }) => {
   const isV2Note = note.version === 2
   const referrerUrl = encodeURIComponent(
@@ -125,7 +125,7 @@ const AuthorSubmissionRow = ({
         <strong className="note-number">{note.number}</strong>
       </td>
       <td>
-        <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={isV2Note} />
+        <NoteSummary note={note} profileMap={profileMap} referrerUrl={referrerUrl} isV2Note={isV2Note} />
       </td>
       <td>
         <ReviewSummary
@@ -165,6 +165,7 @@ const AuthorConsole = ({ appContext }) => {
     reviewConfidenceName,
     authorName,
     submissionName,
+    showAuthorProfileStatus,
     blindSubmissionId, // for v1 only
   } = useContext(WebFieldContext)
 
@@ -174,10 +175,35 @@ const AuthorConsole = ({ appContext }) => {
   const { setBannerContent } = appContext
   const [authorNotes, setAuthorNotes] = useState([])
   const [invitations, setInvitations] = useState([])
+  const [profileMap, setProfileMap] = useState(null)
 
   const wildcardInvitation = `${venueId}/.*`
 
   const formatInvitations = (allInvitations) => formatTasksData([allInvitations, [], []], true)
+
+  const loadProfiles = async (notes, version) => {
+    const authorIds = new Set()
+    const authorEmails = new Set()
+    notes.forEach((note) => {
+      const ids = version === 2 ? note.content.authorids.value : note.content.authorids
+      if (!Array.isArray(ids)) return
+
+      ids.forEach((id) => {
+        if (id.includes('@')) {
+          authorEmails.add(id)
+        } else {
+          authorIds.add(id)
+        }
+      })
+    })
+
+    const [{ profiles: idProfiles }, { profiles: emailProfiles }] = await Promise.all([
+      api.get('/profiles', { ids: Array.from(authorIds) }, { accessToken }),
+      api.get('/profiles', { emails: Array.from(authorEmails).join(',') }, { accessToken }),
+    ])
+    const allProfiles = (idProfiles ?? []).concat(emailProfiles ?? [])
+    return keyBy(allProfiles, 'id')
+  }
 
   const loadData = async () => {
     const notesP = api
@@ -215,8 +241,12 @@ const AuthorConsole = ({ appContext }) => {
                 .filter((note) => note.invitation === blindSubmissionId)
                 .map((blindNote) => {
                   const originalNote = originalNotes.find((p) => p.id === blindNote.original)
-                  blindNote.content.authors = originalNote.content.authors // eslint-disable-line no-param-reassign
-                  blindNote.content.authorids = originalNote.content.authorids // eslint-disable-line no-param-reassign
+                  if (originalNote) {
+                    // eslint-disable-next-line no-param-reassign
+                    blindNote.content.authors = originalNote.content.authors
+                    // eslint-disable-next-line no-param-reassign
+                    blindNote.content.authorids = originalNote.content.authorids
+                  }
                   return blindNote
                 })
             )
@@ -271,6 +301,12 @@ const AuthorConsole = ({ appContext }) => {
 
       setAuthorNotes(result[0])
       setInvitations(formatInvitations(result[1]))
+
+      if (showAuthorProfileStatus) {
+        // Load profile of all co-authors to show active status next to their names
+        const profiles = await loadProfiles(result[0], 1)
+        setProfileMap(profiles)
+      }
     } catch (error) {
       promptError(error.message)
     }
@@ -341,6 +377,12 @@ const AuthorConsole = ({ appContext }) => {
 
       setAuthorNotes(result[0])
       setInvitations(formatInvitations(result[1]))
+
+      if (showAuthorProfileStatus) {
+        // Load profile of all co-authors
+        const profiles = await loadProfiles(result[0], 2)
+        setProfileMap(profiles)
+      }
     } catch (error) {
       promptError(error.message)
     }
@@ -440,6 +482,7 @@ const AuthorConsole = ({ appContext }) => {
                       reviewConfidenceName={reviewConfidenceName}
                       submissionName={submissionName}
                       authorName={authorName}
+                      profileMap={profileMap}
                     />
                   ))}
                 </Table>
