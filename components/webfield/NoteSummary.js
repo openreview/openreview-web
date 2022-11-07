@@ -1,11 +1,14 @@
 import { forumDate, getNotePdfUrl } from '../../lib/utils'
 import Collapse from '../Collapse'
+import Icon from '../Icon'
 import NoteContent, { NoteContentV2 } from '../NoteContent'
 
-const NoteSummary = ({ note, referrerUrl, isV2Note, showDates = false }) => {
+const NoteSummary = ({ note, referrerUrl, isV2Note, profileMap, showDates = false }) => {
   const titleValue = isV2Note ? note.content?.title?.value : note.content?.title
   const pdfValue = isV2Note ? note.content?.pdf?.value : note.content?.pdf
   const authorsValue = isV2Note ? note.content?.authors?.value : note.content?.authors
+  const authorIdsValue = isV2Note ? note.content?.authorids?.value : note.content?.authorids
+
   return (
     <div className="note">
       <h4>
@@ -17,6 +20,7 @@ const NoteSummary = ({ note, referrerUrl, isV2Note, showDates = false }) => {
           {titleValue}
         </a>
       </h4>
+
       {pdfValue && (
         <div className="download-pdf-link">
           <a
@@ -32,7 +36,27 @@ const NoteSummary = ({ note, referrerUrl, isV2Note, showDates = false }) => {
           </a>
         </div>
       )}
-      {authorsValue && <div className="note-authors">{authorsValue.join(', ')}</div>}
+
+      {authorsValue && (
+        <div className="note-authors">
+          {authorsValue.map((authorName, i) => {
+            const authorId = authorIdsValue[i]
+            const authorProfile = profileMap?.[authorIdsValue[i]]
+            return (
+              <span key={authorId}>
+                {authorName}
+                {authorProfile && (
+                  authorProfile.active ? (
+                    <Icon name="ok-sign" tooltip="Profile active" extraClasses="pl-1 text-success" />
+                  ) : (
+                    <Icon name="remove-sign" tooltip="Profile inactive" extraClasses="pl-1 text-danger" />
+                  )
+                )}
+              </span>
+            )
+          }).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+        </div>
+      )}
 
       {showDates && (
         <div>
