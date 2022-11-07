@@ -209,6 +209,9 @@ const AuthorConsole = ({ appContext }) => {
           profilesByUsernames[name.username] = profile
         }
       })
+      if (profile.email) {
+        profilesByUsernames[profile.email] = profile
+      }
     })
     return profilesByUsernames
   }
