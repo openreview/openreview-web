@@ -45,8 +45,8 @@ const NoteSummary = ({ note, referrerUrl, isV2Note, profileMap, showDates = fals
             return (
               <span key={authorId}>
                 {authorName}
-                {authorProfile && (
-                  authorProfile.active ? (
+                {profileMap && (
+                  authorProfile?.active ? (
                     <Icon name="ok-sign" tooltip="Profile active" extraClasses="pl-1 text-success" />
                   ) : (
                     <Icon name="remove-sign" tooltip="Profile inactive" extraClasses="pl-1 text-danger" />
