@@ -1,10 +1,9 @@
-/* globals typesetMathJax, promptError: false */
+/* globals $, typesetMathJax, promptError: false */
 
 import { useContext, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import sum from 'lodash/sum'
-import keyBy from 'lodash/keyBy'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
@@ -173,8 +172,8 @@ const AuthorConsole = ({ appContext }) => {
   const router = useRouter()
   const query = useQuery()
   const { setBannerContent } = appContext
-  const [authorNotes, setAuthorNotes] = useState([])
-  const [invitations, setInvitations] = useState([])
+  const [authorNotes, setAuthorNotes] = useState(null)
+  const [invitations, setInvitations] = useState(null)
   const [profileMap, setProfileMap] = useState(null)
 
   const wildcardInvitation = `${venueId}/.*`
@@ -199,7 +198,7 @@ const AuthorConsole = ({ appContext }) => {
 
     const [{ profiles: idProfiles }, { profiles: emailProfiles }] = await Promise.all([
       api.get('/profiles', { ids: Array.from(authorIds).join(',') }, { accessToken }),
-      api.get('/profiles', { emails: Array.from(authorEmails).join(',') }, { accessToken }),
+      api.get('/profiles', { confirmedEmails: Array.from(authorEmails).join(',') }, { accessToken }),
     ])
     const allProfiles = (idProfiles ?? []).concat(emailProfiles ?? [])
     const profilesByUsernames = {}
@@ -430,9 +429,12 @@ const AuthorConsole = ({ appContext }) => {
   }, [user, userLoading, group])
 
   useEffect(() => {
-    if (authorNotes) {
+    if (!authorNotes) return
+
+    setTimeout(() => {
       typesetMathJax()
-    }
+      $('[data-toggle="tooltip"]').tooltip()
+    }, 100)
   }, [authorNotes])
 
   const missingConfig = Object.entries({
@@ -469,9 +471,7 @@ const AuthorConsole = ({ appContext }) => {
 
         <TabPanels>
           <TabPanel id="your-submissions">
-            {authorNotes?.length === 0 ? (
-              <p className="empty-message">No papers to display at this time</p>
-            ) : (
+            {authorNotes?.length > 0 ? (
               <div className="table-container">
                 <Table
                   className="console-table table-striped"
@@ -498,6 +498,8 @@ const AuthorConsole = ({ appContext }) => {
                   ))}
                 </Table>
               </div>
+            ) : (
+              <p className="empty-message">No papers to display at this time</p>
             )}
           </TabPanel>
           <TabPanel id="author-tasks">
