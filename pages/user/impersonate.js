@@ -1,6 +1,7 @@
 /* globals promptError: false */
 
-import { useContext, useState } from 'react'
+import { useContext, useState, useEffect } from 'react'
+import uniq from 'lodash/uniq'
 import Head from 'next/head'
 import Icon from '../../components/Icon'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -11,8 +12,9 @@ import api from '../../lib/api-client'
 
 const Impersonate = () => {
   const [userId, setUserId] = useState('')
+  const [previousImpersonations, setPreviousImpersonations] = useState(null)
   const [error, setError] = useState(null)
-  const { userLoading, accessToken } = useLoginRedirect()
+  const { userLoading, user, accessToken } = useLoginRedirect()
   const { loginUser } = useContext(UserContext)
 
   const impersonateUser = async (e) => {
@@ -25,16 +27,29 @@ const Impersonate = () => {
     }
 
     try {
-      const { user, token } = await api.post(
+      const { user: newUser, token } = await api.post(
         '/impersonate',
         { groupId: userId },
         { accessToken }
       )
-      loginUser(user, token, '/profile')
+      const trimmedList = uniq([userId, ...previousImpersonations].slice(0, 10))
+      localStorage.setItem(`${user.profile.id}|impersonatedUsers`, JSON.stringify(trimmedList))
+      loginUser(newUser, token, '/profile')
     } catch (apiError) {
       setError(apiError)
     }
   }
+
+  useEffect(() => {
+    if (userLoading) return
+
+    try {
+      const userList = localStorage.getItem(`${user.profile.id}|impersonatedUsers`)
+      setPreviousImpersonations(JSON.parse(userList ?? []))
+    } catch (_error) {
+      setPreviousImpersonations([])
+    }
+  }, [userLoading])
 
   if (userLoading) {
     return <LoadingSpinner />
@@ -77,6 +92,31 @@ const Impersonate = () => {
             Impersonate
           </button>
         </form>
+
+        {previousImpersonations?.length > 0 && (
+          <div style={{ marginTop: '1.875rem' }}>
+            <hr />
+            <h4>Previous Impersonations</h4>
+            <ul className="list-unstyled">
+              {previousImpersonations.map((id) => (
+                <li key={id}>
+                  {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                  <a
+                    href="#"
+                    role="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setError(null)
+                      setUserId(id)
+                    }}
+                  >
+                    {id}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   )
