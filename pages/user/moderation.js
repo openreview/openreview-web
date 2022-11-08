@@ -480,8 +480,8 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
           status: response ? 'Accepted' : 'Rejected',
           ...(!response && { support_comment: supportComment }),
         },
-        readers: buildArray(nameDeletionDecisionInvitation, 'readers', superUser.profile.id),
-        writers: buildArray(nameDeletionDecisionInvitation, 'writers', superUser.profile.id),
+        readers: buildArray(profileMergeDecisionInvitation, 'readers', superUser.profile.id),
+        writers: buildArray(profileMergeDecisionInvitation, 'writers', superUser.profile.id),
         signatures: buildArray(
           profileMergeDecisionInvitation,
           'signatures',
@@ -493,7 +493,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
       loadProfileMergeRequests()
     } catch (error) {
       promptError(error.message)
-      setIdsLoading((p) => p.filter((q) => q !== nameDeletionNote.id))
+      setIdsLoading((p) => p.filter((q) => q !== profileMergeNote.id))
     }
   }
 
@@ -620,7 +620,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
                         className="btn btn-xs"
                         disabled={idsLoading.includes(note.id)}
                         onClick={() => {
-                          acceptRejectNameDeletionNote(note, true)
+                          acceptRejectProfileMergeNote(note, true)
                         }}
                       >
                         <Icon name="ok-circle" /> Accept
