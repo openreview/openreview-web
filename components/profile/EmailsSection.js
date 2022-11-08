@@ -1,11 +1,12 @@
 /* globals promptError,promptMessage,$: false */
 
-import { useEffect, useReducer, useRef } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import { nanoid } from 'nanoid'
 import Icon from '../Icon'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { isValidEmail } from '../../lib/utils'
+import ProfileMergeModal from '../ProfileMergeModal'
 
 const EmailsButton = ({
   type,
@@ -81,7 +82,7 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
     profileEmails?.map((p) => ({ ...p, key: nanoid(), isValid: true })) ?? []
   )
   const { accessToken } = useUser()
-  const alreadyConfirmedError = useRef(null)
+  const [alreadyConfirmedError, setAlreadyConfirmedError] = useState(null)
 
   const handleAddEmail = () => {
     setEmails({ addNewEmail: true, data: { email: '', key: nanoid(), isValid: true } })
@@ -115,12 +116,12 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
         return promptMessage(`A confirmation email has been sent to ${newEmail}`)
       } catch (error) {
         if (error.message.includes('confirmed')) {
-          alreadyConfirmedError.current = error.details
+          setAlreadyConfirmedError(error.details)
           return promptError(
             `Error: ${error.details.alternate} is already associated with another OpenReview profile,
           <a href="/profile?id=${error.details.otherProfile}" title="View profile" target="_blank" class="action-link">${error.details.otherProfile}</a>.
-          To merge this profile with your account, please click here to submit a support request:
-          <a href="#" title="View profile" target="_blank" class="action-link" data-toggle="modal" data-target="#feedback-modal">Merge Profiles</a>.
+          To merge this profile with your account, please click here to submit a profile merge request:
+          <a href="#" title="View profile" target="_blank" class="action-link" data-toggle="modal" data-target="#profileMerge-modal">Merge Profiles</a>.
           `,
             { html: true }
           )
@@ -131,21 +132,6 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
       return promptError('You need to save your profile before confirming a new email')
     }
   }
-
-  useEffect(() => {
-    $('#feedback-modal').on('shown.bs.modal', (e) => {
-      $('#feedback-modal').find('#feedback-from').val(alreadyConfirmedError.current?.user)
-      $('#feedback-modal').find('#feedback-subject').val('Merge Profiles')
-      $('#feedback-modal')
-        .find('#feedback-message')
-        .val(
-          `Hi OpenReview Support,\n\nPlease merge the profiles with the following usernames:\n${alreadyConfirmedError.current?.otherProfile}\n${alreadyConfirmedError.current?.thisProfile}\n\nThank you.`
-        )
-    })
-    return () => {
-      $('#feedback-modal').off('shown.bs.modal')
-    }
-  }, [])
 
   useEffect(() => {
     updateEmails(emails)
@@ -195,6 +181,15 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
       <div role="button" aria-label="add another email" tabIndex={0} onClick={handleAddEmail}>
         <Icon name="plus-sign" tooltip="add another email" />
       </div>
+
+      <ProfileMergeModal
+        preFillProfileMergeInfo={{
+          email: alreadyConfirmedError?.user,
+          left: alreadyConfirmedError?.thisProfile,
+          right: alreadyConfirmedError?.otherProfile,
+          comment: '',
+        }}
+      />
     </div>
   )
 }

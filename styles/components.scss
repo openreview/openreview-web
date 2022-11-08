@@ -1161,11 +1161,6 @@ table.table-minimal {
       width: 6%;
     }
 
-    .col-process-status {
-      margin-right: 0.5rem;
-      width: 4%;
-    }
-
     .name {
       width: 15%;
       overflow: hidden;
@@ -1193,6 +1188,51 @@ table.table-minimal {
         box-shadow: inset 0 1px 1px rgb(0 0 0 / 5%);
         white-space: normal;
       }
+    }
+    .col-created {
+      width: 18%;
+      margin-right: 0.25rem;
+    }
+    .col-actions {
+      width: 20%;
+    }
+  }
+}
+
+.profile-merge-list {
+  .profile-merge-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    line-height: 26px;
+
+    .col-status {
+      margin-right: 0.25rem;
+      width: 6%;
+    }
+    .signature {
+      width: 10%;
+    }
+
+    .email,
+    .compare {
+      width: 15%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-right: 0.25rem;
+    }
+
+    .compare {
+      width: 10%;
+    }
+    .comment {
+      width: 5%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex-grow: 1;
+      margin-right: 0.5rem;
     }
     .col-created {
       width: 18%;
