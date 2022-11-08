@@ -42,14 +42,25 @@ const NoteSummary = ({ note, referrerUrl, isV2Note, profileMap, showDates = fals
           {authorsValue.map((authorName, i) => {
             const authorId = authorIdsValue[i]
             const authorProfile = profileMap?.[authorIdsValue[i]]
+            const errorTooltip = authorProfile
+              ? 'Profile not yet activated'
+              : 'Profile not yet created or email not confirmed'
             return (
               <span key={authorId}>
                 {authorName}
                 {profileMap && (
                   authorProfile?.active ? (
-                    <Icon name="ok-sign" tooltip="Profile active" extraClasses="pl-1 text-success" />
+                    <Icon
+                      name="ok-sign"
+                      tooltip="Profile is active and email confirmed"
+                      extraClasses="pl-1 text-success"
+                    />
                   ) : (
-                    <Icon name="remove-sign" tooltip="Profile inactive" extraClasses="pl-1 text-danger" />
+                    <Icon
+                      name="remove-sign"
+                      tooltip={errorTooltip}
+                      extraClasses="pl-1 text-danger"
+                    />
                   )
                 )}
               </span>
