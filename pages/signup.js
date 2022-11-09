@@ -145,140 +145,132 @@ const SignupForm = ({ setSignupConfirmation }) => {
   }, [firstName, lastName, isComposing])
 
   return (
-    <>
-      <div className="signup-form-container">
-        <form onSubmit={(e) => e.preventDefault()}>
-          <div className="row">
-            <div className="form-group col-xs-12 col-sm-4">
-              <label htmlFor="first-input">First</label>
-              <input
-                type="text"
-                id="first-input"
-                className="form-control"
-                value={firstName}
-                onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
-                onCompositionEnd={() => setIsComposing(false)}
-                onChange={(e) => {
-                  clearMessage()
-                  setFirstName(e.target.value)
-                }}
-                placeholder="First name"
-                autoComplete="given-name"
-              />
-            </div>
-
-            <div className="form-group col-xs-12 col-sm-4">
-              <label htmlFor="middle-input">
-                Middle <span className="hint">(optional)</span>
-              </label>
-              <input
-                type="text"
-                id="middle-input"
-                className="form-control"
-                value={middleName}
-                onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
-                onCompositionEnd={() => setIsComposing(false)}
-                onChange={(e) => {
-                  clearMessage()
-                  setMiddleName(e.target.value)
-                }}
-                placeholder="Middle name"
-                autoComplete="additional-name"
-              />
-            </div>
-
-            <div className="form-group col-xs-12 col-sm-4">
-              <label htmlFor="last-input">Last</label>
-              <input
-                type="text"
-                id="last-input"
-                className="form-control"
-                value={lastName}
-                onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
-                onCompositionEnd={() => setIsComposing(false)}
-                onChange={(e) => {
-                  clearMessage()
-                  setLastName(e.target.value)
-                }}
-                placeholder="Last name"
-                autoComplete="family-name"
-              />
-            </div>
+    <div className="signup-form-container">
+      <form onSubmit={(e) => e.preventDefault()}>
+        <div className="row">
+          <div className="form-group col-xs-12 col-sm-4">
+            <label htmlFor="first-input">First</label>
+            <input
+              type="text"
+              id="first-input"
+              className="form-control"
+              value={firstName}
+              onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
+              onCompositionEnd={() => setIsComposing(false)}
+              onChange={(e) => {
+                clearMessage()
+                setFirstName(e.target.value)
+              }}
+              placeholder="First name"
+              autoComplete="given-name"
+            />
           </div>
-        </form>
 
-        <hr className="spacer" />
+          <div className="form-group col-xs-12 col-sm-4">
+            <label htmlFor="middle-input">
+              Middle <span className="hint">(optional)</span>
+            </label>
+            <input
+              type="text"
+              id="middle-input"
+              className="form-control"
+              value={middleName}
+              onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
+              onCompositionEnd={() => setIsComposing(false)}
+              onChange={(e) => {
+                clearMessage()
+                setMiddleName(e.target.value)
+              }}
+              placeholder="Middle name"
+              autoComplete="additional-name"
+            />
+          </div>
 
-        <LoadingContext.Provider value={loading}>
-          {existingProfiles.map((profile) => {
-            let formComponents
-            const allEmails = profile.active
-              ? profile.emailsConfirmed
-              : [...profile.emailsConfirmed, ...profile.emails]
+          <div className="form-group col-xs-12 col-sm-4">
+            <label htmlFor="last-input">Last</label>
+            <input
+              type="text"
+              id="last-input"
+              className="form-control"
+              value={lastName}
+              onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
+              onCompositionEnd={() => setIsComposing(false)}
+              onChange={(e) => {
+                clearMessage()
+                setLastName(e.target.value)
+              }}
+              placeholder="Last name"
+              autoComplete="family-name"
+            />
+          </div>
+        </div>
+      </form>
 
-            if (allEmails.length > 0) {
-              formComponents = Array.from(new Set(allEmails)).map((email) => (
-                <ExistingProfileForm
-                  key={`${profile.id} ${email}`}
-                  id={profile.id}
-                  obfuscatedEmail={email}
-                  hasPassword={profile.password}
-                  isActive={profile.active}
-                  registerUser={registerUser}
-                  resetPassword={resetPassword}
-                  sendActivationLink={sendActivationLink}
-                />
-              ))
-            } else {
-              formComponents = [
-                <ClaimProfileForm
-                  key={profile.id}
-                  id={profile.id}
-                  registerUser={registerUser}
-                />,
-              ]
-            }
-            return formComponents.concat(
-              <hr key={`${profile.id}-spacer`} className="spacer" />
-            )
-          })}
+      <hr className="spacer" />
 
-          <NewProfileForm
-            id={newUsername}
-            registerUser={registerUser}
-            nameConfirmed={nameConfirmed}
-          />
-        </LoadingContext.Provider>
+      <LoadingContext.Provider value={loading}>
+        {existingProfiles.map((profile) => {
+          let formComponents
+          const allEmails = profile.active
+            ? profile.emailsConfirmed
+            : [...profile.emailsConfirmed, ...profile.emails]
 
-        {/* {existingProfiles.length > 0 && ( */}
+          if (allEmails.length > 0) {
+            formComponents = Array.from(new Set(allEmails)).map((email) => (
+              <ExistingProfileForm
+                key={`${profile.id} ${email}`}
+                id={profile.id}
+                obfuscatedEmail={email}
+                hasPassword={profile.password}
+                isActive={profile.active}
+                registerUser={registerUser}
+                resetPassword={resetPassword}
+                sendActivationLink={sendActivationLink}
+              />
+            ))
+          } else {
+            formComponents = [
+              <ClaimProfileForm
+                key={profile.id}
+                id={profile.id}
+                registerUser={registerUser}
+              />,
+            ]
+          }
+          return formComponents.concat(<hr key={`${profile.id}-spacer`} className="spacer" />)
+        })}
+
+        <NewProfileForm
+          id={newUsername}
+          registerUser={registerUser}
+          nameConfirmed={nameConfirmed}
+        />
+      </LoadingContext.Provider>
+
+      {existingProfiles.length > 0 && (
         <p className="merge-message hint">
           If two or more of the profiles above belong to you, please{' '}
           {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-          <a
-            href="#"
-            data-toggle="modal"
-            data-target="#profileMerge-modal"
-            // onClick={populateFeedbackForm}
-          >
+          <a href="#" data-toggle="modal" data-target="#profileMerge-modal">
             contact us
           </a>{' '}
           and we will assist you in merging your profiles.
         </p>
-        {/* )} */}
+      )}
 
-        <ConfirmNameModal
-          firstName={firstName}
-          middleName={middleName}
-          lastName={lastName}
-          newUsername={newUsername}
-          onConfirm={() => {
-            $('#confirm-name-modal').modal('hide')
-            setNameConfirmed(true)
-          }}
-        />
-      </div>
+      <ConfirmNameModal
+        firstName={firstName}
+        middleName={middleName}
+        lastName={lastName}
+        newUsername={newUsername}
+        onConfirm={() => {
+          $('#confirm-name-modal').modal('hide')
+          setNameConfirmed(true)
+        }}
+      />
+
       <ProfileMergeModal />
-    </>
+    </div>
   )
 }
 
