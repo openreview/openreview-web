@@ -43,7 +43,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
     debounce(async (first, last) => {
       try {
         // Don't include middle name in profile search to find more results
-        const { profiles } = await api.get('/profiles', { first, last, limit: 50 })
+        const { profiles } = await api.get('/profiles', { first, last, limit: 100 })
         if (profiles) {
           setExistingProfiles(
             profiles.map((profile) => ({

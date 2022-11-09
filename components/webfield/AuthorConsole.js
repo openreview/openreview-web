@@ -196,13 +196,17 @@ const AuthorConsole = ({ appContext }) => {
       })
     })
 
-    const [{ profiles: idProfiles }, { profiles: emailProfiles }] = await Promise.all([
-      api.get('/profiles', { ids: Array.from(authorIds).join(',') }, { accessToken }),
-      api.get('/profiles', { confirmedEmails: Array.from(authorEmails).join(',') }, { accessToken }),
-    ])
-    const allProfiles = (idProfiles ?? []).concat(emailProfiles ?? [])
+    const getProfiles = (apiRes) => apiRes.profiles ?? []
+    const idProfilesP = authorIds.size > 0
+      ? api.get('/profiles', { ids: Array.from(authorIds).join(',') }, { accessToken }).then(getProfiles)
+      : Promise.resolve([])
+    const emailProfilesP = authorEmails.size > 0
+      ? api.get('/profiles', { confirmedEmails: Array.from(authorEmails).join(',') }, { accessToken }).then(getProfiles)
+      : Promise.resolve([])
+    const [idProfiles, emailProfiles] = await Promise.all([idProfilesP, emailProfilesP])
+
     const profilesByUsernames = {}
-    allProfiles.forEach((profile) => {
+    idProfiles.concat(emailProfiles).forEach((profile) => {
       profile.content.names.forEach((name) => {
         if (name.username) {
           profilesByUsernames[name.username] = profile
