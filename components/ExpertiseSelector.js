@@ -24,7 +24,7 @@ const paperDisplayOptions = {
 }
 
 export default function ExpertiseSelector({ invitation, venueId, apiVersion, shouldReload }) {
-  const { user, userLoading } = useUser()
+  const { user, accessToken, userLoading } = useUser()
   const [edgesMap, setEdgesMap] = useState(null)
   const [userPapersQuery, setUserPapersQuery] = useState(null)
 
@@ -55,7 +55,7 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
         tail: user.profile.id,
         label: value,
         ddate,
-      })
+      }, { accessToken, version: apiVersion })
       setEdgesMap({
         ...edgesMap,
         [noteId]: res,
@@ -96,7 +96,7 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
         const edges = await api.getAll('/edges', {
           invitation: invitation.id,
           tail: user.profile.id,
-        })
+        }, { accessToken, version: apiVersion })
         if (edges?.length > 0) {
           setEdgesMap(keyBy(edges, 'head'))
         } else {
