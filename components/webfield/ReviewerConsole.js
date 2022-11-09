@@ -301,7 +301,7 @@ const ReviewerConsoleTasks = ({
       invitations={invitations}
       emptyMessage={isLoading ? 'Loading...' : 'No outstanding tasks for this conference'}
       referrer={`${encodeURIComponent(
-        `[Reviewer Console](/group?id=${venueId}/${reviewerName}'#reviewer-tasks)`
+        `[Reviewer Console](/group?id=${venueId}/${reviewerName}#reviewer-tasks)`
       )}&t=${Date.now()}`}
     />
   )
