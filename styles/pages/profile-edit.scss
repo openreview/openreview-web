@@ -112,6 +112,7 @@ main.profile-edit {
       color: grey;
       .request-merge {
         cursor: pointer;
+        color: constants.$mediumBlue;
       }
     }
     .persistent-url-input {

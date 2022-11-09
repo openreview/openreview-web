@@ -1,4 +1,4 @@
-/* globals $: false */
+/* globals $,promptMessage: false */
 
 import { useState, useContext, useReducer, useEffect } from 'react'
 import BasicModal from './BasicModal'
@@ -17,7 +17,7 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
     comment: '',
   }
   const [profileMergeInfo, setProfileMergeInfo] = useReducer(
-    profileMergeInfoReducer,
+    profileMergeInfoReducer, // eslint-disable-line no-use-before-define
     preFillProfileMergeInfo ?? defaultProfileMergeInfo
   )
 
@@ -52,13 +52,10 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
     return { ...state, [action.type]: action.payload }
   }
 
-  const isProfileMergeInfoComplete = () => {
-    return (
-      Object.values(profileMergeInfo).every((p) => p) &&
-      isValidEmail(profileMergeInfo.email) &&
-      profileMergeInfo.idPairsToMerge?.length
-    )
-  }
+  const isProfileMergeInfoComplete = () =>
+    Object.values(profileMergeInfo).every((p) => p) &&
+    isValidEmail(profileMergeInfo.email) &&
+    profileMergeInfo.idPairsToMerge?.length
 
   const postProfileMergeRequest = async () => {
     setIsLoading(true)
@@ -70,8 +67,8 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
       )
       const profileMergeInvitation = result.invitations[0]
       await Promise.all(
-        profileMergeInfo.idPairsToMerge.map((idPairToMerge) => {
-          return api.post(
+        profileMergeInfo.idPairsToMerge.map((idPairToMerge) =>
+          api.post(
             '/notes',
             {
               invitation: profileMergeInvitation.id,
@@ -96,7 +93,7 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
             },
             { accessToken }
           )
-        })
+        )
       )
 
       $('#profileMerge-modal').modal('hide')

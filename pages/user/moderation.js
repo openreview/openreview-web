@@ -421,14 +421,14 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
         { accessToken, resultsKey: 'logs' }
       )
 
-      const [profileMergeNotes, decisionResults, processLogs] = await Promise.all([
+      const [profileMergeNotesResults, decisionResults, processLogs] = await Promise.all([
         profileMergeNotesP,
         decisionResultsP,
         processLogsP,
       ])
       const sortedResult = [
-        ...profileMergeNotes.notes.filter((p) => p.content.status === 'Pending'),
-        ...profileMergeNotes.notes.filter((p) => p.content.status !== 'Pending'),
+        ...profileMergeNotesResults.notes.filter((p) => p.content.status === 'Pending'),
+        ...profileMergeNotesResults.notes.filter((p) => p.content.status !== 'Pending'),
       ].map((p) => {
         const decisionReference = decisionResults.find((q) => q.referent === p.id)
         let processLogStatus = 'N/A'
@@ -447,7 +447,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
       setProfileMergeNotesToShow(
         sortedResult.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
       )
-      const pendingRequestCount = profileMergeNotes.notes.filter(
+      const pendingRequestCount = profileMergeNotesResults.notes.filter(
         (p) => p.content.status === 'Pending'
       ).length
       const errorProcessCount = sortedResult.filter(

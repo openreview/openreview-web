@@ -1,8 +1,8 @@
 import { groupBy } from 'lodash'
+import { useContext, useState } from 'react'
 import Accordion from './Accordion'
 import Table from './Table'
 import { buildArray, inflect } from '../lib/utils'
-import { useContext, useState } from 'react'
 import UserContext from './UserContext'
 import api from '../lib/api-client'
 import ErrorAlert from './ErrorAlert'
@@ -224,9 +224,9 @@ const DblpPublicationRow = ({
       default:
         return (
           <>
-            <a className="request-merge" onClick={postProfileMergeRequest}>
+            <span type="button" className="request-merge" onClick={postProfileMergeRequest}>
               Request profile merge
-            </a>{' '}
+            </span>{' '}
             if you think this profile might be yours
           </>
         )
