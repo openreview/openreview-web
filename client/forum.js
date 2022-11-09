@@ -277,7 +277,7 @@ module.exports = function (forumId, noteId, invitationId, user) {
           if (editor) {
             $note.replaceWith(editor)
           }
-        })
+        }, { isReference: options?.revision })
       },
       withContent: true,
       withRevisionsLink: true,
@@ -326,7 +326,7 @@ module.exports = function (forumId, noteId, invitationId, user) {
     return $note
   }
 
-  var mkEditor = function (forumData, note, invitation, $anchor, done) {
+  var mkEditor = function (forumData, note, invitation, $anchor, done, options) {
     var $editor = null
 
     var invitationP = invitation
@@ -355,6 +355,7 @@ module.exports = function (forumId, noteId, invitationId, user) {
           $editor = editor
           done(editor)
         },
+        ...options,
       })
     })
   }
