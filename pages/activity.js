@@ -5,7 +5,6 @@
 import { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
 import LoadingSpinner from '../components/LoadingSpinner'
-import WebfieldContainer from '../components/WebfieldContainer'
 import ErrorAlert from '../components/ErrorAlert'
 import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
@@ -14,8 +13,7 @@ const Activity = ({ appContext }) => {
   const { user, accessToken } = useLoginRedirect()
   const [activityNotes, setActivityNotes] = useState(null)
   const [error, setError] = useState(null)
-  const activityRef = useRef(null)
-  const { setBannerHidden, clientJsLoading } = appContext
+  const { setBannerHidden } = appContext
 
   const loadActivityData = async () => {
     const queryParamV1 = {
@@ -50,20 +48,11 @@ const Activity = ({ appContext }) => {
   }, [accessToken])
 
   useEffect(() => {
-    if (clientJsLoading || !activityNotes) return
-
-    $(activityRef.current).empty()
-    Webfield.ui.activityList(activityNotes, {
-      container: activityRef.current,
-      emptyMessage: 'No recent activity to display.',
-      user: user.profile,
-      showActionButtons: true,
-    })
+    if (!activityNotes) return
 
     $('[data-toggle="tooltip"]').tooltip()
-
     typesetMathJax()
-  }, [clientJsLoading, activityNotes])
+  }, [activityNotes])
 
   return (
     <div className="activity-container">
@@ -76,8 +65,15 @@ const Activity = ({ appContext }) => {
       </header>
 
       {!error && !activityNotes && <LoadingSpinner />}
+
       {error && <ErrorAlert error={error} />}
-      <WebfieldContainer ref={activityRef} />
+
+      <BaseActivityList
+        notes={activityNotes}
+        user={user}
+        emptyMessage="No recent activity to display."
+        showActionButtons
+      />
     </div>
   )
 }
