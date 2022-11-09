@@ -41,8 +41,16 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
 
   const toggleEdge = async (noteId, value) => {
     const existingEdge = edgesMap[noteId]
-    const ddate =
-      existingEdge && existingEdge.label === value && !existingEdge.ddate ? Date.now() : null
+    let ddate = {}
+    if (existingEdge && existingEdge.label === value) {
+      if (existingEdge.ddate) {
+        // Un-delete the edge
+        ddate = apiVersion === 2 ? { ddate: { delete: true } } : { ddate: null }
+      } else {
+        // Delete the edge
+        ddate = { ddate: Date.now() }
+      }
+    }
 
     try {
       const res = await api.post('/edges', {
@@ -54,7 +62,7 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
         head: noteId,
         tail: user.profile.id,
         label: value,
-        ddate,
+        ...ddate,
       }, { accessToken, version: apiVersion })
       setEdgesMap({
         ...edgesMap,
