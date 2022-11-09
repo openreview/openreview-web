@@ -17,7 +17,22 @@ const Impersonate = () => {
   const { userLoading, user, accessToken } = useLoginRedirect()
   const { loginUser } = useContext(UserContext)
 
-  const impersonateUser = async (e) => {
+  const impersonateUser = async (groupId) => {
+    try {
+      const { user: newUser, token } = await api.post(
+        '/impersonate',
+        { groupId },
+        { accessToken }
+      )
+      const trimmedList = uniq([groupId, ...previousImpersonations].slice(0, 10))
+      localStorage.setItem(`${user.profile.id}|impersonatedUsers`, JSON.stringify(trimmedList))
+      loginUser(newUser, token, '/profile')
+    } catch (apiError) {
+      setError(apiError)
+    }
+  }
+
+  const handleSubmit = (e) => {
     e.preventDefault()
     setError(null)
 
@@ -26,18 +41,7 @@ const Impersonate = () => {
       return
     }
 
-    try {
-      const { user: newUser, token } = await api.post(
-        '/impersonate',
-        { groupId: userId },
-        { accessToken }
-      )
-      const trimmedList = uniq([userId, ...previousImpersonations].slice(0, 10))
-      localStorage.setItem(`${user.profile.id}|impersonatedUsers`, JSON.stringify(trimmedList))
-      loginUser(newUser, token, '/profile')
-    } catch (apiError) {
-      setError(apiError)
-    }
+    impersonateUser(userId)
   }
 
   useEffect(() => {
@@ -70,7 +74,7 @@ const Impersonate = () => {
 
         {error && <ErrorAlert error={error} />}
 
-        <form className="form-inline mb-4" onSubmit={impersonateUser}>
+        <form className="form-inline mb-4" onSubmit={handleSubmit}>
           <div className="input-group mr-2" style={{ width: 'calc(100% - 128px)' }}>
             <div className="input-group-addon" style={{ width: '34px' }}>
               <Icon name="user" />
@@ -107,7 +111,7 @@ const Impersonate = () => {
                     onClick={(e) => {
                       e.preventDefault()
                       setError(null)
-                      setUserId(id)
+                      impersonateUser(id)
                     }}
                   >
                     {id}
