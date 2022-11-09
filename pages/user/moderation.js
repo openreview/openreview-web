@@ -384,6 +384,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
   const [noteToReject, setNoteToReject] = useState(null)
   const [textToView, setTextToView] = useState(null)
   const [idsLoading, setIdsLoading] = useState([])
+  const [lastComparedNote, setLastComparedNote] = useState(null)
   const [page, setPage] = useState(1)
   const pageSize = 25
   const fullTextModalId = 'merge-fulltext-modal'
@@ -593,11 +594,14 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
                 >
                   {note.content.email}
                 </span>
-                <span className="compare">
+                <span
+                  className={`compare${note.id === lastComparedNote ? ' last-previewed' : ''}`}
+                >
                   <a
                     href={`/profile/compare?left=${note.content.left}&right=${note.content.right}`}
                     target="_blank"
                     rel="noreferrer"
+                    onClick={() => setLastComparedNote(note.id)}
                   >
                     Compare
                   </a>
@@ -623,7 +627,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
                           acceptRejectProfileMergeNote(note, true)
                         }}
                       >
-                        <Icon name="ok-circle" /> Accept
+                        <Icon name="ok-circle" /> Done
                       </button>{' '}
                       <button
                         type="button"
@@ -1268,7 +1272,7 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotesCount })
   )
 }
 
-const RequestRejectionModal = ({ noteToReject, acceptRejectRequest, setNoteToReject }) => {
+const RequestRejectionModal = ({ noteToReject, acceptRejectNote, setNoteToReject }) => {
   const [supportComment, setSupportComment] = useState('')
   if (!noteToReject) return null
   return (
@@ -1276,7 +1280,7 @@ const RequestRejectionModal = ({ noteToReject, acceptRejectRequest, setNoteToRej
       id="name-delete-reject"
       primaryButtonDisabled={!supportComment}
       onPrimaryButtonClick={() => {
-        acceptRejectRequest(noteToReject, false, supportComment)
+        acceptRejectNote(noteToReject, false, supportComment)
       }}
       onClose={() => {
         setNoteToReject(null)

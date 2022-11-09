@@ -1221,6 +1221,9 @@ table.table-minimal {
       text-overflow: ellipsis;
       white-space: nowrap;
       margin-right: 0.25rem;
+      &.last-previewed {
+        font-weight: bold;
+      }
     }
 
     .compare {

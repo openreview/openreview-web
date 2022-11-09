@@ -185,8 +185,7 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
       <ProfileMergeModal
         preFillProfileMergeInfo={{
           email: alreadyConfirmedError?.user,
-          left: alreadyConfirmedError?.thisProfile,
-          right: alreadyConfirmedError?.otherProfile,
+          idsToMerge: `${alreadyConfirmedError?.thisProfile},${alreadyConfirmedError?.otherProfile}`,
           comment: '',
         }}
       />

@@ -4,7 +4,7 @@ import { useState, useContext, useReducer, useEffect } from 'react'
 import BasicModal from './BasicModal'
 import UserContext from './UserContext'
 import api from '../lib/api-client'
-import { buildArray } from '../lib/utils'
+import { buildArray, isValidEmail } from '../lib/utils'
 
 const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
   const [isLoading, setIsLoading] = useState(false)
@@ -13,8 +13,7 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
   const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`
   const defaultProfileMergeInfo = {
     email: '',
-    left: '',
-    right: '',
+    idsToMerge: '',
     comment: '',
   }
   const [profileMergeInfo, setProfileMergeInfo] = useReducer(
@@ -26,14 +25,39 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
     if (preFillProfileMergeInfo) setProfileMergeInfo({ type: 'PREFILL' })
   }, [preFillProfileMergeInfo])
 
+  function getProfilePairsToMerge(profileIds) {
+    const ids = [...new Set(profileIds.split(',').map((p) => p.trim()))]
+    const idPairsToMerge = ids.reduce((prev, curr, index) => {
+      const remaining = ids.slice(index + 1)
+      remaining.forEach((p) => {
+        prev.push({ left: curr, right: p })
+      })
+
+      return prev
+    }, [])
+    return idPairsToMerge
+  }
+
   function profileMergeInfoReducer(state, action) {
     if (action.type === 'INIT') return preFillProfileMergeInfo ?? defaultProfileMergeInfo
-    if (action.type === 'PREFILL') return preFillProfileMergeInfo
+    if (action.type === 'PREFILL')
+      return {
+        ...preFillProfileMergeInfo,
+        idPairsToMerge: getProfilePairsToMerge(preFillProfileMergeInfo.idsToMerge),
+      }
+    if (action.type === 'idsToMerge') {
+      const idPairsToMerge = getProfilePairsToMerge(state.idsToMerge)
+      return { ...state, idsToMerge: action.payload, idPairsToMerge }
+    }
     return { ...state, [action.type]: action.payload }
   }
 
   const isProfileMergeInfoComplete = () => {
-    return Object.values(profileMergeInfo).every((p) => p)
+    return (
+      Object.values(profileMergeInfo).every((p) => p) &&
+      isValidEmail(profileMergeInfo.email) &&
+      profileMergeInfo.idPairsToMerge?.length
+    )
   }
 
   const postProfileMergeRequest = async () => {
@@ -45,23 +69,36 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
         { accessToken }
       )
       const profileMergeInvitation = result.invitations[0]
-      await api.post(
-        '/notes',
-        {
-          invitation: profileMergeInvitation.id,
-          content: {
-            email: profileMergeInfo.email,
-            left: profileMergeInfo.left,
-            right: profileMergeInfo.right,
-            comment: profileMergeInfo.comment,
-            status: 'Pending',
-          },
-          readers: buildArray(profileMergeInvitation, 'readers', user?.profile?.preferredId),
-          writers: buildArray(profileMergeInvitation, 'writers', user?.profile?.preferredId),
-          signatures: [user?.profile?.preferredId ?? '(guest)'],
-        },
-        { accessToken }
+      await Promise.all(
+        profileMergeInfo.idPairsToMerge.map((idPairToMerge) => {
+          return api.post(
+            '/notes',
+            {
+              invitation: profileMergeInvitation.id,
+              content: {
+                email: profileMergeInfo.email,
+                left: idPairToMerge.left,
+                right: idPairToMerge.right,
+                comment: profileMergeInfo.comment,
+                status: 'Pending',
+              },
+              readers: buildArray(
+                profileMergeInvitation,
+                'readers',
+                user?.profile?.preferredId
+              ),
+              writers: buildArray(
+                profileMergeInvitation,
+                'writers',
+                user?.profile?.preferredId
+              ),
+              signatures: [user?.profile?.preferredId ?? '(guest)'],
+            },
+            { accessToken }
+          )
+        })
       )
+
       $('#profileMerge-modal').modal('hide')
       promptMessage('Your request has been submitted')
     } catch (apiError) {
@@ -85,7 +122,7 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
       {error && <div className="alert alert-danger">{error}</div>}
       <div className="form-group">
         <p>Fill in the following info to request profile merge</p>
-        <label htmlFor="name">email</label>
+        <label htmlFor="name">Your email</label>
         <input
           type="text"
           name="subject"
@@ -94,23 +131,16 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
           required
           onChange={(e) => setProfileMergeInfo({ type: 'email', payload: e.target.value })}
         />
-        <label htmlFor="left">Profile id or email to merge from</label>
+        <label htmlFor="idsToMerge">Profile ids or emails to merge,separated by comma</label>
         <input
           type="text"
-          name="left"
+          name="idsToMerge"
           className="form-control"
-          value={profileMergeInfo.left}
+          value={profileMergeInfo.idsToMerge}
           required
-          onChange={(e) => setProfileMergeInfo({ type: 'left', payload: e.target.value })}
-        />
-        <label htmlFor="right">Profile id or email to merge to</label>
-        <input
-          type="text"
-          name="right"
-          className="form-control"
-          value={profileMergeInfo.right}
-          required
-          onChange={(e) => setProfileMergeInfo({ type: 'right', payload: e.target.value })}
+          onChange={(e) =>
+            setProfileMergeInfo({ type: 'idsToMerge', payload: e.target.value })
+          }
         />
         <label htmlFor="comment">Comment</label>
         <textarea
