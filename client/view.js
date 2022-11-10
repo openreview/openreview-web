@@ -4351,7 +4351,7 @@ module.exports = (function () {
         )} has been edited since you opened it. Please refresh the page and try again.`
 
         latestNotePromise.then(function (latestNote) {
-          if (!(latestNote.tmdate === note.tmdate)) {
+          if (note.tmdate && latestNote.tmdate && latestNote.tmdate !== note.tmdate) {
             if (params.onError) {
               params.onError([noteLatestNoteErrorMessage])
             } else {
