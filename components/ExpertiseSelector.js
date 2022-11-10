@@ -121,11 +121,11 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
       sort: 'cdate',
       details: 'invitation',
     })
-  }, [userLoading, user.profile.id])
+  }, [userLoading, user])
 
   if (userLoading) return <LoadingSpinner />
 
-  if (!user) return <ErrorAlert message="You must be logged in to select your expertise" />
+  if (!user) return <ErrorAlert error={{ message: 'You must be logged in to select your expertise' }} />
 
   return (
     <Tabs className={styles.container}>
