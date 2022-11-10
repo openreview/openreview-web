@@ -267,8 +267,8 @@ const AuthorConsole = ({ appContext }) => {
         }
         return originalNotes
       })
-    const invitationsP = Promise.all([
-      api.getAll(
+    const invitationsP = api
+      .getAll(
         '/invitations',
         {
           regex: wildcardInvitation,
@@ -279,36 +279,12 @@ const AuthorConsole = ({ appContext }) => {
           details: 'replytoNote,repliedNotes',
         },
         { accessToken, version: 1 }
-      ),
-      api.getAll(
-        '/invitations',
-        {
-          regex: wildcardInvitation,
-          invitee: true,
-          duedate: true,
-          type: 'edges',
-          details: 'repliedEdges',
-        },
-        { accessToken, version: 1 }
-      ),
-      api.getAll(
-        '/invitations',
-        {
-          regex: wildcardInvitation,
-          invitee: true,
-          duedate: true,
-          type: 'tags',
-          details: 'repliedTags',
-        },
-        { accessToken, version: 1 }
-      ),
-    ]).then(([noteInvitations, edgeInvitations, tagInvitations]) =>
-      noteInvitations
-        .map((inv) => ({ ...inv, noteInvitation: true, apiVersion: 1 }))
-        .concat(edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true, apiVersion: 1 })))
-        .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true, apiVersion: 1 })))
-        .filter((p) => p.invitees?.some((q) => q.includes(authorName)))
-    )
+      )
+      .then((noteInvitations) =>
+        noteInvitations
+          .map((inv) => ({ ...inv, noteInvitation: true, apiVersion: 1 }))
+          .filter((p) => p.invitees?.some((q) => q.includes(authorName)))
+      )
 
     try {
       const result = await Promise.all([notesP, invitationsP])
@@ -337,8 +313,8 @@ const AuthorConsole = ({ appContext }) => {
       },
       { accessToken, version: 2 }
     )
-    const invitationsP = Promise.all([
-      api.getAll(
+    const invitationsP = api
+      .getAll(
         '/invitations',
         {
           prefix: wildcardInvitation,
@@ -349,43 +325,16 @@ const AuthorConsole = ({ appContext }) => {
           details: 'replytoNote,repliedNotes',
         },
         { accessToken, version: 2 }
-      ),
-      api.getAll(
-        '/invitations',
-        {
-          prefix: wildcardInvitation,
-          invitee: true,
-          duedate: true,
-          type: 'edges',
-          details: 'repliedEdges',
-        },
-        { accessToken, version: 2 }
-      ),
-      api.getAll(
-        '/invitations',
-        {
-          prefix: wildcardInvitation,
-          invitee: true,
-          duedate: true,
-          type: 'tags',
-          details: 'repliedTags',
-        },
-        { accessToken, version: 2 }
-      ),
-    ]).then(
-      ([noteInvitations, edgeInvitations, tagInvitations]) =>
+      )
+      .then((noteInvitations) =>
         noteInvitations
           .map((inv) => ({ ...inv, noteInvitation: true, apiVersion: 2 }))
-          .concat(
-            edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true, apiVersion: 2 }))
-          )
-          .concat(
-            tagInvitations.map((inv) => ({ ...inv, tagInvitation: true, apiVersion: 2 }))
-          )
           .filter(
+            // TODO: add number filtering logic
             (p) => p.id.includes(authorName) || p.invitees?.some((q) => q.includes(authorName))
-          ) // TODO: number filtering logic
-    )
+          )
+      )
+
     try {
       const result = await Promise.all([notesP, invitationsP])
 
