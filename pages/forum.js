@@ -48,7 +48,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
   // eslint-disable-next-line no-underscore-dangle
   const conferenceName = getConferenceName(content._bibtex)
   // eslint-disable-next-line no-underscore-dangle
-  const journalName = getJournalName(content._bibtex)
+  const journalName = forumNote.version === 2 ? getJournalName(content._bibtex) : null
 
   // Set banner link
   useEffect(() => {
