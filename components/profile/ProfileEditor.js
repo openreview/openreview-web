@@ -119,9 +119,14 @@ export default function ProfileEditor({
       return promptInvalidLink('homepage', 'You must enter at least one personal link')
     }
     // must not have any invalid links
-    const invalidLinkName = personalLinkNames.find((p) => profileContent[p]?.value && profileContent[p].valid === false)
+    const invalidLinkName = personalLinkNames.find(
+      (p) => profileContent[p]?.value && profileContent[p].valid === false
+    )
     if (invalidLinkName) {
-      return promptInvalidLink(invalidLinkName, 'One of your personal links is invalid. Please make sure all URLs start with http:// or https://')
+      return promptInvalidLink(
+        invalidLinkName,
+        'One of your personal links is invalid. Please make sure all URLs start with http:// or https://'
+      )
     }
     // #endregion
 
@@ -282,7 +287,10 @@ export default function ProfileEditor({
       names: profileContent.names.map((p) => {
         const fieldsToInclude = ['first', 'middle', 'last', 'preferred']
         if (!p.newRow && p.username) fieldsToInclude.push('username')
-        return pick(p, fieldsToInclude)
+        return pick(
+          { ...p, first: p.first.trim(), middle: p.middle.trim(), last: p.last.trim() },
+          fieldsToInclude
+        )
       }),
       emails: profileContent.emails.map((p) => p.email),
       history: profileContent.history.map((p) =>
