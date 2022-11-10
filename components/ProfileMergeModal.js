@@ -96,7 +96,7 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
         )
       )
 
-      $('#profileMerge-modal').modal('hide')
+      $('#profilemerge-modal').modal('hide')
       promptMessage('Your request has been submitted')
     } catch (apiError) {
       setError(apiError.message)
@@ -106,7 +106,7 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
 
   return (
     <BasicModal
-      id="profileMerge-modal"
+      id="profilemerge-modal"
       title="Reques profile merge"
       primaryButtonText="Submit"
       onPrimaryButtonClick={postProfileMergeRequest}
@@ -121,7 +121,7 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
         <p>Fill in the following info to request profile merge</p>
         <label htmlFor="name">Your email</label>
         <input
-          type="text"
+          type="email"
           name="subject"
           className="form-control"
           value={profileMergeInfo.email}

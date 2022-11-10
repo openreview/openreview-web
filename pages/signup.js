@@ -251,7 +251,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
         <p className="merge-message hint">
           If two or more of the profiles above belong to you, please{' '}
           {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-          <a href="#" data-toggle="modal" data-target="#profileMerge-modal">
+          <a href="#" data-toggle="modal" data-target="#profilemerge-modal">
             contact us
           </a>{' '}
           and we will assist you in merging your profiles.
