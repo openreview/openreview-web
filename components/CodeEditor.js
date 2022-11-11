@@ -1,13 +1,12 @@
 import { useEffect, useRef } from 'react'
-import { EditorState, basicSetup } from '@codemirror/basic-setup'
-import { Compartment } from '@codemirror/state'
+import { basicSetup } from 'codemirror'
+import { EditorState, Compartment } from '@codemirror/state'
 import { EditorView, keymap } from '@codemirror/view'
 import { defaultKeymap, indentWithTab } from '@codemirror/commands'
-import { defaultHighlightStyle, classHighlightStyle } from '@codemirror/highlight'
-import { javascript, esLint } from '@codemirror/lang-javascript'
+import { javascript, esLint, javascriptLanguage } from '@codemirror/lang-javascript'
 import { python } from '@codemirror/lang-python'
 import { json, jsonParseLinter } from '@codemirror/lang-json'
-import { linter } from '@codemirror/lint'
+import { linter, lintGutter } from '@codemirror/lint'
 import Linter from 'eslint4b-prebuilt'
 
 const CodeEditor = ({
@@ -39,16 +38,11 @@ const CodeEditor = ({
     }
     languageRef.current = 'javascript'
 
-    return [
-      lint.of(linter(esLint(new Linter()))),
-      defaultHighlightStyle.extension,
-      classHighlightStyle.extension,
-      language.of(javascript()),
-    ]
+    return [lint.of(linter(esLint(new Linter()))), language.of(javascript())]
   }
 
   const setLanguage = EditorState.transactionExtender.of((tr) => {
-    const firstLine = editorRef.current.state?.doc?.toString()
+    const firstLine = editorRef.current.state?.doc?.lineAt(0)?.text
     if (languageRef.current === 'json') return null
     if (firstLine?.startsWith('def process') && languageRef.current !== 'python') {
       languageRef.current = 'python'
@@ -57,6 +51,7 @@ const CodeEditor = ({
       }
     }
     if (!firstLine?.startsWith('def process') && languageRef.current !== 'javascript') {
+      console.log('change languageref')
       languageRef.current = 'javascript'
       return {
         effects: language.reconfigure(javascript()),
