@@ -1210,13 +1210,10 @@ table.table-minimal {
       margin-right: 0.25rem;
       width: 6%;
     }
-    .signature {
-      width: 10%;
-    }
 
-    .email,
-    .compare {
-      width: 15%;
+    .compare,
+    .signature {
+      width: 20%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -1225,10 +1222,11 @@ table.table-minimal {
         font-weight: bold;
       }
     }
-
-    .compare {
-      width: 10%;
+    .signature {
+      width: 15%;
+      cursor: pointer;
     }
+
     .comment {
       width: 5%;
       overflow: hidden;

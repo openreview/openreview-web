@@ -52,10 +52,13 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
     return { ...state, [action.type]: action.payload }
   }
 
-  const isProfileMergeInfoComplete = () =>
-    Object.values(profileMergeInfo).every((p) => p) &&
-    isValidEmail(profileMergeInfo.email) &&
-    profileMergeInfo.idPairsToMerge?.length
+  const isProfileMergeInfoComplete = () => {
+    return (
+      (user?.profile?.preferredId || isValidEmail(profileMergeInfo.email)) &&
+      profileMergeInfo.comment?.trim()?.length &&
+      profileMergeInfo.idPairsToMerge?.length
+    )
+  }
 
   const postProfileMergeRequest = async () => {
     setIsLoading(true)

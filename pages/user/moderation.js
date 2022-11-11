@@ -549,9 +549,8 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
             <Table
               headings={[
                 { content: 'Status', width: '12%' },
-                { content: 'Signature', width: '10%' },
-                { content: 'Email', width: '15%' },
-                { content: 'Compare', width: '10%' },
+                { content: 'Signature/Email', width: '15%' },
+                { content: 'Compare', width: '20%' },
                 { content: 'Comment' },
               ]}
             />
@@ -569,7 +568,13 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
                 </span>
                 <span className="signature">
                   {note.signatures[0] === '(guest)' ? (
-                    note.signatures[0]
+                    <span
+                      onClick={() =>
+                        setTextToView(<FullComment comment={note.content.email} />)
+                      }
+                    >
+                      {note.content.email}
+                    </span>
                   ) : (
                     <a
                       href={`/profile?id=${note.signatures[0]}`}
@@ -581,20 +586,6 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
                   )}
                 </span>
                 <span
-                  className="email"
-                  onClick={() =>
-                    setTextToView(
-                      <FullComment
-                        comment={`${note.content.email} \\
-**left**: ${note.content.left} \\
-**right**: ${note.content.right}`}
-                      />
-                    )
-                  }
-                >
-                  {note.content.email}
-                </span>
-                <span
                   className={`compare${note.id === lastComparedNote ? ' last-previewed' : ''}`}
                 >
                   <a
@@ -603,7 +594,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
                     rel="noreferrer"
                     onClick={() => setLastComparedNote(note.id)}
                   >
-                    Compare
+                    {`${note.content.left},${note.content.right}`}
                   </a>
                 </span>
                 <div className="comment">
