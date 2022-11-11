@@ -29,7 +29,7 @@ const UserModerationTab = ({ accessToken }) => {
   const getModerationStatus = async () => {
     try {
       const { notes } = await api.get('/notes', {
-        invitation: 'OpenReview.net/Support/-/OpenReview_Config',
+        invitation: `${process.env.SUPER_USER}/Support/-/OpenReview_Config`,
         limit: 1,
       })
       if (notes?.length > 0) {
@@ -784,7 +784,7 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
             )}
           </Tab>
           <Tab id="merge">
-            Name Delete Requests{' '}
+            Profile Merge Requests{' '}
             {profileMergeRequestCountMsg && (
               <span className="badge">{profileMergeRequestCountMsg}</span>
             )}
