@@ -889,7 +889,12 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotesCount })
     {
       value: 'invalidHomepageAndEmail',
       label: 'Invalid Homepage + Missing Institution Email',
-      rejectionText: `A valid Homepage and institutional email matching your latest career/education history is required.\n\n${instructionText}`,
+      rejectionText: `A valid Homepage and institutional email matching your latest career/education history are required.\n\n${instructionText}`,
+    },
+    {
+      value: 'imPersonalHomepageAndEmail',
+      label: 'Impersonal Homepage + Missing Institution Email',
+      rejectionText: `A Homepage url which displays your name and institutional email matching your latest career/education history are required.\n\n${instructionText}`,
     },
     {
       value: 'invalidName',
