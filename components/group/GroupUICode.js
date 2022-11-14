@@ -55,9 +55,7 @@ const GroupUICode = ({ group, profileId, accessToken, reloadGroup }) => {
   return (
     <EditorSection title="Group UI Code">
       {showCodeEditor && (
-        <>
-          <CodeEditor code={group.web} onChange={setModifiedWebCode} scrollIntoView />
-        </>
+        <CodeEditor code={group.web} onChange={setModifiedWebCode} scrollIntoView />
       )}
 
       {showCodeEditor ? (
