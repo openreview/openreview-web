@@ -6,7 +6,6 @@ import api from '../../lib/api-client'
 import EditorSection from '../EditorSection'
 import LoadingSpinner from '../LoadingSpinner'
 import SpinnerButton from '../SpinnerButton'
-import CodeEditorNew from '../CodeEditorNew'
 
 const CodeEditor = dynamic(() => import('../CodeEditor'), {
   loading: () => <LoadingSpinner inline />,
@@ -58,7 +57,6 @@ const GroupUICode = ({ group, profileId, accessToken, reloadGroup }) => {
       {showCodeEditor && (
         <>
           <CodeEditor code={group.web} onChange={setModifiedWebCode} scrollIntoView />
-          <CodeEditorNew code={group.web} onChange={setModifiedWebCode} />
         </>
       )}
 
