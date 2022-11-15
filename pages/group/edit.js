@@ -91,8 +91,9 @@ export default function GroupEdit({ appContext }) {
 
       <GroupEditor
         group={group}
-        isSuperUser={isSuperUser(user)}
+        profileId={user?.profile?.id}
         accessToken={accessToken}
+        isSuperUser={isSuperUser(user)}
         reloadGroup={() => loadGroup(group.id)}
       />
     </>

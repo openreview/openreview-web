@@ -169,7 +169,9 @@ export default function VenueHomepage({ appContext }) {
           venueId={group.id}
           query={query}
           apiVersion={apiVersion}
-          options={tabConfig.options}
+          pageSize={tabConfig.options.pageSize}
+          enableSearch={tabConfig.options.enableSearch}
+          paperDisplayOptions={tabConfig.options.paperDisplayOptions}
         />
       )
     }
@@ -194,6 +196,7 @@ export default function VenueHomepage({ appContext }) {
       tabs.map((tab) => ({
         id: nanoid(10),
         hidden: tab.type === 'consoles',
+        options: {},
         ...tab,
       }))
     )

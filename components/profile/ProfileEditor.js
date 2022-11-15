@@ -74,8 +74,8 @@ export default function ProfileEditor({
       'gscholar',
       'dblp',
       'orcid',
-      'linkedin',
       'wikipedia',
+      'linkedin',
       'semanticScholar',
     ]
 
@@ -103,7 +103,7 @@ export default function ProfileEditor({
 
     let invalidRecord = null
 
-    // validate emails
+    // #region validate emails
     if ((invalidRecord = profileContent.emails.find((p) => !isValidEmail(p.email)))) {
       return promptInvalidValue(
         'emails',
@@ -111,12 +111,20 @@ export default function ProfileEditor({
         `${invalidRecord.email} is not a valid email address`
       )
     }
+    // #endregion
+
     // #region validate personal links
-    // must have >1 links
+    // must have at least 1 link
     if (!personalLinkNames.some((p) => profileContent[p]?.value?.trim())) {
       return promptInvalidLink('homepage', 'You must enter at least one personal link')
     }
+    // must not have any invalid links
+    const invalidLinkName = personalLinkNames.find((p) => profileContent[p]?.value && profileContent[p].valid === false)
+    if (invalidLinkName) {
+      return promptInvalidLink(invalidLinkName, 'One of your personal links is invalid. Please make sure all URLs start with http:// or https://')
+    }
     // #endregion
+
     // #region validate history
     if ((invalidRecord = profileContent.history.find((p) => !p.institution?.domain))) {
       return promptInvalidValue(
@@ -183,6 +191,7 @@ export default function ProfileEditor({
       )
     }
     // #endregion
+
     // #region validate relations
     if (
       (invalidRecord = profileContent.relations.find(
@@ -233,6 +242,7 @@ export default function ProfileEditor({
       return promptInvalidValue('relations', invalidRecord.key, 'Start date can not be empty')
     }
     // #endregion
+
     // #region validate expertise
     if (
       (invalidRecord = profileContent.expertise.find((p) => p.start && !isValidYear(p.start)))

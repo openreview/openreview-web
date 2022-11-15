@@ -1,6 +1,7 @@
 import { isEqual } from 'lodash'
 import { forumDate, getNotePdfUrl } from '../../lib/utils'
 import Collapse from '../Collapse'
+import Icon from '../Icon'
 import NoteContent, { NoteContentV2 } from '../NoteContent'
 import NoteReaders from '../NoteReaders'
 
@@ -36,6 +37,7 @@ const NoteSummary = ({
           {titleValue}
         </a>
       </h4>
+
       {pdfValue && (
         <div className="download-pdf-link">
           <a

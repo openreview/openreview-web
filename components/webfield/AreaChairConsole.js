@@ -141,7 +141,7 @@ const AreaChairConsoleTasks = ({ venueId, areaChairName, apiVersion }) => {
       allInvitations = allInvitations
         .map((p) => addInvitaitonTypeAndVersion(p))
         .filter((p) => filterHasReplyTo(p))
-        .filter((p) => p.invitees.indexOf(areaChairName) !== -1)
+        .filter((p) => p.invitees.some((q) => q.includes(areaChairName)))
 
       if (allInvitations.length) {
         // add details
@@ -172,7 +172,7 @@ const AreaChairConsoleTasks = ({ venueId, areaChairName, apiVersion }) => {
       invitations={invitations}
       emptyMessage={isLoading ? 'Loading...' : 'No outstanding tasks for this conference'}
       referrer={encodeURIComponent(
-        `[Area Chair Console](/group?id=${venueId}/${areaChairName}'#areachair-tasks)`
+        `[Area Chair Console](/group?id=${venueId}/${areaChairName}#areachair-tasks)`
       )}
     />
   )
