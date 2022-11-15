@@ -118,23 +118,33 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
     >
       {error && <div className="alert alert-danger">{error}</div>}
       <div className="form-group">
-        <p>Fill in the following info to request profile merge</p>
-        <label htmlFor="name">Your email</label>
-        <input
-          type="email"
-          name="subject"
-          className="form-control"
-          value={profileMergeInfo.email}
-          required
-          onChange={(e) => setProfileMergeInfo({ type: 'email', payload: e.target.value })}
-        />
-        <label htmlFor="idsToMerge">Profile ids or emails to merge,separated by comma</label>
+        {!preFillProfileMergeInfo && (
+          <>
+            <p>Fill in the following info to request profile merge</p>
+            <label htmlFor="name">Your email</label>
+            <input
+              type="email"
+              name="subject"
+              className="form-control"
+              value={profileMergeInfo.email}
+              required
+              onChange={(e) => setProfileMergeInfo({ type: 'email', payload: e.target.value })}
+            />
+          </>
+        )}
+
+        <label htmlFor="idsToMerge">
+          {preFillProfileMergeInfo
+            ? 'Profile ids to merge'
+            : 'Profile ids or emails to merge,separated by comma'}
+        </label>
         <input
           type="text"
           name="idsToMerge"
           className="form-control"
           value={profileMergeInfo.idsToMerge}
           required
+          readOnly={preFillProfileMergeInfo}
           onChange={(e) =>
             setProfileMergeInfo({ type: 'idsToMerge', payload: e.target.value })
           }
