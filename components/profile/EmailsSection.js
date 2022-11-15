@@ -121,7 +121,7 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
             `Error: ${error.details.alternate} is already associated with another OpenReview profile,
           <a href="/profile?id=${error.details.otherProfile}" title="View profile" target="_blank" class="action-link">${error.details.otherProfile}</a>.
           To merge this profile with your account, please click here to submit a profile merge request:
-          <a href="#" title="View profile" target="_blank" class="action-link" data-toggle="modal" data-target="#profilemerge-modal">Merge Profiles</a>.
+          <a href="#" title="View profile" target="_blank" class="action-link" data-toggle="modal" data-target="#profile-merge-modal">Merge Profiles</a>.
           `,
             { html: true }
           )
