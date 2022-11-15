@@ -425,7 +425,7 @@ test('#83 email status is missing', async (t) => {
     .expect(Selector('section.emails').find('div.list-compact').innerText)
     .contains('Preferred')
 })
-test('#84 merge profile modal should fill in email', async (t) => {
+test('#84 merge profile modal should fill in id', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
@@ -433,8 +433,13 @@ test('#84 merge profile modal should fill in email', async (t) => {
     .typeText(editEmailInputSelector, 'a@a.com')
     .click(Selector('button').withText('Confirm').filterVisible())
     .click(Selector('a').withText('Merge Profiles').filterVisible())
-    .expect(Selector('#profilemerge-modal').find('input').withAttribute('type', 'email').value)
-    .eql(userB.email)
+    .expect(Selector('#profilemerge-modal').find('input').withAttribute('type', 'email').exists).notOk()
+    .expect(Selector('#profilemerge-modal').find('input').withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').exists).ok()
+    .expect(Selector('#profilemerge-modal').find('input').withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').hasAttribute('readonly')).ok()
+    .expect(Selector('#profilemerge-modal').find('button').withText('Submit').hasAttribute('disabled')).ok()
+    .typeText(Selector('#profilemerge-modal').find('textarea').withAttribute('name', 'comment'), 'some comment')
+    .expect(Selector('#profilemerge-modal').find('button').withText('Submit').hasAttribute('disabled')).notOk()
+
 })
 test('#85 confirm profile email message', async (t) => {
   await t
