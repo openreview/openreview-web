@@ -60,6 +60,8 @@ const MessageAreaChairsModal = ({
         )
       case 'missingMetaReviews':
         return tableRows.filter((row) => row.numCompletedMetaReviews < row.notes?.length ?? 0)
+      case 'missingAssignments':
+        return tableRows.filter((row) => !row.notes?.length)
       default:
         return []
     }
@@ -188,6 +190,10 @@ const AreaChairStatusMenuBar = ({
     {
       label: 'Area Chairs with unsubmitted meta reviews',
       value: 'missingMetaReviews',
+    },
+    {
+      label: 'Area Chairs with 0 assignments',
+      value: 'missingAssignments',
     },
   ]
   const exportColumns = [

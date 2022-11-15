@@ -51,6 +51,8 @@ const MessageReviewersModal = ({
         return tableRows.map((row) => row.completedBids === 0)
       case 'missingReviews':
         return tableRows.filter((row) => row.numCompletedReviews < row.notesInfo?.length ?? 0)
+      case 'noAssignments':
+        return tableRows.filter((row) => !row.notesInfo?.length)
       default:
         return []
     }
@@ -156,6 +158,7 @@ const ReviewerStatusMenuBar = ({
         ]
       : []),
     { label: 'Reviewers with unsubmitted reviews', value: 'missingReviews' },
+    { label: 'Reviewers with 0 assignments', value: 'noAssignments' },
   ]
 
   const exportColumns = exportColumnsConfig ?? [
