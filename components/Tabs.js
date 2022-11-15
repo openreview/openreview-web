@@ -43,7 +43,7 @@ export function Tab({ id, headingCount, icon, onClick, active, hidden, children 
         ref={tabEl}
       >
         {children}
-        {headingCount && <span className="badge">{headingCount}</span>}
+        {Number.isInteger(headingCount) && <span className="badge">{headingCount}</span>}
         {icon && <Icon name={icon} />}
       </a>
     </li>
