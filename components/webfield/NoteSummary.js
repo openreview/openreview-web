@@ -16,12 +16,15 @@ const NoteSummary = ({
   note,
   referrerUrl,
   isV2Note,
+  profileMap,
   showDates = false,
   showReaders = false,
 }) => {
   const titleValue = isV2Note ? note.content?.title?.value : note.content?.title
   const pdfValue = isV2Note ? note.content?.pdf?.value : note.content?.pdf
   const authorsValue = getAuthorsValue(note, isV2Note)
+  const authorIdsValue = isV2Note ? note.content?.authorids?.value : note.content?.authorids
+
   return (
     <div className="note">
       <h4>
@@ -48,7 +51,40 @@ const NoteSummary = ({
           </a>
         </div>
       )}
-      {authorsValue && <div className="note-authors">{authorsValue.join(', ')}</div>}
+
+      {authorsValue && (
+        <div className="note-authors">
+          {authorsValue
+            .map((authorName, i) => {
+              const authorId = authorIdsValue[i]
+              const authorProfile = profileMap?.[authorIdsValue[i]]
+              const errorTooltip = authorProfile
+                ? 'Profile not yet activated'
+                : 'Profile not yet created or email not confirmed'
+              return (
+                <span key={authorId}>
+                  {authorName}
+                  {profileMap &&
+                    (authorProfile?.active ? (
+                      <Icon
+                        name="ok-sign"
+                        tooltip="Profile is active and email confirmed"
+                        extraClasses="pl-1 text-success"
+                      />
+                    ) : (
+                      <Icon
+                        name="remove-sign"
+                        tooltip={errorTooltip}
+                        extraClasses="pl-1 text-danger"
+                      />
+                    ))}
+                </span>
+              )
+            })
+            .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+        </div>
+      )}
+
       {showReaders && (
         <div className="note-readers">
           Readers: <NoteReaders readers={note.readers} />
