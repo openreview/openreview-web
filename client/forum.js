@@ -62,21 +62,19 @@ module.exports = function (forumId, noteId, invitationId, user) {
       notesP = $.Deferred().resolve([])
       invitationsP = $.Deferred().resolve([])
     } else {
-      notesP = Webfield.get(
+      notesP = Webfield.getAll(
         '/notes',
         {
           forum: forumId,
           trash: true,
           details: 'replyCount,writable,revisions,original,overwriting,invitation,tags',
-        },
-        { handleErrors: false }
-      ).then(function (result) {
-        if (!result.notes || !result.notes.length) {
+        }
+      ).then(function (notes) {
+        if (!notes || !notes.length) {
           location.href = '/'
           return
         }
 
-        var notes = result.notes
         notes.forEach(function (note) {
           if (!note.replyto && note.id !== note.forum) {
             note.replyto = note.forum
@@ -86,16 +84,13 @@ module.exports = function (forumId, noteId, invitationId, user) {
         return getProfilesP(notes)
       }, onError)
 
-      invitationsP = Webfield.get(
+      invitationsP = Webfield.getAll(
         '/invitations',
         {
           replyForum: forumId,
           details: 'repliedNotes',
-        },
-        { handleErrors: false }
-      ).then(function (result) {
-        return result.invitations || []
-      }, onError)
+        }
+      ).fail(onError)
     }
 
     var tagInvitationsP = function (forum) {
