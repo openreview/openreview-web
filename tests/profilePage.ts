@@ -433,12 +433,12 @@ test('#84 merge profile modal should fill in id', async (t) => {
     .typeText(editEmailInputSelector, 'a@a.com')
     .click(Selector('button').withText('Confirm').filterVisible())
     .click(Selector('a').withText('Merge Profiles').filterVisible())
-    .expect(Selector('#profilemerge-modal').find('input').withAttribute('type', 'email').exists).notOk()
-    .expect(Selector('#profilemerge-modal').find('input').withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').exists).ok()
-    .expect(Selector('#profilemerge-modal').find('input').withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').hasAttribute('readonly')).ok()
-    .expect(Selector('#profilemerge-modal').find('button').withText('Submit').hasAttribute('disabled')).ok()
-    .typeText(Selector('#profilemerge-modal').find('textarea').withAttribute('name', 'comment'), 'some comment')
-    .expect(Selector('#profilemerge-modal').find('button').withText('Submit').hasAttribute('disabled')).notOk()
+    .expect(Selector('#profile-merge-modal').find('input').withAttribute('type', 'email').exists).notOk()
+    .expect(Selector('#profile-merge-modal').find('input').withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').exists).ok()
+    .expect(Selector('#profile-merge-modal').find('input').withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').hasAttribute('readonly')).ok()
+    .expect(Selector('#profile-merge-modal').find('button').withText('Submit').hasAttribute('disabled')).ok()
+    .typeText(Selector('#profile-merge-modal').find('textarea').withAttribute('name', 'comment'), 'some comment')
+    .expect(Selector('#profile-merge-modal').find('button').withText('Submit').hasAttribute('disabled')).notOk()
 
 })
 test('#85 confirm profile email message', async (t) => {
