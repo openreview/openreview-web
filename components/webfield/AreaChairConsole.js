@@ -27,7 +27,7 @@ import {
   getIndentifierFromGroup,
   prettyId,
 } from '../../lib/utils'
-import { filterCollections } from '../../lib/webfield-utils'
+import { filterCollections, filterHasReplyTo } from '../../lib/webfield-utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
@@ -586,16 +586,6 @@ const AreaChairConsoleTasks = ({ venueId, areaChairName, apiVersion }) => {
     return { ...invitation, [invitaitonType]: true, apiVersion }
   }
 
-  // for note invitations only
-  const filterHasReplyTo = (invitation) => {
-    if (!invitation.noteInvitation) return true
-    return apiVersion === 2
-      ? typeof invitation.edit?.note?.replyto === 'string' ||
-          invitation.edit?.note?.replyto?.param?.const ||
-          typeof invitation.edit?.note?.id === 'string' ||
-          invitation.edit?.note?.id?.param?.const
-      : invitation.reply.replyto || invitation.reply.referent
-  }
   const loadInvitations = async () => {
     try {
       let allInvitations = await api.getAll(
@@ -612,7 +602,7 @@ const AreaChairConsoleTasks = ({ venueId, areaChairName, apiVersion }) => {
 
       allInvitations = allInvitations
         .map((p) => addInvitaitonTypeAndVersion(p))
-        .filter((p) => filterHasReplyTo(p))
+        .filter((p) => filterHasReplyTo(p, apiVersion))
         .filter((p) => p.invitees.some((q) => q.includes(areaChairName)))
 
       if (allInvitations.length) {

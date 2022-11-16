@@ -22,7 +22,7 @@ import Dropdown from '../Dropdown'
 import useQuery from '../../hooks/useQuery'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import ErrorDisplay from '../ErrorDisplay'
-import { filterAssignedInvitations } from '../../lib/webfield-utils'
+import { filterAssignedInvitations, filterHasReplyTo } from '../../lib/webfield-utils'
 
 const AreaChairInfo = ({ areaChairName, areaChairId }) => (
   <div className="note-area-chairs">
@@ -241,17 +241,6 @@ const ReviewerConsoleTasks = ({
     return { ...invitation, [invitaitonType]: true, apiVersion }
   }
 
-  // for note invitations only
-  const filterHasReplyTo = (invitation) => {
-    if (!invitation.noteInvitation) return true
-    return apiVersion === 2
-      ? typeof invitation.edit?.note?.replyto === 'string' ||
-          invitation.edit?.note?.replyto?.param?.const ||
-          typeof invitation.edit?.note?.id === 'string' ||
-          invitation.edit?.note?.id?.param?.const
-      : invitation.reply.replyto || invitation.reply.referent
-  }
-
   const loadInvitations = async () => {
     try {
       let allInvitations = await api.getAll(
@@ -268,7 +257,7 @@ const ReviewerConsoleTasks = ({
 
       allInvitations = allInvitations
         .map((p) => addInvitaitonTypeAndVersion(p))
-        .filter((p) => filterHasReplyTo(p))
+        .filter((p) => filterHasReplyTo(p, apiVersion))
         .filter((p) => filterAssignedInvitations(p, reviewerName, submissionName, noteNumbers))
 
       if (allInvitations.length) {
