@@ -542,7 +542,10 @@ const UserModerationQueue = ({
           offset: (pageNumber - 1) * pageSize,
           withBlocked: onlyModeration ? undefined : true,
           ...(!onlyModeration && { trash: true }),
-          ...filters,
+          ...Object.entries(filters).reduce((prev, [key, value]) => {
+            if (value) prev[key] = value // eslint-disable-line no-param-reassign
+            return prev
+          }, {}),
         },
         { accessToken, cachePolicy: 'no-cache' }
       )
