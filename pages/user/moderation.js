@@ -213,8 +213,8 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
         referent: nameDeletionNote.id,
         invitation: nameDeletionDecisionInvitation.id,
         content: {
-          status: response ? 'Accepted' : 'Rejected',
-          ...(!response && { support_comment: supportComment }),
+          status: response,
+          ...(response === 'Rejected' && { support_comment: supportComment }),
         },
         readers: buildArray(nameDeletionDecisionInvitation, 'readers', superUser.profile.id),
         writers: buildArray(nameDeletionDecisionInvitation, 'writers', superUser.profile.id),
@@ -328,7 +328,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
                         className="btn btn-xs"
                         disabled={idsLoading.includes(note.id)}
                         onClick={() => {
-                          acceptRejectNameDeletionNote(note, true)
+                          acceptRejectNameDeletionNote(note, 'Accepted')
                         }}
                       >
                         <Icon name="ok-circle" /> Accept
@@ -478,8 +478,8 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
         referent: profileMergeNote.id,
         invitation: profileMergeDecisionInvitation.id,
         content: {
-          status: response ? 'Accepted' : 'Rejected',
-          ...(!response && { support_comment: supportComment }),
+          status: response,
+          ...(response === 'Rejected' && { support_comment: supportComment }),
         },
         readers: buildArray(profileMergeDecisionInvitation, 'readers', superUser.profile.id),
         writers: buildArray(profileMergeDecisionInvitation, 'writers', superUser.profile.id),
@@ -615,7 +615,17 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
                         className="btn btn-xs"
                         disabled={idsLoading.includes(note.id)}
                         onClick={() => {
-                          acceptRejectProfileMergeNote(note, true)
+                          acceptRejectProfileMergeNote(note, 'Ignored')
+                        }}
+                      >
+                        Ignore
+                      </button>{' '}
+                      <button
+                        type="button"
+                        className="btn btn-xs"
+                        disabled={idsLoading.includes(note.id)}
+                        onClick={() => {
+                          acceptRejectProfileMergeNote(note, 'Accepted')
                         }}
                       >
                         <Icon name="ok-circle" /> Done
@@ -1271,7 +1281,7 @@ const RequestRejectionModal = ({ noteToReject, acceptRejectNote, setNoteToReject
       id="name-delete-reject"
       primaryButtonDisabled={!supportComment}
       onPrimaryButtonClick={() => {
-        acceptRejectNote(noteToReject, false, supportComment)
+        acceptRejectNote(noteToReject, 'Rejected', supportComment)
       }}
       onClose={() => {
         setNoteToReject(null)
