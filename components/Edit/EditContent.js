@@ -3,35 +3,12 @@ import Icon from '../Icon'
 import EditContentValue from './EditContentValue'
 
 const EditContent = ({ edit, type = 'note' }) => {
-  if (!edit || !edit[type]) return null
+  if (!edit?.[type]?.content) return null
 
-  const noteContent = {
-    ...edit[type].content,
-    ...(edit[type].readers && {
-      Readers: { value: prettyList(edit[type].readers, 'long', 'unit') },
-    }),
-    ...(edit[type].writers && {
-      Writers: { value: prettyList(edit[type].writers, 'long', 'unit') },
-    }),
-    ...(edit[type].invitees && {
-      Invitees: { value: prettyList(edit[type].invitees, 'long', 'unit') },
-    }),
-    ...(edit[type].signatures && {
-      Signatures: { value: prettyList(edit[type].signatures, 'long', 'unit') },
-    }),
-  }
-
-  let contentOrder
-  if (edit.details?.presentation?.length > 0) {
-    contentOrder = edit.details.presentation.map((p) => p.name).concat(
-      noteContent.Readers ? 'Readers' : [],
-      noteContent.Writers ? 'Writers' : [],
-      noteContent.Signatures ? 'Invitees' : [],
-      noteContent.Signatures ? 'Signatures' : [],
-    )
-  } else {
-    contentOrder = Object.keys(noteContent)
-  }
+  const noteContent = edit[type].content
+  const contentOrder = edit.details?.presentation?.length > 0
+    ? edit.details.presentation.map((p) => p.name)
+    : Object.keys(noteContent)
 
   return (
     <ul className="list-unstyled note-content">
@@ -48,7 +25,7 @@ const EditContent = ({ edit, type = 'note' }) => {
         )?.markdown
 
         const isEmptyValue = field === null ||
-          (field instanceof Object && (field.value === undefined || field.value === null))
+          (field instanceof Object && !Array.isArray(field) && (field.value === undefined || field.value === null))
 
         return (
           <li key={fieldName}>

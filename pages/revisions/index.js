@@ -326,10 +326,9 @@ const RevisionsList = ({
               <div className="col-sm-9">
                 <Edit
                   edit={reference}
-                  options={{
-                    showContents: true,
-                    ...(reference.ddate && { extraClasses: 'edit-trashed' }),
-                  }}
+                  type="note"
+                  className={reference.ddate ? 'edit-trashed' : ''}
+                  showContents
                 />
               </div>
 

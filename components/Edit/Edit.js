@@ -1,11 +1,68 @@
+import isEmpty from 'lodash/isEmpty'
 import EditContent from './EditContent'
 import EditValue from './EditValue'
 import EditContentValue from './EditContentValue'
 import { buildNoteTitle, forumDate, prettyList, prettyField, prettyContentValue } from '../../lib/utils'
 
-export default function Edit({ edit, type, options }) {
+function EditFields({ editId, displayObj, omitFields = [], label = 'Edit' }) {
+  const formatGroupMemberEdit = (membersObj) => {
+    if (isEmpty(membersObj)) return '(empty)'
+
+    const updates = []
+    if (membersObj.append) {
+      updates.push(`**Added**: ${membersObj.append.join(', ')}`)
+    }
+    if (membersObj.remove) {
+      updates.push(`**Removed**: ${membersObj.remove.join(', ')}`)
+    }
+    if (membersObj.value) {
+      updates.push(`**New Members**: ${membersObj.value.join(', ')}`)
+    }
+    return updates.join('\n\n')
+  }
+
   return (
-    <div className={`edit ${options.extraClasses ?? ''}`}>
+    <ul className="list-unstyled note-content">
+      {Object.keys(displayObj).map((fieldName) => {
+        if (omitFields.includes(fieldName)) return null
+
+        const field = fieldName === 'members'
+          ? formatGroupMemberEdit(displayObj[fieldName])
+          : displayObj[fieldName]
+        const isJsonValue = field instanceof Object && !Array.isArray(field)
+        const enableMarkdown = fieldName === 'members'
+        const isEmptyValue = field === null ||
+          (field instanceof Object && !Array.isArray(field) && (field.value === undefined || field.value === null))
+
+        return (
+          <li key={`${editId}-${fieldName}`}>
+            <strong className="note-content-field">{label} – {prettyField(fieldName)}:</strong>
+            {' '}
+            {isEmptyValue ? (
+              <span className="empty-value">
+                (empty)
+              </span>
+            ) : (
+              <EditContentValue
+                editId={editId}
+                fieldName={fieldName}
+                fieldValue={prettyContentValue(field)}
+                isJsonValue={isJsonValue}
+                enableMarkdown={enableMarkdown}
+              />
+            )}
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+export default function Edit({ edit, type, className, showContents }) {
+  const omitFields = ['id', 'content', 'edit', 'mdate', 'tmdate', 'cdate', 'tcdate', 'number', 'forum']
+
+  return (
+    <div className={`edit ${className ?? ''}`}>
       <h4>{buildNoteTitle(edit.invitations?.[0] ?? edit.invitation, edit.signatures)}</h4>
 
       <ul className="edit_meta_info list-inline">
@@ -22,30 +79,43 @@ export default function Edit({ edit, type, options }) {
         </li>
       </ul>
 
-      {options.showContents && (!edit.ddate || edit.ddate > Date.now()) && (
+      {type === 'group' && edit.group && (
+        <EditFields
+          editId={edit.id}
+          displayObj={edit.group}
+          omitFields={omitFields}
+          label="Group"
+        />
+      )}
+
+      {type === 'invitation' && edit.invitation && (
+        <EditFields
+          editId={edit.id}
+          displayObj={edit.invitation}
+          omitFields={omitFields}
+          label="Invitation"
+        />
+      )}
+
+      {showContents && (!edit.ddate || edit.ddate > Date.now()) && (
         <EditContent edit={edit} type={type} />
       )}
 
-      {options.showContents && type === 'invitation' && edit.invitation.edit && (
-        <ul className="list-unstyled note-content">
-          {Object.keys(edit.invitation.edit).map((fieldName) => {
-            const field = edit.invitation.edit[fieldName]
-            const isJsonValue = field instanceof Object && !Array.isArray(field)
+      {type === 'note' && edit.note && (
+        <EditFields
+          editId={edit.id}
+          displayObj={edit.note}
+          omitFields={omitFields}
+          label="Note"
+        />
+      )}
 
-            return (
-              <li key={`${edit.id}-${fieldName}`}>
-                <strong className="note-content-field">Edit – {prettyField(fieldName)}:</strong>
-                {' '}
-                <EditContentValue
-                  editId={edit.id}
-                  fieldName={fieldName}
-                  fieldValue={prettyContentValue(field)}
-                  isJsonValue={isJsonValue}
-                />
-              </li>
-            )
-          })}
-        </ul>
+      {type === 'invitation' && edit.invitation.edit && (
+        <EditFields
+          editId={edit.id}
+          displayObj={edit.invitation.edit}
+          label="Edit"
+        />
       )}
 
       <div className="edit_info">

@@ -70,10 +70,8 @@ export default function EditHistory({ group, invitation, accessToken, setError }
             key={edit.id}
             edit={edit}
             type={group ? 'group' : 'invitation'}
-            options={{
-              showContents: true,
-              extraClasses: edit.ddate ? 'edit-trashed' : '',
-            }}
+            className={edit.ddate ? 'edit-trashed' : ''}
+            showContents
           />
         )) : (
           <EmptyMessage id={group?.id ?? invitation?.id} />
