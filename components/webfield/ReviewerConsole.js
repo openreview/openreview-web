@@ -244,12 +244,12 @@ const ReviewerConsoleTasks = ({
   // for note invitations only
   const filterHasReplyTo = (invitation) => {
     if (!invitation.noteInvitation) return true
-    if (apiVersion === 2) {
-      const result = invitation.edit?.note?.replyto?.const || invitation.edit?.note?.id?.const
-      return result
-    }
-    const result = invitation.reply.replyto || invitation.reply.referent
-    return result
+    return apiVersion === 2
+      ? typeof invitation.edit?.note?.replyto === 'string' ||
+          invitation.edit?.note?.replyto?.param?.const ||
+          typeof invitation.edit?.note?.id === 'string' ||
+          invitation.edit?.note?.id?.param?.const
+      : invitation.reply.replyto || invitation.reply.referent
   }
 
   const loadInvitations = async () => {
