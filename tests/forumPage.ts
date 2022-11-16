@@ -1,8 +1,8 @@
 import fetch from 'node-fetch-cjs'
 import { Selector, ClientFunction, Role } from 'testcafe'
-import { getToken, getNotes, createUser } from './utils/api-helper'
+import { getToken, getNotes } from './utils/api-helper'
 
-const titleLabel = Selector('.note_content_title a')
+const titleLabel = Selector('.note_content_title span')
 const authorLabel = Selector('.meta_row a')
 const signaturesLabel = Selector('.signatures')
 const abstractLabel = Selector('.note_content_value')
