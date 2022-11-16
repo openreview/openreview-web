@@ -542,7 +542,16 @@ const UserModerationQueue = ({
           offset: (pageNumber - 1) * pageSize,
           withBlocked: onlyModeration ? undefined : true,
           ...(!onlyModeration && { trash: true }),
-          ...filters,
+          ...Object.entries(filters).reduce(
+            (prev, [key, value]) =>
+              value
+                ? {
+                    ...prev,
+                    [key]: value,
+                  }
+                : prev,
+            {}
+          ),
         },
         { accessToken, cachePolicy: 'no-cache' }
       )
