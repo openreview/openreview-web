@@ -2074,12 +2074,12 @@ module.exports = (function () {
       })
   }
 
-  var mkTitleComponent = function (note, titleLink, titleText) {
+  var mkTitleComponent = function (note, titleText) {
     var $titleHTML = $('<h2 class="note_content_title">')
     var titleHref =
       '/forum?id=' + note.forum + (note.forum !== note.id ? '&noteId=' + note.id : '')
 
-    $titleHTML.append($('<a>', { href: titleHref, text: titleText }))
+    $titleHTML.append($('<span>', { text: titleText }).data('href', titleHref))
     return $titleHTML
   }
 
@@ -2413,7 +2413,6 @@ module.exports = (function () {
         tagInvitations: [],
         originalInvitations: [],
         onNewNoteRequested: null,
-        titleLink: 'NONE', // NONE | HREF | JS
         withContent: false,
         withReplyCount: false,
         withRevisionsLink: false,
@@ -2447,7 +2446,7 @@ module.exports = (function () {
     var generatedTitleText = generateNoteTitle(note.invitation, note.signatures)
     var titleText = getTitleText(note, generatedTitleText)
     var useGeneratedTitle = !_.trim(note.content.title) && !_.trim(note.content.verdict)
-    var $titleHTML = mkTitleComponent(note, params.titleLink, titleText)
+    var $titleHTML = mkTitleComponent(note, titleText)
 
     var $pdfLink = mkPdfIcon(note, params.isReference)
     var $htmlLink = mkHtmlIcon(note)
@@ -4351,7 +4350,7 @@ module.exports = (function () {
         )} has been edited since you opened it. Please refresh the page and try again.`
 
         latestNotePromise.then(function (latestNote) {
-          if (!(latestNote.tmdate === note.tmdate)) {
+          if (note.tmdate && latestNote.tmdate && latestNote.tmdate !== note.tmdate) {
             if (params.onError) {
               params.onError([noteLatestNoteErrorMessage])
             } else {
