@@ -1,10 +1,11 @@
 /* globals promptError: false */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import keyBy from 'lodash/keyBy'
 import kebabCase from 'lodash/kebabCase'
+import escapeRegExp from 'lodash/escapeRegExp'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from './Tabs'
-import SubmissionsList from './webfield/SubmissionsList'
+import PaginatedList from './PaginatedList'
 import Note, { NoteV2 } from './Note'
 import { BidRadioButtonGroup } from './webfield/BidWidget'
 import LoadingSpinner from './LoadingSpinner'
@@ -12,6 +13,7 @@ import ErrorAlert from './ErrorAlert'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { prettyInvitationId } from '../lib/utils'
+import { buildNoteSearchText } from '../lib/edge-utils'
 
 import styles from '../styles/components/ExpertiseSelector.module.scss'
 
@@ -26,7 +28,7 @@ const paperDisplayOptions = {
 export default function ExpertiseSelector({ invitation, venueId, apiVersion, shouldReload }) {
   const { user, accessToken, userLoading } = useUser()
   const [edgesMap, setEdgesMap] = useState(null)
-  const [userPapersQuery, setUserPapersQuery] = useState(null)
+  const [userNotes, setUserNotes] = useState(null)
 
   const options = apiVersion === 2
     ? invitation.edge?.label?.param?.enum
@@ -35,9 +37,31 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
   const tabLabel = `${invitationOption}d Papers`
   const tabId = kebabCase(tabLabel)
 
-  const selectedIds = edgesMap
+  const selectedIds = (userNotes && edgesMap)
     ? Object.keys(edgesMap).filter((noteId) => !edgesMap[noteId].ddate)
     : null
+
+  const loadNotePage = useCallback((limit, offset) => Promise.resolve({
+    items: userNotes.slice(offset, offset + limit),
+    count: userNotes.length,
+  }), [userNotes])
+
+  const loadSelectedPage = useCallback((limit, offset) => {
+    const selectedNotes = userNotes.filter((note) => selectedIds.includes(note.id))
+    return Promise.resolve({
+      items: selectedNotes.slice(offset, offset + limit),
+      count: selectedNotes.length,
+    })
+  }, [userNotes, selectedIds])
+
+  const loadSearchPage = useCallback((term, limit, offset) => {
+    const searchRegex = new RegExp(`\\b${escapeRegExp(term)}`, 'mi')
+    const filteredNotes = userNotes.filter((note) => note.searchText?.match(searchRegex))
+    return Promise.resolve({
+      items: filteredNotes.slice(offset, offset + limit),
+      count: filteredNotes.length,
+    })
+  }, [userNotes])
 
   const toggleEdge = async (noteId, value) => {
     const existingEdge = edgesMap[noteId]
@@ -99,28 +123,39 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
   useEffect(() => {
     if (userLoading || !user) return
 
+    const loadNotes = async () => {
+      try {
+        const notes = await api.getCombined('/notes', {
+          'content.authorids': user.profile.id,
+          sort: 'cdate',
+          details: 'invitation',
+        }, null, { accessToken, includeVersion: true })
+        notes.notes.forEach((note) => {
+          // eslint-disable-next-line no-param-reassign
+          note.searchText = buildNoteSearchText(note, note.apiVersion === 2)
+        })
+        setUserNotes(notes.notes)
+      } catch (error) {
+        promptError(error.message)
+        setUserNotes([])
+      }
+    }
+
     const loadEdges = async () => {
       try {
         const edges = await api.getAll('/edges', {
           invitation: invitation.id,
           tail: user.profile.id,
         }, { accessToken, version: apiVersion })
-        if (edges?.length > 0) {
-          setEdgesMap(keyBy(edges, 'head'))
-        } else {
-          setEdgesMap({})
-        }
+        setEdgesMap(keyBy(edges, 'head'))
       } catch (error) {
+        promptError(error.message)
         setEdgesMap({})
       }
     }
-    loadEdges()
 
-    setUserPapersQuery({
-      'content.authorids': user.profile.id,
-      sort: 'cdate',
-      details: 'invitation',
-    })
+    loadNotes()
+    loadEdges()
   }, [userLoading, user])
 
   if (userLoading) return <LoadingSpinner />
@@ -140,16 +175,15 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
 
       <TabPanels>
         <TabPanel id="all-your-papers">
-          {edgesMap ? (
-            <SubmissionsList
-              venueId={venueId}
-              query={userPapersQuery}
-              apiVersion={1}
+          {(userNotes && edgesMap) ? (
+            <PaginatedList
+              loadItems={loadNotePage}
+              searchItems={loadSearchPage}
               ListItem={NoteListItem}
+              itemsPerPage={15}
               shouldReload={shouldReload}
-              pageSize={10}
-              useCredentials={false}
-              enableSearch
+              enableSearch={false}
+              className="submissions-list"
             />
           ) : (
             <LoadingSpinner inline />
@@ -157,15 +191,11 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
         </TabPanel>
         <TabPanel id={tabId}>
           {selectedIds?.length > 0 ? (
-            <SubmissionsList
-              venueId={venueId}
-              query={{
-                ids: selectedIds.join(','),
-                sort: 'cdate',
-                details: 'invitation',
-              }}
-              apiVersion={1}
+            <PaginatedList
+              loadItems={loadSelectedPage}
               ListItem={NoteListItem}
+              itemsPerPage={15}
+              className="submissions-list"
             />
           ) : (
             <p className="empty-message">No {tabLabel.toLowerCase()} to display</p>
