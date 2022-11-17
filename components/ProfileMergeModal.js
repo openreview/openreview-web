@@ -46,7 +46,7 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
         idPairsToMerge: getProfilePairsToMerge(preFillProfileMergeInfo.idsToMerge),
       }
     if (action.type === 'idsToMerge') {
-      const idPairsToMerge = getProfilePairsToMerge(state.idsToMerge)
+      const idPairsToMerge = getProfilePairsToMerge(action.payload)
       return { ...state, idsToMerge: action.payload, idPairsToMerge }
     }
     return { ...state, [action.type]: action.payload }
