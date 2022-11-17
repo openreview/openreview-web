@@ -480,21 +480,19 @@ const ReviewerConsole = ({ appContext }) => {
             },
             { accessToken, version: apiVersion }
           )
-          .then((officialReviewInvitationsResult) => {
-            return [
-              notes,
-              paperRankingInvitation,
-              customLoad,
-              areaChairMap,
-              officialReviewInvitationsResult.invitations,
-            ]
-          })
+          .then((officialReviewInvitationsResult) => [
+            notes,
+            paperRankingInvitation,
+            customLoad,
+            areaChairMap,
+            officialReviewInvitationsResult.invitations,
+          ])
           .then(
             ([
-              notes,
-              paperRankingInvitation,
-              customLoad,
-              areaChairMap,
+              notes, // eslint-disable-line no-shadow
+              paperRankingInvitation, // eslint-disable-line no-shadow
+              customLoad, // eslint-disable-line no-shadow
+              areaChairMap, // eslint-disable-line no-shadow
               officialReviewInvitations,
             ]) => {
               const anonGroupIds = anonGroups.map((p) => p.id)
