@@ -110,6 +110,10 @@ main.profile-edit {
     }
     .different-profile-link {
       color: grey;
+      .request-merge {
+        cursor: pointer;
+        color: constants.$mediumBlue;
+      }
     }
     .persistent-url-input {
       margin-top: 0.25rem;
