@@ -62,21 +62,19 @@ module.exports = function (forumId, noteId, invitationId, user) {
       notesP = $.Deferred().resolve([])
       invitationsP = $.Deferred().resolve([])
     } else {
-      notesP = Webfield.get(
+      notesP = Webfield.getAll(
         '/notes',
         {
           forum: forumId,
           trash: true,
           details: 'replyCount,writable,revisions,original,overwriting,invitation,tags',
-        },
-        { handleErrors: false }
-      ).then(function (result) {
-        if (!result.notes || !result.notes.length) {
+        }
+      ).then(function (notes) {
+        if (!notes || !notes.length) {
           location.href = '/'
           return
         }
 
-        var notes = result.notes
         notes.forEach(function (note) {
           if (!note.replyto && note.id !== note.forum) {
             note.replyto = note.forum
@@ -86,16 +84,13 @@ module.exports = function (forumId, noteId, invitationId, user) {
         return getProfilesP(notes)
       }, onError)
 
-      invitationsP = Webfield.get(
+      invitationsP = Webfield.getAll(
         '/invitations',
         {
           replyForum: forumId,
           details: 'repliedNotes',
-        },
-        { handleErrors: false }
-      ).then(function (result) {
-        return result.invitations || []
-      }, onError)
+        }
+      ).fail(onError)
     }
 
     var tagInvitationsP = function (forum) {
@@ -360,18 +355,19 @@ module.exports = function (forumId, noteId, invitationId, user) {
     })
   }
 
-  var mkReplyNotes = function (replytoIdToChildren, sortedReplyNotes, depth) {
+  var mkReplyNotes = function (replytoIdToChildren, sortedReplyNotes, depth, offset = 0) {
     if (!sortedReplyNotes || !sortedReplyNotes.length) {
       return
     }
 
     // Hide note replies once they get to a certain level of nesting
     var maxCommentDepth = 5
+    var maxLength = Math.min(sortedReplyNotes.length, offset + 250)
 
     // Build note panel for each child note and recursively build reply tree
     var childrenList = []
     var noteCssClass = depth % 2 === 0 ? 'comment-level-even' : 'comment-level-odd'
-    for (var i = 0; i < sortedReplyNotes.length; i++) {
+    for (var i = offset; i < maxLength; i++) {
       var childNote = sortedReplyNotes[i].note
       var $childrenContainer = $('<div>', { class: 'children' })
       var $note = mkPanel(sortedReplyNotes[i], $childrenContainer)
@@ -409,6 +405,17 @@ module.exports = function (forumId, noteId, invitationId, user) {
           displayMoreLink
         )
       )
+    }
+
+    if (maxLength < sortedReplyNotes.length) {
+      var $viewMoreLink = $('<div class="note_with_children comment-level-odd">').append(
+        $('<a href="#"><strong>View More Replies &rarr;</strong></a>').on('click', function (e) {
+          $(this).parent().hide()
+          $childrenAnchor.append(mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1, offset + 250))
+          return false
+        })
+      )
+      childrenList.push($viewMoreLink)
     }
 
     return childrenList
