@@ -472,7 +472,8 @@ const ReviewerConsole = ({ appContext }) => {
         const officalReviewInvitationIds = notes.map(
           (note) => `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
         )
-        api // get offical review invitations to show submit official review link
+        // get offical review invitations to show submit official review link
+        return api
           .get(
             '/invitations',
             {
@@ -487,80 +488,52 @@ const ReviewerConsole = ({ appContext }) => {
             areaChairMap,
             officialReviewInvitationsResult.invitations,
           ])
-          .then(
-            ([
-              notes, // eslint-disable-line no-shadow
-              paperRankingInvitation, // eslint-disable-line no-shadow
-              customLoad, // eslint-disable-line no-shadow
-              areaChairMap, // eslint-disable-line no-shadow
-              officialReviewInvitations,
-            ]) => {
-              const anonGroupIds = anonGroups.map((p) => p.id)
-              // get official reviews from notes details
-              const officialReviewFilterFn =
-                apiVersion === 2
-                  ? (p) => p.invitations.some((q) => q.includes(officialReviewName))
-                  : (p) => p.invitation.includes(officialReviewName)
-              const officialReviews = notes
-                .flatMap((p) => p.details.directReplies)
-                .filter(
-                  (q) =>
-                    officialReviewFilterFn(q) &&
-                    q.signatures.some((r) => anonGroupIds.includes(r))
-                )
-              if (paperRankingInvitation) {
-                setReviewerConsoleData({
-                  paperNumberAnonGroupIdMap: groupByNumber,
-                  notes,
-                  customLoad,
-                  officialReviews,
-                  paperRankingTags: paperRankingInvitation.details?.repliedTags ?? [],
-                  areaChairMap,
-                  noteNumbers,
-                  officialReviewInvitations,
-                  paperRankingInvitation,
-                })
-              } else if (hasPaperRanking) {
-                api
-                  .get(
-                    '/tags',
-                    {
-                      invitation: paperRankingId,
-                    },
-                    { accessToken }
-                  )
-                  .then((result) => {
-                    setReviewerConsoleData({
-                      paperNumberAnonGroupIdMap: groupByNumber,
-                      notes,
-                      customLoad,
-                      officialReviews,
-                      paperRankingTags: result.tags?.length ? result.tags : null, // null will not render paper ranking
-                      areaChairMap,
-                      noteNumbers,
-                      officialReviewInvitations,
-                      paperRankingInvitation,
-                    })
-                  })
-              } else {
-                setReviewerConsoleData({
-                  paperNumberAnonGroupIdMap: groupByNumber,
-                  notes,
-                  customLoad,
-                  officialReviews,
-                  paperRankingTags: null,
-                  areaChairMap,
-                  noteNumbers,
-                  officialReviewInvitations,
-                  paperRankingInvitation,
-                })
-              }
-            }
-          )
-          .catch((error) => {
-            promptError(error.message)
-          })
       })
+      .then(
+        ([
+          notes,
+          paperRankingInvitation,
+          customLoad,
+          areaChairMap,
+          officialReviewInvitations,
+        ]) => {
+          const anonGroupIds = anonGroups.map((p) => p.id)
+          // get official reviews from notes details
+          const officialReviewFilterFn =
+            apiVersion === 2
+              ? (p) => p.invitations.some((q) => q.includes(officialReviewName))
+              : (p) => p.invitation.includes(officialReviewName)
+          const officialReviews = notes
+            .flatMap((p) => p.details.directReplies)
+            .filter(
+              (q) =>
+                officialReviewFilterFn(q) &&
+                q.signatures.some((r) => anonGroupIds.includes(r))
+            )
+
+          let paperRankingTagsP = Promise.resolve(null)
+          if (paperRankingInvitation) {
+            paperRankingTagsP = Promise.resolve(paperRankingInvitation.details?.repliedTags ?? [])
+          } else if (hasPaperRanking) {
+            paperRankingTagsP = api
+              .get('/tags', { invitation: paperRankingId }, { accessToken })
+              .then((result) => result.tags?.length > 0 ? result.tags : [])
+          }
+          paperRankingTagsP.then((paperRankingTags) => {
+            setReviewerConsoleData({
+              paperNumberAnonGroupIdMap: groupByNumber,
+              notes,
+              customLoad,
+              officialReviews,
+              paperRankingTags,
+              areaChairMap,
+              noteNumbers,
+              officialReviewInvitations,
+              paperRankingInvitation,
+            })
+          })
+        }
+      )
       .catch((error) => {
         promptError(error.message)
       })
