@@ -1,7 +1,12 @@
 import { groupBy } from 'lodash'
+import { useContext, useState } from 'react'
 import Accordion from './Accordion'
 import Table from './Table'
-import { inflect } from '../lib/utils'
+import { buildArray, inflect } from '../lib/utils'
+import UserContext from './UserContext'
+import api from '../lib/api-client'
+import ErrorAlert from './ErrorAlert'
+import LoadingSpinner from './LoadingSpinner'
 
 export default function DblpPublicationTable({
   dblpPublications,
@@ -168,45 +173,110 @@ const DblpPublicationRow = ({
   otherProfileId,
   category,
   venue,
-}) => (
-  <div
-    className={
-      category === 'nonExisting' ? 'publication-info' : `publication-info ${category}-row`
+}) => {
+  const { accessToken, user } = useContext(UserContext)
+  const [error, setError] = useState(null)
+  const [profileMergeStatus, setProfileMergeStatus] = useState(null)
+  const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`
+
+  const postProfileMergeRequest = async () => {
+    setError(null)
+    setProfileMergeStatus('loading')
+    try {
+      const result = await api.get(
+        '/invitations',
+        { id: profileMergeInvitationId },
+        { accessToken }
+      )
+      const profileMergeInvitation = result.invitations[0]
+      await api.post(
+        '/notes',
+        {
+          invitation: profileMergeInvitation.id,
+          content: {
+            email: user.profile.preferredEmail,
+            left: user.id,
+            right: otherProfileId,
+            comment: 'DBLP import',
+            status: 'Pending',
+          },
+          readers: buildArray(profileMergeInvitation, 'readers', user.profile.preferredId),
+          writers: buildArray(profileMergeInvitation, 'writers', user.profile.preferredId),
+          signatures: [user.profile.preferredId],
+        },
+        { accessToken }
+      )
+      setProfileMergeStatus('posted')
+    } catch (apiError) {
+      setError(apiError)
+      setProfileMergeStatus('error')
     }
-  >
-    <input
-      type="checkbox"
-      onChange={(e) => toggleSelected(e.target.checked)}
-      checked={selected}
-      disabled={openReviewId}
-    />
-    <div>
-      <div className="publication-title">
-        {category === 'existing-publication' || category === 'existing-different-profile' ? (
-          <a href={`/forum?id=${openReviewId}`} target="_blank" rel="noreferrer">
-            {title}
-          </a>
-        ) : (
-          <span>{title}</span>
-        )}
-        <span className="venue">({venue})</span>
-      </div>
-      <div className="publication-author-names">{authors.join(', ')}</div>
-      {category === 'existing-different-profile' && (
-        <>
-          <a
-            className="different-profile-link"
-            href={`/profile?id=${otherProfileId}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            This paper is associated with the user {otherProfileId}
-          </a>
-          <div className="different-profile-link">
-            Please contact us if you think this profile might be yours
+  }
+
+  const renderProfileMergeRequestLink = () => {
+    switch (profileMergeStatus) {
+      case 'loading':
+        return <LoadingSpinner inline />
+      case 'posted':
+        return 'Profile merge request has been submitted'
+      case 'error':
+        return null
+      default:
+        return (
+          <>
+            <span type="button" className="request-merge" onClick={postProfileMergeRequest}>
+              Request profile merge
+            </span>{' '}
+            if you think this profile might be yours
+          </>
+        )
+    }
+  }
+
+  return (
+    <>
+      {' '}
+      <div
+        className={
+          category === 'nonExisting' ? 'publication-info' : `publication-info ${category}-row`
+        }
+      >
+        <input
+          type="checkbox"
+          onChange={(e) => toggleSelected(e.target.checked)}
+          checked={selected}
+          disabled={openReviewId}
+        />
+        <div>
+          <div className="publication-title">
+            {category === 'existing-publication' ||
+            category === 'existing-different-profile' ? (
+              <a href={`/forum?id=${openReviewId}`} target="_blank" rel="noreferrer">
+                {title}
+              </a>
+            ) : (
+              <span>{title}</span>
+            )}
+            <span className="venue">({venue})</span>
           </div>
-        </>
-      )}
-    </div>
-  </div>
-)
+          <div className="publication-author-names">{authors.join(', ')}</div>
+          {category === 'existing-different-profile' && (
+            <>
+              This paper is associated with the user{' '}
+              <a
+                className="different-profile-link"
+                href={`/profile?id=${otherProfileId}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {otherProfileId}
+              </a>
+              <div className="different-profile-link">{renderProfileMergeRequestLink()}</div>
+            </>
+          )}
+        </div>
+      </div>
+      {error && <ErrorAlert error={error} />}
+    </>
+  )
+}
