@@ -192,7 +192,7 @@ const AuthorConsoleTasks = () => {
         '/invitations',
         {
           ...(apiVersion !== 2 && { regex: wildcardInvitation }),
-          ...(apiVersion === 2 && { prefix: wildcardInvitation }),
+          ...(apiVersion === 2 && { domain: venueId }),
           invitee: true,
           duedate: true,
           type: 'all',
@@ -207,11 +207,15 @@ const AuthorConsoleTasks = () => {
 
       if (allInvitations.length) {
         // add details
-        const validInvitationDetails = await api.getAll('/invitations', {
-          ids: allInvitations.map((p) => p.id),
-          details: 'all',
-          select: 'id,details',
-        })
+        const validInvitationDetails = await api.getAll(
+          '/invitations',
+          {
+            ids: allInvitations.map((p) => p.id),
+            details: 'all',
+            select: 'id,details',
+          },
+          { accessToken, version: apiVersion }
+        )
 
         allInvitations.forEach((p) => {
           // eslint-disable-next-line no-param-reassign
