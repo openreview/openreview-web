@@ -262,11 +262,15 @@ const ReviewerConsoleTasks = ({
 
       if (allInvitations.length) {
         // add details
-        const validInvitationDetails = await api.getAll('/invitations', {
-          ids: allInvitations.map((p) => p.id),
-          details: 'all',
-          select: 'id,details',
-        })
+        const validInvitationDetails = await api.getAll(
+          '/invitations',
+          {
+            ids: allInvitations.map((p) => p.id),
+            details: 'all',
+            select: 'id,details',
+          },
+          { accessToken, version: apiVersion }
+        )
 
         allInvitations.forEach((p) => {
           // eslint-disable-next-line no-param-reassign
@@ -507,17 +511,18 @@ const ReviewerConsole = ({ appContext }) => {
             .flatMap((p) => p.details.directReplies)
             .filter(
               (q) =>
-                officialReviewFilterFn(q) &&
-                q.signatures.some((r) => anonGroupIds.includes(r))
+                officialReviewFilterFn(q) && q.signatures.some((r) => anonGroupIds.includes(r))
             )
 
           let paperRankingTagsP = Promise.resolve(null)
           if (paperRankingInvitation) {
-            paperRankingTagsP = Promise.resolve(paperRankingInvitation.details?.repliedTags ?? [])
+            paperRankingTagsP = Promise.resolve(
+              paperRankingInvitation.details?.repliedTags ?? []
+            )
           } else if (hasPaperRanking) {
             paperRankingTagsP = api
               .get('/tags', { invitation: paperRankingId }, { accessToken })
-              .then((result) => result.tags?.length > 0 ? result.tags : [])
+              .then((result) => (result.tags?.length > 0 ? result.tags : []))
           }
           paperRankingTagsP.then((paperRankingTags) => {
             setReviewerConsoleData({

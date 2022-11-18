@@ -607,11 +607,15 @@ const AreaChairConsoleTasks = ({ venueId, areaChairName, apiVersion }) => {
 
       if (allInvitations.length) {
         // add details
-        const validInvitationDetails = await api.getAll('/invitations', {
-          ids: allInvitations.map((p) => p.id),
-          details: 'all',
-          select: 'id,details',
-        })
+        const validInvitationDetails = await api.getAll(
+          '/invitations',
+          {
+            ids: allInvitations.map((p) => p.id),
+            details: 'all',
+            select: 'id,details',
+          },
+          { accessToken, version: apiVersion }
+        )
 
         allInvitations.forEach((p) => {
           // eslint-disable-next-line no-param-reassign
