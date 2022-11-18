@@ -125,11 +125,12 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
 
     const loadNotes = async () => {
       try {
+        // Only get authored notes readable by everyone
         const notes = await api.getCombined('/notes', {
           'content.authorids': user.profile.id,
           sort: 'cdate',
           details: 'invitation',
-        }, null, { accessToken, includeVersion: true })
+        }, null, { includeVersion: true, useCredentials: false })
         notes.notes.forEach((note) => {
           // eslint-disable-next-line no-param-reassign
           note.searchText = buildNoteSearchText(note, note.apiVersion === 2)

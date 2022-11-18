@@ -41,6 +41,7 @@ Make sure that your email is part of the "authorids" field of the upload form, o
 though it will be included in the recommendations process. Only upload papers you are an author of.
 
 Please contact info@openreview.net with any questions or concerns about this interface, or about the expertise scoring process.`
+  const defaultUploadInvitationId = `${process.env.SUPER_USER}/Archive/-/Direct_Upload`
 
   useEffect(() => {
     // Set referrer banner
@@ -65,7 +66,7 @@ Please contact info@openreview.net with any questions or concerns about this int
 
       <div id="invitation">
         <SubmissionButton
-          invitationId={uploadInvitationId || 'OpenReview.net/Archive/-/Direct_Upload'}
+          invitationId={uploadInvitationId ?? defaultUploadInvitationId}
           apiVersion={1}
           onNoteCreated={() => {
             promptMessage('Your paper has been added to the OpenReview Archive')
