@@ -247,7 +247,7 @@ const ReviewerConsoleTasks = ({
         '/invitations',
         {
           ...(apiVersion !== 2 && { regex: wildcardInvitation }),
-          ...(apiVersion === 2 && { prefix: wildcardInvitation }),
+          ...(apiVersion === 2 && { domain: venueId }),
           invitee: true,
           duedate: true,
           type: 'all',

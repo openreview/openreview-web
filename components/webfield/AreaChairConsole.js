@@ -592,7 +592,7 @@ const AreaChairConsoleTasks = ({ venueId, areaChairName, apiVersion }) => {
         '/invitations',
         {
           ...(apiVersion !== 2 && { regex: `${venueId}/.*` }),
-          ...(apiVersion === 2 && { prefix: `${venueId}/.*` }),
+          ...(apiVersion === 2 && { domain: venueId }),
           invitee: true,
           duedate: true,
           type: 'all',
