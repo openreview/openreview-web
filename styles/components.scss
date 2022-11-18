@@ -1161,11 +1161,6 @@ table.table-minimal {
       width: 6%;
     }
 
-    .col-process-status {
-      margin-right: 0.5rem;
-      width: 4%;
-    }
-
     .name {
       width: 15%;
       overflow: hidden;
@@ -1200,6 +1195,52 @@ table.table-minimal {
     }
     .col-actions {
       width: 20%;
+    }
+  }
+}
+
+.profile-merge-list {
+  .profile-merge-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    line-height: 26px;
+
+    .col-status {
+      margin-right: 0.25rem;
+      width: 6%;
+    }
+
+    .compare,
+    .signature {
+      width: 20%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-right: 0.25rem;
+      &.last-previewed {
+        font-weight: bold;
+      }
+    }
+    .signature {
+      width: 15%;
+      cursor: pointer;
+    }
+
+    .comment {
+      width: 5%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex-grow: 1;
+      margin-right: 0.5rem;
+    }
+    .col-created {
+      width: 18%;
+      margin-right: 0.25rem;
+    }
+    .col-actions {
+      width: 22%;
     }
   }
 }

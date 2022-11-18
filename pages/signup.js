@@ -10,6 +10,7 @@ import NoteList from '../components/NoteList'
 import BasicModal from '../components/BasicModal'
 import api from '../lib/api-client'
 import { isValidEmail, isValidPassword } from '../lib/utils'
+import ProfileMergeModal from '../components/ProfileMergeModal'
 
 const LoadingContext = createContext()
 
@@ -115,13 +116,6 @@ const SignupForm = ({ setSignupConfirmation }) => {
       promptError(apiError.message)
     }
     setLoading(false)
-  }
-
-  const populateFeedbackForm = () => {
-    $('#feedback-modal [name="subject"]').val('Merge Profiles')
-    $('#feedback-modal [name="message"]').val(
-      'Hi OpenReview,\n\nBelow are my profile e-mail addresses:\n<replace-me>@<some-domain.com>\n<replace-me>@<some-domain.com>\n\nThanks.'
-    )
   }
 
   useEffect(() => {
@@ -257,12 +251,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
         <p className="merge-message hint">
           If two or more of the profiles above belong to you, please{' '}
           {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-          <a
-            href="#"
-            data-toggle="modal"
-            data-target="#feedback-modal"
-            onClick={populateFeedbackForm}
-          >
+          <a href="#" data-toggle="modal" data-target="#profile-merge-modal">
             contact us
           </a>{' '}
           and we will assist you in merging your profiles.
@@ -279,6 +268,8 @@ const SignupForm = ({ setSignupConfirmation }) => {
           setNameConfirmed(true)
         }}
       />
+
+      <ProfileMergeModal />
     </div>
   )
 }
