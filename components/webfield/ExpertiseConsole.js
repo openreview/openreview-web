@@ -31,9 +31,7 @@ export default function ExpertiseConsole({ appContext }) {
   const defaultDescription = `Listed below are all the papers you have authored that exist in the OpenReview database.
 
 **By default, we consider all of these papers to formulate your expertise.
-Please click "${buttonText}" for papers that you ${
-    buttonText === 'Exclude' ? 'do NOT' : ''
-  } want to be used to represent your expertise.**
+Please click "${buttonText}" for papers that you ${buttonText === 'Exclude' ? 'do NOT' : ''} want to be used to represent your expertise.**
 
 Your previously authored papers from selected conferences were automatically imported from [DBLP.org](https://dblp.org/).
 The keywords in these papers will be used to rank submissions for you during the bidding process, and to assign submissions to you during the review process.
