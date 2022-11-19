@@ -30,38 +30,52 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
   const [edgesMap, setEdgesMap] = useState(null)
   const [userNotes, setUserNotes] = useState(null)
 
-  const options = apiVersion === 2
-    ? invitation.edge?.label?.param?.enum
-    : invitation.reply?.content?.label?.['value-radio']
+  const options =
+    apiVersion === 2
+      ? invitation.edge?.label?.param?.enum
+      : invitation.reply?.content?.label?.['value-radio']
   const invitationOption = options?.[0] || 'Exclude'
   const tabLabel = `${invitationOption}d Papers`
   const tabId = kebabCase(tabLabel)
 
-  const selectedIds = (userNotes && edgesMap)
-    ? Object.keys(edgesMap).filter((noteId) => !edgesMap[noteId].ddate)
-    : null
+  const selectedIds =
+    userNotes && edgesMap
+      ? Object.keys(edgesMap).filter(
+          (noteId) => userNotes.find((n) => n.id === noteId) && !edgesMap[noteId].ddate
+        )
+      : null
 
-  const loadNotePage = useCallback((limit, offset) => Promise.resolve({
-    items: userNotes.slice(offset, offset + limit),
-    count: userNotes.length,
-  }), [userNotes])
+  const loadNotePage = useCallback(
+    (limit, offset) =>
+      Promise.resolve({
+        items: userNotes.slice(offset, offset + limit),
+        count: userNotes.length,
+      }),
+    [userNotes]
+  )
 
-  const loadSelectedPage = useCallback((limit, offset) => {
-    const selectedNotes = userNotes.filter((note) => selectedIds.includes(note.id))
-    return Promise.resolve({
-      items: selectedNotes.slice(offset, offset + limit),
-      count: selectedNotes.length,
-    })
-  }, [userNotes, selectedIds])
+  const loadSelectedPage = useCallback(
+    (limit, offset) => {
+      const selectedNotes = userNotes.filter((note) => selectedIds.includes(note.id))
+      return Promise.resolve({
+        items: selectedNotes.slice(offset, offset + limit),
+        count: selectedNotes.length,
+      })
+    },
+    [userNotes, selectedIds]
+  )
 
-  const loadSearchPage = useCallback((term, limit, offset) => {
-    const searchRegex = new RegExp(`\\b${escapeRegExp(term)}`, 'mi')
-    const filteredNotes = userNotes.filter((note) => note.searchText?.match(searchRegex))
-    return Promise.resolve({
-      items: filteredNotes.slice(offset, offset + limit),
-      count: filteredNotes.length,
-    })
-  }, [userNotes])
+  const loadSearchPage = useCallback(
+    (term, limit, offset) => {
+      const searchRegex = new RegExp(`\\b${escapeRegExp(term)}`, 'mi')
+      const filteredNotes = userNotes.filter((note) => note.searchText?.match(searchRegex))
+      return Promise.resolve({
+        items: filteredNotes.slice(offset, offset + limit),
+        count: filteredNotes.length,
+      })
+    },
+    [userNotes]
+  )
 
   const toggleEdge = async (noteId, value) => {
     const existingEdge = edgesMap[noteId]
@@ -77,17 +91,21 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
     }
 
     try {
-      const res = await api.post('/edges', {
-        ...(existingEdge ? { id: existingEdge.id } : {}),
-        invitation: invitation.id,
-        readers: [venueId, user.profile.id],
-        writers: [venueId, user.profile.id],
-        signatures: [user.profile.id],
-        head: noteId,
-        tail: user.profile.id,
-        label: value,
-        ...ddate,
-      }, { accessToken, version: apiVersion })
+      const res = await api.post(
+        '/edges',
+        {
+          ...(existingEdge ? { id: existingEdge.id } : {}),
+          invitation: invitation.id,
+          readers: [venueId, user.profile.id],
+          writers: [venueId, user.profile.id],
+          signatures: [user.profile.id],
+          head: noteId,
+          tail: user.profile.id,
+          label: value,
+          ...ddate,
+        },
+        { accessToken, version: apiVersion }
+      )
       setEdgesMap({
         ...edgesMap,
         [noteId]: res,
@@ -126,11 +144,16 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
     const loadNotes = async () => {
       try {
         // Only get authored notes readable by everyone
-        const notes = await api.getCombined('/notes', {
-          'content.authorids': user.profile.id,
-          sort: 'cdate',
-          details: 'invitation',
-        }, null, { includeVersion: true, useCredentials: false })
+        const notes = await api.getCombined(
+          '/notes',
+          {
+            'content.authorids': user.profile.id,
+            sort: 'cdate',
+            details: 'invitation',
+          },
+          null,
+          { includeVersion: true, useCredentials: false, cache: false }
+        )
         notes.notes.forEach((note) => {
           // eslint-disable-next-line no-param-reassign
           note.searchText = buildNoteSearchText(note, note.apiVersion === 2)
@@ -144,10 +167,14 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
 
     const loadEdges = async () => {
       try {
-        const edges = await api.getAll('/edges', {
-          invitation: invitation.id,
-          tail: user.profile.id,
-        }, { accessToken, version: apiVersion })
+        const edges = await api.getAll(
+          '/edges',
+          {
+            invitation: invitation.id,
+            tail: user.profile.id,
+          },
+          { accessToken, version: apiVersion }
+        )
         setEdgesMap(keyBy(edges, 'head'))
       } catch (error) {
         promptError(error.message)
@@ -157,11 +184,12 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
 
     loadNotes()
     loadEdges()
-  }, [userLoading, user])
+  }, [userLoading, user, shouldReload])
 
   if (userLoading) return <LoadingSpinner />
 
-  if (!user) return <ErrorAlert error={{ message: 'You must be logged in to select your expertise' }} />
+  if (!user)
+    return <ErrorAlert error={{ message: 'You must be logged in to select your expertise' }} />
 
   return (
     <Tabs className={styles.container}>
@@ -176,15 +204,14 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
 
       <TabPanels>
         <TabPanel id="all-your-papers">
-          {(userNotes && edgesMap) ? (
+          {userNotes && edgesMap ? (
             <PaginatedList
               loadItems={loadNotePage}
               searchItems={loadSearchPage}
               ListItem={NoteListItem}
               itemsPerPage={15}
-              shouldReload={shouldReload}
-              enableSearch={false}
               className="submissions-list"
+              enableSearch
             />
           ) : (
             <LoadingSpinner inline />
