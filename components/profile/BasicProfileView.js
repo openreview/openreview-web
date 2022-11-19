@@ -1,8 +1,8 @@
 import random from 'lodash/random'
 import { nanoid } from 'nanoid'
 import Icon from '../Icon'
-import { prettyList } from '../../lib/utils'
 import ProfileViewSection from './ProfileViewSection'
+import { prettyList } from '../../lib/utils'
 
 const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
   if (!itemMeta) {
