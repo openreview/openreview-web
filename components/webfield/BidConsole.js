@@ -137,7 +137,8 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
               apiVersion === 2 ? matchingNote.invitations[0] : matchingNote.invitation
             if (
               matchingNote &&
-              noteInvitation === submissionInvitationId &&
+              noteInvitation ===
+                (apiVersion === 2 ? submissionVenueId : submissionInvitationId) &&
               !conflictIds.includes(noteId)
             ) {
               return matchingNote
