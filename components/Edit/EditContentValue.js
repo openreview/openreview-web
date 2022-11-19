@@ -29,7 +29,14 @@ const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown, isJso
       </span>
     )
   }
-  if (fieldName === '_bibtex' || fieldName === 'web' || fieldName.endsWith('_script') || fieldName.endsWith('_process') || isJsonValue) {
+  if (
+    fieldName === '_bibtex' ||
+    fieldName === 'web' ||
+    fieldName === 'process' ||
+    fieldName.endsWith('_script') ||
+    fieldName.endsWith('_process') ||
+    isJsonValue
+  ) {
     return (
       <div className="note-content-value">
         <pre>{fieldValue}</pre>

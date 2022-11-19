@@ -23,9 +23,9 @@ const EditContent = ({ edit, type = 'note' }) => {
         const enableMarkdown = edit.details?.presentation?.find(
           (p) => p.name === fieldName
         )?.markdown
-
         const isEmptyValue = field === null ||
           (field instanceof Object && !Array.isArray(field) && (field.value === undefined || field.value === null))
+        const isEmptyArray = Array.isArray(field) && field.length === 0
 
         return (
           <li key={fieldName}>
@@ -41,7 +41,7 @@ const EditContent = ({ edit, type = 'note' }) => {
             )}
             {isEmptyValue ? (
               <span className="empty-value">
-                (empty)
+                {`(empty${isEmptyArray ? ' list' : ''})`}
               </span>
             ) : (
               <EditContentValue

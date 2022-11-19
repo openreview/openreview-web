@@ -6,6 +6,7 @@ import { buildNoteTitle, forumDate, prettyList, prettyField, prettyContentValue 
 
 function EditFields({ editId, displayObj, omitFields = [], label = 'Edit' }) {
   const formatGroupMemberEdit = (membersObj) => {
+    if (Array.isArray(membersObj) && membersObj.length === 0) return '(empty list)'
     if (isEmpty(membersObj)) return '(empty)'
 
     const updates = []
@@ -30,17 +31,18 @@ function EditFields({ editId, displayObj, omitFields = [], label = 'Edit' }) {
           ? formatGroupMemberEdit(displayObj[fieldName])
           : displayObj[fieldName]
         const isJsonValue = field instanceof Object && !Array.isArray(field)
-        const enableMarkdown = fieldName === 'members'
         const isEmptyValue = field === null ||
           (field instanceof Object && !Array.isArray(field) && (field.value === undefined || field.value === null))
+        const isEmptyArray = Array.isArray(field) && field.length === 0
+        const enableMarkdown = fieldName === 'members' && !field.startsWith('(empty')
 
         return (
           <li key={`${editId}-${fieldName}`}>
             <strong className="note-content-field">{label} – {prettyField(fieldName)}:</strong>
             {' '}
-            {isEmptyValue ? (
+            {isEmptyValue || isEmptyArray ? (
               <span className="empty-value">
-                (empty)
+                {`(empty${isEmptyArray ? ' list' : ''})`}
               </span>
             ) : (
               <EditContentValue
