@@ -860,6 +860,10 @@ const UserModerationQueue = ({
   const [profileToPreview, setProfileToPreview] = useState(null)
   const [lastPreviewedProfileId, setLastPreviewedProfileId] = useState(null)
   const modalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
+  const pageSizeOptions = [15, 30, 50, 100].map((p) => ({
+    label: `${p} items`,
+    value: p,
+  }))
 
   const getProfiles = async () => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
@@ -1189,20 +1193,32 @@ const UserModerationQueue = ({
       ) : (
         <LoadSpinner inline />
       )}
-      <PaginationLinks
-        currentPage={pageNumber}
-        itemsPerPage={pageSize}
-        totalCount={totalCount}
-        setCurrentPage={setPageNumber}
-        options={{ showPageSizeOptions: true, setPageSize }}
-      />
+      <div className="pagination-container-with-control">
+        <PaginationLinks
+          currentPage={pageNumber}
+          itemsPerPage={pageSize}
+          totalCount={totalCount}
+          setCurrentPage={setPageNumber}
+        />
+        {totalCount > pageSize && (
+          <Dropdown
+            className="dropdown-select dropdown-pagesize"
+            options={pageSizeOptions}
+            value={pageSizeOptions.find((p) => p.value === pageSize)}
+            onChange={(e) => {
+              setPageNumber(1)
+              setPageSize(e.value)
+            }}
+          />
+        )}
+      </div>
+
       <RejectionModal
         id={modalId}
         profileIdToReject={profileIdToReject}
         rejectUser={rejectUser}
         signedNotesCount={signedNotesCount}
       />
-
       <ProfilePreviewModal
         profileToPreview={profileToPreview}
         setProfileToPreview={setProfileToPreview}
