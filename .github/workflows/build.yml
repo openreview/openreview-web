@@ -62,13 +62,10 @@ jobs:
         with:
           repository: openreview/openreview-py
           path: openreview-py
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.8
-          cache: pip
       - name: Install openreview-py
         run: |
           cd openreview-py
+          python --version
           python -m pip install --upgrade pip
           pip install -e .
       - name: Checkout openreview-api
