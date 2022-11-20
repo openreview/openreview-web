@@ -62,12 +62,15 @@ jobs:
         with:
           repository: openreview/openreview-py
           path: openreview-py
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+          cache: pip
       - name: Install openreview-py
         run: |
           cd openreview-py
-          curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-          sudo python3 get-pip.py
-          sudo pip3 install -e .
+          python -m pip install --upgrade pip
+          pip install -e .
       - name: Checkout openreview-api
         uses: actions/checkout@v3
         with:
@@ -106,11 +109,10 @@ jobs:
             ${{ github.workspace }}/.next/cache
           key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}
       - name: Build & Run openreview-web
-        run: |
-          npm ci
-          npm run lint
-          NODE_ENV=production npm run build
-          NODE_ENV=production npm run start &
+        run: npm ci
+        run: npm run lint
+        run: NODE_ENV=production npm run build
+        run: NODE_ENV=production npm run start &
       - name: Run TestCafe Tests
         uses: DevExpress/testcafe-action@latest
       - name: Upload Test Videos
