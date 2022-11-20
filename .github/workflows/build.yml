@@ -36,8 +36,6 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - name: Checkout openreview-web
-        uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
@@ -99,15 +97,22 @@ jobs:
         run: |
           cd openreview-api
           NODE_ENV=circleci node scripts/clean_start_app.js &
-      - name: Cache openreview-web Build
+      - name: Checkout openreview-web
+        uses: actions/checkout@v3
+      - name: Cache openreview-web
+        id: cache-openreview-web
         uses: actions/cache@v3
         with:
           path: |
+            ${{ github.workspace }}/node_modules
             ${{ github.workspace }}/.next/cache
           key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}
+      - name: Install openreview-web Dependencies
+        if: steps.cache-openreview-web.outputs.cache-hit != 'true'
+        run: |
+          npm install
       - name: Build openreview-web
         run: |
-          npm ci
           npm run lint
           NODE_ENV=production npm run build
       - name: Run openreview-web
@@ -115,6 +120,8 @@ jobs:
           NODE_ENV=production npm run start &
       - name: Run TestCafe Tests
         uses: DevExpress/testcafe-action@latest
+        with:
+          skip-install: true
       - name: Upload Test Videos
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
