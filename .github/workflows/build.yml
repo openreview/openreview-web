@@ -68,10 +68,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
+          cache: 'npm'
           cache-dependency-path: |
-            openreview-web/package-lock.json
             openreview-api/package-lock.json
+            openreview-web/package-lock.json
       - name: Setup openreview-py
         run: |
           cd openreview-py
@@ -96,7 +96,7 @@ jobs:
           cd openreview-web
           npm ci
           cp .env.example .env.local
-          NODE_ENV=production npm run build
+          NODE_ENV=production API_V2_URL= npm run build
       - name: Run openreview-api
         run: |
           cd openreview-api
@@ -104,11 +104,8 @@ jobs:
       - name: Run openreview-web
         run: |
           cd openreview-web
-          NODE_ENV=production npm run start &
+          NODE_ENV=production API_V2_URL= npm run start &
       - name: Run TestCafe Tests
-        # uses: DevExpress/testcafe-action@latest
-        # with:
-        #   skip-install: true
         run: |
           cd openreview-web
           xvfb-run --server-args="-screen 0 1280x720x24" npm run test
