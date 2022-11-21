@@ -96,7 +96,6 @@ jobs:
           cd openreview-web
           npm ci
           cp .env.example .env.local
-          ls -al .next/cache
           npm run build
       - name: Run openreview-api
         run: |
