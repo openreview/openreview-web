@@ -133,13 +133,11 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
-            if (
-              matchingNote &&
-              (apiVersion === 2
+            const isActiveSubmission =
+              apiVersion === 2
                 ? matchingNote.content?.venueid?.value === submissionVenueId
-                : matchingNote.invitation === submissionInvitationId) &&
-              !conflictIds.includes(noteId)
-            ) {
+                : matchingNote.invitation === submissionInvitationId
+            if (matchingNote && isActiveSubmission && !conflictIds.includes(noteId)) {
               return matchingNote
             }
             return []
@@ -382,11 +380,13 @@ const NoBidTab = ({
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
+            const isActiveSubmission =
+              apiVersion === 2
+                ? matchingNote.content?.venueid?.value === submissionVenueId
+                : matchingNote.invitation === submissionInvitationId
             if (
               matchingNote &&
-              (apiVersion === 2
-                ? matchingNote.content?.venueid?.value === submissionVenueId
-                : matchingNote.invitation === submissionInvitationId) &&
+              isActiveSubmission &&
               !conflictIds.includes(noteId) &&
               !bidEdges.find((p) => p.head === noteId)
             ) {
