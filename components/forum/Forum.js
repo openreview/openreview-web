@@ -281,8 +281,6 @@ export default function Forum({
 
   // Add new reply note or update and existing reply note
   const updateNote = (note) => {
-    if (!note) return
-
     const noteId = note.id
     const parentId = note.replyto
     const existingNote = replyNoteMap[noteId]
