@@ -53,6 +53,7 @@ const nameMakePreferredButton = Selector('div.container.names')
   .nth(0)
 const homepageUrlInput = Selector('input#homepage_url')
 const yearOfBirthInput = Selector('section').nth(2).find('input')
+const linkedinUrlInput = Selector('input#linkedin_url')
 // #endregion
 
 fixture`Profile page`.before(async (ctx) => {
