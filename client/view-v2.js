@@ -726,7 +726,6 @@ module.exports = (function () {
         replyInvitations: [],
         tagInvitations: [],
         onNewNoteRequested: null,
-        titleLink: 'NONE', // NONE | HREF | JS
         withContent: false,
         withReplyCount: false,
         withRevisionsLink: false,
@@ -759,7 +758,7 @@ module.exports = (function () {
     var titleText = getTitleText(note, generatedTitleText)
     var useGeneratedTitle =
       !_.trim(note.content?.title?.value) && !_.trim(note.content?.verdict?.value)
-    var $titleHTML = view.mkTitleComponent(note, params.titleLink, titleText)
+    var $titleHTML = view.mkTitleComponent(note, titleText)
 
     var $pdfLink = mkPdfIcon(note, params.isEdit)
     var $htmlLink = mkHtmlIcon(note)
@@ -2140,7 +2139,7 @@ module.exports = (function () {
 
     // content fields
     Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
-      if (formData?.[contentFieldName] === undefined) {
+      if (formData?.[contentFieldName] === undefined && noteObj?.content?.[contentFieldName] === undefined) {
         // do not return field
         return
       }

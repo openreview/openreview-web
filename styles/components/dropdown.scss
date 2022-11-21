@@ -96,3 +96,17 @@
   opacity: 0.5;
   pointer-events: none;
 }
+
+#content .dropdown-pagesize {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 20px 0px 0px;
+  .dropdown-select__control {
+    color: #4d8093;
+    background-color: #efece3;
+    border: 1px solid #ddd;
+  }
+  .dropdown-select__single-value {
+    margin-bottom: 2px;
+  }
+}

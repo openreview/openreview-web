@@ -7,32 +7,37 @@ import { isValidURL } from '../../lib/utils'
 
 const PersonalLinkInput = ({ type, links, setLinks }) => {
   const handleBlur = (e) => {
-    const { value } = e.target
-    if (!value.trim()?.length) return
+    const value = e.target.value.trim()
+    if (!value) return
+
     switch (type) {
       case 'gscholar': {
-        const isValid = isValidURL(value.trim()) && value.startsWith('https://scholar.google')
-        if (!isValid)
+        const isValid = isValidURL(value) && value.startsWith('https://scholar.google')
+        if (!isValid) {
           promptError(`${value} is not a valid Google Scholar URL`, { scrollToTop: false })
+        }
         setLinks({ type, data: { value, valid: isValid } })
         break
       }
       case 'semanticScholar': {
         const isValid =
-          isValidURL(value.trim()) && value.startsWith('https://www.semanticscholar.org')
-        if (!isValid)
+          isValidURL(value) && value.startsWith('https://www.semanticscholar.org')
+        if (!isValid) {
           promptError(`${value} is not a valid Semantic Scholar URL`, { scrollToTop: false })
+        }
         setLinks({ type, data: { value, valid: isValid } })
         break
       }
       default: {
-        const isValid = isValidURL(value.trim())
-        if (!isValid)
+        const isValid = isValidURL(value)
+        if (!isValid) {
           promptError(`${value} is not a valid ${type} URL`, { scrollToTop: false })
+        }
         setLinks({ type, data: { value, valid: isValid } })
       }
     }
   }
+
   return (
     <input
       id={`${type}_url`}
