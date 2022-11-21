@@ -815,6 +815,12 @@ header {
   }
 }
 
+.pagination-container-with-control {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
 #content .error-display {
   header {
     margin-bottom: 0;
