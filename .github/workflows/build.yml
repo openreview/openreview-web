@@ -88,14 +88,13 @@ jobs:
         with:
           # For explanation see https://nextjs.org/docs/advanced-features/ci-build-caching#github-actions
           path: openreview-web/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('openreview-web/package-lock.json') }}-${{ hashFiles('**.js') }}
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('openreview-web/package-lock.json') }}-${{ hashFiles('openreview-web/**.js') }}
           restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+            ${{ runner.os }}-nextjs-${{ hashFiles('openreview-web/package-lock.json') }}-
       - name: Setup openreview-web
         run: |
           cd openreview-web
           npm ci
-          npx next telemetry disable
           cp .env.example .env.local
           NODE_ENV=production npm run build
       - name: Run openreview-api
