@@ -269,6 +269,13 @@ export const InvitationGeneralViewV2 = ({
           Edit General Info
         </button>
       )}
+      {showEditButton && (
+        <Link href={`/invitation/revisions?id=${invitation.id}`}>
+          <a role="button" className="btn btn-sm btn-default edit-group-info">
+            View Invitation Revisions
+          </a>
+        </Link>
+      )}
     </div>
   )
 }

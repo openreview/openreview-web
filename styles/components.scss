@@ -1102,7 +1102,6 @@ table.table-minimal {
     }
     ul.list-paginated > li.deleted {
       opacity: 0.5;
-      background-color: black;
     }
 
     ul.list-paginated > li > span {
@@ -1122,8 +1121,12 @@ table.table-minimal {
       }
       &.col-status {
         width: 200px;
+        cursor: pointer;
         .label {
           line-height: 26px;
+        }
+        .last-previewed {
+          box-shadow: 0 0 5px constants.$orRed;
         }
       }
       &.col-actions {
@@ -1146,6 +1149,61 @@ table.table-minimal {
   .form-rejection {
     display: flex;
     flex-flow: column;
+  }
+
+  #profile-preview {
+    .modal-content {
+      min-width: fit-content;
+    }
+    section {
+      margin-bottom: 1.5rem;
+      max-width: 800px;
+
+      h4 {
+        width: 100%;
+        border-bottom: 1px solid constants.$borderGray;
+      }
+      .instructions,
+      .glyphicon {
+        display: none;
+      }
+      .list-compact > div {
+        display: inline-block;
+        line-height: normal;
+      }
+      .empty-message {
+        color: constants.$subtleGray;
+        font-style: italic;
+        margin-top: 0.5rem;
+      }
+      .table-row {
+        display: flex;
+        gap: 1%;
+      }
+      .actions {
+        display: none;
+      }
+    }
+
+    section.links,
+    section.history {
+      .section-content {
+        width: 100%;
+
+        display: flex;
+        flex-direction: column;
+        white-space: nowrap;
+
+        .link-text {
+          max-width: 600px;
+          overflow-x: hidden;
+          text-overflow: ellipsis;
+          display: inline-block;
+          vertical-align: bottom;
+          margin-left: 0.25rem;
+        }
+      }
+    }
   }
 }
 
