@@ -18,7 +18,7 @@ import api from '../../lib/api-client'
 import { formatTasksData, prettyId } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import LoadingSpinner from '../LoadingSpinner'
-import { filterAssignedInvitations } from '../../lib/webfield-utils'
+import { filterAssignedInvitations, filterHasReplyTo } from '../../lib/webfield-utils'
 
 const ReviewSummary = ({
   note,
@@ -174,17 +174,6 @@ const AuthorConsoleTasks = () => {
     return { ...invitation, [invitaitonType]: true, apiVersion }
   }
 
-  // for note invitations only
-  const filterHasReplyTo = (invitation) => {
-    if (!invitation.noteInvitation) return true
-    if (apiVersion === 2) {
-      const result = invitation.edit?.note?.replyto?.const || invitation.edit?.note?.id?.const
-      return result
-    }
-    const result = invitation.reply.replyto || invitation.reply.referent
-    return result
-  }
-
   const loadInvitations = async () => {
     setIsLoading(true)
     try {
@@ -202,7 +191,7 @@ const AuthorConsoleTasks = () => {
 
       allInvitations = allInvitations
         .map((p) => addInvitaitonTypeAndVersion(p))
-        .filter((p) => filterHasReplyTo(p))
+        .filter((p) => filterHasReplyTo(p, apiVersion))
         .filter((p) => filterAssignedInvitations(p, authorName, submissionName))
 
       if (allInvitations.length) {
