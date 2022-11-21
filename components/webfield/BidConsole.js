@@ -2,6 +2,7 @@
 
 import { useCallback, useContext, useEffect, useState } from 'react'
 import debounce from 'lodash/debounce'
+import kebabCase from 'lodash/kebabCase'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
@@ -587,19 +588,17 @@ const BidConsole = ({ appContext }) => {
     conflictInvitationId,
   } = useContext(WebFieldContext)
 
-  const bidOptions =
-    apiVersion === 2
-      ? invitation.edge?.label?.param?.enum
-      : invitation.reply?.content?.label?.['value-radio']
-  const getBidOptionId = (bidOption) => bidOption.toLowerCase().split(' ').join('-')
-  const allPapersOption = 'All Papers'
-  const bidOptionsWithDefaultTabs = [allPapersOption, ...(bidOptions ?? []), 'No Bid']
+  const bidOptions = apiVersion === 2
+    ? invitation.edge?.label?.param?.enum
+    : invitation.reply?.content?.label?.['value-radio']
+  const bidOptionsWithDefaultTabs = ['All Papers', ...(bidOptions ?? []), 'No Bid']
   const getActiveTabIndex = () => {
     const tabIndex = bidOptionsWithDefaultTabs.findIndex(
-      (p) => `#${getBidOptionId(p)}` === window.location.hash
+      (p) => `#${kebabCase(p)}` === window.location.hash
     )
     return tabIndex < 0 ? 0 : tabIndex
   }
+
   const [activeTabIndex, setActiveTabIndex] = useState(() => getActiveTabIndex())
   const [isLoading, setIsLoading] = useState(true)
   const [bidEdges, setBidEdges] = useState([])
@@ -644,7 +643,7 @@ const BidConsole = ({ appContext }) => {
   }, [])
 
   const renderActiveTab = () => {
-    const id = getBidOptionId(bidOptionsWithDefaultTabs[activeTabIndex])
+    const id = kebabCase(bidOptionsWithDefaultTabs[activeTabIndex])
     if (activeTabIndex === 0)
       return (
         <TabPanel id={id}>
@@ -721,7 +720,7 @@ const BidConsole = ({ appContext }) => {
         <Tabs>
           <TabList>
             {bidOptionsWithDefaultTabs?.map((bidOption, index) => {
-              const id = getBidOptionId(bidOption)
+              const id = kebabCase(bidOption)
               const bidCountByOption = bidEdges.filter((p) => p.label === bidOption).length
               return (
                 <Tab
