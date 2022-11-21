@@ -1,0 +1,72 @@
+@use '../utils/constants';
+
+.container {
+  :global {
+    .edit {
+      padding: 0;
+      margin-bottom: 2rem;
+
+      h4 {
+        color: constants.$darkBlue;
+        margin-bottom: 0.25rem;
+      }
+
+      pre {
+        margin-top: .125rem;
+        font-size: .75rem;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+
+      .edit_meta_info {
+        font-size: 0.75rem;
+        line-height: 1.25rem;
+        color: constants.$subtleGray;
+        margin-bottom: 0.125rem;
+      }
+
+      .note-content {
+        li {
+          padding-left: 0;
+        }
+        .html-link {
+          margin-left: 0;
+        }
+      }
+
+      .edit_info {
+        margin-top: 0.5rem;
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+        padding: 0.5rem;
+        background: rgba(0, 0, 0, 0.08);
+
+        h4 {
+          font-size: 0.875rem;
+          line-height: normal;
+          font-weight: bold;
+          margin-top: 0;
+          margin-bottom: 0.5rem;
+        }
+        hr.small {
+          margin-top: 0.5rem;
+          margin-bottom: 0.25rem;
+        }
+        .line_heading {
+          font-size: 0.75rem;
+          font-weight: bold;
+          color: constants.$orRed;
+          padding-right: 0.25rem;
+        }
+        .edit_value {
+          font-size: 0.75rem;
+        }
+      }
+
+      .empty-value {
+        font-style: italic;
+        color: constants.$subtleGray;
+      }
+    }
+  }
+}
