@@ -110,13 +110,13 @@ jobs:
           cd openreview-web
           xvfb-run --server-args="-screen 0 1280x720x24" npm run test
       - name: Upload Test Videos
-        if: ${{ failure() }}
+        if: failure()
         uses: actions/upload-artifact@v3
         with:
-          name: videos
-          path: /home/runner/work/openreview-web/openreview-web/videos/
+          name: TestCafe Videos
+          path: openreview-web/videos/
       - name: Check API Logs
-        if: ${{ failure() }}
+        if: failure()
         run: |
           cd openreview-api/logs
           cat "$(ls -rt | tail -n1)"
