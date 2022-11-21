@@ -22,7 +22,7 @@ test('send incomplete feedback as a guest user', async (t) => {
     .ok()
     .click(sendButton)
     .expect(alertPanel.innerText)
-    .eql(' Error: message must NOT have fewer than 2 characters')
+    .eql(' Error: message must NOT have fewer than 1 characters')
 })
 
 test('send feedback as a guest user', async (t) => {
