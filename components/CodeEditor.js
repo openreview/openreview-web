@@ -1,12 +1,12 @@
-import { useEffect, useRef } from 'react'
-import { EditorState, basicSetup } from '@codemirror/basic-setup'
-import { Compartment } from '@codemirror/state'
-import { EditorView, keymap } from '@codemirror/view'
-import { defaultKeymap, indentWithTab } from '@codemirror/commands'
-import { defaultHighlightStyle, classHighlightStyle } from '@codemirror/highlight'
-import { javascript, esLint } from '@codemirror/lang-javascript'
-import { python } from '@codemirror/lang-python'
-import { json, jsonParseLinter } from '@codemirror/lang-json'
+import { useEffect, useRef, useState } from 'react'
+import { EditorView, basicSetup } from 'codemirror'
+import { StateEffect } from '@codemirror/state'
+import { keymap } from '@codemirror/view'
+import { indentWithTab } from '@codemirror/commands'
+import { LanguageSupport } from '@codemirror/language'
+import { jsonLanguage, jsonParseLinter } from '@codemirror/lang-json'
+import { javascriptLanguage, esLint } from '@codemirror/lang-javascript'
+import { pythonLanguage } from '@codemirror/lang-python'
 import { linter } from '@codemirror/lint'
 import Linter from 'eslint4b-prebuilt'
 
@@ -24,70 +24,57 @@ const CodeEditor = ({
 }) => {
   const containerRef = useRef(null)
   const editorRef = useRef(null)
-  const lint = new Compartment()
-  const language = new Compartment()
-  const languageRef = useRef(null)
+  const [extensions, setExtensions] = useState(null)
 
-  const getLanguage = () => {
-    if (isJson) {
-      languageRef.current = 'json'
-      return [lint.of(linter(jsonParseLinter())), language.of(json())]
-    }
-    if (code?.startsWith('def process') || isPython) {
-      languageRef.current = 'python'
-      return [language.of(python())]
-    }
-    languageRef.current = 'javascript'
-
-    return [
-      lint.of(linter(esLint(new Linter()))),
-      defaultHighlightStyle.extension,
-      classHighlightStyle.extension,
-      language.of(javascript()),
-    ]
+  const languageSupports = {
+    json: [new LanguageSupport(jsonLanguage), linter(jsonParseLinter())],
+    python: [new LanguageSupport(pythonLanguage), linter(() => [])],
+    javascript: [new LanguageSupport(javascriptLanguage), linter(esLint(new Linter()))],
   }
 
-  const setLanguage = EditorState.transactionExtender.of((tr) => {
-    const firstLine = editorRef.current.state?.doc?.toString()
-    if (languageRef.current === 'json') return null
-    if (firstLine?.startsWith('def process') && languageRef.current !== 'python') {
-      languageRef.current = 'python'
-      return {
-        effects: language.reconfigure(python()),
-      }
-    }
-    if (!firstLine?.startsWith('def process') && languageRef.current !== 'javascript') {
-      languageRef.current = 'javascript'
-      return {
-        effects: language.reconfigure(javascript()),
-      }
-    }
-    return null
-  })
-
-  const setLint = EditorState.transactionExtender.of((tr) => {
-    const firstLine = editorRef.current.state?.doc?.toString()
-    if (languageRef.current === 'json') return null
-    if (firstLine?.startsWith('def process') && languageRef.current !== 'python') {
-      return {
-        effects: lint.reconfigure(null),
-      }
-    }
-    if (!firstLine?.startsWith('def process') && languageRef.current !== 'javascript') {
-      return {
-        effects: lint.reconfigure(linter(esLint(new Linter()))),
-      }
-    }
-    return null
-  })
+  const getDefaultLanguage = () => {
+    if (isJson) return 'json'
+    if (code?.startsWith('def process') || isPython) return 'python'
+    return 'javascript'
+  }
+  const [language, setLanguage] = useState(getDefaultLanguage())
 
   useEffect(() => {
-    const extensions = [
+    if (scrollIntoView) {
+      containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!extensions) return
+    if (!editorRef.current) {
+      editorRef.current = new EditorView({
+        doc: code,
+        extensions,
+        parent: containerRef.current,
+      })
+    } else {
+      editorRef.current.dispatch({
+        effects: StateEffect.reconfigure.of(extensions),
+      })
+    }
+  }, [extensions])
+
+  useEffect(() => {
+    setExtensions([
       basicSetup,
-      keymap.of([defaultKeymap, indentWithTab]),
-      ...getLanguage(),
-      setLanguage,
-      setLint,
+      keymap.of([indentWithTab]),
+      ...languageSupports[language],
+      ...(wrap ? [EditorView.lineWrapping] : []),
+      ...(readOnly ? [EditorView.editable.of(false)] : []),
+      ...(onChange && typeof onChange === 'function'
+        ? [
+            EditorView.updateListener.of((view) => {
+              const value = view.state.doc.toString()
+              onChange(value)
+            }),
+          ]
+        : []),
       EditorView.theme({
         '&': {
           minHeight,
@@ -98,32 +85,19 @@ const CodeEditor = ({
           fontSize: '13px',
         },
       }),
-    ]
+    ])
+  }, [language])
 
-    if (wrap) extensions.push(EditorView.lineWrapping)
-    if (readOnly) extensions.push(EditorView.editable.of(false))
-    if (onChange && typeof onChange === 'function') {
-      extensions.push(
-        EditorView.updateListener.of((view) => {
-          const value = view.state.doc.toString()
-          onChange(value)
-        })
-      )
+  useEffect(() => {
+    const firstLine = editorRef.current?.viewState?.state?.doc?.lineAt(0)?.text
+    if (language === 'json') return
+    if (firstLine?.startsWith('def process') && language !== 'python') {
+      setLanguage('python')
     }
-
-    const state = EditorState.create({
-      doc: code,
-      extensions,
-    })
-    editorRef.current = new EditorView({
-      state,
-      parent: containerRef.current,
-    })
-    if (scrollIntoView) {
-      containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    if (!firstLine?.startsWith('def process') && language !== 'javascript') {
+      setLanguage('javascript')
     }
-    return () => editorRef.current?.destroy()
-  }, [])
+  })
 
   return <div className="code-editor" ref={containerRef} />
 }

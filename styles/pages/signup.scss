@@ -75,6 +75,21 @@ main.sign-up {
         }
       }
     }
+
+    #profile-merge-modal {
+      label {
+        color: unset;
+      }
+      form > .form-group {
+        margin-bottom: .5rem;
+        margin-left: 0;
+        margin-right: 0;
+
+        @media #{constants.$tablet} {
+          margin-bottom: .5rem;
+        }
+      }
+    }
   }
 
   .confirm-message {
