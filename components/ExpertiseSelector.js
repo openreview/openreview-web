@@ -144,7 +144,7 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
     const loadNotes = async () => {
       try {
         // Only get authored notes readable by everyone
-        const notes = await api.getCombined(
+        const { notes } = await api.getCombined(
           '/notes',
           {
             'content.authorids': user.profile.id,
@@ -152,13 +152,14 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
             details: 'invitation',
           },
           null,
-          { includeVersion: true, useCredentials: false, cache: false }
+          { accessToken, includeVersion: true }
         )
-        notes.notes.forEach((note) => {
+        const publicNotes = notes.filter((note) => note.readers.includes('everyone'))
+        publicNotes.forEach((note) => {
           // eslint-disable-next-line no-param-reassign
           note.searchText = buildNoteSearchText(note, note.apiVersion === 2)
         })
-        setUserNotes(notes.notes)
+        setUserNotes(publicNotes)
       } catch (error) {
         promptError(error.message)
         setUserNotes([])
