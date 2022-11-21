@@ -1,6 +1,6 @@
 import { DownloadLink, NoteContentValue } from '../NoteContent'
 
-const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown }) => {
+const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown, isJsonValue }) => {
   if (fieldValue.startsWith('/attachment/') || fieldValue.startsWith('/pdf/')) {
     return (
       <span className="note-content-value">
@@ -29,7 +29,14 @@ const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown }) => 
       </span>
     )
   }
-  if (fieldName === '_bibtex') {
+  if (
+    fieldName === '_bibtex' ||
+    fieldName === 'web' ||
+    fieldName === 'process' ||
+    fieldName.endsWith('_script') ||
+    fieldName.endsWith('_process') ||
+    isJsonValue
+  ) {
     return (
       <div className="note-content-value">
         <pre>{fieldValue}</pre>
