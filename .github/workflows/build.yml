@@ -18,6 +18,7 @@ concurrency:
 jobs:
   build:
     env:
+      NEXT_PORT: 3030
       SUPER_USER: openreview.net
 
     runs-on: ubuntu-latest
@@ -111,7 +112,7 @@ jobs:
         #   skip-install: true
         run: |
           cd openreview-web
-          npm run test
+          xvfb-run --server-args="-screen 0 1280x720x24" npm run test
       - name: Upload Test Videos
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
