@@ -123,13 +123,15 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+
     needs: build
+
     if: github.ref == 'refs/heads/master'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - id: auth
-        name: Authenticate to Google Cloud
+      - name: Authenticate with Google Cloud
+        id: auth
         uses: google-github-actions/auth@v1
         with:
           workload_identity_provider: projects/997553930042/locations/global/workloadIdentityPools/github-identity-pool/providers/github-identity-provider
@@ -137,9 +139,11 @@ jobs:
           create_credentials_file: true
           cleanup_credentials: true
           export_environment_variables: true
-      - name: Install Google Cloud
-        uses: google-github-actions/setup-gcloud@v0
-      - name: Deploy
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project: sunlit-realm-131518
+      - name: Deploy to dev
         run: |
-          gcloud compute --project "sunlit-realm-131518" ssh --zone "us-central1-b" openreview@dev-instance-1 --command 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && bash bin/deploy.sh' --quiet
-          gcloud compute --project "sunlit-realm-131518" ssh --zone "us-central1-b" openreview@dev-instance-1 --command 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && bash bin/deploy-openreview-py.sh' --quiet
+          gcloud compute ssh --zone "us-central1-b" openreview@dev-instance-1 --command 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && bash bin/deploy.sh' --quiet
+          gcloud compute ssh --zone "us-central1-b" openreview@dev-instance-1 --command 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && bash bin/deploy-openreview-py.sh' --quiet
