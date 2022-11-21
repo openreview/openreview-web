@@ -114,7 +114,7 @@ jobs:
           xvfb-run --server-args="-screen 0 1280x720x24" npm run test
       - name: Upload Test Videos
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: videos
           path: /home/runner/work/openreview-web/openreview-web/videos/
