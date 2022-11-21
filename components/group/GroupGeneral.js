@@ -293,6 +293,13 @@ const GroupGeneral = ({ group, profileId, isSuperUser, accessToken, reloadGroup 
           >
             Edit General Info
           </button>
+          {group.invitations?.length > 0 && (
+            <Link href={`/group/revisions?id=${group.id}`}>
+              <a role="button" className="btn btn-sm btn-default edit-group-info">
+                View Group Revisions
+              </a>
+            </Link>
+          )}
         </>
       )}
     </EditorSection>
