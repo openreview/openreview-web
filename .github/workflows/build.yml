@@ -34,14 +34,6 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: |
-            openreview-web/package-lock.json
-            openreview-api/package-lock.json
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.8.0
         with:
@@ -62,36 +54,34 @@ jobs:
         with:
           repository: openreview/openreview-py
           path: openreview-py
-      - name: Install openreview-py
-        run: |
-          cd openreview-py
-          python -m pip install --upgrade pip
-          pip install -e .
       - name: Checkout openreview-api
         uses: actions/checkout@v3
         with:
           repository: openreview/openreview-api-v1
           token: ${{ secrets.OPENREVIEW_ACCESS_TOKEN }}
           path: openreview-api
-      - name: Cache openreview-api
-        id: openreview-api-cache
-        uses: actions/cache@v3
+      - name: Checkout openreview-web
+        uses: actions/checkout@v3
         with:
-          path: openreview-api/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('openreview-api/package-lock.json') }}
+          path: openreview-web
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: |
+            openreview-web/package-lock.json
+            openreview-api/package-lock.json
+      - name: Setup openreview-py
+        run: |
+          cd openreview-py
+          python -m pip install --upgrade pip
+          pip install -e .
       - name: Setup openreview-api
         run: |
           cd openreview-api
           mkdir -p logs files/attachments files/pdfs files/temp
           npm ci
-      - name: Run openreview-api
-        run: |
-          cd openreview-api
-          NODE_ENV=circleci node scripts/clean_start_app.js &
-      - name: Checkout openreview-web
-        uses: actions/checkout@v3
-        with:
-          path: openreview-web
       - name: Cache openreview-web
         id: openreview-web-cache
         uses: actions/cache@v3
@@ -108,6 +98,10 @@ jobs:
           cp .env.example .env.local
           ls -al .next/cache
           npm run build
+      - name: Run openreview-api
+        run: |
+          cd openreview-api
+          NODE_ENV=circleci node scripts/clean_start_app.js &
       - name: Run openreview-web
         run: |
           cd openreview-web
