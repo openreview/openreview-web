@@ -2,27 +2,12 @@ import { prettyContentValue, prettyField, prettyId, prettyList } from '../../lib
 import Icon from '../Icon'
 import EditContentValue from './EditContentValue'
 
-const EditContent = ({ edit }) => {
-  const noteContent = {
-    ...edit?.note?.content,
-    ...(edit?.note?.readers && {
-      Readers: { value: prettyList(edit.note.readers, 'long', 'unit') },
-    }),
-    ...(edit?.note?.writers && {
-      Writers: { value: prettyList(edit.note.writers, 'long', 'unit') },
-    }),
-    ...(edit?.note?.signatures && {
-      Signatures: { value: prettyList(edit.note.signatures, 'long', 'unit') },
-    }),
-  }
+const EditContent = ({ edit, type = 'note' }) => {
+  if (!edit?.[type]?.content) return null
 
-  const contentOrder = edit.details?.presentation?.length
-    ? [
-        ...edit.details.presentation.map((p) => p.name),
-        ...(noteContent.Readers ? ['Readers'] : []),
-        ...(noteContent.Writers ? ['Writers'] : []),
-        ...(noteContent.Signatures ? ['Signatures'] : []),
-      ]
+  const noteContent = edit[type].content
+  const contentOrder = edit.details?.presentation?.length > 0
+    ? edit.details.presentation.map((p) => p.name)
     : Object.keys(noteContent)
 
   return (
@@ -38,9 +23,9 @@ const EditContent = ({ edit }) => {
         const enableMarkdown = edit.details?.presentation?.find(
           (p) => p.name === fieldName
         )?.markdown
-
         const isEmptyValue = field === null ||
-          (field instanceof Object && (field.value === undefined || field.value === null))
+          (field instanceof Object && !Array.isArray(field) && (field.value === undefined || field.value === null))
+        const isEmptyArray = Array.isArray(field) && field.length === 0
 
         return (
           <li key={fieldName}>
@@ -56,7 +41,7 @@ const EditContent = ({ edit }) => {
             )}
             {isEmptyValue ? (
               <span className="empty-value">
-                (empty)
+                {`(empty${isEmptyArray ? ' list' : ''})`}
               </span>
             ) : (
               <EditContentValue
