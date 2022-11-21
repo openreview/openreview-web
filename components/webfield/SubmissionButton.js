@@ -57,9 +57,9 @@ export default function SubmissionButton({
       {noteEditorOpen && (
         <NoteEditorForm
           invitation={invitation}
-          onNoteCreated={() => {
+          onNoteCreated={(newNote) => {
             toggleSubmissionForm()
-            onNoteCreated()
+            onNoteCreated(newNote)
           }}
           onNoteCancelled={toggleSubmissionForm}
           onError={(isLoadingError) => {

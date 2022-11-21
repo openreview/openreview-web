@@ -1324,7 +1324,7 @@ module.exports = (function () {
                 { handleErrors: false }
               ).then(
                 function (noteRes) {
-                  params.onNoteCreated(noteRes.notes?.[0])
+                  params.onNoteCreated(noteRes.notes?.length > 0 ? noteRes.notes[0] : result)
                 },
                 function () {
                   params.onNoteCreated(result)
