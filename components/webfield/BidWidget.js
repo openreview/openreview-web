@@ -5,10 +5,8 @@ export const BidScore = ({ scoreEdge }) => {
   if (!scoreEdge) return null
   return (
     <div className="tag-widget text " data-type="text">
-      <form className="form-inline">
-        <label>{prettyInvitationId(scoreEdge.invitation)}</label>
-        <span className="current-value">{scoreEdge.weight}</span>
-      </form>
+      <label>{prettyInvitationId(scoreEdge.invitation)}</label>
+      <span className="current-value">{scoreEdge.weight}</span>
     </div>
   )
 }

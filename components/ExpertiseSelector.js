@@ -1,10 +1,11 @@
 /* globals promptError: false */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import keyBy from 'lodash/keyBy'
 import kebabCase from 'lodash/kebabCase'
+import escapeRegExp from 'lodash/escapeRegExp'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from './Tabs'
-import SubmissionsList from './webfield/SubmissionsList'
+import PaginatedList from './PaginatedList'
 import Note, { NoteV2 } from './Note'
 import { BidRadioButtonGroup } from './webfield/BidWidget'
 import LoadingSpinner from './LoadingSpinner'
@@ -12,6 +13,7 @@ import ErrorAlert from './ErrorAlert'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { prettyInvitationId } from '../lib/utils'
+import { buildNoteSearchText } from '../lib/edge-utils'
 
 import styles from '../styles/components/ExpertiseSelector.module.scss'
 
@@ -23,36 +25,87 @@ const paperDisplayOptions = {
   showEdges: true,
 }
 
-export default function ExpertiseSelector({ invitation, venueId, shouldReload }) {
-  const { user, userLoading } = useUser()
+export default function ExpertiseSelector({ invitation, venueId, apiVersion, shouldReload }) {
+  const { user, accessToken, userLoading } = useUser()
   const [edgesMap, setEdgesMap] = useState(null)
-  const [userPapersQuery, setUserPapersQuery] = useState(null)
+  const [userNotes, setUserNotes] = useState(null)
 
-  const invitationOption = invitation.reply.content.label?.['value-radio']?.[0] || 'Exclude'
+  const options =
+    apiVersion === 2
+      ? invitation.edge?.label?.param?.enum
+      : invitation.reply?.content?.label?.['value-radio']
+  const invitationOption = options?.[0] || 'Exclude'
   const tabLabel = `${invitationOption}d Papers`
   const tabId = kebabCase(tabLabel)
 
-  const selectedIds = edgesMap
-    ? Object.keys(edgesMap).filter((noteId) => !edgesMap[noteId].ddate)
-    : null
+  const selectedIds =
+    userNotes && edgesMap
+      ? Object.keys(edgesMap).filter(
+          (noteId) => userNotes.find((n) => n.id === noteId) && !edgesMap[noteId].ddate
+        )
+      : null
+
+  const loadNotePage = useCallback(
+    (limit, offset) =>
+      Promise.resolve({
+        items: userNotes.slice(offset, offset + limit),
+        count: userNotes.length,
+      }),
+    [userNotes]
+  )
+
+  const loadSelectedPage = useCallback(
+    (limit, offset) => {
+      const selectedNotes = userNotes.filter((note) => selectedIds.includes(note.id))
+      return Promise.resolve({
+        items: selectedNotes.slice(offset, offset + limit),
+        count: selectedNotes.length,
+      })
+    },
+    [userNotes, selectedIds]
+  )
+
+  const loadSearchPage = useCallback(
+    (term, limit, offset) => {
+      const searchRegex = new RegExp(`\\b${escapeRegExp(term)}`, 'mi')
+      const filteredNotes = userNotes.filter((note) => note.searchText?.match(searchRegex))
+      return Promise.resolve({
+        items: filteredNotes.slice(offset, offset + limit),
+        count: filteredNotes.length,
+      })
+    },
+    [userNotes]
+  )
 
   const toggleEdge = async (noteId, value) => {
     const existingEdge = edgesMap[noteId]
-    const ddate =
-      existingEdge && existingEdge.label === value && !existingEdge.ddate ? Date.now() : null
+    let ddate = {}
+    if (existingEdge && existingEdge.label === value) {
+      if (existingEdge.ddate) {
+        // Un-delete the edge
+        ddate = apiVersion === 2 ? { ddate: { delete: true } } : { ddate: null }
+      } else {
+        // Delete the edge
+        ddate = { ddate: Date.now() }
+      }
+    }
 
     try {
-      const res = await api.post('/edges', {
-        ...(existingEdge ? { id: existingEdge.id } : {}),
-        invitation: invitation.id,
-        readers: [venueId, user.profile.id],
-        writers: [venueId, user.profile.id],
-        signatures: [user.profile.id],
-        head: noteId,
-        tail: user.profile.id,
-        label: value,
-        ddate,
-      })
+      const res = await api.post(
+        '/edges',
+        {
+          ...(existingEdge ? { id: existingEdge.id } : {}),
+          invitation: invitation.id,
+          readers: [venueId, user.profile.id],
+          writers: [venueId, user.profile.id],
+          signatures: [user.profile.id],
+          head: noteId,
+          tail: user.profile.id,
+          label: value,
+          ...ddate,
+        },
+        { accessToken, version: apiVersion }
+      )
       setEdgesMap({
         ...edgesMap,
         [noteId]: res,
@@ -76,7 +129,7 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
         )}
         <BidRadioButtonGroup
           label={prettyInvitationId(invitation.id)}
-          options={invitation.reply.content.label?.['value-radio']}
+          options={options}
           selectedBidOption={!edge || edge.ddate ? undefined : edge.label}
           updateBidOption={(value) => toggleEdge(item.id, value)}
           className="mb-2"
@@ -88,33 +141,56 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
   useEffect(() => {
     if (userLoading || !user) return
 
+    const loadNotes = async () => {
+      try {
+        // Only get authored notes readable by everyone
+        const { notes } = await api.getCombined(
+          '/notes',
+          {
+            'content.authorids': user.profile.id,
+            sort: 'cdate',
+            details: 'invitation',
+          },
+          null,
+          { accessToken, includeVersion: true }
+        )
+        const publicNotes = notes.filter((note) => note.readers.includes('everyone'))
+        publicNotes.forEach((note) => {
+          // eslint-disable-next-line no-param-reassign
+          note.searchText = buildNoteSearchText(note, note.apiVersion === 2)
+        })
+        setUserNotes(publicNotes)
+      } catch (error) {
+        promptError(error.message)
+        setUserNotes([])
+      }
+    }
+
     const loadEdges = async () => {
       try {
-        const edges = await api.getAll('/edges', {
-          invitation: invitation.id,
-          tail: user.profile.id,
-        })
-        if (edges?.length > 0) {
-          setEdgesMap(keyBy(edges, 'head'))
-        } else {
-          setEdgesMap({})
-        }
+        const edges = await api.getAll(
+          '/edges',
+          {
+            invitation: invitation.id,
+            tail: user.profile.id,
+          },
+          { accessToken, version: apiVersion }
+        )
+        setEdgesMap(keyBy(edges, 'head'))
       } catch (error) {
+        promptError(error.message)
         setEdgesMap({})
       }
     }
-    loadEdges()
 
-    setUserPapersQuery({
-      'content.authorids': user.profile.id,
-      sort: 'cdate',
-      details: 'invitation',
-    })
-  }, [userLoading, user.profile.id])
+    loadNotes()
+    loadEdges()
+  }, [userLoading, user, shouldReload])
 
   if (userLoading) return <LoadingSpinner />
 
-  if (!user) return <ErrorAlert message="You must be logged in to select your expertise" />
+  if (!user)
+    return <ErrorAlert error={{ message: 'You must be logged in to select your expertise' }} />
 
   return (
     <Tabs className={styles.container}>
@@ -129,15 +205,13 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
 
       <TabPanels>
         <TabPanel id="all-your-papers">
-          {edgesMap ? (
-            <SubmissionsList
-              venueId={venueId}
-              query={userPapersQuery}
-              apiVersion={1}
+          {userNotes && edgesMap ? (
+            <PaginatedList
+              loadItems={loadNotePage}
+              searchItems={loadSearchPage}
               ListItem={NoteListItem}
-              shouldReload={shouldReload}
-              pageSize={10}
-              useCredentials={false}
+              itemsPerPage={15}
+              className="submissions-list"
               enableSearch
             />
           ) : (
@@ -146,15 +220,11 @@ export default function ExpertiseSelector({ invitation, venueId, shouldReload })
         </TabPanel>
         <TabPanel id={tabId}>
           {selectedIds?.length > 0 ? (
-            <SubmissionsList
-              venueId={venueId}
-              query={{
-                ids: selectedIds.join(','),
-                sort: 'cdate',
-                details: 'invitation',
-              }}
-              apiVersion={1}
+            <PaginatedList
+              loadItems={loadSelectedPage}
               ListItem={NoteListItem}
+              itemsPerPage={15}
+              className="submissions-list"
             />
           ) : (
             <p className="empty-message">No {tabLabel.toLowerCase()} to display</p>

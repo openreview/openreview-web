@@ -20,6 +20,7 @@ import {
   getIndentifierFromGroup,
   prettyId,
 } from '../../lib/utils'
+import { filterCollections, filterHasReplyTo } from '../../lib/webfield-utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
 
@@ -114,23 +115,13 @@ const AreaChairConsoleTasks = ({ venueId, areaChairName, apiVersion }) => {
     return { ...invitation, [invitaitonType]: true, apiVersion }
   }
 
-  // for note invitations only
-  const filterHasReplyTo = (invitation) => {
-    if (!invitation.noteInvitation) return true
-    if (apiVersion === 2) {
-      const result = invitation.edit?.note?.replyto?.const || invitation.edit?.note?.id?.const
-      return result
-    }
-    const result = invitation.reply.replyto || invitation.reply.referent
-    return result
-  }
   const loadInvitations = async () => {
     try {
       let allInvitations = await api.getAll(
         '/invitations',
         {
           ...(apiVersion !== 2 && { regex: `${venueId}/.*` }),
-          ...(apiVersion === 2 && { prefix: `${venueId}/.*` }),
+          ...(apiVersion === 2 && { domain: venueId }),
           invitee: true,
           duedate: true,
           type: 'all',
@@ -140,16 +131,20 @@ const AreaChairConsoleTasks = ({ venueId, areaChairName, apiVersion }) => {
 
       allInvitations = allInvitations
         .map((p) => addInvitaitonTypeAndVersion(p))
-        .filter((p) => filterHasReplyTo(p))
+        .filter((p) => filterHasReplyTo(p, apiVersion))
         .filter((p) => p.invitees.some((q) => q.includes(areaChairName)))
 
       if (allInvitations.length) {
         // add details
-        const validInvitationDetails = await api.getAll('/invitations', {
-          ids: allInvitations.map((p) => p.id),
-          details: 'all',
-          select: 'id,details',
-        })
+        const validInvitationDetails = await api.getAll(
+          '/invitations',
+          {
+            ids: allInvitations.map((p) => p.id),
+            details: 'all',
+            select: 'id,details',
+          },
+          { accessToken, version: apiVersion }
+        )
 
         allInvitations.forEach((p) => {
           // eslint-disable-next-line no-param-reassign
