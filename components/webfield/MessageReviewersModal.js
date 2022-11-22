@@ -1,5 +1,5 @@
 /* globals $,promptMessage: false */
-import { uniqBy } from 'lodash'
+import uniqBy from 'lodash/uniqBy'
 import { useContext, useEffect, useState } from 'react'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -36,7 +36,7 @@ const MessageReviewersModal = ({
       const sendEmailPs = selectedIds.map((noteId) => {
         const { note } = tableRowsDisplayed.find((row) => row.note.id === noteId)
         const reviewerIds = recipientsInfo
-          .filter((p) => p.noteNumber == note.number) // eslint-disable-line eqeqeq
+          .filter((p) => p.noteNumber === note.number)
           .map((q) => q.reviewerProfileId)
         if (!reviewerIds.length) return Promise.resolve()
         const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
