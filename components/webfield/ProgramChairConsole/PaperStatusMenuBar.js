@@ -114,6 +114,11 @@ const PaperStatusMenuBar = ({
       getValue: (p) => p.reviewProgressData?.replyCount,
     },
     {
+      label: 'Number of Reviewers Assigned',
+      value: 'Number of Reviewers Assigned',
+      getValue: (p) => p.reviewProgressData?.numReviewersAssigned,
+    },
+    {
       label: 'Number of Reviews Submitted',
       value: 'Number of Reviews Submitted',
       getValue: (p) => p.reviewProgressData?.numReviewsDone,
@@ -144,6 +149,16 @@ const PaperStatusMenuBar = ({
         p.reviewProgressData?.ratingMin === 'N/A' ? 0 : p.reviewProgressData?.ratingMin,
     },
     {
+      label: 'Rating Range',
+      value: 'Rating Range',
+      getValue: (p) =>
+        p.reviewProgressData?.ratingMax === 'N/A'
+          ? 0
+          : p.reviewProgressData?.ratingMax - p.reviewProgressData?.ratingMin === 'N/A'
+          ? 0
+          : p.reviewProgressData?.ratingMin,
+    },
+    {
       label: 'Average Confidence',
       value: 'Average Confidence',
       getValue: (p) =>
@@ -168,9 +183,14 @@ const PaperStatusMenuBar = ({
           : p.reviewProgressData?.confidenceMin,
     },
     {
-      label: 'Meta Review Recommendation',
-      value: 'Meta Review Recommendation',
-      getValue: (p) => p.metaReviewData?.recommendation,
+      label: 'Confidence Range',
+      value: 'Confidence Range',
+      getValue: (p) =>
+        p.reviewProgressData?.confidenceMax === 'N/A'
+          ? 0
+          : p.reviewProgressData?.confidenceMax - p.reviewProgressData?.confidenceMin === 'N/A'
+          ? 0
+          : p.reviewProgressData?.confidenceMin,
     },
   ]
   const basicSearchFunction = (row, term) => {

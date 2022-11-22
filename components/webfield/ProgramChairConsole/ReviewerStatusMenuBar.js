@@ -48,7 +48,7 @@ const MessageReviewersModal = ({
   const getRecipientRows = () => {
     switch (messageOption.value) {
       case 'noBids':
-        return tableRows.map((row) => row.completedBids === 0)
+        return tableRows.filter((row) => row.completedBids === 0)
       case 'missingReviews':
         return tableRows.filter((row) => row.numCompletedReviews < row.notesInfo?.length ?? 0)
       case 'noAssignments':
