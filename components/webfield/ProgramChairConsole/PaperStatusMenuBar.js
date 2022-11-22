@@ -100,6 +100,12 @@ const PaperStatusMenuBar = ({
     },
     ...(exportColumnsConfig ?? []),
   ]
+
+  const getValueWithDefault = (value) => {
+    if (!value || value === 'N/A') return 0
+    return value
+  }
+
   const sortOptions = [
     { label: 'Paper Number', value: 'Paper Number', getValue: (p) => p.note?.number },
     {
@@ -127,70 +133,52 @@ const PaperStatusMenuBar = ({
       label: 'Number of Reviews Missing',
       value: 'Number of Reviews Missing',
       getValue: (p) =>
-        (p.reviewProgressData?.numReviewersAssigned ?? 0) -
-        (p.reviewProgressData?.numReviewsDone ?? 0),
+        getValueWithDefault(p.reviewProgressData?.numReviewersAssigned) -
+        getValueWithDefault(p.reviewProgressData?.numReviewsDone),
     },
     {
       label: 'Average Rating',
       value: 'Average Rating',
-      getValue: (p) =>
-        p.reviewProgressData?.ratingAvg === 'N/A' ? 0 : p.reviewProgressData?.ratingAvg,
+      getValue: (p) => getValueWithDefault(p.reviewProgressData?.ratingAvg),
     },
     {
       label: 'Max Rating',
       value: 'Max Rating',
-      getValue: (p) =>
-        p.reviewProgressData?.ratingMax === 'N/A' ? 0 : p.reviewProgressData?.ratingMax,
+      getValue: (p) => getValueWithDefault(p.reviewProgressData?.ratingMax),
     },
     {
       label: 'Min Rating',
       value: 'Min Rating',
-      getValue: (p) =>
-        p.reviewProgressData?.ratingMin === 'N/A' ? 0 : p.reviewProgressData?.ratingMin,
+      getValue: (p) => getValueWithDefault(p.reviewProgressData?.ratingMin),
     },
     {
       label: 'Rating Range',
       value: 'Rating Range',
       getValue: (p) =>
-        p.reviewProgressData?.ratingMax === 'N/A'
-          ? 0
-          : p.reviewProgressData?.ratingMax - p.reviewProgressData?.ratingMin === 'N/A'
-          ? 0
-          : p.reviewProgressData?.ratingMin,
+        getValueWithDefault(p.reviewProgressData.ratingMax) -
+        getValueWithDefault(p.reviewProgressData?.ratingMin),
     },
     {
       label: 'Average Confidence',
       value: 'Average Confidence',
-      getValue: (p) =>
-        p.reviewProgressData?.confidenceAvg === 'N/A'
-          ? 0
-          : p.reviewProgressData?.confidenceAvg,
+      getValue: (p) => getValueWithDefault(p.reviewProgressData?.confidenceAvg),
     },
     {
       label: 'Max Confidence',
       value: 'Max Confidenc',
-      getValue: (p) =>
-        p.reviewProgressData?.confidenceMax === 'N/A'
-          ? 0
-          : p.reviewProgressData?.confidenceMax,
+      getValue: (p) => getValueWithDefault(p.reviewProgressData?.confidenceMax),
     },
     {
       label: 'Min Confidence',
       value: 'Min Confidence',
-      getValue: (p) =>
-        p.reviewProgressData?.confidenceMin === 'N/A'
-          ? 0
-          : p.reviewProgressData?.confidenceMin,
+      getValue: (p) => getValueWithDefault(p.reviewProgressData?.confidenceMin),
     },
     {
       label: 'Confidence Range',
       value: 'Confidence Range',
       getValue: (p) =>
-        p.reviewProgressData?.confidenceMax === 'N/A'
-          ? 0
-          : p.reviewProgressData?.confidenceMax - p.reviewProgressData?.confidenceMin === 'N/A'
-          ? 0
-          : p.reviewProgressData?.confidenceMin,
+        getValueWithDefault(p.reviewProgressData?.confidenceMax) -
+        getValueWithDefault(p.reviewProgressData?.confidenceMin),
     },
   ]
   const basicSearchFunction = (row, term) => {
