@@ -17,6 +17,8 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { formatTasksData, prettyId } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
+import LoadingSpinner from '../LoadingSpinner'
+import { filterAssignedInvitations, filterHasReplyTo } from '../../lib/webfield-utils'
 
 const ReviewSummary = ({
   note,
@@ -56,13 +58,14 @@ const ReviewSummary = ({
     const validRatings = ratings.filter((p) => p)
     minRating = Math.min(...validRatings)
     maxRating = Math.max(...validRatings)
-    averageRating = Math.round(sum(validRatings) / validRatings.length * 100) / 100
+    averageRating = Math.round((sum(validRatings) / validRatings.length) * 100) / 100
   }
   if (confidences.some((p) => p)) {
     const validConfidences = confidences.filter((p) => p)
     minConfidence = Math.min(...validConfidences)
     maxConfidence = Math.max(...validConfidences)
-    averageConfidence = Math.round(sum(validConfidences) / validConfidences.length * 100) / 100
+    averageConfidence =
+      Math.round((sum(validConfidences) / validConfidences.length) * 100) / 100
   }
 
   return (
@@ -124,7 +127,12 @@ const AuthorSubmissionRow = ({
         <strong className="note-number">{note.number}</strong>
       </td>
       <td>
-        <NoteSummary note={note} profileMap={profileMap} referrerUrl={referrerUrl} isV2Note={isV2Note} />
+        <NoteSummary
+          note={note}
+          profileMap={profileMap}
+          referrerUrl={referrerUrl}
+          isV2Note={isV2Note}
+        />
       </td>
       <td>
         <ReviewSummary
@@ -150,6 +158,83 @@ const AuthorSubmissionRow = ({
   )
 }
 
+const AuthorConsoleTasks = () => {
+  const { venueId, authorName, submissionName, apiVersion } = useContext(WebFieldContext)
+  const { accessToken } = useUser()
+  const [invitations, setInvitations] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  const wildcardInvitation = `${venueId}/.*`
+
+  const addInvitaitonTypeAndVersion = (invitation) => {
+    let invitaitonType = 'tagInvitation'
+    if (apiVersion === 2 && invitation.edit?.note) invitaitonType = 'noteInvitation'
+    if (apiVersion === 1 && !invitation.reply.content?.tag && !invitation.reply.content?.head)
+      invitaitonType = 'noteInvitation'
+    return { ...invitation, [invitaitonType]: true, apiVersion }
+  }
+
+  const loadInvitations = async () => {
+    setIsLoading(true)
+    try {
+      let allInvitations = await api.getAll(
+        '/invitations',
+        {
+          ...(apiVersion !== 2 && { regex: wildcardInvitation }),
+          ...(apiVersion === 2 && { domain: venueId }),
+          invitee: true,
+          duedate: true,
+          type: 'all',
+        },
+        { accessToken, version: apiVersion }
+      )
+
+      allInvitations = allInvitations
+        .map((p) => addInvitaitonTypeAndVersion(p))
+        .filter((p) => filterHasReplyTo(p, apiVersion))
+        .filter((p) => filterAssignedInvitations(p, authorName, submissionName))
+
+      if (allInvitations.length) {
+        // add details
+        const validInvitationDetails = await api.getAll(
+          '/invitations',
+          {
+            ids: allInvitations.map((p) => p.id),
+            details: 'all',
+            select: 'id,details',
+          },
+          { accessToken, version: apiVersion }
+        )
+
+        allInvitations.forEach((p) => {
+          // eslint-disable-next-line no-param-reassign
+          p.details = validInvitationDetails.find((q) => q.id === p.id)?.details
+        })
+      }
+
+      setInvitations(formatTasksData([allInvitations, [], []], true))
+    } catch (error) {
+      promptError(error.message)
+    }
+    setIsLoading(false)
+  }
+
+  useEffect(() => {
+    loadInvitations()
+  }, [])
+
+  if (isLoading) return <LoadingSpinner />
+  return (
+    <TaskList
+      invitations={invitations}
+      emptyMessage={'No outstanding tasks for this conference'}
+      referrer={`${encodeURIComponent(
+        `[Author Console](/group?id=${venueId}/${authorName}#author-tasks)`
+      )}&t=${Date.now()}`}
+    />
+  )
+}
+
 const AuthorConsole = ({ appContext }) => {
   const {
     header,
@@ -172,13 +257,9 @@ const AuthorConsole = ({ appContext }) => {
   const router = useRouter()
   const query = useQuery()
   const { setBannerContent } = appContext
+  const [showTasks, setShowTasks] = useState(false)
   const [authorNotes, setAuthorNotes] = useState(null)
-  const [invitations, setInvitations] = useState(null)
   const [profileMap, setProfileMap] = useState(null)
-
-  const wildcardInvitation = `${venueId}/.*`
-
-  const formatInvitations = (allInvitations) => formatTasksData([allInvitations, [], []], true)
 
   const loadProfiles = async (notes, version) => {
     const authorIds = new Set()
@@ -197,12 +278,22 @@ const AuthorConsole = ({ appContext }) => {
     })
 
     const getProfiles = (apiRes) => apiRes.profiles ?? []
-    const idProfilesP = authorIds.size > 0
-      ? api.get('/profiles', { ids: Array.from(authorIds).join(',') }, { accessToken }).then(getProfiles)
-      : Promise.resolve([])
-    const emailProfilesP = authorEmails.size > 0
-      ? api.get('/profiles', { confirmedEmails: Array.from(authorEmails).join(',') }, { accessToken }).then(getProfiles)
-      : Promise.resolve([])
+    const idProfilesP =
+      authorIds.size > 0
+        ? api
+            .get('/profiles', { ids: Array.from(authorIds).join(',') }, { accessToken })
+            .then(getProfiles)
+        : Promise.resolve([])
+    const emailProfilesP =
+      authorEmails.size > 0
+        ? api
+            .get(
+              '/profiles',
+              { confirmedEmails: Array.from(authorEmails).join(',') },
+              { accessToken }
+            )
+            .then(getProfiles)
+        : Promise.resolve([])
     const [idProfiles, emailProfiles] = await Promise.all([idProfilesP, emailProfilesP])
 
     const profilesByUsernames = {}
@@ -219,82 +310,61 @@ const AuthorConsole = ({ appContext }) => {
     return profilesByUsernames
   }
 
-  const loadData = async () => {
-    const notesP = api
-      .get(
-        '/notes',
-        {
-          invitation: submissionId,
-          details: 'invitation,overwriting,directReplies',
-          sort: 'number:asc',
-          [authorSubmissionField]: user.profile.id,
-        },
-        { accessToken }
-      )
-      .then((result) => {
-        const originalNotes = result.notes
-        const blindNoteIds = []
-        originalNotes.forEach((note) => {
-          if (note.details.overwriting?.length) {
-            blindNoteIds.push(note.details.overwriting[0])
-          }
-        })
-        if (blindNoteIds.length) {
-          return api
-            .get(
-              '/notes',
-              {
-                ids: blindNoteIds,
-                details: 'directReplies',
-                sort: 'number:asc',
-              },
-              { accessToken }
-            )
-            .then((blindNotesResult) =>
-              (blindNotesResult.notes || [])
-                .filter((note) => note.invitation === blindSubmissionId)
-                .map((blindNote) => {
-                  const originalNote = originalNotes.find((p) => p.id === blindNote.original)
-                  if (originalNote) {
-                    // eslint-disable-next-line no-param-reassign
-                    blindNote.content.authors = originalNote.content.authors
-                    // eslint-disable-next-line no-param-reassign
-                    blindNote.content.authorids = originalNote.content.authorids
-                  }
-                  return blindNote
-                })
-            )
-        }
-        return originalNotes
-      })
-    const invitationsP = api
-      .getAll(
-        '/invitations',
-        {
-          regex: wildcardInvitation,
-          invitee: true,
-          duedate: true,
-          replyto: true,
-          type: 'notes',
-          details: 'replytoNote,repliedNotes',
-        },
-        { accessToken, version: 1 }
-      )
-      .then((noteInvitations) =>
-        noteInvitations
-          .map((inv) => ({ ...inv, noteInvitation: true, apiVersion: 1 }))
-          .filter((p) => p.invitees?.some((q) => q.includes(authorName)))
-      )
-
+  const loadDataV1 = async () => {
     try {
-      const result = await Promise.all([notesP, invitationsP])
+      const notesResult = await api
+        .get(
+          '/notes',
+          {
+            invitation: submissionId,
+            details: 'invitation,overwriting,directReplies',
+            sort: 'number:asc',
+            [authorSubmissionField]: user.profile.id,
+          },
+          { accessToken }
+        )
+        .then((result) => {
+          const originalNotes = result.notes
+          const blindNoteIds = []
+          originalNotes.forEach((note) => {
+            if (note.details.overwriting?.length) {
+              blindNoteIds.push(note.details.overwriting[0])
+            }
+          })
+          if (blindNoteIds.length) {
+            return api
+              .get(
+                '/notes',
+                {
+                  ids: blindNoteIds,
+                  details: 'directReplies',
+                  sort: 'number:asc',
+                },
+                { accessToken }
+              )
+              .then((blindNotesResult) =>
+                (blindNotesResult.notes || [])
+                  .filter((note) => note.invitation === blindSubmissionId)
+                  .map((blindNote) => {
+                    const originalNote = originalNotes.find((p) => p.id === blindNote.original)
+                    if (originalNote) {
+                      // eslint-disable-next-line no-param-reassign
+                      blindNote.content.authors = originalNote.content.authors
+                      // eslint-disable-next-line no-param-reassign
+                      blindNote.content.authorids = originalNote.content.authorids
+                    }
+                    return blindNote
+                  })
+              )
+          }
+          return originalNotes
+        })
 
-      setAuthorNotes(result[0])
-      setInvitations(formatInvitations(result[1]))
+      setAuthorNotes(notesResult)
 
       if (showAuthorProfileStatus !== false) {
         // Load profile of all co-authors to show active status next to their names
-        const profiles = await loadProfiles(result[0], 1)
+        const profiles = await loadProfiles(notesResult, 1)
         setProfileMap(profiles)
       }
     } catch (error) {
@@ -303,47 +373,23 @@ const AuthorConsole = ({ appContext }) => {
   }
 
   const loadDataV2 = async () => {
-    const notesP = api.getAll(
-      '/notes',
-      {
-        [authorSubmissionField]: user.profile.id,
-        invitation: submissionId,
-        details: 'directReplies',
-        sort: 'number:asc',
-      },
-      { accessToken, version: 2 }
-    )
-    const invitationsP = api
-      .getAll(
-        '/invitations',
+    try {
+      const notesResult = await api.getAll(
+        '/notes',
         {
-          prefix: wildcardInvitation,
-          invitee: true,
-          duedate: true,
-          replyto: true,
-          type: 'notes',
-          details: 'replytoNote,repliedNotes',
+          [authorSubmissionField]: user.profile.id,
+          invitation: submissionId,
+          details: 'directReplies',
+          sort: 'number:asc',
         },
         { accessToken, version: 2 }
       )
-      .then((noteInvitations) =>
-        noteInvitations
-          .map((inv) => ({ ...inv, noteInvitation: true, apiVersion: 2 }))
-          .filter(
-            // TODO: add number filtering logic
-            (p) => p.id.includes(authorName) || p.invitees?.some((q) => q.includes(authorName))
-          )
-      )
 
-    try {
-      const result = await Promise.all([notesP, invitationsP])
-
-      setAuthorNotes(result[0])
-      setInvitations(formatInvitations(result[1]))
+      setAuthorNotes(notesResult)
 
       if (showAuthorProfileStatus !== false) {
         // Load profile of all co-authors
-        const profiles = await loadProfiles(result[0], 2)
+        const profiles = await loadProfiles(notesResult, 2)
         setProfileMap(profiles)
       }
     } catch (error) {
@@ -377,7 +423,7 @@ const AuthorConsole = ({ appContext }) => {
     if (apiVersion === 2) {
       loadDataV2()
     } else {
-      loadData()
+      loadDataV1()
     }
   }, [user, userLoading, group])
 
@@ -419,7 +465,9 @@ const AuthorConsole = ({ appContext }) => {
           <Tab id="your-submissions" active>
             Your Submissions
           </Tab>
-          <Tab id="author-tasks">Author Tasks</Tab>
+          <Tab id="author-tasks" onClick={() => setShowTasks(true)}>
+            Author Tasks
+          </Tab>
         </TabList>
 
         <TabPanels>
@@ -455,15 +503,7 @@ const AuthorConsole = ({ appContext }) => {
               <p className="empty-message">No papers to display at this time</p>
             )}
           </TabPanel>
-          <TabPanel id="author-tasks">
-            <TaskList
-              invitations={invitations}
-              emptyMessage="No outstanding tasks for this conference"
-              referrer={`${encodeURIComponent(
-                `[Author Console](/group?id=${venueId}/${authorName}#author-tasks)`
-              )}&t=${Date.now()}`}
-            />
-          </TabPanel>
+          <TabPanel id="author-tasks">{showTasks && <AuthorConsoleTasks />}</TabPanel>
         </TabPanels>
       </Tabs>
     </>
