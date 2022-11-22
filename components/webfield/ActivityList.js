@@ -52,14 +52,14 @@ export default function ActivityList({ venueId, apiVersion, options = {} }) {
     Webfield.ui.activityList(activityNotes, {
       container: containerRef.current,
       emptyMessage: 'No recent activity to display.',
-      user: user.profile,
+      user: user?.profile,
       showActionButtons: true,
     })
 
     $('[data-toggle="tooltip"]').tooltip()
 
     typesetMathJax()
-  }, [activityNotes])
+  }, [activityNotes, user])
 
   return <div ref={containerRef} />
 }
