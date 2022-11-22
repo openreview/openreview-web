@@ -147,6 +147,7 @@ export default function VenueHomepage({ appContext }) {
         />
       )
     }
+
     if (tabConfig.type === 'activity') {
       return (
         <ActivityList
@@ -157,9 +158,11 @@ export default function VenueHomepage({ appContext }) {
         />
       )
     }
+
     if (tabConfig.type === 'markdown') {
       return <Markdown text={tabConfig.content} />
     }
+
     if (tabConfig.query || tabConfig.invitation) {
       const query = tabConfig.invitation
         ? { invitation: tabConfig.invitation }
@@ -172,6 +175,16 @@ export default function VenueHomepage({ appContext }) {
           pageSize={tabConfig.options.pageSize}
           enableSearch={tabConfig.options.enableSearch}
           paperDisplayOptions={tabConfig.options.paperDisplayOptions}
+          setCount={(itemCount) => {
+            const isEmpty = !itemCount
+            if (tabConfig.options.hideWhenEmpty && tabConfig.hidden !== isEmpty) {
+              setFormattedTabs(
+                formattedTabs.map((t) =>
+                  t.id === tabConfig.id ? { ...t, hidden: isEmpty } : t
+                )
+              )
+            }
+          }}
         />
       )
     }
@@ -195,7 +208,7 @@ export default function VenueHomepage({ appContext }) {
     setFormattedTabs(
       tabs.map((tab) => ({
         id: nanoid(10),
-        hidden: tab.type === 'consoles',
+        hidden: tab.type === 'consoles' || tab.options?.hideWhenEmpty === true,
         options: {},
         ...tab,
       }))
