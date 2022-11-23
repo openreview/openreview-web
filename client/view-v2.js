@@ -1318,16 +1318,26 @@ module.exports = (function () {
         Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(
           function (result) {
             if (params.onNoteCreated) {
+              const constructedNote = {
+                ...result.note,
+                invitations: [invitation.id],
+                details: { invitation, writable: true },
+              }
+
+              // Try to get the complete note, since edit does not contain all fields.
+              // If it cannot be retrieved, use the note constructed from the edit response.
               Webfield2.get(
                 '/notes',
                 { id: result.note.id, details: 'invitation,presentation,writable' },
                 { handleErrors: false }
               ).then(
                 function (noteRes) {
-                  params.onNoteCreated(noteRes.notes?.[0])
+                  params.onNoteCreated(
+                    noteRes.notes?.length > 0 ? noteRes.notes[0] : constructedNote
+                  )
                 },
                 function () {
-                  params.onNoteCreated(result)
+                  params.onNoteCreated(constructedNote)
                 }
               )
             }
@@ -1959,16 +1969,23 @@ module.exports = (function () {
               if (params.isEdit) {
                 params.onNoteEdited()
               } else {
+                const constructedNote = {
+                  ...edit.note,
+                  invitations: [invitation.id],
+                  details: { invitation, writable: true },
+                }
                 Webfield2.get(
                   '/notes',
                   { id: edit.note.id, details: 'invitation,presentation,writable' },
                   { handleErrors: false }
                 ).then(
                   function (noteRes) {
-                    params.onNoteEdited(noteRes.notes?.[0])
+                    params.onNoteEdited(
+                      noteRes.notes?.length > 0 ? noteRes.notes[0] : constructedNote
+                    )
                   },
                   function () {
-                    params.onNoteEdited()
+                    params.onNoteEdited(constructedNote)
                   }
                 )
               }
