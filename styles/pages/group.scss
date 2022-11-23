@@ -615,6 +615,12 @@ main.invitation {
     .overview-registration-link {
       white-space: nowrap;
     }
+    span.fraction {
+      color: constants.$subtleGray;
+    }
+    .recruitment-stat-row {
+      margin-top: 0.5rem;
+    }
   }
 
   // Edit and Info Mode
@@ -795,7 +801,7 @@ main.invitation {
   }
   .edit-group-info {
     margin-top: 0.75rem;
-    margin-right: .5rem;
+    margin-right: 0.5rem;
   }
 
   #webfield-editor,

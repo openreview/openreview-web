@@ -21,7 +21,8 @@ const renderStat = (numComplete, total) =>
     <span>{numComplete} / 0</span>
   ) : (
     <>
-      {((numComplete * 100) / total).toFixed(2)} %<span>{` (${numComplete} / ${total})`}</span>
+      {((numComplete * 100) / total).toFixed(2)}%&nbsp;&nbsp;
+      <span className="fraction">{` (${numComplete} / ${total})`}</span>
     </>
   )
 
@@ -64,7 +65,7 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
 
   return (
     <>
-      <div className="row">
+      <div className="row recruitment-stat-row">
         <StatContainer
           title="Reviewer Recruitment"
           hint="accepted / invited"
@@ -189,8 +190,8 @@ const BiddingStatsRow = ({ bidEnabled, recommendationEnabled, pcConsoleData }) =
       <span>{bidComplete} / 0</span>
     ) : (
       <>
-        {((bidComplete * 100) / total).toFixed(2)} %
-        <span>{` (${bidComplete} / ${total})`}</span>
+        {((bidComplete * 100) / total).toFixed(2)}%&nbsp;&nbsp;
+        <span className="fraction">{` (${bidComplete} / ${total})`}</span>
       </>
     )
   }
@@ -202,7 +203,7 @@ const BiddingStatsRow = ({ bidEnabled, recommendationEnabled, pcConsoleData }) =
         {bidEnabled && reviewersId && (
           <StatContainer
             title="Reviewer Bidding Progress"
-            hint="% of ACs who have completed the required number of bids"
+            hint="% of Reviewers who have completed the required number of bids"
             value={calcBiddingProgress(reviewersId, 'reviewers')}
           />
         )}
