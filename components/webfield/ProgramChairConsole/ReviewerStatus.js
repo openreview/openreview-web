@@ -41,8 +41,8 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
       <div>
         {bidEnabled && (
           <>
-            <span>Completed Bids:{completedBids}</span>
-            {completedBids && (
+            <span>{`Completed Bids: ${completedBids}`}</span>
+            {completedBids > 0 && (
               <div>
                 <a
                   href={edgeBrowserBidsUrl}
@@ -73,7 +73,7 @@ const ReviewerProgress = ({ rowData, referrerUrl }) => {
       <h4>
         {numCompletedReviews} of {numPapers} Reviews Submitted
       </h4>
-      <strong>Papers:</strong>
+      <strong className="paper-label">Papers:</strong>
       <div className="paper-progress">
         {notesInfo.map((noteReviewInfo) => {
           const { noteNumber, note, officialReview } = noteReviewInfo
@@ -131,7 +131,7 @@ const ReviewerStatus = ({ rowData }) => {
       <h4>
         {numOfPapersWhichCompletedReviews} of {numPapers} Reviews Completed
       </h4>
-      <strong>Papers:</strong>
+      <strong className="paper-label">Papers:</strong>
       <div>
         {notesInfo.map((noteReviewInfo) => {
           const { noteNumber, numOfReviews, numOfReviewers, ratingAvg, ratingMax, ratingMin } =

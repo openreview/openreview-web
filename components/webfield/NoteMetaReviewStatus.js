@@ -164,7 +164,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                 </div>
                 {metaReview && (
                   <div>
-                    <span>Recommendation: {recommendation}</span>
+                    <span className="recommendation">Recommendation: {recommendation}</span>
                     <div>
                       <a
                         href={`/forum?id=${metaReview.forum}&noteId=${metaReview.id}&referrer=${referrerUrl}`}

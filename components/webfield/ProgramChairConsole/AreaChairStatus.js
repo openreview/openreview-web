@@ -63,8 +63,8 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
         <p>
           {bidEnabled && (
             <>
-              Completed Bids:{completedBids}
-              {completedBids && (
+              {`Completed Bids: ${completedBids}`}
+              {completedBids > 0 && (
                 <a
                   href={edgeBrowserBidsUrl}
                   className="show-reviewer-bids"
@@ -78,8 +78,8 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
           )}
           {recommendationEnabled && (
             <>
-              Reviewers Recommended:{completedRecs}
-              {completedBids && (
+              {`Reviewers Recommended: ${completedRecs}`}
+              {completedBids > 0 && (
                 <a
                   href={edgeBrowserRecsUrl}
                   className="show-reviewer-bids"

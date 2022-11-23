@@ -288,6 +288,7 @@ main.invitation {
     .note-readers {
       color: constants.$subtleGray;
       font-weight: 400;
+      margin-bottom: 0.5rem;
     }
     .note-contents-toggle {
       font-size: 0.875rem;
@@ -475,6 +476,11 @@ main.invitation {
             margin-right: 0.5rem;
           }
         }
+        .recommendation {
+          margin-top: 0.25rem;
+          margin-bottom: 0.25rem;
+          display: inline-block;
+        }
       }
     }
     .console-meta-review {
@@ -535,6 +541,10 @@ main.invitation {
 
   .pc-console-reviewer-status {
     table-layout: auto;
+    .paper-label {
+      margin-bottom: 0.5rem;
+      display: inline-block;
+    }
     .paper-progress {
       display: flex;
       flex-direction: column;
@@ -543,8 +553,8 @@ main.invitation {
         display: flex;
         width: 100%;
         .paper-number {
-          // margin-right: 0.25rem;
           width: 10%;
+          font-size: 0.75rem;
         }
         .paper-title-review {
           width: 90%;
@@ -561,7 +571,8 @@ main.invitation {
         display: flex;
         .paper-number {
           margin-right: 0.25rem;
-          width: 20%;
+          font-size: 0.75rem;
+          width: 15%;
         }
         .review-rating-info {
           display: flex;
