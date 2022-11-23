@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useReducer, useRef, useCallback } from 'react'
 import Head from 'next/head'
+import { cloneDeep } from 'lodash'
 import withAdminAuth from '../../components/withAdminAuth'
 import Icon from '../../components/Icon'
 import LoadSpinner from '../../components/LoadingSpinner'
@@ -18,6 +19,10 @@ import Dropdown from '../../components/Dropdown'
 import BasicModal from '../../components/BasicModal'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
 import PaginatedList from '../../components/PaginatedList'
+import Table from '../../components/Table'
+import BasicProfileView from '../../components/profile/BasicProfileView'
+import { formatProfileData } from '../../lib/profiles'
+import Markdown from '../../components/EditorComponents/Markdown'
 
 const UserModerationTab = ({ accessToken }) => {
   const [shouldReload, reload] = useReducer((p) => !p, true)
@@ -27,7 +32,7 @@ const UserModerationTab = ({ accessToken }) => {
   const getModerationStatus = async () => {
     try {
       const { notes } = await api.get('/notes', {
-        invitation: 'OpenReview.net/Support/-/OpenReview_Config',
+        invitation: `${process.env.SUPER_USER}/Support/-/OpenReview_Config`,
         limit: 1,
       })
       if (notes?.length > 0) {
@@ -102,7 +107,7 @@ const UserModerationTab = ({ accessToken }) => {
   )
 }
 
-const FullComment = ({ comment }) => <p>{comment}</p>
+const FullComment = ({ comment }) => <Markdown text={comment} />
 
 const FullUsernameList = ({ usernames }) => (
   <ul>
@@ -120,6 +125,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
   const [idsLoading, setIdsLoading] = useState([])
   const [page, setPage] = useState(1)
   const pageSize = 25
+  const fullTextModalId = 'deletion-fulltext-modal'
 
   const getTabCountMessage = (pendingCount, errorCount) => {
     if (pendingCount === 0 && errorCount === 0) return null
@@ -210,8 +216,8 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
         referent: nameDeletionNote.id,
         invitation: nameDeletionDecisionInvitation.id,
         content: {
-          status: response ? 'Accepted' : 'Rejected',
-          ...(!response && { support_comment: supportComment }),
+          status: response,
+          ...(response === 'Rejected' && { support_comment: supportComment }),
         },
         readers: buildArray(nameDeletionDecisionInvitation, 'readers', superUser.profile.id),
         writers: buildArray(nameDeletionDecisionInvitation, 'writers', superUser.profile.id),
@@ -259,7 +265,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
   }, [noteToReject])
 
   useEffect(() => {
-    if (commentToView) $('#full-comment').modal('show')
+    if (commentToView) $(`#${fullTextModalId}`).modal('show')
   }, [commentToView])
 
   useEffect(() => {
@@ -278,6 +284,15 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
       <div className="name-deletion-list">
         {nameDeletionNotesToShow ? (
           <>
+            <Table
+              headings={[
+                { content: 'Status', width: '12%' },
+                { content: 'Requester', width: '15%' },
+                { content: 'Name to delete', width: '15%' },
+                { content: 'Reason', width: '20%' },
+                { content: 'Date' },
+              ]}
+            />
             {nameDeletionNotesToShow.map((note) => (
               <div className="name-deletion-row" key={note.id}>
                 <span className="col-status">
@@ -325,7 +340,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
                         className="btn btn-xs"
                         disabled={idsLoading.includes(note.id)}
                         onClick={() => {
-                          acceptRejectNameDeletionNote(note, true)
+                          acceptRejectNameDeletionNote(note, 'Accepted')
                         }}
                       >
                         <Icon name="ok-circle" /> Accept
@@ -361,12 +376,313 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
           <LoadSpinner inline />
         )}
       </div>
-      <NameDeleteRejectionModal
+      <RequestRejectionModal
         noteToReject={noteToReject}
-        acceptRejectNameDeletionNote={acceptRejectNameDeletionNote}
+        acceptRejectNote={acceptRejectNameDeletionNote}
         setNoteToReject={setNoteToReject}
       />
-      <FullCommentModal commentToView={commentToView} setCommentToView={setCommentToView} />
+      <FullTextModal
+        id={fullTextModalId}
+        textToView={commentToView}
+        setTextToView={setCommentToView}
+      />
+    </>
+  )
+}
+
+const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMsg }) => {
+  const [profileMergeNotes, setProfileMergeNotes] = useState(null)
+  const [profileMergeNotesToShow, setProfileMergeNotesToShow] = useState(null)
+  const [noteToReject, setNoteToReject] = useState(null)
+  const [textToView, setTextToView] = useState(null)
+  const [idsLoading, setIdsLoading] = useState([])
+  const [lastComparedNote, setLastComparedNote] = useState(null)
+  const [page, setPage] = useState(1)
+  const pageSize = 25
+  const fullTextModalId = 'merge-fulltext-modal'
+  const profileMergeDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge_Decision`
+  const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`
+
+  const getTabCountMessage = (pendingCount, errorCount) => {
+    if (pendingCount === 0 && errorCount === 0) return null
+    if (pendingCount === 0 && errorCount !== 0)
+      return inflect(errorCount, 'error', 'errors', true)
+    if (pendingCount !== 0 && errorCount === 0) return pendingCount
+    return `${pendingCount} pending,${inflect(errorCount, 'error', 'errors', true)}`
+  }
+
+  const loadProfileMergeRequests = async () => {
+    try {
+      const profileMergeNotesP = api.get(
+        '/notes',
+        {
+          invitation: profileMergeInvitationId,
+        },
+        { accessToken }
+      )
+      const decisionResultsP = api.getAll(
+        '/references',
+        {
+          invitation: profileMergeDecisionInvitationId,
+        },
+        { accessToken, resultsKey: 'references' }
+      )
+      const processLogsP = api.getAll(
+        '/logs/process',
+        { invitation: profileMergeDecisionInvitationId },
+        { accessToken, resultsKey: 'logs' }
+      )
+
+      const [profileMergeNotesResults, decisionResults, processLogs] = await Promise.all([
+        profileMergeNotesP,
+        decisionResultsP,
+        processLogsP,
+      ])
+      const sortedResult = [
+        ...profileMergeNotesResults.notes.filter((p) => p.content.status === 'Pending'),
+        ...profileMergeNotesResults.notes.filter((p) => p.content.status !== 'Pending'),
+      ].map((p) => {
+        const decisionReference = decisionResults.find((q) => q.referent === p.id)
+        let processLogStatus = 'N/A'
+        if (p.content.status !== 'Pending')
+          processLogStatus =
+            processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
+        return {
+          ...p,
+          processLogStatus,
+          processLogUrl: decisionReference
+            ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
+            : null,
+        }
+      })
+      setProfileMergeNotes(sortedResult)
+      setProfileMergeNotesToShow(
+        sortedResult.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
+      )
+      const pendingRequestCount = profileMergeNotesResults.notes.filter(
+        (p) => p.content.status === 'Pending'
+      ).length
+      const errorProcessCount = sortedResult.filter(
+        (p) => p.processLogStatus === 'error'
+      ).length
+      setProfileMergeRequestCountMsg(
+        getTabCountMessage(pendingRequestCount, errorProcessCount)
+      )
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const handleRejectButtonClick = (note) => {
+    setNoteToReject(note)
+  }
+
+  const acceptRejectProfileMergeNote = async (profileMergeNote, response, supportComment) => {
+    try {
+      setIdsLoading((p) => [...p, profileMergeNote.id])
+      const invitationResult = await api.get(
+        '/invitations',
+        { id: profileMergeDecisionInvitationId },
+        { accessToken }
+      )
+      const profileMergeDecisionInvitation = invitationResult.invitations[0]
+      const noteToPost = {
+        referent: profileMergeNote.id,
+        invitation: profileMergeDecisionInvitation.id,
+        content: {
+          status: response,
+          ...(response === 'Rejected' && { support_comment: supportComment }),
+        },
+        readers: buildArray(profileMergeDecisionInvitation, 'readers', superUser.profile.id),
+        writers: buildArray(profileMergeDecisionInvitation, 'writers', superUser.profile.id),
+        signatures: buildArray(
+          profileMergeDecisionInvitation,
+          'signatures',
+          superUser.profile.id
+        ),
+      }
+      const result = await api.post('/notes', noteToPost, { accessToken })
+      $('#name-delete-reject').modal('hide')
+      loadProfileMergeRequests()
+    } catch (error) {
+      promptError(error.message)
+      setIdsLoading((p) => p.filter((q) => q !== profileMergeNote.id))
+    }
+  }
+
+  const getStatusLabelClass = (note) => {
+    switch (note.content.status) {
+      case 'Accepted':
+        return 'label label-success'
+      case 'Rejected':
+        return 'label label-danger'
+      default:
+        return 'label label-default'
+    }
+  }
+
+  const getProcessLogStatusLabelClass = (note) => {
+    switch (note.processLogStatus) {
+      case 'ok':
+        return 'label label-success'
+      case 'error':
+        return 'label label-danger'
+      case 'running':
+        return 'label label-default'
+      default:
+        return ''
+    }
+  }
+
+  useEffect(() => {
+    if (noteToReject) $('#name-delete-reject').modal('show')
+  }, [noteToReject])
+
+  useEffect(() => {
+    if (textToView) $(`#${fullTextModalId}`).modal('show')
+  }, [textToView])
+
+  useEffect(() => {
+    if (!profileMergeNotes) return
+    setProfileMergeNotesToShow(
+      profileMergeNotes.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
+    )
+  }, [page])
+
+  useEffect(() => {
+    loadProfileMergeRequests()
+  }, [])
+
+  return (
+    <>
+      <div className="profile-merge-list">
+        {profileMergeNotesToShow ? (
+          <>
+            <Table
+              headings={[
+                { content: 'Status', width: '12%' },
+                { content: 'Signature/Email', width: '15%' },
+                { content: 'Compare', width: '20%' },
+                { content: 'Comment' },
+              ]}
+            />
+            {profileMergeNotesToShow.map((note) => (
+              <div className="profile-merge-row" key={note.id}>
+                <span className="col-status">
+                  <span className={getStatusLabelClass(note)}>{note.content.status}</span>
+                </span>
+                <span className="col-status">
+                  <a href={note.processLogUrl} target="_blank" rel="noreferrer">
+                    <span className={getProcessLogStatusLabelClass(note)}>
+                      {note.processLogStatus}
+                    </span>
+                  </a>
+                </span>
+                <span className="signature">
+                  {note.signatures[0] === '(guest)' ? (
+                    <span
+                      onClick={() =>
+                        setTextToView(<FullComment comment={note.content.email} />)
+                      }
+                    >
+                      {note.content.email}
+                    </span>
+                  ) : (
+                    <a
+                      href={`/profile?id=${note.signatures[0]}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {prettyId(note.signatures[0])}
+                    </a>
+                  )}
+                </span>
+                <span
+                  className={`compare${note.id === lastComparedNote ? ' last-previewed' : ''}`}
+                >
+                  <a
+                    href={`/profile/compare?left=${note.content.left}&right=${note.content.right}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => setLastComparedNote(note.id)}
+                  >
+                    {`${note.content.left},${note.content.right}`}
+                  </a>
+                </span>
+                <div className="comment">
+                  <span
+                    onClick={() =>
+                      setTextToView(<FullComment comment={note.content.comment} />)
+                    }
+                  >
+                    {note.content.comment}
+                  </span>
+                </div>
+                <span className="col-created">{formatDateTime(note.tcdate)}</span>
+                <span className="col-actions">
+                  {note.content.status === 'Pending' && (
+                    <>
+                      <button
+                        type="button"
+                        className="btn btn-xs"
+                        disabled={idsLoading.includes(note.id)}
+                        onClick={() => {
+                          acceptRejectProfileMergeNote(note, 'Ignored')
+                        }}
+                      >
+                        Ignore
+                      </button>{' '}
+                      <button
+                        type="button"
+                        className="btn btn-xs"
+                        disabled={idsLoading.includes(note.id)}
+                        onClick={() => {
+                          acceptRejectProfileMergeNote(note, 'Accepted')
+                        }}
+                      >
+                        <Icon name="ok-circle" /> Done
+                      </button>{' '}
+                      <button
+                        type="button"
+                        className="btn btn-xs"
+                        disabled={idsLoading.includes(note.id)}
+                        onClick={() => {
+                          handleRejectButtonClick(note, false)
+                        }}
+                      >
+                        <Icon name="remove-circle" /> Reject
+                      </button>{' '}
+                    </>
+                  )}
+                </span>
+              </div>
+            ))}
+            {profileMergeNotes.length === 0 ? (
+              <p className="empty-message">No profile merge requests.</p>
+            ) : (
+              <PaginationLinks
+                currentPage={page}
+                itemsPerPage={pageSize}
+                totalCount={profileMergeNotes.length}
+                options={{ useShallowRouting: true }}
+                setCurrentPage={setPage}
+              />
+            )}
+          </>
+        ) : (
+          <LoadSpinner inline />
+        )}
+      </div>
+      <RequestRejectionModal
+        noteToReject={noteToReject}
+        acceptRejectNote={acceptRejectProfileMergeNote}
+        setNoteToReject={setNoteToReject}
+      />
+      <FullTextModal
+        id={fullTextModalId}
+        textToView={textToView}
+        setTextToView={setTextToView}
+      />
     </>
   )
 }
@@ -451,6 +767,7 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
 const Moderation = ({ appContext, accessToken, superUser }) => {
   const { setBannerHidden } = appContext
   const [nameDeletionRequestCountMsg, setNameDeletionRequestCountMsg] = useState(0)
+  const [profileMergeRequestCountMsg, setProfileMergeRequestCountMsg] = useState(0)
   const [pendingVenueRequestCount, setPendingVenueRequestCount] = useState(0)
 
   useEffect(() => {
@@ -479,6 +796,12 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
               <span className="badge">{nameDeletionRequestCountMsg}</span>
             )}
           </Tab>
+          <Tab id="merge">
+            Profile Merge Requests{' '}
+            {profileMergeRequestCountMsg && (
+              <span className="badge">{profileMergeRequestCountMsg}</span>
+            )}
+          </Tab>
           <Tab id="requests">
             Venue Requests{' '}
             {pendingVenueRequestCount !== 0 && (
@@ -498,6 +821,13 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
               setNameDeletionRequestCountMsg={setNameDeletionRequestCountMsg}
             />
           </TabPanel>
+          <TabPanel id="merge">
+            <ProfileMergeTab
+              accessToken={accessToken}
+              superUser={superUser}
+              setProfileMergeRequestCountMsg={setProfileMergeRequestCountMsg}
+            />
+          </TabPanel>
           <TabPanel id="requests">
             <VenueRequestsTab
               accessToken={accessToken}
@@ -514,7 +844,6 @@ const UserModerationQueue = ({
   accessToken,
   title,
   onlyModeration = true,
-  pageSize = 15,
   reload,
   shouldReload,
   showSortButton = false,
@@ -527,7 +856,14 @@ const UserModerationQueue = ({
   const [signedNotesCount, setSignedNotesCount] = useState(0)
   const [idsLoading, setIdsLoading] = useState([])
   const [descOrder, setDescOrder] = useState(true)
+  const [pageSize, setPageSize] = useState(15)
+  const [profileToPreview, setProfileToPreview] = useState(null)
+  const [lastPreviewedProfileId, setLastPreviewedProfileId] = useState(null)
   const modalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
+  const pageSizeOptions = [15, 30, 50, 100].map((p) => ({
+    label: `${p} items`,
+    value: p,
+  }))
 
   const getProfiles = async () => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
@@ -542,7 +878,10 @@ const UserModerationQueue = ({
           offset: (pageNumber - 1) * pageSize,
           withBlocked: onlyModeration ? undefined : true,
           ...(!onlyModeration && { trash: true }),
-          ...filters,
+          ...Object.entries(filters).reduce((prev, [key, value]) => {
+            if (value) prev[key] = value // eslint-disable-line no-param-reassign
+            return prev
+          }, {}),
         },
         { accessToken, cachePolicy: 'no-cache' }
       )
@@ -617,7 +956,7 @@ const UserModerationQueue = ({
   }
 
   const blockUnblockUser = async (profile) => {
-    const actionIsBlock = profile?.state !== 'Blocked' && !profile?.block
+    const actionIsBlock = profile?.state !== 'Blocked'
     const signedNotes = !onlyModeration
       ? await api.getCombined('/notes', { signature: profile.id }, null, {
           accessToken,
@@ -689,7 +1028,11 @@ const UserModerationQueue = ({
 
   useEffect(() => {
     getProfiles()
-  }, [pageNumber, filters, shouldReload, descOrder])
+  }, [pageNumber, filters, shouldReload, descOrder, pageSize])
+
+  useEffect(() => {
+    if (profileToPreview) $('#profile-preview').modal('show')
+  }, [profileToPreview])
 
   return (
     <div className="profiles-list">
@@ -741,7 +1084,7 @@ const UserModerationQueue = ({
             return (
               <li
                 key={profile.id}
-                className={`${profile.state === 'Blocked' || profile.block ? 'blocked' : ''}${
+                className={`${profile.state === 'Blocked' ? 'blocked' : ''}${
                   profile.ddate ? ' deleted' : ''
                 }`}
               >
@@ -762,11 +1105,14 @@ const UserModerationQueue = ({
                     password
                   </span>{' '}
                   <span
-                    className={getProfileStateLabelClass(
-                      profile.state ?? (profile.active ? 'Active' : 'Inactive')
-                    )}
+                    className={`${getProfileStateLabelClass(
+                      profile.ddate ? 'Deleted' : profile.state
+                    )}${profile.id === lastPreviewedProfileId ? ' last-previewed' : ''}`}
+                    onClick={() => {
+                      setProfileToPreview(formatProfileData(cloneDeep(profile)))
+                    }}
                   >
-                    {profile.state ?? 'active'}
+                    {profile.ddate ? 'Deleted' : profile.state}
                   </span>
                 </span>
                 <span className="col-actions">
@@ -799,7 +1145,7 @@ const UserModerationQueue = ({
                     </>
                   ) : (
                     <>
-                      {!(profile.state === 'Blocked' || profile.block) && profile.active && (
+                      {!(profile.state === 'Blocked' || profile.ddate) && (
                         <button
                           type="button"
                           className="btn btn-xs"
@@ -808,22 +1154,18 @@ const UserModerationQueue = ({
                           <Icon name="remove-circle" /> Reject
                         </button>
                       )}{' '}
-                      <button
-                        type="button"
-                        className="btn btn-xs btn-block-profile"
-                        onClick={() => blockUnblockUser(profile)}
-                      >
-                        <Icon
-                          name={`${
-                            profile.state === 'Blocked' || profile.block
-                              ? 'refresh'
-                              : 'ban-circle'
-                          }`}
-                        />{' '}
-                        {`${
-                          profile.state === 'Blocked' || profile.block ? 'Unblock' : 'Block'
-                        }`}
-                      </button>{' '}
+                      {!profile.ddate && (
+                        <button
+                          type="button"
+                          className="btn btn-xs btn-block-profile"
+                          onClick={() => blockUnblockUser(profile)}
+                        >
+                          <Icon
+                            name={`${profile.state === 'Blocked' ? 'refresh' : 'ban-circle'}`}
+                          />{' '}
+                          {`${profile.state === 'Blocked' ? 'Unblock' : 'Block'}`}
+                        </button>
+                      )}{' '}
                       <button
                         type="button"
                         className="btn btn-xs"
@@ -851,19 +1193,36 @@ const UserModerationQueue = ({
       ) : (
         <LoadSpinner inline />
       )}
-
-      <PaginationLinks
-        currentPage={pageNumber}
-        itemsPerPage={15}
-        totalCount={totalCount}
-        setCurrentPage={setPageNumber}
-      />
+      <div className="pagination-container-with-control">
+        <PaginationLinks
+          currentPage={pageNumber}
+          itemsPerPage={pageSize}
+          totalCount={totalCount}
+          setCurrentPage={setPageNumber}
+        />
+        {totalCount > pageSize && (
+          <Dropdown
+            className="dropdown-select dropdown-pagesize"
+            options={pageSizeOptions}
+            value={pageSizeOptions.find((p) => p.value === pageSize)}
+            onChange={(e) => {
+              setPageNumber(1)
+              setPageSize(e.value)
+            }}
+          />
+        )}
+      </div>
 
       <RejectionModal
         id={modalId}
         profileIdToReject={profileIdToReject}
         rejectUser={rejectUser}
         signedNotesCount={signedNotesCount}
+      />
+      <ProfilePreviewModal
+        profileToPreview={profileToPreview}
+        setProfileToPreview={setProfileToPreview}
+        setLastPreviewedProfileId={setLastPreviewedProfileId}
       />
     </div>
   )
@@ -889,7 +1248,12 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotesCount })
     {
       value: 'invalidHomepageAndEmail',
       label: 'Invalid Homepage + Missing Institution Email',
-      rejectionText: `A valid Homepage and institutional email matching your latest career/education history is required.\n\n${instructionText}`,
+      rejectionText: `A valid Homepage and institutional email matching your latest career/education history are required.\n\n${instructionText}`,
+    },
+    {
+      value: 'imPersonalHomepageAndEmail',
+      label: 'Impersonal Homepage + Missing Institution Email',
+      rejectionText: `A Homepage url which displays your name and institutional email matching your latest career/education history are required.\n\n${instructionText}`,
     },
     {
       value: 'invalidName',
@@ -955,11 +1319,7 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotesCount })
   )
 }
 
-const NameDeleteRejectionModal = ({
-  noteToReject,
-  acceptRejectNameDeletionNote,
-  setNoteToReject,
-}) => {
+const RequestRejectionModal = ({ noteToReject, acceptRejectNote, setNoteToReject }) => {
   const [supportComment, setSupportComment] = useState('')
   if (!noteToReject) return null
   return (
@@ -967,7 +1327,7 @@ const NameDeleteRejectionModal = ({
       id="name-delete-reject"
       primaryButtonDisabled={!supportComment}
       onPrimaryButtonClick={() => {
-        acceptRejectNameDeletionNote(noteToReject, false, supportComment)
+        acceptRejectNote(noteToReject, 'Rejected', supportComment)
       }}
       onClose={() => {
         setNoteToReject(null)
@@ -1001,15 +1361,36 @@ const NameDeleteRejectionModal = ({
   )
 }
 
-const FullCommentModal = ({ commentToView, setCommentToView }) => (
+const FullTextModal = ({ id, textToView, setTextToView }) => (
   <BasicModal
-    id="full-comment"
-    onClose={() => setCommentToView(null)}
+    id={id}
+    onClose={() => setTextToView(null)}
     primaryButtonText={null}
     cancelButtonText="OK"
   >
-    {commentToView}
+    {textToView}
   </BasicModal>
 )
+
+const ProfilePreviewModal = ({
+  profileToPreview,
+  setProfileToPreview,
+  setLastPreviewedProfileId,
+}) => {
+  if (!profileToPreview) return null
+  return (
+    <BasicModal
+      id="profile-preview"
+      primaryButtonText={null}
+      cancelButtonText="OK"
+      onClose={() => {
+        setProfileToPreview(null)
+        setLastPreviewedProfileId(profileToPreview.id)
+      }}
+    >
+      <BasicProfileView profile={profileToPreview} showLinkText={true} />
+    </BasicModal>
+  )
+}
 
 export default withAdminAuth(Moderation)
