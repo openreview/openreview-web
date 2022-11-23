@@ -19,6 +19,7 @@ export default function SubmissionsList({
   ListItem,
   apiVersion,
   shouldReload,
+  updateCount,
   pageSize,
   enableSearch,
   useCredentials,
@@ -36,6 +37,9 @@ export default function SubmissionsList({
         { details, ...query, limit, offset },
         { accessToken, version: apiVersion, useCredentials: useCredentials ?? true }
       )
+      if (typeof updateCount === 'function') {
+        updateCount(count ?? 0)
+      }
       return {
         items: notes,
         count: count ?? 0,
