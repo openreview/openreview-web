@@ -122,6 +122,11 @@ jobs:
           cat "$(ls -rt | tail -n1)"
 
   deploy:
+    # Allow the job to fetch a GitHub ID token
+    permissions:
+      id-token: write
+      contents: read
+
     runs-on: ubuntu-latest
 
     needs: build
