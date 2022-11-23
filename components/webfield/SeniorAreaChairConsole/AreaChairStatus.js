@@ -76,7 +76,7 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
       <h4>
         {numCompletedReviews} of {numPapers} Papers Reviews Completed
       </h4>
-      {rowData.notes.length !== 0 && <strong>Papers:</strong>}
+      {rowData.notes.length !== 0 && <strong className="paper-label">Papers:</strong>}
       <div className="review-progress">
         {rowData.notes.map((p) => {
           const { numReviewsDone, numReviewersAssigned, ratingAvg, ratingMin, ratingMax } =
@@ -121,7 +121,7 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl, isV2Console }) => {
       <h4>
         {numCompletedMetaReviews} of {numPapers} Papers Meta Review Completed
       </h4>
-      {rowData.notes.length !== 0 && <strong>Papers:</strong>}
+      {rowData.notes.length !== 0 && <strong className="paper-label">Papers:</strong>}
       <div>
         {rowData.notes.map((p) => {
           const noteContent = getNoteContent(p.note, isV2Console)

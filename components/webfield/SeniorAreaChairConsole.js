@@ -209,7 +209,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
         getNumberFromGroup(p.id, submissionName)
       )
 
-      const assignedNotes = notes.filter((p) => assignedNoteNumbers.includes(p.number))
+      const assignedNotes = notes.flatMap((p) =>
+        assignedNoteNumbers.includes(p.number) ? { ...p, version: apiVersion } : []
+      )
       const isV2Console = apiVersion === 2
       setSacConsoleData({
         isV2Console,

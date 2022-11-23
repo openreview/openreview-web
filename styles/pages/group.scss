@@ -289,6 +289,10 @@ main.invitation {
       color: constants.$subtleGray;
       font-weight: 400;
     }
+    .note-venue {
+      margin-bottom: 0.5rem;
+      display: inline-block;
+    }
     .note-contents-toggle {
       font-size: 0.875rem;
     }
@@ -475,6 +479,11 @@ main.invitation {
             margin-right: 0.5rem;
           }
         }
+      }
+      .recommendation {
+        margin-top: 0.25rem;
+        margin-bottom: 0.25rem;
+        display: inline-block;
       }
     }
     .console-meta-review {
@@ -795,7 +804,7 @@ main.invitation {
   }
   .edit-group-info {
     margin-top: 0.75rem;
-    margin-right: .5rem;
+    margin-right: 0.5rem;
   }
 
   #webfield-editor,
