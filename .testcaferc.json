@@ -1,4 +1,5 @@
 {
   "browsers": "chrome",
+  "videoPath": "videos",
   "stopOnFirstFail": true
 }

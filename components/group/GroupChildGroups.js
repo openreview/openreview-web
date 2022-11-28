@@ -11,7 +11,7 @@ const GroupChildGroups = ({ groupId, accessToken }) => {
     const { groups, count } = await api.get(
       '/groups',
       {
-        regex: `${groupId}/[^/]+$`,
+        parent: groupId,
         limit,
         offset,
       },
