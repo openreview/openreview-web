@@ -2020,7 +2020,7 @@ module.exports = (function () {
             // number of papers assigned.
             if (_.endsWith(inv.id, 'Recommendation')) {
               var groupedEdgesCounts = _.countBy(inv.details.repliedEdges, 'head')
-              var allPapersRecommended = Object.keys(groupedEdgesCounts).length >= 15
+              var allPapersRecommended = Object.keys(groupedEdgesCounts).length >= 30
               inv.completed =
                 allPapersRecommended &&
                 _.every(groupedEdgesCounts, function (count) {
