@@ -44,6 +44,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
       authorids: note.details.original?.content?.authorids ?? note.content.authorids,
     },
   }
+
   return (
     <tr>
       <td>
@@ -98,14 +99,6 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
 const PaperStatus = ({ sacConsoleData }) => {
   const [paperStatusTabData, setPaperStatusTabData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
-  const {
-    recommendationName,
-    shortPhrase,
-    enableQuerySearch,
-    filterOperators,
-    propertiesAllowed,
-    paperStatusExportColumns,
-  } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(sacConsoleData.notes?.length ?? 0)
   const pageSize = 25
@@ -155,12 +148,6 @@ const PaperStatus = ({ sacConsoleData }) => {
           tableRows={paperStatusTabData.tableRows}
           selectedNoteIds={selectedNoteIds}
           setPaperStatusTabData={setPaperStatusTabData}
-          shortPhrase={shortPhrase}
-          recommendationName={recommendationName}
-          enableQuerySearch={enableQuerySearch}
-          exportColumns={paperStatusExportColumns}
-          filterOperators={filterOperators}
-          propertiesAllowed={propertiesAllowed}
         />
         <p className="empty-message">No papers matching search criteria.</p>
       </div>
@@ -172,12 +159,6 @@ const PaperStatus = ({ sacConsoleData }) => {
         tableRows={paperStatusTabData.tableRows}
         selectedNoteIds={selectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
-        shortPhrase={shortPhrase}
-        recommendationName={recommendationName}
-        enableQuerySearch={enableQuerySearch}
-        exportColumns={paperStatusExportColumns}
-        filterOperators={filterOperators}
-        propertiesAllowed={propertiesAllowed}
       />
       <Table
         className="console-table table-striped pc-console-paper-status"

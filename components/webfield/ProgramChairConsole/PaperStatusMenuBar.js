@@ -1,3 +1,5 @@
+import { useContext } from 'react'
+import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
 import MessageReviewersModal from '../MessageReviewersModal'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
@@ -7,13 +9,16 @@ const PaperStatusMenuBar = ({
   tableRows,
   selectedNoteIds,
   setPaperStatusTabData,
-  shortPhrase,
-  recommendationName,
-  enableQuerySearch,
-  exportColumns: exportColumnsConfig,
-  filterOperators: filterOperatorsConfig,
-  propertiesAllowed: propertiesAllowedConfig,
 }) => {
+  const {
+    apiVersion,
+    recommendationName,
+    shortPhrase,
+    enableQuerySearch,
+    exportColumns: exportColumnsConfig,
+    filterOperators: filterOperatorsConfig,
+    propertiesAllowed: propertiesAllowedConfig,
+  } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {
     number: ['note.number'],
@@ -38,7 +43,13 @@ const PaperStatusMenuBar = ({
     confidenceMax: ['reviewProgressData.confidenceMax'],
     confidenceMin: ['reviewProgressData.confidenceMin'],
     replyCount: ['reviewProgressData.replyCount'],
-    decision: ['metaReviewData.recommendation'],
+    decision: ['decision'],
+    ...(apiVersion === 2 && {
+      venue: ['venue'],
+    }),
+    ...(recommendationName && {
+      [recommendationName]: [`metaReviewData.metaReviews.${recommendationName}`],
+    }),
   }
   const messageReviewerOptions = [
     { label: 'All Reviewers of selected papers', value: 'allReviewers' },
@@ -180,6 +191,27 @@ const PaperStatusMenuBar = ({
         getValueWithDefault(p.reviewProgressData?.confidenceMax) -
         getValueWithDefault(p.reviewProgressData?.confidenceMin),
     },
+    {
+      label: 'Meta Review Missing',
+      value: 'Meta Review Missing',
+      getValue: (p) =>
+        getValueWithDefault(p.metaReviewData?.areaChairs?.length) -
+        getValueWithDefault(p.metaReviewData?.metaReviews?.length),
+    },
+    {
+      label: 'Decision',
+      value: 'Decision',
+      getValue: (p) => p.decision,
+    },
+    ...(apiVersion === 2
+      ? [
+          {
+            label: 'Venue',
+            value: 'Venue',
+            getValue: (p) => p.venue,
+          },
+        ]
+      : []),
   ]
   const basicSearchFunction = (row, term) => {
     const noteTitle =

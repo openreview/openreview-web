@@ -89,7 +89,7 @@ const NoteSummary = ({
 
       {showReaders && (
         <div className="note-readers">
-          Readers: <NoteReaders readers={note.readers} />
+          <Icon name="eye-open" /> <NoteReaders readers={note.readers} />
         </div>
       )}
 

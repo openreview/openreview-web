@@ -521,7 +521,7 @@ const DescriptionTimelineOtherConfigRow = ({
     officialReviewName,
     commentName,
     officialMetaReviewName,
-    decisionName,
+    decisionName = 'Decision',
     scoresName,
     recommendationName,
     recruitmentName,

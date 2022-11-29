@@ -100,15 +100,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
 const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
   const [paperStatusTabData, setPaperStatusTabData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
-  const {
-    areaChairsId,
-    recommendationName,
-    shortPhrase,
-    enableQuerySearch,
-    filterOperators,
-    propertiesAllowed,
-    paperStatusExportColumns,
-  } = useContext(WebFieldContext)
+  const { areaChairsId } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
   const pageSize = 25
@@ -167,12 +159,6 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
           tableRows={paperStatusTabData.tableRows}
           selectedNoteIds={selectedNoteIds}
           setPaperStatusTabData={setPaperStatusTabData}
-          shortPhrase={shortPhrase}
-          recommendationName={recommendationName}
-          enableQuerySearch={enableQuerySearch}
-          exportColumns={paperStatusExportColumns}
-          filterOperators={filterOperators}
-          propertiesAllowed={propertiesAllowed}
         />
         <p className="empty-message">No papers matching search criteria.</p>
       </div>
@@ -184,12 +170,6 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
         tableRows={paperStatusTabData.tableRows}
         selectedNoteIds={selectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
-        shortPhrase={shortPhrase}
-        recommendationName={recommendationName}
-        enableQuerySearch={enableQuerySearch}
-        exportColumns={paperStatusExportColumns}
-        filterOperators={filterOperators}
-        propertiesAllowed={propertiesAllowed}
       />
       <Table
         className="console-table table-striped pc-console-paper-status"
@@ -212,22 +192,14 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
         ]}
       >
         {paperStatusTabData.tableRowsDisplayed?.map((row) => {
-          let decision = 'No Decision'
-
-          const decisionNote = pcConsoleData.decisionByPaperNumberMap.get(row.note.number)
-          // eslint-disable-next-line prefer-destructuring
-          if (decisionNote?.content?.decision)
-            decision = pcConsoleData.isV2Console
-              ? decisionNote.content.decision?.value
-              : decisionNote.content.decision
           return (
             <PaperRow
               key={row.note.id}
               rowData={row}
               selectedNoteIds={selectedNoteIds}
               setSelectedNoteIds={setSelectedNoteIds}
-              decision={decision}
-              venue={row.note?.content?.venue?.value}
+              decision={row.decision}
+              venue={row.venue}
             />
           )
         })}

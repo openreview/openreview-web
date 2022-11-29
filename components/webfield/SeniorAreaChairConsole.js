@@ -33,7 +33,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     reviewConfidenceName,
     officialReviewName,
     officialMetaReviewName,
-    decisionName,
+    decisionName = 'Decision',
     recommendationName,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
@@ -104,6 +104,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       const seniorAreaChairGroups = []
       let allGroupMembers = []
       perPaperGroupResults.groups?.forEach((p) => {
+        console.log('p', p.id, seniorAreaChairName, p.id.endsWith(seniorAreaChairName))
         if (p.id.endsWith(`/${reviewerName}`)) {
           reviewerGroups.push({
             noteNumber: getNumberFromGroup(p.id, submissionName),
@@ -126,7 +127,6 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           if (p.members.length) anonAreaChairGroups[number][p.members[0]] = p.id
         } else if (p.id.endsWith(seniorAreaChairName)) {
           seniorAreaChairGroups.push(p)
-          // allGroupMembers = allGroupMembers.concat(p.members)
         }
       })
 

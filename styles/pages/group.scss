@@ -465,6 +465,9 @@ main.invitation {
     .tooltip-inner {
       max-width: none;
     }
+    .note-readers {
+      font-size: 0.75rem;
+    }
     .areachair-progress {
       .title {
         white-space: nowrap;
@@ -484,6 +487,9 @@ main.invitation {
           margin-bottom: 0.25rem;
           display: inline-block;
         }
+      }
+      .senior-areachair {
+        margin-top: 0.25rem;
       }
     }
     .console-meta-review {
