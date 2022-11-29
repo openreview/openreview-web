@@ -2,6 +2,7 @@
 
 // modified from noteMetaReviewStatus.hbs handlebar template
 import { useEffect, useState } from 'react'
+import { inflect } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 
@@ -124,6 +125,76 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
             <strong>{`No ${metaReviewContentField}`}</strong>
           )}
         </h4>
+      )}
+    </div>
+  )
+}
+
+// modified from noteAreaChairs.hbs handlebar template pc console->paper status tab->status column
+export const ProgramChairConsolePaperAreaChairProgress = ({
+  metaReviewData,
+  referrerUrl,
+  isV2Console,
+}) => {
+  const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChair } = metaReviewData
+  return (
+    <div className="areachair-progress">
+      <h4 className="title">{`${inflect(
+        numMetaReviewsDone,
+        'Meta Review',
+        'Meta Reviews',
+        true
+      )} Submitted`}</h4>
+
+      <strong>Area Chair:</strong>
+      <div>
+        {areaChairs.length !== 0 &&
+          areaChairs.map((areaChair) => {
+            const metaReview = metaReviews.find((p) => p.anonId === areaChair.anonymousId)
+            const recommendation = isV2Console
+              ? metaReview?.content?.recommendation?.value
+              : metaReview?.content?.recommendation
+            return (
+              <div key={areaChair.anonymousId} className="meta-review-info">
+                <div className="areachair-contact">
+                  <span>
+                    {areaChair.preferredName}{' '}
+                    <span className="text-muted">&lt;{areaChair.preferredEmail}&gt;</span>
+                  </span>
+                </div>
+                {metaReview && (
+                  <div>
+                    <span className="recommendation">Recommendation: {recommendation}</span>
+                    <div>
+                      <a
+                        href={`/forum?id=${metaReview.forum}&noteId=${metaReview.id}&referrer=${referrerUrl}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Read Meta Review
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+      </div>
+
+      {seniorAreaChair && (
+        <>
+          <strong>Senior Area Chair:</strong>
+          <table className="table table-condensed table-minimal">
+            <tbody>
+              <tr>
+                <td>
+                  {seniorAreaChair.name}{' '}
+                  <span className="text-muted">({seniorAreaChair.email})</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </>
       )}
     </div>
   )

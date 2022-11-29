@@ -1,12 +1,29 @@
+import isEqual from 'lodash/isEqual'
 import { forumDate, getNotePdfUrl } from '../../lib/utils'
 import Collapse from '../Collapse'
 import Icon from '../Icon'
 import NoteContent, { NoteContentV2 } from '../NoteContent'
+import NoteReaders from '../NoteReaders'
 
-const NoteSummary = ({ note, referrerUrl, isV2Note, profileMap, showDates = false }) => {
+const getAuthorsValue = (note, isV2Note) => {
+  if (isV2Note) return note.content?.authors?.value
+  const noteAuthors = note.content?.authors
+  const originalAuthors = note.details?.original?.content?.authors
+  if (originalAuthors && !isEqual(noteAuthors, originalAuthors)) return originalAuthors
+  return noteAuthors
+}
+
+const NoteSummary = ({
+  note,
+  referrerUrl,
+  isV2Note,
+  profileMap,
+  showDates = false,
+  showReaders = false,
+}) => {
   const titleValue = isV2Note ? note.content?.title?.value : note.content?.title
   const pdfValue = isV2Note ? note.content?.pdf?.value : note.content?.pdf
-  const authorsValue = isV2Note ? note.content?.authors?.value : note.content?.authors
+  const authorsValue = getAuthorsValue(note, isV2Note)
   const authorIdsValue = isV2Note ? note.content?.authorids?.value : note.content?.authorids
 
   return (
@@ -39,33 +56,40 @@ const NoteSummary = ({ note, referrerUrl, isV2Note, profileMap, showDates = fals
 
       {authorsValue && (
         <div className="note-authors">
-          {authorsValue.map((authorName, i) => {
-            const authorId = authorIdsValue[i]
-            const authorProfile = profileMap?.[authorIdsValue[i]]
-            const errorTooltip = authorProfile
-              ? 'Profile not yet activated'
-              : 'Profile not yet created or email not confirmed'
-            return (
-              <span key={authorId}>
-                {authorName}
-                {profileMap && (
-                  authorProfile?.active ? (
-                    <Icon
-                      name="ok-sign"
-                      tooltip="Profile is active and email confirmed"
-                      extraClasses="pl-1 text-success"
-                    />
-                  ) : (
-                    <Icon
-                      name="remove-sign"
-                      tooltip={errorTooltip}
-                      extraClasses="pl-1 text-danger"
-                    />
-                  )
-                )}
-              </span>
-            )
-          }).reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+          {authorsValue
+            .map((authorName, i) => {
+              const authorId = authorIdsValue[i]
+              const authorProfile = profileMap?.[authorIdsValue[i]]
+              const errorTooltip = authorProfile
+                ? 'Profile not yet activated'
+                : 'Profile not yet created or email not confirmed'
+              return (
+                <span key={authorId}>
+                  {authorName}
+                  {profileMap &&
+                    (authorProfile?.active ? (
+                      <Icon
+                        name="ok-sign"
+                        tooltip="Profile is active and email confirmed"
+                        extraClasses="pl-1 text-success"
+                      />
+                    ) : (
+                      <Icon
+                        name="remove-sign"
+                        tooltip={errorTooltip}
+                        extraClasses="pl-1 text-danger"
+                      />
+                    ))}
+                </span>
+              )
+            })
+            .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+        </div>
+      )}
+
+      {showReaders && (
+        <div className="note-readers">
+          Readers: <NoteReaders readers={note.readers} />
         </div>
       )}
 
@@ -84,8 +108,6 @@ const NoteSummary = ({ note, referrerUrl, isV2Note, profileMap, showDates = fals
           </span>
         </div>
       )}
-
-      {isV2Note && note?.content?.venue?.value && <span>{note.content.venue.value}</span>}
 
       <Collapse showLabel="Show details" hideLabel="Hide details">
         {isV2Note ? (
