@@ -109,6 +109,10 @@ const NoteSummary = ({
         </div>
       )}
 
+      {isV2Note && note?.content?.venue?.value && (
+        <span className="note-venue">{note.content.venue.value}</span>
+      )}
+
       <Collapse showLabel="Show details" hideLabel="Hide details">
         {isV2Note ? (
           <NoteContentV2

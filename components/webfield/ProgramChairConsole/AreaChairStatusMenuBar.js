@@ -49,9 +49,9 @@ const MessageAreaChairsModal = ({
   const getRecipientRows = () => {
     switch (messageOption.value) {
       case 'noBids':
-        return tableRows.map((row) => row.completedBids === 0)
+        return tableRows.filter((row) => row.completedBids === 0)
       case 'noRecommendations':
-        return tableRows.map((row) => row.completedRecommendations === 0)
+        return tableRows.filter((row) => row.completedRecommendations === 0)
       case 'missingReviews':
         return tableRows.filter((row) => row.numCompletedReviews < row.notes?.length ?? 0)
       case 'noMetaReviews':

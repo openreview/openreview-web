@@ -288,7 +288,10 @@ main.invitation {
     .note-readers {
       color: constants.$subtleGray;
       font-weight: 400;
+    }
+    .note-venue {
       margin-bottom: 0.5rem;
+      display: inline-block;
     }
     .note-contents-toggle {
       font-size: 0.875rem;
@@ -496,6 +499,96 @@ main.invitation {
         white-space: nowrap;
       }
     }
+
+    .console-decision {
+      margin-right: 0.5rem;
+      .title {
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .pc-console-ac-status {
+    table-layout: auto;
+    .review-progress {
+      display: flex;
+      flex-direction: column;
+
+      .note-info {
+        display: flex;
+        align-items: baseline;
+        margin-bottom: 0.25rem;
+        .note-number {
+          margin-right: 0.25rem;
+          font-size: 0.75rem;
+          width: 8%;
+        }
+      }
+
+      .review-info {
+        width: 92%;
+      }
+    }
+    .areachair-progress {
+      display: flex;
+      flex-direction: column;
+
+      .meta-review-info {
+        display: flex;
+        align-items: baseline;
+        .note-number {
+          margin-right: 0.25rem;
+          font-size: 0.75rem;
+          width: 20%;
+        }
+        .meta-review {
+          display: flex;
+          flex-direction: column;
+        }
+      }
+    }
+  }
+
+  .pc-console-reviewer-status {
+    table-layout: auto;
+    .paper-progress {
+      display: flex;
+      flex-direction: column;
+
+      .paper-info {
+        display: flex;
+        width: 100%;
+        .paper-number {
+          // margin-right: 0.25rem;
+          width: 10%;
+        }
+        .paper-title-review {
+          width: 90%;
+          display: flex;
+          flex-direction: column;
+        }
+      }
+    }
+
+    .status-column {
+      display: flex;
+      flex-direction: column;
+      .paper-info {
+        display: flex;
+        .paper-number {
+          margin-right: 0.25rem;
+          width: 20%;
+        }
+        .review-rating-info {
+          display: flex;
+          flex-direction: column;
+        }
+      }
+    }
+  }
+
+  .pc-console-rejected-papers {
+    table-layout: auto;
   }
 
   .pc-console-ac-status {
