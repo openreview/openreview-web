@@ -846,7 +846,8 @@ header {
 
 // Modals
 #message-reviewers-modal,
-#message-group-members-modal {
+#message-group-members-modal,
+.message-reviewers-modal {
   .reviewer-list {
     height: 104px;
     overflow-y: auto;
@@ -859,6 +860,13 @@ header {
   }
   .alert-danger {
     margin-bottom: 1rem;
+  }
+}
+
+.message-reviewers-modal {
+  .reviewer-list {
+    height: auto;
+    max-height: 600px;
   }
 }
 

@@ -5,9 +5,8 @@ import api from '../../../lib/api-client'
 import BasicModal from '../../BasicModal'
 import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
-import QuerySearchInfoModal from '../QuerySearchInfoModal'
 
-const MessageAreaChairsModal = ({
+const MessageReviewersModal = ({
   tableRowsDisplayed: tableRows,
   messageOption,
   messageParentGroup,
@@ -39,7 +38,7 @@ const MessageAreaChairsModal = ({
         },
         { accessToken }
       )
-      $('#message-areachairs').modal('hide')
+      $('#message-reviewers').modal('hide')
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
     } catch (apiError) {
       setError(apiError.message)
@@ -50,18 +49,10 @@ const MessageAreaChairsModal = ({
     switch (messageOption.value) {
       case 'noBids':
         return tableRows.filter((row) => row.completedBids === 0)
-      case 'noRecommendations':
-        return tableRows.filter((row) => row.completedRecommendations === 0)
       case 'missingReviews':
-        return tableRows.filter((row) => row.numCompletedReviews < row.notes?.length ?? 0)
-      case 'noMetaReviews':
-        return tableRows.filter(
-          (row) => row.numCompletedMetaReviews === 0 && (row.notes?.length ?? 0) !== 0
-        )
-      case 'missingMetaReviews':
-        return tableRows.filter((row) => row.numCompletedMetaReviews < row.notes?.length ?? 0)
-      case 'missingAssignments':
-        return tableRows.filter((row) => !row.notes?.length)
+        return tableRows.filter((row) => row.numCompletedReviews < row.notesInfo?.length ?? 0)
+      case 'noAssignments':
+        return tableRows.filter((row) => !row.notesInfo?.length)
       default:
         return []
     }
@@ -72,17 +63,17 @@ const MessageAreaChairsModal = ({
     const recipientRows = getRecipientRows()
     setRecipientsInfo(
       recipientRows.map((row) => {
-        const acProfile = row.areaChairProfile
-        return acProfile
+        const { reviewerProfile } = row
+        return reviewerProfile
           ? {
-              id: row.areaChairProfileId,
-              preferredName: acProfile.preferredName,
-              preferredEmail: acProfile.preferredEmail,
+              id: row.reviewerProfileId,
+              preferredName: reviewerProfile.preferredName,
+              preferredEmail: reviewerProfile.preferredEmail,
             }
           : {
-              id: row.areaChairProfileId,
-              preferredName: row.areaChairProfileId,
-              preferredEmail: row.areaChairProfileId,
+              id: row.reviewerProfileId,
+              preferredName: row.reviewerProfileId,
+              preferredEmail: row.reviewerProfileId,
             }
       })
     )
@@ -90,7 +81,8 @@ const MessageAreaChairsModal = ({
 
   return (
     <BasicModal
-      id="message-areachairs"
+      id="message-reviewers"
+      options={{ extraClasses: 'message-reviewers-modal' }}
       title={messageOption?.label}
       primaryButtonText={primaryButtonText}
       onPrimaryButtonClick={handlePrimaryButtonClick}
@@ -146,94 +138,61 @@ const MessageAreaChairsModal = ({
   )
 }
 
-const AreaChairStatusMenuBar = ({
+const ReviewerStatusMenuBar = ({
   tableRowsAll,
   tableRows,
   selectedNoteIds,
-  setAreaChairStatusTabData,
+  setReviewerStatusTabData,
   shortPhrase,
-  enableQuerySearch,
   exportColumns: exportColumnsConfig,
-  filterOperators: filterOperatorsConfig,
-  propertiesAllowed: propertiesAllowedConfig,
   bidEnabled,
-  recommendationEnabled,
   messageParentGroup,
 }) => {
-  const { seniorAreaChairsId } = useContext(WebFieldContext)
-  const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '=']
-  const propertiesAllowed = propertiesAllowedConfig ?? {
-    number: ['number'],
-    name: ['areaChairProfile.preferredName'],
-    email: ['areaChairProfile.preferredEmail'],
-    sac: ['areaChairProfile.seniorAreaChair.seniorAreaChairId'],
-  }
   const messageAreaChairOptions = [
     ...(bidEnabled
       ? [
           {
-            label: 'Area Chairs with 0 bids',
+            label: 'Reviewers with 0 bids',
             value: 'noBids',
           },
         ]
       : []),
-    ...(recommendationEnabled
-      ? [
-          {
-            label: 'Area Chairs with 0 recommendations',
-            value: 'noRecommendations',
-          },
-        ]
-      : []),
-    { label: 'Area Chairs with unsubmitted reviews', value: 'missingReviews' },
-    { label: 'Area Chairs with 0 submitted meta reviews', value: 'noMetaReviews' },
-    {
-      label: 'Area Chairs with unsubmitted meta reviews',
-      value: 'missingMetaReviews',
-    },
-    {
-      label: 'Area Chairs with 0 assignments',
-      value: 'missingAssignments',
-    },
+    { label: 'Reviewers with unsubmitted reviews', value: 'missingReviews' },
+    { label: 'Reviewers with 0 assignments', value: 'noAssignments' },
   ]
-  const exportColumns = [
-    { header: 'id', getValue: (p) => p.areaChairProfileId },
+
+  const exportColumns = exportColumnsConfig ?? [
+    { header: 'id', getValue: (p) => p.reviewerProfileId },
     {
       header: 'name',
-      getValue: (p) => p.areaChairProfile?.preferredName ?? p.areaChairProfileId,
+      getValue: (p) => p.reviewerProfile?.preferredName ?? p.reviewerProfileId,
     },
     {
       header: 'email',
-      getValue: (p) => p.areaChairProfile?.preferredEmail ?? p.areaChairProfileId,
+      getValue: (p) => p.reviewerProfile?.preferredEmail ?? p.reviewerProfileId,
     },
-    { header: 'assigned papers', getValue: (p) => p.notes?.length },
-    { header: 'reviews completed', getValue: (p) => p.numCompletedReviews },
-    { header: 'meta reviews completed', getValue: (p) => p.numCompletedMetaReviews },
-    ...(seniorAreaChairsId
-      ? [
-          { header: 'sac id', getValue: (p) => p.seniorAreaChair?.seniorAreaChairId ?? 'N/A' },
-          {
-            header: 'sac name',
-            getValue: (p) => p.seniorAreaChair?.sacProfile?.preferredName ?? 'N/A',
-          },
-          {
-            header: 'sac email',
-            getValue: (p) => p.seniorAreaChair?.sacProfile?.preferredEmail ?? 'N/A',
-          },
-        ]
-      : []),
-    ...(exportColumnsConfig ?? []),
+    {
+      header: 'institution name',
+      getValue: (p) => p.reviewerProfile?.content?.history?.[0]?.institution?.name ?? '',
+    },
+    {
+      header: 'institution domain',
+      getValue: (p) => p.reviewerProfile?.content?.history?.[0]?.institution?.domain ?? '',
+    },
+    { header: 'num assigned papers', getValue: (p) => p.notesInfo.length },
+    { header: 'num submitted reviews', getValue: (p) => p.numCompletedReviews },
   ]
+
   const sortOptions = [
     {
-      label: 'Area Chair',
-      value: 'Area Chair',
+      label: 'Reviewer',
+      value: 'Reviewer',
       getValue: (p) => p.number,
     },
     {
-      label: 'Area Chair Name',
-      value: 'Area Chair Name',
-      getValue: (p) => p.areaChairProfile?.preferredName ?? p.areaChairProfileId,
+      label: 'Reviewer Name',
+      value: 'Reviewer Name',
+      getValue: (p) => p.reviewerProfile?.preferredName ?? p.reviewerProfileId,
     },
     {
       label: 'Bids Completed',
@@ -241,39 +200,35 @@ const AreaChairStatusMenuBar = ({
       getValue: (p) => p.completedBids,
     },
     {
-      label: 'Reviewer Recommendations Completed',
-      value: 'Reviewer Recommendations Completed',
-      getValue: (p) => p.completedRecommendations,
-    },
-    {
       label: 'Papers Assigned',
       value: 'Papers Assigned',
-      getValue: (p) => p.notes?.length,
+      getValue: (p) => p.notesInfo.length,
     },
     {
-      label: 'Papers with Completed Review Missing',
-      value: 'Papers with Completed Review Missing',
-      getValue: (p) => p.notes?.length ?? 0 - p.numCompletedReviews ?? 0,
+      label: 'Papers with Reviews Missing',
+      value: 'Papers with Reviews Missing',
+      getValue: (p) => p.notesInfo.length - p.numCompletedReviews,
     },
     {
-      label: 'Papers with Completed Review',
-      value: 'Papers with Completed Review',
+      label: 'Papers with Reviews Submitted',
+      value: 'Papers with Reviews Submitted',
       getValue: (p) => p.numCompletedReviews,
     },
     {
-      label: 'Papers with Completed MetaReview Missing',
-      value: 'Papers with Completed MetaReview Missing',
-      getValue: (p) => p.notes?.length ?? 0 - p.numCompletedMetaReviews,
+      label: 'Papers with Completed Reviews Missing',
+      value: 'Papers with Completed Reviews Missing',
+      getValue: (p) => p.notesInfo.length - p.numOfPapersWhichCompletedReviews,
     },
     {
-      label: 'Papers with Completed MetaReview',
-      value: 'Papers with Completed MetaReview',
-      getValue: (p) => p.numCompletedMetaReviews,
+      label: 'Papers with Completed Reviews',
+      value: 'Papers with Completed Reviews',
+      getValue: (p) => p.numOfPapersWhichCompletedReviews,
     },
   ]
+
   const basicSearchFunction = (row, term) =>
     (
-      row.areaChairProfile?.preferredName.toLowerCase() ?? row.areaChairProfileId.toLowerCase()
+      row.reviewerProfile?.preferredName.toLowerCase() ?? row.reviewerProfileId.toLowerCase()
     ).includes(term)
 
   return (
@@ -281,23 +236,20 @@ const AreaChairStatusMenuBar = ({
       tableRowsAll={tableRowsAll}
       tableRows={tableRows}
       selectedIds={selectedNoteIds}
-      setData={setAreaChairStatusTabData}
+      setData={setReviewerStatusTabData}
       shortPhrase={shortPhrase}
-      enableQuerySearch={enableQuerySearch}
-      filterOperators={filterOperators}
-      propertiesAllowed={propertiesAllowed}
-      messageDropdownLabel="Message Area Chairs"
+      messageDropdownLabel="Message Reviewers"
       messageOptions={messageAreaChairOptions}
-      messageModalId="message-areachairs"
+      messageModalId="message-reviewers"
       messageParentGroup={messageParentGroup}
       exportColumns={exportColumns}
       sortOptions={sortOptions}
       basicSearchFunction={basicSearchFunction}
-      messageModal={(props) => <MessageAreaChairsModal {...props} />}
-      querySearchInfoModal={(props) => <QuerySearchInfoModal {...props} />}
+      messageModal={(props) => <MessageReviewersModal {...props} />}
+      searchPlaceHolder="Search all reviewers"
       extraClasses="ac-status-menu"
     />
   )
 }
 
-export default AreaChairStatusMenuBar
+export default ReviewerStatusMenuBar
