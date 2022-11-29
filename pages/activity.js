@@ -6,6 +6,8 @@ import { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorAlert from '../components/ErrorAlert'
+import BaseActivityList from '../components/BaseActivityList'
+import ActivityList from '../components/webfield/ActivityList'
 import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 
@@ -68,12 +70,19 @@ const Activity = ({ appContext }) => {
 
       {error && <ErrorAlert error={error} />}
 
-      <BaseActivityList
-        notes={activityNotes}
-        user={user}
-        emptyMessage="No recent activity to display."
-        showActionButtons
-      />
+      <div className="row">
+        <div className="col-sm-12 col-md-6">
+          <ActivityList venueId="thecvf.com/ECCV/2020/Conference" apiVersion={1} />
+        </div>
+        <div className="col-sm-12 col-md-6">
+          <BaseActivityList
+            notes={activityNotes}
+            emptyMessage="No recent activity to display."
+            showActionButtons
+            showGroup
+          />
+        </div>
+      </div>
     </div>
   )
 }

@@ -11,6 +11,7 @@ const Note = ({ note, invitation, options }) => {
 
   const renderNoteContent = () => {
     if (!options.showContents || (note.ddate && note.ddate <= Date.now())) return null
+
     if (options.collapse) {
       return (
         <Collapse showLabel="Show details" hideLabel="Hide details" indent={true}>
@@ -26,6 +27,7 @@ const Note = ({ note, invitation, options }) => {
         </Collapse>
       )
     }
+
     return (
       <NoteContent
         id={note.id}
