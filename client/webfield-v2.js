@@ -1307,8 +1307,8 @@ module.exports = (function () {
     return get('/groups', { id: groupId, select: 'id,members', limit: 1 }).then(function (
       result
     ) {
-      var group = result.groups[0]
-      if (options.withProfiles) {
+      var group = result.groups?.length > 0 ? result.groups[0] : null
+      if (group && options.withProfiles) {
         return post('/profiles/search', { ids: group.members }).then(function (result) {
           var profilesById = _.keyBy(result.profiles, 'id')
           var groupWithProfiles = { id: group.id, members: [] }
