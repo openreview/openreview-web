@@ -122,6 +122,11 @@ jobs:
           cat "$(ls -rt | tail -n1)"
 
   deploy:
+    # Allow the job to fetch a GitHub ID token
+    permissions:
+      id-token: write
+      contents: read
+
     runs-on: ubuntu-latest
 
     needs: build
@@ -142,7 +147,7 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v1
         with:
-          project: sunlit-realm-131518
+          project_id: sunlit-realm-131518
       - name: Deploy to dev
         run: |
           gcloud compute ssh --zone "us-central1-b" openreview@dev-instance-1 --command 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && bash bin/deploy.sh' --quiet

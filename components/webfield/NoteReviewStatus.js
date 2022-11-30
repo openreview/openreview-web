@@ -43,12 +43,7 @@ export const ReviewerConsoleNoteReviewStatus = ({
   </div>
 )
 
-const AreaChairConsoleReviewerActivityModal = ({
-  note,
-  reviewer,
-  venueId,
-  submissionName,
-}) => {
+const AcPcConsoleReviewerActivityModal = ({ note, reviewer, venueId, submissionName }) => {
   const { accessToken } = useUser()
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -101,7 +96,7 @@ const AreaChairConsoleReviewerActivityModal = ({
   )
 }
 
-const AreaChairConsoleReviewerReminderModal = ({
+const AcPcConsoleReviewerReminderModal = ({
   note,
   reviewer,
   shortPhrase,
@@ -187,7 +182,7 @@ Click on the link below to go to the review page:\n\n{{submit_review_link}}
   )
 }
 
-const AreaChairConsoleReviewerStatusRow = ({
+export const AcPcConsoleReviewerStatusRow = ({
   officialReviews,
   reviewer,
   note,
@@ -231,7 +226,7 @@ const AreaChairConsoleReviewerStatusRow = ({
           </>
         ) : (
           <div>
-            <AreaChairConsoleReviewerReminderModal
+            <AcPcConsoleReviewerReminderModal
               note={note}
               reviewer={reviewer}
               shortPhrase={shortPhrase}
@@ -272,7 +267,7 @@ const AreaChairConsoleReviewerStatusRow = ({
             >
               Show Reviewer Activity
             </a>
-            <AreaChairConsoleReviewerActivityModal
+            <AcPcConsoleReviewerActivityModal
               note={note}
               reviewer={reviewer}
               venueId={venueId}
@@ -286,7 +281,8 @@ const AreaChairConsoleReviewerStatusRow = ({
 }
 
 // modified from noteReviewers.hbs handlebar template
-export const AreaChairConsoleNoteReviewStatus = ({
+// shared by AC and PC console
+export const AcPcConsoleNoteReviewStatus = ({
   rowData,
   venueId,
   officialReviewName,
@@ -308,7 +304,7 @@ export const AreaChairConsoleNoteReviewStatus = ({
   } = rowData.reviewProgressData
 
   return (
-    <div className="areachair-console-reviewer-progress">
+    <div className="console-reviewer-progress">
       <h4>
         {numReviewsDone} of {numReviewersAssigned} Reviews Submitted
       </h4>
@@ -319,7 +315,7 @@ export const AreaChairConsoleNoteReviewStatus = ({
       >
         <div>
           {reviewers.map((reviewer) => (
-            <AreaChairConsoleReviewerStatusRow
+            <AcPcConsoleReviewerStatusRow
               key={reviewer.anonymousId}
               officialReviews={officialReviews}
               reviewer={reviewer}
