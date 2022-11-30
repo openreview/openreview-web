@@ -34,6 +34,7 @@ const Activity = ({ appContext }) => {
       const { notes } = await api.getCombined('/notes', queryParamV1, queryParamV2, {
         accessToken,
         sort: 'tmdate:desc',
+        includeVersion: true,
       })
       setActivityNotes(notes)
     } catch (apiError) {
@@ -70,19 +71,12 @@ const Activity = ({ appContext }) => {
 
       {error && <ErrorAlert error={error} />}
 
-      <div className="row">
-        <div className="col-sm-12 col-md-6">
-          <ActivityList venueId="thecvf.com/ECCV/2020/Conference" apiVersion={1} />
-        </div>
-        <div className="col-sm-12 col-md-6">
-          <BaseActivityList
-            notes={activityNotes}
-            emptyMessage="No recent activity to display."
-            showActionButtons
-            showGroup
-          />
-        </div>
-      </div>
+      <BaseActivityList
+        notes={activityNotes}
+        emptyMessage="No recent activity to display."
+        showActionButtons
+        showGroup
+      />
     </div>
   )
 }

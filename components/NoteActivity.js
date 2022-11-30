@@ -1,4 +1,7 @@
 import Link from 'next/link'
+import without from 'lodash/without'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import { NoteTitleV2 } from './NoteTitle'
 import NoteAuthors from './NoteAuthors'
 import NoteContent from './NoteContent'
@@ -6,11 +9,18 @@ import Collapse from './Collapse'
 import Icon from './Icon'
 import { prettyId, prettyInvitationId, buildNoteTitle } from '../lib/utils'
 
-function timeAgo() { return 'time ago' }
-function forumReadersIcon() { return 'readers icon' }
+dayjs.extend(relativeTime)
 
 export default function NoteActivity({ note, showActionButtons, showGroup }) {
   const { content, details } = note
+
+  const readersFiltered = note.readers?.includes('everyone') ? ['Everyone'] : without(
+    note.readers?.map((id) => prettyId(id)),
+    'Super User',
+    '',
+    null,
+    undefined
+  )
 
   return (
     <div>
@@ -34,12 +44,20 @@ export default function NoteActivity({ note, showActionButtons, showGroup }) {
           )}
         </div>
         <div className="date">
-          {forumReadersIcon(note.readers)}
-          {timeAgo(note.tmdate)} ago
+          {readersFiltered.includes('Everyone') ? (
+            <Icon name="globe" extraClasses="readers-icon" tooltip="Readers: Everyone" />
+          ) : (
+            <Icon name="user" extraClasses="readers-icon" tooltip={`Readers: ${readersFiltered.join(', ')}`} />
+          )}
+          {readersFiltered.length > 1 && (
+            <> &times; {readersFiltered.length}</>
+          )}
+          {' '}&bull;{' '}
+          {dayjs().to(dayjs(note.tmdate))}
         </div>
       </div>
 
-      <div class="clearfix">
+      <div className="clearfix">
         <div className="activity-title">
           <h4>
             <Link href={`/forum?id=${note.forum}${details.isForum ? '' : `&noteId=${note.id}`}`}>
@@ -70,7 +88,7 @@ export default function NoteActivity({ note, showActionButtons, showGroup }) {
         </div>
 
         {showActionButtons && details.writable && (
-          <div class="activity-actions"></div>
+          <div className="activity-actions"></div>
         )}
       </div>
 
@@ -94,6 +112,16 @@ export default function NoteActivity({ note, showActionButtons, showGroup }) {
 }
 
 export function NoteActivityV2({ note, showGroup }) {
+  const { content, details } = note
+
+  const readersFiltered = note.readers?.includes('everyone') ? ['Everyone'] : without(
+    note.readers?.map((id) => prettyId(id)),
+    'Super User',
+    '',
+    null,
+    undefined
+  )
+
   return (
     <div>
       <div className="activity-heading">
@@ -116,8 +144,16 @@ export function NoteActivityV2({ note, showGroup }) {
           )}
         </div>
         <div className="date">
-          {forumReadersIcon(note.readers)}
-          {timeAgo(note.tmdate)} ago
+          {readersFiltered.includes('Everyone') ? (
+            <Icon name="globe" extraClasses="readers-icon" tooltip="Readers: Everyone" />
+          ) : (
+            <Icon name="globe" extraClasses="user" tooltip={`Readers: ${readersFiltered.join(', ')}`} />
+          )}
+          {readersFiltered.length > 1 && (
+            <> &times; {readersFiltered.length}</>
+          )}
+          {' '}&bull;{' '}
+          {dayjs().to(dayjs(note.tmdate))}
         </div>
       </div>
 
