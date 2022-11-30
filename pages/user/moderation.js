@@ -569,7 +569,15 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
             {profileMergeNotesToShow.map((note) => (
               <div className="profile-merge-row" key={note.id}>
                 <span className="col-status">
-                  <span className={getStatusLabelClass(note)}>{note.content.status}</span>
+                  <span
+                    className={getStatusLabelClass(note)}
+                    onClick={() => {
+                      if (note.content.support_comment)
+                        setTextToView(<FullComment comment={note.content.support_comment} />)
+                    }}
+                  >
+                    {note.content.status}
+                  </span>
                 </span>
                 <span className="col-status">
                   <a href={note.processLogUrl} target="_blank" rel="noreferrer">
@@ -1081,6 +1089,8 @@ const UserModerationQueue = ({
         <ul className="list-unstyled list-paginated">
           {profiles.map((profile) => {
             const name = profile.content.names[0]
+            const state =
+              profile.ddate && profile.state !== 'Merged' ? 'Deleted' : profile.state
             return (
               <li
                 key={profile.id}
@@ -1105,14 +1115,14 @@ const UserModerationQueue = ({
                     password
                   </span>{' '}
                   <span
-                    className={`${getProfileStateLabelClass(
-                      profile.ddate ? 'Deleted' : profile.state
-                    )}${profile.id === lastPreviewedProfileId ? ' last-previewed' : ''}`}
+                    className={`${getProfileStateLabelClass(state)}${
+                      profile.id === lastPreviewedProfileId ? ' last-previewed' : ''
+                    }`}
                     onClick={() => {
                       setProfileToPreview(formatProfileData(cloneDeep(profile)))
                     }}
                   >
-                    {profile.ddate ? 'Deleted' : profile.state}
+                    {state}
                   </span>
                 </span>
                 <span className="col-actions">
@@ -1166,14 +1176,18 @@ const UserModerationQueue = ({
                           {`${profile.state === 'Blocked' ? 'Unblock' : 'Block'}`}
                         </button>
                       )}{' '}
-                      <button
-                        type="button"
-                        className="btn btn-xs"
-                        onClick={() => deleteRestoreUser(profile)}
-                        title={profile.ddate ? 'restore this profile' : 'delete this profile'}
-                      >
-                        <Icon name={profile.ddate ? 'refresh' : 'trash'} />
-                      </button>
+                      {state !== 'Merged' && (
+                        <button
+                          type="button"
+                          className="btn btn-xs"
+                          onClick={() => deleteRestoreUser(profile)}
+                          title={
+                            profile.ddate ? 'restore this profile' : 'delete this profile'
+                          }
+                        >
+                          <Icon name={profile.ddate ? 'refresh' : 'trash'} />
+                        </button>
+                      )}
                     </>
                   )}
                 </span>
