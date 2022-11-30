@@ -152,8 +152,8 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
         <GroupTableRow label="Invitations">
           <input
             className="form-control input-sm"
-            value={has(generalInfo, 'invitations') ? generalInfo.invitations : group.invitations}
-            onChange={(e) => setGeneralInfo({ type: 'invitations', value: e.target.value })}
+            value={group.invitations}
+            disabled
           />
         </GroupTableRow>
       )}
