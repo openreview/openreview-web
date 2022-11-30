@@ -285,7 +285,10 @@ const ProgramChairConsole = ({ appContext }) => {
           if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
           if (p.members.length) anonAreaChairGroups[number][p.members[0]] = p.id
         } else if (p.id.endsWith(seniorAreaChairName)) {
-          seniorAreaChairGroups.push(p)
+          seniorAreaChairGroups.push({
+            noteNumber: getNumberFromGroup(p.id, submissionName),
+            ...p,
+          })
           allGroupMembers = allGroupMembers.concat(p.members)
         }
       })
@@ -457,6 +460,18 @@ const ProgramChairConsole = ({ appContext }) => {
         profile: pcConsoleData.allProfilesMap.get(areaChair.areaChairProfileId),
       }))
 
+      const assignedSeniorAreaChairs =
+        pcConsoleData.paperGroups.seniorAreaChairGroups?.find(
+          (p) => p.noteNumber === note.number
+        )?.members ?? []
+
+      const assignedSeniorAreaChairProfiles = assignedSeniorAreaChairs.map(
+        (seniorAreaChairProfileId) => ({
+          id: seniorAreaChairProfileId,
+          profile: pcConsoleData.allProfilesMap.get(seniorAreaChairProfileId),
+        })
+      )
+
       const officialReviews =
         pcConsoleData.officialReviewsByPaperNumberMap?.get(note.number)?.map((q) => {
           const reviewRatingValue = pcConsoleData.isV2Console
@@ -501,6 +516,13 @@ const ProgramChairConsole = ({ appContext }) => {
       const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
       const metaReviews = pcConsoleData.metaReviewsByPaperNumberMap?.get(note.number) ?? []
+
+      let decision = 'No Decision'
+      const decisionNote = pcConsoleData.decisionByPaperNumberMap.get(note.number)
+      if (decisionNote?.content?.decision)
+        decision = pcConsoleData.isV2Console
+          ? decisionNote.content.decision?.value
+          : decisionNote.content.decision
 
       noteNumberReviewMetaReviewMap.set(note.number, {
         note,
@@ -548,6 +570,17 @@ const ProgramChairConsole = ({ appContext }) => {
                 : areaChair.areaChairProfileId,
             }
           }),
+          seniorAreaChairs: assignedSeniorAreaChairs.map((seniorAreaChairProfileId) => {
+            const profile = assignedSeniorAreaChairProfiles.find(
+              (p) => p.id === seniorAreaChairProfileId
+            )?.profile
+            return {
+              preferredName: profile ? getProfileName(profile) : seniorAreaChairProfileId,
+              preferredEmail: profile
+                ? profile.content.preferredEmail ?? profile.content.emails[0]
+                : seniorAreaChairProfileId,
+            }
+          }),
           numMetaReviewsDone: metaReviews.length,
           metaReviews: metaReviews.map((metaReview) => ({
             [recommendationName]: pcConsoleData.isV2Console
@@ -556,6 +589,8 @@ const ProgramChairConsole = ({ appContext }) => {
             ...metaReview,
           })),
         },
+        decision,
+        venue: note?.content?.venue?.value,
       })
     })
 
