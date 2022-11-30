@@ -15,6 +15,8 @@ import EditorComponentContext from '../EditorComponentContext'
 import WebFieldContext from '../WebFieldContext'
 import { translateInvitationMessage } from '../../lib/webfield-utils'
 
+import styles from '../../styles/components/RecruitmentForm.module.scss'
+
 const fieldsToHide = ['id', 'title', 'key', 'response']
 const DeclineMessage = ({ declineMessage, args }) => (
   <div className="row decline-message">
@@ -79,7 +81,7 @@ const ReducedLoadInfo = ({
   }, [])
 
   return (
-    <div className="decline-form">
+    <div className={styles.declineForm}>
       {hasReducedLoadField && (
         <>
           <h4 className="reduced-load-label">
@@ -221,7 +223,7 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
     switch (status) {
       case 'init':
         return (
-          <div className="decline-form">
+          <div className={styles.declineForm}>
             <DeclineMessage declineMessage={declineMessage} args={args} />
             {hasReducedLoadField && (
               <>
@@ -255,13 +257,13 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
         )
       case 'commentSubmitted':
         return (
-          <div className="decline-form">
+          <div className={styles.declineForm}>
             <DeclineMessage declineMessage={declineMessage} args={args} />
           </div>
         )
       default:
         return (
-          <div className="decline-form">
+          <div className={styles.declineForm}>
             <DeclineMessage declineMessage={declineMessage} />
           </div>
         )
@@ -330,7 +332,7 @@ const RecruitmentForm = () => {
     switch (decision) {
       case 'accept':
         return (
-          <div className="accept-form">
+          <div className={styles.acceptForm}>
             {reducedLoad && (
               <h4 className="reduced-load-message">{`You have requested a reduced load of ${inflect(
                 reducedLoad,
@@ -359,7 +361,7 @@ const RecruitmentForm = () => {
         )
       default:
         return (
-          <div className="recruitment-form">
+          <div className={styles.recruitmentForm}>
             {invitationMessage ? (
               <Markdown text={translateInvitationMessage(invitationMessage, args)} />
             ) : (

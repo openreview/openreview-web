@@ -1,0 +1,59 @@
+@use '../utils/constants';
+
+.recruitmentForm {
+  :global {
+    .response-buttons {
+      display: flex;
+      justify-content: center;
+      margin-top: 1rem;
+      gap: 0.5rem;
+      .btn-lg {
+        font-size: 1.25rem;
+        line-height: 1.5rem;
+        width: 10rem;
+      }
+      .decline-button {
+        .spinner-small > div {
+          background-color: constants.$mediumBlue;
+        }
+      }
+    }
+    h5 {
+      font-weight: bold;
+    }
+  }
+}
+
+.acceptForm {
+  :global {
+    .reduced-load-message {
+      color: unset;
+    }
+  }
+}
+
+.declineForm {
+  :global {
+    .row {
+      margin: unset;
+    }
+    .row.decline-message {
+      margin-bottom: 1rem;
+    }
+
+    .reduced-load-link {
+      font-weight: 700;
+      padding: 0;
+      margin: 0;
+    }
+    .reduced-load-label {
+      color: constants.$darkBlue;
+      margin-bottom: 1rem;
+    }
+
+    textarea.note_content_value,
+    .note-editor-preview textarea.note_content_value {
+      height: 100px;
+    }
+  }
+}
