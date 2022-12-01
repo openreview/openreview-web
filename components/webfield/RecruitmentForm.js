@@ -377,17 +377,16 @@ const RecruitmentForm = () => {
               >
                 Accept
               </SpinnerButton>
-              <div className="decline-button">
-                <SpinnerButton
-                  type="default"
-                  onClick={() => onResponseClick('No')}
-                  loading={buttonStatus[1].loading}
-                  disabled={buttonStatus[1].disabled}
-                  size="lg"
-                >
-                  Decline
-                </SpinnerButton>
-              </div>
+              <SpinnerButton
+                type="default"
+                className="decline-button"
+                onClick={() => onResponseClick('No')}
+                loading={buttonStatus[1].loading}
+                disabled={buttonStatus[1].disabled}
+                size="lg"
+              >
+                Decline
+              </SpinnerButton>
             </div>
           </div>
         )
@@ -399,10 +398,11 @@ const RecruitmentForm = () => {
       setDecision('error')
     }
   }, [])
+
   return (
     <>
       <VenueHeader headerInfo={header} />
-      <br />
+
       <div className="note_editor">{renderDecision()}</div>
     </>
   )
