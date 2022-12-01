@@ -572,8 +572,9 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
                   <span
                     className={getStatusLabelClass(note)}
                     onClick={() => {
-                      if (note.content.support_comment)
+                      if (note.content.support_comment) {
                         setTextToView(<FullComment comment={note.content.support_comment} />)
+                      }
                     }}
                   >
                     {note.content.status}
@@ -1300,7 +1301,6 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotesCount })
         >
           <div className="form-group form-rejection">
             <label htmlFor="message" className="mb-1">
-              {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
               Reason for rejecting {prettyId(profileIdToReject)}:
             </label>
             <Dropdown
@@ -1356,7 +1356,6 @@ const RequestRejectionModal = ({ noteToReject, acceptRejectNote, setNoteToReject
         >
           <div className="form-group form-rejection">
             <label htmlFor="message" className="mb-1">
-              {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
               Reason for rejecting {noteToReject.content.name}:
             </label>
             <textarea

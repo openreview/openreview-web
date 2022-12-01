@@ -1161,7 +1161,10 @@ table.table-minimal {
 
       h4 {
         width: 100%;
+        padding-bottom: .25rem;
         border-bottom: 1px solid constants.$borderGray;
+        margin-right: 0;
+        margin-bottom: 0.5rem;
       }
       .instructions,
       .glyphicon {
@@ -1174,7 +1177,7 @@ table.table-minimal {
       .empty-message {
         color: constants.$subtleGray;
         font-style: italic;
-        margin-top: 0.5rem;
+        margin-top: 0;
       }
       .table-row {
         display: flex;
