@@ -1,30 +1,35 @@
 @use '../utils/constants';
 
 .recruitmentForm {
+  margin-top: 2rem;
+
   :global {
+    h4 {
+      font-size: 1.25rem;
+      line-height: normal;
+    }
+    h5 {
+      font-size: 1rem;
+    }
     .response-buttons {
-      display: flex;
-      justify-content: center;
-      margin-top: 1rem;
-      gap: 0.5rem;
+      margin-top: 2rem;
+      text-align: center;
       .btn-lg {
         font-size: 1.25rem;
         line-height: 1.5rem;
         width: 10rem;
+        margin-right: .5rem;
       }
-      .decline-button {
-        .spinner-small > div {
-          background-color: constants.$mediumBlue;
-        }
+      .btn-lg:last-child {
+        margin-right: 0;
       }
-    }
-    h5 {
-      font-weight: bold;
     }
   }
 }
 
 .acceptForm {
+  margin-top: 2rem;
+
   :global {
     .reduced-load-message {
       color: unset;
@@ -33,6 +38,8 @@
 }
 
 .declineForm {
+  margin-top: 2rem;
+
   :global {
     .row {
       margin: unset;

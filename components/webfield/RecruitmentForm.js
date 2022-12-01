@@ -18,16 +18,19 @@ import { translateInvitationMessage } from '../../lib/webfield-utils'
 import styles from '../../styles/components/RecruitmentForm.module.scss'
 
 const fieldsToHide = ['id', 'title', 'key', 'response']
+
 const DeclineMessage = ({ declineMessage, args }) => (
   <div className="row decline-message">
     <Markdown text={translateInvitationMessage(declineMessage, args)} />
   </div>
 )
+
 const ReducedLoadMessage = ({ reducedLoadMessage }) => (
   <div className="row">
     <Markdown text={reducedLoadMessage} />
   </div>
 )
+
 const ReducedLoadLink = ({ setStatus }) => (
   <div className="row">
     <p>
@@ -41,8 +44,7 @@ const ReducedLoadLink = ({ setStatus }) => (
     </p>
   </div>
 )
-const CommentField = ({ renderField }) => renderField('comment')
-const ReducedLoadField = ({ renderField }) => renderField('reduced_load')
+
 const SubmitButton = ({
   fieldRequired,
   onSubmit,
@@ -80,27 +82,24 @@ const ReducedLoadInfo = ({
     setFormData('reset')
   }, [])
 
+  if (!hasReducedLoadField) return null
+
   return (
     <div className={styles.declineForm}>
-      {hasReducedLoadField && (
-        <>
-          <h4 className="reduced-load-label">
-            Select a reduced load from the menu below and click on Submit to accept the
-            invitation:
-          </h4>
-          <ReducedLoadField renderField={renderField} />
-          <SubmitButton
-            fieldRequired={formData.reduced_load}
-            onSubmit={onSubmit}
-            onCancel={() => {
-              setFormData('reset')
-              setStatus('init')
-            }}
-            isSaving={isSaving}
-            showCancelButton={true}
-          />
-        </>
-      )}
+      <h4 className="reduced-load-label">
+        Select a reduced load from the menu below and click on Submit to accept the invitation:
+      </h4>
+      {renderField('reduced_load')}
+      <SubmitButton
+        fieldRequired={formData.reduced_load}
+        onSubmit={onSubmit}
+        onCancel={() => {
+          setFormData('reset')
+          setStatus('init')
+        }}
+        isSaving={isSaving}
+        showCancelButton={true}
+      />
     </div>
   )
 }
@@ -219,58 +218,54 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
     )
   }
 
-  const renderPage = () => {
-    switch (status) {
-      case 'init':
-        return (
-          <div className={styles.declineForm}>
-            <DeclineMessage declineMessage={declineMessage} args={args} />
-            {hasReducedLoadField && (
-              <>
-                <ReducedLoadMessage reducedLoadMessage={reducedLoadMessage} />
-                <ReducedLoadLink setStatus={setStatus} />
-              </>
-            )}
-            {hasCommentField && (
-              <>
-                <CommentField renderField={renderField} />
-                <SubmitButton
-                  fieldRequired={formData.comment}
-                  onSubmit={onSubmit}
-                  isSaving={isSaving}
-                />
-              </>
-            )}
-          </div>
-        )
-      case 'showReducedLoad':
-        return (
-          <ReducedLoadInfo
-            renderField={renderField}
-            hasReducedLoadField={hasReducedLoadField}
-            setFormData={setFormData}
-            formData={formData}
-            onSubmit={onSubmit}
-            isSaving={isSaving}
-            setStatus={setStatus}
-          />
-        )
-      case 'commentSubmitted':
-        return (
-          <div className={styles.declineForm}>
-            <DeclineMessage declineMessage={declineMessage} args={args} />
-          </div>
-        )
-      default:
-        return (
-          <div className={styles.declineForm}>
-            <DeclineMessage declineMessage={declineMessage} />
-          </div>
-        )
-    }
+  if (status === 'init') {
+    return (
+      <div className={styles.declineForm}>
+        <DeclineMessage declineMessage={declineMessage} args={args} />
+        {hasReducedLoadField && (
+          <>
+            <ReducedLoadMessage reducedLoadMessage={reducedLoadMessage} />
+            <ReducedLoadLink setStatus={setStatus} />
+          </>
+        )}
+        {hasCommentField && (
+          <>
+            {renderField('comment')}
+            <SubmitButton
+              fieldRequired={formData.comment}
+              onSubmit={onSubmit}
+              isSaving={isSaving}
+            />
+          </>
+        )}
+      </div>
+    )
   }
-
-  return renderPage()
+  if (status === 'showReducedLoad') {
+    return (
+      <ReducedLoadInfo
+        renderField={renderField}
+        hasReducedLoadField={hasReducedLoadField}
+        setFormData={setFormData}
+        formData={formData}
+        onSubmit={onSubmit}
+        isSaving={isSaving}
+        setStatus={setStatus}
+      />
+    )
+  }
+  if (status === 'commentSubmitted') {
+    return (
+      <div className={styles.declineForm}>
+        <DeclineMessage declineMessage={declineMessage} args={args} />
+      </div>
+    )
+  }
+  return (
+    <div className={styles.declineForm}>
+      <DeclineMessage declineMessage={declineMessage} />
+    </div>
+  )
 }
 
 const RecruitmentForm = () => {
@@ -403,7 +398,9 @@ const RecruitmentForm = () => {
     <>
       <VenueHeader headerInfo={header} />
 
-      <div className="note_editor">{renderDecision()}</div>
+      <div className="note_editor">
+        {renderDecision()}
+      </div>
     </>
   )
 }
