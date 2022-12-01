@@ -2194,8 +2194,7 @@ module.exports = (function () {
   const constructUpdatedEdit = (edit, invitation, formContent) => {
     const shouldSetValue = (fieldPath) => {
       const field = _.get(invitation, fieldPath)
-      if (!field || field?.const) return false
-      return true
+      return field && !field.const
     }
 
     const editToPost = {}
@@ -2204,7 +2203,9 @@ module.exports = (function () {
     })
     editToPost.id = edit.id
     editToPost.invitation = edit.invitation
-    if (shouldSetValue('edit.readers')) editToPost.readers = formContent.editReaderValues
+    if (shouldSetValue('edit.readers')) {
+      editToPost.readers = formContent.editReaderValues
+    }
     if (shouldSetValue('edit.signatures')) {
       editToPost.signatures = formContent.editSignatureInputValues
     }
@@ -2224,7 +2225,6 @@ module.exports = (function () {
               acc[fieldName] = {
                 readers: edit.note?.content?.[fieldName]?.readers,
               }
-              return acc
             }
             return acc
           }
@@ -2533,4 +2533,4 @@ module.exports = (function () {
     deleteOrRestoreNote: deleteOrRestoreNote,
     constructEdit: constructEdit,
   }
-})()
+}())

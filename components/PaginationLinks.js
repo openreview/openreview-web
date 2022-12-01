@@ -61,6 +61,10 @@ export default function PaginationLinks({
     counter += 1
   }
 
+  const startCount = (currentPage - 1) * itemsPerPage + 1
+  let endCount = (currentPage - 1) * itemsPerPage + itemsPerPage
+  if (endCount > totalCount) endCount = totalCount
+
   return (
     <nav className="pagination-container text-center" aria-label="page navigation">
       <ul className="pagination">
@@ -109,6 +113,12 @@ export default function PaginationLinks({
           )
         })}
       </ul>
+
+      {options.showCount && (
+        <span className="pagination-count">{`Showing ${startCount}${
+          itemsPerPage === 1 ? '' : `-${endCount}`
+        } of ${totalCount}`}</span>
+      )}
     </nav>
   )
 }
