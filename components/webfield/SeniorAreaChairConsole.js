@@ -33,7 +33,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     reviewConfidenceName,
     officialReviewName,
     officialMetaReviewName,
-    decisionName,
+    decisionName = 'Decision',
     recommendationName,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
