@@ -249,7 +249,7 @@ const GroupGeneral = ({ group, profileId, isSuperUser, accessToken, reloadGroup 
           readers: [profileId],
           writers: [profileId],
           signatures: [profileId],
-          invitation: group.invitations[0],
+          invitation: group.domain ? `${group.domain}/-/Edit` : group.invitations[0],
         }
         await api.post('/groups/edits', requestBody, { accessToken, version: 2 })
       } else {
