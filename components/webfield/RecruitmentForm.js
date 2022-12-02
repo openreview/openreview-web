@@ -15,17 +15,22 @@ import EditorComponentContext from '../EditorComponentContext'
 import WebFieldContext from '../WebFieldContext'
 import { translateInvitationMessage } from '../../lib/webfield-utils'
 
+import styles from '../../styles/components/RecruitmentForm.module.scss'
+
 const fieldsToHide = ['id', 'title', 'key', 'response']
+
 const DeclineMessage = ({ declineMessage, args }) => (
   <div className="row decline-message">
     <Markdown text={translateInvitationMessage(declineMessage, args)} />
   </div>
 )
+
 const ReducedLoadMessage = ({ reducedLoadMessage }) => (
   <div className="row">
     <Markdown text={reducedLoadMessage} />
   </div>
 )
+
 const ReducedLoadLink = ({ setStatus }) => (
   <div className="row">
     <p>
@@ -39,8 +44,7 @@ const ReducedLoadLink = ({ setStatus }) => (
     </p>
   </div>
 )
-const CommentField = ({ renderField }) => renderField('comment')
-const ReducedLoadField = ({ renderField }) => renderField('reduced_load')
+
 const SubmitButton = ({
   fieldRequired,
   onSubmit,
@@ -78,27 +82,24 @@ const ReducedLoadInfo = ({
     setFormData('reset')
   }, [])
 
+  if (!hasReducedLoadField) return null
+
   return (
-    <div className="decline-form">
-      {hasReducedLoadField && (
-        <>
-          <h4 className="reduced-load-label">
-            Select a reduced load from the menu below and click on Submit to accept the
-            invitation:
-          </h4>
-          <ReducedLoadField renderField={renderField} />
-          <SubmitButton
-            fieldRequired={formData.reduced_load}
-            onSubmit={onSubmit}
-            onCancel={() => {
-              setFormData('reset')
-              setStatus('init')
-            }}
-            isSaving={isSaving}
-            showCancelButton={true}
-          />
-        </>
-      )}
+    <div className={styles.declineForm}>
+      <h4 className="reduced-load-label">
+        Select a reduced load from the menu below and click on Submit to accept the invitation:
+      </h4>
+      {renderField('reduced_load')}
+      <SubmitButton
+        fieldRequired={formData.reduced_load}
+        onSubmit={onSubmit}
+        onCancel={() => {
+          setFormData('reset')
+          setStatus('init')
+        }}
+        isSaving={isSaving}
+        showCancelButton={true}
+      />
     </div>
   )
 }
@@ -217,58 +218,54 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
     )
   }
 
-  const renderPage = () => {
-    switch (status) {
-      case 'init':
-        return (
-          <div className="decline-form">
-            <DeclineMessage declineMessage={declineMessage} args={args} />
-            {hasReducedLoadField && (
-              <>
-                <ReducedLoadMessage reducedLoadMessage={reducedLoadMessage} />
-                <ReducedLoadLink setStatus={setStatus} />
-              </>
-            )}
-            {hasCommentField && (
-              <>
-                <CommentField renderField={renderField} />
-                <SubmitButton
-                  fieldRequired={formData.comment}
-                  onSubmit={onSubmit}
-                  isSaving={isSaving}
-                />
-              </>
-            )}
-          </div>
-        )
-      case 'showReducedLoad':
-        return (
-          <ReducedLoadInfo
-            renderField={renderField}
-            hasReducedLoadField={hasReducedLoadField}
-            setFormData={setFormData}
-            formData={formData}
-            onSubmit={onSubmit}
-            isSaving={isSaving}
-            setStatus={setStatus}
-          />
-        )
-      case 'commentSubmitted':
-        return (
-          <div className="decline-form">
-            <DeclineMessage declineMessage={declineMessage} args={args} />
-          </div>
-        )
-      default:
-        return (
-          <div className="decline-form">
-            <DeclineMessage declineMessage={declineMessage} />
-          </div>
-        )
-    }
+  if (status === 'init') {
+    return (
+      <div className={styles.declineForm}>
+        <DeclineMessage declineMessage={declineMessage} args={args} />
+        {hasReducedLoadField && (
+          <>
+            <ReducedLoadMessage reducedLoadMessage={reducedLoadMessage} />
+            <ReducedLoadLink setStatus={setStatus} />
+          </>
+        )}
+        {hasCommentField && (
+          <>
+            {renderField('comment')}
+            <SubmitButton
+              fieldRequired={formData.comment}
+              onSubmit={onSubmit}
+              isSaving={isSaving}
+            />
+          </>
+        )}
+      </div>
+    )
   }
-
-  return renderPage()
+  if (status === 'showReducedLoad') {
+    return (
+      <ReducedLoadInfo
+        renderField={renderField}
+        hasReducedLoadField={hasReducedLoadField}
+        setFormData={setFormData}
+        formData={formData}
+        onSubmit={onSubmit}
+        isSaving={isSaving}
+        setStatus={setStatus}
+      />
+    )
+  }
+  if (status === 'commentSubmitted') {
+    return (
+      <div className={styles.declineForm}>
+        <DeclineMessage declineMessage={declineMessage} args={args} />
+      </div>
+    )
+  }
+  return (
+    <div className={styles.declineForm}>
+      <DeclineMessage declineMessage={declineMessage} />
+    </div>
+  )
 }
 
 const RecruitmentForm = () => {
@@ -330,7 +327,7 @@ const RecruitmentForm = () => {
     switch (decision) {
       case 'accept':
         return (
-          <div className="accept-form">
+          <div className={styles.acceptForm}>
             {reducedLoad && (
               <h4 className="reduced-load-message">{`You have requested a reduced load of ${inflect(
                 reducedLoad,
@@ -359,7 +356,7 @@ const RecruitmentForm = () => {
         )
       default:
         return (
-          <div className="recruitment-form">
+          <div className={styles.recruitmentForm}>
             {invitationMessage ? (
               <Markdown text={translateInvitationMessage(invitationMessage, args)} />
             ) : (
@@ -375,17 +372,16 @@ const RecruitmentForm = () => {
               >
                 Accept
               </SpinnerButton>
-              <div className="decline-button">
-                <SpinnerButton
-                  type="default"
-                  onClick={() => onResponseClick('No')}
-                  loading={buttonStatus[1].loading}
-                  disabled={buttonStatus[1].disabled}
-                  size="lg"
-                >
-                  Decline
-                </SpinnerButton>
-              </div>
+              <SpinnerButton
+                type="default"
+                className="decline-button"
+                onClick={() => onResponseClick('No')}
+                loading={buttonStatus[1].loading}
+                disabled={buttonStatus[1].disabled}
+                size="lg"
+              >
+                Decline
+              </SpinnerButton>
             </div>
           </div>
         )
@@ -397,11 +393,14 @@ const RecruitmentForm = () => {
       setDecision('error')
     }
   }, [])
+
   return (
     <>
       <VenueHeader headerInfo={header} />
-      <br />
-      <div className="note_editor">{renderDecision()}</div>
+
+      <div className="note_editor">
+        {renderDecision()}
+      </div>
     </>
   )
 }

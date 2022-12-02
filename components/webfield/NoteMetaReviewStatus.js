@@ -136,7 +136,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
   referrerUrl,
   isV2Console,
 }) => {
-  const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChair } = metaReviewData
+  const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChairs } = metaReviewData
   return (
     <div className="areachair-progress">
       <h4 className="title">{`${inflect(
@@ -181,20 +181,20 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
           })}
       </div>
 
-      {seniorAreaChair && (
-        <>
+      {seniorAreaChairs?.length > 0 && (
+        <div className="senior-areachair">
           <strong>Senior Area Chair:</strong>
-          <table className="table table-condensed table-minimal">
-            <tbody>
-              <tr>
-                <td>
-                  {seniorAreaChair.name}{' '}
-                  <span className="text-muted">({seniorAreaChair.email})</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </>
+          {seniorAreaChairs.map((seniorAreaChair, index) => (
+            <div key={index} className="meta-review-info">
+              <div className="seniorareachair-contact">
+                <span>
+                  {seniorAreaChair.preferredName}{' '}
+                  <span className="text-muted">&lt;{seniorAreaChair.preferredEmail}&gt;</span>
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   )
