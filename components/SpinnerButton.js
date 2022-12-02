@@ -3,13 +3,14 @@ export default function SpinnerButton({
   onClick,
   disabled,
   loading,
+  className,
   children,
   size = 'sm',
 }) {
   return (
     <button
       type="button"
-      className={`btn btn-${size} btn-${type}`}
+      className={`btn btn-${size} btn-${type}${className ? ` ${className}` : ''}`}
       onClick={onClick}
       disabled={disabled}
     >
