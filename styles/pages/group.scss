@@ -292,6 +292,12 @@ main.invitation {
     .note-venue {
       margin-bottom: 0.5rem;
       display: inline-block;
+      padding: 0px 0.25rem;
+      font-size: 0.75rem;
+      border: 1px solid;
+      background: #fafafa;
+      border: 1px solid #d9d9d9;
+      margin-bottom: 0.125rem;
     }
     .note-contents-toggle {
       font-size: 0.875rem;
@@ -465,6 +471,9 @@ main.invitation {
     .tooltip-inner {
       max-width: none;
     }
+    .note-readers {
+      font-size: 0.75rem;
+    }
     .areachair-progress {
       .title {
         white-space: nowrap;
@@ -472,6 +481,7 @@ main.invitation {
       .meta-review-info {
         display: flex;
         flex-direction: column;
+        font-size: 0.75rem;
         .areachair-contact {
           display: flex;
           .areachair-name {
@@ -484,6 +494,9 @@ main.invitation {
           margin-bottom: 0.25rem;
           display: inline-block;
         }
+      }
+      .senior-areachair {
+        margin-top: 0.25rem;
       }
     }
     .console-meta-review {

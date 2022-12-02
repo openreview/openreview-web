@@ -462,7 +462,7 @@ const ReviewerConsole = ({ appContext }) => {
       )
       .then((groups) =>
         groups
-          .filter((p) => p.id.includes(areaChairName))
+          .filter((p) => p.id.endsWith(`/${areaChairName}`))
           .reduce((prev, curr) => {
             const num = getNumberFromGroup(curr.id, submissionName)
             prev[num] = curr.members[0] // eslint-disable-line no-param-reassign

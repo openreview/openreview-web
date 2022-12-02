@@ -223,7 +223,7 @@ const RevisionsList = ({
       editToPost[p] = edit[p]
     })
     editToPost.id = edit.id
-    editToPost.ddate = edit.ddate ? null : Date.now()
+    editToPost.ddate = edit.ddate ? { delete: true } : Date.now()
     editToPost.invitation = edit.invitation
     if (signature) editToPost.signatures = [signature]
     const editNote = {}
@@ -401,7 +401,6 @@ const Revisions = ({ appContext }) => {
   const [error, setError] = useState(null)
   const [selectedIndexes, setSelectedIndexes] = useState(null)
   const [referencesToLoad, setReferencesToLoad] = useState(null)
-  const [isEditRevisions, setIsEditRevisions] = useState(false)
   const [isNoteWritable, setIsNoteWritable] = useState(false)
   const { user, accessToken, userLoading } = useContext(UserContext)
   const router = useRouter()
@@ -422,20 +421,20 @@ const Revisions = ({ appContext }) => {
     // element represents the older revision, which should go on the left
     const leftId = revisions[selectedIndexes[1]][0].id
     const rightId = revisions[selectedIndexes[0]][0].id
-    if (isEditRevisions) {
+    if (referencesToLoad === 'edits') {
       const hasPdf =
         revisions[selectedIndexes[0]][0].note.content?.pdf?.value &&
         revisions[selectedIndexes[1]][0].note.content?.pdf?.value
       router.push(
         `/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${
           hasPdf ? '&pdf=true' : ''
-        }${isEditRevisions ? '&version=2' : ''}`
+        }&version=2`
       )
       return
     }
     const hasPdf =
-      revisions[selectedIndexes[0]][0].content.pdf &&
-      revisions[selectedIndexes[1]][0].content.pdf
+      revisions[selectedIndexes[0]][0].content?.pdf &&
+      revisions[selectedIndexes[1]][0].content?.pdf
     router.push(
       `/revisions/compare?id=${parentNoteId}&left=${leftId}&right=${rightId}${
         hasPdf ? '&pdf=true' : ''
@@ -558,7 +557,7 @@ const Revisions = ({ appContext }) => {
 
   useEffect(() => {
     if (userLoading || !query) return
-    let note = null
+
     const noteId = query.id
     if (!noteId) {
       setError({ message: 'Missing required parameter id' })
@@ -566,35 +565,46 @@ const Revisions = ({ appContext }) => {
     }
     setParentNoteId(noteId)
 
-    const setBanner = async () => {
-      note = await api.getNoteById(
-        noteId,
-        accessToken,
-        { details: 'writable,forumContent' },
-        true
-      )
+    const loadNote = async () => {
+      let note
+      try {
+        note = await api.getNoteById(
+          noteId,
+          accessToken,
+          { details: 'writable,forumContent' },
+          true
+        )
+      } catch (apiError) {
+        setBannerHidden(true)
+        setError(apiError)
+        return
+      }
+
       if (note) {
         setBannerContent(forumLink(note))
         if (note.version === 2) {
-          setIsEditRevisions(true)
           setReferencesToLoad('edits')
           if (note.details.writable) {
             setIsNoteWritable(true)
           }
-          return
+        } else {
+          setReferencesToLoad('revisions')
         }
-        setReferencesToLoad('revisions')
       } else {
         setBannerHidden(true)
         setError({ message: `The note ${noteId} could not be found` })
       }
     }
-    setBanner()
+
+    loadNote()
   }, [userLoading, query, accessToken])
 
   useEffect(() => {
-    if (referencesToLoad === 'edits') loadEdits()
-    if (referencesToLoad === 'revisions') loadRevisions()
+    if (referencesToLoad === 'edits') {
+      loadEdits()
+    } else if (referencesToLoad === 'revisions') {
+      loadRevisions()
+    }
   }, [referencesToLoad])
 
   return (
@@ -605,6 +615,7 @@ const Revisions = ({ appContext }) => {
 
       <header>
         <h1>{getPageTitle()}</h1>
+
         <div className="button-container">
           {selectedIndexes ? (
             <>
