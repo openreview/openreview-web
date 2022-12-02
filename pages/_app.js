@@ -68,7 +68,7 @@ export default class OpenReviewApp extends App {
 
     // Automatically refresh the accessToken 1m before it's set to expire.
     // Add randomness to prevent all open tabs from refreshing at the same time.
-    const timeToExpiration = cookieExpiration - 60000 - random(0, 5) * 1000
+    const timeToExpiration = cookieExpiration - 60000 - random(0, 300) * 100
     this.refreshTimer = setTimeout(() => {
       this.refreshToken()
     }, timeToExpiration)
@@ -294,7 +294,7 @@ export default class OpenReviewApp extends App {
 
       // Automatically refresh the accessToken 1m before it's set to expire.
       // Add randomness to prevent all open tabs from refreshing at the same time.
-      const timeToExpiration = expiration - Date.now() - 60000 - random(0, 5) * 1000
+      const timeToExpiration = expiration - Date.now() - 60000 - random(0, 300) * 100
       this.refreshTimer = setTimeout(() => {
         this.refreshToken()
       }, timeToExpiration)
