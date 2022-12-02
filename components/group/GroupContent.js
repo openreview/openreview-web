@@ -30,7 +30,7 @@ export default function GroupContent({ group, accessToken, profileId, reloadGrou
         readers: [profileId],
         writers: [profileId],
         signatures: [profileId],
-        invitation: group.invitations[0],
+        invitation: group.domain ? `${group.domain}/-/Edit` : group.invitations[0],
       }
       await api.post('/groups/edits', requestBody, { accessToken, version: 2 })
       promptMessage(`Content object for ${group.id} has been updated`, { scrollToTop: false })
