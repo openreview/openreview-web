@@ -223,7 +223,7 @@ const RevisionsList = ({
       editToPost[p] = edit[p]
     })
     editToPost.id = edit.id
-    editToPost.ddate = edit.ddate ? null : Date.now()
+    editToPost.ddate = edit.ddate ? { delete: true } : Date.now()
     editToPost.invitation = edit.invitation
     if (signature) editToPost.signatures = [signature]
     const editNote = {}
