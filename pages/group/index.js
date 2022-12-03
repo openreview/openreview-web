@@ -116,21 +116,8 @@ Group.getInitialProps = async (ctx) => {
     return { statusCode: 400, message: 'Group ID is required' }
   }
 
-  const redirectToEditOrInfoMode = (mode) => {
-    const redirectUrl = `/group/${mode}?id=${encodeURI(ctx.query.id)}`
-    if (ctx.req) {
-      ctx.res.writeHead(302, { Location: redirectUrl }).end()
-    } else {
-      Router.replace(redirectUrl)
-    }
-  }
-
-  // TODO: remove this redirect when all group editor links have been changed
-  if (ctx.query.mode === 'edit' || ctx.query.mode === 'info') {
-    redirectToEditOrInfoMode(ctx.query.mode)
-  }
-
   const { token, user } = auth(ctx)
+
   let group
   try {
     const { groups } = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
