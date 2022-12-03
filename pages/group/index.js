@@ -131,40 +131,12 @@ Group.getInitialProps = async (ctx) => {
   }
 
   const { token, user } = auth(ctx)
+  let group
   try {
     const { groups } = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
-    const group = groups?.length > 0 ? groups[0] : null
+    group = groups?.length > 0 ? groups[0] : null
     if (!group) {
       return { statusCode: 404, message: `The Group ${ctx.query.id} was not found` }
-    }
-
-    if (!group.web) {
-      redirectToEditOrInfoMode('info')
-    }
-    // Old HTML webfields are no longer supported
-    if (group.web.includes('<script type="text/javascript">')) {
-      return {
-        statusCode: 400,
-        message:
-          'This group is no longer accessible. Please contact info@openreview.net if you require access.',
-      }
-    }
-
-    const isWebfieldComponent = group.web.startsWith('// Webfield component')
-
-    // Get venue group to pass to pass to webfield component
-    let domainGroup = null
-    if (isWebfieldComponent && group.domain) {
-      const apiRes = await api.get('/groups', { id: group.domain }, { accessToken: token })
-      domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
-    }
-
-    return {
-      groupId: group.id,
-      ...(isWebfieldComponent
-        ? { componentObj: parseComponentCode(group, domainGroup, user, ctx.query) }
-        : { webfieldCode: generateGroupWebfieldCode(group, ctx.query) }),
-      writable: group.details?.writable ?? false,
     }
   } catch (error) {
     if (error.name === 'ForbiddenError') {
@@ -181,6 +153,49 @@ Group.getInitialProps = async (ctx) => {
       return { statusCode: 403, message: "You don't have permission to read this group" }
     }
     return { statusCode: error.status || 500, message: error.message }
+  }
+
+  if (!group.web) {
+    group.web = `// Webfield component
+return {
+  component: 'GroupDirectory',
+  properties: {
+    title: domain?.content?.title?.value,
+    subtitle: domain?.content?.subtitle?.value,
+  }
+}`
+  }
+
+  // Old HTML webfields are no longer supported
+  if (group.web.includes('<script type="text/javascript">')) {
+    return {
+      statusCode: 400,
+      message:
+        'This group is no longer accessible. Please contact info@openreview.net if you require access.',
+    }
+  }
+
+  const isWebfieldComponent = group.web.startsWith('// Webfield component')
+
+  // Get venue group to pass to pass to webfield component
+  let domainGroup = null
+  if (isWebfieldComponent && group.domain !== group.id) {
+    try {
+      const apiRes = await api.get('/groups', { id: group.domain }, { accessToken: token })
+      domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
+    } catch (error) {
+      domainGroup = null
+    }
+  } else if (isWebfieldComponent && group.domain === group.id) {
+    domainGroup = group
+  }
+
+  return {
+    groupId: group.id,
+    ...(isWebfieldComponent
+      ? { componentObj: parseComponentCode(group, domainGroup, user, ctx.query) }
+      : { webfieldCode: generateGroupWebfieldCode(group, ctx.query) }),
+    writable: group.details?.writable ?? false,
   }
 }
 
