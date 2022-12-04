@@ -37,8 +37,12 @@ export default function GroupDirectory({ appContext }) {
         const { groups } = await api.get('/groups', { parent: group.id }, { accessToken })
         if (groups?.length > 0) {
           setChildGroupIds(groups.map((g) => g.id).sort((a, b) => {
-            const yearA = a.match(/.*(\d{4})/)?.[1]
-            const yearB = b.match(/.*(\d{4})/)?.[1]
+            // Sort by year in descending order, or if year is not present sort alphabetically
+            const yearA = a.match(/.*(\d{4})/)?.[1] ?? 0
+            const yearB = b.match(/.*(\d{4})/)?.[1] ?? 0
+            if (!yearA && !yearB) {
+              return prettyId(a.groupId).localeCompare(prettyId(b.groupId))
+            }
             return yearA > yearB ? -1 : 1
           }))
         } else {
