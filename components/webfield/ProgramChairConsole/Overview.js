@@ -524,7 +524,7 @@ const DescriptionTimelineOtherConfigRow = ({
     decisionName = 'Decision',
     scoresName,
     recommendationName,
-    recruitmentName,
+    recruitmentName = 'Recruitment',
   } = useContext(WebFieldContext)
 
   const { requestForm, registrationForms, invitations } = pcConsoleData
