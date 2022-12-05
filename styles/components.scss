@@ -1628,59 +1628,6 @@ header,
 }
 
 // #region webfield react components
-//RecruitmentForm
-.recruitment-form {
-  .response-buttons {
-    display: flex;
-    justify-content: center;
-    margin-top: 1rem;
-    .btn-lg {
-      font-size: 1.25rem;
-      line-height: 1.5rem;
-      width: 10rem;
-    }
-    .decline-button {
-      .spinner-small > div {
-        background-color: constants.$mediumBlue;
-      }
-    }
-  }
-
-  h5 {
-    font-weight: bold;
-  }
-}
-
-.accept-form {
-  .reduced-load-message {
-    color: unset;
-  }
-}
-
-.decline-form {
-  .row {
-    margin: unset;
-  }
-  .row.decline-message {
-    margin-bottom: 1rem;
-  }
-
-  .reduced-load-link {
-    font-weight: 700;
-    padding: 0;
-    margin: 0;
-  }
-  .reduced-load-label {
-    color: constants.$darkBlue;
-    margin-bottom: 1rem;
-  }
-
-  textarea.note_content_value,
-  .note-editor-preview textarea.note_content_value {
-    height: 100px;
-  }
-}
-
 // DropdownList
 .dropdown-list {
   display: flex;

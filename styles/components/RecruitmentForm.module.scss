@@ -1,0 +1,66 @@
+@use '../utils/constants';
+
+.recruitmentForm {
+  margin-top: 2rem;
+
+  :global {
+    h4 {
+      font-size: 1.25rem;
+      line-height: normal;
+    }
+    h5 {
+      font-size: 1rem;
+    }
+    .response-buttons {
+      margin-top: 2rem;
+      text-align: center;
+      .btn-lg {
+        font-size: 1.25rem;
+        line-height: 1.5rem;
+        width: 10rem;
+        margin-right: .5rem;
+      }
+      .btn-lg:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+}
+
+.acceptForm {
+  margin-top: 2rem;
+
+  :global {
+    .reduced-load-message {
+      color: unset;
+    }
+  }
+}
+
+.declineForm {
+  margin-top: 2rem;
+
+  :global {
+    .row {
+      margin: unset;
+    }
+    .row.decline-message {
+      margin-bottom: 1rem;
+    }
+
+    .reduced-load-link {
+      font-weight: 700;
+      padding: 0;
+      margin: 0;
+    }
+    .reduced-load-label {
+      color: constants.$darkBlue;
+      margin-bottom: 1rem;
+    }
+
+    textarea.note_content_value,
+    .note-editor-preview textarea.note_content_value {
+      height: 100px;
+    }
+  }
+}

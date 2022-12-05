@@ -415,6 +415,7 @@ module.exports = (function () {
   }
 
   const mkComposerInput = (fieldName, fieldDescription, fieldValue, params) => {
+    if (fieldDescription.readers && !fieldDescription.value) return null
     let contentInputResult
 
     if (fieldName === 'authorids' && params.profileWidget) {
@@ -2156,7 +2157,10 @@ module.exports = (function () {
 
     // content fields
     Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
-      if (formData?.[contentFieldName] === undefined && noteObj?.content?.[contentFieldName] === undefined) {
+      if (
+        formData?.[contentFieldName] === undefined &&
+        noteObj?.content?.[contentFieldName] === undefined
+      ) {
         // do not return field
         return
       }
@@ -2190,8 +2194,7 @@ module.exports = (function () {
   const constructUpdatedEdit = (edit, invitation, formContent) => {
     const shouldSetValue = (fieldPath) => {
       const field = _.get(invitation, fieldPath)
-      if (!field || field?.const) return false
-      return true
+      return field && !field.const
     }
 
     const editToPost = {}
@@ -2200,7 +2203,9 @@ module.exports = (function () {
     })
     editToPost.id = edit.id
     editToPost.invitation = edit.invitation
-    if (shouldSetValue('edit.readers')) editToPost.readers = formContent.editReaderValues
+    if (shouldSetValue('edit.readers')) {
+      editToPost.readers = formContent.editReaderValues
+    }
     if (shouldSetValue('edit.signatures')) {
       editToPost.signatures = formContent.editSignatureInputValues
     }
@@ -2213,6 +2218,14 @@ module.exports = (function () {
       editNote.content = Object.entries(invitation.edit.note.content).reduce(
         (acc, [fieldName, fieldValue]) => {
           if (formContent[fieldName] === undefined) {
+            if (
+              fieldValue.readers &&
+              shouldSetValue(`edit.note.content.${fieldName}.readers`)
+            ) {
+              acc[fieldName] = {
+                readers: edit.note?.content?.[fieldName]?.readers,
+              }
+            }
             return acc
           }
           acc[fieldName] = {
@@ -2250,8 +2263,8 @@ module.exports = (function () {
           errorList.push('You must provide a PDF (file upload)')
         }
       }
-
       if (
+        invitationEditContent[fieldName].value &&
         !invitationEditContent[fieldName].value.param?.optional &&
         _.isEmpty(formContent[fieldName])
       ) {
@@ -2283,6 +2296,7 @@ module.exports = (function () {
       function (ret, contentObjInInvitation, k) {
         // Let the widget handle it :D and extract the data when we encouter authorids
         const contentObj = contentObjInInvitation.value
+        if (!contentObj && contentObjInInvitation.readers) return ret
         const presentationObj = contentObjInInvitation.value.param || {}
         if (presentationObj.hidden && k === 'authors') {
           return ret

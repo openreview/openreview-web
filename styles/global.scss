@@ -684,6 +684,9 @@ header {
   margin-top: -1px;
   margin-bottom: -4px;
 }
+.btn-default .spinner-small > div {
+  background-color: constants.$mediumBlue;
+}
 
 .spinner,
 .spinner-small {
