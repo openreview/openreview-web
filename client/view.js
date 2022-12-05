@@ -2488,7 +2488,10 @@ module.exports = (function () {
             '</button>'
         )
         $trashButton.click(function () {
-          var noteToDelete = details.originalWritable ? details.original : note
+          var noteToDelete = note
+          if (!options.isReference && details.originalWritable) {
+            noteToDelete = details.original
+          }
           deleteOrRestoreNote(noteToDelete, titleText, params.user, params.onTrashedOrRestored)
         })
       }
@@ -2904,8 +2907,11 @@ module.exports = (function () {
       }
       newNote.signatures = newSignatures
       newNote.ddate = Date.now()
-      newNote.writers = getWriters(newNote.details.invitation, newSignatures, user)
-      newNote = getCopiedValues(newNote, newNote.details.invitation.reply)
+      if (newNote.details?.invitation) {
+        // reference won't have invitation in detail
+        newNote.writers = getWriters(newNote.details.invitation, newSignatures, user)
+        newNote = getCopiedValues(newNote, newNote.details.invitation.reply)
+      }
       Webfield.post('/notes', newNote, { handleErrors: false }).then(
         function (updatedNote) {
           onTrashedOrRestored(Object.assign(newNote, updatedNote))
@@ -4515,14 +4521,16 @@ module.exports = (function () {
                 )
               }
               $progressBar.show()
-              var sendChunksPromiseRef = chunks.reduce(
-                function (oldPromises, currentChunk, i) {
-                  return oldPromises.then(function (_) {
-                    return sendSingleChunk(currentChunk, i)
-                  })
-                },
-                Promise.resolve()
-              )
+              var sendChunksPromiseRef = chunks.reduce(function (
+                oldPromises,
+                currentChunk,
+                i
+              ) {
+                return oldPromises.then(function (_) {
+                  return sendSingleChunk(currentChunk, i)
+                })
+              },
+              Promise.resolve())
               uploadInProgressFields.push({
                 fieldName,
                 noteRef: editNote,
@@ -4984,4 +4992,4 @@ module.exports = (function () {
     updatePdfSection: updatePdfSection,
     mkDropdownList: mkDropdownList,
   }
-}())
+})()
