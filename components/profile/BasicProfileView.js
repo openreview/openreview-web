@@ -109,7 +109,7 @@ const ProfileExpertise = ({ expertise }) => (
     <div>
       <span>{expertise.keywords.join(', ')}</span>
     </div>
-    <div>
+    <div className="start-end-year">
       <em>
         {expertise.start}
         {expertise.start && <span> &ndash; </span>}
