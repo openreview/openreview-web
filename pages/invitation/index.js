@@ -106,43 +106,13 @@ Invitation.getInitialProps = async (ctx) => {
     return { statusCode: 400, message: 'Invitation ID is required' }
   }
 
-  // TODO: remove this when migration away from mode param is complete
-  const redirectToEditOrInfoMode = (mode) => {
-    const redirectUrl = `/invitation/${mode}?id=${ctx.query.id}`
-    if (ctx.req) {
-      ctx.res.writeHead(302, { Location: redirectUrl }).end()
-    } else {
-      Router.replace(redirectUrl)
-    }
-  }
-
-  if (ctx.query.mode === 'edit' || ctx.query.mode === 'info') {
-    redirectToEditOrInfoMode(ctx.query.mode)
-  }
-
   const { token: accessToken, user } = auth(ctx)
 
+  let invitation
   try {
-    const invitation = await api.getInvitationById(ctx.query.id, accessToken)
+    invitation = await api.getInvitationById(ctx.query.id, accessToken)
     if (!invitation) {
       return { statusCode: 404, message: `The Invitation ${ctx.query.id} was not found` }
-    }
-
-    const isWebfieldComponent = invitation.web?.startsWith('// Webfield component')
-
-    // Get venue group to pass to pass to webfield component
-    let domainGroup = null
-    if (isWebfieldComponent && invitation.domain) {
-      const apiRes = await api.get('/groups', { id: invitation.domain }, { accessToken })
-      domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
-    }
-
-    return {
-      invitationId: invitation.id,
-      ...(isWebfieldComponent
-        ? { componentObj: parseComponentCode(invitation, domainGroup, user, ctx.query) }
-        : { webfieldCode: generateInvitationWebfieldCode(invitation, ctx.query) }),
-      writable: invitation.details?.writable ?? false,
     }
   } catch (error) {
     if (error.name === 'ForbiddenError') {
@@ -159,6 +129,27 @@ Invitation.getInitialProps = async (ctx) => {
       return { statusCode: 403, message: "You don't have permission to read this invitation" }
     }
     return { statusCode: error.status || 500, message: error.message }
+  }
+
+  const isWebfieldComponent = invitation.web?.startsWith('// Webfield component')
+
+  // Get venue group to pass to pass to webfield component
+  let domainGroup = null
+  if (isWebfieldComponent && invitation.domain) {
+    try {
+      const apiRes = await api.get('/groups', { id: invitation.domain }, { accessToken })
+      domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
+    } catch (error) {
+      domainGroup = null
+    }
+  }
+
+  return {
+    invitationId: invitation.id,
+    ...(isWebfieldComponent
+      ? { componentObj: parseComponentCode(invitation, domainGroup, user, ctx.query) }
+      : { webfieldCode: generateInvitationWebfieldCode(invitation, ctx.query) }),
+    writable: invitation.details?.writable ?? false,
   }
 }
 
