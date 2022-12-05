@@ -74,7 +74,7 @@ export default function GroupDirectory({ appContext }) {
         <ul className="list-unstyled venues-list">
           {childGroupIds.length > 0 ? childGroupIds.map((id) => (
             <li key={id}>
-              <Link href={id}>
+              <Link href={`/group?id=${id}`}>
                 <a>{prettyId(id)}</a>
               </Link>
             </li>
