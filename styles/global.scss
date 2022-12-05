@@ -684,6 +684,9 @@ header {
   margin-top: -1px;
   margin-bottom: -4px;
 }
+.btn-default .spinner-small > div {
+  background-color: constants.$mediumBlue;
+}
 
 .spinner,
 .spinner-small {
@@ -846,7 +849,8 @@ header {
 
 // Modals
 #message-reviewers-modal,
-#message-group-members-modal {
+#message-group-members-modal,
+.message-reviewers-modal {
   .reviewer-list {
     height: 104px;
     overflow-y: auto;
@@ -859,6 +863,13 @@ header {
   }
   .alert-danger {
     margin-bottom: 1rem;
+  }
+}
+
+.message-reviewers-modal {
+  .reviewer-list {
+    height: auto;
+    max-height: 600px;
   }
 }
 

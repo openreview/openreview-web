@@ -152,8 +152,8 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
         <GroupTableRow label="Invitations">
           <input
             className="form-control input-sm"
-            value={has(generalInfo, 'invitations') ? generalInfo.invitations : group.invitations}
-            onChange={(e) => setGeneralInfo({ type: 'invitations', value: e.target.value })}
+            value={group.invitations}
+            disabled
           />
         </GroupTableRow>
       )}
@@ -249,7 +249,7 @@ const GroupGeneral = ({ group, profileId, isSuperUser, accessToken, reloadGroup 
           readers: [profileId],
           writers: [profileId],
           signatures: [profileId],
-          invitation: group.invitations[0],
+          invitation: group.domain ? `${group.domain}/-/Edit` : group.invitations[0],
         }
         await api.post('/groups/edits', requestBody, { accessToken, version: 2 })
       } else {
