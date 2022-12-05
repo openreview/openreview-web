@@ -7,7 +7,6 @@ import Head from 'next/head'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorAlert from '../components/ErrorAlert'
 import BaseActivityList from '../components/BaseActivityList'
-import ActivityList from '../components/webfield/ActivityList'
 import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 
@@ -22,20 +21,18 @@ const Activity = ({ appContext }) => {
       tauthor: true,
       trash: true,
       details: 'forumContent,writable,invitation',
+      sort: 'tmdate:desc',
       limit: 200,
     }
     const queryParamV2 = {
       signature: user.profile.id,
       trash: true,
-      details: 'forumContent,writable,invitation,presentation',
+      details: 'noteContent,writable,invitation',
       limit: 200,
     }
     try {
-      const { notes } = await api.getCombined('/notes', queryParamV1, queryParamV2, {
-        accessToken,
-        sort: 'tmdate:desc',
-        includeVersion: true,
-      })
+      const { notes } = await api.get('/notes', queryParamV1, { accessToken })
+      const { edits } = await api.get('/notes/edits', queryParamV2, { accessToken })
       setActivityNotes(notes)
     } catch (apiError) {
       setError(apiError)
