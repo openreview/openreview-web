@@ -1,0 +1,18 @@
+@use '../utils/constants';
+
+main.notifications {
+  header h1 {
+    margin-bottom: 1.5rem;
+  }
+
+  form.filter-controls {
+    margin-top: .5rem;
+
+    label {
+      margin-bottom: .5rem;
+    }
+    select {
+      padding-top: 4px;
+    }
+  }
+}

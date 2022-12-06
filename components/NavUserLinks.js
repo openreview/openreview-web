@@ -60,6 +60,11 @@ const NavUserLinks = () => {
   return (
     <ul className="nav navbar-nav navbar-right">
       <li className="hidden-sm">
+        <Link href="/notifications">
+          <a>Notifications</a>
+        </Link>
+      </li>
+      <li className="hidden-sm">
         <Link href="/activity">
           <a>Activity</a>
         </Link>
