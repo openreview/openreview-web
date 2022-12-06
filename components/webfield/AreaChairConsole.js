@@ -193,6 +193,7 @@ const AreaChairConsole = ({ appContext }) => {
     filterOperators,
     propertiesAllowed,
     enableQuerySearch,
+    reviewerName,
   } = useContext(WebFieldContext)
   const {
     showEdgeBrowserUrl,
@@ -509,10 +510,6 @@ const AreaChairConsole = ({ appContext }) => {
             tableRows={acConsoleData.tableRows}
             selectedNoteIds={selectedNoteIds}
             setAcConsoleData={setAcConsoleData}
-            shortPhrase={shortPhrase}
-            enableQuerySearch={enableQuerySearch}
-            filterOperators={filterOperators}
-            propertiesAllowed={propertiesAllowed}
           />
           <p className="empty-message">No assigned papers matching search criteria.</p>
         </div>
@@ -524,10 +521,6 @@ const AreaChairConsole = ({ appContext }) => {
           tableRows={acConsoleData.tableRows}
           selectedNoteIds={selectedNoteIds}
           setAcConsoleData={setAcConsoleData}
-          shortPhrase={shortPhrase}
-          enableQuerySearch={enableQuerySearch}
-          filterOperators={filterOperators}
-          propertiesAllowed={propertiesAllowed}
         />
         <Table
           className="console-table table-striped areachair-console-table"

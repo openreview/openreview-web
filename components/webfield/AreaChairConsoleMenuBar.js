@@ -1,3 +1,5 @@
+import { useContext } from 'react'
+import WebFieldContext from '../WebFieldContext'
 import BaseMenuBar from './BaseMenuBar'
 import MessageReviewersModal from './MessageReviewersModal'
 import QuerySearchInfoModal from './QuerySearchInfoModal'
@@ -7,11 +9,16 @@ const AreaChairConsoleMenuBar = ({
   tableRows,
   selectedNoteIds,
   setAcConsoleData,
-  shortPhrase,
-  enableQuerySearch,
-  filterOperators: filterOperatorsConfig,
-  propertiesAllowed: propertiesAllowedConfig,
 }) => {
+  const {
+    venueId,
+    reviewerName = 'Reviewers',
+    shortPhrase,
+    enableQuerySearch,
+    filterOperators: filterOperatorsConfig,
+    propertiesAllowed: propertiesAllowedConfig,
+  } = useContext(WebFieldContext)
+  const messageParentGroup = `${venueId}/${reviewerName}`
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '='] // sequence matters
   const propertiesAllowed = propertiesAllowedConfig ?? {
     number: ['note.number'],
@@ -176,6 +183,7 @@ const AreaChairConsoleMenuBar = ({
       propertiesAllowed={propertiesAllowed}
       messageOptions={messageReviewerOptions}
       messageModalId="message-reviewers"
+      messageParentGroup={messageParentGroup}
       exportColumns={exportColumns}
       sortOptions={sortOptions}
       basicSearchFunction={basicSearchFunction}

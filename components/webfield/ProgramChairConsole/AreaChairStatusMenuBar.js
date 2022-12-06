@@ -151,16 +151,18 @@ const AreaChairStatusMenuBar = ({
   tableRows,
   selectedNoteIds,
   setAreaChairStatusTabData,
-  shortPhrase,
-  enableQuerySearch,
-  exportColumns: exportColumnsConfig,
-  filterOperators: filterOperatorsConfig,
-  propertiesAllowed: propertiesAllowedConfig,
   bidEnabled,
   recommendationEnabled,
   messageParentGroup,
 }) => {
-  const { seniorAreaChairsId } = useContext(WebFieldContext)
+  const {
+    shortPhrase,
+    enableQuerySearch,
+    seniorAreaChairsId,
+    exportColumns: exportColumnsConfig,
+    filterOperators: filterOperatorsConfig,
+    propertiesAllowed: propertiesAllowedConfig,
+  } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {
     number: ['number'],

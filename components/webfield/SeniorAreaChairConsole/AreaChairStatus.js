@@ -195,6 +195,7 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData }) => {
     propertiesAllowed,
     seniorAreaChairName,
     areaChairsId,
+    areaChairName,
     venueId,
     areaChairStatusExportColumns,
   } = useContext(WebFieldContext)
@@ -292,14 +293,9 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData }) => {
           tableRowsAll={areaChairStatusTabData.tableRowsAll}
           tableRows={areaChairStatusTabData.tableRows}
           setAreaChairStatusTabData={setAreaChairStatusTabData}
-          shortPhrase={shortPhrase}
-          exportColumns={areaChairStatusExportColumns}
-          enableQuerySearch={enableQuerySearch}
-          filterOperators={filterOperators}
-          propertiesAllowed={propertiesAllowed}
           bidEnabled={false}
           recommendationEnabled={false}
-          messageParentGroup={areaChairsId}
+          messageParentGroup={`${venueId}/${areaChairName}`}
         />
         <p className="empty-message">No area chair matching search criteria.</p>
       </div>
@@ -310,14 +306,9 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData }) => {
         tableRowsAll={areaChairStatusTabData.tableRowsAll}
         tableRows={areaChairStatusTabData.tableRows}
         setAreaChairStatusTabData={setAreaChairStatusTabData}
-        shortPhrase={shortPhrase}
-        exportColumns={areaChairStatusExportColumns}
-        enableQuerySearch={enableQuerySearch}
-        filterOperators={filterOperators}
-        propertiesAllowed={propertiesAllowed}
         bidEnabled={false}
         recommendationEnabled={false}
-        messageParentGroup={areaChairsId}
+        messageParentGroup={`${venueId}/${areaChairName}`}
       />
       <Table
         className="console-table table-striped pc-console-ac-status"

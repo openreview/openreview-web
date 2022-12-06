@@ -9,6 +9,7 @@ const PaperStatusMenuBar = ({
   tableRows,
   selectedNoteIds,
   setPaperStatusTabData,
+  messageParentGroup,
 }) => {
   const {
     apiVersion,
@@ -233,6 +234,7 @@ const PaperStatusMenuBar = ({
       propertiesAllowed={propertiesAllowed}
       messageOptions={messageReviewerOptions}
       messageModalId="message-reviewers"
+      messageParentGroup={messageParentGroup}
       exportColumns={exportColumns}
       sortOptions={sortOptions}
       basicSearchFunction={basicSearchFunction}

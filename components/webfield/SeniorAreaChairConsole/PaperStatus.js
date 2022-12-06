@@ -96,6 +96,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
 }
 
 const PaperStatus = ({ sacConsoleData }) => {
+  const { venueId, reviewerName } = useContext(WebFieldContext)
   const [paperStatusTabData, setPaperStatusTabData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const [pageNumber, setPageNumber] = useState(1)
@@ -147,6 +148,7 @@ const PaperStatus = ({ sacConsoleData }) => {
           tableRows={paperStatusTabData.tableRows}
           selectedNoteIds={selectedNoteIds}
           setPaperStatusTabData={setPaperStatusTabData}
+          messageParentGroup={`${venueId}/${reviewerName}`}
         />
         <p className="empty-message">No papers matching search criteria.</p>
       </div>
@@ -158,6 +160,7 @@ const PaperStatus = ({ sacConsoleData }) => {
         tableRows={paperStatusTabData.tableRows}
         selectedNoteIds={selectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
+        messageParentGroup={`${venueId}/${reviewerName}`}
       />
       <Table
         className="console-table table-striped pc-console-paper-status"

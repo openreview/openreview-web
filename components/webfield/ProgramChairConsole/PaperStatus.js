@@ -159,6 +159,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
           tableRows={paperStatusTabData.tableRows}
           selectedNoteIds={selectedNoteIds}
           setPaperStatusTabData={setPaperStatusTabData}
+          messageParentGroup={reviewersId}
         />
         <p className="empty-message">No papers matching search criteria.</p>
       </div>
@@ -170,6 +171,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
         tableRows={paperStatusTabData.tableRows}
         selectedNoteIds={selectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
+        messageParentGroup={reviewersId}
       />
       <Table
         className="console-table table-striped pc-console-paper-status"

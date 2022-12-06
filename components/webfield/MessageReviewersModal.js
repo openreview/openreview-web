@@ -11,6 +11,7 @@ const MessageReviewersModal = ({
   messageOption,
   messageModalId,
   selectedIds,
+  messageParentGroup,
 }) => {
   const { accessToken } = useUser()
   const { shortPhrase, venueId, officialReviewName, submissionName } =
@@ -46,6 +47,7 @@ const MessageReviewersModal = ({
             groups: reviewerIds,
             subject,
             message: message.replaceAll('{{submit_review_link}}', forumUrl),
+            parentGroup: messageParentGroup,
           },
           { accessToken }
         )
