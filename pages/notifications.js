@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorAlert from '../components/ErrorAlert'
+import Table from '../components/Table'
 import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 import MessagesTable from '../components/MessagesTable'
@@ -14,17 +17,18 @@ export default function Notifications({ appContext }) {
   const [count, setCount] = useState(0)
   const [page, setPage] = useState(1)
   const [error, setError] = useState(null)
+  const router = useRouter()
   const { setBannerHidden } = appContext
   const pageSize = 25
 
   useEffect(() => {
-    if (!user) return
+    if (!user || !router.isReady) return
 
     setBannerHidden(true)
 
-    setToEmail(user.profile.preferredEmail || user.profile.emails[0])
+    setToEmail(router.query.email || user.profile.preferredEmail || user.profile.emails[0])
     setPage(1)
-  }, [user?.id])
+  }, [user?.id, router.isReady, router.query.email])
 
   useEffect(() => {
     if (!toEmail || !accessToken) return
@@ -66,26 +70,32 @@ export default function Notifications({ appContext }) {
 
       {messages && user && (
         <div className="row">
-          <div className="col-xs-12 col-md-2">
-            <form className="filter-controls" onSubmit={(e) => e.preventDefault()}>
-              <div className="form-group">
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                <label>Inboxes</label>
-                <select
-                  className="form-control"
-                  value={toEmail}
-                  onChange={(e) => setToEmail(e.target.value)}
-                >
-                  {user.profile.emails.map((email) => (
-                    <option key={email} value={email}>
-                      {email}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </form>
+          <div className="filters-col">
+            <Table
+              className="filters-table"
+              headings={[{ id: 'filters', content: 'Inboxes' }]}
+            >
+              <tr>
+                <td>
+                  <ul className="nav nav-pills nav-stacked">
+                    {user.profile.emails.map((email) => (
+                      <li
+                        key={email}
+                        role="presentation"
+                        className={toEmail === email ? 'active' : null}
+                      >
+                        <Link href={`/notifications?email=${email}`}>
+                          <a title={email}>{email}</a>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </td>
+              </tr>
+            </Table>
           </div>
-          <div className="col-xs-12 col-md-10">
+
+          <div className="messages-col">
             <MessagesTable messages={messages} />
 
             <PaginationLinks

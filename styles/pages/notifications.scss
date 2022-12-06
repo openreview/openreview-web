@@ -5,14 +5,41 @@ main.notifications {
     margin-bottom: 1.5rem;
   }
 
-  form.filter-controls {
-    margin-top: .5rem;
-
-    label {
-      margin-bottom: .5rem;
+  .filters-col {
+    float: left;
+    width: 225px;
+    margin-left: 15px;
+    margin-right: .5rem;
+  }
+  .messages-col {
+    float: left;
+    width: calc(100% - 225px - 30px - 1rem);
+    margin-left: .5rem;
+    margin-right: 15px;
+  }
+  table.messages-table {
+    border-bottom: 0;
+  }
+  .filters-table {
+    tbody > tr > td {
+      padding: 0;
+      padding-top: .75rem;
     }
-    select {
-      padding-top: 4px;
+  }
+  .nav-stacked {
+    & > li > a {
+      padding: 12px 12px 12px 12px;
+      line-height: normal;
+      font-weight: bold;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    & > li.active > a {
+      background-color: constants.$mediumDarkBlue;
+    }
+    & > li + li {
+      margin-top: 4px;
     }
   }
 }
