@@ -164,7 +164,9 @@ const Messages = ({ appContext }) => {
 
       {error && <ErrorAlert error={error} />}
 
-      {messages && <MessagesTable messages={messages} loading={userLoading} />}
+      {!messages && !error && <LoadingSpinner inline />}
+
+      {messages && <MessagesTable messages={messages} />}
 
       {messages && (
         <PaginationLinks
@@ -176,8 +178,6 @@ const Messages = ({ appContext }) => {
           options={{ useShallowRouting: true }}
         />
       )}
-
-      {!messages && !error && <LoadingSpinner inline />}
     </div>
   )
 }

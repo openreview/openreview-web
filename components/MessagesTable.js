@@ -1,7 +1,27 @@
-/* globals DOMPurify: false */
+/* globals DOMPurify, marked: false */
 
+import { useState, useEffect } from 'react'
 import Table from './Table'
 import { formatTimestamp } from '../lib/utils'
+
+const MessageContent = ({ content = '' }) => {
+  const [sanitizedHtml, setSanitizedHtml] = useState(null)
+
+  useEffect(() => {
+    const htmlContent = content.startsWith('<p>') ? content : marked(content)
+    setSanitizedHtml(DOMPurify.sanitize(htmlContent))
+  }, [])
+
+  if (!sanitizedHtml) return null
+
+  return (
+    // eslint-disable-next-line react/no-danger
+    <div
+      className="markdown-rendered"
+      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+    />
+  )
+}
 
 const MessageRow = ({ message }) => (
   <tr>
@@ -56,8 +76,7 @@ const MessageRow = ({ message }) => (
         }`}
         onClick={(e) => e.currentTarget.classList.toggle('collapsed')}
       >
-        {/* eslint-disable-next-line react/no-danger */}
-        <p dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.content?.text) }} />
+        <MessageContent content={message.content?.text} />
         <div className="gradient-overlay" />
       </div>
 
