@@ -1161,7 +1161,10 @@ table.table-minimal {
 
       h4 {
         width: 100%;
+        padding-bottom: 0.25rem;
         border-bottom: 1px solid constants.$borderGray;
+        margin-right: 0;
+        margin-bottom: 0.5rem;
       }
       .instructions,
       .glyphicon {
@@ -1174,11 +1177,15 @@ table.table-minimal {
       .empty-message {
         color: constants.$subtleGray;
         font-style: italic;
-        margin-top: 0.5rem;
+        margin-top: 0;
       }
       .table-row {
         display: flex;
         gap: 1%;
+
+        .start-end-year {
+          white-space: nowrap;
+        }
       }
       .actions {
         display: none;
@@ -1194,7 +1201,8 @@ table.table-minimal {
         flex-direction: column;
         white-space: nowrap;
 
-        .link-text {
+        .link-text,
+        .institution {
           max-width: 600px;
           overflow-x: hidden;
           text-overflow: ellipsis;
