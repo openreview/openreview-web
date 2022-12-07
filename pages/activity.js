@@ -34,10 +34,10 @@ const Activity = ({ appContext }) => {
 
     Promise.all([
       api.get('/notes', queryParamV1, { accessToken })
-        .then(({ notes }) => notes ?? [], () => []),
+        .then(({ notes }) => notes?.length > 0 ? notes : [], () => []),
       api
         .get('/notes/edits', queryParamV2, { accessToken, version: 2 })
-        .then(({ edits }) => edits ?? [], () => [])
+        .then(({ edits }) => edits?.length > 0 ? edits : [], () => [])
         .then((edits) => edits.map((edit) => ({ ...edit, apiVersion: 2 }))),
     ])
       .then(([notes, edits]) => {
