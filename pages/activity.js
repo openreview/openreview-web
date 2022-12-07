@@ -2,7 +2,7 @@
 /* globals Webfield, Webfield2: false */
 /* globals typesetMathJax: false */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorAlert from '../components/ErrorAlert'
@@ -22,21 +22,30 @@ const Activity = ({ appContext }) => {
       trash: true,
       details: 'forumContent,writable,invitation',
       sort: 'tmdate:desc',
-      limit: 200,
+      limit: 100,
     }
     const queryParamV2 = {
-      signature: user.profile.id,
+      tauthor: true,
       trash: true,
-      details: 'noteContent,writable,invitation',
-      limit: 200,
+      details: 'writable,invitation',
+      sort: 'tmdate:desc',
+      limit: 100,
     }
-    try {
-      const { notes } = await api.get('/notes', queryParamV1, { accessToken })
-      const { edits } = await api.get('/notes/edits', queryParamV2, { accessToken })
-      setActivityNotes(notes)
-    } catch (apiError) {
-      setError(apiError)
-    }
+
+    Promise.all([
+      api.get('/notes', queryParamV1, { accessToken })
+        .then(({ notes }) => notes ?? [], () => []),
+      api
+        .get('/notes/edits', queryParamV2, { accessToken, version: 2 })
+        .then(({ edits }) => edits ?? [], () => [])
+        .then((edits) => edits.map((edit) => ({ ...edit, apiVersion: 2 }))),
+    ])
+      .then(([notes, edits]) => {
+        setActivityNotes(notes.concat(edits).sort((a, b) => b.tmdate - a.tmdate))
+      })
+      .catch((apiError) => {
+        setError(apiError)
+      })
   }
 
   useEffect(() => {
@@ -50,8 +59,10 @@ const Activity = ({ appContext }) => {
   useEffect(() => {
     if (!activityNotes) return
 
-    $('[data-toggle="tooltip"]').tooltip()
-    typesetMathJax()
+    setTimeout(() => {
+      typesetMathJax()
+      $('[data-toggle="tooltip"]').tooltip()
+    }, 100)
   }, [activityNotes])
 
   return (

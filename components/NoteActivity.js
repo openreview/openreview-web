@@ -2,9 +2,8 @@ import Link from 'next/link'
 import without from 'lodash/without'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { NoteTitleV2 } from './NoteTitle'
-import NoteAuthors from './NoteAuthors'
-import NoteContent from './NoteContent'
+import NoteAuthors, { NoteAuthorsV2 } from './NoteAuthors'
+import NoteContent, { NoteContentV2 } from './NoteContent'
 import Collapse from './Collapse'
 import Icon from './Icon'
 import { prettyId, prettyInvitationId, buildNoteTitle } from '../lib/utils'
@@ -52,7 +51,7 @@ export default function NoteActivity({ note, showActionButtons, showGroup }) {
           {readersFiltered.length > 1 && (
             <> &times; {readersFiltered.length}</>
           )}
-          {' '}&bull;{' '}
+          &nbsp;{' '}&bull;{' '}&nbsp;
           {dayjs().to(dayjs(note.tmdate))}
         </div>
       </div>
@@ -81,7 +80,7 @@ export default function NoteActivity({ note, showActionButtons, showGroup }) {
             <div className="parent-title">
               <Icon name="share-alt" />
               <span className="title">
-                {details.forumContent.title ? details.forumContent.title : 'No Title'}
+                {details.forumContent?.title ? details.forumContent.title : 'No Title'}
               </span>
             </div>
           )}
@@ -111,8 +110,9 @@ export default function NoteActivity({ note, showActionButtons, showGroup }) {
   )
 }
 
-export function NoteActivityV2({ note, showGroup }) {
-  const { content, details } = note
+export function NoteActivityV2({ note, showGroup, showActionButtons }) {
+  const { details } = note
+  const { content = {} } = note.note
 
   const readersFiltered = note.readers?.includes('everyone') ? ['Everyone'] : without(
     note.readers?.map((id) => prettyId(id)),
@@ -126,19 +126,15 @@ export function NoteActivityV2({ note, showGroup }) {
     <div>
       <div className="activity-heading">
         <div className="explanation">
-          <span className={note.details.userIsSignatory ? '' : 'sig'}>
-            {note.details.formattedSignature}
+          <span className={details.userIsSignatory ? '' : 'sig'}>
+            {details.formattedSignature}
           </span>
-          {' '}
-          {note.details.isUpdated ? 'edited a' : 'posted a new'}
-          {' '}
-          {prettyInvitationId(note.invitations[0])}
-          {' '}
+          {` added a ${prettyInvitationId(note.invitation)} edit`}
           {showGroup && (
             <>
-              to{' '}
-              <Link href={`/group?id=${note.details.group}`}>
-                <a>{prettyId(note.details.group)}</a>
+              {' to '}
+              <Link href={`/group?id=${details.group}`}>
+                <a>{prettyId(details.group)}</a>
               </Link>
             </>
           )}
@@ -147,23 +143,59 @@ export function NoteActivityV2({ note, showGroup }) {
           {readersFiltered.includes('Everyone') ? (
             <Icon name="globe" extraClasses="readers-icon" tooltip="Readers: Everyone" />
           ) : (
-            <Icon name="globe" extraClasses="user" tooltip={`Readers: ${readersFiltered.join(', ')}`} />
+            <Icon name="user" extraClasses="readers-icon" tooltip={`Readers: ${readersFiltered.join(', ')}`} />
           )}
           {readersFiltered.length > 1 && (
             <> &times; {readersFiltered.length}</>
           )}
-          {' '}&bull;{' '}
+          &nbsp;{' '}&bull;{' '}&nbsp;
           {dayjs().to(dayjs(note.tmdate))}
         </div>
       </div>
 
-      <NoteTitleV2
-        id={note.id}
-        forum={note.forum}
-        invitation={note.invitation}
-        content={note.content}
-        signatures={note.signatures}
-      />
+      <div className="clearfix">
+        <div className="activity-title">
+          <h4>
+            <Link href={`/forum?id=${note.note.forum}${details.isForum ? '' : `&noteId=${note.note.id}`}`}>
+              <a>
+                {details.isDeleted ? '[Deleted] ' : ''}
+                {content.title?.value ? content.title.value : buildNoteTitle(note.invitation, note.signatures)}
+              </a>
+            </Link>
+          </h4>
+
+          {details.isForum && (
+            <div className="note-authors">
+              <NoteAuthorsV2
+                authors={content.authors}
+                authorIds={content.authorids}
+                signatures={note.signatures}
+                original={details.original}
+              />
+            </div>
+          )}
+        </div>
+
+        {showActionButtons && details.writable && (
+          <div className="activity-actions"></div>
+        )}
+      </div>
+
+      {details.isForum ? (
+        <Collapse showLabel="Show details" hideLabel="Hide details" indent>
+          <NoteContentV2
+            id={note.id}
+            content={content}
+            invitation={details.invitation}
+          />
+        </Collapse>
+      ) : (
+        <NoteContentV2
+          id={note.id}
+          content={content}
+          invitation={details.invitation}
+        />
+      )}
     </div>
   )
 }

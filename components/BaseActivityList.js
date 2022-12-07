@@ -14,16 +14,14 @@ export default function BaseActivityList({ notes, emptyMessage, showActionButton
     const tempNotes = []
 
     notes.forEach((note) => {
-      const invitationArr = note.apiVersion === 2
-        ? note.invitations[0].split('/-/')
-        : note.invitation.split('/-/')
+      const invitationArr = note.invitation.split('/-/')
       if (invitationArr[1].toLowerCase().includes('assignment')) {
         return
       }
 
       const noteAuthors = note.tauthor ? [note.tauthor] : note.signatures
       const userIsSignatory =
-        user && intersection(noteAuthors, user.profile.emails.concat(user.profile.usernames)).length
+        user && intersection(noteAuthors, user.profile.emails.concat(user.profile.usernames, user.id)).length
       let formattedSignature
       if (userIsSignatory) {
         formattedSignature = 'You'
@@ -36,15 +34,22 @@ export default function BaseActivityList({ notes, emptyMessage, showActionButton
         }
         formattedSignature = prettySig
       }
+      let isForum
+      if (note.apiVersion === 2) {
+        const { forum, id } = note.note
+        isForum = forum && id && forum === id
+      } else {
+        isForum = note.forum === note.id
+      }
 
       tempNotes.push({
         ...note,
         details: {
           ...note.details,
           group: invitationArr[0],
-          isForum: note.forum === note.id,
           isDeleted: note.ddate && note.ddate < Date.now(),
           isUpdated: note.tmdate > note.tcdate,
+          isForum,
           userIsSignatory,
           formattedSignature,
         },
