@@ -2,6 +2,7 @@
 import { debounce, orderBy } from 'lodash'
 import React, { useCallback, useEffect, useState } from 'react'
 import { filterCollections } from '../../lib/webfield-utils'
+import DownloadPDF from '../DownloadPDF'
 import Dropdown from '../Dropdown'
 import ExportCSV from '../ExportCSV'
 import Icon from '../Icon'
@@ -26,6 +27,7 @@ const BaseMenuBar = ({
   querySearchInfoModal,
   searchPlaceHolder,
   extraClasses,
+  enablePDFDownload = false,
 }) => {
   const disabledMessageButton = selectedIds?.length === 0
 
@@ -140,6 +142,14 @@ const BaseMenuBar = ({
             records={tableRows}
             fileName={exportFileName}
             exportColumns={exportColumns}
+          />
+        </div>
+      )}
+      {enablePDFDownload && (
+        <div className="btn-group">
+          <DownloadPDF
+            records={tableRowsAll}
+            fileName={`${shortPhrase.replaceAll(/\s/g, '_')}_pdfs.zip`}
           />
         </div>
       )}
