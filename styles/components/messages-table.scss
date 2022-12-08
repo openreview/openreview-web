@@ -43,13 +43,11 @@ table.messages-table {
     &:focus {
       outline: none;
     }
-    p {
-      white-space: pre-wrap;
-      margin-bottom: 0.5rem;
-    }
-    &.markdown-rendered p {
-      white-space: normal;
+    .markdown-rendered {
       @include mixins.markdown-content-styles;
+      p {
+        white-space: pre-wrap;
+      }
     }
   }
   .status {

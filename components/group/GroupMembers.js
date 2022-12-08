@@ -18,7 +18,7 @@ const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }
   const [error, setError] = useState(null)
 
   const sendMessage = async () => {
-    const sanitizedMessage = DOMPurify.sanitize(marked(message))
+    const sanitizedMessage = DOMPurify.sanitize(message)
     if (subject && sanitizedMessage) {
       try {
         const result = await api.post(
