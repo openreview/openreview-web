@@ -1,3 +1,5 @@
+/* globals promptError: false */
+
 import { useContext, useState } from 'react'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
