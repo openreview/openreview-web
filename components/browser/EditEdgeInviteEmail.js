@@ -91,7 +91,7 @@ const EditEdgeInviteEmail = ({
         }}
       >
         <input
-          type="email"
+          type="text"
           id="email-invite"
           autoComplete="off"
           value={emailToInvite}
