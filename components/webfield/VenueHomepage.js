@@ -153,7 +153,8 @@ export default function VenueHomepage({ appContext }) {
         <ActivityList
           venueId={group.id}
           apiVersion={apiVersion}
-          options={tabConfig.options}
+          invitation={tabConfig.options.invitation}
+          pageSize={tabConfig.options.pageSize}
           shouldReload={shouldReload}
         />
       )

@@ -2,11 +2,11 @@
 /* globals Webfield, Webfield2: false */
 /* globals typesetMathJax: false */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import LoadingSpinner from '../components/LoadingSpinner'
-import WebfieldContainer from '../components/WebfieldContainer'
 import ErrorAlert from '../components/ErrorAlert'
+import BaseActivityList from '../components/BaseActivityList'
 import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 
@@ -14,31 +14,38 @@ const Activity = ({ appContext }) => {
   const { user, accessToken } = useLoginRedirect()
   const [activityNotes, setActivityNotes] = useState(null)
   const [error, setError] = useState(null)
-  const activityRef = useRef(null)
-  const { setBannerHidden, clientJsLoading } = appContext
+  const { setBannerHidden } = appContext
 
   const loadActivityData = async () => {
     const queryParamV1 = {
       tauthor: true,
       trash: true,
       details: 'forumContent,writable,invitation',
-      limit: 200,
+      sort: 'tmdate:desc',
+      limit: 100,
     }
     const queryParamV2 = {
-      signature: user.profile.id,
+      tauthor: true,
       trash: true,
-      details: 'forumContent,writable,invitation,presentation',
-      limit: 200,
+      details: 'writable,invitation',
+      sort: 'tmdate:desc',
+      limit: 100,
     }
-    try {
-      const { notes } = await api.getCombined('/notes', queryParamV1, queryParamV2, {
-        accessToken,
-        sort: 'tmdate:desc',
+
+    Promise.all([
+      api.get('/notes', queryParamV1, { accessToken })
+        .then(({ notes }) => notes?.length > 0 ? notes : [], () => []),
+      api
+        .get('/notes/edits', queryParamV2, { accessToken, version: 2 })
+        .then(({ edits }) => edits?.length > 0 ? edits : [], () => [])
+        .then((edits) => edits.map((edit) => ({ ...edit, apiVersion: 2 }))),
+    ])
+      .then(([notes, edits]) => {
+        setActivityNotes(notes.concat(edits).sort((a, b) => b.tmdate - a.tmdate))
       })
-      setActivityNotes(notes)
-    } catch (apiError) {
-      setError(apiError)
-    }
+      .catch((apiError) => {
+        setError(apiError)
+      })
   }
 
   useEffect(() => {
@@ -50,20 +57,13 @@ const Activity = ({ appContext }) => {
   }, [accessToken])
 
   useEffect(() => {
-    if (clientJsLoading || !activityNotes) return
+    if (!activityNotes) return
 
-    $(activityRef.current).empty()
-    Webfield.ui.activityList(activityNotes, {
-      container: activityRef.current,
-      emptyMessage: 'No recent activity to display.',
-      user: user.profile,
-      showActionButtons: true,
-    })
-
-    $('[data-toggle="tooltip"]').tooltip()
-
-    typesetMathJax()
-  }, [clientJsLoading, activityNotes])
+    setTimeout(() => {
+      typesetMathJax()
+      $('[data-toggle="tooltip"]').tooltip()
+    }, 100)
+  }, [activityNotes])
 
   return (
     <div className="activity-container">
@@ -76,8 +76,15 @@ const Activity = ({ appContext }) => {
       </header>
 
       {!error && !activityNotes && <LoadingSpinner />}
+
       {error && <ErrorAlert error={error} />}
-      <WebfieldContainer ref={activityRef} />
+
+      <BaseActivityList
+        notes={activityNotes}
+        emptyMessage="No recent activity to display."
+        showActionButtons
+        showGroup
+      />
     </div>
   )
 }
