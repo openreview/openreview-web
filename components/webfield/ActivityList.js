@@ -1,65 +1,90 @@
 /* globals $: false */
-/* globals Webfield: false */
 /* globals typesetMathJax: false */
-/* globals promptError: false */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
+import LoadingSpinner from '../LoadingSpinner'
+import ErrorAlert from '../ErrorAlert'
+import BaseActivityList from '../BaseActivityList'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 
-export default function ActivityList({ venueId, apiVersion, options = {} }) {
+export default function ActivityList({ venueId, apiVersion, invitation, pageSize, shouldReload }) {
   const [activityNotes, setActivityNotes] = useState(null)
-  const { user, accessToken, userLoading } = useUser()
-  const containerRef = useRef(null)
-
-  const opts = {
-    invitation: `${venueId}/.*`,
-    pageSize: 25,
-    ...options,
-  }
+  const [error, setError] = useState(null)
+  const { accessToken } = useUser()
 
   useEffect(() => {
-    if (userLoading) return
+    if (!accessToken) return
 
-    api.get(
-      '/notes',
-      {
-        invitation: opts.invitation,
-        details: 'forumContent,invitation,writable',
-        sort: 'tmdate:desc',
-        limit: opts.pageSize,
-      },
-      { accessToken, version: apiVersion }
-    )
+    const loadActivityNotes = () => api
+      .get(
+        '/notes',
+        {
+          invitation: invitation || `${venueId}/.*`,
+          details: 'forumContent,invitation,writable',
+          sort: 'tmdate:desc',
+          limit: pageSize || 25,
+        },
+        { accessToken }
+      )
       .then(({ notes }) => {
-        if (notes?.length > 0) {
-          setActivityNotes(notes)
-        } else {
-          setActivityNotes([])
-        }
+        setActivityNotes(notes?.length > 0 ? notes : [])
       })
-      .catch((error) => {
+      .catch((apiError) => {
         setActivityNotes([])
-        promptError(error.message)
+        setError(apiError)
       })
-  }, [userLoading, accessToken])
+
+    const loadActivityEdits = () => api
+      .get(
+        '/edits/notes',
+        {
+          domain: venueId,
+          trash: true,
+          details: 'writable,invitation',
+          sort: 'tmdate:desc',
+          limit: pageSize || 25,
+        },
+        { accessToken, version: apiVersion }
+      )
+      .then(({ notes }) => {
+        setActivityNotes(notes?.length > 0 ? notes : [])
+      })
+      .catch((apiError) => {
+        setActivityNotes([])
+        setError(apiError)
+      })
+
+    setError(null)
+
+    if (apiVersion === 1) {
+      loadActivityNotes()
+    } else {
+      loadActivityEdits()
+    }
+  }, [accessToken, shouldReload])
 
   useEffect(() => {
     if (!activityNotes) return
 
-    $(containerRef.current).empty()
+    setTimeout(() => {
+      typesetMathJax()
+      $('[data-toggle="tooltip"]').tooltip()
+    }, 100)
+  }, [activityNotes])
 
-    Webfield.ui.activityList(activityNotes, {
-      container: containerRef.current,
-      emptyMessage: 'No recent activity to display.',
-      user: user?.profile,
-      showActionButtons: true,
-    })
+  return (
+    <div>
+      {!error && !activityNotes && <LoadingSpinner />}
 
-    $('[data-toggle="tooltip"]').tooltip()
+      {error && <ErrorAlert error={error} />}
 
-    typesetMathJax()
-  }, [activityNotes, user])
-
-  return <div ref={containerRef} />
+      <BaseActivityList
+        notes={activityNotes}
+        emptyMessage="No recent activity to display."
+        showGroup={false}
+        showActionButtons
+      />
+    </div>
+  )
 }
