@@ -6,21 +6,26 @@ import api from '../lib/api-client'
 import SpinnerButton from './SpinnerButton'
 import WebFieldContext from './WebFieldContext'
 
-const DownloadPDF = ({ records, fileName }) => {
+const DownloadPDFButton = ({ records, fileName }) => {
   const [isLoading, setIsLoading] = useState(false)
   const { apiVersion } = useContext(WebFieldContext)
   const { accessToken } = useUser()
-  const hasPdf = records?.some((p) =>
-    apiVersion === 2 ? p.note?.content?.pdf?.value : p.note?.content?.pdf
-  )
+
+  const hasPdf = (record) =>
+    apiVersion === 2 ? record.note?.content?.pdf?.value : record.note?.content?.pdf
 
   const handleDownloadPDFClick = async () => {
     setIsLoading(true)
     try {
-      const ids = records.map((p) => p.note.id)
+      let ids = records.flatMap((p) => (hasPdf(p) ? p.note.id : []))
+
+      if (ids.length > 50) {
+        ids = ids.slice(0, 50)
+        promptError('Max 50 PDFs allowed.')
+      }
       const zipBlob = await api.get(
         '/attachment',
-        { ids, name: 'pdf' },
+        { [ids.length === 1 ? 'id' : 'ids']: ids, name: 'pdf' },
         { accessToken, contentType: 'blob' }
       )
       const url = window.URL || window.webkitURL
@@ -37,13 +42,13 @@ const DownloadPDF = ({ records, fileName }) => {
   return (
     <SpinnerButton
       className="btn btn-export-data"
-      disabled={!hasPdf}
+      disabled={!records?.some(hasPdf)}
       loading={isLoading}
       onClick={handleDownloadPDFClick}
     >
-      Download PDF
+      Download PDFs
     </SpinnerButton>
   )
 }
 
-export default DownloadPDF
+export default DownloadPDFButton

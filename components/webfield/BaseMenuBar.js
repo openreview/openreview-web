@@ -2,7 +2,7 @@
 import { debounce, orderBy } from 'lodash'
 import React, { useCallback, useEffect, useState } from 'react'
 import { filterCollections } from '../../lib/webfield-utils'
-import DownloadPDF from '../DownloadPDF'
+import DownloadPDFButton from '../DownloadPDFButton'
 import Dropdown from '../Dropdown'
 import ExportCSV from '../ExportCSV'
 import Icon from '../Icon'
@@ -147,7 +147,7 @@ const BaseMenuBar = ({
       )}
       {enablePDFDownload && (
         <div className="btn-group">
-          <DownloadPDF
+          <DownloadPDFButton
             records={tableRowsAll}
             fileName={`${shortPhrase.replaceAll(/\s/g, '_')}_pdfs.zip`}
           />
