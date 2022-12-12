@@ -28,6 +28,10 @@ module.exports = (function () {
     var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
+    var xhrFields = {
+      withCredentials: true,
+    }
+    if (options.isBlob) xhrFields.responseType = 'blob'
 
     // Remove properties causing errors in old webfields
     if (queryObj?.noDetails) {
@@ -35,15 +39,13 @@ module.exports = (function () {
     }
 
     return $.ajax({
-      dataType: 'json',
+      dataType: options.isBlob ? false : 'json',
       type: 'get',
       contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
       url: baseUrl + url,
       data: queryObj,
       headers: Object.assign(defaultHeaders, authHeaders),
-      xhrFields: {
-        withCredentials: true,
-      },
+      xhrFields: xhrFields,
     }).then(jqSuccessCallback, errorCallback)
   }
 
@@ -811,9 +813,9 @@ module.exports = (function () {
     switch (operator) {
       case '=':
         if (Array.isArray(propertyValue)) {
-          return propertyValue.some((p) => (
+          return propertyValue.some((p) =>
             p.toString().toLowerCase().includes(targetValue.toString().toLowerCase())
-          ))
+          )
         }
         return isString ? propertyValue.includes(targetValue) : propertyValue === targetValue
       case '>':
@@ -830,9 +832,9 @@ module.exports = (function () {
         throw new Error('operator is invalid')
       case '!=':
         if (Array.isArray(propertyValue)) {
-          return !propertyValue.some((p) => (
+          return !propertyValue.some((p) =>
             p.toString().toLowerCase().includes(targetValue.toString().toLowerCase())
-          ))
+          )
         }
         return propertyValue !== targetValue
       default:
@@ -885,12 +887,12 @@ module.exports = (function () {
         return [...new Set([...collection1, ...collection2])]
       case 'AND':
         // eslint-disable-next-line no-case-declarations
-        const collection2UniqueIdentifiers = collection2.map((p) => (
+        const collection2UniqueIdentifiers = collection2.map((p) =>
           propertyPath.reduce((r, s) => r?.[s], p)
-        ))
-        return collection1.filter((p) => (
+        )
+        return collection1.filter((p) =>
           collection2UniqueIdentifiers.includes(propertyPath.reduce((r, s) => r?.[s], p))
-        ))
+        )
       default:
         return []
     }
@@ -997,7 +999,7 @@ module.exports = (function () {
     }
 
     // Wrap in IIFE to prevent memory leaks
-    (function () {
+    ;(function () {
       var submissionListHtml = Handlebars.templates['components/submissions']({
         heading: options.heading,
         notes: options.pageSize ? notes.slice(0, options.pageSize) : notes,
@@ -1011,7 +1013,7 @@ module.exports = (function () {
       } else {
         $container.append(submissionListHtml)
       }
-    }())
+    })()
 
     if (options.search.enabled) {
       if (!_.isEmpty(options.search.subjectAreas)) {
@@ -1297,7 +1299,7 @@ module.exports = (function () {
             readers: readers,
             nonreaders: nonreaders,
             writers: writers,
-            ddate: ddate
+            ddate: ddate,
           }
           post('/edges', requestBody, { handleErrors: false }).then(apiSuccess, apiError)
         }
@@ -2047,9 +2049,7 @@ module.exports = (function () {
     message = message || 'The page could not be loaded at this time. Please try again later.'
     $('#notes')
       .hide()
-      .html(
-        '<div class="alert alert-danger"><strong>Error:</strong> ' + message + '</div>'
-      )
+      .html('<div class="alert alert-danger"><strong>Error:</strong> ' + message + '</div>')
     return $('#notes').fadeIn('fast')
   }
 
@@ -2162,4 +2162,4 @@ module.exports = (function () {
       done: done,
     },
   }
-}())
+})()
