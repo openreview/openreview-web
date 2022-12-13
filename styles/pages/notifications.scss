@@ -7,18 +7,43 @@ main.notifications {
 
   .filters-col {
     float: left;
-    width: 225px;
+    width: 245px;
     margin-left: 15px;
     margin-right: .5rem;
   }
   .messages-col {
     float: left;
-    width: calc(100% - 225px - 30px - 1rem);
+    width: calc(100% - 245px - 30px - 1rem);
     margin-left: .5rem;
     margin-right: 15px;
   }
   table.messages-table {
     border-bottom: 0;
+    td.viewed {
+      opacity: 0.6;
+      background-color: #eee;
+      &:hover {
+        opacity: .8;
+      }
+      .collapse-widget > div {
+        border-left: 3px solid #fff;
+        padding-top: .5rem;
+        padding-right: .5rem;
+        padding-bottom: .25rem;
+        background-color: constants.$backgroundWhite;
+      }
+    }
+    .email-title h4 {
+      font-size: 1rem;
+      line-height: normal;
+      color: constants.$darkBlue;
+      margin: 0;
+    }
+    .collapse-widget > div {
+      margin-top: .375rem;
+      border-left: 3px solid #eee;
+      padding-left: .875rem;
+    }
   }
   .filters-table {
     tbody > tr > td {
@@ -27,19 +52,46 @@ main.notifications {
     }
   }
   .nav-stacked {
-    & > li > a {
-      padding: 12px 12px 12px 12px;
-      line-height: normal;
-      font-weight: bold;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    & > li.active > a {
-      background-color: constants.$mediumDarkBlue;
+    & > li {
+      display: flex;
+      border-radius: 4px;
+      padding: 12px 10px;
+
+      &:hover {
+        background-color: constants.$borderGray;
+      }
+      &.active {
+        background-color: constants.$mediumDarkBlue;
+        & > a {
+          background-color: transparent;
+        }
+        & > .badge {
+          background-color: constants.$backgroundWhite;
+          color: constants.$mediumDarkBlue;
+        }
+      }
+
+      & > a {
+        padding: 0;
+        font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        &:hover {
+          background-color: transparent;
+        }
+      }
     }
     & > li + li {
-      margin-top: 4px;
+      margin-top: 6px;
+    }
+    .badge {
+      background-color: constants.$mediumDarkBlue;
+      padding: 0px 6px;
+      min-width: 20px;
+      line-height: 20px;
+      margin-left: 1px;
+      flex-shrink: 0;
     }
   }
 }
