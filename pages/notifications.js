@@ -1,17 +1,19 @@
 /* globals promptError: false */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import Link from 'next/link'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import zip from 'lodash/zip'
+import sum from 'lodash/sum'
+import UserContext from '../components/UserContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorAlert from '../components/ErrorAlert'
 import Table from '../components/Table'
-import useLoginRedirect from '../hooks/useLoginRedirect'
-import api from '../lib/api-client'
 import NotificationsTable from '../components/NotificationsTable'
 import PaginationLinks from '../components/PaginationLinks'
+import useLoginRedirect from '../hooks/useLoginRedirect'
+import api from '../lib/api-client'
 
 export default function Notifications({ appContext }) {
   const { user, accessToken } = useLoginRedirect()
@@ -22,7 +24,8 @@ export default function Notifications({ appContext }) {
   const [page, setPage] = useState(1)
   const [error, setError] = useState(null)
   const router = useRouter()
-  const { setBannerHidden, decrementGlobalNotificationCount } = appContext
+  const { setUnreadNotificationCount, decrementNotificationCount } = useContext(UserContext)
+  const { setBannerHidden } = appContext
   const pageSize = 25
   const orderedUserEmails = user?.profile.preferredEmail
     ? [
@@ -44,8 +47,7 @@ export default function Notifications({ appContext }) {
         ...unviewedCounts,
         [toEmail]: unviewedCounts[toEmail] - 1,
       })
-      // TODO:
-      // decrewmentGlobalNotificationCount()
+      decrementNotificationCount()
     } catch (apiError) {
       promptError(apiError.message)
       setMessages(
@@ -76,6 +78,7 @@ export default function Notifications({ appContext }) {
     )
       .then((counts) => {
         setUnviewedCounts(Object.fromEntries(zip(user.profile.emails, counts)))
+        setUnreadNotificationCount(sum(counts))
       })
       .catch(() => {
         promptError('Could not load unviewed message count')
