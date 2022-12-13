@@ -63,9 +63,7 @@ const NavUserLinks = () => {
         <Link href="/notifications">
           <a>
             Notifications
-            {unreadNotifications > 0 && (
-              <span className="badge">{unreadNotifications}</span>
-            )}
+            {unreadNotifications > 0 && <span className="badge">{unreadNotifications}</span>}
           </a>
         </Link>
       </li>

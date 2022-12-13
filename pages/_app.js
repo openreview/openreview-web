@@ -7,12 +7,7 @@ import { nanoid } from 'nanoid'
 import random from 'lodash/random'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
-import {
-  auth,
-  getTokenPayload,
-  cookieExpiration,
-  refreshExpiration,
-} from '../lib/auth'
+import { auth, getTokenPayload, cookieExpiration, refreshExpiration } from '../lib/auth'
 import api from '../lib/api-client'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 import mathjaxConfig from '../lib/mathjax-config'
@@ -173,7 +168,7 @@ export default class OpenReviewApp extends App {
 
   decrementNotificationCount() {
     this.setState((state, props) => ({
-      unreadNotifications: state.unreadNotifications - 1
+      unreadNotifications: state.unreadNotifications - 1,
     }))
   }
 
