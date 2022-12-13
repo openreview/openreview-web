@@ -181,6 +181,7 @@ const AreaChairConsoleMenuBar = ({
       basicSearchFunction={basicSearchFunction}
       messageModal={(props) => <MessageReviewersModal {...props} />}
       querySearchInfoModal={(props) => <QuerySearchInfoModal {...props} />}
+      enablePDFDownload={true}
     />
   )
 }
