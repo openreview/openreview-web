@@ -183,9 +183,10 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
                 allNoteIds={paperStatusTabData.tableRows?.map((row) => row.note.id)}
               />
             ),
+            width: '35px',
           },
-          { id: 'number', content: '#' },
-          { id: 'summary', content: 'Paper Summary' },
+          { id: 'number', content: '#', width: '55px' },
+          { id: 'summary', content: 'Paper Summary', width: '30%' },
           { id: 'reviewProgress', content: 'Review Progress', width: '30%' },
           ...(areaChairsId ? [{ id: 'status', content: 'Status' }] : []),
           { id: 'decision', content: 'Decision' },

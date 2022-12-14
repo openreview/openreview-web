@@ -171,8 +171,9 @@ const PaperStatus = ({ sacConsoleData }) => {
                 allNoteIds={paperStatusTabData.tableRows?.map((row) => row.note.id)}
               />
             ),
+            width: '35px'
           },
-          { id: 'number', content: '#' },
+          { id: 'number', content: '#', width: '55px' },
           { id: 'summary', content: 'Paper Summary' },
           { id: 'reviewProgress', content: 'Review Progress', width: '30%' },
           { id: 'status', content: 'Status' },
