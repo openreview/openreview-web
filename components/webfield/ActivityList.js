@@ -37,7 +37,7 @@ export default function ActivityList({ venueId, apiVersion, invitation, pageSize
 
     const loadActivityEdits = () => api
       .get(
-        '/notes/edits',
+        '/edits/notes',
         {
           domain: venueId,
           trash: true,
