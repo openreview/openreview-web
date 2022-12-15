@@ -652,7 +652,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
                     {hasAnonId && (
                       <>
                         {' | '}
-                        <Link href={urlFromGroupId(hasAnonId.anonId)}>
+                        <Link href={urlFromGroupId(hasAnonId.anonId, true)}>
                           <a>{prettyId(hasAnonId.anonId)}</a>
                         </Link>
                       </>
