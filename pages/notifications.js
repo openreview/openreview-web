@@ -138,8 +138,11 @@ export default function Notifications({ appContext }) {
                         key={email}
                         role="presentation"
                         className={toEmail === email ? 'active' : null}
+                        onClick={(e) => {
+                          router.push(`/notifications?email=${email}`, undefined, { shallow: true })
+                        }}
                       >
-                        <Link href={`/notifications?email=${email}`}>
+                        <Link href={`/notifications?email=${email}`} shallow>
                           <a title={email}>{email}</a>
                         </Link>
                         {unviewedCounts?.[email] > 0 && (

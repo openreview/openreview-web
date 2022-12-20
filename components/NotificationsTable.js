@@ -57,7 +57,7 @@ function MessageRow({ message, markViewed }) {
           </div>
           <div className="email-sent pull-right">
             {message.timestamp || message.cdate ? (
-              <span>Sent {formatDateTime(message.timestamp * 1000 || message.cdate)}</span>
+              <span>Sent: {formatDateTime(message.timestamp * 1000 || message.cdate)}</span>
             ) : (
               'Not Sent'
             )}
