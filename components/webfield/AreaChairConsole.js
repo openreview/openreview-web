@@ -541,11 +541,12 @@ const AreaChairConsole = ({ appContext }) => {
                   allNoteIds={acConsoleData.tableRows?.map((row) => row.note.id)}
                 />
               ),
+              width: '35px'
             },
-            { id: 'number', content: '#' },
-            { id: 'summary', content: 'Paper Summary' },
-            { id: 'reviewProgress', content: 'Review Progress', width: '30%' },
-            { id: 'metaReviewStatus', content: 'Meta Review Status' },
+            { id: 'number', content: '#', width: '55px' },
+            { id: 'summary', content: 'Paper Summary', width: '34%' },
+            { id: 'reviewProgress', content: 'Review Progress', width: '34%' },
+            { id: 'metaReviewStatus', content: 'Meta Review Status', width: 'auto' },
           ]}
         >
           {acConsoleData.tableRows?.map((row) => (

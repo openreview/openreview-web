@@ -640,9 +640,9 @@ const ReviewerConsole = ({ appContext }) => {
                 <Table
                   className="console-table table-striped"
                   headings={[
-                    { id: 'number', content: '#', width: '8%' },
+                    { id: 'number', content: '#', width: '55px' },
                     { id: 'summary', content: 'Paper Summary', width: '46%' },
-                    { id: 'ratings', content: 'Your Ratings', width: '46%' },
+                    { id: 'ratings', content: 'Your Ratings', width: 'auto' },
                   ]}
                 >
                   {reviewerConsoleData.notes?.map((note) => (

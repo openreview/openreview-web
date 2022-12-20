@@ -386,10 +386,10 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
       <Table
         className="console-table table-striped pc-console-reviewer-status"
         headings={[
-          { id: 'number', content: '#' },
-          { id: 'reviewer', content: 'Reviewer' },
-          { id: 'reviewProgress', content: 'Review Progress' },
-          { id: 'status', content: 'Status', width: '25%' },
+          { id: 'number', content: '#', width: '55px' },
+          { id: 'reviewer', content: 'Reviewer', width: '30%' },
+          { id: 'reviewProgress', content: 'Review Progress', width: '30%' },
+          { id: 'status', content: 'Status' },
         ]}
       >
         {reviewerStatusTabData.tableRowsDisplayed?.map((row) => (
