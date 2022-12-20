@@ -23,7 +23,7 @@ export default function ActivityList({ venueId, apiVersion, invitation, pageSize
           invitation: invitation || `${venueId}/.*`,
           details: 'forumContent,invitation,writable',
           sort: 'tmdate:desc',
-          limit: pageSize || 25,
+          limit: pageSize || 50,
         },
         { accessToken }
       )
@@ -37,7 +37,7 @@ export default function ActivityList({ venueId, apiVersion, invitation, pageSize
 
     const loadActivityEdits = () => api
       .get(
-        '/edits/notes',
+        '/notes/edits',
         {
           domain: venueId,
           trash: true,
@@ -47,8 +47,10 @@ export default function ActivityList({ venueId, apiVersion, invitation, pageSize
         },
         { accessToken, version: apiVersion }
       )
-      .then(({ notes }) => {
-        setActivityNotes(notes?.length > 0 ? notes : [])
+      .then(({ edits }) => {
+        setActivityNotes(
+          edits?.length > 0 ? edits.map((edit) => ({ ...edit, apiVersion: 2 })) : []
+        )
       })
       .catch((apiError) => {
         setActivityNotes([])
