@@ -12,9 +12,7 @@ export default function NotificationsTable({ messages, markViewed }) {
   return (
     <Table
       className="messages-table"
-      headings={[
-        { id: 'details', content: 'Message Details' },
-      ]}
+      headings={[{ id: 'details', content: 'Message Details' }]}
     >
       {messages.length > 0 ? (
         messages.map((m) => <MessageRow key={m.id} message={m} markViewed={markViewed} />)
@@ -49,23 +47,32 @@ function MessageRow({ message, markViewed }) {
           )}
           <div className="email-to pull-left mr-3">
             <span
-              className={`status ${message.status === 'delivered' ? 'delivered' : 'not-delivered'}`}
+              className={`status ${
+                message.status === 'delivered' ? 'delivered' : 'not-delivered'
+              }`}
             >
-              {upperFirst(message.status)}
+              Email {upperFirst(message.status)}
             </span>
-            {message.vdate && (
-              <span>, Viewed</span>
-            )}
+            {message.vdate && <span>, Viewed</span>}
           </div>
           <div className="email-sent pull-right">
-            {(message.timestamp || message.cdate) ? (
-              <span>{formatDateTime(message.timestamp * 1000 || message.cdate)}</span>
-            ) : 'Not Sent'}
+            {message.timestamp || message.cdate ? (
+              <span>Sent {formatDateTime(message.timestamp * 1000 || message.cdate)}</span>
+            ) : (
+              'Not Sent'
+            )}
           </div>
         </div>
 
         <div className="email-title">
-          <h4>{message.content?.subject || 'No Subject'}</h4>
+          <h4
+            onClick={(e) => {
+              e.preventDefault()
+              e.target.parentNode.nextSibling.children[0].click()
+            }}
+          >
+            {message.content?.subject || 'No Subject'}
+          </h4>
         </div>
 
         <Collapse
@@ -94,9 +101,6 @@ function MessageContent({ content = '' }) {
 
   return (
     // eslint-disable-next-line react/no-danger
-    <div
-      className="markdown-rendered"
-      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-    />
+    <div className="markdown-rendered" dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
   )
 }
