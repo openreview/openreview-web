@@ -334,27 +334,27 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
     group: {
       id: group.id,
       members: {
-        [action]: members
+        [action]: members,
       },
     },
     readers: [profileId],
     writers: [profileId],
     signatures: [profileId],
-    invitation:  group.domain ? `${group.domain}/-/Edit` : group.invitations[0],
+    invitation: group.domain ? `${group.domain}/-/Edit` : group.invitations[0],
   })
 
   const deleteMember = async (memberId) => {
-    const confirmMessage = 'You are removing yourself and may lose access to this group. Are you sure you want to continue?'
+    const confirmMessage =
+      'You are removing yourself and may lose access to this group. Are you sure you want to continue?'
     // eslint-disable-next-line no-alert
     if (userIds.includes(memberId) && !window.confirm(confirmMessage)) return
 
     try {
       if (group.invitations) {
-        await api.post(
-          '/groups/edits',
-          buildEdit('remove', [memberId]),
-          { accessToken, version: 2 }
-        )
+        await api.post('/groups/edits', buildEdit('remove', [memberId]), {
+          accessToken,
+          version: 2,
+        })
       } else {
         await api.delete(
           '/groups/members',
@@ -372,9 +372,16 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
   const restoreMember = async (memberId) => {
     try {
       if (group.invitations) {
-        await api.post('/groups/edits', buildEdit('append', [memberId]), { accessToken, version: 2 })
+        await api.post('/groups/edits', buildEdit('append', [memberId]), {
+          accessToken,
+          version: 2,
+        })
       } else {
-        await api.put('/groups/members', { id: group.id, members: [memberId] }, { accessToken })
+        await api.put(
+          '/groups/members',
+          { id: group.id, members: [memberId] },
+          { accessToken }
+        )
       }
       setGroupMembers({ type: 'RESTORE', payload: [memberId] })
       reloadGroup()
@@ -400,7 +407,8 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
       promptError('No member to add')
       return
     }
-    const membersToAdd = term.split(',')
+    const membersToAdd = term
+      .split(',')
       .map((member) => {
         const trimmedMem = member.trim()
         return trimmedMem.includes('@') ? trimmedMem.toLowerCase() : trimmedMem
@@ -413,12 +421,13 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
 
     // Could include new members, existing deleted members, or existing active member
     const newMembers = membersToAdd.filter((p) => !groupMembers.find((q) => q.id === p))
-    const existingDeleted = membersToAdd.filter((p) => (
-      groupMembers.find((q) => q.id === p)?.isDeleted
-    ))
-    const existingActive = membersToAdd.filter((p) => (
-      groupMembers.find((q) => q.id === p) && !groupMembers.find((q) => q.id === p).isDeleted
-    ))
+    const existingDeleted = membersToAdd.filter(
+      (p) => groupMembers.find((q) => q.id === p)?.isDeleted
+    )
+    const existingActive = membersToAdd.filter(
+      (p) =>
+        groupMembers.find((q) => q.id === p) && !groupMembers.find((q) => q.id === p).isDeleted
+    )
 
     const newMembersMessage = newMembers.length
       ? `${newMembers.length} new member${newMembers.length > 1 ? 's' : ''} added`
@@ -479,11 +488,10 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
     }
     try {
       if (group.invitations) {
-        await api.post(
-          '/groups/edits',
-          buildEdit('remove', membersToRemove),
-          { accessToken, version: 2 }
-        )
+        await api.post('/groups/edits', buildEdit('remove', membersToRemove), {
+          accessToken,
+          version: 2,
+        })
       } else {
         await api.delete(
           '/groups/members',
@@ -609,79 +617,81 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
             </button>
           </div>
 
-          {filteredMembers?.length > 0 ? displayedMembers.map((member) => {
-            const hasAnonId = memberAnonIds.find((p) => p.member === member.id)
-            return (
-              <div
-                key={member.id}
-                className={`member-row ${member.isDeleted ? 'deleted' : ''}`}
-              >
-                <input
-                  type="checkbox"
-                  checked={member.isSelected}
-                  disabled={member.isDeleted}
-                  onChange={(e) => {
-                    setGroupMembers({
-                      type: e.target.checked ? 'SELECT' : 'UNSELECT',
-                      payload: member.id,
-                    })
-                  }}
-                />
-                <span
-                  className="member-id"
-                  onClick={(e) => {
-                    if (e.currentTarget !== e.target) return
-                    setGroupMembers({
-                      type: 'INVERTSELECTION',
-                      payload: member.id,
-                    })
-                  }}
+          {filteredMembers?.length > 0 ? (
+            displayedMembers.map((member) => {
+              const hasAnonId = memberAnonIds.find((p) => p.member.includes(member.id))
+              return (
+                <div
+                  key={member.id}
+                  className={`member-row ${member.isDeleted ? 'deleted' : ''}`}
                 >
-                  <Link href={urlFromGroupId(member.id)}>
-                    <a>{member.id}</a>
-                  </Link>
-                  {hasAnonId && (
+                  <input
+                    type="checkbox"
+                    checked={member.isSelected}
+                    disabled={member.isDeleted}
+                    onChange={(e) => {
+                      setGroupMembers({
+                        type: e.target.checked ? 'SELECT' : 'UNSELECT',
+                        payload: member.id,
+                      })
+                    }}
+                  />
+                  <span
+                    className="member-id"
+                    onClick={(e) => {
+                      if (e.currentTarget !== e.target) return
+                      setGroupMembers({
+                        type: 'INVERTSELECTION',
+                        payload: member.id,
+                      })
+                    }}
+                  >
+                    <Link href={urlFromGroupId(member.id)}>
+                      <a>{member.id}</a>
+                    </Link>
+                    {hasAnonId && (
+                      <>
+                        {' | '}
+                        <Link href={urlFromGroupId(hasAnonId.anonId, true)}>
+                          <a>{prettyId(hasAnonId.anonId)}</a>
+                        </Link>
+                      </>
+                    )}
+                    {member.isDeleted && <> {'(Deleted)'}</>}
+                  </span>
+                  {member.isDeleted ? (
+                    <button
+                      type="button"
+                      className="btn btn-xs btn-primary"
+                      onClick={() => restoreMember(member.id)}
+                    >
+                      <Icon name="repeat" />
+                      Undo
+                    </button>
+                  ) : (
                     <>
-                      {' | '}
-                      <Link href={urlFromGroupId(hasAnonId.anonId)}>
-                        <a>{prettyId(hasAnonId.anonId)}</a>
-                      </Link>
+                      <button
+                        type="button"
+                        className="btn btn-xs btn-primary"
+                        onClick={() => messageMember([member.id])}
+                      >
+                        <Icon name="envelope" />
+                        Message
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-xs btn-primary"
+                        onClick={() => deleteMember(member.id)}
+                      >
+                        <Icon name="remove" />
+                        Remove
+                      </button>
                     </>
                   )}
-                  {member.isDeleted && <> {'(Deleted)'}</>}
-                </span>
-                {member.isDeleted ? (
-                  <button
-                    type="button"
-                    className="btn btn-xs btn-primary"
-                    onClick={() => restoreMember(member.id)}
-                  >
-                    <Icon name="repeat" />
-                    Undo
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      className="btn btn-xs btn-primary"
-                      onClick={() => messageMember([member.id])}
-                    >
-                      <Icon name="envelope" />
-                      Message
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-xs btn-primary"
-                      onClick={() => deleteMember(member.id)}
-                    >
-                      <Icon name="remove" />
-                      Remove
-                    </button>
-                  </>
-                )}
-              </div>
-            )
-          }) : (
+                </div>
+              )
+            })
+          ) : (
             <div className="empty-message-row">
               {searchTerm
                 ? `No members matching the search "${searchTerm}" found. Click Add to Group above to add a new member.`

@@ -151,14 +151,14 @@ const ProgramChairConsole = ({ appContext }) => {
                 {
                   invitation: `${prefix}/-/.*`,
                   signature: venueId,
-                  select: 'id,invitation,content.title',
+                  select: 'id,invitation,invitations,content.title',
                 },
                 { accessToken, version: apiVersion }
               )
               .then((notes) =>
                 notes.filter((note) =>
                   isV2Console
-                    ? note.invitations.includes('Form')
+                    ? note.invitations.some((p) => p.includes('Form'))
                     : note.invitation.endsWith('Form')
                 )
               )
