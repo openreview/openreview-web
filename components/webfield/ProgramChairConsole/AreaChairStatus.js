@@ -469,8 +469,8 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
       <Table
         className="console-table table-striped pc-console-ac-status"
         headings={[
-          { id: 'number', content: '#' },
-          { id: 'areachair', content: 'Area Chair' },
+          { id: 'number', content: '#', width: '55px' },
+          { id: 'areachair', content: 'Area Chair', width: '25%' },
           { id: 'reviewProgress', content: 'Review Progress' },
           { id: 'status', content: 'Status' },
         ]}

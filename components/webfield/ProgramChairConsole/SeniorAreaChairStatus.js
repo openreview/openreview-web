@@ -136,7 +136,7 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo }) => {
       <Table
         className="console-table table-striped pc-console-ac-status"
         headings={[
-          { id: 'number', content: '#' },
+          { id: 'number', content: '#', width: '55px' },
           { id: 'seniorAreaChair', content: 'Senior Area Chair' },
           { id: 'areachair', content: 'Area Chair' },
         ]}
