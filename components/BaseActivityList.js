@@ -19,6 +19,9 @@ export default function BaseActivityList({ notes, emptyMessage, showActionButton
         return
       }
 
+      const { forum, id } = note.apiVersion === 2 ? note.note : note
+      if (!forum) return
+
       const noteAuthors = note.tauthor ? [note.tauthor] : note.signatures
       const userIsSignatory =
         user && intersection(noteAuthors, user.profile.emails.concat(user.profile.usernames, user.id)).length
@@ -34,13 +37,6 @@ export default function BaseActivityList({ notes, emptyMessage, showActionButton
         }
         formattedSignature = prettySig
       }
-      let isForum
-      if (note.apiVersion === 2) {
-        const { forum, id } = note.note
-        isForum = forum && id && forum === id
-      } else {
-        isForum = note.forum === note.id
-      }
 
       tempNotes.push({
         ...note,
@@ -49,7 +45,7 @@ export default function BaseActivityList({ notes, emptyMessage, showActionButton
           group: invitationArr[0],
           isDeleted: note.ddate && note.ddate < Date.now(),
           isUpdated: note.tmdate > note.tcdate,
-          isForum,
+          isForum: forum === id,
           userIsSignatory,
           formattedSignature,
         },
