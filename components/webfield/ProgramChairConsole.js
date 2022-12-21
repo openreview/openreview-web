@@ -602,16 +602,20 @@ const ProgramChairConsole = ({ appContext }) => {
     const sacEdgeResult = seniorAreaChairsId
       ? await api.getAll(
           '/edges',
-          { invitation: `${seniorAreaChairsId}/-/Assignment` },
-          { accessToken }
+          {
+            invitation: `${seniorAreaChairsId}/-/Assignment`,
+            groupBy: 'head,tail',
+            select: 'head,tail',
+          },
+          { accessToken, resultsKey: 'groupedEdges' }
         )
       : []
 
     const sacByAcMap = new Map()
     const acBySacMap = new Map()
     sacEdgeResult.forEach((edge) => {
-      const ac = edge.head
-      const sac = edge.tail
+      const ac = edge.values[0].head
+      const sac = edge.values[0].tail
       sacByAcMap.set(ac, sac)
       if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
       acBySacMap.get(sac).push(ac)
