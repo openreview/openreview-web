@@ -152,7 +152,7 @@ const RejectedWithdrawnPapers = ({ pcConsoleData }) => {
       <Table
         className="console-table table-striped pc-console-rejected-papers"
         headings={[
-          { id: 'number', content: '#' },
+          { id: 'number', content: '#', width: '55px' },
           { id: 'paperSummary', content: 'Paper Summary', width: '60%' },
           { id: 'reason', content: 'Reason' },
         ]}

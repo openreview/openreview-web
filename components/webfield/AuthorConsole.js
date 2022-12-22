@@ -476,9 +476,9 @@ const AuthorConsole = ({ appContext }) => {
                 <Table
                   className="console-table table-striped"
                   headings={[
-                    { id: 'number', content: '#', width: '5%' },
+                    { id: 'number', content: '#', width: '55px' },
                     { id: 'summary', content: 'Paper Summary', width: '35%' },
-                    { id: 'reviews', content: 'Reviews', width: '30%' },
+                    { id: 'reviews', content: 'Reviews', width: 'auto' },
                     { id: 'decision', content: 'Decision', width: '30%' },
                   ]}
                 >
