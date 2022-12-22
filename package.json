@@ -61,6 +61,6 @@
     "eslint-plugin-import": "^2.26.0",
     "node-fetch-cjs": "^3.2.10",
     "prettier": "^2.7.1",
-    "testcafe": "^2.1.0"
+    "testcafe": "^15.1.317922"
   }
 }
