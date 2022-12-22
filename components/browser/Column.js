@@ -501,14 +501,14 @@ export default function Column(props) {
         getWritable,
         sort,
         promise: api
-          .getAll(
+          .get(
             '/edges',
             buildQuery(invitation.id, {
               ...invitation.query,
               details: detailsParam,
               groupBy: 'id',
             }),
-            { accessToken, version, resultsKey: 'groupedEdges' }
+            { accessToken, version }
           )
           .catch((error) => promptError(error.message)),
       })
@@ -626,20 +626,17 @@ export default function Column(props) {
     // Load all edges related to parent and build lists of assigned items and
     // alternate items, adding edges to each cell
     Promise.all(edgesPromiseMap.map((p) => p.promise)).then((groupedResults) => {
-      const result = groupedResults.map((q) => q.map((r) => r.values[0]))
+      const result = groupedResults.map((q) => q.groupedEdges.map((r) => r.values[0]))
       let traverseEdges =
-        result
-          .find(
-            (p, i) =>
-              edgesPromiseMap.findIndex((q) => q.invitations.includes('traverse')) === i
-          )
-          ?.sort((a, b) => (b.weight ?? -999) - (a.weight ?? -999)) || []
-      const hideEdges =
-        result
-          .find(
-            (p, i) => edgesPromiseMap.findIndex((q) => q.invitations.includes('hide')) === i
-          )
-          ?.sort((a, b) => (b.weight ?? -999) - (a.weight ?? -999)) || []
+        result.find(
+          (p, i) => edgesPromiseMap.findIndex((q) => q.invitations.includes('traverse')) === i
+        ) || []
+      traverseEdges = _.sortBy(traverseEdges, (p) => p.weight * -1)
+      let hideEdges =
+        result.find(
+          (p, i) => edgesPromiseMap.findIndex((q) => q.invitations.includes('hide')) === i
+        ) || []
+      hideEdges = _.sortBy(hideEdges, (p) => p.weight * -1)
       const editEdgeGroups = result.filter((p, i) =>
         edgesPromiseMap
           .map((q, j) => (q.invitations.includes('edit') ? j : -1))

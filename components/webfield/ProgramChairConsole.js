@@ -600,15 +600,17 @@ const ProgramChairConsole = ({ appContext }) => {
   const loadSacAcInfo = async () => {
     // #region get sac edges to get sac of ac
     const sacEdgeResult = seniorAreaChairsId
-      ? await api.getAll(
-          '/edges',
-          {
-            invitation: `${seniorAreaChairsId}/-/Assignment`,
-            groupBy: 'head,tail',
-            select: 'head,tail',
-          },
-          { accessToken, resultsKey: 'groupedEdges' }
-        )
+      ? await api
+          .get(
+            '/edges',
+            {
+              invitation: `${seniorAreaChairsId}/-/Assignment`,
+              groupBy: 'head,tail',
+              select: 'head,tail',
+            },
+            { accessToken }
+          )
+          .then((result) => result.groupedEdges)
       : []
 
     const sacByAcMap = new Map()
