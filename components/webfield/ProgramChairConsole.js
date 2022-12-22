@@ -212,7 +212,7 @@ const ProgramChairConsole = ({ appContext }) => {
       const getAcRecommendationsP =
         recommendationName && areaChairsId
           ? api
-              .getAll(
+              .get(
                 '/edges',
                 {
                   invitation: `${reviewersId}/-/${recommendationName}`,
@@ -220,10 +220,10 @@ const ProgramChairConsole = ({ appContext }) => {
                   select: 'signatures',
                   stream: true,
                 },
-                { accessToken, resultsKey: 'groupedEdges' }
+                { accessToken }
               )
               .then((result) =>
-                result.reduce((profileMap, edge) => {
+                result.groupedEdges.reduce((profileMap, edge) => {
                   const acId = edge.values[0].signatures[0]
                   if (!profileMap[acId]) {
                     profileMap[acId] = 0 // eslint-disable-line no-param-reassign
