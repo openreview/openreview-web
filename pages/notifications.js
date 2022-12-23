@@ -18,6 +18,7 @@ import api from '../lib/api-client'
 export default function Notifications({ appContext }) {
   const { user, accessToken } = useLoginRedirect()
   const [toEmail, setToEmail] = useState(null)
+  const [confirmedEmails, setConfirmedEmails] = useState(null)
   const [unviewedCounts, setUnviewedCounts] = useState(null)
   const [messages, setMessages] = useState(null)
   const [count, setCount] = useState(0)
@@ -27,12 +28,6 @@ export default function Notifications({ appContext }) {
   const { setUnreadNotificationCount, decrementNotificationCount } = useContext(UserContext)
   const { setBannerHidden } = appContext
   const pageSize = 25
-  const orderedUserEmails = user?.profile.preferredEmail
-    ? [
-        user.profile.preferredEmail,
-        ...user.profile.emails.filter((email) => email !== user.profile.preferredEmail),
-      ]
-    : user?.profile.emails
 
   const markViewed = async (messageId) => {
     const now = Date.now()
@@ -68,9 +63,36 @@ export default function Notifications({ appContext }) {
   useEffect(() => {
     if (!accessToken) return
 
+    api
+      .get('/profiles', { id: user.id }, { accessToken })
+      .then(({ profiles }) => {
+        if (profiles?.length > 0) {
+          const { preferredEmail, emailsConfirmed } = profiles[0].content
+          setConfirmedEmails(
+            preferredEmail
+              ? [
+                  preferredEmail,
+                  ...emailsConfirmed.filter((email) => email !== preferredEmail),
+                ]
+              : emailsConfirmed
+          )
+        } else {
+          setError({ message: 'Could not load user profile. Please reload the page.' })
+          setConfirmedEmails(null)
+        }
+      })
+      .catch((apiError) => {
+        setError(apiError)
+        setConfirmedEmails(null)
+      })
+  }, [accessToken, user?.id])
+
+  useEffect(() => {
+    if (!accessToken || !confirmedEmails) return
+
     // Load count of unviewed messages for all emails
     Promise.all(
-      user.profile.emails.map((email) =>
+      confirmedEmails.map((email) =>
         api
           .get('/messages', { to: email, viewed: false }, { accessToken })
           .then((apiRes) => apiRes.count ?? 0)
@@ -82,8 +104,9 @@ export default function Notifications({ appContext }) {
       })
       .catch(() => {
         promptError('Could not load unviewed message count')
+        setUnviewedCounts({})
       })
-  }, [accessToken])
+  }, [accessToken, confirmedEmails])
 
   useEffect(() => {
     if (!toEmail || !accessToken) return
@@ -123,7 +146,7 @@ export default function Notifications({ appContext }) {
 
       {!messages && !error && <LoadingSpinner inline />}
 
-      {messages && user && (
+      {messages && confirmedEmails && (
         <div className="row">
           <div className="filters-col">
             <Table
@@ -133,13 +156,15 @@ export default function Notifications({ appContext }) {
               <tr>
                 <td>
                   <ul className="nav nav-pills nav-stacked">
-                    {orderedUserEmails.map((email) => (
+                    {confirmedEmails.map((email) => (
                       <li
                         key={email}
                         role="presentation"
                         className={toEmail === email ? 'active' : null}
                         onClick={(e) => {
-                          router.push(`/notifications?email=${email}`, undefined, { shallow: true })
+                          router.push(`/notifications?email=${email}`, undefined, {
+                            shallow: true,
+                          })
                         }}
                       >
                         <Link href={`/notifications?email=${email}`} shallow>
