@@ -144,7 +144,7 @@ export default function Notifications({ appContext }) {
 
       {error && <ErrorAlert error={error} />}
 
-      {!messages && !error && <LoadingSpinner inline />}
+      {(!messages || !confirmedEmails) && !error && <LoadingSpinner inline />}
 
       {messages && confirmedEmails && (
         <div className="row">
