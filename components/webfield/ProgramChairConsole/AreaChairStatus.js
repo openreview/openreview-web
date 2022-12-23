@@ -298,13 +298,15 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
                 '/edges',
                 {
                   invitation: `${reviewersId}/-/${recommendationName}`,
+                  groupBy: 'id',
+                  select: 'signatures',
                   stream: true,
                 },
-                { accessToken }
+                { accessToken, resultsKey: 'groupedEdges' }
               )
             : []
         const acRecommendationCount = acRecommendations.reduce((profileMap, edge) => {
-          const acId = edge.signatures[0]
+          const acId = edge.values[0].signatures[0]
           if (!profileMap[acId]) {
             profileMap[acId] = 0 // eslint-disable-line no-param-reassign
           }
