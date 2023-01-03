@@ -64,7 +64,7 @@ export default function Notifications({ appContext }) {
     if (!accessToken) return
 
     api
-      .get('/profiles', { id: user.id }, { accessToken })
+      .get('/profiles', {}, { accessToken })
       .then(({ profiles }) => {
         if (profiles?.length > 0) {
           const { preferredEmail, emailsConfirmed } = profiles[0].content
@@ -82,10 +82,10 @@ export default function Notifications({ appContext }) {
         }
       })
       .catch((apiError) => {
-        setError(apiError)
+        setError({ message: `Error loading user profile: ${apiError.message}` })
         setConfirmedEmails(null)
       })
-  }, [accessToken, user?.id])
+  }, [accessToken])
 
   useEffect(() => {
     if (!accessToken || !confirmedEmails) return
@@ -99,7 +99,7 @@ export default function Notifications({ appContext }) {
       )
     )
       .then((counts) => {
-        setUnviewedCounts(Object.fromEntries(zip(user.profile.emails, counts)))
+        setUnviewedCounts(Object.fromEntries(zip(confirmedEmails, counts)))
         setUnreadNotificationCount(sum(counts))
       })
       .catch(() => {
@@ -109,7 +109,9 @@ export default function Notifications({ appContext }) {
   }, [accessToken, confirmedEmails])
 
   useEffect(() => {
-    if (!toEmail || !accessToken) return
+    if (!accessToken || !toEmail) return
+
+    setError(null)
 
     api
       .get(
@@ -124,7 +126,6 @@ export default function Notifications({ appContext }) {
       .then((apiRes) => {
         setMessages(apiRes.messages ?? [])
         setCount(apiRes.count ?? 0)
-        setError(null)
       })
       .catch((apiError) => {
         setError(apiError)
