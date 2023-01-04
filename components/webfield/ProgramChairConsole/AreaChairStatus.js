@@ -291,30 +291,6 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
       loadReviewMetaReviewData()
     } else {
       try {
-        // #region get ac recommendation count
-        const acRecommendations =
-          recommendationName && areaChairsId
-            ? await api.getAll(
-                '/edges',
-                {
-                  invitation: `${reviewersId}/-/${recommendationName}`,
-                  groupBy: 'id',
-                  select: 'signatures',
-                  stream: true,
-                },
-                { accessToken, resultsKey: 'groupedEdges' }
-              )
-            : []
-        const acRecommendationCount = acRecommendations.reduce((profileMap, edge) => {
-          const acId = edge.values[0].signatures[0]
-          if (!profileMap[acId]) {
-            profileMap[acId] = 0 // eslint-disable-line no-param-reassign
-          }
-          profileMap[acId] += 1 // eslint-disable-line no-param-reassign
-          return profileMap
-        }, {})
-
-        // #endregion
         // #region calc ac to notes map
         const acNotesMap = new Map()
         const allNoteNumbers = pcConsoleData.notes.map((p) => p.number)
@@ -362,7 +338,8 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
             areaChairProfileId,
             areaChairProfile: acProfile,
             number: index + 1,
-            completedRecommendations: acRecommendationCount[areaChairProfileId] ?? 0,
+            completedRecommendations:
+              pcConsoleData.acRecommendationsCount?.[areaChairProfileId] ?? 0,
             completedBids:
               pcConsoleData.bidCount?.areaChairs?.find(
                 (p) => p.id?.tail === areaChairProfileId

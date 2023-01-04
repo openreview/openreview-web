@@ -43,7 +43,6 @@ const EducationHisotryRow = ({
             defaultMenuIsOpen
             hideArrow
             disableMouseMove
-            virtualList
             isClearable
             classNamePrefix="position-dropdown"
             placeholder={positionPlaceholder}

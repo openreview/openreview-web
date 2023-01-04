@@ -47,7 +47,6 @@ const RelationRow = ({
             defaultMenuIsOpen
             hideArrow
             disableMouseMove
-            virtualList
             isClearable
             classNamePrefix="relation-dropdown"
             placeholder={relationPlaceholder}

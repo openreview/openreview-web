@@ -52,7 +52,7 @@ export default function ProfileEntity(props) {
     )?.weight ?? defaultWeight
 
   ignoreHeadBrowseInvitations.forEach((p) => {
-    if (!p.defaultLabel && !p.defaultWeight) return
+    if (!p.defaultLabel && !p.defaultWeight && p.defaultWeight !== 0) return
     if (!browseEdges?.find((q) => q.invitation === p.id)) {
       browseEdges = browseEdges.concat({
         id: nanoid(),

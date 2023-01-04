@@ -172,7 +172,7 @@ const SubmissionsStatsRow = ({ pcConsoleData }) => {
 }
 
 const BiddingStatsRow = ({ bidEnabled, recommendationEnabled, pcConsoleData }) => {
-  const { areaChairsId, seniorAreaChairsId, reviewersId, bidName } =
+  const { areaChairsId, seniorAreaChairsId, reviewersId, bidName, recommendationName } =
     useContext(WebFieldContext)
 
   const calcBiddingProgress = (id, role) => {
@@ -192,6 +192,30 @@ const BiddingStatsRow = ({ bidEnabled, recommendationEnabled, pcConsoleData }) =
       <>
         {((bidComplete * 100) / total).toFixed(2)}%&nbsp;&nbsp;
         <span className="fraction">{` (${bidComplete} / ${total})`}</span>
+      </>
+    )
+  }
+  const calcRecommendationProgress = () => {
+    const recommendationInvitation = pcConsoleData.invitations?.find(
+      (p) => p.id === `${reviewersId}/-/${recommendationName}`
+    )
+    const taskCompletionCount = recommendationInvitation?.taskCompletionCount
+      ? parseInt(recommendationInvitation.taskCompletionCount, 10)
+      : 0
+    const recommendationComplete = Object.values(
+      pcConsoleData.acRecommendationsCount ?? {}
+    )?.reduce(
+      (numComplete, recommendationCount) =>
+        recommendationCount >= taskCompletionCount ? numComplete + 1 : numComplete,
+      0
+    )
+    const total = pcConsoleData.areaChairs?.length
+    return total === 0 ? (
+      <span>{recommendationComplete} / 0</span>
+    ) : (
+      <>
+        {((recommendationComplete * 100) / total).toFixed(2)}%&nbsp;&nbsp;
+        <span className="fraction">{` (${recommendationComplete} / ${total})`}</span>
       </>
     )
   }
@@ -218,7 +242,7 @@ const BiddingStatsRow = ({ bidEnabled, recommendationEnabled, pcConsoleData }) =
           <StatContainer
             title="Recommendation Progress"
             hint="% of ACs who have completed the required number of reviewer recommendations"
-            value="7661"
+            value={calcRecommendationProgress()}
           />
         )}
         {bidEnabled && seniorAreaChairsId && (
@@ -813,7 +837,7 @@ const DescriptionTimelineOtherConfigRow = ({
             <ul className="overview-list">
               {registrationForms.map((form) => (
                 <li key={form.id} className="overview-registration-link">
-                  <Link href={`/forum?id=${form.id}`}>
+                  <Link href={`/forum?id=${form.id}&referrer=${referrerUrl}`}>
                     <a>
                       {pcConsoleData.isV2Console
                         ? form.content?.title?.value
