@@ -208,6 +208,33 @@ const ProgramChairConsole = ({ appContext }) => {
             )
       // #endregion
 
+      // #region get ac recommendation count
+      const getAcRecommendationsP =
+        recommendationName && areaChairsId
+          ? api
+              .get(
+                '/edges',
+                {
+                  invitation: `${reviewersId}/-/${recommendationName}`,
+                  groupBy: 'id',
+                  select: 'signatures',
+                  stream: true,
+                },
+                { accessToken }
+              )
+              .then((result) =>
+                result.groupedEdges.reduce((profileMap, edge) => {
+                  const acId = edge.values[0].signatures[0]
+                  if (!profileMap[acId]) {
+                    profileMap[acId] = 0 // eslint-disable-line no-param-reassign
+                  }
+                  profileMap[acId] += 1 // eslint-disable-line no-param-reassign
+                  return profileMap
+                }, {})
+              )
+          : Promise.resolve([])
+      //
+
       // #region get Reviewer,AC,SAC bid
       const bidCountResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) => {
@@ -244,6 +271,7 @@ const ProgramChairConsole = ({ appContext }) => {
         committeeMemberResultsP,
         notesP,
         withdrawnRejectedSubmissionResultsP,
+        getAcRecommendationsP,
         bidCountResultsP,
         perPaperGroupResultsP,
       ])
@@ -253,8 +281,9 @@ const ProgramChairConsole = ({ appContext }) => {
       const committeeMemberResults = results[3]
       const notes = results[4].map((note) => ({ ...note, version: apiVersion }))
       const withdrawnRejectedSubmissionResults = results[5]
-      const bidCountResults = results[6]
-      const perPaperGroupResults = results[7]
+      const acRecommendationsCount = results[6]
+      const bidCountResults = results[7]
+      const perPaperGroupResults = results[8]
 
       // #region categorize result of per paper groups
       const reviewerGroups = []
@@ -389,6 +418,7 @@ const ProgramChairConsole = ({ appContext }) => {
         decisionByPaperNumberMap,
         withdrawnNotes: isV2Console ? null : withdrawnRejectedSubmissionResults[0], // v2 has no rejected papers tab
         deskRejectedNotes: isV2Console ? null : withdrawnRejectedSubmissionResults[1],
+        acRecommendationsCount,
         bidCounts: {
           reviewers: bidCountResults[0],
           areaChairs: bidCountResults[1],
