@@ -48,8 +48,13 @@ const CustomOption = ({ children, ...props }) => {
   )
 }
 
-const customMenuList = ({ children }) => (
-  <List data={children} height={300} itemHeight={20} itemKey="key">
+const CustomMenuList = ({ children }) => (
+  <List
+    data={Array.isArray(children) ? children : [children]}
+    height={300}
+    itemHeight={20}
+    itemKey="key"
+  >
     {(option) => <div className="item">{option}</div>}
   </List>
 )
@@ -78,7 +83,7 @@ export const CreatableDropdown = (props) => {
   if (props.virtualList) {
     customComponents = {
       ...customComponents,
-      MenuList: customMenuList,
+      MenuList: CustomMenuList,
     }
   }
   // eslint-disable-next-line react/destructuring-assignment
