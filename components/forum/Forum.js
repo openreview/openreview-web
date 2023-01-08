@@ -4,7 +4,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import Link from 'next/link'
 import isEmpty from 'lodash/isEmpty'
 import escapeRegExp from 'lodash/escapeRegExp'
 
@@ -14,7 +13,6 @@ import FilterForm from './FilterForm'
 import FilterTabs from './FilterTabs'
 import ForumReply from './ForumReply'
 import LoadingSpinner from '../LoadingSpinner'
-import Icon from '../Icon'
 import ForumReplyContext from './ForumReplyContext'
 
 import useUser from '../../hooks/useUser'
@@ -53,6 +51,7 @@ export default function Forum({
     excludedReaders: null,
   })
   const [activeInvitation, setActiveInvitation] = useState(null)
+  const [maxLength, setMaxLength] = useState(250)
   const [scrolled, setScrolled] = useState(false)
   const router = useRouter()
   const query = useQuery()
@@ -97,27 +96,15 @@ export default function Forum({
   const getNotesByForumId = (forumId) => {
     if (!forumId) return Promise.resolve([])
 
-    return api
-      .get(
-        '/notes',
-        {
-          forum: forumId,
-          trash: true,
-          details: 'replyCount,editsCount,writable,signatures,invitation,presentation',
-        },
-        { accessToken, version: 2 }
-      )
-      .then(({ notes }) => {
-        if (!Array.isArray(notes)) return []
-
-        notes.forEach((note) => {
-          if (!note.replyto && note.id !== note.forum) {
-            // eslint-disable-next-line no-param-reassign
-            note.replyto = note.forum
-          }
-        })
-        return notes
-      })
+    return api.getAll(
+      '/notes',
+      {
+        forum: forumId,
+        trash: true,
+        details: 'replyCount,editsCount,writable,signatures,invitation,presentation',
+      },
+      { accessToken, version: 2 }
+    )
   }
 
   const loadNotesAndInvitations = async () => {
@@ -704,7 +691,7 @@ export default function Forum({
               }}
             >
               {repliesLoaded ? (
-                orderedReplies.map((reply) => (
+                orderedReplies.slice(0, maxLength).map((reply) => (
                   <ForumReply
                     key={reply.id}
                     note={replyNoteMap[reply.id]}
@@ -718,6 +705,18 @@ export default function Forum({
                 <LoadingSpinner inline />
               )}
             </ForumReplyContext.Provider>
+
+            {repliesLoaded && maxLength < orderedReplies.length && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  className="btn btn-xs btn-default"
+                  onClick={() => setMaxLength(maxLength + 100)}
+                >
+                  View More Replies &rarr;
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
