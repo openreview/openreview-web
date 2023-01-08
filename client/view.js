@@ -637,7 +637,7 @@ module.exports = (function () {
         resultText = '"signatures" will be replaced with the edit signature shown below.'
       } else if (resultText.includes('/value}')) {
         const fieldName = resultText.split('/').slice(-2)[0]
-        resultText = '"value" will be replaced with the value of the field ' + fieldName
+        resultText = '"' + fieldName + '" will be replaced with the value of the field ' + fieldName
       }
       var $hoverResult = $('<div>', { class: 'hover_result' }).text(resultText).hide()
       $hoverItem.append($hoverResult).hover(
@@ -3051,7 +3051,8 @@ module.exports = (function () {
       if (id.includes('${')) {
         var match = id.match('{.*}')[0]
         var newMatch = match.replace(/\//g, '.')
-        id = id.replace(match, newMatch)
+        // remove value when it appears at the end of the token
+        id = id.replace(match, newMatch).replace('.value}', '}')
       }
       var tokens = id.split('/')
       if (onlyLast) {
