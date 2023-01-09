@@ -186,6 +186,7 @@ export default function ProfileEntity(props) {
       ...(existingEdge ?? {
         ...editEdgeTemplate,
         defaultWeight: undefined,
+        defaultLabel: undefined,
         head: maxLoadInvitationHead ?? editEdgeTemplate.head,
         label: isInviteInvitation ? editInvitation.label?.default : editEdgeTemplate.label,
         readers: getValues(editInvitation.readers),
