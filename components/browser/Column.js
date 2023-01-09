@@ -101,8 +101,8 @@ export default function Column(props) {
       [type]: entityId,
       [otherType]: parentId,
       label: editInvitation.query.label,
-      ...(!isInviteInvitation && { weight }),
-      defaultWeight: editInvitation.weight.default,
+      ...(editInvitation.weight && { weight, defaultWeight: editInvitation.weight.default }),
+
       readers: editInvitation.readers, // reader/writer/nonreader/signature are completed in entity
       writers: editInvitation.writers,
       signatures: editInvitation.signatures,
